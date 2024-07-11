@@ -89,7 +89,6 @@ import { checkBindings } from '../config/defaultBindings'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
-	DEFAULT_ASSET_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
 	INTERNAL_POINTER_IDS,
 	LEFT_MOUSE_BUTTON,
@@ -152,7 +151,6 @@ import { TLHistoryBatchOptions } from './types/history-types'
 import {
 	OptionalKeys,
 	RequiredKeys,
-	TLAssetOptions,
 	TLCameraMoveOptions,
 	TLCameraOptions,
 	TLSvgOptions,
@@ -216,10 +214,6 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	/**
-	 * Options for the editor's assets.
-	 */
-	assetOptions?: Partial<TLAssetOptions>
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
 }
@@ -234,7 +228,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
-		assetOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
@@ -260,8 +253,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(this.timers.dispose.bind(this.timers))
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
-
-		this._assetOptions.set({ ...DEFAULT_ASSET_OPTIONS, ...assetOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
@@ -711,7 +702,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		this.checkLicenseKey(licenseKey)
+		const checkLicenseKey = async (licenseKey: string | undefined) => {
+			if (!featureFlags.enableLicensing.get()) return
+
+			const licenseManager = new LicenseManager()
+			const watermarkManager = new WatermarkManager(this)
+			const license = await licenseManager.getLicenseFromKey(licenseKey)
+			const isTestEnv = typeof process !== 'undefined'
+			this.isWatermarkShown = watermarkManager.checkWatermark(license) && !isTestEnv
+		}
+		checkLicenseKey(licenseKey)
 
 		this.performanceTracker = new PerformanceTracker()
 	}
@@ -814,18 +814,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private focusManager: FocusManager
 
 	/**
-	 * A function that instantiates the license manager and watermark manager, and
-	 * checks the license key. Showing a watermark if the license key is invalid.
+	 * Whether the watermark is shown.
+	 * This only affects watermarks on image exports, before you get any ideas.
 	 *
+	 * @internal
 	 */
-	private async checkLicenseKey(licenseKey: string | undefined) {
-		if (!featureFlags.enableLicensing.get()) return
-
-		const licenseManager = new LicenseManager()
-		const watermarkManager = new WatermarkManager(this)
-		const license = await licenseManager.getLicenseFromKey(licenseKey)
-		watermarkManager.checkWatermark(license)
-	}
+	isWatermarkShown = false
 
 	/**
 	 * The current HTML element containing the editor.
@@ -2091,7 +2085,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private getCameraId() {
+	private _unsafe_getCameraId() {
 		return CameraRecordType.createId(this.getCurrentPageId())
 	}
 
@@ -2101,7 +2095,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCamera(): TLCamera {
-		const baseCamera = this.store.get(this.getCameraId())!
+		const baseCamera = this.store.get(this._unsafe_getCameraId())!
 		if (this._isLockedOnFollowingUser.get()) {
 			const followingCamera = this.getCameraForFollowing()
 			if (followingCamera) {
@@ -3856,8 +3850,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Assets --------------------- */
 
-	private _assetOptions = atom('asset options', DEFAULT_ASSET_OPTIONS)
-
 	/** @internal */
 	@computed private _getAllAssetsQuery() {
 		return this.store.query.records('asset')
@@ -3962,29 +3954,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 		assetId: TLAssetId | null,
 		context: {
 			screenScale?: number
-			shouldResolveToOriginalImage?: boolean
+			shouldResolveToOriginal?: boolean
 		}
 	): Promise<string | null> {
-		if (!assetId) return ''
+		if (!assetId) return null
 		const asset = this.getAsset(assetId)
-		if (!asset) return ''
+		if (!asset) return null
 
-		const { screenScale, shouldResolveToOriginalImage } = context
+		const { screenScale = 1, shouldResolveToOriginal = false } = context
 
 		// We only look at the zoom level at powers of 2.
 		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
-		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale || 1))
+		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale))
 		const networkEffectiveType: string | null =
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 		const dpr = this.getInstanceState().devicePixelRatio
 
-		return await this._assetOptions.get().onResolveAsset(asset!, {
+		return await this.store.props.assets.resolve(asset, {
 			screenScale: screenScale || 1,
 			steppedScreenScale,
 			dpr,
 			networkEffectiveType,
-			shouldResolveToOriginalImage,
+			shouldResolveToOriginal: shouldResolveToOriginal,
 		})
+	}
+	/**
+	 * Upload an asset to the store's asset service, returning a URL that can be used to resolve the
+	 * asset.
+	 */
+	async uploadAsset(asset: TLAsset, file: File): Promise<string> {
+		return await this.store.props.assets.upload(asset, file)
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -7695,13 +7694,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Register an external content handler. This handler will be called when the editor receives
-	 * external content of the provided type. For example, the 'image' type handler will be called
-	 * when a user drops an image onto the canvas.
+	 * Register an external asset handler. This handler will be called when the editor needs to
+	 * create an asset for some external content, like an image/video file or a bookmark URL. For
+	 * example, the 'file' type handler will be called when a user drops an image onto the canvas.
+	 *
+	 * The handler should extract any relevant metadata for the asset, upload it to blob storage
+	 * using {@link Editor.uploadAsset} if needed, and return the asset with the metadata & uploaded
+	 * URL.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.registerExternalAssetHandler('text', myHandler)
+	 * editor.registerExternalAssetHandler('file', myHandler)
 	 * ```
 	 *
 	 * @param type - The type of external content.
@@ -7878,12 +7881,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					!asset.props.src?.startsWith('http')
 				) {
 					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
-					const objectUrl = await this._assetOptions.get().onResolveAsset(asset!, {
+					const objectUrl = await this.store.props.assets.resolve(asset, {
 						screenScale: 1,
 						steppedScreenScale: 1,
 						dpr: 1,
 						networkEffectiveType: null,
-						shouldResolveToOriginalImage: true,
+						shouldResolveToOriginal: true,
 					})
 					assetWithDataUrl.props.src = await FileHelpers.blobToDataUrl(
 						await fetch(objectUrl!).then((r) => r.blob())
@@ -8353,7 +8356,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} = this.inputs
 
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz } = this.store.unsafeGetWithoutCapture(this.getCameraId())!
+		const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 
 		const sx = info.point.x - screenBounds.x
 		const sy = info.point.y - screenBounds.y

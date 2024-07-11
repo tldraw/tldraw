@@ -1,6 +1,6 @@
 import { SerializedSchema, SerializedStore } from '@tldraw/store'
+import { schema } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
-import { schema } from '@tldraw/tlsync'
 import { Result, objectMapEntries } from '@tldraw/utils'
 
 interface SnapshotRequestBody {

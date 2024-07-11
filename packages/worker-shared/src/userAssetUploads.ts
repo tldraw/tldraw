@@ -1,8 +1,9 @@
 import { ExecutionContext, R2Bucket } from '@cloudflare/workers-types'
+import { IRequest } from 'itty-router'
 import { notFound } from './errors'
 
 interface UserAssetOpts {
-	request: Request
+	request: IRequest
 	bucket: R2Bucket
 	objectName: string
 	context: ExecutionContext
@@ -25,8 +26,7 @@ export async function handleUserAssetUpload({
 }
 
 export async function handleUserAssetGet({ request, bucket, objectName, context }: UserAssetOpts) {
-	const cacheUrl = new URL(request.url)
-	const cacheKey = new Request(cacheUrl.toString(), request)
+	const cacheKey = new URL(request.url)
 
 	// this cache automatically handles range responses etc.
 	const cachedResponse = await caches.default.match(cacheKey)
@@ -58,6 +58,7 @@ export async function handleUserAssetGet({ request, bucket, objectName, context 
 		}
 		headers.set('content-range', `bytes ${start}-${end}/${object.size}`)
 	}
+
 	// assets are immutable, so we can cache them basically forever:
 	headers.set('cache-control', 'public, max-age=31536000, immutable')
 

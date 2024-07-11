@@ -1,4 +1,4 @@
-export { default as TLDRAW_LICENSE } from './license'
+export { default as getLicenseKey } from './license'
 export {
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,

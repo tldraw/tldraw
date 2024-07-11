@@ -1,5 +1,5 @@
 import { ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-shared'
-import { schema } from '@tldraw/tlsync'
+import { schema } from '@tldraw/sync-core'
 import { Navigate } from 'react-router-dom'
 import '../../styles/globals.css'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'
@@ -24,6 +24,11 @@ const { loader, useData } = defineLoader(async (_args) => {
 
 export { loader }
 
+// Using this directly in Navigate caused a "Maximum update depth exceeded" error in dev
+const state = {
+	shouldOpenShareMenu: true,
+}
+
 export function Component() {
 	const data = useData()
 	if (!data)
@@ -36,13 +41,5 @@ export function Component() {
 			/>
 		)
 
-	return (
-		<Navigate
-			replace
-			state={{
-				shouldOpenShareMenu: true,
-			}}
-			to={`/${ROOM_PREFIX}/${data.slug}`}
-		/>
-	)
+	return <Navigate replace state={state} to={`/${ROOM_PREFIX}/${data.slug}`} />
 }

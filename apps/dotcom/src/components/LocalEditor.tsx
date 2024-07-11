@@ -1,4 +1,4 @@
-import { TLDRAW_LICENSE } from '@tldraw/dotcom-shared'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
@@ -19,7 +19,6 @@ import {
 	ViewSubmenu,
 	useActions,
 } from 'tldraw'
-import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
@@ -81,7 +80,7 @@ const components: TLComponents = {
 
 export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing(SCRATCH_PERSISTENCE_KEY)
+	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
@@ -93,14 +92,13 @@ export function LocalEditor() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={TLDRAW_LICENSE}
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
-				assetOptions={{ onResolveAsset: resolveAsset(SCRATCH_PERSISTENCE_KEY) }}
 				inferDarkMode
 			>
 				<LocalMigration />

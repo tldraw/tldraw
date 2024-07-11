@@ -21,6 +21,8 @@ export const imageShapeProps = {
 	url: T.linkUrl,
 	assetId: assetIdValidator.nullable(),
 	crop: ImageShapeCrop.nullable(),
+	flipX: T.boolean,
+	flipY: T.boolean,
 }
 
 /** @public */
@@ -33,6 +35,7 @@ const Versions = createShapePropsMigrationIds('image', {
 	AddUrlProp: 1,
 	AddCropProp: 2,
 	MakeUrlsValid: 3,
+	AddFlipProps: 4,
 })
 
 export { Versions as imageShapeVersions }
@@ -65,6 +68,17 @@ export const imageShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (_props) => {
 				// noop
+			},
+		},
+		{
+			id: Versions.AddFlipProps,
+			up: (props) => {
+				props.flipX = false
+				props.flipY = false
+			},
+			down: (props) => {
+				delete props.flipX
+				delete props.flipY
 			},
 		},
 	],

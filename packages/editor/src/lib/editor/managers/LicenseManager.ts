@@ -3,19 +3,18 @@ import { importPublicKey, str2ab } from '../../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 5
 
-const FLAGS = {
+export const FLAGS = {
 	ANNUAL_LICENSE: 0x1,
 	PERPETUAL_LICENSE: 0x2,
 	INTERNAL_LICENSE: 0x4,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
-const PROPERTIES = {
+export const PROPERTIES = {
 	ID: 0,
 	HOSTS: 1,
 	FLAGS: 2,
-	VERSION: 3,
-	EXPIRY_DATE: 4,
+	EXPIRY_DATE: 3,
 }
 const NUMBER_OF_KNOWN_PROPERTIES = Object.keys(PROPERTIES).length
 
@@ -25,7 +24,6 @@ interface LicenseInfo {
 	id: string
 	hosts: string[]
 	flags: number
-	version: string
 	expiryDate: string
 }
 type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided' | 'has-key-development-mode'
@@ -37,9 +35,10 @@ interface InvalidLicenseKeyResult {
 	reason: InvalidLicenseReason
 }
 
-interface ValidLicenseKeyResult {
+export interface ValidLicenseKeyResult {
 	isLicenseParseable: true
 	license: LicenseInfo
+	isDevelopment: boolean
 	isDomainValid: boolean
 	expiryDate: Date
 	isAnnualLicense: boolean
@@ -49,28 +48,26 @@ interface ValidLicenseKeyResult {
 	isInternalLicense: boolean
 }
 
+type TestEnvironment = 'development' | 'production'
+
 export class LicenseManager {
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 	public isDevelopment: boolean
+	public isCryptoAvailable: boolean
 
-	constructor(testPublicKey?: string) {
-		this.isDevelopment = this.getIsDevelopment()
+	constructor(testPublicKey?: string, testEnvironment?: TestEnvironment) {
+		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
+		this.isCryptoAvailable = !!crypto.subtle
 	}
 
-	private getIsDevelopment() {
-		if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
-			return true
-		}
-		if (
-			typeof import.meta !== 'undefined' &&
-			(import.meta as any).env &&
-			(import.meta as any).env.MODE === 'development'
-		) {
-			return true
-		}
-		return window.location.protocol === 'http:'
+	private getIsDevelopment(testEnvironment?: TestEnvironment) {
+		if (testEnvironment === 'development') return true
+		if (testEnvironment === 'production') return false
+
+		// If we are using https we assume it's a production env and a development one otherwise
+		return window.location.protocol !== 'https:'
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
@@ -93,8 +90,8 @@ export class LicenseManager {
 					hash: { name: 'SHA-256' },
 				},
 				publicCryptoKey,
-				str2ab(atob(signature)),
-				str2ab(atob(encodedData))
+				new Uint8Array(str2ab(atob(signature))),
+				new Uint8Array(str2ab(atob(encodedData)))
 			)
 		} catch (e) {
 			console.error(e)
@@ -122,18 +119,28 @@ export class LicenseManager {
 			id: decodedData[PROPERTIES.ID],
 			hosts: decodedData[PROPERTIES.HOSTS],
 			flags: decodedData[PROPERTIES.FLAGS],
-			version: decodedData[PROPERTIES.VERSION],
 			expiryDate: decodedData[PROPERTIES.EXPIRY_DATE],
 		}
 	}
 
 	async getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult> {
 		if (!licenseKey) {
-			this.outputNoLicenseKeyProvided()
+			if (!this.isDevelopment) {
+				this.outputNoLicenseKeyProvided()
+			}
+
 			return { isLicenseParseable: false, reason: 'no-key-provided' }
 		}
 
-		if (this.isDevelopment) {
+		if (this.isDevelopment && !this.isCryptoAvailable) {
+			// eslint-disable-next-line no-console
+			console.log(
+				'tldraw: you seem to be in a development environment that does not support crypto. License not verified.'
+			)
+			// eslint-disable-next-line no-console
+			console.log('You should check that this works in production separately.')
+			// We can't parse the license if we are in development mode since crypto
+			// is not available on http
 			return { isLicenseParseable: false, reason: 'has-key-development-mode' }
 		}
 
@@ -152,6 +159,7 @@ export class LicenseManager {
 			const result: ValidLicenseKeyResult = {
 				license: licenseInfo,
 				isLicenseParseable: true,
+				isDevelopment: this.isDevelopment,
 				isDomainValid: this.isDomainValid(licenseInfo),
 				expiryDate,
 				isAnnualLicense,
@@ -173,13 +181,15 @@ export class LicenseManager {
 	private isDomainValid(licenseInfo: LicenseInfo) {
 		const currentHostname = window.location.hostname.toLowerCase()
 
-		if (['localhost', '127.0.0.1'].includes(currentHostname)) {
-			return true
-		}
-
 		return licenseInfo.hosts.some((host) => {
 			const normalizedHost = host.toLowerCase().trim()
-			if (normalizedHost === currentHostname) {
+
+			// Allow the domain if listed and www variations, 'example.com' allows 'example.com' and 'www.example.com'
+			if (
+				normalizedHost === currentHostname ||
+				`www.${normalizedHost}` === currentHostname ||
+				normalizedHost === `www.${currentHostname}`
+			) {
 				return true
 			}
 
@@ -192,11 +202,15 @@ export class LicenseManager {
 			// Glob testing, we only support '*.somedomain.com' right now.
 			if (host.includes('*')) {
 				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
-				return globToRegex.test(host)
+				return globToRegex.test(currentHostname)
 			}
 
 			return false
 		})
+	}
+
+	private getExpirationDateWithoutGracePeriod(expiryDate: Date) {
+		return new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate())
 	}
 
 	private getExpirationDateWithGracePeriod(expiryDate: Date) {
@@ -209,7 +223,15 @@ export class LicenseManager {
 
 	private isAnnualLicenseExpired(expiryDate: Date) {
 		const expiration = this.getExpirationDateWithGracePeriod(expiryDate)
-		return new Date() >= expiration
+		const isExpired = new Date() >= expiration
+		// If it is not expired yet (including the grace period), but after the expiry date we warn the users
+		if (!isExpired && new Date() >= this.getExpirationDateWithoutGracePeriod(expiryDate)) {
+			this.outputMessages([
+				'tldraw license is about to expire, you are in a grace period.',
+				`Please reach out to ${LICENSE_EMAIL} if you would like to renew your license.`,
+			])
+		}
+		return isExpired
 	}
 
 	private isPerpetualLicenseExpired(expiryDate: Date) {
@@ -245,7 +267,7 @@ export class LicenseManager {
 			])
 		}
 
-		if (!result.isDomainValid) {
+		if (!result.isDomainValid && !result.isDevelopment) {
 			this.outputMessages([
 				'This tldraw license key is not valid for this domain!',
 				`Please reach out to ${LICENSE_EMAIL} if you would like to use tldraw on other domains.`,
@@ -261,13 +283,7 @@ export class LicenseManager {
 		}
 	}
 
-	private outputMessage(message: string) {
-		this.outputMessages([message])
-	}
-
 	private outputMessages(messages: string[]) {
-		if (!this.isDevelopment) return
-
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console

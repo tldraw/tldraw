@@ -32,3 +32,5 @@ apps/vscode/extension/editor/tldraw-assets.json
 apps/dotcom/public/sw.js
 
 patchedJestJsDom.js
+
+**/.clasp.json

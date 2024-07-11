@@ -79,7 +79,7 @@ export class WatermarkManager {
 
 		this.createWatermark()
 
-		const resizeListener = () => () => {
+		const resizeListener = () => {
 			// We need to replace the watermark to ensure the correct size is shown.
 			const watermark = this.createWatermark(true /* doReplace */)
 			watermark && this.setWatermarkSrc(watermark)
@@ -94,7 +94,10 @@ export class WatermarkManager {
 
 			this.applyStyles(watermark)
 
-			if (!license.isLicenseParseable && license.reason === 'has-key-development-mode') {
+			if (
+				(!license.isLicenseParseable && license.reason === 'has-key-development-mode') ||
+				(license.isLicenseParseable && license.isDevelopment)
+			) {
 				// After 5 seconds, in development mode (dev, staging, CI), remove.
 				watermark.parentNode?.removeChild(watermark)
 				window.removeEventListener('resize', resizeListener)

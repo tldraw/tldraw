@@ -58,6 +58,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 					className="tl-bookmark__container"
 					style={{
 						boxShadow: getRotatedBoxShadow(pageRotation),
+						maxHeight: shape.props.h,
 					}}
 				>
 					{(!asset || asset.props.image) && (

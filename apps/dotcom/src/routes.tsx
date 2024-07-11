@@ -10,6 +10,11 @@ import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-ro
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 
+const enableTemporaryLocalBemo =
+	window.location.hostname === 'localhost' &&
+	window.location.port === '3000' &&
+	typeof jest === 'undefined'
+
 export const router = createRoutesFromElements(
 	<Route
 		element={
@@ -50,6 +55,9 @@ export const router = createRoutesFromElements(
 				lazy={() => import('./pages/public-readonly-legacy')}
 			/>
 			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
+			{enableTemporaryLocalBemo && (
+				<Route path={`/bemo/:roomId`} lazy={() => import('./pages/temporary-bemo')} />
+			)}
 		</Route>
 		<Route path="*" lazy={() => import('./pages/not-found')} />
 	</Route>

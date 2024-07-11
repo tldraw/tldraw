@@ -1,4 +1,5 @@
-import { TLDRAW_LICENSE } from '@tldraw/dotcom-shared'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { useMemo } from 'react'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
@@ -13,8 +14,6 @@ import {
 	useActions,
 } from 'tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
-import { StoreErrorScreen } from '../components/StoreErrorScreen'
-import { useLocalStore } from '../hooks/useLocalStore'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
@@ -58,19 +57,25 @@ interface SnapshotEditorProps {
 	records: TLRecord[]
 }
 
-export function SnapshotsEditor(props: SnapshotEditorProps) {
+export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
-	const storeResult = useLocalStore(props.records, props.schema)
-	if (!storeResult?.ok) return <StoreErrorScreen error={new Error(storeResult?.error)} />
+
+	const snaphot = useMemo(
+		() => ({
+			schema,
+			store: Object.fromEntries(records.map((record) => [record.id, record])),
+		}),
+		[schema, records]
+	)
 
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={TLDRAW_LICENSE}
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
-				store={storeResult.value}
+				snapshot={snaphot}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {

@@ -1,4 +1,4 @@
-const TLDRAW_LICENSE =
+const getLicenseKey = () =>
 	process.env.TLDRAW_LICENSE ??
-	'tldraw-tldraw-2025-07-03/WyJkT2xBWE5VcSIsWyIqLnRsZHJhdy5jb20iXSwxLCIyLjMuMCIsIjIwMjUtMDctMDMiXQ==.Dow6kqvC3yyT6r9oy8bpPYYwhg9+RFViDroQ49P9+M5WZ1RSwIpb6xhvZ1kPVOiN7y0Xbrxvjb2o3K8TJlxUTA=='
-export default TLDRAW_LICENSE
+	'tldraw-tldraw-2025-07-10/WyJiTEZhTGFLRSIsWyIqLnRsZHJhdy5jb20iXSwxLCIyMDI1LTA3LTEwIl0.frNy824rh1/JzMGLzLuW9JFKrah66N23/+xY0Z+5XoyKQWO7UpIDdKgDN5+N//yHE5Fh1DThM7ykoGzul/RjrA'
+export default getLicenseKey

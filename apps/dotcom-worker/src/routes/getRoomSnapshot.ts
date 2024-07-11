@@ -1,4 +1,4 @@
-import { RoomSnapshot } from '@tldraw/tlsync'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'

@@ -17,7 +17,11 @@ export default function ExampleCodeBlock({
 	const { theme } = useTheme()
 	useEffect(() => setIsClientSide(true), [])
 	const SERVER =
-		process.env.NODE_ENV === 'development' ? 'http://localhost:5420' : 'https://examples.tldraw.com'
+		process.env.NODE_ENV === 'development'
+			? `http://${location.host}:5420`
+			: location.host.includes('staging') || location.host.includes('canary')
+				? `https://examples-canary.tldraw.com`
+				: 'https://examples.tldraw.com'
 
 	// This is to avoid hydration mismatch between the server and the client because of the useTheme.
 	if (!isClientSide) {
