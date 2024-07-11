@@ -36,6 +36,13 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 				sessionId: string
 				message: TLSocketServerSentEvent<R>
 				stringified: string
+				meta: SessionMeta
+			}) => void
+			onAfterReceiveMessage?: (args: {
+				sessionId: string
+				message: TLSocketServerSentEvent<R>
+				stringified: string
+				meta: SessionMeta
 			}) => void
 			onDataChange?: () => void
 		}
@@ -90,6 +97,7 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 								sessionId,
 								message,
 								stringified,
+								meta: this.room.sessions.get(sessionId)?.meta as SessionMeta,
 							})
 					: undefined,
 			}),
@@ -114,6 +122,19 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 				typeof message === 'string' ? message : new TextDecoder().decode(message)
 			const res = assembler.handleMessage(messageString)
 			if (res?.data) {
+				// need to do this first in case the session gets removed as a result of handling the message
+				if (this.opts.onAfterReceiveMessage) {
+					const session = this.room.sessions.get(sessionId)
+					if (session) {
+						this.opts.onAfterReceiveMessage({
+							sessionId,
+							message: res.data as any,
+							stringified: messageString,
+							meta: session.meta,
+						})
+					}
+				}
+
 				this.room.handleMessage(sessionId, res.data as any)
 			}
 			if (res?.error) {

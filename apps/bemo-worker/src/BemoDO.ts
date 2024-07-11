@@ -1,3 +1,4 @@
+import { AnalyticsEngineDataset } from '@cloudflare/workers-types'
 import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { throttle } from '@tldraw/utils'
@@ -13,9 +14,23 @@ const connectRequestQuery = T.object({
 	storeId: T.string.optional(),
 })
 
+interface AnalyticsEvent {
+	type: 'connect' | 'send_message' | 'receive_message'
+	origin: string
+	sessionKey: string
+}
+
 export class BemoDO extends DurableObject<Environment> {
 	r2: R2Bucket
 	_slug: string | null = null
+
+	analytics: AnalyticsEngineDataset
+
+	writeEvent({ type, origin, sessionKey }: AnalyticsEvent) {
+		this.analytics.writeDataPoint({
+			blobs: [type, origin, sessionKey],
+		})
+	}
 
 	constructor(
 		public state: DurableObjectState,
@@ -23,6 +38,7 @@ export class BemoDO extends DurableObject<Environment> {
 	) {
 		super(state, env)
 		this.r2 = env.BEMO_BUCKET
+		this.analytics = env.BEMO_ANALYTICS
 
 		state.blockConcurrencyWhile(async () => {
 			this._slug = ((await this.state.storage.get('slug')) ?? null) as string | null
@@ -68,6 +84,8 @@ export class BemoDO extends DurableObject<Environment> {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
+		const origin = req.headers.get('origin') ?? 'unknown'
+
 		try {
 			const room = await this.getRoom()
 			// Don't connect if we're already at max connections
@@ -81,7 +99,7 @@ export class BemoDO extends DurableObject<Environment> {
 			}
 
 			// all good
-			room.handleSocketConnect(sessionKey, serverWebSocket)
+			room.handleSocketConnect(sessionKey, serverWebSocket, { origin })
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
@@ -93,7 +111,7 @@ export class BemoDO extends DurableObject<Environment> {
 	}
 
 	// For TLSyncRoom
-	_room: Promise<TLSocketRoom<TLRecord, void>> | null = null
+	_room: Promise<TLSocketRoom<TLRecord, { origin: string }>> | null = null
 
 	getSlug() {
 		if (!this._slug) {
@@ -106,9 +124,23 @@ export class BemoDO extends DurableObject<Environment> {
 		const slug = this.getSlug()
 		if (!this._room) {
 			this._room = this.loadFromDatabase(slug).then((result) => {
-				return new TLSocketRoom<TLRecord, void>({
+				return new TLSocketRoom<TLRecord, { origin: string }>({
 					schema: makePermissiveSchema(),
 					initialSnapshot: result.type === 'room_found' ? result.snapshot : undefined,
+					onAfterReceiveMessage: ({ sessionId, meta }) => {
+						this.writeEvent({
+							type: 'receive_message',
+							origin: meta.origin,
+							sessionKey: sessionId,
+						})
+					},
+					onBeforeSendMessage: ({ sessionId, meta }) => {
+						this.writeEvent({
+							type: 'send_message',
+							origin: meta.origin,
+							sessionKey: sessionId,
+						})
+					},
 					onSessionRemoved: async (room, args) => {
 						if (args.numSessionsRemaining > 0) return
 						if (!this._room) return
