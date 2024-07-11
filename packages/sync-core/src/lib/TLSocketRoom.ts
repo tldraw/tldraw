@@ -22,7 +22,7 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 	constructor(
 		public readonly opts: {
 			initialSnapshot?: RoomSnapshot
-			schema?: StoreSchema<R>
+			schema?: StoreSchema<R, any>
 			// how long to wait for a client to communicate before disconnecting them
 			clientTimeout?: number
 			log?: TLSyncLog

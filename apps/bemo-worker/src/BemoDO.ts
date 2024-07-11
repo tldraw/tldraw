@@ -5,6 +5,7 @@ import { T } from '@tldraw/validate'
 import { createPersistQueue, createSentry, parseRequestQuery } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
+import { makePermissiveSchema } from './makePermissiveSchema'
 import { Environment } from './types'
 
 const connectRequestQuery = T.object({
@@ -106,6 +107,7 @@ export class BemoDO extends DurableObject<Environment> {
 		if (!this._room) {
 			this._room = this.loadFromDatabase(slug).then((result) => {
 				return new TLSocketRoom<TLRecord, void>({
+					schema: makePermissiveSchema(),
 					initialSnapshot: result.type === 'room_found' ? result.snapshot : undefined,
 					onSessionRemoved: async (room, args) => {
 						if (args.numSessionsRemaining > 0) return
