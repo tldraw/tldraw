@@ -117,6 +117,7 @@ export class WatermarkManager {
 			// we still fallback to the local watermark.
 			this.forceLocal = true
 			this.setWatermarkSrc(watermark)
+			watermark.onerror = null
 		}
 		watermark.onclick = () => {
 			window.open('https://tldraw.dev', '_blank', 'noopener noreferrer')
