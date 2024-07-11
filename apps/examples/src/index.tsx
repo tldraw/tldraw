@@ -25,9 +25,6 @@ if (!gettingStartedExamples) throw new Error('Could not find getting started exa
 const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Tldraw component')
 if (!basicExample) throw new Error('Could not find initial example')
 
-// eslint-disable-next-line no-console
-console.log('bemo', process.env.TLDRAW_BEMO_URL)
-
 const router = createBrowserRouter([
 	{
 		path: '*',

@@ -10,6 +10,7 @@
 	--black-transparent-dark: rgba(0, 0, 0, 0.5);
 	--black-transparent-darker: rgba(0, 0, 0, 0.7);
 	--focus: hsl(214, 84%, 56%);
+	--whiteboard: hsl(210, 20%, 98%);
 	color-scheme: light;
 }
 
@@ -24,6 +25,7 @@
 	--black-transparent-dark: rgba(255, 255, 255, 0.6);
 	--black-transparent-darker: rgba(255, 255, 255, 0.7);
 	--focus: hsl(217, 89%, 61%);
+	--whiteboard: hsl(240, 5%, 6.5%);
 	color-scheme: dark;
 }
 
@@ -455,19 +457,34 @@ a.example__sidebar__header-link {
 	inset: 0;
 	display: flex;
 	flex-direction: column;
+	container: example / size;
 }
 .MultiplayerExampleWrapper-picker {
+	position: absolute;
+	z-index: 1;
+	left: 0;
+	right: 0;
 	display: flex;
 	flex-direction: row;
 	justify-content: center;
 	align-items: center;
-	border-bottom: 1px solid var(--gray-dark);
 	padding: 8px;
 	padding-bottom: 7px;
 }
+.MultiplayerExampleWrapper-picker::before {
+	content: '';
+	position: absolute;
+	top: 6px;
+	height: 29px;
+	width: 232px;
+	margin-left: 28px;
+	background: var(--whiteboard);
+	z-index: -1;
+	border-radius: 6px;
+}
 
 .MultiplayerExampleWrapper-picker label {
-	flex: 0 1 250px;
+	flex: 0 1 200px;
 	font-size: 14px;
 	display: flex;
 	flex-direction: row;
@@ -477,6 +494,9 @@ a.example__sidebar__header-link {
 	color: var(--black-transparent-dark);
 	border-radius: 4px;
 	padding: 2px 8px;
+	background: var(--background);
+	/* Add space to the left the same as the button to keep the input centered */
+	margin-left: 32px;
 }
 .MultiplayerExampleWrapper-picker label:focus-within {
 	border-color: var(--focus);
@@ -522,4 +542,33 @@ a.example__sidebar__header-link {
 .MultiplayerExampleWrapper-example {
 	position: relative;
 	height: 100%;
+}
+
+@container example (width < 584px) {
+	.MultiplayerExampleWrapper-picker {
+		position: static;
+		border-bottom: 1px solid var(--gray-dark);
+	}
+	.MultiplayerExampleWrapper-picker::before {
+		display: none;
+	}
+	.MultiplayerExampleWrapper-picker label {
+		width: 100%;
+		flex: 1 1 auto;
+		margin: 0;
+	}
+	.MultiplayerExampleWrapper-picker button {
+		margin-right: -4px;
+	}
+}
+
+@container example (width <= 904px) and (width > 840px) {
+	.MultiplayerExampleWrapper-picker {
+		left: 346px;
+		right: 0;
+		justify-content: start;
+	}
+	.MultiplayerExampleWrapper-picker label {
+		margin-left: 0;
+	}
 }
