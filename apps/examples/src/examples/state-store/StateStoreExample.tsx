@@ -33,6 +33,7 @@ const InfoPanel = track(() => {
 })
 
 // [2]
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function AlternativeInfoPanel() {
 	const editor = useEditor()
 	const tool = useValue(
