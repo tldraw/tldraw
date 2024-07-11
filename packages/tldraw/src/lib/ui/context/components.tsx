@@ -11,7 +11,7 @@ import {
 import { CursorChatBubble } from '../components/CursorChatBubble'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
 import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
-import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
+import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
 import {
 	DefaultHelperButtons,
 	TLUiHelperButtonsProps,
@@ -81,7 +81,7 @@ export function TldrawUiComponentsProvider({
 				() => ({
 					ContextMenu: DefaultContextMenu,
 					ActionsMenu: DefaultActionsMenu,
-					HelpMenu: DefaultHelpMenu,
+					HelpMenu: null,
 					ZoomMenu: DefaultZoomMenu,
 					MainMenu: DefaultMainMenu,
 					Minimap: DefaultMinimap,

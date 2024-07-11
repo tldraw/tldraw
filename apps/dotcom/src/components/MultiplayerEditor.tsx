@@ -1,16 +1,21 @@
-import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
+import {
+	getLicenseKey,
+	ROOM_OPEN_MODE,
+	RoomOpenModeToPath,
+	type RoomOpenMode,
+} from '@tldraw/dotcom-shared'
 import { useMultiplayerSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import {
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
+	assertExists,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	EditSubmenu,
 	Editor,
+	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	HelpGroup,
 	PeopleMenu,
 	PreferencesGroup,
 	TLComponents,
@@ -20,12 +25,11 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	ViewSubmenu,
-	assertExists,
 	useActions,
 	useEditor,
 	useTranslation,
 	useValue,
+	ViewSubmenu,
 } from 'tldraw'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
@@ -47,14 +51,6 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
@@ -63,6 +59,7 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
+			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),
@@ -157,6 +154,7 @@ export function MultiplayerEditor({
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}

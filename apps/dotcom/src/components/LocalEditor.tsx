@@ -1,9 +1,8 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -11,6 +10,7 @@ import {
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	HelpGroup,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
@@ -37,14 +37,6 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<LocalFileMenu />
@@ -53,6 +45,7 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
+			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),
@@ -99,6 +92,7 @@ export function LocalEditor() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}

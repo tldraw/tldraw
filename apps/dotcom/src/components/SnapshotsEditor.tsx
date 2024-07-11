@@ -1,7 +1,6 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import {
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -22,20 +21,11 @@ import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
 import { MultiplayerFileMenu } from './FileMenu'
-import { Links } from './Links'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
@@ -83,6 +73,7 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				snapshot={snaphot}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}

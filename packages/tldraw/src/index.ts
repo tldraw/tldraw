@@ -122,6 +122,7 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	HelpGroup,
 	MiscMenuGroup,
 	PreferencesGroup,
 	UndoRedoGroup,
@@ -410,7 +411,6 @@ export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,
-	getDefaultCdnBaseUrl,
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'

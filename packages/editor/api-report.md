@@ -782,7 +782,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, licenseKey, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
@@ -1389,6 +1389,9 @@ export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcF
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
+
+// @public (undocumented)
+export function getDefaultCdnBaseUrl(): string;
 
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
@@ -2506,6 +2509,7 @@ export interface TldrawEditorBaseProps {
     components?: TLEditorComponents;
     inferDarkMode?: boolean;
     initialState?: string;
+    licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
@@ -2667,6 +2671,8 @@ export interface TLEditorOptions {
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    // (undocumented)
+    licenseKey?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];

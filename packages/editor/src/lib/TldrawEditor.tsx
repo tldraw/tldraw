@@ -164,6 +164,11 @@ export interface TldrawEditorBaseProps {
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+
+	/**
+	 * The license key.
+	 */
+	licenseKey?: string
 }
 
 /**
@@ -187,6 +192,8 @@ declare global {
 const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
+/** @internal */
+export const TL_CONTAINER_CLASS = 'tl-container'
 
 /** @public @react */
 export const TldrawEditor = memo(function TldrawEditor({
@@ -217,7 +224,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		<div
 			ref={setContainer}
 			draggable={false}
-			className={classNames('tl-container tl-theme__light', className)}
+			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
 		>
@@ -334,6 +341,7 @@ function TldrawEditorWithReadyStore({
 	inferDarkMode,
 	cameraOptions,
 	options,
+	licenseKey,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -380,6 +388,7 @@ function TldrawEditorWithReadyStore({
 				inferDarkMode,
 				cameraOptions,
 				options,
+				licenseKey,
 			})
 
 			setEditor(editor)
@@ -389,7 +398,7 @@ function TldrawEditorWithReadyStore({
 			}
 		},
 		// if any of these change, we need to recreate the editor.
-		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor]
+		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor, licenseKey]
 	)
 
 	// keep the editor up to date with the latest camera options
