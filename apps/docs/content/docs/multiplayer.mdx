@@ -1,0 +1,65 @@
+---
+title: Multiplayer (preview)
+status: published
+author: alex
+date: 7/11/2024
+order: 7
+keywords:
+  - data
+  - sync
+  - persistence
+  - database
+  - multiplayer
+  - collaboration
+  - server
+  - websockets
+---
+
+<Callout icon="⚠️">
+
+This is an early preview of multiplayer in tldraw. It's not yet suitable for production.
+If you're interested, come chat to us in [#sync on Discord](https://discord.gg/TNqHbu5mHv).
+
+</Callout>
+
+Tldraw supports a collaborative multiplayer experience out of the box. Changes to a document can by
+synced in real-time to other instances, including presence information like live cursors to show the
+activities of other collaborators.
+
+<div className="article__image" style={{ border: 'none' }}>
+	<img
+		alt="Multiplayer in tldraw"
+		src="/images/multiplayer.gif"
+		style={{
+			// learn this one weird trick for transparent animated gifs. doctors hate her!!!
+			mask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
+			WebkitMask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
+		}}
+	/>
+</div>
+
+## Try multiplayer in your own app
+
+The easiest way to start experimenting with multiplayer is with the `useMultiplayerDemo` hook from
+`@tldraw/sync`. This hook connects to our `demo.tldrawsync.com` multiplayer server, which hosts
+multiplayer rooms for 1 day and can be used to prototype a collaborative experience on tldraw quickly,
+but should not be used in production.
+
+Start by installing @tldraw/sync:
+
+```
+npm install @tldraw/sync
+```
+
+Then, in your app, call the `useMultiplayerDemo` hook with a room ID. It'll return a
+[`store`](/docs/persistence#The-store-prop) that you can pass into the tldraw component:
+
+```tsx
+function MyApp() {
+	const store = useMultiplayerDemo({ roomId: 'myApp-abc123' })
+	return <Tldraw store={store} />
+}
+```
+
+Make sure the room ID is unique. The namespace is shared by everyone using the demo server. Consider
+prefixing it with your company or project name.

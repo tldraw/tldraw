@@ -142,7 +142,7 @@ export const Video = (props: any) => {
 /* ------------------- Code Blocks ------------------ */
 
 export const Pre = (props: any) => {
-	if (props.children?.props?.className.startsWith('language-')) {
+	if (props.children?.props?.className?.startsWith('language-')) {
 		return props.children
 	}
 
@@ -173,8 +173,8 @@ export const Embed = (props: any) => {
 export const Callout = ({ icon, children }: any) => {
 	return (
 		<div className="article__callout">
-			<span>{icon}</span>
-			<p>{children}</p>
+			<div className="article__callout__icon">{icon}</div>
+			<div className="article__callout__message">{children}</div>
 		</div>
 	)
 }
