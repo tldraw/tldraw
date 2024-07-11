@@ -103,6 +103,15 @@ describe('WatermarkManager', () => {
 		expect(watermarkManager.checkWatermark(licenseResult)).toBe(false)
 	})
 
+	it('does not show watermark when license is parseable and domain is not valid and dev mode', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isLicenseParseable: true,
+			isDomainValid: false,
+			isDevelopment: true,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(false)
+	})
+
 	it('throws when an internal annual license has expired', () => {
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({

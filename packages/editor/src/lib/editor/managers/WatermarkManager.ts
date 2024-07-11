@@ -54,6 +54,7 @@ export class WatermarkManager {
 
 	private shouldShowWatermark(license: LicenseFromKeyResult) {
 		if (!license.isLicenseParseable) return true
+		if (license.isDevelopment) return false
 		if (!license.isDomainValid) return true
 
 		if (license.isPerpetualLicenseExpired || license.isAnnualLicenseExpired) {
