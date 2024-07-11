@@ -715,10 +715,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			let w = Math.max(prevWidth, nextWidth)
 			let h = Math.max(prevHeight, nextHeight)
 
+			const min = MIN_SIZE_WITH_LABEL * next.props.scale
+
 			// If both the width and height were less than the minimum size, make the shape square
-			if (prev.props.w < MIN_SIZE_WITH_LABEL && prev.props.h < MIN_SIZE_WITH_LABEL) {
-				w = Math.max(w, MIN_SIZE_WITH_LABEL)
-				h = Math.max(h, MIN_SIZE_WITH_LABEL)
+			if (prev.props.w < min && prev.props.h < min) {
+				w = Math.max(w, min)
+				h = Math.max(h, min)
 				w = Math.max(w, h)
 				h = Math.max(w, h)
 			}
