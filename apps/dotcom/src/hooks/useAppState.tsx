@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
-import { TldrawApp } from '../utils/tla/xTldrawApp'
+import { TldrawApp } from '../utils/tla/TldrawApp'
 
 const VERSION = ''
 

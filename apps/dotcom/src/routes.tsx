@@ -21,8 +21,8 @@ import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultE
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { AppStateProvider, useApp } from './hooks/useAppState'
 import { useAuth } from './tla-hooks/useAuth'
+import { getCleanId } from './utils/tla/TldrawApp'
 import { getFileUrl } from './utils/tla/urls'
-import { getCleanId } from './utils/tla/xTldrawApp'
 
 const enableTemporaryLocalBemo =
 	window.location.hostname === 'localhost' &&
