@@ -1,4 +1,4 @@
-import { getCleanId } from './TldrawApp'
+import { getCleanId } from './tldrawAppSchema'
 
 export function getFileUrl(workspaceId: string, fileId: string): string {
 	return `/w/${getCleanId(workspaceId)}/f/${getCleanId(fileId)}`
@@ -14,4 +14,8 @@ export function getUserUrl(userId: string): string {
 
 export function getWorkspaceUrl(workspaceId: string): string {
 	return `/w/${getCleanId(workspaceId)}`
+}
+
+export function getDebugUrl(workspaceId: string): string {
+	return `/w/${getCleanId(workspaceId)}/debug`
 }

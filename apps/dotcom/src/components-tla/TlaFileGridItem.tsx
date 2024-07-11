@@ -26,14 +26,12 @@ export function TlaFileGridItem({ id, name, createdAt, workspaceId }: TldrawAppF
 		<div className="tla_page__grid_item">
 			<div className="tla_page__grid_item__content">
 				<div className="tla_page__grid_item_top">
-					{imageUrl ? (
-						<div
-							className="tla_page__grid_item_thumbnail"
-							style={{ backgroundImage: `url(${imageUrl})` }}
-						/>
-					) : (
-						<TlaSpinner />
-					)}
+					<div
+						className="tla_page__grid_item_thumbnail"
+						style={{ backgroundImage: `url(${imageUrl})` }}
+					>
+						{imageUrl === null ? <TlaSpinner /> : null}
+					</div>
 				</div>
 				<div className="tla_page__grid_item_bottom">
 					<div className="tla_page__item_title tla_text_ui__regular">

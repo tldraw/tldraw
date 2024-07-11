@@ -84,6 +84,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 					</div>
 					<select
 						className="tla_page_controls__control_select"
+						value={sort}
 						onChange={(e) => {
 							const sessionState = app.getSessionState()
 							app.setSessionState({
@@ -112,6 +113,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 					</div>
 					<select
 						className="tla_page_controls__control_select"
+						value={view}
 						onChange={(e) => {
 							const sessionState = app.getSessionState()
 							app.setSessionState({

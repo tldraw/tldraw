@@ -17,6 +17,7 @@ import {
 	TldrawAppWorkspaceMembership,
 	TldrawAppWorkspaceMembershipRecordType,
 } from './schema/TldrawAppWorkspaceMembership'
+import { TldrawAppWorkspaceVisit } from './schema/TldrawAppWorkspaceVisit'
 
 export const tlaRecords = [
 	TldrawAppFileRecordType,
@@ -40,6 +41,7 @@ export type TldrawAppRecord =
 	| TldrawAppUser
 	| TldrawAppGroup
 	| TldrawAppSessionState
+	| TldrawAppWorkspaceVisit
 
 export type TldrawAppRecordId = TldrawAppRecord['id']
 
@@ -50,7 +52,12 @@ export const tldrawAppSchema = StoreSchema.create<TldrawAppRecord>({
 	file: TldrawAppFileRecordType,
 	star: TldrawAppStarRecordType,
 	'file-visit': TldrawAppFileVisitRecordType,
+	'workspace-visit': TldrawAppGroupMembershipRecordType,
 	'group-membership': TldrawAppGroupMembershipRecordType,
 	'workspace-membership': TldrawAppWorkspaceMembershipRecordType,
 	session: TldrawAppSessionStateRecordType,
 })
+
+export function getCleanId(id: string) {
+	return id.split(':')[1]
+}

@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -24,6 +24,7 @@ import { Links } from '../components/Links'
 import { ShareMenu } from '../components/ShareMenu'
 import { SneakyOnDropOverride } from '../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../components/ThemeUpdater/ThemeUpdater'
+import { useApp } from '../hooks/useAppState'
 import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -89,7 +90,9 @@ const components: TLComponents = {
 export function TlaEditor({ file }: { file: TldrawAppFile }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const persistenceKey = `tla_2_${file.id}`
+	const { id: fileId, workspaceId } = file
+
+	const persistenceKey = `tla_2_${fileId}`
 
 	const sharingUiOverrides = useSharing(persistenceKey)
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
@@ -99,6 +102,38 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
 	}, [])
+
+	const app = useApp()
+
+	useEffect(() => {
+		const { auth } = app.getSessionState()
+		if (!auth) throw Error('Auth not found')
+
+		const user = app.getUser(auth.userId)
+		if (!user) throw Error('User not found')
+
+		if (user.presence.fileIds.includes(fileId)) {
+			return
+		}
+
+		let cancelled = false
+		let didEnter = false
+
+		const timeout = setTimeout(() => {
+			if (cancelled) return
+			didEnter = true
+			app.onFileEnter(auth.userId, workspaceId, fileId)
+		}, 1000)
+
+		return () => {
+			cancelled = true
+			clearTimeout(timeout)
+
+			if (didEnter) {
+				app.onFileExit(auth.userId, workspaceId, fileId)
+			}
+		}
+	}, [app, fileId, workspaceId])
 
 	return (
 		<div className="tldraw__editor">

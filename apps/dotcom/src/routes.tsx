@@ -21,10 +21,10 @@ import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultE
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { AppStateProvider, useApp } from './hooks/useAppState'
 import { useAuth } from './tla-hooks/useAuth'
-import { getCleanId } from './utils/tla/TldrawApp'
 import { TldrawAppFile } from './utils/tla/schema/TldrawAppFile'
 import { TldrawAppUser } from './utils/tla/schema/TldrawAppUser'
 import { TldrawAppWorkspaceId } from './utils/tla/schema/TldrawAppWorkspace'
+import { getCleanId } from './utils/tla/tldrawAppSchema'
 import { getFileUrl, getUserUrl, getWorkspaceUrl } from './utils/tla/urls'
 
 const enableTemporaryLocalBemo =
@@ -97,6 +97,7 @@ export const router = createRoutesFromElements(
 			<Route path="/w" element={<RedirectAtWorkspacesRoot />} />
 			<Route path="/w/:workspaceId" element={<RequireAuthForWorkspace />}>
 				<Route index element={<RedirectAtWorkspaceRoot />} />
+				<Route path="/w/:workspaceId/debug" lazy={() => import('./pages/ws-debug')} />
 				<Route path="/w/:workspaceId/drafts" lazy={() => import('./pages/ws-drafts')} />
 				<Route path="/w/:workspaceId/stars" lazy={() => import('./pages/ws-stars')} />
 				<Route path="/w/:workspaceId/shared" lazy={() => import('./pages/ws-shared')} />

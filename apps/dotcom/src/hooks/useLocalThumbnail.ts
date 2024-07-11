@@ -17,13 +17,7 @@ import { useApp } from './useAppState'
 
 export function useLocalThumbnail(id: string) {
 	const app = useApp()
-	const theme = useValue(
-		'theme',
-		() => {
-			return app.getSessionState().theme
-		},
-		[app]
-	)
+	const theme = useValue('theme', () => app.getSessionState().theme, [app])
 
 	const [imageUrl, setImageUrl] = useState<string | null>(null)
 
@@ -46,9 +40,7 @@ export function useLocalThumbnail(id: string) {
 				darkMode: theme === 'dark',
 			})
 
-			if (image) {
-				setImageUrl(image)
-			}
+			setImageUrl(image ?? '')
 		})
 		return () => {
 			didDispose = true
