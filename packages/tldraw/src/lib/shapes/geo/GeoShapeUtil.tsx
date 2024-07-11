@@ -764,13 +764,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (growY !== null) {
+			const unscaledNextWidth = next.props.w / next.props.scale
 			return {
 				...next,
 				props: {
 					...next.props,
 					// Scale the results
 					growY: growY * next.props.scale,
-					w: Math.max(next.props.w, unscaledNextLabelSize.w) * next.props.scale,
+					w: Math.max(unscaledNextWidth, unscaledNextLabelSize.w) * next.props.scale,
 				},
 			}
 		}
