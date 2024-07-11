@@ -5,424 +5,285 @@
 /// <reference path="./modules.d.ts" />
 import { formatAssetUrl } from './utils.js'
 
-import embedIconsCodepen from './embed-icons/codepen.png?url'
-import embedIconsCodesandbox from './embed-icons/codesandbox.png?url'
-import embedIconsDesmos from './embed-icons/desmos.png?url'
-import embedIconsExcalidraw from './embed-icons/excalidraw.png?url'
-import embedIconsFelt from './embed-icons/felt.png?url'
-import embedIconsFigma from './embed-icons/figma.png?url'
-import embedIconsGithubGist from './embed-icons/github_gist.png?url'
-import embedIconsGoogleCalendar from './embed-icons/google_calendar.png?url'
-import embedIconsGoogleMaps from './embed-icons/google_maps.png?url'
-import embedIconsGoogleSlides from './embed-icons/google_slides.png?url'
-import embedIconsObservable from './embed-icons/observable.png?url'
-import embedIconsReplit from './embed-icons/replit.png?url'
-import embedIconsScratch from './embed-icons/scratch.png?url'
-import embedIconsSpotify from './embed-icons/spotify.png?url'
-import embedIconsTldraw from './embed-icons/tldraw.png?url'
-import embedIconsValTown from './embed-icons/val_town.png?url'
-import embedIconsVimeo from './embed-icons/vimeo.png?url'
-import embedIconsYoutube from './embed-icons/youtube.png?url'
-import fontsMonospace from './fonts/IBMPlexMono-Medium.woff2?url'
-import fontsSansSerif from './fonts/IBMPlexSans-Medium.woff2?url'
-import fontsSerif from './fonts/IBMPlexSerif-Medium.woff2?url'
-import fontsDraw from './fonts/Shantell_Sans-Tldrawish.woff2?url'
-import iconsAlignBottom from './icons/icon/align-bottom.svg?url'
-import iconsAlignCenterHorizontal from './icons/icon/align-center-horizontal.svg?url'
-import iconsAlignCenterVertical from './icons/icon/align-center-vertical.svg?url'
-import iconsAlignLeft from './icons/icon/align-left.svg?url'
-import iconsAlignRight from './icons/icon/align-right.svg?url'
-import iconsAlignTop from './icons/icon/align-top.svg?url'
-import iconsArrowLeft from './icons/icon/arrow-left.svg?url'
-import iconsArrowheadArrow from './icons/icon/arrowhead-arrow.svg?url'
-import iconsArrowheadBar from './icons/icon/arrowhead-bar.svg?url'
-import iconsArrowheadDiamond from './icons/icon/arrowhead-diamond.svg?url'
-import iconsArrowheadDot from './icons/icon/arrowhead-dot.svg?url'
-import iconsArrowheadNone from './icons/icon/arrowhead-none.svg?url'
-import iconsArrowheadSquare from './icons/icon/arrowhead-square.svg?url'
-import iconsArrowheadTriangleInverted from './icons/icon/arrowhead-triangle-inverted.svg?url'
-import iconsArrowheadTriangle from './icons/icon/arrowhead-triangle.svg?url'
-import iconsBlob from './icons/icon/blob.svg?url'
-import iconsBringForward from './icons/icon/bring-forward.svg?url'
-import iconsBringToFront from './icons/icon/bring-to-front.svg?url'
-import iconsBroken from './icons/icon/broken.svg?url'
-import iconsCheckCircle from './icons/icon/check-circle.svg?url'
-import iconsCheck from './icons/icon/check.svg?url'
-import iconsChevronDown from './icons/icon/chevron-down.svg?url'
-import iconsChevronLeft from './icons/icon/chevron-left.svg?url'
-import iconsChevronRight from './icons/icon/chevron-right.svg?url'
-import iconsChevronUp from './icons/icon/chevron-up.svg?url'
-import iconsChevronsNe from './icons/icon/chevrons-ne.svg?url'
-import iconsChevronsSw from './icons/icon/chevrons-sw.svg?url'
-import iconsClipboardCopied from './icons/icon/clipboard-copied.svg?url'
-import iconsClipboardCopy from './icons/icon/clipboard-copy.svg?url'
-import iconsColor from './icons/icon/color.svg?url'
-import iconsCross2 from './icons/icon/cross-2.svg?url'
-import iconsCrossCircle from './icons/icon/cross-circle.svg?url'
-import iconsDashDashed from './icons/icon/dash-dashed.svg?url'
-import iconsDashDotted from './icons/icon/dash-dotted.svg?url'
-import iconsDashDraw from './icons/icon/dash-draw.svg?url'
-import iconsDashSolid from './icons/icon/dash-solid.svg?url'
-import iconsDisconnected from './icons/icon/disconnected.svg?url'
-import iconsDiscord from './icons/icon/discord.svg?url'
-import iconsDistributeHorizontal from './icons/icon/distribute-horizontal.svg?url'
-import iconsDistributeVertical from './icons/icon/distribute-vertical.svg?url'
-import iconsDot from './icons/icon/dot.svg?url'
-import iconsDotsHorizontal from './icons/icon/dots-horizontal.svg?url'
-import iconsDotsVertical from './icons/icon/dots-vertical.svg?url'
-import iconsDragHandleDots from './icons/icon/drag-handle-dots.svg?url'
-import iconsDuplicate from './icons/icon/duplicate.svg?url'
-import iconsEdit from './icons/icon/edit.svg?url'
-import iconsExternalLink from './icons/icon/external-link.svg?url'
-import iconsFillFill from './icons/icon/fill-fill.svg?url'
-import iconsFillNone from './icons/icon/fill-none.svg?url'
-import iconsFillPattern from './icons/icon/fill-pattern.svg?url'
-import iconsFillSemi from './icons/icon/fill-semi.svg?url'
-import iconsFillSolid from './icons/icon/fill-solid.svg?url'
-import iconsFollow from './icons/icon/follow.svg?url'
-import iconsFollowing from './icons/icon/following.svg?url'
-import iconsFontDraw from './icons/icon/font-draw.svg?url'
-import iconsFontMono from './icons/icon/font-mono.svg?url'
-import iconsFontSans from './icons/icon/font-sans.svg?url'
-import iconsFontSerif from './icons/icon/font-serif.svg?url'
-import iconsGeoArrowDown from './icons/icon/geo-arrow-down.svg?url'
-import iconsGeoArrowLeft from './icons/icon/geo-arrow-left.svg?url'
-import iconsGeoArrowRight from './icons/icon/geo-arrow-right.svg?url'
-import iconsGeoArrowUp from './icons/icon/geo-arrow-up.svg?url'
-import iconsGeoCheckBox from './icons/icon/geo-check-box.svg?url'
-import iconsGeoCloud from './icons/icon/geo-cloud.svg?url'
-import iconsGeoDiamond from './icons/icon/geo-diamond.svg?url'
-import iconsGeoEllipse from './icons/icon/geo-ellipse.svg?url'
-import iconsGeoHeart from './icons/icon/geo-heart.svg?url'
-import iconsGeoHexagon from './icons/icon/geo-hexagon.svg?url'
-import iconsGeoOctagon from './icons/icon/geo-octagon.svg?url'
-import iconsGeoOval from './icons/icon/geo-oval.svg?url'
-import iconsGeoPentagon from './icons/icon/geo-pentagon.svg?url'
-import iconsGeoRectangle from './icons/icon/geo-rectangle.svg?url'
-import iconsGeoRhombus2 from './icons/icon/geo-rhombus-2.svg?url'
-import iconsGeoRhombus from './icons/icon/geo-rhombus.svg?url'
-import iconsGeoStar from './icons/icon/geo-star.svg?url'
-import iconsGeoTrapezoid from './icons/icon/geo-trapezoid.svg?url'
-import iconsGeoTriangle from './icons/icon/geo-triangle.svg?url'
-import iconsGeoXBox from './icons/icon/geo-x-box.svg?url'
-import iconsGithub from './icons/icon/github.svg?url'
-import iconsGroup from './icons/icon/group.svg?url'
-import iconsHorizontalAlignEnd from './icons/icon/horizontal-align-end.svg?url'
-import iconsHorizontalAlignMiddle from './icons/icon/horizontal-align-middle.svg?url'
-import iconsHorizontalAlignStart from './icons/icon/horizontal-align-start.svg?url'
-import iconsInfoCircle from './icons/icon/info-circle.svg?url'
-import iconsLeading from './icons/icon/leading.svg?url'
-import iconsLink from './icons/icon/link.svg?url'
-import iconsLock from './icons/icon/lock.svg?url'
-import iconsMenu from './icons/icon/menu.svg?url'
-import iconsMinus from './icons/icon/minus.svg?url'
-import iconsMixed from './icons/icon/mixed.svg?url'
-import iconsPack from './icons/icon/pack.svg?url'
-import iconsPlus from './icons/icon/plus.svg?url'
-import iconsQuestionMarkCircle from './icons/icon/question-mark-circle.svg?url'
-import iconsQuestionMark from './icons/icon/question-mark.svg?url'
-import iconsRedo from './icons/icon/redo.svg?url'
-import iconsResetZoom from './icons/icon/reset-zoom.svg?url'
-import iconsRotateCcw from './icons/icon/rotate-ccw.svg?url'
-import iconsRotateCw from './icons/icon/rotate-cw.svg?url'
-import iconsSendBackward from './icons/icon/send-backward.svg?url'
-import iconsSendToBack from './icons/icon/send-to-back.svg?url'
-import iconsShare1 from './icons/icon/share-1.svg?url'
-import iconsSizeExtraLarge from './icons/icon/size-extra-large.svg?url'
-import iconsSizeLarge from './icons/icon/size-large.svg?url'
-import iconsSizeMedium from './icons/icon/size-medium.svg?url'
-import iconsSizeSmall from './icons/icon/size-small.svg?url'
-import iconsSplineCubic from './icons/icon/spline-cubic.svg?url'
-import iconsSplineLine from './icons/icon/spline-line.svg?url'
-import iconsStackHorizontal from './icons/icon/stack-horizontal.svg?url'
-import iconsStackVertical from './icons/icon/stack-vertical.svg?url'
-import iconsStatusOffline from './icons/icon/status-offline.svg?url'
-import iconsStretchHorizontal from './icons/icon/stretch-horizontal.svg?url'
-import iconsStretchVertical from './icons/icon/stretch-vertical.svg?url'
-import iconsTextAlignCenter from './icons/icon/text-align-center.svg?url'
-import iconsTextAlignLeft from './icons/icon/text-align-left.svg?url'
-import iconsTextAlignRight from './icons/icon/text-align-right.svg?url'
-import iconsToggleOff from './icons/icon/toggle-off.svg?url'
-import iconsToggleOn from './icons/icon/toggle-on.svg?url'
-import iconsToolArrow from './icons/icon/tool-arrow.svg?url'
-import iconsToolEraser from './icons/icon/tool-eraser.svg?url'
-import iconsToolFrame from './icons/icon/tool-frame.svg?url'
-import iconsToolHand from './icons/icon/tool-hand.svg?url'
-import iconsToolHighlight from './icons/icon/tool-highlight.svg?url'
-import iconsToolLaser from './icons/icon/tool-laser.svg?url'
-import iconsToolLine from './icons/icon/tool-line.svg?url'
-import iconsToolMedia from './icons/icon/tool-media.svg?url'
-import iconsToolNote from './icons/icon/tool-note.svg?url'
-import iconsToolPencil from './icons/icon/tool-pencil.svg?url'
-import iconsToolPointer from './icons/icon/tool-pointer.svg?url'
-import iconsToolScreenshot from './icons/icon/tool-screenshot.svg?url'
-import iconsToolText from './icons/icon/tool-text.svg?url'
-import iconsTrash from './icons/icon/trash.svg?url'
-import iconsTwitter from './icons/icon/twitter.svg?url'
-import iconsUndo from './icons/icon/undo.svg?url'
-import iconsUngroup from './icons/icon/ungroup.svg?url'
-import iconsUnlock from './icons/icon/unlock.svg?url'
-import iconsVerticalAlignEnd from './icons/icon/vertical-align-end.svg?url'
-import iconsVerticalAlignMiddle from './icons/icon/vertical-align-middle.svg?url'
-import iconsVerticalAlignStart from './icons/icon/vertical-align-start.svg?url'
-import iconsWarningTriangle from './icons/icon/warning-triangle.svg?url'
-import iconsZoomIn from './icons/icon/zoom-in.svg?url'
-import iconsZoomOut from './icons/icon/zoom-out.svg?url'
-import translationsAr from './translations/ar.json?url'
-import translationsCa from './translations/ca.json?url'
-import translationsCs from './translations/cs.json?url'
-import translationsDa from './translations/da.json?url'
-import translationsDe from './translations/de.json?url'
-import translationsEn from './translations/en.json?url'
-import translationsEs from './translations/es.json?url'
-import translationsFa from './translations/fa.json?url'
-import translationsFi from './translations/fi.json?url'
-import translationsFr from './translations/fr.json?url'
-import translationsGl from './translations/gl.json?url'
-import translationsHe from './translations/he.json?url'
-import translationsHiIn from './translations/hi-in.json?url'
-import translationsHr from './translations/hr.json?url'
-import translationsHu from './translations/hu.json?url'
-import translationsId from './translations/id.json?url'
-import translationsIt from './translations/it.json?url'
-import translationsJa from './translations/ja.json?url'
-import translationsKoKr from './translations/ko-kr.json?url'
-import translationsKu from './translations/ku.json?url'
-import translationsLanguages from './translations/languages.json?url'
-import translationsMain from './translations/main.json?url'
-import translationsMy from './translations/my.json?url'
-import translationsNe from './translations/ne.json?url'
-import translationsNo from './translations/no.json?url'
-import translationsPl from './translations/pl.json?url'
-import translationsPtBr from './translations/pt-br.json?url'
-import translationsPtPt from './translations/pt-pt.json?url'
-import translationsRo from './translations/ro.json?url'
-import translationsRu from './translations/ru.json?url'
-import translationsSl from './translations/sl.json?url'
-import translationsSv from './translations/sv.json?url'
-import translationsTe from './translations/te.json?url'
-import translationsTh from './translations/th.json?url'
-import translationsTr from './translations/tr.json?url'
-import translationsUk from './translations/uk.json?url'
-import translationsVi from './translations/vi.json?url'
-import translationsZhCn from './translations/zh-cn.json?url'
-import translationsZhTw from './translations/zh-tw.json?url'
+import $__embed_icons_codepen_png_url_88 from './embed-icons/codepen.png?url'
+import $__embed_icons_codesandbox_png_url_90 from './embed-icons/codesandbox.png?url'
+import $__embed_icons_desmos_png_url_92 from './embed-icons/desmos.png?url'
+import $__embed_icons_excalidraw_png_url_94 from './embed-icons/excalidraw.png?url'
+import $__embed_icons_felt_png_url_96 from './embed-icons/felt.png?url'
+import $__embed_icons_figma_png_url_98 from './embed-icons/figma.png?url'
+import $__embed_icons_github_gist_png_url_100 from './embed-icons/github_gist.png?url'
+import $__embed_icons_google_calendar_png_url_102 from './embed-icons/google_calendar.png?url'
+import $__embed_icons_google_maps_png_url_104 from './embed-icons/google_maps.png?url'
+import $__embed_icons_google_slides_png_url_106 from './embed-icons/google_slides.png?url'
+import $__embed_icons_observable_png_url_108 from './embed-icons/observable.png?url'
+import $__embed_icons_replit_png_url_110 from './embed-icons/replit.png?url'
+import $__embed_icons_scratch_png_url_112 from './embed-icons/scratch.png?url'
+import $__embed_icons_spotify_png_url_114 from './embed-icons/spotify.png?url'
+import $__embed_icons_tldraw_png_url_116 from './embed-icons/tldraw.png?url'
+import $__embed_icons_val_town_png_url_118 from './embed-icons/val_town.png?url'
+import $__embed_icons_vimeo_png_url_120 from './embed-icons/vimeo.png?url'
+import $__embed_icons_youtube_png_url_122 from './embed-icons/youtube.png?url'
+import $__fonts_IBMPlexMono_Medium_woff2_url_0 from './fonts/IBMPlexMono-Medium.woff2?url'
+import $__fonts_IBMPlexSans_Medium_woff2_url_2 from './fonts/IBMPlexSans-Medium.woff2?url'
+import $__fonts_IBMPlexSerif_Medium_woff2_url_4 from './fonts/IBMPlexSerif-Medium.woff2?url'
+import $__fonts_Shantell_Sans_Tldrawish_woff2_url_6 from './fonts/Shantell_Sans-Tldrawish.woff2?url'
+import $__icons_icon_0_merged_svg_url_8 from './icons/icon/0_merged.svg?url'
+import $__translations_ar_json_url_10 from './translations/ar.json?url'
+import $__translations_ca_json_url_12 from './translations/ca.json?url'
+import $__translations_cs_json_url_14 from './translations/cs.json?url'
+import $__translations_da_json_url_16 from './translations/da.json?url'
+import $__translations_de_json_url_18 from './translations/de.json?url'
+import $__translations_en_json_url_20 from './translations/en.json?url'
+import $__translations_es_json_url_22 from './translations/es.json?url'
+import $__translations_fa_json_url_24 from './translations/fa.json?url'
+import $__translations_fi_json_url_26 from './translations/fi.json?url'
+import $__translations_fr_json_url_28 from './translations/fr.json?url'
+import $__translations_gl_json_url_30 from './translations/gl.json?url'
+import $__translations_he_json_url_32 from './translations/he.json?url'
+import $__translations_hi_in_json_url_34 from './translations/hi-in.json?url'
+import $__translations_hr_json_url_36 from './translations/hr.json?url'
+import $__translations_hu_json_url_38 from './translations/hu.json?url'
+import $__translations_id_json_url_40 from './translations/id.json?url'
+import $__translations_it_json_url_42 from './translations/it.json?url'
+import $__translations_ja_json_url_44 from './translations/ja.json?url'
+import $__translations_ko_kr_json_url_46 from './translations/ko-kr.json?url'
+import $__translations_ku_json_url_48 from './translations/ku.json?url'
+import $__translations_languages_json_url_50 from './translations/languages.json?url'
+import $__translations_main_json_url_52 from './translations/main.json?url'
+import $__translations_my_json_url_54 from './translations/my.json?url'
+import $__translations_ne_json_url_56 from './translations/ne.json?url'
+import $__translations_no_json_url_58 from './translations/no.json?url'
+import $__translations_pl_json_url_60 from './translations/pl.json?url'
+import $__translations_pt_br_json_url_62 from './translations/pt-br.json?url'
+import $__translations_pt_pt_json_url_64 from './translations/pt-pt.json?url'
+import $__translations_ro_json_url_66 from './translations/ro.json?url'
+import $__translations_ru_json_url_68 from './translations/ru.json?url'
+import $__translations_sl_json_url_70 from './translations/sl.json?url'
+import $__translations_sv_json_url_72 from './translations/sv.json?url'
+import $__translations_te_json_url_74 from './translations/te.json?url'
+import $__translations_th_json_url_76 from './translations/th.json?url'
+import $__translations_tr_json_url_78 from './translations/tr.json?url'
+import $__translations_uk_json_url_80 from './translations/uk.json?url'
+import $__translations_vi_json_url_82 from './translations/vi.json?url'
+import $__translations_zh_cn_json_url_84 from './translations/zh-cn.json?url'
+import $__translations_zh_tw_json_url_86 from './translations/zh-tw.json?url'
 
 /**
  * @param {AssetUrlOptions} [opts]
  * @public
  */
 export function getAssetUrlsByImport(opts) {
+	const $_icons_icon_0_merged_svg_9 = formatAssetUrl($__icons_icon_0_merged_svg_url_8, opts)
 	return {
 		fonts: {
-			monospace: formatAssetUrl(fontsMonospace, opts),
-			sansSerif: formatAssetUrl(fontsSansSerif, opts),
-			serif: formatAssetUrl(fontsSerif, opts),
-			draw: formatAssetUrl(fontsDraw, opts),
+			monospace: formatAssetUrl($__fonts_IBMPlexMono_Medium_woff2_url_0, opts),
+			sansSerif: formatAssetUrl($__fonts_IBMPlexSans_Medium_woff2_url_2, opts),
+			serif: formatAssetUrl($__fonts_IBMPlexSerif_Medium_woff2_url_4, opts),
+			draw: formatAssetUrl($__fonts_Shantell_Sans_Tldrawish_woff2_url_6, opts),
 		},
 		icons: {
-			'align-bottom': formatAssetUrl(iconsAlignBottom, opts),
-			'align-center-horizontal': formatAssetUrl(iconsAlignCenterHorizontal, opts),
-			'align-center-vertical': formatAssetUrl(iconsAlignCenterVertical, opts),
-			'align-left': formatAssetUrl(iconsAlignLeft, opts),
-			'align-right': formatAssetUrl(iconsAlignRight, opts),
-			'align-top': formatAssetUrl(iconsAlignTop, opts),
-			'arrow-left': formatAssetUrl(iconsArrowLeft, opts),
-			'arrowhead-arrow': formatAssetUrl(iconsArrowheadArrow, opts),
-			'arrowhead-bar': formatAssetUrl(iconsArrowheadBar, opts),
-			'arrowhead-diamond': formatAssetUrl(iconsArrowheadDiamond, opts),
-			'arrowhead-dot': formatAssetUrl(iconsArrowheadDot, opts),
-			'arrowhead-none': formatAssetUrl(iconsArrowheadNone, opts),
-			'arrowhead-square': formatAssetUrl(iconsArrowheadSquare, opts),
-			'arrowhead-triangle-inverted': formatAssetUrl(iconsArrowheadTriangleInverted, opts),
-			'arrowhead-triangle': formatAssetUrl(iconsArrowheadTriangle, opts),
-			blob: formatAssetUrl(iconsBlob, opts),
-			'bring-forward': formatAssetUrl(iconsBringForward, opts),
-			'bring-to-front': formatAssetUrl(iconsBringToFront, opts),
-			broken: formatAssetUrl(iconsBroken, opts),
-			'check-circle': formatAssetUrl(iconsCheckCircle, opts),
-			check: formatAssetUrl(iconsCheck, opts),
-			'chevron-down': formatAssetUrl(iconsChevronDown, opts),
-			'chevron-left': formatAssetUrl(iconsChevronLeft, opts),
-			'chevron-right': formatAssetUrl(iconsChevronRight, opts),
-			'chevron-up': formatAssetUrl(iconsChevronUp, opts),
-			'chevrons-ne': formatAssetUrl(iconsChevronsNe, opts),
-			'chevrons-sw': formatAssetUrl(iconsChevronsSw, opts),
-			'clipboard-copied': formatAssetUrl(iconsClipboardCopied, opts),
-			'clipboard-copy': formatAssetUrl(iconsClipboardCopy, opts),
-			color: formatAssetUrl(iconsColor, opts),
-			'cross-2': formatAssetUrl(iconsCross2, opts),
-			'cross-circle': formatAssetUrl(iconsCrossCircle, opts),
-			'dash-dashed': formatAssetUrl(iconsDashDashed, opts),
-			'dash-dotted': formatAssetUrl(iconsDashDotted, opts),
-			'dash-draw': formatAssetUrl(iconsDashDraw, opts),
-			'dash-solid': formatAssetUrl(iconsDashSolid, opts),
-			disconnected: formatAssetUrl(iconsDisconnected, opts),
-			discord: formatAssetUrl(iconsDiscord, opts),
-			'distribute-horizontal': formatAssetUrl(iconsDistributeHorizontal, opts),
-			'distribute-vertical': formatAssetUrl(iconsDistributeVertical, opts),
-			dot: formatAssetUrl(iconsDot, opts),
-			'dots-horizontal': formatAssetUrl(iconsDotsHorizontal, opts),
-			'dots-vertical': formatAssetUrl(iconsDotsVertical, opts),
-			'drag-handle-dots': formatAssetUrl(iconsDragHandleDots, opts),
-			duplicate: formatAssetUrl(iconsDuplicate, opts),
-			edit: formatAssetUrl(iconsEdit, opts),
-			'external-link': formatAssetUrl(iconsExternalLink, opts),
-			'fill-fill': formatAssetUrl(iconsFillFill, opts),
-			'fill-none': formatAssetUrl(iconsFillNone, opts),
-			'fill-pattern': formatAssetUrl(iconsFillPattern, opts),
-			'fill-semi': formatAssetUrl(iconsFillSemi, opts),
-			'fill-solid': formatAssetUrl(iconsFillSolid, opts),
-			follow: formatAssetUrl(iconsFollow, opts),
-			following: formatAssetUrl(iconsFollowing, opts),
-			'font-draw': formatAssetUrl(iconsFontDraw, opts),
-			'font-mono': formatAssetUrl(iconsFontMono, opts),
-			'font-sans': formatAssetUrl(iconsFontSans, opts),
-			'font-serif': formatAssetUrl(iconsFontSerif, opts),
-			'geo-arrow-down': formatAssetUrl(iconsGeoArrowDown, opts),
-			'geo-arrow-left': formatAssetUrl(iconsGeoArrowLeft, opts),
-			'geo-arrow-right': formatAssetUrl(iconsGeoArrowRight, opts),
-			'geo-arrow-up': formatAssetUrl(iconsGeoArrowUp, opts),
-			'geo-check-box': formatAssetUrl(iconsGeoCheckBox, opts),
-			'geo-cloud': formatAssetUrl(iconsGeoCloud, opts),
-			'geo-diamond': formatAssetUrl(iconsGeoDiamond, opts),
-			'geo-ellipse': formatAssetUrl(iconsGeoEllipse, opts),
-			'geo-heart': formatAssetUrl(iconsGeoHeart, opts),
-			'geo-hexagon': formatAssetUrl(iconsGeoHexagon, opts),
-			'geo-octagon': formatAssetUrl(iconsGeoOctagon, opts),
-			'geo-oval': formatAssetUrl(iconsGeoOval, opts),
-			'geo-pentagon': formatAssetUrl(iconsGeoPentagon, opts),
-			'geo-rectangle': formatAssetUrl(iconsGeoRectangle, opts),
-			'geo-rhombus-2': formatAssetUrl(iconsGeoRhombus2, opts),
-			'geo-rhombus': formatAssetUrl(iconsGeoRhombus, opts),
-			'geo-star': formatAssetUrl(iconsGeoStar, opts),
-			'geo-trapezoid': formatAssetUrl(iconsGeoTrapezoid, opts),
-			'geo-triangle': formatAssetUrl(iconsGeoTriangle, opts),
-			'geo-x-box': formatAssetUrl(iconsGeoXBox, opts),
-			github: formatAssetUrl(iconsGithub, opts),
-			group: formatAssetUrl(iconsGroup, opts),
-			'horizontal-align-end': formatAssetUrl(iconsHorizontalAlignEnd, opts),
-			'horizontal-align-middle': formatAssetUrl(iconsHorizontalAlignMiddle, opts),
-			'horizontal-align-start': formatAssetUrl(iconsHorizontalAlignStart, opts),
-			'info-circle': formatAssetUrl(iconsInfoCircle, opts),
-			leading: formatAssetUrl(iconsLeading, opts),
-			link: formatAssetUrl(iconsLink, opts),
-			lock: formatAssetUrl(iconsLock, opts),
-			menu: formatAssetUrl(iconsMenu, opts),
-			minus: formatAssetUrl(iconsMinus, opts),
-			mixed: formatAssetUrl(iconsMixed, opts),
-			pack: formatAssetUrl(iconsPack, opts),
-			plus: formatAssetUrl(iconsPlus, opts),
-			'question-mark-circle': formatAssetUrl(iconsQuestionMarkCircle, opts),
-			'question-mark': formatAssetUrl(iconsQuestionMark, opts),
-			redo: formatAssetUrl(iconsRedo, opts),
-			'reset-zoom': formatAssetUrl(iconsResetZoom, opts),
-			'rotate-ccw': formatAssetUrl(iconsRotateCcw, opts),
-			'rotate-cw': formatAssetUrl(iconsRotateCw, opts),
-			'send-backward': formatAssetUrl(iconsSendBackward, opts),
-			'send-to-back': formatAssetUrl(iconsSendToBack, opts),
-			'share-1': formatAssetUrl(iconsShare1, opts),
-			'size-extra-large': formatAssetUrl(iconsSizeExtraLarge, opts),
-			'size-large': formatAssetUrl(iconsSizeLarge, opts),
-			'size-medium': formatAssetUrl(iconsSizeMedium, opts),
-			'size-small': formatAssetUrl(iconsSizeSmall, opts),
-			'spline-cubic': formatAssetUrl(iconsSplineCubic, opts),
-			'spline-line': formatAssetUrl(iconsSplineLine, opts),
-			'stack-horizontal': formatAssetUrl(iconsStackHorizontal, opts),
-			'stack-vertical': formatAssetUrl(iconsStackVertical, opts),
-			'status-offline': formatAssetUrl(iconsStatusOffline, opts),
-			'stretch-horizontal': formatAssetUrl(iconsStretchHorizontal, opts),
-			'stretch-vertical': formatAssetUrl(iconsStretchVertical, opts),
-			'text-align-center': formatAssetUrl(iconsTextAlignCenter, opts),
-			'text-align-left': formatAssetUrl(iconsTextAlignLeft, opts),
-			'text-align-right': formatAssetUrl(iconsTextAlignRight, opts),
-			'toggle-off': formatAssetUrl(iconsToggleOff, opts),
-			'toggle-on': formatAssetUrl(iconsToggleOn, opts),
-			'tool-arrow': formatAssetUrl(iconsToolArrow, opts),
-			'tool-eraser': formatAssetUrl(iconsToolEraser, opts),
-			'tool-frame': formatAssetUrl(iconsToolFrame, opts),
-			'tool-hand': formatAssetUrl(iconsToolHand, opts),
-			'tool-highlight': formatAssetUrl(iconsToolHighlight, opts),
-			'tool-laser': formatAssetUrl(iconsToolLaser, opts),
-			'tool-line': formatAssetUrl(iconsToolLine, opts),
-			'tool-media': formatAssetUrl(iconsToolMedia, opts),
-			'tool-note': formatAssetUrl(iconsToolNote, opts),
-			'tool-pencil': formatAssetUrl(iconsToolPencil, opts),
-			'tool-pointer': formatAssetUrl(iconsToolPointer, opts),
-			'tool-screenshot': formatAssetUrl(iconsToolScreenshot, opts),
-			'tool-text': formatAssetUrl(iconsToolText, opts),
-			trash: formatAssetUrl(iconsTrash, opts),
-			twitter: formatAssetUrl(iconsTwitter, opts),
-			undo: formatAssetUrl(iconsUndo, opts),
-			ungroup: formatAssetUrl(iconsUngroup, opts),
-			unlock: formatAssetUrl(iconsUnlock, opts),
-			'vertical-align-end': formatAssetUrl(iconsVerticalAlignEnd, opts),
-			'vertical-align-middle': formatAssetUrl(iconsVerticalAlignMiddle, opts),
-			'vertical-align-start': formatAssetUrl(iconsVerticalAlignStart, opts),
-			'warning-triangle': formatAssetUrl(iconsWarningTriangle, opts),
-			'zoom-in': formatAssetUrl(iconsZoomIn, opts),
-			'zoom-out': formatAssetUrl(iconsZoomOut, opts),
+			'align-bottom': $_icons_icon_0_merged_svg_9 + '#align-bottom',
+			'align-center-horizontal': $_icons_icon_0_merged_svg_9 + '#align-center-horizontal',
+			'align-center-vertical': $_icons_icon_0_merged_svg_9 + '#align-center-vertical',
+			'align-left': $_icons_icon_0_merged_svg_9 + '#align-left',
+			'align-right': $_icons_icon_0_merged_svg_9 + '#align-right',
+			'align-top': $_icons_icon_0_merged_svg_9 + '#align-top',
+			'arrow-left': $_icons_icon_0_merged_svg_9 + '#arrow-left',
+			'arrowhead-arrow': $_icons_icon_0_merged_svg_9 + '#arrowhead-arrow',
+			'arrowhead-bar': $_icons_icon_0_merged_svg_9 + '#arrowhead-bar',
+			'arrowhead-diamond': $_icons_icon_0_merged_svg_9 + '#arrowhead-diamond',
+			'arrowhead-dot': $_icons_icon_0_merged_svg_9 + '#arrowhead-dot',
+			'arrowhead-none': $_icons_icon_0_merged_svg_9 + '#arrowhead-none',
+			'arrowhead-square': $_icons_icon_0_merged_svg_9 + '#arrowhead-square',
+			'arrowhead-triangle-inverted': $_icons_icon_0_merged_svg_9 + '#arrowhead-triangle-inverted',
+			'arrowhead-triangle': $_icons_icon_0_merged_svg_9 + '#arrowhead-triangle',
+			blob: $_icons_icon_0_merged_svg_9 + '#blob',
+			'bring-forward': $_icons_icon_0_merged_svg_9 + '#bring-forward',
+			'bring-to-front': $_icons_icon_0_merged_svg_9 + '#bring-to-front',
+			broken: $_icons_icon_0_merged_svg_9 + '#broken',
+			'check-circle': $_icons_icon_0_merged_svg_9 + '#check-circle',
+			check: $_icons_icon_0_merged_svg_9 + '#check',
+			'chevron-down': $_icons_icon_0_merged_svg_9 + '#chevron-down',
+			'chevron-left': $_icons_icon_0_merged_svg_9 + '#chevron-left',
+			'chevron-right': $_icons_icon_0_merged_svg_9 + '#chevron-right',
+			'chevron-up': $_icons_icon_0_merged_svg_9 + '#chevron-up',
+			'chevrons-ne': $_icons_icon_0_merged_svg_9 + '#chevrons-ne',
+			'chevrons-sw': $_icons_icon_0_merged_svg_9 + '#chevrons-sw',
+			'clipboard-copied': $_icons_icon_0_merged_svg_9 + '#clipboard-copied',
+			'clipboard-copy': $_icons_icon_0_merged_svg_9 + '#clipboard-copy',
+			color: $_icons_icon_0_merged_svg_9 + '#color',
+			'cross-2': $_icons_icon_0_merged_svg_9 + '#cross-2',
+			'cross-circle': $_icons_icon_0_merged_svg_9 + '#cross-circle',
+			'dash-dashed': $_icons_icon_0_merged_svg_9 + '#dash-dashed',
+			'dash-dotted': $_icons_icon_0_merged_svg_9 + '#dash-dotted',
+			'dash-draw': $_icons_icon_0_merged_svg_9 + '#dash-draw',
+			'dash-solid': $_icons_icon_0_merged_svg_9 + '#dash-solid',
+			disconnected: $_icons_icon_0_merged_svg_9 + '#disconnected',
+			discord: $_icons_icon_0_merged_svg_9 + '#discord',
+			'distribute-horizontal': $_icons_icon_0_merged_svg_9 + '#distribute-horizontal',
+			'distribute-vertical': $_icons_icon_0_merged_svg_9 + '#distribute-vertical',
+			dot: $_icons_icon_0_merged_svg_9 + '#dot',
+			'dots-horizontal': $_icons_icon_0_merged_svg_9 + '#dots-horizontal',
+			'dots-vertical': $_icons_icon_0_merged_svg_9 + '#dots-vertical',
+			'drag-handle-dots': $_icons_icon_0_merged_svg_9 + '#drag-handle-dots',
+			duplicate: $_icons_icon_0_merged_svg_9 + '#duplicate',
+			edit: $_icons_icon_0_merged_svg_9 + '#edit',
+			'external-link': $_icons_icon_0_merged_svg_9 + '#external-link',
+			'fill-fill': $_icons_icon_0_merged_svg_9 + '#fill-fill',
+			'fill-none': $_icons_icon_0_merged_svg_9 + '#fill-none',
+			'fill-pattern': $_icons_icon_0_merged_svg_9 + '#fill-pattern',
+			'fill-semi': $_icons_icon_0_merged_svg_9 + '#fill-semi',
+			'fill-solid': $_icons_icon_0_merged_svg_9 + '#fill-solid',
+			follow: $_icons_icon_0_merged_svg_9 + '#follow',
+			following: $_icons_icon_0_merged_svg_9 + '#following',
+			'font-draw': $_icons_icon_0_merged_svg_9 + '#font-draw',
+			'font-mono': $_icons_icon_0_merged_svg_9 + '#font-mono',
+			'font-sans': $_icons_icon_0_merged_svg_9 + '#font-sans',
+			'font-serif': $_icons_icon_0_merged_svg_9 + '#font-serif',
+			'geo-arrow-down': $_icons_icon_0_merged_svg_9 + '#geo-arrow-down',
+			'geo-arrow-left': $_icons_icon_0_merged_svg_9 + '#geo-arrow-left',
+			'geo-arrow-right': $_icons_icon_0_merged_svg_9 + '#geo-arrow-right',
+			'geo-arrow-up': $_icons_icon_0_merged_svg_9 + '#geo-arrow-up',
+			'geo-check-box': $_icons_icon_0_merged_svg_9 + '#geo-check-box',
+			'geo-cloud': $_icons_icon_0_merged_svg_9 + '#geo-cloud',
+			'geo-diamond': $_icons_icon_0_merged_svg_9 + '#geo-diamond',
+			'geo-ellipse': $_icons_icon_0_merged_svg_9 + '#geo-ellipse',
+			'geo-heart': $_icons_icon_0_merged_svg_9 + '#geo-heart',
+			'geo-hexagon': $_icons_icon_0_merged_svg_9 + '#geo-hexagon',
+			'geo-octagon': $_icons_icon_0_merged_svg_9 + '#geo-octagon',
+			'geo-oval': $_icons_icon_0_merged_svg_9 + '#geo-oval',
+			'geo-pentagon': $_icons_icon_0_merged_svg_9 + '#geo-pentagon',
+			'geo-rectangle': $_icons_icon_0_merged_svg_9 + '#geo-rectangle',
+			'geo-rhombus-2': $_icons_icon_0_merged_svg_9 + '#geo-rhombus-2',
+			'geo-rhombus': $_icons_icon_0_merged_svg_9 + '#geo-rhombus',
+			'geo-star': $_icons_icon_0_merged_svg_9 + '#geo-star',
+			'geo-trapezoid': $_icons_icon_0_merged_svg_9 + '#geo-trapezoid',
+			'geo-triangle': $_icons_icon_0_merged_svg_9 + '#geo-triangle',
+			'geo-x-box': $_icons_icon_0_merged_svg_9 + '#geo-x-box',
+			github: $_icons_icon_0_merged_svg_9 + '#github',
+			group: $_icons_icon_0_merged_svg_9 + '#group',
+			'horizontal-align-end': $_icons_icon_0_merged_svg_9 + '#horizontal-align-end',
+			'horizontal-align-middle': $_icons_icon_0_merged_svg_9 + '#horizontal-align-middle',
+			'horizontal-align-start': $_icons_icon_0_merged_svg_9 + '#horizontal-align-start',
+			'info-circle': $_icons_icon_0_merged_svg_9 + '#info-circle',
+			leading: $_icons_icon_0_merged_svg_9 + '#leading',
+			link: $_icons_icon_0_merged_svg_9 + '#link',
+			lock: $_icons_icon_0_merged_svg_9 + '#lock',
+			menu: $_icons_icon_0_merged_svg_9 + '#menu',
+			minus: $_icons_icon_0_merged_svg_9 + '#minus',
+			mixed: $_icons_icon_0_merged_svg_9 + '#mixed',
+			pack: $_icons_icon_0_merged_svg_9 + '#pack',
+			plus: $_icons_icon_0_merged_svg_9 + '#plus',
+			'question-mark-circle': $_icons_icon_0_merged_svg_9 + '#question-mark-circle',
+			'question-mark': $_icons_icon_0_merged_svg_9 + '#question-mark',
+			redo: $_icons_icon_0_merged_svg_9 + '#redo',
+			'reset-zoom': $_icons_icon_0_merged_svg_9 + '#reset-zoom',
+			'rotate-ccw': $_icons_icon_0_merged_svg_9 + '#rotate-ccw',
+			'rotate-cw': $_icons_icon_0_merged_svg_9 + '#rotate-cw',
+			'send-backward': $_icons_icon_0_merged_svg_9 + '#send-backward',
+			'send-to-back': $_icons_icon_0_merged_svg_9 + '#send-to-back',
+			'share-1': $_icons_icon_0_merged_svg_9 + '#share-1',
+			'size-extra-large': $_icons_icon_0_merged_svg_9 + '#size-extra-large',
+			'size-large': $_icons_icon_0_merged_svg_9 + '#size-large',
+			'size-medium': $_icons_icon_0_merged_svg_9 + '#size-medium',
+			'size-small': $_icons_icon_0_merged_svg_9 + '#size-small',
+			'spline-cubic': $_icons_icon_0_merged_svg_9 + '#spline-cubic',
+			'spline-line': $_icons_icon_0_merged_svg_9 + '#spline-line',
+			'stack-horizontal': $_icons_icon_0_merged_svg_9 + '#stack-horizontal',
+			'stack-vertical': $_icons_icon_0_merged_svg_9 + '#stack-vertical',
+			'status-offline': $_icons_icon_0_merged_svg_9 + '#status-offline',
+			'stretch-horizontal': $_icons_icon_0_merged_svg_9 + '#stretch-horizontal',
+			'stretch-vertical': $_icons_icon_0_merged_svg_9 + '#stretch-vertical',
+			'text-align-center': $_icons_icon_0_merged_svg_9 + '#text-align-center',
+			'text-align-left': $_icons_icon_0_merged_svg_9 + '#text-align-left',
+			'text-align-right': $_icons_icon_0_merged_svg_9 + '#text-align-right',
+			'toggle-off': $_icons_icon_0_merged_svg_9 + '#toggle-off',
+			'toggle-on': $_icons_icon_0_merged_svg_9 + '#toggle-on',
+			'tool-arrow': $_icons_icon_0_merged_svg_9 + '#tool-arrow',
+			'tool-eraser': $_icons_icon_0_merged_svg_9 + '#tool-eraser',
+			'tool-frame': $_icons_icon_0_merged_svg_9 + '#tool-frame',
+			'tool-hand': $_icons_icon_0_merged_svg_9 + '#tool-hand',
+			'tool-highlight': $_icons_icon_0_merged_svg_9 + '#tool-highlight',
+			'tool-laser': $_icons_icon_0_merged_svg_9 + '#tool-laser',
+			'tool-line': $_icons_icon_0_merged_svg_9 + '#tool-line',
+			'tool-media': $_icons_icon_0_merged_svg_9 + '#tool-media',
+			'tool-note': $_icons_icon_0_merged_svg_9 + '#tool-note',
+			'tool-pencil': $_icons_icon_0_merged_svg_9 + '#tool-pencil',
+			'tool-pointer': $_icons_icon_0_merged_svg_9 + '#tool-pointer',
+			'tool-screenshot': $_icons_icon_0_merged_svg_9 + '#tool-screenshot',
+			'tool-text': $_icons_icon_0_merged_svg_9 + '#tool-text',
+			trash: $_icons_icon_0_merged_svg_9 + '#trash',
+			twitter: $_icons_icon_0_merged_svg_9 + '#twitter',
+			undo: $_icons_icon_0_merged_svg_9 + '#undo',
+			ungroup: $_icons_icon_0_merged_svg_9 + '#ungroup',
+			unlock: $_icons_icon_0_merged_svg_9 + '#unlock',
+			'vertical-align-end': $_icons_icon_0_merged_svg_9 + '#vertical-align-end',
+			'vertical-align-middle': $_icons_icon_0_merged_svg_9 + '#vertical-align-middle',
+			'vertical-align-start': $_icons_icon_0_merged_svg_9 + '#vertical-align-start',
+			'warning-triangle': $_icons_icon_0_merged_svg_9 + '#warning-triangle',
+			'zoom-in': $_icons_icon_0_merged_svg_9 + '#zoom-in',
+			'zoom-out': $_icons_icon_0_merged_svg_9 + '#zoom-out',
 		},
 		translations: {
-			ar: formatAssetUrl(translationsAr, opts),
-			ca: formatAssetUrl(translationsCa, opts),
-			cs: formatAssetUrl(translationsCs, opts),
-			da: formatAssetUrl(translationsDa, opts),
-			de: formatAssetUrl(translationsDe, opts),
-			en: formatAssetUrl(translationsEn, opts),
-			es: formatAssetUrl(translationsEs, opts),
-			fa: formatAssetUrl(translationsFa, opts),
-			fi: formatAssetUrl(translationsFi, opts),
-			fr: formatAssetUrl(translationsFr, opts),
-			gl: formatAssetUrl(translationsGl, opts),
-			he: formatAssetUrl(translationsHe, opts),
-			'hi-in': formatAssetUrl(translationsHiIn, opts),
-			hr: formatAssetUrl(translationsHr, opts),
-			hu: formatAssetUrl(translationsHu, opts),
-			id: formatAssetUrl(translationsId, opts),
-			it: formatAssetUrl(translationsIt, opts),
-			ja: formatAssetUrl(translationsJa, opts),
-			'ko-kr': formatAssetUrl(translationsKoKr, opts),
-			ku: formatAssetUrl(translationsKu, opts),
-			languages: formatAssetUrl(translationsLanguages, opts),
-			main: formatAssetUrl(translationsMain, opts),
-			my: formatAssetUrl(translationsMy, opts),
-			ne: formatAssetUrl(translationsNe, opts),
-			no: formatAssetUrl(translationsNo, opts),
-			pl: formatAssetUrl(translationsPl, opts),
-			'pt-br': formatAssetUrl(translationsPtBr, opts),
-			'pt-pt': formatAssetUrl(translationsPtPt, opts),
-			ro: formatAssetUrl(translationsRo, opts),
-			ru: formatAssetUrl(translationsRu, opts),
-			sl: formatAssetUrl(translationsSl, opts),
-			sv: formatAssetUrl(translationsSv, opts),
-			te: formatAssetUrl(translationsTe, opts),
-			th: formatAssetUrl(translationsTh, opts),
-			tr: formatAssetUrl(translationsTr, opts),
-			uk: formatAssetUrl(translationsUk, opts),
-			vi: formatAssetUrl(translationsVi, opts),
-			'zh-cn': formatAssetUrl(translationsZhCn, opts),
-			'zh-tw': formatAssetUrl(translationsZhTw, opts),
+			ar: formatAssetUrl($__translations_ar_json_url_10, opts),
+			ca: formatAssetUrl($__translations_ca_json_url_12, opts),
+			cs: formatAssetUrl($__translations_cs_json_url_14, opts),
+			da: formatAssetUrl($__translations_da_json_url_16, opts),
+			de: formatAssetUrl($__translations_de_json_url_18, opts),
+			en: formatAssetUrl($__translations_en_json_url_20, opts),
+			es: formatAssetUrl($__translations_es_json_url_22, opts),
+			fa: formatAssetUrl($__translations_fa_json_url_24, opts),
+			fi: formatAssetUrl($__translations_fi_json_url_26, opts),
+			fr: formatAssetUrl($__translations_fr_json_url_28, opts),
+			gl: formatAssetUrl($__translations_gl_json_url_30, opts),
+			he: formatAssetUrl($__translations_he_json_url_32, opts),
+			'hi-in': formatAssetUrl($__translations_hi_in_json_url_34, opts),
+			hr: formatAssetUrl($__translations_hr_json_url_36, opts),
+			hu: formatAssetUrl($__translations_hu_json_url_38, opts),
+			id: formatAssetUrl($__translations_id_json_url_40, opts),
+			it: formatAssetUrl($__translations_it_json_url_42, opts),
+			ja: formatAssetUrl($__translations_ja_json_url_44, opts),
+			'ko-kr': formatAssetUrl($__translations_ko_kr_json_url_46, opts),
+			ku: formatAssetUrl($__translations_ku_json_url_48, opts),
+			languages: formatAssetUrl($__translations_languages_json_url_50, opts),
+			main: formatAssetUrl($__translations_main_json_url_52, opts),
+			my: formatAssetUrl($__translations_my_json_url_54, opts),
+			ne: formatAssetUrl($__translations_ne_json_url_56, opts),
+			no: formatAssetUrl($__translations_no_json_url_58, opts),
+			pl: formatAssetUrl($__translations_pl_json_url_60, opts),
+			'pt-br': formatAssetUrl($__translations_pt_br_json_url_62, opts),
+			'pt-pt': formatAssetUrl($__translations_pt_pt_json_url_64, opts),
+			ro: formatAssetUrl($__translations_ro_json_url_66, opts),
+			ru: formatAssetUrl($__translations_ru_json_url_68, opts),
+			sl: formatAssetUrl($__translations_sl_json_url_70, opts),
+			sv: formatAssetUrl($__translations_sv_json_url_72, opts),
+			te: formatAssetUrl($__translations_te_json_url_74, opts),
+			th: formatAssetUrl($__translations_th_json_url_76, opts),
+			tr: formatAssetUrl($__translations_tr_json_url_78, opts),
+			uk: formatAssetUrl($__translations_uk_json_url_80, opts),
+			vi: formatAssetUrl($__translations_vi_json_url_82, opts),
+			'zh-cn': formatAssetUrl($__translations_zh_cn_json_url_84, opts),
+			'zh-tw': formatAssetUrl($__translations_zh_tw_json_url_86, opts),
 		},
 		embedIcons: {
-			codepen: formatAssetUrl(embedIconsCodepen, opts),
-			codesandbox: formatAssetUrl(embedIconsCodesandbox, opts),
-			desmos: formatAssetUrl(embedIconsDesmos, opts),
-			excalidraw: formatAssetUrl(embedIconsExcalidraw, opts),
-			felt: formatAssetUrl(embedIconsFelt, opts),
-			figma: formatAssetUrl(embedIconsFigma, opts),
-			github_gist: formatAssetUrl(embedIconsGithubGist, opts),
-			google_calendar: formatAssetUrl(embedIconsGoogleCalendar, opts),
-			google_maps: formatAssetUrl(embedIconsGoogleMaps, opts),
-			google_slides: formatAssetUrl(embedIconsGoogleSlides, opts),
-			observable: formatAssetUrl(embedIconsObservable, opts),
-			replit: formatAssetUrl(embedIconsReplit, opts),
-			scratch: formatAssetUrl(embedIconsScratch, opts),
-			spotify: formatAssetUrl(embedIconsSpotify, opts),
-			tldraw: formatAssetUrl(embedIconsTldraw, opts),
-			val_town: formatAssetUrl(embedIconsValTown, opts),
-			vimeo: formatAssetUrl(embedIconsVimeo, opts),
-			youtube: formatAssetUrl(embedIconsYoutube, opts),
+			codepen: formatAssetUrl($__embed_icons_codepen_png_url_88, opts),
+			codesandbox: formatAssetUrl($__embed_icons_codesandbox_png_url_90, opts),
+			desmos: formatAssetUrl($__embed_icons_desmos_png_url_92, opts),
+			excalidraw: formatAssetUrl($__embed_icons_excalidraw_png_url_94, opts),
+			felt: formatAssetUrl($__embed_icons_felt_png_url_96, opts),
+			figma: formatAssetUrl($__embed_icons_figma_png_url_98, opts),
+			github_gist: formatAssetUrl($__embed_icons_github_gist_png_url_100, opts),
+			google_calendar: formatAssetUrl($__embed_icons_google_calendar_png_url_102, opts),
+			google_maps: formatAssetUrl($__embed_icons_google_maps_png_url_104, opts),
+			google_slides: formatAssetUrl($__embed_icons_google_slides_png_url_106, opts),
+			observable: formatAssetUrl($__embed_icons_observable_png_url_108, opts),
+			replit: formatAssetUrl($__embed_icons_replit_png_url_110, opts),
+			scratch: formatAssetUrl($__embed_icons_scratch_png_url_112, opts),
+			spotify: formatAssetUrl($__embed_icons_spotify_png_url_114, opts),
+			tldraw: formatAssetUrl($__embed_icons_tldraw_png_url_116, opts),
+			val_town: formatAssetUrl($__embed_icons_val_town_png_url_118, opts),
+			vimeo: formatAssetUrl($__embed_icons_vimeo_png_url_120, opts),
+			youtube: formatAssetUrl($__embed_icons_youtube_png_url_122, opts),
 		},
 	}
 }

@@ -7,8 +7,13 @@ let didPreloadIcons = false
 async function preloadIcons() {
 	if (didPreloadIcons) return
 	didPreloadIcons = true
-	const urlsToPreload = [...Object.values(assetUrls.icons), ...Object.values(assetUrls.embedIcons)]
-	await Promise.allSettled(urlsToPreload.map(preloadIcon))
+	const urlsToPreload = new Set(
+		[...Object.values(assetUrls.icons), ...Object.values(assetUrls.embedIcons)].map((url) =>
+			url.replace(/#.*$/, '')
+		)
+	)
+
+	await Promise.allSettled(Array.from(urlsToPreload, preloadIcon))
 }
 
 function preloadIcon(url: string) {

@@ -10,6 +10,10 @@ import { formatAssetUrl } from './utils.js'
  * @public
  */
 export function getAssetUrlsByMetaUrl(opts) {
+	const $_icons_icon_0_merged_svg_4 = formatAssetUrl(
+		new URL('./icons/icon/0_merged.svg', import.meta.url).href,
+		opts
+	)
 	return {
 		fonts: {
 			monospace: formatAssetUrl(
@@ -30,474 +34,147 @@ export function getAssetUrlsByMetaUrl(opts) {
 			),
 		},
 		icons: {
-			'align-bottom': formatAssetUrl(
-				new URL('./icons/icon/align-bottom.svg', import.meta.url).href,
-				opts
-			),
-			'align-center-horizontal': formatAssetUrl(
-				new URL('./icons/icon/align-center-horizontal.svg', import.meta.url).href,
-				opts
-			),
-			'align-center-vertical': formatAssetUrl(
-				new URL('./icons/icon/align-center-vertical.svg', import.meta.url).href,
-				opts
-			),
-			'align-left': formatAssetUrl(
-				new URL('./icons/icon/align-left.svg', import.meta.url).href,
-				opts
-			),
-			'align-right': formatAssetUrl(
-				new URL('./icons/icon/align-right.svg', import.meta.url).href,
-				opts
-			),
-			'align-top': formatAssetUrl(
-				new URL('./icons/icon/align-top.svg', import.meta.url).href,
-				opts
-			),
-			'arrow-left': formatAssetUrl(
-				new URL('./icons/icon/arrow-left.svg', import.meta.url).href,
-				opts
-			),
-			'arrowhead-arrow': formatAssetUrl(
-				new URL('./icons/icon/arrowhead-arrow.svg', import.meta.url).href,
-				opts
-			),
-			'arrowhead-bar': formatAssetUrl(
-				new URL('./icons/icon/arrowhead-bar.svg', import.meta.url).href,
-				opts
-			),
-			'arrowhead-diamond': formatAssetUrl(
-				new URL('./icons/icon/arrowhead-diamond.svg', import.meta.url).href,
-				opts
-			),
-			'arrowhead-dot': formatAssetUrl(
-				new URL('./icons/icon/arrowhead-dot.svg', import.meta.url).href,
-				opts
-			),
-			'arrowhead-none': formatAssetUrl(
-				new URL('./icons/icon/arrowhead-none.svg', import.meta.url).href,
-				opts
-			),
-			'arrowhead-square': formatAssetUrl(
-				new URL('./icons/icon/arrowhead-square.svg', import.meta.url).href,
-				opts
-			),
-			'arrowhead-triangle-inverted': formatAssetUrl(
-				new URL('./icons/icon/arrowhead-triangle-inverted.svg', import.meta.url).href,
-				opts
-			),
-			'arrowhead-triangle': formatAssetUrl(
-				new URL('./icons/icon/arrowhead-triangle.svg', import.meta.url).href,
-				opts
-			),
-			blob: formatAssetUrl(new URL('./icons/icon/blob.svg', import.meta.url).href, opts),
-			'bring-forward': formatAssetUrl(
-				new URL('./icons/icon/bring-forward.svg', import.meta.url).href,
-				opts
-			),
-			'bring-to-front': formatAssetUrl(
-				new URL('./icons/icon/bring-to-front.svg', import.meta.url).href,
-				opts
-			),
-			broken: formatAssetUrl(new URL('./icons/icon/broken.svg', import.meta.url).href, opts),
-			'check-circle': formatAssetUrl(
-				new URL('./icons/icon/check-circle.svg', import.meta.url).href,
-				opts
-			),
-			check: formatAssetUrl(new URL('./icons/icon/check.svg', import.meta.url).href, opts),
-			'chevron-down': formatAssetUrl(
-				new URL('./icons/icon/chevron-down.svg', import.meta.url).href,
-				opts
-			),
-			'chevron-left': formatAssetUrl(
-				new URL('./icons/icon/chevron-left.svg', import.meta.url).href,
-				opts
-			),
-			'chevron-right': formatAssetUrl(
-				new URL('./icons/icon/chevron-right.svg', import.meta.url).href,
-				opts
-			),
-			'chevron-up': formatAssetUrl(
-				new URL('./icons/icon/chevron-up.svg', import.meta.url).href,
-				opts
-			),
-			'chevrons-ne': formatAssetUrl(
-				new URL('./icons/icon/chevrons-ne.svg', import.meta.url).href,
-				opts
-			),
-			'chevrons-sw': formatAssetUrl(
-				new URL('./icons/icon/chevrons-sw.svg', import.meta.url).href,
-				opts
-			),
-			'clipboard-copied': formatAssetUrl(
-				new URL('./icons/icon/clipboard-copied.svg', import.meta.url).href,
-				opts
-			),
-			'clipboard-copy': formatAssetUrl(
-				new URL('./icons/icon/clipboard-copy.svg', import.meta.url).href,
-				opts
-			),
-			color: formatAssetUrl(new URL('./icons/icon/color.svg', import.meta.url).href, opts),
-			'cross-2': formatAssetUrl(new URL('./icons/icon/cross-2.svg', import.meta.url).href, opts),
-			'cross-circle': formatAssetUrl(
-				new URL('./icons/icon/cross-circle.svg', import.meta.url).href,
-				opts
-			),
-			'dash-dashed': formatAssetUrl(
-				new URL('./icons/icon/dash-dashed.svg', import.meta.url).href,
-				opts
-			),
-			'dash-dotted': formatAssetUrl(
-				new URL('./icons/icon/dash-dotted.svg', import.meta.url).href,
-				opts
-			),
-			'dash-draw': formatAssetUrl(
-				new URL('./icons/icon/dash-draw.svg', import.meta.url).href,
-				opts
-			),
-			'dash-solid': formatAssetUrl(
-				new URL('./icons/icon/dash-solid.svg', import.meta.url).href,
-				opts
-			),
-			disconnected: formatAssetUrl(
-				new URL('./icons/icon/disconnected.svg', import.meta.url).href,
-				opts
-			),
-			discord: formatAssetUrl(new URL('./icons/icon/discord.svg', import.meta.url).href, opts),
-			'distribute-horizontal': formatAssetUrl(
-				new URL('./icons/icon/distribute-horizontal.svg', import.meta.url).href,
-				opts
-			),
-			'distribute-vertical': formatAssetUrl(
-				new URL('./icons/icon/distribute-vertical.svg', import.meta.url).href,
-				opts
-			),
-			dot: formatAssetUrl(new URL('./icons/icon/dot.svg', import.meta.url).href, opts),
-			'dots-horizontal': formatAssetUrl(
-				new URL('./icons/icon/dots-horizontal.svg', import.meta.url).href,
-				opts
-			),
-			'dots-vertical': formatAssetUrl(
-				new URL('./icons/icon/dots-vertical.svg', import.meta.url).href,
-				opts
-			),
-			'drag-handle-dots': formatAssetUrl(
-				new URL('./icons/icon/drag-handle-dots.svg', import.meta.url).href,
-				opts
-			),
-			duplicate: formatAssetUrl(new URL('./icons/icon/duplicate.svg', import.meta.url).href, opts),
-			edit: formatAssetUrl(new URL('./icons/icon/edit.svg', import.meta.url).href, opts),
-			'external-link': formatAssetUrl(
-				new URL('./icons/icon/external-link.svg', import.meta.url).href,
-				opts
-			),
-			'fill-fill': formatAssetUrl(
-				new URL('./icons/icon/fill-fill.svg', import.meta.url).href,
-				opts
-			),
-			'fill-none': formatAssetUrl(
-				new URL('./icons/icon/fill-none.svg', import.meta.url).href,
-				opts
-			),
-			'fill-pattern': formatAssetUrl(
-				new URL('./icons/icon/fill-pattern.svg', import.meta.url).href,
-				opts
-			),
-			'fill-semi': formatAssetUrl(
-				new URL('./icons/icon/fill-semi.svg', import.meta.url).href,
-				opts
-			),
-			'fill-solid': formatAssetUrl(
-				new URL('./icons/icon/fill-solid.svg', import.meta.url).href,
-				opts
-			),
-			follow: formatAssetUrl(new URL('./icons/icon/follow.svg', import.meta.url).href, opts),
-			following: formatAssetUrl(new URL('./icons/icon/following.svg', import.meta.url).href, opts),
-			'font-draw': formatAssetUrl(
-				new URL('./icons/icon/font-draw.svg', import.meta.url).href,
-				opts
-			),
-			'font-mono': formatAssetUrl(
-				new URL('./icons/icon/font-mono.svg', import.meta.url).href,
-				opts
-			),
-			'font-sans': formatAssetUrl(
-				new URL('./icons/icon/font-sans.svg', import.meta.url).href,
-				opts
-			),
-			'font-serif': formatAssetUrl(
-				new URL('./icons/icon/font-serif.svg', import.meta.url).href,
-				opts
-			),
-			'geo-arrow-down': formatAssetUrl(
-				new URL('./icons/icon/geo-arrow-down.svg', import.meta.url).href,
-				opts
-			),
-			'geo-arrow-left': formatAssetUrl(
-				new URL('./icons/icon/geo-arrow-left.svg', import.meta.url).href,
-				opts
-			),
-			'geo-arrow-right': formatAssetUrl(
-				new URL('./icons/icon/geo-arrow-right.svg', import.meta.url).href,
-				opts
-			),
-			'geo-arrow-up': formatAssetUrl(
-				new URL('./icons/icon/geo-arrow-up.svg', import.meta.url).href,
-				opts
-			),
-			'geo-check-box': formatAssetUrl(
-				new URL('./icons/icon/geo-check-box.svg', import.meta.url).href,
-				opts
-			),
-			'geo-cloud': formatAssetUrl(
-				new URL('./icons/icon/geo-cloud.svg', import.meta.url).href,
-				opts
-			),
-			'geo-diamond': formatAssetUrl(
-				new URL('./icons/icon/geo-diamond.svg', import.meta.url).href,
-				opts
-			),
-			'geo-ellipse': formatAssetUrl(
-				new URL('./icons/icon/geo-ellipse.svg', import.meta.url).href,
-				opts
-			),
-			'geo-heart': formatAssetUrl(
-				new URL('./icons/icon/geo-heart.svg', import.meta.url).href,
-				opts
-			),
-			'geo-hexagon': formatAssetUrl(
-				new URL('./icons/icon/geo-hexagon.svg', import.meta.url).href,
-				opts
-			),
-			'geo-octagon': formatAssetUrl(
-				new URL('./icons/icon/geo-octagon.svg', import.meta.url).href,
-				opts
-			),
-			'geo-oval': formatAssetUrl(new URL('./icons/icon/geo-oval.svg', import.meta.url).href, opts),
-			'geo-pentagon': formatAssetUrl(
-				new URL('./icons/icon/geo-pentagon.svg', import.meta.url).href,
-				opts
-			),
-			'geo-rectangle': formatAssetUrl(
-				new URL('./icons/icon/geo-rectangle.svg', import.meta.url).href,
-				opts
-			),
-			'geo-rhombus-2': formatAssetUrl(
-				new URL('./icons/icon/geo-rhombus-2.svg', import.meta.url).href,
-				opts
-			),
-			'geo-rhombus': formatAssetUrl(
-				new URL('./icons/icon/geo-rhombus.svg', import.meta.url).href,
-				opts
-			),
-			'geo-star': formatAssetUrl(new URL('./icons/icon/geo-star.svg', import.meta.url).href, opts),
-			'geo-trapezoid': formatAssetUrl(
-				new URL('./icons/icon/geo-trapezoid.svg', import.meta.url).href,
-				opts
-			),
-			'geo-triangle': formatAssetUrl(
-				new URL('./icons/icon/geo-triangle.svg', import.meta.url).href,
-				opts
-			),
-			'geo-x-box': formatAssetUrl(
-				new URL('./icons/icon/geo-x-box.svg', import.meta.url).href,
-				opts
-			),
-			github: formatAssetUrl(new URL('./icons/icon/github.svg', import.meta.url).href, opts),
-			group: formatAssetUrl(new URL('./icons/icon/group.svg', import.meta.url).href, opts),
-			'horizontal-align-end': formatAssetUrl(
-				new URL('./icons/icon/horizontal-align-end.svg', import.meta.url).href,
-				opts
-			),
-			'horizontal-align-middle': formatAssetUrl(
-				new URL('./icons/icon/horizontal-align-middle.svg', import.meta.url).href,
-				opts
-			),
-			'horizontal-align-start': formatAssetUrl(
-				new URL('./icons/icon/horizontal-align-start.svg', import.meta.url).href,
-				opts
-			),
-			'info-circle': formatAssetUrl(
-				new URL('./icons/icon/info-circle.svg', import.meta.url).href,
-				opts
-			),
-			leading: formatAssetUrl(new URL('./icons/icon/leading.svg', import.meta.url).href, opts),
-			link: formatAssetUrl(new URL('./icons/icon/link.svg', import.meta.url).href, opts),
-			lock: formatAssetUrl(new URL('./icons/icon/lock.svg', import.meta.url).href, opts),
-			menu: formatAssetUrl(new URL('./icons/icon/menu.svg', import.meta.url).href, opts),
-			minus: formatAssetUrl(new URL('./icons/icon/minus.svg', import.meta.url).href, opts),
-			mixed: formatAssetUrl(new URL('./icons/icon/mixed.svg', import.meta.url).href, opts),
-			pack: formatAssetUrl(new URL('./icons/icon/pack.svg', import.meta.url).href, opts),
-			plus: formatAssetUrl(new URL('./icons/icon/plus.svg', import.meta.url).href, opts),
-			'question-mark-circle': formatAssetUrl(
-				new URL('./icons/icon/question-mark-circle.svg', import.meta.url).href,
-				opts
-			),
-			'question-mark': formatAssetUrl(
-				new URL('./icons/icon/question-mark.svg', import.meta.url).href,
-				opts
-			),
-			redo: formatAssetUrl(new URL('./icons/icon/redo.svg', import.meta.url).href, opts),
-			'reset-zoom': formatAssetUrl(
-				new URL('./icons/icon/reset-zoom.svg', import.meta.url).href,
-				opts
-			),
-			'rotate-ccw': formatAssetUrl(
-				new URL('./icons/icon/rotate-ccw.svg', import.meta.url).href,
-				opts
-			),
-			'rotate-cw': formatAssetUrl(
-				new URL('./icons/icon/rotate-cw.svg', import.meta.url).href,
-				opts
-			),
-			'send-backward': formatAssetUrl(
-				new URL('./icons/icon/send-backward.svg', import.meta.url).href,
-				opts
-			),
-			'send-to-back': formatAssetUrl(
-				new URL('./icons/icon/send-to-back.svg', import.meta.url).href,
-				opts
-			),
-			'share-1': formatAssetUrl(new URL('./icons/icon/share-1.svg', import.meta.url).href, opts),
-			'size-extra-large': formatAssetUrl(
-				new URL('./icons/icon/size-extra-large.svg', import.meta.url).href,
-				opts
-			),
-			'size-large': formatAssetUrl(
-				new URL('./icons/icon/size-large.svg', import.meta.url).href,
-				opts
-			),
-			'size-medium': formatAssetUrl(
-				new URL('./icons/icon/size-medium.svg', import.meta.url).href,
-				opts
-			),
-			'size-small': formatAssetUrl(
-				new URL('./icons/icon/size-small.svg', import.meta.url).href,
-				opts
-			),
-			'spline-cubic': formatAssetUrl(
-				new URL('./icons/icon/spline-cubic.svg', import.meta.url).href,
-				opts
-			),
-			'spline-line': formatAssetUrl(
-				new URL('./icons/icon/spline-line.svg', import.meta.url).href,
-				opts
-			),
-			'stack-horizontal': formatAssetUrl(
-				new URL('./icons/icon/stack-horizontal.svg', import.meta.url).href,
-				opts
-			),
-			'stack-vertical': formatAssetUrl(
-				new URL('./icons/icon/stack-vertical.svg', import.meta.url).href,
-				opts
-			),
-			'status-offline': formatAssetUrl(
-				new URL('./icons/icon/status-offline.svg', import.meta.url).href,
-				opts
-			),
-			'stretch-horizontal': formatAssetUrl(
-				new URL('./icons/icon/stretch-horizontal.svg', import.meta.url).href,
-				opts
-			),
-			'stretch-vertical': formatAssetUrl(
-				new URL('./icons/icon/stretch-vertical.svg', import.meta.url).href,
-				opts
-			),
-			'text-align-center': formatAssetUrl(
-				new URL('./icons/icon/text-align-center.svg', import.meta.url).href,
-				opts
-			),
-			'text-align-left': formatAssetUrl(
-				new URL('./icons/icon/text-align-left.svg', import.meta.url).href,
-				opts
-			),
-			'text-align-right': formatAssetUrl(
-				new URL('./icons/icon/text-align-right.svg', import.meta.url).href,
-				opts
-			),
-			'toggle-off': formatAssetUrl(
-				new URL('./icons/icon/toggle-off.svg', import.meta.url).href,
-				opts
-			),
-			'toggle-on': formatAssetUrl(
-				new URL('./icons/icon/toggle-on.svg', import.meta.url).href,
-				opts
-			),
-			'tool-arrow': formatAssetUrl(
-				new URL('./icons/icon/tool-arrow.svg', import.meta.url).href,
-				opts
-			),
-			'tool-eraser': formatAssetUrl(
-				new URL('./icons/icon/tool-eraser.svg', import.meta.url).href,
-				opts
-			),
-			'tool-frame': formatAssetUrl(
-				new URL('./icons/icon/tool-frame.svg', import.meta.url).href,
-				opts
-			),
-			'tool-hand': formatAssetUrl(
-				new URL('./icons/icon/tool-hand.svg', import.meta.url).href,
-				opts
-			),
-			'tool-highlight': formatAssetUrl(
-				new URL('./icons/icon/tool-highlight.svg', import.meta.url).href,
-				opts
-			),
-			'tool-laser': formatAssetUrl(
-				new URL('./icons/icon/tool-laser.svg', import.meta.url).href,
-				opts
-			),
-			'tool-line': formatAssetUrl(
-				new URL('./icons/icon/tool-line.svg', import.meta.url).href,
-				opts
-			),
-			'tool-media': formatAssetUrl(
-				new URL('./icons/icon/tool-media.svg', import.meta.url).href,
-				opts
-			),
-			'tool-note': formatAssetUrl(
-				new URL('./icons/icon/tool-note.svg', import.meta.url).href,
-				opts
-			),
-			'tool-pencil': formatAssetUrl(
-				new URL('./icons/icon/tool-pencil.svg', import.meta.url).href,
-				opts
-			),
-			'tool-pointer': formatAssetUrl(
-				new URL('./icons/icon/tool-pointer.svg', import.meta.url).href,
-				opts
-			),
-			'tool-screenshot': formatAssetUrl(
-				new URL('./icons/icon/tool-screenshot.svg', import.meta.url).href,
-				opts
-			),
-			'tool-text': formatAssetUrl(
-				new URL('./icons/icon/tool-text.svg', import.meta.url).href,
-				opts
-			),
-			trash: formatAssetUrl(new URL('./icons/icon/trash.svg', import.meta.url).href, opts),
-			twitter: formatAssetUrl(new URL('./icons/icon/twitter.svg', import.meta.url).href, opts),
-			undo: formatAssetUrl(new URL('./icons/icon/undo.svg', import.meta.url).href, opts),
-			ungroup: formatAssetUrl(new URL('./icons/icon/ungroup.svg', import.meta.url).href, opts),
-			unlock: formatAssetUrl(new URL('./icons/icon/unlock.svg', import.meta.url).href, opts),
-			'vertical-align-end': formatAssetUrl(
-				new URL('./icons/icon/vertical-align-end.svg', import.meta.url).href,
-				opts
-			),
-			'vertical-align-middle': formatAssetUrl(
-				new URL('./icons/icon/vertical-align-middle.svg', import.meta.url).href,
-				opts
-			),
-			'vertical-align-start': formatAssetUrl(
-				new URL('./icons/icon/vertical-align-start.svg', import.meta.url).href,
-				opts
-			),
-			'warning-triangle': formatAssetUrl(
-				new URL('./icons/icon/warning-triangle.svg', import.meta.url).href,
-				opts
-			),
-			'zoom-in': formatAssetUrl(new URL('./icons/icon/zoom-in.svg', import.meta.url).href, opts),
-			'zoom-out': formatAssetUrl(new URL('./icons/icon/zoom-out.svg', import.meta.url).href, opts),
+			'align-bottom': $_icons_icon_0_merged_svg_4 + '#align-bottom',
+			'align-center-horizontal': $_icons_icon_0_merged_svg_4 + '#align-center-horizontal',
+			'align-center-vertical': $_icons_icon_0_merged_svg_4 + '#align-center-vertical',
+			'align-left': $_icons_icon_0_merged_svg_4 + '#align-left',
+			'align-right': $_icons_icon_0_merged_svg_4 + '#align-right',
+			'align-top': $_icons_icon_0_merged_svg_4 + '#align-top',
+			'arrow-left': $_icons_icon_0_merged_svg_4 + '#arrow-left',
+			'arrowhead-arrow': $_icons_icon_0_merged_svg_4 + '#arrowhead-arrow',
+			'arrowhead-bar': $_icons_icon_0_merged_svg_4 + '#arrowhead-bar',
+			'arrowhead-diamond': $_icons_icon_0_merged_svg_4 + '#arrowhead-diamond',
+			'arrowhead-dot': $_icons_icon_0_merged_svg_4 + '#arrowhead-dot',
+			'arrowhead-none': $_icons_icon_0_merged_svg_4 + '#arrowhead-none',
+			'arrowhead-square': $_icons_icon_0_merged_svg_4 + '#arrowhead-square',
+			'arrowhead-triangle-inverted': $_icons_icon_0_merged_svg_4 + '#arrowhead-triangle-inverted',
+			'arrowhead-triangle': $_icons_icon_0_merged_svg_4 + '#arrowhead-triangle',
+			blob: $_icons_icon_0_merged_svg_4 + '#blob',
+			'bring-forward': $_icons_icon_0_merged_svg_4 + '#bring-forward',
+			'bring-to-front': $_icons_icon_0_merged_svg_4 + '#bring-to-front',
+			broken: $_icons_icon_0_merged_svg_4 + '#broken',
+			'check-circle': $_icons_icon_0_merged_svg_4 + '#check-circle',
+			check: $_icons_icon_0_merged_svg_4 + '#check',
+			'chevron-down': $_icons_icon_0_merged_svg_4 + '#chevron-down',
+			'chevron-left': $_icons_icon_0_merged_svg_4 + '#chevron-left',
+			'chevron-right': $_icons_icon_0_merged_svg_4 + '#chevron-right',
+			'chevron-up': $_icons_icon_0_merged_svg_4 + '#chevron-up',
+			'chevrons-ne': $_icons_icon_0_merged_svg_4 + '#chevrons-ne',
+			'chevrons-sw': $_icons_icon_0_merged_svg_4 + '#chevrons-sw',
+			'clipboard-copied': $_icons_icon_0_merged_svg_4 + '#clipboard-copied',
+			'clipboard-copy': $_icons_icon_0_merged_svg_4 + '#clipboard-copy',
+			color: $_icons_icon_0_merged_svg_4 + '#color',
+			'cross-2': $_icons_icon_0_merged_svg_4 + '#cross-2',
+			'cross-circle': $_icons_icon_0_merged_svg_4 + '#cross-circle',
+			'dash-dashed': $_icons_icon_0_merged_svg_4 + '#dash-dashed',
+			'dash-dotted': $_icons_icon_0_merged_svg_4 + '#dash-dotted',
+			'dash-draw': $_icons_icon_0_merged_svg_4 + '#dash-draw',
+			'dash-solid': $_icons_icon_0_merged_svg_4 + '#dash-solid',
+			disconnected: $_icons_icon_0_merged_svg_4 + '#disconnected',
+			discord: $_icons_icon_0_merged_svg_4 + '#discord',
+			'distribute-horizontal': $_icons_icon_0_merged_svg_4 + '#distribute-horizontal',
+			'distribute-vertical': $_icons_icon_0_merged_svg_4 + '#distribute-vertical',
+			dot: $_icons_icon_0_merged_svg_4 + '#dot',
+			'dots-horizontal': $_icons_icon_0_merged_svg_4 + '#dots-horizontal',
+			'dots-vertical': $_icons_icon_0_merged_svg_4 + '#dots-vertical',
+			'drag-handle-dots': $_icons_icon_0_merged_svg_4 + '#drag-handle-dots',
+			duplicate: $_icons_icon_0_merged_svg_4 + '#duplicate',
+			edit: $_icons_icon_0_merged_svg_4 + '#edit',
+			'external-link': $_icons_icon_0_merged_svg_4 + '#external-link',
+			'fill-fill': $_icons_icon_0_merged_svg_4 + '#fill-fill',
+			'fill-none': $_icons_icon_0_merged_svg_4 + '#fill-none',
+			'fill-pattern': $_icons_icon_0_merged_svg_4 + '#fill-pattern',
+			'fill-semi': $_icons_icon_0_merged_svg_4 + '#fill-semi',
+			'fill-solid': $_icons_icon_0_merged_svg_4 + '#fill-solid',
+			follow: $_icons_icon_0_merged_svg_4 + '#follow',
+			following: $_icons_icon_0_merged_svg_4 + '#following',
+			'font-draw': $_icons_icon_0_merged_svg_4 + '#font-draw',
+			'font-mono': $_icons_icon_0_merged_svg_4 + '#font-mono',
+			'font-sans': $_icons_icon_0_merged_svg_4 + '#font-sans',
+			'font-serif': $_icons_icon_0_merged_svg_4 + '#font-serif',
+			'geo-arrow-down': $_icons_icon_0_merged_svg_4 + '#geo-arrow-down',
+			'geo-arrow-left': $_icons_icon_0_merged_svg_4 + '#geo-arrow-left',
+			'geo-arrow-right': $_icons_icon_0_merged_svg_4 + '#geo-arrow-right',
+			'geo-arrow-up': $_icons_icon_0_merged_svg_4 + '#geo-arrow-up',
+			'geo-check-box': $_icons_icon_0_merged_svg_4 + '#geo-check-box',
+			'geo-cloud': $_icons_icon_0_merged_svg_4 + '#geo-cloud',
+			'geo-diamond': $_icons_icon_0_merged_svg_4 + '#geo-diamond',
+			'geo-ellipse': $_icons_icon_0_merged_svg_4 + '#geo-ellipse',
+			'geo-heart': $_icons_icon_0_merged_svg_4 + '#geo-heart',
+			'geo-hexagon': $_icons_icon_0_merged_svg_4 + '#geo-hexagon',
+			'geo-octagon': $_icons_icon_0_merged_svg_4 + '#geo-octagon',
+			'geo-oval': $_icons_icon_0_merged_svg_4 + '#geo-oval',
+			'geo-pentagon': $_icons_icon_0_merged_svg_4 + '#geo-pentagon',
+			'geo-rectangle': $_icons_icon_0_merged_svg_4 + '#geo-rectangle',
+			'geo-rhombus-2': $_icons_icon_0_merged_svg_4 + '#geo-rhombus-2',
+			'geo-rhombus': $_icons_icon_0_merged_svg_4 + '#geo-rhombus',
+			'geo-star': $_icons_icon_0_merged_svg_4 + '#geo-star',
+			'geo-trapezoid': $_icons_icon_0_merged_svg_4 + '#geo-trapezoid',
+			'geo-triangle': $_icons_icon_0_merged_svg_4 + '#geo-triangle',
+			'geo-x-box': $_icons_icon_0_merged_svg_4 + '#geo-x-box',
+			github: $_icons_icon_0_merged_svg_4 + '#github',
+			group: $_icons_icon_0_merged_svg_4 + '#group',
+			'horizontal-align-end': $_icons_icon_0_merged_svg_4 + '#horizontal-align-end',
+			'horizontal-align-middle': $_icons_icon_0_merged_svg_4 + '#horizontal-align-middle',
+			'horizontal-align-start': $_icons_icon_0_merged_svg_4 + '#horizontal-align-start',
+			'info-circle': $_icons_icon_0_merged_svg_4 + '#info-circle',
+			leading: $_icons_icon_0_merged_svg_4 + '#leading',
+			link: $_icons_icon_0_merged_svg_4 + '#link',
+			lock: $_icons_icon_0_merged_svg_4 + '#lock',
+			menu: $_icons_icon_0_merged_svg_4 + '#menu',
+			minus: $_icons_icon_0_merged_svg_4 + '#minus',
+			mixed: $_icons_icon_0_merged_svg_4 + '#mixed',
+			pack: $_icons_icon_0_merged_svg_4 + '#pack',
+			plus: $_icons_icon_0_merged_svg_4 + '#plus',
+			'question-mark-circle': $_icons_icon_0_merged_svg_4 + '#question-mark-circle',
+			'question-mark': $_icons_icon_0_merged_svg_4 + '#question-mark',
+			redo: $_icons_icon_0_merged_svg_4 + '#redo',
+			'reset-zoom': $_icons_icon_0_merged_svg_4 + '#reset-zoom',
+			'rotate-ccw': $_icons_icon_0_merged_svg_4 + '#rotate-ccw',
+			'rotate-cw': $_icons_icon_0_merged_svg_4 + '#rotate-cw',
+			'send-backward': $_icons_icon_0_merged_svg_4 + '#send-backward',
+			'send-to-back': $_icons_icon_0_merged_svg_4 + '#send-to-back',
+			'share-1': $_icons_icon_0_merged_svg_4 + '#share-1',
+			'size-extra-large': $_icons_icon_0_merged_svg_4 + '#size-extra-large',
+			'size-large': $_icons_icon_0_merged_svg_4 + '#size-large',
+			'size-medium': $_icons_icon_0_merged_svg_4 + '#size-medium',
+			'size-small': $_icons_icon_0_merged_svg_4 + '#size-small',
+			'spline-cubic': $_icons_icon_0_merged_svg_4 + '#spline-cubic',
+			'spline-line': $_icons_icon_0_merged_svg_4 + '#spline-line',
+			'stack-horizontal': $_icons_icon_0_merged_svg_4 + '#stack-horizontal',
+			'stack-vertical': $_icons_icon_0_merged_svg_4 + '#stack-vertical',
+			'status-offline': $_icons_icon_0_merged_svg_4 + '#status-offline',
+			'stretch-horizontal': $_icons_icon_0_merged_svg_4 + '#stretch-horizontal',
+			'stretch-vertical': $_icons_icon_0_merged_svg_4 + '#stretch-vertical',
+			'text-align-center': $_icons_icon_0_merged_svg_4 + '#text-align-center',
+			'text-align-left': $_icons_icon_0_merged_svg_4 + '#text-align-left',
+			'text-align-right': $_icons_icon_0_merged_svg_4 + '#text-align-right',
+			'toggle-off': $_icons_icon_0_merged_svg_4 + '#toggle-off',
+			'toggle-on': $_icons_icon_0_merged_svg_4 + '#toggle-on',
+			'tool-arrow': $_icons_icon_0_merged_svg_4 + '#tool-arrow',
+			'tool-eraser': $_icons_icon_0_merged_svg_4 + '#tool-eraser',
+			'tool-frame': $_icons_icon_0_merged_svg_4 + '#tool-frame',
+			'tool-hand': $_icons_icon_0_merged_svg_4 + '#tool-hand',
+			'tool-highlight': $_icons_icon_0_merged_svg_4 + '#tool-highlight',
+			'tool-laser': $_icons_icon_0_merged_svg_4 + '#tool-laser',
+			'tool-line': $_icons_icon_0_merged_svg_4 + '#tool-line',
+			'tool-media': $_icons_icon_0_merged_svg_4 + '#tool-media',
+			'tool-note': $_icons_icon_0_merged_svg_4 + '#tool-note',
+			'tool-pencil': $_icons_icon_0_merged_svg_4 + '#tool-pencil',
+			'tool-pointer': $_icons_icon_0_merged_svg_4 + '#tool-pointer',
+			'tool-screenshot': $_icons_icon_0_merged_svg_4 + '#tool-screenshot',
+			'tool-text': $_icons_icon_0_merged_svg_4 + '#tool-text',
+			trash: $_icons_icon_0_merged_svg_4 + '#trash',
+			twitter: $_icons_icon_0_merged_svg_4 + '#twitter',
+			undo: $_icons_icon_0_merged_svg_4 + '#undo',
+			ungroup: $_icons_icon_0_merged_svg_4 + '#ungroup',
+			unlock: $_icons_icon_0_merged_svg_4 + '#unlock',
+			'vertical-align-end': $_icons_icon_0_merged_svg_4 + '#vertical-align-end',
+			'vertical-align-middle': $_icons_icon_0_merged_svg_4 + '#vertical-align-middle',
+			'vertical-align-start': $_icons_icon_0_merged_svg_4 + '#vertical-align-start',
+			'warning-triangle': $_icons_icon_0_merged_svg_4 + '#warning-triangle',
+			'zoom-in': $_icons_icon_0_merged_svg_4 + '#zoom-in',
+			'zoom-out': $_icons_icon_0_merged_svg_4 + '#zoom-out',
 		},
 		translations: {
 			ar: formatAssetUrl(new URL('./translations/ar.json', import.meta.url).href, opts),
