@@ -14,21 +14,6 @@
 	color-scheme: light;
 }
 
-:root:has(.dark-mode),
-:root:has(.tl-theme__dark) {
-	--background: black;
-	--text: hsl(0, 9%, 94%);
-	--gray-light: #333;
-	--gray-dark: #444;
-	--black-transparent-lighter: rgba(255, 255, 255, 0.15);
-	--black-transparent-light: rgba(255, 255, 255, 0.4);
-	--black-transparent-dark: rgba(255, 255, 255, 0.6);
-	--black-transparent-darker: rgba(255, 255, 255, 0.7);
-	--focus: hsl(217, 89%, 61%);
-	--whiteboard: hsl(240, 5%, 6.5%);
-	color-scheme: dark;
-}
-
 html,
 body {
 	padding: 0;
@@ -452,6 +437,19 @@ a.example__sidebar__header-link {
 	all: unset;
 }
 
+:root:has(.tl-theme__dark) .MultiplayerExampleWrapper {
+	--background: black;
+	--text: hsl(0, 9%, 94%);
+	--gray-light: #333;
+	--gray-dark: #444;
+	--black-transparent-lighter: rgba(255, 255, 255, 0.15);
+	--black-transparent-light: rgba(255, 255, 255, 0.4);
+	--black-transparent-dark: rgba(255, 255, 255, 0.6);
+	--black-transparent-darker: rgba(255, 255, 255, 0.7);
+	--focus: hsl(217, 89%, 61%);
+	--whiteboard: hsl(240, 5%, 6.5%);
+	color-scheme: dark;
+}
 .MultiplayerExampleWrapper {
 	position: absolute;
 	inset: 0;
@@ -548,6 +546,7 @@ a.example__sidebar__header-link {
 	.MultiplayerExampleWrapper-picker {
 		position: static;
 		border-bottom: 1px solid var(--gray-dark);
+		background: var(--background);
 	}
 	.MultiplayerExampleWrapper-picker::before {
 		display: none;

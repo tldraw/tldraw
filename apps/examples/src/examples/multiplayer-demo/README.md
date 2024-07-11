@@ -10,4 +10,5 @@ multiplayer: true
 ---
 
 The `useMultiplayerDemo` hook can be used to quickly prototype multiplayer experiences in tldraw,
-although rooms will be deleted after one day.
+although rooms will be deleted after one day. Note that the board below is shared with all visitors
+to this page.
