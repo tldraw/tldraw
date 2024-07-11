@@ -1,12 +1,13 @@
 import { SerializedSchema, SerializedStore } from '@tldraw/store'
-import { schema } from '@tldraw/sync-core'
-import { TLRecord } from '@tldraw/tlschema'
+import { TLRecord, createTLSchema } from '@tldraw/tlschema'
 import { Result, objectMapEntries } from '@tldraw/utils'
 
 interface SnapshotRequestBody {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
 }
+
+const schema = createTLSchema()
 
 export function validateSnapshot(
 	body: SnapshotRequestBody

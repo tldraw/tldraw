@@ -18,8 +18,8 @@ import {
 	TLSyncRoom,
 	TOMBSTONE_PRUNE_BUFFER_SIZE,
 } from '../lib/TLSyncRoom'
-import { schema } from '../lib/schema'
 
+const schema = createTLSchema()
 const compareById = (a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id)
 
 const records = [

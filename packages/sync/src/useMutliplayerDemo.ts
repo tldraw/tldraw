@@ -6,6 +6,7 @@ import {
 	Signal,
 	TLAsset,
 	TLAssetStore,
+	TLSchema,
 	TLUserPreferences,
 	getHashForString,
 	uniqueId,
@@ -18,6 +19,7 @@ export interface UseMultiplayerDemoOptions {
 	userPreferences?: Signal<TLUserPreferences>
 	/** @internal */
 	host?: string
+	schema?: TLSchema
 }
 
 /**
@@ -43,6 +45,7 @@ export function useMultiplayerDemo({
 	roomId,
 	userPreferences,
 	host = DEMO_WORKER,
+	schema,
 }: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus {
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
 
@@ -51,6 +54,7 @@ export function useMultiplayerDemo({
 		roomId,
 		userPreferences,
 		assets,
+		schema,
 		onEditorMount: useCallback(
 			(editor: Editor) => {
 				editor.registerExternalAssetHandler('url', async ({ url }) => {
