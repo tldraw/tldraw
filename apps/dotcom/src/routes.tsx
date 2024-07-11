@@ -16,12 +16,13 @@ import {
 	useRouteError,
 } from 'react-router-dom'
 import { useValue } from 'tldraw'
+import { TlaWrapperPublicPage } from './components-tla/TlaWrapperPublicPage'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { AppStateProvider, useApp } from './hooks/useAppState'
 import { useAuth } from './tla-hooks/useAuth'
-import { getCleanId } from './utils/tla/tldrawApp'
 import { getFileUrl } from './utils/tla/urls'
+import { getCleanId } from './utils/tla/xTldrawApp'
 
 const enableTemporaryLocalBemo =
 	window.location.hostname === 'localhost' &&
@@ -54,25 +55,32 @@ export const router = createRoutesFromElements(
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" lazy={() => import('./pages/root')} />
-			<Route path="/auth" lazy={() => import('./pages/auth')} />
-			<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
-			<Route path="/new" lazy={() => import('./pages/new')} />
-			<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
-			<Route path={`/${ROOM_PREFIX}/:roomId`} lazy={() => import('./pages/public-multiplayer')} />
-			<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
-			<Route
-				path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
-				lazy={() => import('./pages/history-snapshot')}
-			/>
-			<Route path={`/${SNAPSHOT_PREFIX}/:roomId`} lazy={() => import('./pages/public-snapshot')} />
-			<Route
-				path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
-				lazy={() => import('./pages/public-readonly-legacy')}
-			/>
-			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
-			{enableTemporaryLocalBemo && (
-				<Route path={`/bemo/:roomId`} lazy={() => import('./pages/temporary-bemo')} />
-			)}
+			<Route element={<TlaWrapperPublicPage />}>
+				<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
+				<Route path="/new" lazy={() => import('./pages/new')} />
+				<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
+				<Route path={`/${ROOM_PREFIX}/:roomId`} lazy={() => import('./pages/public-multiplayer')} />
+				<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
+				<Route
+					path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
+					lazy={() => import('./pages/history-snapshot')}
+				/>
+				<Route
+					path={`/${SNAPSHOT_PREFIX}/:roomId`}
+					lazy={() => import('./pages/public-snapshot')}
+				/>
+				<Route
+					path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
+					lazy={() => import('./pages/public-readonly-legacy')}
+				/>
+				<Route
+					path={`/${READ_ONLY_PREFIX}/:roomId`}
+					lazy={() => import('./pages/public-readonly')}
+				/>
+				{enableTemporaryLocalBemo && (
+					<Route path={`/bemo/:roomId`} lazy={() => import('./pages/temporary-bemo')} />
+				)}
+			</Route>
 			{/* todo: /u/ route redirects to auth or authenticated user's profile */}
 			<Route
 				path="/u/:userId"
@@ -85,6 +93,7 @@ export const router = createRoutesFromElements(
 				<Route index element={<RedirectToUserIndex />} />
 				<Route path="/u/:userId/profile" lazy={() => import('./pages/ws-profile')} />
 			</Route>
+			<Route path="/auth" lazy={() => import('./pages/auth')} />
 			{/* todo: /w/ route redirects to auth or authenticated user's most recent workspace */}
 			<Route
 				path="/w/:workspaceId"

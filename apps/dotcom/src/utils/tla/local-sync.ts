@@ -14,6 +14,10 @@ import {
 	transact,
 } from 'tldraw'
 
+const STORE_PREFIX = 'TLDRAW_APP_ASSET_STORE_v1'
+
+const DB_NAME_INDEX_KEY = 'TLDRAW_APP_DB_NAME_INDEX_v2'
+
 /** How should we debounce persists? */
 const PERSIST_THROTTLE_MS = 350
 /** If we're in an error state, how long should we wait before retrying a write? */
@@ -415,9 +419,6 @@ Keep seeing this message?
 • If you're using tldraw in a private or "incognito" window, try loading tldraw in a regular window or in a different browser.`
 	)
 }
-
-const STORE_PREFIX = 'TLDRAW_APP_ASSET_STORE_v1'
-const DB_NAME_INDEX_KEY = 'TLDRAW_APP_DB_NAME_INDEX_v2'
 
 const Table = {
 	Records: 'records',

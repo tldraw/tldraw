@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
-import { TldrawApp } from '../utils/tla/tldrawApp'
+import { TldrawApp } from '../utils/tla/xTldrawApp'
 
 const VERSION = ''
 
@@ -34,7 +34,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	if (!ready) {
+	if (!ready || !app) {
 		return <div>Loading...</div>
 	}
 

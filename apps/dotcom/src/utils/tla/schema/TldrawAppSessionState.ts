@@ -74,6 +74,7 @@ export const TldrawAppSessionStateRecordType = createRecordType<TldrawAppSession
 	(): Omit<TldrawAppSessionState, 'id' | 'typeName'> => ({
 		isSidebarOpen: true,
 		sidebarActiveTab: 'recent',
+		auth: undefined,
 		views: {
 			drafts: {
 				sort: 'recent',

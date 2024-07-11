@@ -1,4 +1,4 @@
-import { getCleanId } from './tldrawApp'
+import { getCleanId } from './xTldrawApp'
 
 export function getFileUrl(workspaceId: string, fileId: string): string {
 	return `/w/${getCleanId(workspaceId)}/f/${getCleanId(fileId)}`

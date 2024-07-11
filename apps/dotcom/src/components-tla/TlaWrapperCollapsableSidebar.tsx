@@ -4,7 +4,7 @@ import { useApp } from '../hooks/useAppState'
 import { TlaIcon } from './TlaIcon'
 import { TlaSidebar } from './TlaSidebar'
 
-export function TlaWrapper({ children }: { children: ReactNode }) {
+export function TlaWrapperCollapsableSidebar({ children }: { children: ReactNode }) {
 	const app = useApp()
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])

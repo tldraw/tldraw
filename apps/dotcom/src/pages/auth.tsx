@@ -4,7 +4,7 @@ import { TlaDivider } from '../components-tla/TlaDivider'
 import { TlaInput } from '../components-tla/TlaInput'
 import { TlaLabel } from '../components-tla/TlaLabel'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
-import { TlaWrapperNoSidebar } from '../components-tla/TlaWrapperNoSidebar'
+import { TlaWrapperFullPage } from '../components-tla/TlaWrapperFullPage'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppUserRecordType } from '../utils/tla/schema/TldrawAppUser'
 
@@ -17,7 +17,7 @@ export function Component() {
 
 	if (state === 'sign-in') {
 		return (
-			<TlaWrapperNoSidebar>
+			<TlaWrapperFullPage>
 				<div className="tla_auth_container">
 					<div className="tla_auth_container_title">
 						<h2 className="tla_text_ui__big">Sign in</h2>
@@ -53,13 +53,13 @@ export function Component() {
 						</div>
 					</form>
 				</div>
-			</TlaWrapperNoSidebar>
+			</TlaWrapperFullPage>
 		)
 	}
 
 	if (state === 'sign-up') {
 		return (
-			<TlaWrapperNoSidebar>
+			<TlaWrapperFullPage>
 				<div className="tla_auth_container">
 					<div className="tla_auth_container_title">
 						<h2 className="tla_text_ui__big">Create your account</h2>
@@ -111,7 +111,7 @@ export function Component() {
 						</div>
 					</form>
 				</div>
-			</TlaWrapperNoSidebar>
+			</TlaWrapperFullPage>
 		)
 	}
 

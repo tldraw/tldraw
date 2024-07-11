@@ -3,7 +3,7 @@ import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
 import { TlaCloseButton } from './TlaCloseButton'
 
-export function TlaWrapperNoSidebar({ children }: { children: ReactNode }) {
+export function TlaWrapperFullPage({ children }: { children: ReactNode }) {
 	const app = useApp()
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])
 	return (
