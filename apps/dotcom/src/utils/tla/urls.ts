@@ -11,3 +11,7 @@ export function getPageUrl(workspaceId: string, pageId: string): string {
 export function getUserUrl(userId: string): string {
 	return `/u/${getCleanId(userId)}`
 }
+
+export function getWorkspaceUrl(workspaceId: string): string {
+	return `/w/${getCleanId(workspaceId)}`
+}

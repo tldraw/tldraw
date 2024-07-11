@@ -1,5 +1,6 @@
 import { StoreSchema } from 'tldraw'
 import { TldrawAppFile, TldrawAppFileRecordType } from './schema/TldrawAppFile'
+import { TldrawAppFileVisit, TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
 import { TldrawAppGroup, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import {
 	TldrawAppGroupMembership,
@@ -11,7 +12,6 @@ import {
 } from './schema/TldrawAppSessionState'
 import { TldrawAppStar, TldrawAppStarRecordType } from './schema/TldrawAppStar'
 import { TldrawAppUser, TldrawAppUserRecordType } from './schema/TldrawAppUser'
-import { TldrawAppVisit, TldrawAppVisitRecordType } from './schema/TldrawAppVisit'
 import { TldrawAppWorkspace, TldrawAppWorkspaceRecordType } from './schema/TldrawAppWorkspace'
 import {
 	TldrawAppWorkspaceMembership,
@@ -21,7 +21,7 @@ import {
 export const tlaRecords = [
 	TldrawAppFileRecordType,
 	TldrawAppStarRecordType,
-	TldrawAppVisitRecordType,
+	TldrawAppFileVisitRecordType,
 	TldrawAppGroupMembershipRecordType,
 	TldrawAppWorkspaceMembershipRecordType,
 	TldrawAppWorkspaceRecordType,
@@ -33,7 +33,7 @@ export const tlaRecords = [
 export type TldrawAppRecord =
 	| TldrawAppFile
 	| TldrawAppStar
-	| TldrawAppVisit
+	| TldrawAppFileVisit
 	| TldrawAppGroupMembership
 	| TldrawAppWorkspaceMembership
 	| TldrawAppWorkspace
@@ -49,7 +49,7 @@ export const tldrawAppSchema = StoreSchema.create<TldrawAppRecord>({
 	group: TldrawAppGroupRecordType,
 	file: TldrawAppFileRecordType,
 	star: TldrawAppStarRecordType,
-	visit: TldrawAppVisitRecordType,
+	'file-visit': TldrawAppFileVisitRecordType,
 	'group-membership': TldrawAppGroupMembershipRecordType,
 	'workspace-membership': TldrawAppWorkspaceMembershipRecordType,
 	session: TldrawAppSessionStateRecordType,

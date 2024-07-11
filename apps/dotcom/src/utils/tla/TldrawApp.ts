@@ -2,6 +2,7 @@ import { deleteDB } from 'idb'
 import { computed, Store } from 'tldraw'
 import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
+import { TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
 import { TldrawAppGroup, TldrawAppGroupId, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import { TldrawAppGroupMembershipRecordType } from './schema/TldrawAppGroupMembership'
 import {
@@ -10,8 +11,12 @@ import {
 } from './schema/TldrawAppSessionState'
 import { TldrawAppStarRecordType } from './schema/TldrawAppStar'
 import { TldrawAppUser, TldrawAppUserId, TldrawAppUserRecordType } from './schema/TldrawAppUser'
-import { TldrawAppVisitRecordType } from './schema/TldrawAppVisit'
-import { TldrawAppWorkspaceId, TldrawAppWorkspaceRecordType } from './schema/TldrawAppWorkspace'
+import {
+	TldrawAppWorkspace,
+	TldrawAppWorkspaceId,
+	TldrawAppWorkspaceRecordType,
+} from './schema/TldrawAppWorkspace'
+import { TldrawAppWorkspaceMembershipRecordType } from './schema/TldrawAppWorkspaceMembership'
 import { TldrawAppRecord, tldrawAppSchema } from './tldrawAppSchema'
 
 export class TldrawApp {
@@ -94,7 +99,7 @@ export class TldrawApp {
 			}
 			case 'recent': {
 				// never visited first, then recently visited first
-				const visits = this.getAll('visit')
+				const visits = this.getAll('file-visit')
 					.filter((v) => v.userId === auth.userId)
 					.sort((a, b) => b.createdAt - a.createdAt)
 
@@ -204,6 +209,17 @@ export class TldrawApp {
 		)
 	}
 
+	getUserWorkspaces(userId: TldrawAppUserId) {
+		return Array.from(
+			new Set(
+				this.getAll('workspace-membership')
+					.filter((r) => r.userId === userId)
+					.map((r) => this.get(r.workspaceId))
+					.filter(Boolean) as TldrawAppWorkspace[]
+			)
+		)
+	}
+
 	getUserFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
 		return Array.from(
 			new Set(
@@ -215,7 +231,7 @@ export class TldrawApp {
 	getUserRecentFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
 		return Array.from(
 			new Set(
-				this.getAll('visit')
+				this.getAll('file-visit')
 					.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
 					.map((s) => {
 						const file = this.get<TldrawAppFile>(s.fileId)
@@ -241,7 +257,7 @@ export class TldrawApp {
 	getUserSharedFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
 		return Array.from(
 			new Set(
-				this.getAll('visit')
+				this.getAll('file-visit')
 					.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
 					.map((s) => {
 						const file = this.get<TldrawAppFile>(s.fileId)
@@ -285,7 +301,7 @@ export class TldrawApp {
 
 	logVisit(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {
 		this.store.put([
-			TldrawAppVisitRecordType.create({
+			TldrawAppFileVisitRecordType.create({
 				workspaceId,
 				userId,
 				fileId,
@@ -312,6 +328,13 @@ export class TldrawApp {
 			id: TldrawAppWorkspaceRecordType.createId('0'),
 			name: 'tldraw',
 			avatar: 'tldraw',
+		})
+
+		const workspaceMembership = TldrawAppWorkspaceMembershipRecordType.create({
+			id: TldrawAppWorkspaceMembershipRecordType.createId('0'),
+			workspaceId: workspace.id,
+			userId: user.id,
+			createdAt: Date.now(),
 		})
 
 		const group1 = TldrawAppGroupRecordType.create({
@@ -453,6 +476,7 @@ export class TldrawApp {
 				[
 					user,
 					workspace,
+					workspaceMembership,
 					group1,
 					group2,
 					star,

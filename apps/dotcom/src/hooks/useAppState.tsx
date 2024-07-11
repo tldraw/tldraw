@@ -1,5 +1,6 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
+import { TlaFullWrapper } from '../components-tla/TlaFullWrapper'
 import { TldrawApp } from '../utils/tla/TldrawApp'
 
 const VERSION = ''
@@ -35,7 +36,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}, [])
 
 	if (!ready || !app) {
-		return <div>Loading...</div>
+		return <TlaFullWrapper>Loading...</TlaFullWrapper>
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>

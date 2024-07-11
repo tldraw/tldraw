@@ -62,15 +62,15 @@
 
 /* ------------------ Ui Overrides ------------------ */
 
-.tlui-menu-zone {
+.tla_layout__signedout .tlui-menu-zone {
 	padding-left: 100px;
 }
 
-.tla .tlui-menu-zone {
+.tla_layout__signedin .tlui-menu-zone {
 	padding-left: 36px;
 }
 
-.tla .tlui-focus-button {
+.tla_layout__signedin .tla .tlui-focus-button {
 	left: 36px;
 }
 
@@ -545,7 +545,7 @@ want centered content that docks to the top when the window is short
 
 /* ----------------- Sidebar button ----------------- */
 
-.tla_sidebar_toggle {
+.tla_top-left-button {
 	background: none;
 	border: none;
 	position: absolute;
@@ -561,7 +561,7 @@ want centered content that docks to the top when the window is short
 	color: var(--color-text-1);
 }
 
-.tla_sidebar_toggle::after {
+.tla_top-left-button::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -577,12 +577,12 @@ want centered content that docks to the top when the window is short
 }
 
 @media (hover: hover) {
-	.tla_sidebar_toggle:hover::after {
+	.tla_top-left-button:hover::after {
 		visibility: visible;
 	}
 }
 
-.tla_layout[data-sidebar='true'] .tla_sidebar_toggle {
+.tla_layout[data-sidebar='true'] .tla_top-left-button {
 	left: 260px;
 }
 
