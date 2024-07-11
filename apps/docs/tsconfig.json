@@ -1,8 +1,10 @@
 {
 	"extends": "../../config/tsconfig.base.json",
 	"compilerOptions": {
+		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./*"]
+			"@/*": ["./*"],
+			"contentlayer/generated": ["./.contentlayer/generated"]
 		},
 		"lib": ["dom", "dom.iterable", "esnext"],
 		"plugins": [
@@ -22,7 +24,8 @@
 		"**/*.tsx",
 		"content.d.ts",
 		".next/types/**/*.ts",
-		"watcher.ts"
+		"watcher.ts",
+		".contentlayer/generated"
 	],
 	"exclude": ["node_modules", ".next"],
 	"references": [
