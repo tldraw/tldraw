@@ -3,7 +3,7 @@ import { Editor } from '../Editor'
 import { FLAGS, ValidLicenseKeyResult } from './LicenseManager'
 import { WatermarkManager } from './WatermarkManager'
 
-function getDefaultLicenseResult(overides: Partial<ValidLicenseKeyResult>): ValidLicenseKeyResult {
+function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): ValidLicenseKeyResult {
 	return {
 		isAnnualLicense: true,
 		isAnnualLicenseExpired: false,
@@ -21,7 +21,7 @@ function getDefaultLicenseResult(overides: Partial<ValidLicenseKeyResult>): Vali
 			expiryDate: new Date().toISOString(),
 		},
 		expiryDate: new Date(),
-		...overides,
+		...overrides,
 	}
 }
 
@@ -37,6 +37,70 @@ describe('WatermarkManager', () => {
 			tools: [],
 		})
 		watermarkManager = new WatermarkManager(editor)
+	})
+
+	it('shows watermark when license is not parseable', () => {
+		const licenseResult = getDefaultLicenseResult({
+			// @ts-ignore
+			isLicenseParseable: false,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(true)
+	})
+
+	it('shows watermark when domain is not valid', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isDomainValid: false,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(true)
+	})
+
+	it('shows watermark when annual license has expired', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isAnnualLicense: true,
+			isAnnualLicenseExpired: true,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(true)
+	})
+
+	it('shows watermark when perpetual license has expired', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isPerpetualLicense: true,
+			isPerpetualLicenseExpired: true,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(true)
+	})
+
+	it('does not show watermark when license is valid and not expired', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isAnnualLicense: true,
+			isAnnualLicenseExpired: false,
+			isInternalLicense: false,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(false)
+	})
+
+	it('does not show watermark when perpetual license is valid and not expired', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isPerpetualLicense: true,
+			isPerpetualLicenseExpired: false,
+			isInternalLicense: false,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(false)
+	})
+
+	it('does not show watermark when in development mode', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isDevelopment: true,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(false)
+	})
+
+	it('does not show watermark when license is parseable and domain is valid', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isLicenseParseable: true,
+			isDomainValid: true,
+		})
+		expect(watermarkManager.checkWatermark(licenseResult)).toBe(false)
 	})
 
 	it('throws when an internal annual license has expired', () => {

@@ -71,8 +71,6 @@ export class LicenseManager {
 	}
 
 	private async extractLicenseKey(licenseKey: string): Promise<LicenseInfo> {
-		// eslint-disable-next-line
-		console.debug('Found tldraw license key:', licenseKey)
 		const [data, signature] = licenseKey.split('.')
 		const [prefix, encodedData] = data.split('/')
 
