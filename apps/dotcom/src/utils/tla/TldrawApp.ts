@@ -2,6 +2,7 @@ import { deleteDB } from 'idb'
 import { computed, Store } from 'tldraw'
 import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
+import { TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
 import { TldrawAppGroup, TldrawAppGroupId, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import { TldrawAppGroupMembershipRecordType } from './schema/TldrawAppGroupMembership'
 import {
@@ -10,8 +11,12 @@ import {
 } from './schema/TldrawAppSessionState'
 import { TldrawAppStarRecordType } from './schema/TldrawAppStar'
 import { TldrawAppUser, TldrawAppUserId, TldrawAppUserRecordType } from './schema/TldrawAppUser'
-import { TldrawAppVisitRecordType } from './schema/TldrawAppVisit'
-import { TldrawAppWorkspaceId, TldrawAppWorkspaceRecordType } from './schema/TldrawAppWorkspace'
+import {
+	TldrawAppWorkspace,
+	TldrawAppWorkspaceId,
+	TldrawAppWorkspaceRecordType,
+} from './schema/TldrawAppWorkspace'
+import { TldrawAppWorkspaceMembershipRecordType } from './schema/TldrawAppWorkspaceMembership'
 import { TldrawAppRecord, tldrawAppSchema } from './tldrawAppSchema'
 
 export class TldrawApp {
@@ -94,7 +99,7 @@ export class TldrawApp {
 			}
 			case 'recent': {
 				// never visited first, then recently visited first
-				const visits = this.getAll('visit')
+				const visits = this.getAll('file-visit')
 					.filter((v) => v.userId === auth.userId)
 					.sort((a, b) => b.createdAt - a.createdAt)
 
@@ -204,6 +209,21 @@ export class TldrawApp {
 		)
 	}
 
+	getUser(userId: TldrawAppUserId): TldrawAppUser | undefined {
+		return this.get(userId)
+	}
+
+	getUserWorkspaces(userId: TldrawAppUserId) {
+		return Array.from(
+			new Set(
+				this.getAll('workspace-membership')
+					.filter((r) => r.userId === userId)
+					.map((r) => this.get(r.workspaceId))
+					.filter(Boolean) as TldrawAppWorkspace[]
+			)
+		)
+	}
+
 	getUserFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
 		return Array.from(
 			new Set(
@@ -215,7 +235,7 @@ export class TldrawApp {
 	getUserRecentFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
 		return Array.from(
 			new Set(
-				this.getAll('visit')
+				this.getAll('file-visit')
 					.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
 					.map((s) => {
 						const file = this.get<TldrawAppFile>(s.fileId)
@@ -241,7 +261,7 @@ export class TldrawApp {
 	getUserSharedFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
 		return Array.from(
 			new Set(
-				this.getAll('visit')
+				this.getAll('file-visit')
 					.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
 					.map((s) => {
 						const file = this.get<TldrawAppFile>(s.fileId)
@@ -273,24 +293,70 @@ export class TldrawApp {
 		)
 	}
 
-	createFile(owner: TldrawAppUserId | TldrawAppGroupId, workspaceId: TldrawAppWorkspaceId) {
+	createFile(ownerId: TldrawAppUserId | TldrawAppGroupId, workspaceId: TldrawAppWorkspaceId) {
 		const file = TldrawAppFileRecordType.create({
 			workspaceId,
-			owner,
+			owner: ownerId,
 		})
-
 		this.store.put([file])
 		return file
 	}
 
-	logVisit(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {
+	getFileCollaborators(
+		workspaceId: TldrawAppWorkspaceId,
+		fileId: TldrawAppFileId
+	): TldrawAppUserId[] {
+		const { auth } = this.getSessionState()
+		if (!auth) throw Error('no auth')
+
+		const workspace = this.store.get(workspaceId)
+		if (!workspace) throw Error('no auth')
+
+		const file = this.store.get(fileId)
+		if (!file) throw Error('no auth')
+
+		const users = this.getWorkspaceUsers(workspaceId)
+
+		return users.filter((user) => user.presence.fileIds.includes(fileId)).map((user) => user.id)
+	}
+
+	onFileEnter(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+
 		this.store.put([
-			TldrawAppVisitRecordType.create({
+			TldrawAppFileVisitRecordType.create({
 				workspaceId,
 				userId,
 				fileId,
 			}),
+			{
+				...user,
+				presence: {
+					...user.presence,
+					fileIds: [...user.presence.fileIds, fileId],
+				},
+			},
 		])
+	}
+
+	onFileExit(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+
+		this.store.put([
+			{
+				...user,
+				presence: {
+					...user.presence,
+					fileIds: user.presence.fileIds.filter((id) => id !== fileId),
+				},
+			},
+		])
+	}
+
+	async resetDatabase() {
+		await Promise.all(getAllIndexDbNames().map((db) => deleteDB(db)))
 	}
 
 	static async create(opts: {
@@ -302,164 +368,233 @@ export class TldrawApp {
 
 		const day = 1000 * 60 * 60 * 24
 
-		const user = TldrawAppUserRecordType.create({
-			id: TldrawAppUserRecordType.createId('0'),
-			name: 'Steve Ruiz',
-			email: 'steve@tldraw.com',
-		})
-
-		const workspace = TldrawAppWorkspaceRecordType.create({
+		// tldraw workspace
+		const workspace1 = TldrawAppWorkspaceRecordType.create({
 			id: TldrawAppWorkspaceRecordType.createId('0'),
 			name: 'tldraw',
 			avatar: 'tldraw',
 		})
 
+		// Steve
+		const user1 = TldrawAppUserRecordType.create({
+			id: TldrawAppUserRecordType.createId('0'),
+			name: 'Steve Ruiz',
+			email: 'steve@tldraw.com',
+			color: 'seagreen',
+			presence: {
+				workspaceId: workspace1.id,
+				fileIds: [],
+			},
+		})
+
+		// David
+		const user2 = TldrawAppUserRecordType.create({
+			id: TldrawAppUserRecordType.createId('1'),
+			name: 'David Sheldrick',
+			email: 'david@tldraw.com',
+			color: 'salmon',
+			presence: {
+				workspaceId: workspace1.id,
+				fileIds: [TldrawAppFileRecordType.createId('0'), TldrawAppFileRecordType.createId('1')],
+			},
+		})
+
+		// Alex
+		const user3 = TldrawAppUserRecordType.create({
+			id: TldrawAppUserRecordType.createId('2'),
+			name: 'Alex Dytrych',
+			email: 'alex@tldraw.com',
+			color: 'tomato',
+			presence: {
+				workspaceId: workspace1.id,
+				fileIds: [TldrawAppFileRecordType.createId('1')],
+			},
+		})
+
+		// Steve's membership to tldraw workspace
+		const workspaceMembership1 = TldrawAppWorkspaceMembershipRecordType.create({
+			id: TldrawAppWorkspaceMembershipRecordType.createId('0'),
+			workspaceId: workspace1.id,
+			userId: user1.id,
+			createdAt: Date.now(),
+		})
+
+		// David's membership to tldraw workspace
+		const workspaceMembership2 = TldrawAppWorkspaceMembershipRecordType.create({
+			id: TldrawAppWorkspaceMembershipRecordType.createId('1'),
+			workspaceId: workspace1.id,
+			userId: user2.id,
+			createdAt: Date.now(),
+		})
+
+		// Alex's membership to tldraw workspace
+		const workspaceMembership3 = TldrawAppWorkspaceMembershipRecordType.create({
+			id: TldrawAppWorkspaceMembershipRecordType.createId('2'),
+			workspaceId: workspace1.id,
+			userId: user3.id,
+			createdAt: Date.now(),
+		})
+
+		// Group A
 		const group1 = TldrawAppGroupRecordType.create({
 			id: TldrawAppGroupRecordType.createId('0'),
-			workspaceId: workspace.id,
-			name: 'Group 1',
+			workspaceId: workspace1.id,
+			name: 'Group A',
 		})
 
+		// Group B
 		const group2 = TldrawAppGroupRecordType.create({
 			id: TldrawAppGroupRecordType.createId('1'),
-			workspaceId: workspace.id,
-			name: 'Group 2',
+			workspaceId: workspace1.id,
+			name: 'Group B',
 		})
 
+		// Steve's membership to Group A
 		const groupMembership1 = TldrawAppGroupMembershipRecordType.create({
 			id: TldrawAppGroupMembershipRecordType.createId('0'),
-			workspaceId: workspace.id,
-			userId: user.id,
+			workspaceId: workspace1.id,
+			userId: user1.id,
 			groupId: group1.id,
 			createdAt: Date.now(),
 		})
 
+		// Steve's membership to Group B
 		const groupMembership2 = TldrawAppGroupMembershipRecordType.create({
 			id: TldrawAppGroupMembershipRecordType.createId('1'),
-			workspaceId: workspace.id,
-			userId: user.id,
+			workspaceId: workspace1.id,
+			userId: user1.id,
 			groupId: group2.id,
+			createdAt: Date.now(),
+		})
+
+		// David's membership to Group A
+		const groupMembership3 = TldrawAppGroupMembershipRecordType.create({
+			id: TldrawAppGroupMembershipRecordType.createId('0'),
+			workspaceId: workspace1.id,
+			userId: user2.id,
+			groupId: group1.id,
 			createdAt: Date.now(),
 		})
 
 		const star = TldrawAppStarRecordType.create({
 			id: TldrawAppStarRecordType.createId('0'),
-			workspaceId: workspace.id,
-			userId: user.id,
+			workspaceId: workspace1.id,
+			userId: user1.id,
 			fileId: TldrawAppFileRecordType.createId('0'),
 			createdAt: Date.now(),
 		})
 
 		const files = [
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('0'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 0.5,
-			}),
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('1'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 0.6,
-			}),
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('2'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 0.7,
-			}),
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('3'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 1.2,
-			}),
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('4'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 1.3,
-			}),
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('5'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 1.4,
-			}),
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('6'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 1.6,
-			}),
+			// Steve's files
+			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
+				TldrawAppFileRecordType.create({
+					id: TldrawAppFileRecordType.createId(i.toString()),
+					workspaceId: workspace1.id,
+					owner: user1.id,
+					createdAt: Date.now() - day * n,
+					name: i === 0 ? 'A very long name file here we go' : '',
+				})
+			),
+			// David's files
+			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
+				TldrawAppFileRecordType.create({
+					id: TldrawAppFileRecordType.createId('david' + i.toString()),
+					workspaceId: workspace1.id,
+					owner: user2.id,
+					createdAt: Date.now() - day * n,
+				})
+			),
+			// Alex's files
+			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
+				TldrawAppFileRecordType.create({
+					id: TldrawAppFileRecordType.createId('alex' + i.toString()),
+					workspaceId: workspace1.id,
+					owner: user3.id,
+					createdAt: Date.now() - day * n,
+				})
+			),
+			// Group A's files
 			TldrawAppFileRecordType.create({
 				id: TldrawAppFileRecordType.createId('7'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 2.5,
-			}),
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('8'),
-				workspaceId: workspace.id,
-				owner: user.id,
-				createdAt: Date.now() - day * 3.5,
-			}),
-			// group files
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId('7'),
-				workspaceId: workspace.id,
+				workspaceId: workspace1.id,
 				owner: group1.id,
 				createdAt: Date.now() - day * 1,
 			}),
 			TldrawAppFileRecordType.create({
 				id: TldrawAppFileRecordType.createId('8'),
-				workspaceId: workspace.id,
+				workspaceId: workspace1.id,
 				owner: group1.id,
 				createdAt: Date.now() - day * 2,
 			}),
 			TldrawAppFileRecordType.create({
 				id: TldrawAppFileRecordType.createId('9'),
-				workspaceId: workspace.id,
+				workspaceId: workspace1.id,
 				owner: group1.id,
 				createdAt: Date.now() - day * 3,
 			}),
+			// Group B's files
 			TldrawAppFileRecordType.create({
 				id: TldrawAppFileRecordType.createId('10'),
-				workspaceId: workspace.id,
+				workspaceId: workspace1.id,
 				owner: group2.id,
 				createdAt: Date.now() - day * 3,
 			}),
 			TldrawAppFileRecordType.create({
 				id: TldrawAppFileRecordType.createId('11'),
-				workspaceId: workspace.id,
+				workspaceId: workspace1.id,
 				owner: group2.id,
 				createdAt: Date.now() - day * 3,
 			}),
 		]
 
-		const session = TldrawAppSessionStateRecordType.create({
+		// steve's visit to his own file
+		const visit1 = TldrawAppFileVisitRecordType.create({
+			id: TldrawAppFileVisitRecordType.createId('0'),
+			workspaceId: workspace1.id,
+			userId: user1.id,
+			fileId: TldrawAppFileRecordType.createId('0'),
+			createdAt: Date.now() - day * 1,
+		})
+
+		// steve's visit to david's file
+		const visit2 = TldrawAppFileVisitRecordType.create({
+			id: TldrawAppFileVisitRecordType.createId('1'),
+			workspaceId: workspace1.id,
+			userId: user1.id,
+			fileId: TldrawAppFileRecordType.createId('david0'),
+			createdAt: Date.now() - day * 1.2,
+		})
+
+		const session1 = TldrawAppSessionStateRecordType.create({
 			id: TldrawApp.SessionStateId,
 			auth: {
-				userId: user.id,
-				workspaceId: workspace.id,
+				userId: user1.id,
+				workspaceId: workspace1.id,
 			},
 		})
 
 		const store = new Store<TldrawAppRecord>({
-			id: 'tla',
+			id: persistenceKey,
 			schema: tldrawAppSchema,
 			initialData: Object.fromEntries(
 				[
-					user,
-					workspace,
+					user1,
+					user2,
+					user3,
+					workspace1,
+					workspaceMembership1,
+					workspaceMembership2,
+					workspaceMembership3,
 					group1,
 					group2,
 					star,
 					groupMembership1,
 					groupMembership2,
+					groupMembership3,
 					...files,
-					session,
+					visit1,
+					visit2,
+					session1,
 				].map((r) => [r.id, r])
 			),
 			props: {},
@@ -491,8 +626,4 @@ export class TldrawApp {
 	static getFileName = (file: TldrawAppFile) => {
 		return file.name || new Date(file.createdAt).toLocaleString('en-gb')
 	}
-}
-
-export function getCleanId(id: string) {
-	return id.split(':')[1]
 }

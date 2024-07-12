@@ -1,5 +1,6 @@
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
+import { useFlags } from '../tla-hooks/useFlags'
 import { TldrawAppViewState } from '../utils/tla/schema/TldrawAppSessionState'
 import { TlaIcon } from './TlaIcon'
 
@@ -14,6 +15,7 @@ const LABELS: Record<string, string> = {
 }
 
 export function TlaPageControls({ viewName }: { viewName: string }) {
+	const flags = useFlags()
 	const app = useApp()
 	const { sort, view, search } = useValue<TldrawAppViewState>(
 		'controls view',
@@ -84,6 +86,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 					</div>
 					<select
 						className="tla_page_controls__control_select"
+						value={sort}
 						onChange={(e) => {
 							const sessionState = app.getSessionState()
 							app.setSessionState({
@@ -105,31 +108,34 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 						<option value="ztoa">{LABELS['ztoa']}</option>
 					</select>
 				</div>
-				<div className="tla_page_controls__control">
-					<div className="tla_page_controls__control_label">
-						<span className="tla_text_ui__regular">{LABELS[view]}</span>
-						<TlaIcon icon="chevron-down" />
-					</div>
-					<select
-						className="tla_page_controls__control_select"
-						onChange={(e) => {
-							const sessionState = app.getSessionState()
-							app.setSessionState({
-								...sessionState,
-								views: {
-									...sessionState.views,
-									[viewName]: {
-										...sessionState.views[viewName],
-										view: e.currentTarget.value as 'grid' | 'list',
+				{flags.listView && (
+					<div className="tla_page_controls__control">
+						<div className="tla_page_controls__control_label">
+							<span className="tla_text_ui__regular">{LABELS[view]}</span>
+							<TlaIcon icon="chevron-down" />
+						</div>
+						<select
+							className="tla_page_controls__control_select"
+							value={view}
+							onChange={(e) => {
+								const sessionState = app.getSessionState()
+								app.setSessionState({
+									...sessionState,
+									views: {
+										...sessionState.views,
+										[viewName]: {
+											...sessionState.views[viewName],
+											view: e.currentTarget.value as 'grid' | 'list',
+										},
 									},
-								},
-							})
-						}}
-					>
-						<option value="grid">{LABELS['grid']}</option>
-						<option value="list">{LABELS['list']}</option>
-					</select>
-				</div>
+								})
+							}}
+						>
+							<option value="grid">{LABELS['grid']}</option>
+							<option value="list">{LABELS['list']}</option>
+						</select>
+					</div>
+				)}
 			</div>
 		</div>
 	)

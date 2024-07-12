@@ -1,8 +1,8 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
-import { TldrawApp } from '../utils/tla/tldrawApp'
-
-const VERSION = ''
+import { TlaFullWrapper } from '../components-tla/TlaFullWrapper'
+import { TldrawApp } from '../utils/tla/TldrawApp'
+import { TLA_VERSION } from '../utils/tla/tla-version'
 
 const appContext = createContext<TldrawApp>({} as TldrawApp)
 
@@ -14,7 +14,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		let _app: TldrawApp
 
 		TldrawApp.create({
-			persistenceKey: 'tla' + VERSION,
+			persistenceKey: 'tla' + TLA_VERSION,
 			onLoad: () => {
 				// todo
 			},
@@ -34,8 +34,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 	}, [])
 
-	if (!ready) {
-		return <div>Loading...</div>
+	if (!ready || !app) {
+		return <TlaFullWrapper>Loading...</TlaFullWrapper>
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>

@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaEditor } from '../components-tla/TlaEditor'
-import { TlaWrapper } from '../components-tla/TlaWrapper'
+import { TlaWrapperCollapsableSidebar } from '../components-tla/TlaWrapperCollapsableSidebar'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/tla/schema/TldrawAppFile'
 
@@ -27,7 +27,7 @@ export function Component() {
 			if (cancelled) return
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			app.logVisit(auth.userId, auth.workspaceId, TldrawAppFileRecordType.createId(fileId))
+			app.onFileExit(auth.userId, auth.workspaceId, TldrawAppFileRecordType.createId(fileId))
 		}, 500)
 		return () => {
 			cancelled = true
@@ -37,10 +37,10 @@ export function Component() {
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
 
 	return (
-		<TlaWrapper>
+		<TlaWrapperCollapsableSidebar>
 			<div className="tla_content">
 				<TlaEditor key={'file_' + file.id} file={file} />
 			</div>
-		</TlaWrapper>
+		</TlaWrapperCollapsableSidebar>
 	)
 }

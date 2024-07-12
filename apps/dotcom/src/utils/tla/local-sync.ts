@@ -13,6 +13,11 @@ import {
 	squashRecordDiffs,
 	transact,
 } from 'tldraw'
+import { TLA_VERSION } from './tla-version'
+
+const STORE_PREFIX = `TLDRAW_APP_ASSET_STORE_${TLA_VERSION}`
+
+const DB_NAME_INDEX_KEY = `TLDRAW_APP_DB_NAME_INDEX_${TLA_VERSION}`
 
 /** How should we debounce persists? */
 const PERSIST_THROTTLE_MS = 350
@@ -415,9 +420,6 @@ Keep seeing this message?
 • If you're using tldraw in a private or "incognito" window, try loading tldraw in a regular window or in a different browser.`
 	)
 }
-
-const STORE_PREFIX = 'TLDRAW_APP_ASSET_STORE_v1'
-const DB_NAME_INDEX_KEY = 'TLDRAW_APP_DB_NAME_INDEX_v2'
 
 const Table = {
 	Records: 'records',

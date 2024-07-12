@@ -6,6 +6,7 @@ import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { TldrawAppStarRecordType } from '../utils/tla/schema/TldrawAppStar'
 import { getFileUrl } from '../utils/tla/urls'
 import { TlaIcon } from './TlaIcon'
+import { TlaSpinner } from './TlaSpinner'
 
 export function TlaFileListItem({ id, name, createdAt, workspaceId }: TldrawAppFile) {
 	const app = useApp()
@@ -27,7 +28,9 @@ export function TlaFileListItem({ id, name, createdAt, workspaceId }: TldrawAppF
 				<div
 					className="tla_page__list_item_thumbnail"
 					style={{ backgroundImage: `url(${imageUrl})` }}
-				/>
+				>
+					{imageUrl === null ? <TlaSpinner /> : null}{' '}
+				</div>
 				<Link to={getFileUrl(workspaceId, id)} className="tla_page__item_link" />
 				<div className="tla_page__list_item_left">
 					<div className="tla_page__item_title tla_text_ui__regular">

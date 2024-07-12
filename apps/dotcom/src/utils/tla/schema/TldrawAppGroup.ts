@@ -12,6 +12,7 @@ import { TldrawAppWorkspaceId } from './TldrawAppWorkspace'
 export interface TldrawAppGroup extends BaseRecord<'group', RecordId<TldrawAppGroup>> {
 	name: string
 	avatar: string
+	color: string
 	workspaceId: TldrawAppWorkspaceId
 	createdAt: number
 	updatedAt: number
@@ -26,6 +27,7 @@ export const tldrawAppGroupValidator: T.Validator<TldrawAppGroup> = T.model(
 		typeName: T.literal('group'),
 		id: idValidator<TldrawAppGroupId>('group'),
 		name: T.string,
+		color: T.string,
 		workspaceId: idValidator<TldrawAppWorkspaceId>('workspace'),
 		avatar: T.string,
 		createdAt: T.number,
@@ -51,6 +53,7 @@ export const TldrawAppGroupRecordType = createRecordType<TldrawAppGroup>('group'
 	(): Omit<TldrawAppGroup, 'id' | 'typeName' | 'workspaceId'> => ({
 		name: 'New group',
 		avatar: '',
+		color: 'coral',
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
 	})

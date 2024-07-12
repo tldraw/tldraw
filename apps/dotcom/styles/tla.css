@@ -60,6 +60,35 @@
 	--color-warn: hsl(0, 88%, 47%);
 }
 
+/* ------------------ Ui Overrides ------------------ */
+
+.tla_layout__signedout .tlui-menu-zone {
+	padding-left: 100px;
+}
+
+.tla_layout__signedin .tlui-menu-zone {
+	padding-left: 36px;
+}
+
+.tla_layout__signedin .tla .tlui-focus-button {
+	left: 36px;
+}
+
+/* ----------------- Sign in button ----------------- */
+
+.tla_signin_button {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-text-1);
+}
+
 /* --------------------- Spacers -------------------- */
 
 .tla_spacer {
@@ -168,6 +197,16 @@
 	font-weight: 500;
 	font-family: var(--font-ui);
 	color: var(--color-text-2);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tla_text_ui__tiny {
+	font-size: 6px;
+	line-height: 1.3;
+	font-weight: 800;
+	font-family: var(--font-ui);
+	color: var(--color-text-1);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -516,15 +555,7 @@ want centered content that docks to the top when the window is short
 
 /* ----------------- Sidebar button ----------------- */
 
-.tla .tlui-menu-zone {
-	padding-left: 36px;
-}
-
-.tla .tlui-focus-button {
-	left: 36px;
-}
-
-.tla_sidebar_toggle {
+.tla_top-left-button {
 	background: none;
 	border: none;
 	position: absolute;
@@ -540,7 +571,7 @@ want centered content that docks to the top when the window is short
 	color: var(--color-text-1);
 }
 
-.tla_sidebar_toggle::after {
+.tla_top-left-button::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -556,12 +587,12 @@ want centered content that docks to the top when the window is short
 }
 
 @media (hover: hover) {
-	.tla_sidebar_toggle:hover::after {
+	.tla_top-left-button:hover::after {
 		visibility: visible;
 	}
 }
 
-.tla_layout[data-sidebar='true'] .tla_sidebar_toggle {
+.tla_layout[data-sidebar='true'] .tla_top-left-button {
 	left: 260px;
 }
 
@@ -653,7 +684,7 @@ want centered content that docks to the top when the window is short
 	cursor: pointer;
 	position: absolute;
 	top: 0px;
-	right: 0px;
+	right: -4px;
 }
 
 .tla_sidebar__create::after {
@@ -701,8 +732,6 @@ want centered content that docks to the top when the window is short
 	background: none;
 	border: none;
 	position: relative;
-	margin: 0px -8px;
-	padding: 0px 8px;
 	height: 40px;
 	display: flex;
 	flex-direction: row;
@@ -736,7 +765,7 @@ want centered content that docks to the top when the window is short
 	color: var(--color-text-2);
 }
 
-.tla_sidebar__section_link {
+.tla_sidebar__link {
 	position: relative;
 	width: 100%;
 	display: flex;
@@ -744,7 +773,47 @@ want centered content that docks to the top when the window is short
 	align-items: center;
 	overflow: hidden;
 	height: 36px;
-	padding: 0px 0px 0px 8px;
+	padding: 0px 8px 0px 8px;
+}
+
+.tla_sidebar__link-content {
+	flex: 1 1 auto;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 4px;
+	position: relative;
+	z-index: 2;
+}
+
+.tla_collaborators {
+	display: flex;
+	flex-direction: row;
+	padding-left: 6px;
+	flex: 0 0 auto;
+}
+
+.tla_collaborators > .tla_collaborator:nth-of-type(n + 1) {
+	margin-left: -6px;
+}
+
+.tla_collaborator {
+	width: 15px;
+	height: 15px;
+	background-color: var(--color-accent-2);
+	border: 2px solid var(--color-panel);
+	text-align: center;
+	color: var(--color-background);
+	border-radius: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tla_sidebar__link-content > .tla_sidebar__label {
+	padding: 0px;
+	flex: 0 1 auto;
 }
 
 .tla_sidebar__link-button {
@@ -763,7 +832,7 @@ want centered content that docks to the top when the window is short
 	background: none;
 	border: none;
 	position: relative;
-	right: -2px;
+	right: 0px;
 	width: 36px;
 	height: 36px;
 	display: flex;
@@ -777,18 +846,34 @@ want centered content that docks to the top when the window is short
 
 @media (hover: hover) {
 	.tla_sidebar__link-menu {
-		visibility: hidden;
+		display: none;
+	}
+	.tla_sidebar__link:hover {
+		padding-right: 0px;
 	}
 
 	.tla_sidebar__workspace:hover > .tla_sidebar__link-menu,
 	.tla_sidebar__user:hover > .tla_sidebar__link-menu,
-	.tla_sidebar__section_link:hover > .tla_sidebar__link-menu {
-		visibility: visible;
+	.tla_sidebar__link:hover > .tla_sidebar__link-menu {
+		display: flex;
 	}
 
 	.tla_sidebar__link-menu:hover {
 		color: var(--color-text-1);
 	}
+}
+
+.tla_sidebar__group-avatar {
+	width: 13px;
+	height: 13px;
+	background-color: var(--color-accent-2);
+	text-align: center;
+	color: var(--color-background);
+	border-radius: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 6px;
 }
 
 /* ---------------------- Tabs ---------------------- */
@@ -904,10 +989,19 @@ want centered content that docks to the top when the window is short
 /* -------------------- Shared ------------------- */
 
 .tla_page__item_title {
-	flex: 0 0 auto;
+	flex: 0 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
-/* .tla_page__item_details {} */
+.tla_page__item_details {
+	flex: 0 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+}
 
 .tla_page__item_link {
 	position: absolute;
@@ -1000,6 +1094,9 @@ want centered content that docks to the top when the window is short
 	background-repeat: no-repeat;
 	background-position: center center;
 	border-right: 1px solid var(--color-low);
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 /* -------------------- Grid item ------------------- */
@@ -1039,6 +1136,7 @@ want centered content that docks to the top when the window is short
 	flex-direction: column;
 	position: relative;
 	z-index: 2;
+	overflow: hidden;
 }
 
 .tla_page__grid_item_top {
@@ -1063,6 +1161,9 @@ want centered content that docks to the top when the window is short
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .tla_page__grid_item_bottom {
@@ -1078,17 +1179,28 @@ want centered content that docks to the top when the window is short
 	padding: 12px;
 	gap: 8px;
 	z-index: 2;
+	overflow: hidden;
+}
+
+.tla_page__grid_item-title-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	overflow: hidden;
+	max-width: 100%;
+	gap: 4px;
 }
 
 .tla_page__grid_item > .tla_page__item_star {
 	position: absolute;
 	top: 0px;
-	right: 0px;
+	left: 0px;
 }
 .tla_page__grid_item > .tla_page__item_menu {
 	position: absolute;
 	top: 0px;
-	right: 32px;
+	right: 0px;
 }
 
 @media (hover: hover) {

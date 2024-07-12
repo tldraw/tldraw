@@ -5,12 +5,12 @@ export function TlaFullWrapper({
 	onClose,
 	children,
 }: {
-	onClose: () => void
+	onClose?: () => void
 	children: ReactNode
 }) {
 	return (
 		<div className="tla_full">
-			<TlaCloseButton onClose={onClose} />
+			{onClose ? <TlaCloseButton onClose={onClose} /> : null}
 			<div className="tla_full_inner">
 				<div className="tla_full_content">{children}</div>
 			</div>
