@@ -454,7 +454,8 @@ a.example__sidebar__header-link {
 	display: flex;
 	flex-direction: column;
 	container: example / size;
-	height: 100%;
+	position: absolute;
+	inset: 0px;
 }
 .MultiplayerExampleWrapper-picker {
 	display: flex;
