@@ -13,17 +13,7 @@ export const Button: React.FC<{
 	className?: string
 	size?: 'xs' | 'sm' | 'base' | 'lg'
 	type?: 'primary' | 'secondary' | 'tertiary'
-}> = ({
-	href,
-	newTab,
-	onClick,
-	caption,
-	icon,
-	arrow,
-	className,
-	size = 'base',
-	type = 'primary',
-}) => {
+}> = ({ href, newTab, onClick, caption, icon, className, size = 'base', type = 'primary' }) => {
 	const iconSizes = { xs: 'h-3', sm: 'h-3.5', base: 'h-4', lg: 'h-5' }
 	const textSizes = { xs: 'text-xs', sm: 'text-sm', base: 'text-base', lg: 'text-lg' }
 	className = cn(

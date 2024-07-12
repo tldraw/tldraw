@@ -1,5 +1,4 @@
 export const Image = (props: any) => {
-	console.log(props)
 	return (
 		<div>
 			<div className="bg-zinc-100 py-1 md:rounded-2xl -mx-5 md:mx-0 md:px-1">
