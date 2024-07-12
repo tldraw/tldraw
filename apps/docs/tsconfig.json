@@ -23,11 +23,9 @@
 		"**/*.tsx",
 		"content.d.ts",
 		".next/types/**/*.ts",
-		"watcher.ts",
-		"postcss.config.js",
-		"tailwind.config.js"
+		"watcher.ts"
 	],
-	"exclude": ["node_modules", ".next"],
+	"exclude": ["node_modules", ".next", "postcss.config.js", "tailwind.config.js"],
 	"references": [
 		{
 			"path": "../../packages/utils"
