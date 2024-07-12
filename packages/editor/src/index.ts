@@ -18,6 +18,7 @@ export * from '@tldraw/validate'
 
 export {
 	EMPTY_ARRAY,
+	EffectScheduler,
 	atom,
 	computed,
 	react,
@@ -27,6 +28,7 @@ export {
 	useComputed,
 	useQuickReactor,
 	useReactor,
+	useStateTracking,
 	useValue,
 	whyAmIRunning,
 	type Atom,
