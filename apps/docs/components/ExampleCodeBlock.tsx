@@ -31,7 +31,10 @@ export default function ExampleCodeBlock({
 
 	return (
 		<div className="code-example">
-			<iframe src={`${SERVER}/${articleId}/full`} />
+			<iframe
+				src={`${SERVER}/${articleId}/full`}
+				allow={`clipboard-read; clipboard-write self ${SERVER}`}
+			/>
 			<SandpackProvider
 				className="sandpack"
 				key={`sandpack-${theme}-${activeFile}`}
