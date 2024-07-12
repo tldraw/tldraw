@@ -42,6 +42,11 @@ export async function unfurl(url: string) {
 		favicon = new URL(favicon, url).href
 	}
 
+	// Let's see if this URL was an image to begin with.
+	if (url.match(/\.(a?png|jpe?g|gif|svg|webp|avif)$/i)) {
+		image = url
+	}
+
 	return {
 		title,
 		description,
