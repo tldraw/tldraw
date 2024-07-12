@@ -53,7 +53,6 @@ function AlternativeInfoPanel() {
 
 const components: TLComponents = {
 	SharePanel: InfoPanel,
-	// SharePanel: AlternativeInfoPanel,
 }
 
 export default function StateStoreExample() {
