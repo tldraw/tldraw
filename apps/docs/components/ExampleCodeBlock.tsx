@@ -18,7 +18,7 @@ export default function ExampleCodeBlock({
 	useEffect(() => setIsClientSide(true), [])
 	const SERVER =
 		process.env.NODE_ENV === 'development'
-			? `http://${location.host}:5420`
+			? `http://${location.hostname}:5420`
 			: location.host.includes('staging') || location.host.includes('canary')
 				? `https://examples-canary.tldraw.com`
 				: 'https://examples.tldraw.com'

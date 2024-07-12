@@ -52,11 +52,7 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 		schema,
 	} = opts
 
-	const error: NonNullable<typeof state>['error'] = state?.error ?? undefined
-
 	useEffect(() => {
-		if (error) return
-
 		const storeId = uniqueId()
 
 		const userPreferences = computed<{ id: string; color: string; name: string }>(
@@ -134,8 +130,9 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 			didCancel = true
 			client.close()
 			socket.close()
+			setState(null)
 		}
-	}, [assets, error, onEditorMount, prefs, roomId, setState, track, uri, schema])
+	}, [assets, onEditorMount, prefs, roomId, schema, setState, track, uri])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',

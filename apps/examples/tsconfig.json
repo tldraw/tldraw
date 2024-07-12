@@ -11,6 +11,9 @@
 			"path": "../../packages/assets"
 		},
 		{
+			"path": "../../packages/sync"
+		},
+		{
 			"path": "../../packages/tldraw"
 		},
 		{

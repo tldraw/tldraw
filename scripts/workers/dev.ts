@@ -55,6 +55,8 @@ class MiniflareMonitor {
 			this.restart()
 		} else if (!err) {
 			console.log(output.replace('[mf:inf]', '')) // or handle the output differently
+		} else {
+			console.error(output.replace('[mf:err]', '')) // or handle the output differently
 		}
 	}
 

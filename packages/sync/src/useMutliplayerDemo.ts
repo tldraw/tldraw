@@ -38,8 +38,8 @@ function getEnv(cb: () => string | undefined): string | undefined {
 	}
 }
 
-const DEMO_WORKER = getEnv(() => process.env.DEMO_WORKER) ?? 'https://demo.tldraw.xyz'
-const IMAGE_WORKER = getEnv(() => process.env.IMAGE_WORKER) ?? 'https://images.tldraw.xyz'
+const DEMO_WORKER = getEnv(() => process.env.TLDRAW_BEMO_URL) ?? 'https://demo.tldraw.xyz'
+const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://images.tldraw.xyz'
 
 export function useMultiplayerDemo({
 	roomId,

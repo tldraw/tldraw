@@ -25,10 +25,10 @@ export class BemoDO extends DurableObject<Environment> {
 	r2: R2Bucket
 	_slug: string | null = null
 
-	analytics: AnalyticsEngineDataset
+	analytics?: AnalyticsEngineDataset
 
 	writeEvent({ type, origin, sessionKey, slug }: AnalyticsEvent) {
-		this.analytics.writeDataPoint({
+		this.analytics?.writeDataPoint({
 			blobs: [type, origin, slug, sessionKey],
 		})
 	}

@@ -13,5 +13,5 @@ export interface Environment {
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 
-	BEMO_ANALYTICS: AnalyticsEngineDataset
+	BEMO_ANALYTICS?: AnalyticsEngineDataset
 }
