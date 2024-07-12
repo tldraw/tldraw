@@ -50,7 +50,7 @@ export function useMultiplayerDemo({
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
 
 	return useMultiplayerSync({
-		uri: `${host}/connect/${roomId}`,
+		uri: `${host}/connect/${encodeURIComponent(roomId)}`,
 		roomId,
 		userPreferences,
 		assets,
