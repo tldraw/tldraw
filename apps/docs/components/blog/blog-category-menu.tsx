@@ -15,7 +15,6 @@ const ICONS = {
 
 export const BlogCategoryMenu = ({ categories }: { categories: Category[] }) => {
 	const pathname = usePathname()
-	console.log(pathname)
 
 	return (
 		<ul className="shrink-0 flex flex-col gap-3">
