@@ -16,6 +16,12 @@ export default function ExampleCodeBlock({
 	const [isClientSide, setIsClientSide] = useState(false)
 	const { theme } = useTheme()
 	useEffect(() => setIsClientSide(true), [])
+
+	// This is to avoid hydration mismatch between the server and the client because of the useTheme.
+	if (!isClientSide) {
+		return null
+	}
+
 	const SERVER =
 		process.env.NODE_ENV === 'development'
 			? `http://${location.hostname}:5420`
@@ -23,14 +29,12 @@ export default function ExampleCodeBlock({
 				? `https://examples-canary.tldraw.com`
 				: 'https://examples.tldraw.com'
 
-	// This is to avoid hydration mismatch between the server and the client because of the useTheme.
-	if (!isClientSide) {
-		return null
-	}
-
 	return (
 		<div className="code-example">
-			<iframe src={`${SERVER}/${articleId}/full`} />
+			<iframe
+				src={`${SERVER}/${articleId}/full`}
+				allow={`clipboard-read; clipboard-write self ${SERVER}`}
+			/>
 			<SandpackProvider
 				className="sandpack"
 				key={`sandpack-${theme}-${activeFile}`}

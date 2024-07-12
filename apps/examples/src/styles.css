@@ -451,123 +451,35 @@ a.example__sidebar__header-link {
 	color-scheme: dark;
 }
 .MultiplayerExampleWrapper {
-	position: absolute;
-	inset: 0;
 	display: flex;
 	flex-direction: column;
 	container: example / size;
+	position: absolute;
+	inset: 0px;
 }
 .MultiplayerExampleWrapper-picker {
-	position: absolute;
-	z-index: 1;
-	left: 0;
-	right: 0;
 	display: flex;
 	flex-direction: row;
-	justify-content: center;
+	justify-content: flex-start;
 	align-items: center;
-	padding: 8px;
-	padding-bottom: 7px;
-}
-.MultiplayerExampleWrapper-picker::before {
-	content: '';
-	position: absolute;
-	top: 6px;
-	height: 29px;
-	width: 232px;
-	margin-left: 28px;
-	background: var(--whiteboard);
-	z-index: -1;
-	border-radius: 6px;
-}
-
-.MultiplayerExampleWrapper-picker label {
-	flex: 0 1 200px;
-	font-size: 14px;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	border: 1px solid var(--gray-dark);
-	color: var(--black-transparent-dark);
-	border-radius: 4px;
-	padding: 2px 8px;
+	padding: 8px 16px;
+	gap: 16px;
 	background: var(--background);
-	/* Add space to the left the same as the button to keep the input centered */
-	margin-left: 32px;
-}
-.MultiplayerExampleWrapper-picker label:focus-within {
-	border-color: var(--focus);
-}
-.MultiplayerExampleWrapper-picker label div {
-	flex: 0 0 auto;
-}
-.MultiplayerExampleWrapper-picker input {
-	flex: 0 1 auto;
-	width: 100%;
-	font: inherit;
-	border: none;
-	outline: none;
-	color: var(--black-transparent-darker);
-	background: transparent;
+	border-bottom: 1px solid var(--gray-dark);
+	color: var(--text);
+	font-size: 14px;
 }
 .MultiplayerExampleWrapper-picker button {
-	flex: 0 0 auto;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border: none;
-	background-color: transparent;
-	color: var(--black-transparent-darker);
-	cursor: pointer;
-	height: 32px;
-	width: 32px;
-	padding: 0;
-	margin: -4px 0;
-	position: relative;
-}
-.MultiplayerExampleWrapper-picker button:hover::after {
-	content: ' ';
-	position: absolute;
-	inset: 3px;
 	background: var(--black-transparent-lighter);
+	border: 1px solid var(--gray-dark);
 	border-radius: 4px;
+	padding: 4px 12px;
+	cursor: pointer;
 }
-.MultiplayerExampleWrapper-picker button:disabled {
-	opacity: 0.5;
-	pointer-events: none;
+.MultiplayerExampleWrapper-picker button:hover {
+	border: 1px solid var(--black-transparent-lighter);
 }
 .MultiplayerExampleWrapper-example {
 	position: relative;
-	height: 100%;
-}
-
-@container example (width < 584px) {
-	.MultiplayerExampleWrapper-picker {
-		position: static;
-		border-bottom: 1px solid var(--gray-dark);
-		background: var(--background);
-	}
-	.MultiplayerExampleWrapper-picker::before {
-		display: none;
-	}
-	.MultiplayerExampleWrapper-picker label {
-		width: 100%;
-		flex: 1 1 auto;
-		margin: 0;
-	}
-	.MultiplayerExampleWrapper-picker button {
-		margin-right: -4px;
-	}
-}
-
-@container example (width <= 904px) and (width > 840px) {
-	.MultiplayerExampleWrapper-picker {
-		left: 346px;
-		right: 0;
-		justify-content: start;
-	}
-	.MultiplayerExampleWrapper-picker label {
-		margin-left: 0;
-	}
+	flex: 1;
 }
