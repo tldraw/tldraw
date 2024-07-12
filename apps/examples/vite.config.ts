@@ -22,16 +22,31 @@ const env = getEnv()
 // eslint-disable-next-line no-console
 console.log('build env:', env)
 
+function urlOrLocalFallback(mode: string, url: string | undefined, localFallbackPort: number) {
+	if (url) {
+		return JSON.stringify(url)
+	}
+
+	if (mode === 'development') {
+		// in dev, vite lets us inline javascript expressions - so we return a template string that
+		// will be evaluated on the client
+		return '`http://${location.hostname}:' + localFallbackPort + '`'
+	} else {
+		// in production, we have to fall back to a hardcoded value
+		return JSON.stringify(`http://localhost:${localFallbackPort}`)
+	}
+}
+
 const TLDRAW_BEMO_URL_STRING =
 	env === 'production'
 		? '"https://demo.tldraw.xyz"'
 		: env === 'canary'
 			? '"https://canary-demo.tldraw.xyz"'
-			: env === 'preview'
+			: PR_NUMBER
 				? `"https://pr-${PR_NUMBER}-demo.tldraw.xyz"`
-				: '`http://${location.hostname}:8989`'
+				: undefined
 
-export default defineConfig(() => ({
+export default defineConfig(({ mode }) => ({
 	plugins: [react({ tsDecorators: true }), exampleReadmePlugin()],
 	root: path.join(__dirname, 'src'),
 	publicDir: path.join(__dirname, 'public'),
@@ -58,9 +73,12 @@ export default defineConfig(() => ({
 		'process.env.TLDRAW_DEPLOY_ID': JSON.stringify(
 			process.env.VERCEL_GIT_COMMIT_SHA ?? `local-${Date.now()}`
 		),
-		'process.env.TLDRAW_BEMO_URL': TLDRAW_BEMO_URL_STRING,
-		'process.env.TLDRAW_IMAGE_URL':
-			env === 'development' ? '`http://${location.hostname}:8786`' : '"https://images.tldraw.xyz"',
+		'process.env.TLDRAW_BEMO_URL': urlOrLocalFallback(mode, TLDRAW_BEMO_URL_STRING, 8989),
+		'process.env.TLDRAW_IMAGE_URL': urlOrLocalFallback(
+			mode,
+			env === 'development' ? undefined : 'https://images.tldraw.xyz',
+			8989
+		),
 	},
 }))
 
