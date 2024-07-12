@@ -6206,6 +6206,7 @@ __metadata:
     geist: "npm:^1.3.0"
     github-slugger: "npm:^2.0.0"
     gray-matter: "npm:^4.0.3"
+    highlight.js: "npm:^11.10.0"
     linkinator: "npm:^6.0.4"
     next: "npm:^14.0.4"
     next-mdx-remote: "npm:^4.4.1"
@@ -13629,6 +13630,13 @@ __metadata:
     wrangler: "npm:3.62.0"
   languageName: unknown
   linkType: soft
+
+"highlight.js@npm:^11.10.0":
+  version: 11.10.0
+  resolution: "highlight.js@npm:11.10.0"
+  checksum: fc8747bcd4a491fc6a47ff80536881dcc9ea9b36cdc2a22a7be5670b89d76ca6c26df9d749017a23bbb2eb708331097a5ecbcee6330fb9064512d80cc3369d99
+  languageName: node
+  linkType: hard
 
 "highlight.js@npm:~11.9.0":
   version: 11.9.0

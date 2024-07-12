@@ -68,6 +68,7 @@
 		"geist": "^1.3.0",
 		"github-slugger": "^2.0.0",
 		"gray-matter": "^4.0.3",
+		"highlight.js": "^11.10.0",
 		"next": "^14.0.4",
 		"next-mdx-remote": "^4.4.1",
 		"next-themes": "^0.2.1",
