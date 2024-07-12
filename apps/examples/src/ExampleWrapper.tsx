@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { uniqueId } from 'tldraw'
 import { Example } from './examples'
 
 export function ExampleWrapper({
@@ -15,7 +17,55 @@ export function ExampleWrapper({
 	return <MultiplayerExampleWrapper component={Component} example={example} />
 }
 
-const hour = 60 * 1000 * 1000
+interface ScopedRoomId {
+	roomId: string
+	deployId: string
+}
+
+function getExampleKey(exampleSlug: string) {
+	return `tldraw-example-room-${exampleSlug}`
+}
+
+function getRoomId(exampleSlug: string) {
+	const key = getExampleKey(exampleSlug)
+	const stored = JSON.parse(localStorage.getItem(key) ?? 'null') as null | ScopedRoomId
+	if (stored && stored.deployId === process.env.TLDRAW_DEPLOY_ID) {
+		return stored.roomId
+	}
+	return uniqueId()
+}
+
+function storeRoomId(exampleSlug: string, slug: string) {
+	const key = getExampleKey(exampleSlug)
+	localStorage.setItem(
+		key,
+		JSON.stringify({
+			roomId: slug,
+			deployId: process.env.TLDRAW_DEPLOY_ID!,
+		} satisfies ScopedRoomId)
+	)
+}
+
+function useConfirmState() {
+	const [confirm, setConfirm] = useState(false)
+	const [confirmTimeout, setConfirmTimeout] = useState<number | null>(null)
+
+	const confirmFn = useCallback(() => {
+		setConfirm(true)
+		setConfirmTimeout(window.setTimeout(() => setConfirm(false), 3000))
+	}, [])
+
+	useEffect(() => {
+		return () => {
+			if (confirmTimeout) {
+				clearTimeout(confirmTimeout)
+			}
+		}
+	}, [confirmTimeout])
+
+	return [confirm, confirmFn] as const
+}
+
 function MultiplayerExampleWrapper({
 	component: Component,
 	example,
@@ -23,60 +73,56 @@ function MultiplayerExampleWrapper({
 	example: Example
 	component: React.ComponentType<{ roomId?: string }>
 }) {
-	const prefix = `tldraw-example-${example.path.replace(/\//g, '-')}-${process.env.TLDRAW_DEPLOY_ID}`
-
-	const [roomId, setRoomId] = useState(String(Math.floor(Date.now() / hour)))
-	const [nextRoomId, setNextRoomId] = useState(roomId)
-
-	const trimmed = nextRoomId.trim()
-	const canSet = trimmed && roomId !== trimmed
-	function setIfPossible() {
-		if (!canSet) return
-		setRoomId(trimmed)
+	const [params, setParams] = useSearchParams()
+	const [confirm, confirmFn] = useConfirmState()
+	const exampleSlug = example.path.replace(/^\/?/g, '')
+	let roomId = params.get('roomId')
+	if (!roomId || typeof roomId !== 'string' || encodeURIComponent(roomId) !== roomId) {
+		roomId = getRoomId(exampleSlug)
 	}
+
+	useEffect(() => {
+		storeRoomId(exampleSlug, roomId)
+		setParams({ roomId })
+	}, [exampleSlug, roomId, setParams])
 
 	return (
 		<div className="MultiplayerExampleWrapper">
 			<div className="MultiplayerExampleWrapper-picker">
-				<label>
-					<div>Room ID:</div>
-					<input
-						value={nextRoomId}
-						onChange={(e) => setNextRoomId(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === 'Enter' && canSet) {
-								e.preventDefault()
-								setIfPossible()
-							}
-							if (e.key === 'Escape') {
-								e.preventDefault()
-								setNextRoomId(roomId)
-								e.currentTarget.blur()
-							}
-						}}
-					/>
-				</label>
-				<button onClick={() => setIfPossible()} disabled={!canSet} aria-label="join">
-					<ArrowIcon />
+				<WifiIcon />
+				<div>Live Example</div>
+				<button
+					onClick={() => {
+						// copy current url with roomId=roomId to clipboard
+						navigator.clipboard.writeText(window.location.href.split('?')[0] + `?roomId=${roomId}`)
+						confirmFn()
+					}}
+					aria-label="join"
+				>
+					{confirm ? 'Copied!' : 'Copy Share URL'}
 				</button>
 			</div>
 			<div className="MultiplayerExampleWrapper-example">
-				<div>
-					<Component roomId={`${prefix}_${encodeURIComponent(roomId)}`} />
-				</div>
+				<Component roomId={roomId} />
 			</div>
 		</div>
 	)
 }
 
-function ArrowIcon() {
+function WifiIcon() {
 	return (
-		<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			fill="none"
+			viewBox="0 0 24 24"
+			strokeWidth="1.5"
+			stroke="currentColor"
+			width={16}
+		>
 			<path
-				d="M9.25012 4.75L12.5001 8M12.5001 8L9.25012 11.25M12.5001 8H3.5"
-				stroke="currentColor"
 				strokeLinecap="round"
 				strokeLinejoin="round"
+				d="M8.288 15.038a5.25 5.25 0 0 1 7.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 0 1 1.06 0Z"
 			/>
 		</svg>
 	)
