@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
-import { useLocalThumbnail } from '../hooks/useLocalThumbnail'
+import { useServerThumbnail } from '../hooks/useServerThumbnail'
 import { useFlags } from '../tla-hooks/useFlags'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { TldrawAppStarRecordType } from '../utils/tla/schema/TldrawAppStar'
@@ -49,7 +49,7 @@ export function TlaFileGridItem({ id: fileId, name, createdAt, workspaceId }: Tl
 		[fileId, app]
 	)
 
-	const imageUrl = useLocalThumbnail(fileId)
+	const imageUrl = useServerThumbnail(fileId)
 
 	return (
 		<div className="tla_page__grid_item">

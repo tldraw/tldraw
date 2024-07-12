@@ -186,7 +186,7 @@ export class TldrawApp {
 		])
 	}
 
-	setSidebarActiveTab(tab: 'recent' | 'groups') {
+	setSidebarActiveTab(tab: TldrawAppSessionState['sidebarActiveTab']) {
 		const sessionState = this.getSessionState()
 
 		this.store.put([

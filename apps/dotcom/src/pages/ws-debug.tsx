@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import '../../styles/globals.css'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
+import { TlaWrapperPage } from '../components-tla/TlaWrapperPage'
 import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../tla-hooks/useFlags'
+import { useSessionState } from '../tla-hooks/useSessionState'
 import { TldrawAppUserId, TldrawAppUserRecordType } from '../utils/tla/schema/TldrawAppUser'
 
 export function Component() {
@@ -23,7 +25,7 @@ export function Component() {
 	}
 
 	return (
-		<div className="tla_content tla_page">
+		<TlaWrapperPage>
 			<div className="tla_page__header">
 				<h2 className="tla_text_ui__big">Debug</h2>
 			</div>
@@ -75,7 +77,9 @@ export function Component() {
 			</div>
 			<TlaSpacer height="20" />
 			<Flags />
-		</div>
+			<TlaSpacer height="20" />
+			<DarkMode />
+		</TlaWrapperPage>
 	)
 }
 
@@ -109,4 +113,29 @@ function Flags() {
 			/>
 		</div>
 	))
+}
+
+function DarkMode() {
+	const app = useApp()
+	const isDarkMode = useSessionState().theme === 'dark'
+	return (
+		<div>
+			<label htmlFor="dark mode">Dark mode</label>
+			<input
+				name="dark mode"
+				type="checkbox"
+				checked={isDarkMode}
+				onChange={() => {
+					const current = app.getSessionState()
+					if (!current.auth) throw Error('No auth')
+					const user = app.store.get(current.auth.userId)
+					if (!user) throw Error('No user')
+					app.setSessionState({
+						...app.getSessionState(),
+						theme: isDarkMode ? 'light' : 'dark',
+					})
+				}}
+			/>
+		</div>
+	)
 }

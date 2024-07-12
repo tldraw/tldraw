@@ -23,7 +23,7 @@ export interface TldrawAppSessionState
 		userId: TldrawAppUserId // null,
 		workspaceId: TldrawAppWorkspaceId
 	}
-	sidebarActiveTab: 'recent' | 'groups'
+	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
 	views: {
 		[key: string]: TldrawAppViewState
 	}
@@ -39,7 +39,7 @@ export const tldrawAppSessionStateValidator: T.Validator<TldrawAppSessionState> 
 		typeName: T.literal('session'),
 		id: idValidator<TldrawAppSessionStateId>('session'),
 		isSidebarOpen: T.boolean,
-		sidebarActiveTab: T.literalEnum('recent', 'groups'),
+		sidebarActiveTab: T.literalEnum('recent', 'groups', 'shared', 'drafts', 'starred'),
 		views: T.dict(
 			T.string,
 			T.object({

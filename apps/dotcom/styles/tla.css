@@ -285,6 +285,7 @@
 	height: 40px;
 	border: 1px solid transparent;
 	padding: 0px 12px;
+	background: none;
 	color: var(--tla-color-text-1);
 	border-radius: var(--tla-radius-2);
 	cursor: pointer;
@@ -474,6 +475,11 @@
 	justify-content: center;
 	height: 40px;
 	padding-right: 12px;
+}
+
+.tla_close_button > span {
+	position: relative;
+	z-index: 2;
 }
 
 @media (hover: hover) {
@@ -700,6 +706,7 @@ want centered content that docks to the top when the window is short
 	position: absolute;
 	top: 0px;
 	right: -4px;
+	z-index: 10;
 }
 
 .tla_sidebar__create::after {
@@ -957,28 +964,31 @@ want centered content that docks to the top when the window is short
 	border-radius: 50%;
 	overflow: hidden;
 	background-color: var(--tla-color-accent-2);
+	z-index: 2;
 }
 
-.tla-avatar[data-size='s'] {
+.tla_avatar[data-size='s'] {
 	width: 16px;
 	height: 16px;
 }
 
-.tla-avatar[data-size='m'] {
+.tla_avatar[data-size='m'] {
 	width: 20px;
 	height: 20px;
 }
 
-.tla-avatar[data-size='l'] {
+.tla_avatar[data-size='l'] {
 	width: 32px;
 	height: 32px;
 }
 
-/* -------------------- List page ------------------- */
+/* ---------------------- Page ---------------------- */
 
 .tla_page {
 	padding: 40px 50px 90px 50px;
 	overflow-y: auto;
+	color: var(--tla-color-text-1);
+	font-family: var(--tla-font-ui);
 }
 
 .tla_page__header {

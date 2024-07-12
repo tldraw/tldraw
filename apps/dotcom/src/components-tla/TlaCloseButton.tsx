@@ -6,7 +6,7 @@ export function TlaCloseButton({ onClose }: { onClose: () => void }) {
 			<div className="tla_icon_wrapper">
 				<TlaIcon icon="close" />
 			</div>
-			Close
+			<span>Close</span>
 		</button>
 	)
 }

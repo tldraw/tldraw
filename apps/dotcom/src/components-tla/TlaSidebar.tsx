@@ -56,19 +56,23 @@ export function TlaSidebar() {
 				<TlaSidebarWorkspaceLink />
 			</div>
 			<div className="tla_sidebar__content">
-				{flags.drafts && (
-					<TlaSidebarMainLink key={SIDEBAR_MAIN_LINKS[0].id} {...SIDEBAR_MAIN_LINKS[0]} />
+				{flags.links && (
+					<>
+						{flags.drafts && (
+							<TlaSidebarMainLink key={SIDEBAR_MAIN_LINKS[0].id} {...SIDEBAR_MAIN_LINKS[0]} />
+						)}
+						{flags.starred && (
+							<TlaSidebarMainLink key={SIDEBAR_MAIN_LINKS[1].id} {...SIDEBAR_MAIN_LINKS[1]} />
+						)}
+						{flags.shared && (
+							<TlaSidebarMainLink key={SIDEBAR_MAIN_LINKS[2].id} {...SIDEBAR_MAIN_LINKS[2]} />
+						)}
+						{flags.groups && (
+							<TlaSidebarMainLink key={SIDEBAR_MAIN_LINKS[3].id} {...SIDEBAR_MAIN_LINKS[3]} />
+						)}
+					</>
 				)}
-				{flags.starred && (
-					<TlaSidebarMainLink key={SIDEBAR_MAIN_LINKS[1].id} {...SIDEBAR_MAIN_LINKS[1]} />
-				)}
-				{flags.shared && (
-					<TlaSidebarMainLink key={SIDEBAR_MAIN_LINKS[2].id} {...SIDEBAR_MAIN_LINKS[2]} />
-				)}
-				{flags.groups && (
-					<TlaSidebarMainLink key={SIDEBAR_MAIN_LINKS[3].id} {...SIDEBAR_MAIN_LINKS[3]} />
-				)}
-				<TlaSidebarTabs />
+				{flags.tabs && <TlaSidebarTabs />}
 				<TlaSidebarActiveTabContent />
 			</div>
 			<div className="tla_sidebar__bottom">
@@ -103,6 +107,37 @@ function TlaSidebarCreateFileButton() {
 		</button>
 	)
 }
+
+// function TlaSidebarCreateFileLink() {
+// 	const app = useApp()
+// 	const navigate = useNavigate()
+// 	return (
+// 		<div className="tla_sidebar__link tla_hoverable">
+// 			<div className="tla_sidebar__link-content">
+// 				<div className="tla_sidebar__label tla_text_ui__regular">New file</div>
+// 			</div>
+// 			<button
+// 				className="tla_sidebar__link-button"
+// 				onClick={() => {
+// 					const { auth } = app.getSessionState()
+// 					if (!auth) return false
+// 					const id = TldrawAppFileRecordType.createId()
+// 					app.store.put([
+// 						TldrawAppFileRecordType.create({
+// 							id,
+// 							workspaceId: auth.workspaceId,
+// 							owner: auth.userId,
+// 						}),
+// 					])
+// 					navigate(getFileUrl(auth.workspaceId, id))
+// 				}}
+// 			/>
+// 			<div className="tla_sidebar__create tla_icon_wrapper" style={{ height: '100%' }}>
+// 				<TlaIcon icon="edit-strong" />
+// 			</div>
+// 		</div>
+// 	)
+// }
 
 function TlaSidebarCreateGroupFileButton({ groupId }: { groupId: TldrawAppGroupId }) {
 	const app = useApp()
@@ -159,6 +194,7 @@ function TlaSidebarCreateGroupButton() {
 function TlaSidebarWorkspaceLink() {
 	const workspace = useWorkspace()
 	if (!workspace) throw Error('Workspace not found')
+	const flags = useFlags()
 
 	return (
 		<div className="tla_sidebar__workspace tla_hoverable">
@@ -170,6 +206,7 @@ function TlaSidebarWorkspaceLink() {
 			<button className="tla_sidebar__link-menu">
 				<TlaIcon icon="dots-vertical" />
 			</button>
+			{flags.tabs ? null : <TlaSidebarCreateFileButton />}
 		</div>
 	)
 }
@@ -185,30 +222,55 @@ function TlaSidebarTabs() {
 
 	return (
 		<>
-			<TlaSpacer height="20" />
+			{flags.links && <TlaSpacer height="20" />}
 			<div className="tla_sidebar__tabs">
-				{sidebarActiveTab === 'recent' ? (
-					<TlaSidebarCreateFileButton />
-				) : (
+				{sidebarActiveTab === 'groups' ? (
 					<TlaSidebarCreateGroupButton />
+				) : (
+					<TlaSidebarCreateFileButton />
 				)}
 				<div className="tla_sidebar__line" />
-				<button
-					className="tla_sidebar__tabs_tab tla_text_ui__regular"
-					data-active={sidebarActiveTab === 'recent'}
-					onClick={() => {
-						app.setSidebarActiveTab('recent')
-					}}
-				>
-					Recent
-				</button>
-				{flags.groups && (
+				{flags.draftsTab && (
+					<button
+						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						data-active={sidebarActiveTab === 'drafts'}
+						onClick={() => app.setSidebarActiveTab('drafts')}
+					>
+						Drafts
+					</button>
+				)}
+				{flags.recentTab && (
+					<button
+						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						data-active={sidebarActiveTab === 'recent'}
+						onClick={() => app.setSidebarActiveTab('recent')}
+					>
+						Recent
+					</button>
+				)}
+				{flags.starredTab && (
+					<button
+						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						data-active={sidebarActiveTab === 'recent'}
+						onClick={() => app.setSidebarActiveTab('starred')}
+					>
+						Starred
+					</button>
+				)}
+				{flags.sharedTab && (
+					<button
+						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						data-active={sidebarActiveTab === 'shared'}
+						onClick={() => app.setSidebarActiveTab('shared')}
+					>
+						Shared
+					</button>
+				)}
+				{flags.groupsTab && (
 					<button
 						className="tla_sidebar__tabs_tab tla_text_ui__regular"
 						data-active={sidebarActiveTab === 'groups'}
-						onClick={() => {
-							app.setSidebarActiveTab('groups')
-						}}
+						onClick={() => app.setSidebarActiveTab('groups')}
 					>
 						Groups
 					</button>
@@ -228,8 +290,20 @@ function TlaSidebarActiveTabContent() {
 		[app]
 	)
 
+	if (sidebarActiveTab === 'drafts') {
+		return <TlaSidebarDraftFiles />
+	}
+
 	if (sidebarActiveTab === 'recent') {
 		return <TlaSidebarRecentFiles />
+	}
+
+	if (sidebarActiveTab === 'shared') {
+		return <TlaSidebarSharedFiles />
+	}
+
+	if (sidebarActiveTab === 'starred') {
+		return <TlaSidebarStarredFiles />
 	}
 
 	if (sidebarActiveTab === 'groups') {
@@ -268,7 +342,7 @@ function TlaSidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	)
 }
 
-function TlaSidebarRecentSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
+function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
 	return (
 		<div className="tla_sidebar__section">
 			<TlaSpacer height="20" />
@@ -331,6 +405,57 @@ function TlaCollaborator({ userId }: { userId: TldrawAppUserId }) {
 	)
 }
 
+function TlaSidebarDraftFiles() {
+	const app = useApp()
+	const results = useValue(
+		'recent user files',
+		() => {
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app
+				.getUserFiles(auth.userId, auth.workspaceId)
+				.sort((a, b) => b.createdAt - a.createdAt)
+		},
+		[app]
+	)
+
+	if (!results) throw Error('Could not get files')
+
+	return (
+		<div className="tla_sidebar__section">
+			<TlaSpacer height="20" />
+			{results.map((file) => (
+				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
+			))}
+		</div>
+	)
+}
+function TlaSidebarStarredFiles() {
+	const app = useApp()
+	const results = useValue(
+		'recent user files',
+		() => {
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app
+				.getUserStarredFiles(auth.userId, auth.workspaceId)
+				.sort((a, b) => b.createdAt - a.createdAt)
+		},
+		[app]
+	)
+
+	if (!results) throw Error('Could not get files')
+
+	return (
+		<div className="tla_sidebar__section">
+			<TlaSpacer height="20" />
+			{results.map((file) => (
+				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
+			))}
+		</div>
+	)
+}
+
 function TlaSidebarRecentFiles() {
 	const app = useApp()
 	const results = useValue(
@@ -371,15 +496,69 @@ function TlaSidebarRecentFiles() {
 
 	return (
 		<>
-			{todayFiles.length ? <TlaSidebarRecentSection title={'Today'} files={todayFiles} /> : null}
+			{todayFiles.length ? <TlaSidebarFileSection title={'Today'} files={todayFiles} /> : null}
 			{yesterdayFiles.length ? (
-				<TlaSidebarRecentSection title={'Yesterday'} files={yesterdayFiles} />
+				<TlaSidebarFileSection title={'Yesterday'} files={yesterdayFiles} />
 			) : null}
 			{thisWeekFiles.length ? (
-				<TlaSidebarRecentSection title={'This week'} files={thisWeekFiles} />
+				<TlaSidebarFileSection title={'This week'} files={thisWeekFiles} />
 			) : null}
 			{thisMonthFiles.length ? (
-				<TlaSidebarRecentSection title={'This month'} files={thisMonthFiles} />
+				<TlaSidebarFileSection title={'This month'} files={thisMonthFiles} />
+			) : null}
+		</>
+	)
+}
+
+function TlaSidebarSharedFiles() {
+	const app = useApp()
+	const results = useValue(
+		'recent user files',
+		() => {
+			const { auth } = app.getSessionState()
+			if (!auth) return false
+			return app
+				.getUserSharedFiles(auth.userId, auth.workspaceId)
+				.sort((a, b) => b.createdAt - a.createdAt)
+		},
+		[app]
+	)
+	if (!results) throw Error('Could not get files')
+
+	// split the files into today, yesterday, this week, this month, and then by month
+	const day = 1000 * 60 * 60 * 24
+	const todayFiles: TldrawAppFile[] = []
+	const yesterdayFiles: TldrawAppFile[] = []
+	const thisWeekFiles: TldrawAppFile[] = []
+	const thisMonthFiles: TldrawAppFile[] = []
+	const olderFiles: TldrawAppFile[] = []
+
+	for (const file of results) {
+		const date = new Date(file.createdAt)
+		if (date > new Date(Date.now() - day * 1)) {
+			todayFiles.push(file)
+		} else if (date > new Date(Date.now() - day * 2)) {
+			yesterdayFiles.push(file)
+		} else if (date > new Date(Date.now() - day * 7)) {
+			thisWeekFiles.push(file)
+		} else if (date > new Date(Date.now() - day * 30)) {
+			thisMonthFiles.push(file)
+		} else {
+			olderFiles.push(file)
+		}
+	}
+
+	return (
+		<>
+			{todayFiles.length ? <TlaSidebarFileSection title={'Today'} files={todayFiles} /> : null}
+			{yesterdayFiles.length ? (
+				<TlaSidebarFileSection title={'Yesterday'} files={yesterdayFiles} />
+			) : null}
+			{thisWeekFiles.length ? (
+				<TlaSidebarFileSection title={'This week'} files={thisWeekFiles} />
+			) : null}
+			{thisMonthFiles.length ? (
+				<TlaSidebarFileSection title={'This month'} files={thisMonthFiles} />
 			) : null}
 		</>
 	)
@@ -473,7 +652,7 @@ function TlaSidebarUserLink() {
 	return (
 		<div className="tla_sidebar__user tla_hoverable tla_text_ui__regular">
 			<div className="tla_icon_wrapper">
-				<TlaAvatar data-size="m" />
+				<TlaAvatar size="s" />
 			</div>
 			<div className="tla_sidebar__label">{result.user.name}</div>
 			{/* <Link className="tla_sidebar__link-button" to={getUserUrl(result.auth.userId)} /> */}

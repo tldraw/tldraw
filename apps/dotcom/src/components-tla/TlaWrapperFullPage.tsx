@@ -1,21 +1,16 @@
 import { ReactNode } from 'react'
-import { useValue } from 'tldraw'
-import { useApp } from '../hooks/useAppState'
 import { TlaCloseButton } from './TlaCloseButton'
 
-export function TlaWrapperFullPage({ children }: { children: ReactNode }) {
-	const app = useApp()
-	const theme = useValue('theme', () => app.getSessionState().theme, [app])
+export function TlaWrapperFullPage({
+	onClose,
+	children,
+}: {
+	onClose?: () => void
+	children: ReactNode
+}) {
 	return (
-		<div
-			className={`tla tla_layout tla_full ${theme === 'light' ? 'tla_theme__light' : 'tla_theme__dark'}`}
-			data-sidebar="false"
-		>
-			<TlaCloseButton
-				onClose={() => {
-					// close modal if modal
-				}}
-			/>
+		<div className="tla_full">
+			{onClose ? <TlaCloseButton onClose={onClose} /> : null}
 			<div className="tla_full_inner">
 				<div className="tla_full_content">{children}</div>
 			</div>

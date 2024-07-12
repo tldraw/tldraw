@@ -1,0 +1,40 @@
+{
+	"name": "thumbnail-server",
+	"description": "A server for serving thumbnails.",
+	"version": "0.0.1",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"browserslist": [
+		"defaults"
+	],
+	"scripts": {
+		"dev": "vite --host",
+		"build": "vite build"
+	},
+	"dependencies": {
+		"@tldraw/assets": "workspace:*",
+		"@types/cors": "^2.8.17",
+		"@types/express": "^4.17.21",
+		"@types/sqlite3": "^3.1.11",
+		"@vitejs/plugin-react-swc": "^3.7.0",
+		"cors": "^2.8.5",
+		"express": "^4.19.2",
+		"playwright": "^1.45.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-router-dom": "^6.17.0",
+		"sqlite3": "^5.1.7",
+		"tldraw": "workspace:*",
+		"vite": "^5.3.3"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-react-swc": "^3.6.0",
+		"eslint": "^8.37.0",
+		"eslint-config-next": "13.2.4",
+		"lazyrepo": "0.0.0-alpha.27"
+	}
+}

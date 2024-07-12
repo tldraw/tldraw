@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
-import { TlaFullWrapper } from '../components-tla/TlaFullWrapper'
+import { TlaWrapperFullPage } from '../components-tla/TlaWrapperFullPage'
 import { TldrawApp } from '../utils/tla/TldrawApp'
 import { TLA_VERSION } from '../utils/tla/tla-version'
 
@@ -35,7 +35,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}, [])
 
 	if (!ready || !app) {
-		return <TlaFullWrapper>Loading...</TlaFullWrapper>
+		return <TlaWrapperFullPage>Loading...</TlaWrapperFullPage>
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>

@@ -23,12 +23,19 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 		fileIds: TldrawAppFileId[]
 	}
 	flags: {
+		links: boolean
 		drafts: boolean
 		starred: boolean
 		shared: boolean
 		listView: boolean
 		groups: boolean
 		thumbnails: boolean
+		tabs: boolean
+		draftsTab: boolean
+		recentTab: boolean
+		sharedTab: boolean
+		starredTab: boolean
+		groupsTab: boolean
 	}
 }
 
@@ -51,12 +58,19 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 			fileIds: T.arrayOf(idValidator<TldrawAppFileId>('file')),
 		}),
 		flags: T.object({
+			links: T.boolean,
 			drafts: T.boolean,
 			groups: T.boolean,
 			shared: T.boolean,
 			starred: T.boolean,
 			thumbnails: T.boolean,
 			listView: T.boolean,
+			tabs: T.boolean,
+			draftsTab: T.boolean,
+			recentTab: T.boolean,
+			sharedTab: T.boolean,
+			starredTab: T.boolean,
+			groupsTab: T.boolean,
 		}),
 	})
 )
@@ -84,12 +98,19 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
 		flags: {
+			links: true,
 			drafts: true,
 			starred: true,
 			shared: true,
 			listView: true,
 			groups: false,
 			thumbnails: true,
+			tabs: true,
+			draftsTab: false,
+			sharedTab: true,
+			starredTab: false,
+			groupsTab: false,
+			recentTab: true,
 		},
 	})
 )
