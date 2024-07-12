@@ -52,6 +52,6 @@ const Post = defineDocumentType(() => ({
 }))
 
 export default makeSource({
-	contentDirPath: 'blog',
+	contentDirPath: 'content/blog',
 	documentTypes: [Post, Category, Author],
 })

@@ -1,0 +1,18 @@
+{
+	"name": "Release Notes",
+	"description": "Lorem ipsum dolor sit amet consectetur. Nulla ultricies lacinia proin mauris volutpat. Cras sit id at dictumst.",
+	"body": {
+		"raw": "",
+		"html": ""
+	},
+	"_id": "categories/release-notes.mdx",
+	"_raw": {
+		"sourceFilePath": "categories/release-notes.mdx",
+		"sourceFileName": "release-notes.mdx",
+		"sourceFileDir": "categories",
+		"contentType": "mdx",
+		"flattenedPath": "categories/release-notes"
+	},
+	"type": "Category",
+	"slug": "release-notes"
+}

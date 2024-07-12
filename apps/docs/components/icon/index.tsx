@@ -1,12 +1,14 @@
 import * as Heroicons from '@heroicons/react/24/outline'
 import { DiscordIcon } from './discord'
 import { GithubIcon } from './github'
+import { TldrawIcon } from './tldraw'
 import { TwitterIcon } from './twitter'
 
 const icons = {
 	check: Heroicons.CheckIcon,
 	discord: DiscordIcon,
 	github: GithubIcon,
+	tldraw: TldrawIcon,
 	twitter: TwitterIcon,
 	paperclip: Heroicons.PaperClipIcon,
 }

@@ -1,0 +1,18 @@
+{
+	"name": "All Posts",
+	"description": "Lorem ipsum dolor sit amet consectetur. Nulla ultricies lacinia proin mauris volutpat. Cras sit id at dictumst.",
+	"body": {
+		"raw": "",
+		"html": ""
+	},
+	"_id": "categories/all-posts.mdx",
+	"_raw": {
+		"sourceFilePath": "categories/all-posts.mdx",
+		"sourceFileName": "all-posts.mdx",
+		"sourceFileDir": "categories",
+		"contentType": "mdx",
+		"flattenedPath": "categories/all-posts"
+	},
+	"type": "Category",
+	"slug": "all-posts"
+}

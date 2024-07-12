@@ -6,6 +6,14 @@ const nextConfig = {
 	experimental: {
 		scrollRestoration: true,
 	},
+	images: {
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 'substackcdn.com',
+			},
+		],
+	},
 	transpilePackages: [],
 	async redirects() {
 		return [
@@ -75,4 +83,5 @@ const nextConfig = {
 	},
 }
 
-module.exports = withContentlayer(nextConfig)
+// module.exports = withContentlayer(nextConfig)
+module.exports = nextConfig

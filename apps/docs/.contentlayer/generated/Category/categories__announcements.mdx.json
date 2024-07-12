@@ -1,0 +1,18 @@
+{
+	"name": "Announcements",
+	"description": "Lorem ipsum dolor sit amet consectetur. Nulla ultricies lacinia proin mauris volutpat. Cras sit id at dictumst.",
+	"body": {
+		"raw": "",
+		"html": ""
+	},
+	"_id": "categories/announcements.mdx",
+	"_raw": {
+		"sourceFilePath": "categories/announcements.mdx",
+		"sourceFileName": "announcements.mdx",
+		"sourceFileDir": "categories",
+		"contentType": "mdx",
+		"flattenedPath": "categories/announcements"
+	},
+	"type": "Category",
+	"slug": "announcements"
+}

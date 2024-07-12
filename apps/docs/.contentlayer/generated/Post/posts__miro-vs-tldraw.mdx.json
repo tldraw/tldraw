@@ -1,0 +1,22 @@
+{
+	"title": "Miro vs. tldraw",
+	"excerpt": "Choosing an online whiteboard? Let's help you decide between these two titans of collaboration.",
+	"thumbnail": "https://substackcdn.com/image/fetch/w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4e449054-d1fc-4fff-97e8-af7e0de7ffaa_2148x1130.png",
+	"date": "2024-05-23T00:00:00.000Z",
+	"category": "product",
+	"authors": ["steve-ruiz"],
+	"body": {
+		"raw": "\nOh that’s easy — you should use [tldraw](https://tldraw.com/).\n\nFor more insights, follow us on [X](https://twitter.com/tldraw), [Mastodon](https://mas.to/@tldraw), [Discord](https://t.co/FbWiDYFD3O), and [LinkedIn](https://www.linkedin.com/company/tldraw/).\n",
+		"html": "<p>Oh that’s easy — you should use <a href=\"https://tldraw.com/\">tldraw</a>.</p>\n<p>For more insights, follow us on <a href=\"https://twitter.com/tldraw\">X</a>, <a href=\"https://mas.to/@tldraw\">Mastodon</a>, <a href=\"https://t.co/FbWiDYFD3O\">Discord</a>, and <a href=\"https://www.linkedin.com/company/tldraw/\">LinkedIn</a>.</p>"
+	},
+	"_id": "posts/miro-vs-tldraw.mdx",
+	"_raw": {
+		"sourceFilePath": "posts/miro-vs-tldraw.mdx",
+		"sourceFileName": "miro-vs-tldraw.mdx",
+		"sourceFileDir": "posts",
+		"contentType": "mdx",
+		"flattenedPath": "posts/miro-vs-tldraw"
+	},
+	"type": "Post",
+	"slug": "miro-vs-tldraw"
+}

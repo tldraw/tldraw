@@ -1,3 +1,6 @@
+import { Footer } from '@/components/footer'
+import { Header } from '@/components/header'
+import { SearchBar } from '@/components/search/bar'
 import { cn } from '@/utils/cn'
 import { Analytics } from '@vercel/analytics/react'
 import { GeistMono } from 'geist/font/mono'
@@ -54,7 +57,10 @@ export default async function Layout({ children }: { children: React.ReactNode }
 			)}
 		>
 			<body className="pt-14 md:pt-[4.5rem]">
+				<Header />
+				<SearchBar />
 				{children}
+				<Footer />
 				<Analytics />
 			</body>
 		</html>
