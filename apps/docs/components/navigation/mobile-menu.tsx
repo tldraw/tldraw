@@ -19,7 +19,7 @@ export const MobileMenu: React.FC<{
 				<ul className="flex flex-col items-end gap-4">
 					{main.map((item, index) => (
 						<li key={index}>
-							<NavigationLink {...item} pathname={pathname} />
+							<NavigationLink {...item} active={item.active(pathname)} />
 						</li>
 					))}
 				</ul>

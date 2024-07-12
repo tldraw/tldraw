@@ -1,9 +1,12 @@
-import { CategoryMenu } from '@/components/blog/category-menu'
+import { BlogCategoryMenu } from '@/components/blog/blog-category-menu'
+import { getDb } from '@/utils/ContentDatabase'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { Bars3Icon } from '@heroicons/react/16/solid'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 
-export const MobileSidebar: React.FC<{}> = ({}) => {
+export const BlogMobileSidebar: React.FC<{}> = async ({}) => {
+	const db = await getDb()
+	const categories = await db.getCategoriesForSection('blog')
 	return (
 		<Popover className="group/popover h-full grow">
 			<PopoverButton className="group/button focus:outline-none h-full w-full flex justify-start items-center">
@@ -18,7 +21,7 @@ export const MobileSidebar: React.FC<{}> = ({}) => {
 					className="fixed left-0 top-12 bg-white w-screen px-5 py-8 overflow-y-auto z-10"
 					style={{ height: 'calc(100vh - 6.5rem)' }}
 				>
-					<CategoryMenu />
+					<BlogCategoryMenu categories={categories.filter((c) => !c.id.endsWith('ucg'))} />
 				</div>
 			</PopoverPanel>
 		</Popover>

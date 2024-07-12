@@ -14,6 +14,42 @@
 		"sidebar_behavior": "hidden"
 	},
 	{
+		"id": "blog",
+		"title": "Blog",
+		"description": "The latest posts from the tldraw blog.",
+		"categories": [
+			{
+				"id": "all-posts",
+				"title": "All Posts",
+				"description": "All posts from the tldraw blog.",
+				"groups": [],
+				"hero": null
+			},
+			{
+				"id": "annoucements",
+				"title": "Announcements",
+				"description": "Announcements from the tldraw team.",
+				"groups": [],
+				"hero": null
+			},
+			{
+				"id": "product",
+				"title": "Product",
+				"description": "The latest on the tldraw product.",
+				"groups": [],
+				"hero": null
+			},
+			{
+				"id": "release-notes",
+				"title": "Release notes",
+				"description": "Release notes for the tldraw SDK.",
+				"groups": [],
+				"hero": null
+			}
+		],
+		"sidebar_behavior": "hidden"
+	},
+	{
 		"id": "docs",
 		"title": "Learn tldraw",
 		"description": "Learn to use the tldraw SDK.",

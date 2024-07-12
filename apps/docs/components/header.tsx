@@ -65,14 +65,14 @@ export const Header = () => {
 				<ul className="hidden sm:flex md:hidden gap-8">
 					{mainLinks.map((item, index) => (
 						<li key={index}>
-							<NavigationLink {...item} pathname={pathname} />
+							<NavigationLink {...item} active={item.active(pathname)} />
 						</li>
 					))}
 				</ul>
 				<motion.ul style={{ opacity: navOpacity }} className="hidden md:flex gap-8">
 					{mainLinks.map((item, index) => (
 						<li key={index}>
-							<NavigationLink {...item} pathname={pathname} />
+							<NavigationLink {...item} active={item.active(pathname)} />
 						</li>
 					))}
 				</motion.ul>

@@ -89,7 +89,11 @@ export async function addContentToDb(
 				article.groupId,
 				article.categoryId,
 				article.sectionId,
-				article.author,
+				article.author
+					? typeof article.author === 'string'
+						? article.author
+						: article.author.join(', ')
+					: null,
 				article.title,
 				article.description,
 				article.hero,

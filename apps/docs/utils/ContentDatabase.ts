@@ -32,7 +32,7 @@ export class ContentDatabase {
 		return section
 	}
 
-	async getCategory(categoryId: string, opts = {} as { optional?: boolean }) {
+	async getCategory(categoryId: string, opts = {} as { optional?: boolean }): Promise<Category> {
 		const category = await this.db.get('SELECT * FROM categories WHERE id = ?', categoryId)
 		if (!opts.optional) assert(category, `Could not find a category with categoryId ${categoryId}`)
 		return category

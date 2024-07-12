@@ -30,12 +30,11 @@ const categoryLinks = [
 
 export const CategoryMenu = () => {
 	const pathname = usePathname()
-
 	return (
 		<ul className="shrink-0 flex flex-col gap-3">
 			{categoryLinks.map((item, index) => (
 				<li key={index}>
-					<NavigationLink {...item} pathname={pathname} />
+					<NavigationLink {...item} active={item.active(pathname)} />
 				</li>
 			))}
 		</ul>

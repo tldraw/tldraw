@@ -1,16 +1,20 @@
 import { cn } from '@/utils/cn'
-import { ChevronRightIcon } from '@heroicons/react/20/solid'
-import { allCategories } from 'contentlayer/generated'
+import { getDb } from '@/utils/ContentDatabase'
+import { ChevronRightIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 
-export const Breadcrumbs: React.FC<{ categorySlug?: string; className?: string }> = ({
-	categorySlug,
+export async function BlogBreadcrumbs({
+	categoryId,
 	className,
-}) => {
+}: {
+	categoryId?: string
+	className?: string
+}) {
 	const breadcrumbs = [{ href: '/blog', caption: 'Blog' }]
-	if (categorySlug) {
-		const category = allCategories.find((category) => category.slug === categorySlug)
-		if (category) breadcrumbs.push({ href: `/blog/${category.slug}`, caption: category.name })
+	if (categoryId) {
+		const db = await getDb()
+		const category = await db.getCategory(categoryId)
+		if (category) breadcrumbs.push({ href: `/blog/${category.id}`, caption: category.title })
 	}
 
 	return (
