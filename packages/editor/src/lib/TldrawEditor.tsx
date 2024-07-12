@@ -505,6 +505,10 @@ function useOnMount(onMount?: TLOnMountHandler) {
 	})
 
 	React.useLayoutEffect(() => {
-		if (editor) return onMountEvent?.(editor)
+		if (editor) {
+			editor.timers.requestAnimationFrame(() => {
+				onMountEvent?.(editor)
+			})
+		}
 	}, [editor, onMountEvent])
 }

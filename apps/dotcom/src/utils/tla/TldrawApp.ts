@@ -1,5 +1,5 @@
 import { deleteDB } from 'idb'
-import { computed, Store } from 'tldraw'
+import { computed, Editor, Store } from 'tldraw'
 import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
 import { TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
@@ -23,6 +23,21 @@ export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>, client: LocalSyncClient<TldrawAppRecord>) {
 		this.store = store
 		this.client = client
+
+		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
+			if (prev.theme !== next.theme) {
+				const editor = this.getCurrentEditor()
+				if (editor) {
+					const editorIsDark = editor.user.getIsDarkMode()
+					const appIsDark = next.theme === 'dark'
+					if (appIsDark && !editorIsDark) {
+						editor.user.updateUserPreferences({ colorScheme: 'dark' })
+					} else if (!appIsDark && editorIsDark) {
+						editor.user.updateUserPreferences({ colorScheme: 'light' })
+					}
+				}
+			}
+		})
 	}
 
 	store: Store<TldrawAppRecord>
@@ -30,6 +45,16 @@ export class TldrawApp {
 
 	dispose = () => {
 		this.client.close()
+	}
+
+	private _currentEditor: Editor | null = null
+
+	getCurrentEditor() {
+		return this._currentEditor
+	}
+
+	setCurrentEditor(editor: Editor | null) {
+		this._currentEditor = editor
 	}
 
 	getSessionState() {

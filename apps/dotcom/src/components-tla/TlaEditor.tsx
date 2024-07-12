@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -18,6 +18,8 @@ import {
 	TldrawUiMenuItem,
 	ViewSubmenu,
 	useActions,
+	useEditor,
+	useReactor,
 } from 'tldraw'
 import { LocalFileMenu } from '../components/FileMenu'
 import { Links } from '../components/Links'
@@ -31,6 +33,7 @@ import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../utils/migration/LocalMigration'
 import { useSharing } from '../utils/sharing'
+import { TldrawApp } from '../utils/tla/TldrawApp'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
@@ -89,21 +92,36 @@ const components: TLComponents = {
 
 export function TlaEditor({ file }: { file: TldrawAppFile }) {
 	const handleUiEvent = useHandleUiEvents()
+	const app = useApp()
 
 	const { id: fileId, workspaceId } = file
+
+	const [ready, setReady] = useState(false)
+	const rPrevFileId = useRef(fileId)
+	useEffect(() => {
+		if (rPrevFileId.current !== fileId) {
+			setReady(false)
+			rPrevFileId.current = fileId
+		}
+	}, [fileId])
 
 	const persistenceKey = `tla_2_${fileId}`
 
 	const sharingUiOverrides = useSharing(persistenceKey)
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
-	const handleMount = useCallback((editor: Editor) => {
-		;(window as any).app = editor
-		;(window as any).editor = editor
-		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
-
-	const app = useApp()
+	const handleMount = useCallback(
+		(editor: Editor) => {
+			;(window as any).app = editor
+			;(window as any).editor = editor
+			editor.registerExternalAssetHandler('url', createAssetFromUrl)
+			app.setCurrentEditor(editor)
+			editor.timers.setTimeout(() => {
+				setReady(true)
+			}, 200)
+		},
+		[app]
+	)
 
 	useEffect(() => {
 		const { auth } = app.getSessionState()
@@ -138,6 +156,7 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				key={persistenceKey}
 				assetUrls={assetUrls}
 				persistenceKey={persistenceKey}
 				onMount={handleMount}
@@ -149,24 +168,32 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
+				<SneakyDarkModeSync />
 			</Tldraw>
+			{ready ? null : <div key={persistenceKey + 'overlay'} className="tla_editor__overlay" />}
 		</div>
 	)
 }
 
-// function SneakyDarkModeSync() {
-// 	const app = useApp()
-// 	const editor = useEditor()
+function SneakyDarkModeSync() {
+	const app = useApp()
+	const editor = useEditor()
 
-// 	useQuickReactor('dark mode sync', () => {
-// 		const appIsDark = app.getTheme() === 'dark'
-// 		const editorIsDark = editor.user.getIsDarkMode()
+	useReactor(
+		'dark mode sync',
+		() => {
+			const appIsDark =
+				app.store.unsafeGetWithoutCapture(TldrawApp.SessionStateId)!.theme === 'dark'
+			const editorIsDark = editor.user.getIsDarkMode()
 
-// 		if (appIsDark !== editorIsDark) {
-// 			if (appIs)
-// 			editor.user.systemColorScheme.set('dark')
-// 		}
-// 	}, [app, editor])
+			if (appIsDark && !editorIsDark) {
+				app.setSessionState({ ...app.getSessionState(), theme: 'light' })
+			} else if (!appIsDark && editorIsDark) {
+				app.setSessionState({ ...app.getSessionState(), theme: 'dark' })
+			}
+		},
+		[app, editor]
+	)
 
-// 	return null
-// }
+	return null
+}

@@ -4,60 +4,79 @@
 .tla {
 	box-sizing: border-box;
 	font-family: 'Times New Roman', Times, serif;
-	/* Border radii */
-	--radius-1: 2px;
-	--radius-2: 4px;
-	/* Fonts */
-	--font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-		Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .tla * {
 	box-sizing: border-box;
 }
 
-.tla .tl-container {
-	font-family: var(--font-ui);
-	font-size: 12px;
-	font-weight: 500;
+/* Variables */
+.tla {
+	/* Border radii */
+	--tla-radius-1: 2px;
+	--tla-radius-2: 4px;
+	/* Fonts */
+	--tla-font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+		Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .tla_theme__light {
-	--color-background: hsla(0, 0%, 100%, 1);
-	--color-canvas: hsl(210, 20%, 98%);
-	--color-panel: hsla(0, 0%, 100%, 1);
-	--color-text-1: hsla(204, 8%, 5%, 1);
-	--color-text-2: hsl(204, 4%, 45%);
-	--color-text-primary: hsla(0, 0%, 100%, 1);
-	--color-low: hsl(204, 16%, 94%);
-	--color-border: hsl(204, 16%, 85%);
-	--color-hover: hsl(204, 16%, 5%, 4.5%);
-	--color-overlay: hsla(204, 16%, 5%, 1%);
-	--color-primary: hsla(214, 84%, 56%, 1);
-	--color-secondary: rgb(234, 234, 234);
-	--color-accent-1: hsl(50, 91%, 70%);
-	--color-accent-2: hsl(28, 88%, 57%);
-	--color-accent-3: hsl(135, 59%, 49%);
-	--color-warn: hsl(0, 88%, 57%);
+	--tla-color-sidebar: hsl(0, 0%, 100%);
+	--tla-color-canvas: hsl(210, 20%, 98%);
+	--tla-color-panel: hsla(0, 0%, 100%, 1);
+	--tla-color-text-1: hsla(204, 8%, 5%, 1);
+	--tla-color-text-2: hsl(204, 4%, 45%);
+	--tla-color-contrast: hsla(0, 0%, 100%, 1);
+	--tla-color-low: hsl(204, 16%, 94%);
+	--tla-color-border: hsl(204, 16%, 85%);
+	--tla-color-hover: hsl(204, 16%, 4%, 4.5%);
+	--tla-color-overlay: hsla(204, 16%, 5%, 1%);
+	--tla-color-primary: hsla(214, 84%, 56%, 1);
+	--tla-color-secondary: rgb(234, 234, 234);
+	--tla-color-accent-1: hsl(50, 91%, 70%);
+	--tla-color-accent-2: hsl(28, 88%, 57%);
+	--tla-color-accent-3: hsl(135, 59%, 49%);
+	--tla-color-warn: hsl(0, 88%, 57%);
+	/* Shadows */
+	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
+	--tla-shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-panel);
+	--tla-shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+		inset 0px 0px 0px 1px var(--tla-color-panel);
+	--tla-shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-panel);
 }
 
 .tla_theme__dark {
-	--color-background: hsla(0, 0%, 0%, 1);
-	--color-canvas: rgb(16, 16, 17);
-	--color-panel: hsl(240, 6%, 13%);
-	--color-text-1: hsla(204, 8%, 95%, 1);
-	--color-text-2: hsl(204, 4%, 75%);
-	--color-text-primary: hsla(0, 0%, 100%, 1);
-	--color-low: hsl(240, 4%, 11%);
-	--color-border: hsl(240, 12%, 20%);
-	--color-hover: hsl(240, 8%, 10%, 100%);
-	--color-overlay: hsla(204, 16%, 5%, 1%);
-	--color-primary: hsla(214, 84%, 44%, 1);
-	--color-secondary: hsl(0, 0%, 90%);
-	--color-accent-1: hsl(50, 91%, 60%);
-	--color-accent-2: hsl(28, 88%, 47%);
-	--color-accent-3: hsl(135, 59%, 39%);
-	--color-warn: hsl(0, 88%, 47%);
+	--tla-color-sidebar: hsla(0, 0%, 5%, 1);
+	--tla-color-canvas: hsl(240, 5%, 6.5%);
+	--tla-color-panel: hsl(240, 6%, 13%);
+	--tla-color-text-1: hsla(204, 8%, 90%, 1);
+	--tla-color-text-2: hsl(204, 4%, 75%);
+	--tla-color-contrast: hsla(0, 0%, 100%, 1);
+	--tla-color-low: hsl(240, 4%, 11%);
+	--tla-color-border: hsl(240, 12%, 20%);
+	--tla-color-hover: hsl(240, 8%, 10%, 100%);
+	--tla-color-overlay: hsla(204, 16%, 5%, 1%);
+	--tla-color-primary: hsla(214, 84%, 44%, 1);
+	--tla-color-secondary: hsl(0, 0%, 90%);
+	--tla-color-accent-1: hsl(50, 91%, 60%);
+	--tla-color-accent-2: hsl(28, 88%, 47%);
+	--tla-color-accent-3: hsl(135, 59%, 39%);
+	--tla-color-warn: hsl(0, 88%, 47%);
+	/* Shadows */
+	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
+		inset 0px 0px 0px 1px var(--tla-color-panel);
+	--tla-shadow-2: 0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
+		inset 0px 0px 0px 1px var(--tla-color-panel);
+	--tla-shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
+		inset 0px 0px 0px 1px var(--tla-color-panel);
+}
+
+.tla .tl-container {
+	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	font-weight: 500;
 }
 
 /* ------------------ Ui Overrides ------------------ */
@@ -70,7 +89,7 @@
 	padding-left: 36px;
 }
 
-.tla_layout__signedin .tla .tlui-focus-button {
+.tla_layout__signedin .tlui-focus-button {
 	left: 36px;
 }
 
@@ -86,7 +105,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 /* --------------------- Spacers -------------------- */
@@ -165,8 +184,8 @@
 	font-size: 14px;
 	line-height: 1.3;
 	font-weight: 600;
-	font-family: var(--font-ui);
-	color: var(--color-text-1);
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -175,8 +194,8 @@
 	font-size: 12px;
 	line-height: 1.3;
 	font-weight: 500;
-	font-family: var(--font-ui);
-	color: var(--color-text-2);
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-2);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -185,8 +204,8 @@
 	font-size: 14px;
 	line-height: 1.3;
 	font-weight: 500;
-	font-family: var(--font-ui);
-	color: var(--color-text-1);
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -195,8 +214,8 @@
 	font-size: 11px;
 	line-height: 1.3;
 	font-weight: 500;
-	font-family: var(--font-ui);
-	color: var(--color-text-2);
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-2);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -205,8 +224,8 @@
 	font-size: 6px;
 	line-height: 1.3;
 	font-weight: 800;
-	font-family: var(--font-ui);
-	color: var(--color-text-1);
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -214,8 +233,8 @@
 .tla_text_ui__big {
 	font-size: 24px;
 	line-height: 1.3;
-	font-family: var(--font-ui);
-	color: var(--color-text-1);
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
 }
 
@@ -236,7 +255,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 	flex-shrink: 0;
 }
 
@@ -266,8 +285,8 @@
 	height: 40px;
 	border: 1px solid transparent;
 	padding: 0px 12px;
-	color: var(--color-text-1);
-	border-radius: var(--radius-2);
+	color: var(--tla-color-text-1);
+	border-radius: var(--tla-radius-2);
 	cursor: pointer;
 	display: flex;
 	flex-direction: row;
@@ -275,10 +294,6 @@
 	justify-content: center;
 	cursor: pointer;
 	gap: 8px;
-	/* box-shadow:
-		inset 0 3px 1px -2px rgba(255, 255, 255, 0.32),
-		inset 0 -3px 1px -2px rgba(0, 0, 0, 0.2),
-		0px 3px 8px -2px rgba(0, 0, 0, 0.2); */
 }
 
 .tla_button > .tla_button_spinner {
@@ -295,7 +310,7 @@
 }
 
 .tla_spinner {
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 	animation: tla_spin 1.5s linear infinite;
 }
 
@@ -309,19 +324,19 @@
 }
 
 .tla_button__primary {
-	background-color: var(--color-primary);
-	color: var(--color-text-primary);
+	background-color: var(--tla-color-primary);
+	color: var(--tla-color-contrast);
 }
 .tla_button__primary[data-state='loading'] {
-	color: var(--color-primary);
+	color: var(--tla-color-primary);
 }
 .tla_button__primary[data-state='loading'] > .tla_button_spinner {
-	color: var(--color-text-primary);
+	color: var(--tla-color-contrast);
 }
 
 .tla_button__secondary {
-	background-color: var(--color-secondary);
-	color: var(--color-text-1);
+	background-color: var(--tla-color-secondary);
+	color: var(--tla-color-text-1);
 }
 
 @media (hover: hover) {
@@ -334,23 +349,23 @@
 
 .tla_input {
 	height: 40px;
-	background-color: var(--color-panel);
-	color: var(--color-text-1);
-	border: 1px solid var(--color-border);
+	background-color: var(--tla-color-panel);
+	color: var(--tla-color-text-1);
+	border: 1px solid var(--tla-color-border);
 	padding: 0px 12px;
-	border-radius: var(--radius-2);
+	border-radius: var(--tla-radius-2);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
 .tla_input::placeholder {
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 }
 
 .tla_input[type='text']:user-invalid,
 .tla_input[type='password']:user-invalid {
-	border: 1px solid var(--color-warn);
+	border: 1px solid var(--tla-color-warn);
 	transition: border 0s;
 	transition-delay: 0.25s;
 }
@@ -391,8 +406,8 @@
 	left: 0px;
 	width: 20px;
 	height: 20px;
-	border: 1px solid var(--color-border);
-	border-radius: var(--radius-1);
+	border: 1px solid var(--tla-color-border);
+	border-radius: var(--tla-radius-1);
 }
 
 .tla_input[type='checkbox']:checked::after {
@@ -400,7 +415,7 @@
 }
 
 .tla_input[type='checkbox']:user-invalid::after {
-	border: 1px solid var(--color-warn);
+	border: 1px solid var(--tla-color-warn);
 	transition: border 0s;
 	transition-delay: 0.25s;
 }
@@ -423,14 +438,14 @@
 	top: 50%;
 	width: 100%;
 	height: 1px;
-	background-color: var(--color-border);
+	background-color: var(--tla-color-border);
 }
 
 .tla_divider span {
 	position: relative;
 	z-index: 1;
-	color: var(--color-text-2);
-	background-color: var(--color-panel);
+	color: var(--tla-color-text-2);
+	background-color: var(--tla-color-panel);
 	padding: 0px 12px;
 }
 
@@ -471,7 +486,7 @@
 		right: 4px;
 		bottom: 4px;
 		border-radius: 4px;
-		background-color: var(--color-hover);
+		background-color: var(--tla-color-hover);
 		z-index: 0;
 		pointer-events: none;
 	}
@@ -492,7 +507,7 @@ want centered content that docks to the top when the window is short
 	align-items: center;
 	justify-content: center;
 	overflow: hidden;
-	background-color: var(--color-background);
+	background-color: var(--tla-color-sidebar);
 }
 
 .tla_full_inner {
@@ -512,8 +527,8 @@ want centered content that docks to the top when the window is short
 /* ---------------------- Auth ---------------------- */
 
 .tla_auth_container {
-	background: var(--color-panel);
-	border: var(--color-border);
+	background: var(--tla-color-panel);
+	border: var(--tla-color-border);
 	width: 100%;
 	max-width: 360px;
 }
@@ -542,7 +557,7 @@ want centered content that docks to the top when the window is short
 
 .tla_auth_detail {
 	text-align: center;
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 }
 
 .tla_auth_detail button {
@@ -550,7 +565,7 @@ want centered content that docks to the top when the window is short
 	border: none;
 	display: inline;
 	cursor: pointer;
-	color: var(--color-primary);
+	color: var(--tla-color-primary);
 }
 
 /* ----------------- Sidebar button ----------------- */
@@ -566,9 +581,9 @@ want centered content that docks to the top when the window is short
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: 999;
+	z-index: 2000;
 	cursor: pointer;
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 
 .tla_top-left-button::after {
@@ -580,7 +595,7 @@ want centered content that docks to the top when the window is short
 	right: 4px;
 	bottom: 4px;
 	border-radius: 4px;
-	background-color: var(--color-hover);
+	background-color: var(--tla-color-hover);
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
@@ -613,7 +628,7 @@ want centered content that docks to the top when the window is short
 	width: 100%;
 	height: 100%;
 	flex-grow: 2;
-	background-color: var(--color-canvas);
+	background-color: var(--tla-color-canvas);
 }
 
 /* --------------------- Sidebar -------------------- */
@@ -628,8 +643,8 @@ want centered content that docks to the top when the window is short
 	display: none;
 	flex: 0 0 auto;
 	padding: 0px 12px;
-	background: var(--color-background);
-	border-right: 1px solid var(--color-low);
+	background: var(--tla-color-sidebar);
+	border-right: 1px solid var(--tla-color-low);
 }
 
 .tla_sidebar__top,
@@ -662,7 +677,7 @@ want centered content that docks to the top when the window is short
 	right: 0px;
 	bottom: 2px;
 	border-radius: 4px;
-	background-color: var(--color-hover);
+	background-color: var(--tla-color-hover);
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
@@ -699,7 +714,7 @@ want centered content that docks to the top when the window is short
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--color-hover);
+	background-color: var(--tla-color-hover);
 }
 
 @media (hover: hover) {
@@ -708,12 +723,12 @@ want centered content that docks to the top when the window is short
 	}
 	/* 	
 	.tla_sidebar:hover .tla_sidebar__create:hover {
-		color: var(--color-panel);
+		color: var(--tla-color-panel);
 	}
 
 	.tla_sidebar:hover .tla_sidebar__create:hover::after {
 		visibility: visible;
-		background-color: var(--color-primary);
+		background-color: var(--tla-color-primary);
 	} */
 }
 
@@ -762,7 +777,7 @@ want centered content that docks to the top when the window is short
 	flex-direction: row;
 	align-items: center;
 	overflow: hidden;
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 }
 
 .tla_sidebar__link {
@@ -801,10 +816,10 @@ want centered content that docks to the top when the window is short
 .tla_collaborator {
 	width: 15px;
 	height: 15px;
-	background-color: var(--color-accent-2);
-	border: 2px solid var(--color-panel);
+	background-color: var(--tla-color-accent-2);
+	border: 2px solid var(--tla-color-panel);
 	text-align: center;
-	color: var(--color-background);
+	color: var(--tla-color-sidebar);
 	border-radius: 100%;
 	display: flex;
 	align-items: center;
@@ -838,7 +853,7 @@ want centered content that docks to the top when the window is short
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 	flex: 0 0 auto;
 	z-index: 3;
 	cursor: pointer;
@@ -859,16 +874,16 @@ want centered content that docks to the top when the window is short
 	}
 
 	.tla_sidebar__link-menu:hover {
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
 	}
 }
 
 .tla_sidebar__group-avatar {
 	width: 13px;
 	height: 13px;
-	background-color: var(--color-accent-2);
+	background-color: var(--tla-color-accent-2);
 	text-align: center;
-	color: var(--color-background);
+	color: var(--tla-color-sidebar);
 	border-radius: 100%;
 	display: flex;
 	align-items: center;
@@ -895,7 +910,7 @@ want centered content that docks to the top when the window is short
 	display: flex;
 	align-items: center;
 	padding: 8px;
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 }
 
 .tla_sidebar__tabs_tab::after {
@@ -907,12 +922,12 @@ want centered content that docks to the top when the window is short
 	right: 8px;
 	height: 2px;
 	z-index: 3;
-	background-color: var(--color-text-1);
+	background-color: var(--tla-color-text-1);
 	visibility: hidden;
 }
 
 .tla_sidebar__tabs_tab[data-active='true'] {
-	color: var(--color-text-1);
+	color: var(--tla-color-text-1);
 }
 .tla_sidebar__tabs_tab[data-active='true']::after {
 	visibility: visible;
@@ -924,12 +939,12 @@ want centered content that docks to the top when the window is short
 	left: 8px;
 	right: 8px;
 	height: 2px;
-	background-color: var(--color-hover);
+	background-color: var(--tla-color-hover);
 }
 
 @media (hover: hover) {
 	.tla_sidebar__tabs_tab:hover {
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
 	}
 }
 
@@ -941,7 +956,7 @@ want centered content that docks to the top when the window is short
 	height: 24px;
 	border-radius: 50%;
 	overflow: hidden;
-	background-color: var(--color-accent-2);
+	background-color: var(--tla-color-accent-2);
 }
 
 .tla-avatar[data-size='s'] {
@@ -983,7 +998,7 @@ want centered content that docks to the top when the window is short
 	align-items: center;
 	justify-content: center;
 	text-align: center;
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 }
 
 /* -------------------- Shared ------------------- */
@@ -1024,7 +1039,7 @@ want centered content that docks to the top when the window is short
 	flex: 0 0 auto;
 	z-index: 3;
 	cursor: pointer;
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 }
 
 /* -------------------- List item ------------------- */
@@ -1050,10 +1065,9 @@ want centered content that docks to the top when the window is short
 	width: 100%;
 	height: 100%;
 	border-radius: 2px;
-	background-color: var(--color-panel);
-	border: 1px solid var(--color-border);
+	background-color: var(--tla-color-panel);
+	border: 1px solid var(--tla-color-border);
 	z-index: 1;
-	/* box-shadow: inset 0px 0px 12px -8px var(--color-canvas); */
 }
 
 .tla_page__list_item::after {
@@ -1064,7 +1078,7 @@ want centered content that docks to the top when the window is short
 	left: -6px;
 	right: -6px;
 	bottom: -6px;
-	background-color: var(--color-hover);
+	background-color: var(--tla-color-hover);
 	border-radius: 6px;
 	visibility: hidden;
 	pointer-events: none;
@@ -1093,7 +1107,7 @@ want centered content that docks to the top when the window is short
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center center;
-	border-right: 1px solid var(--color-low);
+	border-right: 1px solid var(--tla-color-low);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1122,7 +1136,7 @@ want centered content that docks to the top when the window is short
 	right: -6px;
 	bottom: -6px;
 	left: -6px;
-	background-color: var(--color-hover);
+	background-color: var(--tla-color-hover);
 	border-radius: 6px;
 	pointer-events: none;
 	visibility: hidden;
@@ -1131,20 +1145,21 @@ want centered content that docks to the top when the window is short
 
 .tla_page__grid_item__content {
 	display: flex;
-	border-radius: 2px;
-	border: 1px solid var(--color-border);
+	border-radius: 0px;
+	border: 1px solid var(--tla-color-border);
 	flex-direction: column;
 	position: relative;
 	z-index: 2;
 	overflow: hidden;
+	/* box-shadow: var(--tla-shadow-2); */
 }
 
 .tla_page__grid_item_top {
 	position: relative;
 	width: 100%;
 	height: 200px;
-	border-bottom: 1px solid var(--color-border);
-	background-color: var(--color-panel);
+	border-bottom: 1px solid var(--tla-color-border);
+	background-color: var(--tla-color-panel);
 	border-top-left-radius: 2px;
 	border-top-right-radius: 2px;
 	overflow: hidden;
@@ -1173,7 +1188,7 @@ want centered content that docks to the top when the window is short
 	flex-direction: column;
 	justify-content: center;
 	align-items: flex-start;
-	background-color: var(--color-panel);
+	background-color: var(--tla-color-panel);
 	border-bottom-left-radius: 2px;
 	border-bottom-right-radius: 2px;
 	padding: 12px;
@@ -1222,7 +1237,7 @@ want centered content that docks to the top when the window is short
 
 	.tla_page__item_star:hover,
 	.tla_page__item_menu:hover {
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
 	}
 
 	.tla_page__list_item:hover::after,
@@ -1270,12 +1285,12 @@ want centered content that docks to the top when the window is short
 	position: absolute;
 	right: 4px;
 	z-index: 2;
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 }
 
 @media (hover: hover) {
 	.tla_page_controls__search_clear:hover {
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
 	}
 }
 
@@ -1298,7 +1313,7 @@ want centered content that docks to the top when the window is short
 	left: 2px;
 	right: 2px;
 	bottom: 2px;
-	background-color: var(--color-hover);
+	background-color: var(--tla-color-hover);
 	border-radius: 4px;
 	z-index: 0;
 	pointer-events: none;
@@ -1336,7 +1351,7 @@ want centered content that docks to the top when the window is short
 }
 
 .tla_page_controls__search_input::placeholder {
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 }
 
 .tla_page_controls__control_label {
@@ -1344,7 +1359,7 @@ want centered content that docks to the top when the window is short
 	align-items: center;
 	justify-content: center;
 	gap: 4px;
-	color: var(--color-text-2);
+	color: var(--tla-color-text-2);
 	pointer-events: none;
 	position: relative;
 	z-index: 1;
@@ -1352,6 +1367,26 @@ want centered content that docks to the top when the window is short
 
 @media (hover: hover) {
 	.tla_page_controls__control:hover > .tla_page_controls__control_label {
-		color: var(--color-text-1);
+		color: var(--tla-color-text-1);
+	}
+}
+
+.tla_editor__overlay {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: var(--tla-color-canvas);
+	z-index: 1000;
+	animation: fadeout 0.2s ease-in forwards;
+}
+
+@keyframes fadeout {
+	0% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
 	}
 }

@@ -39,7 +39,7 @@ export function Component() {
 	return (
 		<TlaWrapperCollapsableSidebar>
 			<div className="tla_content">
-				<TlaEditor key={'file_' + file.id} file={file} />
+				<TlaEditor file={file} />
 			</div>
 		</TlaWrapperCollapsableSidebar>
 	)
