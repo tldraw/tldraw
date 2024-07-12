@@ -1,3 +1,4 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { Tldraw, exportAs, useActions, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -9,6 +10,7 @@ export default function EndToEnd() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor

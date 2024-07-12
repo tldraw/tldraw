@@ -8,16 +8,10 @@
 	},
 	"references": [
 		{
-			"path": "../state"
-		},
-		{
-			"path": "../store"
+			"path": "../sync-core"
 		},
 		{
 			"path": "../tldraw"
-		},
-		{
-			"path": "../tlschema"
 		},
 		{
 			"path": "../utils"

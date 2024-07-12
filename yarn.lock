@@ -6187,7 +6187,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
-    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -6287,7 +6287,7 @@ __metadata:
     "@supabase/supabase-js": "npm:^2.33.2"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
-    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -6456,11 +6456,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/sync-react@workspace:*, @tldraw/sync-react@workspace:packages/sync-react":
+"@tldraw/sync-core@workspace:*, @tldraw/sync-core@workspace:packages/sync-core":
   version: 0.0.0-use.local
-  resolution: "@tldraw/sync-react@workspace:packages/sync-react"
+  resolution: "@tldraw/sync-core@workspace:packages/sync-core"
   dependencies:
-    "@tldraw/sync": "workspace:*"
+    "@tldraw/state": "workspace:*"
+    "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
@@ -6480,9 +6482,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/sync@workspace:packages/sync"
   dependencies:
-    "@tldraw/state": "workspace:*"
-    "@tldraw/store": "workspace:*"
-    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
@@ -10638,7 +10638,7 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/sync": "workspace:*"
-    "@tldraw/sync-react": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/qrcode": "npm:^1.5.0"
@@ -12145,6 +12145,8 @@ __metadata:
     "@playwright/test": "npm:^1.38.1"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@tldraw/assets": "workspace:*"
+    "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@vercel/analytics": "npm:^1.1.1"
     "@vitejs/plugin-react-swc": "npm:^3.6.0"
@@ -13978,6 +13980,19 @@ __metadata:
   checksum: 51594355cea4c6ad6b28b3b85eb81afa7b988a1871feefd7062baf136c95aa06760ee934fa9590e43d967bd377ce84a4cf6135fbeb6063e063f1182a0e9a3bcd
   languageName: node
   linkType: hard
+
+"images.tldraw.com@workspace:apps/images.tldraw.xyz":
+  version: 0.0.0-use.local
+  resolution: "images.tldraw.com@workspace:apps/images.tldraw.xyz"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20240620.0"
+    "@tldraw/validate": "workspace:*"
+    "@tldraw/worker-shared": "workspace:*"
+    itty-router: "npm:^4.0.13"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    wrangler: "npm:3.62.0"
+  languageName: unknown
+  linkType: soft
 
 "immediate@npm:~3.0.5":
   version: 3.0.6

@@ -88,12 +88,16 @@ export interface TLUiEventMap {
 	'toggle-focus-mode': null
 	'toggle-debug-mode': null
 	'toggle-dynamic-size-mode': null
+	'toggle-paste-at-cursor': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null
+	'start-following': null
 	'stop-following': null
+	'set-color': null
+	'change-user-name': null
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null

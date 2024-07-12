@@ -43,7 +43,6 @@ export default function MultipleExample() {
 	return (
 		<div
 			style={{
-				backgroundColor: '#fff',
 				padding: 32,
 			}}
 			// Sorry you need to do this yourself

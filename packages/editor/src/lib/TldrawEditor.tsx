@@ -8,7 +8,6 @@ import React, {
 	useLayoutEffect,
 	useMemo,
 	useRef,
-	useState,
 	useSyncExternalStore,
 } from 'react'
 
@@ -22,7 +21,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { TLAssetOptions, TLCameraOptions } from './editor/types/misc-types'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -35,6 +34,7 @@ import {
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
+import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
@@ -161,15 +161,14 @@ export interface TldrawEditorBaseProps {
 	cameraOptions?: Partial<TLCameraOptions>
 
 	/**
-	 * Asset options for the editor.
-	 * @internal
-	 */
-	assetOptions?: Partial<TLAssetOptions>
-
-	/**
 	 * Options for the editor.
 	 */
 	options?: Partial<TldrawOptions>
+
+	/**
+	 * The license key.
+	 */
+	licenseKey?: string
 }
 
 /**
@@ -193,6 +192,8 @@ declare global {
 const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_BINDING_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
+/** @internal */
+export const TL_CONTAINER_CLASS = 'tl-container'
 
 /** @public @react */
 export const TldrawEditor = memo(function TldrawEditor({
@@ -223,7 +224,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		<div
 			ref={setContainer}
 			draggable={false}
-			className={classNames('tl-container tl-theme__light', className)}
+			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
 		>
@@ -339,8 +340,8 @@ function TldrawEditorWithReadyStore({
 	autoFocus = true,
 	inferDarkMode,
 	cameraOptions,
-	assetOptions,
 	options,
+	licenseKey,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -350,55 +351,62 @@ function TldrawEditorWithReadyStore({
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
-	const editorRef = useRef<Editor | null>(null)
-	// we need to store the editor instance in a ref so that it persists across strict-mode
-	// remounts, but that won't trigger re-renders, so we use this hook to make sure all child
-	// components get the most up to date editor reference when needed.
-	const [renderEditor, setRenderEditor] = useState<Editor | null>(null)
 
-	const editor = editorRef.current
-	if (renderEditor !== editor) {
-		setRenderEditor(editor)
-	}
+	const [editor, setEditor] = useRefState<Editor | null>(null)
 
-	const [initialAutoFocus] = useState(autoFocus)
-
-	useLayoutEffect(() => {
-		const editor = new Editor({
-			store,
-			shapeUtils,
-			bindingUtils,
-			tools,
-			getContainer: () => container,
-			user,
-			initialState,
-			autoFocus: initialAutoFocus,
-			inferDarkMode,
-			cameraOptions,
-			assetOptions,
-			options,
-		})
-
-		editorRef.current = editor
-		setRenderEditor(editor)
-
-		return () => {
-			editor.dispose()
-		}
-	}, [
-		container,
-		shapeUtils,
-		bindingUtils,
-		tools,
-		store,
-		user,
-		initialState,
-		initialAutoFocus,
+	// props in this ref can be changed without causing the editor to be recreated.
+	const editorOptionsRef = useRef({
+		// for these, it's because they're only used when the editor first mounts:
+		autoFocus,
 		inferDarkMode,
+		initialState,
+
+		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
-		assetOptions,
-		options,
-	])
+	})
+	useLayoutEffect(() => {
+		editorOptionsRef.current = {
+			autoFocus,
+			inferDarkMode,
+			initialState,
+			cameraOptions,
+		}
+	}, [autoFocus, inferDarkMode, initialState, cameraOptions])
+
+	useLayoutEffect(
+		() => {
+			const { autoFocus, inferDarkMode, initialState, cameraOptions } = editorOptionsRef.current
+			const editor = new Editor({
+				store,
+				shapeUtils,
+				bindingUtils,
+				tools,
+				getContainer: () => container,
+				user,
+				initialState,
+				autoFocus,
+				inferDarkMode,
+				cameraOptions,
+				options,
+				licenseKey,
+			})
+
+			setEditor(editor)
+
+			return () => {
+				editor.dispose()
+			}
+		},
+		// if any of these change, we need to recreate the editor.
+		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor, licenseKey]
+	)
+
+	// keep the editor up to date with the latest camera options
+	useLayoutEffect(() => {
+		if (editor && cameraOptions) {
+			editor.setCameraOptions(cameraOptions)
+		}
+	}, [editor, cameraOptions])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
@@ -451,7 +459,15 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useCursor()
 	useDarkMode()
 	useForceUpdate()
-	useOnMount(onMount)
+	useOnMount((editor) => {
+		const teardownStore = editor.store.props.onEditorMount(editor)
+		const teardownCallback = onMount?.(editor)
+
+		return () => {
+			teardownStore?.()
+			teardownCallback?.()
+		}
+	})
 
 	return children
 }
@@ -475,7 +491,8 @@ export function ErrorScreen({ children }: LoadingScreenProps) {
 	return <div className="tl-loading">{children}</div>
 }
 
-function useOnMount(onMount?: TLOnMountHandler) {
+/** @internal */
+export function useOnMount(onMount?: TLOnMountHandler) {
 	const editor = useEditor()
 
 	const onMountEvent = useEvent((editor: Editor) => {

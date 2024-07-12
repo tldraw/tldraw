@@ -14,7 +14,7 @@ import {
 	TLCloseEventCode,
 	TLSocketRoom,
 	type PersistedRoomSnapshotForSupabase,
-} from '@tldraw/sync'
+} from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { createPersistQueue, createSentry } from '@tldraw/worker-shared'

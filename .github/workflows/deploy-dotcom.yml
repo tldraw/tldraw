@@ -47,30 +47,28 @@ jobs:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
 
+          APP_ORIGIN: ${{ vars.APP_ORIGIN }}
           ASSET_UPLOAD: ${{ vars.ASSET_UPLOAD }}
-          ASSET_BUCKET_ORIGIN: ${{ vars.ASSET_BUCKET_ORIGIN }}
+          IMAGE_WORKER: ${{ vars.IMAGE_WORKER }}
           MULTIPLAYER_SERVER: ${{ vars.MULTIPLAYER_SERVER }}
+          NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER: ${{ vars.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER }}
           SUPABASE_LITE_URL: ${{ vars.SUPABASE_LITE_URL }}
-          VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
 
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
           DISCORD_HEALTH_WEBHOOK_URL: ${{ secrets.DISCORD_HEALTH_WEBHOOK_URL }}
-          HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: ${{ secrets.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH }}
           GC_MAPS_API_KEY: ${{ secrets.GC_MAPS_API_KEY }}
-          WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          SENTRY_CSP_REPORT_URI: ${{ secrets.SENTRY_CSP_REPORT_URI }}
-          SUPABASE_LITE_ANON_KEY: ${{ secrets.SUPABASE_LITE_ANON_KEY }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
+          HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: ${{ secrets.HEALTH_WORKER_UPDOWN_WEBHOOK_PATH }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
-
-          APP_ORIGIN: ${{ vars.APP_ORIGIN }}
-
-          NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER: ${{ vars.NEXT_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_CSP_REPORT_URI: ${{ secrets.SENTRY_CSP_REPORT_URI }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SUPABASE_LITE_ANON_KEY: ${{ secrets.SUPABASE_LITE_ANON_KEY }}
+          TLDRAW_LICENSE: ${{ secrets.TLDRAW_LICENSE }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}

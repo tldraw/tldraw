@@ -3,6 +3,7 @@ import {
 	TLArrowShape,
 	TLDrawShape,
 	TLGroupShape,
+	TLImageShape,
 	TLLineShape,
 	TLTextShape,
 	useEditor,
@@ -195,6 +196,7 @@ export function useOnlyFlippableShape() {
 			return (
 				shape &&
 				(editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+					editor.isShapeOfType<TLImageShape>(shape, 'image') ||
 					editor.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
 					editor.isShapeOfType<TLLineShape>(shape, 'line') ||
 					editor.isShapeOfType<TLDrawShape>(shape, 'draw'))

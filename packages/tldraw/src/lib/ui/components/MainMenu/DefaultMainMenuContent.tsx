@@ -2,6 +2,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import { useActions } from '../../context/actions'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
+import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
 import { LanguageMenu } from '../LanguageMenu'
 import {
 	ClipboardMenuGroup,
@@ -21,6 +22,7 @@ import {
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleLockMenuItem,
+	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
@@ -45,6 +47,7 @@ export function DefaultMainMenuContent() {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
+			<HelpGroup />
 		</>
 	)
 }
@@ -158,6 +161,32 @@ export function ExtrasGroup() {
 	)
 }
 
+/** @public @react */
+export function HelpGroup() {
+	function openUrl(url: string) {
+		window.open(url, '_blank')
+	}
+
+	return (
+		<TldrawUiMenuGroup id="help">
+			<TldrawUiMenuSubmenu id="help" label="menu.help">
+				<TldrawUiMenuGroup id="help-actions">
+					<KeyboardShortcutsMenuItem />
+					<TldrawUiMenuItem
+						id="about"
+						label="help-menu.docs"
+						icon="external-link"
+						readonlyOk
+						onSelect={() => {
+							openUrl('https://tldraw.dev')
+						}}
+					/>
+				</TldrawUiMenuGroup>
+			</TldrawUiMenuSubmenu>
+		</TldrawUiMenuGroup>
+	)
+}
+
 /* ------------------- Preferences ------------------ */
 
 /** @public @react */
@@ -174,6 +203,7 @@ export function PreferencesGroup() {
 					<ToggleEdgeScrollingItem />
 					<ToggleReduceMotionItem />
 					<ToggleDynamicSizeModeItem />
+					<TogglePasteAtCursorItem />
 					<ToggleDebugModeItem />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="color-scheme">
