@@ -3,6 +3,7 @@
 import { NavigationLink } from '@/components/navigation/link'
 import { Category } from '@/types/content-types'
 import { MegaphoneIcon, RectangleStackIcon, TagIcon } from '@heroicons/react/20/solid'
+import { usePathname } from 'next/navigation'
 import { TldrawIcon } from '../icon/tldraw'
 
 const ICONS = {
@@ -13,7 +14,9 @@ const ICONS = {
 }
 
 export const BlogCategoryMenu = ({ categories }: { categories: Category[] }) => {
-	const pathname = window.location.pathname
+	const pathname = usePathname()
+	console.log(pathname)
+
 	return (
 		<ul className="shrink-0 flex flex-col gap-3">
 			<li>
