@@ -6,6 +6,40 @@ date: 3/22/2023
 order: 8
 ---
 
+## Plug-and-play Sync Engine
+
+Tldraw ships with a plug-and-play sync engine. It's the same one we use on https://tldraw.com
+
+You can easily
+
+- Get started prototyping a multiplayer experience by using our free hosted demo server (data expires after one day).
+  - Host your own backend when you're ready, using our sync engine which runs in any JavaScript server environment that supports WebSockets.
+
+### Using the demo server
+
+To get started with the demo server, use the `useMultiplayerDemo` hook to created a synced store.
+
+```tsx
+import { useMultiplayerDemo } from '@tldraw/sync'
+
+const store = useMultiplayerDemo({ roomId: 'abcdefghijklmnopqrstuvwxyz' })
+return (
+	<div className="tldraw__editor">
+		<Tldraw store={store} />
+	</div>
+)
+```
+
+You can connect to or create a tldraw board by passing a unique `roomId` to the `useMultiplayerDemo` hook (all data is public so use a random value to avoid collisions).
+
+### Hosting your own backend
+
+When you're ready to host your own backend, you can use the `sync-core` package to create a sync server.
+
+```ts
+TODO
+```
+
 We've designed the tldraw SDK to work with any collaboration backend. Depending on which backend you choose, you will need an interface that pipes changes coming from the editor to the backend and then merge changes from the backend back to the editor.
 
 The best way to get started is by adapting one of our examples.
