@@ -212,7 +212,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	backgroundComponent?(shape: Shape): any
 
 	/**
-	 * Get an array of handle models for the shape. This is an optional method.
+	 * Get the interpolated props for an animating shape. This is an optional method.
 	 *
 	 * @example
 	 *
