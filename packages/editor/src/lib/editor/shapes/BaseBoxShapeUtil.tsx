@@ -27,4 +27,12 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 			points: this.getGeometry(shape).bounds.cornersAndCenter,
 		}
 	}
+
+	override getInterpolatedProps(startShape: Shape, endShape: Shape, t: number): Shape['props'] {
+		return {
+			...endShape.props,
+			w: startShape.props.w + (endShape.props.w - startShape.props.w) * t,
+			h: startShape.props.h + (endShape.props.h - startShape.props.h) * t,
+		}
+	}
 }
