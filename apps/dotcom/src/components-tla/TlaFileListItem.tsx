@@ -43,7 +43,7 @@ export function TlaFileListItem({ id, name, createdAt, workspaceId }: TldrawAppF
 				</div>
 				<div className="tla-page__list_item_right">
 					<button className="tla-page__item_menu">
-						<TlaIcon icon="more" />
+						<TlaIcon icon="dots-horizontal" />
 					</button>
 					<button
 						className="tla-page__item_star"

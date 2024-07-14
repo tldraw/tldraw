@@ -249,7 +249,7 @@ export class TldrawApp {
 		)
 	}
 
-	getUserFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
+	getUserOwnFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
 		return Array.from(
 			new Set(
 				this.getAll('file').filter((f) => f.workspaceId === workspaceId && f.owner === userId)

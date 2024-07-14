@@ -19,7 +19,7 @@ export function Component() {
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			const files = app.getUserFiles(auth.userId, auth.workspaceId)
+			const files = app.getUserOwnFiles(auth.userId, auth.workspaceId)
 			return app.getSortedFilteredFiles(VIEW_NAME, files)
 		},
 		[app]

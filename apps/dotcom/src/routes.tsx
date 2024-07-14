@@ -336,7 +336,9 @@ function RedirectAtWorkspaceRoot() {
 			}
 
 			// If there's no visit, get the most recently created file for the user
-			const files = app.getUserFiles(userId, workspaceId).sort((a, b) => b.createdAt - a.createdAt)
+			const files = app
+				.getUserOwnFiles(userId, workspaceId)
+				.sort((a, b) => b.createdAt - a.createdAt)
 			if (files.length) {
 				return {
 					type: 'success',

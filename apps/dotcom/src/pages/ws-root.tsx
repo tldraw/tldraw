@@ -11,7 +11,7 @@ export function Component() {
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			return app.getUserFiles(auth.userId, auth.workspaceId)[0]
+			return app.getUserOwnFiles(auth.userId, auth.workspaceId)[0]
 		},
 		[app]
 	)

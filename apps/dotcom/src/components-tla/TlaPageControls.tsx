@@ -74,7 +74,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 							})
 						}}
 					>
-						<TlaIcon icon="close" />
+						<TlaIcon icon="close-strong" />
 					</button>
 				) : null}
 			</div>
@@ -82,7 +82,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 				<div className="tla-page_controls__control">
 					<div className="tla-page_controls__control_label">
 						<span className="tla-text_ui__regular">{LABELS[sort]}</span>
-						<TlaIcon icon="chevron-down" />
+						<TlaIcon icon="chevron-down-strong" />
 					</div>
 					<select
 						className="tla-page_controls__control_select"
@@ -112,7 +112,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 					<div className="tla-page_controls__control">
 						<div className="tla-page_controls__control_label">
 							<span className="tla-text_ui__regular">{LABELS[view]}</span>
-							<TlaIcon icon="chevron-down" />
+							<TlaIcon icon="chevron-down-strong" />
 						</div>
 						<select
 							className="tla-page_controls__control_select"
