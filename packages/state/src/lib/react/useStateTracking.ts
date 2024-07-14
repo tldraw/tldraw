@@ -1,7 +1,25 @@
 import React from 'react'
 import { EffectScheduler } from '../core'
 
-/** @internal */
+/**
+ * Wraps some synchronous react render logic in a reactive tracking context.
+ *
+ * This allows you to use reactive values transparently.
+ *
+ * @example
+ * ```ts
+ * function MyComponent() {
+ *   return useStateTracking('MyComponent', () => {
+ *     const editor = useEditor()
+ *     return <div>Num shapes: {editor.getCurrentPageShapes().length}</div>
+ *   })
+ * }
+ * ```
+ *
+ * @see the `track` component wrapper, which uses this under the hood.
+ *
+ * @public
+ */
 export function useStateTracking<T>(name: string, render: () => T): T {
 	// This hook creates an effect scheduler that will trigger re-renders when its reactive dependencies change, but it
 	// defers the actual execution of the effect to the consumer of this hook.

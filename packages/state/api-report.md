@@ -198,7 +198,7 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
 
-// @internal (undocumented)
+// @public
 export function useStateTracking<T>(name: string, render: () => T): T;
 
 // @public

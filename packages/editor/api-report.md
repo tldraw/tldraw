@@ -13,6 +13,7 @@ import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { Dispatch } from 'react';
+import { EffectScheduler } from '@tldraw/state';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
@@ -85,6 +86,7 @@ import { UnknownRecord } from '@tldraw/store';
 import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
+import { useStateTracking } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
@@ -1226,6 +1228,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToSelection(opts?: TLCameraMoveOptions): this;
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
+
+export { EffectScheduler }
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -3507,6 +3511,8 @@ export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends object>(arr: T): T;
+
+export { useStateTracking }
 
 // @public
 export function useSvgExportContext(): {
