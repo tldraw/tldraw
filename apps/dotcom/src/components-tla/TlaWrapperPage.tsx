@@ -10,15 +10,13 @@ export function TlaWrapperPage({ children }: { children: ReactNode }) {
 	const navigate = useNavigate()
 	return (
 		<div
-			className={`${theme === 'light' ? 'tla_theme__light' : 'tla_theme__dark'} tla tla_layout tla_full`}
+			className={`${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'} tla tla-layout`}
 			data-sidebar="false"
 		>
-			<TlaCloseButton
-				onClose={() => {
-					navigate('/w')
-				}}
-			/>
-			<div className="tla_page">{children}</div>
+			<TlaCloseButton onClose={() => navigate(-1)} />
+			<div className="tla-content tla-page">
+				<div className="tla-page__prose">{children}</div>
+			</div>
 		</div>
 	)
 }

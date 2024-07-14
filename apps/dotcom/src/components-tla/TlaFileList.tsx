@@ -21,12 +21,12 @@ export function TlaFileList({ viewName, files }: { viewName: string; files: Tldr
 	)
 
 	if (files.length === 0) {
-		return <div className="tla_page__empty tla_text_ui__regular">Nothing to see here.</div>
+		return <div className="tla-page__empty tla-text_ui__regular">Nothing to see here.</div>
 	}
 
 	if (view === 'grid') {
 		return (
-			<div className="tla_page__grid">
+			<div className="tla-page__grid">
 				{files.map((file) => (
 					<TlaFileGridItem key={'file_' + file.id} {...file} />
 				))}
@@ -36,7 +36,7 @@ export function TlaFileList({ viewName, files }: { viewName: string; files: Tldr
 
 	if (view === 'list') {
 		return (
-			<div className="tla_page__list">
+			<div className="tla-page__list">
 				{files.map((file) => (
 					<TlaFileListItem key={'file_' + file.id} {...file} />
 				))}

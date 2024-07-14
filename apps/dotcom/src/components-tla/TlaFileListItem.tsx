@@ -23,30 +23,30 @@ export function TlaFileListItem({ id, name, createdAt, workspaceId }: TldrawAppF
 	const imageUrl = useLocalThumbnail(id)
 
 	return (
-		<div className="tla_page__list_item">
-			<div className="tla_page__list_item_content">
+		<div className="tla-page__list_item">
+			<div className="tla-page__list_item_content">
 				<div
-					className="tla_page__list_item_thumbnail"
+					className="tla-page__list_item_thumbnail"
 					style={{ backgroundImage: `url(${imageUrl})` }}
 				>
 					{imageUrl === null ? <TlaSpinner /> : null}{' '}
 				</div>
-				<Link to={getFileUrl(workspaceId, id)} className="tla_page__item_link" />
-				<div className="tla_page__list_item_left">
-					<div className="tla_page__item_title tla_text_ui__regular">
+				<Link to={getFileUrl(workspaceId, id)} className="tla-page__item_link" />
+				<div className="tla-page__list_item_left">
+					<div className="tla-page__item_title tla-text_ui__regular">
 						{name || new Date(createdAt).toLocaleString('en-gb')}
 					</div>
-					<div className="tla_page__item_details tla_text_ui__small">
+					<div className="tla-page__item_details tla-text_ui__small">
 						<div>Last edited 2 hours ago</div>
-						<div className="tla_page__item_collaborators" />
+						<div className="tla-page__item_collaborators" />
 					</div>
 				</div>
-				<div className="tla_page__list_item_right">
-					<button className="tla_page__item_menu">
+				<div className="tla-page__list_item_right">
+					<button className="tla-page__item_menu">
 						<TlaIcon icon="more" />
 					</button>
 					<button
-						className="tla_page__item_star"
+						className="tla-page__item_star"
 						data-starred={!!star}
 						onClick={() => {
 							if (star) {

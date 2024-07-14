@@ -13,16 +13,16 @@ export function TlaWrapperPublicPage() {
 	const navigate = useNavigate()
 	return (
 		<div
-			className={`tla tla_layout tla_layout__signedin ${auth ? 'tla_layout__signedin' : 'tla_layout__signedout'} ${theme === 'light' ? 'tla_theme__light' : 'tla_theme__dark'}`}
+			className={`tla tla-layout tla-layout__signedin ${auth ? 'tla-layout__signedin' : 'tla-layout__signedout'} ${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'}`}
 			data-sidebar={false}
-			// className={`tla tla_layout ${auth ? 'tla_layout__signedin' : 'tla_layout__signedout'} ${theme === 'light' ? 'tla_theme__light' : 'tla_theme__dark'}`}
+			// className={`tla tla-layout ${auth ? 'tla-layout__signedin' : 'tla-layout__signedout'} ${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'}`}
 			// data-sidebar={auth && isSidebarOpen}
 		>
 			{auth ? (
 				<>
 					<TlaSidebar />
 					<button
-						className="tla_top-left-button"
+						className="tla-top-left-button"
 						onClick={() =>
 							navigate('/w', {
 								state: location.state,
@@ -34,7 +34,7 @@ export function TlaWrapperPublicPage() {
 				</>
 			) : (
 				<button
-					className="tla_signin_button"
+					className="tla-signin_button"
 					onClick={() => {
 						navigate('/auth', {
 							state: location.state,

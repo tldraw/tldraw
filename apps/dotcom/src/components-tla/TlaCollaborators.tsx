@@ -10,7 +10,7 @@ export function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
 	if (collaborators.length === 0) return null
 
 	return (
-		<div className="tla_collaborators">
+		<div className="tla-collaborators">
 			{collaborators.map((userId) => (
 				<TlaCollaborator key={userId} userId={userId} />
 			))}
@@ -30,7 +30,7 @@ function TlaCollaborator({ userId }: { userId: TldrawAppUserId }) {
 		[app, userId]
 	)
 	return (
-		<div className="tla_collaborator tla_text_ui__tiny" style={{ backgroundColor: user.color }}>
+		<div className="tla-collaborator tla-text_ui__tiny" style={{ backgroundColor: user.color }}>
 			{user.name[0]}
 		</div>
 	)

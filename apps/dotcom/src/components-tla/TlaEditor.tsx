@@ -17,12 +17,16 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
+	atom,
 	useActions,
 	useEditor,
 	useReactor,
+	useValue,
 } from 'tldraw'
-import { LocalFileMenu } from '../components/FileMenu'
+import { CursorChatBubble } from '../components/CursorChatBubble'
+import { MultiplayerFileMenu } from '../components/FileMenu'
 import { Links } from '../components/Links'
+import { PeopleMenu } from '../components/PeopleMenu/PeopleMenu'
 import { ShareMenu } from '../components/ShareMenu'
 import { SneakyOnDropOverride } from '../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../components/ThemeUpdater/ThemeUpdater'
@@ -35,8 +39,12 @@ import { LocalMigration } from '../utils/migration/LocalMigration'
 import { useSharing } from '../utils/sharing'
 import { TldrawApp } from '../utils/tla/TldrawApp'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
+import { CURSOR_CHAT_ACTION } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { TlaDocumentTopZone } from './TlaDocumentTopZone'
+
+const shittyOfflineAtom = atom('shitty offline atom', false)
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -52,7 +60,7 @@ const components: TLComponents = {
 	),
 	MainMenu: () => (
 		<DefaultMainMenu>
-			<LocalFileMenu />
+			<MultiplayerFileMenu />
 			<EditSubmenu />
 			<ViewSubmenu />
 			<ExportFileContentSubMenu />
@@ -70,6 +78,9 @@ const components: TLComponents = {
 					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
+				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
+					<TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
+				</TldrawUiMenuGroup>
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},
@@ -81,9 +92,14 @@ const components: TLComponents = {
 			</DefaultDebugMenu>
 		)
 	},
+	TopPanel: () => {
+		const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
+		return <TlaDocumentTopZone isOffline={isOffline} />
+	},
 	SharePanel: () => {
 		return (
 			<div className="tlui-share-zone" draggable={false}>
+				<PeopleMenu />
 				<ShareMenu />
 			</div>
 		)
@@ -105,7 +121,7 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 		}
 	}, [fileId])
 
-	const persistenceKey = `tla_2_${fileId}`
+	const persistenceKey = `tla-2_${fileId}`
 
 	const sharingUiOverrides = useSharing(persistenceKey)
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
@@ -168,9 +184,10 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
+				<CursorChatBubble />
 				<SneakyDarkModeSync />
 			</Tldraw>
-			{ready ? null : <div key={persistenceKey + 'overlay'} className="tla_editor__overlay" />}
+			{ready ? null : <div key={persistenceKey + 'overlay'} className="tla-editor__overlay" />}
 		</div>
 	)
 }

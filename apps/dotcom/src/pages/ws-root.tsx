@@ -19,7 +19,7 @@ export function Component() {
 
 	return (
 		<TlaWrapperWithSidebar>
-			<div className="tla_content">
+			<div className="tla-content">
 				<TlaEditor file={file} />
 			</div>
 		</TlaWrapperWithSidebar>

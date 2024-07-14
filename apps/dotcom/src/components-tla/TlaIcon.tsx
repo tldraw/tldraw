@@ -22,13 +22,13 @@ export function TlaIcon({
 	}, [ref, icon])
 
 	if (icon === 'none') {
-		return <div className="tla_icon" />
+		return <div className="tla-icon" />
 	}
 
 	return (
 		<div
 			ref={ref}
-			className={`tla_icon ${className}`}
+			className={`tla-icon ${className}`}
 			style={{
 				mask: `url(/icon=${icon}.svg) center 100% / 100% no-repeat`,
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,

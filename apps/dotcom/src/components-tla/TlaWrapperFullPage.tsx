@@ -9,10 +9,10 @@ export function TlaWrapperFullPage({
 	children: ReactNode
 }) {
 	return (
-		<div className="tla_full">
+		<div className="tla-full">
 			{onClose ? <TlaCloseButton onClose={onClose} /> : null}
-			<div className="tla_full_inner">
-				<div className="tla_full_content">{children}</div>
+			<div className="tla-full_inner">
+				<div className="tla-full_content">{children}</div>
 			</div>
 		</div>
 	)

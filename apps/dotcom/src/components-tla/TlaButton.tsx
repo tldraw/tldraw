@@ -14,19 +14,19 @@ export function TlaButton({
 	isLoading?: boolean
 	icon?: string
 	iconRight?: string
-	variant?: 'primary' | 'secondary'
+	variant?: 'primary' | 'secondary' | 'warning'
 }) {
 	return (
 		<button
 			{...props}
 			data-state={isLoading ? 'loading' : 'ready'}
-			className={`tla_button tla_button__${variant} tla_text_ui__regular ${className}`}
+			className={`tla-button tla-button__${variant} tla-text_ui__regular ${className}`}
 		>
 			{icon && <TlaIcon icon={icon} />}
 			{children && <span>{children}</span>}
 			{iconRight && <TlaIcon icon={iconRight} />}
 			{isLoading && (
-				<div className="tla_button_spinner">
+				<div className="tla-button_spinner">
 					<TlaSpinner />
 				</div>
 			)}

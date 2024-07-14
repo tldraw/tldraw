@@ -52,32 +52,32 @@ export function TlaFileGridItem({ id: fileId, name, createdAt, workspaceId }: Tl
 	const imageUrl = useServerThumbnail(fileId)
 
 	return (
-		<div className="tla_page__grid_item">
-			<div className="tla_page__grid_item__content">
-				<div className="tla_page__grid_item_top">
+		<div className="tla-page__grid_item">
+			<div className="tla-page__grid_item__content">
+				<div className="tla-page__grid_item_top">
 					<div
-						className="tla_page__grid_item_thumbnail"
+						className="tla-page__grid_item_thumbnail"
 						style={{ backgroundImage: `url(${imageUrl})` }}
 					>
 						{imageUrl === null ? <TlaSpinner /> : null}
 					</div>
 				</div>
-				<div className="tla_page__grid_item_bottom">
-					<div className="tla_page__grid_item-title-row">
-						<div className="tla_page__item_title tla_text_ui__regular">
+				<div className="tla-page__grid_item_bottom">
+					<div className="tla-page__grid_item-title-row">
+						<div className="tla-page__item_title tla-text_ui__regular">
 							{name || new Date(createdAt).toLocaleString('en-gb')}
 						</div>
 						{flags.groups && <TlaCollaborators fileId={fileId} />}
 					</div>
-					<div className="tla_page__item_details tla_text_ui__small">
+					<div className="tla-page__item_details tla-text_ui__small">
 						{user.id === owner.id ? '' : owner.name + ' • '}Last edited 2 hours ago
 					</div>
 				</div>
 			</div>
-			<Link to={getFileUrl(workspaceId, fileId)} className="tla_page__item_link" />
+			<Link to={getFileUrl(workspaceId, fileId)} className="tla-page__item_link" />
 			{flags.starred && (
 				<button
-					className="tla_page__item_star"
+					className="tla-page__item_star"
 					data-starred={!!star}
 					onClick={() => {
 						if (star) {
@@ -98,7 +98,7 @@ export function TlaFileGridItem({ id: fileId, name, createdAt, workspaceId }: Tl
 					<TlaIcon icon={star ? 'star-fill' : 'star'} />
 				</button>
 			)}
-			<button className="tla_page__item_menu">
+			<button className="tla-page__item_menu">
 				<TlaIcon icon="dots-vertical" />
 			</button>
 		</div>

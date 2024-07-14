@@ -38,7 +38,7 @@ export function Component() {
 
 	return (
 		<TlaWrapperCollapsableSidebar>
-			<div className="tla_content">
+			<div className="tla-content">
 				<TlaEditor file={file} />
 			</div>
 		</TlaWrapperCollapsableSidebar>

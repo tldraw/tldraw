@@ -18,17 +18,17 @@ export function Component() {
 	if (state === 'sign-in') {
 		return (
 			<TlaWrapperFullPage>
-				<div className="tla_auth_container">
-					<div className="tla_auth_container_title">
-						<h2 className="tla_text_ui__big">Sign in</h2>
+				<div className="tla-auth_container">
+					<div className="tla-auth_container_title">
+						<h2 className="tla-text_ui__big">Sign in</h2>
 					</div>
 					<TlaSpacer height="36" />
-					<TlaButton className="tla_button__secondary">Sign in with Google</TlaButton>
+					<TlaButton className="tla-button__secondary">Sign in with Google</TlaButton>
 					<TlaSpacer height="40" />
 					<TlaDivider>or</TlaDivider>
 					<TlaSpacer height="40" />
 					<form
-						className="tla_form"
+						className="tla-form"
 						onSubmit={async (e) => {
 							e.preventDefault()
 							if (loadingState.name === 'loading') return
@@ -48,7 +48,7 @@ export function Component() {
 							Continue
 						</TlaButton>
 						<TlaSpacer height="40" />
-						<div className="tla_auth_detail tla_text_ui__small">
+						<div className="tla-auth_detail tla-text_ui__small">
 							Need an account? <button onClick={() => setState('sign-up')}>Sign up</button>
 						</div>
 					</form>
@@ -60,17 +60,17 @@ export function Component() {
 	if (state === 'sign-up') {
 		return (
 			<TlaWrapperFullPage>
-				<div className="tla_auth_container">
-					<div className="tla_auth_container_title">
-						<h2 className="tla_text_ui__big">Create your account</h2>
+				<div className="tla-auth_container">
+					<div className="tla-auth_container_title">
+						<h2 className="tla-text_ui__big">Create your account</h2>
 					</div>
 					<TlaSpacer height="36" />
-					<TlaButton className="tla_button__secondary">Continue with Google</TlaButton>
+					<TlaButton className="tla-button__secondary">Continue with Google</TlaButton>
 					<TlaSpacer height="40" />
 					<TlaDivider>or</TlaDivider>
 					<TlaSpacer height="40" />
 					<form
-						className="tla_form"
+						className="tla-form"
 						onSubmit={async (e) => {
 							e.preventDefault()
 							if (loadingState.name === 'loading') return
@@ -90,14 +90,14 @@ export function Component() {
 						<TlaLabel>Password</TlaLabel>
 						<TlaInput name="password" type="password" required />
 						<TlaSpacer height="20" />
-						<div className="tla_checkbox">
+						<div className="tla-checkbox">
 							<TlaInput name="terms" type="checkbox" required />
 							<TlaLabel>
 								I agree to the{'  '}
 								<a href="/">Terms and Conditions</a>.
 							</TlaLabel>
 						</div>
-						<div className="tla_checkbox">
+						<div className="tla-checkbox">
 							<TlaInput name="terms" type="checkbox" />
 							<TlaLabel>{'It’s ok to email me news and updates.'}</TlaLabel>
 						</div>
@@ -106,7 +106,7 @@ export function Component() {
 							Continue
 						</TlaButton>
 						<TlaSpacer height="40" />
-						<div className="tla_auth_detail tla_text_ui__small">
+						<div className="tla-auth_detail tla-text_ui__small">
 							Have an account? <button onClick={() => setState('sign-in')}>Sign in</button>
 						</div>
 					</form>

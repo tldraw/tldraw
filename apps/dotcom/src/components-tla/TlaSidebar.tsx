@@ -13,7 +13,7 @@ import {
 import { TldrawAppGroup, TldrawAppGroupId } from '../utils/tla/schema/TldrawAppGroup'
 import { TldrawAppUserId } from '../utils/tla/schema/TldrawAppUser'
 import { getCleanId } from '../utils/tla/tldrawAppSchema'
-import { getDebugUrl, getFileUrl, getPageUrl } from '../utils/tla/urls'
+import { getDebugUrl, getFileUrl, getPageUrl, getUserUrl } from '../utils/tla/urls'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
 import { TlaSpacer } from './TlaSpacer'
@@ -50,12 +50,12 @@ type SideBarMainLink = (typeof SIDEBAR_MAIN_LINKS)[number]
 export function TlaSidebar() {
 	const flags = useFlags()
 	return (
-		<div className="tla_sidebar">
+		<div className="tla-sidebar">
 			{/* <SidebarCreateButton /> */}
-			<div className="tla_sidebar__top">
+			<div className="tla-sidebar__top">
 				<TlaSidebarWorkspaceLink />
 			</div>
-			<div className="tla_sidebar__content">
+			<div className="tla-sidebar__content">
 				{flags.links && (
 					<>
 						{flags.drafts && (
@@ -75,7 +75,7 @@ export function TlaSidebar() {
 				{flags.tabs && <TlaSidebarTabs />}
 				<TlaSidebarActiveTabContent />
 			</div>
-			<div className="tla_sidebar__bottom">
+			<div className="tla-sidebar__bottom">
 				<TlaSidebarUserLink />
 			</div>
 		</div>
@@ -88,7 +88,7 @@ function TlaSidebarCreateFileButton() {
 
 	return (
 		<button
-			className="tla_sidebar__create tla_icon_wrapper"
+			className="tla-sidebar__create tla-icon_wrapper"
 			onClick={() => {
 				const { auth } = app.getSessionState()
 				if (!auth) return false
@@ -112,12 +112,12 @@ function TlaSidebarCreateFileButton() {
 // 	const app = useApp()
 // 	const navigate = useNavigate()
 // 	return (
-// 		<div className="tla_sidebar__link tla_hoverable">
-// 			<div className="tla_sidebar__link-content">
-// 				<div className="tla_sidebar__label tla_text_ui__regular">New file</div>
+// 		<div className="tla-sidebar__link tla-hoverable">
+// 			<div className="tla-sidebar__link-content">
+// 				<div className="tla-sidebar__label tla-text_ui__regular">New file</div>
 // 			</div>
 // 			<button
-// 				className="tla_sidebar__link-button"
+// 				className="tla-sidebar__link-button"
 // 				onClick={() => {
 // 					const { auth } = app.getSessionState()
 // 					if (!auth) return false
@@ -132,7 +132,7 @@ function TlaSidebarCreateFileButton() {
 // 					navigate(getFileUrl(auth.workspaceId, id))
 // 				}}
 // 			/>
-// 			<div className="tla_sidebar__create tla_icon_wrapper" style={{ height: '100%' }}>
+// 			<div className="tla-sidebar__create tla-icon_wrapper" style={{ height: '100%' }}>
 // 				<TlaIcon icon="edit-strong" />
 // 			</div>
 // 		</div>
@@ -145,7 +145,7 @@ function TlaSidebarCreateGroupFileButton({ groupId }: { groupId: TldrawAppGroupI
 
 	return (
 		<button
-			className="tla_sidebar__create tla_icon_wrapper"
+			className="tla-sidebar__create tla-icon_wrapper"
 			onClick={() => {
 				const { auth } = app.getSessionState()
 				if (!auth) return false
@@ -171,7 +171,7 @@ function TlaSidebarCreateGroupButton() {
 
 	return (
 		<button
-			className="tla_sidebar__create tla_icon_wrapper"
+			className="tla-sidebar__create tla-icon_wrapper"
 			onClick={() => {
 				const { auth } = app.getSessionState()
 				if (!auth) return false
@@ -197,13 +197,13 @@ function TlaSidebarWorkspaceLink() {
 	const flags = useFlags()
 
 	return (
-		<div className="tla_sidebar__workspace tla_hoverable">
-			<div className="tla_icon_wrapper" data-size="m">
+		<div className="tla-sidebar__workspace tla-hoverable">
+			<div className="tla-icon_wrapper" data-size="m">
 				<TlaIcon icon={workspace.avatar} />
 			</div>
-			<div className="tla_sidebar__label tla_text_ui__title">{workspace.name}</div>
-			<button className="tla_sidebar__link-button" />
-			<button className="tla_sidebar__link-menu">
+			<div className="tla-sidebar__label tla-text_ui__title">{workspace.name}</div>
+			<button className="tla-sidebar__link-button" />
+			<button className="tla-sidebar__link-menu">
 				<TlaIcon icon="dots-vertical" />
 			</button>
 			{flags.tabs ? null : <TlaSidebarCreateFileButton />}
@@ -223,16 +223,16 @@ function TlaSidebarTabs() {
 	return (
 		<>
 			{flags.links && <TlaSpacer height="20" />}
-			<div className="tla_sidebar__tabs">
+			<div className="tla-sidebar__tabs">
 				{sidebarActiveTab === 'groups' ? (
 					<TlaSidebarCreateGroupButton />
 				) : (
 					<TlaSidebarCreateFileButton />
 				)}
-				<div className="tla_sidebar__line" />
+				<div className="tla-sidebar__line" />
 				{flags.draftsTab && (
 					<button
-						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						className="tla-sidebar__tabs_tab tla-text_ui__regular"
 						data-active={sidebarActiveTab === 'drafts'}
 						onClick={() => app.setSidebarActiveTab('drafts')}
 					>
@@ -241,7 +241,7 @@ function TlaSidebarTabs() {
 				)}
 				{flags.recentTab && (
 					<button
-						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						className="tla-sidebar__tabs_tab tla-text_ui__regular"
 						data-active={sidebarActiveTab === 'recent'}
 						onClick={() => app.setSidebarActiveTab('recent')}
 					>
@@ -250,7 +250,7 @@ function TlaSidebarTabs() {
 				)}
 				{flags.starredTab && (
 					<button
-						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						className="tla-sidebar__tabs_tab tla-text_ui__regular"
 						data-active={sidebarActiveTab === 'recent'}
 						onClick={() => app.setSidebarActiveTab('starred')}
 					>
@@ -259,7 +259,7 @@ function TlaSidebarTabs() {
 				)}
 				{flags.sharedTab && (
 					<button
-						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						className="tla-sidebar__tabs_tab tla-text_ui__regular"
 						data-active={sidebarActiveTab === 'shared'}
 						onClick={() => app.setSidebarActiveTab('shared')}
 					>
@@ -268,7 +268,7 @@ function TlaSidebarTabs() {
 				)}
 				{flags.groupsTab && (
 					<button
-						className="tla_sidebar__tabs_tab tla_text_ui__regular"
+						className="tla-sidebar__tabs_tab tla-text_ui__regular"
 						data-active={sidebarActiveTab === 'groups'}
 						onClick={() => app.setSidebarActiveTab('groups')}
 					>
@@ -330,23 +330,23 @@ function TlaSidebarMainLink({ icon, label, href }: SideBarMainLink) {
 
 	return (
 		<div
-			className="tla_sidebar__main-link tla_text_ui__regular tla_hoverable"
+			className="tla-sidebar__main-link tla-text_ui__regular tla-hoverable"
 			data-active={!!match}
 		>
-			<div className="tla_icon_wrapper">
+			<div className="tla-icon_wrapper">
 				<TlaIcon icon={icon} />
 			</div>
-			<Link className="tla_sidebar__link-button" to={getPageUrl(workspaceId, href)} />
-			<div className="tla_sidebar__label">{label}</div>
+			<Link className="tla-sidebar__link-button" to={getPageUrl(workspaceId, href)} />
+			<div className="tla-sidebar__label">{label}</div>
 		</div>
 	)
 }
 
 function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
 	return (
-		<div className="tla_sidebar__section">
+		<div className="tla-sidebar__section">
 			<TlaSpacer height="20" />
-			<div className="tla_sidebar__section_title tla_text_ui__section">{title}</div>
+			<div className="tla-sidebar__section_title tla-text_ui__section">{title}</div>
 			{files.map((file) => (
 				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
 			))}
@@ -360,13 +360,13 @@ function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const isActive = fileId === getCleanId(id)
 	const flags = useFlags()
 	return (
-		<div className="tla_sidebar__link tla_hoverable" data-active={isActive}>
-			<div className="tla_sidebar__link-content">
-				<div className="tla_sidebar__label tla_text_ui__regular">{TldrawApp.getFileName(file)}</div>
+		<div className="tla-sidebar__link tla-hoverable" data-active={isActive}>
+			<div className="tla-sidebar__link-content">
+				<div className="tla-sidebar__label tla-text_ui__regular">{TldrawApp.getFileName(file)}</div>
 				{flags.groups && <TlaCollaborators fileId={file.id} />}
 			</div>
-			<Link to={getFileUrl(workspaceId, id)} className="tla_sidebar__link-button" />
-			<button className="tla_sidebar__link-menu">
+			<Link to={getFileUrl(workspaceId, id)} className="tla-sidebar__link-button" />
+			<button className="tla-sidebar__link-menu">
 				<TlaIcon icon="dots-vertical" />
 			</button>
 		</div>
@@ -379,7 +379,7 @@ function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
 	if (collaborators.length === 0) return null
 
 	return (
-		<div className="tla_collaborators">
+		<div className="tla-collaborators">
 			{collaborators.map((userId) => (
 				<TlaCollaborator key={userId} userId={userId} />
 			))}
@@ -399,7 +399,7 @@ function TlaCollaborator({ userId }: { userId: TldrawAppUserId }) {
 		[app, userId]
 	)
 	return (
-		<div className="tla_collaborator tla_text_ui__tiny" style={{ backgroundColor: user.color }}>
+		<div className="tla-collaborator tla-text_ui__tiny" style={{ backgroundColor: user.color }}>
 			{user.name[0]}
 		</div>
 	)
@@ -422,7 +422,7 @@ function TlaSidebarDraftFiles() {
 	if (!results) throw Error('Could not get files')
 
 	return (
-		<div className="tla_sidebar__section">
+		<div className="tla-sidebar__section">
 			<TlaSpacer height="20" />
 			{results.map((file) => (
 				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
@@ -447,7 +447,7 @@ function TlaSidebarStarredFiles() {
 	if (!results) throw Error('Could not get files')
 
 	return (
-		<div className="tla_sidebar__section">
+		<div className="tla-sidebar__section">
 			<TlaSpacer height="20" />
 			{results.map((file) => (
 				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
@@ -583,14 +583,14 @@ function TlaSidebarGroups() {
 				<TlaSidebarGroup key={group.id} {...group} />
 			))}
 			{groups.length === 0 ? (
-				<div className="tla_sidebar__empty">
+				<div className="tla-sidebar__empty">
 					<TlaSpacer height="20" />
-					<div className="tla_sidebar__link tla_hoverable" data-active={false}>
-						<div className="tla_sidebar__link-content">
-							<div className="tla_sidebar__label tla_text_ui__regular">Create a new group</div>
+					<div className="tla-sidebar__link tla-hoverable" data-active={false}>
+						<div className="tla-sidebar__link-content">
+							<div className="tla-sidebar__label tla-text_ui__regular">Create a new group</div>
 						</div>
-						<button className="tla_sidebar__link-button" />
-						<button className="tla_sidebar__link-menu">
+						<button className="tla-sidebar__link-button" />
+						<button className="tla-sidebar__link-menu">
 							<TlaIcon icon="dots-vertical" />
 						</button>
 					</div>
@@ -614,9 +614,9 @@ function TlaSidebarGroup({ id: groupId, name }: TldrawAppGroup) {
 	if (!files) throw Error('Could not get files')
 
 	return (
-		<div className="tla_sidebar__section">
+		<div className="tla-sidebar__section">
 			<TlaSpacer height="20" />
-			<div className="tla_sidebar__section_title tla_text_ui__section">
+			<div className="tla-sidebar__section_title tla-text_ui__section">
 				{/* <TlaGroupAvatar /> */}
 				{name}
 				<TlaSidebarCreateGroupFileButton groupId={groupId} />
@@ -629,7 +629,7 @@ function TlaSidebarGroup({ id: groupId, name }: TldrawAppGroup) {
 }
 
 // function TlaGroupAvatar() {
-// 	return <div className="tla_sidebar__group-avatar" />
+// 	return <div className="tla-sidebar__group-avatar" />
 // }
 
 function TlaSidebarUserLink() {
@@ -650,25 +650,16 @@ function TlaSidebarUserLink() {
 	if (!result) throw Error('Could not get user')
 
 	return (
-		<div className="tla_sidebar__user tla_hoverable tla_text_ui__regular">
-			<div className="tla_icon_wrapper">
+		<div className="tla-sidebar__user tla-hoverable tla-text_ui__regular">
+			<div className="tla-icon_wrapper">
 				<TlaAvatar size="s" />
 			</div>
-			<div className="tla_sidebar__label">{result.user.name}</div>
-			{/* <Link className="tla_sidebar__link-button" to={getUserUrl(result.auth.userId)} /> */}
-			<Link className="tla_sidebar__link-button" to={getDebugUrl(result.auth.workspaceId)} />
-			<button
-				className="tla_sidebar__link-menu"
-				onClick={() => {
-					const currentState = app.getSessionState()
-					app.setSessionState({
-						...currentState,
-						theme: currentState.theme === 'light' ? 'dark' : 'light',
-					})
-				}}
-			>
+			<div className="tla-sidebar__label">{result.user.name}</div>
+			{/* <Link className="tla-sidebar__link-button" to={getUserUrl(result.auth.userId)} /> */}
+			<Link className="tla-sidebar__link-button" to={getUserUrl(result.auth.userId)} />
+			<Link className="tla-sidebar__link-menu" to={getDebugUrl(result.auth.workspaceId)}>
 				<TlaIcon icon="dots-vertical" />
-			</button>
+			</Link>
 		</div>
 	)
 }

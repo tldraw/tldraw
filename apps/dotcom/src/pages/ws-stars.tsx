@@ -24,9 +24,9 @@ export function Component() {
 
 	return (
 		<TlaWrapperWithSidebar>
-			<div className="tla_content tla_page">
-				<div className="tla_page__header">
-					<h2 className="tla_text_ui__big">Starred</h2>
+			<div className="tla-content tla-page">
+				<div className="tla-page__header">
+					<h2 className="tla-text_ui__big">Starred</h2>
 				</div>
 				<TlaSpacer height={40} />
 				<TlaPageControls viewName={VIEW_NAME} />

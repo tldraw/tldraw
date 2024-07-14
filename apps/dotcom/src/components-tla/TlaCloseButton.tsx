@@ -2,10 +2,8 @@ import { TlaIcon } from './TlaIcon'
 
 export function TlaCloseButton({ onClose }: { onClose: () => void }) {
 	return (
-		<button className="tla_close_button tla_text_ui__regular" onClick={onClose}>
-			<div className="tla_icon_wrapper">
-				<TlaIcon icon="close" />
-			</div>
+		<button className="tla-close_button tla-text_ui__regular" onClick={onClose}>
+			<TlaIcon icon="close-strong" />
 			<span>Close</span>
 		</button>
 	)

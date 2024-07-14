@@ -2,7 +2,7 @@ import { HTMLAttributes } from 'react'
 
 export function TlaDivider({ children, ...props }: HTMLAttributes<HTMLDivElement>) {
 	return (
-		<div {...props} className={`tla_divider ${props.className ?? ''}`}>
+		<div {...props} className={`tla-divider ${props.className ?? ''}`}>
 			{children && <span>{children}</span>}
 		</div>
 	)

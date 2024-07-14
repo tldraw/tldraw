@@ -34,10 +34,10 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 	)
 
 	return (
-		<div className="tla_page_controls">
-			<div className="tla_page_controls__search">
+		<div className="tla-page_controls">
+			<div className="tla-page_controls__search">
 				<input
-					className="tla_page_controls__search_input tla_text_ui__regular"
+					className="tla-page_controls__search_input tla-text_ui__regular"
 					placeholder="Search..."
 					value={search}
 					onChange={(e) => {
@@ -58,7 +58,7 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 				/>
 				{search.length ? (
 					<button
-						className="tla_button tla_page_controls__search_clear"
+						className="tla-button tla-page_controls__search_clear"
 						onClick={() => {
 							const sessionState = app.getSessionState()
 							app.setSessionState({
@@ -78,14 +78,14 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 					</button>
 				) : null}
 			</div>
-			<div className="tla_page_controls__right">
-				<div className="tla_page_controls__control">
-					<div className="tla_page_controls__control_label">
-						<span className="tla_text_ui__regular">{LABELS[sort]}</span>
+			<div className="tla-page_controls__right">
+				<div className="tla-page_controls__control">
+					<div className="tla-page_controls__control_label">
+						<span className="tla-text_ui__regular">{LABELS[sort]}</span>
 						<TlaIcon icon="chevron-down" />
 					</div>
 					<select
-						className="tla_page_controls__control_select"
+						className="tla-page_controls__control_select"
 						value={sort}
 						onChange={(e) => {
 							const sessionState = app.getSessionState()
@@ -109,13 +109,13 @@ export function TlaPageControls({ viewName }: { viewName: string }) {
 					</select>
 				</div>
 				{flags.listView && (
-					<div className="tla_page_controls__control">
-						<div className="tla_page_controls__control_label">
-							<span className="tla_text_ui__regular">{LABELS[view]}</span>
+					<div className="tla-page_controls__control">
+						<div className="tla-page_controls__control_label">
+							<span className="tla-text_ui__regular">{LABELS[view]}</span>
 							<TlaIcon icon="chevron-down" />
 						</div>
 						<select
-							className="tla_page_controls__control_select"
+							className="tla-page_controls__control_select"
 							value={view}
 							onChange={(e) => {
 								const sessionState = app.getSessionState()

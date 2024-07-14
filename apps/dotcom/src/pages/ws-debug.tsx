@@ -1,5 +1,8 @@
+import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../../styles/globals.css'
+import { TlaButton } from '../components-tla/TlaButton'
+import { TlaDivider } from '../components-tla/TlaDivider'
 import { TlaSpacer } from '../components-tla/TlaSpacer'
 import { TlaWrapperPage } from '../components-tla/TlaWrapperPage'
 import { useApp } from '../hooks/useAppState'
@@ -26,58 +29,58 @@ export function Component() {
 
 	return (
 		<TlaWrapperPage>
-			<div className="tla_page__header">
-				<h2 className="tla_text_ui__big">Debug</h2>
+			<div className="tla-page__header">
+				<h2 className="tla-text_ui__big">Debug</h2>
 			</div>
 			<TlaSpacer height={40} />
-			<div className="tla_page__list">
-				<button
-					className="tla_button"
+			<h2>Users</h2>
+			<TlaSpacer height={20} />
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 'fit-content' }}>
+				<TlaButton
+					variant="primary"
 					onClick={() => {
 						handleSignInAsUser(TldrawAppUserRecordType.createId('0')) // steve
 					}}
 				>
 					Sign in as Steve
-				</button>
-				<button
-					className="tla_button"
+				</TlaButton>
+				<TlaButton
+					variant="primary"
 					onClick={() => {
 						handleSignInAsUser(TldrawAppUserRecordType.createId('1')) // david
 					}}
 				>
 					Sign in as David
-				</button>
-				<button
-					className="tla_button"
+				</TlaButton>
+				<TlaButton
+					variant="primary"
 					onClick={() => {
 						handleSignInAsUser(TldrawAppUserRecordType.createId('2')) // alex
 					}}
 				>
 					Sign in as Alex
-				</button>
-				<button
-					className="tla_button"
+				</TlaButton>
+				<TlaButton
+					variant="warning"
 					onClick={async () => {
 						await app.resetDatabase()
 						window.location.reload()
 					}}
 				>
 					Reset database
-				</button>
-				<TlaSpacer height={40} />
-				<button
-					className="tla_button"
-					onClick={async () => {
-						await app.resetDatabase()
-						window.location.reload()
-					}}
-				>
-					Reset database
-				</button>
+				</TlaButton>
 			</div>
-			<TlaSpacer height="20" />
+			<TlaSpacer height={40} />
+			<TlaDivider />
+			<TlaSpacer height={40} />
+			<h2>Flags</h2>
+			<TlaSpacer height={20} />
 			<Flags />
-			<TlaSpacer height="20" />
+			<TlaSpacer height={40} />
+			<TlaDivider />
+			<TlaSpacer height={40} />
+			<h2>Theme</h2>
+			<TlaSpacer height={20} />
 			<DarkMode />
 		</TlaWrapperPage>
 	)
@@ -87,39 +90,59 @@ function Flags() {
 	const app = useApp()
 	const flags = useFlags()
 
-	return Object.entries(flags).map(([key, value]) => (
-		<div key={key}>
-			<label htmlFor={key}>{key}</label>
-			<input
-				name={key}
-				type="checkbox"
-				checked={value}
-				onChange={() => {
-					const current = app.getSessionState()
-					if (!current.auth) throw Error('No auth')
-					const user = app.store.get(current.auth.userId)
-					if (!user) throw Error('No user')
+	return (
+		<div
+			style={{
+				display: 'grid',
+				gridTemplateColumns: '1fr auto',
+				width: 'fit-content',
+				columnGap: 20,
+				rowGap: 4,
+			}}
+		>
+			{Object.entries(flags).map(([key, value]) => (
+				<Fragment key={key}>
+					<label htmlFor={key}>{key}</label>
+					<input
+						name={key}
+						type="checkbox"
+						checked={value}
+						onChange={() => {
+							const current = app.getSessionState()
+							if (!current.auth) throw Error('No auth')
+							const user = app.store.get(current.auth.userId)
+							if (!user) throw Error('No user')
 
-					app.store.put([
-						{
-							...user,
-							flags: {
-								...user.flags,
-								[key]: !value,
-							},
-						},
-					])
-				}}
-			/>
+							app.store.put([
+								{
+									...user,
+									flags: {
+										...user.flags,
+										[key]: !value,
+									},
+								},
+							])
+						}}
+					/>
+				</Fragment>
+			))}
 		</div>
-	))
+	)
 }
 
 function DarkMode() {
 	const app = useApp()
 	const isDarkMode = useSessionState().theme === 'dark'
 	return (
-		<div>
+		<div
+			style={{
+				display: 'grid',
+				gridTemplateColumns: '1fr auto',
+				width: 'fit-content',
+				columnGap: 20,
+				rowGap: 4,
+			}}
+		>
 			<label htmlFor="dark mode">Dark mode</label>
 			<input
 				name="dark mode"

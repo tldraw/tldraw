@@ -1,14 +1,12 @@
 import '../../styles/globals.css'
-import { TlaSpacer } from '../components-tla/TlaSpacer'
+import { TlaWrapperPage } from '../components-tla/TlaWrapperPage'
 
 export function Component() {
 	return (
-		<div className="tla_content tla_page">
-			<div className="tla_page__header">
-				<h2 className="tla_text_ui__big">Profile</h2>
+		<TlaWrapperPage>
+			<div className="tla-page__header">
+				<h2 className="tla-text_ui__big">Profile</h2>
 			</div>
-			<TlaSpacer height={40} />
-			<TlaSpacer height="20" />
-		</div>
+		</TlaWrapperPage>
 	)
 }

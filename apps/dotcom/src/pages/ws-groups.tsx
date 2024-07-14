@@ -22,9 +22,9 @@ export function Component() {
 
 	return (
 		<TlaWrapperCollapsableSidebar>
-			<div className="tla_content tla_page">
-				<div className="tla_page__header">
-					<h2 className="tla_text_ui__big">Groups</h2>
+			<div className="tla-content tla-page">
+				<div className="tla-page__header">
+					<h2 className="tla-text_ui__big">Groups</h2>
 				</div>
 				<TlaSpacer height={40} />
 				<TlaPageControls viewName="shared" />
