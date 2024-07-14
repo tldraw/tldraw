@@ -49,6 +49,7 @@ type SideBarMainLink = (typeof SIDEBAR_MAIN_LINKS)[number]
 
 export function TlaSidebar() {
 	const flags = useFlags()
+
 	return (
 		<div className="tla-sidebar">
 			{/* <SidebarCreateButton /> */}

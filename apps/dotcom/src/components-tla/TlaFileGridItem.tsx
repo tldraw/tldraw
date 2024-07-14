@@ -69,8 +69,23 @@ export function TlaFileGridItem({ id: fileId, name, createdAt, workspaceId }: Tl
 						</div>
 						{flags.groups && <TlaCollaborators fileId={fileId} />}
 					</div>
-					<div className="tla-page__item_details tla-text_ui__small">
-						{user.id === owner.id ? '' : owner.name + ' • '}Last edited 2 hours ago
+					<div
+						className="tla-page__item_details tla-text_ui__small"
+						style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+					>
+						{user.id !== owner.id && (
+							<>
+								<span
+									className="tla-collaborator tla-text_ui__tiny"
+									style={{ backgroundColor: owner.color }}
+								>
+									{owner.name[0]}
+								</span>
+								<span>{owner.name}</span>
+								<span>•</span>
+							</>
+						)}
+						<span>Last edited 2 hours ago</span>
 					</div>
 				</div>
 			</div>
