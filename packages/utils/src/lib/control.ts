@@ -64,3 +64,47 @@ export function promiseWithResolve<T>(): Promise<T> & {
 		reject: reject!,
 	})
 }
+
+/** @internal */
+export class ReferenceCounterWithFixedTimeout<out T> {
+	private count = 0
+	private disposeTimeout: NodeJS.Timeout | undefined
+
+	constructor(
+		private readonly value: T,
+		private readonly dispose: () => void,
+		private readonly timeout = 0
+	) {
+		// if an RC value isn't immediately retained, it will be disposed:
+		this.scheduleDispose()
+	}
+
+	unsafeGetWithoutRetain() {
+		return this.value
+	}
+
+	retain() {
+		this.count++
+		if (this.disposeTimeout) {
+			clearTimeout(this.disposeTimeout)
+			this.disposeTimeout = undefined
+		}
+		return this.value
+	}
+
+	release() {
+		this.count--
+		this.scheduleDispose()
+	}
+
+	private scheduleDispose() {
+		if (this.count <= 0) {
+			// eslint-disable-next-line no-restricted-globals
+			this.disposeTimeout = setTimeout(() => {
+				if (this.count === 0) {
+					this.dispose()
+				}
+			}, this.timeout)
+		}
+	}
+}

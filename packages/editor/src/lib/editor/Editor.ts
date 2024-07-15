@@ -58,6 +58,7 @@ import {
 	IndexKey,
 	JsonObject,
 	PerformanceTracker,
+	ReferenceCounterWithFixedTimeout,
 	Result,
 	Timers,
 	annotateError,
@@ -3945,9 +3946,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shouldResolveToOriginalImage?: boolean
 		}
 	): Promise<string | null> {
-		if (!assetId) return ''
+		if (!assetId) return null
 		const asset = this.getAsset(assetId)
-		if (!asset) return ''
+		if (!asset) return null
 
 		const { screenScale, shouldResolveToOriginalImage } = context
 
@@ -7675,7 +7676,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private readonly temporaryAssetPreview: Record<TLAssetId, string> = {}
+	private readonly temporaryAssetPreview = new Map<
+		TLAssetId,
+		ReferenceCounterWithFixedTimeout<string>
+	>()
 
 	/**
 	 * Register an external content handler. This handler will be called when the editor receives
@@ -7701,8 +7705,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Register a temporary preview of an asset. This is useful for showing a ghost
-	 * image of something that is being uploaded.
+	 * Register a temporary preview of an asset. This is useful for showing a ghost image of
+	 * something that is being uploaded. Returns an `RC` of the URL - call `.retain` to keep it in
+	 * memory, and `.release` when you're done with it.
 	 *
 	 * @example
 	 * ```ts
@@ -7714,19 +7719,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setTemporaryAssetPreview(assetId: TLAssetId, file: File) {
-		this.temporaryAssetPreview[assetId] = URL.createObjectURL(file)
-	}
+	createTemporaryAssetPreview(assetId: TLAssetId, file: File) {
+		assert(!this.temporaryAssetPreview.has(assetId), 'Asset preview already exists')
 
-	/**
-	 * Clean up memory after using registerTemporaryAssetPreview.
-	 *
-	 * @param objectUrl - The url to revoke.
-	 *
-	 * @public
-	 */
-	clearTemporaryAssetPreview(objectUrl: string) {
-		URL.revokeObjectURL(objectUrl)
+		const urlString = URL.createObjectURL(file)
+		const urlResource = new ReferenceCounterWithFixedTimeout(
+			urlString,
+			() => {
+				this.temporaryAssetPreview.delete(assetId)
+				URL.revokeObjectURL(urlString)
+			},
+			60 * 1000
+		)
+		this.temporaryAssetPreview.set(assetId, urlResource)
+		return urlResource
 	}
 
 	/**
@@ -7743,7 +7749,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getTemporaryAssetPreview(assetId: TLAssetId) {
-		return this.temporaryAssetPreview[assetId]
+		return this.temporaryAssetPreview.get(assetId)
 	}
 
 	/**

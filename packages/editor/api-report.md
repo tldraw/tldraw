@@ -31,6 +31,7 @@ import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
+import { ReferenceCounterWithFixedTimeout } from '@tldraw/utils';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -846,7 +847,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
     clearOpenMenus(): this;
-    clearTemporaryAssetPreview(objectUrl: string): void;
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
@@ -871,6 +871,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    createTemporaryAssetPreview(assetId: TLAssetId, file: File): ReferenceCounterWithFixedTimeout<string>;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
@@ -1055,7 +1056,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         svg: string;
         width: number;
     } | undefined>;
-    getTemporaryAssetPreview(assetId: TLAssetId): string;
+    getTemporaryAssetPreview(assetId: TLAssetId): ReferenceCounterWithFixedTimeout<string> | undefined;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): {
         backgroundIndex: number;
@@ -1178,7 +1179,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
-    setTemporaryAssetPreview(assetId: TLAssetId, file: File): void;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
