@@ -221,6 +221,14 @@ export interface TLEditorOptions {
 	options?: Partial<TldrawOptions>
 }
 
+/**
+ * Options for {@link Editor.(run:1)}.
+ * @public
+ */
+export interface TLEditorRunOptions extends TLHistoryBatchOptions {
+	ignoreShapeLock?: boolean
+}
+
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	constructor({
@@ -676,24 +684,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 		this.disposables.add(this.history.dispose)
 
-		this.run(
-			() => {
-				this.store.ensureStoreIsUsable()
+		this.run({ history: 'ignore' }, () => {
+			this.store.ensureStoreIsUsable()
 
-				// clear ephemeral state
-				this.run(
-					() => {
-						this._updateCurrentPageState({
-							editingShapeId: null,
-							hoveredShapeId: null,
-							erasingShapeIds: [],
-						})
-					},
-					{ history: 'ignore' }
-				)
-			},
-			{ history: 'ignore' }
-		)
+			// clear ephemeral state
+			this._updateCurrentPageState({
+				editingShapeId: null,
+				hoveredShapeId: null,
+				erasingShapeIds: [],
+			})
+		})
 
 		if (initialState && this.root.children[initialState] === undefined) {
 			throw Error(`No state found for initialState "${initialState}".`)
@@ -1041,7 +1041,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	private _force = false
+	private _shouldIgnoreShapeLock = false
 
 	/**
 	 * Run a function in a transaction with optional options for context.
@@ -1051,40 +1051,43 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * // updating with
-	 * editor.run(() => {
+	 * editor.run({ history: "ignore" }, () => {
 	 * 	editor.updateShape({ ...myShape, x: 100 })
-	 * }, { history: "ignore" })
+	 * })
 	 *
 	 * // forcing changes / deletions for locked shapes
 	 * editor.toggleLock([myShape])
-	 * editor.run(() => {
+	 * editor.run({ ignoreShapeLock: true }, () => {
 	 * 	editor.updateShape({ ...myShape, x: 100 })
 	 * 	editor.deleteShape(myShape)
-	 * }, { ignoreShapeLock: true })
+	 * })
 	 * ```
-	 *
-	 * @param fn - The callback function to run.
 	 * @param opts - The options for the batch.
+	 * @param fn - The callback function to run.
+	 *
 	 *
 	 * @public
 	 */
-	run(
-		fn: () => void,
-		opts?: Partial<
-			TLHistoryBatchOptions & {
-				ignoreShapeLock: boolean
-			}
-		>
-	): this {
-		if (opts?.ignoreShapeLock) {
-			this._force = true
+	run(opts: TLEditorRunOptions | undefined, fn: () => void): this
+	run(fn: () => void): this
+	run(...args: [opts: TLEditorRunOptions | undefined, fn: () => void] | [fn: () => void]): this {
+		let opts
+		let fn
+		if (args.length === 1) {
+			opts = undefined
+			fn = args[0]
+		} else {
+			opts = args[0]
+			fn = args[1]
 		}
+
+		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
+		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
+
 		try {
 			this.history.batch(fn, opts)
 		} finally {
-			if (opts?.ignoreShapeLock) {
-				this._force = false
-			}
+			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}
 
 		return this
@@ -1093,15 +1096,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `Editor.run` instead.
 	 */
-	batch(
-		fn: () => void,
-		opts?: Partial<
-			TLHistoryBatchOptions & {
-				ignoreShapeLock: boolean
-			}
-		>
-	): this {
-		return this.run(fn, opts)
+	batch(fn: () => void, opts?: TLEditorRunOptions): this {
+		return this.run(opts, fn)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -1336,12 +1332,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>): this {
-		this.run(
-			() => {
-				this.store.put([{ ...this.getDocumentSettings(), ...settings }])
-			},
-			{ history: 'ignore' }
-		)
+		this.run({ history: 'ignore' }, () => {
+			this.store.put([{ ...this.getDocumentSettings(), ...settings }])
+		})
 		return this
 	}
 
@@ -1387,14 +1380,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		opts?: TLHistoryBatchOptions
 	) => {
-		this.run(() => {
+		this.run(opts, () => {
 			this.store.put([
 				{
 					...this.getInstanceState(),
 					...partial,
 				},
 			])
-		}, opts)
+		})
 	}
 
 	/** @internal */
@@ -1594,18 +1587,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
-		return this.run(
-			() => {
-				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
-				const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
-				const prevSet = new Set(prevSelectedShapeIds)
+		return this.run({ history: 'record-preserveRedoStack' }, () => {
+			const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
+			const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
+			const prevSet = new Set(prevSelectedShapeIds)
 
-				if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
+			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
 
-				this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
-			},
-			{ history: 'record-preserveRedoStack' }
-		)
+			this.store.put([{ ...this.getCurrentPageState(), selectedShapeIds: ids }])
+		})
 	}
 
 	/**
@@ -1873,12 +1863,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (id === this.getFocusedGroupId()) return this
 
-		return this.run(
-			() => {
-				this.store.update(this.getCurrentPageState().id, (s) => ({ ...s, focusedGroupId: id }))
-			},
-			{ history: 'record-preserveRedoStack' }
-		)
+		return this.run({ history: 'record-preserveRedoStack' }, () => {
+			this.store.update(this.getCurrentPageState().id, (s) => ({ ...s, focusedGroupId: id }))
+		})
 	}
 
 	/**
@@ -1944,23 +1931,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (id) {
 				const shape = this.getShape(id)
 				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
-					this.run(
-						() => {
-							this._updateCurrentPageState({ editingShapeId: id })
-						},
-						{ history: 'ignore' }
-					)
+					this.run({ history: 'ignore' }, () => {
+						this._updateCurrentPageState({ editingShapeId: id })
+					})
 					return this
 				}
 			}
 
 			// Either we just set the editing id to null, or the shape was missing or not editable
-			this.run(
-				() => {
-					this._updateCurrentPageState({ editingShapeId: null })
-				},
-				{ history: 'ignore' }
-			)
+			this.run({ history: 'ignore' }, () => {
+				this._updateCurrentPageState({ editingShapeId: null })
+			})
 		}
 		return this
 	}
@@ -2002,12 +1983,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setHoveredShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
 		if (id === this.getHoveredShapeId()) return this
-		this.run(
-			() => {
-				this.updateCurrentPageState({ hoveredShapeId: id })
-			},
-			{ history: 'ignore' }
-		)
+		this.run({ history: 'ignore' }, () => {
+			this.updateCurrentPageState({ hoveredShapeId: id })
+		})
 		return this
 	}
 
@@ -2050,12 +2028,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		// always ephemeral
-		this.run(
-			() => {
-				this._updateCurrentPageState({ hintingShapeIds: dedupe(ids) })
-			},
-			{ history: 'ignore' }
-		)
+		this.run({ history: 'ignore' }, () => {
+			this._updateCurrentPageState({ hintingShapeIds: dedupe(ids) })
+		})
 		return this
 	}
 
@@ -2100,25 +2075,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
 		const erasingShapeIds = this.getErasingShapeIds()
-		this.run(
-			() => {
-				if (ids.length === erasingShapeIds.length) {
-					// if the new ids are the same length as the current ids, they might be the same.
-					// presuming the current ids are also sorted, check each item to see if it's the same;
-					// if we find any unequal, then we know the new ids are different.
-					for (let i = 0; i < ids.length; i++) {
-						if (ids[i] !== erasingShapeIds[i]) {
-							this._updateCurrentPageState({ erasingShapeIds: ids })
-							break
-						}
+		this.run({ history: 'ignore' }, () => {
+			if (ids.length === erasingShapeIds.length) {
+				// if the new ids are the same length as the current ids, they might be the same.
+				// presuming the current ids are also sorted, check each item to see if it's the same;
+				// if we find any unequal, then we know the new ids are different.
+				for (let i = 0; i < ids.length; i++) {
+					if (ids[i] !== erasingShapeIds[i]) {
+						this._updateCurrentPageState({ erasingShapeIds: ids })
+						break
 					}
-				} else {
-					// if the ids are a different length, then we know they're different.
-					this._updateCurrentPageState({ erasingShapeIds: ids })
 				}
-			},
-			{ history: 'ignore' }
-		)
+			} else {
+				// if the ids are a different length, then we know they're different.
+				this._updateCurrentPageState({ erasingShapeIds: ids })
+			}
+		})
 
 		return this
 	}
@@ -2151,20 +2123,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setCroppingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
 		if (id !== this.getCroppingShapeId()) {
-			this.run(
-				() => {
-					if (!id) {
-						this.updateCurrentPageState({ croppingShapeId: null })
-					} else {
-						const shape = this.getShape(id)!
-						const util = this.getShapeUtil(shape)
-						if (shape && util.canCrop(shape)) {
-							this.updateCurrentPageState({ croppingShapeId: id })
-						}
+			this.run({ history: 'ignore' }, () => {
+				if (!id) {
+					this.updateCurrentPageState({ croppingShapeId: null })
+				} else {
+					const shape = this.getShape(id)!
+					const util = this.getShapeUtil(shape)
+					if (shape && util.canCrop(shape)) {
+						this.updateCurrentPageState({ croppingShapeId: id })
 					}
-				},
-				{ history: 'ignore' }
-			)
+				}
+			})
 		}
 		return this
 	}
@@ -2558,12 +2527,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		transact(() => {
 			const camera = { ...currentCamera, x, y, z }
-			this.run(
-				() => {
-					this.store.put([camera]) // include id and meta here
-				},
-				{ history: 'ignore' }
-			)
+			this.run({ history: 'ignore' }, () => {
+				this.store.put([camera]) // include id and meta here
+			})
 
 			// Dispatch a new pointer move because the pointer's page will have changed
 			// (its screen position will compute to a new page position given the new camera position)
@@ -3384,16 +3350,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.getPage(leaderPresence.currentPageId)
 				) {
 					// if the page changed, switch page
-					this.run(
-						() => {
-							// sneaky store.put here, we can't go through setCurrentPage because it calls stopFollowingUser
-							this.store.put([
-								{ ...this.getInstanceState(), currentPageId: leaderPresence.currentPageId },
-							])
-							this._isLockedOnFollowingUser.set(true)
-						},
-						{ history: 'ignore' }
-					)
+					this.run({ history: 'ignore' }, () => {
+						// sneaky store.put here, we can't go through setCurrentPage because it calls stopFollowingUser
+						this.store.put([
+							{ ...this.getInstanceState(), currentPageId: leaderPresence.currentPageId },
+						])
+						this._isLockedOnFollowingUser.set(true)
+					})
 				}
 			})
 
@@ -3487,17 +3450,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser(): this {
-		this.run(
-			() => {
-				// commit the current camera to the store
-				this.store.put([this.getCamera()])
-				// this must happen after the camera is committed
-				this._isLockedOnFollowingUser.set(false)
-				this.updateInstanceState({ followingUserId: null })
-				this.emit('stop-following')
-			},
-			{ history: 'ignore' }
-		)
+		this.run({ history: 'ignore' }, () => {
+			// commit the current camera to the store
+			this.store.put([this.getCamera()])
+			// this must happen after the camera is committed
+			this._isLockedOnFollowingUser.set(false)
+			this.updateInstanceState({ followingUserId: null })
+			this.emit('stop-following')
+		})
 		return this
 	}
 
@@ -3787,8 +3747,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// finish off any in-progress interactions
 		this.complete()
 
-		return this.run(() => this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }]), {
-			history: 'record-preserveRedoStack',
+		return this.run({ history: 'record-preserveRedoStack' }, () => {
+			this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }])
 		})
 	}
 
@@ -3977,7 +3937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	createAssets(assets: TLAsset[]): this {
 		if (this.getInstanceState().isReadonly) return this
 		if (assets.length <= 0) return this
-		this.run(() => this.store.put(assets), { history: 'ignore' })
+		this.run({ history: 'ignore' }, () => this.store.put(assets))
 		return this
 	}
 
@@ -3996,17 +3956,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	updateAssets(assets: TLAssetPartial[]): this {
 		if (this.getInstanceState().isReadonly) return this
 		if (assets.length <= 0) return this
-		this.run(
-			() => {
-				this.store.put(
-					assets.map((partial) => ({
-						...this.store.get(partial.id)!,
-						...partial,
-					}))
-				)
-			},
-			{ history: 'ignore' }
-		)
+		this.run({ history: 'ignore' }, () => {
+			this.store.put(
+				assets.map((partial) => ({
+					...this.store.get(partial.id)!,
+					...partial,
+				}))
+			)
+		})
 		return this
 	}
 
@@ -4031,7 +3988,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (assets as TLAsset[]).map((a) => a.id)
 		if (ids.length <= 0) return this
 
-		this.run(() => this.store.remove(ids), { history: 'ignore' })
+		this.run({ history: 'ignore' }, () => this.store.remove(ids))
 		return this
 	}
 
@@ -5124,35 +5081,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Ignore locked shapes so that we can reparent locked shapes, for example
 		// when a locked shape's parent is deleted.
-		this.run(
-			() => {
-				for (let i = 0; i < shapesToReparent.length; i++) {
-					const shape = shapesToReparent[i]
+		this.run({ ignoreShapeLock: true }, () => {
+			for (let i = 0; i < shapesToReparent.length; i++) {
+				const shape = shapesToReparent[i]
 
-					const pageTransform = this.getShapePageTransform(shape)!
-					if (!pageTransform) continue
+				const pageTransform = this.getShapePageTransform(shape)!
+				if (!pageTransform) continue
 
-					const pagePoint = pageTransform.point()
-					if (!pagePoint) continue
+				const pagePoint = pageTransform.point()
+				if (!pagePoint) continue
 
-					const newPoint = invertedParentTransform.applyToPoint(pagePoint)
-					const newRotation = pageTransform.rotation() - parentPageRotation
+				const newPoint = invertedParentTransform.applyToPoint(pagePoint)
+				const newRotation = pageTransform.rotation() - parentPageRotation
 
-					changes.push({
-						id: shape.id,
-						type: shape.type,
-						parentId: parentId,
-						x: newPoint.x,
-						y: newPoint.y,
-						rotation: newRotation,
-						index: indices[i],
-					})
-				}
+				changes.push({
+					id: shape.id,
+					type: shape.type,
+					parentId: parentId,
+					x: newPoint.x,
+					y: newPoint.y,
+					rotation: newRotation,
+					index: indices[i],
+				})
+			}
 
-				this.updateShapes(changes)
-			},
-			{ ignoreShapeLock: true }
-		)
+			this.updateShapes(changes)
+		})
 
 		return this
 	}
@@ -7203,7 +7157,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 1) return this
 
 		const shapesToGroup = compact(
-			(this._force ? ids : this._getUnlockedShapeIds(ids)).map((id) => this.getShape(id))
+			(this._shouldIgnoreShapeLock ? ids : this._getUnlockedShapeIds(ids)).map((id) =>
+				this.getShape(id)
+			)
 		)
 		const sortedShapeIds = shapesToGroup.sort(sortByIndex).map((s) => s.id)
 		const pageBounds = Box.Common(compact(shapesToGroup.map((id) => this.getShapePageBounds(id))))
@@ -7276,7 +7232,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 
 		const shapesToUngroup = compact(
-			(this._force ? ids : this._getUnlockedShapeIds(ids)).map((id) => this.getShape(id))
+			(this._shouldIgnoreShapeLock ? ids : this._getUnlockedShapeIds(ids)).map((id) =>
+				this.getShape(id)
+			)
 		)
 
 		if (shapesToUngroup.length === 0) return this
@@ -7371,7 +7329,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// If we're "forcing" the update, then we'll update the shape
 			// regardless of whether it / its ancestor is locked
-			if (!this._force) {
+			if (!this._shouldIgnoreShapeLock) {
 				if (shape.isLocked) {
 					// If the shape itself is locked (even if one of its ancestors is
 					// also locked) then only allow an update that unlocks the shape.
@@ -7462,7 +7420,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
 
 		// Normally we don't want to delete locked shapes, but if the force option is set, we'll delete them anyway
-		const shapeIdsToDelete = this._force ? shapeIds : this._getUnlockedShapeIds(shapeIds)
+		const shapeIdsToDelete = this._shouldIgnoreShapeLock
+			? shapeIds
+			: this._getUnlockedShapeIds(shapeIds)
 
 		if (shapeIdsToDelete.length === 0) return this
 
@@ -8497,27 +8457,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
-		this.run(
-			() => {
-				this.store.put([
-					{
-						id: TLPOINTER_ID,
-						typeName: 'pointer',
-						x: currentPagePoint.x,
-						y: currentPagePoint.y,
-						lastActivityTimestamp:
-							// If our pointer moved only because we're following some other user, then don't
-							// update our last activity timestamp; otherwise, update it to the current timestamp.
-							info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
-								? this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
-									this._tickManager.now
-								: this._tickManager.now,
-						meta: {},
-					},
-				])
-			},
-			{ history: 'ignore' }
-		)
+		this.run({ history: 'ignore' }, () => {
+			this.store.put([
+				{
+					id: TLPOINTER_ID,
+					typeName: 'pointer',
+					x: currentPagePoint.x,
+					y: currentPagePoint.y,
+					lastActivityTimestamp:
+						// If our pointer moved only because we're following some other user, then don't
+						// update our last activity timestamp; otherwise, update it to the current timestamp.
+						info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
+							? this.store.unsafeGetWithoutCapture(TLPOINTER_ID)?.lastActivityTimestamp ??
+								this._tickManager.now
+							: this._tickManager.now,
+					meta: {},
+				},
+			])
+		})
 	}
 
 	/**
@@ -9325,42 +9282,39 @@ function withIsolatedShapes<T>(
 ): T {
 	let result!: Result<T, unknown>
 
-	editor.run(
-		() => {
-			const changes = editor.store.extractingChanges(() => {
-				const bindingsWithBoth = new Set<TLBindingId>()
-				const bindingsToRemove = new Set<TLBindingId>()
+	editor.run({ history: 'ignore' }, () => {
+		const changes = editor.store.extractingChanges(() => {
+			const bindingsWithBoth = new Set<TLBindingId>()
+			const bindingsToRemove = new Set<TLBindingId>()
 
-				for (const shapeId of shapeIds) {
-					const shape = editor.getShape(shapeId)
-					if (!shape) continue
+			for (const shapeId of shapeIds) {
+				const shape = editor.getShape(shapeId)
+				if (!shape) continue
 
-					for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
-						const hasFrom = shapeIds.has(binding.fromId)
-						const hasTo = shapeIds.has(binding.toId)
-						if (hasFrom && hasTo) {
-							bindingsWithBoth.add(binding.id)
-							continue
-						}
-						if (!hasFrom || !hasTo) {
-							bindingsToRemove.add(binding.id)
-						}
+				for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
+					const hasFrom = shapeIds.has(binding.fromId)
+					const hasTo = shapeIds.has(binding.toId)
+					if (hasFrom && hasTo) {
+						bindingsWithBoth.add(binding.id)
+						continue
+					}
+					if (!hasFrom || !hasTo) {
+						bindingsToRemove.add(binding.id)
 					}
 				}
+			}
 
-				editor.deleteBindings([...bindingsToRemove], { isolateShapes: true })
+			editor.deleteBindings([...bindingsToRemove], { isolateShapes: true })
 
-				try {
-					result = Result.ok(callback(bindingsWithBoth))
-				} catch (error) {
-					result = Result.err(error)
-				}
-			})
+			try {
+				result = Result.ok(callback(bindingsWithBoth))
+			} catch (error) {
+				result = Result.err(error)
+			}
+		})
 
-			editor.store.applyDiff(reverseRecordsDiff(changes))
-		},
-		{ history: 'ignore' }
-	)
+		editor.store.applyDiff(reverseRecordsDiff(changes))
+	})
 
 	if (result.ok) {
 		return result.value

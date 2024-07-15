@@ -128,7 +128,12 @@ export { createTLUser, type TLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
-export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
+export {
+	Editor,
+	type TLEditorOptions,
+	type TLEditorRunOptions,
+	type TLResizeShapeOptions,
+} from './lib/editor/Editor'
 export {
 	BindingUtil,
 	type BindingOnChangeOptions,

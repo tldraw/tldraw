@@ -482,13 +482,10 @@ function useOnMount(onMount?: TLOnMountHandler) {
 		let teardown: (() => void) | void = undefined
 		// If the user wants to do something when the editor mounts, we make sure it doesn't effect the history.
 		// todo: is this reeeeally what we want to do, or should we leave it up to the caller?
-		editor.run(
-			() => {
-				teardown = onMount?.(editor)
-				editor.emit('mount')
-			},
-			{ history: 'ignore' }
-		)
+		editor.run({ history: 'ignore' }, () => {
+			teardown = onMount?.(editor)
+			editor.emit('mount')
+		})
 		window.tldrawReady = true
 		return teardown
 	})
