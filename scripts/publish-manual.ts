@@ -19,7 +19,7 @@ async function main() {
 
 	await uploadStaticAssets(latestVersionInBranch.version)
 
-	await publish('latest')
+	await publish()
 
 	if (isLatestVersion) {
 		await publishProductionDocsAndExamples()

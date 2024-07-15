@@ -103,7 +103,7 @@ function topologicalSortPackages(packages: Record<string, PackageDetails>) {
 	return sorted
 }
 
-export async function publish(distTag: string) {
+export async function publish(distTag?: string) {
 	const npmToken = process.env.NPM_TOKEN
 	if (!npmToken) {
 		throw new Error('NPM_TOKEN not set')
@@ -138,9 +138,6 @@ export async function publish(distTag: string) {
 							processStderrLine: (line) => {
 								output += line + '\n'
 								nicelog(line)
-							},
-							env: {
-								TLDRAW_RELEASE_CHANNEL: tag,
 							},
 						}
 					)
