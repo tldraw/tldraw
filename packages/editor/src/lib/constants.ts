@@ -1,4 +1,4 @@
-import { TLAssetOptions, TLCameraOptions } from './editor/types/misc-types'
+import { TLCameraOptions } from './editor/types/misc-types'
 import { EASINGS } from './primitives/easings'
 
 /** @internal */
@@ -8,11 +8,6 @@ export const DEFAULT_CAMERA_OPTIONS: TLCameraOptions = {
 	panSpeed: 1,
 	zoomSpeed: 1,
 	zoomSteps: [0.1, 0.25, 0.5, 1, 2, 4, 8],
-}
-
-/** @internal */
-export const DEFAULT_ASSET_OPTIONS: TLAssetOptions = {
-	onResolveAsset: async (asset) => asset?.props.src || '',
 }
 
 /** @internal */

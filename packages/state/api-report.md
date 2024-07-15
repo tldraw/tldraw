@@ -163,7 +163,7 @@ export interface Signal<Value, Diff = unknown> {
 }
 
 // @public
-export function track<T extends FunctionComponent<any>>(baseComponent: T): T extends React_2.MemoExoticComponent<any> ? T : React_2.MemoExoticComponent<T>;
+export function track<T extends FunctionComponent<any>>(baseComponent: T): React_2.NamedExoticComponent<React_2.ComponentProps<T>>;
 
 // @public
 export function transact<T>(fn: () => T): T;
@@ -198,7 +198,7 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
 
-// @internal (undocumented)
+// @public
 export function useStateTracking<T>(name: string, render: () => T): T;
 
 // @public

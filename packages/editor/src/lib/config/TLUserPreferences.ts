@@ -144,6 +144,7 @@ export const defaultUserPreferences = Object.freeze({
 export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
+		color: getRandomColor(),
 	}
 }
 
@@ -233,7 +234,7 @@ export function getUserPreferences(): TLUserPreferences {
 	let prefs = globalUserPreferences.get()
 	if (!prefs) {
 		prefs = loadUserPreferences()
-		globalUserPreferences.set(prefs)
+		setUserPreferences(prefs)
 	}
 	return prefs
 }

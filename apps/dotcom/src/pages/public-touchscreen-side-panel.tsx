@@ -1,10 +1,11 @@
 import { CreateRoomRequestBody, ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-shared'
-import { schema } from '@tldraw/sync'
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { TldrawUiButton, fetch } from 'tldraw'
+import { TldrawUiButton, createTLSchema, fetch } from 'tldraw'
 import '../../styles/globals.css'
 import { getParentOrigin } from '../utils/iFrame'
+
+const schema = createTLSchema()
 
 export function Component() {
 	const [isCreating, setIsCreating] = useState(false)

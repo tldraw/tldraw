@@ -75,6 +75,7 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 
 // [3]
 const customShape = [MyShapeUtil]
+
 export default function CustomShapeExample() {
 	return (
 		<div className="tldraw__editor">

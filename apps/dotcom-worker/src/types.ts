@@ -1,6 +1,6 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
-import { RoomSnapshot } from '@tldraw/sync'
+import { RoomSnapshot } from '@tldraw/sync-core'
 
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {

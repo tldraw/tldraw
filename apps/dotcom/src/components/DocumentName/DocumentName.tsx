@@ -1,15 +1,14 @@
 import {
 	ChangeEvent,
 	KeyboardEvent,
-	ReactNode,
 	SetStateAction,
 	useCallback,
 	useEffect,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
 import {
+	CenteredTopPanelContainer,
 	OfflineIndicator,
 	TLUiTranslationKey,
 	TldrawUiButton,
@@ -38,12 +37,7 @@ interface NameState {
 	readonly isEditing: boolean
 }
 
-const MAX_TITLE_WIDTH_PX = 420
 const BUTTON_WIDTH = 44
-const STYLE_PANEL_WIDTH = 148
-const MARGIN_BETWEEN_ZONES = 12
-// the maximum amount the people menu will extend from the style panel
-const SQUEEZE_FACTOR = 52
 
 export const DocumentTopZone = track(function DocumentTopZone({
 	isOffline,
@@ -53,10 +47,10 @@ export const DocumentTopZone = track(function DocumentTopZone({
 	const isDocumentNameVisible = useBreakpoint() >= 4
 
 	return (
-		<DocumentTopZoneContainer>
+		<CenteredTopPanelContainer ignoreRightWidth={BUTTON_WIDTH}>
 			{isDocumentNameVisible && <DocumentNameInner />}
 			{isOffline && <OfflineIndicator />}
-		</DocumentTopZoneContainer>
+		</CenteredTopPanelContainer>
 	)
 })
 
@@ -134,85 +128,6 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 		</div>
 	)
 })
-
-function DocumentTopZoneContainer({ children }: { children: ReactNode }) {
-	const ref = useRef<HTMLDivElement>(null)
-	const breakpoint = useBreakpoint()
-
-	const updateLayout = useCallback(() => {
-		const element = ref.current
-		if (!element) return
-
-		const layoutTop = element.parentElement!.parentElement!
-		const leftPanel = layoutTop.querySelector('.tlui-layout__top__left')! as HTMLElement
-		const rightPanel = layoutTop.querySelector('.tlui-layout__top__right')! as HTMLElement
-
-		const totalWidth = layoutTop.offsetWidth
-		const leftWidth = leftPanel.offsetWidth
-		const rightWidth = rightPanel.offsetWidth
-
-		// Ignore button width
-		const selfWidth = element.offsetWidth - BUTTON_WIDTH
-
-		let xCoordIfCentered = (totalWidth - selfWidth) / 2
-
-		// Prevent subpixel bullsh
-		if (totalWidth % 2 !== 0) {
-			xCoordIfCentered -= 0.5
-		}
-
-		const xCoordIfLeftAligned = leftWidth + MARGIN_BETWEEN_ZONES
-
-		const left = element.offsetLeft
-		const maxWidth = Math.min(
-			totalWidth - rightWidth - leftWidth - 2 * MARGIN_BETWEEN_ZONES,
-			MAX_TITLE_WIDTH_PX
-		)
-		const xCoord = Math.max(xCoordIfCentered, xCoordIfLeftAligned) - left
-
-		// Squeeze the title if the right panel is too wide on small screens
-		if (rightPanel.offsetWidth > STYLE_PANEL_WIDTH && breakpoint <= 6) {
-			element.style.setProperty('max-width', maxWidth - SQUEEZE_FACTOR + 'px')
-		} else {
-			element.style.setProperty('max-width', maxWidth + 'px')
-		}
-		element.style.setProperty('transform', `translate(${xCoord}px, 0px)`)
-	}, [breakpoint])
-
-	useLayoutEffect(() => {
-		const element = ref.current
-		if (!element) return
-
-		const layoutTop = element.parentElement!.parentElement!
-		const leftPanel = layoutTop.querySelector('.tlui-layout__top__left')! as HTMLElement
-		const rightPanel = layoutTop.querySelector('.tlui-layout__top__right')! as HTMLElement
-
-		// Update layout when the things change
-		const observer = new ResizeObserver(updateLayout)
-		observer.observe(leftPanel)
-		observer.observe(rightPanel)
-		observer.observe(layoutTop)
-		observer.observe(element)
-
-		// Also update on first layout
-		updateLayout()
-
-		return () => {
-			observer.disconnect()
-		}
-	}, [updateLayout])
-
-	// Update after every render, too
-	useLayoutEffect(() => {
-		updateLayout()
-	})
-
-	return (
-		<div ref={ref} className="tlui-top-zone__container">
-			{children}
-		</div>
-	)
-}
 
 const DocumentNameEditor = track(function DocumentNameEditor({
 	state,

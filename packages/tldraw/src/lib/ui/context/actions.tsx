@@ -30,6 +30,7 @@ import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { useInsertMedia } from '../hooks/useInsertMedia'
+import { useIsMultiplayer } from '../hooks/useIsMultiplayer'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -84,6 +85,7 @@ function getExportName(editor: Editor, defaultName: string) {
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
+	const isMultiplayer = useIsMultiplayer()
 
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts, addToast } = useToasts()
@@ -1424,6 +1426,28 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 		]
 
+		if (isMultiplayer) {
+			actionItems.push({
+				id: 'open-cursor-chat',
+				label: 'action.open-cursor-chat',
+				readonlyOk: true,
+				kbd: '/',
+				onSelect(source: any) {
+					trackEvent('open-cursor-chat', { source })
+
+					// Don't open cursor chat if we're on a touch device
+					if (editor.getInstanceState().isCoarsePointer) {
+						return
+					}
+
+					// wait a frame before opening as otherwise the open context menu will close it
+					editor.timers.requestAnimationFrame(() => {
+						editor.updateInstanceState({ isChatting: true })
+					})
+				},
+			})
+		}
+
 		const actions = makeActions(actionItems)
 
 		if (overrides) {
@@ -1448,6 +1472,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		printSelectionOrPages,
 		msg,
 		defaultDocumentName,
+		isMultiplayer,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

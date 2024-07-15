@@ -35,7 +35,7 @@
 			"path": "../../packages/sync"
 		},
 		{
-			"path": "../../packages/sync-react"
+			"path": "../../packages/sync-core"
 		},
 		{
 			"path": "../../packages/tldraw"
