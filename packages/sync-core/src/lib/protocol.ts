@@ -1,9 +1,9 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
-/** @public */
 const TLSYNC_PROTOCOL_VERSION = 6
 
+/** @public */
 export function getTlsyncProtocolVersion() {
 	return TLSYNC_PROTOCOL_VERSION
 }

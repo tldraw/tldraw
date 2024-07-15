@@ -1,4 +1,4 @@
-import { build } from 'esbuild'
+import { BuildOptions, build } from 'esbuild'
 import { copyFileSync, existsSync } from 'fs'
 import glob from 'glob'
 import kleur from 'kleur'
@@ -42,6 +42,24 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 	)
 }
 
+function getCommonEsbuildOptions() {
+	const isCI = !!process.env.CI
+	if (isCI && !process.env.TLDRAW_BEMO_URL) {
+		throw new Error('Missing TLDRAW_BEMO_URL environment variable')
+	}
+
+	const define: Record<string, string> = {}
+	if (process.env.TLDRAW_BEMO_URL) {
+		define['process.env.TLDRAW_BEMO_URL'] = JSON.stringify(process.env.TLDRAW_BEMO_URL)
+	}
+	return {
+		bundle: false,
+		platform: 'neutral',
+		sourcemap: true,
+		define,
+	} satisfies BuildOptions
+}
+
 /** This uses esbuild to build the esm version of the package */
 async function buildEsm({
 	sourceFiles,
@@ -55,11 +73,9 @@ async function buildEsm({
 	const res = await build({
 		entryPoints: sourceFiles,
 		outdir,
-		bundle: false,
-		platform: 'neutral',
-		sourcemap: true,
 		format: 'esm',
 		outExtension: { '.js': '.mjs' },
+		...getCommonEsbuildOptions(),
 	})
 
 	addJsExtensions(path.join(sourcePackageDir, 'dist-esm'))
@@ -84,10 +100,8 @@ async function buildCjs({
 	const res = await build({
 		entryPoints: sourceFiles,
 		outdir,
-		bundle: false,
-		platform: 'neutral',
-		sourcemap: true,
 		format: 'cjs',
+		...getCommonEsbuildOptions(),
 	})
 
 	if (res.errors.length) {

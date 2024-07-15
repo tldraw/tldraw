@@ -41,6 +41,7 @@ function getEnv(cb: () => string | undefined): string | undefined {
 const DEMO_WORKER = getEnv(() => process.env.TLDRAW_BEMO_URL) ?? 'https://demo.tldraw.xyz'
 const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://images.tldraw.xyz'
 
+/** @public */
 export function useMultiplayerDemo({
 	roomId,
 	userPreferences,

@@ -141,7 +141,7 @@ async function main() {
 	await uploadStaticAssets(nextVersion)
 
 	// finally, publish the packages [IF THIS STEP FAILS, RUN THE `publish-manual.ts` script locally]
-	await publish()
+	await publish('latest')
 
 	nicelog('Notifying huppy of release...')
 	const huppyResponse = await fetch('https://tldraw-repo-sync.fly.dev/api/on-release', {
