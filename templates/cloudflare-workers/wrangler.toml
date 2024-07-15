@@ -1,0 +1,20 @@
+main = "worker/index.ts"
+compatibility_date = "2024-07-01"
+
+[dev]
+port = 5172
+ip = "0.0.0.0"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TldrawDurableObject"]
+
+[durable_objects]
+bindings = [
+    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" },
+]
+
+[[r2_buckets]]
+binding = 'TLDRAW_BUCKET'
+bucket_name = 'tldraw-content'
+preview_bucket_name = 'tldraw-content-preview'

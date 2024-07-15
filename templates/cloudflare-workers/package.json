@@ -10,26 +10,37 @@
 	"license": "Apache-2.0",
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
+		"dev": "concurrently --kill-others yarn:dev:client yarn:dev:worker",
+		"dev:client": "vite",
+		"dev:worker": "wrangler dev",
 		"build": "tsc && vite build",
 		"lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@cloudflare/types": "^6.29.0",
+		"@tldraw/sync": "^2.4.0-canary.348ff9f66a24",
+		"@tldraw/sync-core": "^2.4.0-canary.348ff9f66a24",
+		"@tldraw/tlschema": "2.4.0-canary.348ff9f66a24",
+		"itty-router": "^5.0.17",
+		"lodash.throttle": "^4.1.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"tldraw": "latest"
+		"tldraw": "2.4.0-canary.348ff9f66a24"
 	},
 	"devDependencies": {
+		"@types/lodash.throttle": "^4",
 		"@types/react": "^18.0.37",
 		"@types/react-dom": "^18.0.11",
 		"@typescript-eslint/eslint-plugin": "^5.59.0",
 		"@typescript-eslint/parser": "^5.59.0",
 		"@vitejs/plugin-react-swc": "^3.6.0",
+		"concurrently": "^8.2.2",
 		"eslint": "^8.38.0",
 		"eslint-plugin-react-hooks": "^4.6.0",
 		"eslint-plugin-react-refresh": "^0.3.4",
 		"typescript": "^5.0.2",
-		"vite": "^5.2.11"
+		"vite": "^5.2.11",
+		"wrangler": "^3.64.0"
 	}
 }
