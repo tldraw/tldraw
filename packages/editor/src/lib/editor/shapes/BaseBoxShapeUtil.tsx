@@ -31,8 +31,8 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 	override getInterpolatedProps(startShape: Shape, endShape: Shape, t: number): Shape['props'] {
 		return {
 			...endShape.props,
-			w: startShape.props.w + (endShape.props.w - startShape.props.w) * t,
-			h: startShape.props.h + (endShape.props.h - startShape.props.h) * t,
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
 }
