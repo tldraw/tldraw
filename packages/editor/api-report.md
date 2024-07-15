@@ -175,6 +175,8 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     // (undocumented)
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     // (undocumented)
+    getInterpolatedProps(startShape: Shape, endShape: Shape, t: number): Shape['props'];
+    // (undocumented)
     onResize: TLOnResizeHandler<any>;
 }
 
@@ -2044,6 +2046,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
+    getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;

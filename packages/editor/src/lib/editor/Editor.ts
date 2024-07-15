@@ -6985,8 +6985,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let t: number
 
 		interface ShapeAnimation {
-			partial: TLShapePartial
-			values: { prop: string; from: number; to: number }[]
+			start: TLShape
+			end: TLShape
 		}
 
 		const animations: ShapeAnimation[] = []
@@ -6996,26 +6996,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 			partial = partials[i]
 			if (!partial) continue
 
-			result = {
-				partial,
-				values: [],
-			}
-
 			const shape = this.getShape(partial.id)!
 			if (!shape) continue
 
-			// We only support animations for certain props
-			for (const key of ['x', 'y', 'rotation'] as const) {
-				if (partial[key] !== undefined && shape[key] !== partial[key]) {
-					result.values.push({ prop: key, from: shape[key], to: partial[key] as number })
-				}
+			result = {
+				start: structuredClone(shape),
+				end: applyPartialToRecordWithProps(structuredClone(shape), partial),
 			}
 
 			animations.push(result)
 			this.animatingShapes.set(shape.id, animationId)
 		}
-
-		let value: ShapeAnimation
 
 		const handleTick = (elapsed: number) => {
 			remaining -= elapsed
@@ -7026,8 +7017,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					(p) => p && animatingShapes.get(p.id) === animationId
 				)
 				if (partialsToUpdate.length) {
+					// the regular update shapes also removes the shape from
+					// the animating shapes set
 					this.updateShapes(partialsToUpdate)
-					// update shapes also removes the shape from animating shapes
 				}
 
 				this.off('tick', handleTick)
@@ -7042,22 +7034,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			let animationIdForShape: string | undefined
 			for (let i = 0, n = animations.length; i < n; i++) {
-				value = animations[i]
+				const { start, end } = animations[i]
 				// Is the animation for this shape still active?
-				animationIdForShape = animatingShapes.get(value.partial.id)
+				animationIdForShape = animatingShapes.get(start.id)
 				if (animationIdForShape !== animationId) continue
 
-				// Create the update
 				updates.push({
-					id: value.partial.id,
-					type: value.partial.type,
-					...value.values.reduce((acc, { prop, from, to }) => {
-						acc[prop] = from + (to - from) * t
-						return acc
-					}, {} as any),
+					...end,
+					x: start.x + (end.x - start.x) * t,
+					y: start.y + (end.y - start.y) * t,
+					rotation: start.rotation + (end.rotation - start.rotation) * t,
+					props: this.getShapeUtil(end).getInterpolatedProps?.(start, end, t) ?? end.props,
 				})
 			}
 
+			// The _updateShapes method does NOT remove the
+			// shapes from the animated shapes set
 			this._updateShapes(updates)
 		}
 
