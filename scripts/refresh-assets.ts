@@ -36,6 +36,8 @@ const collectedAssetUrls: Record<
 }
 
 const mergedIconName = '0_merged.svg'
+// this is how `svgo` starts each one of our optimized icon SVGs. if they don't all start with this,
+// we can't merge them as it means they're of different size and are using different fill rules.
 const mergedIconHeader =
 	'<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="none">'
 const mergedIconFooter = '</svg>'
@@ -62,11 +64,13 @@ async function copyIcons() {
 	})
 
 	// Merge svgs into a single file
-
 	const mergedSvgParts = [
 		mergedIconHeader,
 		'<style>',
+		// in order to target individual icons with the URL hash, we need to hide all of them by
+		// default...
 		'svg > [id] { display: none; }',
+		// ...then show the one that's targeted
 		'svg > [id]:target { display: inline; }',
 		'</style>',
 	]
@@ -541,7 +545,7 @@ class CodeFile extends Code {
 	}
 
 	getName(name: string) {
-		return `$_${name.replace(/[^a-zA-Z0-9_]+/g, '_')}_${this.nameId++}`
+		return `$_${name.replace(/[^\W]+/g, '_')}_${this.nameId++}`
 	}
 
 	appendFn(header: string): CodeFunction {
