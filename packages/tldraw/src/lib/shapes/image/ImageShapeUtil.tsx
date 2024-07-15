@@ -5,7 +5,7 @@ import {
 	HTMLContainer,
 	Image,
 	MediaHelpers,
-	RC,
+	ReferenceCounterWithFixedTimeout,
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
@@ -20,7 +20,7 @@ import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useAsset, useRC } from '../shared/useAsset'
+import { useAsset, useReferenceCounter } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -65,7 +65,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loaded, setLoaded] = useState<null | {
-			src: string | RC<string>
+			src: string | ReferenceCounterWithFixedTimeout<string>
 			isPlaceholder: boolean
 		}>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
@@ -89,10 +89,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
 					setLoaded({ src: url, isPlaceholder })
-					if (url instanceof RC) url.release()
+					if (url instanceof ReferenceCounterWithFixedTimeout) url.release()
 				}
 				image.crossOrigin = 'anonymous'
-				image.src = url instanceof RC ? url.retain() : url
+				image.src = url instanceof ReferenceCounterWithFixedTimeout ? url.retain() : url
 
 				return () => {
 					cancelled = true
@@ -113,10 +113,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const containerStyle = getCroppedContainerStyle(shape)
 
 		const nextUrl = url === loaded?.src ? null : url
-		const nextSrc = useRC(nextUrl)
-		const loadedSrc = useRC(!shape.props.playing || reduceMotion ? staticFrameSrc : loaded?.src)
+		const nextSrc = useReferenceCounter(nextUrl)
+		const loadedSrc = useReferenceCounter(
+			!shape.props.playing || reduceMotion ? staticFrameSrc : loaded?.src
+		)
 
-		// This is specifically `asset?.props.src` and not `url` because we're looking for broken assets.
+		// This logic path is for when it's broken/missing asset.
 		if (!url && !asset?.props.src) {
 			return (
 				<HTMLContainer

@@ -12,7 +12,7 @@ import {
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useAsset, useRC } from '../shared/useAsset'
+import { useAsset, useReferenceCounter } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 /** @public */
@@ -44,7 +44,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const { Spinner } = useEditorComponents()
 
-		const url = useRC(urlResource)
+		const url = useReferenceCounter(urlResource)
 
 		const rVideo = useRef<HTMLVideoElement>(null!)
 

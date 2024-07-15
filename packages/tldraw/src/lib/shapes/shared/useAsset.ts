@@ -1,10 +1,16 @@
-import { RC, TLAssetId, TLShapeId, useEditor, useValue } from '@tldraw/editor'
+import {
+	ReferenceCounterWithFixedTimeout,
+	TLAssetId,
+	TLShapeId,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 
 /** @internal */
 export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: number) {
 	const editor = useEditor()
-	const [url, setUrl] = useState<string | RC<string> | null>(null)
+	const [url, setUrl] = useState<string | ReferenceCounterWithFixedTimeout<string> | null>(null)
 	const [isPlaceholder, setIsPlaceholder] = useState(false)
 	const asset = assetId ? editor.getAsset(assetId) : null
 	const culledShapes = editor.getCulledShapes()
@@ -30,8 +36,15 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 		if (assetId && !asset?.props.src) {
 			const preview = editor.getTemporaryAssetPreview(assetId)
 			if (preview) {
+				// Lifecycle notes: `retain` here is to stop the preview from being released
+				// on the uploader side of things (which initially kicked off the process). The uploader initially sets the timeout
+				// but this interrupts the timeout and keeps the preview alive.
+				// Here we set the RC (ReferenceCounterWithFixedTimeout) but below we set the actual url (string).
+				// So, below where we do `setUrl(resolvedUrl)` is when this lifecycle is actually settled.
+				// Afterwards, the RC will be released after a timeout.
 				setUrl(preview.retain())
 				setIsPlaceholder(true)
+
 				return () => {
 					preview.release()
 				}
@@ -44,6 +57,7 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 			const resolvedUrl = await editor.resolveAssetUrl(assetId, {
 				screenScale,
 			})
+
 			if (!isCancelled) {
 				setUrl(resolvedUrl)
 				setIsPlaceholder(false)
@@ -61,6 +75,7 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 		} else {
 			// if not, resolve immediately:
 			resolve()
+
 			return () => {
 				isCancelled = true
 			}
@@ -71,15 +86,16 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 }
 
 /** @internal */
-export function useRC<T>(value: RC<T> | T): T {
+export function useReferenceCounter<T>(value: ReferenceCounterWithFixedTimeout<T> | T): T {
 	useEffect(() => {
-		if (value instanceof RC) {
+		if (value instanceof ReferenceCounterWithFixedTimeout) {
 			value.retain()
+
 			return () => {
 				value.release()
 			}
 		}
 	})
 
-	return value instanceof RC ? value.unsafeGetWithoutRetain() : value
+	return value instanceof ReferenceCounterWithFixedTimeout ? value.unsafeGetWithoutRetain() : value
 }

@@ -12,7 +12,7 @@ export {
 } from './lib/array'
 export { WeakCache } from './lib/cache'
 export {
-	RC,
+	ReferenceCounterWithFixedTimeout,
 	Result,
 	assert,
 	assertExists,

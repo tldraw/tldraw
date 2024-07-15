@@ -337,8 +337,13 @@ export function promiseWithResolve<T>(): Promise<T> & {
     resolve: (value: T) => void;
 };
 
+// @public (undocumented)
+export type RecursivePartial<T> = {
+    [P in keyof T]?: RecursivePartial<T[P]>;
+};
+
 // @internal (undocumented)
-export class RC<out T> {
+export class ReferenceCounterWithFixedTimeout<out T> {
     constructor(value: T, dispose: () => void, timeout?: number);
     // (undocumented)
     release(): void;
@@ -347,11 +352,6 @@ export class RC<out T> {
     // (undocumented)
     unsafeGetWithoutRetain(): T;
 }
-
-// @public (undocumented)
-export type RecursivePartial<T> = {
-    [P in keyof T]?: RecursivePartial<T[P]>;
-};
 
 // @internal (undocumented)
 type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {

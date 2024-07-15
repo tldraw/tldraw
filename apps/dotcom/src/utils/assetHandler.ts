@@ -69,8 +69,10 @@ async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId
 		assetId: assetId,
 		persistenceKey,
 	})
+
 	if (blob) {
 		return URL.createObjectURL(blob)
 	}
+
 	return null
 }

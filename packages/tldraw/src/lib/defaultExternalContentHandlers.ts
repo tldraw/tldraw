@@ -3,7 +3,7 @@ import {
 	Editor,
 	FileHelpers,
 	MediaHelpers,
-	RC,
+	ReferenceCounterWithFixedTimeout,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkShape,
@@ -228,7 +228,11 @@ export function registerDefaultExternalContentHandlers(
 
 		const pagePoint = new Vec(position.x, position.y)
 		const assets: TLAsset[] = []
-		const assetsToUpdate: { asset: TLAsset; file: File; temporaryAssetPreview?: RC<string> }[] = []
+		const assetsToUpdate: {
+			asset: TLAsset
+			file: File
+			temporaryAssetPreview?: ReferenceCounterWithFixedTimeout<string>
+		}[] = []
 		for (const file of files) {
 			if (file.size > maxAssetSize) {
 				console.warn(
