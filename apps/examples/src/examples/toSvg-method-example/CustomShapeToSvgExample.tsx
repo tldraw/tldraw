@@ -23,6 +23,9 @@ type ICustomShape = TLBaseShape<
 	}
 >
 
+const LIGHT_FILL = '#ff8888'
+const DARK_FILL = '#ffcccc'
+
 export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	static override type = 'my-custom-shape' as const
 	static override props: RecordProps<ICustomShape> = {
@@ -51,11 +54,11 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 
 	component(_shape: ICustomShape) {
 		const isDarkmode = this.editor.user.getIsDarkMode()
-		return <HTMLContainer style={{ backgroundColor: isDarkmode ? '#333' : '#efefef' }} />
+		return <HTMLContainer style={{ backgroundColor: isDarkmode ? DARK_FILL : LIGHT_FILL }} />
 	}
 
 	indicator(shape: ICustomShape) {
-		return <rect width={shape.props.w} height={shape.props.h} />
+		return this.getSvgRect(shape)
 	}
 
 	// [1]
@@ -65,8 +68,12 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	): ReactElement | null | Promise<ReactElement | null> {
 		// ctx.addExportDef(getFontDef(shape))
 		const isDarkmode = ctx.isDarkMode
-		const fill = isDarkmode ? '#333' : '#efefef'
-		return <rect width={shape.props.w} height={shape.props.h} fill={fill} />
+		const fill = isDarkmode ? DARK_FILL : LIGHT_FILL
+		return this.getSvgRect(shape, { fill })
+	}
+
+	getSvgRect(shape: ICustomShape, props?: { fill: string }) {
+		return <rect width={shape.props.w} height={shape.props.h} {...props} />
 	}
 
 	// [2]

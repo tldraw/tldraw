@@ -3,10 +3,10 @@ title: Shape toSvg method
 component: ./CustomShapeToSvgExample.tsx
 category: shapes/tools
 priority: 3
-keywords: [basic, svg, custom]
+keywords: [basic, svg, custom, export, copy]
 ---
 
-How to use the toSVG method of a shape util to determine how your custom shapes look when copied/exported as an image.
+How to use the toSvg method of a shape util to determine how your custom shapes look when copied/exported as an image.
 
 ---
 
