@@ -172,11 +172,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private disposables: Array<() => void> = [interval(this.pruneSessions, 2000)]
 
+	private _isClosed = false
+
 	close() {
 		this.disposables.forEach((d) => d())
 		this.sessions.forEach((session) => {
 			session.socket.close()
 		})
+		this._isClosed = true
+	}
+
+	isClosed() {
+		return this._isClosed
 	}
 
 	readonly events = createNanoEvents<{

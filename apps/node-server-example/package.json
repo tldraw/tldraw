@@ -1,0 +1,39 @@
+{
+	"name": "@tldraw/node-server-example",
+	"description": "A tiny little drawing app (example node server).",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"main": "./src/index.ts",
+	"scripts": {
+		"dev": "yarn run -T tsx watch ./src/index.ts",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"test-coverage": "lazy inherit",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+	},
+	"devDependencies": {
+		"@types/express": "^4.17.21",
+		"lazyrepo": "0.0.0-alpha.27",
+		"typescript": "^5.3.3"
+	},
+	"jest": {
+		"preset": "config/jest/node",
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		},
+		"transformIgnorePatterns": [
+			"node_modules/(?!(nanoid|escape-string-regexp)/)"
+		]
+	},
+	"dependencies": {
+		"@fastify/websocket": "^10.0.1",
+		"@tldraw/sync-core": "workspace:*",
+		"express": "^4.19.2",
+		"fastify": "^4.28.1",
+		"ws": "^8.18.0"
+	}
+}

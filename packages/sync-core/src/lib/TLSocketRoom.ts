@@ -1,5 +1,6 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema } from '@tldraw/tlschema'
+import ws from 'ws'
 import { ServerSocketAdapter } from './ServerSocketAdapter'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
@@ -73,7 +74,8 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 		return this.room.sessions.size
 	}
 
-	handleSocketConnect(sessionId: string, socket: WebSocket, meta: SessionMeta) {
+	handleSocketConnect(sessionId: string, _socket: WebSocket | ws.WebSocket, meta: SessionMeta) {
+		const socket = _socket as WebSocket
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -207,5 +209,9 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 
 	close() {
 		this.room.close()
+	}
+
+	isClosed() {
+		return this.room.isClosed()
 	}
 }
