@@ -518,7 +518,6 @@ class Code {
 	}
 }
 class CodeFile extends Code {
-	private nameId = 0
 	private imports = new Map<string, string>()
 
 	constructor(private header: string) {
@@ -544,8 +543,16 @@ class CodeFile extends Code {
 		return name
 	}
 
-	getName(name: string) {
-		return `$_${name.replace(/[^\W]+/g, '_')}_${this.nameId++}`
+	getName(name: string, suffix?: number): string {
+		const formatted = `$_${name.replace(/\W+/g, '_')}${suffix || ''}`
+			.replace(/^\$_+(\D)/, (_, s) => s.toLowerCase())
+			.replace(/_+(.)/g, (_, s) => s.toUpperCase())
+
+		if (this.toString().includes(formatted)) {
+			return this.getName(name, (suffix ?? 1) + 1)
+		}
+
+		return formatted
 	}
 
 	appendFn(header: string): CodeFunction {
