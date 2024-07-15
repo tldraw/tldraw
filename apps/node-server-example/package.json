@@ -34,7 +34,7 @@
 	},
 	"dependencies": {
 		"@fastify/websocket": "^10.0.1",
-		"@tldraw/sync": "workspace:^",
+		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@vitejs/plugin-react-swc": "^3.7.0",
 		"express": "^4.19.2",
@@ -42,8 +42,8 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.24.1",
-		"tldraw": "workspace:^",
+		"tldraw": "workspace:*",
 		"vite": "^5.3.3",
-		"ws": "^8.18.0"
+		"ws": "^8.16.0"
 	}
 }
