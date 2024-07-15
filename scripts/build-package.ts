@@ -43,15 +43,11 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 }
 
 function getCommonEsbuildOptions() {
-	const isCI = !!process.env.CI
-	if (isCI && !process.env.TLDRAW_BEMO_URL) {
-		throw new Error('Missing TLDRAW_BEMO_URL environment variable')
-	}
-
 	const define: Record<string, string> = {}
 	if (process.env.TLDRAW_BEMO_URL) {
 		define['process.env.TLDRAW_BEMO_URL'] = JSON.stringify(process.env.TLDRAW_BEMO_URL)
 	}
+
 	return {
 		bundle: false,
 		platform: 'neutral',
