@@ -1,32 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import {
-	DefaultSpinner,
-	ErrorScreen,
-	LoadingScreen,
-	TLEditorSnapshot,
-	TldrawHandles,
-	TldrawScribble,
-	TldrawSelectionBackground,
-	TldrawSelectionForeground,
-	TldrawShapeIndicators,
-	defaultEditorAssetUrls,
-	usePreloadAssets,
-} from 'tldraw'
+import { TLEditorSnapshot } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { ThumbnailEditor } from '../components/ThumbnailEditor'
-
-// There's a guide at the bottom of this file!
-
-// [1]
-const defaultComponents = {
-	Scribble: TldrawScribble,
-	ShapeIndicators: TldrawShapeIndicators,
-	CollaboratorScribble: TldrawScribble,
-	SelectionForeground: TldrawSelectionForeground,
-	SelectionBackground: TldrawSelectionBackground,
-	Handles: TldrawHandles,
-}
 
 export function Component() {
 	const { fileId } = useParams<{ fileId: string }>()
@@ -43,27 +19,13 @@ export function Component() {
 		}).then(
 			async (res) => {
 				const data = await res.json()
-				setSnapshot(data.snapshot)
+				setSnapshot(JSON.parse(data.snapshot))
 			},
 			(err) => {
 				console.error(err)
 			}
 		)
 	}, [fileId])
-
-	const assetLoading = usePreloadAssets(defaultEditorAssetUrls)
-
-	if (assetLoading.error) {
-		return <ErrorScreen>Could not load assets.</ErrorScreen>
-	}
-
-	if (!assetLoading.done) {
-		return (
-			<LoadingScreen>
-				<DefaultSpinner />
-			</LoadingScreen>
-		)
-	}
 
 	if (!snapshot) return null
 

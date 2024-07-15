@@ -51,6 +51,9 @@ export function ThumbnailEditor({ snapshot }: { snapshot: TLEditorSnapshot }) {
 				bindingUtils={defaultBindingUtils}
 				tools={[...defaultTools, ...defaultShapeTools]}
 				components={defaultComponents}
+				onMount={(e) => {
+					e.zoomToFit({ immediate: true })
+				}}
 			/>
 		</div>
 	)

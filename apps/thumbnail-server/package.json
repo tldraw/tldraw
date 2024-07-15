@@ -13,7 +13,8 @@
 	],
 	"scripts": {
 		"dev": "vite --host",
-		"build": "vite build"
+		"build": "vite build",
+		"start": "tsx ./server/server.mts"
 	},
 	"dependencies": {
 		"@tldraw/assets": "workspace:*",
@@ -27,6 +28,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.17.0",
+		"sqlite": "^5.1.1",
 		"sqlite3": "^5.1.7",
 		"tldraw": "workspace:*",
 		"vite": "^5.3.3"

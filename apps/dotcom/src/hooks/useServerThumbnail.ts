@@ -7,7 +7,7 @@ export function useServerThumbnail(id: string) {
 	const app = useApp()
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])
 
-	const [imageUrl, _setImageUrl] = useState<string | null>(null)
+	const [imageUrl, setImageUrl] = useState<string | null>(null)
 
 	useEffect(() => {
 		let didDispose = false
@@ -25,10 +25,16 @@ export function useServerThumbnail(id: string) {
 			} satisfies TLStoreSnapshot
 
 			const result = await fetch(`http://localhost:5002/thumbnail`, {
-				body: JSON.stringify({ snapshot }),
-			})
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ id, snapshot }),
+			}).then((res) => res.json())
 
-			// console.log(result)
+			if (result.screenshot) {
+				setImageUrl(`data:image/png;base64,${result.screenshot}`)
+			}
 		})
 		return () => {
 			didDispose = true

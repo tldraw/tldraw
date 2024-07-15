@@ -17,3 +17,7 @@ body {
 	justify-content: center;
 	height: 100vh;
 }
+
+.tldraw__editor > .tl-container .tl-background {
+	background: none !important;
+}
