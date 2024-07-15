@@ -1,4 +1,5 @@
 import { TLBaseShape } from '@tldraw/tlschema'
+import { lerp } from '@tldraw/utils'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Rectangle2d } from '../../primitives/geometry/Rectangle2d'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
