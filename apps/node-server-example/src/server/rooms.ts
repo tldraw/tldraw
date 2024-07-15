@@ -9,7 +9,7 @@ interface RoomState {
 	id: string
 	needsPersist: boolean
 }
-const rooms = new Map<string, Promise<RoomState>>()
+const rooms = new Map<string, RoomState>()
 // eslint-disable-next-line no-console
 const log = console.log
 
@@ -26,46 +26,46 @@ async function saveSnapshot(roomId: string, snapshot: RoomSnapshot) {
 	await writeFile(join(DIR, roomId), JSON.stringify(snapshot))
 }
 
+let roomsMutex = Promise.resolve()
+
 export async function makeOrLoadRoom(roomId: string) {
-	if (rooms.has(roomId)) {
-		const roomState = await rooms.get(roomId)!
-		if (!roomState.room.isClosed()) {
-			return roomState.room
-		}
-	}
-	log('loading room', roomId)
-
-	rooms.set(
-		roomId,
-		readSnapshotIfExists(roomId).then((initialSnapshot) => {
-			const roomState: RoomState = {
-				needsPersist: false,
-				id: roomId,
-				room: new TLSocketRoom({
-					initialSnapshot,
-					onSessionRemoved(room, args) {
-						log('client disconnected', args.sessionKey, roomId)
-						if (args.numSessionsRemaining === 0) {
-							log('closing room', roomId)
-							room.close()
-						}
-					},
-					onDataChange() {
-						roomState.needsPersist = true
-					},
-				}),
+	roomsMutex = roomsMutex.then(async () => {
+		if (rooms.has(roomId)) {
+			const roomState = await rooms.get(roomId)!
+			if (!roomState.room.isClosed()) {
+				return
 			}
-			return roomState
-		})
-	)
+		}
+		log('loading room', roomId)
+		const initialSnapshot = await readSnapshotIfExists(roomId)
 
-	return (await rooms.get(roomId))!.room
+		const roomState: RoomState = {
+			needsPersist: false,
+			id: roomId,
+			room: new TLSocketRoom({
+				initialSnapshot,
+				onSessionRemoved(room, args) {
+					log('client disconnected', args.sessionKey, roomId)
+					if (args.numSessionsRemaining === 0) {
+						log('closing room', roomId)
+						room.close()
+					}
+				},
+				onDataChange() {
+					roomState.needsPersist = true
+				},
+			}),
+		}
+		rooms.set(roomId, roomState)
+	})
+
+	await roomsMutex
+	return rooms.get(roomId)!.room
 }
 
-// do persistence on an interval
-setInterval(async () => {
-	for (const _roomState of rooms.values()) {
-		const roomState = await _roomState
+// do persistence on a regular interval
+setInterval(() => {
+	for (const roomState of rooms.values()) {
 		if (roomState.needsPersist) {
 			// persist room
 			roomState.needsPersist = false

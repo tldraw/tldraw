@@ -21,7 +21,6 @@ app.register(async (app) => {
 })
 app.listen({ port: PORT }, (err) => {
 	if (err) {
-		// eslint-disable-next-line no-console
 		console.error(err)
 		process.exit(1)
 	}
