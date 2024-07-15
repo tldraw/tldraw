@@ -7,9 +7,11 @@
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
 	},
-	"main": "./src/index.ts",
+	"main": "./src/server/server.ts",
 	"scripts": {
-		"dev": "yarn run -T tsx watch ./src/index.ts",
+		"dev-server": "yarn run -T tsx watch ./src/server/server.ts",
+		"dev-client": "vite dev",
+		"dev": "concurrently -n server,client -c red,blue \"yarn dev-server\" \"yarn dev-client\"",
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
@@ -17,6 +19,7 @@
 	},
 	"devDependencies": {
 		"@types/express": "^4.17.21",
+		"concurrently": "^8.2.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"typescript": "^5.3.3"
 	},
@@ -31,9 +34,16 @@
 	},
 	"dependencies": {
 		"@fastify/websocket": "^10.0.1",
+		"@tldraw/sync": "workspace:^",
 		"@tldraw/sync-core": "workspace:*",
+		"@vitejs/plugin-react-swc": "^3.7.0",
 		"express": "^4.19.2",
 		"fastify": "^4.28.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-router-dom": "^6.24.1",
+		"tldraw": "workspace:^",
+		"vite": "^5.3.3",
 		"ws": "^8.18.0"
 	}
 }
