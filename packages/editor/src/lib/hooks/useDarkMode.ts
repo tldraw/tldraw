@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import React from 'react'
 import { debugFlags } from '../utils/debug-flags'
 import { useContainer } from './useContainer'

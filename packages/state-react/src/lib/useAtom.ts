@@ -1,5 +1,5 @@
+import { Atom, AtomOptions, atom } from '@tldraw/state'
 import { useState } from 'react'
-import { Atom, AtomOptions, atom } from '../core'
 
 /**
  * Creates a new atom and returns it. The atom will be created only once.
