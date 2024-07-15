@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react'
-import { SerializedSchemaV2, TLRecord, TLStoreSnapshot, fetch, useValue } from 'tldraw'
+import {
+	SerializedSchemaV2,
+	TLRecord,
+	TLStoreSnapshot,
+	fetch,
+	getHashForObject,
+	useValue,
+} from 'tldraw'
 import { loadDataFromStore } from '../utils/tla/local-sync'
 import { useApp } from './useAppState'
 
@@ -24,12 +31,14 @@ export function useServerThumbnail(id: string) {
 				schema: data.schema as SerializedSchemaV2,
 			} satisfies TLStoreSnapshot
 
+			const hash = getHashForObject(snapshot)
+
 			const result = await fetch(`http://localhost:5002/thumbnail`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ id, snapshot }),
+				body: JSON.stringify({ id, snapshot, hash }),
 			}).then((res) => res.json())
 
 			if (result.screenshot) {
