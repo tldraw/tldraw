@@ -1156,9 +1156,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): Promise<null | string>;
     readonly root: StateNode;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
-    run(opts: TLEditorRunOptions | undefined, fn: () => void): this;
-    // (undocumented)
-    run(fn: () => void): this;
+    run(fn: () => void, opts?: TLEditorRunOptions): this;
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
