@@ -1,39 +1,28 @@
-import { TLAsset, fetch, getAssetFromIndexedDb } from 'tldraw'
-import { createAssetFromFile } from './createAssetFromFile'
+import { Editor, TLAsset, fetch } from 'tldraw'
+import { multiplayerAssetStore } from './multiplayerAssetStore'
 
-export async function cloneAssetForShare(asset: TLAsset, persistenceKey: string): Promise<TLAsset> {
+export async function cloneAssetForShare(editor: Editor, asset: TLAsset): Promise<TLAsset> {
 	if (asset.type === 'bookmark') return asset
 
-	if (asset.props.src) {
-		let file: File | undefined
-		if (asset.props.src.startsWith('asset:')) {
-			const blob = await getAssetFromIndexedDb({ assetId: asset.id, persistenceKey })
-			if (blob) {
-				file = new File([blob], asset.props.name, {
-					type: asset.props.mimeType || '',
-				})
-			} else {
-				return asset
-			}
-		} else {
-			const dataUrlMatch = asset.props.src.match(/data:(.*?)(;base64)?,/)
-			if (!dataUrlMatch) return asset
+	const src = await editor.resolveAssetUrl(asset.id, { shouldResolveToOriginal: true })
 
-			const response = await fetch(asset.props.src)
-			file = new File([await response.blob()], asset.props.name, {
-				type: dataUrlMatch[1] ?? asset.props.mimeType,
-			})
-		}
+	if (src && !(src.startsWith('http:') || src.startsWith('https:'))) {
+		const response = await fetch(src)
+		const blob = await response.blob()
+		const file = new File([blob], asset.props.name, {
+			type: blob.type,
+		})
 
-		const uploadedAsset = await createAssetFromFile({ type: 'file', file })
+		const uploadedAsset = await multiplayerAssetStore.upload(asset, file)
 
 		return {
 			...asset,
 			props: {
 				...asset.props,
-				src: uploadedAsset.props.src,
+				src: uploadedAsset,
 			},
 		}
 	}
+
 	return asset
 }

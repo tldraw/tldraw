@@ -2,7 +2,6 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
-export { getAssetFromIndexedDb, storeAssetInIndexedDb } from './lib/AssetBlobStore'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
@@ -10,6 +9,7 @@ export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawScribble } from './lib/canvas/TldrawScribble'
 export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
+export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
@@ -125,6 +125,7 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	HelpGroup,
 	MiscMenuGroup,
 	PreferencesGroup,
 	UndoRedoGroup,
@@ -144,6 +145,8 @@ export {
 	type TLUiQuickActionsProps,
 } from './lib/ui/components/QuickActions/DefaultQuickActions'
 export { DefaultQuickActionsContent } from './lib/ui/components/QuickActions/DefaultQuickActionsContent'
+export { DefaultSharePanel } from './lib/ui/components/SharePanel/DefaultSharePanel'
+export { PeopleMenu, type PeopleMenuProps } from './lib/ui/components/SharePanel/PeopleMenu'
 export { Spinner } from './lib/ui/components/Spinner'
 export {
 	DefaultStylePanel,
@@ -199,6 +202,11 @@ export {
 	useIsToolSelected,
 	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
+export {
+	CenteredTopPanelContainer,
+	type CenteredTopPanelContainerProps,
+} from './lib/ui/components/TopPanel/CenteredTopPanelContainer'
+export { DefaultTopPanel } from './lib/ui/components/TopPanel/DefaultTopPanel'
 export {
 	DefaultZoomMenu,
 	type TLUiZoomMenuProps,
@@ -406,7 +414,6 @@ export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {
 	defaultEditorAssetUrls,
-	getDefaultCdnBaseUrl,
 	setDefaultEditorAssetUrls,
 	type TLEditorAssetUrls,
 } from './lib/utils/static-assets/assetUrls'

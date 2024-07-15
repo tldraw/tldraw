@@ -15,6 +15,11 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 	const asset = assetId ? editor.getAsset(assetId) : null
 	const culledShapes = editor.getCulledShapes()
 	const isCulled = culledShapes.has(shapeId)
+	const didAlreadyResolve = useRef(false)
+
+	useEffect(() => {
+		if (url) didAlreadyResolve.current = true
+	}, [url])
 
 	const shapeScale = asset && 'w' in asset.props ? width / asset.props.w : 1
 	// We debounce the zoom level to reduce the number of times we fetch a new image and,
@@ -23,8 +28,6 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 		editor,
 		shapeScale,
 	])
-
-	const didAlreadyResolve = useRef(false)
 
 	useEffect(() => {
 		if (url) didAlreadyResolve.current = true

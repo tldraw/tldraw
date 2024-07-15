@@ -2,7 +2,6 @@ import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
-	Editor,
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
@@ -12,19 +11,19 @@ import {
 	TldrawEditorStoreProps,
 	useEditor,
 	useEditorComponents,
-	useEvent,
+	useOnMount,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
-import { useLayoutEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
+import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import {
 	TLExternalContentProps,
-	defaultResolveAsset,
 	registerDefaultExternalContentHandlers,
 } from './defaultExternalContentHandlers'
 import { defaultShapeTools } from './defaultShapeTools'
@@ -72,6 +71,7 @@ export function Tldraw(props: TldrawProps) {
 	const componentsWithDefault = useMemo(
 		() => ({
 			Scribble: TldrawScribble,
+			ShapeIndicators: TldrawShapeIndicators,
 			CollaboratorScribble: TldrawScribble,
 			SelectionForeground: TldrawSelectionForeground,
 			SelectionBackground: TldrawSelectionBackground,
@@ -99,12 +99,7 @@ export function Tldraw(props: TldrawProps) {
 		[_tools]
 	)
 
-	const persistenceKey = 'persistenceKey' in rest ? rest.persistenceKey : undefined
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-	const assetOptions = useMemo(
-		() => ({ onResolveAsset: defaultResolveAsset(persistenceKey), ...rest.assetOptions }),
-		[persistenceKey, rest.assetOptions]
-	)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
@@ -125,7 +120,6 @@ export function Tldraw(props: TldrawProps) {
 			shapeUtils={shapeUtilsWithDefaults}
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
-			assetOptions={assetOptions}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>
 				<InsideOfEditorAndUiContext
@@ -133,7 +127,6 @@ export function Tldraw(props: TldrawProps) {
 					maxAssetSize={maxAssetSize}
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
-					persistenceKey={persistenceKey}
 					onMount={onMount}
 				/>
 				{children}
@@ -149,13 +142,12 @@ function InsideOfEditorAndUiContext({
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-	persistenceKey,
-}: TLExternalContentProps & { onMount?: TLOnMountHandler; persistenceKey?: string }) {
+}: TLExternalContentProps & { onMount?: TLOnMountHandler }) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
 
-	const onMountEvent = useEvent((editor: Editor) => {
+	useOnMount(() => {
 		const unsubs: (void | (() => void) | undefined)[] = []
 
 		unsubs.push(...registerDefaultSideEffects(editor))
@@ -172,21 +164,19 @@ function InsideOfEditorAndUiContext({
 			{
 				toasts,
 				msg,
-			},
-			persistenceKey
+			}
 		)
 
-		// ...then we run the onMount prop, which may override the above
+		// ...then we call the store's on mount which may override them...
+		unsubs.push(editor.store.props.onEditorMount(editor))
+
+		// ...then we run the user's onMount prop, which may override things again.
 		unsubs.push(onMount?.(editor))
 
 		return () => {
 			unsubs.forEach((fn) => fn?.())
 		}
 	})
-
-	useLayoutEffect(() => {
-		if (editor) return onMountEvent?.(editor)
-	}, [editor, onMountEvent])
 
 	const { Canvas } = useEditorComponents()
 	const { ContextMenu } = useTldrawUiComponents()

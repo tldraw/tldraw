@@ -44,6 +44,10 @@ export interface TldrawImageProps extends TLSvgOptions {
 	 * Additional binding utils to use.
 	 */
 	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+	/**
+	 * The license key.
+	 */
+	licenseKey?: string
 }
 
 /**
@@ -89,6 +93,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		darkMode,
 		preserveAspectRatio,
 		format = 'svg',
+		licenseKey,
 	} = props
 
 	useLayoutEffect(() => {
@@ -108,6 +113,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			bindingUtils: bindingUtilsWithDefaults,
 			tools: [],
 			getContainer: () => tempElm,
+			licenseKey,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
@@ -169,6 +175,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		preserveAspectRatio,
 		preloadingComplete,
 		preloadingError,
+		licenseKey,
 	])
 
 	if (preloadingError) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { SandpackCodeViewer, SandpackFiles, SandpackProvider } from '@codesandbox/sandpack-react'
+import { getOwnProperty } from '@tldraw/utils'
 import { useTheme } from 'next-themes'
 import React, {
 	Fragment,
@@ -134,7 +135,7 @@ export function Code({ children, ...props }: React.ComponentProps<'code'>) {
 
 			function finishCurrentIdentifier() {
 				if (currentIdentifier) {
-					const link = codeLinks[currentIdentifier]
+					const link = getOwnProperty(codeLinks, currentIdentifier)
 					if (link) {
 						pushInCurrentSpan(
 							<A href={link} className="code-link">

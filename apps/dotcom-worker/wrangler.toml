@@ -1,5 +1,5 @@
-main = "src/lib/worker.ts"
-compatibility_date = "2023-10-16"
+main = "src/worker.ts"
+compatibility_date = "2024-06-19"
 
 [dev]
 port = 8787
@@ -8,11 +8,11 @@ ip = "0.0.0.0"
 # these migrations are append-only. you can't change them. if you do need to change something, do so
 # by creating new migrations
 [[migrations]]
-tag = "v1" # Should be unique for each entry
+tag = "v1"                            # Should be unique for each entry
 new_classes = ["TLDrawDurableObject"]
 
 [[migrations]]
-tag = "v2" 
+tag = "v2"
 new_classes = ["TLProWorkspaceDurableObject"]
 
 [[migrations]]
@@ -44,9 +44,7 @@ name = "TLDR_DOC"
 class_name = "TLDrawDurableObject"
 
 [durable_objects]
-bindings = [
-  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-]
+bindings = [{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" }]
 
 [[env.preview.durable_objects.bindings]]
 name = "TLDR_DOC"
@@ -186,3 +184,19 @@ id = "2fb5fc7f7ca54a5a9dfae1b07a30a778"
 [[env.production.kv_namespaces]]
 binding = "READONLY_SLUG_TO_SLUG"
 id = "96be6637b281412ab35b2544539d78e8"
+
+#################### Version metadata ####################
+[version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.dev.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.preview.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"

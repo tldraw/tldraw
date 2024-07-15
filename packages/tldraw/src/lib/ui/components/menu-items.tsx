@@ -330,6 +330,8 @@ export function DeleteMenuItem() {
 
 /** @public @react */
 export function EditMenuSubmenu() {
+	if (!useAnySelectedShapesCount(1)) return null
+
 	return (
 		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
 			<GroupMenuItem />
@@ -624,6 +626,16 @@ export function ToggleDynamicSizeModeItem() {
 	)
 }
 
+/** @public @react */
+export function TogglePasteAtCursorItem() {
+	const actions = useActions()
+	const editor = useEditor()
+	const pasteAtCursor = useValue('paste at cursor', () => editor.user.getIsPasteAtCursorMode(), [
+		editor,
+	])
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-paste-at-cursor']} checked={pasteAtCursor} />
+}
+
 /* ---------------------- Print --------------------- */
 /** @public @react */
 export function PrintItem() {
@@ -633,4 +645,20 @@ export function PrintItem() {
 		editor,
 	])
 	return <TldrawUiMenuItem {...actions['print']} disabled={emptyPage} />
+}
+
+/* ---------------------- Multiplayer --------------------- */
+/** @public @react */
+export function CursorChatItem() {
+	const editor = useEditor()
+	const actions = useActions()
+	const shouldShow = useValue(
+		'show cursor chat',
+		() => editor.getCurrentToolId() === 'select' && !editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
+
+	if (!shouldShow) return null
+
+	return <TldrawUiMenuItem {...actions['open-cursor-chat']} />
 }

@@ -1,6 +1,8 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs'
 import { join } from 'path'
+import { SemVer } from 'semver'
 import { optimize } from 'svgo'
+import { publishDates, version } from './../packages/editor/src/version'
 import {
 	readJsonIfExists,
 	REPO_ROOT,
@@ -271,7 +273,24 @@ async function copyTranslations() {
 	}
 }
 
-// 4. ASSET DECLARATION FILES
+// 4. WATERMARKS
+async function copyWatermarks() {
+	const folderName = 'watermarks'
+	const extension = '.svg'
+
+	const sourceFolderPath = join(ASSETS_FOLDER_PATH, folderName)
+	const itemsToCopy = readdirSync(sourceFolderPath).filter((watermark) =>
+		watermark.endsWith(extension)
+	)
+
+	const destinationFolderPath = join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermarks')
+	// Copy all items into the new folder
+	for (const item of itemsToCopy) {
+		await writeFile(join(destinationFolderPath, item), readFileSync(join(sourceFolderPath, item)))
+	}
+}
+
+// 5. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'urls.js')
 	const codeFile = `
@@ -328,7 +347,7 @@ async function writeImportBasedAssetDeclarationFile(
 		declarations += `${type}: {\n`
 		for (const [name, href] of Object.entries(assets)) {
 			const variableName = `${type}_${name}`
-				.replace(/[^a-zA-Z0-9_]/g, '_')
+				.replace(/\W/g, '_')
 				.replace(/_+/g, '_')
 				.replace(/_(.)/g, (_, letter) => letter.toUpperCase())
 			imports += `import ${variableName} from ${JSON.stringify('./' + href + importSuffix)};\n`
@@ -404,11 +423,43 @@ async function writeAssetDeclarationDTSFile() {
 	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
+function getNewPublishDates(packageVersion: string) {
+	const currentVersion = new SemVer(version)
+	const currentPackageVersion = new SemVer(packageVersion)
+	const now = new Date().toISOString()
+	if (currentPackageVersion.major > currentVersion.major) {
+		return {
+			major: now,
+			minor: now,
+			patch: now,
+		}
+	} else if (currentPackageVersion.minor > currentVersion.minor) {
+		return {
+			major: publishDates.major,
+			minor: now,
+			patch: now,
+		}
+	} else if (currentPackageVersion.patch > currentVersion.patch) {
+		return {
+			major: publishDates.major,
+			minor: publishDates.minor,
+			patch: now,
+		}
+	}
+	return publishDates
+}
+
 async function copyVersionToDotCom() {
 	const packageJson = await readJsonIfExists(join(REPO_ROOT, 'packages', 'tldraw', 'package.json'))
 	const packageVersion = packageJson.version
+	const publishDates = getNewPublishDates(packageVersion)
+	const file = `export const version = '${packageVersion}'
+	export const publishDates = {
+		major: '${publishDates.major}',
+		minor: '${publishDates.minor}',
+		patch: '${publishDates.patch}',
+	}`
 
-	const file = `export const version = '${packageVersion}'`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
@@ -439,6 +490,8 @@ async function main() {
 	await copyFonts()
 	nicelog('Copying translations...')
 	await copyTranslations()
+	nicelog('Copying watermarks...')
+	await copyWatermarks()
 	nicelog('Writing asset declaration file...')
 	await writeAssetDeclarationDTSFile()
 	await writeUrlBasedAssetDeclarationFile()

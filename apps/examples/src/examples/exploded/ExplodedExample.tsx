@@ -9,6 +9,7 @@ import {
 	TldrawScribble,
 	TldrawSelectionBackground,
 	TldrawSelectionForeground,
+	TldrawShapeIndicators,
 	TldrawUi,
 	defaultBindingUtils,
 	defaultEditorAssetUrls,
@@ -24,6 +25,7 @@ import 'tldraw/tldraw.css'
 // [1]
 const defaultComponents = {
 	Scribble: TldrawScribble,
+	ShapeIndicators: TldrawShapeIndicators,
 	CollaboratorScribble: TldrawScribble,
 	SelectionForeground: TldrawSelectionForeground,
 	SelectionBackground: TldrawSelectionBackground,

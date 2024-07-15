@@ -8,11 +8,13 @@ import {
 	ReferenceCounterWithFixedTimeout,
 	TLImageShape,
 	TLOnDoubleClickHandler,
+	TLOnResizeHandler,
 	TLShapePartial,
 	Vec,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
+	resizeBox,
 	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
@@ -46,7 +48,24 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			playing: true,
 			url: '',
 			crop: null,
+			flipX: false,
+			flipY: false,
 		}
+	}
+
+	override onResize: TLOnResizeHandler<any> = (shape: TLImageShape, info) => {
+		let resized: TLImageShape = resizeBox(shape, info)
+		const { flipX, flipY } = info.initialShape.props
+
+		resized = {
+			...resized,
+			props: {
+				...resized.props,
+				flipX: info.scaleX < 0 !== flipX,
+				flipY: info.scaleY < 0 !== flipY,
+			},
+		}
+		return resized
 	}
 
 	isAnimated(shape: TLImageShape) {
@@ -180,7 +199,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						{loadedSrc && (
 							<img
 								key={loadedSrc}
-								className="tl-image"
+								className={classNames('tl-image', {
+									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
+									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
+									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
+								})}
 								crossOrigin={crossOrigin}
 								src={loadedSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
@@ -190,7 +213,16 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						{nextSrc && (
 							<img
 								key={nextSrc}
-								className={classNames('tl-image tl-image-next', loadedSrc && 'tl-image-pending')}
+								className={classNames(
+									'tl-image',
+									'tl-image-next',
+									loadedSrc && 'tl-image-pending',
+									{
+										'tl-flip-x': shape.props.flipX && !shape.props.flipY,
+										'tl-flip-y': shape.props.flipY && !shape.props.flipX,
+										'tl-flip-xy': shape.props.flipY && shape.props.flipX,
+									}
+								)}
 								crossOrigin={crossOrigin}
 								src={nextSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
@@ -224,7 +256,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!asset) return null
 
 		let src = await this.editor.resolveAssetUrl(shape.props.assetId, {
-			shouldResolveToOriginalImage: true,
+			shouldResolveToOriginal: true,
 		})
 		if (!src) return null
 		if (

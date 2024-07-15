@@ -104,31 +104,31 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{ [P in T.ExtractRequiredKeys<{
-        id: TLAssetId;
-        meta: JsonObject;
-        props: Props;
-        type: Type;
-        typeName: 'asset';
-    }>]: {
-        id: TLAssetId;
-        meta: JsonObject;
-        props: Props;
-        type: Type;
-        typeName: 'asset';
-    }[P]; } & { [P_1 in T.ExtractOptionalKeys<{
-        id: TLAssetId;
-        meta: JsonObject;
-        props: Props;
-        type: Type;
-        typeName: 'asset';
-    }>]?: {
-        id: TLAssetId;
-        meta: JsonObject;
-        props: Props;
-        type: Type;
-        typeName: 'asset';
-    }[P_1] | undefined; }>;
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<{
+id: TLAssetId;
+meta: JsonObject;
+props: Props;
+type: Type;
+typeName: 'asset';
+}>]: {
+id: TLAssetId;
+meta: JsonObject;
+props: Props;
+type: Type;
+typeName: 'asset';
+}[P]; } & { [P_1 in T.ExtractOptionalKeys<{
+id: TLAssetId;
+meta: JsonObject;
+props: Props;
+type: Type;
+typeName: 'asset';
+}>]?: {
+id: TLAssetId;
+meta: JsonObject;
+props: Props;
+type: Type;
+typeName: 'asset';
+}[P_1] | undefined; }>>;
 
 // @public (undocumented)
 export function createBindingId(id?: string): TLBindingId;
@@ -146,7 +146,7 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<{ [P in T.ExtractRequiredKeys<TLBaseBinding<Type, Props>>]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseBinding<Type, Props>>]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>;
+}): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseBinding<Type, Props>>]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseBinding<Type, Props>>]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
 
 // @public
 export const createPresenceStateDerivation: ($user: Signal<{
@@ -171,7 +171,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<{ [P in T.ExtractRequiredKeys<TLBaseShape<Type, Props>>]: TLBaseShape<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseShape<Type, Props>>]?: TLBaseShape<Type, Props>[P_1] | undefined; }>;
+}): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseShape<Type, Props>>]: TLBaseShape<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseShape<Type, Props>>]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, migrations, }?: {
@@ -588,7 +588,7 @@ export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__ty
 export const ImageShapeCrop: T.ObjectValidator<{
     bottomRight: VecModel;
     topLeft: VecModel;
-} & {}>;
+}>;
 
 // @public (undocumented)
 export const imageShapeMigrations: TLPropsMigrations;
@@ -596,10 +596,12 @@ export const imageShapeMigrations: TLPropsMigrations;
 // @public (undocumented)
 export const imageShapeProps: {
     assetId: T.Validator<TLAssetId | null>;
-    crop: T.Validator<({
+    crop: T.Validator<{
         bottomRight: VecModel;
         topLeft: VecModel;
-    } & {}) | null>;
+    } | null>;
+    flipX: T.Validator<boolean>;
+    flipY: T.Validator<boolean>;
     h: T.Validator<number>;
     playing: T.Validator<boolean>;
     url: T.Validator<string>;
@@ -753,7 +755,7 @@ export const lineShapeProps: {
         index: IndexKey;
         x: number;
         y: number;
-    } & {}>;
+    }>;
     scale: T.Validator<number>;
     size: EnumStyleProp<"l" | "m" | "s" | "xl">;
     spline: EnumStyleProp<"cubic" | "line">;
@@ -839,7 +841,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
     protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
     // (undocumented)
-    readonly defaultValue: Type;
+    defaultValue: Type;
     static define<Type>(uniqueId: string, options: {
         defaultValue: Type;
         type?: T.Validatable<Type>;
@@ -850,6 +852,8 @@ export class StyleProp<Type> implements T.Validatable<Type> {
     }): EnumStyleProp<Values[number]>;
     // (undocumented)
     readonly id: string;
+    // (undocumented)
+    setDefaultValue(value: Type): void;
     // (undocumented)
     readonly type: T.Validatable<Type>;
     // (undocumented)
@@ -914,6 +918,20 @@ export type TLArrowShapeProps = RecordPropsType<typeof arrowShapeProps>;
 export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 
 // @public (undocumented)
+export interface TLAssetContext {
+    // (undocumented)
+    dpr: number;
+    // (undocumented)
+    networkEffectiveType: null | string;
+    // (undocumented)
+    screenScale: number;
+    // (undocumented)
+    shouldResolveToOriginal: boolean;
+    // (undocumented)
+    steppedScreenScale: number;
+}
+
+// @public (undocumented)
 export type TLAssetId = RecordId<TLBaseAsset<any, any>>;
 
 // @public (undocumented)
@@ -930,6 +948,12 @@ export type TLAssetShape = Extract<TLShape, {
         assetId: TLAssetId;
     };
 }>;
+
+// @public
+export interface TLAssetStore {
+    resolve(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
+    upload(asset: TLAsset, file: File): Promise<string>;
+}
 
 // @public (undocumented)
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
@@ -1472,7 +1496,12 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 // @public (undocumented)
 export interface TLStoreProps {
     // (undocumented)
+    assets: TLAssetStore;
+    // (undocumented)
     defaultName: string;
+    // (undocumented)
+    multiplayerStatus: null | Signal<'offline' | 'online'>;
+    onEditorMount: (editor: unknown) => (() => void) | void;
 }
 
 // @public (undocumented)

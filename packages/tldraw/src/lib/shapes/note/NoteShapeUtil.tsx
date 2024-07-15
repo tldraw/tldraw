@@ -36,8 +36,8 @@ import {
 } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
-import { useDefaultColorTheme } from '../../..'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -237,7 +237,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = getBoundsForSVG(shape)

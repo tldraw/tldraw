@@ -44,11 +44,10 @@ async function getSnapshotLink(
 	handleUiEvent: TLUiEventHandler,
 	addToast: TLUiToastsContextType['addToast'],
 	msg: (id: TLUiTranslationKey) => string,
-	parentSlug: string | undefined,
-	persistenceKey: string
+	parentSlug: string | undefined
 ) {
 	handleUiEvent('share-snapshot' as UI_OVERRIDE_TODO_EVENT, { source } as UI_OVERRIDE_TODO_EVENT)
-	const data = await getRoomData(editor, addToast, msg, persistenceKey)
+	const data = await getRoomData(editor, addToast, msg)
 	if (!data) return ''
 
 	const res = await fetch(CREATE_SNAPSHOT_ENDPOINT, {
@@ -93,7 +92,7 @@ export async function getNewRoomResponse(snapshot: Snapshot) {
 	})
 }
 
-export function useSharing(persistenceKey?: string): TLUiOverrides {
+export function useSharing(): TLUiOverrides {
 	const navigate = useNavigate()
 	const params = useParams()
 	const roomId = params.roomId
@@ -129,7 +128,7 @@ export function useSharing(persistenceKey?: string): TLUiOverrides {
 							})
 
 							handleUiEvent('share-project', { source })
-							const data = await getRoomData(editor, addToast, msg, persistenceKey || '')
+							const data = await getRoomData(editor, addToast, msg)
 							if (!data) return
 
 							const res = await getNewRoomResponse({
@@ -155,7 +154,7 @@ export function useSharing(persistenceKey?: string): TLUiOverrides {
 							if (runningInIFrame) {
 								window.open(`${origin}${pathname}`)
 							} else {
-								navigate(pathname)
+								navigate(pathname, { state: { shouldOpenShareMenu: true } })
 							}
 						} catch (error) {
 							console.error(error)
@@ -172,15 +171,7 @@ export function useSharing(persistenceKey?: string): TLUiOverrides {
 					label: 'share-menu.create-snapshot-link',
 					readonlyOk: true,
 					onSelect: async (source) => {
-						const result = getSnapshotLink(
-							source,
-							editor,
-							handleUiEvent,
-							addToast,
-							msg,
-							roomId,
-							persistenceKey || ''
-						)
+						const result = getSnapshotLink(source, editor, handleUiEvent, addToast, msg, roomId)
 						if (navigator?.clipboard?.write) {
 							await navigator.clipboard.write([
 								new ClipboardItem({
@@ -206,15 +197,14 @@ export function useSharing(persistenceKey?: string): TLUiOverrides {
 				return actions
 			},
 		}),
-		[handleUiEvent, navigate, roomId, runningInIFrame, persistenceKey]
+		[handleUiEvent, navigate, roomId, runningInIFrame]
 	)
 }
 
 async function getRoomData(
 	editor: Editor,
 	addToast: TLUiToastsContextType['addToast'],
-	msg: (id: TLUiTranslationKey) => string,
-	persistenceKey: string
+	msg: (id: TLUiTranslationKey) => string
 ) {
 	const rawData = editor.store.serialize()
 
@@ -250,7 +240,7 @@ async function getRoomData(
 			// processed it
 			if (!asset) continue
 
-			data[asset.id] = await cloneAssetForShare(asset, persistenceKey)
+			data[asset.id] = await cloneAssetForShare(editor, asset)
 			// remove the asset after processing so we don't clone it multiple times
 			assets.delete(asset.id)
 		}

@@ -11,16 +11,22 @@
 			"path": "../../packages/dotcom-shared"
 		},
 		{
+			"path": "../../packages/worker-shared"
+		},
+		{
 			"path": "../../packages/store"
 		},
 		{
 			"path": "../../packages/tlschema"
 		},
 		{
-			"path": "../../packages/tlsync"
+			"path": "../../packages/sync-core"
 		},
 		{
 			"path": "../../packages/utils"
+		},
+		{
+			"path": "../../packages/validate"
 		}
 	]
 }

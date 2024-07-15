@@ -18,6 +18,7 @@ export * from '@tldraw/validate'
 
 export {
 	EMPTY_ARRAY,
+	EffectScheduler,
 	atom,
 	computed,
 	react,
@@ -27,6 +28,7 @@ export {
 	useComputed,
 	useQuickReactor,
 	useReactor,
+	useStateTracking,
 	useValue,
 	whyAmIRunning,
 	type Atom,
@@ -36,6 +38,7 @@ export {
 	ErrorScreen,
 	LoadingScreen,
 	TldrawEditor,
+	useOnMount,
 	type LoadingScreenProps,
 	type TLOnMountHandler,
 	type TldrawEditorBaseProps,
@@ -96,6 +99,7 @@ export {
 	type TLShapeIndicatorProps,
 } from './lib/components/default-components/DefaultShapeIndicator'
 export { type TLShapeIndicatorErrorFallbackComponent } from './lib/components/default-components/DefaultShapeIndicatorErrorFallback'
+export { DefaultShapeIndicators } from './lib/components/default-components/DefaultShapeIndicators'
 export {
 	DefaultSnapIndicator,
 	type TLSnapIndicatorProps,
@@ -245,10 +249,8 @@ export {
 	type TLHistoryMark,
 } from './lib/editor/types/history-types'
 export {
-	type AssetContextProps,
 	type OptionalKeys,
 	type RequiredKeys,
-	type TLAssetOptions,
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
@@ -257,7 +259,7 @@ export {
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { EditorContext, useEditor } from './lib/hooks/useEditor'
+export { useEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useEvent } from './lib/hooks/useEvent'
@@ -268,6 +270,7 @@ export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
+export { useRefState } from './lib/hooks/useRefState'
 export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
@@ -351,7 +354,7 @@ export {
 	SharedStyleMap,
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
-export { dataUrlToFile } from './lib/utils/assets'
+export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export {
 	debugFlags,
 	featureFlags,

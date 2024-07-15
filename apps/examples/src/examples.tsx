@@ -11,7 +11,8 @@ export interface Example {
 	priority: number
 	componentFile: string
 	keywords: string[]
-	loadComponent: () => Promise<ComponentType>
+	multiplayer: boolean
+	loadComponent: () => Promise<ComponentType<{ roomId?: string }>>
 }
 
 type Category =

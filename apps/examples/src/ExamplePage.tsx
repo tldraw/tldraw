@@ -228,12 +228,13 @@ function Dialogs() {
 
 function SocialIcon({ icon }: { icon: string }) {
 	return (
-		<img
+		<div
 			className="example__sidebar__icon"
-			src={`/icons/${icon}.svg`}
 			style={{
 				mask: `url(/icons/${icon}.svg) center 100% / 100% no-repeat`,
 				WebkitMask: `url(/icons/${icon}.svg) center 100% / 100% no-repeat`,
+				width: 16,
+				height: 16,
 			}}
 		/>
 	)

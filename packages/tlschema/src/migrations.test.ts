@@ -1974,6 +1974,18 @@ describe('Add scale to line shape', () => {
 	})
 })
 
+describe('Add flipX, flipY to image shape', () => {
+	const { up, down } = getTestMigration(imageShapeVersions.AddFlipProps)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { flipX: false, flipY: false } })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { flipX: false, flipY: false } })).toEqual({ props: {} })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once

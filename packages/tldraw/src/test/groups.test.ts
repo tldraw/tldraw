@@ -938,13 +938,15 @@ describe('the select tool', () => {
 		editor
 			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
 			.pointerUp(0, 0, { button: 2 })
-		expect(onlySelectedId()).toBe(groupAId)
+		expect(onlySelectedId()).toBe(groupCId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
+		editor.select(groupAId)
 		expect(editor.getFocusedGroupId()).toBe(groupCId)
 		editor
 			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
 			.pointerUp(0, 0, { button: 2 })
-		expect(onlySelectedId()).toBe(ids.boxA)
-		expect(editor.getFocusedGroupId()).toBe(groupAId)
+		expect(onlySelectedId()).toBe(groupAId)
+		expect(editor.getFocusedGroupId()).toBe(groupCId)
 	})
 
 	it('should allow to shift-select other shapes outside of the current focus layer', () => {

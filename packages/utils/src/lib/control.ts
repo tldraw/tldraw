@@ -41,7 +41,7 @@ export const assert: (value: unknown, message?: string) => asserts value = omitF
 
 /** @internal */
 export const assertExists = omitFromStackTrace(<T>(value: T, message?: string): NonNullable<T> => {
-	// note that value == null is equivilent to value === null || value === undefined
+	// note that value == null is equivalent to value === null || value === undefined
 	if (value == null) {
 		throw new Error(message ?? 'value must be defined')
 	}

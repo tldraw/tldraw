@@ -8,6 +8,7 @@ import {
 	setDefaultUiAssetUrls,
 } from 'tldraw'
 import { ExamplePage } from './ExamplePage'
+import { ExampleWrapper } from './ExampleWrapper'
 import { examples } from './examples'
 import Develop from './misc/develop'
 import EndToEnd from './misc/end-to-end'
@@ -20,7 +21,7 @@ setDefaultEditorAssetUrls(assetUrls)
 // eslint-disable-next-line local/no-at-internal
 setDefaultUiAssetUrls(assetUrls)
 const gettingStartedExamples = examples.find((e) => e.id === 'Getting started')
-if (!gettingStartedExamples) throw new Error('Could not find getting started exmaples')
+if (!gettingStartedExamples) throw new Error('Could not find getting started examples')
 const basicExample = gettingStartedExamples.value.find((e) => e.title === 'Tldraw component')
 if (!basicExample) throw new Error('Could not find initial example')
 
@@ -36,7 +37,7 @@ const router = createBrowserRouter([
 			return {
 				element: (
 					<ExamplePage example={basicExample}>
-						<Component />
+						<ExampleWrapper example={basicExample} component={Component} />
 					</ExamplePage>
 				),
 			}
@@ -59,7 +60,7 @@ const router = createBrowserRouter([
 					return {
 						element: (
 							<ExamplePage example={example}>
-								<Component />
+								<ExampleWrapper example={example} component={Component} />
 							</ExamplePage>
 						),
 					}
@@ -70,7 +71,7 @@ const router = createBrowserRouter([
 				lazy: async () => {
 					const Component = await example.loadComponent()
 					return {
-						element: <Component />,
+						element: <ExampleWrapper example={example} component={Component} />,
 					}
 				},
 			},

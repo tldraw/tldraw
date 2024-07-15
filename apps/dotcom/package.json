@@ -24,7 +24,8 @@
 		"@sentry/react": "^7.77.0",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
-		"@tldraw/tlsync": "workspace:*",
+		"@tldraw/sync": "workspace:*",
+		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"browser-fs-access": "^0.35.0",
@@ -54,7 +55,6 @@
 		"ws": "^8.16.0"
 	},
 	"jest": {
-		"resolver": "<rootDir>/jestResolver.js",
 		"preset": "config/jest/node",
 		"roots": [
 			"<rootDir>"

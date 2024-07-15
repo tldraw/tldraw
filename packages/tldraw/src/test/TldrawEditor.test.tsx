@@ -226,6 +226,24 @@ describe('<TldrawEditor />', () => {
 		// but strict mode will cause onMount to be called twice
 		expect(onMount).toHaveBeenCalledTimes(2)
 	})
+
+	it('allows updating camera options without re-creating the editor', async () => {
+		const editors: Editor[] = []
+		const onMount = jest.fn((editor: Editor) => {
+			if (!editors.includes(editor)) editors.push(editor)
+		})
+
+		const renderer = await renderTldrawComponent(<TldrawEditor onMount={onMount} />, {
+			waitForPatterns: false,
+		})
+
+		expect(editors.length).toBe(1)
+		expect(editors[0].getCameraOptions().isLocked).toBe(false)
+
+		renderer.rerender(<TldrawEditor onMount={onMount} cameraOptions={{ isLocked: true }} />)
+		expect(editors.length).toBe(1)
+		expect(editors[0].getCameraOptions().isLocked).toBe(true)
+	})
 })
 
 describe('Custom shapes', () => {

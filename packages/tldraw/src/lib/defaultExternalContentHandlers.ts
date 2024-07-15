@@ -1,7 +1,6 @@
 import {
 	AssetRecordType,
 	Editor,
-	FileHelpers,
 	MediaHelpers,
 	ReferenceCounterWithFixedTimeout,
 	TLAsset,
@@ -16,14 +15,12 @@ import {
 	TLVideoAsset,
 	Vec,
 	VecLike,
-	WeakCache,
 	assert,
 	createShapeId,
 	fetch,
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
-import { getAssetFromIndexedDb, storeAssetInIndexedDb } from './AssetBlobStore'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -63,15 +60,27 @@ export function registerDefaultExternalContentHandlers(
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 	}: Required<TLExternalContentProps>,
-	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
-	persistenceKey?: string
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file }) => {
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
+		if (!isImageType && !isVideoType) {
+			toasts.addToast({
+				title: msg('assets.files.type-not-allowed'),
+				severity: 'error',
+			})
+		}
 		assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
+
+		if (file.size > maxAssetSize) {
+			toasts.addToast({
+				title: msg('assets.files.size-too-big'),
+				severity: 'error',
+			})
+		}
 		assert(
 			file.size <= maxAssetSize,
 			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
@@ -90,16 +99,7 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		if (persistenceKey) {
-			assetInfo.props.src = assetInfo.id
-			await storeAssetInIndexedDb({
-				persistenceKey,
-				assetId: assetInfo.id,
-				blob: file,
-			})
-		} else {
-			assetInfo.props.src = await FileHelpers.blobToDataUrl(file)
-		}
+		assetInfo.props.src = await editor.uploadAsset(assetInfo, file)
 
 		return AssetRecordType.create(assetInfo)
 	})
@@ -235,6 +235,11 @@ export function registerDefaultExternalContentHandlers(
 		}[] = []
 		for (const file of files) {
 			if (file.size > maxAssetSize) {
+				toasts.addToast({
+					title: msg('assets.files.size-too-big'),
+					severity: 'error',
+				})
+
 				console.warn(
 					`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
 						maxAssetSize / 1024
@@ -257,6 +262,11 @@ export function registerDefaultExternalContentHandlers(
 
 			// We can only accept certain extensions (either images or a videos)
 			if (!acceptedImageMimeTypes.concat(acceptedVideoMimeTypes).includes(file.type)) {
+				toasts.addToast({
+					title: msg('assets.files.type-not-allowed'),
+					severity: 'error',
+				})
+
 				console.warn(`${file.name} not loaded - Extension not allowed.`)
 				continue
 			}
@@ -615,37 +625,4 @@ export function createEmptyBookmarkShape(
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
-}
-
-const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
-export const defaultResolveAsset =
-	(persistenceKey?: string) => async (asset: TLAsset | null | undefined) => {
-		if (!asset || !asset.props.src) return null
-
-		// Retrieve a local image from the DB.
-		if (persistenceKey && asset.props.src.startsWith('asset:')) {
-			return await objectURLCache.get(
-				asset,
-				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
-			)
-		}
-
-		// We don't deal with videos at the moment.
-		if (asset.type === 'video') return asset.props.src
-
-		// Assert it's an image to make TS happy.
-		if (asset.type !== 'image') return null
-
-		return asset.props.src
-	}
-
-async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
-	const blob = await getAssetFromIndexedDb({
-		assetId: assetId,
-		persistenceKey,
-	})
-	if (blob) {
-		return URL.createObjectURL(blob)
-	}
-	return null
 }

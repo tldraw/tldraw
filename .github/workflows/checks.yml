@@ -47,8 +47,13 @@ jobs:
       - name: Check scripts
         run: yarn check-scripts
 
+      - name: Check bundle sizes
+        run: yarn lazy check-bundle-size
+
       - name: Check PR template
         run: yarn update-pr-template --check
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Lint
         run: yarn lint
