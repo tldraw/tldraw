@@ -1,28 +1,24 @@
 import watermarkDesktop from '../../../../assets/watermarks/watermark-desktop.svg'
-import watermarkMobile from '../../../../assets/watermarks/watermark-mobile.svg'
-import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
 import { getDefaultCdnBaseUrl } from '../../utils/assets'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
 
-export const WATERMARK_DESKTOP_FILENAME = 'watermark-desktop.svg'
-export const WATERMARK_MOBILE_FILENAME = 'watermark-mobile.svg'
-export const WATERMARKS_FOLDER = 'watermarks'
+export const WATERMARK_DESKTOP_PATH = 'watermarks/watermark-desktop.svg'
 
 export class WatermarkManager {
 	constructor(private editor: Editor) {}
 
-	private forceLocal = false
+	private _debugForceLocal = false
 
 	private setWatermarkSrc(watermark: HTMLImageElement) {
-		const isMobile = window.innerWidth < 840 /* PORTRAIT_BREAKPOINTS[TABLET] */
+		const isMobile = window.innerWidth < 840
 
 		const width = isMobile ? '32px' : '120px'
 		let src = ''
-		if (navigator.onLine && !this.forceLocal) {
-			src = `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${isMobile ? WATERMARK_MOBILE_FILENAME : WATERMARK_DESKTOP_FILENAME}`
+		if (navigator.onLine && !this._debugForceLocal) {
+			src = `${getDefaultCdnBaseUrl()}/${WATERMARK_DESKTOP_PATH}`
 		} else {
-			src = isMobile ? watermarkMobile : watermarkDesktop
+			src = watermarkDesktop
 		}
 
 		if (src !== watermark.src) {
@@ -31,25 +27,28 @@ export class WatermarkManager {
 		}
 	}
 
-	private createWatermark(doReplace = false) {
+	private createWatermark(opts: { doReplace?: boolean } = {}) {
+		const { doReplace = false } = opts
+
 		let watermark = this.findWatermark()
 
-		if (watermark && !doReplace) return watermark
-
-		if (!watermark) {
-			watermark = document.createElement('img')
+		if (watermark) {
+			if (doReplace) {
+				watermark.remove()
+			} else {
+				return watermark
+			}
 		}
 
+		watermark = document.createElement('img')
 		this.applyStyles(watermark)
-
 		const canvas = this.getWatermarkParent()
 		if (canvas) canvas.appendChild(watermark)
-
 		return watermark
 	}
 
 	private getWatermarkParent() {
-		return document.getElementsByClassName(TL_CONTAINER_CLASS)[0] as HTMLElement
+		return this.editor.getContainer()
 	}
 
 	private shouldShowWatermark(license: LicenseFromKeyResult) {
@@ -73,33 +72,36 @@ export class WatermarkManager {
 
 		return children.find(
 			(element) =>
-				element instanceof HTMLImageElement &&
-				(element.src.includes(WATERMARK_DESKTOP_FILENAME) ||
-					element.src.includes(WATERMARK_MOBILE_FILENAME))
+				element instanceof HTMLImageElement && element.src.includes(WATERMARK_DESKTOP_PATH)
 		) as HTMLImageElement
 	}
 
-	checkWatermark(license: LicenseFromKeyResult) {
-		if (!this.shouldShowWatermark(license)) return false
-
+	showWatermark() {
 		this.createWatermark()
 
-		const resizeListener = () => {
+		window.addEventListener('resize', () => {
 			// We need to replace the watermark to ensure the correct size is shown.
-			const watermark = this.createWatermark(true /* doReplace */)
+			const watermark = this.createWatermark({ doReplace: true })
 			watermark && this.setWatermarkSrc(watermark)
+		})
+
+		this.editor.timers.setTimeout(
+			() => {
+				// Ensure the watermark is still there.
+				// We check this once for any naughtiness.
+				// Don't be naughty.
+				const watermark = this.createWatermark()
+				this.applyStyles(watermark)
+			},
+			5000 + Math.random() * 1000
+		)
+	}
+
+	checkWatermark(license: LicenseFromKeyResult) {
+		if (!this.shouldShowWatermark(license)) {
+			return false
 		}
-		window.addEventListener('resize', resizeListener)
-
-		this.editor.timers.setTimeout(() => {
-			// Ensure the watermark is still there.
-			// We check this once for any naughtiness.
-			// Don't be naughty.
-			const watermark = this.createWatermark()
-
-			this.applyStyles(watermark)
-		}, 5000)
-
+		this.showWatermark()
 		return true
 	}
 
@@ -107,6 +109,8 @@ export class WatermarkManager {
 		watermark.style.setProperty('position', 'absolute', 'important')
 		watermark.style.setProperty('bottom', '8px', 'important')
 		watermark.style.setProperty('right', '8px', 'important')
+		watermark.style.setProperty('height', '32px', 'important')
+		watermark.style.setProperty('width', '96px', 'important')
 		watermark.style.setProperty('opacity', '1', 'important')
 		watermark.style.setProperty('z-index', '2147483647' /* max */, 'important')
 		watermark.style.setProperty('pointer-events', 'all', 'important')
@@ -115,7 +119,7 @@ export class WatermarkManager {
 		watermark.onerror = () => {
 			// In case we're online but it's blocking this specific request,
 			// we still fallback to the local watermark.
-			this.forceLocal = true
+			this._debugForceLocal = true
 			this.setWatermarkSrc(watermark)
 			watermark.onerror = null
 		}

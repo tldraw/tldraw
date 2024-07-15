@@ -704,14 +704,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const checkLicenseKey = async (licenseKey: string | undefined) => {
 			if (!featureFlags.enableLicensing.get()) return
-
 			const licenseManager = new LicenseManager()
 			const watermarkManager = new WatermarkManager(this)
 			const license = await licenseManager.getLicenseFromKey(licenseKey)
 			watermarkManager.checkWatermark(license)
 		}
-		checkLicenseKey(licenseKey)
 
+		checkLicenseKey(licenseKey)
 		this.performanceTracker = new PerformanceTracker()
 	}
 
