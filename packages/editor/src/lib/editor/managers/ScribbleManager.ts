@@ -87,7 +87,7 @@ export class ScribbleManager {
 	 */
 	tick = (elapsed: number) => {
 		if (this.scribbleItems.size === 0) return
-		this.editor.batch(() => {
+		this.editor.run(() => {
 			this.scribbleItems.forEach((item) => {
 				// let the item get at least eight points before
 				//  switching from starting to active

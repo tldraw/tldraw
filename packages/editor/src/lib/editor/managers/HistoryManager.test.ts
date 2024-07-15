@@ -56,7 +56,7 @@ function createCounterHistoryManager() {
 	}
 
 	const setName = (name = 'David') => {
-		manager.ignore(() => _setName(name))
+		manager.batch(() => _setName(name), { history: 'ignore' })
 	}
 
 	const setAge = (age = 35) => {
