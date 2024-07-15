@@ -342,7 +342,7 @@ export type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export class ReferenceCounterWithFixedTimeout<out T> {
     constructor(value: T, dispose: () => void, timeout?: number);
     // (undocumented)

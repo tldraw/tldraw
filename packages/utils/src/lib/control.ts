@@ -65,7 +65,7 @@ export function promiseWithResolve<T>(): Promise<T> & {
 	})
 }
 
-/** @internal */
+/** @public */
 export class ReferenceCounterWithFixedTimeout<out T> {
 	private count = 0
 	private disposeTimeout: NodeJS.Timeout | undefined
