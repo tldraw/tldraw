@@ -2,17 +2,11 @@ import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 
-const DIR = './.rooms'
-
-interface RoomState {
-	room: TLSocketRoom<any, void>
-	id: string
-	needsPersist: boolean
-}
-const rooms = new Map<string, RoomState>()
 // eslint-disable-next-line no-console
 const log = console.log
 
+// For this example we're just saving data to the local filesystem
+const DIR = './.rooms'
 async function readSnapshotIfExists(roomId: string) {
 	try {
 		const data = await readFile(join(DIR, roomId))
@@ -26,44 +20,63 @@ async function saveSnapshot(roomId: string, snapshot: RoomSnapshot) {
 	await writeFile(join(DIR, roomId), JSON.stringify(snapshot))
 }
 
-let roomsMutex = Promise.resolve()
+// We'll keep an in-memory map of rooms and their data
+interface RoomState {
+	room: TLSocketRoom<any, void>
+	id: string
+	needsPersist: boolean
+}
+const rooms = new Map<string, RoomState>()
+
+// Very simple mutex using promise chaining, to avoid race conditions
+// when loading rooms. In production you probably want one mutex per room
+// to avoid unnecessary blocking!
+let mutex = Promise.resolve<null | Error>(null)
 
 export async function makeOrLoadRoom(roomId: string) {
-	roomsMutex = roomsMutex.then(async () => {
-		if (rooms.has(roomId)) {
-			const roomState = await rooms.get(roomId)!
-			if (!roomState.room.isClosed()) {
-				return
+	mutex = mutex
+		.then(async () => {
+			if (rooms.has(roomId)) {
+				const roomState = await rooms.get(roomId)!
+				if (!roomState.room.isClosed()) {
+					return null // all good
+				}
 			}
-		}
-		log('loading room', roomId)
-		const initialSnapshot = await readSnapshotIfExists(roomId)
+			log('loading room', roomId)
+			const initialSnapshot = await readSnapshotIfExists(roomId)
 
-		const roomState: RoomState = {
-			needsPersist: false,
-			id: roomId,
-			room: new TLSocketRoom({
-				initialSnapshot,
-				onSessionRemoved(room, args) {
-					log('client disconnected', args.sessionKey, roomId)
-					if (args.numSessionsRemaining === 0) {
-						log('closing room', roomId)
-						room.close()
-					}
-				},
-				onDataChange() {
-					roomState.needsPersist = true
-				},
-			}),
-		}
-		rooms.set(roomId, roomState)
-	})
+			const roomState: RoomState = {
+				needsPersist: false,
+				id: roomId,
+				room: new TLSocketRoom({
+					initialSnapshot,
+					onSessionRemoved(room, args) {
+						log('client disconnected', args.sessionKey, roomId)
+						if (args.numSessionsRemaining === 0) {
+							log('closing room', roomId)
+							room.close()
+						}
+					},
+					onDataChange() {
+						roomState.needsPersist = true
+					},
+				}),
+			}
+			rooms.set(roomId, roomState)
+			return null // all good
+		})
+		.catch((error) => {
+			// return errors as normal values to avoid stopping the mutex chain
+			return error
+		})
 
-	await roomsMutex
+	const err = await mutex
+	if (err) throw err
 	return rooms.get(roomId)!.room
 }
 
-// do persistence on a regular interval
+// Do persistence on a regular interval.
+// In production you probably want a smarter system with throttling.
 setInterval(() => {
 	for (const roomState of rooms.values()) {
 		if (roomState.needsPersist) {
