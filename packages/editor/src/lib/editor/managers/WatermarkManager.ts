@@ -1,5 +1,4 @@
 import watermarkDesktop from '../../../../assets/watermarks/watermark-desktop.svg'
-import { getDefaultCdnBaseUrl } from '../../utils/assets'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
 
@@ -11,18 +10,8 @@ export class WatermarkManager {
 	private _debugForceLocal = false
 
 	private setWatermarkSrc(watermark: HTMLImageElement) {
-		const isMobile = window.innerWidth < 840
-
-		const width = isMobile ? '32px' : '120px'
-		let src = ''
-		if (navigator.onLine && !this._debugForceLocal) {
-			src = `${getDefaultCdnBaseUrl()}/${WATERMARK_DESKTOP_PATH}`
-		} else {
-			src = watermarkDesktop
-		}
-
+		const src = watermarkDesktop
 		if (src !== watermark.src) {
-			watermark.style.width = width
 			watermark.src = src
 		}
 	}
@@ -48,7 +37,7 @@ export class WatermarkManager {
 	}
 
 	private getWatermarkParent() {
-		return this.editor.getContainer()
+		return this.editor.getContainer().querySelector('.tl-canvas')
 	}
 
 	private shouldShowWatermark(license: LicenseFromKeyResult) {
