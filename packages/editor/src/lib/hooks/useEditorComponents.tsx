@@ -39,6 +39,7 @@ import {
 	DefaultShapeIndicatorErrorFallback,
 	TLShapeIndicatorErrorFallbackComponent,
 } from '../components/default-components/DefaultShapeIndicatorErrorFallback'
+import { DefaultShapeIndicators } from '../components/default-components/DefaultShapeIndicators'
 import {
 	DefaultSnapIndicator,
 	TLSnapIndicatorProps,
@@ -53,6 +54,7 @@ export interface TLEditorComponents {
 	SvgDefs?: ComponentType | null
 	Brush?: ComponentType<TLBrushProps> | null
 	ZoomBrush?: ComponentType<TLBrushProps> | null
+	ShapeIndicators?: ComponentType | null
 	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
 	Cursor?: ComponentType<TLCursorProps> | null
 	Canvas?: ComponentType<TLCanvasComponentProps> | null
@@ -114,6 +116,7 @@ export function EditorComponentsProvider({
 			Spinner: DefaultSpinner,
 			SelectionBackground: DefaultSelectionBackground,
 			SelectionForeground: DefaultSelectionForeground,
+			ShapeIndicators: DefaultShapeIndicators,
 			ShapeIndicator: DefaultShapeIndicator,
 			OnTheCanvas: null,
 			InFrontOfTheCanvas: null,

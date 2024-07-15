@@ -1,7 +1,7 @@
 import { ROOM_PREFIX, RoomOpenMode } from '@tldraw/dotcom-shared'
+import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { Environment } from '../types'
-import { fourOhFour } from '../utils/fourOhFour'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 import { getSlug } from '../utils/roomOpenMode'
 
@@ -11,7 +11,7 @@ export async function joinExistingRoom(
 	roomOpenMode: RoomOpenMode
 ): Promise<Response> {
 	const roomId = await getSlug(env, request.params.roomId, roomOpenMode)
-	if (!roomId) return fourOhFour()
+	if (!roomId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
 	// This needs to be a websocket request!
@@ -21,5 +21,5 @@ export async function joinExistingRoom(
 		return env.TLDR_DOC.get(id).fetch(request)
 	}
 
-	return fourOhFour()
+	return notFound()
 }

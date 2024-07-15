@@ -112,7 +112,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
-		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 
 		const bounds = this.editor.getShapeGeometry(shape).bounds

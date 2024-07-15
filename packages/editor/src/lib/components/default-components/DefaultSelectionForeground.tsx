@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import classNames from 'classnames'
 import { useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'

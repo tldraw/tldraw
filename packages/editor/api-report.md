@@ -12,6 +12,8 @@ import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
+import { Dispatch } from 'react';
+import { EffectScheduler } from '@tldraw/state';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
@@ -33,6 +35,7 @@ import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
+import { SetStateAction } from 'react';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
@@ -43,6 +46,7 @@ import { Timers } from '@tldraw/utils';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
+import { TLAssetStore } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBinding } from '@tldraw/tlschema';
 import { TLBindingCreate } from '@tldraw/tlschema';
@@ -75,14 +79,15 @@ import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLUnknownBinding } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
-import { track } from '@tldraw/state';
+import { track } from '@tldraw/state-react';
 import { transact } from '@tldraw/state';
 import { transaction } from '@tldraw/state';
 import { UnknownRecord } from '@tldraw/store';
-import { useComputed } from '@tldraw/state';
-import { useQuickReactor } from '@tldraw/state';
-import { useReactor } from '@tldraw/state';
-import { useValue } from '@tldraw/state';
+import { useComputed } from '@tldraw/state-react';
+import { useQuickReactor } from '@tldraw/state-react';
+import { useReactor } from '@tldraw/state-react';
+import { useStateTracking } from '@tldraw/state-react';
+import { useValue } from '@tldraw/state-react';
 import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
@@ -141,20 +146,6 @@ export class Arc2d extends Geometry2d {
 
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
-
-// @public (undocumented)
-export interface AssetContextProps {
-    // (undocumented)
-    dpr: number;
-    // (undocumented)
-    networkEffectiveType: null | string;
-    // (undocumented)
-    screenScale: number;
-    // (undocumented)
-    shouldResolveToOriginalImage?: boolean;
-    // (undocumented)
-    steppedScreenScale: number;
-}
 
 export { Atom }
 
@@ -498,7 +489,7 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, onEditorMount, multiplayerStatus, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -654,6 +645,9 @@ export function DefaultSelectionForeground({ bounds, rotation }: TLSelectionFore
 export const DefaultShapeIndicator: NamedExoticComponent<TLShapeIndicatorProps>;
 
 // @public (undocumented)
+export const DefaultShapeIndicators: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export function DefaultSnapIndicator({ className, line, zoom }: TLSnapIndicatorProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -717,6 +711,7 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     edgeScrollSpeed: 1;
     isDynamicSizeMode: false;
+    isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
@@ -789,7 +784,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, assetOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, licenseKey, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
@@ -1152,7 +1147,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
         screenScale?: number;
-        shouldResolveToOriginalImage?: boolean;
+        shouldResolveToOriginal?: boolean;
     }): Promise<null | string>;
     readonly root: StateNode;
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
@@ -1223,6 +1218,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
+    uploadAsset(asset: TLAsset, file: File): Promise<string>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -1235,6 +1231,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToSelection(opts?: TLCameraMoveOptions): this;
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
+
+export { EffectScheduler }
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
@@ -1398,6 +1396,9 @@ export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcF
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
+
+// @public (undocumented)
+export function getDefaultCdnBaseUrl(): string;
 
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
@@ -1771,7 +1772,7 @@ export function openWindow(url: string, target?: string): void;
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: TLErrorFallbackComponent;
-}): JSX_2.Element;
+}): boolean | JSX_2.Element | Iterable<React_3.ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -1921,10 +1922,10 @@ export function releasePointerCapture(element: Element, event: PointerEvent | Re
 export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
 
 // @public (undocumented)
-export function resizeBox(shape: TLBaseBoxShape, info: {
+export function resizeBox<T extends TLBaseBoxShape>(shape: T, info: {
     handle: TLResizeHandle;
     initialBounds: Box;
-    initialShape: TLBaseBoxShape;
+    initialShape: T;
     mode: TLResizeMode;
     newPoint: VecModel;
     scaleX: number;
@@ -1934,14 +1935,7 @@ export function resizeBox(shape: TLBaseBoxShape, info: {
     maxWidth: number;
     minHeight: number;
     minWidth: number;
-}>): {
-    props: {
-        h: number;
-        w: number;
-    };
-    x: number;
-    y: number;
-};
+}>): T;
 
 // @public (undocumented)
 export type ResizeBoxOptions = Partial<{
@@ -2339,12 +2333,6 @@ export type TLAnyBindingUtilConstructor = TLBindingUtilConstructor<any>;
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
-export interface TLAssetOptions {
-    // (undocumented)
-    onResolveAsset: (asset: null | TLAsset | undefined, ctx: AssetContextProps) => Promise<null | string>;
-}
-
-// @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
     h: number;
     w: number;
@@ -2516,8 +2504,6 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
-    // @internal
-    assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
@@ -2526,6 +2512,7 @@ export interface TldrawEditorBaseProps {
     components?: TLEditorComponents;
     inferDarkMode?: boolean;
     initialState?: string;
+    licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
@@ -2668,6 +2655,8 @@ export interface TLEditorComponents {
     // (undocumented)
     ShapeIndicatorErrorFallback?: TLShapeIndicatorErrorFallbackComponent;
     // (undocumented)
+    ShapeIndicators?: ComponentType | null;
+    // (undocumented)
     SnapIndicator?: ComponentType<TLSnapIndicatorProps> | null;
     // (undocumented)
     Spinner?: ComponentType | null;
@@ -2679,13 +2668,14 @@ export interface TLEditorComponents {
 
 // @public (undocumented)
 export interface TLEditorOptions {
-    assetOptions?: Partial<TLAssetOptions>;
     autoFocus?: boolean;
     bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[];
     cameraOptions?: Partial<TLCameraOptions>;
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    // (undocumented)
+    licenseKey?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
@@ -3268,8 +3258,11 @@ export interface TLStateNodeConstructor {
 
 // @public (undocumented)
 export interface TLStoreBaseOptions {
+    assets?: Partial<TLAssetStore>;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
+    multiplayerStatus?: null | Signal<'offline' | 'online'>;
+    onEditorMount?: (editor: Editor) => (() => void) | void;
 }
 
 // @public (undocumented)
@@ -3364,6 +3357,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isDynamicSizeMode?: boolean | null;
     // (undocumented)
+    isPasteAtCursorMode?: boolean | null;
+    // (undocumented)
     isSnapMode?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
@@ -3438,11 +3433,14 @@ export function useIsDarkMode(): boolean;
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
-export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
+export function useLocalStore(options: {
     persistenceKey?: string;
     sessionId?: string;
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;
 } & TLStoreOptions): TLStoreWithStatus;
+
+// @internal (undocumented)
+export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @internal (undocumented)
 export function usePeerIds(): string[];
@@ -3456,6 +3454,9 @@ export { useQuickReactor }
 export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
 export { useReactor }
+
+// @internal
+export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>];
 
 // @public (undocumented)
 export class UserPreferencesManager {
@@ -3471,6 +3472,8 @@ export class UserPreferencesManager {
     getIsDarkMode(): boolean;
     // (undocumented)
     getIsDynamicResizeMode(): boolean;
+    // (undocumented)
+    getIsPasteAtCursorMode(): boolean;
     // (undocumented)
     getIsSnapMode(): boolean;
     // (undocumented)
@@ -3513,6 +3516,8 @@ export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends object>(arr: T): T;
+
+export { useStateTracking }
 
 // @public
 export function useSvgExportContext(): {

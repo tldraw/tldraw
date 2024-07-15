@@ -1,5 +1,5 @@
-main = "src/index.ts"
-compatibility_date = "2022-09-22"
+main = "src/worker.ts"
+compatibility_date = "2024-06-20"
 
 [dev]
 port = 8788
@@ -34,7 +34,7 @@ preview_bucket_name = 'uploads-preview'
 binding = 'UPLOADS'
 bucket_name = 'uploads-preview'
 
-[[env.stating.r2_buckets]]
+[[env.staging.r2_buckets]]
 binding = 'UPLOADS'
 bucket_name = 'uploads-preview'
 
@@ -63,3 +63,19 @@ binding = "MEASURE"
 pattern = 'assets.tldraw.xyz'
 custom_domain = true
 zone_name = 'tldraw.xyz'
+
+#################### Version metadata ####################
+[version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.dev.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.preview.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"

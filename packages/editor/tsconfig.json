@@ -4,7 +4,6 @@
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
 		"rootDir": "src",
-		// TODO: enable these two options
 		"noImplicitOverride": false,
 		"noImplicitReturns": false,
 		"types": ["node", "@types/jest"]
@@ -12,6 +11,9 @@
 	"references": [
 		{
 			"path": "../state"
+		},
+		{
+			"path": "../state-react"
 		},
 		{
 			"path": "../store"

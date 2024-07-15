@@ -5,5 +5,10 @@
 	"compilerOptions": {
 		"noEmit": true,
 		"emitDeclarationOnly": false
-	}
+	},
+	"references": [
+		{
+			"path": "../../packages/worker-shared"
+		}
+	]
 }

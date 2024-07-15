@@ -1,14 +1,14 @@
+import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
-import { fourOhFour } from '../utils/fourOhFour'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
 
 // Returns the history of a room as a list of objects with timestamps
 export async function getRoomHistory(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
 
-	if (!roomId) return fourOhFour()
+	if (!roomId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
 	const versionCacheBucket = env.ROOMS_HISTORY_EPHEMERAL

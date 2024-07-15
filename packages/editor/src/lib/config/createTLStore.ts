@@ -1,5 +1,15 @@
+import { Signal } from '@tldraw/state'
 import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
-import { SchemaPropsInfo, TLRecord, TLStore, TLStoreProps, createTLSchema } from '@tldraw/tlschema'
+import {
+	SchemaPropsInfo,
+	TLAssetStore,
+	TLRecord,
+	TLStore,
+	TLStoreProps,
+	createTLSchema,
+} from '@tldraw/tlschema'
+import { FileHelpers, assert } from '@tldraw/utils'
+import { Editor } from '../editor/Editor'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -10,6 +20,15 @@ export interface TLStoreBaseOptions {
 
 	/** The default name for the store. */
 	defaultName?: string
+
+	/** How should this store upload & resolve assets? */
+	assets?: Partial<TLAssetStore>
+
+	/** Called when the store is connected to an {@link Editor}. */
+	onEditorMount?: (editor: Editor) => void | (() => void)
+
+	/** Is this store connected to a multiplayer sync server? */
+	multiplayerStatus?: Signal<'online' | 'offline'> | null
 }
 
 /** @public */
@@ -30,6 +49,12 @@ export type TLStoreOptions = TLStoreBaseOptions &
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
+/** @public */
+export const defaultAssetStore: TLAssetStore = {
+	upload: (_, file) => FileHelpers.blobToDataUrl(file),
+	resolve: (asset) => asset.props.src,
+}
+
 /**
  * A helper for creating a TLStore.
  *
@@ -40,6 +65,9 @@ export function createTLStore({
 	initialData,
 	defaultName = '',
 	id,
+	assets,
+	onEditorMount,
+	multiplayerStatus,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const schema =
@@ -65,6 +93,15 @@ export function createTLStore({
 		initialData,
 		props: {
 			defaultName,
+			assets: {
+				...defaultAssetStore,
+				...assets,
+			},
+			onEditorMount: (editor) => {
+				assert(editor instanceof Editor)
+				onEditorMount?.(editor)
+			},
+			multiplayerStatus: multiplayerStatus ?? null,
 		},
 	})
 }

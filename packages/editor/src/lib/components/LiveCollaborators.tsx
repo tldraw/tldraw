@@ -1,4 +1,4 @@
-import { track } from '@tldraw/state'
+import { track } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useEffect, useRef, useState } from 'react'
 import { Editor } from '../editor/Editor'
@@ -9,13 +9,7 @@ import { usePresence } from '../hooks/usePresence'
 
 export const LiveCollaborators = track(function Collaborators() {
 	const peerIds = usePeerIds()
-	return (
-		<>
-			{peerIds.map((id) => (
-				<CollaboratorGuard key={id} collaboratorId={id} />
-			))}
-		</>
-	)
+	return peerIds.map((id) => <CollaboratorGuard key={id} collaboratorId={id} />)
 })
 
 const CollaboratorGuard = track(function CollaboratorGuard({

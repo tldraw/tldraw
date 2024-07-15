@@ -6,9 +6,16 @@ import {
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { T } from '@tldraw/validate'
-import { createSentry } from '@tldraw/worker-shared'
-import { Router, createCors, json } from 'itty-router'
+import {
+	createRouter,
+	getUrlMetadata,
+	handleApiRequest,
+	notFound,
+	parseRequestQuery,
+	urlMetadataQueryValidator,
+} from '@tldraw/worker-shared'
+import { WorkerEntrypoint } from 'cloudflare:workers'
+import { createCors, json } from 'itty-router'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
@@ -18,15 +25,13 @@ import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
-import { fourOhFour } from './utils/fourOhFour'
-import { unfurl } from './utils/unfurl'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
 const { preflight, corsify } = createCors({
 	origins: Object.assign([], { includes: (origin: string) => isAllowedOrigin(origin) }),
 })
 
-const router = Router()
+const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.post('/new-room', createRoom)
@@ -45,31 +50,20 @@ const router = Router()
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.get('/unfurl', async (req) => {
-		if (typeof req.query.url !== 'string' || !T.httpUrl.isValid(req.query.url)) {
-			return new Response('url query param is required', { status: 400 })
-		}
-		return json(await unfurl(req.query.url))
+		const query = parseRequestQuery(req, urlMetadataQueryValidator)
+		return json(await getUrlMetadata(query))
 	})
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
-	.all('*', fourOhFour)
+	.all('*', notFound)
 
-const Worker = {
-	fetch(request: Request, env: Environment, context: ExecutionContext) {
-		const sentry = createSentry(context, env, request)
-
-		return router
-			.handle(request, env, context)
-			.catch((err) => {
-				console.error(err)
-				// eslint-disable-next-line deprecation/deprecation
-				sentry.captureException(err)
-
-				return new Response('Something went wrong', {
-					status: 500,
-					statusText: 'Internal Server Error',
-				})
-			})
-			.then((response) => {
+export default class Worker extends WorkerEntrypoint<Environment> {
+	override async fetch(request: Request): Promise<Response> {
+		return await handleApiRequest({
+			router,
+			request,
+			env: this.env,
+			ctx: this.ctx,
+			after: (response) => {
 				const setCookies = response.headers.getAll('set-cookie')
 				// unfortunately corsify mishandles the set-cookie header, so
 				// we need to manually add it back in
@@ -84,8 +78,9 @@ const Worker = {
 					newResponse.headers.append('set-cookie', cookie)
 				}
 				return newResponse
-			})
-	},
+			},
+		})
+	}
 }
 
 export function isAllowedOrigin(origin: string) {
@@ -110,7 +105,11 @@ async function blockUnknownOrigins(request: Request, env: Environment) {
 	}
 
 	const origin = request.headers.get('origin')
-	if (env.IS_LOCAL !== 'true' && (!origin || !isAllowedOrigin(origin))) {
+
+	// if there's no origin, this cannot be a cross-origin request, so we allow it.
+	if (!origin) return undefined
+
+	if (env.IS_LOCAL !== 'true' && !isAllowedOrigin(origin)) {
 		console.error('Attempting to connect from an invalid origin:', origin, env, request)
 		return new Response('Not allowed', { status: 403 })
 	}
@@ -118,5 +117,3 @@ async function blockUnknownOrigins(request: Request, env: Environment) {
 	// origin doesn't match, so we can continue
 	return undefined
 }
-
-export default Worker

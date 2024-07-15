@@ -1,4 +1,6 @@
 export {
+	type TLAssetContext,
+	type TLAssetStore,
 	type TLSerializedStore,
 	type TLStore,
 	type TLStoreProps,

@@ -9,21 +9,20 @@ import {
 	ROOM_PREFIX,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { TLRecord } from '@tldraw/tlschema'
 import {
 	RoomSnapshot,
 	TLCloseEventCode,
 	TLSocketRoom,
 	type PersistedRoomSnapshotForSupabase,
-} from '@tldraw/tlsync'
+} from '@tldraw/sync-core'
+import { TLRecord } from '@tldraw/tlschema'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
-import { createSentry } from '@tldraw/worker-shared'
+import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
-import { createPersistQueue } from './utils/createPersistQueue'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
@@ -222,7 +221,7 @@ export class TLDrawDurableObject {
 		} catch (err) {
 			console.error(err)
 			// eslint-disable-next-line deprecation/deprecation
-			sentry.captureException(err)
+			sentry?.captureException(err)
 			return new Response('Something went wrong', {
 				status: 500,
 				statusText: 'Internal Server Error',

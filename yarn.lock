@@ -5997,9 +5997,10 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
-    "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     esbuild: "npm:^0.21.5"
     itty-router: "npm:^4.0.13"
@@ -6085,8 +6086,8 @@ __metadata:
     "@supabase/supabase-js": "npm:^2.33.2"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
-    "@tldraw/tlsync": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
@@ -6109,6 +6110,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^5.16.5"
     "@testing-library/react": "npm:^14.0.0"
     "@tldraw/state": "workspace:*"
+    "@tldraw/state-react": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
@@ -6196,6 +6198,7 @@ __metadata:
     "@types/is-ci": "npm:^3.0.0"
     "@types/minimist": "npm:^1.2.5"
     "@types/node": "npm:~20.11"
+    "@types/proper-lockfile": "npm:^4.1.4"
     "@types/tmp": "npm:^0.2.6"
     "@typescript-eslint/utils": "npm:^5.59.0"
     ast-types: "npm:^0.14.2"
@@ -6210,6 +6213,7 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     minimist: "npm:^1.2.8"
     prettier: "npm:^3.0.3"
+    proper-lockfile: "npm:^4.1.2"
     recast: "npm:^0.22.0"
     rimraf: "npm:^4.4.0"
     semver: "npm:^7.3.8"
@@ -6221,10 +6225,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/state@workspace:*, @tldraw/state@workspace:packages/state":
+"@tldraw/state-react@workspace:*, @tldraw/state-react@workspace:packages/state-react":
   version: 0.0.0-use.local
-  resolution: "@tldraw/state@workspace:packages/state"
+  resolution: "@tldraw/state-react@workspace:packages/state-react"
   dependencies:
+    "@tldraw/state": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@types/react": "npm:^18.2.47"
     "@types/react-test-renderer": "npm:^18.0.0"
@@ -6232,6 +6237,15 @@ __metadata:
     react-test-renderer: "npm:^18.2.0"
   peerDependencies:
     react: ^18
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/state@workspace:*, @tldraw/state@workspace:packages/state":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/state@workspace:packages/state"
+  dependencies:
+    "@types/lodash": "npm:^4.14.188"
+    lodash: "npm:^4.17.21"
   languageName: unknown
   linkType: soft
 
@@ -6249,6 +6263,48 @@ __metadata:
     raf: "npm:^3.4.1"
   peerDependencies:
     react: ^18
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/sync-core@workspace:*, @tldraw/sync-core@workspace:packages/sync-core":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/sync-core@workspace:packages/sync-core"
+  dependencies:
+    "@tldraw/state": "workspace:*"
+    "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    lodash.isequal: "npm:^4.5.0"
+    nanoevents: "npm:^7.0.1"
+    nanoid: "npm:4.0.2"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.3.3"
+    uuid-by-string: "npm:^4.0.0"
+    uuid-readable: "npm:^0.0.2"
+    ws: "npm:^8.16.0"
+  peerDependencies:
+    react: ^18
+    react-dom: ^18
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/sync@workspace:*, @tldraw/sync@workspace:packages/sync":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/sync@workspace:packages/sync"
+  dependencies:
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    lodash.isequal: "npm:^4.5.0"
+    nanoevents: "npm:^7.0.1"
+    nanoid: "npm:4.0.2"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.3.3"
+    uuid-by-string: "npm:^4.0.0"
+    uuid-readable: "npm:^0.0.2"
+    ws: "npm:^8.16.0"
+  peerDependencies:
+    react: ^18
+    react-dom: ^18
   languageName: unknown
   linkType: soft
 
@@ -6278,28 +6334,6 @@ __metadata:
     nanoid: "npm:4.0.2"
   peerDependencies:
     react: ^18
-  languageName: unknown
-  linkType: soft
-
-"@tldraw/tlsync@workspace:*, @tldraw/tlsync@workspace:packages/tlsync":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/tlsync@workspace:packages/tlsync"
-  dependencies:
-    "@tldraw/state": "workspace:*"
-    "@tldraw/store": "workspace:*"
-    "@tldraw/tlschema": "workspace:*"
-    "@tldraw/utils": "workspace:*"
-    lodash.isequal: "npm:^4.5.0"
-    nanoevents: "npm:^7.0.1"
-    nanoid: "npm:4.0.2"
-    tldraw: "workspace:*"
-    typescript: "npm:^5.3.3"
-    uuid-by-string: "npm:^4.0.0"
-    uuid-readable: "npm:^0.0.2"
-    ws: "npm:^8.16.0"
-  peerDependencies:
-    react: ^18
-    react-dom: ^18
   languageName: unknown
   linkType: soft
 
@@ -6355,6 +6389,8 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
+    itty-router: "npm:^4.0.13"
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
     typescript: "npm:^5.3.3"
@@ -6936,6 +6972,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/proper-lockfile@npm:^4.1.4":
+  version: 4.1.4
+  resolution: "@types/proper-lockfile@npm:4.1.4"
+  dependencies:
+    "@types/retry": "npm:*"
+  checksum: b0d1b8e84a563b2c5f869f7ff7542b1d83dec03d1c9d980847cbb189865f44b4a854673cdde59767e41bcb8c31932e613ac43822d358a6f8eede6b79ccfceb1d
+  languageName: node
+  linkType: hard
+
 "@types/qrcode@npm:^1.5.0":
   version: 1.5.5
   resolution: "@types/qrcode@npm:1.5.5"
@@ -7001,6 +7046,13 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 6ac4b35723429b11b117e813c7acc42c3af8b5554caaf1fc750404c1ae59f9b7376bc69b9e9e194a5a97357a597c2228b7173d317320f0360d617b6425212f58
+  languageName: node
+  linkType: hard
+
+"@types/retry@npm:*":
+  version: 0.12.5
+  resolution: "@types/retry@npm:0.12.5"
+  checksum: 3fb6bf91835ca0eb2987567d6977585235a7567f8aeb38b34a8bb7bbee57ac050ed6f04b9998cda29701b8c893f5dfe315869bc54ac17e536c9235637fe351a2
   languageName: node
   linkType: hard
 
@@ -10294,6 +10346,7 @@ __metadata:
   resolution: "dotcom-asset-upload@workspace:apps/dotcom-asset-upload"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
+    "@tldraw/worker-shared": "workspace:*"
     "@types/ws": "npm:^8.5.9"
     itty-cors: "npm:^0.3.4"
     itty-router: "npm:^4.0.13"
@@ -10313,7 +10366,8 @@ __metadata:
     "@sentry/react": "npm:^7.77.0"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
-    "@tldraw/tlsync": "workspace:*"
+    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/qrcode": "npm:^1.5.0"
@@ -11806,6 +11860,8 @@ __metadata:
     "@playwright/test": "npm:^1.38.1"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@tldraw/assets": "workspace:*"
+    "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@vercel/analytics": "npm:^1.1.1"
     "@vitejs/plugin-react-swc": "npm:^3.6.0"
@@ -13603,6 +13659,19 @@ __metadata:
   checksum: 51594355cea4c6ad6b28b3b85eb81afa7b988a1871feefd7062baf136c95aa06760ee934fa9590e43d967bd377ce84a4cf6135fbeb6063e063f1182a0e9a3bcd
   languageName: node
   linkType: hard
+
+"images.tldraw.com@workspace:apps/images.tldraw.xyz":
+  version: 0.0.0-use.local
+  resolution: "images.tldraw.com@workspace:apps/images.tldraw.xyz"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20240620.0"
+    "@tldraw/validate": "workspace:*"
+    "@tldraw/worker-shared": "workspace:*"
+    itty-router: "npm:^4.0.13"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    wrangler: "npm:3.62.0"
+  languageName: unknown
+  linkType: soft
 
 "immediate@npm:~3.0.5":
   version: 3.0.6
@@ -19008,6 +19077,17 @@ __metadata:
     object-assign: "npm:^4.1.1"
     react-is: "npm:^16.13.1"
   checksum: 7d959caec002bc964c86cdc461ec93108b27337dabe6192fb97d69e16a0c799a03462713868b40749bfc1caf5f57ef80ac3e4ffad3effa636ee667582a75e2c0
+  languageName: node
+  linkType: hard
+
+"proper-lockfile@npm:^4.1.2":
+  version: 4.1.2
+  resolution: "proper-lockfile@npm:4.1.2"
+  dependencies:
+    graceful-fs: "npm:^4.2.4"
+    retry: "npm:^0.12.0"
+    signal-exit: "npm:^3.0.2"
+  checksum: 000a4875f543f591872b36ca94531af8a6463ddb0174f41c0b004d19e231d7445268b422ff1ea595e43d238655c702250cd3d27f408e7b9d97b56f1533ba26bf
   languageName: node
   linkType: hard
 

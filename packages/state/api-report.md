@@ -4,9 +4,6 @@
 
 ```ts
 
-import { FunctionComponent } from 'react';
-import { default as React_2 } from 'react';
-
 // @internal
 export class ArraySet<T> {
     add(elem: T): boolean;
@@ -163,9 +160,6 @@ export interface Signal<Value, Diff = unknown> {
 }
 
 // @public
-export function track<T extends FunctionComponent<any>>(baseComponent: T): T extends React_2.MemoExoticComponent<any> ? T : React_2.MemoExoticComponent<T>;
-
-// @public
 export function transact<T>(fn: () => T): T;
 
 // @public
@@ -179,33 +173,6 @@ export type UNINITIALIZED = typeof UNINITIALIZED;
 
 // @public
 export function unsafe__withoutCapture<T>(fn: () => T): T;
-
-// @public
-export function useAtom<Value, Diff = unknown>(
-name: string,
-valueOrInitialiser: (() => Value) | Value,
-options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
-
-// @public
-export function useComputed<Value>(name: string, compute: () => Value, deps: any[]): Computed<Value>;
-
-// @public (undocumented)
-export function useComputed<Value, Diff = unknown>(name: string, compute: () => Value, opts: ComputedOptions<Value, Diff>, deps: any[]): Computed<Value>;
-
-// @public (undocumented)
-export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
-
-// @public (undocumented)
-export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
-
-// @internal (undocumented)
-export function useStateTracking<T>(name: string, render: () => T): T;
-
-// @public
-export function useValue<Value>(value: Signal<Value>): Value;
-
-// @public (undocumented)
-export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value;
 
 // @public
 export function whyAmIRunning(): void;

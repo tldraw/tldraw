@@ -1,9 +1,9 @@
-import { RoomSnapshot } from '@tldraw/tlsync'
+import { RoomSnapshot } from '@tldraw/sync-core'
+import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 import { createSupabaseClient, noSupabaseSorry } from '../utils/createSupabaseClient'
-import { fourOhFour } from '../utils/fourOhFour'
 import { getSnapshotsTable } from '../utils/getSnapshotsTable'
 import { R2Snapshot } from './createRoomSnapshot'
 
@@ -24,7 +24,7 @@ function generateReponse(roomId: string, data: RoomSnapshot) {
 // Returns a snapshot of the room at a given point in time
 export async function getRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
-	if (!roomId) return fourOhFour()
+	if (!roomId) return notFound()
 
 	// Get the parent slug if it exists
 	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
@@ -53,7 +53,7 @@ export async function getRoomSnapshot(request: IRequest, env: Environment): Prom
 		.maybeSingle()
 	const data = result.data?.drawing as RoomSnapshot
 
-	if (!data) return fourOhFour()
+	if (!data) return notFound()
 
 	// Send back the snapshot!
 	return generateReponse(roomId, data)

@@ -22,6 +22,7 @@ export interface TLUserPreferences {
 	isSnapMode?: boolean | null
 	isWrapMode?: boolean | null
 	isDynamicSizeMode?: boolean | null
+	isPasteAtCursorMode?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -46,6 +47,7 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	isSnapMode: T.boolean.nullable().optional(),
 	isWrapMode: T.boolean.nullable().optional(),
 	isDynamicSizeMode: T.boolean.nullable().optional(),
+	isPasteAtCursorMode: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -56,6 +58,7 @@ const Versions = {
 	AddExcalidrawSelectMode: 5,
 	AddDynamicSizeMode: 6,
 	AllowSystemColorScheme: 7,
+	AddPasteAtCursor: 8,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -87,6 +90,9 @@ function migrateSnapshot(data: { version: number; user: any }) {
 
 	if (data.version < Versions.AddDynamicSizeMode) {
 		data.user.isDynamicSizeMode = false
+	}
+	if (data.version < Versions.AddPasteAtCursor) {
+		data.user.isPasteAtCursorMode = false
 	}
 
 	// finally
@@ -131,12 +137,14 @@ export const defaultUserPreferences = Object.freeze({
 	isSnapMode: false,
 	isWrapMode: false,
 	isDynamicSizeMode: false,
+	isPasteAtCursorMode: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */
 export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
+		color: getRandomColor(),
 	}
 }
 
@@ -226,7 +234,7 @@ export function getUserPreferences(): TLUserPreferences {
 	let prefs = globalUserPreferences.get()
 	if (!prefs) {
 		prefs = loadUserPreferences()
-		globalUserPreferences.set(prefs)
+		setUserPreferences(prefs)
 	}
 	return prefs
 }

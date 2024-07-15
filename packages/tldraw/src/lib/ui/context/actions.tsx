@@ -30,6 +30,7 @@ import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { useInsertMedia } from '../hooks/useInsertMedia'
+import { useIsMultiplayer } from '../hooks/useIsMultiplayer'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -84,9 +85,10 @@ function getExportName(editor: Editor, defaultName: string) {
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
+	const isMultiplayer = useIsMultiplayer()
 
 	const { addDialog, clearDialogs } = useDialogs()
-	const { clearToasts } = useToasts()
+	const { clearToasts, addToast } = useToasts()
 	const msg = useTranslation()
 
 	const insertMedia = useInsertMedia()
@@ -944,13 +946,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.paste',
 				kbd: '$v',
 				onSelect(source) {
-					navigator.clipboard?.read().then((clipboardItems) => {
-						paste(
-							clipboardItems,
-							source,
-							source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
-						)
-					})
+					navigator.clipboard
+						?.read()
+						.then((clipboardItems) => {
+							paste(
+								clipboardItems,
+								source,
+								source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
+							)
+						})
+						.catch(() => {
+							addToast({
+								title: msg('action.paste-error-title'),
+								description: msg('action.paste-error-description'),
+								severity: 'error',
+							})
+						})
 				},
 			},
 			{
@@ -1145,6 +1156,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-dynamic-size-mode', { source })
 					editor.user.updateUserPreferences({
 						isDynamicSizeMode: !editor.user.getIsDynamicResizeMode(),
+					})
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-paste-at-cursor',
+				label: {
+					default: 'action.toggle-paste-at-cursor',
+					menu: 'action.toggle-paste-at-cursor.menu',
+				},
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('toggle-paste-at-cursor', { source })
+					editor.user.updateUserPreferences({
+						isPasteAtCursorMode: !editor.user.getIsPasteAtCursorMode(),
 					})
 				},
 				checkbox: true,
@@ -1400,6 +1426,28 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 		]
 
+		if (isMultiplayer) {
+			actionItems.push({
+				id: 'open-cursor-chat',
+				label: 'action.open-cursor-chat',
+				readonlyOk: true,
+				kbd: '/',
+				onSelect(source: any) {
+					trackEvent('open-cursor-chat', { source })
+
+					// Don't open cursor chat if we're on a touch device
+					if (editor.getInstanceState().isCoarsePointer) {
+						return
+					}
+
+					// wait a frame before opening as otherwise the open context menu will close it
+					editor.timers.requestAnimationFrame(() => {
+						editor.updateInstanceState({ isChatting: true })
+					})
+				},
+			})
+		}
+
 		const actions = makeActions(actionItems)
 
 		if (overrides) {
@@ -1412,6 +1460,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		trackEvent,
 		overrides,
 		addDialog,
+		addToast,
 		insertMedia,
 		exportAs,
 		copyAs,
@@ -1423,6 +1472,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		printSelectionOrPages,
 		msg,
 		defaultDocumentName,
+		isMultiplayer,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

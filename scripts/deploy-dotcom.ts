@@ -29,29 +29,31 @@ const dotcom = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dot
 // `env` instead. This makes sure that all required env vars are present.
 const env = makeEnv([
 	'APP_ORIGIN',
+	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
-	'ASSET_BUCKET_ORIGIN',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
 	'DISCORD_HEALTH_WEBHOOK_URL',
-	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
 	'GC_MAPS_API_KEY',
+	'GH_TOKEN',
+	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
+	'IMAGE_WORKER',
+	'MULTIPLAYER_SERVER',
+	'R2_ACCESS_KEY_ID',
+	'R2_ACCESS_KEY_SECRET',
 	'RELEASE_COMMIT_HASH',
 	'SENTRY_AUTH_TOKEN',
-	'SENTRY_DSN',
 	'SENTRY_CSP_REPORT_URI',
+	'SENTRY_DSN',
 	'SUPABASE_LITE_ANON_KEY',
 	'SUPABASE_LITE_URL',
 	'TLDRAW_ENV',
-	'VERCEL_PROJECT_ID',
+	'TLDRAW_LICENSE',
 	'VERCEL_ORG_ID',
+	'VERCEL_PROJECT_ID',
 	'VERCEL_TOKEN',
 	'WORKER_SENTRY_DSN',
-	'MULTIPLAYER_SERVER',
-	'GH_TOKEN',
-	'R2_ACCESS_KEY_ID',
-	'R2_ACCESS_KEY_SECRET',
 ])
 
 const discord = new Discord({
@@ -147,6 +149,7 @@ async function prepareDotcomApp() {
 			ASSET_UPLOAD: previewId
 				? `https://${previewId}-tldraw-assets.tldraw.workers.dev`
 				: env.ASSET_UPLOAD,
+			IMAGE_WORKER: env.IMAGE_WORKER,
 			MULTIPLAYER_SERVER: previewId
 				? `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
 				: env.MULTIPLAYER_SERVER,
@@ -164,8 +167,9 @@ async function prepareDotcomApp() {
 
 let didUpdateAssetUploadWorker = false
 async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
+	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-assets`
 	if (previewId && !didUpdateAssetUploadWorker) {
-		await setWranglerPreviewConfig(assetUpload, { name: `${previewId}-tldraw-assets` })
+		await setWranglerPreviewConfig(assetUpload, { name: workerId })
 		didUpdateAssetUploadWorker = true
 	}
 
@@ -173,7 +177,15 @@ async function deployAssetUploadWorker({ dryRun }: { dryRun: boolean }) {
 		location: assetUpload,
 		dryRun,
 		env: env.TLDRAW_ENV,
-		vars: {},
+		vars: {
+			SENTRY_DSN: env.ASSET_UPLOAD_SENTRY_DSN,
+			TLDRAW_ENV: env.TLDRAW_ENV,
+			WORKER_NAME: workerId,
+		},
+		sentry: {
+			project: 'asset-upload-worker',
+			authToken: env.SENTRY_AUTH_TOKEN,
+		},
 	})
 }
 
