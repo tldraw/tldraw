@@ -19,7 +19,7 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 }>;
 
 // @public (undocumented)
-export function useMultiplayerDemo({ roomId, userPreferences, host, schema, }: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus;
+export function useMultiplayerDemo(options: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
 export interface UseMultiplayerDemoOptions {

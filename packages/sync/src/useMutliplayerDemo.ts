@@ -42,12 +42,8 @@ const DEMO_WORKER = getEnv(() => process.env.TLDRAW_BEMO_URL) ?? 'https://demo.t
 const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://images.tldraw.xyz'
 
 /** @public */
-export function useMultiplayerDemo({
-	roomId,
-	userPreferences,
-	host = DEMO_WORKER,
-	schema,
-}: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus {
+export function useMultiplayerDemo(options: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus {
+	const { roomId, userPreferences, host = DEMO_WORKER, schema } = options
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
 
 	return useMultiplayerSync({
