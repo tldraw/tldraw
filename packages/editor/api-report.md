@@ -491,6 +491,9 @@ export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | 
 // @public
 export function createTLStore({ initialData, defaultName, id, assets, onEditorMount, multiplayerStatus, ...rest }?: TLStoreOptions): TLStore;
 
+// @public
+export function createTLStoreSchema(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
+
 // @public (undocumented)
 export function createTLUser(opts?: {
     derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
@@ -3264,15 +3267,18 @@ export interface TLStoreBaseOptions {
 export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
-export type TLStoreOptions = TLStoreBaseOptions & ({
-    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+export type TLStoreOptions = TLStoreBaseOptions & {
     id?: string;
+} & TLStoreSchemaOptions;
+
+// @public (undocumented)
+export type TLStoreSchemaOptions = {
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } | {
-    id?: string;
     schema?: StoreSchema<TLRecord, TLStoreProps>;
-});
+};
 
 // @public (undocumented)
 export type TLStoreWithStatus = {
@@ -3510,7 +3516,7 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
-export function useShallowObjectIdentity<T extends object>(arr: T): T;
+export function useShallowObjectIdentity<T extends object>(obj: T): T;
 
 export { useStateTracking }
 
@@ -3523,6 +3529,9 @@ export function useSvgExportContext(): {
 export function useTLStore(opts: TLStoreOptions & {
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;
 }): TLStore;
+
+// @public (undocumented)
+export function useTLStoreSchema(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
