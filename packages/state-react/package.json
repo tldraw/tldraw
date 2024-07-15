@@ -1,6 +1,6 @@
 {
-	"name": "@tldraw/state",
-	"description": "A tiny little drawing app (state).",
+	"name": "@tldraw/state-react",
+	"description": "A tiny little drawing app (react bindings for state).",
 	"version": "2.3.0",
 	"author": {
 		"name": "tldraw Inc.",
@@ -52,9 +52,18 @@
 			"node_modules/(?!(nanoid)/)"
 		]
 	},
+	"dependencies": {
+		"@tldraw/state": "workspace:*"
+	},
 	"devDependencies": {
 		"@types/lodash": "^4.14.188",
-		"lodash": "^4.17.21"
+		"@types/react": "^18.2.47",
+		"@types/react-test-renderer": "^18.0.0",
+		"lodash": "^4.17.21",
+		"react-test-renderer": "^18.2.0"
+	},
+	"peerDependencies": {
+		"react": "^18"
 	},
 	"typedoc": {
 		"readmeFile": "none",

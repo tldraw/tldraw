@@ -1,6 +1,6 @@
 /* eslint-disable prefer-rest-params */
+import { Signal, computed, react } from '@tldraw/state'
 import { useMemo, useRef, useSyncExternalStore } from 'react'
-import { Signal, computed, react } from '../core'
 
 /**
  * Extracts the value from a signal and subscribes to it.
