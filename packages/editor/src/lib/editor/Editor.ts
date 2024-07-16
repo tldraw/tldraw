@@ -1059,19 +1059,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * // updating with
-	 * editor.run({ history: "ignore" }, () => {
+	 * editor.run(() => {
 	 * 	editor.updateShape({ ...myShape, x: 100 })
-	 * })
+	 * }, { history: "ignore" })
 	 *
 	 * // forcing changes / deletions for locked shapes
 	 * editor.toggleLock([myShape])
-	 * editor.run({ ignoreShapeLock: true }, () => {
+	 * editor.run(() => {
 	 * 	editor.updateShape({ ...myShape, x: 100 })
 	 * 	editor.deleteShape(myShape)
-	 * })
+	 * }, { ignoreShapeLock: true }, )
 	 * ```
-	 * @param opts - The options for the batch.
+	 *
 	 * @param fn - The callback function to run.
+	 * @param opts - The options for the batch.
 	 *
 	 *
 	 * @public
