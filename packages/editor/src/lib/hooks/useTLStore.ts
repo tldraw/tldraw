@@ -11,7 +11,7 @@ import {
 
 /** @public */
 type UseTLStoreOptions = TLStoreOptions & {
-	snapshot?: TLEditorSnapshot | TLStoreSnapshot
+	snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot
 }
 
 function createStore(opts: UseTLStoreOptions) {
@@ -24,7 +24,7 @@ function createStore(opts: UseTLStoreOptions) {
 
 /** @public */
 export function useTLStore(
-	opts: TLStoreOptions & { snapshot?: TLEditorSnapshot | TLStoreSnapshot }
+	opts: TLStoreOptions & { snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot }
 ) {
 	const [current, setCurrent] = useState(() => createStore(opts))
 

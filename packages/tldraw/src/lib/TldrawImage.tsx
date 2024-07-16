@@ -24,7 +24,7 @@ export interface TldrawImageProps extends TLSvgOptions {
 	/**
 	 * The snapshot to display.
 	 */
-	snapshot: TLEditorSnapshot | TLStoreSnapshot
+	snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot
 
 	/**
 	 * The image format to use. Defaults to 'svg'.

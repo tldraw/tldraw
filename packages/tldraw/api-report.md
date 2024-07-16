@@ -1584,7 +1584,7 @@ export interface TldrawImageProps extends TLSvgOptions {
     licenseKey?: string;
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
-    snapshot: TLEditorSnapshot | TLStoreSnapshot;
+    snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }
 
 // @public (undocumented)
