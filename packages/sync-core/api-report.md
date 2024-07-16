@@ -15,7 +15,6 @@ import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { TLRecord } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
-import ws from 'ws';
 
 // @public (undocumented)
 export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number];
@@ -319,11 +318,11 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     handleSocketClose(sessionId: string): void;
     // (undocumented)
-    handleSocketConnect(sessionId: string, _socket: WebSocket | ws.WebSocket, meta: SessionMeta): void;
+    handleSocketConnect(sessionId: string, socket: WebSocketMinimal, meta: SessionMeta): void;
     // (undocumented)
     handleSocketError(sessionId: string): void;
     // (undocumented)
-    handleSocketMessage(sessionId: string, message: ArrayBuffer | string): void;
+    handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
     // (undocumented)
     isClosed(): boolean;
     // (undocumented)
@@ -502,6 +501,20 @@ export const ValueOpType: {
 
 // @public (undocumented)
 export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType];
+
+// @public (undocumented)
+export interface WebSocketMinimal {
+    // (undocumented)
+    addEventListener?: (type: 'close' | 'error' | 'message', listener: (event: any) => void) => void;
+    // (undocumented)
+    close: () => void;
+    // (undocumented)
+    readyState: number;
+    // (undocumented)
+    removeEventListener?: (type: 'close' | 'error' | 'message', listener: (event: any) => void) => void;
+    // (undocumented)
+    send: (data: string) => void;
+}
 
 // (No @packageDocumentation comment for this package)
 

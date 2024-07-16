@@ -3499,6 +3499,62 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@oven/bun-darwin-aarch64@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@oven/bun-darwin-aarch64@npm:1.1.20"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@oven/bun-darwin-x64-baseline@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@oven/bun-darwin-x64-baseline@npm:1.1.20"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@oven/bun-darwin-x64@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@oven/bun-darwin-x64@npm:1.1.20"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@oven/bun-linux-aarch64@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@oven/bun-linux-aarch64@npm:1.1.20"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@oven/bun-linux-x64-baseline@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@oven/bun-linux-x64-baseline@npm:1.1.20"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@oven/bun-linux-x64@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@oven/bun-linux-x64@npm:1.1.20"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@oven/bun-windows-x64-baseline@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@oven/bun-windows-x64-baseline@npm:1.1.20"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@oven/bun-windows-x64@npm:1.1.20":
+  version: 1.1.20
+  resolution: "@oven/bun-windows-x64@npm:1.1.20"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@pdf-lib/standard-fonts@npm:^1.0.0":
   version: 1.0.0
   resolution: "@pdf-lib/standard-fonts@npm:1.0.0"
@@ -5901,7 +5957,7 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     esbuild: "npm:^0.21.5"
-    itty-router: "npm:^4.0.13"
+    itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
     nanoid: "npm:4.0.2"
     react: "npm:^18.2.0"
@@ -5990,7 +6046,7 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
     esbuild: "npm:^0.21.5"
-    itty-router: "npm:^4.0.13"
+    itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
     nanoid: "npm:4.0.2"
     react: "npm:^18.2.0"
@@ -6092,12 +6148,15 @@ __metadata:
     "@fastify/websocket": "npm:^10.0.1"
     "@tldraw/sync": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
+    "@types/bun": "npm:^1.1.6"
     "@types/express": "npm:^4.17.21"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
+    bun: "npm:^1.1.20"
     cheerio: "npm:^1.0.0-rc.12"
     concurrently: "npm:^8.2.2"
     express: "npm:^4.19.2"
     fastify: "npm:^4.28.1"
+    itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -6313,7 +6372,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
-    itty-router: "npm:^4.0.13"
+    itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
     typescript: "npm:^5.3.3"
@@ -6480,6 +6539,15 @@ __metadata:
   version: 1.0.2
   resolution: "@types/btoa-lite@npm:1.0.2"
   checksum: 4c46b163c881a75522c7556dd7a7df8a0d4c680a45e8bac34e50864e1c2d9df8dc90b99f75199154c60ef2faff90896b7e5f11df6936c94167a3e5e1c6f4d935
+  languageName: node
+  linkType: hard
+
+"@types/bun@npm:^1.1.6":
+  version: 1.1.6
+  resolution: "@types/bun@npm:1.1.6"
+  dependencies:
+    bun-types: "npm:1.1.17"
+  checksum: f98d20d2e99461eff825705f16d6e59c9014ac4bffd3596165373acbd65b36434a9563030c3767df7edb5a3955155b3c08e3926d6cd36036adfbaa81892a5da4
   languageName: node
   linkType: hard
 
@@ -6924,6 +6992,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:~20.12.8":
+  version: 20.12.14
+  resolution: "@types/node@npm:20.12.14"
+  dependencies:
+    undici-types: "npm:~5.26.4"
+  checksum: 8ce987f0b7e15116e92894c51ee53fe0cbd98dafb5693a2e7d490f16396552528114d055ca1b144d3fdc5ba7d5f5ce28ad091a693c24337615f047cefc3faa36
+  languageName: node
+  linkType: hard
+
 "@types/normalize-package-data@npm:^2.4.0":
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
@@ -7172,6 +7249,15 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 9b414dc5e0b6c6f1ea4b1635b3568c58707357f68076df9e7cd33194747b7d1716d5189c0dbdd68c8d2521b148e88184cf881bac7429eb0e5c989b001539ed31
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:~8.5.10":
+  version: 8.5.11
+  resolution: "@types/ws@npm:8.5.11"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 950d13b762fc7c092a0fc1450c41229a1d41abb93cb72251068885bd46fa4bbcf461c00df2e77de3f7a547371998b650a720ed90417562af0772b14a8a009dec
   languageName: node
   linkType: hard
 
@@ -8965,6 +9051,53 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bun-types@npm:1.1.17":
+  version: 1.1.17
+  resolution: "bun-types@npm:1.1.17"
+  dependencies:
+    "@types/node": "npm:~20.12.8"
+    "@types/ws": "npm:~8.5.10"
+  checksum: 2f9ab339fe2a5c9eec03cb29a8008926c867a62946f18f4778377050369f776b3be8b3c8aaf7152f35b4945e3436ca8ae43aaac6d12384830df7cbdfc2690435
+  languageName: node
+  linkType: hard
+
+"bun@npm:^1.1.20":
+  version: 1.1.20
+  resolution: "bun@npm:1.1.20"
+  dependencies:
+    "@oven/bun-darwin-aarch64": "npm:1.1.20"
+    "@oven/bun-darwin-x64": "npm:1.1.20"
+    "@oven/bun-darwin-x64-baseline": "npm:1.1.20"
+    "@oven/bun-linux-aarch64": "npm:1.1.20"
+    "@oven/bun-linux-x64": "npm:1.1.20"
+    "@oven/bun-linux-x64-baseline": "npm:1.1.20"
+    "@oven/bun-windows-x64": "npm:1.1.20"
+    "@oven/bun-windows-x64-baseline": "npm:1.1.20"
+  dependenciesMeta:
+    "@oven/bun-darwin-aarch64":
+      optional: true
+    "@oven/bun-darwin-x64":
+      optional: true
+    "@oven/bun-darwin-x64-baseline":
+      optional: true
+    "@oven/bun-linux-aarch64":
+      optional: true
+    "@oven/bun-linux-x64":
+      optional: true
+    "@oven/bun-linux-x64-baseline":
+      optional: true
+    "@oven/bun-windows-x64":
+      optional: true
+    "@oven/bun-windows-x64-baseline":
+      optional: true
+  bin:
+    bun: bin/bun.exe
+    bunx: bin/bun.exe
+  checksum: 83d4d96f06f48da70a487400abf4e568aee43fa4efd85f00bff00625f6a67168eea834eeb74eb7096814190d45b66a02a3c2c8583057ee7d6605bd8cb8aac6fb
+  conditions: (os=darwin | os=linux | os=win32) & (cpu=arm64 | cpu=x64)
+  languageName: node
+  linkType: hard
+
 "busboy@npm:1.6.0":
   version: 1.6.0
   resolution: "busboy@npm:1.6.0"
@@ -10524,8 +10657,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/worker-shared": "workspace:*"
     "@types/ws": "npm:^8.5.9"
-    itty-cors: "npm:^0.3.4"
-    itty-router: "npm:^4.0.13"
+    itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
     wrangler: "npm:3.62.0"
   languageName: unknown
@@ -13971,7 +14103,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
-    itty-router: "npm:^4.0.13"
+    itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
     wrangler: "npm:3.62.0"
   languageName: unknown
@@ -14768,17 +14900,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"itty-cors@npm:^0.3.4":
-  version: 0.3.6
-  resolution: "itty-cors@npm:0.3.6"
-  checksum: c8d08bd31c3dc243d8c76e5e065e1e38ae6900a04a6dbdec2df06de0a63587a230cf903ad72ed288c55b6bcc415b1cfc8d1e45e5cf234bd44c31ee9c79193a17
-  languageName: node
-  linkType: hard
-
-"itty-router@npm:^4.0.13":
-  version: 4.2.2
-  resolution: "itty-router@npm:4.2.2"
-  checksum: ead44fd46ea358776dc2bb120970eff5ab0acb10ad82c384eba9b361c6eba7f5971408f80cbc3655004cb12ae53dd77a85de236bdb215cef896c2589f5096854
+"itty-router@npm:^5.0.17":
+  version: 5.0.17
+  resolution: "itty-router@npm:5.0.17"
+  checksum: 5af87433b7ce1dc5c72c70bbf75e9676082381e6c101ac14fd5621e9d8a7e25cae97506b8654812b508d7f717aa8a881393888b4091112e33089d7b1aabd53d3
   languageName: node
   linkType: hard
 

@@ -217,7 +217,7 @@ export class TLDrawDurableObject {
 		const sentry = createSentry(this.state, this.env, req)
 
 		try {
-			return await this.router.handle(req)
+			return await this.router.fetch(req)
 		} catch (err) {
 			console.error(err)
 			// eslint-disable-next-line deprecation/deprecation

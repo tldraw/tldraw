@@ -21,7 +21,8 @@ app.register(async (app) => {
 			return
 		}
 		const room = await makeOrLoadRoom(roomId)
-		room.handleSocketConnect(sessionKey, socket)
+		// need to cast because the types for ws.WebSocket are messed up
+		room.handleSocketConnect(sessionKey, socket as WebSocket)
 	})
 	// assets
 	// allow uploading any file

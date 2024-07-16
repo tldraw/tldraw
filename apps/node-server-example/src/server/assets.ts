@@ -1,15 +1,15 @@
 import { mkdir, readFile, writeFile } from 'fs/promises'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { Readable } from 'stream'
 
 // We are just using the filesystem to store assets
-const DIR = './.assets'
+const DIR = resolve('./.assets')
 
 export async function storeAsset(id: string, stream: Readable) {
 	await mkdir(DIR, { recursive: true })
-	await writeFile(join(DIR, id), stream)
+	await writeFile(join(DIR, decodeURIComponent(id)), stream)
 }
 
 export async function loadAsset(id: string) {
-	return await readFile(join(DIR, id))
+	return await readFile(join(DIR, decodeURIComponent(id)))
 }

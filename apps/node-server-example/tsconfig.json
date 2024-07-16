@@ -4,7 +4,8 @@
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
 	"compilerOptions": {
 		"noEmit": true,
-		"emitDeclarationOnly": false
+		"emitDeclarationOnly": false,
+		"types": ["bun", "node"]
 	},
 	"references": [
 		{
