@@ -14,15 +14,18 @@
 	"scripts": {
 		"dev": "vite --host",
 		"build": "vite build",
-		"start": "tsx ./server/server.mts"
+		"start": "tsx ./server/server.ts",
+		"types": "npx supabase gen types typescript --project-id duxexqowwuntlpwwhtoy > database.types.ts"
 	},
 	"dependencies": {
+		"@supabase/supabase-js": "^2.44.4",
 		"@tldraw/assets": "workspace:*",
 		"@types/cors": "^2.8.17",
 		"@types/express": "^4.17.21",
 		"@types/sqlite3": "^3.1.11",
 		"@vitejs/plugin-react-swc": "^3.7.0",
 		"cors": "^2.8.5",
+		"dotenv": "^16.4.5",
 		"express": "^4.19.2",
 		"playwright": "^1.45.1",
 		"react": "^18.2.0",

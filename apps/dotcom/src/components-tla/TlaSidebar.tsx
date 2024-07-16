@@ -244,7 +244,7 @@ function TlaSidebarTabs() {
 				{flags.starredTab && (
 					<button
 						className="tla-sidebar__tabs_tab tla-text_ui__regular"
-						data-active={sidebarActiveTab === 'recent'}
+						data-active={sidebarActiveTab === 'starred'}
 						onClick={() => app.setSidebarActiveTab('starred')}
 					>
 						Starred
