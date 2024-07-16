@@ -551,7 +551,9 @@ const Watermark = React.memo(() => {
 
 	if (!showWatermark) return null
 
-	const className = 'tl-' + lns(`watermark${version.replace(/\./g, '')}`) + '_SEE-LICENSE'
+	const className = 'tl-watermark_SEE-LICENSE'
+	const imageClassName =
+		'tl-watermark_link' + lns(`watermark${version.replace(/\./g, '')}`) + '_SEE-LICENSE'
 
 	return (
 		<>
@@ -567,11 +569,11 @@ To remove the watermark, please purchase a license at tldraw.dev.
 
 .${className} {
 	position: absolute;
-	bottom: 4px;
-	right: 4px;
+	bottom: var(--space-2);
+	right: calc(42px);
 	width: 96px;
 	height: 32px;
-	z-index: 2147483647;
+	z-index: 2147483647 !important;
 	pointer-events: ${isMenuOpen ? 'none' : 'all'};
 	background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
 	border-radius: 5px;
@@ -623,6 +625,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			<div className={className} data-debug={isDebugMode} draggable={false} {...events}>
 				<a
 					ref={ref}
+					className={imageClassName}
 					href="https://tldraw.dev"
 					target="_blank"
 					rel="noreferrer"
