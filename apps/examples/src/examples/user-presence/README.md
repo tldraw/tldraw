@@ -1,8 +1,7 @@
 ---
 title: User presence
 component: ./UserPresenceExample.tsx
-category: collaboration
-priority: 3
+category: editor-api
 keywords: [Instance presence record, cursor]
 ---
 
