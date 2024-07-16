@@ -3539,7 +3539,7 @@ export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TL
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {
-    snapshot?: TLEditorSnapshot | TLStoreSnapshot;
+    snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }): TLStore;
 
 // @public (undocumented)
