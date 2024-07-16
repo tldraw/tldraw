@@ -63,7 +63,7 @@ export const multiplayerAssetStore: TLAssetStore = {
 				!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
 			const width = Math.ceil(
-				Math.max(
+				Math.min(
 					asset.props.w * context.steppedScreenScale * networkCompensation * context.dpr,
 					asset.props.w
 				)
