@@ -25,34 +25,30 @@ const assets: TLAssetStore = {
 	},
 }
 
-export async function createAssetFromUrl({ url }: { type: 'url'; url: string }): Promise<TLAsset> {
+export async function unfurl({ url }: { url: string }): Promise<TLAsset> {
 	const urlHash = getHashForString(url)
-	const asset: TLAsset = {
+	let meta: { description: string; image: string; favicon: string; title: string } | undefined
+	try {
+		meta = (await (
+			await fetch(`http://localhost:5858/unfurl?url=${encodeURIComponent(url)}`)
+		).json()) as any
+	} catch (e) {
+		console.error(e)
+	}
+
+	return {
 		id: AssetRecordType.createId(urlHash),
 		typeName: 'asset',
 		type: 'bookmark',
 		props: {
 			src: url,
-			description: '',
-			image: '',
-			favicon: '',
-			title: '',
+			description: meta?.description ?? '',
+			image: meta?.image ?? '',
+			favicon: meta?.favicon ?? '',
+			title: meta?.title ?? '',
 		},
 		meta: {},
 	}
-	try {
-		const meta = (await (
-			await fetch(`http://localhost:5858/unfurl?url=${encodeURIComponent(url)}`)
-		).json()) as any
-
-		asset.props.description = meta?.description ?? ''
-		asset.props.image = meta?.image ?? ''
-		asset.props.favicon = meta?.favicon ?? ''
-		asset.props.title = meta?.title ?? ''
-	} catch (e) {
-		console.error(e)
-	}
-	return asset
 }
 
 function App() {
@@ -61,7 +57,7 @@ function App() {
 		uri: 'ws://localhost:5858/connect/' + roomId,
 		assets,
 		onEditorMount: useCallback((editor: Editor) => {
-			editor.registerExternalAssetHandler('url', createAssetFromUrl)
+			editor.registerExternalAssetHandler('url', unfurl)
 		}, []),
 	})
 	return <Tldraw store={store} />
