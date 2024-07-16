@@ -1,5 +1,5 @@
+import { EMPTY_ARRAY, EffectScheduler } from '@tldraw/state'
 import { useEffect } from 'react'
-import { EMPTY_ARRAY, EffectScheduler } from '../core'
 
 /** @public */
 export function useQuickReactor(name: string, reactFn: () => void, deps: any[] = EMPTY_ARRAY) {

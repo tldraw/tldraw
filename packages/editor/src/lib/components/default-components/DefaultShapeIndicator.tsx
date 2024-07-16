@@ -1,4 +1,4 @@
-import { useQuickReactor, useStateTracking, useValue } from '@tldraw/state'
+import { useQuickReactor, useStateTracking, useValue } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { memo, useLayoutEffect, useRef } from 'react'

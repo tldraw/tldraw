@@ -142,7 +142,7 @@ export class PointingShape extends StateNode {
 									textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
 									textLabel.hitTestPoint(pointInShapeSpace)
 								) {
-									this.editor.batch(() => {
+									this.editor.run(() => {
 										this.editor.mark('editing on pointer up')
 										this.editor.select(selectingShape.id)
 

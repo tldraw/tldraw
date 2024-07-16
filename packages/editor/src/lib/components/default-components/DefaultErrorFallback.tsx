@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import { noop } from '@tldraw/utils'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'

@@ -11,8 +11,7 @@ const packagesOurTypesCanDependOn = [
 	'@types/react',
 	'@types/react-dom',
 	'eventemitter3',
-	// todo: external types shouldn't depend on this
-	'@types/ws',
+	'nanoevents',
 ]
 
 main()

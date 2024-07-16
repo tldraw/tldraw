@@ -1,5 +1,5 @@
+import { EffectScheduler } from '@tldraw/state'
 import { useEffect, useMemo, useRef } from 'react'
-import { EffectScheduler } from '../core'
 
 /** @public */
 export function useReactor(name: string, reactFn: () => void, deps: undefined | any[] = []) {

@@ -69,6 +69,7 @@ export const ValueOpType = {
 	Append: 'append',
 	Patch: 'patch',
 } as const
+/** @public */
 export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType]
 
 /** @public */

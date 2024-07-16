@@ -63,7 +63,8 @@ export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
-class DocumentState<R extends UnknownRecord> {
+/** @internal */
+export class DocumentState<R extends UnknownRecord> {
 	_atom: Atom<{ state: R; lastChangedClock: number }>
 
 	static createWithoutValidating<R extends UnknownRecord>(
@@ -184,6 +185,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}>()
 
 	// Values associated with each uid (must be serializable).
+	/** @internal */
 	state = atom<{
 		documents: Record<string, DocumentState<R>>
 		tombstones: Record<string, number>
