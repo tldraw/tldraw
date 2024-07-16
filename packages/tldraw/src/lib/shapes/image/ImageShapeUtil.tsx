@@ -5,7 +5,6 @@ import {
 	HTMLContainer,
 	Image,
 	MediaHelpers,
-	ReferenceCounterWithFixedTimeout,
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLOnResizeHandler,
@@ -22,7 +21,7 @@ import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useAsset, useReferenceCounter } from '../shared/useAsset'
+import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -84,7 +83,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loaded, setLoaded] = useState<null | {
-			src: string | ReferenceCounterWithFixedTimeout<string>
+			src: string
 			isPlaceholder: boolean
 		}>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
@@ -108,10 +107,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
 					setLoaded({ src: url, isPlaceholder })
-					if (url instanceof ReferenceCounterWithFixedTimeout) url.release()
 				}
 				image.crossOrigin = 'anonymous'
-				image.src = url instanceof ReferenceCounterWithFixedTimeout ? url.retain() : url
+				image.src = url
 
 				return () => {
 					cancelled = true
@@ -131,11 +129,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		const nextUrl = url === loaded?.src ? null : url
-		const nextSrc = useReferenceCounter(nextUrl)
-		const loadedSrc = useReferenceCounter(
-			!shape.props.playing || reduceMotion ? staticFrameSrc : loaded?.src
-		)
+		const nextSrc = url === loaded?.src ? null : url
+		const loadedSrc = !shape.props.playing || reduceMotion ? staticFrameSrc : loaded?.src
 
 		// This logic path is for when it's broken/missing asset.
 		if (!url && !asset?.props.src) {
@@ -227,7 +222,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 								src={nextSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
 								draggable={false}
-								onLoad={() => setLoaded({ src: nextUrl!, isPlaceholder })}
+								onLoad={() => setLoaded({ src: nextSrc, isPlaceholder })}
 							/>
 						)}
 						{this.isAnimated(shape) && !shape.props.playing && (

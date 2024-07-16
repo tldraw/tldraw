@@ -2,7 +2,6 @@ import {
 	AssetRecordType,
 	Editor,
 	MediaHelpers,
-	ReferenceCounterWithFixedTimeout,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkShape,
@@ -231,7 +230,7 @@ export function registerDefaultExternalContentHandlers(
 		const assetsToUpdate: {
 			asset: TLAsset
 			file: File
-			temporaryAssetPreview?: ReferenceCounterWithFixedTimeout<string>
+			temporaryAssetPreview?: string
 		}[] = []
 		for (const file of files) {
 			if (file.size > maxAssetSize) {
@@ -279,7 +278,6 @@ export function registerDefaultExternalContentHandlers(
 			let temporaryAssetPreview
 			if (isImageType) {
 				temporaryAssetPreview = editor.createTemporaryAssetPreview(assetId, file)
-				temporaryAssetPreview.retain()
 			}
 			assets.push(assetInfo)
 			assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
@@ -306,8 +304,6 @@ export function registerDefaultExternalContentHandlers(
 					})
 					console.error(error)
 					return
-				} finally {
-					assetAndFile.temporaryAssetPreview?.release()
 				}
 			})
 		)

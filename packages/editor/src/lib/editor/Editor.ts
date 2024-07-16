@@ -58,7 +58,6 @@ import {
 	IndexKey,
 	JsonObject,
 	PerformanceTracker,
-	ReferenceCounterWithFixedTimeout,
 	Result,
 	Timers,
 	annotateError,
@@ -7808,10 +7807,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private readonly temporaryAssetPreview = new Map<
-		TLAssetId,
-		ReferenceCounterWithFixedTimeout<string>
-	>()
+	private readonly temporaryAssetPreview = new Map<TLAssetId, string>()
 
 	/**
 	 * Register an external asset handler. This handler will be called when the editor needs to
@@ -7858,17 +7854,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	createTemporaryAssetPreview(assetId: TLAssetId, file: File) {
 		assert(!this.temporaryAssetPreview.has(assetId), 'Asset preview already exists')
 
-		const urlString = URL.createObjectURL(file)
-		const urlResource = new ReferenceCounterWithFixedTimeout(
-			urlString,
+		const objectUrl = URL.createObjectURL(file)
+		this.temporaryAssetPreview.set(assetId, objectUrl)
+
+		this.timers.setTimeout(
 			() => {
 				this.temporaryAssetPreview.delete(assetId)
-				URL.revokeObjectURL(urlString)
+				URL.revokeObjectURL(objectUrl)
 			},
-			60 * 1000
+			3 * 60 * 1000 /* 3 minutes */
 		)
-		this.temporaryAssetPreview.set(assetId, urlResource)
-		return urlResource
+
+		return objectUrl
 	}
 
 	/**

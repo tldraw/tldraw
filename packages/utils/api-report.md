@@ -342,17 +342,6 @@ export type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
 };
 
-// @public (undocumented)
-export class ReferenceCounterWithFixedTimeout<out T> {
-    constructor(value: T, dispose: () => void, timeout?: number);
-    // (undocumented)
-    release(): void;
-    // (undocumented)
-    retain(): T;
-    // (undocumented)
-    unsafeGetWithoutRetain(): T;
-}
-
 // @internal (undocumented)
 type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
     [P in K]-?: T[P];
