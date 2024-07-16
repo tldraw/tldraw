@@ -6140,34 +6140,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/node-server-example@workspace:apps/node-server-example":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/node-server-example@workspace:apps/node-server-example"
-  dependencies:
-    "@fastify/cors": "npm:^9.0.1"
-    "@fastify/websocket": "npm:^10.0.1"
-    "@tldraw/sync": "workspace:*"
-    "@tldraw/sync-core": "workspace:*"
-    "@types/bun": "npm:^1.1.6"
-    "@types/express": "npm:^4.17.21"
-    "@vitejs/plugin-react-swc": "npm:^3.7.0"
-    bun: "npm:^1.1.20"
-    cheerio: "npm:^1.0.0-rc.12"
-    concurrently: "npm:^8.2.2"
-    express: "npm:^4.19.2"
-    fastify: "npm:^4.28.1"
-    itty-router: "npm:^5.0.17"
-    lazyrepo: "npm:0.0.0-alpha.27"
-    react: "npm:^18.2.0"
-    react-dom: "npm:^18.2.0"
-    react-router-dom: "npm:^6.24.1"
-    tldraw: "workspace:*"
-    typescript: "npm:^5.3.3"
-    vite: "npm:^5.3.3"
-    ws: "npm:^8.16.0"
-  languageName: unknown
-  linkType: soft
-
 "@tldraw/scripts@workspace:scripts":
   version: 0.0.0-use.local
   resolution: "@tldraw/scripts@workspace:scripts"
@@ -6204,6 +6176,34 @@ __metadata:
     tmp: "npm:^0.2.3"
     toml: "npm:^3.0.0"
     typescript: "npm:^5.3.3"
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/simple-server-example@workspace:apps/simple-server-example":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/simple-server-example@workspace:apps/simple-server-example"
+  dependencies:
+    "@fastify/cors": "npm:^9.0.1"
+    "@fastify/websocket": "npm:^10.0.1"
+    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@types/bun": "npm:^1.1.6"
+    "@types/express": "npm:^4.17.21"
+    "@vitejs/plugin-react-swc": "npm:^3.7.0"
+    bun: "npm:^1.1.20"
+    cheerio: "npm:^1.0.0-rc.12"
+    concurrently: "npm:^8.2.2"
+    express: "npm:^4.19.2"
+    fastify: "npm:^4.28.1"
+    itty-router: "npm:^5.0.17"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    react-router-dom: "npm:^6.24.1"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.3.3"
+    vite: "npm:^5.3.3"
+    ws: "npm:^8.16.0"
   languageName: unknown
   linkType: soft
 

@@ -1,6 +1,6 @@
 {
-	"name": "@tldraw/node-server-example",
-	"description": "A tiny little drawing app (example node server).",
+	"name": "@tldraw/simple-server-example",
+	"description": "A tiny little drawing app (example node/bun servers).",
 	"version": "0.0.0",
 	"private": true,
 	"author": {
@@ -9,11 +9,11 @@
 	},
 	"main": "./src/server/server.ts",
 	"scripts": {
-		"dev-server": "yarn run -T tsx watch ./src/server/server.ts",
+		"dev-node": "concurrently -n server,client -c red,blue \"yarn dev-server\" \"yarn dev-client\"",
+		"dev-bun": "concurrently -n server,client -c red,blue \"yarn dev-server-bun\" \"yarn dev-client\"",
+		"dev-server-node": "yarn run -T tsx watch ./src/server/server.node.ts",
 		"dev-server-bun": "bun --watch ./src/server/server.bun.ts",
 		"dev-client": "vite dev",
-		"dev": "concurrently -n server,client -c red,blue \"yarn dev-server\" \"yarn dev-client\"",
-		"dev-bun": "concurrently -n server,client -c red,blue \"yarn dev-server-bun\" \"yarn dev-client\"",
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
