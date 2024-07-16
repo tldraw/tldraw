@@ -57,7 +57,6 @@ export class LicenseManager {
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 	public isDevelopment: boolean
 	public isCryptoAvailable: boolean
-
 	state = atom('license state', 'pending')
 
 	constructor(
