@@ -6,12 +6,14 @@ import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
 // TODO: structured logging support
-interface TLSyncLog {
+/** @public */
+export interface TLSyncLog {
 	info?: (...args: any[]) => void
 	warn?: (...args: any[]) => void
 	error?: (...args: any[]) => void
 }
 
+/** @public */
 export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 	private room: TLSyncRoom<R, SessionMeta>
 	private readonly sessions = new Map<

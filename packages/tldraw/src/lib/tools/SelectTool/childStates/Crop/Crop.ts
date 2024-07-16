@@ -19,14 +19,15 @@ export class Crop extends StateNode {
 	markId = ''
 	override onEnter = () => {
 		this.didCancel = false
-		this.markId = this.editor.history.mark()
+		this.markId = 'crop'
+		this.editor.mark(this.markId)
 	}
 	didCancel = false
 	override onExit = () => {
 		if (this.didCancel) {
 			this.editor.bailToMark(this.markId)
 		} else {
-			this.editor.history.squashToMark(this.markId)
+			this.editor.squashToMark(this.markId)
 		}
 	}
 	override onCancel = () => {
