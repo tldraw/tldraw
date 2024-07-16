@@ -146,7 +146,7 @@ export function Tldraw(props: TldrawProps) {
 
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
 function InsideOfEditorAndUiContext({
-	maxImageDimension = 1000,
+	maxImageDimension = 5000,
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
