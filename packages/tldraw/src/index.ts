@@ -94,6 +94,7 @@ export {
 	FeatureFlags,
 	type ExampleDialogProps,
 } from './lib/ui/components/DebugMenu/DefaultDebugMenuContent'
+export { DefaultMenuPanel } from './lib/ui/components/DefaultMenuPanel'
 export {
 	DefaultHelpMenu,
 	type TLUiHelpMenuProps,
