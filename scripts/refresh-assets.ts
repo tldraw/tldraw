@@ -316,11 +316,35 @@ async function copyWatermarks() {
 		watermark.endsWith(extension)
 	)
 
-	const destinationFolderPath = join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermarks')
-	// Copy all items into the new folder
-	for (const item of itemsToCopy) {
-		await writeFile(join(destinationFolderPath, item), readFileSync(join(sourceFolderPath, item)))
+	const optimizedItems = itemsToCopy.map((watermark) => {
+		const watermarkPath = join(sourceFolderPath, watermark)
+		const content = readFileSync(watermarkPath, 'utf8')
+		const svg = optimize(content, { path: watermarkPath })
+		return { fileName: watermark, data: svg.data }
+	})
+
+	const file = new CodeFile()
+	for (const { fileName, data } of optimizedItems) {
+		const varName = file.formatName(fileName)
+		file.append(`export const ${varName} = ${JSON.stringify(data)};`)
 	}
+
+	const destinationFolderPath = join(
+		REPO_ROOT,
+		'packages',
+		'editor',
+		'src',
+		'lib',
+		'editor',
+		'managers',
+		'watermarks.ts'
+	)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		destinationFolderPath,
+		file.toString()
+	)
 }
 
 // 5. ASSET DECLARATION FILES
@@ -520,7 +544,7 @@ class Code {
 class CodeFile extends Code {
 	private imports = new Map<string, string>()
 
-	constructor(private header: string) {
+	constructor(private header: string = '') {
 		super()
 	}
 
@@ -543,12 +567,16 @@ class CodeFile extends Code {
 		return name
 	}
 
-	getName(name: string, suffix?: number): string {
-		const formatted = `$_${name.replace(/\W+/g, '_')}${suffix || ''}`
+	formatName(name: string) {
+		return `$_${name.replace(/\W+/g, '_')}`
 			.replace(/^\$_+(\D)/, (_, s) => s.toLowerCase())
 			.replace(/_+(.)/g, (_, s) => s.toUpperCase())
+	}
 
-		if (this.toString().includes(formatted)) {
+	getName(name: string, suffix?: number): string {
+		const formatted = this.formatName(`${name}${suffix ?? ''}`)
+
+		if (this.toString().match(formatted)) {
 			return this.getName(name, (suffix ?? 1) + 1)
 		}
 
