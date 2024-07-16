@@ -2676,7 +2676,7 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     autoFocus?: boolean;
-    bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[];
+    bindingUtils: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
@@ -2685,7 +2685,7 @@ export interface TLEditorOptions {
     licenseKey?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
-    shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
+    shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
