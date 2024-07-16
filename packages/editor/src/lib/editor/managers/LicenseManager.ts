@@ -328,4 +328,6 @@ export class LicenseManager {
 			`color: white; background: crimson; padding: 2px; border-radius: 3px;`
 		)
 	}
+
+	static classname = 'tl-watermark_SEE-LICENSE'
 }

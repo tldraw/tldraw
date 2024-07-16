@@ -22,6 +22,7 @@ import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
+import { LicenseManager } from './editor/managers/LicenseManager'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { useCanvasEvents } from './hooks/useCanvasEvents'
@@ -551,9 +552,8 @@ const Watermark = React.memo(() => {
 
 	if (!showWatermark) return null
 
-	const className = 'tl-watermark_SEE-LICENSE'
-	const imageClassName =
-		'tl-watermark_link' + lns(`watermark${version.replace(/\./g, '')}`) + '_SEE-LICENSE'
+	const className = LicenseManager.classname
+	const imageClassName = LicenseManager.classname + lns(`watermark${version.replace(/\./g, '')}`)
 
 	return (
 		<>
