@@ -16,6 +16,6 @@ export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[] {
 }
 
 /** @internal */
-export function useShallowObjectIdentity<T extends object>(arr: T): T {
-	return useIdentity(arr, areObjectsShallowEqual)
+export function useShallowObjectIdentity<T extends object>(obj: T): T {
+	return useIdentity(obj, areObjectsShallowEqual)
 }

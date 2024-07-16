@@ -7,7 +7,7 @@
 import { Editor } from 'tldraw';
 import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
-import { TLSchema } from 'tldraw';
+import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
 import { TLUserPreferences } from 'tldraw';
 
@@ -19,7 +19,7 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 }>;
 
 // @public (undocumented)
-export function useMultiplayerDemo(options: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus;
+export function useMultiplayerDemo(options: UseMultiplayerDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
 export interface UseMultiplayerDemoOptions {
@@ -28,13 +28,11 @@ export interface UseMultiplayerDemoOptions {
     // (undocumented)
     roomId: string;
     // (undocumented)
-    schema?: TLSchema;
-    // (undocumented)
     userPreferences?: Signal<TLUserPreferences>;
 }
 
 // @public (undocumented)
-export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLStoreWithStatus;
+export function useMultiplayerSync(opts: UseMultiplayerSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
 export interface UseMultiplayerSyncOptions {
@@ -44,8 +42,6 @@ export interface UseMultiplayerSyncOptions {
     onEditorMount?: (editor: Editor) => void;
     // (undocumented)
     roomId?: string;
-    // (undocumented)
-    schema?: TLSchema;
     // (undocumented)
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;

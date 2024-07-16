@@ -2,7 +2,12 @@ import { TLStoreSnapshot } from '@tldraw/tlschema'
 import { areObjectsShallowEqual } from '@tldraw/utils'
 import { useState } from 'react'
 import { TLEditorSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
-import { TLStoreOptions, createTLStore } from '../config/createTLStore'
+import {
+	TLStoreOptions,
+	TLStoreSchemaOptions,
+	createTLSchemaFromUtils,
+	createTLStore,
+} from '../config/createTLStore'
 
 /** @public */
 type UseTLStoreOptions = TLStoreOptions & {
@@ -30,4 +35,17 @@ export function useTLStore(
 	}
 
 	return current.store
+}
+
+/** @public */
+export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions) {
+	const [current, setCurrent] = useState(() => ({ opts, schema: createTLSchemaFromUtils(opts) }))
+
+	if (!areObjectsShallowEqual(current.opts, opts)) {
+		const next = createTLSchemaFromUtils(opts)
+		setCurrent({ opts, schema: next })
+		return next
+	}
+
+	return current.schema
 }
