@@ -125,8 +125,8 @@ export {
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export {
+	createTLSchemaFromUtils,
 	createTLStore,
-	createTLStoreSchema,
 	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
@@ -282,7 +282,7 @@ export { usePresence } from './lib/hooks/usePresence'
 export { useRefState } from './lib/hooks/useRefState'
 export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
-export { useTLStore, useTLStoreSchema } from './lib/hooks/useTLStore'
+export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {

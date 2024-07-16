@@ -5,8 +5,8 @@ import { TLEditorSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
 import {
 	TLStoreOptions,
 	TLStoreSchemaOptions,
+	createTLSchemaFromUtils,
 	createTLStore,
-	createTLStoreSchema,
 } from '../config/createTLStore'
 
 /** @public */
@@ -38,11 +38,11 @@ export function useTLStore(
 }
 
 /** @public */
-export function useTLStoreSchema(opts: TLStoreSchemaOptions) {
-	const [current, setCurrent] = useState(() => ({ opts, schema: createTLStoreSchema(opts) }))
+export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions) {
+	const [current, setCurrent] = useState(() => ({ opts, schema: createTLSchemaFromUtils(opts) }))
 
 	if (!areObjectsShallowEqual(current.opts, opts)) {
-		const next = createTLStoreSchema(opts)
+		const next = createTLSchemaFromUtils(opts)
 		setCurrent({ opts, schema: next })
 		return next
 	}

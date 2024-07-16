@@ -27,10 +27,10 @@ export const uiOverrides: TLUiOverrides = {
 export const components: TLComponents = {
 	Toolbar: (props) => {
 		const tools = useTools()
-		const isCardSelected = useIsToolSelected(tools['counter'])
+		const isCounterSelected = useIsToolSelected(tools['counter'])
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...tools['counter']} isSelected={isCardSelected} />
+				<TldrawUiMenuItem {...tools['counter']} isSelected={isCounterSelected} />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)

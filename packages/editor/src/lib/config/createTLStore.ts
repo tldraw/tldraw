@@ -55,30 +55,29 @@ export const defaultAssetStore: TLAssetStore = {
 }
 
 /**
- * A helper for creating a TLStore schema.
+ * A helper for creating a TLStore schema from either an object with shapeUtils, bindingUtils, and
+ * migrations, or a schema.
  *
  * @param opts - Options for creating the schema.
  *
  * @public
  */
-export function createTLStoreSchema(
+export function createTLSchemaFromUtils(
 	opts: TLStoreSchemaOptions
 ): StoreSchema<TLRecord, TLStoreProps> {
-	if ('schema' in opts && opts.schema) {
-		return opts.schema
-	} else {
-		return createTLSchema({
-			shapes:
-				'shapeUtils' in opts && opts.shapeUtils
-					? utilsToMap(checkShapesAndAddCore(opts.shapeUtils))
-					: undefined,
-			bindings:
-				'bindingUtils' in opts && opts.bindingUtils
-					? utilsToMap(checkBindings(opts.bindingUtils))
-					: undefined,
-			migrations: 'migrations' in opts ? opts.migrations : undefined,
-		})
-	}
+	if ('schema' in opts && opts.schema) return opts.schema
+
+	return createTLSchema({
+		shapes:
+			'shapeUtils' in opts && opts.shapeUtils
+				? utilsToMap(checkShapesAndAddCore(opts.shapeUtils))
+				: undefined,
+		bindings:
+			'bindingUtils' in opts && opts.bindingUtils
+				? utilsToMap(checkBindings(opts.bindingUtils))
+				: undefined,
+		migrations: 'migrations' in opts ? opts.migrations : undefined,
+	})
 }
 
 /**
@@ -97,7 +96,7 @@ export function createTLStore({
 	multiplayerStatus,
 	...rest
 }: TLStoreOptions = {}): TLStore {
-	const schema = createTLStoreSchema(rest)
+	const schema = createTLSchemaFromUtils(rest)
 
 	return new Store({
 		id,

@@ -24,7 +24,7 @@ import {
 	getUserPreferences,
 	uniqueId,
 	useRefState,
-	useTLStoreSchema,
+	useTLSchemaFromUtils,
 	useValue,
 } from 'tldraw'
 
@@ -54,7 +54,7 @@ export function useMultiplayerSync(
 		...schemaOpts
 	} = opts
 
-	const schema = useTLStoreSchema(schemaOpts)
+	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	useEffect(() => {
 		const storeId = uniqueId()
