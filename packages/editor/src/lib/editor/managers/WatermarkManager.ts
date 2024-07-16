@@ -1,9 +1,8 @@
-import watermarkDesktop from '../../../../assets/watermarks/watermark-desktop.svg'
-import watermarkMobile from '../../../../assets/watermarks/watermark-mobile.svg'
 import { TL_CONTAINER_CLASS } from '../../TldrawEditor'
 import { getDefaultCdnBaseUrl } from '../../utils/assets'
 import { Editor } from '../Editor'
 import { LicenseFromKeyResult } from './LicenseManager'
+import { watermarkDesktopSvg, watermarkMobileSvg } from './watermarks'
 
 export const WATERMARK_DESKTOP_FILENAME = 'watermark-desktop.svg'
 export const WATERMARK_MOBILE_FILENAME = 'watermark-mobile.svg'
@@ -22,7 +21,7 @@ export class WatermarkManager {
 		if (navigator.onLine && !this.forceLocal) {
 			src = `${getDefaultCdnBaseUrl()}/${WATERMARKS_FOLDER}/${isMobile ? WATERMARK_MOBILE_FILENAME : WATERMARK_DESKTOP_FILENAME}`
 		} else {
-			src = isMobile ? watermarkMobile : watermarkDesktop
+			src = `data:image/svg+xml;utf8,${isMobile ? watermarkMobileSvg : watermarkDesktopSvg}`
 		}
 
 		if (src !== watermark.src) {
