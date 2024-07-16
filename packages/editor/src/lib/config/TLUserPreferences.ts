@@ -138,6 +138,7 @@ export const defaultUserPreferences = Object.freeze({
 	isWrapMode: false,
 	isDynamicSizeMode: false,
 	isPasteAtCursorMode: false,
+	colorScheme: 'system',
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */

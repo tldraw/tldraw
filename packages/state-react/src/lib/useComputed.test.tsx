@@ -1,12 +1,11 @@
+import { Atom, Computed } from '@tldraw/state'
 import { useState } from 'react'
 import ReactTestRenderer from 'react-test-renderer'
-import { Atom, atom } from '../core/Atom'
-import { Computed } from '../core/Computed'
 import { useAtom } from './useAtom'
 import { useComputed } from './useComputed'
 import { useValue } from './useValue'
 
-test('useValue returns a value from a computed', async () => {
+test('useComputed returns a computed value', async () => {
 	let theComputed = null as null | Computed<number>
 	let theAtom = null as null | Atom<number>
 	function Component() {
@@ -33,12 +32,18 @@ test('useValue returns a value from a computed', async () => {
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"6"`)
 })
 
-test('useValue returns a value from an atom', async () => {
+test('useComputed has a dependencies array that allows creating a new computed', async () => {
+	let theComputed = null as null | Computed<number>
 	let theAtom = null as null | Atom<number>
+	let setCount = null as null | ((count: number) => void)
 	function Component() {
+		const [count, _setCount] = useState(0)
+		setCount = _setCount
 		const a = useAtom('a', 1)
 		theAtom = a
-		return <>{useValue(a)}</>
+		const b = useComputed('a+1', () => a.get() + 1, [count])
+		theComputed = b
+		return <>{useValue(b)}</>
 	}
 
 	let view: ReactTestRenderer.ReactTestRenderer
@@ -46,31 +51,11 @@ test('useValue returns a value from an atom', async () => {
 		view = ReactTestRenderer.create(<Component />)
 	})
 
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"1"`)
+	const initialComputed = theComputed
 
-	await ReactTestRenderer.act(() => {
-		theAtom?.set(5)
-	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"5"`)
-})
-
-test('useValue returns a value from a compute function', async () => {
-	let theAtom = null as null | Atom<number>
-	let setB = null as null | ((b: number) => void)
-	function Component() {
-		const a = useAtom('a', 1)
-		const [b, _setB] = useState(1)
-		setB = _setB
-		theAtom = a
-		const c = useValue('a+b', () => a.get() + b, [b])
-		return <>{c}</>
-	}
-
-	let view: ReactTestRenderer.ReactTestRenderer
-	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Component />)
-	})
-
+	expect(theComputed).not.toBeNull()
+	expect(theComputed?.get()).toBe(2)
+	expect(theComputed?.name).toBe('useComputed(a+1)')
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
 
 	await ReactTestRenderer.act(() => {
@@ -78,58 +63,54 @@ test('useValue returns a value from a compute function', async () => {
 	})
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"6"`)
 
+	expect(initialComputed).toBe(theComputed)
+
 	await ReactTestRenderer.act(() => {
-		setB!(5)
+		setCount?.(2)
 	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"10"`)
+
+	expect(initialComputed).not.toBe(theComputed)
 })
 
-test("useValue doesn't throw when used in a zombie-child component", async () => {
-	const theAtom = atom<Record<string, number>>('map', { a: 1, b: 2, c: 3 })
-	function Parent() {
-		const ids = useValue('ids', () => Object.keys(theAtom.get()), [])
-		return (
-			<>
-				{ids.map((id) => (
-					<Child key={id} id={id} />
-				))}
-			</>
-		)
-	}
-	function Child({ id }: { id: string }) {
-		const value = useValue(
-			'value',
-			() => {
-				if (!(id in theAtom.get())) throw new Error('id not found!')
-				return theAtom.get()[id]
-			},
-			[id]
-		)
-		return <>{value}</>
+test('useComputed allows optionally passing options', async () => {
+	let theComputed = null as null | Computed<number>
+	let theAtom = null as null | Atom<number>
+	let setCount = null as null | ((count: number) => void)
+	const isEqual = jest.fn((a, b) => a === b)
+	function Component() {
+		const [count, _setCount] = useState(0)
+		setCount = _setCount
+		const a = useAtom('a', 1)
+		theAtom = a
+		const b = useComputed('a+1', () => a.get() + 1, { isEqual }, [count])
+		theComputed = b
+		return <>{useValue(b)}</>
 	}
 
 	let view: ReactTestRenderer.ReactTestRenderer
 	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Parent />)
+		view = ReactTestRenderer.create(<Component />)
 	})
 
-	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		[
-		  "1",
-		  "2",
-		  "3",
-		]
-	`)
+	const initialComputed = theComputed
 
-	// remove id 'b' creating a zombie-child
+	expect(theComputed).not.toBeNull()
+	expect(theComputed?.get()).toBe(2)
+	expect(theComputed?.name).toBe('useComputed(a+1)')
+	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
+
 	await ReactTestRenderer.act(() => {
-		theAtom?.update(({ b: _, ...rest }) => rest)
+		theAtom?.set(5)
+	})
+	expect(view!.toJSON()).toMatchInlineSnapshot(`"6"`)
+
+	expect(initialComputed).toBe(theComputed)
+
+	await ReactTestRenderer.act(() => {
+		setCount?.(2)
 	})
 
-	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		[
-		  "1",
-		  "3",
-		]
-	`)
+	expect(initialComputed).not.toBe(theComputed)
+
+	expect(isEqual).toHaveBeenCalled()
 })

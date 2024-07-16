@@ -131,6 +131,10 @@ export class TestEditor extends Editor {
 		})
 	}
 
+	getHistory() {
+		return this.history
+	}
+
 	private _lastCreatedShapes: TLShape[] = []
 
 	/**

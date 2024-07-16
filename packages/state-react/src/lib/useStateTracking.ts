@@ -1,5 +1,5 @@
+import { EffectScheduler } from '@tldraw/state'
 import React from 'react'
-import { EffectScheduler } from '../core'
 
 /**
  * Wraps some synchronous react render logic in a reactive tracking context.

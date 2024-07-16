@@ -212,6 +212,22 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	backgroundComponent?(shape: Shape): any
 
 	/**
+	 * Get the interpolated props for an animating shape. This is an optional method.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getInterpolatedProps?.(startShape, endShape, t)
+	 * ```
+	 *
+	 * @param startShape - The initial shape.
+	 * @param endShape - The initial shape.
+	 * @param progress - The normalized progress between zero (start) and 1 (end).
+	 * @public
+	 */
+	getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props']
+
+	/**
 	 * Get an array of handle models for the shape. This is an optional method.
 	 *
 	 * @example
