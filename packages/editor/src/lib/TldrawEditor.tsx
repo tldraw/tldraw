@@ -546,6 +546,7 @@ const Watermark = React.memo(() => {
 		[editor]
 	)
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
+	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
 
 	if (!showWatermark) return null
 
@@ -570,7 +571,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	width: 96px;
 	height: 32px;
 	z-index: 2147483647;
-	pointer-events: all;
+	pointer-events: ${isMenuOpen ? 'none' : 'all'};
 	background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
 	border-radius: 5px;
 	padding: 2px;
@@ -589,7 +590,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	cursor: inherit;
 	color: var(--color-text);
 	background-color: currentColor;
-	opacity: 0.62;
+	opacity: .28;
 }
 
 @media (hover: hover) {
@@ -607,7 +608,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 @keyframes delayed_link {
 	0% {
 		cursor: inherit;
-		opacity: 0.62;
+		opacity: .38;
 		pointer-events: none;
 	}
 	100% {
