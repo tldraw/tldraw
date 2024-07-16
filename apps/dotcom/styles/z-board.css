@@ -131,23 +131,23 @@
 
 .tlui-document-name__inner {
 	border-radius: calc(var(--radius-2) + var(--space-2));
-	background-color: var(--color-background);
+	background-color: var(--color-low);
 	padding: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	height: 36px;
-	margin-top: 4px;
+	margin-top: 2px;
 	padding-left: 4px;
 	max-width: 100%;
 	color: var(--color-text);
-	text-shadow: 1px 1px 0px var(--color-background);
+	text-shadow: 1px 1px 0px var(--color-low);
 	pointer-events: all;
 }
 
 .tlui-document-name__input__wrapper {
 	position: relative;
-	max-width: calc(100% - 36px);
+	max-width: 100%;
 	display: flex;
 	flex: auto;
 }

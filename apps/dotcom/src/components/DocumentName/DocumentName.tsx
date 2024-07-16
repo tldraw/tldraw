@@ -8,36 +8,19 @@ import {
 	useState,
 } from 'react'
 import {
-	CenteredTopPanelContainer,
 	OfflineIndicator,
-	TLUiTranslationKey,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuGroup,
-	TldrawUiDropdownMenuItem,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
-	TldrawUiKbd,
 	preventDefault,
 	stopEventPropagation,
 	track,
-	useActions,
 	useBreakpoint,
 	useEditor,
-	useToasts,
 	useTranslation,
 } from 'tldraw'
-import { FORK_PROJECT_ACTION } from '../../utils/sharing'
-import { SAVE_FILE_COPY_ACTION } from '../../utils/useFileSystem'
-import { getShareUrl } from '../ShareMenu'
 
 interface NameState {
 	readonly name: string | null
 	readonly isEditing: boolean
 }
-
-const BUTTON_WIDTH = 44
 
 export const DocumentTopZone = track(function DocumentTopZone({
 	isOffline,
@@ -47,84 +30,21 @@ export const DocumentTopZone = track(function DocumentTopZone({
 	const isDocumentNameVisible = useBreakpoint() >= 4
 
 	return (
-		<CenteredTopPanelContainer ignoreRightWidth={BUTTON_WIDTH}>
+		<>
 			{isDocumentNameVisible && <DocumentNameInner />}
 			{isOffline && <OfflineIndicator />}
-		</CenteredTopPanelContainer>
+		</>
 	)
 })
 
 export const DocumentNameInner = track(function DocumentNameInner() {
 	const [state, setState] = useState<NameState>({ name: null, isEditing: false })
-	const actions = useActions()
-	const forkAction = actions[FORK_PROJECT_ACTION]
-	const saveFileAction = actions[SAVE_FILE_COPY_ACTION]
 	const editor = useEditor()
-	const msg = useTranslation()
-	const toasts = useToasts()
 	const isReadonly = editor.getInstanceState().isReadonly
 
 	return (
 		<div className="tlui-document-name__inner">
 			<DocumentNameEditor isReadonly={isReadonly} state={state} setState={setState} />
-			<TldrawUiDropdownMenuRoot id="document-name">
-				<TldrawUiDropdownMenuTrigger>
-					<TldrawUiButton
-						type="icon"
-						className="tlui-document-name__menu tlui-menu__trigger flex-none"
-					>
-						<TldrawUiButtonIcon icon="chevron-down" />
-					</TldrawUiButton>
-				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent align="end" alignOffset={4} sideOffset={6}>
-					<TldrawUiDropdownMenuGroup>
-						{!isReadonly && (
-							<TldrawUiDropdownMenuItem>
-								<TldrawUiButton
-									type="menu"
-									onClick={() => setState((prev) => ({ ...prev, isEditing: true }))}
-								>
-									{' '}
-									<span className={'tlui-button__label' as any}>{msg('action.rename')}</span>
-								</TldrawUiButton>
-							</TldrawUiDropdownMenuItem>
-						)}
-						<TldrawUiDropdownMenuItem>
-							<TldrawUiButton
-								type="menu"
-								onClick={async () => {
-									const shareLink = await getShareUrl(
-										window.location.href,
-										editor.getInstanceState().isReadonly
-									)
-									shareLink && navigator.clipboard.writeText(shareLink)
-									toasts.addToast({
-										title: msg('share-menu.copied'),
-										severity: 'success',
-									})
-								}}
-							>
-								<span className={'tlui-button__label' as any}>Copy link</span>
-							</TldrawUiButton>
-						</TldrawUiDropdownMenuItem>
-						<TldrawUiDropdownMenuItem>
-							<TldrawUiButton type="menu" onClick={() => saveFileAction.onSelect('document-name')}>
-								<span className={'tlui-button__label' as any}>
-									{msg(saveFileAction.label! as TLUiTranslationKey)}
-								</span>
-								{saveFileAction.kbd && <TldrawUiKbd>{saveFileAction.kbd}</TldrawUiKbd>}
-							</TldrawUiButton>
-						</TldrawUiDropdownMenuItem>
-						<TldrawUiDropdownMenuItem>
-							<TldrawUiButton type="menu" onClick={() => forkAction.onSelect('document-name')}>
-								<span className={'tlui-button__label' as any}>
-									{msg(forkAction.label! as TLUiTranslationKey)}
-								</span>
-							</TldrawUiButton>
-						</TldrawUiDropdownMenuItem>
-					</TldrawUiDropdownMenuGroup>
-				</TldrawUiDropdownMenuContent>
-			</TldrawUiDropdownMenuRoot>
 		</div>
 	)
 })

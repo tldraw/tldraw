@@ -259,161 +259,191 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		})
 	}, [editor, msg, isReadonlyMode])
 
-	return (
-		<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
-			<TldrawUiPopoverTrigger data-testid="main.page-menu">
-				<TldrawUiButton
-					type="menu"
-					title={currentPage.name}
-					data-testid="page-menu.button"
-					className="tlui-page-menu__trigger"
-				>
-					<div className="tlui-page-menu__name">{currentPage.name}</div>
-					<TldrawUiButtonIcon icon="chevron-down" small />
-				</TldrawUiButton>
-			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={6}>
-				<div className="tlui-page-menu__wrapper">
-					<div className="tlui-page-menu__header">
-						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
-						{!isReadonlyMode && (
-							<div className="tlui-buttons__horizontal">
-								<TldrawUiButton
-									type="icon"
-									data-testid="page-menu.edit"
-									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
-									onClick={toggleEditing}
-								>
-									<TldrawUiButtonIcon icon={isEditing ? 'check' : 'edit'} />
-								</TldrawUiButton>
-								<TldrawUiButton
-									type="icon"
-									data-testid="page-menu.create"
-									title={msg(
-										maxPageCountReached
-											? 'page-menu.max-page-count-reached'
-											: 'page-menu.create-new-page'
-									)}
-									disabled={maxPageCountReached}
-									onClick={handleCreatePageClick}
-								>
-									<TldrawUiButtonIcon icon="plus" />
-								</TldrawUiButton>
-							</div>
-						)}
-					</div>
-					<div
-						data-testid="page-menu.list"
-						className="tlui-page-menu__list tlui-menu__group"
-						style={{ height: ITEM_HEIGHT * pages.length + 4 }}
-						ref={rSortableContainer}
-					>
-						{pages.map((page, index) => {
-							const position = sortablePositionItems[page.id] ?? {
-								position: index * 40,
-								offsetY: 0,
-							}
+	const currentPageIndex = editor.getPages().findIndex((page) => page.id === currentPage.id)
+	const prevPage = editor.getPages()[currentPageIndex - 1]
+	const nextPage = editor.getPages()[currentPageIndex + 1]
+	const handlePrevPageClick = () => prevPage && editor.setCurrentPage(prevPage.id)
 
-							return isEditing ? (
-								<div
-									key={page.id + '_editing'}
-									data-testid="page-menu.item"
-									className="tlui-page_menu__item__sortable"
-									style={{
-										zIndex: page.id === currentPage.id ? 888 : index,
-										transform: `translate(0px, ${position.y + position.offsetY}px)`,
-									}}
-								>
+	const handleNextPageClick = () => {
+		if (nextPage) {
+			editor.setCurrentPage(nextPage.id)
+		} else {
+			handleCreatePageClick()
+		}
+	}
+
+	return (
+		<div className="tlui-page-menu__container">
+			<TldrawUiButton
+				type="icon"
+				title="page-menu.previous"
+				onClick={handlePrevPageClick}
+				disabled={!prevPage}
+			>
+				<TldrawUiButtonIcon icon="chevron-left" />
+			</TldrawUiButton>
+
+			<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
+				<TldrawUiPopoverTrigger data-testid="main.page-menu">
+					<TldrawUiButton
+						type="icon"
+						title="page-menu.select"
+						data-testid="page-menu.button"
+						className="tlui-page-menu__trigger"
+					>
+						<div className="tlui-page-menu__name">
+							{currentPageIndex + 1} / {editor.getPages().length}
+						</div>
+					</TldrawUiButton>
+				</TldrawUiPopoverTrigger>
+
+				<TldrawUiPopoverContent side="bottom" align="start" sideOffset={6}>
+					<div className="tlui-page-menu__wrapper">
+						<div className="tlui-page-menu__header">
+							<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
+							{!isReadonlyMode && (
+								<div className="tlui-buttons__horizontal">
 									<TldrawUiButton
 										type="icon"
-										tabIndex={-1}
-										className="tlui-page_menu__item__sortable__handle"
-										onPointerDown={handlePointerDown}
-										onPointerUp={handlePointerUp}
-										onPointerMove={handlePointerMove}
-										onKeyDown={handleKeyDown}
-										data-id={page.id}
-										data-index={index}
+										data-testid="page-menu.edit"
+										title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
+										onClick={toggleEditing}
 									>
-										<TldrawUiButtonIcon icon="drag-handle-dots" />
+										<TldrawUiButtonIcon icon={isEditing ? 'check' : 'edit'} />
 									</TldrawUiButton>
-									{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer ? (
-										// sigh, this is a workaround for iOS Safari
-										// because the device and the radix popover seem
-										// to be fighting over scroll position. Nothing
-										// else seems to work!
+									<TldrawUiButton
+										type="icon"
+										data-testid="page-menu.create"
+										title={msg(
+											maxPageCountReached
+												? 'page-menu.max-page-count-reached'
+												: 'page-menu.create-new-page'
+										)}
+										disabled={maxPageCountReached}
+										onClick={handleCreatePageClick}
+									>
+										<TldrawUiButtonIcon icon="plus" />
+									</TldrawUiButton>
+								</div>
+							)}
+						</div>
+						<div
+							data-testid="page-menu.list"
+							className="tlui-page-menu__list tlui-menu__group"
+							style={{ height: ITEM_HEIGHT * pages.length + 4 }}
+							ref={rSortableContainer}
+						>
+							{pages.map((page, index) => {
+								const position = sortablePositionItems[page.id] ?? {
+									position: index * 40,
+									offsetY: 0,
+								}
+
+								return isEditing ? (
+									<div
+										key={page.id + '_editing'}
+										data-testid="page-menu.item"
+										className="tlui-page_menu__item__sortable"
+										style={{
+											zIndex: page.id === currentPage.id ? 888 : index,
+											transform: `translate(0px, ${position.y + position.offsetY}px)`,
+										}}
+									>
+										<TldrawUiButton
+											type="icon"
+											tabIndex={-1}
+											className="tlui-page_menu__item__sortable__handle"
+											onPointerDown={handlePointerDown}
+											onPointerUp={handlePointerUp}
+											onPointerMove={handlePointerMove}
+											onKeyDown={handleKeyDown}
+											data-id={page.id}
+											data-index={index}
+										>
+											<TldrawUiButtonIcon icon="drag-handle-dots" />
+										</TldrawUiButton>
+										{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer ? (
+											// sigh, this is a workaround for iOS Safari
+											// because the device and the radix popover seem
+											// to be fighting over scroll position. Nothing
+											// else seems to work!
+											<TldrawUiButton
+												type="normal"
+												className="tlui-page-menu__item__button"
+												onClick={() => {
+													const name = window.prompt('Rename page', page.name)
+													if (name && name !== page.name) {
+														editor.renamePage(page.id, name)
+													}
+												}}
+												onDoubleClick={toggleEditing}
+											>
+												<TldrawUiButtonCheck checked={page.id === currentPage.id} />
+												<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
+											</TldrawUiButton>
+										) : (
+											<div
+												className="tlui-page_menu__item__sortable__title"
+												style={{ height: ITEM_HEIGHT }}
+											>
+												<PageItemInput
+													id={page.id}
+													name={page.name}
+													isCurrentPage={page.id === currentPage.id}
+												/>
+											</div>
+										)}
+										{!isReadonlyMode && (
+											<div className="tlui-page_menu__item__submenu" data-isediting={isEditing}>
+												<PageItemSubmenu index={index} item={page} listSize={pages.length} />
+											</div>
+										)}
+									</div>
+								) : (
+									<div key={page.id} data-testid="page-menu.item" className="tlui-page-menu__item">
 										<TldrawUiButton
 											type="normal"
 											className="tlui-page-menu__item__button"
-											onClick={() => {
-												const name = window.prompt('Rename page', page.name)
-												if (name && name !== page.name) {
-													editor.renamePage(page.id, name)
-												}
-											}}
+											onClick={() => editor.setCurrentPage(page.id)}
 											onDoubleClick={toggleEditing}
+											title={msg('page-menu.go-to-page')}
 										>
 											<TldrawUiButtonCheck checked={page.id === currentPage.id} />
 											<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
 										</TldrawUiButton>
-									) : (
-										<div
-											className="tlui-page_menu__item__sortable__title"
-											style={{ height: ITEM_HEIGHT }}
-										>
-											<PageItemInput
-												id={page.id}
-												name={page.name}
-												isCurrentPage={page.id === currentPage.id}
-											/>
-										</div>
-									)}
-									{!isReadonlyMode && (
-										<div className="tlui-page_menu__item__submenu" data-isediting={isEditing}>
-											<PageItemSubmenu index={index} item={page} listSize={pages.length} />
-										</div>
-									)}
-								</div>
-							) : (
-								<div key={page.id} data-testid="page-menu.item" className="tlui-page-menu__item">
-									<TldrawUiButton
-										type="normal"
-										className="tlui-page-menu__item__button"
-										onClick={() => editor.setCurrentPage(page.id)}
-										onDoubleClick={toggleEditing}
-										title={msg('page-menu.go-to-page')}
-									>
-										<TldrawUiButtonCheck checked={page.id === currentPage.id} />
-										<TldrawUiButtonLabel>{page.name}</TldrawUiButtonLabel>
-									</TldrawUiButton>
-									{!isReadonlyMode && (
-										<div className="tlui-page_menu__item__submenu">
-											<PageItemSubmenu
-												index={index}
-												item={page}
-												listSize={pages.length}
-												onRename={() => {
-													if (editor.environment.isIos) {
-														const name = window.prompt('Rename page', page.name)
-														if (name && name !== page.name) {
-															editor.renamePage(page.id, name)
+										{!isReadonlyMode && (
+											<div className="tlui-page_menu__item__submenu">
+												<PageItemSubmenu
+													index={index}
+													item={page}
+													listSize={pages.length}
+													onRename={() => {
+														if (editor.environment.isIos) {
+															const name = window.prompt('Rename page', page.name)
+															if (name && name !== page.name) {
+																editor.renamePage(page.id, name)
+															}
+														} else {
+															editor.batch(() => {
+																setIsEditing(true)
+																editor.setCurrentPage(page.id)
+															})
 														}
-													} else {
-														editor.batch(() => {
-															setIsEditing(true)
-															editor.setCurrentPage(page.id)
-														})
-													}
-												}}
-											/>
-										</div>
-									)}
-								</div>
-							)
-						})}
+													}}
+												/>
+											</div>
+										)}
+									</div>
+								)
+							})}
+						</div>
 					</div>
-				</div>
-			</TldrawUiPopoverContent>
-		</TldrawUiPopover>
+				</TldrawUiPopoverContent>
+			</TldrawUiPopover>
+
+			<TldrawUiButton type="icon" title="page-menu.next" onClick={handleNextPageClick}>
+				<TldrawUiButtonIcon icon="chevron-right" />
+			</TldrawUiButton>
+		</div>
 	)
 })
