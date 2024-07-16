@@ -491,6 +491,9 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
+export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
+
+// @public
 export function createTLStore({ initialData, defaultName, id, assets, onEditorMount, multiplayerStatus, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
@@ -3273,15 +3276,18 @@ export interface TLStoreBaseOptions {
 export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
-export type TLStoreOptions = TLStoreBaseOptions & ({
-    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+export type TLStoreOptions = TLStoreBaseOptions & {
     id?: string;
+} & TLStoreSchemaOptions;
+
+// @public (undocumented)
+export type TLStoreSchemaOptions = {
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } | {
-    id?: string;
     schema?: StoreSchema<TLRecord, TLStoreProps>;
-});
+};
 
 // @public (undocumented)
 export type TLStoreWithStatus = {
@@ -3519,7 +3525,7 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
-export function useShallowObjectIdentity<T extends object>(arr: T): T;
+export function useShallowObjectIdentity<T extends object>(obj: T): T;
 
 export { useStateTracking }
 
@@ -3527,6 +3533,9 @@ export { useStateTracking }
 export function useSvgExportContext(): {
     isDarkMode: boolean;
 } | null;
+
+// @public (undocumented)
+export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {

@@ -92,6 +92,7 @@ function MultiplayerExampleWrapper({
 				<WifiIcon />
 				<div>Live Example</div>
 				<button
+					className="MultiplayerExampleWrapper-copy"
 					onClick={() => {
 						// copy current url with roomId=roomId to clipboard
 						navigator.clipboard.writeText(window.location.href.split('?')[0] + `?roomId=${roomId}`)
@@ -99,7 +100,8 @@ function MultiplayerExampleWrapper({
 					}}
 					aria-label="join"
 				>
-					{confirm ? 'Copied!' : 'Copy Share URL'}
+					Copy link
+					{confirm && <div className="MultiplayerExampleWrapper-copied">Copied!</div>}
 				</button>
 			</div>
 			<div className="MultiplayerExampleWrapper-example">
