@@ -70,7 +70,7 @@ export class LicenseManager {
 		this.isCryptoAvailable = !!crypto.subtle
 
 		this.getLicenseFromKey(licenseKey).then((result) => {
-			function shouldShowWatermark() {
+			function isEditorUnlicensed() {
 				if (!result.isLicenseParseable) return true
 				if (!result.isDomainValid && !result.isDevelopment) return true
 				if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
@@ -82,7 +82,12 @@ export class LicenseManager {
 				return false
 			}
 
-			this.state.set(shouldShowWatermark() ? 'unlicensed' : 'licensed')
+			const unlicensed = isEditorUnlicensed()
+			this.state.set(unlicensed ? 'unlicensed' : 'licensed')
+
+			if (unlicensed) {
+				// todo: fetch to analytics endpoint
+			}
 		})
 	}
 
