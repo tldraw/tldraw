@@ -1,8 +1,8 @@
 ---
-title: Multiplayer demo
+title: Multiplayer with tlsync
 component: ./MultiplayerDemoExample.tsx
-category: basic
-priority: 3
+category: collaboration
+priority: 1
 keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration]
 multiplayer: true
 ---

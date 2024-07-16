@@ -43,15 +43,14 @@ function getEnv(cb: () => string | undefined): string | undefined {
 const DEMO_WORKER = getEnv(() => process.env.TLDRAW_BEMO_URL) ?? 'https://demo.tldraw.xyz'
 const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://images.tldraw.xyz'
 
-export function useMultiplayerDemo({
-	roomId,
-	userPreferences,
-	host = DEMO_WORKER,
-	...schemaOpts
-}: UseMultiplayerDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus {
+/** @public */
+export function useMultiplayerDemo(
+	options: UseMultiplayerDemoOptions & TLStoreSchemaOptions
+): RemoteTLStoreWithStatus {
+	const { roomId, userPreferences, host = DEMO_WORKER, ..._schemaOpts } = options
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
 
-	schemaOpts = useShallowObjectIdentity(schemaOpts)
+	const schemaOpts = useShallowObjectIdentity(_schemaOpts)
 	const schemaOptsWithDefaults = useMemo((): TLStoreSchemaOptions => {
 		if ('schema' in schemaOpts && schemaOpts.schema) return schemaOpts
 
