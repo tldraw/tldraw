@@ -146,7 +146,7 @@ editor.bailToMark('first') // will return to A
 
 ## Running code in context
 
-You can use the [Editor#run] method to run a function inside of a transaction. All changes made during the transaction will be settled at once. This improves performance and avoids unnecessary renders in the user interface.
+You can use the [Editor#run](?) method to run a function inside of a transaction. All changes made during the transaction will be settled at once. This improves performance and avoids unnecessary renders in the user interface.
 
 ```ts
 editor.run(() => {
@@ -156,7 +156,7 @@ editor.run(() => {
 })
 ```
 
-You can also use [Editor#run] to execute code with contextual options.
+You can also use [Editor#run](?) to execute code with contextual options.
 
 For example, you can use the options to perform actions without effecting the undo / redo history:
 
