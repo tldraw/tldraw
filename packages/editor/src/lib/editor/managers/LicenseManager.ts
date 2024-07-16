@@ -1,3 +1,4 @@
+import { atom } from '@tldraw/state'
 import { publishDates } from '../../../version'
 import { importPublicKey, str2ab } from '../../utils/licensing'
 
@@ -50,16 +51,39 @@ export interface ValidLicenseKeyResult {
 
 type TestEnvironment = 'development' | 'production'
 
+/** @internal */
 export class LicenseManager {
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 	public isDevelopment: boolean
 	public isCryptoAvailable: boolean
 
-	constructor(testPublicKey?: string, testEnvironment?: TestEnvironment) {
+	state = atom('license state', 'pending')
+
+	constructor(
+		licenseKey: string | undefined,
+		testPublicKey?: string,
+		testEnvironment?: TestEnvironment
+	) {
 		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
+
+		this.getLicenseFromKey(licenseKey).then((result) => {
+			function shouldShowWatermark() {
+				if (!result.isLicenseParseable) return true
+				if (!result.isDomainValid && !result.isDevelopment) return true
+				if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
+					if (result.isInternalLicense) {
+						throw new Error('License: Internal license expired.')
+					}
+					return true
+				}
+				return false
+			}
+
+			this.state.set(shouldShowWatermark() ? 'unlicensed' : 'licensed')
+		})
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {

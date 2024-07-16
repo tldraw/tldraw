@@ -329,16 +329,7 @@ async function copyWatermarks() {
 		file.append(`export const ${varName} = ${JSON.stringify(data)};`)
 	}
 
-	const destinationFolderPath = join(
-		REPO_ROOT,
-		'packages',
-		'editor',
-		'src',
-		'lib',
-		'editor',
-		'managers',
-		'watermarks.ts'
-	)
+	const destinationFolderPath = join(REPO_ROOT, 'packages', 'editor', 'src', 'lib', 'watermarks.ts')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',

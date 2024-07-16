@@ -108,7 +108,7 @@ import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { dataUrlToFile } from '../utils/assets'
-import { debugFlags, featureFlags } from '../utils/debug-flags'
+import { debugFlags } from '../utils/debug-flags'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -134,7 +134,6 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { WatermarkManager } from './managers/WatermarkManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -713,19 +712,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		const checkLicenseKey = async (licenseKey: string | undefined) => {
-			if (!featureFlags.enableLicensing.get()) return
-			const licenseManager = new LicenseManager()
-			const watermarkManager = new WatermarkManager(this)
-			const license = await licenseManager.getLicenseFromKey(licenseKey)
-			watermarkManager.checkWatermark(license)
-		}
+		this.licenseManager = new LicenseManager(licenseKey)
 
-		checkLicenseKey(licenseKey)
 		this.performanceTracker = new PerformanceTracker()
 	}
 
+	private readonly licenseManager: LicenseManager
+
 	readonly options: TldrawOptions
+
+	@computed getLicenseState() {
+		return this.licenseManager.state.get()
+	}
 
 	/**
 	 * The editor's store
