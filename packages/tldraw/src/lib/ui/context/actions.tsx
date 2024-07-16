@@ -1230,7 +1230,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('toggle-transparent', { source })
+					trackEvent('toggle-add-padding', { source })
 					editor.updateInstanceState({
 						addPaddingToExports: !editor.getInstanceState().addPaddingToExports,
 					})

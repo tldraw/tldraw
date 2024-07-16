@@ -81,6 +81,7 @@ export interface TLUiEventMap {
 	cut: null
 	'set-style': { id: string; value: string | number }
 	'toggle-transparent': null
+	'toggle-add-padding': null
 	'toggle-snap-mode': null
 	'toggle-tool-lock': null
 	'toggle-grid-mode': null

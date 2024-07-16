@@ -2209,6 +2209,8 @@ export interface TLUiEventMap {
         operation: 'horizontal' | 'vertical';
     };
     // (undocumented)
+    'toggle-add-padding': null;
+    // (undocumented)
     'toggle-auto-size': null;
     // (undocumented)
     'toggle-debug-mode': null;
@@ -3257,7 +3259,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventContextType;
+export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
