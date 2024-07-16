@@ -702,15 +702,6 @@ export function object<Shape extends object>(config: {
 			[P in ExtractOptionalKeys<Shape>]?: Shape[P]
 		}
 	>
->
-export function object<Shape extends object>(config: {
-	readonly [K in keyof Shape]: Validatable<Shape[K]>
-}): ObjectValidator<
-	Expand<
-		{ [P in ExtractRequiredKeys<Shape>]: Shape[P] } & {
-			[P in ExtractOptionalKeys<Shape>]?: Shape[P]
-		}
-	>
 > {
 	return new ObjectValidator(config) as any
 }
