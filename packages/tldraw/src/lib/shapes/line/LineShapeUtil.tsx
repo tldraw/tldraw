@@ -13,6 +13,7 @@ import {
 	WeakCache,
 	getIndexBetween,
 	getIndices,
+	lerp,
 	lineShapeMigrations,
 	lineShapeProps,
 	mapObjectMapValues,
@@ -182,6 +183,23 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 				if (!segments.length) return null
 				return new Group2d({ children: segments })
+			},
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLLineShape,
+		endShape: TLLineShape,
+		progress: number
+	): TLLineShape['props'] {
+		return {
+			...endShape.props,
+			points: {
+				...mapObjectMapValues(startShape.props.points, (_, { id, index, x, y }) => ({
+					id,
+					index,
+					x: lerp(x, endShape.props.points[id].x, progress),
+					y: lerp(y, endShape.props.points[id].y, progress),
+				})),
 			},
 		}
 	}

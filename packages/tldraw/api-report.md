@@ -456,7 +456,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool)[];
+export const defaultShapeTools: (typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
@@ -1112,6 +1112,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
+    // (undocumented)
+    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, progress: number): TLLineShape['props'];
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
