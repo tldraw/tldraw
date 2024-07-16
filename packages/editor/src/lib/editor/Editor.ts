@@ -721,8 +721,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 		}
-		this.timers.setTimeout(youWouldntStealAWhiteboard, 2000)
-		this.timers.setInterval(youWouldntStealAWhiteboard, 5 * 1000)
+		this.timers.setTimeout(youWouldntStealAWhiteboard, 5000)
+		this.timers.setInterval(youWouldntStealAWhiteboard, 5 * 60 * 1000)
 
 		this.performanceTracker = new PerformanceTracker()
 	}
