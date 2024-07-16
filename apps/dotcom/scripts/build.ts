@@ -8,29 +8,8 @@ import json5 from 'json5'
 import { nicelog } from '../../../scripts/lib/nicelog'
 
 import { T } from '@tldraw/validate'
+import { csp } from '../src/utils/csp'
 import { getMultiplayerServerURL } from '../vite.config'
-
-const cspDirectives: { [key: string]: string[] } = {
-	'default-src': [`'self'`],
-	'connect-src': [
-		`'self'`,
-		`ws:`,
-		`wss:`,
-		`https://assets.tldraw.xyz`,
-		`https://*.tldraw.workers.dev`,
-		`https://*.ingest.sentry.io`,
-	],
-	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`],
-	'frame-src': [`https:`],
-	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
-	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
-	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
-	'report-uri': [process.env.SENTRY_CSP_REPORT_URI ?? ``],
-}
-
-const csp = Object.keys(cspDirectives)
-	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
-	.join('; ')
 
 const commonSecurityHeaders = {
 	'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',

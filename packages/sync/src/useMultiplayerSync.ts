@@ -13,18 +13,18 @@ import {
 	TAB_ID,
 	TLAssetStore,
 	TLRecord,
-	TLSchema,
 	TLStore,
+	TLStoreSchemaOptions,
 	TLStoreWithStatus,
 	TLUserPreferences,
 	computed,
 	createPresenceStateDerivation,
-	createTLSchema,
 	createTLStore,
 	defaultUserPreferences,
 	getUserPreferences,
 	uniqueId,
 	useRefState,
+	useTLSchemaFromUtils,
 	useValue,
 } from 'tldraw'
 
@@ -37,7 +37,9 @@ export type RemoteTLStoreWithStatus = Exclude<
 >
 
 /** @public */
-export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLStoreWithStatus {
+export function useMultiplayerSync(
+	opts: UseMultiplayerSyncOptions & TLStoreSchemaOptions
+): RemoteTLStoreWithStatus {
 	const [state, setState] = useRefState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
@@ -49,8 +51,10 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 		assets,
 		onEditorMount,
 		trackAnalyticsEvent: track,
-		schema,
+		...schemaOpts
 	} = opts
+
+	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -89,7 +93,7 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLSto
 
 		const store = createTLStore({
 			id: storeId,
-			schema: schema ?? createTLSchema(),
+			schema,
 			assets,
 			onEditorMount,
 			multiplayerStatus: computed('multiplayer status', () =>
@@ -160,5 +164,4 @@ export interface UseMultiplayerSyncOptions {
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 	assets?: Partial<TLAssetStore>
 	onEditorMount?: (editor: Editor) => void
-	schema?: TLSchema
 }

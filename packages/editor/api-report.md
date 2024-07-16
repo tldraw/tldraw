@@ -491,6 +491,9 @@ export function counterClockwiseAngleDist(a0: number, a1: number): number;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
+export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
+
+// @public
 export function createTLStore({ initialData, defaultName, id, assets, onEditorMount, multiplayerStatus, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
@@ -711,6 +714,7 @@ export const defaultTldrawOptions: {
 export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
+    colorScheme: "system";
     edgeScrollSpeed: 1;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
@@ -2674,7 +2678,7 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     autoFocus?: boolean;
-    bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[];
+    bindingUtils: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
     getContainer: () => HTMLElement;
     inferDarkMode?: boolean;
@@ -2683,7 +2687,7 @@ export interface TLEditorOptions {
     licenseKey?: string;
     // (undocumented)
     options?: Partial<TldrawOptions>;
-    shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
+    shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
@@ -3274,15 +3278,18 @@ export interface TLStoreBaseOptions {
 export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
-export type TLStoreOptions = TLStoreBaseOptions & ({
-    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
+export type TLStoreOptions = TLStoreBaseOptions & {
     id?: string;
+} & TLStoreSchemaOptions;
+
+// @public (undocumented)
+export type TLStoreSchemaOptions = {
+    bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 } | {
-    id?: string;
     schema?: StoreSchema<TLRecord, TLStoreProps>;
-});
+};
 
 // @public (undocumented)
 export type TLStoreWithStatus = {
@@ -3520,7 +3527,7 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
-export function useShallowObjectIdentity<T extends object>(arr: T): T;
+export function useShallowObjectIdentity<T extends object>(obj: T): T;
 
 export { useStateTracking }
 
@@ -3530,8 +3537,11 @@ export function useSvgExportContext(): {
 } | null;
 
 // @public (undocumented)
+export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
+
+// @public (undocumented)
 export function useTLStore(opts: TLStoreOptions & {
-    snapshot?: TLEditorSnapshot | TLStoreSnapshot;
+    snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }): TLStore;
 
 // @public (undocumented)

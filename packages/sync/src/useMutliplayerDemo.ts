@@ -6,10 +6,13 @@ import {
 	Signal,
 	TLAsset,
 	TLAssetStore,
-	TLSchema,
+	TLStoreSchemaOptions,
 	TLUserPreferences,
+	defaultBindingUtils,
+	defaultShapeUtils,
 	getHashForString,
 	uniqueId,
+	useShallowObjectIdentity,
 } from 'tldraw'
 import { RemoteTLStoreWithStatus, useMultiplayerSync } from './useMultiplayerSync'
 
@@ -19,7 +22,6 @@ export interface UseMultiplayerDemoOptions {
 	userPreferences?: Signal<TLUserPreferences>
 	/** @internal */
 	host?: string
-	schema?: TLSchema
 }
 
 /**
@@ -42,16 +44,34 @@ const DEMO_WORKER = getEnv(() => process.env.TLDRAW_BEMO_URL) ?? 'https://demo.t
 const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://images.tldraw.xyz'
 
 /** @public */
-export function useMultiplayerDemo(options: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus {
-	const { roomId, userPreferences, host = DEMO_WORKER, schema } = options
+export function useMultiplayerDemo(
+	options: UseMultiplayerDemoOptions & TLStoreSchemaOptions
+): RemoteTLStoreWithStatus {
+	const { roomId, userPreferences, host = DEMO_WORKER, ..._schemaOpts } = options
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
+
+	const schemaOpts = useShallowObjectIdentity(_schemaOpts)
+	const schemaOptsWithDefaults = useMemo((): TLStoreSchemaOptions => {
+		if ('schema' in schemaOpts && schemaOpts.schema) return schemaOpts
+
+		return {
+			...schemaOpts,
+			shapeUtils:
+				'shapeUtils' in schemaOpts
+					? [...defaultShapeUtils, ...(schemaOpts.shapeUtils ?? [])]
+					: defaultShapeUtils,
+			bindingUtils:
+				'bindingUtils' in schemaOpts
+					? [...defaultBindingUtils, ...(schemaOpts.bindingUtils ?? [])]
+					: defaultBindingUtils,
+		}
+	}, [schemaOpts])
 
 	return useMultiplayerSync({
 		uri: `${host}/connect/${encodeURIComponent(roomId)}`,
 		roomId,
 		userPreferences,
 		assets,
-		schema,
 		onEditorMount: useCallback(
 			(editor: Editor) => {
 				editor.registerExternalAssetHandler('url', async ({ url }) => {
@@ -60,6 +80,7 @@ export function useMultiplayerDemo(options: UseMultiplayerDemoOptions): RemoteTL
 			},
 			[host]
 		),
+		...schemaOptsWithDefaults,
 	})
 }
 

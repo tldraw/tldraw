@@ -85,8 +85,8 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { TLEditorSnapshot, getSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
 import { TLUser, createTLUser } from '../config/createTLUser'
-import { checkBindings } from '../config/defaultBindings'
-import { checkShapesAndAddCore } from '../config/defaultShapes'
+import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
+import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
@@ -113,11 +113,7 @@ import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
-import {
-	BindingOnDeleteOptions,
-	BindingUtil,
-	TLBindingUtilConstructor,
-} from './bindings/BindingUtil'
+import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
@@ -135,7 +131,7 @@ import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { WatermarkManager } from './managers/WatermarkManager'
-import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
+import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -180,11 +176,11 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[]
+	shapeUtils: readonly TLAnyShapeUtilConstructor[]
 	/**
 	 * An array of bindings to use in the editor. These will be used to create and manage bindings in the editor.
 	 */
-	bindingUtils: readonly TLBindingUtilConstructor<TLUnknownBinding>[]
+	bindingUtils: readonly TLAnyBindingUtilConstructor[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -1059,19 +1055,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * // updating with
-	 * editor.run({ history: "ignore" }, () => {
+	 * editor.run(() => {
 	 * 	editor.updateShape({ ...myShape, x: 100 })
-	 * })
+	 * }, { history: "ignore" })
 	 *
 	 * // forcing changes / deletions for locked shapes
 	 * editor.toggleLock([myShape])
-	 * editor.run({ ignoreShapeLock: true }, () => {
+	 * editor.run(() => {
 	 * 	editor.updateShape({ ...myShape, x: 100 })
 	 * 	editor.deleteShape(myShape)
-	 * })
+	 * }, { ignoreShapeLock: true }, )
 	 * ```
-	 * @param opts - The options for the batch.
+	 *
 	 * @param fn - The callback function to run.
+	 * @param opts - The options for the batch.
 	 *
 	 *
 	 * @public
@@ -4069,7 +4066,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			steppedScreenScale,
 			dpr,
 			networkEffectiveType,
-			shouldResolveToOriginal: shouldResolveToOriginal,
+			shouldResolveToOriginal,
 		})
 	}
 	/**

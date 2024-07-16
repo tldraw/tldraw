@@ -32,19 +32,18 @@ export interface TLStoreBaseOptions {
 }
 
 /** @public */
-export type TLStoreOptions = TLStoreBaseOptions &
-	(
-		| {
-				id?: string
-				shapeUtils?: readonly TLAnyShapeUtilConstructor[]
-				migrations?: readonly MigrationSequence[]
-				bindingUtils?: readonly TLAnyBindingUtilConstructor[]
-		  }
-		| {
-				id?: string
-				schema?: StoreSchema<TLRecord, TLStoreProps>
-		  }
-	)
+export type TLStoreSchemaOptions =
+	| {
+			schema?: StoreSchema<TLRecord, TLStoreProps>
+	  }
+	| {
+			shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+			migrations?: readonly MigrationSequence[]
+			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+	  }
+
+/** @public */
+export type TLStoreOptions = TLStoreBaseOptions & { id?: string } & TLStoreSchemaOptions
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
@@ -56,11 +55,38 @@ export const defaultAssetStore: TLAssetStore = {
 }
 
 /**
+ * A helper for creating a TLStore schema from either an object with shapeUtils, bindingUtils, and
+ * migrations, or a schema.
+ *
+ * @param opts - Options for creating the schema.
+ *
+ * @public
+ */
+export function createTLSchemaFromUtils(
+	opts: TLStoreSchemaOptions
+): StoreSchema<TLRecord, TLStoreProps> {
+	if ('schema' in opts && opts.schema) return opts.schema
+
+	return createTLSchema({
+		shapes:
+			'shapeUtils' in opts && opts.shapeUtils
+				? utilsToMap(checkShapesAndAddCore(opts.shapeUtils))
+				: undefined,
+		bindings:
+			'bindingUtils' in opts && opts.bindingUtils
+				? utilsToMap(checkBindings(opts.bindingUtils))
+				: undefined,
+		migrations: 'migrations' in opts ? opts.migrations : undefined,
+	})
+}
+
+/**
  * A helper for creating a TLStore.
  *
  * @param opts - Options for creating the store.
  *
- * @public */
+ * @public
+ */
 export function createTLStore({
 	initialData,
 	defaultName = '',
@@ -70,22 +96,7 @@ export function createTLStore({
 	multiplayerStatus,
 	...rest
 }: TLStoreOptions = {}): TLStore {
-	const schema =
-		'schema' in rest && rest.schema
-			? // we have a schema
-				rest.schema
-			: // we need a schema
-				createTLSchema({
-					shapes:
-						'shapeUtils' in rest && rest.shapeUtils
-							? utilsToMap(checkShapesAndAddCore(rest.shapeUtils))
-							: undefined,
-					bindings:
-						'bindingUtils' in rest && rest.bindingUtils
-							? utilsToMap(checkBindings(rest.bindingUtils))
-							: undefined,
-					migrations: 'migrations' in rest ? rest.migrations : undefined,
-				})
+	const schema = createTLSchemaFromUtils(rest)
 
 	return new Store({
 		id,

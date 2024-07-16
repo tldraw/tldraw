@@ -1,20 +1,40 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { vecModelValidator } from '../misc/geometry-types'
+import { VecModel, vecModelValidator } from '../misc/geometry-types'
+import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RecordPropsType } from '../recordsWithProps'
+import { RecordProps } from '../recordsWithProps'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const ImageShapeCrop = T.object({
+export interface TLImageShapeCrop {
+	topLeft: VecModel
+	bottomRight: VecModel
+}
+
+/** @public */
+export const ImageShapeCrop: T.ObjectValidator<TLImageShapeCrop> = T.object({
 	topLeft: vecModelValidator,
 	bottomRight: vecModelValidator,
 })
-/** @public */
-export type TLImageShapeCrop = T.TypeOf<typeof ImageShapeCrop>
 
 /** @public */
-export const imageShapeProps = {
+export interface TLImageShapeProps {
+	w: number
+	h: number
+	playing: boolean
+	url: string
+	assetId: TLAssetId | null
+	crop: TLImageShapeCrop | null
+	flipX: boolean
+	flipY: boolean
+}
+
+/** @public */
+export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
+
+/** @public */
+export const imageShapeProps: RecordProps<TLImageShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	playing: T.boolean,
@@ -24,12 +44,6 @@ export const imageShapeProps = {
 	flipX: T.boolean,
 	flipY: T.boolean,
 }
-
-/** @public */
-export type TLImageShapeProps = RecordPropsType<typeof imageShapeProps>
-
-/** @public */
-export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
 
 const Versions = createShapePropsMigrationIds('image', {
 	AddUrlProp: 1,

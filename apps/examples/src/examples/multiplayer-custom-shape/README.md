@@ -1,9 +1,9 @@
 ---
-title: Multiplayer with tlsync
+title: Multiplayer demo with custom shape
 component: ./MultiplayerDemoExample.tsx
-category: collaboration
-priority: 1
-keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration]
+category: basic
+priority: 3
+keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration, custom shape]
 multiplayer: true
 ---
 

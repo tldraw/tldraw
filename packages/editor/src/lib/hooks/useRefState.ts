@@ -16,7 +16,7 @@ import { Dispatch, SetStateAction, useCallback, useRef, useState } from 'react'
  * ```
  *
  * The problem with this is that when initially mounting in strict mode, react will:
- * - Call the initial effect and set state state with an instance
+ * - Call the initial effect and set state with an instance
  * - Call the cleanup function and destroy the instance
  * - Call the effect again and set state with a new instance
  * - Restore the state to the first instance

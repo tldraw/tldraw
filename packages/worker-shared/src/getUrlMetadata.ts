@@ -45,16 +45,28 @@ class IconExtractor {
 }
 
 export async function getUrlMetadata({ url }: { url: string }) {
+	// Let's see if this URL was an image to begin with.
+	if (url.match(/\.(a?png|jpe?g|gif|svg|webp|avif)$/i)) {
+		return {
+			title: undefined,
+			description: undefined,
+			image: url,
+			favicon: undefined,
+		}
+	}
+
 	const meta$ = new MetaExtractor()
 	const title$ = new TextExtractor()
 	const icon$ = new IconExtractor()
+	let response: Response
 
 	try {
+		response = (await fetch(url)) as any
 		await new HTMLRewriter()
 			.on('meta', meta$)
 			.on('title', title$)
 			.on('link', icon$)
-			.transform((await fetch(url)) as any)
+			.transform(response)
 			.blob()
 	} catch {
 		return null
@@ -73,6 +85,10 @@ export async function getUrlMetadata({ url }: { url: string }) {
 	}
 	if (favicon && !favicon?.startsWith('http')) {
 		favicon = new URL(favicon, url).href
+	}
+
+	if (response.headers.get('content-type')?.startsWith('image/')) {
+		image = url
 	}
 
 	return {
