@@ -84,6 +84,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 }
 
 export function isAllowedOrigin(origin: string) {
+	if (!origin) return undefined
 	if (origin === 'http://localhost:3000') return origin
 	if (origin === 'http://localhost:5420') return origin
 	if (origin === 'https://meet.google.com') return origin
