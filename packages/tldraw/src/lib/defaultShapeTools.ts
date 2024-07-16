@@ -17,4 +17,4 @@ export const defaultShapeTools = [
 	FrameShapeTool,
 	ArrowShapeTool,
 	HighlightShapeTool,
-]
+] as const

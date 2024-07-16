@@ -228,6 +228,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	return (
 		<div
 			ref={setContainer}
+			data-tldraw={version}
 			draggable={false}
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
