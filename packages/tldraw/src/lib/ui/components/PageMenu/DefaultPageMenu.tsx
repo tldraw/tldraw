@@ -7,6 +7,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { exportToBlob } from '../../../utils/export/export'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
@@ -31,11 +32,35 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
-	const handleOpenChange = useCallback(() => setIsEditing(false), [])
+	const [pageThumbnails, setPageThumbnails] = useState<Record<TLPageId, string>>({})
+
+	const generateThumbnail = useCallback(
+		async (pageId: TLPageId) => {
+			const ids = Array.from(editor.getPageShapeIds(pageId).values())
+			if (ids.length === 0) return ''
+			const blob = await exportToBlob({ editor, ids, format: 'png' })
+			const pageThumbnail = URL.createObjectURL(blob)
+			setPageThumbnails((prev) => ({ ...prev, [pageId]: pageThumbnail }))
+		},
+		[editor]
+	)
+
+	const handleOpenChange = useCallback(
+		(isOpen: boolean) => {
+			setIsEditing(false)
+
+			if (isOpen) {
+				editor.getPages().forEach((page) => {
+					generateThumbnail(page.id)
+				})
+			}
+		},
+		[editor, generateThumbnail]
+	)
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('page-menu', handleOpenChange)
 
-	const ITEM_HEIGHT = 36
+	const ITEM_HEIGHT = 72
 
 	const rSortableContainer = useRef<HTMLDivElement>(null)
 
@@ -432,6 +457,18 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 													}}
 												/>
 											</div>
+										)}
+										{pageThumbnails[page.id] && (
+											<div
+												style={{
+													height: '72px',
+													backgroundPosition: 'center center',
+													backgroundSize: 'contain',
+													backgroundRepeat: 'no-repeat',
+													backgroundImage: `url(${pageThumbnails[page.id]})`,
+													flex: '1 0 120px',
+												}}
+											/>
 										)}
 									</div>
 								)

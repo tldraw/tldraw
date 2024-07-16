@@ -1242,7 +1242,7 @@
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	width: 220px;
+	width: 256px;
 	height: fit-content;
 	max-height: 50vh;
 }
