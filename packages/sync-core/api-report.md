@@ -15,6 +15,7 @@ import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { TLRecord } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
+import ws from 'ws';
 
 // @public (undocumented)
 export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number];
@@ -318,11 +319,13 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     handleSocketClose(sessionId: string): void;
     // (undocumented)
-    handleSocketConnect(sessionId: string, socket: WebSocket, meta: SessionMeta): void;
+    handleSocketConnect(sessionId: string, _socket: WebSocket | ws.WebSocket, meta: SessionMeta): void;
     // (undocumented)
     handleSocketError(sessionId: string): void;
     // (undocumented)
     handleSocketMessage(sessionId: string, message: ArrayBuffer | string): void;
+    // (undocumented)
+    isClosed(): boolean;
     // (undocumented)
     loadSnapshot(snapshot: RoomSnapshot): void;
     // (undocumented)
@@ -465,6 +468,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     handleClose: (sessionKey: string) => void;
     handleMessage: (sessionKey: string, message: TLSocketClientSentEvent<R>) => Promise<void>;
     handleNewSession: (sessionKey: string, socket: TLRoomSocket<R>, meta: SessionMeta) => this;
+    // (undocumented)
+    isClosed(): boolean;
     // (undocumented)
     readonly presenceType: RecordType<R, any>;
     // (undocumented)
