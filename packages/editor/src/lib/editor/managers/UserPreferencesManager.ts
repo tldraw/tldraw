@@ -44,6 +44,7 @@ export class UserPreferencesManager {
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 		}
 	}
+
 	@computed getIsDarkMode() {
 		switch (this.user.userPreferences.get().colorScheme) {
 			case 'dark':
