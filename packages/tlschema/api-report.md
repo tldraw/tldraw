@@ -1322,6 +1322,8 @@ export interface TLImageShapeProps {
 // @public
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
+    addPaddingToExports: boolean;
+    // (undocumented)
     brush: BoxModel | null;
     // (undocumented)
     chatMessage: string;

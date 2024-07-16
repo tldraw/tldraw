@@ -15,6 +15,7 @@ import {
 	GroupMenuItem,
 	RemoveFrameMenuItem,
 	SelectAllMenuItem,
+	ToggleAddPaddingToExports,
 	ToggleAutoSizeMenuItem,
 	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
@@ -63,8 +64,9 @@ export function ExportFileContentSubMenu() {
 				<TldrawUiMenuItem {...actions['export-all-as-png']} />
 				<TldrawUiMenuItem {...actions['export-all-as-json']} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="export-all-as-bg">
+			<TldrawUiMenuGroup id="export-all-as-options">
 				<ToggleTransparentBgMenuItem />
+				<ToggleAddPaddingToExports />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

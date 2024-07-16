@@ -36,6 +36,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isDebugMode: boolean
 	isToolLocked: boolean
 	exportBackground: boolean
+	addPaddingToExports: boolean
 	screenBounds: BoxModel
 	insets: boolean[]
 	zoomBrush: BoxModel | null
@@ -89,6 +90,7 @@ export const shouldKeyBePreservedBetweenSessions = {
 	isDebugMode: true, // preserves because it's a user preference
 	isToolLocked: true, // preserves because it's a user preference
 	exportBackground: true, // preserves because it's a user preference
+	addPaddingToExports: true, // preserves because it's a user preference
 	screenBounds: true, // preserves because it's capturing the user's screen state
 	insets: true, // preserves because it's capturing the user's screen state
 
@@ -145,6 +147,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isDebugMode: T.boolean,
 			isToolLocked: T.boolean,
 			exportBackground: T.boolean,
+			addPaddingToExports: T.boolean,
 			screenBounds: boxModelValidator,
 			insets: T.arrayOf(T.boolean),
 			zoomBrush: boxModelValidator.nullable(),
@@ -188,6 +191,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isDebugMode: true,
 			isToolLocked: true,
 			exportBackground: true,
+			addPaddingToExports: true,
 			screenBounds: true,
 			insets: true,
 			zoomBrush: true,
@@ -218,6 +222,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			},
 			isFocusMode: false,
 			exportBackground: false,
+			addPaddingToExports: true,
 			isDebugMode: process.env.NODE_ENV === 'development',
 			isToolLocked: false,
 			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
@@ -268,6 +273,7 @@ export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddInset: 23,
 	AddDuplicateProps: 24,
 	RemoveCanMoveCamera: 25,
+	AddPaddingToExports: 26,
 } as const)
 
 // TODO: rewrite these to use mutation
@@ -519,6 +525,18 @@ export const instanceMigrations = createRecordMigrationSequence({
 			},
 			down: (instance) => {
 				return { ...instance, canMoveCamera: true }
+			},
+		},
+		{
+			id: instanceVersions.AddPaddingToExports,
+			up: (record) => {
+				return {
+					...record,
+					addPaddingToExports: true,
+				}
+			},
+			down: ({ addPaddingToExports: _, ...rest }: any) => {
+				return { ...rest }
 			},
 		},
 	],

@@ -150,6 +150,17 @@ export function ToggleTransparentBgMenuItem() {
 	)
 }
 /** @public @react */
+export function ToggleAddPaddingToExports() {
+	const actions = useActions()
+	const editor = useEditor()
+	const addPadding = useValue(
+		'addPaddingToExports',
+		() => editor.getInstanceState().addPaddingToExports,
+		[editor]
+	)
+	return <TldrawUiMenuCheckboxItem {...actions['toggle-add-padding']} checked={addPadding} toggle />
+}
+/** @public @react */
 export function UnlockAllMenuItem() {
 	const editor = useEditor()
 	const actions = useActions()
@@ -241,8 +252,9 @@ export function CopyAsMenuGroup() {
 				)}
 				<TldrawUiMenuItem {...actions['copy-as-json']} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="copy-as-bg">
+			<TldrawUiMenuGroup id="copy-as-options">
 				<ToggleTransparentBgMenuItem />
+				<ToggleAddPaddingToExports />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
@@ -297,6 +309,7 @@ export function ConversionsMenuGroup() {
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="export-as-bg">
 					<ToggleTransparentBgMenuItem />
+					<ToggleAddPaddingToExports />
 				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
 		</TldrawUiMenuGroup>

@@ -1222,6 +1222,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-add-padding',
+				label: {
+					default: 'action.toggle-add-padding',
+					menu: 'action.toggle-add-padding.menu',
+					['context-menu']: 'action.toggle-add-padding.context-menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-transparent', { source })
+					editor.updateInstanceState({
+						addPaddingToExports: !editor.getInstanceState().addPaddingToExports,
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-tool-lock',
 				label: {
 					default: 'action.toggle-tool-lock',

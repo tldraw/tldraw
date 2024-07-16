@@ -24,7 +24,9 @@ export async function getSvgJsx(
 	const {
 		scale = 1,
 		background = false,
-		padding = editor.options.defaultSvgPadding,
+		// Use the default padding only if the padding option is turned on.
+		// We use 3 for no padding since our shapes have some randomness, which we don't want to cut off.
+		padding = editor.getInstanceState().addPaddingToExports ? editor.options.defaultSvgPadding : 3,
 		preserveAspectRatio = false,
 	} = opts
 

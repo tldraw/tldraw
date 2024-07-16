@@ -229,6 +229,7 @@ export {
 	RemoveFrameMenuItem,
 	ReorderMenuSubmenu,
 	SelectAllMenuItem,
+	ToggleAddPaddingToExports,
 	ToggleAutoSizeMenuItem,
 	ToggleDebugModeItem,
 	ToggleEdgeScrollingItem,
