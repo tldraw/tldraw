@@ -1236,7 +1236,6 @@
 	position: relative;
 	display: flex;
 	width: 130px;
-	margin-top: 4px;
 }
 
 .tlui-page-menu__wrapper {
@@ -1250,10 +1249,10 @@
 
 .tlui-page-menu__trigger {
 	position: relative;
-	margin: 8px 4px 0px -2px;
+	margin: 12px 4px 0px -2px;
 	white-space: nowrap;
-	width: 44px;
-	height: 30px;
+	width: 40px;
+	height: 24px;
 	border: 2px solid var(--color-text);
 	background-color: var(--color-background);
 	outline: 2px solid var(--color-background);
@@ -1262,12 +1261,13 @@
 
 .tlui-page-menu__trigger::before {
 	content: '';
+	box-sizing: border-box;
 	position: absolute;
 	top: -8px;
 	right: -8px;
 	z-index: -1;
-	width: 44px;
-	height: 30px;
+	width: 40px;
+	height: 24px;
 	border: 2px solid var(--color-text);
 }
 
