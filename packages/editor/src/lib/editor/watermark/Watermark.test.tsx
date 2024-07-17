@@ -1,4 +1,21 @@
-// todo: move t
+import { render } from '@testing-library/react'
+import { ReactElement } from 'react'
+import { TldrawEditor } from '../../TldrawEditor'
+
+async function renderTldrawEditorComponent(
+	element: ReactElement,
+	{ waitForPatterns }: { waitForPatterns: boolean }
+) {
+	const result = render(element)
+	if (waitForPatterns) await result.findByTestId('ready-pattern-fill-defs')
+	return result
+}
+
+describe('<Tldraw />', () => {
+	it('Renders without crashing', async () => {
+		await renderTldrawEditorComponent(<TldrawEditor />, { waitForPatterns: true })
+	})
+})
 
 // function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): ValidLicenseKeyResult {
 // 	return {
