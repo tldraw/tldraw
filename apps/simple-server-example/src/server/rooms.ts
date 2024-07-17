@@ -2,7 +2,6 @@ import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 
-// eslint-disable-next-line no-console
 const log = console.log
 
 // For this example we're just saving data to the local filesystem

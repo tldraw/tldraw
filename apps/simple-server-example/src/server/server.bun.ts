@@ -73,5 +73,4 @@ const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionKey: string; r
 	},
 })
 
-// eslint-disable-next-line no-console
 console.log(`Listening on localhost:${server.port}`)
