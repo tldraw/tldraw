@@ -79,7 +79,7 @@ describe('LicenseManager', () => {
 	})
 
 	it('Fails if garbage key provided', async () => {
-		const badPublicKeyLicenseManager = new LicenseManager('badpublickey', 'production')
+		const badPublicKeyLicenseManager = new LicenseManager('', 'badpublickey', 'production')
 		const invalidLicenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
 		const result = await badPublicKeyLicenseManager.getLicenseFromKey(invalidLicenseKey)
 		expect(result).toMatchObject({ isLicenseParseable: false, reason: 'invalid-license-key' })
@@ -427,6 +427,7 @@ describe(isEditorUnlicensed, () => {
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(true)
 	})
+
 	it('shows watermark when annual license has expired', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
@@ -434,6 +435,7 @@ describe(isEditorUnlicensed, () => {
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(true)
 	})
+
 	it('shows watermark when annual license has expired, even if dev mode', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
@@ -442,6 +444,7 @@ describe(isEditorUnlicensed, () => {
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(true)
 	})
+
 	it('shows watermark when perpetual license has expired', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
@@ -449,6 +452,7 @@ describe(isEditorUnlicensed, () => {
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(true)
 	})
+
 	it('does not show watermark when license is valid and not expired', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isAnnualLicense: true,
@@ -457,6 +461,7 @@ describe(isEditorUnlicensed, () => {
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(false)
 	})
+
 	it('does not show watermark when perpetual license is valid and not expired', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isPerpetualLicense: true,
@@ -465,12 +470,14 @@ describe(isEditorUnlicensed, () => {
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(false)
 	})
+
 	it('does not show watermark when in development mode', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isDevelopment: true,
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(false)
 	})
+
 	it('does not show watermark when license is parseable and domain is valid', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isLicenseParseable: true,
@@ -478,6 +485,7 @@ describe(isEditorUnlicensed, () => {
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(false)
 	})
+
 	it('does not show watermark when license is parseable and domain is not valid and dev mode', () => {
 		const licenseResult = getDefaultLicenseResult({
 			isLicenseParseable: true,
@@ -486,6 +494,7 @@ describe(isEditorUnlicensed, () => {
 		})
 		expect(isEditorUnlicensed(licenseResult)).toBe(false)
 	})
+
 	it('throws when an internal annual license has expired', () => {
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
@@ -494,8 +503,9 @@ describe(isEditorUnlicensed, () => {
 			isInternalLicense: true,
 			expiryDate,
 		})
-		expect(isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
+		expect(() => isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
 	})
+
 	it('throws when an internal perpetual license has expired', () => {
 		const expiryDate = new Date(2023, 1, 1)
 		const licenseResult = getDefaultLicenseResult({
@@ -504,6 +514,6 @@ describe(isEditorUnlicensed, () => {
 			isInternalLicense: true,
 			expiryDate,
 		})
-		expect(isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
+		expect(() => isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
 	})
 })

@@ -6,6 +6,7 @@ import React, {
 	createContext,
 	memo,
 	useCallback,
+	useContext,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -527,7 +528,10 @@ export function useOnMount(onMount?: TLOnMountHandler) {
 }
 
 /** @internal */
-export const licenseContext = createContext({} as LicenseManager)
+export const LicenseContext = createContext({} as LicenseManager)
+
+/** @internal */
+export const useLicenseContext = () => useContext(LicenseContext)
 
 /** @internal */
 export const LicenseProvider = ({
@@ -538,5 +542,5 @@ export const LicenseProvider = ({
 	children: React.ReactNode
 }) => {
 	const [licenseManager] = useState(() => new LicenseManager(licenseKey))
-	return <licenseContext.Provider value={licenseManager}>{children}</licenseContext.Provider>
+	return <LicenseContext.Provider value={licenseManager}>{children}</LicenseContext.Provider>
 }

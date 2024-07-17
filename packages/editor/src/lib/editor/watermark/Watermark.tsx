@@ -1,6 +1,6 @@
 import { useValue } from '@tldraw/state-react'
-import React, { useContext, useLayoutEffect, useRef } from 'react'
-import { licenseContext } from '../../TldrawEditor'
+import React, { useLayoutEffect, useRef } from 'react'
+import { useLicenseContext } from '../../TldrawEditor'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useEditor } from '../../hooks/useEditor'
 import { featureFlags } from '../../utils/debug-flags'
@@ -16,7 +16,7 @@ export const Watermark = React.memo(() => {
 	const events = useCanvasEvents()
 
 	const editor = useEditor()
-	const licenseManager = useContext(licenseContext)
+	const licenseManager = useLicenseContext()
 
 	const showWatermark = useValue(
 		'show watermark',
