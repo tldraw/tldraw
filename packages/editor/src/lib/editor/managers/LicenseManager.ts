@@ -77,7 +77,6 @@ export class LicenseManager {
 			this.getLicenseFromKey(licenseKey).then((result) => {
 				const isUnlicensed = isEditorUnlicensed(result)
 				this.state.set(isUnlicensed ? 'unlicensed' : 'licensed')
-
 				if (isUnlicensed) {
 					// todo: fetch to analytics endpoint?
 				}

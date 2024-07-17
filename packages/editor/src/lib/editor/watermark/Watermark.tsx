@@ -31,6 +31,7 @@ export const Watermark = React.memo(() => {
 		},
 		[editor]
 	)
+
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
 
