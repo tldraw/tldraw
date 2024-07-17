@@ -77,6 +77,11 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 							e.stopPropagation()
 						}
 					}}
+					onTouchStart={(e) => {
+						if (!shape.props.checked) {
+							e.stopPropagation()
+						}
+					}}
 					onTouchEnd={(e) => {
 						if (!shape.props.checked) {
 							e.stopPropagation()
