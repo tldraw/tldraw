@@ -11,7 +11,7 @@ async function renderTldrawEditorComponent(
 	return result
 }
 
-describe('<Tldraw />', () => {
+describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
 		await renderTldrawEditorComponent(<TldrawEditor />, { waitForPatterns: true })
 	})
