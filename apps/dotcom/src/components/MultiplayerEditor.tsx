@@ -31,6 +31,7 @@ import { CursorChatMenuItem } from '../utils/context-menu/CursorChatMenuItem'
 import { createAssetFromFile } from '../utils/createAssetFromFile'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { useSharing } from '../utils/sharing'
+import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
@@ -116,6 +117,7 @@ export function MultiplayerEditor({
 	const storeWithStatus = useRemoteSyncClient({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
+		trackAnalyticsEvent,
 	})
 
 	const isOffline =
