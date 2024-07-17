@@ -1972,15 +1972,19 @@ describe('Add scale to line shape', () => {
 	})
 })
 
-describe('Add flipX, flipY to image shape', () => {
-	const { up, down } = getTestMigration(imageShapeVersions.AddFlipProps)
+describe('Make asset file size optional', () => {
+	const { up, down } = getTestMigration(imageAssetVersions.MakeFileSizeOptional)
 
 	test('up works as expected', () => {
-		expect(up({ props: {} })).toEqual({ props: { flipX: false, flipY: false } })
+		expect(up({ props: { fileSize: -1 } })).toEqual({ props: {} })
+		expect(up({ props: { fileSize: 0 } })).toEqual({ props: { fileSize: 0 } })
+		expect(up({ props: { fileSize: 1 } })).toEqual({ props: { fileSize: 1 } })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ props: { flipX: false, flipY: false } })).toEqual({ props: {} })
+		expect(down({ props: {} })).toEqual({ props: { fileSize: -1 } })
+		expect(down({ props: { fileSize: 0 } })).toEqual({ props: { fileSize: 0 } })
+		expect(down({ props: { fileSize: 1 } })).toEqual({ props: { fileSize: 1 } })
 	})
 })
 

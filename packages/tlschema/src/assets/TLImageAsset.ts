@@ -30,7 +30,7 @@ export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidat
 		isAnimated: T.boolean,
 		mimeType: T.string.nullable(),
 		src: T.srcUrl.nullable(),
-		fileSize: T.number.optional(),
+		fileSize: T.nonZeroNumber.optional(),
 	})
 )
 
