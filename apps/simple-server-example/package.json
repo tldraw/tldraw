@@ -14,7 +14,7 @@
 		"dev-server-node": "yarn run -T tsx watch ./src/server/server.node.ts",
 		"dev-server-bun": "bun --watch ./src/server/server.bun.ts",
 		"dev-client": "vite dev",
-		"test-ci": "lazy inherit",
+		"test-ci": "echo 'No tests yet'",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
