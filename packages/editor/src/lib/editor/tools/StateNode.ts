@@ -30,8 +30,8 @@ export interface TLStateNodeConstructor {
 	new (editor: Editor, parent?: StateNode): StateNode
 	id: string
 	initial?: string
-	isLockable: boolean
 	children?: () => TLStateNodeConstructor[]
+	isLockable: boolean
 }
 
 /** @public */
