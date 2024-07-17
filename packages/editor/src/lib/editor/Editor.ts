@@ -124,7 +124,6 @@ import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { FocusManager } from './managers/FocusManager'
 import { HistoryManager } from './managers/HistoryManager'
-import { LicenseManager } from './managers/LicenseManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -235,7 +234,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
-		licenseKey,
 	}: TLEditorOptions) {
 		super()
 
@@ -708,18 +706,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		this.licenseManager = new LicenseManager(licenseKey)
-
 		this.performanceTracker = new PerformanceTracker()
 	}
 
-	private readonly licenseManager: LicenseManager
-
 	readonly options: TldrawOptions
-
-	@computed getLicenseState() {
-		return this.licenseManager.state.get()
-	}
 
 	/**
 	 * The editor's store

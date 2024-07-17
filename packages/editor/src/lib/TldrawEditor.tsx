@@ -3,11 +3,13 @@ import { TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
+	createContext,
 	memo,
 	useCallback,
 	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 	useSyncExternalStore,
 } from 'react'
 
@@ -21,6 +23,7 @@ import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
+import { LicenseManager } from './editor/managers/LicenseManager'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { Watermark } from './editor/watermark/Watermark'
@@ -236,22 +239,24 @@ export const TldrawEditor = memo(function TldrawEditor({
 				onError={(error) => annotateError(error, { tags: { origin: 'react.tldraw-before-app' } })}
 			>
 				{container && (
-					<ContainerProvider container={container}>
-						<EditorComponentsProvider overrides={components}>
-							{store ? (
-								store instanceof Store ? (
-									// Store is ready to go, whether externally synced or not
-									<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+					<LicenseProvider licenseKey={rest.licenseKey}>
+						<ContainerProvider container={container}>
+							<EditorComponentsProvider overrides={components}>
+								{store ? (
+									store instanceof Store ? (
+										// Store is ready to go, whether externally synced or not
+										<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+									) : (
+										// Store is a synced store, so handle syncing stages internally
+										<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+									)
 								) : (
-									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
-								)
-							) : (
-								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
-							)}
-						</EditorComponentsProvider>
-					</ContainerProvider>
+									// We have no store (it's undefined) so create one and possibly sync it
+									<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+								)}
+							</EditorComponentsProvider>
+						</ContainerProvider>
+					</LicenseProvider>
 				)}
 			</OptionalErrorBoundary>
 		</div>
@@ -519,4 +524,19 @@ export function useOnMount(onMount?: TLOnMountHandler) {
 	React.useLayoutEffect(() => {
 		if (editor) return onMountEvent?.(editor)
 	}, [editor, onMountEvent])
+}
+
+/** @internal */
+export const licenseContext = createContext({} as LicenseManager)
+
+/** @internal */
+export const LicenseProvider = ({
+	licenseKey,
+	children,
+}: {
+	licenseKey?: string
+	children: React.ReactNode
+}) => {
+	const [licenseManager] = useState(() => new LicenseManager(licenseKey))
+	return <licenseContext.Provider value={licenseManager}>{children}</licenseContext.Provider>
 }

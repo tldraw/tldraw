@@ -1,5 +1,6 @@
 import { useValue } from '@tldraw/state-react'
-import React, { useLayoutEffect, useRef } from 'react'
+import React, { useContext, useLayoutEffect, useRef } from 'react'
+import { licenseContext } from '../../TldrawEditor'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useEditor } from '../../hooks/useEditor'
 import { featureFlags } from '../../utils/debug-flags'
@@ -14,26 +15,26 @@ export const WATERMARK_SRC = `url('data:image/svg+xml;utf8,${encodeURIComponent(
 export const Watermark = React.memo(() => {
 	const events = useCanvasEvents()
 
+	const editor = useEditor()
+	const licenseManager = useContext(licenseContext)
+
+	const showWatermark = useValue(
+		'show watermark',
+		() =>
+			featureFlags.enableLicensing.get() &&
+			editor.getViewportScreenBounds().width > 760 &&
+			licenseManager.state.get() === 'unlicensed',
+		[editor, licenseManager]
+	)
+
+	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
+	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
+
 	const ref = useRef<HTMLAnchorElement>(null)
 	useLayoutEffect(() => {
 		// eslint-disable-next-line deprecation/deprecation
 		if (ref?.current) ref.current.style.webkitMask = WATERMARK_SRC
 	}, [])
-
-	const editor = useEditor()
-	const showWatermark = useValue(
-		'show watermark',
-		() => {
-			const { width } = editor.getViewportScreenBounds()
-			if (width < 760) return false
-			if (!featureFlags.enableLicensing.get()) return false
-			return editor.getLicenseState() === 'unlicensed'
-		},
-		[editor]
-	)
-
-	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
-	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
 
 	if (!showWatermark) return null
 
