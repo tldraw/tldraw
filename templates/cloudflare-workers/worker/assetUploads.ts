@@ -1,47 +1,57 @@
-import { ExecutionContext, R2Bucket } from '@cloudflare/workers-types'
-import { IRequest } from 'itty-router'
-import { notFound } from './errors'
+import { IRequest, error } from 'itty-router'
+import { Environment } from './types'
 
-interface UserAssetOpts {
-	request: IRequest
-	bucket: R2Bucket
-	objectName: string
-	context: ExecutionContext
+// assets are stored in the bucket under the /uploads path
+function getAssetObjectName(uploadId: string) {
+	return `uploads/${uploadId.replace(/[^a-zA-Z0-9\_\-]+/g, '_')}`
 }
 
-export async function handleUserAssetUpload({
-	request,
-	bucket,
-	objectName,
-}: UserAssetOpts): Promise<Response> {
-	if (await bucket.head(objectName)) {
-		return Response.json({ error: 'Asset already exists' }, { status: 409 })
+// when a user uploads an asset, we store it in the bucket. we only allow image and video assets.
+export async function handleAssetUpload(request: IRequest, env: Environment) {
+	const objectName = getAssetObjectName(request.params.uploadId)
+
+	const contentType = request.headers.get('content-type') ?? ''
+	if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
+		return error(400, 'Invalid content type')
 	}
 
-	const object = await bucket.put(objectName, request.body, {
+	if (await env.TLDRAW_BUCKET.head(objectName)) {
+		return error(409, 'Upload already exists')
+	}
+
+	await env.TLDRAW_BUCKET.put(objectName, request.body, {
 		httpMetadata: request.headers,
 	})
 
-	return Response.json({ object: objectName }, { headers: { etag: object.httpEtag } })
+	return { ok: true }
 }
 
-export async function handleUserAssetGet({ request, bucket, objectName, context }: UserAssetOpts) {
-	// this cache automatically handles range responses etc.
+// when a user downloads an asset, we retrieve it from the bucket. we also cache the response for performance.
+export async function handleAssetDownload(
+	request: IRequest,
+	env: Environment,
+	ctx: ExecutionContext
+) {
+	const objectName = getAssetObjectName(request.params.uploadId)
+
+	// if we have a cached response for this request (automatically handling ranges etc.), return it
 	const cacheKey = new Request(request.url, { headers: request.headers })
 	const cachedResponse = await caches.default.match(cacheKey)
 	if (cachedResponse) {
 		return cachedResponse
 	}
 
-	const object = await bucket.get(objectName, {
+	// if not, we try to fetch the asset from the bucket
+	const object = await env.TLDRAW_BUCKET.get(objectName, {
 		range: request.headers,
 		onlyIf: request.headers,
 	})
 
 	if (!object) {
-		return notFound()
+		return error(404)
 	}
 
+	// write the relevant metadata to the response headers
 	const headers = new Headers()
 	object.writeHttpMetadata(headers)
 
@@ -75,13 +85,14 @@ export async function handleUserAssetGet({ request, bucket, objectName, context 
 		headers.set('content-range', contentRange)
 	}
 
+	// make sure we get the correct body/status for the response
 	const body = 'body' in object && object.body ? object.body : null
 	const status = body ? (contentRange ? 206 : 200) : 304
 
+	// we only cache complete (200) responses
 	if (status === 200) {
 		const [cacheBody, responseBody] = body!.tee()
-		// cache the response
-		context.waitUntil(caches.default.put(cacheKey, new Response(cacheBody, { headers, status })))
+		ctx.waitUntil(caches.default.put(cacheKey, new Response(cacheBody, { headers, status })))
 		return new Response(responseBody, { headers, status })
 	}
 
