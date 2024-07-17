@@ -120,7 +120,8 @@ export function registerDefaultExternalContentHandlers(
 				mimeType: file.type,
 				isAnimated,
 			},
-		} as TLAsset
+			meta: {},
+		} satisfies TLAsset
 
 		assetInfo.props.src = await editor.uploadAsset(assetInfo, file)
 
