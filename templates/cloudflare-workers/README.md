@@ -52,7 +52,7 @@ several files:
   An instance of this is created for every active room. This exposes a
   [`TLSocketRoom`](https://tldraw.dev/reference/sync-core/TLSocketRoom) over websockets, and
   periodically saves room data to R2.
-- **[`worker/assetUploads.ts](./worker/assetUploads.ts):** uploads, downloads, and caching for
+- **[`worker/assetUploads.ts`](./worker/assetUploads.ts):** uploads, downloads, and caching for
   static assets like images and videos.
 - **[`worker/bookmarkUnfurling.ts`](./worker/bookmarkUnfurling.ts):** extract URL metadata for bookmark shapes.
 
