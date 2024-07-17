@@ -85,7 +85,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	static id: string
 	static initial?: string
 	static children?: () => TLStateNodeConstructor[]
-	static isLockable?: boolean = false
+	static isLockable = false
 
 	id: string
 	type: 'branch' | 'leaf' | 'root'

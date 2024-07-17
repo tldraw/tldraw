@@ -708,8 +708,6 @@ export class GeoShapeTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
-    static isLockable: boolean;
-    // (undocumented)
     shapeType: string;
 }
 
