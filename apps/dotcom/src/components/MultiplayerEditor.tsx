@@ -75,7 +75,7 @@ const components: TLComponents = {
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},
-	TopPanel: () => {
+	DocumentName: () => {
 		const editor = useEditor()
 		const isOffline = useValue(
 			'offline',

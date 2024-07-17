@@ -1232,17 +1232,47 @@
 
 /* ------------------- Page Select ------------------ */
 
+.tlui-page-menu__container {
+	position: relative;
+	display: flex;
+	width: 130px;
+}
+
 .tlui-page-menu__wrapper {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	width: 220px;
+	width: 256px;
 	height: fit-content;
 	max-height: 50vh;
 }
 
 .tlui-page-menu__trigger {
-	width: 128px;
+	position: relative;
+	margin: 12px 4px 0px -2px;
+	white-space: nowrap;
+	width: 40px;
+	height: 24px;
+	border: 2px solid var(--color-text);
+	background-color: var(--color-background);
+	outline: 2px solid var(--color-background);
+	outline-width: 2px 0px 2px 0px;
+}
+
+.tlui-page-menu__trigger::before {
+	content: '';
+	box-sizing: border-box;
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	z-index: -1;
+	width: 40px;
+	height: 24px;
+	border: 2px solid var(--color-text);
+}
+
+.tlui-page-menu__trigger::after {
+	display: none;
 }
 
 .tlui-page-menu__header {
@@ -1266,11 +1296,7 @@
 }
 
 .tlui-page-menu__name {
-	flex-grow: 2;
-	text-align: left;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	font-size: 10px;
 }
 
 .tlui-page-menu__list {
