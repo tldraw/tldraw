@@ -9,7 +9,7 @@
 	},
 	"main": "./src/server/server.ts",
 	"scripts": {
-		"dev-node": "concurrently -n server,client -c red,blue \"yarn dev-server\" \"yarn dev-client\"",
+		"dev-node": "concurrently -n server,client -c red,blue \"yarn dev-server-node\" \"yarn dev-client\"",
 		"dev-bun": "concurrently -n server,client -c red,blue \"yarn dev-server-bun\" \"yarn dev-client\"",
 		"dev-server-node": "yarn run -T tsx watch ./src/server/server.node.ts",
 		"dev-server-bun": "bun --watch ./src/server/server.bun.ts",

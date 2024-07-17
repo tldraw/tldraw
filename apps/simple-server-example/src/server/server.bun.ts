@@ -17,12 +17,12 @@ const router: RouterType<IRequest, any, any> = Router()
 		return new Response(null, { status: 101 })
 	})
 	// assets
-	.put('/assets/:id', async (req) => {
+	.put('/uploads/:id', async (req) => {
 		const id = (req.params as any).id as string
 		await storeAsset(id, req.raw)
 		return json({ ok: true })
 	})
-	.get('/assets/:id', async (req) => {
+	.get('/uploads/:id', async (req) => {
 		const id = (req.params as any).id as string
 		return new Response(await loadAsset(id))
 	})

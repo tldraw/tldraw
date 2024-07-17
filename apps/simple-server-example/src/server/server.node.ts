@@ -27,7 +27,7 @@ app.register(async (app) => {
 	// assets
 	// allow uploading any file
 	app.addContentTypeParser('*', (_, __, done) => done(null))
-	app.put('/assets/:id', {}, async (req, res) => {
+	app.put('/uploads/:id', {}, async (req, res) => {
 		try {
 			const id = (req.params as any).id as string
 			await storeAsset(id, req.raw)
@@ -36,7 +36,7 @@ app.register(async (app) => {
 			console.error(e)
 		}
 	})
-	app.get('/assets/:id', async (req, res) => {
+	app.get('/uploads/:id', async (req, res) => {
 		const id = (req.params as any).id as string
 		const data = await loadAsset(id)
 		res.send(data)
