@@ -2098,6 +2098,8 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
+    'change-page': null;
+    // (undocumented)
     'change-user-name': null;
     // (undocumented)
     'close-menu': {
@@ -2118,11 +2120,15 @@ export interface TLUiEventMap {
     // (undocumented)
     'create-new-project': null;
     // (undocumented)
+    'delete-page': null;
+    // (undocumented)
     'delete-shapes': null;
     // (undocumented)
     'distribute-shapes': {
         operation: 'horizontal' | 'vertical';
     };
+    // (undocumented)
+    'duplicate-page': null;
     // (undocumented)
     'duplicate-shapes': null;
     // (undocumented)
@@ -2152,6 +2158,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'insert-media': null;
     // (undocumented)
+    'move-page': null;
+    // (undocumented)
+    'move-to-new-page': null;
+    // (undocumented)
     'move-to-page': null;
     // (undocumented)
     'new-page': null;
@@ -2169,6 +2179,8 @@ export interface TLUiEventMap {
     'pack-shapes': null;
     // (undocumented)
     'remove-frame': null;
+    // (undocumented)
+    'rename-page': null;
     // (undocumented)
     'reorder-shapes': {
         operation: 'backward' | 'forward' | 'toBack' | 'toFront';
