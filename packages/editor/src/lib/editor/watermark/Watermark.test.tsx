@@ -5,8 +5,7 @@ import { TldrawEditor, TldrawEditorProps } from '../../TldrawEditor'
 
 async function renderTldrawEditorComponent(props = {} as TldrawEditorProps) {
 	const result = render(<TldrawEditor {...props} />)
-	// await result.findByTestId('canvas')
-	console.log(result.debug())
+	await result.findByTestId('canvas')
 	return result
 }
 
