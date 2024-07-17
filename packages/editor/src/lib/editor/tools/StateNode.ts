@@ -30,6 +30,7 @@ export interface TLStateNodeConstructor {
 	new (editor: Editor, parent?: StateNode): StateNode
 	id: string
 	initial?: string
+	isLockable?: boolean
 	children?: () => TLStateNodeConstructor[]
 }
 
@@ -40,7 +41,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		public editor: Editor,
 		parent?: StateNode
 	) {
-		const { id, children, initial } = this.constructor as TLStateNodeConstructor
+		const { id, children, initial, isLockable } = this.constructor as TLStateNodeConstructor
 
 		this.id = id
 		this._isActive = atom<boolean>('toolIsActive' + this.id, false)
@@ -75,18 +76,23 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this._current.set(this.children[this.initial])
 			}
 		}
+		if (isLockable !== undefined) {
+			this.isLockable = isLockable
+		}
 		this.performanceTracker = new PerformanceTracker()
 	}
 
 	static id: string
 	static initial?: string
 	static children?: () => TLStateNodeConstructor[]
+	static isLockable?: boolean = false
 
 	id: string
 	type: 'branch' | 'leaf' | 'root'
 	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>
+	isLockable?: boolean = false
 	parent: StateNode
 
 	/**

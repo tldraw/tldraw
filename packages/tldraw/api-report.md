@@ -653,6 +653,8 @@ export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onCreate: (shape: null | TLShape) => void;
     // (undocumented)
     shapeType: string;
@@ -703,6 +705,8 @@ export class GeoShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
@@ -1017,6 +1021,8 @@ export class LineShapeTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     shapeType: string;
 }
 
@@ -1073,6 +1079,8 @@ export class NoteShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
