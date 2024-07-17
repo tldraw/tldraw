@@ -54,9 +54,11 @@ export class LicenseManager {
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 	public isDevelopment: boolean
+	public isTest: boolean
 	public isCryptoAvailable: boolean
 
 	constructor(testPublicKey?: string, testEnvironment?: TestEnvironment) {
+		this.isTest = process.env.NODE_ENV === 'test'
 		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
@@ -282,6 +284,7 @@ export class LicenseManager {
 	}
 
 	private outputMessages(messages: string[]) {
+		if (this.isTest) return
 		this.outputDelimiter()
 		for (const message of messages) {
 			// eslint-disable-next-line no-console
