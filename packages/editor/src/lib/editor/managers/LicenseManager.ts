@@ -69,19 +69,18 @@ export class LicenseManager {
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
-		this.getLicenseFromKey(licenseKey).then((result) => {
-			if (!featureFlags.enableLicensing.get()) {
-				this.state.set('licensed')
-				return
-			}
+		if (!featureFlags.enableLicensing.get()) {
+			this.state.set('licensed')
+		} else {
+			this.getLicenseFromKey(licenseKey).then((result) => {
+				const isUnlicensed = isEditorUnlicensed(result)
+				this.state.set(isUnlicensed ? 'unlicensed' : 'licensed')
 
-			const isUnlicensed = isEditorUnlicensed(result)
-			this.state.set(isUnlicensed ? 'unlicensed' : 'licensed')
-
-			if (isUnlicensed) {
-				// todo: fetch to analytics endpoint?
-			}
-		})
+				if (isUnlicensed) {
+					// todo: fetch to analytics endpoint?
+				}
+			})
+		}
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {

@@ -710,20 +710,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.licenseManager = new LicenseManager(licenseKey)
 
-		const youWouldntStealAWhiteboard = () => {
-			if (this.getLicenseState() === 'unlicensed') {
-				if (!this.getContainer().querySelector('.' + LicenseManager.className)) {
-					this.crash(
-						new Error(
-							'Watermark not found on unlicensed editor. Please see our license for more information.'
-						)
-					)
-				}
-			}
-		}
-		this.timers.setTimeout(youWouldntStealAWhiteboard, 5000)
-		this.timers.setInterval(youWouldntStealAWhiteboard, 5 * 60 * 1000)
-
 		this.performanceTracker = new PerformanceTracker()
 	}
 
