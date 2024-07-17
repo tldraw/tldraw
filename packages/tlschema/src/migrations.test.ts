@@ -121,7 +121,6 @@ describe('TLVideoAsset AddFileSize', () => {
 			width: 100,
 			height: 100,
 			mimeType: 'video/mp4',
-			fileSize: -1,
 		},
 	}
 
@@ -157,7 +156,6 @@ describe('TLImageAsset AddFileSize', () => {
 			width: 100,
 			height: 100,
 			mimeType: 'image/gif',
-			fileSize: -1,
 		},
 	}
 
