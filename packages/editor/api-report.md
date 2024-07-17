@@ -2221,7 +2221,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    isLockable?: boolean;
+    isLockable: boolean;
     // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];
     // (undocumented)
@@ -3266,7 +3266,7 @@ export interface TLStateNodeConstructor {
     // (undocumented)
     initial?: string;
     // (undocumented)
-    isLockable?: boolean;
+    isLockable: boolean;
 }
 
 // @public (undocumented)

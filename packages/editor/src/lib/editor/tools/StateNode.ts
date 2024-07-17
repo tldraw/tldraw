@@ -30,7 +30,7 @@ export interface TLStateNodeConstructor {
 	new (editor: Editor, parent?: StateNode): StateNode
 	id: string
 	initial?: string
-	isLockable?: boolean
+	isLockable: boolean
 	children?: () => TLStateNodeConstructor[]
 }
 
@@ -76,9 +76,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this._current.set(this.children[this.initial])
 			}
 		}
-		if (isLockable !== undefined) {
-			this.isLockable = isLockable
-		}
+		this.isLockable = isLockable
 		this.performanceTracker = new PerformanceTracker()
 	}
 
@@ -92,7 +90,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>
-	isLockable?: boolean
+	isLockable: boolean
 	parent: StateNode
 
 	/**
