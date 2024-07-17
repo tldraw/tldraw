@@ -13,8 +13,6 @@ export interface TLSyncLog {
 	error?: (...args: any[]) => void
 }
 
-
-
 /** @public */
 export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 	private room: TLSyncRoom<R, SessionMeta>
