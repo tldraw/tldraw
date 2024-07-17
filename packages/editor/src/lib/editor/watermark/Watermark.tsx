@@ -32,8 +32,10 @@ export const Watermark = React.memo(() => {
 
 	const ref = useRef<HTMLAnchorElement>(null)
 	useLayoutEffect(() => {
-		// eslint-disable-next-line deprecation/deprecation
-		if (ref?.current) ref.current.style.webkitMask = WATERMARK_SRC
+		if (ref?.current) {
+			// eslint-disable-next-line deprecation/deprecation
+			if (ref?.current) ref.current.style.webkitMask = WATERMARK_SRC
+		}
 	}, [])
 
 	if (!showWatermark) return null
