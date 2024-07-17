@@ -1714,16 +1714,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tldraw/editor@npm:2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/editor@npm:2.4.0-canary.348ff9f66a24"
+"@tldraw/editor@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/editor@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
-    "@tldraw/state": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/state-react": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/store": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/tlschema": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/utils": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/validate": "npm:2.4.0-canary.348ff9f66a24"
+    "@tldraw/state": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/state-react": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/store": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/tlschema": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/utils": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/validate": "npm:2.4.0-canary.48d1f4e0d725"
     "@types/core-js": "npm:^2.5.5"
     "@use-gesture/react": "npm:^10.2.27"
     classnames: "npm:^2.3.2"
@@ -1735,50 +1735,50 @@ __metadata:
   peerDependencies:
     react: ^18
     react-dom: ^18
-  checksum: 754ad00e3c39148b32a42d2d2da7c88dc82ab3e66512ad47ede6d585fd81a043e6c66599466217e322e0b3562a9e3c211cf48519ae9cd7d6ac5d0157b0326d5d
+  checksum: 6d5cc03ab4da0b1c4add2509e410adf2ee8ea57bfacfd2fe73b915c5191bc568d1daf6cde0c08143a4891d652a9e204ee5c6f3902086e64090b8ddcd2e27e64c
   languageName: node
   linkType: hard
 
-"@tldraw/state-react@npm:2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/state-react@npm:2.4.0-canary.348ff9f66a24"
+"@tldraw/state-react@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/state-react@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
-    "@tldraw/state": "npm:2.4.0-canary.348ff9f66a24"
+    "@tldraw/state": "npm:2.4.0-canary.48d1f4e0d725"
   peerDependencies:
     react: ^18
-  checksum: a4d82779c1c94631b5842d4c6e88304809c9efc7b1afa3462515c4f5c0faf5f57a40cc723601805ed437be641edf88b0dcfa654d0ef1ef4fbf6516e9be5423c7
+  checksum: 7737273c6387d4780ae46c30ac9c070a07ab4db46155dbd169cb85c95cda2521e78455747a4d4163a5baba5c913efffc4b4efe1cbbcfb1f5ed7466a32f288724
   languageName: node
   linkType: hard
 
-"@tldraw/state@npm:2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/state@npm:2.4.0-canary.348ff9f66a24"
-  checksum: 5e71dd20038bb0b93d3d24b860f5059d7b53245b8778dcfdc22eafe6857073a195804b25e1e821502920458c924cb16585a2fce306b52b4a7123ef4fa26b563f
+"@tldraw/state@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/state@npm:2.4.0-canary.48d1f4e0d725"
+  checksum: 4ccfcc9db5648d3e02cb8f5e53aa3b5edd8d039bbc19c40ca30ff59b71fad608eaf252756ed73a218c025aa7a85d309aceb41a049109c75b3fab9a503764d071
   languageName: node
   linkType: hard
 
-"@tldraw/store@npm:2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/store@npm:2.4.0-canary.348ff9f66a24"
+"@tldraw/store@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/store@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
-    "@tldraw/state": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/utils": "npm:2.4.0-canary.348ff9f66a24"
+    "@tldraw/state": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/utils": "npm:2.4.0-canary.48d1f4e0d725"
     lodash.isequal: "npm:^4.5.0"
     nanoid: "npm:4.0.2"
   peerDependencies:
     react: ^18
-  checksum: 65901e7f8c9eb0c824208a0a72ecdcb06543f7a0e076c44126ad3266fce96e670aefdc4224ad46321f42d5df2e0b85a3b13867b992dae153d1df8a764309ee17
+  checksum: 2e7bc4a8dd203484261454c094cec600fb0a22d08f9726b4c7f32183a94c956d60fd6837c4da601670ac8bf43673bb41c49d13fc377ab98bdd5e4180561743f5
   languageName: node
   linkType: hard
 
-"@tldraw/sync-core@npm:2.4.0-canary.348ff9f66a24, @tldraw/sync-core@npm:^2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/sync-core@npm:2.4.0-canary.348ff9f66a24"
+"@tldraw/sync-core@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/sync-core@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
-    "@tldraw/state": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/store": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/tlschema": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/utils": "npm:2.4.0-canary.348ff9f66a24"
+    "@tldraw/state": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/store": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/tlschema": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/utils": "npm:2.4.0-canary.48d1f4e0d725"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
     nanoid: "npm:4.0.2"
@@ -1786,59 +1786,59 @@ __metadata:
   peerDependencies:
     react: ^18
     react-dom: ^18
-  checksum: f01b0659b8091a8e0c0366a3f861044419b9eea79d670e89a0a24365d0e0ef590b49b8b998de5e9950114d610a5987bb67825d9687f15e0e5176840f5bfd26d1
+  checksum: ead8d10dd168b8e7ded714b8a68a601c45835c51dbd32ac4839bbfcfc4ad9255bec3244c1bab59e7e51a3aecf430acc814d4c97574a82c97616f652028790b77
   languageName: node
   linkType: hard
 
-"@tldraw/sync@npm:^2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/sync@npm:2.4.0-canary.348ff9f66a24"
+"@tldraw/sync@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/sync@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
-    "@tldraw/sync-core": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/utils": "npm:2.4.0-canary.348ff9f66a24"
+    "@tldraw/sync-core": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/utils": "npm:2.4.0-canary.48d1f4e0d725"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
     nanoid: "npm:4.0.2"
-    tldraw: "npm:2.4.0-canary.348ff9f66a24"
+    tldraw: "npm:2.4.0-canary.48d1f4e0d725"
     ws: "npm:^8.16.0"
   peerDependencies:
     react: ^18
     react-dom: ^18
-  checksum: 2e6a835489a2c6ae05fdcbb7ed9132e51ba08235b3afd0fe52296f60079544f64b7b1f6661ebce8c5f48914208aff7a544ea63c261164d4537575fb74654b15a
+  checksum: 54780f04176bae7024eee21673cf3b087ad9462cfb7bd545607e9cab96d719e19f38f63a786ba7c3e1ebdaf5c69dc6fb8f19f501f1c2cd255a2a0359c90b377c
   languageName: node
   linkType: hard
 
-"@tldraw/tlschema@npm:2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/tlschema@npm:2.4.0-canary.348ff9f66a24"
+"@tldraw/tlschema@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/tlschema@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
-    "@tldraw/state": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/store": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/utils": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/validate": "npm:2.4.0-canary.348ff9f66a24"
+    "@tldraw/state": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/store": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/utils": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/validate": "npm:2.4.0-canary.48d1f4e0d725"
     nanoid: "npm:4.0.2"
   peerDependencies:
     react: ^18
-  checksum: b02a9fc3a2f53f63b3d931efea1659281725305075489dc7fb340d4c3d1c2c17d56013acff68f7d347cf87c58e33d2d9f002aaefc8d6d33ecc2dbf50a0477fea
+  checksum: d882c60374d8ff235f2021a0098a611add946830a98d3863447792f8c2d18504b1b3fde85cc6b3cb1c80e32235dfa7b776be056ea09ecb138a9df97e5a0af86b
   languageName: node
   linkType: hard
 
-"@tldraw/utils@npm:2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/utils@npm:2.4.0-canary.348ff9f66a24"
+"@tldraw/utils@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/utils@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
     lodash.throttle: "npm:^4.1.1"
     lodash.uniq: "npm:^4.5.0"
-  checksum: 016d442b8282e3002b8d4cbaff873b9f486e01a729b3f7ef9acf7d52c25e44143208a1a22d2f25a38ac172121e1cf53b26ee99a0312544c012ed956a03eebbc7
+  checksum: 4c7fb8fa0dcb9062f5238c1001366986c6d95e8ff4b2dfea909530bf72a8cbef39af31b1a5390f948e5f654ae58f82da46351143449e65806e147c9262c1bf28
   languageName: node
   linkType: hard
 
-"@tldraw/validate@npm:2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "@tldraw/validate@npm:2.4.0-canary.348ff9f66a24"
+"@tldraw/validate@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "@tldraw/validate@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
-    "@tldraw/utils": "npm:2.4.0-canary.348ff9f66a24"
-  checksum: 717672a2465b7646b917d1b83c48c9e4728dfe90372133906a78f2c2b295d475b68d237835d8b036d22eefef9a15687249bcc179d355668f512a355fa1ad79a2
+    "@tldraw/utils": "npm:2.4.0-canary.48d1f4e0d725"
+  checksum: 8f8743c46a7b41989886480a1acc40efb44cb678d22550f6b707fccc4401eb46bcddc2cdc1f37d02840c0cd6905a53e0daad16d3d0e90f5a8712476d175f6bf1
   languageName: node
   linkType: hard
 
@@ -4619,9 +4619,9 @@ __metadata:
   resolution: "tldraw-vite-example@workspace:."
   dependencies:
     "@cloudflare/types": "npm:^6.29.0"
-    "@tldraw/sync": "npm:^2.4.0-canary.348ff9f66a24"
-    "@tldraw/sync-core": "npm:^2.4.0-canary.348ff9f66a24"
-    "@tldraw/tlschema": "npm:2.4.0-canary.348ff9f66a24"
+    "@tldraw/sync": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/sync-core": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/tlschema": "npm:2.4.0-canary.48d1f4e0d725"
     "@types/lodash.throttle": "npm:^4"
     "@types/react": "npm:^18.0.37"
     "@types/react-dom": "npm:^18.0.11"
@@ -4636,16 +4636,16 @@ __metadata:
     lodash.throttle: "npm:^4.1.1"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
-    tldraw: "npm:2.4.0-canary.348ff9f66a24"
+    tldraw: "npm:2.4.0-canary.48d1f4e0d725"
     typescript: "npm:^5.0.2"
     vite: "npm:^5.2.11"
     wrangler: "npm:^3.64.0"
   languageName: unknown
   linkType: soft
 
-"tldraw@npm:2.4.0-canary.348ff9f66a24":
-  version: 2.4.0-canary.348ff9f66a24
-  resolution: "tldraw@npm:2.4.0-canary.348ff9f66a24"
+"tldraw@npm:2.4.0-canary.48d1f4e0d725":
+  version: 2.4.0-canary.48d1f4e0d725
+  resolution: "tldraw@npm:2.4.0-canary.48d1f4e0d725"
   dependencies:
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@radix-ui/react-context-menu": "npm:^2.1.5"
@@ -4655,8 +4655,8 @@ __metadata:
     "@radix-ui/react-select": "npm:^1.2.0"
     "@radix-ui/react-slider": "npm:^1.1.0"
     "@radix-ui/react-toast": "npm:^1.1.1"
-    "@tldraw/editor": "npm:2.4.0-canary.348ff9f66a24"
-    "@tldraw/store": "npm:2.4.0-canary.348ff9f66a24"
+    "@tldraw/editor": "npm:2.4.0-canary.48d1f4e0d725"
+    "@tldraw/store": "npm:2.4.0-canary.48d1f4e0d725"
     canvas-size: "npm:^1.2.6"
     classnames: "npm:^2.3.2"
     hotkeys-js: "npm:^3.11.2"
@@ -4665,7 +4665,7 @@ __metadata:
   peerDependencies:
     react: ^18
     react-dom: ^18
-  checksum: 66f81de537e868a64727fc7ab17ed77e7c6cbf7c307715b1ea1eb697da98831735f5c082b72ec651ce68a653a423714082ca2ac48b4270ed94da6925851b02ea
+  checksum: a4f538ef90d96a862756b26c4f6fa43bd515836dae17da08413a29cea2d773bbda6317a1e336ec7364bc1a91a20ed063ce1beef711fe3ea9c0154009b7405848
   languageName: node
   linkType: hard
 

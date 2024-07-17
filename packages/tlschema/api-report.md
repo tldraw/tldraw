@@ -181,6 +181,11 @@ export function createTLSchema({ shapes, bindings, migrations, }?: {
 }): TLSchema;
 
 // @public (undocumented)
+export const defaultBindingSchemas: {
+    [T in TLDefaultBinding['type']]: SchemaPropsInfo;
+};
+
+// @public (undocumented)
 export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
 
 // @public (undocumented)

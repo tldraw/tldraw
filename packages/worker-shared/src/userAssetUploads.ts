@@ -26,9 +26,8 @@ export async function handleUserAssetUpload({
 }
 
 export async function handleUserAssetGet({ request, bucket, objectName, context }: UserAssetOpts) {
-	const cacheKey = new URL(request.url)
-
 	// this cache automatically handles range responses etc.
+	const cacheKey = new Request(request.url, { headers: request.headers })
 	const cachedResponse = await caches.default.match(cacheKey)
 	if (cachedResponse) {
 		return cachedResponse
@@ -63,7 +62,7 @@ export async function handleUserAssetGet({ request, bucket, objectName, context 
 	headers.set('cache-control', 'public, max-age=31536000, immutable')
 
 	const body = 'body' in object && object.body ? object.body : null
-	const status = body ? (request.headers.get('range') !== null ? 206 : 200) : 304
+	const status = body ? (object.range ? 206 : 200) : 304
 
 	if (status === 200) {
 		const [cacheBody, responseBody] = body!.tee()

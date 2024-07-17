@@ -50,6 +50,7 @@ export async function getUrlMetadata({ url }: { url: string }) {
 	const icon$ = new IconExtractor()
 
 	try {
+		// we use cloudflare's special html parser https://developers.cloudflare.com/workers/runtime-apis/html-rewriter/
 		await new HTMLRewriter()
 			.on('meta', meta$)
 			.on('title', title$)
@@ -60,7 +61,6 @@ export async function getUrlMetadata({ url }: { url: string }) {
 		return null
 	}
 
-	// we use cloudflare's special html parser https://developers.cloudflare.com/workers/runtime-apis/html-rewriter/
 	const { og, twitter } = meta$
 	const title = og['og:title'] ?? twitter['twitter:title'] ?? title$.string ?? undefined
 	const description =
