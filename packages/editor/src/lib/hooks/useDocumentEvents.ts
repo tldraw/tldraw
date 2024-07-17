@@ -12,7 +12,7 @@ export function useDocumentEvents() {
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
 	useEffect(() => {
-		if (typeof window === undefined || !('matchMedia' in window)) return
+		if (typeof window === 'undefined' || !('matchMedia' in window)) return
 
 		// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio#monitoring_screen_resolution_or_zoom_level_changes
 		let remove: (() => void) | null = null
