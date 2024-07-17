@@ -53,7 +53,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 .${className} {
 	position: absolute;
 	bottom: var(--space-2);
-	right: calc(42px);
+	right: var(--space-2);
 	width: 96px;
 	height: 32px;
 	z-index: 2147483647 !important;
