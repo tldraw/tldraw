@@ -1,5 +1,6 @@
 import { atom } from '@tldraw/state'
 import { publishDates } from '../../../version'
+import { featureFlags } from '../../utils/debug-flags'
 import { importPublicKey, str2ab } from '../../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 5
@@ -69,11 +70,16 @@ export class LicenseManager {
 		this.isCryptoAvailable = !!crypto.subtle
 
 		this.getLicenseFromKey(licenseKey).then((result) => {
-			const unlicensed = isEditorUnlicensed(result)
-			this.state.set(unlicensed ? 'unlicensed' : 'licensed')
+			if (!featureFlags.enableLicensing.get()) {
+				this.state.set('licensed')
+				return
+			}
 
-			if (unlicensed) {
-				// todo: fetch to analytics endpoint
+			const isUnlicensed = isEditorUnlicensed(result)
+			this.state.set(isUnlicensed ? 'unlicensed' : 'licensed')
+
+			if (isUnlicensed) {
+				// todo: fetch to analytics endpoint?
 			}
 		})
 	}
