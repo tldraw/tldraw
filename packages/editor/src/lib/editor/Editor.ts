@@ -712,7 +712,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const youWouldntStealAWhiteboard = () => {
 			if (this.getLicenseState() === 'unlicensed') {
-				if (!this.getContainer().querySelector('.' + LicenseManager.classname)) {
+				if (!this.getContainer().querySelector('.' + LicenseManager.className)) {
 					this.crash(
 						new Error(
 							'Watermark not found on unlicensed editor. Please see our license for more information.'

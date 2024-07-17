@@ -31,7 +31,7 @@ describe('LicenseManager', () => {
 		return new Promise((resolve) => {
 			generateKeyPair().then((kp) => {
 				keyPair = kp
-				licenseManager = new LicenseManager(keyPair.publicKey, keyPair.publicKey, 'production')
+				licenseManager = new LicenseManager('', keyPair.publicKey, 'production')
 				resolve(void 0)
 			})
 		})
@@ -55,11 +55,7 @@ describe('LicenseManager', () => {
 		// @ts-ignore
 		window.location = new URL('http://localhost:3000')
 
-		const testEnvLicenseManager = new LicenseManager(
-			keyPair.publicKey,
-			keyPair.publicKey,
-			'development'
-		)
+		const testEnvLicenseManager = new LicenseManager('', keyPair.publicKey, 'development')
 		const licenseKey = await generateLicenseKey(STANDARD_LICENSE_INFO, keyPair)
 		const result = await testEnvLicenseManager.getLicenseFromKey(licenseKey)
 		expect(result).toMatchObject({

@@ -979,7 +979,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getIsFocused(): boolean;
     getIsMenuOpen(): boolean;
     // (undocumented)
-    getLicenseState(): string;
+    getLicenseState(): "licensed" | "pending" | "unlicensed";
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
     getOpenMenus(): string[];

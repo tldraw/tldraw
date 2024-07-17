@@ -57,7 +57,7 @@ export class LicenseManager {
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 	public isDevelopment: boolean
 	public isCryptoAvailable: boolean
-	state = atom('license state', 'pending')
+	state = atom<'pending' | 'licensed' | 'unlicensed'>('license state', 'pending')
 
 	constructor(
 		licenseKey: string | undefined,
@@ -69,19 +69,7 @@ export class LicenseManager {
 		this.isCryptoAvailable = !!crypto.subtle
 
 		this.getLicenseFromKey(licenseKey).then((result) => {
-			function isEditorUnlicensed() {
-				if (!result.isLicenseParseable) return true
-				if (!result.isDomainValid && !result.isDevelopment) return true
-				if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
-					if (result.isInternalLicense) {
-						throw new Error('License: Internal license expired.')
-					}
-					return true
-				}
-				return false
-			}
-
-			const unlicensed = isEditorUnlicensed()
+			const unlicensed = isEditorUnlicensed(result)
 			this.state.set(unlicensed ? 'unlicensed' : 'licensed')
 
 			if (unlicensed) {
@@ -329,5 +317,17 @@ export class LicenseManager {
 		)
 	}
 
-	static classname = 'tl-watermark_SEE-LICENSE'
+	static className = 'tl-watermark_SEE-LICENSE'
+}
+
+export function isEditorUnlicensed(result: LicenseFromKeyResult) {
+	if (!result.isLicenseParseable) return true
+	if (!result.isDomainValid && !result.isDevelopment) return true
+	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
+		if (result.isInternalLicense) {
+			throw new Error('License: Internal license expired.')
+		}
+		return true
+	}
+	return false
 }
