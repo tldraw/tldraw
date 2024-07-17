@@ -1,19 +1,17 @@
 import { render } from '@testing-library/react'
-import { ReactElement } from 'react'
-import { TldrawEditor } from '../../TldrawEditor'
+import { TldrawEditor, TldrawEditorProps } from '../../TldrawEditor'
 
-async function renderTldrawEditorComponent(
-	element: ReactElement,
-	{ waitForPatterns }: { waitForPatterns: boolean }
-) {
-	const result = render(element)
-	if (waitForPatterns) await result.findByTestId('canvas')
+// There's a guide at the bottom of this file!
+
+async function renderTldrawEditorComponent(props = {} as TldrawEditorProps) {
+	const result = render(<TldrawEditor {...props} />)
+	await result.findByTestId('canvas')
 	return result
 }
 
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
-		await renderTldrawEditorComponent(<TldrawEditor />, { waitForPatterns: true })
+		await renderTldrawEditorComponent()
 	})
 })
 
