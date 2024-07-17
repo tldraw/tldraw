@@ -6,7 +6,6 @@
 
 /// <reference types="react" />
 
-import { ArrayOfValidator } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
 import { BindingOnChangeOptions } from '@tldraw/editor';
@@ -18,11 +17,9 @@ import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
-import { DictValidator } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { EmbedDefinition } from '@tldraw/editor';
-import { EnumStyleProp } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -50,7 +47,6 @@ import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
-import { T } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowBinding } from '@tldraw/editor';
@@ -71,7 +67,6 @@ import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
-import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
@@ -113,10 +108,8 @@ import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
-import { Validator } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
-import { VecModel } from '@tldraw/editor';
 
 // @public (undocumented)
 export interface ActionsProviderProps {
@@ -226,22 +219,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
     // (undocumented)
-    static props: {
-        arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-        arrowheadStart: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-        bend: Validator<number>;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        end: Validator<VecModel>;
-        fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        labelPosition: Validator<number>;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        start: Validator<VecModel>;
-        text: Validator<string>;
-    };
+    static props: RecordProps<TLArrowShape>;
     // (undocumented)
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -300,12 +278,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
     // (undocumented)
-    static props: {
-        assetId: T.Validator<null | TLAssetId>;
-        h: T.Validator<number>;
-        url: T.Validator<string>;
-        w: T.Validator<number>;
-    };
+    static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
     static type: "bookmark";
 }
@@ -397,7 +370,7 @@ export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 export function DefaultActionsMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
-export const defaultBindingUtils: TLAnyBindingUtilConstructor[];
+export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
 // @public (undocumented)
 const DefaultContextMenu: NamedExoticComponent<TLUiContextMenuProps>;
@@ -456,10 +429,10 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool)[];
+export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
 // @public (undocumented)
-export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
+export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
 export function DefaultSharePanel(): JSX_2.Element;
@@ -483,7 +456,7 @@ export interface DefaultToolbarProps {
 }
 
 // @public (undocumented)
-export const defaultTools: (typeof EraserTool | typeof HandTool | typeof ZoomTool)[];
+export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
 
 // @public (undocumented)
 export function DefaultTopPanel(): JSX_2.Element;
@@ -548,17 +521,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLDrawShape>;
     // (undocumented)
-    static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
-        isClosed: Validator<boolean>;
-        isComplete: Validator<boolean>;
-        isPen: Validator<boolean>;
-        scale: Validator<number>;
-        segments: ArrayOfValidator<TLDrawShapeSegment>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    };
+    static props: RecordProps<TLDrawShape>;
     // (undocumented)
     toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -603,11 +566,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLEmbedShape>;
     // (undocumented)
-    static props: {
-        h: Validator<number>;
-        url: Validator<string>;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLEmbedShape>;
     // (undocumented)
     static type: "embed";
 }
@@ -724,11 +683,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
     // (undocumented)
-    static props: {
-        h: Validator<number>;
-        name: Validator<string>;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLFrameShape>;
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
@@ -869,23 +824,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLGeoShape>;
     // (undocumented)
-    static props: {
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
-        growY: Validator<number>;
-        h: Validator<number>;
-        labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        url: Validator<string>;
-        verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLGeoShape>;
     // (undocumented)
     toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -1000,14 +939,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLHighlightShape>;
     // (undocumented)
-    static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        isComplete: Validator<boolean>;
-        isPen: Validator<boolean>;
-        scale: Validator<number>;
-        segments: ArrayOfValidator<TLDrawShapeSegment>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    };
+    static props: RecordProps<TLHighlightShape>;
     // (undocumented)
     toBackgroundSvg(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
@@ -1042,19 +974,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
     // (undocumented)
-    static props: {
-        assetId: Validator<TLAssetId | null>;
-        crop: Validator<    {
-        bottomRight: VecModel;
-        topLeft: VecModel;
-        } | null>;
-        flipX: Validator<boolean>;
-        flipY: Validator<boolean>;
-        h: Validator<number>;
-        playing: Validator<boolean>;
-        url: Validator<string>;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLImageShape>;
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<JSX_2.Element | null>;
     // (undocumented)
@@ -1129,19 +1049,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLLineShape>;
     // (undocumented)
-    static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        points: DictValidator<string, {
-        id: string;
-        index: IndexKey;
-        x: number;
-        y: number;
-        }>;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        spline: EnumStyleProp<"cubic" | "line">;
-    };
+    static props: RecordProps<TLLineShape>;
     // (undocumented)
     toSvg(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
@@ -1244,18 +1152,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
-    static props: {
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        fontSizeAdjustment: Validator<number>;
-        growY: Validator<number>;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        url: Validator<string>;
-        verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
-    };
+    static props: RecordProps<TLNoteShape>;
     // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -1552,16 +1449,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLTextShape>;
     // (undocumented)
-    static props: {
-        autoSize: Validator<boolean>;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        textAlign: EnumStyleProp<"end" | "middle" | "start">;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLTextShape>;
     // (undocumented)
     toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -1696,7 +1584,7 @@ export interface TldrawImageProps extends TLSvgOptions {
     licenseKey?: string;
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
-    snapshot: TLEditorSnapshot | TLStoreSnapshot;
+    snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }
 
 // @public (undocumented)
@@ -2210,6 +2098,8 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
+    'change-page': null;
+    // (undocumented)
     'change-user-name': null;
     // (undocumented)
     'close-menu': {
@@ -2230,11 +2120,15 @@ export interface TLUiEventMap {
     // (undocumented)
     'create-new-project': null;
     // (undocumented)
+    'delete-page': null;
+    // (undocumented)
     'delete-shapes': null;
     // (undocumented)
     'distribute-shapes': {
         operation: 'horizontal' | 'vertical';
     };
+    // (undocumented)
+    'duplicate-page': null;
     // (undocumented)
     'duplicate-shapes': null;
     // (undocumented)
@@ -2264,6 +2158,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'insert-media': null;
     // (undocumented)
+    'move-page': null;
+    // (undocumented)
+    'move-to-new-page': null;
+    // (undocumented)
     'move-to-page': null;
     // (undocumented)
     'new-page': null;
@@ -2281,6 +2179,8 @@ export interface TLUiEventMap {
     'pack-shapes': null;
     // (undocumented)
     'remove-frame': null;
+    // (undocumented)
+    'rename-page': null;
     // (undocumented)
     'reorder-shapes': {
         operation: 'backward' | 'forward' | 'toBack' | 'toFront';
@@ -3383,14 +3283,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    static props: {
-        assetId: Validator<TLAssetId | null>;
-        h: Validator<number>;
-        playing: Validator<boolean>;
-        time: Validator<number>;
-        url: Validator<string>;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLVideoShape>;
     // (undocumented)
     toSvg(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)

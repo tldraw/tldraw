@@ -171,6 +171,7 @@ export {
 	geoShapeMigrations,
 	geoShapeProps,
 	type TLGeoShape,
+	type TLGeoShapeGeoStyle,
 	type TLGeoShapeProps,
 } from './shapes/TLGeoShape'
 export {
@@ -198,7 +199,9 @@ export {
 	lineShapeMigrations,
 	lineShapeProps,
 	type TLLineShape,
+	type TLLineShapePoint,
 	type TLLineShapeProps,
+	type TLLineShapeSplineStyle,
 } from './shapes/TLLineShape'
 export {
 	noteShapeMigrations,

@@ -6,8 +6,15 @@ import {
 	IndexKey,
 	TLPageId,
 } from '@tldraw/editor'
+import { TLUiEventContextType } from '../../context/events'
 
-export const onMovePage = (editor: Editor, id: TLPageId, from: number, to: number) => {
+export const onMovePage = (
+	editor: Editor,
+	id: TLPageId,
+	from: number,
+	to: number,
+	trackEvent: TLUiEventContextType
+) => {
 	let index: IndexKey
 
 	const pages = editor.getPages()
@@ -29,5 +36,6 @@ export const onMovePage = (editor: Editor, id: TLPageId, from: number, to: numbe
 			id: id as TLPageId,
 			index,
 		})
+		trackEvent('move-page', { source: 'page-menu' })
 	}
 }
