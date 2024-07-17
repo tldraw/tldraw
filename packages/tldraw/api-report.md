@@ -491,6 +491,8 @@ export class DrawShapeTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onExit: () => void;
     // (undocumented)
     shapeType: string;
@@ -580,6 +582,8 @@ export class EraserTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onEnter: () => void;
 }
 
@@ -652,8 +656,6 @@ export class FrameShapeTool extends BaseBoxShapeTool {
     static id: string;
     // (undocumented)
     static initial: string;
-    // (undocumented)
-    static isLockable: boolean;
     // (undocumented)
     onCreate: (shape: null | TLShape) => void;
     // (undocumented)
@@ -890,6 +892,8 @@ export class HandTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onDoubleClick: TLClickEvent;
     // (undocumented)
     onQuadrupleClick: TLClickEvent;
@@ -914,6 +918,8 @@ export class HighlightShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onExit: () => void;
     // (undocumented)
@@ -1006,6 +1012,8 @@ export class LaserTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onEnter: () => void;
 }
 
@@ -1020,8 +1028,6 @@ export class LineShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
-    // (undocumented)
-    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
@@ -1079,8 +1085,6 @@ export class NoteShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
-    // (undocumented)
-    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
@@ -1293,6 +1297,8 @@ export class SelectTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onEnter: () => void;
     // (undocumented)
     onExit: () => void;
@@ -1403,6 +1409,8 @@ export class TextShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
@@ -3325,6 +3333,8 @@ export class ZoomTool extends StateNode {
     };
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onEnter: (info: TLPointerEventInfo & {
         onInteractionEnd: string;

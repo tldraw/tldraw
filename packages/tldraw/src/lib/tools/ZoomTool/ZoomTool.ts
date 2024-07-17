@@ -14,6 +14,7 @@ export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'
 	static override children = (): TLStateNodeConstructor[] => [Idle, ZoomBrushing, Pointing]
+	static override isLockable = false
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
