@@ -7,7 +7,7 @@ async function renderTldrawEditorComponent(
 	{ waitForPatterns }: { waitForPatterns: boolean }
 ) {
 	const result = render(element)
-	if (waitForPatterns) await result.findByTestId('ready-pattern-fill-defs')
+	if (waitForPatterns) await result.findByTestId('canvas')
 	return result
 }
 
