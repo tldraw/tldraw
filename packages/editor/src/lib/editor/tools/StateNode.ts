@@ -92,7 +92,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>
-	isLockable?: boolean = true
+	isLockable?: boolean
 	parent: StateNode
 
 	/**
