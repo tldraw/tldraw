@@ -11,7 +11,7 @@ This repo contains a complete example of tldraw sync ready to deploy on cloudfla
   R2](https://developers.cloudflare.com/r2/) bucket.
 - URL metadata unfurling for bookmarks shapes is also supported.
 
-This is a simplified version of the system that powers multiplayer collaboration for hundreds of
+This is a minimal setup of the same system that powers multiplayer collaboration for hundreds of
 thousands of rooms & users on www.tldraw.com. Because durable objects effectively create a mini
 server instance for every single active room, we've never needed to worry about scale. Cloudflare
 handles the tricky infrastructure work of ensuring there's only ever one instance of each room, and
@@ -42,8 +42,8 @@ start a [`vite`](https://vitejs.dev/) dev server for the frontend of your applic
 [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) dev server for your workers
 backend.
 
-The client-side code lives in [`client`](./client/). The sync integration with tldraw is in
-[`client/App.tsx`](./client/App.tsx). The worker lives [`worker`](./worker/), and is split across
+The client-side code is under [`client`](./client/). The sync integration with tldraw is in
+[`client/App.tsx`](./client/App.tsx). The worker is under [`worker`](./worker/), and is split across
 several files:
 
 - **[`worker/worker.ts`](./worker/worker.ts):** the main entrypoint to the worker, defining each
@@ -67,8 +67,8 @@ also [configure a custom
 domain](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
 
 Finally, deploy your client HTML & JavaScript. Create a production build with
-`TLDRAW_WORKER_URL=your.workers.domain.com yarn build`. Publish the resulting build (in `dist/`) on
-a host of your choosing - we use [Vercel](https://vercel.com).
+`TLDRAW_WORKER_URL=https://your.workers.domain.com yarn build`. Publish the resulting build (in
+`dist/`) on a host of your choosing - we use [Vercel](https://vercel.com).
 
 When you visit your published client, it should connect to your cloudflare workers domain and sync
 your document across devices.

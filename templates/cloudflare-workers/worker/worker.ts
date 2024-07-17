@@ -13,7 +13,7 @@ const router = AutoRouter<IRequest, [env: Environment, ctx: ExecutionContext]>({
 	before: [preflight],
 	finally: [corsify],
 	catch: (e) => {
-		console.log(e)
+		console.error(e)
 		return error(e)
 	},
 })

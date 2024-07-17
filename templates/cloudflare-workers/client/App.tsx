@@ -31,7 +31,7 @@ function App() {
 				// loading states & enable multiplayer UX like cursors & a presence menu
 				store={store}
 				onMount={(editor) => {
-					// when the editor is ready, we need to register out bookmark unfurling service
+					// when the editor is ready, we need to register our bookmark unfurling service
 					editor.registerExternalAssetHandler('url', unfurlBookmarkUrl)
 				}}
 			/>

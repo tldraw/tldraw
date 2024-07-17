@@ -2,7 +2,7 @@ import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import {
 	TLRecord,
 	createTLSchema,
-	defaultBindingSchemas,
+	// defaultBindingSchemas,
 	defaultShapeSchemas,
 } from '@tldraw/tlschema'
 import { DurableObject } from 'cloudflare:workers'
@@ -13,7 +13,7 @@ import { Environment } from './types'
 // add custom shapes and bindings here if needed:
 const schema = createTLSchema({
 	shapes: { ...defaultShapeSchemas },
-	bindings: { ...defaultBindingSchemas },
+	// bindings: { ...defaultBindingSchemas },
 })
 
 // each whiteboard room is hosted in a DurableObject:
@@ -99,11 +99,6 @@ export class TldrawDurableObject extends DurableObject<Environment> {
 				return new TLSocketRoom<TLRecord, void>({
 					schema,
 					initialSnapshot,
-					onSessionRemoved: async (_room, args) => {
-						// persist whenever the number of active sessions drops to zero
-						if (args.numSessionsRemaining > 0) return
-						await this.schedulePersistToR2()
-					},
 					onDataChange: () => {
 						// and persist whenever the data in the room changes
 						this.schedulePersistToR2()
@@ -120,15 +115,8 @@ export class TldrawDurableObject extends DurableObject<Environment> {
 		if (!this.roomPromise || !this.roomId) return
 		const room = await this.getRoom()
 
-		// only persist the room if it's changed since last time
-		const clock = room.getCurrentDocumentClock()
-		if (this.lastPersistedClock === clock) return
-
 		// convert the room to JSON and upload it to R2
 		const snapshot = JSON.stringify(room.getCurrentSnapshot())
 		await this.r2.put(`rooms/${this.roomId}`, snapshot)
-
-		this.lastPersistedClock = clock
 	}, 10_000)
-	lastPersistedClock = 0
 }

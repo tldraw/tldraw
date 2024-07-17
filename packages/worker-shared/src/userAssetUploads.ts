@@ -44,25 +44,39 @@ export async function handleUserAssetGet({ request, bucket, objectName, context 
 
 	const headers = new Headers()
 	object.writeHttpMetadata(headers)
-	headers.set('etag', object.httpEtag)
-	if (object.range) {
-		let start
-		let end
-		if ('suffix' in object.range) {
-			start = object.size - object.range.suffix
-			end = object.size - 1
-		} else {
-			start = object.range.offset ?? 0
-			end = object.range.length ? start + object.range.length - 1 : object.size - 1
-		}
-		headers.set('content-range', `bytes ${start}-${end}/${object.size}`)
-	}
 
 	// assets are immutable, so we can cache them basically forever:
 	headers.set('cache-control', 'public, max-age=31536000, immutable')
+	headers.set('etag', object.httpEtag)
+
+	// we set CORS headers so all clients can access assets. we do this here so our `cors` helper in
+	// worker.ts doesn't try to set extra cors headers on responses that have been read from the
+	// cache, which isn't allowed by cloudflare.
+	headers.set('access-control-allow-origin', '*')
+
+	// cloudflare doesn't set the content-range header automatically in writeHttpMetadata, so we
+	// need to do it ourselves.
+	let contentRange
+	if (object.range) {
+		if ('suffix' in object.range) {
+			const start = object.size - object.range.suffix
+			const end = object.size - 1
+			contentRange = `bytes ${start}-${end}/${object.size}`
+		} else {
+			const start = object.range.offset ?? 0
+			const end = object.range.length ? start + object.range.length - 1 : object.size - 1
+			if (start !== 0 || end !== object.size - 1) {
+				contentRange = `bytes ${start}-${end}/${object.size}`
+			}
+		}
+	}
+
+	if (contentRange) {
+		headers.set('content-range', contentRange)
+	}
 
 	const body = 'body' in object && object.body ? object.body : null
-	const status = body ? (object.range ? 206 : 200) : 304
+	const status = body ? (contentRange ? 206 : 200) : 304
 
 	if (status === 200) {
 		const [cacheBody, responseBody] = body!.tee()
