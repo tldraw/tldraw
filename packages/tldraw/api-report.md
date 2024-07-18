@@ -497,6 +497,8 @@ export class DrawShapeTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onExit: () => void;
     // (undocumented)
     shapeType: string;
@@ -585,6 +587,8 @@ export class EraserTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onEnter: () => void;
 }
@@ -892,6 +896,8 @@ export class HandTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onDoubleClick: TLClickEvent;
     // (undocumented)
     onQuadrupleClick: TLClickEvent;
@@ -916,6 +922,8 @@ export class HighlightShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onExit: () => void;
     // (undocumented)
@@ -1007,6 +1015,8 @@ export class LaserTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onEnter: () => void;
 }
@@ -1291,6 +1301,8 @@ export class SelectTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onEnter: () => void;
     // (undocumented)
     onExit: () => void;
@@ -1401,6 +1413,8 @@ export class TextShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
@@ -3323,6 +3337,8 @@ export class ZoomTool extends StateNode {
     };
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onEnter: (info: TLPointerEventInfo & {
         onInteractionEnd: string;

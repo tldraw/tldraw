@@ -6,6 +6,7 @@ import { Idle } from './toolStates/Idle'
 export class DrawShapeTool extends StateNode {
 	static override id = 'draw'
 	static override initial = 'idle'
+	static override isLockable = false
 	static override children = (): TLStateNodeConstructor[] => [Idle, Drawing]
 
 	override shapeType = 'draw'

@@ -7,6 +7,7 @@ import { Pointing } from './childStates/Pointing'
 export class EraserTool extends StateNode {
 	static override id = 'eraser'
 	static override initial = 'idle'
+	static override isLockable = false
 	static override children = (): TLStateNodeConstructor[] => [Idle, Pointing, Erasing]
 
 	override onEnter = () => {
