@@ -4,7 +4,6 @@ import { SandpackCodeViewer, SandpackFiles, SandpackProvider } from '@codesandbo
 import { getOwnProperty } from '@tldraw/utils'
 import { useTheme } from 'next-themes'
 import React, {
-	Fragment,
 	ReactElement,
 	ReactNode,
 	cloneElement,
@@ -19,7 +18,7 @@ import { A } from './generic'
 
 const CodeLinksContext = createContext<Record<string, string>>({})
 
-export function CodeLinkProvider({
+export function CodeLinks({
 	children,
 	links,
 }: {
@@ -29,8 +28,14 @@ export function CodeLinkProvider({
 	return <CodeLinksContext.Provider value={links}>{children}</CodeLinksContext.Provider>
 }
 
+const FocusLinesContext = createContext<null | number[]>(null)
+export function FocusLines({ children, lines }: { children: ReactNode; lines: number[] }) {
+	return <FocusLinesContext.Provider value={lines}>{children}</FocusLinesContext.Provider>
+}
+
 export function Code({ children, ...props }: React.ComponentProps<'code'>) {
 	const codeLinks = useContext(CodeLinksContext)
+	const focusLines = useContext(FocusLinesContext)
 
 	const newChildren = useMemo(() => {
 		// to linkify code, we have to do quite a lot of work. we need to take the output of
@@ -88,6 +93,9 @@ export function Code({ children, ...props }: React.ComponentProps<'code'>) {
 			return tokens
 		}
 
+		// what line are we on?
+		let lineNumber = 1
+
 		// recursively process the children array
 		function processChildrenArray(children: ReactNode): ReactNode {
 			if (!Array.isArray(children)) {
@@ -121,15 +129,29 @@ export function Code({ children, ...props }: React.ComponentProps<'code'>) {
 			}
 
 			function pushInCurrentSpan(content: ReactNode) {
+				const lineProps = {
+					'data-line': lineNumber,
+					'data-line-state': focusLines
+						? focusLines.includes(lineNumber)
+							? 'focus'
+							: 'blur'
+						: undefined,
+				}
+
 				if (lastSeenHighlightSpan) {
 					newChildren.push(
 						cloneElement(lastSeenHighlightSpan, {
 							key: newChildren.length,
 							children: content,
+							...lineProps,
 						})
 					)
 				} else {
-					newChildren.push(<Fragment key={newChildren.length}>{content}</Fragment>)
+					newChildren.push(
+						<span key={newChildren.length} {...lineProps}>
+							{content}
+						</span>
+					)
 				}
 			}
 
@@ -161,7 +183,16 @@ export function Code({ children, ...props }: React.ComponentProps<'code'>) {
 					}
 				} else {
 					finishCurrentIdentifier()
-					pushInCurrentSpan(token)
+
+					const lineParts = token.split('\n')
+					for (let i = 0; i < lineParts.length; i++) {
+						let part = lineParts[i]
+						if (i > 0) {
+							lineNumber += 1
+							part = '\n' + part
+						}
+						pushInCurrentSpan(part)
+					}
 				}
 			}
 

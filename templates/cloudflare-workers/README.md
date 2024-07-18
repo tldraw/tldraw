@@ -72,3 +72,10 @@ Finally, deploy your client HTML & JavaScript. Create a production build with
 
 When you visit your published client, it should connect to your cloudflare workers domain and sync
 your document across devices.
+
+## License
+
+Whilst the code in this template is available under the MIT license, `tldraw` and `@tldraw/sync` are
+under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) which does not
+allow their use for commercial purposes. To purchase an alternative license for commercial use,
+contact [sales@tldraw.com](mailto:sales@tldraw.com).
