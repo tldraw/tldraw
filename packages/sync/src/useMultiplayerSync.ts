@@ -184,7 +184,11 @@ export function useMultiplayerSync(
  */
 export interface UseMultiplayerSyncOptions {
 	/**
-	 * The URI of the multiplayer server. This must include the protocol, e.g. `wss://server.example.com/my-room` or `http://localhost:5858/my-room`.
+	 * The URI of the multiplayer server. This must include the protocol,
+	 *
+	 *   e.g. `wss://server.example.com/my-room` or `ws://localhost:5858/my-room`.
+	 *
+	 * Note that the protocol can also be `https` or `http` and it will upgrade to a websocket connection.
 	 */
 	uri: string
 	/**
