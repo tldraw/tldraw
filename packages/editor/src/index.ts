@@ -128,6 +128,7 @@ export {
 export {
 	createTLSchemaFromUtils,
 	createTLStore,
+	inlineBase64AssetStore,
 	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,

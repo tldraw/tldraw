@@ -198,9 +198,11 @@ export interface UseMultiplayerSyncOptions {
 	userPreferences?: Signal<TLUserPreferences>
 	/**
 	 * The asset store for blob storage. See {@link tldraw#TLAssetStore}.
-	 * If not provided assets will be stored as base64 strings in the document, which can cause performance issues at serialization boundaries.
+	 *
+	 * If you don't have time to implement blob storage and just want to get started, you can use the inline base64 asset store. {@link tldraw#inlineBase64AssetStore}
+	 * Note that storing base64 blobs inline in JSON is very inefficient and will cause performance issues quickly with large images and videos.
 	 */
-	assets?: Partial<TLAssetStore>
+	assets: TLAssetStore
 
 	/** @internal */
 	onEditorMount?: (editor: Editor) => void

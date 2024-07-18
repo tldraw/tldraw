@@ -22,7 +22,7 @@ export interface TLStoreBaseOptions {
 	defaultName?: string
 
 	/** How should this store upload & resolve assets? */
-	assets?: Partial<TLAssetStore>
+	assets?: TLAssetStore
 
 	/** Called when the store is connected to an {@link Editor}. */
 	onEditorMount?: (editor: Editor) => void | (() => void)
@@ -48,10 +48,11 @@ export type TLStoreOptions = TLStoreBaseOptions & { id?: string } & TLStoreSchem
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
+const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => asset.props.src
+
 /** @public */
-export const defaultAssetStore: TLAssetStore = {
+export const inlineBase64AssetStore: TLAssetStore = {
 	upload: (_, file) => FileHelpers.blobToDataUrl(file),
-	resolve: (asset) => asset.props.src,
 }
 
 /**
@@ -91,7 +92,7 @@ export function createTLStore({
 	initialData,
 	defaultName = '',
 	id,
-	assets,
+	assets = inlineBase64AssetStore,
 	onEditorMount,
 	multiplayerStatus,
 	...rest
@@ -105,8 +106,8 @@ export function createTLStore({
 		props: {
 			defaultName,
 			assets: {
-				...defaultAssetStore,
-				...assets,
+				upload: assets.upload,
+				resolve: assets.resolve ?? defaultAssetResolve,
 			},
 			onEditorMount: (editor) => {
 				assert(editor instanceof Editor)

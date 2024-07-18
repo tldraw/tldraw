@@ -1591,6 +1591,9 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
+// @public (undocumented)
+export const inlineBase64AssetStore: TLAssetStore;
+
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
 
@@ -3275,7 +3278,7 @@ export interface TLStateNodeConstructor {
 
 // @public (undocumented)
 export interface TLStoreBaseOptions {
-    assets?: Partial<TLAssetStore>;
+    assets?: TLAssetStore;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     multiplayerStatus?: null | Signal<'offline' | 'online'>;
