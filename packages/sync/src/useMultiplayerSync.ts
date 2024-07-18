@@ -176,8 +176,18 @@ export interface UseMultiplayerSyncOptions {
 	 * The URI of the multiplayer server. This must include the protocol, e.g. `wss://server.example.com` or `http://localhost:5858`.
 	 */
 	uri: string
+	/**
+	 * The user information. If not provided, a default implementation based on localStorage is used.
+	 */
 	userPreferences?: Signal<TLUserPreferences>
+	/**
+	 * The asset store for blob storage. See {@link tldraw#TLAssetStore}.
+	 * If not provided assets will be stored as base64 strings in the document, which can cause performance issues at serialization boundaries.
+	 */
 	assets?: Partial<TLAssetStore>
+	/**
+	 * Called when the editor is mounted. Can be used to configure the editor, e.g. registering external asset handlers.
+	 */
 	onEditorMount?: (editor: Editor) => void
 
 	/** @internal used for analytics only, we should refactor this away */
