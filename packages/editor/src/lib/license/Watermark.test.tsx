@@ -4,7 +4,7 @@ import { LicenseManager } from './LicenseManager'
 import { Watermark } from './Watermark'
 
 // Mocking useEditor and licenseContext
-jest.mock('../../hooks/useEditor', () => ({
+jest.mock('../hooks/useEditor', () => ({
 	useEditor: () => ({
 		getViewportScreenBounds: jest.fn().mockReturnValue({ width: 800 }),
 		getInstanceState: jest.fn().mockReturnValue({ isDebugMode: false }),
@@ -13,7 +13,7 @@ jest.mock('../../hooks/useEditor', () => ({
 }))
 
 let mockLicenseState = 'unlicensed'
-jest.mock('../../TldrawEditor', () => ({
+jest.mock('./LicenseProvider', () => ({
 	useLicenseContext: jest.fn().mockReturnValue({ state: { get: () => mockLicenseState } }),
 }))
 
@@ -24,7 +24,7 @@ export async function renderComponent() {
 
 describe('Watermark', () => {
 	beforeEach(() => {
-		jest.mock('../../TldrawEditor', () => ({
+		jest.mock('./LicenseProvider', () => ({
 			useLicenseContext: jest.fn().mockReturnValue({ state: { get: () => mockLicenseState } }),
 		}))
 	})

@@ -9,7 +9,7 @@ import {
 	ValidLicenseKeyResult,
 } from './LicenseManager'
 
-jest.mock('../../../version', () => {
+jest.mock('../../version', () => {
 	return {
 		publishDates: {
 			major: '2024-06-28T10:56:07.893Z',
