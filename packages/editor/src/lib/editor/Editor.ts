@@ -2646,7 +2646,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this {
-		if (this.getCameraOptions().isLocked) return this
+		const { isLocked } = this.getCameraOptions()
+		if (isLocked && !opts?.force) return this
+
 		const { width: pw, height: ph } = this.getViewportPageBounds()
 		this.setCamera(new Vec(-(point.x - pw / 2), -(point.y - ph / 2), this.getCamera().z), opts)
 		return this
@@ -2690,7 +2692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	resetZoom(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
 		const { isLocked, constraints: constraints } = this.getCameraOptions()
-		if (isLocked) return this
+		if (isLocked && !opts?.force) return this
 
 		const currentCamera = this.getCamera()
 		const { x: cx, y: cy, z: cz } = currentCamera
@@ -2730,7 +2732,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomIn(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		if (this.getCameraOptions().isLocked) return this
+		const { isLocked } = this.getCameraOptions()
+		if (isLocked && !opts?.force) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 
@@ -2774,7 +2777,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomOut(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		if (this.getCameraOptions().isLocked) return this
+		const { isLocked } = this.getCameraOptions()
+		if (isLocked && !opts?.force) return this
 
 		const { zoomSteps } = this.getCameraOptions()
 		if (zoomSteps !== null && zoomSteps.length > 1) {
@@ -2816,7 +2820,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToSelection(opts?: TLCameraMoveOptions): this {
-		if (this.getCameraOptions().isLocked) return this
+		const { isLocked } = this.getCameraOptions()
+		if (isLocked && !opts?.force) return this
+
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (selectionPageBounds) {
 			this.zoomToBounds(selectionPageBounds, {
@@ -2847,7 +2853,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
 	): this {
 		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()
-		if (cameraOptions.isLocked) return this
+		if (cameraOptions.isLocked && !opts?.force) return this
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
@@ -3002,9 +3008,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			direction: VecLike
 			friction?: number
 			speedThreshold?: number
+			force?: boolean
 		}
 	): this {
-		if (this.getCameraOptions().isLocked) return this
+		const { isLocked } = this.getCameraOptions()
+		if (isLocked && !opts?.force) return this
 
 		const animationSpeed = this.user.getAnimationSpeed()
 		if (animationSpeed === 0) return this

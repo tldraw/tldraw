@@ -1190,6 +1190,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly sideEffects: StoreSideEffects<TLRecord>;
     slideCamera(opts?: {
         direction: VecLike;
+        force?: boolean | undefined;
         friction?: number | undefined;
         speed: number;
         speedThreshold?: number | undefined;
