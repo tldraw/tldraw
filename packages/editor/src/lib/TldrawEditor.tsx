@@ -3,14 +3,11 @@ import { TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
-	createContext,
 	memo,
 	useCallback,
-	useContext,
 	useLayoutEffect,
 	useMemo,
 	useRef,
-	useState,
 	useSyncExternalStore,
 } from 'react'
 
@@ -24,10 +21,8 @@ import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
-import { LicenseManager } from './editor/managers/LicenseManager'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
-import { Watermark } from './editor/watermark/Watermark'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -42,6 +37,8 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
+import { LicenseProvider } from './license/LicenseProvider'
+import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
@@ -525,22 +522,4 @@ export function useOnMount(onMount?: TLOnMountHandler) {
 	React.useLayoutEffect(() => {
 		if (editor) return onMountEvent?.(editor)
 	}, [editor, onMountEvent])
-}
-
-/** @internal */
-export const LicenseContext = createContext({} as LicenseManager)
-
-/** @internal */
-export const useLicenseContext = () => useContext(LicenseContext)
-
-/** @internal */
-export const LicenseProvider = ({
-	licenseKey,
-	children,
-}: {
-	licenseKey?: string
-	children: React.ReactNode
-}) => {
-	const [licenseManager] = useState(() => new LicenseManager(licenseKey))
-	return <LicenseContext.Provider value={licenseManager}>{children}</LicenseContext.Provider>
 }

@@ -1,7 +1,7 @@
 import { atom } from '@tldraw/state'
-import { publishDates } from '../../../version'
-import { featureFlags } from '../../utils/debug-flags'
-import { importPublicKey, str2ab } from '../../utils/licensing'
+import { publishDates } from '../../version'
+import { featureFlags } from '../utils/debug-flags'
+import { importPublicKey, str2ab } from '../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 5
 

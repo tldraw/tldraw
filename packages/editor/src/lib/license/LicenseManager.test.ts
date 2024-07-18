@@ -1,6 +1,6 @@
 import crypto from 'crypto'
-import { publishDates } from '../../../version'
-import { str2ab } from '../../utils/licensing'
+import { publishDates } from '../../version'
+import { str2ab } from '../utils/licensing'
 import {
 	FLAGS,
 	isEditorUnlicensed,

@@ -1,18 +1,24 @@
 import { useValue } from '@tldraw/state-react'
 import React, { useLayoutEffect, useRef } from 'react'
-import { useLicenseContext } from '../../TldrawEditor'
-import { useCanvasEvents } from '../../hooks/useCanvasEvents'
-import { useEditor } from '../../hooks/useEditor'
-import { featureFlags } from '../../utils/debug-flags'
-import { stopEventPropagation } from '../../utils/dom'
-import { watermarkDesktopSvg } from '../../watermarks'
-import { LicenseManager } from '../managers/LicenseManager'
+import { useCanvasEvents } from '../hooks/useCanvasEvents'
+import { useEditor } from '../hooks/useEditor'
+import { getDefaultCdnBaseUrl } from '../utils/assets'
+import { featureFlags } from '../utils/debug-flags'
+import { stopEventPropagation } from '../utils/dom'
+import { watermarkDesktopSvg } from '../watermarks'
+import { LicenseManager } from './LicenseManager'
+import { useLicenseContext } from './LicenseProvider'
 
 /** @internal */
-export const WATERMARK_SRC = `url('data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}') center 100% / 100% no-repeat`
+export const WATERMARK_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermark/watermark-desktop.svg`
+export const WATERMARK_LOCAL_SRC = `url('data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}') center 100% / 100% no-repeat`
 
 /** @internal */
-export const Watermark = React.memo(() => {
+export const Watermark = React.memo(function Watermark({
+	forceLocal = false,
+}: {
+	forceLocal?: boolean
+}) {
 	const events = useCanvasEvents()
 
 	const editor = useEditor()
@@ -32,11 +38,16 @@ export const Watermark = React.memo(() => {
 
 	const ref = useRef<HTMLAnchorElement>(null)
 	useLayoutEffect(() => {
+		const src =
+			licenseManager.isDevelopment || (navigator.onLine && !forceLocal)
+				? WATERMARK_REMOTE_SRC
+				: WATERMARK_LOCAL_SRC
 		if (ref?.current) {
 			// eslint-disable-next-line deprecation/deprecation
-			if (ref?.current) ref.current.style.webkitMask = WATERMARK_SRC
+			ref.current.style.webkitMask = src
+			ref.current.style.mask = src
 		}
-	}, [])
+	}, [editor])
 
 	if (!showWatermark) return null
 
@@ -117,9 +128,6 @@ To remove the watermark, please purchase a license at tldraw.dev.
 					rel="noreferrer"
 					draggable={false}
 					onPointerDown={stopEventPropagation}
-					style={{
-						mask: WATERMARK_SRC,
-					}}
 				/>
 			</div>
 		</>

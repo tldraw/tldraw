@@ -6,6 +6,7 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
+import { featureFlags } from '../api/internal'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -395,3 +396,8 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'
 export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
+
+/** @public */
+export function debugEnableLicensing() {
+	featureFlags.enableLicensing.set(true)
+}

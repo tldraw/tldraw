@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
-import { featureFlags } from '../../utils/debug-flags'
-import { LicenseManager } from '../managers/LicenseManager'
+import { featureFlags } from '../utils/debug-flags'
+import { LicenseManager } from './LicenseManager'
 import { Watermark } from './Watermark'
 
 // Mocking useEditor and licenseContext
