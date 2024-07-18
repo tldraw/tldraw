@@ -53,6 +53,7 @@ import { TLArrowBinding } from '@tldraw/editor';
 import { TLArrowBindingProps } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
+import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
@@ -194,6 +195,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     getGeometry(shape: TLArrowShape): Group2d;
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
     hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
