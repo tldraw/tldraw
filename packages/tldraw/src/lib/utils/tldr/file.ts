@@ -190,8 +190,7 @@ export async function serializeTldrawJson(editor: Editor): Promise<string> {
 						let src = record.props.src
 						if (!src.startsWith('http')) {
 							src =
-								(await editor.resolveAssetUrl(record.id, { shouldResolveToOriginalImage: true })) ||
-								''
+								(await editor.resolveAssetUrl(record.id, { shouldResolveToOriginal: true })) || ''
 						}
 						// try to save the asset as a base64 string
 						assetSrcToSave = await FileHelpers.blobToDataUrl(await (await fetch(src)).blob())
@@ -307,7 +306,7 @@ export async function parseAndLoadDocument(
 		editor.store.put(nonShapes, 'initialize')
 		editor.store.ensureStoreIsUsable()
 		editor.store.put(shapes, 'initialize')
-		editor.history.clear()
+		editor.clearHistory()
 		// Put the old bounds back in place
 		editor.updateViewportScreenBounds(initialBounds)
 

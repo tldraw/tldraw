@@ -479,7 +479,7 @@ export function MoveToPageMenu() {
 				))}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="new-page">
-				<TldrawUiMenuItem {...actions['new-page']} />
+				<TldrawUiMenuItem {...actions['move-to-new-page']} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
@@ -645,4 +645,20 @@ export function PrintItem() {
 		editor,
 	])
 	return <TldrawUiMenuItem {...actions['print']} disabled={emptyPage} />
+}
+
+/* ---------------------- Multiplayer --------------------- */
+/** @public @react */
+export function CursorChatItem() {
+	const editor = useEditor()
+	const actions = useActions()
+	const shouldShow = useValue(
+		'show cursor chat',
+		() => editor.getCurrentToolId() === 'select' && !editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
+
+	if (!shouldShow) return null
+
+	return <TldrawUiMenuItem {...actions['open-cursor-chat']} />
 }

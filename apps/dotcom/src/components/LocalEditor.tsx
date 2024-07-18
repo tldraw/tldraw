@@ -1,9 +1,8 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -11,6 +10,7 @@ import {
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	HelpGroup,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
@@ -19,7 +19,6 @@ import {
 	ViewSubmenu,
 	useActions,
 } from 'tldraw'
-import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
@@ -38,14 +37,6 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<LocalFileMenu />
@@ -54,6 +45,7 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
+			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),
@@ -88,7 +80,7 @@ const components: TLComponents = {
 
 export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing(SCRATCH_PERSISTENCE_KEY)
+	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
@@ -100,13 +92,13 @@ export function LocalEditor() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
-				assetOptions={{ onResolveAsset: resolveAsset(SCRATCH_PERSISTENCE_KEY) }}
 				inferDarkMode
 			>
 				<LocalMigration />

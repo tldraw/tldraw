@@ -29,8 +29,14 @@ export interface TLUiEventMap {
 	undo: null
 	redo: null
 	'change-language': { locale: string }
+	'change-page': null
+	'delete-page': null
+	'duplicate-page': null
+	'move-page': null
 	'new-page': null
+	'rename-page': null
 	'move-to-page': null
+	'move-to-new-page': null
 	'group-shapes': null
 	'ungroup-shapes': null
 	'remove-frame': null
@@ -94,7 +100,10 @@ export interface TLUiEventMap {
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null
+	'start-following': null
 	'stop-following': null
+	'set-color': null
+	'change-user-name': null
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null

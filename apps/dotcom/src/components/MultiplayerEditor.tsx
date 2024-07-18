@@ -1,70 +1,57 @@
-import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
-import { useRemoteSyncClient } from '@tldraw/sync-react'
-import { useCallback, useEffect } from 'react'
 import {
-	DefaultContextMenu,
-	DefaultContextMenuContent,
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
+	getLicenseKey,
+	ROOM_OPEN_MODE,
+	RoomOpenModeToPath,
+	type RoomOpenMode,
+} from '@tldraw/dotcom-shared'
+import { useMultiplayerSync } from '@tldraw/sync'
+import { useCallback } from 'react'
+import {
+	assertExists,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	EditSubmenu,
 	Editor,
+	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	HelpGroup,
+	PeopleMenu,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	ViewSubmenu,
-	atom,
 	useActions,
+	useEditor,
+	useTranslation,
 	useValue,
+	ViewSubmenu,
 } from 'tldraw'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
-import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
-import { CursorChatMenuItem } from '../utils/context-menu/CursorChatMenuItem'
-import { createAssetFromFile } from '../utils/createAssetFromFile'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
+import { multiplayerAssetStore } from '../utils/multiplayerAssetStore'
 import { useSharing } from '../utils/sharing'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
-import { CURSOR_CHAT_ACTION, useCursorChat } from '../utils/useCursorChat'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
-import { CursorChatBubble } from './CursorChatBubble'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
-import { PeopleMenu } from './PeopleMenu/PeopleMenu'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
-const shittyOfflineAtom = atom('shitty offline atom', false)
-
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	ContextMenu: (props) => (
-		<DefaultContextMenu {...props}>
-			<CursorChatMenuItem />
-			<DefaultContextMenuContent />
-		</DefaultContextMenu>
-	),
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
@@ -73,6 +60,7 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
+			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),
@@ -85,20 +73,41 @@ const components: TLComponents = {
 					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
-				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
-					<TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
-				</TldrawUiMenuGroup>
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},
 	TopPanel: () => {
-		const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
+		const editor = useEditor()
+		const isOffline = useValue(
+			'offline',
+			() => {
+				const status = assertExists(
+					editor.store.props.multiplayerStatus,
+					'should be used with multiplayer store'
+				)
+				return status.get() === 'offline'
+			},
+			[]
+		)
 		return <DocumentTopZone isOffline={isOffline} />
 	},
 	SharePanel: () => {
+		const editor = useEditor()
+		const msg = useTranslation()
 		return (
 			<div className="tlui-share-zone" draggable={false}>
-				<PeopleMenu />
+				<PeopleMenu>
+					<div className="tlui-people-menu__section">
+						<TldrawUiButton
+							type="menu"
+							data-testid="people-menu.invite"
+							onClick={() => editor.addOpenMenu('share menu')}
+						>
+							<TldrawUiButtonLabel>{msg('people-menu.invite')}</TldrawUiButtonLabel>
+							<TldrawUiButtonIcon icon="plus" />
+						</TldrawUiButton>
+					</div>
+				</PeopleMenu>
 				<ShareMenu />
 			</div>
 		)
@@ -114,21 +123,15 @@ export function MultiplayerEditor({
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const storeWithStatus = useRemoteSyncClient({
+	const storeWithStatus = useMultiplayerSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
+		assets: multiplayerAssetStore,
 		trackAnalyticsEvent,
 	})
 
-	const isOffline =
-		storeWithStatus.status === 'synced-remote' && storeWithStatus.connectionStatus === 'offline'
-	useEffect(() => {
-		shittyOfflineAtom.set(isOffline)
-	}, [isOffline])
-
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
-	const cursorChatOverrides = useCursorChat()
 	const isReadonly =
 		roomOpenMode === ROOM_OPEN_MODE.READ_ONLY || roomOpenMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY
 
@@ -141,7 +144,6 @@ export function MultiplayerEditor({
 			editor.updateInstanceState({
 				isReadonly,
 			})
-			editor.registerExternalAssetHandler('file', createAssetFromFile)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 		},
 		[isReadonly]
@@ -154,18 +156,17 @@ export function MultiplayerEditor({
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides, cursorChatOverrides]}
+				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
-				assetOptions={{ onResolveAsset: resolveAsset() }}
 				inferDarkMode
 			>
 				<UrlStateSync />
-				<CursorChatBubble />
 				<SneakyOnDropOverride isMultiplayer />
 				<ThemeUpdater />
 			</Tldraw>

@@ -1,14 +1,9 @@
 import { PageRecordType } from '@tldraw/tlschema'
 import { IndexKey, promiseWithResolve } from '@tldraw/utils'
+import { afterEach } from 'node:test'
 import { createTLStore } from '../../config/createTLStore'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
-import * as idb from './indexedDb'
-
-jest.mock('./indexedDb', () => ({
-	...jest.requireActual('./indexedDb'),
-	storeSnapshotInIndexedDb: jest.fn(() => Promise.resolve()),
-	storeChangesInIndexedDb: jest.fn(() => Promise.resolve()),
-}))
+import { hardReset } from './hardReset'
 
 class BroadcastChannelMock {
 	onmessage?: (e: MessageEvent) => void
@@ -40,7 +35,24 @@ function testClient(channel = new BroadcastChannelMock('test')) {
 		},
 		channel
 	)
-	return { client, store, onLoad, onLoadError, channel }
+
+	client.db.storeSnapshot = jest.fn(() => Promise.resolve())
+	client.db.storeChanges = jest.fn(() => Promise.resolve())
+
+	return {
+		client: client as { db: { storeSnapshot: jest.Mock; storeChanges: jest.Mock } } & typeof client,
+		store,
+		onLoad,
+		onLoadError,
+		channel,
+		tick: async () => {
+			jest.advanceTimersByTime(500)
+			await Promise.resolve()
+			await client.db.pending()
+			jest.advanceTimersByTime(500)
+			await Promise.resolve()
+		},
+	}
 }
 
 const reloadMock = jest.fn()
@@ -56,15 +68,14 @@ beforeEach(() => {
 	jest.clearAllMocks()
 })
 
+afterEach(async () => {
+	await hardReset({ shouldReload: false })
+})
+
 jest.useFakeTimers()
 
-const tick = async () => {
-	jest.advanceTimersByTime(1000)
-	await Promise.resolve()
-}
-
 test('the client connects on instantiation, announcing its schema', async () => {
-	const { channel } = testClient()
+	const { channel, tick } = testClient()
 	await tick()
 	expect(channel.postMessage).toHaveBeenCalledTimes(1)
 	const [msg] = channel.postMessage.mock.calls[0]
@@ -73,7 +84,7 @@ test('the client connects on instantiation, announcing its schema', async () => 
 })
 
 test('when a client receives an announce with a newer schema version it reloads itself', async () => {
-	const { client, channel, onLoadError } = testClient()
+	const { client, channel, onLoadError, tick } = testClient()
 	await tick()
 	jest.advanceTimersByTime(10000)
 	expect(reloadMock).not.toHaveBeenCalled()
@@ -91,7 +102,7 @@ test('when a client receives an announce with a newer schema version it reloads 
 })
 
 test('when a client receives an announce with a newer schema version shortly after loading it does not reload but instead reports a loadError', async () => {
-	const { client, channel, onLoadError } = testClient()
+	const { client, channel, onLoadError, tick } = testClient()
 	await tick()
 	jest.advanceTimersByTime(1000)
 	expect(reloadMock).not.toHaveBeenCalled()
@@ -109,21 +120,21 @@ test('when a client receives an announce with a newer schema version shortly aft
 })
 
 test('the first db write after a client connects is a full db overwrite', async () => {
-	const { client } = testClient()
+	const { client, tick } = testClient()
 	await tick()
 	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
 	await tick()
-	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
-	expect(idb.storeChangesInIndexedDb).not.toHaveBeenCalled()
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+	expect(client.db.storeChanges).not.toHaveBeenCalled()
 
 	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' as IndexKey })])
 	await tick()
-	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
-	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(1)
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
 })
 
 test('it clears the diff queue after every write', async () => {
-	const { client } = testClient()
+	const { client, tick } = testClient()
 	await tick()
 	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
 	await tick()
@@ -138,26 +149,26 @@ test('it clears the diff queue after every write', async () => {
 
 test('writes that come in during a persist operation will get persisted afterward', async () => {
 	const idbOperationResult = promiseWithResolve<void>()
-	;(idb.storeSnapshotInIndexedDb as jest.Mock).mockImplementationOnce(() => idbOperationResult)
 
-	const { client } = testClient()
+	const { client, tick } = testClient()
+	client.db.storeSnapshot.mockImplementationOnce(() => idbOperationResult)
+
 	await tick()
 	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' as IndexKey })])
 	await tick()
 
 	// we should have called into idb but not resolved the promise yet
-	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
-	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(0)
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(0)
 
 	// if another change comes in, loads of time can pass, but nothing else should get called
 	client.store.put([PageRecordType.create({ name: 'test', index: 'a2' as IndexKey })])
 	await tick()
-	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
-	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(0)
+	expect(client.db.storeSnapshot).toHaveBeenCalledTimes(1)
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(0)
 
 	// if we resolve the idb operation, the next change should get persisted
 	idbOperationResult.resolve()
 	await tick()
-	await tick()
-	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(1)
+	expect(client.db.storeChanges).toHaveBeenCalledTimes(1)
 })

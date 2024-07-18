@@ -1432,6 +1432,8 @@ html[data-theme='light'] .hero__dark {
 	min-height: 500px;
 	height: 50vh;
 	width: 100%;
+	border-radius: var(--border-radius-menu);
+	border: 1px solid var(--color-tint-2);
 }
 
 .code-example .sandpack {

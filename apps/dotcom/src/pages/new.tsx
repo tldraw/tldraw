@@ -1,11 +1,13 @@
 import { ROOM_PREFIX, Snapshot } from '@tldraw/dotcom-shared'
-import { schema } from '@tldraw/sync'
 import { Navigate } from 'react-router-dom'
+import { createTLSchema } from 'tldraw'
 import '../../styles/globals.css'
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'
 import { defineLoader } from '../utils/defineLoader'
 import { isInIframe } from '../utils/iFrame'
 import { getNewRoomResponse } from '../utils/sharing'
+
+const schema = createTLSchema()
 
 const { loader, useData } = defineLoader(async (_args) => {
 	if (isInIframe()) return null

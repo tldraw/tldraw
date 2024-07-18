@@ -25,11 +25,9 @@
 		"infinite"
 	],
 	"workspaces": [
-		"docs",
 		"apps/*",
 		"packages/*",
 		"apps/vscode/*",
-		"e2e",
 		"config",
 		"scripts"
 	],
@@ -39,7 +37,7 @@
 		"refresh-assets": "lazy refresh-assets",
 		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/{bemo-worker,images.tldraw.xyz}'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
-		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker,images.tldraw.xyz}' --filter='packages/tldraw'",
+		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker,images.tldraw.xyz,bemo-worker}' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/huppy'",
 		"build": "lazy build",
@@ -97,7 +95,7 @@
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"license-report": "^6.5.0",
-		"lint-staged": ">=10",
+		"lint-staged": "^15.2.7",
 		"prettier": "^3.0.3",
 		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",

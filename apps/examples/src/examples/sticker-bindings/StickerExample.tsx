@@ -90,6 +90,7 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		const target = this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
 			filter: (shape) =>
+				shape.id !== sticker.id &&
 				this.editor.canBindShapes({ fromShape: sticker, toShape: shape, binding: 'sticker' }),
 		})
 

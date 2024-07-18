@@ -1,5 +1,5 @@
 main = "src/worker.ts"
-compatibility_date = "2024-06-25"
+compatibility_date = "2024-06-20"
 upload_source_maps = true
 
 [dev]
@@ -60,7 +60,7 @@ preview_bucket_name = 'sync-demo-preview'
 binding = 'BEMO_BUCKET'
 bucket_name = 'sync-demo-preview'
 
-[[env.stating.r2_buckets]]
+[[env.staging.r2_buckets]]
 binding = 'BEMO_BUCKET'
 bucket_name = 'sync-demo-preview'
 
@@ -84,3 +84,26 @@ binding = "CF_VERSION_METADATA"
 
 [env.production.version_metadata]
 binding = "CF_VERSION_METADATA"
+
+
+#################### Analytics engine ####################
+# analytics engine has the same configuration in all environments:
+[[analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS"
+
+[[env.dev.analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS_DEV"
+
+[[env.preview.analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS_PREVIEW"
+
+[[env.staging.analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS_STAGING"
+
+[[env.production.analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS"

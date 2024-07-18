@@ -1,4 +1,6 @@
 export {
+	type TLAssetContext,
+	type TLAssetStore,
 	type TLSerializedStore,
 	type TLStore,
 	type TLStoreProps,
@@ -23,6 +25,7 @@ export {
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export {
 	createTLSchema,
+	defaultBindingSchemas,
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
 	type TLSchema,
@@ -168,6 +171,7 @@ export {
 	geoShapeMigrations,
 	geoShapeProps,
 	type TLGeoShape,
+	type TLGeoShapeGeoStyle,
 	type TLGeoShapeProps,
 } from './shapes/TLGeoShape'
 export {
@@ -195,7 +199,9 @@ export {
 	lineShapeMigrations,
 	lineShapeProps,
 	type TLLineShape,
+	type TLLineShapePoint,
 	type TLLineShapeProps,
+	type TLLineShapeSplineStyle,
 } from './shapes/TLLineShape'
 export {
 	noteShapeMigrations,

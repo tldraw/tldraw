@@ -11,7 +11,13 @@
 			"path": "../../packages/assets"
 		},
 		{
+			"path": "../../packages/sync"
+		},
+		{
 			"path": "../../packages/tldraw"
+		},
+		{
+			"path": "../../packages/dotcom-shared"
 		}
 	]
 }

@@ -120,6 +120,7 @@ export type AssetUrls = {
 		'spline-line': string
 		'stack-horizontal': string
 		'stack-vertical': string
+		'status-offline': string
 		'stretch-horizontal': string
 		'stretch-vertical': string
 		'text-align-center': string

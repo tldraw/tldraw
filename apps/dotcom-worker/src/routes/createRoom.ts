@@ -1,5 +1,6 @@
 import { CreateRoomRequestBody } from '@tldraw/dotcom-shared'
-import { RoomSnapshot, schema } from '@tldraw/sync'
+import { RoomSnapshot } from '@tldraw/sync-core'
+import { createTLSchema } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
 import { nanoid } from 'nanoid'
 import { getR2KeyForRoom } from '../r2'
@@ -22,7 +23,7 @@ export async function createRoom(request: IRequest, env: Environment): Promise<R
 
 	// Create the new snapshot
 	const snapshot: RoomSnapshot = {
-		schema: schema.serialize(),
+		schema: createTLSchema().serialize(),
 		clock: 0,
 		documents: Object.values(snapshotResult.value).map((r) => ({
 			state: r,

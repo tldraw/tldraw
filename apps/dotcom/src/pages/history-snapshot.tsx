@@ -1,5 +1,5 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
-import { RoomSnapshot } from '@tldraw/sync'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { fetch } from 'tldraw'
 import '../../styles/globals.css'
 import { BoardHistorySnapshot } from '../components/BoardHistorySnapshot/BoardHistorySnapshot'
