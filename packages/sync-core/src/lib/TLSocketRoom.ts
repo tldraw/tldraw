@@ -1,6 +1,6 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema } from '@tldraw/tlschema'
-import { ServerSocketAdapter } from './ServerSocketAdapter'
+import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
@@ -18,7 +18,7 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 	private room: TLSyncRoom<R, SessionMeta>
 	private readonly sessions = new Map<
 		string,
-		{ assembler: JsonChunkAssembler; socket: WebSocket; unlisten: () => void }
+		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
 	readonly log: TLSyncLog
 	constructor(
@@ -73,7 +73,7 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 		return this.room.sessions.size
 	}
 
-	handleSocketConnect(sessionId: string, socket: WebSocket, meta: SessionMeta) {
+	handleSocketConnect(sessionId: string, socket: WebSocketMinimal, meta: SessionMeta) {
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -83,9 +83,9 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 			assembler: new JsonChunkAssembler(),
 			socket,
 			unlisten: () => {
-				socket.removeEventListener('message', handleSocketMessage)
-				socket.removeEventListener('close', handleSocketClose)
-				socket.removeEventListener('error', handleSocketError)
+				socket.removeEventListener?.('message', handleSocketMessage)
+				socket.removeEventListener?.('close', handleSocketClose)
+				socket.removeEventListener?.('error', handleSocketError)
 			},
 		})
 
@@ -106,12 +106,12 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 			meta
 		)
 
-		socket.addEventListener('message', handleSocketMessage)
-		socket.addEventListener('close', handleSocketClose)
-		socket.addEventListener('error', handleSocketError)
+		socket.addEventListener?.('message', handleSocketMessage)
+		socket.addEventListener?.('close', handleSocketClose)
+		socket.addEventListener?.('error', handleSocketError)
 	}
 
-	handleSocketMessage(sessionId: string, message: string | ArrayBuffer) {
+	handleSocketMessage(sessionId: string, message: string | AllowSharedBufferSource) {
 		const documentClockAtStart = this.room.documentClock
 		const assembler = this.sessions.get(sessionId)?.assembler
 		if (!assembler) {
@@ -207,5 +207,9 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 
 	close() {
 		this.room.close()
+	}
+
+	isClosed() {
+		return this.room.isClosed()
 	}
 }
