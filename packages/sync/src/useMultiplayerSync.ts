@@ -82,7 +82,6 @@ export function useMultiplayerSync(
 	// This line will throw a type error if we add any new options to the useMultiplayerSync hook but we don't destructure them
 	// This is required because otherwise the useTLSchemaFromUtils might return a new schema on every render if the newly-added option
 	// is allowed to be unstable (e.g. userInfo)
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
 
 	const schema = useTLSchemaFromUtils(schemaOpts)

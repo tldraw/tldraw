@@ -437,7 +437,11 @@ export interface TLSyncLog {
 
 // @internal
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
-    constructor(schema: StoreSchema<R, any>, snapshot?: RoomSnapshot);
+    constructor(opts: {
+        log?: TLSyncLog;
+        schema: StoreSchema<R, any>;
+        snapshot?: RoomSnapshot;
+    });
     broadcastPatch({ diff, sourceSessionId }: {
         diff: NetworkDiff<R>;
         sourceSessionId: string;

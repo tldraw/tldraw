@@ -5,7 +5,7 @@ import { TestSocketPair } from './TestSocketPair'
 export class TestServer<R extends UnknownRecord, P = unknown> {
 	room: TLSyncRoom<R, undefined>
 	constructor(schema: StoreSchema<R, P>, snapshot?: RoomSnapshot) {
-		this.room = new TLSyncRoom<R, undefined>(schema, snapshot)
+		this.room = new TLSyncRoom<R, undefined>({ schema, snapshot })
 	}
 
 	connect(socketPair: TestSocketPair<R>): void {

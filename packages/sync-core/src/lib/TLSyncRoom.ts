@@ -29,6 +29,7 @@ import {
 	SESSION_REMOVAL_WAIT_TIME,
 	SESSION_START_WAIT_TIME,
 } from './RoomSession'
+import { TLSyncLog } from './TLSocketRoom'
 import {
 	NetworkDiff,
 	ObjectDiff,
@@ -213,11 +214,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	readonly documentTypes: Set<string>
 	readonly presenceType: RecordType<R, any>
+	private log?: TLSyncLog
+	public readonly schema: StoreSchema<R, any>
 
-	constructor(
-		public readonly schema: StoreSchema<R, any>,
-		snapshot?: RoomSnapshot
-	) {
+	constructor(opts: { log?: TLSyncLog; schema: StoreSchema<R, any>; snapshot?: RoomSnapshot }) {
+		this.schema = opts.schema
+		let snapshot = opts.snapshot
+		this.log = opts.log
+
 		assert(
 			isNativeStructuredClone,
 			'TLSyncRoom is supposed to run either on Cloudflare Workers' +
@@ -225,16 +229,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		)
 
 		// do a json serialization cycle to make sure the schema has no 'undefined' values
-		this.serializedSchema = JSON.parse(JSON.stringify(schema.serialize()))
+		this.serializedSchema = JSON.parse(JSON.stringify(this.schema.serialize()))
 
 		this.documentTypes = new Set(
-			Object.values<RecordType<R, any>>(schema.types)
+			Object.values<RecordType<R, any>>(this.schema.types)
 				.filter((t) => t.scope === 'document')
 				.map((t) => t.typeName)
 		)
 
 		const presenceTypes = new Set(
-			Object.values<RecordType<R, any>>(schema.types).filter((t) => t.scope === 'presence')
+			Object.values<RecordType<R, any>>(this.schema.types).filter((t) => t.scope === 'presence')
 		)
 
 		if (presenceTypes.size != 1) {
@@ -287,17 +291,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				DocumentState.createWithoutValidating<R>(
 					r.state as R,
 					r.lastChangedClock,
-					assertExists(getOwnProperty(schema.types, r.state.typeName))
+					assertExists(getOwnProperty(this.schema.types, r.state.typeName))
 				),
 			])
 		)
 
-		const migrationResult = schema.migrateStoreSnapshot({
+		const migrationResult = this.schema.migrateStoreSnapshot({
 			store: Object.fromEntries(
 				objectMapEntries(documents).map(([id, { state }]) => [id, state as R])
 			) as Record<IdOf<R>, R>,
 			// eslint-disable-next-line deprecation/deprecation
-			schema: snapshot.schema ?? schema.serializeEarliestVersion(),
+			schema: snapshot.schema ?? this.schema.serializeEarliestVersion(),
 		})
 
 		if (migrationResult.type === 'error') {
@@ -313,7 +317,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				documents[id] = DocumentState.createWithoutValidating(
 					r,
 					this.clock,
-					assertExists(getOwnProperty(schema.types, r.typeName)) as any
+					assertExists(getOwnProperty(this.schema.types, r.typeName)) as any
 				)
 			} else if (!isEqual(existing.state, r)) {
 				// record was maybe updated during migration
@@ -412,11 +416,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	) {
 		const session = this.sessions.get(sessionId)
 		if (!session) {
-			console.warn('Tried to send message to unknown session', message.type)
+			this.log?.warn?.('Tried to send message to unknown session', message.type)
 			return
 		}
 		if (session.state !== RoomSessionState.Connected) {
-			console.warn('Tried to send message to disconnected client', message.type)
+			this.log?.warn?.('Tried to send message to disconnected client', message.type)
 			return
 		}
 		if (session.socket.isOpen) {
@@ -466,7 +470,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private removeSession(sessionId: string) {
 		const session = this.sessions.get(sessionId)
 		if (!session) {
-			console.warn('Tried to remove unknown session')
+			this.log?.warn?.('Tried to remove unknown session')
 			return
 		}
 
@@ -508,7 +512,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		if (session.state === RoomSessionState.AwaitingRemoval) {
-			console.warn('Tried to cancel session that is already awaiting removal')
+			this.log?.warn?.('Tried to cancel session that is already awaiting removal')
 			return
 		}
 
@@ -631,7 +635,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	handleMessage = async (sessionId: string, message: TLSocketClientSentEvent<R>) => {
 		const session = this.sessions.get(sessionId)
 		if (!session) {
-			console.warn('Received message from unknown session')
+			this.log?.warn?.('Received message from unknown session')
 			return
 		}
 		switch (message.type) {
@@ -837,7 +841,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				rollback()
 				this.rejectSession(session, reason)
 				if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
-					console.error('failed to apply push', reason, message)
+					this.log?.error?.('failed to apply push', reason, message)
 				}
 				return Result.err(undefined)
 			}

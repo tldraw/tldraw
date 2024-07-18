@@ -52,10 +52,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		}
 	) {
 		const initialClock = opts.initialSnapshot?.clock ?? 0
-		this.room = new TLSyncRoom<R, SessionMeta>(
-			opts.schema ?? (createTLSchema() as any),
-			opts.initialSnapshot
-		)
+		this.room = new TLSyncRoom<R, SessionMeta>({
+			schema: opts.schema ?? (createTLSchema() as any),
+			snapshot: opts.initialSnapshot,
+			log: opts.log,
+		})
 		if (this.room.clock !== initialClock) {
 			this.opts?.onDataChange?.()
 		}
@@ -250,14 +251,18 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			delete tombstones[id]
 		})
 
-		const newRoom = new TLSyncRoom<R, SessionMeta>(oldRoom.schema, {
-			clock: oldRoom.clock + 1,
-			documents: snapshot.documents.map((d) => ({
-				lastChangedClock: oldRoom.clock + 1,
-				state: d.state,
-			})),
-			schema: snapshot.schema,
-			tombstones,
+		const newRoom = new TLSyncRoom<R, SessionMeta>({
+			schema: oldRoom.schema,
+			snapshot: {
+				clock: oldRoom.clock + 1,
+				documents: snapshot.documents.map((d) => ({
+					lastChangedClock: oldRoom.clock + 1,
+					state: d.state,
+				})),
+				schema: snapshot.schema,
+				tombstones,
+			},
+			log: this.log,
 		})
 
 		// replace room with new one and kick out all the clients
