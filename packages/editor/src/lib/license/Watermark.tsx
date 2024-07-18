@@ -36,12 +36,14 @@ export const Watermark = React.memo(function Watermark({
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
 
-	const src =
-		licenseManager.isDevelopment || (navigator.onLine && !forceLocal)
-			? WATERMARK_LOCAL_SRC //`${WATERMARK_LOCAL_SRC}, ${WATERMARK_REMOTE_SRC}`
+	const src = licenseManager.isDevelopment
+		? WATERMARK_LOCAL_SRC
+		: navigator.onLine && !forceLocal
+			? WATERMARK_REMOTE_SRC
 			: WATERMARK_LOCAL_SRC
 
 	const ref = useRef<HTMLAnchorElement>(null)
+
 	useLayoutEffect(() => {
 		if (ref?.current) {
 			// eslint-disable-next-line deprecation/deprecation
@@ -129,9 +131,6 @@ To remove the watermark, please purchase a license at tldraw.dev.
 					rel="noreferrer"
 					draggable={false}
 					onPointerDown={stopEventPropagation}
-					style={{
-						mask: src,
-					}}
 				/>
 			</div>
 		</>
