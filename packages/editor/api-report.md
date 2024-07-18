@@ -3463,6 +3463,9 @@ export function useLocalStore(options: {
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)
+export function useNullableShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
+
+// @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @internal (undocumented)

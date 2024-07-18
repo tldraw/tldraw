@@ -1,3 +1,5 @@
+import { isSignal } from '@tldraw/state'
+import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
 	TLCloseEventCode,
@@ -16,13 +18,13 @@ import {
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
-	TLUserPreferences,
 	computed,
 	createPresenceStateDerivation,
 	createTLStore,
 	defaultUserPreferences,
 	getUserPreferences,
 	uniqueId,
+	useNullableShallowObjectIdentity,
 	useRefState,
 	useTLSchemaFromUtils,
 	useValue,
@@ -70,7 +72,6 @@ export function useMultiplayerSync(
 	const {
 		uri,
 		roomId = 'default',
-		userPreferences: prefs,
 		assets,
 		onEditorMount,
 		trackAnalyticsEvent: track,
@@ -79,13 +80,25 @@ export function useMultiplayerSync(
 
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
+	const prefs = useNullableShallowObjectIdentity(opts.userInfo)
+
+	const userAtom = useAtom<TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo> | undefined>(
+		'userAtom',
+		prefs
+	)
+
+	useEffect(() => {
+		userAtom.set(prefs)
+	}, [prefs, userAtom])
+
 	useEffect(() => {
 		const storeId = uniqueId()
 
 		const userPreferences = computed<{ id: string; color: string; name: string }>(
 			'userPreferences',
 			() => {
-				const user = prefs?.get() ?? getUserPreferences()
+				const userStuff = userAtom.get()
+				const user = (isSignal(userStuff) ? userStuff.get() : userStuff) ?? getUserPreferences()
 				return {
 					id: user.id,
 					color: user.color ?? defaultUserPreferences.color,
@@ -159,7 +172,7 @@ export function useMultiplayerSync(
 			socket.close()
 			setState(null)
 		}
-	}, [assets, onEditorMount, prefs, roomId, schema, setState, track, uri])
+	}, [assets, onEditorMount, userAtom, roomId, schema, setState, track, uri])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -179,6 +192,25 @@ export function useMultiplayerSync(
 }
 
 /**
+ * The information about a user which is used for multiplayer features.
+ * @public
+ */
+export interface TLMultiplayerUserInfo {
+	/**
+	 * id - A unique identifier for the user. This should be the same across all devices and sessions.
+	 */
+	id: string
+	/**
+	 * The user's display name. If not given, 'New User' will be shown.
+	 */
+	name?: string
+	/**
+	 * The user's color. If not given, a random color will be assigned.
+	 */
+	color?: string
+}
+
+/**
  * Options for the {@link useMultiplayerSync} hook.
  * @public
  */
@@ -192,10 +224,11 @@ export interface UseMultiplayerSyncOptions {
 	 */
 	uri: string
 	/**
-	 * The user information. If not provided, a default implementation based on localStorage is used.
-	 * This should be synchronized with the configuration for the main `<Tldraw />` component.
+	 * A signal that contains the user information needed for multiplayer features.
+	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
+	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userPreferences?: Signal<TLUserPreferences>
+	userInfo?: TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo>
 	/**
 	 * The asset store for blob storage. See {@link tldraw#TLAssetStore}.
 	 *

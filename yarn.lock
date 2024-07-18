@@ -6273,6 +6273,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/sync@workspace:packages/sync"
   dependencies:
+    "@tldraw/state": "workspace:*"
+    "@tldraw/state-react": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     lodash.isequal: "npm:^4.5.0"

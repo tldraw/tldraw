@@ -7,14 +7,17 @@ import {
 	TLAsset,
 	TLAssetStore,
 	TLStoreSchemaOptions,
-	TLUserPreferences,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	getHashForString,
 	uniqueId,
 	useShallowObjectIdentity,
 } from 'tldraw'
-import { RemoteTLStoreWithStatus, useMultiplayerSync } from './useMultiplayerSync'
+import {
+	RemoteTLStoreWithStatus,
+	TLMultiplayerUserInfo,
+	useMultiplayerSync,
+} from './useMultiplayerSync'
 
 /** @public */
 export interface UseMultiplayerDemoOptions {
@@ -24,11 +27,11 @@ export interface UseMultiplayerDemoOptions {
 	 */
 	roomId: string
 	/**
-	 * A signal that contains the user info like name and color.
-	 * This should be synchronized with the configuration for the main `<Tldraw />` component.
+	 * A signal that contains the user information needed for multiplayer features.
+	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userPreferences?: Signal<TLUserPreferences>
+	userInfo?: TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo>
 	/** @internal */
 	host?: string
 }
@@ -78,7 +81,7 @@ const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://imag
 export function useMultiplayerDemo(
 	options: UseMultiplayerDemoOptions & TLStoreSchemaOptions
 ): RemoteTLStoreWithStatus {
-	const { roomId, userPreferences, host = DEMO_WORKER, ..._schemaOpts } = options
+	const { roomId, userInfo, host = DEMO_WORKER, ..._schemaOpts } = options
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
 
 	const schemaOpts = useShallowObjectIdentity(_schemaOpts)
@@ -101,7 +104,7 @@ export function useMultiplayerDemo(
 	return useMultiplayerSync({
 		uri: `${host}/connect/${encodeURIComponent(roomId)}`,
 		roomId,
-		userPreferences,
+		userInfo,
 		assets,
 		onEditorMount: useCallback(
 			(editor: Editor) => {

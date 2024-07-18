@@ -9,7 +9,6 @@ import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
-import { TLUserPreferences } from 'tldraw';
 
 // @public (undocumented)
 export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
@@ -19,6 +18,13 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 }>;
 
 // @public
+export interface TLMultiplayerUserInfo {
+    color?: string;
+    id: string;
+    name?: string;
+}
+
+// @public
 export function useMultiplayerDemo(options: UseMultiplayerDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
@@ -26,7 +32,7 @@ export interface UseMultiplayerDemoOptions {
     // @internal (undocumented)
     host?: string;
     roomId: string;
-    userPreferences?: Signal<TLUserPreferences>;
+    userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
 }
 
 // @public
@@ -44,7 +50,7 @@ export interface UseMultiplayerSyncOptions {
         [key: string]: any;
     }): void;
     uri: string;
-    userPreferences?: Signal<TLUserPreferences>;
+    userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
 }
 
 
