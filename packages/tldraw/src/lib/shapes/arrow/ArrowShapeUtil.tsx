@@ -792,13 +792,44 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 		]
 	}
+
 	override getInterpolatedProps(
 		startShape: TLArrowShape,
 		endShape: TLArrowShape,
 		progress: number
 	): TLArrowShapeProps {
+		const discretePropKeys = [
+			'labelColor',
+			'color',
+			'fill',
+			'dash',
+			'size',
+			'arrowheadStart',
+			'arrowheadEnd',
+			'font',
+			'text',
+		]
+
+		const isOverHalfway = progress > 0.5
+		const sourceShape = isOverHalfway ? endShape : startShape
+
+		const discreteProps: Partial<TLArrowShapeProps> = {}
+
+		discretePropKeys.forEach((propKey) => {
+			;(discreteProps as any)[propKey] = (sourceShape.props as any)[propKey]
+		})
+
+		if (!startShape.props.text && endShape.props.text) {
+			// if there isn't text in the start shape, and there is in the end shape
+			// then we can stream it in
+			const textLength = endShape.props.text.length
+			const textToShow = Math.floor(textLength * progress)
+			discreteProps.text = endShape.props.text.substring(0, textToShow)
+		}
+
 		return {
 			...endShape.props,
+			...discreteProps,
 			start: {
 				x: lerp(startShape.props.start.x, endShape.props.start.x, progress),
 				y: lerp(startShape.props.start.y, endShape.props.start.y, progress),
