@@ -46,6 +46,7 @@
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
+		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",

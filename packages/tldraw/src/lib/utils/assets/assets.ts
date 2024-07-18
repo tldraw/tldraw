@@ -44,7 +44,7 @@ export function containBoxSize(
  * ```ts
  * const image = await (await fetch('/image.jpg')).blob()
  * const size = await getImageSize(image)
- * const resizedImage = await downsizeImage(image, size.w / 2, size.h / 2, { type: "image/jpeg", quality: 0.92 })
+ * const resizedImage = await downsizeImage(image, size.w / 2, size.h / 2, { type: "image/jpeg", quality: 0.85 })
  * ```
  *
  * @param image - The image Blob.
@@ -60,7 +60,7 @@ export async function downsizeImage(
 	opts = {} as { type?: string; quality?: number }
 ): Promise<Blob> {
 	const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
-	const { type = blob.type, quality = 0.92 } = opts
+	const { type = blob.type, quality = 0.85 } = opts
 	const [desiredWidth, desiredHeight] = await clampToBrowserMaxCanvasSize(
 		Math.min(width * 2, image.naturalWidth),
 		Math.min(height * 2, image.naturalHeight)

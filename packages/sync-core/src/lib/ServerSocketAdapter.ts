@@ -1,10 +1,22 @@
 import { UnknownRecord } from '@tldraw/store'
-import ws from 'ws'
 import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
 
-interface ServerSocketAdapterOptions<R extends UnknownRecord> {
-	readonly ws: WebSocket | ws.WebSocket
+/** @public */
+export interface WebSocketMinimal {
+	addEventListener?: (type: 'message' | 'close' | 'error', listener: (event: any) => void) => void
+	removeEventListener?: (
+		type: 'message' | 'close' | 'error',
+		listener: (event: any) => void
+	) => void
+	send: (data: string) => void
+	close: () => void
+	readyState: number
+}
+
+/** @public */
+export interface ServerSocketAdapterOptions<R extends UnknownRecord> {
+	readonly ws: WebSocketMinimal
 	readonly onBeforeSendMessage?: (msg: TLSocketServerSentEvent<R>, stringified: string) => void
 }
 

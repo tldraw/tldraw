@@ -144,6 +144,44 @@ editor.duplicateShapes(editor.getSelectedShapeIds())
 editor.bailToMark('first') // will return to A
 ```
 
+## Running code in context
+
+You can use the [Editor#run](?) method to run a function inside of a transaction. All changes made during the transaction will be settled at once. This improves performance and avoids unnecessary renders in the user interface.
+
+```ts
+editor.run(() => {
+	editor.createShapes(myShapes)
+	editor.sendToBack(myShapes)
+	editor.selectNone()
+})
+```
+
+You can also use [Editor#run](?) to execute code with contextual options.
+
+For example, you can use the options to perform actions without effecting the undo / redo history:
+
+```ts
+editor.run(
+	() => {
+		editor.createShapes(myShapes)
+		editor.sendToBack(myShapes)
+		editor.selectNone()
+	},
+	{ history: 'ignore' }
+)
+```
+
+You can also use the options to make changes to locked shapes.
+
+```ts
+editor.run(
+	() => {
+		editor.updateShapes(myLockedShapes)
+	},
+	{ ignoreShapeLock: true }
+)
+```
+
 ## Events
 
 The [Editor](?) class receives events from its [Editor#dispatch](?) method. When the [Editor](?) receives an event, it is first handled internally to update [Editor#inputs](?) and other state before, and then sent into to the editor's state chart.
@@ -601,6 +639,32 @@ You can turn on or off dark mode via the [setUserPreferences](?) method. Note th
 
 ```ts
 setUserPreferences({ isDarkMode: true })
+```
+
+### Make changes without effecting the history
+
+You can use the [Editor#run](?) method to make changes without effecting the undo redo history.
+
+```ts
+editor.run(
+	() => {
+		editor.deleteShapes(myLockedShapes)
+	},
+	{ history: 'ignore' }
+)
+```
+
+### Make changes to locked shape
+
+You can use the [Editor#run](?) method to make changes to locked shapes without having to unlock them first.
+
+```ts
+editor.run(
+	() => {
+		editor.deleteShapes(myLockedShapes)
+	},
+	{ ignoreShapeLock: true }
+)
 ```
 
 ---

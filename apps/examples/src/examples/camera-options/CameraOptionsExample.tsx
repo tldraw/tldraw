@@ -144,7 +144,7 @@ const CameraOptionsControlPanel = track(() => {
 
 	useEffect(() => {
 		if (!editor) return
-		editor.batch(() => {
+		editor.run(() => {
 			editor.setCameraOptions(cameraOptions)
 			editor.setCamera(editor.getCamera(), {
 				immediate: true,

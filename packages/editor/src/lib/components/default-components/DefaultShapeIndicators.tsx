@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import { TLShapeId } from '@tldraw/tlschema'
 import { memo, useRef } from 'react'
 import { useEditor } from '../../hooks/useEditor'
