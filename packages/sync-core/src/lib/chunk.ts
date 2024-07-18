@@ -8,7 +8,7 @@ const MAX_BYTES_PER_CHAR = 4
 // in the (admittedly impossible) worst case, the max size is 1/4 of a megabyte
 const MAX_SAFE_MESSAGE_SIZE = MAX_CLIENT_SENT_MESSAGE_SIZE_BYTES / MAX_BYTES_PER_CHAR
 
-/** @public */
+/** @internal */
 export function chunk(msg: string, maxSafeMessageSize = MAX_SAFE_MESSAGE_SIZE) {
 	if (msg.length < maxSafeMessageSize) {
 		return [msg]

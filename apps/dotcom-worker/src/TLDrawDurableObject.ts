@@ -279,7 +279,11 @@ export class TLDrawDurableObject {
 			}
 
 			// all good
-			room.handleSocketConnect(sessionKey, serverWebSocket, { storeId })
+			room.handleSocketConnect({
+				sessionId: sessionKey,
+				socket: serverWebSocket,
+				meta: { storeId },
+			})
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',

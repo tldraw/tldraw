@@ -31,22 +31,21 @@ export interface UseMultiplayerDemoOptions {
     userPreferences?: Signal<TLUserPreferences>;
 }
 
-// @public (undocumented)
+// @public
 export function useMultiplayerSync(opts: UseMultiplayerSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
-// @public (undocumented)
+// @public
 export interface UseMultiplayerSyncOptions {
     // (undocumented)
     assets?: Partial<TLAssetStore>;
     // (undocumented)
     onEditorMount?: (editor: Editor) => void;
-    // (undocumented)
+    // @internal
     roomId?: string;
-    // (undocumented)
+    // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;
     }): void;
-    // (undocumented)
     uri: string;
     // (undocumented)
     userPreferences?: Signal<TLUserPreferences>;
