@@ -47,7 +47,7 @@ export const Watermark = React.memo(function Watermark({
 			ref.current.style.webkitMask = src
 			ref.current.style.mask = src
 		}
-	}, [editor])
+	}, [editor, forceLocal, licenseManager.isDevelopment])
 
 	if (!showWatermark) return null
 
