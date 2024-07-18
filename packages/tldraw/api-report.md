@@ -53,6 +53,7 @@ import { TLArrowBinding } from '@tldraw/editor';
 import { TLArrowBindingProps } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
+import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
@@ -194,6 +195,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     getGeometry(shape: TLArrowShape): Group2d;
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
     hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
@@ -1587,7 +1590,7 @@ export interface TldrawImageProps extends TLSvgOptions {
     licenseKey?: string;
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
-    snapshot: TLEditorSnapshot | TLStoreSnapshot;
+    snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }
 
 // @public (undocumented)
@@ -2101,6 +2104,8 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
+    'change-page': null;
+    // (undocumented)
     'change-user-name': null;
     // (undocumented)
     'close-menu': {
@@ -2121,11 +2126,15 @@ export interface TLUiEventMap {
     // (undocumented)
     'create-new-project': null;
     // (undocumented)
+    'delete-page': null;
+    // (undocumented)
     'delete-shapes': null;
     // (undocumented)
     'distribute-shapes': {
         operation: 'horizontal' | 'vertical';
     };
+    // (undocumented)
+    'duplicate-page': null;
     // (undocumented)
     'duplicate-shapes': null;
     // (undocumented)
@@ -2155,6 +2164,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'insert-media': null;
     // (undocumented)
+    'move-page': null;
+    // (undocumented)
+    'move-to-new-page': null;
+    // (undocumented)
     'move-to-page': null;
     // (undocumented)
     'new-page': null;
@@ -2172,6 +2185,8 @@ export interface TLUiEventMap {
     'pack-shapes': null;
     // (undocumented)
     'remove-frame': null;
+    // (undocumented)
+    'rename-page': null;
     // (undocumented)
     'reorder-shapes': {
         operation: 'backward' | 'forward' | 'toBack' | 'toFront';

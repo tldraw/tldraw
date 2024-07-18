@@ -4066,7 +4066,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			steppedScreenScale,
 			dpr,
 			networkEffectiveType,
-			shouldResolveToOriginal: shouldResolveToOriginal,
+			shouldResolveToOriginal,
 		})
 	}
 	/**

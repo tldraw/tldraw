@@ -1,5 +1,6 @@
 import { PageRecordType, TLPageId, track, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -29,25 +30,28 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const pages = editor.getPages()
+	const trackEvent = useUiEvents()
 
 	const onDuplicate = useCallback(() => {
 		editor.mark('creating page')
 		const newId = PageRecordType.createId()
 		editor.duplicatePage(item.id as TLPageId, newId)
-	}, [editor, item])
+		trackEvent('duplicate-page', { source: 'page-menu' })
+	}, [editor, item, trackEvent])
 
 	const onMoveUp = useCallback(() => {
-		onMovePage(editor, item.id as TLPageId, index, index - 1)
-	}, [editor, item, index])
+		onMovePage(editor, item.id as TLPageId, index, index - 1, trackEvent)
+	}, [editor, item, index, trackEvent])
 
 	const onMoveDown = useCallback(() => {
-		onMovePage(editor, item.id as TLPageId, index, index + 1)
-	}, [editor, item, index])
+		onMovePage(editor, item.id as TLPageId, index, index + 1, trackEvent)
+	}, [editor, item, index, trackEvent])
 
 	const onDelete = useCallback(() => {
 		editor.mark('deleting page')
 		editor.deletePage(item.id as TLPageId)
-	}, [editor, item])
+		trackEvent('delete-page', { source: 'page-menu' })
+	}, [editor, item, trackEvent])
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`page item submenu ${index}`}>
