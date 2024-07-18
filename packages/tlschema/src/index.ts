@@ -25,6 +25,7 @@ export {
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export {
 	createTLSchema,
+	defaultBindingSchemas,
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
 	type TLSchema,

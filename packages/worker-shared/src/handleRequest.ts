@@ -1,14 +1,14 @@
 import { T } from '@tldraw/validate'
-import { IRequest, RouteHandler, Router, RouterType, StatusError } from 'itty-router'
+import { IRequest, RequestHandler, Router, RouterType, StatusError } from 'itty-router'
 import { SentryEnvironment, createSentry } from './sentry'
 
 export type ApiRoute<Env extends SentryEnvironment, Ctx extends ExecutionContext> = (
 	path: string,
-	...handlers: RouteHandler<IRequest, [env: Env, ctx: Ctx]>[]
-) => RouterType<ApiRoute<Env, Ctx>, [env: Env, ctx: Ctx]>
+	...handlers: RequestHandler<IRequest, [env: Env, ctx: Ctx]>[]
+) => RouterType<IRequest, [env: Env, ctx: Ctx]>
 
 export type ApiRouter<Env extends SentryEnvironment, Ctx extends ExecutionContext> = RouterType<
-	ApiRoute<Env, Ctx>,
+	IRequest,
 	[env: Env, ctx: Ctx]
 >
 
@@ -38,7 +38,7 @@ export async function handleApiRequest<
 }) {
 	let response
 	try {
-		response = await router.handle(request, env, ctx)
+		response = await router.fetch(request, env, ctx)
 	} catch (error: any) {
 		if (error instanceof StatusError) {
 			console.error(`${error.status}: ${error.stack}`)

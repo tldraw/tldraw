@@ -21,7 +21,6 @@ export default function LocalImagesExample() {
 					src: '/tldraw.png', // You could also use a base64 encoded string here
 					w: imageWidth,
 					h: imageHeight,
-					fileSize: -1,
 					mimeType: 'image/png',
 					isAnimated: false,
 				},

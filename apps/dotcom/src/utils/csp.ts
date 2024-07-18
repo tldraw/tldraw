@@ -5,6 +5,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`ws:`,
 		`wss:`,
 		'blob:',
+		'http://localhost:8788',
 		`https://assets.tldraw.xyz`,
 		`https://*.tldraw.workers.dev`,
 		`https://*.ingest.sentry.io`,

@@ -1357,7 +1357,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'new-page',
+				id: 'move-to-new-page',
 				label: 'context.pages.new-page',
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
@@ -1367,7 +1367,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
 						editor.moveShapesToPage(ids, newPageId)
 					})
-					trackEvent('new-page', { source })
+					trackEvent('move-to-new-page', { source })
 				},
 			},
 			{

@@ -17,8 +17,7 @@
 	},
 	"dependencies": {
 		"@tldraw/worker-shared": "workspace:*",
-		"itty-cors": "^0.3.4",
-		"itty-router": "^4.0.13"
+		"itty-router": "^5.0.17"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20240620.0",

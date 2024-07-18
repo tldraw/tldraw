@@ -22,6 +22,7 @@ import { Translating } from './childStates/Translating'
 export class SelectTool extends StateNode {
 	static override id = 'select'
 	static override initial = 'idle'
+	static override isLockable = false
 	reactor: undefined | (() => void) = undefined
 
 	static override children = (): TLStateNodeConstructor[] => [
