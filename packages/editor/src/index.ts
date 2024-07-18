@@ -6,7 +6,7 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-import { featureFlags } from '../api/internal'
+import { featureFlags } from './lib/utils/debug-flags'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
