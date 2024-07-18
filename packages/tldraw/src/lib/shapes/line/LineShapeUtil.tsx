@@ -229,6 +229,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			}
 		} else {
 			// noop, easy
+			for (let i = 0; i < endPoints.length; i++) {
+				pointsToUseStart[i] = startPoints[i]
+				pointsToUseEnd[i] = endPoints[i]
+			}
 		}
 
 		return {
