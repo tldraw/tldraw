@@ -15,14 +15,13 @@ app.register(async (app) => {
 	// sync
 	app.get('/connect/:roomId', { websocket: true }, async (socket, req) => {
 		const roomId = (req.params as any).roomId as string
-		const sessionKey = (req.query as any)?.['sessionKey'] as string | undefined
-		if (typeof sessionKey !== 'string') {
+		const sessionId = (req.query as any)?.['sessionKey'] as string | undefined
+		if (typeof sessionId !== 'string') {
 			socket.close(4000, 'sessionKey must be a string')
 			return
 		}
 		const room = await makeOrLoadRoom(roomId)
-		// need to cast because the types for ws.WebSocket are messed up
-		room.handleSocketConnect(sessionKey, socket as WebSocket)
+		room.handleSocketConnect({ sessionId, socket })
 	})
 	// assets
 	// allow uploading any file

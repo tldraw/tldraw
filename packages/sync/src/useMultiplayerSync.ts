@@ -36,7 +36,19 @@ export type RemoteTLStoreWithStatus = Exclude<
 	{ status: 'synced-local' } | { status: 'not-synced' }
 >
 
-/** @public */
+/**
+ * useMultiplayerSync creates a store that is synced with a multiplayer server.
+ *
+ * The store can be passed directly into the `<Tldraw />` component to enable multiplayer features.
+ * It will handle loading states, and enable multiplayer UX like cursors & a presence menu.
+ *
+ * To enable external blob storage, you should also pass in an `assets` object that implements the `TLAssetStore` interface.
+ * If you don't do this, adding large images and videos to rooms will cause performance issues at serialization boundaries.
+ *
+ * @param opts - Options for the multiplayer sync store. See {@link UseMultiplayerSyncOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ *
+ * @public
+ */
 export function useMultiplayerSync(
 	opts: UseMultiplayerSyncOptions & TLStoreSchemaOptions
 ): RemoteTLStoreWithStatus {
@@ -155,13 +167,21 @@ export function useMultiplayerSync(
 	)
 }
 
-/** @public */
+/**
+ * Options for the {@link useMultiplayerSync} hook.
+ * @public
+ */
 export interface UseMultiplayerSyncOptions {
+	/**
+	 * The URI of the multiplayer server. This must include the protocol, e.g. `wss://server.example.com` or `http://localhost:5858`.
+	 */
 	uri: string
-	roomId?: string
 	userPreferences?: Signal<TLUserPreferences>
-	/* @internal */
-	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 	assets?: Partial<TLAssetStore>
 	onEditorMount?: (editor: Editor) => void
+
+	/** @internal used for analytics only, we should refactor this away */
+	roomId?: string
+	/** @internal */
+	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
 }

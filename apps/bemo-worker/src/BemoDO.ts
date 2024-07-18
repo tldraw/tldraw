@@ -100,7 +100,11 @@ export class BemoDO extends DurableObject<Environment> {
 			}
 
 			// all good
-			room.handleSocketConnect(sessionKey, serverWebSocket, { origin })
+			room.handleSocketConnect({
+				sessionId: sessionKey,
+				socket: serverWebSocket,
+				meta: { origin },
+			})
 			this.writeEvent({
 				type: 'connect',
 				origin,

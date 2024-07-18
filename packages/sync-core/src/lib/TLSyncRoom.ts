@@ -47,7 +47,7 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @public */
+/** @internal */
 export interface TLRoomSocket<R extends UnknownRecord> {
 	isOpen: boolean
 	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
@@ -132,7 +132,7 @@ export interface RoomSnapshot {
  * A room is a workspace for a group of clients. It allows clients to collaborate on documents
  * within that workspace.
  *
- * @public
+ * @internal
  */
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// A table of connected clients

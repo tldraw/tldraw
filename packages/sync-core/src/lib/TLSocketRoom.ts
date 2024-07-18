@@ -8,19 +8,19 @@ import { TLSocketServerSentEvent } from './protocol'
 // TODO: structured logging support
 /** @public */
 export interface TLSyncLog {
-	info?: (...args: any[]) => void
 	warn?: (...args: any[]) => void
 	error?: (...args: any[]) => void
 }
 
 /** @public */
-export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
+export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta = void> {
 	private room: TLSyncRoom<R, SessionMeta>
 	private readonly sessions = new Map<
 		string,
 		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
-	readonly log: TLSyncLog
+	readonly log?: TLSyncLog
+
 	constructor(
 		public readonly opts: {
 			initialSnapshot?: RoomSnapshot
@@ -36,12 +36,14 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 			// a callback that is called whenever a message is sent
 			onBeforeSendMessage?: (args: {
 				sessionId: string
+				/** @internal keep the protocol private for now */
 				message: TLSocketServerSentEvent<R>
 				stringified: string
 				meta: SessionMeta
 			}) => void
 			onAfterReceiveMessage?: (args: {
 				sessionId: string
+				/** @internal keep the protocol private for now */
 				message: TLSocketServerSentEvent<R>
 				stringified: string
 				meta: SessionMeta
@@ -67,13 +69,33 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 				})
 			}
 		})
-		this.log = opts.log ?? console
+		this.log = 'log' in opts ? opts.log : { error: console.error }
 	}
+
+	/**
+	 * Returns the number of active sessions.
+	 * Note that this is not the same as the number of connected sockets!
+	 * Sessions time out a few moments after sockets close, to smooth over network hiccups.
+	 *
+	 * @returns the number of active sessions
+	 */
 	getNumActiveSessions() {
 		return this.room.sessions.size
 	}
 
-	handleSocketConnect(sessionId: string, socket: WebSocketMinimal, meta: SessionMeta) {
+	/**
+	 * Call this when a client establishes a new socket connection.
+	 *
+	 * - `sessionId` is a unique ID for a browser tab. This is passed as a query param by the useMultiplayerSync hook.
+	 * - `socket` is a WebSocket-like object that the server uses to communicate with the client.
+	 * - `meta` is an optional object that can be used to store additional information about the session.
+	 *
+	 * @param opts - The options object
+	 */
+	handleSocketConnect(
+		opts: OmitVoid<{ sessionId: string; socket: WebSocketMinimal; meta: SessionMeta }>
+	) {
+		const { sessionId, socket } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -103,7 +125,7 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 							})
 					: undefined,
 			}),
-			meta
+			'meta' in opts ? (opts.meta as any) : undefined
 		)
 
 		socket.addEventListener?.('message', handleSocketMessage)
@@ -111,11 +133,19 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 		socket.addEventListener?.('error', handleSocketError)
 	}
 
+	/**
+	 * If executing in a server environment where sockets do not have instance-level listeners
+	 * (e.g. Bun.serve, Cloudflare Worker with WebSocket hibernation), you should call this
+	 * method when messages are received. See our self-hosting example for Bun.serve for an example.
+	 *
+	 * @param sessionId - The id of the session. (should match the one used when calling handleSocketConnect)
+	 * @param message - The message received from the client.
+	 */
 	handleSocketMessage(sessionId: string, message: string | AllowSharedBufferSource) {
 		const documentClockAtStart = this.room.documentClock
 		const assembler = this.sessions.get(sessionId)?.assembler
 		if (!assembler) {
-			this.log.warn?.('Received message from unknown session', sessionId)
+			this.log?.warn?.('Received message from unknown session', sessionId)
 			return
 		}
 
@@ -140,10 +170,12 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 				this.room.handleMessage(sessionId, res.data as any)
 			}
 			if (res?.error) {
-				this.log.warn?.('Error assembling message', res.error)
+				this.log?.error?.('Error assembling message', res.error)
+				// close the socket to reset the connection
+				this.handleSocketError(sessionId)
 			}
 		} catch (e) {
-			this.log.error?.(e)
+			this.log?.error?.(e)
 			const socket = this.sessions.get(sessionId)?.socket
 			if (socket) {
 				socket.send(
@@ -161,21 +193,49 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
+	/**
+	 * If executing in a server environment where sockets do not have instance-level listeners,
+	 * call this when a socket error occurs.
+	 * @param sessionId - The id of the session. (should match the one used when calling handleSocketConnect)
+	 */
 	handleSocketError(sessionId: string) {
 		this.room.handleClose(sessionId)
 	}
 
+	/**
+	 * If executing in a server environment where sockets do not have instance-level listeners,
+	 * call this when a socket is closed.
+	 * @param sessionId - The id of the session. (should match the one used when calling handleSocketConnect)
+	 */
 	handleSocketClose(sessionId: string) {
 		this.room.handleClose(sessionId)
 	}
 
+	/**
+	 * Returns the current 'clock' of the document.
+	 * The clock is an integer that increments every time the document changes.
+	 * The clock is stored as part of the snapshot of the document for consistency purposes.
+	 *
+	 * @returns The clock
+	 */
 	getCurrentDocumentClock() {
 		return this.room.documentClock
 	}
+
+	/**
+	 * Return a snapshot of the document state, including clock-related bookkeeping.
+	 * You can store this and load it later on when initializing a TLSocketRoom.
+	 * You can also pass a snapshot to {@link TLSocketRoom#loadSnapshot} if you need to revert to a previous state.
+	 * @returns The snapshot
+	 */
 	getCurrentSnapshot() {
 		return this.room.getSnapshot()
 	}
 
+	/**
+	 * Load a snapshot of the document state, overwriting the current state.
+	 * @param snapshot - The snapshot to load
+	 */
 	loadSnapshot(snapshot: RoomSnapshot) {
 		const oldRoom = this.room
 		const oldIds = oldRoom.getSnapshot().documents.map((d) => d.state.id)
@@ -205,11 +265,22 @@ export class TLSocketRoom<R extends UnknownRecord, SessionMeta> {
 		oldRoom.close()
 	}
 
+	/**
+	 * Close the room and disconnect all clients. Call this before discarding the room instance or shutting down the server.
+	 */
 	close() {
 		this.room.close()
 	}
 
+	/**
+	 * @returns true if the room is closed
+	 */
 	isClosed() {
 		return this.room.isClosed()
 	}
+}
+
+/** @public */
+export type OmitVoid<T, KS extends keyof T = keyof T> = {
+	[K in KS extends any ? (void extends T[KS] ? never : KS) : never]: T[K]
 }

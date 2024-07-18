@@ -51,11 +51,11 @@ const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionKey: string; r
 		}
 	},
 	websocket: {
-		async open(ws) {
-			const { sessionKey, roomId } = ws.data
+		async open(socket) {
+			const { sessionKey, roomId } = socket.data
 			const room = await makeOrLoadRoom(roomId)
-			room.handleSocketConnect(sessionKey, ws)
-			ws.data.room = room
+			room.handleSocketConnect({ sessionId: sessionKey, socket })
+			socket.data.room = room
 		},
 		async message(ws, message) {
 			if (!ws.data.room) {
