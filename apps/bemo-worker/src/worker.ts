@@ -11,16 +11,16 @@ import {
 	urlMetadataQueryValidator,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { Router, createCors } from 'itty-router'
+import { Router, cors } from 'itty-router'
 import { Environment } from './types'
 
 export { BemoDO } from './BemoDO'
 
-const cors = createCors({ origins: ['*'] })
+const { preflight, corsify } = cors({ origin: '*' })
 
 export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()
-		.all('*', cors.preflight)
+		.all('*', preflight)
 		.get('/uploads/:objectName', (request) => {
 			return handleUserAssetGet({
 				request,
@@ -57,7 +57,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			request,
 			env: this.env,
 			ctx: this.ctx,
-			after: cors.corsify,
+			after: corsify,
 		})
 	}
 }
