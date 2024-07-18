@@ -58,7 +58,10 @@ const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://imag
  * The store can be passed directly into the `<Tldraw />` component to enable multiplayer features.
  * It will handle loading states, and enable multiplayer UX like user cursors and following.
  *
- * Any data you save will be publicly accessible to anyone who knows the room ID, and any stored data is wiped after a day or so.
+ * All data on the demo server is
+ *
+ * - Deleted after a day or so.
+ * - Publicly accessible to anyone who knows the room ID. Use your company name as a prefix to help avoid collisions, or generate UUIDs for maximum privacy.
  *
  * @example
  * ```tsx
