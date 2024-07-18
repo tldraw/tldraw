@@ -19,9 +19,9 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 
 // @public
 export interface TLMultiplayerUserInfo {
-    color?: string;
+    color?: null | string;
     id: string;
-    name?: string;
+    name?: null | string;
 }
 
 // @public

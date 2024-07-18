@@ -75,12 +75,19 @@ export function useMultiplayerSync(
 		assets,
 		onEditorMount,
 		trackAnalyticsEvent: track,
+		userInfo,
 		...schemaOpts
 	} = opts
 
+	// This line will throw a type error if we add any new options to the useMultiplayerSync hook but we don't destructure them
+	// This is required because otherwise the useTLSchemaFromUtils might return a new schema on every render if the newly-added option
+	// is allowed to be unstable (e.g. userInfo)
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
+
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
-	const prefs = useNullableShallowObjectIdentity(opts.userInfo)
+	const prefs = useNullableShallowObjectIdentity(userInfo)
 
 	const userAtom = useAtom<TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo> | undefined>(
 		'userAtom',
@@ -203,11 +210,11 @@ export interface TLMultiplayerUserInfo {
 	/**
 	 * The user's display name. If not given, 'New User' will be shown.
 	 */
-	name?: string
+	name?: string | null
 	/**
 	 * The user's color. If not given, a random color will be assigned.
 	 */
-	color?: string
+	color?: string | null
 }
 
 /**

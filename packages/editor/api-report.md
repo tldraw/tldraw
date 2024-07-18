@@ -498,7 +498,6 @@ export function createTLStore({ initialData, defaultName, id, assets, onEditorMo
 
 // @public (undocumented)
 export function createTLUser(opts?: {
-    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
     setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
     userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
 }): TLUser;
@@ -3358,8 +3357,6 @@ export interface TLTickEventInfo {
 // @public (undocumented)
 export interface TLUser {
     // (undocumented)
-    readonly derivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
-    // (undocumented)
     readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
     // (undocumented)
     readonly userPreferences: Signal<TLUserPreferences>;
@@ -3549,6 +3546,12 @@ export { useStateTracking }
 export function useSvgExportContext(): {
     isDarkMode: boolean;
 } | null;
+
+// @public (undocumented)
+export function useTldrawUser(opts: {
+    setUserPreferences?: (userPreferences: TLUserPreferences) => void;
+    userPreferences?: Signal<TLUserPreferences> | TLUserPreferences;
+}): TLUser;
 
 // @public (undocumented)
 export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
