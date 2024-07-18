@@ -23,8 +23,8 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 	}
 
 	flushDebouncingMessages() {
-		for (const sessionKey of this.room.sessions.keys()) {
-			this.room._flushDataMessages(sessionKey)
+		for (const sessionId of this.room.sessions.keys()) {
+			this.room._flushDataMessages(sessionId)
 		}
 	}
 }

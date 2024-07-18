@@ -12,8 +12,8 @@ const router: RouterType<IRequest, any, any> = Router()
 	// sync
 	.get('/connect/:roomId', async (req) => {
 		const roomId = req.params.roomId
-		const sessionKey = req.query.sessionKey
-		server.upgrade(req, { data: { roomId, sessionKey } })
+		const sessionId = req.query.sessionId
+		server.upgrade(req, { data: { roomId, sessionId } })
 		return new Response(null, { status: 101 })
 	})
 	// assets
@@ -38,7 +38,7 @@ const router: RouterType<IRequest, any, any> = Router()
 		new Response('Not found', { status: 404 })
 	})
 
-const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionKey: string; roomId: string }>({
+const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionId: string; roomId: string }>({
 	port: PORT,
 	fetch(req) {
 		try {
@@ -52,17 +52,17 @@ const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionKey: string; r
 	},
 	websocket: {
 		async open(socket) {
-			const { sessionKey, roomId } = socket.data
+			const { sessionId, roomId } = socket.data
 			const room = await makeOrLoadRoom(roomId)
-			room.handleSocketConnect({ sessionId: sessionKey, socket })
+			room.handleSocketConnect({ sessionId, socket })
 			socket.data.room = room
 		},
 		async message(ws, message) {
 			if (!ws.data.room) {
 				return
 			}
-			const sessionKey = (ws.data as any).sessionKey as string
-			ws.data.room.handleSocketMessage(sessionKey, message)
+			const sessionId = (ws.data as any).sessionId as string
+			ws.data.room.handleSocketMessage(sessionId, message)
 		},
 		drain(ws) {
 			// If the socket was was overloaded with backpressure, let's just close it

@@ -31,7 +31,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			// a callback that is called when a client is disconnected
 			onSessionRemoved?: (
 				room: TLSocketRoom<R, SessionMeta>,
-				args: { sessionKey: string; numSessionsRemaining: number; meta: SessionMeta }
+				args: { sessionId: string; numSessionsRemaining: number; meta: SessionMeta }
 			) => void
 			// a callback that is called whenever a message is sent
 			onBeforeSendMessage?: (args: {
@@ -60,10 +60,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			this.opts?.onDataChange?.()
 		}
 		this.room.events.on('session_removed', (args) => {
-			this.sessions.delete(args.sessionKey)
+			this.sessions.delete(args.sessionId)
 			if (this.opts.onSessionRemoved) {
 				this.opts.onSessionRemoved(this, {
-					sessionKey: args.sessionKey,
+					sessionId: args.sessionId,
 					numSessionsRemaining: this.room.sessions.size,
 					meta: args.meta,
 				})
