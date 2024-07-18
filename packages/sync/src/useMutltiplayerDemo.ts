@@ -18,7 +18,15 @@ import { RemoteTLStoreWithStatus, useMultiplayerSync } from './useMultiplayerSyn
 
 /** @public */
 export interface UseMultiplayerDemoOptions {
+	/**
+	 * The room ID to sync with.
+	 */
 	roomId: string
+	/**
+	 * A signal that contains the user info like name and color.
+	 * This should be synchronized with the configuration for the main `<Tldraw />` component.
+	 * If not provided, a default implementation based on localStorage will be used.
+	 */
 	userPreferences?: Signal<TLUserPreferences>
 	/** @internal */
 	host?: string
@@ -43,7 +51,18 @@ function getEnv(cb: () => string | undefined): string | undefined {
 const DEMO_WORKER = getEnv(() => process.env.TLDRAW_BEMO_URL) ?? 'https://demo.tldraw.xyz'
 const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://images.tldraw.xyz'
 
-/** @public */
+/**
+ * Creates a tldraw store synced with a multiplayer room hosted on tldraw's demo server `https://demo.tldraw.xyz`.
+ *
+ * The store can be passed directly into the `<Tldraw />` component to enable multiplayer features.
+ * It will handle loading states, and enable multiplayer UX like user cursors and following.
+ *
+ * Any data you save will be publicly accessible to anyone who knows the room ID, and any stored data is wiped after a day or so.
+ *
+ * @param options - Options for the multiplayer demo sync store. See {@link UseMultiplayerDemoOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ *
+ * @public
+ */
 export function useMultiplayerDemo(
 	options: UseMultiplayerDemoOptions & TLStoreSchemaOptions
 ): RemoteTLStoreWithStatus {

@@ -18,16 +18,14 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
     status: 'synced-local';
 }>;
 
-// @public (undocumented)
+// @public
 export function useMultiplayerDemo(options: UseMultiplayerDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
 export interface UseMultiplayerDemoOptions {
     // @internal (undocumented)
     host?: string;
-    // (undocumented)
     roomId: string;
-    // (undocumented)
     userPreferences?: Signal<TLUserPreferences>;
 }
 

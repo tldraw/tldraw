@@ -40,7 +40,7 @@ export type RemoteTLStoreWithStatus = Exclude<
  * useMultiplayerSync creates a store that is synced with a multiplayer server.
  *
  * The store can be passed directly into the `<Tldraw />` component to enable multiplayer features.
- * It will handle loading states, and enable multiplayer UX like cursors & a presence menu.
+ * It will handle loading states, and enable multiplayer UX like user cursors and following.
  *
  * To enable external blob storage, you should also pass in an `assets` object that implements the `TLAssetStore` interface.
  * If you don't do this, adding large images and videos to rooms will cause performance issues at serialization boundaries.
@@ -178,6 +178,7 @@ export interface UseMultiplayerSyncOptions {
 	uri: string
 	/**
 	 * The user information. If not provided, a default implementation based on localStorage is used.
+	 * This should be synchronized with the configuration for the main `<Tldraw />` component.
 	 */
 	userPreferences?: Signal<TLUserPreferences>
 	/**
