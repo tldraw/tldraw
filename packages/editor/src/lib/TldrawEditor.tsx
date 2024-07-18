@@ -37,6 +37,8 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
+import { LicenseProvider } from './license/LicenseProvider'
+import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
@@ -235,22 +237,24 @@ export const TldrawEditor = memo(function TldrawEditor({
 				onError={(error) => annotateError(error, { tags: { origin: 'react.tldraw-before-app' } })}
 			>
 				{container && (
-					<ContainerProvider container={container}>
-						<EditorComponentsProvider overrides={components}>
-							{store ? (
-								store instanceof Store ? (
-									// Store is ready to go, whether externally synced or not
-									<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+					<LicenseProvider licenseKey={rest.licenseKey}>
+						<ContainerProvider container={container}>
+							<EditorComponentsProvider overrides={components}>
+								{store ? (
+									store instanceof Store ? (
+										// Store is ready to go, whether externally synced or not
+										<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+									) : (
+										// Store is a synced store, so handle syncing stages internally
+										<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+									)
 								) : (
-									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
-								)
-							) : (
-								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
-							)}
-						</EditorComponentsProvider>
-					</ContainerProvider>
+									// We have no store (it's undefined) so create one and possibly sync it
+									<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+								)}
+							</EditorComponentsProvider>
+						</ContainerProvider>
+					</LicenseProvider>
 				)}
 			</OptionalErrorBoundary>
 		</div>
@@ -449,7 +453,10 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorContext.Provider value={editor}>
-					<Layout onMount={onMount}>{children ?? (Canvas ? <Canvas /> : null)}</Layout>
+					<Layout onMount={onMount}>
+						{children ?? (Canvas ? <Canvas /> : null)}
+						<Watermark />
+					</Layout>
 				</EditorContext.Provider>
 			)}
 		</OptionalErrorBoundary>

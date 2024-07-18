@@ -53,6 +53,7 @@ import { TLArrowBinding } from '@tldraw/editor';
 import { TLArrowBindingProps } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
+import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
@@ -194,6 +195,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     getGeometry(shape: TLArrowShape): Group2d;
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
     hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
@@ -414,6 +417,9 @@ export const DefaultMainMenu: NamedExoticComponent<TLUiMainMenuProps>;
 export function DefaultMainMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export const DefaultMenuPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export function DefaultMinimap(): JSX_2.Element;
 
 // @public (undocumented)
@@ -490,6 +496,8 @@ export class DrawShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onExit: () => void;
     // (undocumented)
@@ -579,6 +587,8 @@ export class EraserTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onEnter: () => void;
 }
@@ -886,6 +896,8 @@ export class HandTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onDoubleClick: TLClickEvent;
     // (undocumented)
     onQuadrupleClick: TLClickEvent;
@@ -910,6 +922,8 @@ export class HighlightShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onExit: () => void;
     // (undocumented)
@@ -1001,6 +1015,8 @@ export class LaserTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onEnter: () => void;
 }
@@ -1285,6 +1301,8 @@ export class SelectTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onEnter: () => void;
     // (undocumented)
     onExit: () => void;
@@ -1395,6 +1413,8 @@ export class TextShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
@@ -3318,6 +3338,8 @@ export class ZoomTool extends StateNode {
     };
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     keysPressed: string[];
     // (undocumented)

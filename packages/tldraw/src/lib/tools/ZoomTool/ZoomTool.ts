@@ -20,6 +20,7 @@ export class ZoomTool extends StateNode {
 		ZoomBrushing,
 		ZoomQuick,
 	]
+	static override isLockable = false
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string; isQuickZoom: boolean }
 	keysPressed: string[] = []

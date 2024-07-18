@@ -1,5 +1,7 @@
-import { publishDates } from '../../../version'
-import { importPublicKey, str2ab } from '../../utils/licensing'
+import { atom } from '@tldraw/state'
+import { publishDates } from '../../version'
+import { featureFlags } from '../utils/debug-flags'
+import { importPublicKey, str2ab } from '../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 5
 
@@ -50,18 +52,36 @@ export interface ValidLicenseKeyResult {
 
 type TestEnvironment = 'development' | 'production'
 
+/** @internal */
 export class LicenseManager {
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean
+	state = atom<'pending' | 'licensed' | 'unlicensed'>('license state', 'pending')
 
-	constructor(testPublicKey?: string, testEnvironment?: TestEnvironment) {
+	constructor(
+		licenseKey: string | undefined,
+		testPublicKey?: string,
+		testEnvironment?: TestEnvironment
+	) {
 		this.isTest = process.env.NODE_ENV === 'test'
 		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
+
+		if (!featureFlags.enableLicensing.get()) {
+			this.state.set('licensed')
+		} else {
+			this.getLicenseFromKey(licenseKey).then((result) => {
+				const isUnlicensed = isEditorUnlicensed(result)
+				this.state.set(isUnlicensed ? 'unlicensed' : 'licensed')
+				if (isUnlicensed) {
+					// todo: fetch to analytics endpoint?
+				}
+			})
+		}
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
@@ -303,4 +323,18 @@ export class LicenseManager {
 			`color: white; background: crimson; padding: 2px; border-radius: 3px;`
 		)
 	}
+
+	static className = 'tl-watermark_SEE-LICENSE'
+}
+
+export function isEditorUnlicensed(result: LicenseFromKeyResult) {
+	if (!result.isLicenseParseable) return true
+	if (!result.isDomainValid && !result.isDevelopment) return true
+	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
+		if (result.isInternalLicense) {
+			throw new Error('License: Internal license expired.')
+		}
+		return true
+	}
+	return false
 }

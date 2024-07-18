@@ -48,7 +48,6 @@ export function ImageAnnotationEditor({
 				props: {
 					w: image.width,
 					h: image.height,
-					fileSize: -1,
 					mimeType: image.type,
 					src: image.src,
 					name: 'image',
