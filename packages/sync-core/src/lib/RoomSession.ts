@@ -20,7 +20,7 @@ export const SESSION_IDLE_TIMEOUT = 20000
 export type RoomSession<R extends UnknownRecord, Meta> =
 	| {
 			state: typeof RoomSessionState.AwaitingConnectMessage
-			sessionKey: string
+			sessionId: string
 			presenceId: string
 			socket: TLRoomSocket<R>
 			sessionStartTime: number
@@ -28,7 +28,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 	  }
 	| {
 			state: typeof RoomSessionState.AwaitingRemoval
-			sessionKey: string
+			sessionId: string
 			presenceId: string
 			socket: TLRoomSocket<R>
 			cancellationTime: number
@@ -36,7 +36,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 	  }
 	| {
 			state: typeof RoomSessionState.Connected
-			sessionKey: string
+			sessionId: string
 			presenceId: string
 			socket: TLRoomSocket<R>
 			serializedSchema: SerializedSchema

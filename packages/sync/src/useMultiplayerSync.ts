@@ -84,9 +84,9 @@ export function useMultiplayerSync(
 		)
 
 		const socket = new ClientWebSocketAdapter(async () => {
-			// set sessionKey as a query param on the uri
+			// set sessionId as a query param on the uri
 			const withParams = new URL(uri)
-			withParams.searchParams.set('sessionKey', TAB_ID)
+			withParams.searchParams.set('sessionId', TAB_ID)
 			withParams.searchParams.set('storeId', storeId)
 			return withParams.toString()
 		})

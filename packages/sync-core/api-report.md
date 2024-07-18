@@ -153,7 +153,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     cancellationTime: number;
     meta: Meta;
     presenceId: string;
-    sessionKey: string;
+    sessionId: string;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingRemoval;
 } | {
@@ -163,13 +163,13 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     presenceId: string;
     serializedSchema: SerializedSchema;
-    sessionKey: string;
+    sessionId: string;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.Connected;
 } | {
     meta: Meta;
     presenceId: string;
-    sessionKey: string;
+    sessionId: string;
     sessionStartTime: number;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingConnectMessage;
@@ -308,7 +308,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
             meta: SessionMeta;
             numSessionsRemaining: number;
-            sessionKey: string;
+            sessionId: string;
         }) => void;
         schema?: StoreSchema<R, any>;
     });
@@ -350,7 +350,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
             meta: SessionMeta;
             numSessionsRemaining: number;
-            sessionKey: string;
+            sessionId: string;
         }) => void;
         schema?: StoreSchema<R, any>;
     };
@@ -438,9 +438,9 @@ export interface TLSyncLog {
 // @internal
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(schema: StoreSchema<R, any>, snapshot?: RoomSnapshot);
-    broadcastPatch({ diff, sourceSessionKey: sourceSessionKey, }: {
+    broadcastPatch({ diff, sourceSessionId, }: {
         diff: NetworkDiff<R>;
-        sourceSessionKey: string;
+        sourceSessionId: string;
     }): this;
     // (undocumented)
     clock: number;
@@ -455,16 +455,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     room_became_empty: () => void;
     session_removed: (args: {
     meta: SessionMeta;
-    sessionKey: string;
+    sessionId: string;
     }) => void;
     }>;
     // (undocumented)
-    _flushDataMessages(sessionKey: string): void;
+    _flushDataMessages(sessionId: string): void;
     // (undocumented)
     getSnapshot(): RoomSnapshot;
-    handleClose: (sessionKey: string) => void;
-    handleMessage: (sessionKey: string, message: TLSocketClientSentEvent<R>) => Promise<void>;
-    handleNewSession: (sessionKey: string, socket: TLRoomSocket<R>, meta: SessionMeta) => this;
+    handleClose: (sessionId: string) => void;
+    handleMessage: (sessionId: string, message: TLSocketClientSentEvent<R>) => Promise<void>;
+    handleNewSession: (sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) => this;
     // (undocumented)
     isClosed(): boolean;
     // (undocumented)

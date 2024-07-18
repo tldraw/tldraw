@@ -15,9 +15,9 @@ app.register(async (app) => {
 	// sync
 	app.get('/connect/:roomId', { websocket: true }, async (socket, req) => {
 		const roomId = (req.params as any).roomId as string
-		const sessionId = (req.query as any)?.['sessionKey'] as string | undefined
+		const sessionId = (req.query as any)?.['sessionId'] as string | undefined
 		if (typeof sessionId !== 'string') {
-			socket.close(4000, 'sessionKey must be a string')
+			socket.close(4000, 'sessionId must be a string')
 			return
 		}
 		const room = await makeOrLoadRoom(roomId)
