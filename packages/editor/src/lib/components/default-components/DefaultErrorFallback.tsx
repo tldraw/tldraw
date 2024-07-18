@@ -75,7 +75,9 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 		// if we can't find a theme class from the app or from a parent, we have
 		// to fall back on using a media query:
-		setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)
+		if (typeof window !== 'undefined' && 'matchMedia' in window) {
+			setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)
+		}
 	}, [isDarkModeFromApp])
 
 	useEffect(() => {

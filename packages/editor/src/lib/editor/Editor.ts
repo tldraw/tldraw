@@ -108,7 +108,7 @@ import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { dataUrlToFile } from '../utils/assets'
-import { debugFlags, featureFlags } from '../utils/debug-flags'
+import { debugFlags } from '../utils/debug-flags'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -124,13 +124,11 @@ import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { FocusManager } from './managers/FocusManager'
 import { HistoryManager } from './managers/HistoryManager'
-import { LicenseManager } from './managers/LicenseManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { WatermarkManager } from './managers/WatermarkManager'
 import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -236,7 +234,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
-		licenseKey,
 	}: TLEditorOptions) {
 		super()
 
@@ -708,16 +705,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
-
-		const checkLicenseKey = async (licenseKey: string | undefined) => {
-			if (!featureFlags.enableLicensing.get()) return
-
-			const licenseManager = new LicenseManager()
-			const watermarkManager = new WatermarkManager(this)
-			const license = await licenseManager.getLicenseFromKey(licenseKey)
-			watermarkManager.checkWatermark(license)
-		}
-		checkLicenseKey(licenseKey)
 
 		this.performanceTracker = new PerformanceTracker()
 	}
