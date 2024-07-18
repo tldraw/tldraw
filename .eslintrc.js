@@ -225,7 +225,7 @@ module.exports = {
 			},
 		},
 		{
-			files: ['apps/huppy/**/*', 'scripts/**/*'],
+			files: ['apps/huppy/**/*', 'scripts/**/*', 'apps/simple-server-example/**/*'],
 			rules: {
 				'no-console': 'off',
 			},

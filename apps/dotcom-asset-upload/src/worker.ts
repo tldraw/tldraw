@@ -9,10 +9,10 @@ import {
 	notFound,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { createCors } from 'itty-cors'
+import { cors } from 'itty-router'
 import { Environment } from './types'
 
-const { preflight, corsify } = createCors({ origins: ['*'] })
+const { preflight, corsify } = cors({ origin: '*' })
 
 export default class Worker extends WorkerEntrypoint<Environment> {
 	readonly router = createRouter<Environment>()

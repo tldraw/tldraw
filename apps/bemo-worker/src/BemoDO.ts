@@ -67,7 +67,7 @@ export class BemoDO extends DurableObject<Environment> {
 
 	override async fetch(request: Request): Promise<Response> {
 		try {
-			return await this.router.handle(request)
+			return await this.router.fetch(request)
 		} catch (error) {
 			this.reportError(error, request)
 			return new Response('Something went wrong', {

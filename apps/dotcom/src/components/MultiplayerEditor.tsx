@@ -37,6 +37,7 @@ import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { multiplayerAssetStore } from '../utils/multiplayerAssetStore'
 import { useSharing } from '../utils/sharing'
+import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
@@ -126,6 +127,7 @@ export function MultiplayerEditor({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 		assets: multiplayerAssetStore,
+		trackAnalyticsEvent,
 	})
 
 	const sharingUiOverrides = useSharing()
