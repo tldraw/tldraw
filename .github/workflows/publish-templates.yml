@@ -70,3 +70,32 @@ jobs:
           destination-repository-name: 'nextjs-template'
           user-email: dan+github.actions@tldraw.com
           target-branch: main
+
+  publish_cf_workers:
+    name: 'Cloudflare Workers'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Substitute the latest published version of tldraw
+        run: |
+          export TEMPLATE=cloudflare-workers NPM_TAG=latest
+          npm view tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw
+          cp "templates/$TEMPLATE/package.json" /tmp/template_package.json
+          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."tldraw" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
+          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/sync" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
+          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/sync-core" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
+
+      - name: Push template
+        uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900 # v1.7.2
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+        with:
+          source-directory: 'templates/cloudflare-workers'
+          destination-github-username: 'tldraw'
+          destination-repository-name: 'cloudflare-workers-template'
+          user-email: dan+github.actions@tldraw.com
+          target-branch: main

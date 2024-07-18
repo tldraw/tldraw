@@ -132,8 +132,8 @@ function createDemoAssetStore(host: string): TLAssetStore {
 
 			// Assets that are under a certain file size aren't worth transforming (and incurring cost).
 			// We still send them through the image worker to get them optimized though.
-			const isWorthResizing =
-				asset.props.fileSize !== -1 && asset.props.fileSize >= 1024 * 1024 * 1.5
+			const { fileSize = 0 } = asset.props
+			const isWorthResizing = fileSize >= 1024 * 1024 * 1.5
 
 			if (isWorthResizing) {
 				// N.B. navigator.connection is only available in certain browsers (mainly Blink-based browsers)
