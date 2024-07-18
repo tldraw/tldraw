@@ -6,7 +6,7 @@ export class ScreenshotPointing extends StateNode {
 	static override id = 'pointing'
 
 	// [1]
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('dragging')
 		}

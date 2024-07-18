@@ -43,6 +43,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...actions['duplicate']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
+				<TldrawUiMenuItem {...actions['select-zoom-tool']} />
 				<TldrawUiMenuItem {...actions['zoom-in']} />
 				<TldrawUiMenuItem {...actions['zoom-out']} />
 				<TldrawUiMenuItem {...actions['zoom-to-100']} />

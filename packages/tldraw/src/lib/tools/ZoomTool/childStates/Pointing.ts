@@ -13,7 +13,7 @@ export class Pointing extends StateNode {
 		this.complete()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('zoom_brushing', this.info)
 		}

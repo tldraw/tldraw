@@ -138,7 +138,7 @@ class Dragging extends StateNode {
 	}
 	//[d]
 
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const { shape } = this
 		const { originPagePoint, currentPagePoint } = this.editor.inputs
 		const distance = originPagePoint.dist(currentPagePoint)

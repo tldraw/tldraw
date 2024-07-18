@@ -92,7 +92,7 @@ class PointingState extends StateNode {
 		this.parent.transition('idle', info)
 	}
 	//[b]
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('dragging', { shapes: [...this.editor.getSelectedShapes()] })
 		}
@@ -113,7 +113,7 @@ class DraggingState extends StateNode {
 		this.parent.transition('idle', info)
 	}
 	//[d]
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const { initialDraggingShapes } = this
 		const { originPagePoint, currentPagePoint } = this.editor.inputs
 

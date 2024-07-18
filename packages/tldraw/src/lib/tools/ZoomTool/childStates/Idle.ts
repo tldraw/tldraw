@@ -9,7 +9,7 @@ export class Idle extends StateNode {
 		this.info = info
 	}
 
-	override onPointerDown: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerDown: TLEventHandlers['onPointerDown'] = () => {
 		this.parent.transition('pointing', this.info)
 	}
 }
