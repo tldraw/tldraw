@@ -42,9 +42,20 @@ export type RemoteTLStoreWithStatus = Exclude<
  * The store can be passed directly into the `<Tldraw />` component to enable multiplayer features.
  * It will handle loading states, and enable multiplayer UX like user cursors and following.
  *
- * To enable external blob storage, you should also pass in an `assets` object that implements the `TLAssetStore` interface.
+ * To enable external blob storage, you should also pass in an `assets` object that implements the {@link tldraw#TLAssetStore} interface.
  * If you don't do this, adding large images and videos to rooms will cause performance issues at serialization boundaries.
  *
+ * @example
+ * ```tsx
+ * function MyApp() {
+ *     const store = useMultiplayerSync({
+ *         uri: 'wss://myapp.com/sync/my-test-room',
+ *         assets: myAssetStore
+ *     })
+ *     return <Tldraw store={store} />
+ * }
+ *
+ * ```
  * @param opts - Options for the multiplayer sync store. See {@link UseMultiplayerSyncOptions} and {@link tldraw#TLStoreSchemaOptions}.
  *
  * @public
@@ -173,7 +184,7 @@ export function useMultiplayerSync(
  */
 export interface UseMultiplayerSyncOptions {
 	/**
-	 * The URI of the multiplayer server. This must include the protocol, e.g. `wss://server.example.com` or `http://localhost:5858`.
+	 * The URI of the multiplayer server. This must include the protocol, e.g. `wss://server.example.com/my-room` or `http://localhost:5858/my-room`.
 	 */
 	uri: string
 	/**

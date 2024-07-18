@@ -19,7 +19,8 @@ import { RemoteTLStoreWithStatus, useMultiplayerSync } from './useMultiplayerSyn
 /** @public */
 export interface UseMultiplayerDemoOptions {
 	/**
-	 * The room ID to sync with.
+	 * The room ID to sync with. Make sure the room ID is unique. The namespace is shared by
+	 * everyone using the demo server. Consider prefixing it with your company or project name.
 	 */
 	roomId: string
 	/**
@@ -58,6 +59,14 @@ const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://imag
  * It will handle loading states, and enable multiplayer UX like user cursors and following.
  *
  * Any data you save will be publicly accessible to anyone who knows the room ID, and any stored data is wiped after a day or so.
+ *
+ * @example
+ * ```tsx
+ * function MyApp() {
+ *     const store = useMultiplayerDemo({roomId: 'my-app-test-room'})
+ *     return <Tldraw store={store} />
+ * }
+ * ```
  *
  * @param options - Options for the multiplayer demo sync store. See {@link UseMultiplayerDemoOptions} and {@link tldraw#TLStoreSchemaOptions}.
  *
