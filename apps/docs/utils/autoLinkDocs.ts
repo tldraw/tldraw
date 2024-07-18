@@ -13,7 +13,7 @@ export async function autoLinkDocs(db: Database<sqlite3.Database, sqlite3.Statem
 	await Promise.all(articles.map((a) => autoLinkDocsForArticle(db, a)))
 }
 
-const regex = /\[([^\[\]]*?)\]\(\?\)/g
+const regex = /\[`?([^\[\]]*?)`?\]\(\?\)/g
 
 export async function autoLinkDocsForArticle(
 	db: Database<sqlite3.Database, sqlite3.Statement>,

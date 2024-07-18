@@ -3,7 +3,7 @@ title: Sync
 status: published
 author: alex
 date: 7/11/2024
-order: 7
+order: 4
 keywords:
   - data
   - sync
@@ -49,40 +49,34 @@ function MyApp() {
 }
 ```
 
-Make sure the room ID is unique, because anyone who uses the same ID will be able to see and modify
-your room. Consider prefixing the key with your organization's name.
-
-Our sync demo server is a great way to prototype multiplayer in tldraw, but it shouldn't be used in
-production. Rooms will be deleted after 24 hours.
+Make sure the room ID is unique. Anyone who uses the same ID can access your room. Our sync demo
+server is a great way to prototype multiplayer in tldraw, but it shouldn't be used in production.
+Rooms will be deleted after 24 hours.
 
 ## Host your own sync
 
-To use our sync engine in production, you currently need to host it yourself. There are three main
-parts to sync in tldraw:
+To use our sync engine in production, you need to host it yourself. There are three parts to sync in
+tldraw:
 
 1. The sync server, which serves the room over [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
-2. The sync client, which connects to the server with the [`useMultiplayerSync`](?) hook.
-3. Somewhere to large assets that are too big to send over websockets, like images and videos.
+2. Somewhere to large assets that are too big to send over websockets, like images and videos.
+3. The sync client, which connects to the server with the [`useMultiplayerSync`](?) hook.
 
 We recommend starting from our [Cloudflare Workers
 template](https://github.com/tldraw/cloudflare-workers-template). This is a minimal setup of the
-same system that powers multiplayer collaboration for hundreds of thousands of rooms & users on
-tldraw.com. It includes everything you need to get up and running with tldraw sync quickly: the sync
-server, asset hosting, and URL unfurling.
+system that powers multiplayer collaboration for hundreds of thousands of rooms & users on
+tldraw.com. It includes everything you need to get up and running with multiplayer tldraw quickly:
+the sync server, asset hosting, and URL unfurling.
 
 ### The sync server
 
-The core part of our sync server is [`TLSocketRoom`](?). This contains a single room, and implements
-our sync protocol. It works with any JavaScript-based web framework with support for WebSockets, and
-any storage backend: it's up to you to wire in those parts yourself.
+The core part of our sync server is [`TLSocketRoom`](?). It works with any JavaScript-based web
+framework with support for WebSockets, and any storage backend: it's up to you to wire in those
+parts yourself.
 
-<Callout>
-
-It's important that there's only ever one instance of `TLSocketRoom` running for each room in your
-app. If there's more than one, users won't see each other and will overwrite others' changes. We use
-[Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on tldraw.com.
-
-</Callout>
+Make sure there's only ever one `TLSocketRoom` for each room in your app. If there's
+more than one, users won't see each other and will overwrite others' changes. We use [Durable
+Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on tldraw.com.
 
 To find out more:
 
@@ -93,3 +87,25 @@ To find out more:
   template](https://github.com/tldraw/cloudflare-workers-template), specifically
   [`worker/TldrawDurableObject.ts`](https://github.com/tldraw/cloudflare-workers-template/main/worker/TldrawDurableObject.ts).
 - Read the reference docs for [`TLSocketRoom`](?).
+
+### Asset storage
+
+As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and
+retrieve large binary assets like images or videos.
+
+TODO: implementing a server, implementing TLAssetStore, how much should live here vs in assets?
+
+- Read about [how assets work in tldraw](/docs/assets).
+- Read the [`TLAssetStore`](?) reference docs.
+
+### The sync client
+
+- Bring it all together: `useMultiplayerSync` pointing to the new server and using the `TLAssetStore`
+- User preferences & presence
+- Default UX: offline indicator, people menu, cursors & cursor chat. point to overriding
+
+## Other sync systems
+
+- @tldraw/sync isn't the only way to do multiplayer in tldraw. maybe still point at yjs/simple sync example?
+
+- fold collaboration.mdx into this page
