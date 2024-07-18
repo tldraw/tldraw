@@ -2,11 +2,23 @@ import { Tldraw, debugEnableLicensing } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function LicenseKeyExample() {
-	// Licensing is disabled for now, let use enable it.
+	// [1]
 	debugEnableLicensing()
 	return (
 		<div className="tldraw__editor">
+			{/* [2] */}
 			<Tldraw licenseKey="example" />
 		</div>
 	)
 }
+
+/* 
+This is an example of how to use a license key in tldraw.
+
+[1] 
+Licensing is still disabled in this version, but you can enable it using this helper function.
+
+[2]
+Let's pass in the license key to the `Tldraw` component. 
+
+*/
