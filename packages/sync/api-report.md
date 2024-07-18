@@ -35,6 +35,7 @@ export function useMultiplayerSync(opts: UseMultiplayerSyncOptions & TLStoreSche
 // @public
 export interface UseMultiplayerSyncOptions {
     assets?: Partial<TLAssetStore>;
+    // @internal (undocumented)
     onEditorMount?: (editor: Editor) => void;
     // @internal
     roomId?: string;

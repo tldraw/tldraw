@@ -201,11 +201,9 @@ export interface UseMultiplayerSyncOptions {
 	 * If not provided assets will be stored as base64 strings in the document, which can cause performance issues at serialization boundaries.
 	 */
 	assets?: Partial<TLAssetStore>
-	/**
-	 * Called when the editor is mounted. Can be used to configure the editor, e.g. registering external asset handlers.
-	 */
-	onEditorMount?: (editor: Editor) => void
 
+	/** @internal */
+	onEditorMount?: (editor: Editor) => void
 	/** @internal used for analytics only, we should refactor this away */
 	roomId?: string
 	/** @internal */
