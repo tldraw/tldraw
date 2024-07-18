@@ -417,6 +417,9 @@ export const DefaultMainMenu: NamedExoticComponent<TLUiMainMenuProps>;
 export function DefaultMainMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export const DefaultMenuPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export function DefaultMinimap(): JSX_2.Element;
 
 // @public (undocumented)
