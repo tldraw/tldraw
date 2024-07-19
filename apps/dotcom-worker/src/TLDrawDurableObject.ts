@@ -61,7 +61,7 @@ export class TLDrawDurableObject {
 									type: 'client',
 									roomId: slug,
 									name: 'leave',
-									instanceId: args.sessionKey,
+									instanceId: args.sessionId,
 									localClientId: args.meta.storeId,
 								})
 
@@ -71,7 +71,7 @@ export class TLDrawDurableObject {
 									type: 'client',
 									roomId: slug,
 									name: 'last_out',
-									instanceId: args.sessionKey,
+									instanceId: args.sessionId,
 									localClientId: args.meta.storeId,
 								})
 								try {
@@ -260,10 +260,10 @@ export class TLDrawDurableObject {
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
-		let { sessionKey, storeId } = params
+		let { sessionId, storeId } = params
 
 		// handle legacy param names
-		sessionKey ??= params.instanceId
+		sessionId ??= params.sessionKey ?? params.instanceId
 		storeId ??= params.localClientId
 		const isNewSession = !this._room
 
@@ -279,13 +279,17 @@ export class TLDrawDurableObject {
 			}
 
 			// all good
-			room.handleSocketConnect(sessionKey, serverWebSocket, { storeId })
+			room.handleSocketConnect({
+				sessionId: sessionId,
+				socket: serverWebSocket,
+				meta: { storeId },
+			})
 			if (isNewSession) {
 				this.logEvent({
 					type: 'client',
 					roomId: this.documentInfo.slug,
 					name: 'room_reopen',
-					instanceId: sessionKey,
+					instanceId: sessionId,
 					localClientId: storeId,
 				})
 			}
@@ -293,7 +297,7 @@ export class TLDrawDurableObject {
 				type: 'client',
 				roomId: this.documentInfo.slug,
 				name: 'enter',
-				instanceId: sessionKey,
+				instanceId: sessionId,
 				localClientId: storeId,
 			})
 			return new Response(null, { status: 101, webSocket: clientWebSocket })

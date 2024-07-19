@@ -88,13 +88,13 @@ export interface TLAssetStore {
 	 * @param ctx - information about the current environment and where the asset is being used
 	 * @returns The URL of the resolved asset, or `null` if the asset is not available
 	 */
-	resolve(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+	resolve?(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
 }
 
 /** @public */
 export interface TLStoreProps {
 	defaultName: string
-	assets: TLAssetStore
+	assets: Required<TLAssetStore>
 	/**
 	 * Called an {@link @tldraw/editor#Editor} connected to this store is mounted.
 	 */

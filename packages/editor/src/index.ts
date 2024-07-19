@@ -128,12 +128,13 @@ export {
 export {
 	createTLSchemaFromUtils,
 	createTLStore,
+	inlineBase64AssetStore,
 	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 	type TLStoreSchemaOptions,
 } from './lib/config/createTLStore'
-export { createTLUser, type TLUser } from './lib/config/createTLUser'
+export { createTLUser, useTldrawUser, type TLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'

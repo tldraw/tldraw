@@ -498,7 +498,6 @@ export function createTLStore({ initialData, defaultName, id, assets, onEditorMo
 
 // @public (undocumented)
 export function createTLUser(opts?: {
-    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
     setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
     userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
 }): TLUser;
@@ -1590,6 +1589,9 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
+
+// @public (undocumented)
+export const inlineBase64AssetStore: TLAssetStore;
 
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
@@ -3275,7 +3277,7 @@ export interface TLStateNodeConstructor {
 
 // @public (undocumented)
 export interface TLStoreBaseOptions {
-    assets?: Partial<TLAssetStore>;
+    assets?: TLAssetStore;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     multiplayerStatus?: null | Signal<'offline' | 'online'>;
@@ -3354,8 +3356,6 @@ export interface TLTickEventInfo {
 
 // @public (undocumented)
 export interface TLUser {
-    // (undocumented)
-    readonly derivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
     // (undocumented)
     readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
     // (undocumented)
@@ -3535,7 +3535,7 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
-export function useShallowObjectIdentity<T extends object>(obj: T): T;
+export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
 
 export { useStateTracking }
 
@@ -3543,6 +3543,12 @@ export { useStateTracking }
 export function useSvgExportContext(): {
     isDarkMode: boolean;
 } | null;
+
+// @public (undocumented)
+export function useTldrawUser(opts: {
+    setUserPreferences?: (userPreferences: TLUserPreferences) => void;
+    userPreferences?: Signal<TLUserPreferences> | TLUserPreferences;
+}): TLUser;
 
 // @public (undocumented)
 export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
