@@ -228,7 +228,7 @@ export function Code({ children, ...props }: React.ComponentProps<'code'>) {
 		}
 
 		return processChildrenArray(children)
-	}, [children, codeLinks])
+	}, [children, codeLinks, focusLines])
 
 	return <code {...props}>{newChildren}</code>
 }
