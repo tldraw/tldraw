@@ -1,7 +1,7 @@
 import { Signal, computed, isSignal } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import { useEffect, useMemo } from 'react'
-import { useNullableShallowObjectIdentity } from '../hooks/useIdentity'
+import { useShallowObjectIdentity } from '../hooks/useIdentity'
 import { TLUserPreferences, getUserPreferences, setUserPreferences } from './TLUserPreferences'
 
 /** @public */
@@ -34,9 +34,7 @@ export function useTldrawUser(opts: {
 	userPreferences?: Signal<TLUserPreferences> | TLUserPreferences
 	setUserPreferences?: (userPreferences: TLUserPreferences) => void
 }): TLUser {
-	const prefs = useNullableShallowObjectIdentity(
-		opts.userPreferences ?? defaultLocalStorageUserPrefs
-	)
+	const prefs = useShallowObjectIdentity(opts.userPreferences ?? defaultLocalStorageUserPrefs)
 	const userAtom = useAtom<TLUserPreferences | Signal<TLUserPreferences>>('userAtom', prefs)
 	useEffect(() => {
 		userAtom.set(prefs)

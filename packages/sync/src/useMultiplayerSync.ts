@@ -24,8 +24,8 @@ import {
 	defaultUserPreferences,
 	getUserPreferences,
 	uniqueId,
-	useNullableShallowObjectIdentity,
 	useRefState,
+	useShallowObjectIdentity,
 	useTLSchemaFromUtils,
 	useValue,
 } from 'tldraw'
@@ -86,7 +86,7 @@ export function useMultiplayerSync(
 
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
-	const prefs = useNullableShallowObjectIdentity(userInfo)
+	const prefs = useShallowObjectIdentity(userInfo)
 
 	const userAtom = useAtom<TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo> | undefined>(
 		'userAtom',

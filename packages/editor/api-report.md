@@ -3460,9 +3460,6 @@ export function useLocalStore(options: {
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)
-export function useNullableShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
-
-// @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
 // @internal (undocumented)
@@ -3538,7 +3535,7 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
-export function useShallowObjectIdentity<T extends object>(obj: T): T;
+export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
 
 export { useStateTracking }
 

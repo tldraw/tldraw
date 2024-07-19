@@ -15,11 +15,6 @@ export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[] {
 	return useIdentity(arr, areArraysShallowEqual)
 }
 
-/** @internal */
-export function useShallowObjectIdentity<T extends object>(obj: T): T {
-	return useIdentity(obj, areObjectsShallowEqual)
-}
-
 const areNullableObjectsShallowEqual = (
 	a: object | null | undefined,
 	b: object | null | undefined
@@ -36,6 +31,6 @@ const areNullableObjectsShallowEqual = (
 }
 
 /** @internal */
-export function useNullableShallowObjectIdentity<T extends object | null | undefined>(obj: T): T {
+export function useShallowObjectIdentity<T extends object | null | undefined>(obj: T): T {
 	return useIdentity(obj, areNullableObjectsShallowEqual)
 }
