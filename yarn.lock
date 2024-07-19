@@ -3499,62 +3499,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oven/bun-darwin-aarch64@npm:1.1.20":
-  version: 1.1.20
-  resolution: "@oven/bun-darwin-aarch64@npm:1.1.20"
-  conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@oven/bun-darwin-x64-baseline@npm:1.1.20":
-  version: 1.1.20
-  resolution: "@oven/bun-darwin-x64-baseline@npm:1.1.20"
-  conditions: os=darwin & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@oven/bun-darwin-x64@npm:1.1.20":
-  version: 1.1.20
-  resolution: "@oven/bun-darwin-x64@npm:1.1.20"
-  conditions: os=darwin & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@oven/bun-linux-aarch64@npm:1.1.20":
-  version: 1.1.20
-  resolution: "@oven/bun-linux-aarch64@npm:1.1.20"
-  conditions: os=linux & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@oven/bun-linux-x64-baseline@npm:1.1.20":
-  version: 1.1.20
-  resolution: "@oven/bun-linux-x64-baseline@npm:1.1.20"
-  conditions: os=linux & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@oven/bun-linux-x64@npm:1.1.20":
-  version: 1.1.20
-  resolution: "@oven/bun-linux-x64@npm:1.1.20"
-  conditions: os=linux & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@oven/bun-windows-x64-baseline@npm:1.1.20":
-  version: 1.1.20
-  resolution: "@oven/bun-windows-x64-baseline@npm:1.1.20"
-  conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@oven/bun-windows-x64@npm:1.1.20":
-  version: 1.1.20
-  resolution: "@oven/bun-windows-x64@npm:1.1.20"
-  conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
 "@pdf-lib/standard-fonts@npm:^1.0.0":
   version: 1.0.0
   resolution: "@pdf-lib/standard-fonts@npm:1.0.0"
@@ -6190,7 +6134,6 @@ __metadata:
     "@types/bun": "npm:^1.1.6"
     "@types/express": "npm:^4.17.21"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
-    bun: "npm:^1.1.20"
     cheerio: "npm:^1.0.0-rc.12"
     concurrently: "npm:^8.2.2"
     fastify: "npm:^4.28.1"
@@ -9013,43 +8956,6 @@ __metadata:
     "@types/node": "npm:~20.12.8"
     "@types/ws": "npm:~8.5.10"
   checksum: 2f9ab339fe2a5c9eec03cb29a8008926c867a62946f18f4778377050369f776b3be8b3c8aaf7152f35b4945e3436ca8ae43aaac6d12384830df7cbdfc2690435
-  languageName: node
-  linkType: hard
-
-"bun@npm:^1.1.20":
-  version: 1.1.20
-  resolution: "bun@npm:1.1.20"
-  dependencies:
-    "@oven/bun-darwin-aarch64": "npm:1.1.20"
-    "@oven/bun-darwin-x64": "npm:1.1.20"
-    "@oven/bun-darwin-x64-baseline": "npm:1.1.20"
-    "@oven/bun-linux-aarch64": "npm:1.1.20"
-    "@oven/bun-linux-x64": "npm:1.1.20"
-    "@oven/bun-linux-x64-baseline": "npm:1.1.20"
-    "@oven/bun-windows-x64": "npm:1.1.20"
-    "@oven/bun-windows-x64-baseline": "npm:1.1.20"
-  dependenciesMeta:
-    "@oven/bun-darwin-aarch64":
-      optional: true
-    "@oven/bun-darwin-x64":
-      optional: true
-    "@oven/bun-darwin-x64-baseline":
-      optional: true
-    "@oven/bun-linux-aarch64":
-      optional: true
-    "@oven/bun-linux-x64":
-      optional: true
-    "@oven/bun-linux-x64-baseline":
-      optional: true
-    "@oven/bun-windows-x64":
-      optional: true
-    "@oven/bun-windows-x64-baseline":
-      optional: true
-  bin:
-    bun: bin/bun.exe
-    bunx: bin/bun.exe
-  checksum: 83d4d96f06f48da70a487400abf4e568aee43fa4efd85f00bff00625f6a67168eea834eeb74eb7096814190d45b66a02a3c2c8583057ee7d6605bd8cb8aac6fb
-  conditions: (os=darwin | os=linux | os=win32) & (cpu=arm64 | cpu=x64)
   languageName: node
   linkType: hard
 
