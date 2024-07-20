@@ -7,14 +7,17 @@ import {
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
+	TLBookmarkShapeProps,
 	TLOnBeforeUpdateHandler,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
 	debounce,
 	getHashForString,
+	lerp,
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
@@ -145,6 +148,19 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 		if (prev.props.assetId !== shape.props.assetId) {
 			return getBookmarkSize(this.editor, shape)
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLBookmarkShape,
+		endShape: TLBookmarkShape,
+		t: number
+	): TLBookmarkShapeProps {
+		return {
+			...endShape.props,
+			url: interpolateDiscrete(startShape, endShape, 'url', t),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			assetId: interpolateDiscrete(startShape, endShape, 'assetId', t),
 		}
 	}
 }

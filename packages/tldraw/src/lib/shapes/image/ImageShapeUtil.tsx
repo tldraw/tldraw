@@ -6,6 +6,7 @@ import {
 	Image,
 	MediaHelpers,
 	TLImageShape,
+	TLImageShapeProps,
 	TLOnDoubleClickHandler,
 	TLOnResizeHandler,
 	TLShapePartial,
@@ -13,12 +14,14 @@ import {
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
+	lerp,
 	resizeBox,
 	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
+import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useAsset } from '../shared/useAsset'
@@ -335,6 +338,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		this.editor.updateShapes([partial])
+	}
+	override getInterpolatedProps(
+		startShape: TLImageShape,
+		endShape: TLImageShape,
+		t: number
+	): TLImageShapeProps {
+		return {
+			...endShape.props,
+			assetId: interpolateDiscrete(startShape, endShape, 'assetId', t),
+			url: interpolateDiscrete(startShape, endShape, 'url', t),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			crop: interpolateDiscrete(startShape, endShape, 'crop', t),
+			flipX: interpolateDiscrete(startShape, endShape, 'flipX', t),
+			flipY: interpolateDiscrete(startShape, endShape, 'flipY', t),
+		}
 	}
 }
 

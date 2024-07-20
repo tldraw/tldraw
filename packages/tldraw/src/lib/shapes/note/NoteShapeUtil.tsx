@@ -9,12 +9,14 @@ import {
 	SvgExportContext,
 	TLHandle,
 	TLNoteShape,
+	TLNoteShapeProps,
 	TLOnEditEndHandler,
 	TLShape,
 	TLShapeId,
 	Vec,
 	WeakCache,
 	getDefaultColorTheme,
+	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
 	rng,
@@ -37,6 +39,7 @@ import {
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
+import { interpolateDiscrete, interpolateText } from '../arrow/ArrowShapeUtil'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,
@@ -297,6 +300,29 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					},
 				},
 			])
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLNoteShape,
+		endShape: TLNoteShape,
+		progress: number
+	): TLNoteShapeProps {
+		return {
+			...endShape.props,
+			color: interpolateDiscrete(startShape, endShape, 'color', progress),
+			size: interpolateDiscrete(startShape, endShape, 'size', progress),
+			text: interpolateText(startShape, endShape, progress),
+			font: interpolateDiscrete(startShape, endShape, 'font', progress),
+			align: interpolateDiscrete(startShape, endShape, 'align', progress),
+			verticalAlign: interpolateDiscrete(startShape, endShape, 'verticalAlign', progress),
+			growY: lerp(startShape.props.growY, endShape.props.growY, progress),
+			fontSizeAdjustment: lerp(
+				startShape.props.fontSizeAdjustment,
+				endShape.props.fontSizeAdjustment,
+				progress
+			),
+			url: interpolateDiscrete(startShape, endShape, 'url', progress),
+			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
 		}
 	}
 }

@@ -56,6 +56,7 @@ import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
+import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
@@ -68,19 +69,27 @@ import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
+import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
+import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
+import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
+import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
+import { TLHighlightShapeProps } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
+import { TLImageShapeProps } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
+import { TLLineShapeProps } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
+import { TLNoteShapeProps } from '@tldraw/editor';
 import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
 import { TLOnDoubleClickHandler } from '@tldraw/editor';
 import { TLOnEditEndHandler } from '@tldraw/editor';
@@ -252,6 +261,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     component(shape: TLBookmarkShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
@@ -512,6 +523,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, progress: number): TLDrawShapeProps;
+    // (undocumented)
     hideResizeHandles: (shape: TLDrawShape) => boolean;
     // (undocumented)
     hideRotateHandle: (shape: TLDrawShape) => boolean;
@@ -558,6 +571,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     component(shape: TLEmbedShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
     hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
@@ -676,6 +691,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLFrameShape, endShape: TLFrameShape, t: number): TLFrameShapeProps;
+    // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -724,6 +741,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getGeometry(shape: TLGeoShape): Group2d;
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
+    // (undocumented)
+    getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -930,6 +949,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, progress: number): TLHighlightShapeProps;
+    // (undocumented)
     hideResizeHandles: (shape: TLHighlightShape) => boolean;
     // (undocumented)
     hideRotateHandle: (shape: TLHighlightShape) => boolean;
@@ -962,6 +983,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     component(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
@@ -1036,6 +1059,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
+    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, progress: number): TLLineShapeProps;
+    // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
     hideRotateHandle: () => boolean;
@@ -1092,6 +1117,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     getGeometry(shape: TLNoteShape): Group2d;
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, progress: number): TLNoteShapeProps;
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)

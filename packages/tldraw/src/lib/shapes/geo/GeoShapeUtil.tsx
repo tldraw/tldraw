@@ -17,6 +17,7 @@ import {
 	Stadium2d,
 	SvgExportContext,
 	TLGeoShape,
+	TLGeoShapeProps,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
@@ -26,8 +27,10 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	lerp,
 } from '@tldraw/editor'
 
+import { interpolateDiscrete, interpolateText } from '../arrow/ArrowShapeUtil'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
@@ -815,6 +818,30 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		return
+	}
+	override getInterpolatedProps(
+		startShape: TLGeoShape,
+		endShape: TLGeoShape,
+		t: number
+	): TLGeoShapeProps {
+		return {
+			...endShape.props,
+			geo: interpolateDiscrete(startShape, endShape, 'geo', t),
+			labelColor: interpolateDiscrete(startShape, endShape, 'labelColor', t),
+			color: interpolateDiscrete(startShape, endShape, 'color', t),
+			fill: interpolateDiscrete(startShape, endShape, 'fill', t),
+			dash: interpolateDiscrete(startShape, endShape, 'dash', t),
+			size: interpolateDiscrete(startShape, endShape, 'size', t),
+			font: interpolateDiscrete(startShape, endShape, 'font', t),
+			align: interpolateDiscrete(startShape, endShape, 'align', t),
+			verticalAlign: interpolateDiscrete(startShape, endShape, 'verticalAlign', t),
+			url: interpolateDiscrete(startShape, endShape, 'url', t),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			growY: lerp(startShape.props.growY, endShape.props.growY, t),
+			text: interpolateText(startShape, endShape, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
+		}
 	}
 }
 

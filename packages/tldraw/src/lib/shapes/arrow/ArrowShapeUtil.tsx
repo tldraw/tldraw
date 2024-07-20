@@ -798,38 +798,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		endShape: TLArrowShape,
 		progress: number
 	): TLArrowShapeProps {
-		const discretePropKeys = [
-			'labelColor',
-			'color',
-			'fill',
-			'dash',
-			'size',
-			'arrowheadStart',
-			'arrowheadEnd',
-			'font',
-			'text',
-		]
-
-		const isOverHalfway = progress > 0.5
-		const sourceShape = isOverHalfway ? endShape : startShape
-
-		const discreteProps: Partial<TLArrowShapeProps> = {}
-
-		discretePropKeys.forEach((propKey) => {
-			;(discreteProps as any)[propKey] = (sourceShape.props as any)[propKey]
-		})
-
-		if (!startShape.props.text && endShape.props.text) {
-			// if there isn't text in the start shape, and there is in the end shape
-			// then we can stream it in
-			const textLength = endShape.props.text.length
-			const textToShow = Math.floor(textLength * progress)
-			discreteProps.text = endShape.props.text.substring(0, textToShow)
-		}
-
 		return {
 			...endShape.props,
-			...discreteProps,
+			labelColor: interpolateDiscrete(startShape, endShape, 'labelColor', progress),
+			color: interpolateDiscrete(startShape, endShape, 'color', progress),
+			fill: interpolateDiscrete(startShape, endShape, 'fill', progress),
+			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),
+			size: interpolateDiscrete(startShape, endShape, 'size', progress),
+			arrowheadStart: interpolateDiscrete(startShape, endShape, 'arrowheadStart', progress),
+			arrowheadEnd: interpolateDiscrete(startShape, endShape, 'arrowheadEnd', progress),
+			font: interpolateDiscrete(startShape, endShape, 'font', progress),
 			start: {
 				x: lerp(startShape.props.start.x, endShape.props.start.x, progress),
 				y: lerp(startShape.props.start.y, endShape.props.start.y, progress),
@@ -839,7 +817,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				y: lerp(startShape.props.end.y, endShape.props.end.y, progress),
 			},
 			bend: lerp(startShape.props.bend, endShape.props.bend, progress),
+			text: interpolateText(startShape, endShape, progress),
 			labelPosition: lerp(startShape.props.labelPosition, endShape.props.labelPosition, progress),
+			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
 		}
 	}
 }
@@ -1047,4 +1027,32 @@ function ArrowheadCrossDef() {
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>
 	)
+}
+
+export function interpolateDiscrete<T, K extends keyof T>(
+	start: { props: T },
+	end: { props: T },
+	prop: K,
+	progress: number
+): T[K] {
+	if (progress < 0.5) {
+		return start.props[prop]
+	}
+	return end.props[prop]
+}
+
+export function interpolateText<T extends { props: { text?: string } }>(
+	start: T,
+	end: T,
+	progress: number
+): string {
+	if (!start.props.text && end.props.text) {
+		// If there isn't text in the start shape, and there is in the end shape,
+		// then we can stream it in
+		const endTextLength = end.props.text.length
+		const textToShowLength = Math.floor(endTextLength * progress)
+		return end.props.text.slice(0, textToShowLength)
+	}
+	// Otherwise, just return the start text (or an empty string if it's undefined)
+	return start.props.text || ''
 }

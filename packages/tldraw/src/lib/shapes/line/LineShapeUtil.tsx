@@ -7,6 +7,7 @@ import {
 	ShapeUtil,
 	TLHandle,
 	TLLineShape,
+	TLLineShapeProps,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
@@ -19,6 +20,7 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 
+import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
@@ -183,6 +185,19 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				if (!segments.length) return null
 				return new Group2d({ children: segments })
 			},
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLLineShape,
+		endShape: TLLineShape,
+		progress: number
+	): TLLineShapeProps {
+		return {
+			...endShape.props,
+			color: interpolateDiscrete(startShape, endShape, 'color', progress),
+			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),
+			size: interpolateDiscrete(startShape, endShape, 'size', progress),
+			spline: interpolateDiscrete(startShape, endShape, 'spline', progress),
 		}
 	}
 }

@@ -5,17 +5,20 @@ import {
 	HTMLContainer,
 	TLEmbedShape,
 	TLEmbedShapePermissions,
+	TLEmbedShapeProps,
 	TLOnResizeHandler,
 	TLShapeUtilFlag,
 	embedShapeMigrations,
 	embedShapePermissionDefaults,
 	embedShapeProps,
+	lerp,
 	toDomPrecision,
 	useIsEditing,
 	useValue,
 } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
+import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { resizeBox } from '../shared/resizeBox'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
@@ -163,6 +166,18 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 				ry={embedInfo?.definition.overrideOutlineRadius ?? 8}
 			/>
 		)
+	}
+	override getInterpolatedProps(
+		startShape: TLEmbedShape,
+		endShape: TLEmbedShape,
+		t: number
+	): TLEmbedShapeProps {
+		return {
+			...endShape.props,
+			url: interpolateDiscrete(startShape, endShape, 'url', t),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+		}
 	}
 }
 

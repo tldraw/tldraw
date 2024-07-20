@@ -7,6 +7,7 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLDrawShape,
+	TLDrawShapeProps,
 	TLDrawShapeSegment,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
@@ -14,10 +15,12 @@ import {
 	drawShapeMigrations,
 	drawShapeProps,
 	last,
+	lerp,
 	rng,
 	toFixed,
 } from '@tldraw/editor'
 
+import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { ShapeFill } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
@@ -165,6 +168,20 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
 		return ((STROKE_SIZES[shape.props.size] * multiplier) / 2) * shape.props.scale
+	}
+	override getInterpolatedProps(
+		startShape: TLDrawShape,
+		endShape: TLDrawShape,
+		progress: number
+	): TLDrawShapeProps {
+		return {
+			...endShape.props,
+			color: interpolateDiscrete(startShape, endShape, 'color', progress),
+			fill: interpolateDiscrete(startShape, endShape, 'fill', progress),
+			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),
+			size: interpolateDiscrete(startShape, endShape, 'size', progress),
+			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
+		}
 	}
 }
 

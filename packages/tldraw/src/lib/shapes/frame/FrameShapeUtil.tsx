@@ -5,6 +5,7 @@ import {
 	SVGContainer,
 	SvgExportContext,
 	TLFrameShape,
+	TLFrameShapeProps,
 	TLGroupShape,
 	TLOnResizeHandler,
 	TLShape,
@@ -13,11 +14,13 @@ import {
 	frameShapeProps,
 	getDefaultColorTheme,
 	last,
+	lerp,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
+import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
@@ -225,5 +228,17 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onResize: TLOnResizeHandler<any> = (shape, info) => {
 		return resizeBox(shape, info)
+	}
+	override getInterpolatedProps(
+		startShape: TLFrameShape,
+		endShape: TLFrameShape,
+		t: number
+	): TLFrameShapeProps {
+		return {
+			...endShape.props,
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			name: interpolateDiscrete(startShape, endShape, 'name', t),
+		}
 	}
 }

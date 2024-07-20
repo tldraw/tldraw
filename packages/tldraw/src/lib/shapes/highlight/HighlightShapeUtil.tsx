@@ -7,14 +7,17 @@ import {
 	ShapeUtil,
 	TLDrawShapeSegment,
 	TLHighlightShape,
+	TLHighlightShapeProps,
 	TLOnResizeHandler,
 	VecLike,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
+	lerp,
 	rng,
 	useValue,
 } from '@tldraw/editor'
+import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
@@ -171,6 +174,20 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			props: {
 				segments: newSegments,
 			},
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLHighlightShape,
+		endShape: TLHighlightShape,
+		progress: number
+	): TLHighlightShapeProps {
+		return {
+			...endShape.props,
+			color: interpolateDiscrete(startShape, endShape, 'color', progress),
+			size: interpolateDiscrete(startShape, endShape, 'size', progress),
+			isComplete: interpolateDiscrete(startShape, endShape, 'isComplete', progress),
+			isPen: interpolateDiscrete(startShape, endShape, 'isPen', progress),
+			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
 		}
 	}
 }
