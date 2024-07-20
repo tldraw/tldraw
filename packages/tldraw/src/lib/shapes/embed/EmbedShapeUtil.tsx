@@ -18,7 +18,8 @@ import {
 } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
-import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
+
+import { interpolateDiscrete } from '../shared/interpolate-props'
 import { resizeBox } from '../shared/resizeBox'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 

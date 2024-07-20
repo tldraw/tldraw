@@ -20,13 +20,13 @@ import {
 	toFixed,
 } from '@tldraw/editor'
 
-import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { ShapeFill } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
+import { interpolateDiscrete, interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -176,6 +176,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	): TLDrawShapeProps {
 		return {
 			...endShape.props,
+			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, progress),
 			color: interpolateDiscrete(startShape, endShape, 'color', progress),
 			fill: interpolateDiscrete(startShape, endShape, 'fill', progress),
 			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),

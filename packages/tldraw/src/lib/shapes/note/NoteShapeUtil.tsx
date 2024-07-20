@@ -39,7 +39,8 @@ import {
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
-import { interpolateDiscrete, interpolateText } from '../arrow/ArrowShapeUtil'
+
+import { interpolateDiscrete, interpolateText } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,

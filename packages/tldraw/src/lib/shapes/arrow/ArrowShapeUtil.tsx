@@ -47,6 +47,7 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { interpolateDiscrete, interpolateText } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
@@ -1027,32 +1028,4 @@ function ArrowheadCrossDef() {
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>
 	)
-}
-
-export function interpolateDiscrete<T, K extends keyof T>(
-	start: { props: T },
-	end: { props: T },
-	prop: K,
-	progress: number
-): T[K] {
-	if (progress < 0.5) {
-		return start.props[prop]
-	}
-	return end.props[prop]
-}
-
-export function interpolateText<T extends { props: { text?: string } }>(
-	start: T,
-	end: T,
-	progress: number
-): string {
-	if (!start.props.text && end.props.text) {
-		// If there isn't text in the start shape, and there is in the end shape,
-		// then we can stream it in
-		const endTextLength = end.props.text.length
-		const textToShowLength = Math.floor(endTextLength * progress)
-		return end.props.text.slice(0, textToShowLength)
-	}
-	// Otherwise, just return the start text (or an empty string if it's undefined)
-	return start.props.text || ''
 }

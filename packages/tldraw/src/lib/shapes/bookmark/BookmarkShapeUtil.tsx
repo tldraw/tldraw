@@ -17,9 +17,10 @@ import {
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
-import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
+
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
+import { interpolateDiscrete } from '../shared/interpolate-props'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const BOOKMARK_WIDTH = 300

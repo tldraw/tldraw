@@ -21,9 +21,10 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
-import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
+
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { interpolateDiscrete } from '../shared/interpolate-props'
 import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 

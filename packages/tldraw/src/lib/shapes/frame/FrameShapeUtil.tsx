@@ -20,8 +20,9 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
+
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
+import { interpolateDiscrete } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 

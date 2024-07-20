@@ -20,9 +20,9 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 
-import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { interpolateDiscrete } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
 import { getDrawLinePathData } from './line-helpers'

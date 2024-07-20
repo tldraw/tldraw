@@ -17,13 +17,14 @@ import {
 	rng,
 	useValue,
 } from '@tldraw/editor'
-import { interpolateDiscrete } from '../arrow/ArrowShapeUtil'
+
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { interpolateDiscrete, interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
@@ -183,6 +184,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	): TLHighlightShapeProps {
 		return {
 			...endShape.props,
+			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, progress),
 			color: interpolateDiscrete(startShape, endShape, 'color', progress),
 			size: interpolateDiscrete(startShape, endShape, 'size', progress),
 			isComplete: interpolateDiscrete(startShape, endShape, 'isComplete', progress),

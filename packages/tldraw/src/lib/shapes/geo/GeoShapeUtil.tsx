@@ -30,7 +30,6 @@ import {
 	lerp,
 } from '@tldraw/editor'
 
-import { interpolateDiscrete, interpolateText } from '../arrow/ArrowShapeUtil'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
@@ -46,6 +45,7 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
+import { interpolateDiscrete, interpolateText } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
