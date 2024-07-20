@@ -35,6 +35,7 @@ export const interpolateSegments = (
 		}
 
 		const interpolatedPoints = pointsToUseStart.map((point, k) => {
+			// check if z is defined, if not default to 0.5
 			let z = 0.5
 			if (pointsToUseEnd[k].z && point.z) {
 				z = lerp(point.z, pointsToUseEnd[k].z as number, progress)
@@ -42,7 +43,6 @@ export const interpolateSegments = (
 			return {
 				x: lerp(point.x, pointsToUseEnd[k].x, progress),
 				y: lerp(point.y, pointsToUseEnd[k].y, progress),
-				// check if both points have z values
 				z,
 			}
 		})
