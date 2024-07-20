@@ -3282,6 +3282,7 @@ export interface TLStoreBaseOptions {
     initialData?: SerializedStore<TLRecord>;
     multiplayerStatus?: null | Signal<'offline' | 'online'>;
     onEditorMount?: (editor: Editor) => (() => void) | void;
+    snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }
 
 // @public (undocumented)
@@ -3554,9 +3555,7 @@ export function useTldrawUser(opts: {
 export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
-export function useTLStore(opts: TLStoreOptions & {
-    snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
-}): TLStore;
+export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
