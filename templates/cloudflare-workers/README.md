@@ -4,14 +4,14 @@ This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/syn
 
 - Your client-side tldraw-based app can be served from anywhere you want.
 - This backend uses [Cloudflare Workers](https://developers.cloudflare.com/workers/), and will need
-to be deployed to your own Cloudflare account.
+  to be deployed to your own Cloudflare account.
 - Each whiteboard is synced via
   [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) to a [Cloudflare
   Durable Object](https://developers.cloudflare.com/durable-objects/).
 - Whiteboards and any uploaded images/videos are stored in a [Cloudflare
   R2](https://developers.cloudflare.com/r2/) bucket.
 - Although unreliated to tldraw sync, this server also includes a component to fetch link previews
-for URLs added to the canvas.
+  for URLs added to the canvas.
 
 This is a minimal setup of the same system that powers multiplayer collaboration for hundreds of
 thousands of rooms & users on www.tldraw.com. Because durable objects effectively create a mini
