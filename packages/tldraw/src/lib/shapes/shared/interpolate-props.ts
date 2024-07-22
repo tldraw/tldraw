@@ -39,13 +39,16 @@ export const interpolateSegments = (
 
 	// Distribute interpolated points back into their original segments
 	let pointIndex = 0
-	startSegments.forEach((segment, i) => {
-		const segmentPoints = segment.points.map(() => interpolatedPoints[pointIndex++])
+	const maxSegments = Math.max(startSegments.length, endSegments.length)
+	for (let i = 0; i < maxSegments; i++) {
+		const startSegment = startSegments[i] || startSegments[startSegments.length - 1]
+		const endSegment = endSegments[i] || endSegments[endSegments.length - 1]
+		const segmentPoints = startSegment.points.map(() => interpolatedPoints[pointIndex++])
 		interpolatedSegments.push({
-			type: progress > 0.5 ? endSegments[i].type : segment.type,
+			type: progress > 0.5 ? endSegment.type : startSegment.type,
 			points: segmentPoints,
 		})
-	})
+	}
 
 	return interpolatedSegments
 }

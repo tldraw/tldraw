@@ -12,7 +12,7 @@ export default function BasicExample() {
 						id: shapeId,
 						x: 300,
 						y: 300,
-						type: 'draw',
+						type: 'highlight',
 						props: {
 							segments: [
 								{
@@ -632,11 +632,9 @@ export default function BasicExample() {
 								},
 							],
 							color: 'black',
-							fill: 'none',
-							dash: 'draw',
 							size: 'm',
 							isComplete: true,
-							isClosed: false,
+
 							isPen: false,
 							scale: 1,
 						},
@@ -668,7 +666,7 @@ export default function BasicExample() {
 							[
 								{
 									id: shapeId,
-									type: 'draw',
+									type: 'highlight',
 									props: {
 										segments: [
 											{
@@ -1312,12 +1310,10 @@ export default function BasicExample() {
 												],
 											},
 										],
-										color: 'black',
-										fill: 'none',
-										dash: 'dotted',
+										color: 'green',
 										size: 'l',
 										isComplete: true,
-										isClosed: false,
+
 										isPen: false,
 										scale: 1,
 									},
@@ -1332,7 +1328,7 @@ export default function BasicExample() {
 										id: shapeId,
 										x: 300,
 										y: 300,
-										type: 'draw',
+										type: 'highlight',
 										props: {
 											segments: [
 												{
@@ -1947,11 +1943,8 @@ export default function BasicExample() {
 												},
 											],
 											color: 'black',
-											fill: 'none',
-											dash: 'draw',
 											size: 'm',
 											isComplete: true,
-											isClosed: false,
 											isPen: false,
 											scale: 1,
 										},
