@@ -1,6 +1,6 @@
 # tldraw sync server
 
-This repo contains a production-ready backend for [tldraw sync](https://tldraw.dev/docs/sync).
+This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/sync).
 
 - Your client-side tldraw-based app can be served from anywhere you want.
 - This backend uses [Cloudflare Workers](https://developers.cloudflare.com/workers/), and will need
