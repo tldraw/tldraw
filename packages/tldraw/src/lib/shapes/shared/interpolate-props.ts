@@ -55,7 +55,7 @@ export function interpolateDiscrete<T, K extends keyof T>(
 	return end.props[prop]
 }
 
-export function interpolateText<T extends { props: { text?: string } }>(
+export function interpolateText<T extends { props: { text: string } }>(
 	start: T,
 	end: T,
 	progress: number
@@ -67,6 +67,6 @@ export function interpolateText<T extends { props: { text?: string } }>(
 		const textToShowLength = Math.floor(endTextLength * progress)
 		return end.props.text.slice(0, textToShowLength)
 	}
-	// Otherwise, just return the start text (or an empty string if it's undefined)
-	return start.props.text || ''
+	// otherwise return the end text if we're halfway through the animation
+	return progress > 0.5 ? start.props.text : end.props.text
 }
