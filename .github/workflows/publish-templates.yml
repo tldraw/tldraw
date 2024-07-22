@@ -28,10 +28,13 @@ jobs:
 
       - name: Substitute the latest published version of tldraw
         run: |
-          export TEMPLATE=vite NPM_TAG=latest && \
-          npm view tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw && \
-          cp "templates/$TEMPLATE/package.json" /tmp/template_package.json && \
-          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."tldraw" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
+          TEMPLATE=vite NPM_TAG=latest
+          npm view tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw
+          cp "templates/$TEMPLATE/package.json" /tmp/template_package.json
+          filter='
+            .dependencies."tldraw" |= $latest_tldraw
+          '
+          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" "$filter" /tmp/template_package.json > "templates/$TEMPLATE/package.json"
 
       - name: Push vite template to tldraw/vite-template
         uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900 # v1.7.2
@@ -55,10 +58,13 @@ jobs:
 
       - name: Substitute the latest published version of tldraw
         run: |
-          export TEMPLATE=nextjs NPM_TAG=latest && \
-          npm view tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw && \
-          cp "templates/$TEMPLATE/package.json" /tmp/template_package.json && \
-          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."tldraw" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
+          TEMPLATE=nextjs NPM_TAG=latest
+          npm view tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw
+          cp "templates/$TEMPLATE/package.json" /tmp/template_package.json
+          filter='
+            .dependencies."tldraw" |= $latest_tldraw
+          '
+          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" "$filter" /tmp/template_package.json > "templates/$TEMPLATE/package.json"
 
       - name: Push next.js template to tldraw/nextjs-template
         uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900 # v1.7.2
@@ -82,13 +88,16 @@ jobs:
 
       - name: Substitute the latest published version of tldraw
         run: |
-          export TEMPLATE=cloudflare-workers NPM_TAG=latest
+          TEMPLATE=cloudflare-workers NPM_TAG=latest
           npm view tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw
           cp "templates/$TEMPLATE/package.json" /tmp/template_package.json
-          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."tldraw" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
-          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/sync" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
-          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/sync-core" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
-          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/schema" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
+          filter='
+            .dependencies."tldraw" |= $latest_tldraw |
+            .dependencies."@tldraw/sync" |= $latest_tldraw |
+            .dependencies."@tldraw/sync-core" |= $latest_tldraw |
+            .dependencies."@tldraw/tlschema" |= $latest_tldraw
+          '
+          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" "$filter" /tmp/template_package.json > "templates/$TEMPLATE/package.json"
 
       - name: Push template
         uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900 # v1.7.2

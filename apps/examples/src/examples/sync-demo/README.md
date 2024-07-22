@@ -1,6 +1,6 @@
 ---
-title: Multiplayer with tlsync
-component: ./MultiplayerDemoExample.tsx
+title: Sync
+component: ./SyncDemoExample.tsx
 category: collaboration
 priority: 1
 keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration]
