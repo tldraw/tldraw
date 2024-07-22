@@ -7,4 +7,4 @@ export {
 	type TLMultiplayerUserInfo,
 	type UseMultiplayerSyncOptions,
 } from './useMultiplayerSync'
-export { useMultiplayerDemo, type UseMultiplayerDemoOptions } from './useMutltiplayerDemo'
+export { useSyncDemo, type useSyncDemoOptions } from './useMutltiplayerDemo'

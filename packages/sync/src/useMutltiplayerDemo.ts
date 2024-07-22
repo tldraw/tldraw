@@ -20,7 +20,7 @@ import {
 } from './useMultiplayerSync'
 
 /** @public */
-export interface UseMultiplayerDemoOptions {
+export interface useSyncDemoOptions {
 	/**
 	 * The room ID to sync with. Make sure the room ID is unique. The namespace is shared by
 	 * everyone using the demo server. Consider prefixing it with your company or project name.
@@ -69,17 +69,17 @@ const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://imag
  * @example
  * ```tsx
  * function MyApp() {
- *     const store = useMultiplayerDemo({roomId: 'my-app-test-room'})
+ *     const store = useSyncDemo({roomId: 'my-app-test-room'})
  *     return <Tldraw store={store} />
  * }
  * ```
  *
- * @param options - Options for the multiplayer demo sync store. See {@link UseMultiplayerDemoOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ * @param options - Options for the multiplayer demo sync store. See {@link useSyncDemoOptions} and {@link tldraw#TLStoreSchemaOptions}.
  *
  * @public
  */
-export function useMultiplayerDemo(
-	options: UseMultiplayerDemoOptions & TLStoreSchemaOptions
+export function useSyncDemo(
+	options: useSyncDemoOptions & TLStoreSchemaOptions
 ): RemoteTLStoreWithStatus {
 	const { roomId, userInfo, host = DEMO_WORKER, ..._schemaOpts } = options
 	const assets = useMemo(() => createDemoAssetStore(host), [host])

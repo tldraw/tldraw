@@ -1,7 +1,7 @@
 ---
-title: Collaboration with YJS
+title: Using Yjs
 component: ./YjsExample.tsx
 category: collaboration
-priority: 2
+priority: 5
 keywords: [multi, player]
 ---

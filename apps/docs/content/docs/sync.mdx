@@ -3,7 +3,7 @@ title: Sync
 status: published
 author: alex
 date: 7/11/2024
-order: 4
+order: 6
 keywords:
   - data
   - sync
@@ -15,12 +15,11 @@ keywords:
   - websockets
 ---
 
-Tldraw supports a collaborative multiplayer experience out of the box. Changes to a document are
-synchronized in real-time to other users, including presence information like live cursors.
+Allow multiple users to collaborate on the canvas with **tldraw sync**, an optional module included with tldraw.
 
 <div className="article__image" style={{ border: 'none' }}>
 	<img
-		alt="Multiplayer in tldraw"
+		alt="Multiplayer example using tldraw sync"
 		src="/images/multiplayer.gif"
 		style={{
 			// learn this one weird trick for transparent animated gifs. doctors hate her!!!
@@ -30,7 +29,9 @@ synchronized in real-time to other users, including presence information like li
 	/>
 </div>
 
-## Try sync in your own app
+Changes to a document are synchronized in realtime to other users, including presence information like live cursors. This requires you to run a backend server, although we provide a demo server you can use for testing.
+
+## Try the demo server
 
 The easiest way to start experimenting with multiplayer is with our demo server. Start by installing
 `@tldraw/sync`:
@@ -39,12 +40,12 @@ The easiest way to start experimenting with multiplayer is with our demo server.
 npm install @tldraw/sync
 ```
 
-Then, in your app, call the `useMultiplayerDemo` hook with a room ID. It'll return a
+Then, in your app, call the `useMutiplayerDemo` hook with a room ID. It'll return a
 [`store`](/docs/persistence#The-store-prop) that you can pass into the tldraw component:
 
 ```tsx
 function MyApp() {
-	const store = useMultiplayerDemo({ roomId: 'myApp-abc123' })
+	const store = useSyncDemo({ roomId: 'myApp-abc123' })
 	return <Tldraw store={store} />
 }
 ```
@@ -53,9 +54,9 @@ Make sure the room ID is unique. Anyone who uses the same ID can access your roo
 server is a great way to prototype multiplayer in tldraw, but it shouldn't be used in production.
 Rooms will be deleted after 24 hours.
 
-## Host your own sync
+## Self-host the backend
 
-To use our sync engine in production, you need to host it yourself. There are three parts to sync in
+To use tldraw sync in production, you need to host the backend on your own server. There are three parts to sync in
 tldraw:
 
 1. The sync server, which serves the room over [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
@@ -68,7 +69,7 @@ system that powers multiplayer collaboration for hundreds of thousands of rooms 
 tldraw.com. It includes everything you need to get up and running with multiplayer tldraw quickly:
 the sync server, asset hosting, and URL unfurling.
 
-### The sync server
+### TLSocketRoom
 
 The core part of our sync server is [`TLSocketRoom`](?). It works with any JavaScript-based web
 framework with support for WebSockets, and any storage backend: it's up to you to wire in those
@@ -78,15 +79,9 @@ Make sure there's only ever one `TLSocketRoom` for each room in your app. If the
 more than one, users won't see each other and will overwrite others' changes. We use [Durable
 Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on tldraw.com.
 
-To find out more:
+If you don't want to our Cloudflare template, we also provide a [simple Node/Bun server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example). This is not production ready, but you can use it as a reference implementation to build it into your own existing backend.
 
-- Adapt the simple [Node/Bun server
-  example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example), specifically
-  [`server/rooms.ts`](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/rooms.ts).
-- Check out the production-ready [Cloudflare Workers
-  template](https://github.com/tldraw/cloudflare-workers-template), specifically
-  [`worker/TldrawDurableObject.ts`](https://github.com/tldraw/cloudflare-workers-template/main/worker/TldrawDurableObject.ts).
-- Read the reference docs for [`TLSocketRoom`](?).
+Read the reference docs for [`TLSocketRoom`](?) for more.
 
 ### Asset storage
 
@@ -106,6 +101,14 @@ TODO: implementing a server, implementing TLAssetStore, how much should live her
 
 ## Other sync systems
 
-- @tldraw/sync isn't the only way to do multiplayer in tldraw. maybe still point at yjs/simple sync example?
+While tldraw multiplayer is the easiest way to add sync capabilities to your tldraw canvas, there are plenty of other sync systems that you may already be using. Here's some examples of how to integrate them.
 
-- fold collaboration.mdx into this page
+### Yjs
+
+The CRDT library Yjs can be used as a sync engine for tldraw, as shown in the [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example).
+
+TODO
+
+- Partykit
+- Liveblocks
+- Automerge
