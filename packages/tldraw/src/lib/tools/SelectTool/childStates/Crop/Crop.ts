@@ -1,4 +1,4 @@
-import { StateNode } from '@tldraw/editor'
+import { StateNode, uniqueId } from '@tldraw/editor'
 import { Cropping } from './children/Cropping'
 import { Idle } from './children/Idle'
 import { PointingCrop } from './children/PointingCrop'
@@ -18,19 +18,24 @@ export class Crop extends StateNode {
 
 	markId = ''
 	override onEnter = () => {
-		this.didCancel = false
-		this.markId = 'crop'
+		this.didExit = false
+		this.markId = 'crop: ' + uniqueId()
 		this.editor.mark(this.markId)
 	}
-	didCancel = false
+	didExit = false
 	override onExit = () => {
-		if (this.didCancel) {
-			this.editor.bailToMark(this.markId)
-		} else {
-			this.editor.squashToMark(this.markId)
-		}
+		this.onComplete()
 	}
 	override onCancel = () => {
-		this.didCancel = true
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.bailToMark(this.markId)
+		}
+	}
+	override onComplete = () => {
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.squashToMark(this.markId)
+		}
 	}
 }

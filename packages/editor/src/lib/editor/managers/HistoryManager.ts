@@ -167,12 +167,21 @@ export class HistoryManager<R extends UnknownRecord> {
 							break
 						case 'stop':
 							if (!toMark) break loop
-							if (undo.id === toMark) break loop
+							if (undo.id === toMark) {
+								didFindMark = true
+								break loop
+							}
 							break
 						default:
 							exhaustiveSwitchError(undo)
 					}
 				}
+			}
+
+			if (!didFindMark && toMark) {
+				// whoops, we didn't find the mark we were looking for
+				// don't do anything
+				return this
 			}
 
 			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
