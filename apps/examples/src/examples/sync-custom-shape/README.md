@@ -9,4 +9,4 @@ multiplayer: true
 
 ---
 
-The `useSyncDemo` hook can be used to quickly prototype multiplayer experiences in tldraw using a demo backend that we host. Data is wiped after one day.
+This example shows a custom shape in combination with tldraw sync.
