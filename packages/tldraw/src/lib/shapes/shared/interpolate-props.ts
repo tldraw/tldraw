@@ -5,8 +5,6 @@ export const interpolateSegments = (
 	endSegments: TLDrawShapeSegment[],
 	progress: number
 ): TLDrawShapeSegment[] => {
-	const interpolatedSegments: TLDrawShapeSegment[] = []
-
 	const startPoints: VecModel[] = []
 	const endPoints: VecModel[] = []
 
@@ -36,21 +34,13 @@ export const interpolateSegments = (
 			z,
 		}
 	})
-
-	// Distribute interpolated points back into their original segments
-	let pointIndex = 0
-	const maxSegments = Math.max(startSegments.length, endSegments.length)
-	for (let i = 0; i < maxSegments; i++) {
-		const startSegment = startSegments[i] || startSegments[startSegments.length - 1]
-		const endSegment = endSegments[i] || endSegments[endSegments.length - 1]
-		const segmentPoints = startSegment.points.map(() => interpolatedPoints[pointIndex++])
-		interpolatedSegments.push({
-			type: progress > 0.5 ? endSegment.type : startSegment.type,
-			points: segmentPoints,
-		})
-	}
-
-	return interpolatedSegments
+	// Return all interpolated points in a single segment
+	return [
+		{
+			type: 'free',
+			points: interpolatedPoints,
+		},
+	]
 }
 
 export function interpolateDiscrete<T, K extends keyof T>(
