@@ -25,17 +25,6 @@ export interface TLMultiplayerUserInfo {
 }
 
 // @public
-export function useMultiplayerDemo(options: UseMultiplayerDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
-
-// @public (undocumented)
-export interface UseMultiplayerDemoOptions {
-    // @internal (undocumented)
-    host?: string;
-    roomId: string;
-    userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
-}
-
-// @public
 export function useMultiplayerSync(opts: UseMultiplayerSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public
@@ -50,6 +39,17 @@ export interface UseMultiplayerSyncOptions {
         [key: string]: any;
     }): void;
     uri: string;
+    userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
+}
+
+// @public
+export function useSyncDemo(options: useSyncDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
+
+// @public (undocumented)
+export interface useSyncDemoOptions {
+    // @internal (undocumented)
+    host?: string;
+    roomId: string;
     userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
 }
 

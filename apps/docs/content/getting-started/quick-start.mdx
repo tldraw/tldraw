@@ -73,7 +73,7 @@ npm install @tldraw/sync
 
 Set up your component with our demo server:
 
-- Import the `useMultiplayerDemo` hook from the `@tldraw/sync` package
+- Import the `useSyncDemo` hook from the `@tldraw/sync` package
 - Add the hook to your component with a unique `roomId`
 - Pass the `store` returned from the hook into your `<Tldraw />` component
 
@@ -81,11 +81,11 @@ Set up your component with our demo server:
 
 ```javascript
 import { Tldraw } from 'tldraw'
-import { useMultiplayerDemo } from '@tldraw/sync'
+import { useSyncDemo } from '@tldraw/sync'
 import './index.css'
 
 export default function App() {
-	const store = useMultiplayerDemo({ roomId: 'myapp-abc123' })
+	const store = useSyncDemo({ roomId: 'myapp-abc123' })
 
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>

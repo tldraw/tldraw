@@ -1,4 +1,4 @@
-import { useMultiplayerDemo } from '@tldraw/sync'
+import { useSyncDemo } from '@tldraw/sync'
 import { useState } from 'react'
 import { TLUserPreferences, Tldraw, useTldrawUser } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -13,7 +13,7 @@ export default function MultiplayerCustomUserExample({ roomId }: { roomId: strin
 	})
 
 	// [2]
-	const store = useMultiplayerDemo({ roomId, userInfo: userPreferences })
+	const store = useSyncDemo({ roomId, userInfo: userPreferences })
 
 	// [3]
 	const user = useTldrawUser({ userPreferences, setUserPreferences })
@@ -39,7 +39,7 @@ export default function MultiplayerCustomUserExample({ roomId }: { roomId: strin
  * In this example we create an in-memory state for the user info, but in your system it's probably synchronized with a backend database somehow.
  *
  * 1. We get our user info and a function to set it from a `useState` hook. In your app this might come from a context provider or you might hook it up manually to your backend.
- * 2. We use the `useMultiplayerDemo` hook to create the multiplayer store, and pass in the current user state as `userInfo`, which is a subset of the `userPreferences` type.
+ * 2. We use the `useSyncDemo` hook to create the multiplayer store, and pass in the current user state as `userInfo`, which is a subset of the `userPreferences` type.
  * 3. We use the `useTLUser` hook to create a TLUser object, which allows the Editor to both read and update the user info and preferences.
  * 4. We render the `Tldraw` component with the multiplayer store and the user object.
  */

@@ -45,7 +45,7 @@ Then, in your app, call the `useMutiplayerDemo` hook with a room ID. It'll retur
 
 ```tsx
 function MyApp() {
-	const store = useMultiplayerDemo({ roomId: 'myApp-abc123' })
+	const store = useSyncDemo({ roomId: 'myApp-abc123' })
 	return <Tldraw store={store} />
 }
 ```
