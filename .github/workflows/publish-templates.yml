@@ -88,6 +88,7 @@ jobs:
           jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."tldraw" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
           jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/sync" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
           jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/sync-core" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
+          jq --tab --arg latest_tldraw "$(< /tmp/latest_tldraw)" '.dependencies."@tldraw/schema" |= $latest_tldraw' /tmp/template_package.json > "templates/$TEMPLATE/package.json"
 
       - name: Push template
         uses: cpina/github-action-push-to-another-repository@07c4d7b3def0a8ebe788a8f2c843a4e1de4f6900 # v1.7.2

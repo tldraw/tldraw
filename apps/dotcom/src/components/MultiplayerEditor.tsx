@@ -4,7 +4,7 @@ import {
 	RoomOpenModeToPath,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { useMultiplayerSync } from '@tldraw/sync'
+import { useSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import {
 	assertExists,
@@ -123,7 +123,7 @@ export function MultiplayerEditor({
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const storeWithStatus = useMultiplayerSync({
+	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 		assets: multiplayerAssetStore,

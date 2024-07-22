@@ -39,7 +39,7 @@ export type RemoteTLStoreWithStatus = Exclude<
 >
 
 /**
- * useMultiplayerSync creates a store that is synced with a multiplayer server.
+ * useSync creates a store that is synced with a multiplayer server.
  *
  * The store can be passed directly into the `<Tldraw />` component to enable multiplayer features.
  * It will handle loading states, and enable multiplayer UX like user cursors and following.
@@ -50,7 +50,7 @@ export type RemoteTLStoreWithStatus = Exclude<
  * @example
  * ```tsx
  * function MyApp() {
- *     const store = useMultiplayerSync({
+ *     const store = useSync({
  *         uri: 'wss://myapp.com/sync/my-test-room',
  *         assets: myAssetStore
  *     })
@@ -58,13 +58,11 @@ export type RemoteTLStoreWithStatus = Exclude<
  * }
  *
  * ```
- * @param opts - Options for the multiplayer sync store. See {@link UseMultiplayerSyncOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ * @param opts - Options for the multiplayer sync store. See {@link UseSyncOptions} and {@link tldraw#TLStoreSchemaOptions}.
  *
  * @public
  */
-export function useMultiplayerSync(
-	opts: UseMultiplayerSyncOptions & TLStoreSchemaOptions
-): RemoteTLStoreWithStatus {
+export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus {
 	const [state, setState] = useRefState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
@@ -79,7 +77,7 @@ export function useMultiplayerSync(
 		...schemaOpts
 	} = opts
 
-	// This line will throw a type error if we add any new options to the useMultiplayerSync hook but we don't destructure them
+	// This line will throw a type error if we add any new options to the useSync hook but we don't destructure them
 	// This is required because otherwise the useTLSchemaFromUtils might return a new schema on every render if the newly-added option
 	// is allowed to be unstable (e.g. userInfo)
 	const __never__: never = 0 as any as keyof Omit<typeof schemaOpts, keyof TLStoreSchemaOptions>
@@ -88,10 +86,7 @@ export function useMultiplayerSync(
 
 	const prefs = useShallowObjectIdentity(userInfo)
 
-	const userAtom = useAtom<TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo> | undefined>(
-		'userAtom',
-		prefs
-	)
+	const userAtom = useAtom<TLSyncUserInfo | Signal<TLSyncUserInfo> | undefined>('userAtom', prefs)
 
 	useEffect(() => {
 		userAtom.set(prefs)
@@ -201,7 +196,7 @@ export function useMultiplayerSync(
  * The information about a user which is used for multiplayer features.
  * @public
  */
-export interface TLMultiplayerUserInfo {
+export interface TLSyncUserInfo {
 	/**
 	 * id - A unique identifier for the user. This should be the same across all devices and sessions.
 	 */
@@ -217,10 +212,10 @@ export interface TLMultiplayerUserInfo {
 }
 
 /**
- * Options for the {@link useMultiplayerSync} hook.
+ * Options for the {@link useSync} hook.
  * @public
  */
-export interface UseMultiplayerSyncOptions {
+export interface UseSyncOptions {
 	/**
 	 * The URI of the multiplayer server. This must include the protocol,
 	 *
@@ -234,7 +229,7 @@ export interface UseMultiplayerSyncOptions {
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userInfo?: TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo>
+	userInfo?: TLSyncUserInfo | Signal<TLSyncUserInfo>
 	/**
 	 * The asset store for blob storage. See {@link tldraw#TLAssetStore}.
 	 *
