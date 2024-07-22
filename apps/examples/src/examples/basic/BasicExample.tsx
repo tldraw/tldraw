@@ -6,10 +6,10 @@ export default function BasicExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				onMount={(editor) => {
-					const arrowId = createShapeId()
-					const rectId = createShapeId()
+					const shapeId = createShapeId()
+					// const rectId = createShapeId()
 					editor.createShape({
-						id: arrowId,
+						id: shapeId,
 						x: 300,
 						y: 300,
 						type: 'draw',
@@ -523,6 +523,11 @@ export default function BasicExample() {
 											y: -1.4,
 											z: 0.5,
 										},
+									],
+								},
+								{
+									type: 'free',
+									points: [
 										{
 											x: 548.63,
 											y: 5.7,
@@ -647,7 +652,7 @@ export default function BasicExample() {
 					// editor.createBindings([
 					// 	{
 					// 		type: 'arrow',
-					// 		fromId: arrowId,
+					// 		fromId: shapeId,
 					// 		toId: rectId,
 					// 		props: {
 					// 			terminal: 'end',
@@ -662,7 +667,7 @@ export default function BasicExample() {
 						editor.animateShapes(
 							[
 								{
-									id: arrowId,
+									id: shapeId,
 									type: 'draw',
 									props: {
 										segments: [
@@ -1199,6 +1204,11 @@ export default function BasicExample() {
 														y: 262.39,
 														z: 0.5,
 													},
+												],
+											},
+											{
+												type: 'free',
+												points: [
 													{
 														x: 301.42,
 														y: 249.93,
@@ -1319,7 +1329,7 @@ export default function BasicExample() {
 							editor.animateShapes(
 								[
 									{
-										id: arrowId,
+										id: shapeId,
 										x: 300,
 										y: 300,
 										type: 'draw',
