@@ -1,6 +1,6 @@
 import { useValue } from '@tldraw/state-react'
 import { fetch } from '@tldraw/utils'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
@@ -88,8 +88,6 @@ export const Watermark = React.memo(function Watermark({
 		}
 	}, [shouldUseLocal, showWatermark])
 
-	const ref = useRef<HTMLAnchorElement>(null)
-
 	if (!showWatermark || !src) return null
 
 	const className = LicenseManager.className
@@ -164,7 +162,6 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			</style>
 			<div className={className} data-debug={isDebugMode} draggable={false} {...events}>
 				<a
-					ref={ref}
 					href="https://tldraw.dev"
 					target="_blank"
 					rel="noreferrer"
