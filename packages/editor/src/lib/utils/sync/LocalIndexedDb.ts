@@ -42,10 +42,9 @@ async function openLocalDb(persistenceKey: string) {
 }
 
 async function migrateLegacyAssetDbIfNeeded(persistenceKey: string) {
-	let databases = (await window.indexedDB.databases?.())?.map((db) => db.name)
-	if (!databases) {
-		databases = getAllIndexDbNames()
-	}
+	const databases = window.indexedDB.databases
+		? (await window.indexedDB.databases()).map((db) => db.name)
+		: getAllIndexDbNames()
 	const oldStoreId = LEGACY_ASSET_STORE_PREFIX + persistenceKey
 	const existing = databases.find((dbName) => dbName === oldStoreId)
 	if (!existing) return
