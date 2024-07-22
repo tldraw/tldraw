@@ -1,5 +1,5 @@
 ---
-title: With custom user data
+title: …with custom user data
 component: ./SyncCustomUser.tsx
 category: collaboration
 priority: 3

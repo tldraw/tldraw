@@ -1,5 +1,5 @@
 ---
-title: Sync
+title: Multiplayer sync
 component: ./SyncDemoExample.tsx
 category: collaboration
 priority: 1
