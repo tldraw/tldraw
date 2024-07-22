@@ -62,18 +62,18 @@ export default function App() {
 }
 ```
 
-### 4. Add multiplayer (optional)
+### 4. Make it multiplayer
 
 At this point, you have a complete working single-user whiteboard. To add support for multiple users
-collaborating in realtime, you can user our multiplayer demo server from `@tldraw/multiplayer`:
+collaborating in realtime, you can use the **tldraw sync** extension library.
 
 ```bash
-npm install @tldraw/multiplayer
+npm install @tldraw/sync
 ```
 
-Then, set up your component with our demo server:
+Set up your component with our demo server:
 
-- Import the `useMultiplayerDemo` hook from the `@tldraw/multiplayer` package
+- Import the `useMultiplayerDemo` hook from the `@tldraw/sync` package
 - Add the hook to your component with a unique `roomId`
 - Pass the `store` returned from the hook into your `<Tldraw />` component
 
@@ -81,7 +81,7 @@ Then, set up your component with our demo server:
 
 ```javascript
 import { Tldraw } from 'tldraw'
-import { useMultiplayerDemo } from '@tldraw/multiplayer'
+import { useMultiplayerDemo } from '@tldraw/sync'
 import './index.css'
 
 export default function App() {
@@ -103,6 +103,6 @@ Now that you have your canvas working, you can:
 
 - [Customize the UI](/docs/user-interface) of the editor
 - Add your own [shapes](/docs/shapes) and [tools](/docs/tools)
-- Replace our sync demo server with a [more robust multiplayer solution](/docs/sync)
+- Replace our sync demo server with a [more robust sync backend](/docs/sync)
 
 We provide the above examples and more in our [examples section](/examples). Go build something creative and please do share it with us in our [#show-and-tell](https://discord.com/invite/SBBEVCA4PG) channel on Discord!
