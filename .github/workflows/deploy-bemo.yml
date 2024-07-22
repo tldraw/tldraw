@@ -6,7 +6,7 @@ on:
   push:
     branches:
       - main
-      - demo-production
+      - bemo-production
 
 env:
   CI: 1
