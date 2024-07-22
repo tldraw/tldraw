@@ -1,6 +1,5 @@
 import { StateNode, TLEventHandlers, TLFrameShape, TLShape, TLTextShape } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
-import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 
 export class EditingShape extends StateNode {
@@ -57,18 +56,6 @@ export class EditingShape extends StateNode {
 		this.hitShapeForPointerUp = null
 
 		switch (info.target) {
-			case 'canvas': {
-				const hitShape = getHitShapeOnCanvasPointerDown(this.editor, true /* hitLabels */)
-				if (hitShape) {
-					this.onPointerDown({
-						...info,
-						shape: hitShape,
-						target: 'shape',
-					})
-					return
-				}
-				break
-			}
 			case 'shape': {
 				const { shape: selectingShape } = info
 				const editingShape = this.editor.getEditingShape()
