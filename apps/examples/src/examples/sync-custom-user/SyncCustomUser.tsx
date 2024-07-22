@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { TLUserPreferences, Tldraw, useTldrawUser } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-export default function MultiplayerCustomUserExample({ roomId }: { roomId: string }) {
+export default function SyncCustomUserExample({ roomId }: { roomId: string }) {
 	// [1]
 	const [userPreferences, setUserPreferences] = useState<TLUserPreferences>({
 		id: 'user-' + Math.random(),
@@ -27,9 +27,9 @@ export default function MultiplayerCustomUserExample({ roomId }: { roomId: strin
 }
 
 /**
- * # Multiplayer Custom User
+ * # Sync Custom User
  *
- * This example demonstrates how to use the multiplayer demo sync store with a custom user.
+ * This example demonstrates how to use the sync demo server with a custom user.
  *
  * You need access to two things to do this integration:
  *
@@ -42,4 +42,6 @@ export default function MultiplayerCustomUserExample({ roomId }: { roomId: strin
  * 2. We use the `useSyncDemo` hook to create the multiplayer store, and pass in the current user state as `userInfo`, which is a subset of the `userPreferences` type.
  * 3. We use the `useTLUser` hook to create a TLUser object, which allows the Editor to both read and update the user info and preferences.
  * 4. We render the `Tldraw` component with the multiplayer store and the user object.
+ *
+ * You can pass the same `user` object into the `useSync` hook if you're using your own server.
  */

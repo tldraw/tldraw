@@ -1,9 +1,9 @@
 ---
-title: With custom shape
-component: ./MultiplayerDemoExample.tsx
+title: Sync
+component: ./SyncDemoExample.tsx
 category: collaboration
-priority: 3
-keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration, custom shape]
+priority: 1
+keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration]
 multiplayer: true
 ---
 

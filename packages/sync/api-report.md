@@ -18,28 +18,28 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 }>;
 
 // @public
-export interface TLMultiplayerUserInfo {
+export interface TLSyncUserInfo {
     color?: null | string;
     id: string;
     name?: null | string;
 }
 
 // @public
-export function useSync(opts: useSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
+export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public
-export function useSyncDemo(options: useSyncDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
+export function useSyncDemo(options: UseSyncDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
-export interface useSyncDemoOptions {
+export interface UseSyncDemoOptions {
     // @internal (undocumented)
     host?: string;
     roomId: string;
-    userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
+    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
 }
 
 // @public
-export interface useSyncOptions {
+export interface UseSyncOptions {
     assets: TLAssetStore;
     // @internal (undocumented)
     onEditorMount?: (editor: Editor) => void;
@@ -50,7 +50,7 @@ export interface useSyncOptions {
         [key: string]: any;
     }): void;
     uri: string;
-    userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
+    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
 }
 
 

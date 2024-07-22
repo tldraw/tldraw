@@ -29,6 +29,7 @@ import {
 	useTLSchemaFromUtils,
 	useValue,
 } from 'tldraw'
+import { UseSyncOptions } from '.'
 
 const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
@@ -58,11 +59,11 @@ export type RemoteTLStoreWithStatus = Exclude<
  * }
  *
  * ```
- * @param opts - Options for the multiplayer sync store. See {@link useSyncOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ * @param opts - Options for the multiplayer sync store. See {@link UseSyncOptions} and {@link tldraw#TLStoreSchemaOptions}.
  *
  * @public
  */
-export function useSync(opts: useSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus {
+export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus {
 	const [state, setState] = useRefState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
@@ -86,10 +87,7 @@ export function useSync(opts: useSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 	const prefs = useShallowObjectIdentity(userInfo)
 
-	const userAtom = useAtom<TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo> | undefined>(
-		'userAtom',
-		prefs
-	)
+	const userAtom = useAtom<TLSyncUserInfo | Signal<TLSyncUserInfo> | undefined>('userAtom', prefs)
 
 	useEffect(() => {
 		userAtom.set(prefs)
@@ -199,7 +197,7 @@ export function useSync(opts: useSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * The information about a user which is used for multiplayer features.
  * @public
  */
-export interface TLMultiplayerUserInfo {
+export interface TLSyncUserInfo {
 	/**
 	 * id - A unique identifier for the user. This should be the same across all devices and sessions.
 	 */
@@ -218,7 +216,7 @@ export interface TLMultiplayerUserInfo {
  * Options for the {@link useSync} hook.
  * @public
  */
-export interface useSyncOptions {
+export interface UseSyncOptions {
 	/**
 	 * The URI of the multiplayer server. This must include the protocol,
 	 *
@@ -232,7 +230,7 @@ export interface useSyncOptions {
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userInfo?: TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo>
+	userInfo?: TLSyncUserInfo | Signal<TLSyncUserInfo>
 	/**
 	 * The asset store for blob storage. See {@link tldraw#TLAssetStore}.
 	 *

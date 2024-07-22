@@ -1,6 +1,6 @@
 ---
 title: With custom user data
-component: ./MultiplayerCustomUser.tsx
+component: ./SyncCustomUser.tsx
 category: collaboration
 priority: 3
 keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration, custom shape]
