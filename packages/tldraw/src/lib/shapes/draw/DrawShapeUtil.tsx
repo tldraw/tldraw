@@ -182,6 +182,9 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),
 			size: interpolateDiscrete(startShape, endShape, 'size', progress),
 			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
+			isComplete: interpolateDiscrete(startShape, endShape, 'isComplete', progress),
+			isClosed: interpolateDiscrete(startShape, endShape, 'isClosed', progress),
+			isPen: interpolateDiscrete(startShape, endShape, 'isPen', progress),
 		}
 	}
 }
