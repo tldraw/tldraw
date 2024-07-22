@@ -1,5 +1,5 @@
 ---
-title: Sync with custom shape
+title: With custom shape
 component: ./SyncDemoShapeExample.tsx
 category: collaboration
 priority: 3

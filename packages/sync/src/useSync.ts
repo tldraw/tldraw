@@ -29,7 +29,6 @@ import {
 	useTLSchemaFromUtils,
 	useValue,
 } from 'tldraw'
-import { UseSyncOptions } from '.'
 
 const MULTIPLAYER_EVENT_NAME = 'multiplayer.client'
 
