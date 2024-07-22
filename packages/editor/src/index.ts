@@ -6,6 +6,7 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
+import { featureFlags } from './lib/utils/debug-flags'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -127,12 +128,13 @@ export {
 export {
 	createTLSchemaFromUtils,
 	createTLStore,
+	inlineBase64AssetStore,
 	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 	type TLStoreSchemaOptions,
 } from './lib/config/createTLStore'
-export { createTLUser, type TLUser } from './lib/config/createTLUser'
+export { createTLUser, useTldrawUser, type TLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
@@ -395,3 +397,8 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'
 export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
+
+/** @public */
+export function debugEnableLicensing() {
+	featureFlags.enableLicensing.set(true)
+}

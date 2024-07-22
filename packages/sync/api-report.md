@@ -9,7 +9,6 @@ import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
-import { TLUserPreferences } from 'tldraw';
 
 // @public (undocumented)
 export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
@@ -18,38 +17,40 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
     status: 'synced-local';
 }>;
 
-// @public (undocumented)
+// @public
+export interface TLMultiplayerUserInfo {
+    color?: null | string;
+    id: string;
+    name?: null | string;
+}
+
+// @public
 export function useMultiplayerDemo(options: UseMultiplayerDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
 export interface UseMultiplayerDemoOptions {
     // @internal (undocumented)
     host?: string;
-    // (undocumented)
     roomId: string;
-    // (undocumented)
-    userPreferences?: Signal<TLUserPreferences>;
+    userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
 }
 
-// @public (undocumented)
+// @public
 export function useMultiplayerSync(opts: UseMultiplayerSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
-// @public (undocumented)
+// @public
 export interface UseMultiplayerSyncOptions {
-    // (undocumented)
-    assets?: Partial<TLAssetStore>;
-    // (undocumented)
+    assets: TLAssetStore;
+    // @internal (undocumented)
     onEditorMount?: (editor: Editor) => void;
-    // (undocumented)
+    // @internal
     roomId?: string;
-    // (undocumented)
+    // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;
     }): void;
-    // (undocumented)
     uri: string;
-    // (undocumented)
-    userPreferences?: Signal<TLUserPreferences>;
+    userInfo?: Signal<TLMultiplayerUserInfo> | TLMultiplayerUserInfo;
 }
 
 

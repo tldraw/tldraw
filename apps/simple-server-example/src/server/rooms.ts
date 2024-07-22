@@ -2,8 +2,6 @@ import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import { mkdir, readFile, writeFile } from 'fs/promises'
 import { join } from 'path'
 
-const log = console.log
-
 // For this example we're just saving data to the local filesystem
 const DIR = './.rooms'
 async function readSnapshotIfExists(roomId: string) {
@@ -41,7 +39,7 @@ export async function makeOrLoadRoom(roomId: string) {
 					return null // all good
 				}
 			}
-			log('loading room', roomId)
+			console.log('loading room', roomId)
 			const initialSnapshot = await readSnapshotIfExists(roomId)
 
 			const roomState: RoomState = {
@@ -50,9 +48,9 @@ export async function makeOrLoadRoom(roomId: string) {
 				room: new TLSocketRoom({
 					initialSnapshot,
 					onSessionRemoved(room, args) {
-						log('client disconnected', args.sessionKey, roomId)
+						console.log('client disconnected', args.sessionId, roomId)
 						if (args.numSessionsRemaining === 0) {
-							log('closing room', roomId)
+							console.log('closing room', roomId)
 							room.close()
 						}
 					},
@@ -81,11 +79,11 @@ setInterval(() => {
 		if (roomState.needsPersist) {
 			// persist room
 			roomState.needsPersist = false
-			log('saving snapshot', roomState.id)
+			console.log('saving snapshot', roomState.id)
 			saveSnapshot(roomState.id, roomState.room.getCurrentSnapshot())
 		}
 		if (roomState.room.isClosed()) {
-			log('deleting room', roomState.id)
+			console.log('deleting room', roomState.id)
 			rooms.delete(roomState.id)
 		}
 	}

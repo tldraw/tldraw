@@ -7,13 +7,16 @@ import {
 	ShapeUtil,
 	TLHandle,
 	TLLineShape,
-	TLLineShapeProps,
+	TLLineShapePoint,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
 	WeakCache,
+	ZERO_INDEX_KEY,
+	getIndexAbove,
 	getIndexBetween,
 	getIndices,
+	lerp,
 	lineShapeMigrations,
 	lineShapeProps,
 	mapObjectMapValues,
@@ -22,7 +25,6 @@ import {
 
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { interpolateDiscrete } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
 import { getDrawLinePathData } from './line-helpers'
@@ -191,13 +193,63 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		startShape: TLLineShape,
 		endShape: TLLineShape,
 		progress: number
-	): TLLineShapeProps {
+	): TLLineShape['props'] {
+		const startPoints = linePointsToArray(startShape)
+		const endPoints = linePointsToArray(endShape)
+
+		const pointsToUseStart: TLLineShapePoint[] = []
+		const pointsToUseEnd: TLLineShapePoint[] = []
+
+		let index = ZERO_INDEX_KEY
+
+		if (startPoints.length > endPoints.length) {
+			// we'll need to expand points
+			for (let i = 0; i < startPoints.length; i++) {
+				pointsToUseStart[i] = { ...startPoints[i] }
+				if (endPoints[i] === undefined) {
+					pointsToUseEnd[i] = { ...endPoints[endPoints.length - 1], id: index }
+				} else {
+					pointsToUseEnd[i] = { ...endPoints[i], id: index }
+				}
+				index = getIndexAbove(index)
+			}
+		} else if (endPoints.length > startPoints.length) {
+			// we'll need to converge points
+			for (let i = 0; i < endPoints.length; i++) {
+				pointsToUseEnd[i] = { ...endPoints[i] }
+				if (startPoints[i] === undefined) {
+					pointsToUseStart[i] = {
+						...startPoints[startPoints.length - 1],
+						id: index,
+					}
+				} else {
+					pointsToUseStart[i] = { ...startPoints[i], id: index }
+				}
+				index = getIndexAbove(index)
+			}
+		} else {
+			// noop, easy
+			for (let i = 0; i < endPoints.length; i++) {
+				pointsToUseStart[i] = startPoints[i]
+				pointsToUseEnd[i] = endPoints[i]
+			}
+		}
+
 		return {
 			...endShape.props,
-			color: interpolateDiscrete(startShape, endShape, 'color', progress),
-			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),
-			size: interpolateDiscrete(startShape, endShape, 'size', progress),
-			spline: interpolateDiscrete(startShape, endShape, 'spline', progress),
+			points: Object.fromEntries(
+				pointsToUseStart.map((point, i) => {
+					const endPoint = pointsToUseEnd[i]
+					return [
+						point.id,
+						{
+							...point,
+							x: lerp(point.x, endPoint.x, progress),
+							y: lerp(point.y, endPoint.y, progress),
+						},
+					]
+				})
+			),
 		}
 	}
 }

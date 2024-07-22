@@ -59,6 +59,8 @@
 		]
 	},
 	"dependencies": {
+		"@tldraw/state": "workspace:*",
+		"@tldraw/state-react": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"lodash.isequal": "^4.5.0",

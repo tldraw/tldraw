@@ -87,7 +87,6 @@ import { TLImageShapeProps } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
-import { TLLineShapeProps } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
 import { TLNoteShapeProps } from '@tldraw/editor';
 import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
@@ -428,6 +427,9 @@ export const DefaultMainMenu: NamedExoticComponent<TLUiMainMenuProps>;
 export function DefaultMainMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export const DefaultMenuPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export function DefaultMinimap(): JSX_2.Element;
 
 // @public (undocumented)
@@ -504,6 +506,8 @@ export class DrawShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onExit: () => void;
     // (undocumented)
@@ -597,6 +601,8 @@ export class EraserTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onEnter: () => void;
 }
@@ -908,6 +914,8 @@ export class HandTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onDoubleClick: TLClickEvent;
     // (undocumented)
     onQuadrupleClick: TLClickEvent;
@@ -932,6 +940,8 @@ export class HighlightShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onExit: () => void;
     // (undocumented)
@@ -1028,6 +1038,8 @@ export class LaserTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onEnter: () => void;
 }
 
@@ -1059,7 +1071,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
-    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, progress: number): TLLineShapeProps;
+    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, progress: number): TLLineShape['props'];
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
@@ -1315,6 +1327,8 @@ export class SelectTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
     onEnter: () => void;
     // (undocumented)
     onExit: () => void;
@@ -1425,6 +1439,8 @@ export class TextShapeTool extends StateNode {
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
@@ -3347,6 +3363,8 @@ export class ZoomTool extends StateNode {
     };
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     onEnter: (info: TLPointerEventInfo & {
         onInteractionEnd: string;

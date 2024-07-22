@@ -793,7 +793,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 		]
 	}
-
 	override getInterpolatedProps(
 		startShape: TLArrowShape,
 		endShape: TLArrowShape,

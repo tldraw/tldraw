@@ -7,19 +7,31 @@ import {
 	TLAsset,
 	TLAssetStore,
 	TLStoreSchemaOptions,
-	TLUserPreferences,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	getHashForString,
 	uniqueId,
 	useShallowObjectIdentity,
 } from 'tldraw'
-import { RemoteTLStoreWithStatus, useMultiplayerSync } from './useMultiplayerSync'
+import {
+	RemoteTLStoreWithStatus,
+	TLMultiplayerUserInfo,
+	useMultiplayerSync,
+} from './useMultiplayerSync'
 
 /** @public */
 export interface UseMultiplayerDemoOptions {
+	/**
+	 * The room ID to sync with. Make sure the room ID is unique. The namespace is shared by
+	 * everyone using the demo server. Consider prefixing it with your company or project name.
+	 */
 	roomId: string
-	userPreferences?: Signal<TLUserPreferences>
+	/**
+	 * A signal that contains the user information needed for multiplayer features.
+	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
+	 * If not provided, a default implementation based on localStorage will be used.
+	 */
+	userInfo?: TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo>
 	/** @internal */
 	host?: string
 }
@@ -43,11 +55,33 @@ function getEnv(cb: () => string | undefined): string | undefined {
 const DEMO_WORKER = getEnv(() => process.env.TLDRAW_BEMO_URL) ?? 'https://demo.tldraw.xyz'
 const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://images.tldraw.xyz'
 
-/** @public */
+/**
+ * Creates a tldraw store synced with a multiplayer room hosted on tldraw's demo server `https://demo.tldraw.xyz`.
+ *
+ * The store can be passed directly into the `<Tldraw />` component to enable multiplayer features.
+ * It will handle loading states, and enable multiplayer UX like user cursors and following.
+ *
+ * All data on the demo server is
+ *
+ * - Deleted after a day or so.
+ * - Publicly accessible to anyone who knows the room ID. Use your company name as a prefix to help avoid collisions, or generate UUIDs for maximum privacy.
+ *
+ * @example
+ * ```tsx
+ * function MyApp() {
+ *     const store = useMultiplayerDemo({roomId: 'my-app-test-room'})
+ *     return <Tldraw store={store} />
+ * }
+ * ```
+ *
+ * @param options - Options for the multiplayer demo sync store. See {@link UseMultiplayerDemoOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ *
+ * @public
+ */
 export function useMultiplayerDemo(
 	options: UseMultiplayerDemoOptions & TLStoreSchemaOptions
 ): RemoteTLStoreWithStatus {
-	const { roomId, userPreferences, host = DEMO_WORKER, ..._schemaOpts } = options
+	const { roomId, userInfo, host = DEMO_WORKER, ..._schemaOpts } = options
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
 
 	const schemaOpts = useShallowObjectIdentity(_schemaOpts)
@@ -70,7 +104,7 @@ export function useMultiplayerDemo(
 	return useMultiplayerSync({
 		uri: `${host}/connect/${encodeURIComponent(roomId)}`,
 		roomId,
-		userPreferences,
+		userInfo,
 		assets,
 		onEditorMount: useCallback(
 			(editor: Editor) => {

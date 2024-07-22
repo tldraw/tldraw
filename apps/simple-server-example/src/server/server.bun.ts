@@ -5,18 +5,29 @@ import { makeOrLoadRoom } from './rooms'
 import { unfurl } from './unfurl'
 const PORT = 5858
 
+// For this example we use Bun.serve and a basic router to handle requests
+// To keep things simple we're skipping normal production concerns like rate limiting and input validation.
+
 const { corsify, preflight } = cors({ origin: '*' })
 
 const router: RouterType<IRequest, any, any> = Router()
 	.all('*', preflight)
-	// sync
+
+	// This is the main entrypoint for the multiplayer sync
 	.get('/connect/:roomId', async (req) => {
+		// The roomId comes from the URL pathname
 		const roomId = req.params.roomId
-		const sessionKey = req.query.sessionKey
-		server.upgrade(req, { data: { roomId, sessionKey } })
+		// The sessionId is passed from the client as a query param,
+		// you need to extract it and pass it to the room.
+		const sessionId = req.query.sessionId
+		// Now we pass the params to the upgrade function so that
+		// when the socket connects, it can be associated with the correct room
+		// and session.
+		server.upgrade(req, { data: { roomId, sessionId } })
 		return new Response(null, { status: 101 })
 	})
-	// assets
+
+	// To enable blob storage for assets, we add a simple endpoint supporting PUT and GET requests
 	.put('/uploads/:id', async (req) => {
 		const id = (req.params as any).id as string
 		await storeAsset(id, req.raw)
@@ -26,19 +37,17 @@ const router: RouterType<IRequest, any, any> = Router()
 		const id = (req.params as any).id as string
 		return new Response(await loadAsset(id))
 	})
-	// bookmarks
+
+	// To enable unfurling of bookmarks, we add a simple endpoint that takes a URL query param
 	.get('/unfurl', async (req) => {
 		const url = (req.query as any).url as string
-		if (typeof url !== 'string') {
-			return new Response('url must be a string', { status: 400 })
-		}
 		return json(await unfurl(url))
 	})
 	.all('*', () => {
 		new Response('Not found', { status: 404 })
 	})
 
-const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionKey: string; roomId: string }>({
+const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionId: string; roomId: string }>({
 	port: PORT,
 	fetch(req) {
 		try {
@@ -51,25 +60,30 @@ const server = Bun.serve<{ room?: TLSocketRoom<any, void>; sessionKey: string; r
 		}
 	},
 	websocket: {
-		async open(ws) {
-			const { sessionKey, roomId } = ws.data
+		async open(socket) {
+			// get the params extracted from the URL in the GET /connect/:roomId handler above
+			const { sessionId, roomId } = socket.data
+
+			// Here we make or get an existing instance of TLSocketRoom for the given roomId
 			const room = await makeOrLoadRoom(roomId)
-			room.handleSocketConnect(sessionKey, ws)
-			ws.data.room = room
+			// and finally connect the socket to the room
+			room.handleSocketConnect({ sessionId, socket })
+			// store the room on the socket so we can access it easily later
+			socket.data.room = room
 		},
 		async message(ws, message) {
-			if (!ws.data.room) {
-				return
-			}
-			const sessionKey = (ws.data as any).sessionKey as string
-			ws.data.room.handleSocketMessage(sessionKey, message)
+			// pass the message along to the room
+			ws.data.room?.handleSocketMessage(ws.data.sessionId, message)
 		},
 		drain(ws) {
 			// If the socket was was overloaded with backpressure, let's just close it
 			// and let the client reconnect and send all the data again.
 			ws.close()
 		},
-		// no need to implement close, the room will detect it via heartbeat
+		close(ws) {
+			// let the room know the socket has closed
+			ws.data.room?.handleSocketClose(ws.data.sessionId)
+		},
 	},
 })
 
