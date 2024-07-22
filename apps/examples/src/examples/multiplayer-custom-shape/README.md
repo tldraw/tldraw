@@ -1,7 +1,7 @@
 ---
-title: Multiplayer demo with custom shape
+title: With custom shape
 component: ./MultiplayerDemoExample.tsx
-category: basic
+category: collaboration
 priority: 3
 keywords: [basic, intro, simple, quick, start, multiplayer, sync, collaboration, custom shape]
 multiplayer: true

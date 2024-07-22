@@ -1,5 +1,5 @@
 ---
-title: Multiplayer with tlsync
+title: Basic multiplayer
 component: ./MultiplayerDemoExample.tsx
 category: collaboration
 priority: 1
@@ -10,4 +10,5 @@ multiplayer: true
 ---
 
 The `useSyncDemo` hook can be used to quickly prototype multiplayer experiences in tldraw
-using a demo backend that we host. Data is wiped after one day.
+using a demo backend that we host. Data is wiped after one day. When you're ready to go to
+production, [host your own backend](/docs/sync).
