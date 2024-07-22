@@ -10,7 +10,7 @@ import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
 
 /** @internal */
-export const WATERMARK_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermark/watermark-desktop.svg`
+export const WATERMARK_REMOTE_SRC = `url('${getDefaultCdnBaseUrl()}/watermark/watermark-desktop.svg') center 100% / 100% no-repeat`
 export const WATERMARK_LOCAL_SRC = `url('data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}') center 100% / 100% no-repeat`
 
 /** @internal */
