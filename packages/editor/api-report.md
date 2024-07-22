@@ -1123,7 +1123,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): this;
+    // @deprecated
     mark(markId?: string): this;
+    markHistoryStoppingPoint(name?: string): string;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
@@ -1574,8 +1576,12 @@ export class HistoryManager<R extends UnknownRecord> {
     getNumUndos(): number;
     // @internal (undocumented)
     _isInBatch: boolean;
-    // (undocumented)
-    mark: (id?: string) => string;
+    // @deprecated (undocumented)
+    mark: (arg?: {
+        name?: string;
+    } | string) => string;
+    // @internal (undocumented)
+    _mark(id: string): void;
     // (undocumented)
     redo: () => this;
     // (undocumented)

@@ -289,12 +289,25 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
-	mark = (id = uniqueId()) => {
+	/** @internal */
+	_mark(id: string) {
 		transact(() => {
 			this.flushPendingDiff()
 			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
 		})
+	}
 
+	/**
+	 * @deprecated Use {@link Editor#markHistoryStoppingPoint} instead.
+	 */
+	mark = (arg?: string | { name?: string }) => {
+		if (typeof arg === 'string') {
+			console.warn(
+				'editor.history.mark("myMarkId") is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint("myMarkName")` instead.'
+			)
+		}
+		const id = typeof arg === 'string' ? arg : arg?.name ? `${arg.name}/${uniqueId()}` : uniqueId()
+		this._mark(id)
 		return id
 	}
 

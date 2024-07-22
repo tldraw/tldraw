@@ -25,9 +25,7 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating:${id}`)
 
 			this.editor
 				.createShapes<TLBaseBoxShape>([
@@ -78,16 +76,13 @@ export class Pointing extends StateNode {
 			return
 		}
 
-		this.editor.mark(this.markId)
-
 		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBaseBoxShape['type']
 
 		const id = createShapeId()
 
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint(`creating.complete:${id}`)
 
-		// todo: add scale here when dynamic size is enabled
-
+		// todo: add scale here when dynamic size is enabled (is this still needed?)
 		this.editor.createShapes<TLBaseBoxShape>([
 			{
 				id,

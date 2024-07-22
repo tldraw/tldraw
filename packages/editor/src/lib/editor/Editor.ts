@@ -979,14 +979,45 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param markId - The mark's id, usually the reason for adding the mark.
 	 *
 	 * @public
+	 * @deprecated use {@link Editor.markHistoryStoppingPoint} instead
 	 */
 	mark(markId?: string): this {
+		console.warn('Editor.mark is deprecated. Use Editor.markHistoryStoppingPoint instead.')
+		// eslint-disable-next-line deprecation/deprecation
 		this.history.mark(markId)
 		return this
 	}
 
 	/**
-	 * Squash the history to the given mark id.
+	 * Create a new "mark", or stopping point, in the undo redo history. Creating a mark will clear
+	 * any redos. You typically want to do this just before a user interaction begins or is handled.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.markHistoryStoppingPoint('flip shapes')
+	 * editor.flipShapes(editor.getSelectedShapes())
+	 * ```
+	 * @example
+	 * ```ts
+	 * const markId = editor.markHistoryStoppingPoint('rotate shapes')
+	 * // if the use cancels the rotation, you can bail back to this mark
+	 * editor.bailToMark(markId)
+	 * ```
+	 *
+	 * @public
+	 * @param name - The name of the mark
+	 * @returns a unique id for the mark that can be used with `squashToMark` or `bailToMark`.
+	 */
+	markHistoryStoppingPoint(name?: string): string {
+		const id = `[${name ?? 'stop'}]_${uniqueId()}`
+		this.history._mark(id)
+		return id
+	}
+
+	/**
+	 * Coalesces all changes since the given mark into a single change, removing any intermediate marks.
+	 *
+	 * This is useful if you need to 'compress' the recent history to simplify the undo/redo experience of a complex interaction.
 	 *
 	 * @example
 	 * ```ts
@@ -1003,7 +1034,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Clear all marks in the undo stack back to the next mark.
+	 * Undo to the closest mark, but do not allow redoing the undone changes.
 	 *
 	 * @example
 	 * ```ts
@@ -1018,7 +1049,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Clear all marks in the undo stack back to the mark with the provided mark id.
+	 * Undo to the given mark, but do not allow redoing the undone changes.
 	 *
 	 * @example
 	 * ```ts
