@@ -26,7 +26,7 @@
 				"hero": null
 			},
 			{
-				"id": "annoucements",
+				"id": "announcements",
 				"title": "Announcements",
 				"description": "Announcements from the tldraw team.",
 				"groups": [],
