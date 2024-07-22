@@ -37,7 +37,6 @@ body:
     attributes:
       label: Where did this happen?
       options:
-        - ''
         - The developer package
         - The tldraw.com website
         - The makereal.tldraw.com website
