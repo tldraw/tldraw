@@ -25,6 +25,7 @@ import {
 
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { interpolateDiscrete } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
 import { getDrawLinePathData } from './line-helpers'
@@ -237,6 +238,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 		return {
 			...endShape.props,
+			color: interpolateDiscrete(startShape, endShape, 'color', progress),
+			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),
+			size: interpolateDiscrete(startShape, endShape, 'size', progress),
+			spline: interpolateDiscrete(startShape, endShape, 'spline', progress),
 			points: Object.fromEntries(
 				pointsToUseStart.map((point, i) => {
 					const endPoint = pointsToUseEnd[i]
@@ -250,6 +255,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					]
 				})
 			),
+			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
 		}
 	}
 }

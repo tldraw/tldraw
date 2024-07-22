@@ -351,9 +351,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		): TLImageShapeProps['crop'] {
 			if (startShape.props.crop === null && endShape.props.crop === null) return null
 
-			const startTL = startShape.props.crop?.topLeft || { x: 1, y: 1 }
+			const startTL = startShape.props.crop?.topLeft || { x: 0, y: 0 }
 			const startBR = startShape.props.crop?.bottomRight || { x: 1, y: 1 }
-			const endTL = endShape.props.crop?.topLeft || { x: 1, y: 1 }
+			const endTL = endShape.props.crop?.topLeft || { x: 0, y: 0 }
 			const endBR = endShape.props.crop?.bottomRight || { x: 1, y: 1 }
 
 			return {
@@ -364,10 +364,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		return {
 			...endShape.props,
-			assetId: interpolateDiscrete(startShape, endShape, 'assetId', t),
-			url: interpolateDiscrete(startShape, endShape, 'url', t),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
+			playing: interpolateDiscrete(startShape, endShape, 'playing', t),
+			url: interpolateDiscrete(startShape, endShape, 'url', t),
+			assetId: interpolateDiscrete(startShape, endShape, 'assetId', t),
 			crop: interpolateCrop(startShape, endShape),
 			flipX: interpolateDiscrete(startShape, endShape, 'flipX', t),
 			flipY: interpolateDiscrete(startShape, endShape, 'flipY', t),
