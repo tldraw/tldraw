@@ -73,6 +73,8 @@ export const Watermark = React.memo(function Watermark({
 	const [src, setSrc] = useState<string | null>(null)
 	const shouldUseLocal = forceLocal || licenseManager.isDevelopment
 	useEffect(() => {
+		if (!showWatermark) return
+
 		let isCancelled = false
 
 		;(async () => {
@@ -84,7 +86,7 @@ export const Watermark = React.memo(function Watermark({
 		return () => {
 			isCancelled = true
 		}
-	}, [shouldUseLocal])
+	}, [shouldUseLocal, showWatermark])
 
 	const ref = useRef<HTMLAnchorElement>(null)
 
