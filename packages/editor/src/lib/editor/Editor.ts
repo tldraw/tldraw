@@ -7137,6 +7137,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					...end,
 					x: start.x + (end.x - start.x) * t,
 					y: start.y + (end.y - start.y) * t,
+					opacity: start.opacity + (end.opacity - start.opacity) * t,
 					rotation: start.rotation + (end.rotation - start.rotation) * t,
 					props: this.getShapeUtil(end).getInterpolatedProps?.(start, end, t) ?? end.props,
 				})
