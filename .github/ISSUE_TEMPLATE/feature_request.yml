@@ -18,7 +18,7 @@ body:
   - type: dropdown
     id: product
     attributes:
-      label: Where did this happen?
+      label: Where would you like this feature?
       options:
         - The tldraw.com website
         - The developer package
