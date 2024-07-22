@@ -79,7 +79,10 @@ Make sure there's only ever one `TLSocketRoom` for each room in your app. If the
 more than one, users won't see each other and will overwrite others' changes. We use [Durable
 Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on tldraw.com.
 
-If you don't want to our Cloudflare template, we also provide a [simple Node/Bun server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example). This is not production ready, but you can use it as a reference implementation to build it into your own existing backend.
+If you don't want to our Cloudflare template, we also provide a [simple Node/Bun server
+example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example). This is not
+production ready, but you can use it as a reference implementation to build it into your own
+existing backend.
 
 Read the reference docs for [`TLSocketRoom`](?) for more.
 
@@ -88,24 +91,55 @@ Read the reference docs for [`TLSocketRoom`](?) for more.
 As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and
 retrieve large binary assets like images or videos.
 
-TODO: implementing a server, implementing TLAssetStore, how much should live here vs in assets?
+You'll need to make sure your backend can handle asset uploads & downloads, then implement
+[`TLAssetStore`](?) to connect it to tldraw.
 
 - Read about [how assets work in tldraw](/docs/assets).
 - Read the [`TLAssetStore`](?) reference docs.
 
 ### The sync client
 
-- Bring it all together: `useSync` pointing to the new server and using the `TLAssetStore`
-- User preferences & presence
-- Default UX: offline indicator, people menu, cursors & cursor chat. point to overriding
+The [`useSync`](?) hook connects your backend to the tldraw editor. Call the hook to create a store,
+then pass it in to the `<Tldraw />` component:
+
+```tsx
+function MyApp() {
+	const store = useSync({
+		uri: 'https://myapp.com/tlsocketroom/my-room-id',
+		assets: myAssetStore,
+	})
+
+	return <Tldraw store={store} />
+}
+
+const myAssetStore: TLAssetStore {
+	upload(file, asset) {
+		return uploadFileAndReturnUrl(file)
+	},
+	resolve(asset) {
+		return asset.props.src
+	},
+}
+```
+
+The sync client automatically enables some default collaborative UX which you can customize using
+editor [component overrides](/reference/tldraw/TLComponents):
+
+- Collaborator cursors: [`TLComponents#CollaboratorCursor`](?)
+- Cursor chat: [`TLComponents#CursorChatBubble`](?)
+- Offline indicator: [`TLComponents#TopPanel`](?)
+- Collaborator list: [`TLComponents#SharePanel`](?)
 
 ## Other sync systems
 
-While tldraw multiplayer is the easiest way to add sync capabilities to your tldraw canvas, there are plenty of other sync systems that you may already be using. Here's some examples of how to integrate them.
+While tldraw multiplayer is the easiest way to add sync capabilities to your tldraw canvas, there
+are plenty of other sync systems that you may already be using. Here's some examples of how to
+integrate them.
 
 ### Yjs
 
-The CRDT library Yjs can be used as a sync engine for tldraw, as shown in the [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example).
+The CRDT library Yjs can be used as a sync engine for tldraw, as shown in the [tldraw-yjs
+example](https://github.com/tldraw/tldraw-yjs-example).
 
 TODO
 
