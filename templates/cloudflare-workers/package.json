@@ -19,14 +19,14 @@
 	},
 	"dependencies": {
 		"@cloudflare/types": "^6.29.0",
-		"@tldraw/sync": "2.4.0-canary.48d1f4e0d725",
-		"@tldraw/sync-core": "2.4.0-canary.48d1f4e0d725",
-		"@tldraw/tlschema": "2.4.0-canary.48d1f4e0d725",
+		"@tldraw/sync": "latest",
+		"@tldraw/sync-core": "latest",
+		"@tldraw/tlschema": "latest",
 		"itty-router": "^5.0.17",
 		"lodash.throttle": "^4.1.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"tldraw": "2.4.0-canary.48d1f4e0d725"
+		"tldraw": "latest"
 	},
 	"devDependencies": {
 		"@types/lodash.throttle": "^4",

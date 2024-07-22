@@ -87,7 +87,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	/**
 	 * Call this when a client establishes a new socket connection.
 	 *
-	 * - `sessionId` is a unique ID for a browser tab. This is passed as a query param by the useMultiplayerSync hook.
+	 * - `sessionId` is a unique ID for a browser tab. This is passed as a query param by the useSync hook.
 	 * - `socket` is a WebSocket-like object that the server uses to communicate with the client.
 	 * - `meta` is an optional object that can be used to store additional information about the session.
 	 *
