@@ -20,8 +20,9 @@ body:
     attributes:
       label: Where would you like this feature?
       options:
-        - The tldraw.com website
         - The developer package
+        - The tldraw.com website
+        - The makereal.tldraw.com website
     validations:
       required: true
   - type: input
