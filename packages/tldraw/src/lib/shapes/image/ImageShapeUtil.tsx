@@ -142,11 +142,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						width: shape.props.w,
 						height: shape.props.h,
 						color: 'var(--color-text-3)',
-						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
-						border: asset ? 'none' : '1px solid var(--color-low-border)',
+						backgroundColor: 'var(--color-low)',
+						border: '1px solid var(--color-low-border)',
 					}}
 				>
-					<div className="tl-image-container" style={containerStyle}>
+					<div
+						className={classNames('tl-image-container', asset && 'tl-image-container-loading')}
+						style={containerStyle}
+					>
 						{asset ? null : <BrokenAssetIcon />}
 					</div>
 					{'url' in shape.props && shape.props.url && (
@@ -178,13 +181,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					id={shape.id}
 					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
 				>
-					<div
-						className={classNames(
-							'tl-image-container',
-							loaded?.isPlaceholder && 'tl-image-container-loading'
-						)}
-						style={containerStyle}
-					>
+					<div className={classNames('tl-image-container')} style={containerStyle}>
 						{/* We have two images: the currently loaded image, and the next image that
 						we're waiting to load. we keep the loaded image mounted whilst we're waiting
 						for the next one by storing the loaded URL in state. We use `key` props with

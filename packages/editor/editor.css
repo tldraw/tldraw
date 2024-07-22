@@ -628,18 +628,8 @@ input,
 		color-mix(in srgb, transparent 100%, var(--color-background)) 70%
 	);
 
-	animation: shimmer 1s linear infinite;
-
-	opacity: 0;
-	display: none;
-	transition:
-		opacity 0.5s,
-		display 0.5s allow-discrete;
-}
-
-.tl-image-container.tl-image-container-loading::after {
-	opacity: 0.3;
-	display: block;
+	opacity: 0.42;
+	animation: shimmer 1.8s linear infinite;
 }
 
 @keyframes shimmer {
