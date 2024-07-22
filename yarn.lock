@@ -6144,6 +6144,7 @@ __metadata:
     react-router-dom: "npm:^6.24.1"
     tldraw: "workspace:*"
     typescript: "npm:^5.3.3"
+    unfurl.js: "npm:^6.4.0"
     vite: "npm:^5.3.3"
     ws: "npm:^8.16.0"
   languageName: unknown
@@ -13505,7 +13506,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"he@npm:1.2.0":
+"he@npm:1.2.0, he@npm:^1.2.0":
   version: 1.2.0
   resolution: "he@npm:1.2.0"
   bin:
@@ -22538,6 +22539,19 @@ __metadata:
     pathe: "npm:^1.1.2"
     ufo: "npm:^1.5.3"
   checksum: 6799faa50bc396828b3968a583d9e414771113a0bbfbce33e86c6e9ead4835825d97c9ea54681eec6d68d89ef1f88b05b8c41960538d10d0b614696b7e6be377
+  languageName: node
+  linkType: hard
+
+"unfurl.js@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "unfurl.js@npm:6.4.0"
+  dependencies:
+    debug: "npm:^3.2.7"
+    he: "npm:^1.2.0"
+    htmlparser2: "npm:^8.0.1"
+    iconv-lite: "npm:^0.4.24"
+    node-fetch: "npm:^2.6.7"
+  checksum: 177c585175e4eb2443997df844b5e6df805660d7c19eee2b12dfe590f5241feb925d826664bf1456a692b58d3addc7aace7d2df3f8c6b2a4c9482c54d174c527
   languageName: node
   linkType: hard
 
