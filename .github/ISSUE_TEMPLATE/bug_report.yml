@@ -39,8 +39,8 @@ body:
       options:
         - The tldraw.com website
         - The developer package
-      validations:
-        required: true
+    validations:
+      required: true
   - type: input
     id: contact
     attributes:
