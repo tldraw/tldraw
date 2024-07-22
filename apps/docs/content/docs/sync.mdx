@@ -61,7 +61,7 @@ tldraw:
 
 1. The sync server, which serves the room over [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
 2. Somewhere to large assets that are too big to send over websockets, like images and videos.
-3. The sync client, which connects to the server with the [`useMultiplayerSync`](?) hook.
+3. The sync client, which connects to the server with the [`useSync`](?) hook.
 
 We recommend starting from our [Cloudflare Workers
 template](https://github.com/tldraw/cloudflare-workers-template). This is a minimal setup of the
@@ -95,7 +95,7 @@ TODO: implementing a server, implementing TLAssetStore, how much should live her
 
 ### The sync client
 
-- Bring it all together: `useMultiplayerSync` pointing to the new server and using the `TLAssetStore`
+- Bring it all together: `useSync` pointing to the new server and using the `TLAssetStore`
 - User preferences & presence
 - Default UX: offline indicator, people menu, cursors & cursor chat. point to overriding
 

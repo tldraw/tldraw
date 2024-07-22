@@ -13,11 +13,7 @@ import {
 	uniqueId,
 	useShallowObjectIdentity,
 } from 'tldraw'
-import {
-	RemoteTLStoreWithStatus,
-	TLMultiplayerUserInfo,
-	useMultiplayerSync,
-} from './useMultiplayerSync'
+import { RemoteTLStoreWithStatus, TLMultiplayerUserInfo, useSync } from './useSync'
 
 /** @public */
 export interface useSyncDemoOptions {
@@ -101,7 +97,7 @@ export function useSyncDemo(
 		}
 	}, [schemaOpts])
 
-	return useMultiplayerSync({
+	return useSync({
 		uri: `${host}/connect/${encodeURIComponent(roomId)}`,
 		roomId,
 		userInfo,

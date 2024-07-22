@@ -2,9 +2,9 @@
 export * from '@tldraw/sync-core'
 
 export {
-	useMultiplayerSync,
+	useSync,
 	type RemoteTLStoreWithStatus,
 	type TLMultiplayerUserInfo,
-	type UseMultiplayerSyncOptions,
-} from './useMultiplayerSync'
-export { useSyncDemo, type useSyncDemoOptions } from './useMutltiplayerDemo'
+	type useSyncOptions,
+} from './useSync'
+export { useSyncDemo, type useSyncDemoOptions } from './useSyncDemo'
