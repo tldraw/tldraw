@@ -1,3 +1,16 @@
+# v2.4.0 (Mon Jul 22 2024)
+
+#### 🏠 Internal
+
+- Initial bemo worker setup [#4017](https://github.com/tldraw/tldraw/pull/4017) ([@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.3.0 (Tue Jun 25 2024)
 
 #### 📚 SDK Changes
