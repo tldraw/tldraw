@@ -68,11 +68,11 @@ export class ScribbleManager {
 	 * @param point - The point to add.
 	 * @public
 	 */
-	addPoint = (id: ScribbleItem['id'], x: number, y: number) => {
+	addPoint = (id: ScribbleItem['id'], x: number, y: number, z = 0.5) => {
 		const item = this.scribbleItems.get(id)
 		if (!item) throw Error(`Scribble with id ${id} not found`)
 		const { prev } = item
-		const point = { x, y, z: 0.5 }
+		const point = { x, y, z }
 		if (!prev || Vec.Dist(prev, point) >= 1) {
 			item.next = point
 		}
