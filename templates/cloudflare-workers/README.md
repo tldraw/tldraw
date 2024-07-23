@@ -1,15 +1,17 @@
-# tldraw on cloudflare durable objects
+# tldraw sync server
 
-This repo contains a complete example of tldraw sync ready to deploy on cloudflare.
+This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/sync).
 
-- The client itself can be deployed wherever you like.
-- The server is on [Cloudflare Workers](https://developers.cloudflare.com/workers/).
+- Your client-side tldraw-based app can be served from anywhere you want.
+- This backend uses [Cloudflare Workers](https://developers.cloudflare.com/workers/), and will need
+  to be deployed to your own Cloudflare account.
 - Each whiteboard is synced via
   [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) to a [Cloudflare
   Durable Object](https://developers.cloudflare.com/durable-objects/).
 - Whiteboards and any uploaded images/videos are stored in a [Cloudflare
   R2](https://developers.cloudflare.com/r2/) bucket.
-- URL metadata unfurling for bookmarks shapes is also supported.
+- Although unreliated to tldraw sync, this server also includes a component to fetch link previews
+  for URLs added to the canvas.
 
 This is a minimal setup of the same system that powers multiplayer collaboration for hundreds of
 thousands of rooms & users on www.tldraw.com. Because durable objects effectively create a mini
@@ -72,3 +74,10 @@ Finally, deploy your client HTML & JavaScript. Create a production build with
 
 When you visit your published client, it should connect to your cloudflare workers domain and sync
 your document across devices.
+
+## License
+
+Whilst the code in this template is available under the MIT license, `tldraw` and `@tldraw/sync` are
+under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) which does not
+allow their use for commercial purposes. To purchase an alternative license for commercial use,
+contact [sales@tldraw.com](mailto:sales@tldraw.com).

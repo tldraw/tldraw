@@ -34,7 +34,7 @@ const getExamplesForCategory = (category: Category) =>
 
 const categories: Record<Category, string> = {
 	basic: 'Getting started',
-	collaboration: 'Collaboration',
+	collaboration: 'Sync',
 	ui: 'UI & theming',
 	'shapes/tools': 'Shapes & tools',
 	'data/assets': 'Data & assets',

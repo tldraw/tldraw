@@ -435,7 +435,6 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-
 export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
 // @public (undocumented)
@@ -1547,7 +1546,7 @@ export interface TLArrowPoint {
     point: VecLike;
 }
 
-// @public (undocumented)
+// @public
 export interface TLComponents extends TLEditorComponents, TLUiComponents {
 }
 

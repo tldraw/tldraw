@@ -1,5 +1,5 @@
 ---
-title: Sync with custom shape
+title: …with a custom shape
 component: ./SyncDemoShapeExample.tsx
 category: collaboration
 priority: 3
@@ -9,4 +9,4 @@ multiplayer: true
 
 ---
 
-The `useSyncDemo` hook can be used to quickly prototype multiplayer experiences in tldraw using a demo backend that we host. Data is wiped after one day.
+This example shows a custom shape in combination with tldraw sync.

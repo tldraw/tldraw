@@ -12,7 +12,7 @@ You can use the tldraw SDK to craft infinite canvas experiences for the web. It'
 
 By the end of this guide you will have made something that looks like this:
 
-<Embed className="article__embed--quickstart" src="https://examples.tldraw.com/develop" />
+<Embed className="article__embed--quickstart" src="https://examples.tldraw.com/sync-demo" />
 
 ### 1. Installation
 
@@ -23,7 +23,7 @@ By the end of this guide you will have made something that looks like this:
 npm install tldraw
 ```
 
-### 2. Import Styles
+### 2. Import styles
 
 To import fonts and CSS for tldraw:
 
@@ -39,7 +39,7 @@ body {
 }
 ```
 
-### 3. Render Tldraw Component
+### 3. Render tldraw component
 
 To render the Tldraw component
 
@@ -62,14 +62,47 @@ export default function App() {
 }
 ```
 
+### 4. Sync betweens users
+
+At this point, you have a complete working single-user whiteboard. To add support for multiple users
+collaborating in realtime, you can use the **tldraw sync** extension library.
+
+```bash
+npm install @tldraw/sync
+```
+
+Set up your component with our demo server:
+
+- Import the `useSyncDemo` hook from the `@tldraw/sync` package
+- Add the hook to your component with a unique `roomId`
+- Pass the `store` returned from the hook into your `<Tldraw />` component
+
+<FocusLines lines={[2, 6, 10]}>
+
+```javascript
+import { Tldraw } from 'tldraw'
+import { useSyncDemo } from '@tldraw/sync'
+import './index.css'
+
+export default function App() {
+	const store = useSyncDemo({ roomId: 'myapp-abc123' })
+
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw store={store} />
+		</div>
+	)
+}
+```
+
+</FocusLines>
+
 ## Next Steps
 
-Now that you have your canvas working, you may be wondering: what next?
+Now that you have your canvas working, you can:
 
-You can try:
-
-- Giving the editor a makeover by [customizing the UI](/docs/user-interface)
-- Adding your own [shapes](/docs/shapes) and [tools](/docs/tools)
-- Providing collaboration using [multiplayer](https://github.com/tldraw/tldraw-yjs-example)
+- [Customize the UI](/docs/user-interface) of the editor
+- Add your own [shapes](/docs/shapes) and [tools](/docs/tools)
+- Replace our sync demo server with a [more robust sync backend](/docs/sync)
 
 We provide the above examples and more in our [examples section](/examples). Go build something creative and please do share it with us in our [#show-and-tell](https://discord.com/invite/SBBEVCA4PG) channel on Discord!
