@@ -428,4 +428,44 @@ exports.rules = {
 		},
 		defaultOptions: [],
 	}),
+	'prefer-class-methods': ESLintUtils.RuleCreator.withoutDocs({
+		create(context) {
+			return {
+				ClassBody(node: TSESTree.ClassBody) {
+					node.body.forEach((member) => {
+						if (
+							member.type === 'PropertyDefinition' &&
+							member.value &&
+							member.value.type === 'ArrowFunctionExpression'
+						) {
+							context.report({
+								node: member,
+								messageId: 'preferMethod',
+								fix(fixer) {
+									const sourceCode = context.getSourceCode()
+									const propertyName = sourceCode.getText(member.key)
+									if (!member.value || member.value.type !== 'ArrowFunctionExpression') return null
+
+									const functionBody = member.value.body
+										? sourceCode.getText(member.value.body)
+										: '{}'
+									const params = member.value.params.map((p) => sourceCode.getText(p)).join(', ')
+									return fixer.replaceText(member, `${propertyName}(${params}) ${functionBody}`)
+								},
+							})
+						}
+					})
+				},
+			}
+		},
+		meta: {
+			messages: {
+				preferMethod: 'Prefer using a method instead of an arrow function property.',
+			},
+			type: 'problem',
+			schema: [],
+			fixable: 'code',
+		},
+		defaultOptions: [],
+	}),
 }
