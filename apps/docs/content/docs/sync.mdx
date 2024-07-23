@@ -79,9 +79,11 @@ The [`useSync`](?) hook connects your backend to the tldraw editor. Call the hoo
 then pass it in to the `<Tldraw />` component:
 
 ```tsx
+import {useSync} from '@tldraw/sync'
+
 function MyApp() {
 	const store = useSync({
-		uri: 'https://myapp.com/tlsocketroom/my-room-id',
+		uri: 'https://myapp.com/<PATH TO YOUR ROOM>',
 		assets: myAssetStore,
 	})
 
@@ -97,6 +99,10 @@ const myAssetStore: TLAssetStore {
 	},
 }
 ```
+
+You can see a complete example using the sync client in the
+[`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/App.tsx)
+template.
 
 The sync client automatically enables some default collaborative UX which you can customize using
 editor [component overrides](/reference/tldraw/TLComponents):
@@ -196,3 +202,6 @@ You'll need to make sure your backend can handle asset uploads & downloads, then
 
 - Read about [how assets work in tldraw](/docs/assets).
 - Read the [`TLAssetStore`](?) reference docs.
+- See a complete example of an asset store in the
+  [`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/multiplayerAssetStore.tsx)
+  template.
