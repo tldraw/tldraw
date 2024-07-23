@@ -17,7 +17,7 @@ export const BlogPostHeader: React.FC<{ article: Article }> = async ({ article }
 			<p className="text-sm mt-4 mb-8">
 				{format(new Date(article.date ?? new Date()), 'MMMM dd, yyyy')}
 			</p>
-			{article.hero && <Image src={article.hero} alt={article.title} />}
+			{article.hero && <Image src={article.hero} alt={article.title} width="100%" />}
 		</section>
 	)
 }
