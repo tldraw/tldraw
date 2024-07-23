@@ -13,7 +13,7 @@ export const ShareButton: React.FC<{ url: string }> = ({ url }) => {
 				setCopied(true)
 				setTimeout(() => setCopied(false), 1500)
 			}}
-			className="text-xs flex items-center gap-1.5 text-blue-500 hover:text-blue-600"
+			className="text-xs flex items-center gap-1.5 text-blue-500 hover:text-blue-600 mb-12"
 		>
 			<ShareIcon className="h-3.5" />
 			<span>{copied ? 'Link copied to clipboard' : 'Share this article'}</span>

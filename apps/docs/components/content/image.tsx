@@ -5,6 +5,9 @@ export const Image = (props: any) => {
 				<img alt={props.title} {...props} className="rounded-xl !my-0 shadow" />
 			</div>
 			{props.caption && <span className="block text-xs text-zinc-500 mt-3">{props.caption}</span>}
+			{!props.caption && props.title && (
+				<span className="block text-xs text-zinc-500 mt-3">{props.title}</span>
+			)}
 		</div>
 	)
 }

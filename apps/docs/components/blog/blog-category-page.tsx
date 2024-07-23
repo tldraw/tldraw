@@ -24,7 +24,7 @@ export const BlogCategoryPage: React.FC<{
 				</section>
 				<section className="space-y-12">
 					{articles
-						.sort((a, b) => new Date(a.date ?? '').getTime() - new Date(b.date ?? '').getTime())
+						.sort((a, b) => new Date(b.date ?? '').getTime() - new Date(a.date ?? '').getTime())
 						.map((article, index) => (
 							<BlogPostPreview key={index} article={article} />
 						))}
