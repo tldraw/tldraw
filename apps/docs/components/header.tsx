@@ -55,6 +55,7 @@ export const Header = () => {
 	const pathname = usePathname()
 	const { scrollY } = useScroll()
 	const navOpacity = useTransform(scrollY, [0, 32], [1, 0])
+	const opacityEffect = !pathname.startsWith('/blog')
 
 	return (
 		<header className="fixed top-0 w-full bg-white/90 backdrop-blur z-10">
@@ -69,7 +70,10 @@ export const Header = () => {
 						</li>
 					))}
 				</ul>
-				<motion.ul style={{ opacity: navOpacity }} className="hidden md:flex gap-8">
+				<motion.ul
+					style={{ opacity: opacityEffect ? navOpacity : 1 }}
+					className="hidden md:flex gap-8"
+				>
 					{mainLinks.map((item, index) => (
 						<li key={index}>
 							<NavigationLink {...item} active={item.active(pathname)} />
