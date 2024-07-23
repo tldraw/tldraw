@@ -130,19 +130,10 @@ editor [component overrides](/reference/tldraw/TLComponents):
 - Offline indicator: [`TLComponents#TopPanel`](?)
 - Collaborator list: [`TLComponents#SharePanel`](?)
 
-## Other sync systems
+## Integrating other sync systems
 
-While tldraw multiplayer is the easiest way to add sync capabilities to your tldraw canvas, there
-are plenty of other sync systems that you may already be using. Here's some examples of how to
-integrate them.
+While tldraw multiplayer is the easiest way to add sync capabilities to your tldraw canvas, you can
+implement your own or use another off-the-shelf system.
 
-### Yjs
-
-The CRDT library Yjs can be used as a sync engine for tldraw, as shown in the [tldraw-yjs
-example](https://github.com/tldraw/tldraw-yjs-example).
-
-TODO
-
-- Partykit
-- Liveblocks
-- Automerge
+One example is this [Yjs integration](https://github.com/tldraw/tldraw-yjs-example). Refer to the
+[Persistence docs](/docs/persistence) for how to hook it together with your sync layer of choice.
