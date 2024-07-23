@@ -12,17 +12,21 @@ describe('ScribbleManager', () => {
 
 	it('add a point with a default z value', () => {
 		const { id } = scribbleManager.addScribble({})
-		scribbleManager.addPoint(id, 0, 0)
+		scribbleManager.addPoint(id, 5, 10)
 		scribbleManager.tick(0)
 
-		expect(scribbleManager.scribbleItems.get(id)!.scribble.points).toEqual([{ x: 0, y: 0, z: 0.5 }])
+		expect(scribbleManager.scribbleItems.get(id)!.scribble.points).toEqual([
+			{ x: 5, y: 10, z: 0.5 },
+		])
 	})
 
 	it('add a point with a custom z value', () => {
 		const { id } = scribbleManager.addScribble({})
-		scribbleManager.addPoint(id, 0, 0, 0.7)
+		scribbleManager.addPoint(id, 5, 10, 0.7)
 		scribbleManager.tick(0)
 
-		expect(scribbleManager.scribbleItems.get(id)!.scribble.points).toEqual([{ x: 0, y: 0, z: 0.7 }])
+		expect(scribbleManager.scribbleItems.get(id)!.scribble.points).toEqual([
+			{ x: 5, y: 10, z: 0.7 },
+		])
 	})
 })
