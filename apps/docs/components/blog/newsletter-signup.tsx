@@ -20,7 +20,7 @@ export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size 
 			className={cn(
 				'bg-zinc-50',
 				size === 'small'
-					? 'mt-12 rounded-lg text-xs -ml-4 p-4 pb-1'
+					? 'mt-12 rounded-lg text-xs xl:-ml-4 p-4 pb-1'
 					: 'rounded-xl p-8 sm:p-12 text-center'
 			)}
 		>

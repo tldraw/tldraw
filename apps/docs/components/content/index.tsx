@@ -37,6 +37,7 @@ export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type })
 					Embed,
 					pre: Pre,
 					Image,
+					img: Image,
 					ApiHeading,
 					CodeLinkProvider,
 					ParametersTable,

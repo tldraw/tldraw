@@ -4,6 +4,7 @@ import { BlogBreadcrumbs } from './blog-breadcrumbs'
 import { BlogMobileSidebar } from './blog-mobile-sidebar'
 import { BlogPostPreview } from './blog-post-preview'
 import { BlogSidebar } from './blog-sidebar'
+import { NewsletterSignup } from './newsletter-signup'
 
 export const BlogCategoryPage: React.FC<{
 	title: string
@@ -28,6 +29,9 @@ export const BlogCategoryPage: React.FC<{
 						.map((article, index) => (
 							<BlogPostPreview key={index} article={article} />
 						))}
+				</section>
+				<section className="mt-16 py-16 border-t border-zinc-100">
+					<NewsletterSignup />
 				</section>
 			</main>
 		</div>
