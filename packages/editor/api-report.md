@@ -1998,7 +1998,7 @@ export interface ScribbleItem {
 // @public (undocumented)
 export class ScribbleManager {
     constructor(editor: Editor);
-    addPoint: (id: ScribbleItem['id'], x: number, y: number) => ScribbleItem;
+    addPoint: (id: ScribbleItem['id'], x: number, y: number, z?: number) => ScribbleItem;
     // (undocumented)
     addScribble: (scribble: Partial<TLScribble>, id?: string) => ScribbleItem;
     // (undocumented)
