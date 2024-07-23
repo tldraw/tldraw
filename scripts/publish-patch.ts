@@ -10,7 +10,7 @@ import { nicelog } from './lib/nicelog'
 import {
 	getLatestVersion,
 	publish,
-	publishProductionDocsAndExamples,
+	publishProductionDocsAndExamplesAndBemo,
 	setAllVersions,
 } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
@@ -46,7 +46,7 @@ async function main() {
 	}
 
 	if (isLatestVersion) {
-		await publishProductionDocsAndExamples()
+		await publishProductionDocsAndExamplesAndBemo()
 	}
 
 	// Skip releasing a new version if the package contents are identical.

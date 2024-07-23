@@ -1,11 +1,14 @@
 name: Publish templates
 
 on:
+  workflow_dispatch:
   workflow_call:
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY:
         required: true
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY:
+        required: true
+      CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY:
         required: true
 
 env:
