@@ -9008,9 +9008,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If we're in pen mode and the input is not a pen type, then stop here
 						if (isPenMode && !isPen) return
 
-						// Close any open menus
-						this.clearOpenMenus()
-
 						if (!this.inputs.isPanning) {
 							// Start a long press timeout
 							this._longPressTimeout = this.timers.setTimeout(() => {
@@ -9235,6 +9232,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// active states, starting at the root.
 		this.root.handleEvent(info)
 		this.emit('event', info)
+
+		// close open menus at the very end on pointer down! after everything else! συντελείας τοῦ κώδικα!!
+		if (info.type === 'pointer' && info.name === 'pointer_down') {
+			this.clearOpenMenus()
+		}
 
 		return this
 	}
