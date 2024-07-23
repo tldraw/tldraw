@@ -79,6 +79,8 @@ The [`useSync`](?) hook connects your backend to the tldraw editor. Call the hoo
 then pass it in to the `<Tldraw />` component:
 
 ```tsx
+import {useSync} from '@tldraw/sync'
+
 function MyApp() {
 	const store = useSync({
 		uri: 'https://myapp.com/<PATH TO YOUR ROOM>',
