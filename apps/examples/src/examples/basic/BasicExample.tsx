@@ -4,7 +4,12 @@ import 'tldraw/tldraw.css'
 export default function BasicExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" />
+			<Tldraw
+				onMount={(editor) => {
+					;(window as any).editor = editor
+				}}
+				persistenceKey="example"
+			/>
 		</div>
 	)
 }

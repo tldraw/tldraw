@@ -14,6 +14,7 @@ import {
 	getPointOnCircle,
 	intersectCirclePolygon,
 	intersectLineSegmentPolygon,
+	lerp,
 } from '@tldraw/editor'
 import {
 	ARROW_LABEL_FONT_SIZES,
@@ -318,17 +319,31 @@ function getClampedPosition(
 		hasStartArrowhead || hasStartBinding ? range.start : 0,
 		hasEndArrowhead || hasEndBinding ? range.end : 1
 	)
-	let snapDistance = 0.02
-	const zoomLevel = editor.getZoomLevel()
-	// When the arrow is very long and the user is zoomed in very far,
-	//or if the arrow is extremely long, reduce the snap distance
-	if ((arrowLength > 2000 && zoomLevel > 3) || arrowLength > 2500) snapDistance = 0.01
-	// when the arrow is super short and the user is zoomed out, increase the snap distance
-	if (arrowLength < 100) snapDistance = 0.03
-	clampedPosition =
-		clampedPosition >= 0.5 - snapDistance && clampedPosition <= 0.5 + snapDistance
-			? 0.5
-			: clampedPosition
+	const minLength = 100
+	const maxLength = 1500
+	const minSnapDistance = 0.03
+	const maxSnapDistance = 0.005
+
+	let snapDistance = minSnapDistance
+	if (arrowLength > minLength) {
+		if (arrowLength < maxLength) {
+			snapDistance = lerp(
+				minSnapDistance,
+				maxSnapDistance,
+				(arrowLength - minLength) / (maxLength - minLength)
+			)
+		} else {
+			snapDistance = maxSnapDistance
+		}
+	}
+
+	const wasClamped = clampedPosition >= 0.5 - snapDistance && clampedPosition <= 0.5 + snapDistance
+
+	if (wasClamped) {
+		clampedPosition = 0.5
+		editor.updateShape({ ...shape, props: { ...shape.props, labelPosition: clampedPosition } })
+	}
+
 	return clampedPosition
 }
 
