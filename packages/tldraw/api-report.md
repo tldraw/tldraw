@@ -54,6 +54,7 @@ import { TLArrowBindingProps } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
+import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
@@ -327,6 +328,9 @@ export interface CenteredTopPanelContainerProps {
     stylePanelWidth?: number;
 }
 
+// @public
+export function centerSelectionAroundPoint(editor: Editor, position: VecLike): void;
+
 // @public (undocumented)
 export function CheckBoxToolbarItem(): JSX_2.Element;
 
@@ -359,6 +363,9 @@ export function CopyAsMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
+
+// @public
+export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
 
 // @public (undocumented)
 export function CutMenuItem(): JSX_2.Element;
