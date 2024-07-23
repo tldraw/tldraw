@@ -459,7 +459,7 @@ exports.rules = {
 									} else {
 										// For arrow functions with concise body: () => true
 										const bodyText = sourceCode.getText(arrowFunction.body)
-										methodBody = `{ return ${bodyText}; }`
+										methodBody = `{ return ${bodyText} }`
 									}
 
 									const fixedMethod = `${asyncModifier}${propertyName}(${params})${typeAnnotation} ${methodBody}`
