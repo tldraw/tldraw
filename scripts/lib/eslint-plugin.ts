@@ -438,19 +438,33 @@ exports.rules = {
 							member.value &&
 							member.value.type === 'ArrowFunctionExpression'
 						) {
+							const arrowFunction = member.value
+							const hasBlockBody = arrowFunction.body.type === 'BlockStatement'
 							context.report({
 								node: member,
 								messageId: 'preferMethod',
 								fix(fixer) {
 									const sourceCode = context.getSourceCode()
 									const propertyName = sourceCode.getText(member.key)
-									if (!member.value || member.value.type !== 'ArrowFunctionExpression') return null
+									const params = arrowFunction.params.map((p) => sourceCode.getText(p)).join(', ')
+									const asyncModifier = arrowFunction.async ? 'async ' : ''
+									const typeAnnotation = member.typeAnnotation
+										? sourceCode.getText(member.typeAnnotation)
+										: ''
 
-									const functionBody = member.value.body
-										? sourceCode.getText(member.value.body)
-										: '{}'
-									const params = member.value.params.map((p) => sourceCode.getText(p)).join(', ')
-									return fixer.replaceText(member, `${propertyName}(${params}) ${functionBody}`)
+									let methodBody
+									if (hasBlockBody) {
+										// For arrow functions with block body: () => { return true }
+										methodBody = sourceCode.getText(arrowFunction.body)
+									} else {
+										// For arrow functions with concise body: () => true
+										const bodyText = sourceCode.getText(arrowFunction.body)
+										methodBody = `{ return ${bodyText}; }`
+									}
+
+									const fixedMethod = `${asyncModifier}${propertyName}(${params})${typeAnnotation} ${methodBody}`
+
+									return fixer.replaceText(member, fixedMethod)
 								},
 							})
 						}
