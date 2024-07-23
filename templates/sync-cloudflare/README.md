@@ -44,9 +44,7 @@ start a [`vite`](https://vitejs.dev/) dev server for the frontend of your applic
 [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) dev server for your workers
 backend.
 
-The client-side code is under [`client`](./client/). The sync integration with tldraw is in
-[`client/App.tsx`](./client/App.tsx). The worker is under [`worker`](./worker/), and is split across
-several files:
+The backend worker is under [`worker`](./worker/), and is split across several files:
 
 - **[`worker/worker.ts`](./worker/worker.ts):** the main entrypoint to the worker, defining each
   route available.
@@ -57,6 +55,15 @@ several files:
 - **[`worker/assetUploads.ts`](./worker/assetUploads.ts):** uploads, downloads, and caching for
   static assets like images and videos.
 - **[`worker/bookmarkUnfurling.ts`](./worker/bookmarkUnfurling.ts):** extract URL metadata for bookmark shapes.
+
+The frontend client is under [`client`](./client):
+
+- **[`client/App.tsx`](./client/App.tsx):** the main client `<App />` component. This connects our
+  sync backend to the `<Tldraw />` component, wiring in assets and bookmark previews.
+- **[`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx):** how does the client
+  upload and retrieve assets like images & videos from the worker?
+- **[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx):** how does the client fetch
+  bookmark previews from the worker?
 
 ## Deployment
 
@@ -74,6 +81,22 @@ Finally, deploy your client HTML & JavaScript. Create a production build with
 
 When you visit your published client, it should connect to your cloudflare workers domain and sync
 your document across devices.
+
+## Adding cloudflare to your own repo
+
+If you already have an app using tldraw and want to use the system in this repo, you can copy and
+paste the relevant parts to your own app.
+
+To point your existing client at the server defined in this repo, copy
+[`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx) and
+[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx) into your app. Then, adapt the
+code from [`client/App.tsx`](./client/App.tsx) to your own app. When you call `useSync`, you'll need
+to pass it a URL. In development, that's `http://localhost:5172/connect/some-room-id`. We use an
+environment variable set in [`./vite.config.ts`](./vite.config.ts) to set the server URL.
+
+To add the server to your own app, copy the contents of the [`worker`](./worker/) folder and
+[`./wrangler.toml`](./wrangler.toml) into your app. You can run the worker using `wrangler dev` in
+the same folder as `./wrangler.toml`.
 
 ## License
 
