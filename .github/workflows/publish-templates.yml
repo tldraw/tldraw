@@ -91,7 +91,7 @@ jobs:
 
       - name: Substitute the latest published version of tldraw
         run: |
-          TEMPLATE=cloudflare-workers NPM_TAG=latest
+          TEMPLATE=sync-cloudflare NPM_TAG=latest
           npm view tldraw dist-tags --json | jq -r ".$NPM_TAG" > /tmp/latest_tldraw
           cp "templates/$TEMPLATE/package.json" /tmp/template_package.json
           filter='
@@ -107,8 +107,8 @@ jobs:
         env:
           SSH_DEPLOY_KEY: ${{ secrets.CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
         with:
-          source-directory: 'templates/cloudflare-workers'
+          source-directory: 'templates/sync-cloudflare'
           destination-github-username: 'tldraw'
-          destination-repository-name: 'cloudflare-workers-template'
+          destination-repository-name: 'tldraw-sync-cloudflare'
           user-email: dan+github.actions@tldraw.com
           target-branch: main
