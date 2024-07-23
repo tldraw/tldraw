@@ -1,5 +1,5 @@
 ---
-title: Custom user data
+title: …with custom user data
 component: ./SyncCustomUser.tsx
 category: collaboration
 priority: 3
@@ -9,4 +9,4 @@ multiplayer: true
 
 ---
 
-This example shows how to integrate your own user data into tldraw and tldraw's multiplayer system.
+This example shows how to integrate your own user data into tldraw sync.

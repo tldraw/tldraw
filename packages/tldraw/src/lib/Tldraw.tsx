@@ -37,7 +37,26 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
-/** @public */
+/**
+ * Override the default react components used by the editor and UI. Set components to null to
+ * disable them entirely.
+ *
+ * @example
+ * ```tsx
+ * import {Tldraw, TLComponents} from 'tldraw'
+ *
+ * const components: TLComponents = {
+ *    Scribble: MyCustomScribble,
+ * }
+ *
+ * export function MyApp() {
+ *   return <Tldraw components={components} />
+ * }
+ * ```
+ *
+ *
+ * @public
+ */
 export interface TLComponents extends TLEditorComponents, TLUiComponents {}
 
 /** @public */
