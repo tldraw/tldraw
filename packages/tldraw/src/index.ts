@@ -11,7 +11,11 @@ export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackgroun
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
-export { type TLExternalContentProps } from './lib/defaultExternalContentHandlers'
+export {
+	centerSelectionAroundPoint,
+	createShapesForAssets,
+	type TLExternalContentProps,
+} from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'
