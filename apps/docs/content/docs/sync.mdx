@@ -19,7 +19,7 @@ Realtime multi-user collaboration on a tldraw canvas is possible using **tldraw 
 
 ## tldraw sync
 
-tldraw sync is a production-ready library for low-latency sync and collaboration, used to power multiplayer whiteboards in our flagship app at tldraw.com.
+tldraw sync is a library for fast, multiuser collaboration. It's purpose-built for the tldraw canvas, and is in use on our flagship app tldraw.com to power the shared whiteboards there.
 
 <div className="article__image" style={{ border: 'none' }}>
 	<img
@@ -113,11 +113,7 @@ also use other sync libraries or implement your own.
 
 ### Yjs
 
-[tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) illustrates a way of using the [yjs](https://yjs.dev) library with the tldraw SDK. Yjs is a CRDT and can resolve conflicts.
-
-### Partykit
-
-We have a [sockets example](https://github.com/tldraw/tldraw-sockets-example) that uses [PartyKit](https://www.partykit.io/) as a backend. Unlike the Yjs example, this example does not use any special data structures to handle conflicts. It should be a good starting point if you needed to write your own conflict-resolution logic.
+[tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) illustrates a way of using the [Yjs](https://yjs.dev) CRDT library with the tldraw SDK.
 
 ### Roll your own
 
