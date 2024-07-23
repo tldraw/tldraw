@@ -8,7 +8,7 @@ export const BlogAuthors: React.FC<{ article: Article }> = ({ article }) => {
 	const authors = article.authorId.split(',').map((id: string) => getAuthor(id.trim()))
 
 	return (
-		<div className="mt-12">
+		<div className="shrink-0 mb-12">
 			<h4 className="block bg-white text-black uppercase text-xs font-semibold">
 				{authors.length > 1 ? 'Authors' : 'Author'}
 			</h4>

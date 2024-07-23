@@ -1,6 +1,5 @@
 import { Article } from '@/types/content-types'
 import { Content } from '../content'
-import { BlogAuthors } from './blog-authors'
 import { BlogMobileSidebar } from './blog-mobile-sidebar'
 import { BlogPostHeader } from './blog-post-header'
 import { BlogSidebar } from './blog-sidebar'
@@ -13,7 +12,6 @@ export const BlogPostPage: React.FC<{
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-16 isolate">
 			<BlogSidebar>
-				<BlogAuthors article={article} />
 				<NewsletterSignup size="small" />
 			</BlogSidebar>
 			<div className="fixed w-full h-12 border-b border-zinc-100 flex items-center justify-between px-5 bg-white/90 backdrop-blur md:hidden z-10">
