@@ -638,7 +638,15 @@ editor.setCameraOptions({ isLocked: true })
 You can turn on or off dark mode via the [setUserPreferences](?) method. Note that this effects all editor instances that share the same user—even instances in other tabs.
 
 ```ts
-setUserPreferences({ isDarkMode: true })
+setUserPreferences({ colorScheme: 'dark' })
+```
+
+### Using the system color scheme
+
+You can also use the system color scheme via the [setUserPreferences](?) method.
+
+```ts
+setUserPreferences({ colorScheme: 'system' })
 ```
 
 ### Make changes without effecting the history
