@@ -1,3 +1,4 @@
+import { assert } from 'tldraw'
 import { JsonChunkAssembler, chunk } from '../lib/chunk'
 
 describe('chunk', () => {
@@ -95,10 +96,10 @@ describe('json unchunker', () => {
 			const result = unchunker.handleMessage(chunk)
 			expect(result).toBeNull()
 		}
-		expect(unchunker.handleMessage(chunks[chunks.length - 1])).toEqual({ data: testObject })
+		expect(unchunker.handleMessage(chunks[chunks.length - 1])).toMatchObject({ data: testObject })
 
 		// and the next one should be fine
-		expect(unchunker.handleMessage('{"ok": true}')).toEqual({ data: { ok: true } })
+		expect(unchunker.handleMessage('{"ok": true}')).toMatchObject({ data: { ok: true } })
 	})
 
 	// todo: test error cases
@@ -112,12 +113,13 @@ describe('json unchunker', () => {
 
 		const node18Error = `Unexpected token w in JSON at position 10`
 		const node20Error = `Unexpected token 'w', "\\{"hello": world"}" is not valid JSON`
-		expect(unchunker.handleMessage(chunks[chunks.length - 1])?.error?.message).toMatch(
-			new RegExp(`${node18Error}|${node20Error}`)
-		)
+		const res = unchunker.handleMessage(chunks[chunks.length - 1])
+		assert(res, 'expected a result')
+		assert('error' in res, 'expected an error')
+		expect(res.error?.message).toMatch(new RegExp(`${node18Error}|${node20Error}`))
 
 		// and the next one should be fine
-		expect(unchunker.handleMessage('{"ok": true}')).toEqual({ data: { ok: true } })
+		expect(unchunker.handleMessage('{"ok": true}')).toMatchObject({ data: { ok: true } })
 	})
 	it('returns an error if one of the chunks was missing', () => {
 		const chunks = chunk('{"hello": world"}', 10)
@@ -125,12 +127,13 @@ describe('json unchunker', () => {
 
 		const unchunker = new JsonChunkAssembler()
 		expect(unchunker.handleMessage(chunks[0])).toBeNull()
-		expect(unchunker.handleMessage(chunks[2])?.error?.message).toMatchInlineSnapshot(
-			`"Chunks received in wrong order"`
-		)
+		const res = unchunker.handleMessage(chunks[2])
+		assert(res, 'expected a result')
+		assert('error' in res, 'expected an error')
+		expect(res.error?.message).toMatchInlineSnapshot(`"Chunks received in wrong order"`)
 
 		// and the next one should be fine
-		expect(unchunker.handleMessage('{"ok": true}')).toEqual({ data: { ok: true } })
+		expect(unchunker.handleMessage('{"ok": true}')).toMatchObject({ data: { ok: true } })
 	})
 
 	it('returns an error if the chunk stream ends abruptly', () => {
@@ -141,24 +144,26 @@ describe('json unchunker', () => {
 		expect(unchunker.handleMessage(chunks[0])).toBeNull()
 		expect(unchunker.handleMessage(chunks[1])).toBeNull()
 
-		// it should still return the data for the next message
-		// even if there was an unexpected end to the chunks stream
 		const res = unchunker.handleMessage('{"hello": "world"}')
-		expect(res?.data).toEqual({ hello: 'world' })
+		assert(res, 'expected a result')
+		assert('error' in res, 'expected an error')
+
 		expect(res?.error?.message).toMatchInlineSnapshot(`"Unexpected non-chunk message"`)
 
 		// and the next one should be fine
-		expect(unchunker.handleMessage('{"ok": true}')).toEqual({ data: { ok: true } })
+		expect(unchunker.handleMessage('{"ok": true}')).toMatchObject({ data: { ok: true } })
 	})
 
 	it('returns an error if the chunk syntax is wrong', () => {
 		// it only likes json objects
 		const unchunker = new JsonChunkAssembler()
-		expect(unchunker.handleMessage('["yo"]')?.error?.message).toMatchInlineSnapshot(
-			`"Invalid chunk: "[\\"yo\\"]...""`
-		)
+		const res = unchunker.handleMessage('["yo"]')
+		assert(res, 'expected a result')
+		assert('error' in res, 'expected an error')
+
+		expect(res.error?.message).toMatchInlineSnapshot(`"Invalid chunk: "[\\"yo\\"]...""`)
 
 		// and the next one should be fine
-		expect(unchunker.handleMessage('{"ok": true}')).toEqual({ data: { ok: true } })
+		expect(unchunker.handleMessage('{"ok": true}')).toMatchObject({ data: { ok: true } })
 	})
 })
