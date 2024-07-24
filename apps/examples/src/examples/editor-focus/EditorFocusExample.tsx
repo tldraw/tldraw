@@ -75,7 +75,7 @@ function FreeFocusExample() {
 				onBlur={() => {
 					editorRef.current?.blur()
 				}}
-				onFocus={() => {
+				onPointerDown={() => {
 					editorRef.current?.focus()
 				}}
 			>

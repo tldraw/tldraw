@@ -36,7 +36,7 @@ const focusedEditorContext = createContext(
 
 // [2]
 function blurEditor(editor: Editor) {
-	editor.blur()
+	editor.blur({ blurContainer: false })
 	editor.selectNone()
 	editor.setCurrentTool('hand')
 }
@@ -81,7 +81,7 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 				if (focusedEditor && focusedEditor !== editor) {
 					blurEditor(focusedEditor)
 				}
-				editor.focus()
+				editor.focus({ focusContainer: false })
 				setFocusedEditor(editor)
 			}}
 		>
