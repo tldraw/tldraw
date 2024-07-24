@@ -35,15 +35,13 @@ tldraw sync is a library for fast, multiuser collaboration. It's purpose-built f
 
 ### Try the demo server
 
-The easiest way to start experimenting with multiplayer is with our demo server. Start by installing
-`@tldraw/sync`:
+The easiest way to start experimenting with multiplayer is with our demo server. Start by installing `@tldraw/sync`:
 
 ```bash
 npm install @tldraw/sync
 ```
 
-Then, in your app, call the `useSyncDemo` hook with a room ID. It'll return a
-[`store`](/docs/persistence#The-store-prop) that you can pass into the tldraw component:
+Then, in your app, call the `useSyncDemo` hook with a room ID. It'll return a [`store`](/docs/persistence#The-store-prop) that you can pass into the tldraw component:
 
 ```tsx
 import { useSyncDemo } from '@tldraw/sync'
@@ -54,29 +52,21 @@ function MyApp() {
 }
 ```
 
-Make sure the room ID is unique. Anyone who uses the same ID can access your room. Our sync demo
-server is a great way to prototype multiplayer in tldraw, but it shouldn't be used in production.
-Rooms will be deleted after 24 hours.
+Make sure the room ID is unique. Anyone who uses the same ID can access your room. Our sync demo server is a great way to prototype multiplayer in tldraw, but it shouldn't be used in production. Rooms will be deleted after 24 hours.
 
 ### Self-host a server
 
-To use tldraw sync in production, you need to host the backend on your own server. There are three parts to sync in
-tldraw:
+To use tldraw sync in production, you need to host the backend on your own server. There are three parts to sync in tldraw:
 
 1. The sync server, which serves the room over [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
 2. Somewhere to large assets that are too big to send over websockets, like images and videos.
 3. The sync client, which connects to the server with the [`useSync`](?) hook.
 
-You can start from our [Cloudflare Workers
-template](https://github.com/tldraw/tldraw-sync-workers). This is a minimal setup of the
-system that powers multiplayer collaboration for hundreds of thousands of rooms & users on
-tldraw.com. It includes everything you need to get up and running with multiplayer tldraw quickly:
-the sync server, asset hosting, and URL unfurling.
+You can start from our [Cloudflare Workers template](https://github.com/tldraw/tldraw-sync-workers). This is a minimal setup of the system that powers multiplayer collaboration for hundreds of thousands of rooms & users on tldraw.com. It includes everything you need to get up and running with multiplayer tldraw quickly: the sync server, asset hosting, and URL unfurling.
 
 ### Connect to your client
 
-The [`useSync`](?) hook connects your backend to the tldraw editor. Call the hook to create a store,
-then pass it in to the `<Tldraw />` component:
+The [`useSync`](?) hook connects your backend to the tldraw editor. Call the hook to create a store, then pass it in to the `<Tldraw />` component:
 
 ```tsx
 import {useSync} from '@tldraw/sync'
@@ -100,12 +90,9 @@ const myAssetStore: TLAssetStore {
 }
 ```
 
-You can see a complete example using the sync client in the
-[`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/App.tsx)
-template.
+You can see a complete example using the sync client in the [`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/App.tsx) template.
 
-The sync client automatically enables some default collaborative UX which you can customize using
-editor [component overrides](/reference/tldraw/TLComponents):
+The sync client automatically enables some default collaborative UX which you can customize using editor [component overrides](/reference/tldraw/TLComponents):
 
 - Collaborator cursors: [`TLComponents#CollaboratorCursor`](?)
 - Cursor chat: [`TLComponents#CursorChatBubble`](?)
@@ -114,8 +101,7 @@ editor [component overrides](/reference/tldraw/TLComponents):
 
 ## Other sync systems
 
-While tldraw sync is the easiest way to add sync capabilities to your tldraw canvas, you can
-also use other sync libraries or implement your own.
+While tldraw sync is the easiest way to add sync capabilities to your tldraw canvas, you can also use other sync libraries or implement your own.
 
 ### Yjs
 
@@ -131,18 +117,11 @@ Here's more detail on the tldraw sync library workings, as well as the general s
 
 ### TLSocketRoom
 
-The core part of tldraw sync is [`TLSocketRoom`](?). It works with any JavaScript-based web
-framework with support for WebSockets, and any storage backend: it's up to you to wire in those
-parts yourself.
+The core part of tldraw sync is [`TLSocketRoom`](?). It works with any JavaScript-based web framework with support for WebSockets, and any storage backend: it's up to you to wire in those parts yourself.
 
-Make sure there's only ever one `TLSocketRoom` for each room in your app. If there's
-more than one, users won't see each other and will overwrite others' changes. We use [Durable
-Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on tldraw.com.
+Make sure there's only ever one `TLSocketRoom` for each room in your app. If there's more than one, users won't see each other and will overwrite others' changes. We use [Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on tldraw.com.
 
-If you don't want to our Cloudflare template, we also provide a [simple Node/Bun server
-example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example). This is not
-production ready, but you can use it as a reference implementation to build it into your own
-existing backend.
+If you don't want to our Cloudflare template, we also provide a [simple Node/Bun server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example). This is not production ready, but you can use it as a reference implementation to build it into your own existing backend.
 
 Read the reference docs for [`TLSocketRoom`](?) for more.
 
@@ -194,14 +173,10 @@ Any such `instance_presence` records tldraw finds in the store that have a diffe
 
 ### Asset storage
 
-As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and
-retrieve large binary assets like images or videos.
+As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and retrieve large binary assets like images or videos.
 
-You'll need to make sure your backend can handle asset uploads & downloads, then implement
-[`TLAssetStore`](?) to connect it to tldraw.
+You'll need to make sure your backend can handle asset uploads & downloads, then implement [`TLAssetStore`](?) to connect it to tldraw.
 
 - Read about [how assets work in tldraw](/docs/assets).
 - Read the [`TLAssetStore`](?) reference docs.
-- See a complete example of an asset store in the
-  [`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/multiplayerAssetStore.tsx)
-  template.
+- See a complete example of an asset store in the [`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/multiplayerAssetStore.tsx) template.
