@@ -5,7 +5,6 @@ import {
 	// defaultBindingSchemas,
 	defaultShapeSchemas,
 } from '@tldraw/tlschema'
-import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, IRequest, error } from 'itty-router'
 import throttle from 'lodash.throttle'
 import { Environment } from './types'
@@ -21,7 +20,7 @@ const schema = createTLSchema({
 
 // there's only ever one durable object instance per room. it keeps all the room state in memory and
 // handles websocket connections. periodically, it persists the room state to the R2 bucket.
-export class TldrawDurableObject extends DurableObject<Environment> {
+export class TldrawDurableObject {
 	private r2: R2Bucket
 	// the room ID will be missing whilst the room is being initialized
 	private roomId: string | null = null
@@ -30,7 +29,6 @@ export class TldrawDurableObject extends DurableObject<Environment> {
 	private roomPromise: Promise<TLSocketRoom<TLRecord, void>> | null = null
 
 	constructor(state: DurableObjectState, env: Environment) {
-		super(state, env)
 		this.r2 = env.TLDRAW_BUCKET
 
 		state.blockConcurrencyWhile(async () => {
