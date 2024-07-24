@@ -32,9 +32,23 @@ export const DEFAULT_SUPPORT_VIDEO_TYPES = Object.freeze([
 	'video/quicktime',
 ])
 /** @public */
+export const DEFAULT_SUPPORT_AUDIO_TYPES = Object.freeze([
+	'audio/webm',
+	'audio/ogg',
+	'audio/mp3',
+	'audio/mp4',
+	'audio/mpeg',
+	'audio/aac',
+	'audio/flac',
+	'audio/wav',
+	'audio/x-wav',
+	'audio/x-m4a',
+])
+/** @public */
 export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST = [
 	...DEFAULT_SUPPORTED_IMAGE_TYPES,
 	...DEFAULT_SUPPORT_VIDEO_TYPES,
+	...DEFAULT_SUPPORT_AUDIO_TYPES,
 ].join(',')
 
 /**
@@ -57,6 +71,23 @@ export class MediaHelpers {
 			}
 			video.crossOrigin = 'anonymous'
 			video.src = src
+		})
+	}
+
+	/**
+	 * Load an audio file from a url.
+	 * @public
+	 */
+	static loadAudio(src: string): Promise<HTMLAudioElement> {
+		return new Promise((resolve, reject) => {
+			const audio = document.createElement('audio')
+			audio.onloadeddata = () => resolve(audio)
+			audio.onerror = (e) => {
+				console.error(e)
+				reject(new Error('Could not load audio'))
+			}
+			audio.crossOrigin = 'anonymous'
+			audio.src = src
 		})
 	}
 

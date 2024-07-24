@@ -5,6 +5,7 @@ import {
 	RecordId,
 } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import { audioAssetValidator, TLAudioAsset } from '../assets/TLAudioAsset'
 import { TLBaseAsset } from '../assets/TLBaseAsset'
 import { bookmarkAssetValidator, TLBookmarkAsset } from '../assets/TLBookmarkAsset'
 import { imageAssetValidator, TLImageAsset } from '../assets/TLImageAsset'
@@ -12,7 +13,7 @@ import { TLVideoAsset, videoAssetValidator } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
 /** @public */
-export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
+export type TLAsset = TLImageAsset | TLVideoAsset | TLAudioAsset | TLBookmarkAsset
 
 /** @public */
 export const assetValidator: T.Validator<TLAsset> = T.model(
@@ -20,6 +21,7 @@ export const assetValidator: T.Validator<TLAsset> = T.model(
 	T.union('type', {
 		image: imageAssetValidator,
 		video: videoAssetValidator,
+		audio: audioAssetValidator,
 		bookmark: bookmarkAssetValidator,
 	})
 )

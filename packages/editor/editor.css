@@ -576,7 +576,8 @@ input,
 /* ------------------ Bounds Detail ----------------- */
 
 .tl-image,
-.tl-video {
+.tl-video,
+.tl-audio {
 	object-fit: cover;
 	background-size: cover;
 	width: 100%;
@@ -584,6 +585,7 @@ input,
 }
 
 .tl-video-container,
+.tl-audio-container,
 .tl-image-container,
 .tl-embed-container {
 	width: 100%;

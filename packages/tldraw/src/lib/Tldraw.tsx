@@ -1,5 +1,6 @@
 import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_AUDIO_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
 	ErrorScreen,
@@ -78,6 +79,7 @@ export function Tldraw(props: TldrawProps) {
 		maxAssetSize,
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
+		acceptedAudioMimeTypes,
 		onMount,
 		components = {},
 		shapeUtils = [],
@@ -146,6 +148,7 @@ export function Tldraw(props: TldrawProps) {
 					maxAssetSize={maxAssetSize}
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
+					acceptedAudioMimeTypes={acceptedAudioMimeTypes}
 					onMount={onMount}
 				/>
 				{children}
@@ -160,6 +163,7 @@ function InsideOfEditorAndUiContext({
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
+	acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
 	onMount,
 }: TLExternalContentProps & { onMount?: TLOnMountHandler }) {
 	const editor = useEditor()
@@ -179,6 +183,7 @@ function InsideOfEditorAndUiContext({
 				maxAssetSize,
 				acceptedImageMimeTypes,
 				acceptedVideoMimeTypes,
+				acceptedAudioMimeTypes,
 			},
 			{
 				toasts,

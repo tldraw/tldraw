@@ -56,6 +56,7 @@ import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
 import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
+import { TLAudioShape } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
@@ -244,6 +245,28 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
     assetUrls: TLUiAssetUrls;
     children: React.ReactNode;
 }): JSX_2.Element;
+
+// @public (undocumented)
+export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
+    // (undocumented)
+    canEdit: () => boolean;
+    // (undocumented)
+    component(shape: TLAudioShape): JSX_2.Element;
+    // (undocumented)
+    getDefaultProps(): TLAudioShape['props'];
+    // (undocumented)
+    indicator(shape: TLAudioShape): JSX_2.Element;
+    // (undocumented)
+    isAspectRatioLocked: () => boolean;
+    // (undocumented)
+    static migrations: TLPropsMigrations;
+    // (undocumented)
+    static props: RecordProps<TLAudioShape>;
+    // (undocumented)
+    toSvg(shape: TLAudioShape): JSX_2.Element;
+    // (undocumented)
+    static type: "audio";
+}
 
 // @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
@@ -445,7 +468,7 @@ export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
 // @public (undocumented)
-export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
+export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil, typeof AudioShapeUtil];
 
 // @public (undocumented)
 export function DefaultSharePanel(): JSX_2.Element;
@@ -1778,6 +1801,7 @@ export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
 export interface TLExternalContentProps {
+    acceptedAudioMimeTypes?: readonly string[];
     acceptedImageMimeTypes?: readonly string[];
     acceptedVideoMimeTypes?: readonly string[];
     maxAssetSize?: number;

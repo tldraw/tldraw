@@ -1,6 +1,7 @@
 import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
+import { audioAssetMigrations } from './assets/TLAudioAsset'
 import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
@@ -24,6 +25,7 @@ import {
 } from './records/TLShape'
 import { TLPropsMigrations, processPropsMigrations } from './recordsWithProps'
 import { arrowShapeMigrations, arrowShapeProps } from './shapes/TLArrowShape'
+import { audioShapeMigrations, audioShapeProps } from './shapes/TLAudioShape'
 import { bookmarkShapeMigrations, bookmarkShapeProps } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations, drawShapeProps } from './shapes/TLDrawShape'
 import { embedShapeMigrations, embedShapeProps } from './shapes/TLEmbedShape'
@@ -52,6 +54,7 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
 /** @public */
 export const defaultShapeSchemas = {
 	arrow: { migrations: arrowShapeMigrations, props: arrowShapeProps },
+	audio: { migrations: audioShapeMigrations, props: audioShapeProps },
 	bookmark: { migrations: bookmarkShapeMigrations, props: bookmarkShapeProps },
 	draw: { migrations: drawShapeMigrations, props: drawShapeProps },
 	embed: { migrations: embedShapeMigrations, props: embedShapeProps },
@@ -129,6 +132,7 @@ export function createTLSchema({
 				bookmarkAssetMigrations,
 				imageAssetMigrations,
 				videoAssetMigrations,
+				audioAssetMigrations,
 
 				...processPropsMigrations<TLShape>('shape', shapes),
 				...processPropsMigrations<TLBinding>('binding', bindings),

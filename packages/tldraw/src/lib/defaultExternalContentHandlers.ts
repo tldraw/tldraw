@@ -48,6 +48,11 @@ export interface TLExternalContentProps {
 	 * DEFAULT_SUPPORT_VIDEO_TYPES.
 	 */
 	acceptedVideoMimeTypes?: readonly string[]
+	/**
+	 * The mime types of audio files that are allowed to be handled. Defaults to
+	 * DEFAULT_SUPPORT_AUDIO_TYPES.
+	 */
+	acceptedAudioMimeTypes?: readonly string[]
 }
 
 export function registerDefaultExternalContentHandlers(
@@ -57,6 +62,7 @@ export function registerDefaultExternalContentHandlers(
 		maxAssetSize,
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
+		acceptedAudioMimeTypes,
 	}: Required<TLExternalContentProps>,
 	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
@@ -66,14 +72,15 @@ export function registerDefaultExternalContentHandlers(
 		let file: File = _file
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+		const isAudioType = acceptedAudioMimeTypes.includes(file.type)
 
-		if (!isImageType && !isVideoType) {
+		if (!isImageType && !isVideoType && !isAudioType) {
 			toasts.addToast({
 				title: msg('assets.files.type-not-allowed'),
 				severity: 'error',
 			})
 		}
-		assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
+		assert(isImageType || isVideoType || isAudioType, `File type not allowed: ${file.type}`)
 
 		if (file.size > maxAssetSize) {
 			toasts.addToast({
@@ -91,9 +98,11 @@ export function registerDefaultExternalContentHandlers(
 			file = new File([file], file.name, { type: 'video/mp4' })
 		}
 
-		let size = isImageType
-			? await MediaHelpers.getImageSize(file)
-			: await MediaHelpers.getVideoSize(file)
+		let size = isAudioType
+			? { w: 300, h: 60 }
+			: isImageType
+				? await MediaHelpers.getImageSize(file)
+				: await MediaHelpers.getVideoSize(file)
 
 		const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 
@@ -109,7 +118,7 @@ export function registerDefaultExternalContentHandlers(
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
 		const assetInfo = {
 			id: assetId,
-			type: isImageType ? 'image' : 'video',
+			type: isAudioType ? 'audio' : isImageType ? 'image' : 'video',
 			typeName: 'asset',
 			props: {
 				name,
@@ -276,8 +285,13 @@ export function registerDefaultExternalContentHandlers(
 					throw new Error('No mime type')
 				}
 
-				// We can only accept certain extensions (either images or a videos)
-				if (!acceptedImageMimeTypes.concat(acceptedVideoMimeTypes).includes(file.type)) {
+				// We can only accept certain extensions (either images, videos, or audio)
+				if (
+					!acceptedImageMimeTypes
+						.concat(acceptedVideoMimeTypes)
+						.concat(acceptedAudioMimeTypes)
+						.includes(file.type)
+				) {
 					toasts.addToast({
 						title: msg('assets.files.type-not-allowed'),
 						severity: 'error',
@@ -463,7 +477,7 @@ export function registerDefaultExternalContentHandlers(
 
 /**
  * A helper function for an external content handler. It creates bookmarks,
- * images or video shapes corresponding to the type of assets provided.
+ * images, video, or audio shapes corresponding to the type of assets provided.
  *
  * @param editor - The editor instance
  *
@@ -502,10 +516,12 @@ export async function createShapesForAssets(
 				currentPoint.x += 300 // BOOKMARK_WIDTH
 				break
 			}
-			case 'image': {
+			case 'image':
+			case 'video':
+			case 'audio': {
 				partials.push({
 					id: createShapeId(),
-					type: 'image',
+					type: asset.type,
 					x: currentPoint.x,
 					y: currentPoint.y,
 					opacity: 1,
@@ -518,22 +534,6 @@ export async function createShapesForAssets(
 
 				currentPoint.x += asset.props.w
 				break
-			}
-			case 'video': {
-				partials.push({
-					id: createShapeId(),
-					type: 'video',
-					x: currentPoint.x,
-					y: currentPoint.y,
-					opacity: 1,
-					props: {
-						assetId: asset.id,
-						w: asset.props.w,
-						h: asset.props.h,
-					},
-				})
-
-				currentPoint.x += asset.props.w
 			}
 		}
 	}

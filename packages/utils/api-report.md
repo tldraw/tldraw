@@ -41,6 +41,9 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
 // @public (undocumented)
+export const DEFAULT_SUPPORT_AUDIO_TYPES: readonly string[];
+
+// @public (undocumented)
 export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly string[];
 
 // @public (undocumented)
@@ -242,6 +245,7 @@ export class MediaHelpers {
     static isStaticImageType(mimeType: null | string): boolean;
     // (undocumented)
     static isVectorImageType(mimeType: null | string): boolean;
+    static loadAudio(src: string): Promise<HTMLAudioElement>;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)

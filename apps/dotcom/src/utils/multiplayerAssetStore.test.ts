@@ -34,6 +34,22 @@ describe('multiplayerAssetStore.resolve', () => {
 		).toBe('http://assets.tldraw.dev/video.mp4')
 	})
 
+	it('should return the original src for audio types', async () => {
+		const asset = {
+			type: 'audio',
+			props: { src: 'http://assets.tldraw.dev/audio.mp3', fileSize: FILE_SIZE },
+		}
+		expect(
+			await resolver(asset as TLAsset, {
+				screenScale: -1,
+				steppedScreenScale: 1,
+				dpr: 1,
+				networkEffectiveType: '4g',
+				shouldResolveToOriginal: false,
+			})
+		).toBe('http://assets.tldraw.dev/audio.mp3')
+	})
+
 	it('should return the original src for non-tldraw assets', async () => {
 		const asset = {
 			type: 'video',

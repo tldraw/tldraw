@@ -9,6 +9,8 @@ export default function AssetPropsExample() {
 				acceptedImageMimeTypes={['image/jpeg']}
 				// don't allow any videos
 				acceptedVideoMimeTypes={[]}
+				// don't allow any audio
+				acceptedAudioMimeTypes={[]}
 				// accept images of any dimension
 				maxImageDimension={Infinity}
 				// ...but only accept assets up to 1mb

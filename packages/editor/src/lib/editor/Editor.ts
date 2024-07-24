@@ -17,6 +17,7 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
+	TLAudioAsset,
 	TLBinding,
 	TLBindingCreate,
 	TLBindingId,
@@ -7801,7 +7802,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Register an external asset handler. This handler will be called when the editor needs to
-	 * create an asset for some external content, like an image/video file or a bookmark URL. For
+	 * create an asset for some external content, like an image/video/audio file or a bookmark URL. For
 	 * example, the 'file' type handler will be called when a user drops an image onto the canvas.
 	 *
 	 * The handler should extract any relevant metadata for the asset, upload it to blob storage
@@ -7982,11 +7983,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		await Promise.allSettled(
 			content.assets.map(async (asset) => {
 				if (
-					(asset.type === 'image' || asset.type === 'video') &&
+					(asset.type === 'image' || asset.type === 'video' || asset.type === 'audio') &&
 					!asset.props.src?.startsWith('data:image') &&
 					!asset.props.src?.startsWith('http')
 				) {
-					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
+					const assetWithDataUrl = structuredClone(
+						asset as TLImageAsset | TLVideoAsset | TLAudioAsset
+					)
 					const objectUrl = await this.store.props.assets.resolve(asset, {
 						screenScale: 1,
 						steppedScreenScale: 1,
@@ -8212,7 +8215,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const assetsToCreate: TLAsset[] = []
 
 		// These assets have base64 data that may need to be hosted
-		const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
+		const assetsToUpdate: (TLImageAsset | TLVideoAsset | TLAudioAsset)[] = []
 
 		for (const asset of assets) {
 			if (this.store.has(asset.id)) {
@@ -8221,13 +8224,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (
-				(asset.type === 'image' || asset.type === 'video') &&
+				['image', 'video', 'audio'].includes(asset.type) &&
 				asset.props.src?.startsWith('data:image')
 			) {
 				// it's src is a base64 image or video; we need to create a new asset without the src,
 				// then create a new asset from the original src. So we save a copy of the original asset,
 				// then delete the src from the original asset.
-				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset))
+				assetsToUpdate.push(structuredClone(asset as TLImageAsset | TLVideoAsset | TLAudioAsset))
 				asset.props.src = null
 			}
 
@@ -8237,7 +8240,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Start loading the new assets, order does not matter
 		Promise.allSettled(
-			(assetsToUpdate as (TLImageAsset | TLVideoAsset)[]).map(async (asset) => {
+			(assetsToUpdate as (TLImageAsset | TLVideoAsset | TLAudioAsset)[]).map(async (asset) => {
 				// Turn the data url into a file
 				const file = await dataUrlToFile(
 					asset.props.src!,

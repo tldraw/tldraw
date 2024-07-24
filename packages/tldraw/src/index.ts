@@ -27,6 +27,7 @@ export {
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'
+export { AudioShapeUtil } from './lib/shapes/audio/AudioShapeUtil'
 export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
 export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
 export { DrawShapeUtil } from './lib/shapes/draw/DrawShapeUtil'
