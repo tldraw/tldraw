@@ -6134,7 +6134,6 @@ __metadata:
     "@types/bun": "npm:^1.1.6"
     "@types/express": "npm:^4.17.21"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
-    cheerio: "npm:^1.0.0-rc.12"
     concurrently: "npm:^8.2.2"
     fastify: "npm:^4.28.1"
     itty-router: "npm:^5.0.17"
