@@ -188,7 +188,7 @@ export interface TLEditorOptions {
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
 	 */
-	getContainer: () => HTMLElement
+	getContainer(): HTMLElement
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -2906,7 +2906,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _viewportAnimation = null as null | {
 		elapsed: number
 		duration: number
-		easing: (t: number) => number
+		easing(t: number): number
 		start: Box
 		end: Box
 	}
@@ -4579,7 +4579,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// respect this esp. in the part below that does "Check labels first"
 			hitLabels?: boolean
 			hitFrameInside?: boolean
-			filter?: (shape: TLShape) => boolean
+			filter?(shape: TLShape): boolean
 		}
 	): TLShape | undefined {
 		const zoomLevel = this.getZoomLevel()

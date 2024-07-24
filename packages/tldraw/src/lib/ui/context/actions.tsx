@@ -50,7 +50,7 @@ export interface TLUiActionItem<
 	label?: TransationKey | { [key: string]: TransationKey }
 	readonlyOk?: boolean
 	checkbox?: boolean
-	onSelect: (source: TLUiEventSource) => Promise<void> | void
+	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
 /** @public */
@@ -61,11 +61,11 @@ export const ActionsContext = React.createContext<TLUiActionsContextType | null>
 
 /** @public */
 export interface ActionsProviderProps {
-	overrides?: (
+	overrides?(
 		editor: Editor,
 		actions: TLUiActionsContextType,
 		helpers: undefined
-	) => TLUiActionsContextType
+	): TLUiActionsContextType
 	children: React.ReactNode
 }
 

@@ -1,8 +1,6 @@
 import {
 	Editor,
 	StateNode,
-	TLEventHandlers,
-	TLInterruptEvent,
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -27,7 +25,7 @@ export class Pointing extends StateNode {
 
 	shape = {} as TLNoteShape
 
-	override onEnter = () => {
+	override onEnter() {
 		const { editor } = this
 
 		this.wasFocusedOnEnter = !editor.getIsMenuOpen()
@@ -51,7 +49,7 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			if (!this.wasFocusedOnEnter) {
 				const id = createShapeId()
@@ -81,19 +79,19 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 

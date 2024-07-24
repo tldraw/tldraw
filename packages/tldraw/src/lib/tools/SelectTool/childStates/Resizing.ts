@@ -6,8 +6,6 @@ import {
 	SelectionCorner,
 	SelectionEdge,
 	StateNode,
-	TLEnterEventHandler,
-	TLEventHandlers,
 	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
@@ -26,7 +24,7 @@ type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
 	handle: SelectionEdge | SelectionCorner
 	isCreating?: boolean
-	onCreate?: (shape: TLShape | null) => void
+	onCreate?(shape: TLShape | null): void
 	creationCursorOffset?: VecLike
 	onInteractionEnd?: string
 }
@@ -48,7 +46,7 @@ export class Resizing extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
-	override onEnter: TLEnterEventHandler = (info: ResizingInfo) => {
+	override onEnter(info: ResizingInfo) {
 		const { isCreating = false, creationCursorOffset = { x: 0, y: 0 } } = info
 
 		this.info = info
@@ -72,31 +70,31 @@ export class Resizing extends StateNode {
 		this.updateShapes()
 	}
 
-	override onTick = ({ elapsed }: TLTickEventInfo) => {
+	override onTick({ elapsed }: TLTickEventInfo) {
 		const { editor } = this
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		this.updateShapes()
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {
+	override onKeyDown() {
 		this.updateShapes()
 	}
-	override onKeyUp: TLEventHandlers['onKeyUp'] = () => {
+	override onKeyUp() {
 		this.updateShapes()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
@@ -416,13 +414,13 @@ export class Resizing extends StateNode {
 		this.editor.setCursor(nextCursor)
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.editor.snaps.clearIndicators()
 	}
 
-	_createSnapshot = () => {
+	_createSnapshot() {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const selectionRotation = this.editor.getSelectionRotation()
 		const {
@@ -489,7 +487,7 @@ export class Resizing extends StateNode {
 		}
 	}
 
-	_createShapeSnapshot = (shape: TLShape) => {
+	_createShapeSnapshot(shape: TLShape) {
 		const pageTransform = this.editor.getShapePageTransform(shape)!
 		const util = this.editor.getShapeUtil(shape)
 

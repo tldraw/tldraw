@@ -4,22 +4,22 @@ import { useUiEvents } from './events'
 
 /** @public */
 export interface TLUiDialogProps {
-	onClose: () => void
+	onClose(): void
 }
 
 /** @public */
 export interface TLUiDialog {
 	id: string
-	onClose?: () => void
+	onClose?(): void
 	component: ComponentType<TLUiDialogProps>
 }
 
 /** @public */
 export interface TLUiDialogsContextType {
-	addDialog: (dialog: Omit<TLUiDialog, 'id'> & { id?: string }) => string
-	removeDialog: (id: string) => string
-	updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string
-	clearDialogs: () => void
+	addDialog(dialog: Omit<TLUiDialog, 'id'> & { id?: string }): string
+	removeDialog(id: string): string
+	updateDialog(id: string, newDialogData: Partial<TLUiDialog>): string
+	clearDialogs(): void
 	dialogs: TLUiDialog[]
 }
 
@@ -28,7 +28,7 @@ export const DialogsContext = createContext<TLUiDialogsContextType | null>(null)
 
 /** @internal */
 export interface DialogsProviderProps {
-	overrides?: (editor: Editor) => TLUiDialogsContextType
+	overrides?(editor: Editor): TLUiDialogsContextType
 	children: ReactNode
 }
 

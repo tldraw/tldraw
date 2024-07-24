@@ -5,7 +5,6 @@ import {
 	MatModel,
 	PageRecordType,
 	StateNode,
-	TLEventHandlers,
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
@@ -15,6 +14,7 @@ import {
 	compact,
 	isPageId,
 } from '@tldraw/editor'
+import bind from 'bind-decorator'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	NOTE_CENTER_OFFSET,
@@ -29,7 +29,7 @@ export class Translating extends StateNode {
 	info = {} as TLPointerEventInfo & {
 		target: 'shape'
 		isCreating?: boolean
-		onCreate?: () => void
+		onCreate?(): void
 		didStartInPit?: boolean
 		onInteractionEnd?: string
 	}
@@ -42,18 +42,20 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
-	onCreate: (shape: TLShape | null) => void = () => void null
+	onCreate(_shape: TLShape | null): void {
+		return
+	}
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
-	override onEnter = (
+	override onEnter(
 		info: TLPointerEventInfo & {
 			target: 'shape'
 			isCreating?: boolean
-			onCreate?: () => void
+			onCreate?(): void
 			onInteractionEnd?: string
 		}
-	) => {
+	) {
 		const { isCreating = false, onCreate = () => void null } = info
 
 		if (!this.editor.getSelectedShapeIds()?.length) {
@@ -92,7 +94,7 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
@@ -101,7 +103,7 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.clear()
 	}
 
-	override onTick = ({ elapsed }: TLTickEventInfo) => {
+	override onTick({ elapsed }: TLTickEventInfo) {
 		const { editor } = this
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
@@ -110,11 +112,11 @@ export class Translating extends StateNode {
 		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.updateShapes()
 	}
 
-	override onKeyDown = () => {
+	override onKeyDown() {
 		if (this.editor.inputs.altKey && !this.isCloning) {
 			this.startCloning()
 			return
@@ -124,7 +126,7 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	override onKeyUp: TLEventHandlers['onKeyUp'] = () => {
+	override onKeyUp() {
 		if (!this.editor.inputs.altKey && this.isCloning) {
 			this.stopCloning()
 			return
@@ -134,15 +136,15 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
@@ -285,7 +287,8 @@ export class Translating extends StateNode {
 		}
 	}
 
-	protected updateParentTransforms = () => {
+	@bind
+	protected updateParentTransforms() {
 		const {
 			editor,
 			snapshot: { shapeSnapshots },

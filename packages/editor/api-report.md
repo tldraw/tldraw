@@ -157,13 +157,13 @@ export function average(A: VecLike, B: VecLike): string;
 // @public (undocumented)
 export abstract class BaseBoxShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onCreate?: (_shape: null | TLShape) => null | void;
+    onCreate?(_shape: null | TLShape): null | void;
     // (undocumented)
     abstract shapeType: string;
 }
@@ -177,7 +177,7 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
     // (undocumented)
     getInterpolatedProps(startShape: Shape, endShape: Shape, t: number): Shape['props'];
     // (undocumented)
-    onResize: TLOnResizeHandler<any>;
+    onResize(shape: any, info: TLResizeInfo<any>): any;
 }
 
 // @public
@@ -295,17 +295,17 @@ export class Box {
     // (undocumented)
     clone(): Box;
     // (undocumented)
-    static Collides: (A: Box, B: Box) => boolean;
+    static Collides(A: Box, B: Box): boolean;
     // (undocumented)
     collides(B: Box): boolean;
     // (undocumented)
-    static Common: (boxes: Box[]) => Box;
+    static Common(boxes: Box[]): Box;
     // (undocumented)
-    static Contains: (A: Box, B: Box) => boolean;
+    static Contains(A: Box, B: Box): boolean;
     // (undocumented)
     contains(B: Box): boolean;
     // (undocumented)
-    static ContainsPoint: (A: Box, B: VecLike, margin?: number) => boolean;
+    static ContainsPoint(A: Box, B: VecLike, margin?: number): boolean;
     // (undocumented)
     containsPoint(V: VecLike, margin?: number): boolean;
     // (undocumented)
@@ -338,7 +338,7 @@ export class Box {
     get height(): number;
     set height(n: number);
     // (undocumented)
-    static Includes: (A: Box, B: Box) => boolean;
+    static Includes(A: Box, B: Box): boolean;
     // (undocumented)
     includes(B: Box): boolean;
     // (undocumented)
@@ -373,7 +373,7 @@ export class Box {
     // (undocumented)
     setTo(B: Box): this;
     // (undocumented)
-    static Sides: (A: Box, inset?: number) => Vec[][];
+    static Sides(A: Box, inset?: number): Vec[][];
     // (undocumented)
     get sides(): Array<[Vec, Vec]>;
     // (undocumented)
@@ -460,12 +460,14 @@ export function clampRadians(r: number): number;
 export class ClickManager {
     constructor(editor: Editor);
     // @internal
-    cancelDoubleClickTimeout: () => void;
+    cancelDoubleClickTimeout(): void;
     get clickState(): TLClickState | undefined;
     // (undocumented)
     editor: Editor;
     // (undocumented)
-    handlePointerEvent: (info: TLPointerEventInfo) => TLClickEventInfo | TLPointerEventInfo;
+    _getClickTimeout(state: TLClickState, id?: string): void;
+    // (undocumented)
+    handlePointerEvent(info: TLPointerEventInfo): TLClickEventInfo | TLPointerEventInfo;
     // (undocumented)
     lastPointerInfo: TLPointerEventInfo;
 }
@@ -798,7 +800,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
         animation: Partial<{
             duration: number;
-            easing: (t: number) => number;
+            easing(t: number): number;
         }>;
         force: boolean;
         immediate: boolean;
@@ -807,7 +809,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: Partial<{
         animation: Partial<{
             duration: number;
-            easing: (t: number) => number;
+            easing(t: number): number;
         }>;
         force: boolean;
         immediate: boolean;
@@ -1014,7 +1016,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeAtPoint(point: VecLike, opts?: {
-        filter?: ((shape: TLShape) => boolean) | undefined;
+        filter?(shape: TLShape): boolean;
         hitFrameInside?: boolean | undefined;
         hitInside?: boolean | undefined;
         hitLabels?: boolean | undefined;
@@ -1506,7 +1508,7 @@ export class Group2d extends Geometry2d {
 // @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
-    canBind: () => boolean;
+    canBind(): boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX_2.Element | null;
     // (undocumented)
@@ -1514,13 +1516,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLGroupShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape>;
+    onChildrenChange(group: TLGroupShape): void;
     // (undocumented)
     static props: RecordProps<TLGroupShape>;
     // (undocumented)
@@ -1563,15 +1565,15 @@ export function hardResetEditor(): void;
 // @public (undocumented)
 export class HistoryManager<R extends UnknownRecord> {
     constructor(opts: {
-        annotateError?: (error: unknown) => void;
+        annotateError?(error: unknown): void;
         store: Store<R>;
     });
     // (undocumented)
-    bail: () => this;
+    bail(): this;
     // (undocumented)
-    bailToMark: (id: string) => this;
+    bailToMark(id: string): this;
     // (undocumented)
-    batch: (fn: () => void, opts?: TLHistoryBatchOptions) => this;
+    batch(fn: () => void, opts?: TLHistoryBatchOptions): this;
     // (undocumented)
     clear(): void;
     // @internal (undocumented)
@@ -1593,13 +1595,18 @@ export class HistoryManager<R extends UnknownRecord> {
     // @internal (undocumented)
     _isInBatch: boolean;
     // (undocumented)
-    mark: (id?: string) => string;
+    mark(id?: string): string;
     // (undocumented)
-    redo: () => this;
+    redo(): this;
     // (undocumented)
-    squashToMark: (id: string) => this;
+    squashToMark(id: string): this;
     // (undocumented)
-    undo: () => this;
+    undo(): this;
+    // (undocumented)
+    _undo({ pushToRedoStack, toMark }: {
+        pushToRedoStack: boolean;
+        toMark?: string;
+    }): this;
 }
 
 // @public (undocumented)
@@ -1750,10 +1757,9 @@ export class Mat {
     // (undocumented)
     rotation(): number;
     // (undocumented)
-    static Scale: {
-        (x: number, y: number, cx: number, cy: number): MatModel;
-        (x: number, y: number): MatModel;
-    };
+    static Scale(x: number, y: number): MatModel;
+    // (undocumented)
+    static Scale(x: number, y: number, cx: number, cy: number): MatModel;
     // (undocumented)
     scale(x: number, y: number): this;
     // (undocumented)
@@ -1992,9 +1998,9 @@ export function rotateSelectionHandle(handle: SelectionHandle, rotation: number)
 
 // @public (undocumented)
 export const runtime: {
-    hardReset: () => void;
-    openWindow: (url: string, target: string) => void;
-    refreshPage: () => void;
+    hardReset(): void;
+    openWindow(url: string, target: string): void;
+    refreshPage(): void;
 };
 
 // @public (undocumented)
@@ -2016,17 +2022,17 @@ export interface ScribbleItem {
 // @public (undocumented)
 export class ScribbleManager {
     constructor(editor: Editor);
-    addPoint: (id: ScribbleItem['id'], x: number, y: number, z?: number) => ScribbleItem;
+    addPoint(id: ScribbleItem['id'], x: number, y: number, z?: number): ScribbleItem;
     // (undocumented)
-    addScribble: (scribble: Partial<TLScribble>, id?: string) => ScribbleItem;
+    addScribble(scribble: Partial<TLScribble>, id?: string): ScribbleItem;
     // (undocumented)
     reset(): void;
     // (undocumented)
     scribbleItems: Map<string, ScribbleItem>;
     // (undocumented)
     state: "paused" | "running";
-    stop: (id: ScribbleItem['id']) => ScribbleItem;
-    tick: (elapsed: number) => void;
+    stop(id: ScribbleItem['id']): ScribbleItem;
+    tick(elapsed: number): void;
 }
 
 // @public (undocumented)
@@ -2052,63 +2058,63 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
-    canBeLaidOut: TLShapeUtilFlag<Shape>;
-    canBind(opts: TLShapeUtilCanBindOpts<Shape>): boolean;
-    canCrop: TLShapeUtilFlag<Shape>;
+    canBeLaidOut(_shape: Shape): boolean;
+    canBind(_opts: TLShapeUtilCanBindOpts<Shape>): boolean;
+    canCrop(_shape: Shape): boolean;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
-    canEdit: TLShapeUtilFlag<Shape>;
-    canEditInReadOnly: TLShapeUtilFlag<Shape>;
-    canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
-    canResize: TLShapeUtilFlag<Shape>;
-    canScroll: TLShapeUtilFlag<Shape>;
-    canSnap: TLShapeUtilFlag<Shape>;
+    canEdit(_shape: Shape): boolean;
+    canEditInReadOnly(_shape: Shape): boolean;
+    canReceiveNewChildrenOfType(_shape: Shape, type: TLShape['type']): boolean;
+    canResize(_shape: Shape): boolean;
+    canScroll(_shape: Shape): boolean;
+    canSnap(_shape: Shape): boolean;
     abstract component(shape: Shape): any;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
-    getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry;
+    getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
-    getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
+    getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
-    hideResizeHandles: TLShapeUtilFlag<Shape>;
-    hideRotateHandle: TLShapeUtilFlag<Shape>;
-    hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
-    hideSelectionBoundsFg: TLShapeUtilFlag<Shape>;
+    hideResizeHandles(_shape: Shape): boolean;
+    hideRotateHandle(_shape: Shape): boolean;
+    hideSelectionBoundsBg(_shape: Shape): boolean;
+    hideSelectionBoundsFg(_shape: Shape): boolean;
     abstract indicator(shape: Shape): any;
-    isAspectRatioLocked: TLShapeUtilFlag<Shape>;
+    isAspectRatioLocked(_shape: Shape): boolean;
     // (undocumented)
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
-    onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;
-    onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>;
+    onBeforeCreate?(next: Shape): Shape | void;
+    onBeforeUpdate?(prev: Shape, next: Shape): Shape | void;
     // @internal
-    onBindingChange?: TLOnBindingChangeHandler<Shape>;
-    onChildrenChange?: TLOnChildrenChangeHandler<Shape>;
-    onClick?: TLOnClickHandler<Shape>;
-    onDoubleClick?: TLOnDoubleClickHandler<Shape>;
-    onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>;
-    onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>;
-    onDragShapesOut?: TLOnDragHandler<Shape>;
-    onDragShapesOver?: TLOnDragHandler<Shape>;
-    onDropShapesOver?: TLOnDragHandler<Shape>;
-    onEditEnd?: TLOnEditEndHandler<Shape>;
-    onHandleDrag?: TLOnHandleDragHandler<Shape>;
-    onResize?: TLOnResizeHandler<Shape>;
-    onResizeEnd?: TLOnResizeEndHandler<Shape>;
-    onResizeStart?: TLOnResizeStartHandler<Shape>;
-    onRotate?: TLOnRotateHandler<Shape>;
-    onRotateEnd?: TLOnRotateEndHandler<Shape>;
-    onRotateStart?: TLOnRotateStartHandler<Shape>;
-    onTranslate?: TLOnTranslateHandler<Shape>;
-    onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
-    onTranslateStart?: TLOnTranslateStartHandler<Shape>;
+    onBindingChange?(shape: Shape): TLShapePartial<Shape> | void;
+    onChildrenChange?(shape: Shape): TLShapePartial[] | void;
+    onClick?(shape: Shape): TLShapePartial<Shape> | void;
+    onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void;
+    onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void;
+    onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void;
+    onDragShapesOut?(shape: Shape, shapes: TLShape[]): void;
+    onDragShapesOver?(shape: Shape, shapes: TLShape[]): void;
+    onDropShapesOver?(shape: Shape, shapes: TLShape[]): void;
+    onEditEnd?(shape: Shape): void;
+    onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void;
+    onResize?(shape: Shape, info: TLResizeInfo<Shape>): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void;
+    onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
+    onResizeStart?(shape: Shape): TLShapePartial<Shape> | void;
+    onRotate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
+    onRotateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
+    onRotateStart?(shape: Shape): TLShapePartial<Shape> | void;
+    onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
+    onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
+    onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void;
     // (undocumented)
     static props?: RecordProps<TLUnknownShape>;
     // @internal
-    providesBackgroundForChildren(shape: Shape): boolean;
+    providesBackgroundForChildren(_shape: Shape): boolean;
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<null | ReactElement> | ReactElement;
     static type: string;
@@ -2224,16 +2230,16 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     editor: Editor;
     // (undocumented)
-    enter: (info: any, from: string) => void;
+    enter(info: any, from: string): void;
     // (undocumented)
-    exit: (info: any, from: string) => void;
+    exit(info: any, from: string): void;
     getCurrent(): StateNode | undefined;
     // (undocumented)
     getCurrentToolIdMask(): string | undefined;
     getIsActive(): boolean;
     getPath(): string;
     // (undocumented)
-    handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
+    handleEvent(info: Exclude<TLEventInfo, TLPinchEventInfo>): void;
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -2247,43 +2253,43 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     isLockable: boolean;
     // (undocumented)
-    onCancel?: TLEventHandlers['onCancel'];
+    onCancel?(info: TLCancelEventInfo): void;
     // (undocumented)
-    onComplete?: TLEventHandlers['onComplete'];
+    onComplete?(info: TLCompleteEventInfo): void;
     // (undocumented)
-    onDoubleClick?: TLEventHandlers['onDoubleClick'];
+    onDoubleClick?(info: TLClickEventInfo): void;
     // (undocumented)
-    onEnter?: TLEnterEventHandler;
+    onEnter?(info: any, from: string): void;
     // (undocumented)
-    onExit?: TLExitEventHandler;
+    onExit?(info: any, to: string): void;
     // (undocumented)
-    onInterrupt?: TLEventHandlers['onInterrupt'];
+    onInterrupt?(info: TLInterruptEventInfo): void;
     // (undocumented)
-    onKeyDown?: TLEventHandlers['onKeyDown'];
+    onKeyDown?(info: TLKeyboardEventInfo): void;
     // (undocumented)
-    onKeyRepeat?: TLEventHandlers['onKeyRepeat'];
+    onKeyRepeat?(info: TLKeyboardEventInfo): void;
     // (undocumented)
-    onKeyUp?: TLEventHandlers['onKeyUp'];
+    onKeyUp?(info: TLKeyboardEventInfo): void;
     // (undocumented)
-    onLongPress?: TLEventHandlers['onLongPress'];
+    onLongPress?(info: TLPointerEventInfo): void;
     // (undocumented)
-    onMiddleClick?: TLEventHandlers['onMiddleClick'];
+    onMiddleClick?(info: TLPointerEventInfo): void;
     // (undocumented)
-    onPointerDown?: TLEventHandlers['onPointerDown'];
+    onPointerDown?(info: TLPointerEventInfo): void;
     // (undocumented)
-    onPointerMove?: TLEventHandlers['onPointerMove'];
+    onPointerMove?(info: TLPointerEventInfo): void;
     // (undocumented)
-    onPointerUp?: TLEventHandlers['onPointerUp'];
+    onPointerUp?(info: TLPointerEventInfo): void;
     // (undocumented)
-    onQuadrupleClick?: TLEventHandlers['onQuadrupleClick'];
+    onQuadrupleClick?(info: TLClickEventInfo): void;
     // (undocumented)
-    onRightClick?: TLEventHandlers['onRightClick'];
+    onRightClick?(info: TLPointerEventInfo): void;
     // (undocumented)
-    onTick?: TLEventHandlers['onTick'];
+    onTick?(info: TLTickEventInfo): void;
     // (undocumented)
-    onTripleClick?: TLEventHandlers['onTripleClick'];
+    onTripleClick?(info: TLClickEventInfo): void;
     // (undocumented)
-    onWheel?: TLEventHandlers['onWheel'];
+    onWheel?(info: TLWheelEventInfo): void;
     // (undocumented)
     parent: StateNode;
     // (undocumented)
@@ -2294,7 +2300,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)
     shapeType?: string;
-    transition: (id: string, info?: any) => this;
+    transition(id: string, info?: any): this;
     // (undocumented)
     type: 'branch' | 'leaf' | 'root';
 }
@@ -2317,7 +2323,7 @@ export interface SvgExportContext {
 // @public (undocumented)
 export interface SvgExportDef {
     // (undocumented)
-    getElement: () => null | Promise<null | ReactElement> | ReactElement;
+    getElement(): null | Promise<null | ReactElement> | ReactElement;
     // (undocumented)
     key: string;
 }
@@ -2342,7 +2348,7 @@ export class TextManager {
         }[];
     };
     // (undocumented)
-    measureText: (textToMeasure: string, opts: {
+    measureText(textToMeasure: string, opts: {
         maxWidth: null | number;
         disableOverflowWrapBreaking?: boolean;
         fontFamily: string;
@@ -2352,8 +2358,12 @@ export class TextManager {
         lineHeight: number;
         minWidth?: null | number;
         padding: string;
-    }) => BoxModel & {
+    }): {
+        h: number;
         scrollWidth: number;
+        w: number;
+        x: number;
+        y: number;
     };
     measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
         box: BoxModel;
@@ -2423,7 +2433,7 @@ export interface TLCameraConstraints {
 // @public (undocumented)
 export type TLCameraMoveOptions = Partial<{
     animation: Partial<{
-        easing: (t: number) => number;
+        easing(t: number): number;
         duration: number;
     }>;
     force: boolean;
@@ -2706,7 +2716,7 @@ export interface TLEditorOptions {
     autoFocus?: boolean;
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     cameraOptions?: Partial<TLCameraOptions>;
-    getContainer: () => HTMLElement;
+    getContainer(): HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
     // (undocumented)
@@ -2898,6 +2908,16 @@ export interface TLGridProps {
 }
 
 // @public (undocumented)
+export interface TLHandleDragInfo<T extends TLShape> {
+    // (undocumented)
+    handle: TLHandle;
+    // (undocumented)
+    initial?: T | undefined;
+    // (undocumented)
+    isPrecise: boolean;
+}
+
+// @public (undocumented)
 export interface TLHandleProps {
     // (undocumented)
     className?: string;
@@ -3018,11 +3038,7 @@ export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TL
 export type TLOnEditEndHandler<T extends TLShape> = (shape: T) => void;
 
 // @public (undocumented)
-export type TLOnHandleDragHandler<T extends TLShape> = (shape: T, info: {
-    handle: TLHandle;
-    initial?: T | undefined;
-    isPrecise: boolean;
-}) => TLShapePartial<T> | void;
+export type TLOnHandleDragHandler<T extends TLShape> = (shape: T, info: TLHandleDragInfo<T>) => TLShapePartial<T> | void;
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
@@ -3284,7 +3300,7 @@ export interface TLStateNodeConstructor {
     // (undocumented)
     new (editor: Editor, parent?: StateNode): StateNode;
     // (undocumented)
-    children?: () => TLStateNodeConstructor[];
+    children?(): TLStateNodeConstructor[];
     // (undocumented)
     id: string;
     // (undocumented)
@@ -3537,7 +3553,7 @@ export class UserPreferencesManager {
     // (undocumented)
     systemColorScheme: Atom<"dark" | "light", unknown>;
     // (undocumented)
-    updateUserPreferences: (userPreferences: Partial<TLUserPreferences>) => void;
+    updateUserPreferences(userPreferences: Partial<TLUserPreferences>): void;
 }
 
 // @internal

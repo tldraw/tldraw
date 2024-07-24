@@ -22,7 +22,7 @@ export interface TLUiButtonPickerProps<T extends string> {
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
 	theme: TLDefaultColorTheme
-	onValueChange: (style: StyleProp<T>, value: T) => void
+	onValueChange(style: StyleProp<T>, value: T): void
 }
 
 /** @public */

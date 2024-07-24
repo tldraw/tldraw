@@ -239,7 +239,7 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
     connectionStatus: 'error' | 'offline' | 'online';
     onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>;
     onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>;
-    restart: () => void;
+    restart(): void;
     sendMessage: (msg: TLSocketClientSentEvent<R>) => void;
 }
 
@@ -276,7 +276,7 @@ export class TLRemoteSyncError extends Error {
 // @internal (undocumented)
 export interface TLRoomSocket<R extends UnknownRecord> {
     // (undocumented)
-    close: () => void;
+    close(): void;
     // (undocumented)
     isOpen: boolean;
     // (undocumented)
@@ -408,6 +408,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     close(): void;
     // (undocumented)
     didCancel?: () => boolean;
+    handleServerEvent(event: TLSocketServerSentEvent<R>): void;
     // (undocumented)
     incomingDiffBuffer: TLSocketServerSentDataEvent<R>[];
     // (undocumented)
@@ -430,9 +431,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 // @public (undocumented)
 export interface TLSyncLog {
     // (undocumented)
-    error?: (...args: any[]) => void;
+    error?(...args: any[]): void;
     // (undocumented)
-    warn?: (...args: any[]) => void;
+    warn?(...args: any[]): void;
 }
 
 // @internal
@@ -457,24 +458,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly events: Emitter<    {
     room_became_empty: () => void;
-    session_removed: (args: {
+    session_removed(args: {
     meta: SessionMeta;
     sessionId: string;
-    }) => void;
+    }): void;
     }>;
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
     // (undocumented)
     getSnapshot(): RoomSnapshot;
-    handleClose: (sessionId: string) => void;
+    handleClose(sessionId: string): void;
     handleMessage: (sessionId: string, message: TLSocketClientSentEvent<R>) => Promise<void>;
-    handleNewSession: (sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) => this;
+    handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta): this;
     // (undocumented)
     isClosed(): boolean;
     // (undocumented)
     readonly presenceType: RecordType<R, any>;
     // (undocumented)
-    pruneSessions: () => void;
+    pruneSessions(): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;
     // (undocumented)

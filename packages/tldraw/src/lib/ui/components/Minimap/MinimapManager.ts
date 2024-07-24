@@ -16,7 +16,9 @@ import { pie, rectangle, roundedRectangle } from './minimap-webgl-shapes'
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
-	close = () => this.disposables.forEach((d) => d())
+	close() {
+		return this.disposables.forEach((d) => d())
+	}
 	gl: ReturnType<typeof setupWebGl>
 	shapeGeometryCache: ComputedCache<Float32Array | null, TLShape>
 	constructor(
@@ -144,7 +146,7 @@ export class MinimapManager {
 		return new Float32Array([x, y, w, h])
 	}
 
-	getMinimapPagePoint = (clientX: number, clientY: number) => {
+	getMinimapPagePoint(clientX: number, clientY: number) {
 		const canvasPageBounds = this.getCanvasPageBounds()
 		const canvasScreenBounds = this.getCanvasScreenBounds()
 
@@ -163,12 +165,7 @@ export class MinimapManager {
 		return new Vec(x, y, 1)
 	}
 
-	minimapScreenPointToPagePoint = (
-		x: number,
-		y: number,
-		shiftKey = false,
-		clampToBounds = false
-	) => {
+	minimapScreenPointToPagePoint(x: number, y: number, shiftKey = false, clampToBounds = false) {
 		const { editor } = this
 		const vpPageBounds = editor.getViewportPageBounds()
 
@@ -208,7 +205,7 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
-	render = () => {
+	render() {
 		// make sure we update when dark mode switches
 		const context = this.gl.context
 		const canvasSize = this.getCanvasSize()

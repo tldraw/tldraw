@@ -333,8 +333,8 @@ export class PngHelpers {
 
 // @internal (undocumented)
 export function promiseWithResolve<T>(): Promise<T> & {
-    reject: (reason?: any) => void;
-    resolve: (value: T) => void;
+    reject(reason?: any): void;
+    resolve(value: T): void;
 };
 
 // @public (undocumented)

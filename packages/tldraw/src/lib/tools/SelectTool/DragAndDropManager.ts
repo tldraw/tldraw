@@ -1,4 +1,5 @@
 import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
+import bind from 'bind-decorator'
 import { getOccludedChildren } from './selectHelpers'
 
 const INITIAL_POINTER_LAG_DURATION = 20
@@ -137,7 +138,8 @@ export class DragAndDropManager {
 		this.first = true
 	}
 
-	dispose = () => {
+	@bind
+	dispose() {
 		this.clear()
 	}
 }

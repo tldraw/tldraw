@@ -2,8 +2,6 @@ import {
 	SelectionHandle,
 	StateNode,
 	TLBaseShape,
-	TLEnterEventHandler,
-	TLEventHandlers,
 	TLImageShape,
 	TLImageShapeCrop,
 	TLPointerEventInfo,
@@ -30,13 +28,13 @@ export class Cropping extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
-	override onEnter: TLEnterEventHandler = (
+	override onEnter(
 		info: TLPointerEventInfo & {
 			target: 'selection'
 			handle: SelectionHandle
 			onInteractionEnd?: string
 		}
-	) => {
+	) {
 		this.info = info
 		this.markId = 'cropping'
 		this.editor.mark(this.markId)
@@ -44,19 +42,19 @@ export class Cropping extends StateNode {
 		this.updateShapes()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		this.updateShapes()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
@@ -68,10 +66,12 @@ export class Cropping extends StateNode {
 		this.editor.setCursor({ type: cursorType, rotation: this.editor.getSelectionRotation() })
 	}
 
-	private getDefaultCrop = (): TLImageShapeCrop => ({
-		topLeft: { x: 0, y: 0 },
-		bottomRight: { x: 1, y: 1 },
-	})
+	getDefaultCrop() {
+		return {
+			topLeft: { x: 0, y: 0 },
+			bottomRight: { x: 1, y: 1 },
+		}
+	}
 
 	private updateShapes() {
 		const { shape, cursorHandleOffset } = this.snapshot

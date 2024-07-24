@@ -57,7 +57,7 @@ import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
-import { TLClickEvent } from '@tldraw/editor';
+import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
 import { TLDefaultDashStyle } from '@tldraw/editor';
@@ -69,30 +69,26 @@ import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
+import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
+import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
-import { TLInterruptEvent } from '@tldraw/editor';
-import { TLKeyboardEvent } from '@tldraw/editor';
+import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
+import { TLLineShapePoint } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
-import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
-import { TLOnDoubleClickHandler } from '@tldraw/editor';
-import { TLOnEditEndHandler } from '@tldraw/editor';
-import { TLOnHandleDragHandler } from '@tldraw/editor';
-import { TLOnResizeHandler } from '@tldraw/editor';
-import { TLOnTranslateHandler } from '@tldraw/editor';
-import { TLOnTranslateStartHandler } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/editor';
+import { TLResizeInfo } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
@@ -102,7 +98,6 @@ import { TLShapeId } from '@tldraw/editor';
 import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
-import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
@@ -112,13 +107,14 @@ import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
+import { VecModel } from '@tldraw/editor';
 
 // @public (undocumented)
 export interface ActionsProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
     // (undocumented)
-    overrides?: (editor: Editor, actions: TLUiActionsContextType, helpers: undefined) => TLUiActionsContextType;
+    overrides?(editor: Editor, actions: TLUiActionsContextType, helpers: undefined): TLUiActionsContextType;
 }
 
 // @public (undocumented)
@@ -167,7 +163,7 @@ export function ArrowRightToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class ArrowShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -179,13 +175,13 @@ export class ArrowShapeTool extends StateNode {
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
-    canBeLaidOut: TLShapeUtilFlag<TLArrowShape>;
+    canBeLaidOut(shape: TLArrowShape): boolean;
     // (undocumented)
     canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean;
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
-    canSnap: () => boolean;
+    canSnap(): boolean;
     // (undocumented)
     component(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
@@ -199,29 +195,40 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
-    hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
+    hideResizeHandles(): boolean;
     // (undocumented)
-    hideRotateHandle: TLShapeUtilFlag<TLArrowShape>;
+    hideRotateHandle(): boolean;
     // (undocumented)
-    hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape>;
+    hideSelectionBoundsBg(): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape>;
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
     static migrations: MigrationSequence;
     // (undocumented)
-    onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
+    onDoubleClickHandle(shape: TLArrowShape, handle: TLHandle): TLShapePartial<TLArrowShape> | void;
     // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLArrowShape>;
+    onEditEnd(shape: TLArrowShape): void;
     // (undocumented)
-    onHandleDrag: TLOnHandleDragHandler<TLArrowShape>;
+    onHandleDrag(shape: TLArrowShape, { handle, isPrecise }: TLHandleDragInfo<TLArrowShape>): {
+        id: TLShapeId;
+        meta?: Partial<JsonObject> | undefined;
+        props?: Partial<TLArrowShapeProps> | undefined;
+        type: "arrow";
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLArrowShape>;
+    onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>): {
+        props: {
+            bend: number;
+            end: VecModel;
+            start: VecModel;
+        };
+    };
     // (undocumented)
-    onTranslate?: TLOnTranslateHandler<TLArrowShape>;
+    onTranslate(initialShape: TLArrowShape, shape: TLArrowShape): void;
     // (undocumented)
-    onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
+    onTranslateStart(shape: TLArrowShape): void;
     // (undocumented)
     static props: RecordProps<TLArrowShape>;
     // (undocumented)
@@ -248,19 +255,19 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
 // @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
-    canResize: () => boolean;
+    canResize(): boolean;
     // (undocumented)
     component(shape: TLBookmarkShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeCreate: (next: TLBookmarkShape) => {
+    onBeforeCreate(next: TLBookmarkShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -280,7 +287,25 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         y: number;
     };
     // (undocumented)
-    onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
+    onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape): {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
+            assetId: null | TLAssetId;
+            h: number;
+            url: string;
+            w: number;
+        };
+        rotation: number;
+        type: "bookmark";
+        typeName: "shape";
+        x: number;
+        y: number;
+    } | undefined;
     // (undocumented)
     static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
@@ -498,7 +523,7 @@ export function downsizeImage(blob: Blob, width: number, height: number, opts?: 
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -506,7 +531,7 @@ export class DrawShapeTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    onExit: () => void;
+    onExit(): void;
     // (undocumented)
     shapeType: string;
 }
@@ -524,17 +549,21 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
-    hideResizeHandles: (shape: TLDrawShape) => boolean;
+    hideResizeHandles(shape: TLDrawShape): boolean;
     // (undocumented)
-    hideRotateHandle: (shape: TLDrawShape) => boolean;
+    hideRotateHandle(shape: TLDrawShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: (shape: TLDrawShape) => boolean;
+    hideSelectionBoundsFg(shape: TLDrawShape): boolean;
     // (undocumented)
     indicator(shape: TLDrawShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLDrawShape>;
+    onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>): {
+        props: {
+            segments: TLDrawShapeSegment[];
+        };
+    };
     // (undocumented)
     static props: RecordProps<TLDrawShape>;
     // (undocumented)
@@ -561,25 +590,25 @@ export function EllipseToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
-    canEdit: TLShapeUtilFlag<TLEmbedShape>;
+    canEdit(): boolean;
     // (undocumented)
-    canEditInReadOnly: () => boolean;
+    canEditInReadOnly(): boolean;
     // (undocumented)
-    canResize: (shape: TLEmbedShape) => boolean;
+    canResize(shape: TLEmbedShape): boolean;
     // (undocumented)
     component(shape: TLEmbedShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
-    hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape>;
+    hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
     // (undocumented)
     indicator(shape: TLEmbedShape): JSX_2.Element;
     // (undocumented)
-    isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape>;
+    isAspectRatioLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLEmbedShape>;
+    onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): Partial<TLEmbedShape>;
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
     // (undocumented)
@@ -589,7 +618,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 // @public (undocumented)
 export class EraserTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -597,7 +626,7 @@ export class EraserTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    onEnter: () => void;
+    onEnter(): void;
 }
 
 // @public (undocumented)
@@ -625,9 +654,9 @@ export interface ExampleDialogProps {
     // (undocumented)
     displayDontShowAgain?: boolean;
     // (undocumented)
-    onCancel: () => void;
+    onCancel(): void;
     // (undocumented)
-    onContinue: () => void;
+    onContinue(): void;
     // (undocumented)
     title?: string;
 }
@@ -670,7 +699,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onCreate: (shape: null | TLShape) => void;
+    onCreate(shape: null | TLShape): void;
     // (undocumented)
     shapeType: string;
 }
@@ -678,11 +707,11 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
-    canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
+    canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean;
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
+    canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']): boolean;
     // (undocumented)
     component(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
@@ -694,11 +723,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
+    onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
-    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => void;
+    onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
-    onResize: TLOnResizeHandler<any>;
+    onResize(shape: any, info: TLResizeInfo<any>): any;
     // (undocumented)
     static props: RecordProps<TLFrameShape>;
     // (undocumented)
@@ -715,7 +744,7 @@ export function FrameToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -727,7 +756,7 @@ export class GeoShapeTool extends StateNode {
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
     component(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -743,7 +772,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeCreate: (shape: TLGeoShape) => {
+    onBeforeCreate(shape: TLGeoShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -774,7 +803,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onBeforeUpdate: (prev: TLGeoShape, next: TLGeoShape) => {
+    onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -805,7 +834,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onDoubleClick: (shape: TLGeoShape) => {
+    onDoubleClick(shape: TLGeoShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -837,9 +866,17 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLGeoShape>;
+    onEditEnd(shape: TLGeoShape): void;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLGeoShape>;
+    onResize(shape: TLGeoShape, { handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>): {
+        props: {
+            growY: number;
+            h: number;
+            w: number;
+        };
+        x: number;
+        y: number;
+    };
     // (undocumented)
     static props: RecordProps<TLGeoShape>;
     // (undocumented)
@@ -897,19 +934,17 @@ export function GroupOrUngroupMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class HandTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
     // (undocumented)
-    static isLockable: boolean;
+    onDoubleClick(info: TLClickEventInfo): void;
     // (undocumented)
-    onDoubleClick: TLClickEvent;
+    onQuadrupleClick(info: TLClickEventInfo): void;
     // (undocumented)
-    onQuadrupleClick: TLClickEvent;
-    // (undocumented)
-    onTripleClick: TLClickEvent;
+    onTripleClick(info: TLClickEventInfo): void;
 }
 
 // @public (undocumented)
@@ -924,7 +959,7 @@ export function HexagonToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -932,7 +967,7 @@ export class HighlightShapeTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    onExit: () => void;
+    onExit(): void;
     // (undocumented)
     shapeType: string;
 }
@@ -948,17 +983,21 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
-    hideResizeHandles: (shape: TLHighlightShape) => boolean;
+    hideResizeHandles(shape: TLHighlightShape): boolean;
     // (undocumented)
-    hideRotateHandle: (shape: TLHighlightShape) => boolean;
+    hideRotateHandle(shape: TLHighlightShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: (shape: TLHighlightShape) => boolean;
+    hideSelectionBoundsFg(shape: TLHighlightShape): boolean;
     // (undocumented)
     indicator(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLHighlightShape>;
+    onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>): {
+        props: {
+            segments: TLDrawShapeSegment[];
+        };
+    };
     // (undocumented)
     static props: RecordProps<TLHighlightShape>;
     // (undocumented)
@@ -975,7 +1014,7 @@ export function HighlightToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
-    canCrop: () => boolean;
+    canCrop(): boolean;
     // (undocumented)
     component(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
@@ -985,15 +1024,15 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     isAnimated(shape: TLImageShape): boolean;
     // (undocumented)
-    isAspectRatioLocked: () => boolean;
+    isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onDoubleClick: (shape: TLImageShape) => void;
+    onDoubleClick(shape: TLImageShape): void;
     // (undocumented)
-    onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
+    onDoubleClickEdge(shape: TLImageShape): void;
     // (undocumented)
-    onResize: TLOnResizeHandler<any>;
+    onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>): TLImageShape;
     // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
@@ -1017,7 +1056,7 @@ export function LanguageMenu(): JSX_2.Element;
 // @public (undocumented)
 export class LaserTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1025,7 +1064,7 @@ export class LaserTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    onEnter: () => void;
+    onEnter(): void;
 }
 
 // @public (undocumented)
@@ -1034,7 +1073,7 @@ export function LaserToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class LineShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1058,21 +1097,58 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, progress: number): TLLineShape['props'];
     // (undocumented)
-    hideResizeHandles: () => boolean;
+    hideResizeHandles(): boolean;
     // (undocumented)
-    hideRotateHandle: () => boolean;
+    hideRotateHandle(): boolean;
     // (undocumented)
-    hideSelectionBoundsBg: () => boolean;
+    hideSelectionBoundsBg(): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onHandleDrag: TLOnHandleDragHandler<TLLineShape>;
+    onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>): {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
+            dash: "dashed" | "dotted" | "draw" | "solid";
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow"; points: {
+                [x: string]: {
+                    id: string;
+                    index: IndexKey;
+                    x: number;
+                    y: number;
+                } | TLLineShapePoint;
+            };
+            scale: number;
+            size: "l" | "m" | "s" | "xl";
+            spline: "cubic" | "line";
+        };
+        rotation: number;
+        type: "line";
+        typeName: "shape";
+        x: number;
+        y: number;
+    } | undefined;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLLineShape>;
+    onResize(shape: TLLineShape, info: TLResizeInfo<TLLineShape>): {
+        props: {
+            points: {
+                [x: string]: {
+                    id: string;
+                    index: IndexKey;
+                    x: number;
+                    y: number;
+                };
+            };
+        };
+    };
     // (undocumented)
     static props: RecordProps<TLLineShape>;
     // (undocumented)
@@ -1093,7 +1169,7 @@ export function MoveToPageMenu(): JSX_2.Element | null;
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1105,7 +1181,7 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
@@ -1115,15 +1191,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
     // (undocumented)
-    hideResizeHandles: () => boolean;
+    hideResizeHandles(): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeCreate: (next: TLNoteShape) => {
+    onBeforeCreate(next: TLNoteShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -1149,7 +1225,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onBeforeUpdate: (prev: TLNoteShape, next: TLNoteShape) => {
+    onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -1175,7 +1251,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLNoteShape>;
+    onEditEnd(shape: TLNoteShape): void;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
@@ -1224,7 +1300,7 @@ export interface PageItemSubmenuProps {
     // (undocumented)
     listSize: number;
     // (undocumented)
-    onRename?: () => void;
+    onRename?(): void;
 }
 
 // @internal (undocumented)
@@ -1304,7 +1380,9 @@ export function SelectAllMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class SelectTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
+    // (undocumented)
+    cleanUpDuplicateProps(): void;
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1312,9 +1390,9 @@ export class SelectTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    onEnter: () => void;
+    onEnter(): void;
     // (undocumented)
-    onExit: () => void;
+    onExit(): void;
     // (undocumented)
     reactor: (() => void) | undefined;
 }
@@ -1395,7 +1473,7 @@ export interface TextLabelProps {
     // (undocumented)
     lineHeight: number;
     // (undocumented)
-    onKeyDown?: (e: React_3.KeyboardEvent<HTMLTextAreaElement>) => void;
+    onKeyDown?(e: React_3.KeyboardEvent<HTMLTextAreaElement>): void;
     // (undocumented)
     padding?: number;
     // (undocumented)
@@ -1417,7 +1495,7 @@ export interface TextLabelProps {
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1431,7 +1509,7 @@ export class TextShapeTool extends StateNode {
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
     component(shape: TLTextShape): JSX_2.Element;
     // (undocumented)
@@ -1446,11 +1524,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     indicator(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)
-    isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>;
+    isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeUpdate: (prev: TLTextShape, next: TLTextShape) => {
+    onBeforeUpdate(prev: TLTextShape, next: TLTextShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -1474,9 +1552,26 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLTextShape>;
+    onEditEnd(shape: TLTextShape): void;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLTextShape>;
+    onResize(shape: TLTextShape, info: TLResizeInfo<TLTextShape>): {
+        id: TLShapeId;
+        props: {
+            autoSize: boolean;
+            w: number;
+        };
+        type: "text";
+        x: number;
+        y: number;
+    } | {
+        id: TLShapeId;
+        props: {
+            scale: number;
+        };
+        type: "text";
+        x: number;
+        y: number;
+    };
     // (undocumented)
     static props: RecordProps<TLTextShape>;
     // (undocumented)
@@ -1749,7 +1844,7 @@ export interface TldrawUiProps extends TldrawUiContextProviderProps {
     children?: ReactNode;
     components?: TLUiComponents;
     hideUi?: boolean;
-    renderDebugMenuItems?: () => React_3.ReactNode;
+    renderDebugMenuItems?(): React_3.ReactNode;
 }
 
 // @internal (undocumented)
@@ -1821,7 +1916,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
         [key: string]: TransationKey;
     } | TransationKey;
     // (undocumented)
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    onSelect(source: TLUiEventSource): Promise<void> | void;
     // (undocumented)
     readonlyOk?: boolean;
 }
@@ -1872,7 +1967,7 @@ export interface TLUiButtonPickerProps<T extends string> {
     // (undocumented)
     items: StyleValuesForUi<T>;
     // (undocumented)
-    onValueChange: (style: StyleProp<T>, value: T) => void;
+    onValueChange(style: StyleProp<T>, value: T): void;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
@@ -1962,7 +2057,7 @@ export interface TLUiDialog {
     // (undocumented)
     id: string;
     // (undocumented)
-    onClose?: () => void;
+    onClose?(): void;
 }
 
 // @public (undocumented)
@@ -1994,23 +2089,23 @@ export interface TLUiDialogHeaderProps {
 // @public (undocumented)
 export interface TLUiDialogProps {
     // (undocumented)
-    onClose: () => void;
+    onClose(): void;
 }
 
 // @public (undocumented)
 export interface TLUiDialogsContextType {
     // (undocumented)
-    addDialog: (dialog: Omit<TLUiDialog, 'id'> & {
+    addDialog(dialog: Omit<TLUiDialog, 'id'> & {
         id?: string;
-    }) => string;
+    }): string;
     // (undocumented)
-    clearDialogs: () => void;
+    clearDialogs(): void;
     // (undocumented)
     dialogs: TLUiDialog[];
     // (undocumented)
-    removeDialog: (id: string) => string;
+    removeDialog(id: string): string;
     // (undocumented)
-    updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+    updateDialog(id: string, newDialogData: Partial<TLUiDialog>): string;
 }
 
 // @public (undocumented)
@@ -2030,7 +2125,7 @@ export interface TLUiDropdownMenuCheckboxItemProps {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    onSelect?: (e: Event) => void;
+    onSelect?(e: Event): void;
     // (undocumented)
     title: string;
 }
@@ -2362,15 +2457,15 @@ export interface TLUiInputProps {
     // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
-    onBlur?: (value: string) => void;
+    onBlur?(value: string): void;
     // (undocumented)
-    onCancel?: (value: string) => void;
+    onCancel?(value: string): void;
     // (undocumented)
-    onComplete?: (value: string) => void;
+    onComplete?(value: string): void;
     // (undocumented)
-    onFocus?: () => void;
+    onFocus?(): void;
     // (undocumented)
-    onValueChange?: (value: string) => void;
+    onValueChange?(value: string): void;
     // (undocumented)
     placeholder?: string;
     shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
@@ -2414,7 +2509,7 @@ export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = strin
         [key: string]: TranslationKey;
     } | TranslationKey;
     // (undocumented)
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    onSelect(source: TLUiEventSource): Promise<void> | void;
     // (undocumented)
     readonlyOk?: boolean;
     // (undocumented)
@@ -2456,7 +2551,7 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
         [key: string]: TranslationKey;
     } | TranslationKey;
     noClose?: boolean;
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    onSelect(source: TLUiEventSource): Promise<void> | void;
     readonlyOk?: boolean;
     spinner?: boolean;
 }
@@ -2482,10 +2577,10 @@ export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;
 
 // @public (undocumented)
 export type TLUiOverrides = Partial<{
-    actions: (editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers) => TLUiActionsContextType;
-    tools: (editor: Editor, tools: TLUiToolsContextType, helpers: {
-        insertMedia: () => void;
-    } & TLUiOverrideHelpers) => TLUiToolsContextType;
+    actions(editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers): TLUiActionsContextType;
+    tools(editor: Editor, tools: TLUiToolsContextType, helpers: {
+        insertMedia(): void;
+    } & TLUiOverrideHelpers): TLUiToolsContextType;
     translations: TLUiTranslationProviderProps['overrides'];
 }>;
 
@@ -2510,7 +2605,7 @@ export interface TLUiPopoverProps {
     // (undocumented)
     id: string;
     // (undocumented)
-    onOpenChange?: (isOpen: boolean) => void;
+    onOpenChange?(isOpen: boolean): void;
     // (undocumented)
     open?: boolean;
 }
@@ -2534,7 +2629,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
-    onValueChange: (value: number) => void;
+    onValueChange(value: number): void;
     // (undocumented)
     steps: number;
     // (undocumented)
@@ -2582,7 +2677,7 @@ export interface TLUiToastAction {
     // (undocumented)
     label: string;
     // (undocumented)
-    onClick: () => void;
+    onClick(): void;
     // (undocumented)
     type: 'danger' | 'normal' | 'primary';
 }
@@ -2590,13 +2685,13 @@ export interface TLUiToastAction {
 // @public (undocumented)
 export interface TLUiToastsContextType {
     // (undocumented)
-    addToast: (toast: Omit<TLUiToast, 'id'> & {
+    addToast(toast: Omit<TLUiToast, 'id'> & {
         id?: string;
-    }) => string;
+    }): string;
     // (undocumented)
-    clearToasts: () => void;
+    clearToasts(): void;
     // (undocumented)
-    removeToast: (id: TLUiToast['id']) => string;
+    removeToast(id: TLUiToast['id']): string;
     // (undocumented)
     toasts: TLUiToast[];
 }
@@ -2616,7 +2711,7 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
         [key: string]: any;
     };
     // (undocumented)
-    onSelect: (source: TLUiEventSource) => void;
+    onSelect(source: TLUiEventSource): void;
     // (undocumented)
     readonlyOk?: boolean;
     // (undocumented)
@@ -2631,9 +2726,9 @@ export interface TLUiToolsProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
     // (undocumented)
-    overrides?: (editor: Editor, tools: TLUiToolsContextType, helpers: {
-        insertMedia: () => void;
-    }) => TLUiToolsContextType;
+    overrides?(editor: Editor, tools: TLUiToolsContextType, helpers: {
+        insertMedia(): void;
+    }): TLUiToolsContextType;
 }
 
 // @public (undocumented)
@@ -3300,7 +3395,7 @@ export function useUiEvents(): TLUiEventContextType;
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
     component(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
@@ -3308,7 +3403,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     indicator(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
-    isAspectRatioLocked: () => boolean;
+    isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
@@ -3337,7 +3432,7 @@ export function ZoomToFitMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class ZoomTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -3349,17 +3444,17 @@ export class ZoomTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    onEnter: (info: TLPointerEventInfo & {
+    onEnter(info: TLPointerEventInfo & {
         onInteractionEnd: string;
-    }) => void;
+    }): void;
     // (undocumented)
-    onExit: () => void;
+    onExit(): void;
     // (undocumented)
-    onInterrupt: TLInterruptEvent;
+    onInterrupt(): void;
     // (undocumented)
-    onKeyDown: TLKeyboardEvent | undefined;
+    onKeyDown(): void;
     // (undocumented)
-    onKeyUp: TLKeyboardEvent;
+    onKeyUp(info: TLKeyboardEventInfo): void;
 }
 
 // @public (undocumented)

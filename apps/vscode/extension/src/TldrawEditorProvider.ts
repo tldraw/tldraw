@@ -19,6 +19,7 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider<TLDrawD
 
 	constructor(private readonly context: vscode.ExtensionContext) {}
 
+	// eslint-disable-next-line local/prefer-class-methods
 	public static register = (context: vscode.ExtensionContext): vscode.Disposable => {
 		// Several commands exist only to prevent the default keyboard shortcuts
 		const noopCmds = ['zoomIn', 'zoomOut', 'resetZoom', 'toggleDarkMode']

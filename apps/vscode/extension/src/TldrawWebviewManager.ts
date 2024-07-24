@@ -52,10 +52,12 @@ export class TldrawWebviewManager {
 		webviewPanel.onDidDispose(this.handleDidDispose)
 	}
 
+	// eslint-disable-next-line local/prefer-class-methods
 	private handleDidDispose = () => {
 		this.disposables.forEach(({ dispose }) => dispose())
 	}
 
+	// eslint-disable-next-line local/prefer-class-methods
 	private getHtmlForWebview = (assetSrc: string): string => {
 		return `
       <!DOCTYPE html>

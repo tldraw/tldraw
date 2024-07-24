@@ -83,7 +83,9 @@ export interface StoreSnapshot<R extends UnknownRecord> {
 
 /** @public */
 export interface StoreValidator<R extends UnknownRecord> {
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	validate: (record: unknown) => R
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	validateUsingKnownGoodVersion?: (knownGoodVersion: R, record: unknown) => R
 }
 
@@ -167,6 +169,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @internal
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	private cancelHistoryReactor: () => void = () => {
 		/* noop */
 	}
@@ -324,6 +327,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param records - The records to add.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	put = (records: R[], phaseOverride?: 'initialize'): void => {
 		this.atomic(() => {
 			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
@@ -419,6 +423,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param ids - The ids of the records to remove.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	remove = (ids: IdOf<R>[]): void => {
 		this.atomic(() => {
 			const cancelled = new Set<IdOf<R>>()
@@ -467,6 +472,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	get = <K extends IdOf<R>>(id: K): RecordFromId<K> | undefined => {
 		return this.atoms.get()[id]?.get() as any
 	}
@@ -477,6 +483,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	unsafeGetWithoutCapture = <K extends IdOf<R>>(id: K): RecordFromId<K> | undefined => {
 		return this.atoms.get()[id]?.__unsafe__getWithoutCapture() as any
 	}
@@ -487,6 +494,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
 	 * @returns The record store snapshot as a JSON payload.
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	serialize = (scope: RecordScope | 'all' = 'document'): SerializedStore<R> => {
 		const result = {} as SerializedStore<R>
 		for (const [id, atom] of objectMapEntries(this.atoms.get())) {
@@ -599,6 +607,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @returns An array of all values in the store.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	allRecords = (): R[] => {
 		return objectMapValues(this.atoms.get()).map((atom) => atom.get())
 	}
@@ -608,6 +617,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	clear = (): void => {
 		this.remove(objectMapKeys(this.atoms.get()))
 	}
@@ -619,6 +629,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to update.
 	 * @param updater - A function that updates the record.
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	update = <K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) => {
 		const atom = this.atoms.get()[id]
 		if (!atom) {
@@ -635,6 +646,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to check.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	has = <K extends IdOf<R>>(id: K): boolean => {
 		return !!this.atoms.get()[id]
 	}
@@ -646,6 +658,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param filters - Filters to apply to the listener.
 	 * @returns A function to remove the listener.
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	listen = (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => {
 		// flush history so that this listener's history starts from exactly now
 		this._flushHistory()
@@ -681,6 +694,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param fn - A function that merges the external changes.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	mergeRemoteChanges = (fn: () => void) => {
 		if (this.isMergingRemoteChanges) {
 			return fn()
@@ -762,6 +776,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	createComputedCache = <Result, Record extends R = R>(
 		name: string,
 		derive: (record: Record) => Result | undefined,
@@ -796,6 +811,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	createSelectedComputedCache = <Selection, Result, Record extends R = R>(
 		name: string,
 		selector: (record: Record) => Selection | undefined,

@@ -7,7 +7,7 @@ import {
 	ShapeUtil,
 	TLDrawShapeSegment,
 	TLHighlightShape,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	VecLike,
 	highlightShapeMigrations,
 	highlightShapeProps,
@@ -33,9 +33,15 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	static override props = highlightShapeProps
 	static override migrations = highlightShapeMigrations
 
-	override hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
-	override hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)
-	override hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
+	override hideResizeHandles(shape: TLHighlightShape) {
+		return getIsDot(shape)
+	}
+	override hideRotateHandle(shape: TLHighlightShape) {
+		return getIsDot(shape)
+	}
+	override hideSelectionBoundsFg(shape: TLHighlightShape) {
+		return getIsDot(shape)
+	}
 
 	override getDefaultProps(): TLHighlightShape['props'] {
 		return {
@@ -149,7 +155,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		)
 	}
 
-	override onResize: TLOnResizeHandler<TLHighlightShape> = (shape, info) => {
+	override onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>) {
 		const { scaleX, scaleY } = info
 
 		const newSegments: TLDrawShapeSegment[] = []

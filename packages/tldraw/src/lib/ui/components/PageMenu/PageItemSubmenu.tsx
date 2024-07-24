@@ -18,7 +18,7 @@ export interface PageItemSubmenuProps {
 	index: number
 	item: { id: string; name: string }
 	listSize: number
-	onRename?: () => void
+	onRename?(): void
 }
 /** @public */
 export const PageItemSubmenu = track(function PageItemSubmenu({

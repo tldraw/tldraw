@@ -1,11 +1,7 @@
 import {
 	StateNode,
 	TLArrowShape,
-	TLCancelEvent,
-	TLEnterEventHandler,
-	TLEventHandlers,
 	TLHandle,
-	TLKeyboardEvent,
 	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -41,14 +37,14 @@ export class DraggingHandle extends StateNode {
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
 
-	override onEnter: TLEnterEventHandler = (
+	override onEnter(
 		info: TLPointerEventInfo & {
 			shape: TLArrowShape | TLLineShape
 			target: 'handle'
 			onInteractionEnd?: string
 			isCreating: boolean
 		}
-	) => {
+	) {
 		const { shape, isCreating, handle } = info
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -163,32 +159,32 @@ export class DraggingHandle extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		this.update()
 	}
 
-	override onKeyDown: TLKeyboardEvent | undefined = () => {
+	override onKeyDown() {
 		this.update()
 	}
 
-	override onKeyUp: TLKeyboardEvent | undefined = () => {
+	override onKeyUp() {
 		this.update()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.update()
 		this.complete()
 	}
 
-	override onCancel: TLCancelEvent = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clearIndicators()

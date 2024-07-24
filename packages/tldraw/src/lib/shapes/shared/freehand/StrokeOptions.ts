@@ -1,10 +1,9 @@
-import { Vec } from '@tldraw/editor'
-
 /**
  * The options object for `getStroke` or `getStrokePoints`.
  *
  * @public
  */
+
 export interface StrokeOptions {
 	/** The base size (diameter) of the stroke. */
 	size?: number
@@ -31,19 +30,4 @@ export interface StrokeOptions {
 	}
 	/** Whether to handle the points as a completed stroke. */
 	last?: boolean
-}
-
-/**
- * The points returned by `getStrokePoints`, and the input for `getStrokeOutlinePoints`
- *
- * @public
- */
-export interface StrokePoint {
-	point: Vec
-	input: Vec
-	vector: Vec
-	pressure: number
-	distance: number
-	runningLength: number
-	radius: number
 }

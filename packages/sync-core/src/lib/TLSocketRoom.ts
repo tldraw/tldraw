@@ -8,8 +8,8 @@ import { TLSocketServerSentEvent } from './protocol'
 // TODO: structured logging support
 /** @public */
 export interface TLSyncLog {
-	warn?: (...args: any[]) => void
-	error?: (...args: any[]) => void
+	warn?(...args: any[]): void
+	error?(...args: any[]): void
 }
 
 /** @public */
@@ -17,6 +17,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	private room: TLSyncRoom<R, SessionMeta>
 	private readonly sessions = new Map<
 		string,
+		// eslint-disable-next-line @typescript-eslint/method-signature-style
 		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
 	readonly log?: TLSyncLog
@@ -29,11 +30,13 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			clientTimeout?: number
 			log?: TLSyncLog
 			// a callback that is called when a client is disconnected
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			onSessionRemoved?: (
 				room: TLSocketRoom<R, SessionMeta>,
 				args: { sessionId: string; numSessionsRemaining: number; meta: SessionMeta }
 			) => void
 			// a callback that is called whenever a message is sent
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			onBeforeSendMessage?: (args: {
 				sessionId: string
 				/** @internal keep the protocol private for now */
@@ -41,6 +44,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				stringified: string
 				meta: SessionMeta
 			}) => void
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			onAfterReceiveMessage?: (args: {
 				sessionId: string
 				/** @internal keep the protocol private for now */
@@ -48,6 +52,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				stringified: string
 				meta: SessionMeta
 			}) => void
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			onDataChange?: () => void
 		}
 	) {

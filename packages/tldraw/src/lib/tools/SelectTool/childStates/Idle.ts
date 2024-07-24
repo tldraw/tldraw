@@ -4,9 +4,9 @@ import {
 	StateNode,
 	TLArrowShape,
 	TLClickEventInfo,
-	TLEventHandlers,
 	TLGroupShape,
 	TLKeyboardEventInfo,
+	TLPointerEventInfo,
 	TLShape,
 	TLTextShape,
 	Vec,
@@ -35,21 +35,21 @@ const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onEnter = () => {
+	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
 		updateHoveredShapeId(this.editor)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	override onExit = () => {
+	override onExit() {
 		updateHoveredShapeId.cancel()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		updateHoveredShapeId(this.editor)
 	}
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		if (this.editor.getIsMenuOpen()) return
 
 		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
@@ -176,7 +176,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+	override onDoubleClick(info: TLClickEventInfo) {
 		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
 
 		switch (info.target) {
@@ -341,7 +341,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onRightClick: TLEventHandlers['onRightClick'] = (info) => {
+	override onRightClick(info: TLPointerEventInfo) {
 		switch (info.target) {
 			case 'canvas': {
 				const hoveredShape = this.editor.getHoveredShape()
@@ -412,7 +412,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		if (
 			this.editor.getFocusedGroupId() !== this.editor.getCurrentPageId() &&
 			this.editor.getSelectedShapeIds().length > 0
@@ -424,7 +424,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
@@ -464,7 +464,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onKeyRepeat: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyRepeat(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
@@ -476,7 +476,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onKeyUp = (info: TLKeyboardEventInfo) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'Enter': {
 				const selectedShapes = this.editor.getSelectedShapes()

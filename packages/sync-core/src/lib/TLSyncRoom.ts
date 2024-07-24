@@ -51,8 +51,9 @@ import {
 /** @internal */
 export interface TLRoomSocket<R extends UnknownRecord> {
 	isOpen: boolean
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
-	close: () => void
+	close(): void
 }
 
 // the max number of tombstones to keep in the store
@@ -139,7 +140,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// A table of connected clients
 	readonly sessions = new Map<string, RoomSession<R, SessionMeta>>()
 
-	pruneSessions = () => {
+	pruneSessions() {
 		for (const client of this.sessions.values()) {
 			switch (client.state) {
 				case RoomSessionState.Connected: {
@@ -188,8 +189,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	readonly events = createNanoEvents<{
+		// eslint-disable-next-line @typescript-eslint/method-signature-style
 		room_became_empty: () => void
-		session_removed: (args: { sessionId: string; meta: SessionMeta }) => void
+		session_removed(args: { sessionId: string; meta: SessionMeta }): void
 	}>()
 
 	// Values associated with each uid (must be serializable).
@@ -341,6 +343,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.documentClock = this.clock
 	}
 
+	// eslint-disable-next-line local/prefer-class-methods
 	private pruneTombstones = () => {
 		// avoid blocking any pending responses
 		this.state.update(({ tombstones, documents }) => {
@@ -570,7 +573,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param sessionId - The session of the client that connected to the room.
 	 * @param socket - Their socket.
 	 */
-	handleNewSession = (sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) => {
+	handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) {
 		const existing = this.sessions.get(sessionId)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingConnectMessage,
@@ -632,6 +635,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param sessionId - The session that sent the message
 	 * @param message - The message that was sent
 	 */
+	// eslint-disable-next-line local/prefer-class-methods
 	handleMessage = async (sessionId: string, message: TLSocketClientSentEvent<R>) => {
 		const session = this.sessions.get(sessionId)
 		if (!session) {
@@ -1083,7 +1087,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 *
 	 * @param sessionId - The session that disconnected.
 	 */
-	handleClose = (sessionId: string) => {
+	handleClose(sessionId: string) {
 		this.cancelSession(sessionId)
 	}
 }

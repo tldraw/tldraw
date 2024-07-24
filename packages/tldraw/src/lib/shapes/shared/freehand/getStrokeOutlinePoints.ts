@@ -1,5 +1,6 @@
 import { Vec } from '@tldraw/editor'
-import type { StrokeOptions, StrokePoint } from './types'
+import type { StrokeOptions } from './StrokeOptions'
+import type { StrokePoint } from './types'
 
 const { PI } = Math
 

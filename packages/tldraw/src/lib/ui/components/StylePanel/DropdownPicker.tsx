@@ -22,7 +22,7 @@ interface DropdownPickerProps<T extends string> {
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
 	type: TLUiButtonProps['type']
-	onValueChange: (style: StyleProp<T>, value: T) => void
+	onValueChange(style: StyleProp<T>, value: T): void
 }
 
 function _DropdownPicker<T extends string>({

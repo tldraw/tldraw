@@ -33,7 +33,7 @@ module.exports = {
 		'@typescript-eslint/no-non-null-assertion': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
-		'@typescript-eslint/method-signature-style': 'error',
+		'@typescript-eslint/method-signature-style': ['error', 'method'],
 		'react/display-name': 'off',
 		'@next/next/no-img-element': 'off',
 		'react/prop-types': 'off',

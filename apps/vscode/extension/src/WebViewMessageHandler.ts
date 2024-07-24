@@ -29,6 +29,7 @@ export class WebViewMessageHandler {
 	isLoaded = false
 	firstChangeDone = false
 
+	// eslint-disable-next-line local/prefer-class-methods
 	handle = async (e: VscodeMessage) => {
 		if (!this.document) return
 
@@ -163,6 +164,7 @@ export class WebViewMessageHandler {
 		}
 	}
 
+	// eslint-disable-next-line local/prefer-class-methods
 	private omit = (records: UnknownRecord[], keys: RegExp) => {
 		return records.filter((record) => {
 			return !record.id.match(keys)

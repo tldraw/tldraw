@@ -40,7 +40,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	private readonly annotateError: (error: unknown) => void
 
-	constructor(opts: { store: Store<R>; annotateError?: (error: unknown) => void }) {
+	constructor(opts: { store: Store<R>; annotateError?(error: unknown): void }) {
 		this.store = opts.store
 		this.annotateError = opts.annotateError ?? noop
 		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
@@ -83,7 +83,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	/** @internal */
 	_isInBatch = false
 
-	batch = (fn: () => void, opts?: TLHistoryBatchOptions) => {
+	batch(fn: () => void, opts?: TLHistoryBatchOptions) {
 		const previousState = this.state
 
 		// we move to the new state only if we haven't explicitly paused
@@ -114,13 +114,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	// History
-	private _undo = ({
-		pushToRedoStack,
-		toMark = undefined,
-	}: {
-		pushToRedoStack: boolean
-		toMark?: string
-	}) => {
+	_undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMark?: string }) {
 		const previousState = this.state
 		this.state = HistoryRecorderState.Paused
 		try {
@@ -185,13 +179,13 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
-	undo = () => {
+	undo() {
 		this._undo({ pushToRedoStack: true })
 
 		return this
 	}
 
-	redo = () => {
+	redo() {
 		const previousState = this.state
 		this.state = HistoryRecorderState.Paused
 		try {
@@ -233,19 +227,19 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
-	bail = () => {
+	bail() {
 		this._undo({ pushToRedoStack: false })
 
 		return this
 	}
 
-	bailToMark = (id: string) => {
+	bailToMark(id: string) {
 		this._undo({ pushToRedoStack: false, toMark: id })
 
 		return this
 	}
 
-	squashToMark = (id: string) => {
+	squashToMark(id: string) {
 		// remove marks between head and the mark
 
 		let top = this.stacks.get().undos
@@ -280,7 +274,7 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
-	mark = (id = uniqueId()) => {
+	mark(id = uniqueId()) {
 		transact(() => {
 			this.flushPendingDiff()
 			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))

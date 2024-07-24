@@ -1,6 +1,5 @@
 import {
 	StateNode,
-	TLEventHandlers,
 	TLFrameShape,
 	TLGroupShape,
 	TLPointerEventInfo,
@@ -16,7 +15,7 @@ export class Erasing extends StateNode {
 	private markId = ''
 	private excludedShapeIds = new Set<TLShapeId>()
 
-	override onEnter = (info: TLPointerEventInfo) => {
+	override onEnter(info: TLPointerEventInfo) {
 		this.markId = 'erase scribble begin'
 		this.editor.mark(this.markId)
 		this.info = info
@@ -52,28 +51,28 @@ export class Erasing extends StateNode {
 		this.update()
 	}
 
-	private pushPointToScribble = () => {
+	private pushPointToScribble() {
 		const { x, y } = this.editor.inputs.currentPagePoint
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.scribbles.stop(this.scribbleId)
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.update()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 

@@ -4,7 +4,6 @@ import {
 	Group2d,
 	StateNode,
 	TLArrowShape,
-	TLEventHandlers,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
@@ -30,13 +29,13 @@ export class PointingArrowLabel extends StateNode {
 		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
-	override onEnter = (
+	override onEnter(
 		info: TLPointerEventInfo & {
 			shape: TLArrowShape
 			onInteractionEnd?: string
 			isCreating: boolean
 		}
-	) => {
+	) {
 		const { shape } = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.info = info
@@ -60,7 +59,7 @@ export class PointingArrowLabel extends StateNode {
 		this.editor.setSelectedShapes([this.shapeId])
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 
 		this.editor.setCursor({ type: 'default', rotation: 0 })
@@ -68,7 +67,7 @@ export class PointingArrowLabel extends StateNode {
 
 	private _labelDragOffset = new Vec(0, 0)
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		const { isDragging } = this.editor.inputs
 		if (!isDragging) return
 
@@ -110,7 +109,7 @@ export class PointingArrowLabel extends StateNode {
 		})
 	}
 
-	override onPointerUp = () => {
+	override onPointerUp() {
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
 		if (!shape) return
 
@@ -123,15 +122,15 @@ export class PointingArrowLabel extends StateNode {
 		}
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 

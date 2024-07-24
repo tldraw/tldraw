@@ -4,8 +4,8 @@ import {
 	TLDefaultSizeStyle,
 	TLDrawShape,
 	TLDrawShapeSegment,
-	TLEventHandlers,
 	TLHighlightShape,
+	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLShapePartial,
 	Vec,
@@ -51,7 +51,7 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
-	override onEnter = (info: TLPointerEventInfo) => {
+	override onEnter(info: TLPointerEventInfo) {
 		this.markId = null
 		this.info = info
 		this.canDraw = !this.editor.getIsMenuOpen()
@@ -61,7 +61,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		const { inputs } = this.editor
 
 		if (this.isPen && !inputs.isPen) {
@@ -101,7 +101,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown(info: TLKeyboardEventInfo) {
 		if (info.key === 'Shift') {
 			switch (this.segmentMode) {
 				case 'free': {
@@ -118,7 +118,7 @@ export class Drawing extends StateNode {
 		this.updateDrawingShape()
 	}
 
-	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		if (info.key === 'Shift') {
 			this.editor.snaps.clearIndicators()
 
@@ -140,7 +140,7 @@ export class Drawing extends StateNode {
 		this.updateDrawingShape()
 	}
 
-	override onExit? = () => {
+	override onExit?() {
 		this.editor.snaps.clearIndicators()
 		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 	}
@@ -693,19 +693,19 @@ export class Drawing extends StateNode {
 		return Math.sqrt(length)
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt() {
 		if (this.editor.inputs.isDragging) {
 			return
 		}

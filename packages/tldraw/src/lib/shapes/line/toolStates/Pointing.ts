@@ -1,8 +1,6 @@
 import {
 	Mat,
 	StateNode,
-	TLEventHandlers,
-	TLInterruptEvent,
 	TLLineShape,
 	TLShapeId,
 	Vec,
@@ -22,7 +20,7 @@ export class Pointing extends StateNode {
 
 	markId: string | undefined
 
-	override onEnter = (info: { shapeId?: TLShapeId }) => {
+	override onEnter(info: { shapeId?: TLShapeId }) {
 		const { inputs } = this.editor
 		const { currentPagePoint } = inputs
 
@@ -106,7 +104,7 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		if (!this.shape) return
 
 		if (this.editor.inputs.isDragging) {
@@ -126,19 +124,19 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.parent.transition('idle')
 		if (this.markId) this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()

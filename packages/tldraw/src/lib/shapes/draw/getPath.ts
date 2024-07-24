@@ -8,7 +8,7 @@ import {
 	Vec,
 	modulate,
 } from '@tldraw/editor'
-import { StrokeOptions } from '../shared/freehand/types'
+import { StrokeOptions } from '../shared/freehand/StrokeOptions'
 
 const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35
 
