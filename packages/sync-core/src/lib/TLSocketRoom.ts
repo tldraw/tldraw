@@ -154,7 +154,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			const messageString =
 				typeof message === 'string' ? message : new TextDecoder().decode(message)
 			const res = assembler.handleMessage(messageString)
-			if (res?.data) {
+			if (!res) {
+				// not enough chunks yet
+				return
+			}
+			if ('data' in res) {
 				// need to do this first in case the session gets removed as a result of handling the message
 				if (this.opts.onAfterReceiveMessage) {
 					const session = this.room.sessions.get(sessionId)
@@ -162,15 +166,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 						this.opts.onAfterReceiveMessage({
 							sessionId,
 							message: res.data as any,
-							stringified: messageString,
+							stringified: res.stringified,
 							meta: session.meta,
 						})
 					}
 				}
 
 				this.room.handleMessage(sessionId, res.data as any)
-			}
-			if (res?.error) {
+			} else {
 				this.log?.error?.('Error assembling message', res.error)
 				// close the socket to reset the connection
 				this.handleSocketError(sessionId)
