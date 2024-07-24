@@ -42,7 +42,8 @@ them faster.
 To install dependencies, run `yarn`. To start a local development server, run `yarn dev`. This will
 start a [`vite`](https://vitejs.dev/) dev server for the frontend of your application, and a
 [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) dev server for your workers
-backend.
+backend. The app should now be running at http://localhost:5137 (and the server at
+http://localhost:5172).
 
 The backend worker is under [`worker`](./worker/), and is split across several files:
 
@@ -65,6 +66,29 @@ The frontend client is under [`client`](./client):
 - **[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx):** how does the client fetch
   bookmark previews from the worker?
 
+## Custom shapes
+
+To add support for custom shapes, see the [tldraw sync custom shapes
+docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings).
+
+## Adding cloudflare to your own repo
+
+If you already have an app using tldraw and want to use the system in this repo, you can copy and
+paste the relevant parts to your own app.
+
+To point your existing client at the server defined in this repo, copy
+[`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx) and
+[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx) into your app. Then, adapt the
+code from [`client/App.tsx`](./client/App.tsx) to your own app. When you call `useSync`, you'll need
+to pass it a URL. In development, that's `http://localhost:5172/connect/some-room-id`. We use an
+environment variable set in [`./vite.config.ts`](./vite.config.ts) to set the server URL.
+
+To add the server to your own app, copy the contents of the [`worker`](./worker/) folder and
+[`./wrangler.toml`](./wrangler.toml) into your app. Add the dependencies from
+[`package.json`](./package.json). If you're using TypeScript, you'll also need to adapt
+`tsconfig.worker.json` for your own project. You can run the worker using `wrangler dev` in the same
+folder as `./wrangler.toml`.
+
 ## Deployment
 
 To deploy this example, you'll need to create a cloudflare account and create an R2 bucket to store
@@ -81,22 +105,6 @@ Finally, deploy your client HTML & JavaScript. Create a production build with
 
 When you visit your published client, it should connect to your cloudflare workers domain and sync
 your document across devices.
-
-## Adding cloudflare to your own repo
-
-If you already have an app using tldraw and want to use the system in this repo, you can copy and
-paste the relevant parts to your own app.
-
-To point your existing client at the server defined in this repo, copy
-[`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx) and
-[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx) into your app. Then, adapt the
-code from [`client/App.tsx`](./client/App.tsx) to your own app. When you call `useSync`, you'll need
-to pass it a URL. In development, that's `http://localhost:5172/connect/some-room-id`. We use an
-environment variable set in [`./vite.config.ts`](./vite.config.ts) to set the server URL.
-
-To add the server to your own app, copy the contents of the [`worker`](./worker/) folder and
-[`./wrangler.toml`](./wrangler.toml) into your app. You can run the worker using `wrangler dev` in
-the same folder as `./wrangler.toml`.
 
 ## License
 
