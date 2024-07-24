@@ -97,6 +97,7 @@ export const router = createRoutesFromElements(
 			<Route path="/w" element={<RedirectAtWorkspacesRoot />} />
 			<Route path="/w/:workspaceId" element={<RequireAuthForWorkspace />}>
 				<Route index element={<RedirectAtWorkspaceRoot />} />
+				{/* <Route index lazy={() => import('./pages/ws-maybe')} /> */}
 				<Route path="/w/:workspaceId/debug" lazy={() => import('./pages/ws-debug')} />
 				<Route path="/w/:workspaceId/drafts" lazy={() => import('./pages/ws-drafts')} />
 				<Route path="/w/:workspaceId/stars" lazy={() => import('./pages/ws-stars')} />

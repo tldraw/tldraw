@@ -40,7 +40,7 @@ const SIDEBAR_MAIN_LINKS = [
 	{
 		id: 3,
 		icon: 'group-strong',
-		label: 'My groups',
+		label: 'Groups',
 		href: 'groups',
 	},
 ]

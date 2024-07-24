@@ -106,7 +106,13 @@ const components: TLComponents = {
 	},
 }
 
-export function TlaEditor({ file }: { file: TldrawAppFile }) {
+export function TlaEditor({
+	file,
+	onDocumentChange,
+}: {
+	file: TldrawAppFile
+	onDocumentChange?: () => void
+}) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useApp()
 
@@ -135,8 +141,11 @@ export function TlaEditor({ file }: { file: TldrawAppFile }) {
 			editor.timers.setTimeout(() => {
 				setReady(true)
 			}, 200)
+			if (onDocumentChange) {
+				editor.store.listen(() => onDocumentChange(), { scope: 'document', source: 'user' })
+			}
 		},
-		[app]
+		[app, onDocumentChange]
 	)
 
 	useEffect(() => {

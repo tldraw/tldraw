@@ -236,7 +236,6 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const app = useApp()
 
 	const { fileId } = useParams() as { fileId: TldrawAppFileId }
-	if (!fileId) throw Error('No file id')
 
 	const msg = useTranslation()
 	const defaultDocumentName = msg('document.default-name')
@@ -244,6 +243,8 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const fileName = useValue(
 		'file name',
 		() => {
+			if (!fileId) return ''
+
 			const file = app.store.get(TldrawAppFileRecordType.createId(fileId))
 			if (!file) throw Error('no file')
 			return TldrawApp.getFileName(file)
@@ -268,6 +269,8 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 
 	// When editing ends, update the file name
 	useEffect(() => {
+		if (!fileId) return
+
 		if (!isEditing) {
 			const trimmedName = workingName.trim()
 
