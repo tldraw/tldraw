@@ -56,7 +56,41 @@ export interface TLShapeUtilCanvasSvgDef {
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
+
+	/**
+	 * Props allow you to define the shape's properties in a way that the editor can understand.
+	 * This has two main uses:
+	 *
+	 * 1. Validation. Shapes will be validated using these props to stop bad data from being saved.
+	 * 2. Styles. Each {@link @tldraw/tlschema#StyleProp} in the props can be set on many shapes at
+	 *    once, and will be remembered from one shape to the next.
+	 *
+	 * @example
+	 * ```tsx
+	 * import {T, TLBaseShape, TLDefaultColorStyle, DefaultColorStyle, ShapeUtil} from 'tldraw'
+	 *
+	 * type MyShape = TLBaseShape<'mine', {
+	 *      color: TLDefaultColorStyle,
+	 *      text: string,
+	 * }>
+	 *
+	 * class MyShapeUtil extends ShapeUtil<MyShape> {
+	 *     static props = {
+	 *         // we use tldraw's built-in color style:
+	 *         color: DefaultColorStyle,
+	 *         // validate that the text prop is a string:
+	 *         text: T.string,
+	 *     }
+	 * }
+	 * ```
+	 */
 	static props?: RecordProps<TLUnknownShape>
+
+	/**
+	 * Migrations allow you to make changes to a shape's props over time. Read the
+	 * {@link https://staging.tldraw.dev/docs/persistence#Shape-props-migrations | shape prop migrations}
+	 * guide for more information.
+	 */
 	static migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 
 	/**

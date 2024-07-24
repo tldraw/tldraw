@@ -5,7 +5,6 @@ import {
 	// defaultBindingSchemas,
 	defaultShapeSchemas,
 } from '@tldraw/tlschema'
-import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, IRequest, error } from 'itty-router'
 import throttle from 'lodash.throttle'
 import { Environment } from './types'
@@ -21,7 +20,7 @@ const schema = createTLSchema({
 
 // there's only ever one durable object instance per room. it keeps all the room state in memory and
 // handles websocket connections. periodically, it persists the room state to the R2 bucket.
-export class TldrawDurableObject extends DurableObject<Environment> {
+export class TldrawDurableObject {
 	private r2: R2Bucket
 	// the room ID will be missing whilst the room is being initialized
 	private roomId: string | null = null
@@ -30,7 +29,6 @@ export class TldrawDurableObject extends DurableObject<Environment> {
 	private roomPromise: Promise<TLSocketRoom<TLRecord, void>> | null = null
 
 	constructor(state: DurableObjectState, env: Environment) {
-		super(state, env)
 		this.r2 = env.TLDRAW_BUCKET
 
 		state.blockConcurrencyWhile(async () => {
@@ -62,9 +60,9 @@ export class TldrawDurableObject extends DurableObject<Environment> {
 
 	// what happens when someone tries to connect to this room?
 	async handleConnect(request: IRequest): Promise<Response> {
-		// extract query params from request, should include instanceId
-		const sessionKey = request.query.sessionKey as string
-		if (!sessionKey) return error(400, 'Missing sessionKey')
+		// extract query params from request
+		const sessionId = request.query.sessionId as string
+		if (!sessionId) return error(400, 'Missing sessionId')
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
@@ -74,7 +72,7 @@ export class TldrawDurableObject extends DurableObject<Environment> {
 		const room = await this.getRoom()
 
 		// connect the client to the room
-		room.handleSocketConnect(sessionKey, serverWebSocket)
+		room.handleSocketConnect({ sessionId, socket: serverWebSocket })
 
 		// return the websocket connection to the client
 		return new Response(null, { status: 101, webSocket: clientWebSocket })

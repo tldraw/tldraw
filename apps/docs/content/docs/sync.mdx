@@ -191,6 +191,74 @@ This should be registered with the [`Editor`](?) when it loads.
 
 Refer to the simple server example for example [client](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/client/App.tsx) and [server](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/unfurl.ts) code.
 
+### Custom shapes & bindings
+
+`@tldraw/sync` validates the contents of your document and runs migrations to make sure clients of
+different versions can collaborate without issue. To support this, you need to make sure that both
+the sync client and server know about any custom shapes or bindings you've added.
+
+#### On the client
+
+You can pass `shapeUtils` and `bindingUtils` props to `useSync`. Unlike `<Tldraw />`,
+these don't automatically include tldraw's default shapes like arrows and rectangles. You should
+pass those in explicitly if you're using them:
+
+```tsx
+import { Tldraw, defaultShapeUtils, defaultBindingUtils } from 'tldraw'
+import { useSync } from '@tldraw/sync'
+
+function MyApp() {
+	const store = useSync({
+		uri: '...',
+		assets: myAssetStore,
+		shapeUtils: useMemo(() => [...customShapeUtils, ...defaultShapeUtils], []),
+		bindingUtils: useMemo(() => [...customBindingUtils, ...defaultBindingUtils], []),
+	})
+
+	return <Tldraw store={store} shapeUtils={customShapeUtils} bindingUtils={customBindingUtils} />
+}
+```
+
+#### On the server
+
+Use [`createTLSchema`](?) to create a store schema, and pass that into [`TLSocketRoom`](?). You can
+use shape/binding utils here, but schema will only look at two properties:
+[`props`](/reference/editor/ShapeUtil#props) and
+[`migrations`](/docs/persistence#Shape-props-migrations). You need to provide the default shape
+schemas if you're using them.
+
+```tsx
+import { createTLSchema, defaultShapeSchemas, defaultBindingSchemas } from '@tldraw/tlschema'
+import { TLSocketRoom } from '@tldraw/sync-core'
+
+const schema = createTLSchema({
+	shapes: {
+		...defaultShapeSchemas,
+
+		myCustomShape: {
+			// validations for this shapes `props`
+			props: myCustomShapeProps,
+			// migrations between versions of this shape
+			migrations: myCustomShapeMigrations,
+		},
+
+		// the schema knows about this shape, but it has no migrations or validation
+		mySimpleShape: {},
+	},
+	bindings: defaultBindingSchemas,
+})
+
+// later, in your app server:
+const room = new TLSocketRoom({
+	schema: schema,
+	// ...
+})
+```
+
+Both `props` and `migration` are optional. If you omit `props`, you won't have any server-side
+validation for your shape, which could result in bad data being stored. If you omit `migrations`,
+clients on different versions won't be able to collaborate without errors.
+
 ### Deployment concerns
 
 <Callout icon="⚠️">
