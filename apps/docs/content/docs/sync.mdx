@@ -75,7 +75,7 @@ The template provides a production-grade minimal setup of the system that runs o
 It uses:
 
 - [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a WebSocket server per room.
-- [R2](https://developers.cloudflare.com/r2/) to store assets and room data.
+- [R2](https://developers.cloudflare.com/r2/) to persist document snapshots and store large binary assets like images and videos.
 
 There are some features that we have not provided, and you might want to add yourself:
 
@@ -96,7 +96,7 @@ We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/app
 
 A backend for tldraw sync consists of two or three parts:
 
-- A **WebSocket server** that provides rooms for each shared document.
+- A **WebSocket server** that provides rooms for each shared document, and is responsible for persisting document state.
 - An **asset storage** provider for large binary files like images and videos.
 - (If using the built-in bookmark shape) An **unfurling service** to extract metadata about bookmark URLs.
 
@@ -143,11 +143,13 @@ And [here's an actual working example](https://github.com/tldraw/tldraw/blob/mai
 
 #### WebSocket server
 
-The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that should be created server-side on a per-document basis. It is used to
+The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that should be created server-side on a per-document basis.
+
+`TLSocketRoom` is used to
 
 - Store an authoritative in-memory copy of the document state
 - Transparently set up communication between multiple sync clients via WebSockets.
-- Provide notifications for when the document state changes so that persistent storage can be updated.
+- Provide hooks for persisting the document state when it changes.
 
 > :bulb: You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app. If there's
 > more than one, users won't see each other and will overwrite others' changes. We use [Durable
