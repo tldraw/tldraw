@@ -69,6 +69,13 @@ function MyApp() {
 
 In your browser, open an incognito window and visit your project's URL. You can also use a different browser or different device. The key is the room ID: any apps connecting to the same room ID will enter into a shared collaboration session.
 
+The sync demo is perfect for demos but should not be used in production.
+
+- we delete all data after 24 hours
+- anyone using the same room id will be able to edit the same file
+
+If you want to use tldraw sync in production, see the next section for information on self-hosting the tldraw sync server.
+
 ### Using tldraw sync in production
 
 To use tldraw sync in production, you will need to self-host the tldraw sync server. (We don't offer a hosted solution for tldraw sync, but if you're interested in that please let us know at hello@tldraw.com).
