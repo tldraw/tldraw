@@ -1,6 +1,6 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
-import { objectMapValues } from 'tldraw'
+import { objectMapValues } from '@tldraw/utils'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
