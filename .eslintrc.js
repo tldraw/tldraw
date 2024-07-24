@@ -57,7 +57,6 @@ module.exports = {
 		'local/no-export-star': 'error',
 		'local/no-internal-imports': 'error',
 		'local/tagged-components': 'error',
-		'local/prefer-class-methods': 'warn',
 		'no-only-tests/no-only-tests': 'error',
 		'no-restricted-syntax': [
 			'error',
