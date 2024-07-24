@@ -94,21 +94,17 @@ For information about how to synchronize the store with other processes, i.e. ho
 
 ### Undo and redo
 
-The history stack in tldraw contains two types of data: "marks" and "commands". Commands have their own `undo` and `redo` methods that describe how the state should change when the command is undone or redone.
+The history stack in tldraw contains two types of data: 
 
-You can call [Editor#mark](?) to add a mark to the history stack with the given `id`.
+- "diffs" the changes you make to the store
+- "marks" undo/redo stopping points, created by calling [Editor#markHistoryStoppingPoint](?)
 
-```ts
-editor.mark('my-id')
-// do some stuff
-editor.bailToMark('my-id')
-```
-
-When you call [Editor#undo](?), the editor will undo each command until it finds either a mark or the start of the stack. When you call [Editor#redo](?), the editor will redo each command until it finds either a mark or the end of the stack.
+When you call [Editor#undo](?), the editor will undo each diff until it finds either a mark or the start of the stack. When you call [Editor#redo](?), the editor will redo each diff until it finds either a mark or the end of the stack.
 
 ```ts
+editor.createShapes(...)
 // A
-editor.mark('duplicate everything')
+editor.markHistoryStoppingPoint()
 editor.selectAll()
 editor.duplicateShapes(editor.getSelectedShapeIds())
 // B
@@ -117,11 +113,12 @@ editor.undo() // will return to A
 editor.redo() // will return to B
 ```
 
-You can call [Editor#bail](?) to undo and delete all commands in the stack until the first mark.
+You can call [Editor#bail](?) to undo and delete all the diffs to the nearest mark, so they cannot be redone.
 
 ```ts
+editor.createShapes(...)
 // A
-editor.mark('duplicate everything')
+editor.markHistoryStoppingPoint()
 editor.selectAll()
 editor.duplicateShapes(editor.getSelectedShapeIds())
 // B
@@ -130,18 +127,18 @@ editor.bail() // will return to A
 editor.redo() // will do nothing
 ```
 
-You can use [Editor#bailToMark](?) to undo and delete all commands and marks until you reach a mark with the given `id`.
+[Editor#markHistoryStoppingPoint](?) returns an id that you can use with [Editor#bailToMark](?) to bail to a specific mark.
 
 ```ts
 // A
-editor.mark('first')
+const firstMark = editor.markHistoryStoppingPoint()
 editor.selectAll()
 // B
-editor.mark('second')
+const secondMark = editor.markHistoryStoppingPoint()
 editor.duplicateShapes(editor.getSelectedShapeIds())
 // C
 
-editor.bailToMark('first') // will return to A
+editor.bailToMark(firstMark) // will return to A
 ```
 
 ## Running code in context
