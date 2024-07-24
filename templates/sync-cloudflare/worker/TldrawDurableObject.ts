@@ -62,9 +62,9 @@ export class TldrawDurableObject extends DurableObject<Environment> {
 
 	// what happens when someone tries to connect to this room?
 	async handleConnect(request: IRequest): Promise<Response> {
-		// extract query params from request, should include instanceId
-		const sessionKey = request.query.sessionKey as string
-		if (!sessionKey) return error(400, 'Missing sessionKey')
+		// extract query params from request
+		const sessionId = request.query.sessionId as string
+		if (!sessionId) return error(400, 'Missing sessionId')
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
@@ -74,7 +74,7 @@ export class TldrawDurableObject extends DurableObject<Environment> {
 		const room = await this.getRoom()
 
 		// connect the client to the room
-		room.handleSocketConnect(sessionKey, serverWebSocket)
+		room.handleSocketConnect({ sessionId, socket: serverWebSocket })
 
 		// return the websocket connection to the client
 		return new Response(null, { status: 101, webSocket: clientWebSocket })

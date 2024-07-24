@@ -42,7 +42,8 @@ them faster.
 To install dependencies, run `yarn`. To start a local development server, run `yarn dev`. This will
 start a [`vite`](https://vitejs.dev/) dev server for the frontend of your application, and a
 [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) dev server for your workers
-backend.
+backend. The app should now be running at http://localhost:5137 (and the server at
+http://localhost:5172).
 
 The backend worker is under [`worker`](./worker/), and is split across several files:
 
