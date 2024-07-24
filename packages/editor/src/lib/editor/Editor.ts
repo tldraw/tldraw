@@ -80,6 +80,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/utils'
+import bind from 'bind-decorator'
 import EventEmitter from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
@@ -1359,10 +1360,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _updateInstanceState = (
+	_updateInstanceState(
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		opts?: TLHistoryBatchOptions
-	) => {
+	) {
 		this.run(() => {
 			this.store.put([
 				{
@@ -1472,7 +1473,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCursor = (cursor: Partial<TLCursor>): this => {
+	setCursor(cursor: Partial<TLCursor>) {
 		this.updateInstanceState({ cursor: { ...this.getInstanceState().cursor, ...cursor } })
 		return this
 	}
@@ -1527,9 +1528,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._updateCurrentPageState(partial)
 		return this
 	}
-	private _updateCurrentPageState = (
-		partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>
-	) => {
+	_updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>) {
 		this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
 			...state,
 			...partial,
@@ -3583,13 +3582,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// box just for rendering, and we only update after the camera stops moving.
 	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
 	private _cameraStateTimeoutRemaining = 0
-	private _decayCameraStateTimeout = (elapsed: number) => {
+	_decayCameraStateTimeout(elapsed: number) {
 		this._cameraStateTimeoutRemaining -= elapsed
 		if (this._cameraStateTimeoutRemaining > 0) return
 		this.off('tick', this._decayCameraStateTimeout)
 		this._cameraState.set('idle')
 	}
-	private _tickCameraState = () => {
+	_tickCameraState() {
 		// always reset the timeout
 		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeoutMs
 		// If the state is idle, then start the tick
@@ -7385,7 +7384,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _updateShapes = (_partials: (TLShapePartial | null | undefined)[]) => {
+	_updateShapes(_partials: (TLShapePartial | null | undefined)[]) {
 		if (this.getInstanceState().isReadonly) return
 
 		this.run(() => {
@@ -8669,7 +8668,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shiftKeyTimeout = -1 as any
 
 	/** @internal */
-	private _setShiftKeyTimeout = () => {
+	@bind
+	_setShiftKeyTimeout() {
 		this.inputs.shiftKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8686,7 +8686,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _altKeyTimeout = -1 as any
 
 	/** @internal */
-	private _setAltKeyTimeout = () => {
+	@bind
+	_setAltKeyTimeout() {
 		this.inputs.altKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8703,7 +8704,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _ctrlKeyTimeout = -1 as any
 
 	/** @internal */
-	private _setCtrlKeyTimeout = () => {
+	@bind
+	_setCtrlKeyTimeout() {
 		this.inputs.ctrlKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8752,7 +8754,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	dispatch = (info: TLEventInfo): this => {
+	dispatch(info: TLEventInfo) {
 		this._pendingEventsForNextTick.push(info)
 		if (
 			!(
@@ -8784,7 +8786,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
-	private _flushEventForTick = (info: TLEventInfo) => {
+	_flushEventForTick(info: TLEventInfo) {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.getCrashingError()) return this

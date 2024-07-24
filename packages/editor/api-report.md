@@ -876,6 +876,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    // (undocumented)
+    _decayCameraStateTimeout(elapsed: number): void;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteBinding(binding: TLBinding | TLBindingId, opts?: Parameters<this['deleteBindings']>[1]): this;
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
@@ -890,7 +892,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     deleteShapes(shapes: TLShape[]): this;
     deselect(...shapes: TLShape[] | TLShapeId[]): this;
-    dispatch: (info: TLEventInfo) => this;
+    dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
@@ -917,6 +919,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
+    // (undocumented)
+    _flushEventForTick(info: TLEventInfo): this | undefined;
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
@@ -1167,12 +1171,16 @@ export class Editor extends EventEmitter<TLEventMap> {
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
+    // @internal (undocumented)
+    _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(options: Partial<TLCameraOptions>): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
+    // @internal (undocumented)
+    _setCtrlKeyTimeout(): void;
     setCurrentPage(page: TLPage | TLPageId): this;
     setCurrentTool(id: string, info?: {}): this;
-    setCursor: (cursor: Partial<TLCursor>) => this;
+    setCursor(cursor: Partial<TLCursor>): this;
     setEditingShape(shape: null | TLShape | TLShapeId): this;
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
@@ -1181,6 +1189,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
+    // @internal (undocumented)
+    _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     shapeUtils: {
@@ -1207,6 +1217,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         [key: string]: Map<StyleProp<any>, string>;
     };
     readonly textMeasure: TextManager;
+    // (undocumented)
+    _tickCameraState(): void;
     readonly timers: Timers;
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     undo(): this;
@@ -1221,11 +1233,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateBinding<B extends TLBinding = TLBinding>(partial: TLBindingUpdate<B>): this;
     updateBindings(partials: (null | TLBindingUpdate | undefined)[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>): this;
+    // (undocumented)
+    _updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>): void;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: TLHistoryBatchOptions): this;
+    // @internal (undocumented)
+    _updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, opts?: TLHistoryBatchOptions): void;
     updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
+    // @internal (undocumented)
+    _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File): Promise<string>;
     readonly user: UserPreferencesManager;

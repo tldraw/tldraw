@@ -6019,6 +6019,7 @@ __metadata:
     "@types/wicg-file-system-access": "npm:^2020.9.5"
     "@use-gesture/react": "npm:^10.2.27"
     benchmark: "npm:^2.1.4"
+    bind-decorator: "npm:^1.0.11"
     classnames: "npm:^2.3.2"
     core-js: "npm:^3.31.1"
     eventemitter3: "npm:^4.0.7"
@@ -8765,6 +8766,13 @@ __metadata:
   version: 2.2.0
   resolution: "binary-extensions@npm:2.2.0"
   checksum: ccd267956c58d2315f5d3ea6757cf09863c5fc703e50fbeb13a7dc849b812ef76e3cf9ca8f35a0c48498776a7478d7b4a0418e1e2b8cb9cb9731f2922aaad7f8
+  languageName: node
+  linkType: hard
+
+"bind-decorator@npm:^1.0.11":
+  version: 1.0.11
+  resolution: "bind-decorator@npm:1.0.11"
+  checksum: d3277e8c50fdec3c7bb9bcab1e1207d9d34d2d982ffbfb9a3be2732295adaf30d684fa1429c2443d75ef8c6e5b45a06e81137ced7dca1343b25ec2157d1d3416
   languageName: node
   linkType: hard
 
