@@ -15,11 +15,7 @@ keywords:
   - websockets
 ---
 
-Realtime multi-user collaboration on a tldraw canvas is possible using **tldraw sync**, an add-on library for tldraw. You can also integrate another sync engine, or your own custom sync layer, using tldraw's sync hooks.
-
-## tldraw sync
-
-tldraw sync is a library for fast, fault-tolerant, multi-user collaboration. It's purpose-built for the tldraw canvas, and is in use on our flagship app tldraw.com to power the shared whiteboards there.
+You can add realtime multi-user collaboration to your tldraw app by using **tldraw sync**. It's our library for fast, fault-tolerant shared document syncing, and is used in production on our flagship app tldraw.com.
 
 <div className="article__image" style={{ border: 'none' }}>
 	<img
@@ -195,7 +191,7 @@ Refer to the simple server example for example [client](https://github.com/tldra
 > where the backend cannot meaningfully support older clients, in which case tldraw will display a "please refresh the page" message.
 > So you should make sure that the backend is updated at the same time as the client, and that the new backend is up and running just before the new client rolls out.
 
-## Roll your own sync engine
+## Or roll your own sync engine
 
 While tldraw sync is the easiest way to add sync capabilities to your tldraw canvas, we expose low-level persistence and multiplayer APIs so that you can
 
