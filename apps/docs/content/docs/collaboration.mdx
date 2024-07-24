@@ -35,9 +35,7 @@ tldraw sync is a library for fast, multiuser collaboration. It's purpose-built f
 
 ### Using the tldraw sync demo
 
-To make it easier to get started, we've included a "demo" hook in the sync library that connects to a hosted backend. This is just a demo: we delete all files and assets created with this backend every 24 hours. If you want to use tldraw sync in production, see our guide below.
-
-> You can see a working example at [this CodeSandbox](https://codesandbox.io/p/sandbox/tldraw-sync-demo-d9vq5g?file=%2Fsrc%2FApp.tsx%3A9%2C50).
+To make it easier to get started, we've included a "demo" hook in the sync library that connects to a hosted backend. You can see a working example at [this CodeSandbox](https://codesandbox.io/p/sandbox/tldraw-sync-demo-d9vq5g?file=%2Fsrc%2FApp.tsx%3A9%2C50).
 
 Let's say you have an app running locally that looks like this:
 
@@ -69,16 +67,11 @@ function MyApp() {
 
 In your browser, open an incognito window and visit your project's URL. You can also use a different browser or different device. The key is the room ID: any apps connecting to the same room ID will enter into a shared collaboration session.
 
-The sync demo is perfect for demos but should not be used in production.
-
-- we delete all data after 24 hours
-- anyone using the same room id will be able to edit the same file
-
-If you want to use tldraw sync in production, see the next section for information on self-hosting the tldraw sync server.
+The sync demo is perfect for demos and prototyping but should not be used in production. Data on the demo server only lasts for up to 24 hours, and anyone using the same room id will be able to edit the same room's project. For production use you'll need to host your own server.
 
 ### Using tldraw sync in production
 
-To use tldraw sync in production, you will need to self-host the tldraw sync server. (We don't offer a hosted solution for tldraw sync, but if you're interested in that please let us know at hello@tldraw.com).
+To use tldraw sync in production, you will need to self-host the tldraw sync server. We don't offer a hosted solution for tldraw sync, but if you're interested in that please let us know at hello@tldraw.com.
 
 You will need to:
 
@@ -86,13 +79,21 @@ You will need to:
 2. Configure a storage solution (e.g. a bucket) to store images, videos, and other user-created assets.
 3. Connect to the server with the [`useSync`](?) hook.
 
-#### Backend
+#### Server
 
-The `@tldraw/sync` package includes everything you need to self-host tldraw sync. You can host the server anywhere and use whichever storage solution you like, so long as the client can connect to it.
+The `@tldraw/sync-core` package includes everything you need to self-host tldraw sync. You can host the server in any JavaScript environment that supports WebSockets and use whichever storage solution you like, so long as the client can connect to it.
 
-We've created a [Cloudflare Workers template](https://github.com/tldraw/tldraw-sync-cloudflare) that you can use as a starting point or reference. This example is a simplification of the system that we use to power multiplayer collaboration on tldraw.com. It includes the sync server hosted by Cloudflare Workers, asset hosting through Cloudflare's R2 buckets, and some handlers for a few other server-side tasks.
+We've created a [Cloudflare Workers template](https://github.com/tldraw/tldraw-sync-cloudflare) that you can use as a starting point or reference. This example is very similar to the system we use tldraw.com. It includes the sync server hosted by Cloudflare Workers, asset hosting through Cloudflare's R2 buckets, and some handlers for a few other server-side tasks.
 
-### Connect to your client
+For use in other environments, see our [simple server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example) for an example that supports both NodeJS and Bun.
+
+<Callout icon="⚠️">
+	When deploying your backend, you must ensure that the server is updated at the same time as the
+	client, and that the new backend is up and running just before the new client rolls out. If the
+	client has an older incompatible version, tldraw will display a "please refresh the page" message.
+</Callout>
+
+#### Client
 
 Once you have your server set up, use the [`useSync`](?) hook from `@tldraw/sync` to connect your backend to the tldraw editor. Call the hook to create a store, then pass it in to the `<Tldraw />` component:
 
@@ -121,6 +122,33 @@ function MyApp() {
 
 You can see a complete example using the sync client in the [`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/App.tsx) template.
 
+## Using other collaboration backends
+
+While tldraw sync is our recommended and best-supported backend for tldraw, we designed the SDK to work with any data solution. If you cannot use tldraw sync, or if you have an existing real-time collaboration solution that you prefer to use instead, you can integrate your backend with tldraw using our public APIs.
+
+As a reference, see our [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) that shows an integration between tldraw and the [Yjs](https://yjs.dev) CRDT library. If you are connecting a different backend, you will likely follow similar patterns.
+
+For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, including from remote sources, see the [Persistence](/docs/persistence) page.
+
+### Creating assets
+
+As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and retrieve large binary assets like images or videos. You'll need to make sure your backend can handle asset uploads and downloads, and implement a service for turning files and links into assets that the editor can use.
+
+```tsx
+<Tldraw
+	store={store}
+	onMount={(editor) => {
+		editor.registerExternalAssetHandler('file', createAssetFromFile)
+		editor.registerExternalAssetHandler('url', createAssetFromUrl)
+	}}
+/>
+```
+
+- Read about [how assets work in tldraw](/docs/assets).
+- Read the [`TLAssetStore`](?) reference docs.
+
+You can also refer to our simple example [client](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/client/App.tsx) and [server](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/unfurl.ts) code.
+
 ## Collaboration UI
 
 The `tldraw` library includes several components specifically designed for collaboration.
@@ -131,13 +159,3 @@ The `tldraw` library includes several components specifically designed for colla
 - Collaborator list: [`TLComponents#SharePanel`](?)
 
 The `@tldraw/sync` client automatically enables some default collaborative UX, but you can remove, replace, or customize these using the editor's components prop. See [TLComponents](?) for more info.
-
-## Using other backends
-
-While tldraw sync is our recommended and best-supported backend for tldraw, we designed the SDK to work with any data solution. If you cannot use tldraw sync, or if you have an existing real-time collaboration solution that you prefer to use instead, you can integrate it with tldraw using our public APIs.
-
-As a reference, see our [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) that shows an integration between tldraw and the [Yjs](https://yjs.dev) CRDT library. If you are connecting a different backend, you will likely follow similar patterns.
-
-If you're interested in building a custom solution, we also have a [simple Node/Bun server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example) showing how to use some of the lower-level APIs directly.
-
-For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, including from remote sources, see the [Persistence](/docs/persistence) page.
