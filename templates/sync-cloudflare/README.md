@@ -66,6 +66,11 @@ The frontend client is under [`client`](./client):
 - **[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx):** how does the client fetch
   bookmark previews from the worker?
 
+## Custom shapes
+
+To add support for custom shapes, see the [tldraw sync custom shapes
+docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings).
+
 ## Adding cloudflare to your own repo
 
 If you already have an app using tldraw and want to use the system in this repo, you can copy and
@@ -83,8 +88,6 @@ To add the server to your own app, copy the contents of the [`worker`](./worker/
 [`package.json`](./package.json). If you're using TypeScript, you'll also need to adapt
 `tsconfig.worker.json` for your own project. You can run the worker using `wrangler dev` in the same
 folder as `./wrangler.toml`.
-
-## Custom shapes
 
 ## Deployment
 
