@@ -15,7 +15,7 @@
 		"dev-server-bun": "npx bun --watch ./src/server/server.bun.ts",
 		"dev-client": "vite dev",
 		"test-ci": "echo 'No tests yet'",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T jest --passWithNoTests",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
