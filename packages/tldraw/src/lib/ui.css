@@ -1679,6 +1679,11 @@
 	touch-action: auto;
 }
 
+.tlui-people-menu__section:first-child,
+.tlui-people-menu__section:last-child {
+	flex-shrink: 0
+}
+
 .tlui-people-menu__section:not(:last-child) {
 	border-bottom: 1px solid var(--color-divider);
 }
