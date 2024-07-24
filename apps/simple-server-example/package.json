@@ -41,7 +41,6 @@
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@vitejs/plugin-react-swc": "^3.7.0",
-		"cheerio": "^1.0.0-rc.12",
 		"fastify": "^4.28.1",
 		"itty-router": "^5.0.17",
 		"react": "^18.2.0",
