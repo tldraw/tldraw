@@ -280,3 +280,36 @@ While tldraw sync is the easiest way to add sync capabilities to your tldraw can
 Refer to the [Persistence docs](/docs/persistence) to learn about these lower-level APIs.
 
 One example of this in practice is the [Yjs integration](https://github.com/tldraw/tldraw-yjs-example) (not production ready, use only as a guide).
+
+## Migrating data from a custom sync engine
+
+[`TLSocketRoom`](?) supports loading [`TLStoreSnapshot`] snapshots, so in your persistence layer you can add a backwards-compatibility layer that lazily imports data from your old sync engine and converts it to a `TLStoreSnapshot`.
+
+Something like
+
+```tsx
+import { TLSocketRoom } from '@tldraw/sync-core'
+
+async function loadOrMakeRoom(roomId: string) {
+	const data = await loadRoomDataFromCurrentStore(roomId)
+	if (data) {
+		return new TLSocketRoom({ initialSnapshot: data })
+	}
+	const legacyData = await loadRoomDataFromLegacyStore(roomId)
+	if (legacyData) {
+		// convert your old data to a TLStoreSnapshot
+		const snapshot = convertOldDataToSnapshot(legacyData)
+		// load it into the room
+		const room = new TLSocketRoom({ initialSnapshot: snapshot })
+		// save an updated copy of the snapshot in the new place
+		// so that next time we can load it directly
+		await saveRoomData(roomId, room.getCurrentSnapshot())
+		// optionally delete the old data
+		await deleteLegacyRoomData(roomId)
+		// and finally return the room
+		return room
+	}
+	// if there's no data at all, just make a new blank room
+	return new TLSocketRoom()
+}
+```
