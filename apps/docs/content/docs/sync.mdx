@@ -19,7 +19,7 @@ Realtime multi-user collaboration on a tldraw canvas is possible using **tldraw 
 
 ## tldraw sync
 
-tldraw sync is a library for fast, multiuser collaboration. It's purpose-built for the tldraw canvas, and is in use on our flagship app tldraw.com to power the shared whiteboards there.
+tldraw sync is a library for fast, fault-tolerant, multi-user collaboration. It's purpose-built for the tldraw canvas, and is in use on our flagship app tldraw.com to power the shared whiteboards there.
 
 <div className="article__image" style={{ border: 'none' }}>
 	<img
@@ -70,11 +70,11 @@ There are two main ways to go about hosting your own backend for tldraw sync:
 
 The best way to get started hosting your own backend is by [cloning and deploying our Cloudflare template](https://github.com/tldraw/cloudlfare-workers-template).
 
-The template provides a production-grade minimal setup of the system that runs on tldraw.com, powering multiplayer collaboration and data persistence for hundreds of thousands of users.
+The template provides a production-grade minimal setup of the system that runs on tldraw.com.
 
 It uses:
 
-- [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a WebSocket server per room.
+- [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a unique WebSocket server per room.
 - [R2](https://developers.cloudflare.com/r2/) to persist document snapshots and store large binary assets like images and videos.
 
 There are some features that we have not provided, and you might want to add yourself:
