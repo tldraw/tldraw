@@ -411,6 +411,9 @@ export function validateIndexKey(key: string): asserts key is IndexKey;
 // @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
 
+// @internal (undocumented)
+export function warnOnce(message: string): void;
+
 // @public
 export class WeakCache<K extends object, V> {
     get<P extends K>(item: P, cb: (item: P) => V): NonNullable<V>;

@@ -428,4 +428,58 @@ exports.rules = {
 		},
 		defaultOptions: [],
 	}),
+	'prefer-class-methods': ESLintUtils.RuleCreator.withoutDocs({
+		create(context) {
+			return {
+				ClassBody(node: TSESTree.ClassBody) {
+					node.body.forEach((member) => {
+						if (
+							member.type === 'PropertyDefinition' &&
+							member.value &&
+							member.value.type === 'ArrowFunctionExpression'
+						) {
+							const arrowFunction = member.value
+							const hasBlockBody = arrowFunction.body.type === 'BlockStatement'
+							context.report({
+								node: member,
+								messageId: 'preferMethod',
+								fix(fixer) {
+									const sourceCode = context.getSourceCode()
+									const propertyName = sourceCode.getText(member.key)
+									const params = arrowFunction.params.map((p) => sourceCode.getText(p)).join(', ')
+									const asyncModifier = arrowFunction.async ? 'async ' : ''
+									const typeAnnotation = member.typeAnnotation
+										? sourceCode.getText(member.typeAnnotation)
+										: ''
+
+									let methodBody
+									if (hasBlockBody) {
+										// For arrow functions with block body: () => { return true }
+										methodBody = sourceCode.getText(arrowFunction.body)
+									} else {
+										// For arrow functions with concise body: () => true
+										const bodyText = sourceCode.getText(arrowFunction.body)
+										methodBody = `{ return ${bodyText} }`
+									}
+
+									const fixedMethod = `${asyncModifier}${propertyName}(${params})${typeAnnotation} ${methodBody}`
+
+									return fixer.replaceText(member, fixedMethod)
+								},
+							})
+						}
+					})
+				},
+			}
+		},
+		meta: {
+			messages: {
+				preferMethod: 'Prefer using a method instead of an arrow function property.',
+			},
+			type: 'problem',
+			schema: [],
+			fixable: 'code',
+		},
+		defaultOptions: [],
+	}),
 }
