@@ -83,10 +83,8 @@ export interface StoreSnapshot<R extends UnknownRecord> {
 
 /** @public */
 export interface StoreValidator<R extends UnknownRecord> {
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	validate: (record: unknown) => R
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	validateUsingKnownGoodVersion?: (knownGoodVersion: R, record: unknown) => R
+	validate(record: unknown): R
+	validateUsingKnownGoodVersion?(knownGoodVersion: R, record: unknown): R
 }
 
 /** @public */
@@ -169,8 +167,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @internal
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	private cancelHistoryReactor: () => void = () => {
+	private cancelHistoryReactor(): void {
 		/* noop */
 	}
 
@@ -327,8 +324,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param records - The records to add.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	put = (records: R[], phaseOverride?: 'initialize'): void => {
+	put(records: R[], phaseOverride?: 'initialize'): void {
 		this.atomic(() => {
 			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
 			const additions: Record<IdOf<UnknownRecord>, R> = {}
@@ -629,8 +625,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to update.
 	 * @param updater - A function that updates the record.
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	update = <K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) => {
+	update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) {
 		const atom = this.atoms.get()[id]
 		if (!atom) {
 			console.error(`Record ${id} not found. This is probably an error`)
@@ -646,8 +641,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to check.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	has = <K extends IdOf<R>>(id: K): boolean => {
+	has<K extends IdOf<R>>(id: K): boolean {
 		return !!this.atoms.get()[id]
 	}
 
@@ -658,8 +652,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param filters - Filters to apply to the listener.
 	 * @returns A function to remove the listener.
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	listen = (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => {
+	listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) {
 		// flush history so that this listener's history starts from exactly now
 		this._flushHistory()
 
@@ -694,8 +687,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param fn - A function that merges the external changes.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	mergeRemoteChanges = (fn: () => void) => {
+	mergeRemoteChanges(fn: () => void) {
 		if (this.isMergingRemoteChanges) {
 			return fn()
 		}
@@ -776,12 +768,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	createComputedCache = <Result, Record extends R = R>(
+	createComputedCache<Result, Record extends R = R>(
 		name: string,
 		derive: (record: Record) => Result | undefined,
 		isEqual?: (a: Record, b: Record) => boolean
-	): ComputedCache<Result, Record> => {
+	): ComputedCache<Result, Record> {
 		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
 			get: (id: IdOf<Record>) => {
@@ -811,12 +802,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	createSelectedComputedCache = <Selection, Result, Record extends R = R>(
+	createSelectedComputedCache<Selection, Result, Record extends R = R>(
 		name: string,
 		selector: (record: Record) => Selection | undefined,
 		derive: (input: Selection) => Result | undefined
-	): ComputedCache<Result, Record> => {
+	): ComputedCache<Result, Record> {
 		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
 			get: (id: IdOf<Record>) => {
