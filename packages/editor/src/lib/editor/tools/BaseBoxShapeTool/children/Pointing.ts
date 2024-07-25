@@ -13,7 +13,7 @@ export class Pointing extends StateNode {
 
 	wasFocusedOnEnter = false
 
-	onEnter() {
+	override onEnter() {
 		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 	}
 
