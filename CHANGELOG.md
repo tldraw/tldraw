@@ -1,3 +1,28 @@
+# v2.4.1 (Thu Jul 25 2024)
+
+### Release Notes
+
+#### fix assets prop on tldraw component (#4283) ([#4285](https://github.com/tldraw/tldraw/pull/4285))
+
+- The `assets` prop on the `<Tldraw />` and `<TldrawEditor />` components is now respected.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - fix assets prop on tldraw component (#4283) [#4285](https://github.com/tldraw/tldraw/pull/4285) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v2.4.x`
+
+- v2.4.x: fix workflow files ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v2.4.0 (Mon Jul 22 2024)
 
 ### Release Notes
