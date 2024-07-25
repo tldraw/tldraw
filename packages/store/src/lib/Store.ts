@@ -419,8 +419,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param ids - The ids of the records to remove.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	remove = (ids: IdOf<R>[]): void => {
+	remove(ids: IdOf<R>[]): void {
 		this.atomic(() => {
 			const cancelled = new Set<IdOf<R>>()
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
@@ -468,8 +467,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	get = <K extends IdOf<R>>(id: K): RecordFromId<K> | undefined => {
+	get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
 		return this.atoms.get()[id]?.get() as any
 	}
 
@@ -479,8 +477,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	unsafeGetWithoutCapture = <K extends IdOf<R>>(id: K): RecordFromId<K> | undefined => {
+	unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
 		return this.atoms.get()[id]?.__unsafe__getWithoutCapture() as any
 	}
 
@@ -490,8 +487,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
 	 * @returns The record store snapshot as a JSON payload.
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	serialize = (scope: RecordScope | 'all' = 'document'): SerializedStore<R> => {
+	serialize(scope: RecordScope | 'all' = 'document'): SerializedStore<R> {
 		const result = {} as SerializedStore<R>
 		for (const [id, atom] of objectMapEntries(this.atoms.get())) {
 			const record = atom.get()
@@ -603,8 +599,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @returns An array of all values in the store.
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	allRecords = (): R[] => {
+	allRecords(): R[] {
 		return objectMapValues(this.atoms.get()).map((atom) => atom.get())
 	}
 
@@ -613,8 +608,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @public
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	clear = (): void => {
+	clear(): void {
 		this.remove(objectMapKeys(this.atoms.get()))
 	}
 

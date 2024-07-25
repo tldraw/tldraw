@@ -155,8 +155,7 @@ export class RecordType<
 	 * @param record - The record to check.
 	 * @returns Whether the record is an instance of this record type.
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	isInstance = (record?: UnknownRecord): record is R => {
+	isInstance(record?: UnknownRecord): record is R {
 		return record?.typeName === this.typeName
 	}
 
