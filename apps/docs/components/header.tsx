@@ -12,7 +12,16 @@ import { SearchButton } from './search/button'
 
 const mainLinks = [
 	{
-		caption: 'Documentation',
+		caption: 'Product',
+		active: (pathname: string) => pathname === '/',
+		children: [
+			{ caption: 'Features', href: '/#features-whiteboard' },
+			{ caption: 'Pricing', href: '/#pricing' },
+			{ caption: 'FAQ', href: '/#faq' },
+		],
+	},
+	{
+		caption: 'Docs',
 		href: '/quick-start',
 		active: (pathname: string) =>
 			[
@@ -30,7 +39,6 @@ const mainLinks = [
 		href: '/blog',
 		active: (pathname: string) => pathname.startsWith('/blog'),
 	},
-	{ caption: 'Pricing', href: '/pricing', active: (pathname: string) => pathname === '/pricing' },
 ]
 
 const socialLinks = [
@@ -58,7 +66,7 @@ export const Header = () => {
 	const opacityEffect = !pathname.startsWith('/blog')
 
 	return (
-		<header className="fixed top-0 w-full bg-white/90 backdrop-blur z-10">
+		<header className="fixed top-0 w-full bg-white z-10">
 			<nav className="w-full max-w-screen-xl mx-auto px-5 h-14 md:h-[4.5rem] flex justify-between items-center text-zinc-800 border-b border-zinc-100 md:border-transparent">
 				<Link href="/" className="w-28">
 					<Logo className="h-6" />
@@ -89,7 +97,7 @@ export const Header = () => {
 				</ul>
 				<div className="flex items-center sm:hidden -mr-2">
 					<SearchButton type="docs" layout="mobile" />
-					<MobileMenu main={mainLinks} social={socialLinks} pathname={pathname} />
+					<MobileMenu main={mainLinks} social={socialLinks} />
 				</div>
 			</nav>
 		</header>
