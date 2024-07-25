@@ -17,9 +17,8 @@ export function ColorSchemeMenu() {
 	const currentColorScheme = useValue(
 		'colorScheme',
 		() =>
-			editor.user.getUserPreferences().colorScheme ?? editor.user.getIsDarkMode()
-				? 'dark'
-				: 'light',
+			editor.user.getUserPreferences().colorScheme ??
+			(editor.user.getIsDarkMode() ? 'dark' : 'light'),
 		[editor]
 	)
 
