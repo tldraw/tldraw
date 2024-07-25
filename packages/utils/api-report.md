@@ -22,6 +22,9 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
+// @public (undocumented)
+export function bind<T extends Function>(_target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void;
+
 // @internal
 export function clearLocalStorage(): void;
 
@@ -422,9 +425,6 @@ export class WeakCache<K extends object, V> {
 
 // @public
 export const ZERO_INDEX_KEY: IndexKey;
-
-
-export * from "bind-decorator";
 
 // (No @packageDocumentation comment for this package)
 

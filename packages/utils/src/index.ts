@@ -10,6 +10,7 @@ export {
 	partition,
 	rotateArray,
 } from './lib/array'
+export { bind } from './lib/bind'
 export { WeakCache } from './lib/cache'
 export {
 	Result,
@@ -84,5 +85,3 @@ export {
 	structuredClone,
 } from './lib/value'
 export { warnDeprecatedGetter, warnOnce } from './lib/warn'
-// eslint-disable-next-line local/no-export-star
-export * from 'bind-decorator'
