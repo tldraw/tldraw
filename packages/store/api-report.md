@@ -58,7 +58,7 @@ export function createMigrationSequence({ sequence, sequenceId, retroactive, }: 
 
 // @internal (undocumented)
 export function createRecordMigrationSequence(opts: {
-    filter?: (record: UnknownRecord) => boolean;
+    filter?(record: UnknownRecord): boolean;
     recordType: string;
     retroactive?: boolean;
     sequence: Omit<Extract<Migration, {
@@ -532,17 +532,17 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 // @public (undocumented)
 export interface StoreSchemaOptions<R extends UnknownRecord, P> {
     // @internal (undocumented)
-    createIntegrityChecker?: (store: Store<R, P>) => void;
+    createIntegrityChecker?(store: Store<R, P>): void;
     // (undocumented)
     migrations?: MigrationSequence[];
     // (undocumented)
-    onValidationFailure?: (data: {
+    onValidationFailure?(data: {
         error: unknown;
         phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
         record: R;
         recordBefore: null | R;
         store: Store<R>;
-    }) => R;
+    }): R;
 }
 
 // @public

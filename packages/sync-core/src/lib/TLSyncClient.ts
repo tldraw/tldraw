@@ -48,8 +48,7 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 	/** Whether there is currently an open connection to the server. */
 	connectionStatus: 'online' | 'offline' | 'error'
 	/** Send a message to the server */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	sendMessage: (msg: TLSocketClientSentEvent<R>) => void
+	sendMessage(msg: TLSocketClientSentEvent<R>): void
 	/** Attach a listener for messages sent by the server */
 	onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>
 	/** Attach a listener for connection status changes */
@@ -135,16 +134,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		store: S
 		socket: TLPersistentClientSocket<R>
 		presence: Signal<R | null>
-		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		onLoad: (self: TLSyncClient<R, S>) => void
-		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		onLoadError: (error: Error) => void
-		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		onSyncError: (reason: TLIncompatibilityReason) => void
-		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void
-		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		didCancel?: () => boolean
+		onLoad(self: TLSyncClient<R, S>): void
+		onLoadError(error: Error): void
+		onSyncError(reason: TLIncompatibilityReason): void
+		onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void
+		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
 
@@ -382,8 +376,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
 
 	/** Handle events received from the server */
-	// eslint-disable-next-line local/prefer-class-methods
-	private handleServerEvent = (event: TLSocketServerSentEvent<R>) => {
+	private handleServerEvent(event: TLSocketServerSentEvent<R>) {
 		this.debug('received server event', event)
 		this.lastServerInteractionTimestamp = Date.now()
 		// always update the lastServerClock when it is present

@@ -241,7 +241,7 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
     onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>;
     onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>;
     restart(): void;
-    sendMessage: (msg: TLSocketClientSentEvent<R>) => void;
+    sendMessage(msg: TLSocketClientSentEvent<R>): void;
 }
 
 // @internal (undocumented)
@@ -281,7 +281,7 @@ export interface TLRoomSocket<R extends UnknownRecord> {
     // (undocumented)
     isOpen: boolean;
     // (undocumented)
-    sendMessage: (msg: TLSocketServerSentEvent<R>) => void;
+    sendMessage(msg: TLSocketServerSentEvent<R>): void;
 }
 
 // @internal (undocumented)
@@ -396,11 +396,11 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
 // @internal
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
-        didCancel?: () => boolean;
-        onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void;
-        onLoad: (self: TLSyncClient<R, S>) => void;
-        onLoadError: (error: Error) => void;
-        onSyncError: (reason: TLIncompatibilityReason) => void;
+        didCancel?(): boolean;
+        onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void;
+        onLoad(self: TLSyncClient<R, S>): void;
+        onLoadError(error: Error): void;
+        onSyncError(reason: TLIncompatibilityReason): void;
         presence: Signal<null | R>;
         socket: TLPersistentClientSocket<R>;
         store: S;
@@ -457,7 +457,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly documentTypes: Set<string>;
     // (undocumented)
     readonly events: Emitter<    {
-    room_became_empty: () => void;
+    room_became_empty(): void;
     session_removed(args: {
     meta: SessionMeta;
     sessionId: string;
@@ -468,7 +468,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     getSnapshot(): RoomSnapshot;
     handleClose(sessionId: string): void;
-    handleMessage: (sessionId: string, message: TLSocketClientSentEvent<R>) => Promise<void>;
+    handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta): this;
     // (undocumented)
     isClosed(): boolean;

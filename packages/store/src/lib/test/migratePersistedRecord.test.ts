@@ -13,8 +13,7 @@ const mockSequence = ({
 	id: string
 	retroactive: boolean
 	versions: number
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	filter?: (r: TestRecordType) => boolean
+	filter?(r: TestRecordType): boolean
 }): MigrationSequence => ({
 	sequenceId: id,
 	retroactive,

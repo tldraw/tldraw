@@ -57,8 +57,7 @@ export class TldrawWebviewManager {
 		this.disposables.forEach(({ dispose }) => dispose())
 	}
 
-	// eslint-disable-next-line local/prefer-class-methods
-	private getHtmlForWebview = (assetSrc: string): string => {
+	getHtmlForWebview(assetSrc: string) {
 		return `
       <!DOCTYPE html>
       <html lang="en">

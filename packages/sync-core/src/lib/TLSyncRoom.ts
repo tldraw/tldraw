@@ -51,8 +51,7 @@ import {
 /** @internal */
 export interface TLRoomSocket<R extends UnknownRecord> {
 	isOpen: boolean
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
+	sendMessage(msg: TLSocketServerSentEvent<R>): void
 	close(): void
 }
 
@@ -190,8 +189,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	readonly events = createNanoEvents<{
-		// eslint-disable-next-line @typescript-eslint/method-signature-style
-		room_became_empty: () => void
+		room_became_empty(): void
 		session_removed(args: { sessionId: string; meta: SessionMeta }): void
 	}>()
 
@@ -636,8 +634,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param sessionId - The session that sent the message
 	 * @param message - The message that was sent
 	 */
-	// eslint-disable-next-line local/prefer-class-methods
-	handleMessage = async (sessionId: string, message: TLSocketClientSentEvent<R>) => {
+	async handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>) {
 		const session = this.sessions.get(sessionId)
 		if (!session) {
 			this.log?.warn?.('Received message from unknown session')

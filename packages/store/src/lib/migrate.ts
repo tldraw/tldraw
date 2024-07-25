@@ -103,8 +103,7 @@ export function createMigrationIds<
 /** @internal */
 export function createRecordMigrationSequence(opts: {
 	recordType: string
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	filter?: (record: UnknownRecord) => boolean
+	filter?(record: UnknownRecord): boolean
 	retroactive?: boolean
 	sequenceId: string
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]

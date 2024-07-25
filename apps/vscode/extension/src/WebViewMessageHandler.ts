@@ -164,8 +164,7 @@ export class WebViewMessageHandler {
 		}
 	}
 
-	// eslint-disable-next-line local/prefer-class-methods
-	private omit = (records: UnknownRecord[], keys: RegExp) => {
+	omit(records: UnknownRecord[], keys: RegExp) {
 		return records.filter((record) => {
 			return !record.id.match(keys)
 		})

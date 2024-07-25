@@ -3309,7 +3309,7 @@ export interface TLStoreBaseOptions {
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     multiplayerStatus?: null | Signal<'offline' | 'online'>;
-    onEditorMount?: (editor: Editor) => (() => void) | void;
+    onEditorMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }
 

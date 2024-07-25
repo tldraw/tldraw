@@ -30,8 +30,7 @@ export interface TLStoreBaseOptions {
 	assets?: TLAssetStore
 
 	/** Called when the store is connected to an {@link Editor}. */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	onEditorMount?: (editor: Editor) => void | (() => void)
+	onEditorMount?(editor: Editor): void | (() => void)
 
 	/** Is this store connected to a multiplayer sync server? */
 	multiplayerStatus?: Signal<'online' | 'offline'> | null

@@ -250,8 +250,7 @@ export interface UseSyncOptions {
 	assets: TLAssetStore
 
 	/** @internal */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	onEditorMount?: (editor: Editor) => void
+	onEditorMount?(editor: Editor): void
 	/** @internal used for analytics only, we should refactor this away */
 	roomId?: string
 	/** @internal */

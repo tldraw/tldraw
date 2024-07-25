@@ -78,16 +78,15 @@ export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 	migrations?: MigrationSequence[]
 	/** @public */
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	onValidationFailure?: (data: {
+	onValidationFailure?(data: {
 		error: unknown
 		store: Store<R>
 		record: R
 		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
 		recordBefore: R | null
-	}) => R
+	}): R
 	/** @internal */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	createIntegrityChecker?: (store: Store<R, P>) => void
+	createIntegrityChecker?(store: Store<R, P>): void
 }
 
 /** @public */
