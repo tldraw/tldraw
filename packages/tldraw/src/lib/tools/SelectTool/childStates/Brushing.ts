@@ -77,7 +77,7 @@ export class Brushing extends StateNode {
 		this.complete()
 	}
 
-	override onCancel?(info: TLCancelEventInfo) {
+	override onCancel(info: TLCancelEventInfo) {
 		this.editor.setSelectedShapes(this.initialSelectedShapeIds)
 		this.parent.transition('idle', info)
 	}
@@ -90,7 +90,7 @@ export class Brushing extends StateNode {
 		}
 	}
 
-	override onKeyUp?() {
+	override onKeyUp() {
 		this.hitTestShapes()
 	}
 

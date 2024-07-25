@@ -73,7 +73,7 @@ export class TextManager {
 			padding: string
 			disableOverflowWrapBreaking?: boolean
 		}
-	) {
+	): BoxModel & { scrollWidth: number } {
 		// Duplicate our base element; we don't need to clone deep
 		const elm = this.baseElm?.cloneNode() as HTMLDivElement
 		this.baseElm.insertAdjacentElement('afterend', elm)

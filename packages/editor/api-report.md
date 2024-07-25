@@ -2356,12 +2356,8 @@ export class TextManager {
         lineHeight: number;
         minWidth?: null | number;
         padding: string;
-    }): {
-        h: number;
+    }): BoxModel & {
         scrollWidth: number;
-        w: number;
-        x: number;
-        y: number;
     };
     measureTextSpans(textToMeasure: string, opts: TLMeasureTextSpanOpts): {
         box: BoxModel;
