@@ -72,6 +72,7 @@ export class Pointing extends StateNode {
 				shape: this.shape,
 				onInteractionEnd: 'note',
 				isCreating: true,
+				creatingMarkId: this.markId,
 				onCreate: () => {
 					this.editor.setEditingShape(this.shape.id)
 					this.editor.setCurrentTool('select.editing_shape')

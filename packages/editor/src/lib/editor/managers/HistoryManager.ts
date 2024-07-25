@@ -303,7 +303,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	mark = (arg?: string | { name?: string }) => {
 		if (typeof arg === 'string') {
 			console.warn(
-				'editor.history.mark("myMarkId") is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint()` instead.'
+				'editor.history.markHistoryStoppingPoint("myMarkId") is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint()` instead.'
 			)
 		}
 		const id = typeof arg === 'string' ? arg : arg?.name ? `${arg.name}/${uniqueId()}` : uniqueId()
@@ -314,6 +314,18 @@ export class HistoryManager<R extends UnknownRecord> {
 	clear() {
 		this.stacks.set({ undos: stack(), redos: stack() })
 		this.pendingDiff.clear()
+	}
+
+	/** @internal */
+	getMarkIdMatching(idSubstring: string) {
+		let top = this.stacks.get().undos
+		while (top.head) {
+			if (top.head.type === 'stop' && top.head.id.includes(idSubstring)) {
+				return top.head.id
+			}
+			top = top.tail
+		}
+		return null
 	}
 
 	/** @internal */

@@ -980,6 +980,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     getIsFocused(): boolean;
     getIsMenuOpen(): boolean;
+    // @internal
+    getMarkIdMatching(idSubstring: string): null | string;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
     getOpenMenus(): string[];
@@ -1570,6 +1572,8 @@ export class HistoryManager<R extends UnknownRecord> {
     };
     // (undocumented)
     readonly dispose: () => void;
+    // @internal (undocumented)
+    getMarkIdMatching(idSubstring: string): null | string;
     // (undocumented)
     getNumRedos(): number;
     // (undocumented)

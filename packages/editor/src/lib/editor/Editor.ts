@@ -1005,13 +1005,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @public
-	 * @param name - The name of the mark
+	 * @param name - The name of the mark, useful for debugging the undo/redo stacks
 	 * @returns a unique id for the mark that can be used with `squashToMark` or `bailToMark`.
 	 */
 	markHistoryStoppingPoint(name?: string): string {
 		const id = `[${name ?? 'stop'}]_${uniqueId()}`
 		this.history._mark(id)
 		return id
+	}
+
+	/**
+	 * @internal this is only used to implement some backwards-compatibility logic. Should be fine to delete after 6 months or whatever.
+	 */
+	getMarkIdMatching(idSubstring: string) {
+		return this.history.getMarkIdMatching(idSubstring)
 	}
 
 	/**

@@ -38,8 +38,7 @@ export class Cropping extends StateNode {
 		}
 	) => {
 		this.info = info
-		this.markId = 'cropping'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('cropping')
 		this.snapshot = this.createSnapshot()
 		this.updateShapes()
 	}

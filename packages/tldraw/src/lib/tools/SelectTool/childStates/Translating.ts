@@ -23,16 +23,19 @@ import {
 import { DragAndDropManager } from '../DragAndDropManager'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
+export type TranslatingInfo = TLPointerEventInfo & {
+	target: 'shape'
+	isCreating?: boolean
+	creatingMarkId?: string
+	onCreate?: () => void
+	didStartInPit?: boolean
+	onInteractionEnd?: string
+}
+
 export class Translating extends StateNode {
 	static override id = 'translating'
 
-	info = {} as TLPointerEventInfo & {
-		target: 'shape'
-		isCreating?: boolean
-		onCreate?: () => void
-		didStartInPit?: boolean
-		onInteractionEnd?: string
-	}
+	info = {} as TranslatingInfo
 
 	selectionSnapshot: TranslatingSnapshot = {} as any
 
@@ -46,15 +49,8 @@ export class Translating extends StateNode {
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
-	override onEnter = (
-		info: TLPointerEventInfo & {
-			target: 'shape'
-			isCreating?: boolean
-			onCreate?: () => void
-			onInteractionEnd?: string
-		}
-	) => {
-		const { isCreating = false, onCreate = () => void null } = info
+	override onEnter = (info: TranslatingInfo) => {
+		const { isCreating = false, creatingMarkId, onCreate = () => void null } = info
 
 		if (!this.editor.getSelectedShapeIds()?.length) {
 			this.parent.transition('idle')
@@ -64,14 +60,26 @@ export class Translating extends StateNode {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
-		this.onCreate = onCreate
+
+		this.markId = ''
 
 		if (isCreating) {
-			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
+			if (creatingMarkId) {
+				this.markId = creatingMarkId
+			} else {
+				// handle legacy implicit `creating:{shapeId}` marks
+				const markId = this.editor.getMarkIdMatching(
+					`creating:${this.editor.getOnlySelectedShapeId()}`
+				)
+				if (markId) {
+					this.markId = markId
+				}
+			}
 		} else {
-			this.markId = 'translating'
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint('translating')
 		}
+
+		this.onCreate = onCreate
 
 		this.isCloning = false
 		this.info = info
@@ -151,8 +159,7 @@ export class Translating extends StateNode {
 
 		this.isCloning = true
 		this.reset()
-		this.markId = 'translating'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('translate cloning')
 
 		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
 
@@ -165,8 +172,7 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.snapshot = this.selectionSnapshot
 		this.reset()
-		this.markId = 'translating'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('translate')
 		this.updateShapes()
 	}
 

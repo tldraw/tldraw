@@ -45,6 +45,7 @@ export class Pointing extends StateNode {
 				target: 'selection',
 				handle: 'right',
 				isCreating: true,
+				creatingMarkId: this.markId,
 				creationCursorOffset: { x: 18, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {

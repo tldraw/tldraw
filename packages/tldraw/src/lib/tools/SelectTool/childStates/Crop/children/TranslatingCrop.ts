@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo, uniqueId } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 type Snapshot = ReturnType<TranslatingCrop['createSnapshot']>
@@ -22,8 +22,7 @@ export class TranslatingCrop extends StateNode {
 		this.info = info
 		this.snapshot = this.createSnapshot()
 
-		this.markId = 'translating_crop: ' + uniqueId()
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('translating_crop')
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 		this.updateShapes()
 	}

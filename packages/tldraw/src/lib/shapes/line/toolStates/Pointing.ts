@@ -117,6 +117,7 @@ export class Pointing extends StateNode {
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
+				creatingMarkId: this.markId,
 				// remove the offset that we added to the handle when we created it
 				handle: { ...lastHandle, x: lastHandle.x - 0.1, y: lastHandle.y - 0.1 },
 				onInteractionEnd: 'line',
