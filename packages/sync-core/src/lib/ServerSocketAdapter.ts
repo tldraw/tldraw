@@ -1,14 +1,34 @@
 import { UnknownRecord } from '@tldraw/store'
-import ws from 'ws'
 import { TLRoomSocket } from './TLSyncRoom'
 import { TLSocketServerSentEvent } from './protocol'
 
-interface ServerSocketAdapterOptions<R extends UnknownRecord> {
-	readonly ws: WebSocket | ws.WebSocket
+/**
+ * Minimal server-side WebSocket interface that is compatible with
+ *
+ * - The standard WebSocket interface (cloudflare, deno, some node setups)
+ * - The 'ws' WebSocket interface (some node setups)
+ * - The Bun.serve socket implementation
+ *
+ * @public
+ */
+export interface WebSocketMinimal {
+	addEventListener?: (type: 'message' | 'close' | 'error', listener: (event: any) => void) => void
+	removeEventListener?: (
+		type: 'message' | 'close' | 'error',
+		listener: (event: any) => void
+	) => void
+	send: (data: string) => void
+	close: () => void
+	readyState: number
+}
+
+/** @internal */
+export interface ServerSocketAdapterOptions<R extends UnknownRecord> {
+	readonly ws: WebSocketMinimal
 	readonly onBeforeSendMessage?: (msg: TLSocketServerSentEvent<R>, stringified: string) => void
 }
 
-/** @public */
+/** @internal */
 export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocket<R> {
 	constructor(public readonly opts: ServerSocketAdapterOptions<R>) {}
 	// eslint-disable-next-line no-restricted-syntax

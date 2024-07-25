@@ -545,13 +545,13 @@ async function excerptToMarkdown(
 	}
 
 	return [
-		`<CodeLinkProvider links={${JSON.stringify(links)}}>`,
+		`<CodeLinks links={${JSON.stringify(links)}}>`,
 		'',
 		'```ts',
 		code,
 		'```',
 		'',
-		'</CodeLinkProvider>',
+		'</CodeLinks>',
 	].join('\n')
 }
 
@@ -608,11 +608,11 @@ function addExtends(result: Result, item: ApiItem, heritage: HeritageType[]) {
 	}
 
 	result.markdown += [
-		`<CodeLinkProvider links={${JSON.stringify(links)}}>`,
+		`<CodeLinks links={${JSON.stringify(links)}}>`,
 		'',
 		`Extends \`${heritage.map((type) => type.excerpt.text).join(', ')}\`.`,
 		'',
-		'</CodeLinkProvider>',
+		'</CodeLinks>',
 		'',
 	].join('\n')
 }

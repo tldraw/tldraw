@@ -479,7 +479,7 @@ export function MoveToPageMenu() {
 				))}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="new-page">
-				<TldrawUiMenuItem {...actions['new-page']} />
+				<TldrawUiMenuItem {...actions['move-to-new-page']} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

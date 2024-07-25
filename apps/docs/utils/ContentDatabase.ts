@@ -83,9 +83,16 @@ export class ContentDatabase {
 
 		// the prev is the article with the same section but one less sectionIndex
 		let prev = await this.db.get<Article>(
-			`SELECT id, title, categoryId, sectionId, path FROM articles WHERE articles.sectionId = ? AND articles.sectionIndex = ?`,
+			`SELECT id, title, categoryId, sectionId, path FROM articles
+			   WHERE articles.sectionId = ?
+				   AND ((articles.groupId = ? AND ? IS NOT NULL) OR (articles.groupId IS NULL AND ? is NULL))
+					 AND articles.sectionIndex < ? 
+			   ORDER BY articles.sectionIndex DESC LIMIT 1`,
 			article.sectionId,
-			sectionIndex - 1
+			article.groupId,
+			article.groupId,
+			article.groupId,
+			sectionIndex
 		)
 
 		// If there's no next, then get the LAST article from the prev section
@@ -104,7 +111,9 @@ export class ContentDatabase {
 				// get the article with the section id and the highest section index
 				prev = await this.db.get<Article>(
 					// here we only need certian info for the link
-					`SELECT id, title, categoryId, sectionId, path FROM articles WHERE articles.sectionId = ? ORDER BY articles.sectionIndex DESC LIMIT 1`,
+					`SELECT id, title, categoryId, sectionId, path FROM articles
+					   WHERE articles.sectionId = ?
+					   ORDER BY articles.sectionIndex DESC LIMIT 1`,
 					prevSectionId
 				)
 			}
@@ -112,9 +121,16 @@ export class ContentDatabase {
 
 		// the next is the article with the same section but next sectionIndex
 		let next = await this.db.get<Article>(
-			`SELECT id, title, categoryId, sectionId, path FROM articles WHERE articles.sectionId = ? AND articles.sectionIndex = ?`,
+			`SELECT id, title, categoryId, sectionId, path FROM articles
+			   WHERE articles.sectionId = ?
+				   AND ((articles.groupId = ? AND ? IS NOT NULL) OR (articles.groupId IS NULL AND ? is NULL))
+					 AND articles.sectionIndex > ?
+			   ORDER BY articles.sectionIndex ASC LIMIT 1`,
 			article.sectionId,
-			sectionIndex + 1
+			article.groupId,
+			article.groupId,
+			article.groupId,
+			sectionIndex
 		)
 
 		// If there's no next, then get the FIRST article from the next section
@@ -132,7 +148,9 @@ export class ContentDatabase {
 			if (nextSection) {
 				const { id: nextSectionId } = nextSection
 				next = await this.db.get<Article>(
-					`SELECT id, title, categoryId, sectionId, path FROM articles WHERE articles.sectionId = ? ORDER BY articles.sectionIndex ASC LIMIT 1`,
+					`SELECT id, title, categoryId, sectionId, path FROM articles
+					 	 WHERE articles.sectionId = ?
+						 ORDER BY articles.sectionIndex ASC LIMIT 1`,
 					nextSectionId
 				)
 			}

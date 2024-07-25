@@ -8,6 +8,7 @@ export class HighlightShapeTool extends StateNode {
 	static override id = 'highlight'
 	static override initial = 'idle'
 	static override children = (): TLStateNodeConstructor[] => [Idle, Drawing]
+	static override isLockable = false
 	override shapeType = 'highlight'
 
 	override onExit = () => {

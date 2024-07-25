@@ -25,17 +25,22 @@ const FONT_MAPPING: Record<string, string> = {
 
 const ASSETS_FOLDER_PATH = join(REPO_ROOT, 'assets')
 
-const collectedAssetUrls: {
-	fonts: Record<string, string>
-	icons: Record<string, string>
-	translations: Record<string, string>
-	embedIcons: Record<string, string>
-} = {
+const collectedAssetUrls: Record<
+	'fonts' | 'icons' | 'translations' | 'embedIcons',
+	Record<string, { file: string; hash?: string }>
+> = {
 	fonts: {},
 	icons: {},
 	translations: {},
 	embedIcons: {},
 }
+
+const mergedIconName = '0_merged.svg'
+// this is how `svgo` starts each one of our optimized icon SVGs. if they don't all start with this,
+// we can't merge them as it means they're of different size and are using different fill rules.
+const mergedIconHeader =
+	'<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="none">'
+const mergedIconFooter = '</svg>'
 
 // 1. ICONS
 
@@ -57,6 +62,31 @@ async function copyIcons() {
 		const svg = optimize(content, { path: iconPath })
 		return { fileName: icon, data: svg.data }
 	})
+
+	// Merge svgs into a single file
+	const mergedSvgParts = [
+		mergedIconHeader,
+		'<style>',
+		// in order to target individual icons with the URL hash, we need to hide all of them by
+		// default...
+		'svg > [id] { display: none; }',
+		// ...then show the one that's targeted
+		'svg > [id]:target { display: inline; }',
+		'</style>',
+	]
+	for (const { fileName, data } of optimizedSvgs) {
+		if (!data.startsWith(mergedIconHeader) || !data.endsWith(mergedIconFooter)) {
+			nicelog('SVG does not match expected format for merging:', fileName)
+			process.exit(1)
+		}
+
+		const id = fileName.replace('.svg', '')
+		const svgContent = data.slice(mergedIconHeader.length, -mergedIconFooter.length)
+		mergedSvgParts.push(`<g id="${id}">${svgContent}</g>`)
+	}
+	mergedSvgParts.push(mergedIconFooter)
+	const mergedSvg = optimize(mergedSvgParts.join('\n')).data
+	optimizedSvgs.push({ fileName: mergedIconName, data: mergedSvg })
 
 	// Optimize all of the svg icons and write them into the new folders
 	for (const folderPath of PUBLIC_FOLDER_PATHS) {
@@ -101,7 +131,10 @@ async function copyIcons() {
 	// add to the asset declaration file
 	for (const icon of icons) {
 		const name = icon.replace('.svg', '')
-		collectedAssetUrls.icons[name] = `icons/icon/${icon}`
+		collectedAssetUrls.icons[name] = {
+			file: `icons/icon/${mergedIconName}`,
+			hash: name,
+		}
 	}
 }
 
@@ -134,7 +167,7 @@ async function copyEmbedIcons() {
 	// add to the asset declaration file
 	for (const item of itemsToCopy) {
 		const name = item.replace(extension, '')
-		collectedAssetUrls.embedIcons[name] = `${folderName}/${item}`
+		collectedAssetUrls.embedIcons[name] = { file: `${folderName}/${item}` }
 	}
 }
 
@@ -172,7 +205,7 @@ async function copyFonts() {
 			nicelog('Font mapping not found for', itemWithoutExtension)
 			process.exit(1)
 		}
-		collectedAssetUrls.fonts[name] = `${folderName}/${item}`
+		collectedAssetUrls.fonts[name] = { file: `${folderName}/${item}` }
 	}
 }
 
@@ -269,7 +302,7 @@ async function copyTranslations() {
 	// add to the asset declaration file
 	for (const item of itemsToCopy) {
 		const name = item.replace(extension, '')
-		collectedAssetUrls.translations[name] = `${folderName}/${item}`
+		collectedAssetUrls.translations[name] = { file: `${folderName}/${item}` }
 	}
 }
 
@@ -283,121 +316,126 @@ async function copyWatermarks() {
 		watermark.endsWith(extension)
 	)
 
-	const destinationFolderPath = join(REPO_ROOT, 'packages', 'editor', 'assets', 'watermarks')
-	// Copy all items into the new folder
-	for (const item of itemsToCopy) {
-		await writeFile(join(destinationFolderPath, item), readFileSync(join(sourceFolderPath, item)))
+	const optimizedItems = itemsToCopy.map((watermark) => {
+		const watermarkPath = join(sourceFolderPath, watermark)
+		const content = readFileSync(watermarkPath, 'utf8')
+		const svg = optimize(content, { path: watermarkPath })
+		return { fileName: watermark, data: svg.data }
+	})
+
+	const file = new CodeFile()
+	for (const { fileName, data } of optimizedItems) {
+		const varName = file.formatName(fileName)
+		file.append(`export const ${varName} = ${JSON.stringify(data)};`)
 	}
+
+	const destinationFolderPath = join(REPO_ROOT, 'packages', 'editor', 'src', 'lib', 'watermarks.ts')
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		destinationFolderPath,
+		file.toString()
+	)
 }
 
 // 5. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'urls.js')
-	const codeFile = `
+	const codeFile = new CodeFile(`
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
 		import { formatAssetUrl } from './utils.js'
+	`)
 
+	const fn = codeFile.appendFn(`
 		/**
 		 * @param {AssetUrlOptions} [opts]
 		 * @public
 		 */
 		export function getAssetUrlsByMetaUrl(opts) {
-			return {
-				${Object.entries(collectedAssetUrls)
-					.flatMap(([type, assets]) => [
-						`${type}: {`,
-						...Object.entries(assets).map(
-							([name, href]) =>
-								`${JSON.stringify(name)}: formatAssetUrl(new URL(${JSON.stringify(
-									'./' + href
-								)}, import.meta.url).href, opts),`
-						),
-						'},',
-					])
-					.join('\n')}
-			}
-		}
-	`
+	`)
 
-	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
+	fn.append('return {')
+	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
+		fn.append(`${type}: {`)
+		for (const [name, { file, hash }] of Object.entries(assets)) {
+			const href = JSON.stringify(`./${file}`)
+			const fileUrl = fn.memo(file, `formatAssetUrl(new URL(${href}, import.meta.url).href, opts)`)
+			const value = hash ? `${fileUrl} + ${JSON.stringify('#' + hash)}` : fileUrl
+			fn.append(`${JSON.stringify(name)}: ${value},`)
+		}
+		fn.append('},')
+	}
+	fn.append('}')
+
+	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile.toString())
 }
 
 async function writeImportBasedAssetDeclarationFile(
 	importSuffix: string,
 	fileName: string
 ): Promise<void> {
-	let imports = `
+	const codeFile = new CodeFile(`
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
 		import { formatAssetUrl } from './utils.js'
+	`)
 
-	`
-
-	let declarations = `
+	const fn = codeFile.appendFn(`
 		/**
 		 * @param {AssetUrlOptions} [opts]
 		 * @public
 		 */
 		export function getAssetUrlsByImport(opts) {
-			return {
-	`
+	`)
 
+	fn.append('return {')
 	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
-		declarations += `${type}: {\n`
-		for (const [name, href] of Object.entries(assets)) {
-			const variableName = `${type}_${name}`
-				.replace(/[^a-zA-Z0-9_]/g, '_')
-				.replace(/_+/g, '_')
-				.replace(/_(.)/g, (_, letter) => letter.toUpperCase())
-			imports += `import ${variableName} from ${JSON.stringify('./' + href + importSuffix)};\n`
-			declarations += `${JSON.stringify(name)}: formatAssetUrl(${variableName}, opts),\n`
+		fn.append(`${type}: {`)
+		for (const [name, { file, hash }] of Object.entries(assets)) {
+			const variableName = codeFile.import(`./${file}${importSuffix}`)
+			const formattedUrl = fn.memo(file, `formatAssetUrl(${variableName}, opts)`)
+			const value = hash ? `${formattedUrl} + ${JSON.stringify('#' + hash)}` : formattedUrl
+			fn.append(`${JSON.stringify(name)}: ${value},`)
 		}
-		declarations += '},\n'
+		fn.append('},')
 	}
-
-	declarations += `
-			}
-		}
-	`
+	fn.append('}')
 
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', fileName)
-	await writeCodeFile(
-		'scripts/refresh-assets.ts',
-		'javascript',
-		codeFilePath,
-		imports + declarations
-	)
+	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile.toString())
 }
 
 async function writeSelfHostedAssetDeclarationFile(): Promise<void> {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'selfHosted.js')
-	const codeFile = `
+	const codeFile = new CodeFile(`
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
 		import { formatAssetUrl } from './utils.js'
+	`)
 
+	const fn = codeFile.appendFn(`
 		/**
 		 * @param {AssetUrlOptions} [opts]
 		 * @public
 		 */
 		export function getAssetUrls(opts) {
-			return {
-				${Object.entries(collectedAssetUrls)
-					.flatMap(([type, assets]) => [
-						`${type}: {`,
-						...Object.entries(assets).map(
-							([name, href]) =>
-								`${JSON.stringify(name)}: formatAssetUrl(${JSON.stringify('./' + href)}, opts),`
-						),
-						'},',
-					])
-					.join('\n')}
-			}
-		}
-	`
+	`)
 
-	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
+	fn.append('return {')
+	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
+		fn.append(`${type}: {`)
+		for (const [name, { file, hash }] of Object.entries(assets)) {
+			const href = JSON.stringify(`./${file}`)
+			const formattedUrl = fn.memo(file, `formatAssetUrl(${href}, opts)`)
+			const value = hash ? `${formattedUrl} + ${JSON.stringify('#' + hash)}` : formattedUrl
+			fn.append(`${JSON.stringify(name)}: ${value},`)
+		}
+		fn.append('},')
+	}
+	fn.append('}')
+
+	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile.toString())
 }
 
 async function writeAssetDeclarationDTSFile() {
@@ -478,6 +516,111 @@ async function copyVersionToDotCom() {
 		join(REPO_ROOT, 'packages', 'tldraw', 'src', 'lib', 'ui', 'version.ts'),
 		file
 	)
+}
+
+class Code {
+	protected parts: (string | { toString(): string })[] = []
+
+	toString() {
+		return this.parts.map((part) => (typeof part === 'string' ? part : part.toString())).join('')
+	}
+
+	append(...parts: string[]): this {
+		for (const part of parts) {
+			this.parts.push(part + '\n')
+		}
+		return this
+	}
+}
+class CodeFile extends Code {
+	private imports = new Map<string, string>()
+
+	constructor(private header: string = '') {
+		super()
+	}
+
+	override toString(): string {
+		return [
+			this.header,
+			Array.from(this.imports, ([file, name]) => {
+				return `import ${name} from ${JSON.stringify(file)};`
+			}).join('\n'),
+			super.toString(),
+		].join('\n')
+	}
+
+	import(file: string) {
+		let name = this.imports.get(file)
+		if (!name) {
+			name = this.getName(file)
+			this.imports.set(file, name)
+		}
+		return name
+	}
+
+	formatName(name: string) {
+		return `$_${name.replace(/\W+/g, '_')}`
+			.replace(/^\$_+(\D)/, (_, s) => s.toLowerCase())
+			.replace(/_+(.)/g, (_, s) => s.toUpperCase())
+	}
+
+	getName(name: string, suffix?: number): string {
+		const formatted = this.formatName(`${name}${suffix ?? ''}`)
+
+		if (this.toString().match(formatted)) {
+			return this.getName(name, (suffix ?? 1) + 1)
+		}
+
+		return formatted
+	}
+
+	appendFn(header: string): CodeFunction {
+		const fn = new CodeFunction(this, header)
+		this.parts.push(fn)
+		return fn
+	}
+}
+
+class CodeFunction extends Code {
+	constructor(
+		private file: CodeFile,
+		private header: string
+	) {
+		super()
+	}
+
+	private consts = new Map<string, string>()
+
+	override toString(): string {
+		let body = super.toString()
+
+		const lines = [this.header]
+		for (const [name, expr] of this.consts) {
+			const firstFoundIndex = body.indexOf(name)
+			const secondFoundIndex = body.indexOf(name, firstFoundIndex + 1)
+			if (secondFoundIndex === -1) {
+				// only exists once, we don't need to declare it:
+				body = body.replace(name, expr)
+			} else {
+				lines.push(`const ${name} = ${expr};`)
+			}
+		}
+
+		lines.push(body)
+		lines.push('}')
+		return lines.join('\n')
+	}
+
+	private memos = new Map<unknown, string>()
+	memo(key: string, expr: string) {
+		const existing = this.memos.get(key)
+		if (existing) return existing
+
+		const varName = this.file.getName(key)
+		this.consts.set(varName, expr)
+		this.memos.set(key, varName)
+		return varName
+	}
 }
 
 // --- RUN

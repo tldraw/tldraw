@@ -1,3 +1,32 @@
+# v2.4.0 (Mon Jul 22 2024)
+
+### Release Notes
+
+#### serve icons via a single merged .svg file ([#4150](https://github.com/tldraw/tldraw/pull/4150))
+
+- Serve icons more efficiently, and make sure they're still available if tldraw goes offline.
+
+#### Add offline icon back ([#4127](https://github.com/tldraw/tldraw/pull/4127))
+
+- Fixed a bug with…
+
+---
+
+#### 🐛 Bug Fixes
+
+- Add offline icon back [#4127](https://github.com/tldraw/tldraw/pull/4127) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- serve icons via a single merged .svg file [#4150](https://github.com/tldraw/tldraw/pull/4150) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.3.0 (Tue Jun 25 2024)
 
 ### Release Notes

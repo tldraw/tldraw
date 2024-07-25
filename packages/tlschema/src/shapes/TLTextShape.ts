@@ -1,14 +1,29 @@
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RecordPropsType } from '../recordsWithProps'
-import { DefaultColorStyle } from '../styles/TLColorStyle'
-import { DefaultFontStyle } from '../styles/TLFontStyle'
-import { DefaultSizeStyle } from '../styles/TLSizeStyle'
-import { DefaultTextAlignStyle } from '../styles/TLTextAlignStyle'
+import { RecordProps } from '../recordsWithProps'
+import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
+import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
+import { DefaultTextAlignStyle, TLDefaultTextAlignStyle } from '../styles/TLTextAlignStyle'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const textShapeProps = {
+export interface TLTextShapeProps {
+	color: TLDefaultColorStyle
+	size: TLDefaultSizeStyle
+	font: TLDefaultFontStyle
+	textAlign: TLDefaultTextAlignStyle
+	w: number
+	text: string
+	scale: number
+	autoSize: boolean
+}
+
+/** @public */
+export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
+
+/** @public */
+export const textShapeProps: RecordProps<TLTextShape> = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
@@ -18,12 +33,6 @@ export const textShapeProps = {
 	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
 }
-
-/** @public */
-export type TLTextShapeProps = RecordPropsType<typeof textShapeProps>
-
-/** @public */
-export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
 const Versions = createShapePropsMigrationIds('text', {
 	RemoveJustify: 1,

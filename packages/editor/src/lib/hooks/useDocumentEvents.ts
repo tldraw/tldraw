@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
@@ -12,7 +12,8 @@ export function useDocumentEvents() {
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
 	useEffect(() => {
-		if (typeof matchMedia === undefined) return
+		if (typeof window === 'undefined' || !('matchMedia' in window)) return
+
 		// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio#monitoring_screen_resolution_or_zoom_level_changes
 		let remove: (() => void) | null = null
 		const updatePixelRatio = () => {

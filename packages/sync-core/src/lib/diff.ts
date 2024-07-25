@@ -2,17 +2,17 @@ import { RecordsDiff, UnknownRecord } from '@tldraw/store'
 import { objectMapEntries, objectMapValues } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 
-/** @public */
+/** @internal */
 export const RecordOpType = {
 	Put: 'put',
 	Patch: 'patch',
 	Remove: 'remove',
 } as const
 
-/** @public */
+/** @internal */
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType]
 
-/** @public */
+/** @internal */
 export type RecordOp<R extends UnknownRecord> =
 	| [typeof RecordOpType.Put, R]
 	| [typeof RecordOpType.Patch, ObjectDiff]
@@ -25,7 +25,7 @@ export type RecordOp<R extends UnknownRecord> =
  *
  * Each key in this object is the id of a record that has been added, updated, or removed.
  *
- * @public
+ * @internal
  */
 export interface NetworkDiff<R extends UnknownRecord> {
 	[id: string]: RecordOp<R>
@@ -34,7 +34,7 @@ export interface NetworkDiff<R extends UnknownRecord> {
 /**
  * Converts a (reversible, verbose) RecordsDiff into a (non-reversible, concise) NetworkDiff
  *
- * @public
+ *@internal
  */
 export const getNetworkDiff = <R extends UnknownRecord>(
 	diff: RecordsDiff<R>
@@ -62,33 +62,34 @@ export const getNetworkDiff = <R extends UnknownRecord>(
 	return res
 }
 
-/** @public */
+/** @internal */
 export const ValueOpType = {
 	Put: 'put',
 	Delete: 'delete',
 	Append: 'append',
 	Patch: 'patch',
 } as const
+/** @internal */
 export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType]
 
-/** @public */
+/** @internal */
 export type PutOp = [type: typeof ValueOpType.Put, value: unknown]
-/** @public */
+/** @internal */
 export type AppendOp = [type: typeof ValueOpType.Append, values: unknown[], offset: number]
-/** @public */
+/** @internal */
 export type PatchOp = [type: typeof ValueOpType.Patch, diff: ObjectDiff]
-/** @public */
+/** @internal */
 export type DeleteOp = [type: typeof ValueOpType.Delete]
 
-/** @public */
+/** @internal */
 export type ValueOp = PutOp | AppendOp | PatchOp | DeleteOp
 
-/** @public */
+/** @internal */
 export interface ObjectDiff {
 	[k: string]: ValueOp
 }
 
-/** @public */
+/** @internal */
 export function diffRecord(prev: object, next: object): ObjectDiff | null {
 	return diffObject(prev, next, new Set(['props']))
 }
@@ -197,7 +198,7 @@ function diffArray(prevArray: unknown[], nextArray: unknown[]): PutOp | AppendOp
 	return [ValueOpType.Append, nextArray.slice(prevArray.length), prevArray.length]
 }
 
-/** @public */
+/** @internal */
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T {
 	// don't patch nulls
 	if (!object || typeof object !== 'object') return object

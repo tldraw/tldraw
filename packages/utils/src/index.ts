@@ -83,4 +83,4 @@ export {
 	isNonNullish,
 	structuredClone,
 } from './lib/value'
-export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'
+export { warnDeprecatedGetter, warnOnce } from './lib/warn'

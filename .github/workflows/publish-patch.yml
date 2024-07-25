@@ -52,6 +52,7 @@ jobs:
           HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          TLDRAW_BEMO_URL: https://demo.tldraw.xyz
 
   publish_templates:
     name: Publishes code templates to separate repositories
@@ -60,4 +61,5 @@ jobs:
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+      CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
     needs: deploy

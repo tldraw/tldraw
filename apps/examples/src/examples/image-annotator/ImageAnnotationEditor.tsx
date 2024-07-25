@@ -48,7 +48,6 @@ export function ImageAnnotationEditor({
 				props: {
 					w: image.width,
 					h: image.height,
-					fileSize: -1,
 					mimeType: image.type,
 					src: image.src,
 					name: 'image',
@@ -115,7 +114,7 @@ export function ImageAnnotationEditor({
 		)
 
 		// Reset the history
-		editor.history.clear()
+		editor.clearHistory()
 		setImageShapeId(shapeId)
 
 		return () => {

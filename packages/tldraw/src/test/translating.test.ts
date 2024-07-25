@@ -42,6 +42,7 @@ beforeEach(() => {
 	console.error = jest.fn()
 	editor = new TestEditor({
 		options: {
+			adjacentShapeMargin: 20,
 			edgeScrollDelay: 0,
 			edgeScrollEaseDuration: 0,
 		},
