@@ -53,8 +53,11 @@ export class DraggingHandle extends StateNode {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
-		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
-		if (!isCreating) this.editor.mark(this.markId)
+		this.markId = ''
+
+		if (!isCreating) {
+			this.markId = this.editor.markHistoryStoppingPoint('dragging handle')
+		}
 
 		this.initialHandle = structuredClone(handle)
 

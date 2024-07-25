@@ -994,14 +994,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.markHistoryStoppingPoint('flip shapes')
+	 * editor.markHistoryStoppingPoint()
 	 * editor.flipShapes(editor.getSelectedShapes())
 	 * ```
 	 * @example
 	 * ```ts
-	 * const markId = editor.markHistoryStoppingPoint('rotate shapes')
+	 * const beginRotateMark = editor.markHistoryStoppingPoint()
 	 * // if the use cancels the rotation, you can bail back to this mark
-	 * editor.bailToMark(markId)
+	 * editor.bailToMark(beginRotateMark)
 	 * ```
 	 *
 	 * @public
@@ -1021,9 +1021,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.mark('bump shapes')
+	 * const bumpShapesMark = editor.markHistoryStoppingPoint()
 	 * // ... some changes
-	 * editor.squashToMark('bump shapes')
+	 * editor.squashToMark(bumpShapesMark)
 	 * ```
 	 *
 	 * @param markId - The mark id to squash to.
@@ -1034,7 +1034,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Undo to the closest mark, but do not allow redoing the undone changes.
+	 * Undo to the closest mark, discarding the changes so they cannot be redone.
 	 *
 	 * @example
 	 * ```ts
@@ -1049,11 +1049,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Undo to the given mark, but do not allow redoing the undone changes.
+	 * Undo to the given mark, discarding the changes so they cannot be redone.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.bailToMark('dragging')
+	 * const beginDrag = editor.markHistoryStoppingPoint()
+	 * // ... some changes
+	 * editor.bailToMark(beginDrag)
 	 * ```
 	 *
 	 * @public

@@ -22,9 +22,7 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 
 			this.editor
 				.createShapes<TLGeoShape>([
@@ -70,9 +68,7 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.markId = `creating:${id}`
-
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 
 		const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
 

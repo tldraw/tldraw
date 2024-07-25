@@ -34,8 +34,7 @@ export class Pointing extends StateNode {
 
 		if (this.wasFocusedOnEnter) {
 			const id = createShapeId()
-			this.markId = `creating:${id}`
-			editor.mark(this.markId)
+			this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
 
 			// Check for note pits; if the pointer is close to one, place the note centered on the pit
 			const center = this.editor.inputs.originPagePoint.clone()

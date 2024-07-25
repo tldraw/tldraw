@@ -33,8 +33,7 @@ export class Pointing extends StateNode {
 
 		if (shape && inputs.shiftKey) {
 			// Extending a previous shape
-			this.markId = `creating:${shape.id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${shape.id}`)
 			this.shape = shape
 
 			const handles = this.editor.getShapeHandles(this.shape)
@@ -86,8 +85,7 @@ export class Pointing extends StateNode {
 		} else {
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${id}`)
 
 			this.editor.createShapes<TLLineShape>([
 				{

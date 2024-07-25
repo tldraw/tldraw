@@ -87,8 +87,7 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.markId = `creating:${id}`
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint(`creating_arrow:${id}`)
 
 		this.editor.createShape<TLArrowShape>({
 			id,

@@ -432,7 +432,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					editor.mark('editing adjacent shape')
+					editor.markHistoryStoppingPoint('editing adjacent shape')
 					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
 				}
 			}

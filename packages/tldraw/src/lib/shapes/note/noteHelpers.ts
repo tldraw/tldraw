@@ -191,7 +191,7 @@ export function getNoteShapeForAdjacentPosition(
 
 	// If we didn't find any in that position, then create a new one
 	if (!nextNote || forceNew) {
-		editor.mark('creating note shape')
+		editor.markHistoryStoppingPoint('creating note shape')
 		const id = createShapeId()
 
 		// We create it at the center first, so that it becomes

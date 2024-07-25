@@ -303,7 +303,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	mark = (arg?: string | { name?: string }) => {
 		if (typeof arg === 'string') {
 			console.warn(
-				'editor.history.mark("myMarkId") is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint("myMarkName")` instead.'
+				'editor.history.mark("myMarkId") is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint()` instead.'
 			)
 		}
 		const id = typeof arg === 'string' ? arg : arg?.name ? `${arg.name}/${uniqueId()}` : uniqueId()
