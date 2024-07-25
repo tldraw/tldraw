@@ -64,7 +64,7 @@ export const Header = () => {
 	const pathname = usePathname()
 	const { scrollY } = useScroll()
 	const navOpacity = useTransform(scrollY, [0, 32], [1, 0])
-	const opacityEffect = !pathname.startsWith('/blog')
+	const opacityEffect = !pathname.startsWith('/blog') && pathname !== '/'
 
 	return (
 		<header className="fixed top-0 w-full bg-white z-10">

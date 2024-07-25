@@ -1,8 +1,9 @@
+import { Button } from '@/components/common/button'
+import { ArrowDown } from '@/components/marketing/arrow-down'
+import { Demo } from '@/components/marketing/demo'
+import { Underline } from '@/components/marketing/underline'
 import { cn } from '@/utils/cn'
 import Image from 'next/image'
-import { Button } from '../common/button'
-import { ArrowDown } from './arrow-down'
-import { Underline } from './underline'
 
 const avatars = [
 	'https://i.pravatar.cc/300?img=1',
@@ -52,23 +53,14 @@ export const HeroSection = () => {
 				Tldraw is an open source, multiplayer-ready toolkit with easy-to-use APIs for control and
 				customization.
 			</p>
-			<div className="flex flex-col items-center sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9">
+			<div className="flex flex-col items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9">
 				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
 				<div className="pt-2">
 					<div className="font-hand text-blue-500 text-lg">or try here</div>
-					<ArrowDown className="h-14 text-blue-500 ml-auto -mt-2 -mr-6" animationDelay={1} />
+					<ArrowDown className="h-14 text-blue-500 ml-auto -mt-2 -mr-6" animationDelay={1.2} />
 				</div>
 			</div>
-			<div className="w-full bg-blue-500 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1 mt-1">
-				<div className="md:rounded-xl overflow-hidden shadow bg-white">
-					<iframe
-						className="iframe"
-						src="https://examples.tldraw.com/develop"
-						width="100%"
-						height={600}
-					/>
-				</div>
-			</div>
+			<Demo />
 		</section>
 	)
 }
