@@ -140,7 +140,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// A table of connected clients
 	readonly sessions = new Map<string, RoomSession<R, SessionMeta>>()
 
-	pruneSessions() {
+	// eslint-disable-next-line local/prefer-class-methods
+	pruneSessions = () => {
 		for (const client of this.sessions.values()) {
 			switch (client.state) {
 				case RoomSessionState.Connected: {

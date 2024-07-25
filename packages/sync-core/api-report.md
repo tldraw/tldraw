@@ -409,7 +409,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     close(): void;
     // (undocumented)
     didCancel?: () => boolean;
-    handleServerEvent(event: TLSocketServerSentEvent<R>): void;
     // (undocumented)
     incomingDiffBuffer: TLSocketServerSentDataEvent<R>[];
     // (undocumented)
@@ -476,7 +475,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly presenceType: RecordType<R, any>;
     // (undocumented)
-    pruneSessions(): void;
+    pruneSessions: () => void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;
     // (undocumented)

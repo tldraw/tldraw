@@ -382,7 +382,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
 
 	/** Handle events received from the server */
-	handleServerEvent(event: TLSocketServerSentEvent<R>) {
+	// eslint-disable-next-line local/prefer-class-methods
+	private handleServerEvent = (event: TLSocketServerSentEvent<R>) => {
 		this.debug('received server event', event)
 		this.lastServerInteractionTimestamp = Date.now()
 		// always update the lastServerClock when it is present

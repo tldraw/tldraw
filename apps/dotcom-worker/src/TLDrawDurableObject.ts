@@ -197,8 +197,7 @@ export class TLDrawDurableObject {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
-	// eslint-disable-next-line local/prefer-class-methods
-	extractDocumentInfoFromRequest = async (req: IRequest, roomOpenMode: RoomOpenMode) => {
+	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
 		const slug = assertExists(
 			await getSlug(this.env, req.params.roomId, roomOpenMode),
 			'roomId must be present'
