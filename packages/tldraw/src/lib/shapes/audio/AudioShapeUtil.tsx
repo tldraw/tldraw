@@ -2,6 +2,7 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
+	TLAudioAsset,
 	TLAudioShape,
 	audioShapeMigrations,
 	audioShapeProps,
@@ -35,7 +36,6 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 
 	component(shape: TLAudioShape) {
 		const { editor } = this
-		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
@@ -135,6 +135,10 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 			}
 		}, [isEditing, isLoaded, time])
 
+		const audioAsset = asset as TLAudioAsset | undefined
+		const coverArt = audioAsset?.props.coverArt
+		const title = audioAsset?.props.title
+
 		return (
 			<>
 				<HTMLContainer
@@ -147,6 +151,13 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 				>
 					<div className="tl-counter-scaled">
 						<div className="tl-audio-container">
+							{coverArt && (
+								<div
+									className="tl-audio-cover-art"
+									style={{ backgroundImage: `url(${coverArt})` }}
+									title="cover art"
+								/>
+							)}
 							{!asset?.props.src ? (
 								<BrokenAssetIcon />
 							) : url ? (
@@ -155,10 +166,8 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 									style={isEditing ? { pointerEvents: 'all' } : undefined}
 									className={`tl-audio tl-audio-shape-${shape.id.split(':')[1]}`}
 									draggable={false}
-									autoPlay
-									muted
 									loop
-									controls={showControls}
+									controls
 									onPlay={handlePlay}
 									onPause={handlePause}
 									onTimeUpdate={handleSetCurrentTime}
@@ -168,6 +177,11 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 									<source src={url} />
 								</audio>
 							) : null}
+							{title && (
+								<div className="tl-audio-title" title={title}>
+									{title}
+								</div>
+							)}
 						</div>
 					</div>
 				</HTMLContainer>
@@ -183,7 +197,14 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 	}
 
 	override toSvg(shape: TLAudioShape) {
-		// TODO
-		return <image width={shape.props.w} height={shape.props.h} />
+		const asset = shape.props.assetId
+			? (this.editor.getAsset(shape.props.assetId) as TLAudioAsset)
+			: undefined
+
+		if (asset?.props.coverArt) {
+			return <image href={asset?.props.coverArt} width={shape.props.w} height={shape.props.h} />
+		} else {
+			return <text>🎵</text>
+		}
 	}
 }

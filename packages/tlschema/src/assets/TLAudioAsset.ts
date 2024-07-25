@@ -17,6 +17,8 @@ export type TLAudioAsset = TLBaseAsset<
 		mimeType: string | null
 		src: string | null
 		fileSize?: number
+		title?: string
+		coverArt?: string
 	}
 >
 
@@ -31,6 +33,8 @@ export const audioAssetValidator: T.Validator<TLAudioAsset> = createAssetValidat
 		mimeType: T.string.nullable(),
 		src: T.srcUrl.nullable(),
 		fileSize: T.number.optional(),
+		title: T.string.optional(),
+		coverArt: T.string.optional(),
 	})
 )
 

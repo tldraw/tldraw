@@ -99,10 +99,18 @@ export function registerDefaultExternalContentHandlers(
 		}
 
 		let size = isAudioType
-			? { w: 300, h: 60 }
+			? { w: 200, h: 260 }
 			: isImageType
 				? await MediaHelpers.getImageSize(file)
 				: await MediaHelpers.getVideoSize(file)
+
+		let title
+		let coverArt
+		if (isAudioType) {
+			const { title: _title, coverArt: _coverArt } = await MediaHelpers.getAudioTags(file)
+			title = _title
+			coverArt = _coverArt
+		}
 
 		const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
 
@@ -128,6 +136,8 @@ export function registerDefaultExternalContentHandlers(
 				fileSize: file.size,
 				mimeType: file.type,
 				isAnimated,
+				title,
+				coverArt,
 			},
 		} as TLAsset
 

@@ -947,12 +947,14 @@ export interface TLAssetStore {
 
 // @public
 export type TLAudioAsset = TLBaseAsset<'audio', {
+    coverArt?: string;
     fileSize?: number;
     h: number;
     isAnimated: boolean;
     mimeType: null | string;
     name: string;
     src: null | string;
+    title?: string;
     w: number;
 }>;
 

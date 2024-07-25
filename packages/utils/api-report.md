@@ -227,6 +227,11 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 
 // @public
 export class MediaHelpers {
+    // (undocumented)
+    static getAudioTags(blob: Blob): Promise<{
+        coverArt: string;
+        title: string;
+    }>;
     static getImageSize(blob: Blob): Promise<{
         h: number;
         w: number;

@@ -122,6 +122,27 @@ export class MediaHelpers {
 		})
 	}
 
+	static async getAudioTags(blob: Blob): Promise<{ title: string; coverArt: string }> {
+		// Load this dynamically to reduce bundle size.
+		// @ts-ignore no types available currently.
+		const jsmediatags = await import('jsmediatags-web')
+
+		return new Promise((resolve, reject) => {
+			jsmediatags.read(blob, {
+				onSuccess: function (mediaInfo: any) {
+					const { data, format } = mediaInfo.tags.picture
+					const base64String = data.map((x: number) => String.fromCharCode(x)).join('')
+					const coverArt = `data:${format};base64,${window.btoa(base64String)}`
+					resolve({ title: mediaInfo.tags.title, coverArt })
+				},
+				onError: function (error: any) {
+					console.error('Could not decode audio tags:', error.type, error.info)
+					reject(error)
+				},
+			})
+		})
+	}
+
 	/**
 	 * Get the size of an image blob
 	 *
