@@ -50,6 +50,7 @@
 		}
 	},
 	"dependencies": {
+		"bind-decorator": "^1.0.11",
 		"lodash.throttle": "^4.1.1",
 		"lodash.uniq": "^4.5.0"
 	},

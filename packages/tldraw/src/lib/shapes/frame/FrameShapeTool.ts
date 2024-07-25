@@ -1,5 +1,4 @@
-import { BaseBoxShapeTool, TLShape, TLShapeId } from '@tldraw/editor'
-import bind from 'bind-decorator'
+import { BaseBoxShapeTool, TLShape, TLShapeId, bind } from '@tldraw/editor'
 
 /** @public */
 export class FrameShapeTool extends BaseBoxShapeTool {

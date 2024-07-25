@@ -11,10 +11,10 @@ import {
 	TLShapePartial,
 	TLTickEventInfo,
 	Vec,
+	bind,
 	compact,
 	isPageId,
 } from '@tldraw/editor'
-import bind from 'bind-decorator'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	NOTE_CENTER_OFFSET,

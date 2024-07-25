@@ -4,6 +4,7 @@
 
 ```ts
 
+import bind from 'bind-decorator';
 import { default as throttle } from 'lodash.throttle';
 import { default as uniq } from 'lodash.uniq';
 
@@ -21,6 +22,8 @@ export const assert: (value: unknown, message?: string) => asserts value;
 
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
+
+export { bind }
 
 // @internal
 export function clearLocalStorage(): void;

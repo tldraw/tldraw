@@ -1,4 +1,4 @@
-import bind from 'bind-decorator'
+import { bind } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'

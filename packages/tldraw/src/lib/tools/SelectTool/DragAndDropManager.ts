@@ -1,5 +1,4 @@
-import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
-import bind from 'bind-decorator'
+import { Editor, TLShape, TLShapeId, Vec, bind, compact } from '@tldraw/editor'
 import { getOccludedChildren } from './selectHelpers'
 
 const INITIAL_POINTER_LAG_DURATION = 20

@@ -1,3 +1,4 @@
+import bind from 'bind-decorator'
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
 export { PerformanceTracker } from './lib/PerformanceTracker'
@@ -84,3 +85,4 @@ export {
 	structuredClone,
 } from './lib/value'
 export { warnDeprecatedGetter, warnOnce } from './lib/warn'
+export { bind }

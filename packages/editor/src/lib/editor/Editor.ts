@@ -63,6 +63,7 @@ import {
 	annotateError,
 	assert,
 	assertExists,
+	bind,
 	compact,
 	dedupe,
 	exhaustiveSwitchError,
@@ -80,7 +81,6 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/utils'
-import bind from 'bind-decorator'
 import EventEmitter from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'

@@ -1,5 +1,4 @@
-import { throttleToNextFrame as _throttleToNextFrame } from '@tldraw/utils'
-import bind from 'bind-decorator'
+import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
 
