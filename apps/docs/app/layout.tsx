@@ -13,7 +13,7 @@ import './globals.css'
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: 'Tldraw • A Very Good Whiteboard SDK',
+		default: 'tldraw • A Very Good Whiteboard SDK',
 		template: `%s • tldraw SDK`,
 	},
 	description:
