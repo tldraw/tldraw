@@ -68,11 +68,11 @@ export class ScribbleManager {
 	 * @param point - The point to add.
 	 * @public
 	 */
-	addPoint = (id: ScribbleItem['id'], x: number, y: number) => {
+	addPoint = (id: ScribbleItem['id'], x: number, y: number, z = 0.5) => {
 		const item = this.scribbleItems.get(id)
 		if (!item) throw Error(`Scribble with id ${id} not found`)
 		const { prev } = item
-		const point = { x, y, z: 0.5 }
+		const point = { x, y, z }
 		if (!prev || Vec.Dist(prev, point) >= 1) {
 			item.next = point
 		}
@@ -87,7 +87,7 @@ export class ScribbleManager {
 	 */
 	tick = (elapsed: number) => {
 		if (this.scribbleItems.size === 0) return
-		this.editor.batch(() => {
+		this.editor.run(() => {
 			this.scribbleItems.forEach((item) => {
 				// let the item get at least eight points before
 				//  switching from starting to active

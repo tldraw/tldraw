@@ -2,25 +2,23 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import {
-	getUrlMetadata,
 	handleApiRequest,
+	handleUnfurlRequest,
 	handleUserAssetGet,
 	handleUserAssetUpload,
 	notFound,
-	parseRequestQuery,
-	urlMetadataQueryValidator,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { Router, createCors } from 'itty-router'
+import { Router, cors } from 'itty-router'
 import { Environment } from './types'
 
 export { BemoDO } from './BemoDO'
 
-const cors = createCors({ origins: ['*'] })
+const { preflight, corsify } = cors({ origin: '*' })
 
 export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()
-		.all('*', cors.preflight)
+		.all('*', preflight)
 		.get('/uploads/:objectName', (request) => {
 			return handleUserAssetGet({
 				request,
@@ -37,10 +35,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				context: this.ctx,
 			})
 		})
-		.get('/bookmarks/unfurl', async (request) => {
-			const query = parseRequestQuery(request, urlMetadataQueryValidator)
-			return Response.json(await getUrlMetadata(query))
-		})
+		.get('/bookmarks/unfurl', handleUnfurlRequest)
 		.get('/connect/:slug', (request) => {
 			const slug = request.params.slug
 			if (!slug) return new Response('Not found', { status: 404 })
@@ -57,7 +52,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			request,
 			env: this.env,
 			ctx: this.ctx,
-			after: cors.corsify,
+			after: corsify,
 		})
 	}
 }

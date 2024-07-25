@@ -37,7 +37,26 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
-/** @public */
+/**
+ * Override the default react components used by the editor and UI. Set components to null to
+ * disable them entirely.
+ *
+ * @example
+ * ```tsx
+ * import {Tldraw, TLComponents} from 'tldraw'
+ *
+ * const components: TLComponents = {
+ *    Scribble: MyCustomScribble,
+ * }
+ *
+ * export function MyApp() {
+ *   return <Tldraw components={components} />
+ * }
+ * ```
+ *
+ *
+ * @public
+ */
 export interface TLComponents extends TLEditorComponents, TLUiComponents {}
 
 /** @public */
@@ -137,7 +156,7 @@ export function Tldraw(props: TldrawProps) {
 
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
 function InsideOfEditorAndUiContext({
-	maxImageDimension = 1000,
+	maxImageDimension = 5000,
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,

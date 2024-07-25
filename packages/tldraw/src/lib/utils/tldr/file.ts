@@ -306,7 +306,7 @@ export async function parseAndLoadDocument(
 		editor.store.put(nonShapes, 'initialize')
 		editor.store.ensureStoreIsUsable()
 		editor.store.put(shapes, 'initialize')
-		editor.history.clear()
+		editor.clearHistory()
 		// Put the old bounds back in place
 		editor.updateViewportScreenBounds(initialBounds)
 

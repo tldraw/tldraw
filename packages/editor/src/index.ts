@@ -6,6 +6,7 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
+import { featureFlags } from './lib/utils/debug-flags'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -18,20 +19,24 @@ export * from '@tldraw/validate'
 
 export {
 	EMPTY_ARRAY,
+	EffectScheduler,
 	atom,
 	computed,
 	react,
-	track,
 	transact,
 	transaction,
-	useComputed,
-	useQuickReactor,
-	useReactor,
-	useValue,
 	whyAmIRunning,
 	type Atom,
 	type Signal,
 } from '@tldraw/state'
+export {
+	track,
+	useComputed,
+	useQuickReactor,
+	useReactor,
+	useStateTracking,
+	useValue,
+} from '@tldraw/state-react'
 export {
 	ErrorScreen,
 	LoadingScreen,
@@ -121,16 +126,24 @@ export {
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export {
+	createTLSchemaFromUtils,
 	createTLStore,
+	inlineBase64AssetStore,
 	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
+	type TLStoreSchemaOptions,
 } from './lib/config/createTLStore'
-export { createTLUser, type TLUser } from './lib/config/createTLUser'
+export { createTLUser, useTldrawUser, type TLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
-export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
+export {
+	Editor,
+	type TLEditorOptions,
+	type TLEditorRunOptions,
+	type TLResizeShapeOptions,
+} from './lib/editor/Editor'
 export {
 	BindingUtil,
 	type BindingOnChangeOptions,
@@ -271,7 +284,7 @@ export { usePresence } from './lib/hooks/usePresence'
 export { useRefState } from './lib/hooks/useRefState'
 export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
-export { useTLStore } from './lib/hooks/useTLStore'
+export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {
@@ -384,3 +397,8 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'
 export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
+
+/** @public */
+export function debugEnableLicensing() {
+	featureFlags.enableLicensing.set(true)
+}

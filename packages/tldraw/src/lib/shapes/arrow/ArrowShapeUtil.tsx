@@ -11,6 +11,7 @@ import {
 	SvgExportContext,
 	TLArrowBinding,
 	TLArrowShape,
+	TLArrowShapeProps,
 	TLHandle,
 	TLOnEditEndHandler,
 	TLOnHandleDragHandler,
@@ -26,6 +27,7 @@ import {
 	arrowShapeMigrations,
 	arrowShapeProps,
 	getDefaultColorTheme,
+	lerp,
 	mapObjectMapValues,
 	structuredClone,
 	toDomPrecision,
@@ -789,6 +791,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				component: ArrowheadCrossDef,
 			},
 		]
+	}
+	override getInterpolatedProps(
+		startShape: TLArrowShape,
+		endShape: TLArrowShape,
+		progress: number
+	): TLArrowShapeProps {
+		return {
+			...endShape.props,
+			start: {
+				x: lerp(startShape.props.start.x, endShape.props.start.x, progress),
+				y: lerp(startShape.props.start.y, endShape.props.start.y, progress),
+			},
+			end: {
+				x: lerp(startShape.props.end.x, endShape.props.end.x, progress),
+				y: lerp(startShape.props.end.y, endShape.props.end.y, progress),
+			},
+			bend: lerp(startShape.props.bend, endShape.props.bend, progress),
+			labelPosition: lerp(startShape.props.labelPosition, endShape.props.labelPosition, progress),
+		}
 	}
 }
 

@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import { noop } from '@tldraw/utils'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -75,7 +75,9 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 		// if we can't find a theme class from the app or from a parent, we have
 		// to fall back on using a media query:
-		setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)
+		if (typeof window !== 'undefined' && 'matchMedia' in window) {
+			setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)
+		}
 	}, [isDarkModeFromApp])
 
 	useEffect(() => {

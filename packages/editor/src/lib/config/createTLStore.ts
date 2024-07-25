@@ -6,10 +6,12 @@ import {
 	TLRecord,
 	TLStore,
 	TLStoreProps,
+	TLStoreSnapshot,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -18,11 +20,14 @@ export interface TLStoreBaseOptions {
 	/** The initial data for the store. */
 	initialData?: SerializedStore<TLRecord>
 
+	/** A snapshot of initial data to migrate and load into the store. */
+	snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot
+
 	/** The default name for the store. */
 	defaultName?: string
 
 	/** How should this store upload & resolve assets? */
-	assets?: Partial<TLAssetStore>
+	assets?: TLAssetStore
 
 	/** Called when the store is connected to an {@link Editor}. */
 	onEditorMount?: (editor: Editor) => void | (() => void)
@@ -32,27 +37,53 @@ export interface TLStoreBaseOptions {
 }
 
 /** @public */
-export type TLStoreOptions = TLStoreBaseOptions &
-	(
-		| {
-				id?: string
-				shapeUtils?: readonly TLAnyShapeUtilConstructor[]
-				migrations?: readonly MigrationSequence[]
-				bindingUtils?: readonly TLAnyBindingUtilConstructor[]
-		  }
-		| {
-				id?: string
-				schema?: StoreSchema<TLRecord, TLStoreProps>
-		  }
-	)
+export type TLStoreSchemaOptions =
+	| {
+			schema?: StoreSchema<TLRecord, TLStoreProps>
+	  }
+	| {
+			shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+			migrations?: readonly MigrationSequence[]
+			bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+	  }
+
+/** @public */
+export type TLStoreOptions = TLStoreBaseOptions & { id?: string } & TLStoreSchemaOptions
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
+const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => asset.props.src
+
 /** @public */
-export const defaultAssetStore: TLAssetStore = {
+export const inlineBase64AssetStore: TLAssetStore = {
 	upload: (_, file) => FileHelpers.blobToDataUrl(file),
-	resolve: (asset) => asset.props.src,
+}
+
+/**
+ * A helper for creating a TLStore schema from either an object with shapeUtils, bindingUtils, and
+ * migrations, or a schema.
+ *
+ * @param opts - Options for creating the schema.
+ *
+ * @public
+ */
+export function createTLSchemaFromUtils(
+	opts: TLStoreSchemaOptions
+): StoreSchema<TLRecord, TLStoreProps> {
+	if ('schema' in opts && opts.schema) return opts.schema
+
+	return createTLSchema({
+		shapes:
+			'shapeUtils' in opts && opts.shapeUtils
+				? utilsToMap(checkShapesAndAddCore(opts.shapeUtils))
+				: undefined,
+		bindings:
+			'bindingUtils' in opts && opts.bindingUtils
+				? utilsToMap(checkBindings(opts.bindingUtils))
+				: undefined,
+		migrations: 'migrations' in opts ? opts.migrations : undefined,
+	})
 }
 
 /**
@@ -60,42 +91,28 @@ export const defaultAssetStore: TLAssetStore = {
  *
  * @param opts - Options for creating the store.
  *
- * @public */
+ * @public
+ */
 export function createTLStore({
 	initialData,
 	defaultName = '',
 	id,
-	assets,
+	assets = inlineBase64AssetStore,
 	onEditorMount,
 	multiplayerStatus,
 	...rest
 }: TLStoreOptions = {}): TLStore {
-	const schema =
-		'schema' in rest && rest.schema
-			? // we have a schema
-				rest.schema
-			: // we need a schema
-				createTLSchema({
-					shapes:
-						'shapeUtils' in rest && rest.shapeUtils
-							? utilsToMap(checkShapesAndAddCore(rest.shapeUtils))
-							: undefined,
-					bindings:
-						'bindingUtils' in rest && rest.bindingUtils
-							? utilsToMap(checkBindings(rest.bindingUtils))
-							: undefined,
-					migrations: 'migrations' in rest ? rest.migrations : undefined,
-				})
+	const schema = createTLSchemaFromUtils(rest)
 
-	return new Store({
+	const store = new Store({
 		id,
 		schema,
 		initialData,
 		props: {
 			defaultName,
 			assets: {
-				...defaultAssetStore,
-				...assets,
+				upload: assets.upload,
+				resolve: assets.resolve ?? defaultAssetResolve,
 			},
 			onEditorMount: (editor) => {
 				assert(editor instanceof Editor)
@@ -104,6 +121,13 @@ export function createTLStore({
 			multiplayerStatus: multiplayerStatus ?? null,
 		},
 	})
+
+	if (rest.snapshot) {
+		if (initialData) throw new Error('Cannot provide both initialData and snapshot')
+		loadSnapshot(store, rest.snapshot)
+	}
+
+	return store
 }
 
 function utilsToMap<T extends SchemaPropsInfo & { type: string }>(utils: T[]) {

@@ -62,7 +62,7 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 
-	const snaphot = useMemo(
+	const snapshot = useMemo(
 		() => ({
 			schema,
 			store: Object.fromEntries(records.map((record) => [record.id, record])),
@@ -75,7 +75,7 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
-				snapshot={snaphot}
+				snapshot={snapshot}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {

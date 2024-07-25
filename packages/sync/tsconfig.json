@@ -8,6 +8,12 @@
 	},
 	"references": [
 		{
+			"path": "../state"
+		},
+		{
+			"path": "../state-react"
+		},
+		{
 			"path": "../sync-core"
 		},
 		{

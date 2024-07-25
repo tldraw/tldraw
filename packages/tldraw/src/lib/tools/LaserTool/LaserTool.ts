@@ -7,6 +7,7 @@ export class LaserTool extends StateNode {
 	static override id = 'laser'
 	static override initial = 'idle'
 	static override children = (): TLStateNodeConstructor[] => [Idle, Lasering]
+	static override isLockable = false
 
 	override onEnter = () => {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })

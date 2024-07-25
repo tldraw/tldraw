@@ -149,6 +149,86 @@
 				"hero": null
 			},
 			{
+				"id": "sync-core",
+				"title": "@tldraw/sync-core",
+				"description": "",
+				"groups": [
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
+					}
+				],
+				"hero": null
+			},
+			{
+				"id": "sync",
+				"title": "@tldraw/sync",
+				"description": "",
+				"groups": [
+					{
+						"id": "Class",
+						"path": null
+					},
+					{
+						"id": "Function",
+						"path": null
+					},
+					{
+						"id": "Variable",
+						"path": null
+					},
+					{
+						"id": "Enum",
+						"path": null
+					},
+					{
+						"id": "Interface",
+						"path": null
+					},
+					{
+						"id": "TypeAlias",
+						"path": null
+					},
+					{
+						"id": "Namespace",
+						"path": null
+					},
+					{
+						"id": "Component",
+						"path": null
+					}
+				],
+				"hero": null
+			},
+			{
 				"id": "tldraw",
 				"title": "tldraw",
 				"description": "",

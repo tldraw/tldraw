@@ -11,7 +11,8 @@
 		"@cloudflare/workers-types": "^4.20240620.0",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"itty-router": "^4.0.13",
+		"cloudflare-workers-unfurl": "^0.0.7",
+		"itty-router": "^5.0.17",
 		"lazyrepo": "0.0.0-alpha.27",
 		"toucan-js": "^3.4.0",
 		"typescript": "^5.3.3"

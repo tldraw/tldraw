@@ -1,8 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "A tiny little drawing app (multiplayer sync).",
-	"version": "2.0.0-alpha.11",
-	"private": true,
+	"version": "2.4.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -34,7 +33,12 @@
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../scripts/lint.ts",
+		"build": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
+		"postpack": "../../scripts/postpack.sh",
+		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
 		"tldraw": "workspace:*",

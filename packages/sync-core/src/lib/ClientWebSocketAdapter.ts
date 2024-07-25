@@ -1,6 +1,6 @@
 import { atom, Atom } from '@tldraw/state'
 import { TLRecord } from '@tldraw/tlschema'
-import { assert } from '@tldraw/utils'
+import { assert, warnOnce } from '@tldraw/utils'
 import { chunk } from './chunk'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
 import {
@@ -40,11 +40,13 @@ function debug(...args: any[]) {
 //       pings need to be implemented one level up, on the application API side, which for our
 //       codebase means whatever code that uses ClientWebSocketAdapter.
 
+/** @internal */
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 	_ws: WebSocket | null = null
 
 	isDisposed = false
 
+	/** @internal */
 	readonly _reconnectManager: ReconnectManager
 
 	// TODO: .close should be a project-wide interface with a common contract (.close()d thing
@@ -69,7 +71,11 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		this._reconnectManager.connected()
 	}
 
-	private _handleDisconnect(reason: 'closed' | 'error' | 'manual', closeCode?: number) {
+	private _handleDisconnect(
+		reason: 'closed' | 'error' | 'manual',
+		closeCode?: number,
+		didOpen?: boolean
+	) {
 		debug('handleDisconnect', {
 			currentStatus: this.connectionStatus,
 			closeCode,
@@ -93,6 +99,12 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 				break
 		}
 
+		if (closeCode === 1006 && !didOpen) {
+			warnOnce(
+				"Could not open WebSocket connection. This might be because you're trying to load a URL that doesn't support websockets. Check the URL you're trying to connect to."
+			)
+		}
+
 		if (
 			// it the status changed
 			this.connectionStatus !== newStatus &&
@@ -114,6 +126,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 				this._ws.readyState === WebSocket.CLOSING,
 			`Tried to set a new websocket in when the existing one was ${this._ws?.readyState}`
 		)
+
+		let didOpen = false
+
 		// NOTE: Sockets can stay for quite a while in the CLOSING state. This is because the transition
 		//       between CLOSING and CLOSED happens either after the closing handshake, or after a
 		//       timeout, but in either case those sockets don't need any special handling, the browser
@@ -124,18 +139,19 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 				this._ws === ws,
 				"sockets must only be orphaned when they are CLOSING or CLOSED, so they can't open"
 			)
+			didOpen = true
 			this._handleConnect()
 		}
 		ws.onclose = (event: CloseEvent) => {
-			debug('ws.onclose')
+			debug('ws.onclose', event)
 			if (this._ws === ws) {
-				this._handleDisconnect('closed', event.code)
+				this._handleDisconnect('closed', event.code, didOpen)
 			} else {
 				debug('ignoring onclose for an orphaned socket')
 			}
 		}
-		ws.onerror = () => {
-			debug('ws.onerror')
+		ws.onerror = (event) => {
+			debug('ws.onerror', event)
 			if (this._ws === ws) {
 				this._handleDisconnect('error')
 			} else {
@@ -235,7 +251,8 @@ export const DELAY_EXPONENT = 1.5
 // not needlessly reconnecting if the connection is just slow to establish
 export const ATTEMPT_TIMEOUT = 1000
 
-class ReconnectManager {
+/** @internal */
+export class ReconnectManager {
 	private isDisposed = false
 	private disposables: (() => void)[] = [
 		() => {

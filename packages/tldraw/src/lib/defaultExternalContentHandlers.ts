@@ -443,7 +443,7 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		editor.batch(() => {
+		editor.run(() => {
 			if (shouldAlsoCreateAsset) {
 				editor.createAssets([asset])
 			}
@@ -461,6 +461,18 @@ export function registerDefaultExternalContentHandlers(
 	})
 }
 
+/**
+ * A helper function for an external content handler. It creates bookmarks,
+ * images or video shapes corresponding to the type of assets provided.
+ *
+ * @param editor - The editor instance
+ *
+ * @param assets - An array of asset Ids
+ *
+ * @param position - the position at which to create the shapes
+ *
+ * @public
+ */
 export async function createShapesForAssets(
 	editor: Editor,
 	assets: TLAsset[],
@@ -526,7 +538,7 @@ export async function createShapesForAssets(
 		}
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		// Create any assets
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
 		if (assetsToCreate.length) {
@@ -543,7 +555,17 @@ export async function createShapesForAssets(
 	return partials.map((p) => p.id)
 }
 
-function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
+/**
+ * Repositions selected shapes do that the center of the group is
+ * at the provided position
+ *
+ * @param editor - The editor instance
+ *
+ * @param position - the point to center the shapes around
+ *
+ * @public
+ */
+export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	// Re-position shapes so that the center of the group is at the provided point
 	const viewportPageBounds = editor.getViewportPageBounds()
 	let selectionPageBounds = editor.getSelectionPageBounds()
@@ -589,7 +611,7 @@ export function createEmptyBookmarkShape(
 		},
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		editor.createShapes([partial]).select(partial.id)
 		centerSelectionAroundPoint(editor, position)
 	})

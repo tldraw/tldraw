@@ -7,8 +7,16 @@ let didPreloadIcons = false
 async function preloadIcons() {
 	if (didPreloadIcons) return
 	didPreloadIcons = true
-	const urlsToPreload = [...Object.values(assetUrls.icons), ...Object.values(assetUrls.embedIcons)]
-	await Promise.allSettled(urlsToPreload.map(preloadIcon))
+	const urlsToPreload = new Set(
+		[...Object.values(assetUrls.icons), ...Object.values(assetUrls.embedIcons)].map((url) => {
+			// some of our urls include # fragments. we don't need to preload them all individually:
+			// only the ones with something unique before the hash. this regex strips the hash and
+			// everything after it.
+			return url.replace(/#.*$/, '')
+		})
+	)
+
+	await Promise.allSettled(Array.from(urlsToPreload, preloadIcon))
 }
 
 function preloadIcon(url: string) {

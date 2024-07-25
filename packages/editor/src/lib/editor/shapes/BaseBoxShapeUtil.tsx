@@ -1,4 +1,5 @@
 import { TLBaseShape } from '@tldraw/tlschema'
+import { lerp } from '@tldraw/utils'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Rectangle2d } from '../../primitives/geometry/Rectangle2d'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
@@ -25,6 +26,14 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 	override getHandleSnapGeometry(shape: Shape): HandleSnapGeometry {
 		return {
 			points: this.getGeometry(shape).bounds.cornersAndCenter,
+		}
+	}
+
+	override getInterpolatedProps(startShape: Shape, endShape: Shape, t: number): Shape['props'] {
+		return {
+			...endShape.props,
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
 }

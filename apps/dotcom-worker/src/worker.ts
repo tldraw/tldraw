@@ -8,14 +8,12 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	createRouter,
-	getUrlMetadata,
 	handleApiRequest,
+	handleUnfurlRequest,
 	notFound,
-	parseRequestQuery,
-	urlMetadataQueryValidator,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { createCors, json } from 'itty-router'
+import { cors } from 'itty-router'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
@@ -27,8 +25,8 @@ import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
-const { preflight, corsify } = createCors({
-	origins: Object.assign([], { includes: (origin: string) => isAllowedOrigin(origin) }),
+const { preflight, corsify } = cors({
+	origin: isAllowedOrigin,
 })
 
 const router = createRouter<Environment>()
@@ -49,10 +47,7 @@ const router = createRouter<Environment>()
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
-	.get('/unfurl', async (req) => {
-		const query = parseRequestQuery(req, urlMetadataQueryValidator)
-		return json(await getUrlMetadata(query))
-	})
+	.get('/unfurl', handleUnfurlRequest)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.all('*', notFound)
 
@@ -84,12 +79,13 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 }
 
 export function isAllowedOrigin(origin: string) {
-	if (origin === 'http://localhost:3000') return true
-	if (origin === 'http://localhost:5420') return true
-	if (origin === 'https://meet.google.com') return true
-	if (origin.endsWith('.tldraw.com')) return true
-	if (origin.endsWith('-tldraw.vercel.app')) return true
-	return false
+	if (!origin) return undefined
+	if (origin === 'http://localhost:3000') return origin
+	if (origin === 'http://localhost:5420') return origin
+	if (origin === 'https://meet.google.com') return origin
+	if (origin.endsWith('.tldraw.com')) return origin
+	if (origin.endsWith('-tldraw.vercel.app')) return origin
+	return undefined
 }
 
 async function blockUnknownOrigins(request: Request, env: Environment) {
