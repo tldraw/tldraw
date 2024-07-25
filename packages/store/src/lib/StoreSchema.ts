@@ -77,7 +77,6 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 	migrations?: MigrationSequence[]
 	/** @public */
-	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	onValidationFailure?(data: {
 		error: unknown
 		store: Store<R>
