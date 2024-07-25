@@ -1,10 +1,10 @@
-import { Aside } from '@/components/docs/aside'
+import { BlogAuthors } from '@/components/blog/blog-authors'
+import { Aside } from '@/components/common/aside'
+import { BackToTopButton } from '@/components/common/back-to-top-button'
+import { ShareButton } from '@/components/common/share-button'
 import { HeadingsMenu } from '@/components/navigation/headings-menu'
 import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
-import { BackToTopButton } from '../back-to-top-button'
-import { BlogAuthors } from './blog-authors'
-import { ShareButton } from './share-button'
 
 export const BlogTableOfContents: React.FC<{ article: Article }> = async ({ article }) => {
 	const db = await getDb()

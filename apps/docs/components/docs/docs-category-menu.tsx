@@ -1,8 +1,8 @@
 'use client'
 
+import { NavigationLink } from '@/components/navigation/link'
 import { AcademicCapIcon, BookOpenIcon, PlayIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
-import { NavigationLink } from './link'
 
 const categoryLinks = [
 	{
@@ -28,7 +28,7 @@ const categoryLinks = [
 	},
 ]
 
-export const CategoryMenu = () => {
+export const DocsCategoryMenu = () => {
 	const pathname = usePathname()
 	return (
 		<ul className="shrink-0 flex flex-col gap-3">

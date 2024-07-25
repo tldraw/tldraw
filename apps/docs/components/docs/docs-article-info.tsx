@@ -1,12 +1,12 @@
+import { BackToTopButton } from '@/components/common/back-to-top-button'
+import { GithubIcon } from '@/components/common/icon/github'
 import { Article } from '@/types/content-types'
 import { format } from 'date-fns'
 import Link from 'next/link'
-import { BackToTopButton } from '../back-to-top-button'
-import { GithubIcon } from '../icon/github'
 
 const githubContentRoot = 'https://github.com/tldraw/tldraw/blob/main/apps/docs/content/'
 
-export const ArticleInfo: React.FC<{ article: Article }> = ({ article }) => {
+export const DocsArticleInfo: React.FC<{ article: Article }> = ({ article }) => {
 	return (
 		<div className="shrink-0 text-xs flex flex-col gap-1">
 			{article.date && <p>Last edited on {format(new Date(article.date), 'MMM dd, yyyy')}</p>}

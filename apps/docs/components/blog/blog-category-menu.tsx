@@ -1,12 +1,12 @@
 'use client'
 
+import { TldrawIcon } from '@/components/common/icon/tldraw'
 import { NavigationLink } from '@/components/navigation/link'
 import { Category } from '@/types/content-types'
 import { MegaphoneIcon, RectangleStackIcon, TagIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
-import { TldrawIcon } from '../icon/tldraw'
 
-const ICONS = {
+const icons = {
 	announcements: MegaphoneIcon,
 	'release-notes': TagIcon,
 	product: TldrawIcon,
@@ -31,7 +31,7 @@ export const BlogCategoryMenu = ({ categories }: { categories: Category[] }) => 
 				<li key={index}>
 					<NavigationLink
 						caption={item.title}
-						icon={ICONS[item.id as keyof typeof ICONS]}
+						icon={icons[item.id as keyof typeof icons]}
 						href={item.path ?? ''}
 						active={pathname.startsWith(`/blog/${item.id}`)}
 					/>

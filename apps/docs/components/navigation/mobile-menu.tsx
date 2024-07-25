@@ -1,12 +1,12 @@
 'use client'
 
-import { IconName } from '@/components/icon'
+import { IconName } from '@/components/common/icon'
 import { NavigationLink } from '@/components/navigation/link'
+import { SocialLink } from '@/components/navigation/social-link'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { EllipsisVerticalIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
-import { SocialLink } from './social-link'
 
 export const MobileMenu: React.FC<{
 	main: {

@@ -1,14 +1,14 @@
 'use client'
 
-import { type IconName } from '@/components/icon'
-import { Logo } from '@/components/logo'
+import { type IconName } from '@/components/common/icon'
+import { Logo } from '@/components/common/logo'
 import { NavigationLink } from '@/components/navigation/link'
 import { MobileMenu } from '@/components/navigation/mobile-menu'
 import { SocialLink } from '@/components/navigation/social-link'
+import { SearchButton } from '@/components/search/button'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { SearchButton } from './search/button'
 
 const mainLinks = [
 	{

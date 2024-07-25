@@ -1,10 +1,10 @@
 'use client'
 
+import { Button } from '@/components/common/button'
 import { cn } from '@/utils/cn'
 import { Field, Input, Label } from '@headlessui/react'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
 import { FormEventHandler, useState } from 'react'
-import { Button } from '../button'
 
 export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size = 'large' }) => {
 	const [state, setState] = useState<'idle' | 'success' | 'error'>('idle')

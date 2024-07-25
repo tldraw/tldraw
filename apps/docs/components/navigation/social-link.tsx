@@ -1,4 +1,4 @@
-import { Icon, IconName } from '@/components/icon'
+import { Icon, IconName } from '@/components/common/icon'
 import Link from 'next/link'
 
 export const SocialLink: React.FC<{ caption: string; icon: IconName; href: string }> = ({

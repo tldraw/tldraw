@@ -7,7 +7,7 @@ import { ChevronRightIcon } from '@heroicons/react/16/solid'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export const SidebarMenu: React.FC<{
+export const DocsSidebarMenu: React.FC<{
 	title: string
 	elements: {
 		type: string

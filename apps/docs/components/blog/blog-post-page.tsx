@@ -1,10 +1,10 @@
+import { BlogMobileSidebar } from '@/components/blog/blog-mobile-sidebar'
+import { BlogPostHeader } from '@/components/blog/blog-post-header'
+import { BlogSidebar } from '@/components/blog/blog-sidebar'
+import { BlogTableOfContents } from '@/components/blog/blog-table-of-contents'
+import { NewsletterSignup } from '@/components/common/newsletter-signup'
+import { Content } from '@/components/content'
 import { Article } from '@/types/content-types'
-import { Content } from '../content'
-import { BlogMobileSidebar } from './blog-mobile-sidebar'
-import { BlogPostHeader } from './blog-post-header'
-import { BlogSidebar } from './blog-sidebar'
-import { BlogTableOfContents } from './blog-table-of-contents'
-import { NewsletterSignup } from './newsletter-signup'
 
 export const BlogPostPage: React.FC<{
 	article: Article

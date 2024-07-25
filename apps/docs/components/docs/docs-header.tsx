@@ -1,11 +1,11 @@
-import { Breadcrumbs } from '@/components/docs/breadcrumbs'
-import { PageTitle } from '@/components/page-title'
+import { Breadcrumbs } from '@/components/common/breadcrumbs'
+import { Button } from '@/components/common/button'
+import { PageTitle } from '@/components/common/page-title'
 import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { cn } from '@/utils/cn'
-import { Button } from '../button'
 
-export const Header: React.FC<{ article: Article }> = async ({ article }) => {
+export const DocsHeader: React.FC<{ article: Article }> = async ({ article }) => {
 	const db = await getDb()
 	const section = await db.getSection(article.sectionId)
 	const category = await db.getCategory(article.categoryId)

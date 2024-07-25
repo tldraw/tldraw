@@ -1,6 +1,6 @@
 'use client'
 
-import { Button } from '@/components/button'
+import { Button } from '@/components/common/button'
 import { cn } from '@/utils/cn'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import hljs from 'highlight.js/lib/common'

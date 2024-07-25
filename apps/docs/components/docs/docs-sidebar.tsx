@@ -1,9 +1,9 @@
-import { Aside } from '@/components/docs/aside'
-import { CategoryMenu } from '@/components/navigation/category-menu'
-import { SidebarMenu } from '@/components/navigation/sidebar-menu'
+import { Aside } from '@/components/common/aside'
+import { DocsCategoryMenu } from '@/components/docs/docs-category-menu'
+import { DocsSidebarMenu } from '@/components/docs/docs-sidebar-menu'
 import { getDb } from '@/utils/ContentDatabase'
 
-export const Sidebar: React.FC<{
+export const DocsSidebar: React.FC<{
 	sectionId?: string
 	categoryId?: string
 	articleId?: string
@@ -16,12 +16,12 @@ export const Sidebar: React.FC<{
 
 	return (
 		<Aside className="hidden md:flex">
-			<CategoryMenu />
+			<DocsCategoryMenu />
 			<div className="relative grow overflow-y-auto pr-12">
 				<div className="sticky top-0 h-12 -mb-12 w-full bg-gradient-to-b from-white" />
 				{elements.map((menu: any, index: number) => (
 					// @ts-ignore
-					<SidebarMenu key={index} title={menu.title} elements={menu.children} />
+					<DocsSidebarMenu key={index} title={menu.title} elements={menu.children} />
 				))}
 				<div className="sticky bottom-0 h-12 w-full bg-gradient-to-t from-white" />
 			</div>

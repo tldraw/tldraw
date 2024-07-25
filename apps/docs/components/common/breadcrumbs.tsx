@@ -12,12 +12,14 @@ export const Breadcrumbs: React.FC<{
 
 	return (
 		<ul className={cn('flex items-center text-sm gap-2', className)}>
-			{items.map((item, i) => (
-				<li key={item.id} className="flex items-center gap-2">
-					{item.path ? <Link href={item.path}>{item.title}</Link> : <span>{item.title}</span>}
-					{i < items.length - 1 ? <ChevronRightIcon className="h-4 text-zinc-300" /> : null}
-				</li>
-			))}
+			{items
+				.filter((item) => item.title !== 'Uncategorized')
+				.map((item) => (
+					<li key={item.id} className="flex items-center gap-2">
+						{item.path ? <Link href={item.path}>{item.title}</Link> : <span>{item.title}</span>}
+						<ChevronRightIcon className="h-4 text-zinc-300" />
+					</li>
+				))}
 		</ul>
 	)
 }

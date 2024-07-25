@@ -21,7 +21,8 @@ export default async function Page() {
 	return (
 		<BlogCategoryPage
 			title="All Posts"
-			description={section.description ?? ''}
+			description={section.description}
+			section={section}
 			articles={articles}
 		/>
 	)

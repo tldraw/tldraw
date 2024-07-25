@@ -1,8 +1,8 @@
+import { Icon, IconName } from '@/components/common/icon'
 import { cn } from '@/utils/cn'
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import { MouseEventHandler } from 'react'
-import { Icon, IconName } from './icon'
 
 export const Button: React.FC<{
 	href?: string

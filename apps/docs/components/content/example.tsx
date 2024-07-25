@@ -1,6 +1,6 @@
+import { Code } from '@/components/content/code'
+import { Embed } from '@/components/content/embed'
 import { Article } from '@/types/content-types'
-import { Code } from '../code'
-import { Embed } from './embed'
 
 export const Example: React.FC<{ article: Article }> = ({ article }) => {
 	const server = 'https://examples.tldraw.com'

@@ -1,11 +1,11 @@
+import { DocsCategoryMenu } from '@/components/docs/docs-category-menu'
+import { DocsSidebarMenu } from '@/components/docs/docs-sidebar-menu'
 import { getDb } from '@/utils/ContentDatabase'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { Bars3Icon } from '@heroicons/react/16/solid'
 import { XMarkIcon } from '@heroicons/react/20/solid'
-import { CategoryMenu } from './category-menu'
-import { SidebarMenu } from './sidebar-menu'
 
-export const MobileSidebar: React.FC<{
+export const DocsMobileSidebar: React.FC<{
 	sectionId?: string
 	categoryId?: string
 	articleId?: string
@@ -30,10 +30,10 @@ export const MobileSidebar: React.FC<{
 					className="fixed left-0 top-12 bg-white w-screen px-5 py-8 overflow-y-auto z-10"
 					style={{ height: 'calc(100vh - 6.5rem)' }}
 				>
-					<CategoryMenu />
+					<DocsCategoryMenu />
 					{elements.map((menu: any, index: number) => (
 						// @ts-ignore
-						<SidebarMenu key={index} title={menu.title} elements={menu.children} />
+						<DocsSidebarMenu key={index} title={menu.title} elements={menu.children} />
 					))}
 				</div>
 			</PopoverPanel>

@@ -1,5 +1,5 @@
-import { Footer } from '@/components/footer'
-import { Header } from '@/components/header'
+import { Footer } from '@/components/navigation/footer'
+import { Header } from '@/components/navigation/header'
 import { cn } from '@/utils/cn'
 import { Analytics } from '@vercel/analytics/react'
 import { GeistMono } from 'geist/font/mono'

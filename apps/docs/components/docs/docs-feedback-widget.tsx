@@ -6,7 +6,7 @@ import { ArrowLongRightIcon, CheckCircleIcon, HandThumbDownIcon } from '@heroico
 import { HandThumbUpIcon } from '@heroicons/react/24/solid'
 import { FormEventHandler, useState } from 'react'
 
-export const FeedbackWidget: React.FC<{ className?: string }> = ({ className }) => {
+export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className }) => {
 	const [state, setState] = useState<'idle' | 'thumbs-up' | 'thumbs-down' | 'success' | 'error'>(
 		'idle'
 	)
