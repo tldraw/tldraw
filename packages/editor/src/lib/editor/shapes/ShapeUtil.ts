@@ -316,7 +316,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dropped.
 	 * @public
 	 */
-	canDropShapes(shape: Shape, shapes: TLShape[]) {
+	canDropShapes(_shape: Shape, _shapes: TLShape[]) {
 		return false
 	}
 
@@ -473,7 +473,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		shape: Shape,
 		info: TLResizeInfo<Shape>
 	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
-	// onResize?: TLOnResizeHandler<Shape>
 
 	/**
 	 * A callback called when a shape finishes resizing.
