@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import { Metadata, Viewport } from 'next'
+import localFont from 'next/font/local'
 import './github-dark.css'
 import './github-light.css'
 import './globals.css'
@@ -12,7 +13,7 @@ import './globals.css'
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: 'tldraw SDK',
+		default: 'Tldraw • A Very Good Whiteboard SDK',
 		template: `%s • tldraw SDK`,
 	},
 	description:
@@ -45,6 +46,13 @@ export const viewport: Viewport = {
 	themeColor: '#ffffff',
 }
 
+const ShantellSans = localFont({
+	src: './shantell-sans.woff2',
+	weight: '400',
+	display: 'swap',
+	variable: '--font-shantell-sans',
+})
+
 export default async function Layout({ children }: { children: React.ReactNode }) {
 	return (
 		<html
@@ -52,6 +60,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 			className={cn(
 				GeistSans.variable,
 				GeistMono.variable,
+				ShantellSans.variable,
 				'font-sans bg-white antialiased text-zinc-600'
 			)}
 		>

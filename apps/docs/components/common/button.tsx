@@ -14,7 +14,7 @@ export const Button: React.FC<{
 	arrow?: 'left' | 'right'
 	className?: string
 	size?: 'xs' | 'sm' | 'base' | 'lg'
-	type?: 'primary' | 'secondary' | 'tertiary'
+	type?: 'primary' | 'secondary' | 'tertiary' | 'black'
 }> = ({
 	href,
 	newTab,
@@ -35,6 +35,7 @@ export const Button: React.FC<{
 		size === 'base' && 'h-9 px-4 gap-2.5 rounded-lg text-base',
 		size === 'lg' && 'h-11 px-5 gap-3 rounded-xl text-lg',
 		type === 'primary' && 'bg-blue-500 text-white hover:bg-blue-600',
+		type === 'black' && 'bg-black text-white hover:bg-zinc-950',
 		type === 'secondary' && 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200',
 		className
 	)

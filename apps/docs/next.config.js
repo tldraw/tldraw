@@ -10,6 +10,10 @@ const nextConfig = {
 				protocol: 'https',
 				hostname: 'substackcdn.com',
 			},
+			{
+				protocol: 'https',
+				hostname: 'i.pravatar.cc',
+			},
 		],
 	},
 	transpilePackages: [],

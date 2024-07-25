@@ -6,6 +6,7 @@ module.exports = {
 			fontFamily: {
 				sans: ['var(--font-geist-sans)'],
 				mono: ['var(--font-geist-mono)'],
+				hand: ['var(--font-shantell-sans)'],
 			},
 		},
 	},
