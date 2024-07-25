@@ -51,9 +51,7 @@ function MyApp() {
 }
 ```
 
-<Callout icon="💡">
-	Make sure that `roomId` is unique. Anyone who uses the same ID can access your room.
-</Callout>
+    Make sure that `roomId` is unique. Anyone who uses the same ID can access your room.
 
 Data on the demo server only lasts for up to 24 hours. This is suitable for prototyping, but for production use you'll need to host your own server.
 
@@ -151,12 +149,10 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 - Transparently set up communication between multiple sync clients via WebSockets.
 - Provide hooks for persisting the document state when it changes.
 
-<Callout icon="💡">
-	You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app.
-	If there's more than one, users won't see each other and will overwrite others' changes. We use
-	[Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on
-	tldraw.com.
-</Callout>
+  You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app.
+  If there's more than one, users won't see each other and will overwrite others' changes. We use
+  [Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on
+  tldraw.com.
 
 Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/rooms.ts).
 
@@ -261,14 +257,12 @@ clients on different versions won't be able to collaborate without errors.
 
 ### Deployment concerns
 
-<Callout icon="⚠️">
-	You must make sure that the tldraw version in your client matches the version on the server. We
-	don't guarantee server backwards compatibility forever, and very occasionally we might release a
-	version where the backend cannot meaningfully support older clients, in which case tldraw will
-	display a "please refresh the page" message. So you should make sure that the backend is updated
-	at the same time as the client, and that the new backend is up and running just before the new
-	client rolls out.
-</Callout>
+You must make sure that the tldraw version in your client matches the version on the server. We
+don't guarantee server backwards compatibility forever, and very occasionally we might release a
+version where the backend cannot meaningfully support older clients, in which case tldraw will
+display a "please refresh the page" message. So you should make sure that the backend is updated
+at the same time as the client, and that the new backend is up and running just before the new
+client rolls out.
 
 ## Or roll your own sync engine
 
