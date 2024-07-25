@@ -9,6 +9,7 @@ import { SearchButton } from '@/components/search/button'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Suspense } from 'react'
 
 const mainLinks = [
 	{
@@ -97,7 +98,9 @@ export const Header = () => {
 				</ul>
 				<div className="flex items-center sm:hidden -mr-2">
 					<SearchButton type="docs" layout="mobile" />
-					<MobileMenu main={mainLinks} social={socialLinks} />
+					<Suspense>
+						<MobileMenu main={mainLinks} social={socialLinks} />
+					</Suspense>
 				</div>
 			</nav>
 		</header>
