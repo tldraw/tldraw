@@ -1,8 +1,8 @@
 ---
-title: Collaboration
+title: Sync
 status: published
 author: alex
-date: 7/24/2024
+date: 7/11/2024
 order: 6
 keywords:
   - data
@@ -16,89 +16,75 @@ keywords:
 ---
 
 The tldraw SDK includes deep support for real-time collaboration. The easiest way to add collaboration to your project is through our [tldraw sync](#tldraw-sync) library. If you prefer to use something else, you can integrate [other backends](#Using-other-backends) using our other public APIs.
+You can add realtime multi-user collaboration to your tldraw app by using **tldraw sync**. It's our library for fast, fault-tolerant shared document syncing, and is used in production on our flagship app [tldraw.com](https://tldraw.com).
 
-## tldraw sync
+While we offer a [hosted demo](/collaboration#tldraw-sync-demo) of the tldraw sync library for prototyping, the demo is suitable only for prototyping. To use tldraw sync in production, you will need to self-host the tldraw sync server.
 
-tldraw sync is a library for fast, multiuser collaboration. It's purpose-built for the tldraw canvas, and is in use on our flagship app tldraw.com to power the shared whiteboards there.
+For other collaboration options, see our [collaboration](/collaboration) page.
 
-<div className="article__image" style={{ border: 'none' }}>
-	<img
-		alt="Multiplayer example using tldraw sync"
-		src="/images/multiplayer.gif"
-		style={{
-			// learn this one weird trick for transparent animated gifs. doctors hate her!!!
-			mask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
-			WebkitMask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
-		}}
-	/>
-</div>
+## Deploying the tldraw sync backend
 
-### Using the tldraw sync demo
+There are two main ways to go about hosting tldraw sync:
 
-To make it easier to get started, we've included a "demo" hook in the sync library that connects to a hosted backend. You can see a working example at [this CodeSandbox](https://codesandbox.io/p/sandbox/tldraw-sync-demo-d9vq5g?file=%2Fsrc%2FApp.tsx%3A9%2C50).
+1. Deploy a full backend to Cloudflare using our template (recommended).
+2. Integrate tldraw sync into your own JavaScript backend using our examples and docs as a guide.
 
-Let's say you have an app running locally that looks like this:
+### Use our Cloudflare template
+
+The best way to get started hosting your own backend is to clone and deploy [our Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare). The template provides a production-grade minimal setup of the system that runs on tldraw.com.
+
+It uses:
+
+- [Durable Objects](https://developers.cloudflare.com/durable-objects/) to provide a unique WebSocket server per room.
+- [R2](https://developers.cloudflare.com/r2/) to persist document snapshots and store large binary assets like images and videos.
+
+There are some features that we have not provided and you might want to add yourself:
+
+- Authentication and authorization.
+- Rate limiting and size limiting for asset uploads.
+- Storing snapshots of documents over time for long-term history.
+- Listing and searching for rooms.
+
+Make sure you also read the section below about [deployment concerns](#deployment-concerns).
+
+[Get started with the Cloudflare template](https://github.com/tldraw/tldraw-sync-cloudflare).
+
+### Integrate tldraw sync into your own backend
+
+The `@tldraw/sync-core` library can be used to integrate tldraw sync into any JavaScript server environment that supports WebSockets.
+
+We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
+
+## Putting it together
+
+A backend for tldraw sync consists of two or three parts:
+
+- A **WebSocket server** that provides rooms for each shared document, and is responsible for persisting document state.
+- An **asset storage** provider for large binary files like images and videos.
+- (If using the built-in bookmark shape) An **unfurling service** to extract metadata about bookmark URLs.
+
+On the frontend, there is just one part: the **sync client**, created using the [`useSync`](?) hook from the `@tldraw/sync` package.
+
+Pulling all four of these together, here's what a simple client implementation might look like:
 
 ```tsx
-import { Tldraw } from 'tldraw'
+import { Tldraw, TLAssetStore, Editor } from 'tldraw'
+import { useSync } from '@tldraw/sync'
+import { uploadFileAndReturnUrl } from './assets'
+import { convertUrlToBookmarkAsset } from './unfurl'
 
-function MyApp() {
-	return <Tldraw />
+function MyEditorComponent({myRoomId}) {
+	// This hook creates a sync client that manages the websocket connection to the server
+	// and coordinates updates to the document state.
+	const store = useSync({
+		// This is how you tell the sync client which server and room to connect to
+		uri: `wss://my-custom-backend.com/connect/${myRoomId}`,
+		// This is how you tell the sync client how to store and retrieve blobs
+		assets: myAssetStore,
+	})
+	// When the tldraw Editor mounts, you can register an asset handler for the bookmark URLs
+	return <Tldraw store={store} onMount={registerUrlHandler} />
 }
-```
-
-To make this app collaborative, first install the `@tldraw/sync` library:
-
-```bash
-npm install @tldraw/sync
-```
-
-Back in your code, import the `useSyncDemo` hook from the `@tldraw/sync` library. In the `MyApp` component, call the `useSyncDemo` hook with a room ID. (Note that anyone using the same room ID will be accessing the same file, so pick a unique one.) Pass the [`store`](/docs/persistence#The-store-prop) returned by `useSyncDemo` to the tldraw component's `store` prop.
-
-```tsx
-import { Tldraw } from 'tldraw'
-import { useSyncDemo } from '@tldraw/sync'
-
-function MyApp() {
-	const store = useSyncDemo({ roomId: 'my-unique-room-id' })
-	return <Tldraw store={store} />
-}
-```
-
-In your browser, open an incognito window and visit your project's URL. You can also use a different browser or different device. The key is the room ID: any apps connecting to the same room ID will enter into a shared collaboration session.
-
-The sync demo is perfect for demos and prototyping but should not be used in production. Data on the demo server only lasts for up to 24 hours, and anyone using the same room id will be able to edit the same room's project. For production use you'll need to host your own server.
-
-### Using tldraw sync in production
-
-To use tldraw sync in production, you will need to self-host the tldraw sync server. We don't offer a hosted solution for tldraw sync, but if you're interested in that please let us know at hello@tldraw.com.
-
-You will need to:
-
-1. Host the tldraw sync server code, which serves the room over [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
-2. Configure a storage solution (e.g. a bucket) to store images, videos, and other user-created assets.
-3. Connect to the server with the [`useSync`](?) hook.
-
-#### Server
-
-The `@tldraw/sync-core` package includes everything you need to self-host tldraw sync. You can host the server in any JavaScript environment that supports WebSockets and use whichever storage solution you like, so long as the client can connect to it.
-
-We've created a [Cloudflare Workers template](https://github.com/tldraw/tldraw-sync-cloudflare) that you can use as a starting point or reference. This example is very similar to the system we use tldraw.com. It includes the sync server hosted by Cloudflare Workers, asset hosting through Cloudflare's R2 buckets, and some handlers for a few other server-side tasks.
-
-For use in other environments, see our [simple server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example) for an example that supports both NodeJS and Bun.
-
-<Callout icon="⚠️">
-	When deploying your backend, you must ensure that the server is updated at the same time as the
-	client, and that the new backend is up and running just before the new client rolls out. If the
-	client has an older incompatible version, tldraw will display a "please refresh the page" message.
-</Callout>
-
-#### Client
-
-Once you have your server set up, use the [`useSync`](?) hook from `@tldraw/sync` to connect your backend to the tldraw editor. Call the hook to create a store, then pass it in to the `<Tldraw />` component:
-
-```tsx
-import {useSync} from '@tldraw/sync'
 
 const myAssetStore: TLAssetStore {
 	upload(file, asset) {
@@ -109,53 +95,134 @@ const myAssetStore: TLAssetStore {
 	},
 }
 
-function MyApp() {
-	const store = useSync({
-		uri: 'https://yourapp.com/<PATH TO YOUR ROOM>',
-		assets: myAssetStore,
+function registerUrlHandler(editor: Editor) {
+	editor.registerExternalAssetHandler('url', async ({url}) => {
+		return await convertUrlToBookmarkAsset(url)
 	})
-
-	return <Tldraw store={store} />
 }
-
 ```
 
-You can see a complete example using the sync client in the [`tldraw-sync-cloudflare`](https://github.com/tldraw/tldraw/blob/main/templates/sync-cloudflare/client/App.tsx) template.
+And [here's a full working example](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/client/App.tsx) of the client-side code.
 
-## Using other collaboration backends
+## Using tlsync
 
-While tldraw sync is our recommended and best-supported backend for tldraw, we designed the SDK to work with any data solution. If you cannot use tldraw sync, or if you have an existing real-time collaboration solution that you prefer to use instead, you can integrate your backend with tldraw using our public APIs.
+## Custom shapes & bindings
 
-As a reference, see our [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) that shows an integration between tldraw and the [Yjs](https://yjs.dev) CRDT library. If you are connecting a different backend, you will likely follow similar patterns.
+`@tldraw/sync` validates the contents of your document and runs migrations to make sure clients of different versions can collaborate without issue. To support this, you need to make sure that both the sync client and server know about any custom shapes or bindings you've added.
 
-For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, including from remote sources, see the [Persistence](/docs/persistence) page.
+### On the client
 
-### Creating assets
-
-As well as synchronizing the rapidly-changing document data, tldraw also needs a way to store and retrieve large binary assets like images or videos. You'll need to make sure your backend can handle asset uploads and downloads, and implement a service for turning files and links into assets that the editor can use.
+You can pass `shapeUtils` and `bindingUtils` props to `useSync`. Unlike `<Tldraw />`, these don't automatically include tldraw's default shapes like arrows and rectangles. You should pass those in explicitly if you're using them:
 
 ```tsx
-<Tldraw
-	store={store}
-	onMount={(editor) => {
-		editor.registerExternalAssetHandler('file', createAssetFromFile)
-		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}}
-/>
+import { Tldraw, defaultShapeUtils, defaultBindingUtils } from 'tldraw'
+import { useSync } from '@tldraw/sync'
+
+function MyApp() {
+	const store = useSync({
+		uri: '...',
+		assets: myAssetStore,
+		shapeUtils: useMemo(() => [...customShapeUtils, ...defaultShapeUtils], []),
+		bindingUtils: useMemo(() => [...customBindingUtils, ...defaultBindingUtils], []),
+	})
+
+	return <Tldraw store={store} shapeUtils={customShapeUtils} bindingUtils={customBindingUtils} />
+}
 ```
 
-- Read about [how assets work in tldraw](/docs/assets).
-- Read the [`TLAssetStore`](?) reference docs.
+### On the server
 
-You can also refer to our simple example [client](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/client/App.tsx) and [server](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/unfurl.ts) code.
+Use [`createTLSchema`](?) to create a store schema, and pass that into [`TLSocketRoom`](?). You can use shape/binding utils here, but schema will only look at two properties: [`props`](/reference/editor/ShapeUtil#props) and [`migrations`](/docs/persistence#Shape-props-migrations). You need to provide the default shape schemas if you're using them.
 
-## Collaboration UI
+```tsx
+import { createTLSchema, defaultShapeSchemas, defaultBindingSchemas } from '@tldraw/tlschema'
+import { TLSocketRoom } from '@tldraw/sync-core'
 
-The `tldraw` library includes several components specifically designed for collaboration.
+const schema = createTLSchema({
+	shapes: {
+		...defaultShapeSchemas,
 
-- Collaborator cursors: [`TLComponents#CollaboratorCursor`](?)
-- Cursor chat: [`TLComponents#CursorChatBubble`](?)
-- Offline indicator: [`TLComponents#TopPanel`](?)
-- Collaborator list: [`TLComponents#SharePanel`](?)
+		myCustomShape: {
+			// validations for this shapes `props`
+			props: myCustomShapeProps,
+			// migrations between versions of this shape
+			migrations: myCustomShapeMigrations,
+		},
 
-The `@tldraw/sync` client automatically enables some default collaborative UX, but you can remove, replace, or customize these using the editor's components prop. See [TLComponents](?) for more info.
+		// the schema knows about this shape, but it has no migrations or validation
+		mySimpleShape: {},
+	},
+	bindings: defaultBindingSchemas,
+})
+
+// later, in your app server:
+const room = new TLSocketRoom({
+	schema: schema,
+	// ...
+})
+```
+
+Both `props` and `migration` are optional. If you omit `props`, you won't have any server-side validation for your shape, which could result in bad data being stored. If you omit `migrations`, clients on different versions won't be able to collaborate without errors.
+
+## Deployment concerns
+
+<Callout icon="⚠️">
+	You must make sure that the tldraw version in your client matches the version on the server. We
+	don't guarantee server backwards compatibility forever, and very occasionally we might release a
+	version where the backend cannot meaningfully support older clients, in which case tldraw will
+	display a "please refresh the page" message. So you should make sure that the backend is updated
+	at the same time as the client, and that the new backend is up and running just before the new
+	client rolls out.
+</Callout>
+
+## Migrating data from a custom sync engine
+
+[`TLSocketRoom`](?) supports loading [`TLStoreSnapshot`] snapshots, so in your persistence layer you can add a backwards-compatibility layer that lazily imports data from your old sync engine and converts it to a `TLStoreSnapshot`.
+
+Something like:
+
+```tsx
+import { TLSocketRoom } from '@tldraw/sync-core'
+
+async function loadOrMakeRoom(roomId: string) {
+	const data = await loadRoomDataFromCurrentStore(roomId)
+	if (data) {
+		return new TLSocketRoom({ initialSnapshot: data })
+	}
+	const legacyData = await loadRoomDataFromLegacyStore(roomId)
+	if (legacyData) {
+		// convert your old data to a TLStoreSnapshot
+		const snapshot = convertOldDataToSnapshot(legacyData)
+		// load it into the room
+		const room = new TLSocketRoom({ initialSnapshot: snapshot })
+		// save an updated copy of the snapshot in the new place
+		// so that next time we can load it directly
+		await saveRoomData(roomId, room.getCurrentSnapshot())
+		// optionally delete the old data
+		await deleteLegacyRoomData(roomId)
+		// and finally return the room
+		return room
+	}
+	// if there's no data at all, just make a new blank room
+	return new TLSocketRoom()
+}
+```
+
+## WebSocket server
+
+The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that should be created server-side on a per-document basis.
+
+`TLSocketRoom` is used to:
+
+- Store an authoritative in-memory copy of the document state
+- Transparently set up communication between multiple sync clients via WebSockets.
+- Provide hooks for persisting the document state when it changes.
+
+<Callout icon="💡">
+	You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app.
+	If there's more than one, users won't see each other and will overwrite others' changes. We use
+	[Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on
+	tldraw.com.
+</Callout>
+
+Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/rooms.ts).
