@@ -1,8 +1,8 @@
 import { Vec, VecLike } from '@tldraw/editor'
-import type { StrokeOptions } from './StrokeOptions'
 import { getStrokeOutlinePoints } from './getStrokeOutlinePoints'
 import { getStrokePoints } from './getStrokePoints'
 import { setStrokePointRadii } from './setStrokePointRadii'
+import type { StrokeOptions } from './types'
 
 /**
  * ## getStroke

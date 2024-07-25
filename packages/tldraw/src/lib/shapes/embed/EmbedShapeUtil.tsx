@@ -75,7 +75,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			}
 		}
 
-		return resizeBox(shape, info, { minWidth, minHeight }) as Partial<TLEmbedShape>
+		return resizeBox(shape, info, { minWidth, minHeight })
 	}
 
 	override component(shape: TLEmbedShape) {

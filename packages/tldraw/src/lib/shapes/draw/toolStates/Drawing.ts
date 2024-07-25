@@ -140,7 +140,7 @@ export class Drawing extends StateNode {
 		this.updateDrawingShape()
 	}
 
-	override onExit?() {
+	override onExit() {
 		this.editor.snaps.clearIndicators()
 		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 	}

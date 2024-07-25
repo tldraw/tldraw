@@ -1,9 +1,8 @@
 import { Vec, VecLike, assert, average, precise, toDomPrecision } from '@tldraw/editor'
-import { StrokeOptions } from './StrokeOptions'
 import { getStrokeOutlineTracks } from './getStrokeOutlinePoints'
 import { getStrokePoints } from './getStrokePoints'
 import { setStrokePointRadii } from './setStrokePointRadii'
-import { StrokePoint } from './types'
+import { StrokeOptions, StrokePoint } from './types'
 
 export function svgInk(rawInputPoints: VecLike[], options: StrokeOptions = {}) {
 	const { start = {}, end = {} } = options

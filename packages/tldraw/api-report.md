@@ -608,7 +608,14 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): Partial<TLEmbedShape>;
+    onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): {
+        props: {
+            h: number;
+            w: number;
+        };
+        x: number;
+        y: number;
+    };
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
     // (undocumented)

@@ -1,6 +1,5 @@
 import { Vec, VecLike } from '@tldraw/editor'
-import type { StrokeOptions } from './StrokeOptions'
-import type { StrokePoint } from './types'
+import type { StrokeOptions, StrokePoint } from './types'
 
 const MIN_START_PRESSURE = 0.025
 const MIN_END_PRESSURE = 0.01
