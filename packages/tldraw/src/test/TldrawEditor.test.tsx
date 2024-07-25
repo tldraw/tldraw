@@ -4,6 +4,7 @@ import {
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
+	TLAssetStore,
 	TLBaseShape,
 	TldrawEditor,
 	createShapeId,
@@ -339,6 +340,39 @@ describe('<TldrawEditor />', () => {
 				props: { w: 152.74967383200806, h: 134.57489438369782 },
 			},
 		])
+	})
+
+	it('passes through the `assets` prop when creating its own in-memory store', async () => {
+		const myUploadFn = jest.fn()
+		const assetStore: TLAssetStore = { upload: myUploadFn }
+
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<TldrawEditor onMount={onMount} shapeUtils={defaultShapeUtils} assets={assetStore} />
+			),
+			{ waitForPatterns: true }
+		)
+
+		expect(editor.store.props.assets.upload).toBe(myUploadFn)
+	})
+
+	it('passes through the `assets` prop when using `persistenceKey`', async () => {
+		const myUploadFn = jest.fn()
+		const assetStore: TLAssetStore = { upload: myUploadFn }
+
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<TldrawEditor
+					onMount={onMount}
+					shapeUtils={defaultShapeUtils}
+					assets={assetStore}
+					persistenceKey="hello-world"
+				/>
+			),
+			{ waitForPatterns: true }
+		)
+
+		expect(editor.store.props.assets.upload).toBe(myUploadFn)
 	})
 })
 

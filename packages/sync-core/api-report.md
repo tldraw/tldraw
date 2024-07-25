@@ -14,6 +14,7 @@ import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal (undocumented)
@@ -290,7 +291,7 @@ export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest 
 export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta = void> {
     constructor(opts: {
         clientTimeout?: number;
-        initialSnapshot?: RoomSnapshot;
+        initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
         log?: TLSyncLog;
         onAfterReceiveMessage?: (args: {
             message: TLSocketServerSentEvent<R>;
@@ -326,13 +327,13 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
     // (undocumented)
     isClosed(): boolean;
-    loadSnapshot(snapshot: RoomSnapshot): void;
+    loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot): void;
     // (undocumented)
     readonly log?: TLSyncLog;
     // (undocumented)
     readonly opts: {
         clientTimeout?: number;
-        initialSnapshot?: RoomSnapshot;
+        initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
         log?: TLSyncLog;
         onAfterReceiveMessage?: (args: {
             message: TLSocketServerSentEvent<R>;

@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async'
-import { csp } from '../../utils/csp'
+import { cspDev } from '../../utils/csp'
 import { isDevelopmentEnv, isPreviewEnv, isStagingEnv } from '../../utils/env'
 
 const showStagingFavicon = isStagingEnv || isPreviewEnv
@@ -24,7 +24,7 @@ export function Head() {
 				href={showStagingFavicon ? '/staging-favicon.svg' : '/favicon.svg'}
 			/>
 			{/* In development, we don't have the HTTP headers for CSP. We emulate it here so that we can discover things locally. */}
-			{isDevelopmentEnv && <meta httpEquiv="Content-Security-Policy" content={csp} />}
+			{isDevelopmentEnv && <meta httpEquiv="Content-Security-Policy" content={cspDev} />}
 		</Helmet>
 	)
 }
