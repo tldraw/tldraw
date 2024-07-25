@@ -299,7 +299,7 @@ export class PerformanceTracker {
     // (undocumented)
     isStarted(): boolean;
     // (undocumented)
-    recordFrame(): void;
+    recordFrame: () => void;
     // (undocumented)
     start(name: string): void;
     // (undocumented)
