@@ -2064,7 +2064,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
     canEdit(_shape: Shape): boolean;
     canEditInReadOnly(_shape: Shape): boolean;
-    canReceiveNewChildrenOfType(_shape: Shape, type: TLShape['type']): boolean;
+    canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']): boolean;
     canResize(_shape: Shape): boolean;
     canScroll(_shape: Shape): boolean;
     canSnap(_shape: Shape): boolean;
