@@ -52,7 +52,7 @@ export const HeroSection = () => {
 				Tldraw is an open source, multiplayer-ready toolkit with easy-to-use APIs for control and
 				customization.
 			</p>
-			<div className="flex flex-col items-center sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9">
+			<div className="flex flex-col items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9">
 				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
 				<div className="pt-2">
 					<div className="font-hand text-blue-500 text-lg">or try here</div>
