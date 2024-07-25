@@ -142,8 +142,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		return <rect width={100} height={100} />
 	}
 
-	// eslint-disable-next-line local/prefer-class-methods
-	private getTargetContainer = (shape: ElementShape, pageAnchor: Vec) => {
+	private getTargetContainer(shape: ElementShape, pageAnchor: Vec) {
 		// Find the container shape that the element is being dropped on
 		return this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,

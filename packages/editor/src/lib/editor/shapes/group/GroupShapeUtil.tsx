@@ -90,7 +90,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return <DashedOutlineBox className="" bounds={bounds} />
 	}
 
-	// eslint-disable-next-line local/prefer-class-methods
 	override onChildrenChange(group: TLGroupShape) {
 		const children = this.editor.getSortedChildIdsForParent(group.id)
 		if (children.length === 0) {
