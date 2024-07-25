@@ -1,8 +1,9 @@
+import { Button } from '@/components/common/button'
+import { ArrowDown } from '@/components/marketing/arrow-down'
+import { Demo } from '@/components/marketing/demo'
+import { Underline } from '@/components/marketing/underline'
 import { cn } from '@/utils/cn'
 import Image from 'next/image'
-import { Button } from '../common/button'
-import { ArrowDown } from './arrow-down'
-import { Underline } from './underline'
 
 const avatars = [
 	'https://i.pravatar.cc/300?img=1',
@@ -56,19 +57,10 @@ export const HeroSection = () => {
 				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
 				<div className="pt-2">
 					<div className="font-hand text-blue-500 text-lg">or try here</div>
-					<ArrowDown className="h-14 text-blue-500 ml-auto -mt-2 -mr-6" animationDelay={1} />
+					<ArrowDown className="h-14 text-blue-500 ml-auto -mt-2 -mr-6" animationDelay={1.2} />
 				</div>
 			</div>
-			<div className="w-full bg-blue-500 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1 mt-1">
-				<div className="md:rounded-xl overflow-hidden shadow bg-white">
-					<iframe
-						className="iframe"
-						src="https://examples.tldraw.com/develop"
-						width="100%"
-						height={600}
-					/>
-				</div>
-			</div>
+			<Demo />
 		</section>
 	)
 }
