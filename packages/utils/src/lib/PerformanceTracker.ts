@@ -1,4 +1,3 @@
-import bind from 'bind-decorator'
 import { PERFORMANCE_COLORS, PERFORMANCE_PREFIX_COLOR } from './perf'
 
 /** @public */
@@ -9,8 +8,8 @@ export class PerformanceTracker {
 	private started = false
 	private frame: number | null = null
 
-	@bind
-	recordFrame() {
+	// eslint-disable-next-line local/prefer-class-methods
+	recordFrame = () => {
 		this.frames++
 		if (!this.started) return
 		// eslint-disable-next-line no-restricted-globals
