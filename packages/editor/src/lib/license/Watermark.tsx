@@ -63,7 +63,7 @@ export const Watermark = React.memo(function Watermark({
 		() =>
 			featureFlags.enableLicensing.get() &&
 			editor.getViewportScreenBounds().width > 760 &&
-			licenseManager.state.get() === 'unlicensed',
+			['licensed-with-watermark', 'unlicensed'].includes(licenseManager.state.get()),
 		[editor, licenseManager]
 	)
 
@@ -99,8 +99,9 @@ export const Watermark = React.memo(function Watermark({
 				{`
 /* ------------------- SEE LICENSE -------------------
 The tldraw watermark is part of tldraw's license. It is shown for unlicensed
-users. By using this library, you agree to keep the watermark's behavior, 
-keeping it visible, unobscured, and available to user-interaction.
+or "licensed-with-watermark" users. By using this library, you agree to
+keep the watermark's behavior, keeping it visible, unobscured, and
+available to user-interaction.
 
 To remove the watermark, please purchase a license at tldraw.dev.
 */
