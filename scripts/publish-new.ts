@@ -10,7 +10,7 @@ import { nicelog } from './lib/nicelog'
 import {
 	getLatestVersion,
 	publish,
-	publishProductionDocsAndExamples,
+	publishProductionDocsAndExamplesAndBemo,
 	setAllVersions,
 } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
@@ -131,7 +131,7 @@ async function main() {
 	if (!isPrerelease) {
 		const { major, minor } = parse(nextVersion)!
 		await exec('git', ['push', 'origin', `${gitTag}:refs/heads/v${major}.${minor}.x`])
-		await publishProductionDocsAndExamples({ gitRef: gitTag })
+		await publishProductionDocsAndExamplesAndBemo({ gitRef: gitTag })
 	}
 
 	// create a release on github

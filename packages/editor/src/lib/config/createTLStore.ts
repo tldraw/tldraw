@@ -6,10 +6,12 @@ import {
 	TLRecord,
 	TLStore,
 	TLStoreProps,
+	TLStoreSnapshot,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { TLEditorSnapshot, loadSnapshot } from './TLEditorSnapshot'
 import { TLAnyBindingUtilConstructor, checkBindings } from './defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -18,11 +20,14 @@ export interface TLStoreBaseOptions {
 	/** The initial data for the store. */
 	initialData?: SerializedStore<TLRecord>
 
+	/** A snapshot of initial data to migrate and load into the store. */
+	snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot
+
 	/** The default name for the store. */
 	defaultName?: string
 
 	/** How should this store upload & resolve assets? */
-	assets?: Partial<TLAssetStore>
+	assets?: TLAssetStore
 
 	/** Called when the store is connected to an {@link Editor}. */
 	onEditorMount?: (editor: Editor) => void | (() => void)
@@ -48,10 +53,11 @@ export type TLStoreOptions = TLStoreBaseOptions & { id?: string } & TLStoreSchem
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
+const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => asset.props.src
+
 /** @public */
-export const defaultAssetStore: TLAssetStore = {
+export const inlineBase64AssetStore: TLAssetStore = {
 	upload: (_, file) => FileHelpers.blobToDataUrl(file),
-	resolve: (asset) => asset.props.src,
 }
 
 /**
@@ -91,22 +97,22 @@ export function createTLStore({
 	initialData,
 	defaultName = '',
 	id,
-	assets,
+	assets = inlineBase64AssetStore,
 	onEditorMount,
 	multiplayerStatus,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const schema = createTLSchemaFromUtils(rest)
 
-	return new Store({
+	const store = new Store({
 		id,
 		schema,
 		initialData,
 		props: {
 			defaultName,
 			assets: {
-				...defaultAssetStore,
-				...assets,
+				upload: assets.upload,
+				resolve: assets.resolve ?? defaultAssetResolve,
 			},
 			onEditorMount: (editor) => {
 				assert(editor instanceof Editor)
@@ -115,6 +121,13 @@ export function createTLStore({
 			multiplayerStatus: multiplayerStatus ?? null,
 		},
 	})
+
+	if (rest.snapshot) {
+		if (initialData) throw new Error('Cannot provide both initialData and snapshot')
+		loadSnapshot(store, rest.snapshot)
+	}
+
+	return store
 }
 
 function utilsToMap<T extends SchemaPropsInfo & { type: string }>(utils: T[]) {

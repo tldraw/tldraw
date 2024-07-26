@@ -275,7 +275,7 @@ class PinTool extends StateNode {
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		const { currentPagePoint } = this.editor.inputs
 		const pinId = createShapeId()
-		this.editor.mark(`creating:${pinId}`)
+		this.editor.markHistoryStoppingPoint()
 		this.editor.createShape({
 			id: pinId,
 			type: 'pin',

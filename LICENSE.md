@@ -6,7 +6,7 @@ You may use this Software for any non-commercial purpose, subject to the restric
 
 You may not use or distribute this Software or any derivative works in any form for commercial purposes. Examples of commercial purposes would be running business operations, licensing, leasing, or selling the Software, distributing the Software for use with commercial products or for internal products within commercial entities, or otherwise using the Software in any way that provides you with a commercial benefit.
 
-To purchase an alternative license for commercial use, contact hello@tldraw.com.
+To purchase an alternative license for commercial use, contact sales@tldraw.com.
 
 Subject to your compliance with the restrictions and obligations in this License, you may modify this Software and distribute the modified Software for non-commercial purposes, however, you may not grant rights to the Software or derivative works that are broader than those provided by this License. For example, you may not distribute modifications of the Software under terms that provide a commercial benefit to you, permit commercial use, or under terms that purport to require the Software or derivative works to be sublicensed to others.
 

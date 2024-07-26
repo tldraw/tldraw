@@ -1236,7 +1236,7 @@
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	width: 220px;
+	width: 260px;
 	height: fit-content;
 	max-height: 50vh;
 }
@@ -1677,6 +1677,11 @@
 	overflow-x: hidden;
 	overflow-y: auto;
 	touch-action: auto;
+}
+
+.tlui-people-menu__section:first-child,
+.tlui-people-menu__section:last-child {
+	flex-shrink: 0;
 }
 
 .tlui-people-menu__section:not(:last-child) {

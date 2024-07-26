@@ -7,12 +7,16 @@ import {
 	ShapeUtil,
 	TLHandle,
 	TLLineShape,
+	TLLineShapePoint,
 	TLOnHandleDragHandler,
 	TLOnResizeHandler,
 	Vec,
 	WeakCache,
+	ZERO_INDEX_KEY,
+	getIndexAbove,
 	getIndexBetween,
 	getIndices,
+	lerp,
 	lineShapeMigrations,
 	lineShapeProps,
 	mapObjectMapValues,
@@ -183,6 +187,69 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				if (!segments.length) return null
 				return new Group2d({ children: segments })
 			},
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLLineShape,
+		endShape: TLLineShape,
+		progress: number
+	): TLLineShape['props'] {
+		const startPoints = linePointsToArray(startShape)
+		const endPoints = linePointsToArray(endShape)
+
+		const pointsToUseStart: TLLineShapePoint[] = []
+		const pointsToUseEnd: TLLineShapePoint[] = []
+
+		let index = ZERO_INDEX_KEY
+
+		if (startPoints.length > endPoints.length) {
+			// we'll need to expand points
+			for (let i = 0; i < startPoints.length; i++) {
+				pointsToUseStart[i] = { ...startPoints[i] }
+				if (endPoints[i] === undefined) {
+					pointsToUseEnd[i] = { ...endPoints[endPoints.length - 1], id: index }
+				} else {
+					pointsToUseEnd[i] = { ...endPoints[i], id: index }
+				}
+				index = getIndexAbove(index)
+			}
+		} else if (endPoints.length > startPoints.length) {
+			// we'll need to converge points
+			for (let i = 0; i < endPoints.length; i++) {
+				pointsToUseEnd[i] = { ...endPoints[i] }
+				if (startPoints[i] === undefined) {
+					pointsToUseStart[i] = {
+						...startPoints[startPoints.length - 1],
+						id: index,
+					}
+				} else {
+					pointsToUseStart[i] = { ...startPoints[i], id: index }
+				}
+				index = getIndexAbove(index)
+			}
+		} else {
+			// noop, easy
+			for (let i = 0; i < endPoints.length; i++) {
+				pointsToUseStart[i] = startPoints[i]
+				pointsToUseEnd[i] = endPoints[i]
+			}
+		}
+
+		return {
+			...endShape.props,
+			points: Object.fromEntries(
+				pointsToUseStart.map((point, i) => {
+					const endPoint = pointsToUseEnd[i]
+					return [
+						point.id,
+						{
+							...point,
+							x: lerp(point.x, endPoint.x, progress),
+							y: lerp(point.y, endPoint.y, progress),
+						},
+					]
+				})
+			),
 		}
 	}
 }

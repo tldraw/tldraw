@@ -33,7 +33,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	const trackEvent = useUiEvents()
 
 	const onDuplicate = useCallback(() => {
-		editor.mark('creating page')
+		editor.markHistoryStoppingPoint('creating page')
 		const newId = PageRecordType.createId()
 		editor.duplicatePage(item.id as TLPageId, newId)
 		trackEvent('duplicate-page', { source: 'page-menu' })
@@ -48,7 +48,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [editor, item, index, trackEvent])
 
 	const onDelete = useCallback(() => {
-		editor.mark('deleting page')
+		editor.markHistoryStoppingPoint('deleting page')
 		editor.deletePage(item.id as TLPageId)
 		trackEvent('delete-page', { source: 'page-menu' })
 	}, [editor, item, trackEvent])

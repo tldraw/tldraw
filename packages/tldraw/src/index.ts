@@ -12,7 +12,9 @@ export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForegroun
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
+	centerSelectionAroundPoint,
 	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
+	createShapesForAssets,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'

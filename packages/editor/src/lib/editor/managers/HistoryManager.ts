@@ -9,7 +9,6 @@ import {
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
 import { exhaustiveSwitchError, noop } from '@tldraw/utils'
-import { uniqueId } from '../../utils/uniqueId'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../types/history-types'
 import { stack } from './Stack'
 
@@ -167,12 +166,21 @@ export class HistoryManager<R extends UnknownRecord> {
 							break
 						case 'stop':
 							if (!toMark) break loop
-							if (undo.id === toMark) break loop
+							if (undo.id === toMark) {
+								didFindMark = true
+								break loop
+							}
 							break
 						default:
 							exhaustiveSwitchError(undo)
 					}
 				}
+			}
+
+			if (!didFindMark && toMark) {
+				// whoops, we didn't find the mark we were looking for
+				// don't do anything
+				return this
 			}
 
 			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
@@ -280,18 +288,29 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
-	mark = (id = uniqueId()) => {
+	/** @internal */
+	_mark(id: string) {
 		transact(() => {
 			this.flushPendingDiff()
 			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
 		})
-
-		return id
 	}
 
 	clear() {
 		this.stacks.set({ undos: stack(), redos: stack() })
 		this.pendingDiff.clear()
+	}
+
+	/** @internal */
+	getMarkIdMatching(idSubstring: string) {
+		let top = this.stacks.get().undos
+		while (top.head) {
+			if (top.head.type === 'stop' && top.head.id.includes(idSubstring)) {
+				return top.head.id
+			}
+			top = top.tail
+		}
+		return null
 	}
 
 	/** @internal */

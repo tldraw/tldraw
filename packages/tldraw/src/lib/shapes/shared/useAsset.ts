@@ -1,7 +1,13 @@
 import { TLAssetId, TLShapeId, useEditor, useValue } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 
-/** @internal */
+/**
+ * This is a handy helper hook that resolves an asset to a URL for a given shape. It takes care of fetching the asset.
+ * This is used in particular for high-resolution images when you want lower and higher resolution depending
+ * on the context.
+ *
+ * @public
+ */
 export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: number) {
 	const editor = useEditor()
 	const [url, setUrl] = useState<string | null>(null)
