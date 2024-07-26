@@ -14,13 +14,24 @@ export class Pointing extends StateNode {
 	shape?: TLTextShape
 
 	markId = ''
+	originScreenPoint = null as null | Vec
+
+	override onEnter = () => {
+		this.originScreenPoint = this.editor.inputs.currentScreenPoint.clone()
+	}
 
 	override onExit = () => {
 		this.editor.setHintingShapes([])
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.editor.inputs.isDragging) {
+		// Don't create a fixed width shape unless the the drag is a little larger,
+		// otherwise you get a vertical column of single characters if you accidentally
+		// drag a bit unintentionally.
+		if (
+			this.editor.inputs.isDragging &&
+			!Vec.DistMin(this.editor.inputs.currentScreenPoint, this.originScreenPoint!, 32)
+		) {
 			const {
 				inputs: { originPagePoint },
 			} = this.editor
