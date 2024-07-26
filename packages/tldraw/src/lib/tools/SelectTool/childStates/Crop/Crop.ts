@@ -23,18 +23,15 @@ export class Crop extends StateNode {
 	}
 	didExit = false
 	override onExit = () => {
-		this.onComplete()
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.squashToMark(this.markId)
+		}
 	}
 	override onCancel = () => {
 		if (!this.didExit) {
 			this.didExit = true
 			this.editor.bailToMark(this.markId)
-		}
-	}
-	override onComplete = () => {
-		if (!this.didExit) {
-			this.didExit = true
-			this.editor.squashToMark(this.markId)
 		}
 	}
 }
