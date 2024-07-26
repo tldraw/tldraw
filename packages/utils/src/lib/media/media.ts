@@ -130,10 +130,19 @@ export class MediaHelpers {
 		return new Promise((resolve, reject) => {
 			jsmediatags.read(blob, {
 				onSuccess: function (mediaInfo: any) {
-					const { data, format } = mediaInfo.tags.picture
-					const base64String = data.map((x: number) => String.fromCharCode(x)).join('')
-					const coverArt = `data:${format};base64,${window.btoa(base64String)}`
-					resolve({ title: mediaInfo.tags.title, coverArt })
+					const result = {
+						title: '',
+						coverArt: '',
+					}
+					if (mediaInfo.tags?.picture) {
+						const { data, format } = mediaInfo.tags.picture
+						const base64String = data.map((x: number) => String.fromCharCode(x)).join('')
+						result.coverArt = `data:${format};base64,${window.btoa(base64String)}`
+					}
+					if (mediaInfo.tags?.title) {
+						result.title = mediaInfo.tags.title
+					}
+					resolve(result)
 				},
 				onError: function (error: any) {
 					console.error('Could not decode audio tags:', error.type, error.info)
