@@ -17,6 +17,27 @@ order: 3
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
+### [v2.4.1](/releases/v2.4.1)
+
+#### fix assets prop on tldraw component (#4283) ([#4285](https://github.com/tldraw/tldraw/pull/4285))
+
+- The `assets` prop on the `<Tldraw />` and `<TldrawEditor />` components is now respected.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - fix assets prop on tldraw component (#4283) [#4285](https://github.com/tldraw/tldraw/pull/4285) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v2.4.x`
+
+- v2.4.x: fix workflow files ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
 ### [v2.4.0](/releases/v2.4.0)
 
 Welcome to the 2.4.0 release of the tldraw SDK. This month we’ve been working to bring our sync engine (the backend we developed for tldraw.com) into the SDK as a technology for general use. This release also includes new animation options for shapes, support for image flipping, and a long list of bug fixes and developer experience enhancements. Read on for the highlights and see the bottom of these notes for the list of significant fixes and changes.
@@ -505,26 +526,6 @@ Previously, we weren't exporting migrations & validators for our default shapes.
 - alex ([@SomeHats](https://github.com/SomeHats))
 
 ### [v2.1.2](/releases/v2.1.2)
-
-#### Revert "[signia] Smart dirty checking of active computeds (#3516)" ([#3611](https://github.com/tldraw/tldraw/pull/3611))
-
-This performance optimisation introduced a regression where sometimes computed caches wouldn't get invalidated at the correct time, leading to stale data causing crashes. We're reverting the change for now.
-
----
-
-#### 🐛 Bug Fix
-
-- `@tldraw/state`
-  - Revert "[signia] Smart dirty checking of active computeds (#3516)" [#3611](https://github.com/tldraw/tldraw/pull/3611) ([@SomeHats](https://github.com/SomeHats))
-
-#### 🏠 Internal
-
-- increase publish script timeouts [#3570](https://github.com/tldraw/tldraw/pull/3570) ([@SomeHats](https://github.com/SomeHats))
-- longer retries for package publishing [#3567](https://github.com/tldraw/tldraw/pull/3567) ([@SomeHats](https://github.com/SomeHats))
-
-#### Authors: 1
-
-- alex ([@SomeHats](https://github.com/SomeHats))
 
 ### [v2.1.1](/releases/v2.1.1)
 
