@@ -4026,3 +4026,39 @@ describe('resizing text with autosize true', () => {
 			.expectShapeToMatch({ ...shape, x: 10, y: 0, props: { w: 180 } })
 	})
 })
+
+describe('cancelling a resize operation', () => {
+	it('undoes any changes since the start of the resize operation', () => {
+		editor.createShape<TLGeoShape>({
+			type: 'geo',
+			x: 0,
+			y: 0,
+			props: {
+				w: 100,
+				h: 100,
+			},
+		})
+
+		const shape = editor.getLastCreatedShape()
+
+		editor.select(shape)
+
+		const bounds = editor.getShapePageBounds(shape.id)!
+		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
+		editor.pointerMove(bounds.maxX + 100, bounds.midY)
+		expect(editor.getShapePageBounds(shape.id)).toMatchObject({ x: 0, y: 0, w: 200, h: 100 })
+		editor.cancel()
+		expect(editor.getShapePageBounds(shape.id)).toMatchObject({ x: 0, y: 0, w: 100, h: 100 })
+	})
+
+	it('undoes the shape creation if creating a shape', () => {
+		editor.setCurrentTool('geo')
+		editor.pointerDown(0, 0)
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('select.resizing')
+		const shape = editor.getLastCreatedShape()
+		expect(editor.getShapePageBounds(shape)).toMatchObject({ x: 0, y: 0, w: 100, h: 100 })
+		editor.cancel()
+		expect(editor.getShape(shape.id)).toBeUndefined()
+	})
+})

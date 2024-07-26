@@ -173,7 +173,7 @@ class StickerTool extends StateNode {
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		const { currentPagePoint } = this.editor.inputs
 		const stickerId = createShapeId()
-		this.editor.mark(`creating:${stickerId}`)
+		this.editor.markHistoryStoppingPoint()
 		this.editor.createShape({
 			id: stickerId,
 			type: 'sticker',

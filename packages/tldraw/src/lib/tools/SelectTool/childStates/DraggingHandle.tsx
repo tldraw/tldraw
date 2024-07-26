@@ -18,6 +18,14 @@ import {
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
+export type DraggingHandleInfo = TLPointerEventInfo & {
+	shape: TLArrowShape | TLLineShape
+	target: 'handle'
+	onInteractionEnd?: string
+	isCreating?: boolean
+	creatingMarkId?: string
+}
+
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'
 
@@ -30,31 +38,34 @@ export class DraggingHandle extends StateNode {
 	initialPageTransform: any
 	initialPageRotation: any
 
-	info = {} as TLPointerEventInfo & {
-		shape: TLArrowShape | TLLineShape
-		target: 'handle'
-		onInteractionEnd?: string
-		isCreating: boolean
-	}
+	info = {} as DraggingHandleInfo
 
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
 
-	override onEnter: TLEnterEventHandler = (
-		info: TLPointerEventInfo & {
-			shape: TLArrowShape | TLLineShape
-			target: 'handle'
-			onInteractionEnd?: string
-			isCreating: boolean
-		}
-	) => {
-		const { shape, isCreating, handle } = info
+	override onEnter: TLEnterEventHandler = (info: DraggingHandleInfo) => {
+		const { shape, isCreating, creatingMarkId, handle } = info
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
-		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
-		if (!isCreating) this.editor.mark(this.markId)
+		this.markId = ''
+
+		if (isCreating) {
+			if (creatingMarkId) {
+				this.markId = creatingMarkId
+			} else {
+				// handle legacy implicit `creating:{shapeId}` marks
+				const markId = this.editor.getMarkIdMatching(
+					`creating:${this.editor.getOnlySelectedShapeId()}`
+				)
+				if (markId) {
+					this.markId = markId
+				}
+			}
+		} else {
+			this.markId = this.editor.markHistoryStoppingPoint('dragging handle')
+		}
 
 		this.initialHandle = structuredClone(handle)
 

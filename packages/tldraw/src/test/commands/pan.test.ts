@@ -27,7 +27,7 @@ describe('When panning', () => {
 	})
 
 	it('Is not undoable', () => {
-		editor.mark()
+		editor.markHistoryStoppingPoint()
 		editor.pan({ x: 200, y: 200 })
 		editor.undo()
 		editor.expectCameraToBe(200, 200, 1)

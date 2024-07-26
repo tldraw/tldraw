@@ -207,7 +207,7 @@ export class TestEditor extends Editor {
 		if (this.clipboard !== null) {
 			const p = this.inputs.shiftKey ? this.inputs.currentPagePoint : point
 
-			this.mark('pasting')
+			this.markHistoryStoppingPoint('pasting')
 			this.putContentOntoCurrentPage(this.clipboard, {
 				point: p,
 				select: true,

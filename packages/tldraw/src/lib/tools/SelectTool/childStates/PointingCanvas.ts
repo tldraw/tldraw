@@ -9,7 +9,7 @@ export class PointingCanvas extends StateNode {
 
 		if (!inputs.shiftKey) {
 			if (this.editor.getSelectedShapeIds().length > 0) {
-				this.editor.mark('selecting none')
+				this.editor.markHistoryStoppingPoint('selecting none')
 				this.editor.selectNone()
 			}
 		}

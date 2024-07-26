@@ -17,8 +17,7 @@ export class Erasing extends StateNode {
 	private excludedShapeIds = new Set<TLShapeId>()
 
 	override onEnter = (info: TLPointerEventInfo) => {
-		this.markId = 'erase scribble begin'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('erase scribble begin')
 		this.info = info
 
 		const { originPagePoint } = this.editor.inputs
