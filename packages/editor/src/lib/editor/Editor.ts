@@ -991,7 +991,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				'[tldraw] `editor.mark()` is deprecated. Use `editor.markHistoryStoppingPoint()` instead.'
 			)
 		}
-		// eslint-disable-next-line deprecation/deprecation
 		this.history._mark(markId ?? uniqueId())
 		return this
 	}
