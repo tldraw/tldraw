@@ -27,8 +27,7 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_text:${id}`)
 
 			const shape = this.createTextShape(id, originPagePoint, false)
 			if (!shape) {
@@ -46,6 +45,7 @@ export class Pointing extends StateNode {
 				target: 'selection',
 				handle: 'right',
 				isCreating: true,
+				creatingMarkId: this.markId,
 				creationCursorOffset: { x: 18, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
@@ -73,7 +73,7 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
-		this.editor.mark('creating text shape')
+		this.editor.markHistoryStoppingPoint('creating text shape')
 		const id = createShapeId()
 		const { currentPagePoint } = this.editor.inputs
 		const shape = this.createTextShape(id, currentPagePoint, true)

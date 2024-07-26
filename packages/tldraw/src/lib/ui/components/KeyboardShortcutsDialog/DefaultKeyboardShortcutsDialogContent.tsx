@@ -26,6 +26,14 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuItem {...tools['frame']} />
 				<TldrawUiMenuItem {...tools['note']} />
 				<TldrawUiMenuItem {...tools['laser']} />
+				<TldrawUiMenuItem
+					id="pointer-down"
+					label="tool.pointer-down"
+					kbd=","
+					onSelect={() => {
+						/* do nothing */
+					}}
+				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.preferences" id="preferences">
 				<TldrawUiMenuItem {...actions['toggle-dark-mode']} />

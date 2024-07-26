@@ -125,6 +125,7 @@ function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, for
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
 	const pits = getNoteAdjacentPositions(
+		editor,
 		pagePoint,
 		pageRotation,
 		shape.props.growY,

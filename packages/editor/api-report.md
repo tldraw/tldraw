@@ -498,7 +498,6 @@ export function createTLStore({ initialData, defaultName, id, assets, onEditorMo
 
 // @public (undocumented)
 export function createTLUser(opts?: {
-    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
     setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
     userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
 }): TLUser;
@@ -981,6 +980,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     getIsFocused(): boolean;
     getIsMenuOpen(): boolean;
+    // @internal
+    getMarkIdMatching(idSubstring: string): null | string;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
     getOpenMenus(): string[];
@@ -1124,7 +1125,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): this;
+    // @deprecated
     mark(markId?: string): this;
+    markHistoryStoppingPoint(name?: string): string;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
@@ -1569,14 +1572,16 @@ export class HistoryManager<R extends UnknownRecord> {
     };
     // (undocumented)
     readonly dispose: () => void;
+    // @internal (undocumented)
+    getMarkIdMatching(idSubstring: string): null | string;
     // (undocumented)
     getNumRedos(): number;
     // (undocumented)
     getNumUndos(): number;
     // @internal (undocumented)
     _isInBatch: boolean;
-    // (undocumented)
-    mark: (id?: string) => string;
+    // @internal (undocumented)
+    _mark(id: string): void;
     // (undocumented)
     redo: () => this;
     // (undocumented)
@@ -1590,6 +1595,9 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
+
+// @public (undocumented)
+export const inlineBase64AssetStore: TLAssetStore;
 
 // @public
 export function intersectCircleCircle(c1: VecLike, r1: number, c2: VecLike, r2: number): Vec[];
@@ -1996,7 +2004,7 @@ export interface ScribbleItem {
 // @public (undocumented)
 export class ScribbleManager {
     constructor(editor: Editor);
-    addPoint: (id: ScribbleItem['id'], x: number, y: number) => ScribbleItem;
+    addPoint: (id: ScribbleItem['id'], x: number, y: number, z?: number) => ScribbleItem;
     // (undocumented)
     addScribble: (scribble: Partial<TLScribble>, id?: string) => ScribbleItem;
     // (undocumented)
@@ -2060,7 +2068,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     hideSelectionBoundsFg: TLShapeUtilFlag<Shape>;
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
-    // (undocumented)
     static migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;
     onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>;
@@ -2085,7 +2092,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslate?: TLOnTranslateHandler<Shape>;
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;
-    // (undocumented)
     static props?: RecordProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
@@ -3275,11 +3281,12 @@ export interface TLStateNodeConstructor {
 
 // @public (undocumented)
 export interface TLStoreBaseOptions {
-    assets?: Partial<TLAssetStore>;
+    assets?: TLAssetStore;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     multiplayerStatus?: null | Signal<'offline' | 'online'>;
     onEditorMount?: (editor: Editor) => (() => void) | void;
+    snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }
 
 // @public (undocumented)
@@ -3354,8 +3361,6 @@ export interface TLTickEventInfo {
 
 // @public (undocumented)
 export interface TLUser {
-    // (undocumented)
-    readonly derivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
     // (undocumented)
     readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
     // (undocumented)
@@ -3535,7 +3540,7 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
 
 // @internal (undocumented)
-export function useShallowObjectIdentity<T extends object>(obj: T): T;
+export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
 
 export { useStateTracking }
 
@@ -3545,12 +3550,16 @@ export function useSvgExportContext(): {
 } | null;
 
 // @public (undocumented)
+export function useTldrawUser(opts: {
+    setUserPreferences?: (userPreferences: TLUserPreferences) => void;
+    userPreferences?: Signal<TLUserPreferences> | TLUserPreferences;
+}): TLUser;
+
+// @public (undocumented)
 export function useTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
-export function useTLStore(opts: TLStoreOptions & {
-    snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
-}): TLStore;
+export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;

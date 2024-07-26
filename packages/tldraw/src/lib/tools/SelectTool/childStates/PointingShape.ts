@@ -48,11 +48,11 @@ export class PointingShape extends StateNode {
 		if (shiftKey && !altKey) {
 			this.editor.cancelDoubleClick()
 			if (!selectedShapeIds.includes(outermostSelectingShape.id)) {
-				this.editor.mark('shift selecting shape')
+				this.editor.markHistoryStoppingPoint('shift selecting shape')
 				this.editor.setSelectedShapes([...selectedShapeIds, outermostSelectingShape.id])
 			}
 		} else {
-			this.editor.mark('selecting shape')
+			this.editor.markHistoryStoppingPoint('selecting shape')
 			this.editor.setSelectedShapes([outermostSelectingShape.id])
 		}
 	}
@@ -82,7 +82,7 @@ export class PointingShape extends StateNode {
 			if (util.onClick) {
 				const change = util.onClick?.(selectingShape)
 				if (change) {
-					this.editor.mark('shape on click')
+					this.editor.markHistoryStoppingPoint('shape on click')
 					this.editor.updateShapes([change])
 					this.parent.transition('idle', info)
 					return
@@ -91,7 +91,7 @@ export class PointingShape extends StateNode {
 
 			if (selectingShape.id === focusedGroupId) {
 				if (selectedShapeIds.length > 0) {
-					this.editor.mark('clearing shape ids')
+					this.editor.markHistoryStoppingPoint('clearing shape ids')
 					this.editor.setSelectedShapes([])
 				} else {
 					this.editor.popFocusedGroupId()
@@ -116,7 +116,7 @@ export class PointingShape extends StateNode {
 			if (selectedShapeIds.includes(outermostSelectableShape.id)) {
 				// same shape, so deselect it if shift is pressed, otherwise deselect all others
 				if (shiftKey) {
-					this.editor.mark('deselecting on pointer up')
+					this.editor.markHistoryStoppingPoint('deselecting on pointer up')
 					this.editor.deselect(selectingShape)
 				} else {
 					if (selectedShapeIds.includes(selectingShape.id)) {
@@ -143,7 +143,7 @@ export class PointingShape extends StateNode {
 									textLabel.hitTestPoint(pointInShapeSpace)
 								) {
 									this.editor.run(() => {
-										this.editor.mark('editing on pointer up')
+										this.editor.markHistoryStoppingPoint('editing on pointer up')
 										this.editor.select(selectingShape.id)
 
 										const util = this.editor.getShapeUtil(selectingShape)
@@ -166,10 +166,10 @@ export class PointingShape extends StateNode {
 						}
 
 						// We just want to select the single shape from the selection
-						this.editor.mark('selecting on pointer up')
+						this.editor.markHistoryStoppingPoint('selecting on pointer up')
 						this.editor.select(selectingShape.id)
 					} else {
-						this.editor.mark('selecting on pointer up')
+						this.editor.markHistoryStoppingPoint('selecting on pointer up')
 						this.editor.select(selectingShape)
 					}
 				}
@@ -178,13 +178,13 @@ export class PointingShape extends StateNode {
 				// Deselect any ancestors and add the target shape to the selection
 				const ancestors = this.editor.getShapeAncestors(outermostSelectableShape)
 
-				this.editor.mark('shift deselecting on pointer up')
+				this.editor.markHistoryStoppingPoint('shift deselecting on pointer up')
 				this.editor.setSelectedShapes([
 					...this.editor.getSelectedShapeIds().filter((id) => !ancestors.find((a) => a.id === id)),
 					outermostSelectableShape.id,
 				])
 			} else {
-				this.editor.mark('selecting on pointer up')
+				this.editor.markHistoryStoppingPoint('selecting on pointer up')
 				// different shape and we are drilling down, but no shift held so just select it straight up
 				this.editor.setSelectedShapes([outermostSelectableShape.id])
 			}

@@ -243,6 +243,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.laser': 'Laser',
 	'tool.embed': 'Embed',
 	'tool.text': 'Text',
+	'tool.pointer-down': 'Pointer down',
 	'menu.title': 'Menu',
 	'menu.theme': 'Theme',
 	'menu.copy-as': 'Copy as',

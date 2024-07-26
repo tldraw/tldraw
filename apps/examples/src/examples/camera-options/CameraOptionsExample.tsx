@@ -73,6 +73,7 @@ const PaddingDisplay = track(() => {
 				width: `calc(100% - ${px * 2}px)`,
 				height: `calc(100% - ${py * 2}px)`,
 				border: '1px dotted var(--color-text)',
+				pointerEvents: 'none',
 			}}
 		/>
 	)

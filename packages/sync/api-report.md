@@ -9,7 +9,6 @@ import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
-import { TLUserPreferences } from 'tldraw';
 
 // @public (undocumented)
 export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
@@ -18,38 +17,40 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
     status: 'synced-local';
 }>;
 
-// @public (undocumented)
-export function useMultiplayerDemo(options: UseMultiplayerDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
-
-// @public (undocumented)
-export interface UseMultiplayerDemoOptions {
-    // @internal (undocumented)
-    host?: string;
-    // (undocumented)
-    roomId: string;
-    // (undocumented)
-    userPreferences?: Signal<TLUserPreferences>;
+// @public
+export interface TLSyncUserInfo {
+    color?: null | string;
+    id: string;
+    name?: null | string;
 }
 
-// @public (undocumented)
-export function useMultiplayerSync(opts: UseMultiplayerSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
+// @public
+export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
+
+// @public
+export function useSyncDemo(options: UseSyncDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
-export interface UseMultiplayerSyncOptions {
-    // (undocumented)
-    assets?: Partial<TLAssetStore>;
-    // (undocumented)
+export interface UseSyncDemoOptions {
+    // @internal (undocumented)
+    host?: string;
+    roomId: string;
+    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
+}
+
+// @public
+export interface UseSyncOptions {
+    assets: TLAssetStore;
+    // @internal (undocumented)
     onEditorMount?: (editor: Editor) => void;
-    // (undocumented)
+    // @internal
     roomId?: string;
-    // (undocumented)
+    // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;
     }): void;
-    // (undocumented)
     uri: string;
-    // (undocumented)
-    userPreferences?: Signal<TLUserPreferences>;
+    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
 }
 
 

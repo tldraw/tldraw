@@ -242,6 +242,7 @@ export type TLUiTranslationKey =
 	| 'tool.laser'
 	| 'tool.embed'
 	| 'tool.text'
+	| 'tool.pointer-down'
 	| 'menu.title'
 	| 'menu.theme'
 	| 'menu.copy-as'

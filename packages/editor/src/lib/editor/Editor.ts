@@ -979,20 +979,65 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param markId - The mark's id, usually the reason for adding the mark.
 	 *
 	 * @public
+	 * @deprecated use {@link Editor.markHistoryStoppingPoint} instead
 	 */
 	mark(markId?: string): this {
-		this.history.mark(markId)
+		if (typeof markId === 'string') {
+			console.warn(
+				'[tldraw] `editor.history.mark("myMarkId")` is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint()` instead.'
+			)
+		} else {
+			console.warn(
+				'[tldraw] `editor.mark()` is deprecated. Use `editor.markHistoryStoppingPoint()` instead.'
+			)
+		}
+		this.history._mark(markId ?? uniqueId())
 		return this
 	}
 
 	/**
-	 * Squash the history to the given mark id.
+	 * Create a new "mark", or stopping point, in the undo redo history. Creating a mark will clear
+	 * any redos. You typically want to do this just before a user interaction begins or is handled.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.mark('bump shapes')
+	 * editor.markHistoryStoppingPoint()
+	 * editor.flipShapes(editor.getSelectedShapes())
+	 * ```
+	 * @example
+	 * ```ts
+	 * const beginRotateMark = editor.markHistoryStoppingPoint()
+	 * // if the use cancels the rotation, you can bail back to this mark
+	 * editor.bailToMark(beginRotateMark)
+	 * ```
+	 *
+	 * @public
+	 * @param name - The name of the mark, useful for debugging the undo/redo stacks
+	 * @returns a unique id for the mark that can be used with `squashToMark` or `bailToMark`.
+	 */
+	markHistoryStoppingPoint(name?: string): string {
+		const id = `[${name ?? 'stop'}]_${uniqueId()}`
+		this.history._mark(id)
+		return id
+	}
+
+	/**
+	 * @internal this is only used to implement some backwards-compatibility logic. Should be fine to delete after 6 months or whatever.
+	 */
+	getMarkIdMatching(idSubstring: string) {
+		return this.history.getMarkIdMatching(idSubstring)
+	}
+
+	/**
+	 * Coalesces all changes since the given mark into a single change, removing any intermediate marks.
+	 *
+	 * This is useful if you need to 'compress' the recent history to simplify the undo/redo experience of a complex interaction.
+	 *
+	 * @example
+	 * ```ts
+	 * const bumpShapesMark = editor.markHistoryStoppingPoint()
 	 * // ... some changes
-	 * editor.squashToMark('bump shapes')
+	 * editor.squashToMark(bumpShapesMark)
 	 * ```
 	 *
 	 * @param markId - The mark id to squash to.
@@ -1003,7 +1048,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Clear all marks in the undo stack back to the next mark.
+	 * Undo to the closest mark, discarding the changes so they cannot be redone.
 	 *
 	 * @example
 	 * ```ts
@@ -1018,11 +1063,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Clear all marks in the undo stack back to the mark with the provided mark id.
+	 * Undo to the given mark, discarding the changes so they cannot be redone.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.bailToMark('dragging')
+	 * const beginDrag = editor.markHistoryStoppingPoint()
+	 * // ... some changes
+	 * editor.bailToMark(beginDrag)
 	 * ```
 	 *
 	 * @public
@@ -7137,6 +7184,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					...end,
 					x: start.x + (end.x - start.x) * t,
 					y: start.y + (end.y - start.y) * t,
+					opacity: start.opacity + (end.opacity - start.opacity) * t,
 					rotation: start.rotation + (end.rotation - start.rotation) * t,
 					props: this.getShapeUtil(end).getInterpolatedProps?.(start, end, t) ?? end.props,
 				})
@@ -9007,9 +9055,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// If we're in pen mode and the input is not a pen type, then stop here
 						if (isPenMode && !isPen) return
 
-						// Close any open menus
-						this.clearOpenMenus()
-
 						if (!this.inputs.isPanning) {
 							// Start a long press timeout
 							this._longPressTimeout = this.timers.setTimeout(() => {
@@ -9234,6 +9279,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// active states, starting at the root.
 		this.root.handleEvent(info)
 		this.emit('event', info)
+
+		// close open menus at the very end on pointer down! after everything else! συντελείας τοῦ κώδικα!!
+		if (info.type === 'pointer' && info.name === 'pointer_down') {
+			this.clearOpenMenus()
+		}
 
 		return this
 	}

@@ -1,6 +1,10 @@
 import { appendFileSync } from 'fs'
 import { exec } from './lib/exec'
-import { getLatestVersion, publish, publishProductionDocsAndExamples } from './lib/publishing'
+import {
+	getLatestVersion,
+	publish,
+	publishProductionDocsAndExamplesAndBemo,
+} from './lib/publishing'
 import { uploadStaticAssets } from './upload-static-assets'
 
 // This expects the package.json files to be in the correct state.
@@ -22,7 +26,7 @@ async function main() {
 	await publish()
 
 	if (isLatestVersion) {
-		await publishProductionDocsAndExamples()
+		await publishProductionDocsAndExamplesAndBemo()
 	}
 }
 

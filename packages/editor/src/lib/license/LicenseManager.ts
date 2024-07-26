@@ -55,7 +55,7 @@ type TestEnvironment = 'development' | 'production'
 /** @internal */
 export class LicenseManager {
 	private publicKey =
-		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
+		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ'
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean

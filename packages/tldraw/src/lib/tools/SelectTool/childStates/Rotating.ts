@@ -31,8 +31,7 @@ export class Rotating extends StateNode {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 
-		this.markId = 'rotate start'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('rotate start')
 
 		const snapshot = getRotationSnapshot({ editor: this.editor })
 		if (!snapshot) return this.parent.transition('idle', this.info)

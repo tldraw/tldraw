@@ -31,7 +31,7 @@ export const onMovePage = (
 	}
 
 	if (index !== pages[from].index) {
-		editor.mark('moving page')
+		editor.markHistoryStoppingPoint('moving page')
 		editor.updatePage({
 			id: id as TLPageId,
 			index,
