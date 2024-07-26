@@ -16,7 +16,7 @@ const mainLinks = [
 		caption: 'Product',
 		active: (pathname: string) => pathname === '/',
 		children: [
-			{ caption: 'Features', href: '/#features' },
+			{ caption: 'Features', href: '/' },
 			{ caption: 'Pricing', href: '/#pricing' },
 			{ caption: 'FAQ', href: '/#faq' },
 		],
