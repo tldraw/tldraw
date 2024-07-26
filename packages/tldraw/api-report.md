@@ -3350,8 +3350,6 @@ export class ZoomTool extends StateNode {
     // (undocumented)
     static isLockable: boolean;
     // (undocumented)
-    keysPressed: string[];
-    // (undocumented)
     onEnter: (info: TLPointerEventInfo & {
         isQuickZoom: boolean;
         onInteractionEnd: string;

@@ -23,13 +23,11 @@ export class ZoomTool extends StateNode {
 	static override isLockable = false
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string; isQuickZoom: boolean }
-	keysPressed: string[] = []
 
 	override onEnter = (
 		info: TLPointerEventInfo & { onInteractionEnd: string; isQuickZoom: boolean }
 	) => {
 		this.info = info
-		this.keysPressed = ['z', 'shift']
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.updateCursor()
 	}
@@ -51,13 +49,7 @@ export class ZoomTool extends StateNode {
 
 		this.updateCursor()
 
-		// We have to wait until both Shift and Z are released in non-Quick Zoom's case.
-		// N.B. 'Ω' is Alt-Z on Mac, which can happen if you release Shift before the Alt+Z.
-		this.keysPressed = this.keysPressed.filter(
-			(key) => key !== info.key.toLowerCase() && info.key === 'Ω' && key !== 'z'
-		)
-
-		if (this.keysPressed.length === 0) {
+		if (info.key === 'z') {
 			this.complete()
 		}
 	}

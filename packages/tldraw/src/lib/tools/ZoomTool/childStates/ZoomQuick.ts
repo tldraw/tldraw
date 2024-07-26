@@ -15,6 +15,7 @@ export class ZoomQuick extends StateNode {
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
 	didZoom = false
+	keysPressed: string[] = []
 	zoomBrush = null as Box | null
 	initialViewport = new Box()
 	originScreenPoint = null as null | Vec
@@ -24,6 +25,7 @@ export class ZoomQuick extends StateNode {
 	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
 		this.zoomBrush = null
+		this.keysPressed = ['z', 'shift']
 		this.didZoom = false
 		this.originScreenPoint = this.editor.inputs.currentScreenPoint.clone()
 
@@ -69,7 +71,13 @@ export class ZoomQuick extends StateNode {
 	}
 
 	override onKeyUp: TLKeyboardEvent = (info) => {
-		if (info.key === 'z') {
+		// We have to wait until both Shift and Z are released in non-Quick Zoom's case.
+		// N.B. 'Ω' is Alt-Z on Mac, which can happen if you release Shift before the Alt+Z.
+		this.keysPressed = this.keysPressed.filter((key) =>
+			info.key === 'Ω' ? key !== 'z' : key !== info.key.toLowerCase()
+		)
+
+		if (this.keysPressed.length === 0) {
 			this.complete()
 		}
 	}

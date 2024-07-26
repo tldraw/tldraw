@@ -383,7 +383,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!editor.inputs.ctrlKey) {
 						const currentTool = editor.root.getCurrent()
 						if (currentTool && currentTool.getCurrent()?.id === 'idle') {
-							const isQuickZoom = !editor.inputs.shiftKey
+							const isQuickZoom = editor.inputs.shiftKey
 							editor.setCurrentTool(isQuickZoom ? 'zoom.zoom_quick' : 'zoom', {
 								onInteractionEnd: currentTool.id,
 								maskAs: 'zoom',
