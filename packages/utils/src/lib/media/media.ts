@@ -127,7 +127,7 @@ export class MediaHelpers {
 		// @ts-ignore no types available currently.
 		const jsmediatags = await import('jsmediatags-web')
 
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve) => {
 			jsmediatags.read(blob, {
 				onSuccess: function (mediaInfo: any) {
 					const result = {
