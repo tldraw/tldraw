@@ -52,11 +52,11 @@ The `@tldraw/sync-core` library can be used to integrate tldraw sync into any Ja
 
 We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
 
-## How does tldraw sync work?
+## What does a tldraw sync backend do?
 
 A backend for tldraw sync consists of two or three parts:
 
-- A **WebSocket server** that provides rooms for each shared document, and is responsible for persisting document state.
+- A **WebSocket server** that provides rooms for each shared document, and is responsible for synchronizing and persisting document state.
 - An **asset storage** provider for large binary files like images and videos.
 - (If using the built-in bookmark shape) An **unfurling service** to extract metadata about bookmark URLs.
 
