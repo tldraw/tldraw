@@ -11,6 +11,7 @@ import {
 	createShapeId,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
+import { TranslatingInfo } from '../lib/tools/SelectTool/childStates/Translating'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 
@@ -2207,5 +2208,97 @@ describe('cancelling a translate operation', () => {
 		expect(editor.getShapePageBounds(shape)?.center).toMatchObject({ x: 100, y: 100 })
 		editor.cancel()
 		expect(editor.getShape(shape.id)).toBeUndefined()
+	})
+
+	it('handles legacy creating:{shapeId} marks created with editor.mark', () => {
+		const shapeId = createShapeId()
+
+		editor
+			.createShape<TLGeoShape>({
+				id: shapeId,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: {
+					w: 100,
+					h: 100,
+				},
+			})
+			.select(shapeId)
+		const shape = editor.getOnlySelectedShape()!
+		editor.mark(`before`)
+		editor.updateShape({ ...shape, meta: { a: 'before' } })
+		editor.mark(`creating:${shapeId}`)
+		editor.updateShape({ ...shape, meta: { a: 'creating' } })
+		editor.mark(`after`)
+		editor.updateShape({ ...shape, meta: { a: 'after' } })
+		editor.pointerMove(0, 0)
+		editor.setCurrentTool('select.translating', {
+			type: 'pointer',
+			button: 0, // left mouse button
+			altKey: false,
+			ctrlKey: false,
+			isPen: false,
+			name: 'pointer_move',
+			point: { x: 0, y: 0 },
+			pointerId: 0,
+			shape: editor.getShape(shapeId)!,
+			shiftKey: false,
+			target: 'shape',
+			isCreating: true,
+		} satisfies TranslatingInfo)
+		expect(editor.getShapePageBounds(shapeId)?.center).toMatchObject({ x: 50, y: 50 })
+		editor.expectToBeIn('select.translating')
+		editor.pointerMove(100, 100)
+		expect(editor.getShapePageBounds(shapeId)?.center).toMatchObject({ x: 150, y: 150 })
+		expect(editor.getShape(shapeId)?.meta).toMatchObject({ a: 'after' })
+		editor.cancel()
+		expect(editor.getShape(shapeId)?.meta).toMatchObject({ a: 'before' })
+	})
+
+	it('handles legacy creating:{shapeId} marks created with editor.markHistoryStoppingPoint', () => {
+		const shapeId = createShapeId()
+
+		editor
+			.createShape<TLGeoShape>({
+				id: shapeId,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: {
+					w: 100,
+					h: 100,
+				},
+			})
+			.select(shapeId)
+		const shape = editor.getOnlySelectedShape()!
+		editor.markHistoryStoppingPoint(`before`)
+		editor.updateShape({ ...shape, meta: { a: 'before' } })
+		editor.markHistoryStoppingPoint(`creating:${shapeId}`)
+		editor.updateShape({ ...shape, meta: { a: 'creating' } })
+		editor.markHistoryStoppingPoint(`after`)
+		editor.updateShape({ ...shape, meta: { a: 'after' } })
+		editor.pointerMove(0, 0)
+		editor.setCurrentTool('select.translating', {
+			type: 'pointer',
+			button: 0, // left mouse button
+			altKey: false,
+			ctrlKey: false,
+			isPen: false,
+			name: 'pointer_move',
+			point: { x: 0, y: 0 },
+			pointerId: 0,
+			shape: editor.getShape(shapeId)!,
+			shiftKey: false,
+			target: 'shape',
+			isCreating: true,
+		} satisfies TranslatingInfo)
+		expect(editor.getShapePageBounds(shapeId)?.center).toMatchObject({ x: 50, y: 50 })
+		editor.expectToBeIn('select.translating')
+		editor.pointerMove(100, 100)
+		expect(editor.getShapePageBounds(shapeId)?.center).toMatchObject({ x: 150, y: 150 })
+		expect(editor.getShape(shapeId)?.meta).toMatchObject({ a: 'after' })
+		editor.cancel()
+		expect(editor.getShape(shapeId)?.meta).toMatchObject({ a: 'before' })
 	})
 })
