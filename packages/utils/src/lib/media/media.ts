@@ -146,7 +146,7 @@ export class MediaHelpers {
 				},
 				onError: function (error: any) {
 					console.error('Could not decode audio tags:', error.type, error.info)
-					reject(error)
+					resolve({ title: '', coverArt: '' })
 				},
 			})
 		})
