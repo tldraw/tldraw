@@ -17,6 +17,7 @@
  */
 export interface TldrawOptions {
 	readonly maxShapesPerPage: number
+	readonly maxFilesAtOnce: number
 	readonly maxPages: number
 	readonly animationMediumMs: number
 	readonly followChaseViewportSnap: number
@@ -54,6 +55,7 @@ export interface TldrawOptions {
 /** @public */
 export const defaultTldrawOptions = {
 	maxShapesPerPage: 4000,
+	maxFilesAtOnce: 100,
 	maxPages: 40,
 	animationMediumMs: 320,
 	followChaseViewportSnap: 2,

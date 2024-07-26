@@ -296,6 +296,9 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 	// Just paste the files, nothing else
 	if (files.length) {
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
 		const fileBlobs = await Promise.all(files.map((t) => t.source!))
 		const urls = (fileBlobs.filter(Boolean) as (File | Blob)[]).map((blob) =>
 			URL.createObjectURL(blob)
