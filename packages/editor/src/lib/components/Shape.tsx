@@ -1,5 +1,6 @@
 import { useQuickReactor, useStateTracking } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import classNames from 'classnames'
 import { memo, useCallback, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
@@ -143,6 +144,7 @@ export const Shape = memo(function Shape({
 	if (!shape) return null
 
 	const isFilledShape = 'fill' in shape.props && shape.props.fill !== 'none'
+	const className = shape.meta?.className
 
 	return (
 		<>
@@ -160,7 +162,7 @@ export const Shape = memo(function Shape({
 			)}
 			<div
 				ref={containerRef}
-				className="tl-shape"
+				className={classNames('tl-shape', className)}
 				data-shape-type={shape.type}
 				data-shape-is-filled={isFilledShape}
 				draggable={false}
