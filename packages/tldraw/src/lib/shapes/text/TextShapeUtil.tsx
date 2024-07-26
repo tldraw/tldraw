@@ -64,6 +64,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		})
 	}
 
+	override getText(shape: TLTextShape) {
+		return shape.props.text
+	}
+
 	override canEdit = () => true
 
 	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER

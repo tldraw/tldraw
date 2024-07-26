@@ -4886,6 +4886,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getCurrentPageShapesSorted().filter(({ id }) => !culledShapes.has(id))
 	}
 
+	/** @public */
+	getShapesWithText(text: string): { text: string; shape: TLShape }[] {
+		const shapes = this.getCurrentPageShapes()
+		const result: { text: string; shape: TLShape }[] = []
+		shapes.forEach((shape) => {
+			const util = this.getShapeUtil(shape)
+			const shapeText = util.getText(shape)
+			if (shapeText && shapeText.includes(text)) {
+				result.push({ text: shapeText, shape })
+			}
+		})
+
+		return result.sort((a, b) => a.text.localeCompare(b.text))
+	}
+
 	/**
 	 * Get whether a shape matches the type of a TLShapeUtil.
 	 *

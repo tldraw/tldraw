@@ -1036,6 +1036,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
+    // (undocumented)
+    getShapesWithText(text: string): {
+        shape: TLShape;
+        text: string;
+    }[];
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
@@ -2056,6 +2061,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(shape: Shape): HandleSnapGeometry;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
+    // (undocumented)
+    getText(_shape: Shape): string | undefined;
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;

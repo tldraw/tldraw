@@ -49,6 +49,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		})
 	}
 
+	override getText(shape: TLFrameShape): string | undefined {
+		return shape.props.name
+	}
+
 	override component(shape: TLFrameShape) {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks

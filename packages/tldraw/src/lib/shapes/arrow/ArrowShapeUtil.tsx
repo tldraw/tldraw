@@ -179,6 +179,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		].filter(Boolean) as TLHandle[]
 	}
 
+	override getText(shape: TLArrowShape) {
+		return shape.props.text
+	}
+
 	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
 		const handleId = handle.id as ARROW_HANDLES
 		const bindings = getArrowBindings(this.editor, shape)
