@@ -82,7 +82,7 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.editor.markHistoryStoppingPoint(`creating.complete:${id}`)
+		this.editor.markHistoryStoppingPoint(`creating_box:${id}`)
 
 		// todo: add scale here when dynamic size is enabled (is this still needed?)
 		this.editor.createShapes<TLBaseBoxShape>([
