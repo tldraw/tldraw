@@ -982,9 +982,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @deprecated use {@link Editor.markHistoryStoppingPoint} instead
 	 */
 	mark(markId?: string): this {
-		console.warn('Editor.mark is deprecated. Use Editor.markHistoryStoppingPoint instead.')
+		if (typeof markId === 'string') {
+			console.warn(
+				'[tldraw] `editor.history.mark("myMarkId")` is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint()` instead.'
+			)
+		} else {
+			console.warn(
+				'[tldraw] `editor.mark()` is deprecated. Use `editor.markHistoryStoppingPoint()` instead.'
+			)
+		}
 		// eslint-disable-next-line deprecation/deprecation
-		this.history.mark(markId)
+		this.history._mark(markId ?? uniqueId())
 		return this
 	}
 

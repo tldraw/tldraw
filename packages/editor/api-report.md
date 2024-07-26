@@ -1580,10 +1580,6 @@ export class HistoryManager<R extends UnknownRecord> {
     getNumUndos(): number;
     // @internal (undocumented)
     _isInBatch: boolean;
-    // @deprecated (undocumented)
-    mark: (arg?: {
-        name?: string;
-    } | string) => string;
     // @internal (undocumented)
     _mark(id: string): void;
     // (undocumented)
