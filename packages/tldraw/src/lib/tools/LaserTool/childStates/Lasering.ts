@@ -10,7 +10,7 @@ export class Lasering extends StateNode {
 			color: 'laser',
 			opacity: 0.7,
 			size: 4,
-			delay: 1200,
+			delay: this.editor.options.laserDelayMs,
 			shrink: 0.05,
 			taper: true,
 		})

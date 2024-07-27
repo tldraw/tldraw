@@ -704,6 +704,7 @@ export const defaultTldrawOptions: {
     }];
     readonly handleRadius: 12;
     readonly hitTestMargin: 8;
+    readonly laserDelayMs: 1200;
     readonly longPressDurationMs: 500;
     readonly maxPages: 40;
     readonly maxPointsPerDrawShape: 500;
@@ -2615,6 +2616,8 @@ export interface TldrawOptions {
     readonly handleRadius: number;
     // (undocumented)
     readonly hitTestMargin: number;
+    // (undocumented)
+    readonly laserDelayMs: number;
     // (undocumented)
     readonly longPressDurationMs: number;
     // (undocumented)
