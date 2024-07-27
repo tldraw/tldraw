@@ -821,6 +821,7 @@ export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 		: Math.abs(info.handleArc.length)
 }
 
+// todo: remove track
 const ArrowSvg = track(function ArrowSvg({
 	shape,
 	shouldDisplayHandles,

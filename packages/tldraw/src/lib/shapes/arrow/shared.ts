@@ -10,6 +10,7 @@ import {
 	Vec,
 } from '@tldraw/editor'
 import { createComputedCache } from '@tldraw/store'
+import { TLArrowPoint } from './arrow-types'
 import { getCurvedArrowInfo } from './curved-arrow'
 import { getStraightArrowInfo } from './straight-arrow'
 
@@ -21,11 +22,11 @@ export function getIsArrowStraight(shape: TLArrowShape) {
 
 export interface BoundShapeInfo<T extends TLShape = TLShape> {
 	shape: T
-	didIntersect: boolean
 	isExact: boolean
 	isClosed: boolean
 	transform: Mat
 	outline: Vec[]
+	intersection?: TLArrowPoint['intersection']
 }
 
 export function getBoundShapeInfoForTerminal(
@@ -54,7 +55,6 @@ export function getBoundShapeInfoForTerminal(
 		transform,
 		isClosed: geometry.isClosed,
 		isExact: binding.props.isExact,
-		didIntersect: false,
 		outline,
 	}
 }

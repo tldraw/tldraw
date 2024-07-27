@@ -30,10 +30,10 @@ export const arrowBindingMigrations: TLPropsMigrations;
 export const arrowBindingProps: RecordProps<TLArrowBinding>;
 
 // @public (undocumented)
-export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "crow" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
-export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "crow" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
 export const arrowShapeMigrations: MigrationSequence;
