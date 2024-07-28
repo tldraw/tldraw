@@ -1504,6 +1504,10 @@ export interface TLArcInfo {
     // (undocumented)
     center: VecLike;
     // (undocumented)
+    distance: number;
+    // (undocumented)
+    end: VecLike;
+    // (undocumented)
     largeArcFlag: number;
     // (undocumented)
     length: number;
@@ -1511,6 +1515,8 @@ export interface TLArcInfo {
     radius: number;
     // (undocumented)
     size: number;
+    // (undocumented)
+    start: VecLike;
     // (undocumented)
     sweepFlag: number;
 }

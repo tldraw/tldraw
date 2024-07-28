@@ -418,6 +418,9 @@ function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 		length,
 		largeArcFlag,
 		sweepFlag,
+		distance: Vec.Dist(a, b),
+		start: Vec.From(a),
+		end: Vec.From(b),
 	}
 }
 

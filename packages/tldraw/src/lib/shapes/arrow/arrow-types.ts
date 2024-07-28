@@ -10,12 +10,15 @@ export interface TLArrowPoint {
 
 /** @public */
 export interface TLArcInfo {
+	start: VecLike
+	end: VecLike
 	center: VecLike
 	radius: number
 	size: number
 	length: number
 	largeArcFlag: number
 	sweepFlag: number
+	distance: number
 }
 
 /** @public */
