@@ -31,7 +31,7 @@ export class Pointing extends StateNode {
 				((editor.getInstanceState().isCoarsePointer
 					? editor.options.coarseDragDistanceSquared
 					: editor.options.dragDistanceSquared) *
-					2) / // double the necessary drag distance for text shapes
+					4) / // double the necessary drag distance for text shapes
 					editor.getZoomLevel()
 		) {
 			const id = createShapeId()
