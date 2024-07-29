@@ -83,12 +83,10 @@ export class LicenseManager {
 				const isUnlicensed = isEditorUnlicensed(result)
 				if (isUnlicensed) {
 					this.state.set('unlicensed')
+				} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
+					this.state.set('licensed-with-watermark')
 				} else {
-					this.state.set(
-						(result as ValidLicenseKeyResult).isLicensedWithWatermark
-							? 'licensed-with-watermark'
-							: 'licensed'
-					)
+					this.state.set('licensed')
 				}
 			})
 		}
