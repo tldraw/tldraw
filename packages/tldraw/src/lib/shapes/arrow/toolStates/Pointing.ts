@@ -8,6 +8,7 @@ export class Pointing extends StateNode {
 	markId = ''
 
 	override onEnter() {
+		this.markId = ''
 		this.didTimeout = false
 
 		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
@@ -52,6 +53,7 @@ export class Pointing extends StateNode {
 				shape: this.shape,
 				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0 },
 				isCreating: true,
+				creatingMarkId: this.markId || undefined,
 				onInteractionEnd: 'arrow',
 			})
 		}
@@ -87,8 +89,7 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.markId = `creating:${id}`
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint(`creating_arrow:${id}`)
 
 		this.editor.createShape<TLArrowShape>({
 			id,

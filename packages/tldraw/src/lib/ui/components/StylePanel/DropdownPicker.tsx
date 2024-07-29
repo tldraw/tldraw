@@ -67,7 +67,7 @@ function _DropdownPicker<T extends string>({
 									data-testid={`style.${uiType}.${item.value}`}
 									title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
 									onClick={() => {
-										editor.mark('select style dropdown item')
+										editor.markHistoryStoppingPoint('select style dropdown item')
 										onValueChange(style, item.value)
 									}}
 								>

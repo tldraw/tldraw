@@ -96,7 +96,7 @@ export class EditingShape extends StateNode {
 						} else {
 							this.hitShapeForPointerUp = selectingShape
 
-							this.editor.mark('editing on pointer up')
+							this.editor.markHistoryStoppingPoint('editing on pointer up')
 							this.editor.select(selectingShape.id)
 							return
 						}

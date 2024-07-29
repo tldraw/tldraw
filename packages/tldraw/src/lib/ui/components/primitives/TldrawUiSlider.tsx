@@ -28,7 +28,7 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 	)
 
 	const handlePointerDown = useCallback(() => {
-		editor.mark('click slider')
+		editor.markHistoryStoppingPoint('click slider')
 	}, [editor])
 
 	const handlePointerUp = useCallback(() => {

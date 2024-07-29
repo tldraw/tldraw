@@ -169,8 +169,7 @@ export class Drawing extends StateNode {
 			inputs: { originPagePoint, isPen },
 		} = this.editor
 
-		this.markId = 'draw start ' + uniqueId()
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('draw start')
 
 		// If the pressure is weird, then it's probably a stylus reporting as a mouse
 		// We treat pen/stylus inputs differently in the drawing tool, so we need to

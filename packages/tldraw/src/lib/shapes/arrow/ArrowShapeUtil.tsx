@@ -824,7 +824,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 }
 
-function getLength(editor: Editor, shape: TLArrowShape): number {
+export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 	const info = getArrowInfo(editor, shape)!
 
 	return info.isStraight
@@ -864,7 +864,7 @@ const ArrowSvg = track(function ArrowSvg({
 	if (shouldDisplayHandles) {
 		const sw = 2 / editor.getZoomLevel()
 		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-			getLength(editor, shape),
+			getArrowLength(editor, shape),
 			sw,
 			{
 				end: 'skip',

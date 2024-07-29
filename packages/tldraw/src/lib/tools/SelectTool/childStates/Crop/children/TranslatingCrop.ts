@@ -12,7 +12,7 @@ export class TranslatingCrop extends StateNode {
 		onInteractionEnd?: string
 	}
 
-	markId = 'translating crop'
+	markId = ''
 
 	private snapshot = {} as any as Snapshot
 
@@ -26,7 +26,7 @@ export class TranslatingCrop extends StateNode {
 		this.info = info
 		this.snapshot = this.createSnapshot()
 
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('translating_crop')
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 		this.updateShapes()
 	}

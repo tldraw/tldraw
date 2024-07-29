@@ -189,7 +189,7 @@ export class Idle extends StateNode {
 			if (!ephemeral) {
 				// We don't want to create new marks if the user
 				// is just holding down the arrow keys
-				this.editor.mark('translate crop')
+				this.editor.markHistoryStoppingPoint('translate crop')
 			}
 
 			this.editor.updateShapes<ShapeWithCrop>([partial])

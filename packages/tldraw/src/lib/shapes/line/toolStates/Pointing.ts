@@ -31,8 +31,7 @@ export class Pointing extends StateNode {
 
 		if (shape && inputs.shiftKey) {
 			// Extending a previous shape
-			this.markId = `creating:${shape.id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${shape.id}`)
 			this.shape = shape
 
 			const handles = this.editor.getShapeHandles(this.shape)
@@ -84,8 +83,7 @@ export class Pointing extends StateNode {
 		} else {
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${id}`)
 
 			this.editor.createShapes<TLLineShape>([
 				{
@@ -117,6 +115,7 @@ export class Pointing extends StateNode {
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
+				creatingMarkId: this.markId,
 				// remove the offset that we added to the handle when we created it
 				handle: { ...lastHandle, x: lastHandle.x - 0.1, y: lastHandle.y - 0.1 },
 				onInteractionEnd: 'line',

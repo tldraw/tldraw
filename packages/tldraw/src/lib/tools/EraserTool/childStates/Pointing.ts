@@ -85,7 +85,7 @@ export class Pointing extends StateNode {
 		const erasingShapeIds = this.editor.getErasingShapeIds()
 
 		if (erasingShapeIds.length) {
-			this.editor.mark('erase end')
+			this.editor.markHistoryStoppingPoint('erase end')
 			this.editor.deleteShapes(erasingShapeIds)
 		}
 

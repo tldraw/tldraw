@@ -253,7 +253,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		if (isReadonlyMode) return
 
 		editor.run(() => {
-			editor.mark('creating page')
+			editor.markHistoryStoppingPoint('creating page')
 			const newPageId = PageRecordType.createId()
 			editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
 			editor.setCurrentPage(newPageId)

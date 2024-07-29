@@ -115,7 +115,7 @@ const handleText = (
 	} else if (isValidHttpURL(data)) {
 		pasteUrl(editor, data, point)
 	} else if (isSvgText(data)) {
-		editor.mark('paste')
+		editor.markHistoryStoppingPoint('paste')
 		editor.putExternalContent({
 			type: 'svg-text',
 			text: data,
@@ -123,7 +123,7 @@ const handleText = (
 			sources,
 		})
 	} else {
-		editor.mark('paste')
+		editor.markHistoryStoppingPoint('paste')
 		editor.putExternalContent({
 			type: 'text',
 			text: data,

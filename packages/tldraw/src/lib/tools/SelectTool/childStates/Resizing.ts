@@ -20,10 +20,11 @@ import {
 } from '@tldraw/editor'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
-type ResizingInfo = TLPointerEventInfo & {
+export type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
 	handle: SelectionEdge | SelectionCorner
 	isCreating?: boolean
+	creatingMarkId?: string
 	onCreate?(shape: TLShape | null): void
 	creationCursorOffset?: VecLike
 	onInteractionEnd?: string
@@ -47,7 +48,7 @@ export class Resizing extends StateNode {
 	private snapshot = {} as any as Snapshot
 
 	override onEnter(info: ResizingInfo) {
-		const { isCreating = false, creationCursorOffset = { x: 0, y: 0 } } = info
+		const { isCreating = false, creatingMarkId, creationCursorOffset = { x: 0, y: 0 } } = info
 
 		this.info = info
 		this.didHoldCommand = false
@@ -57,13 +58,26 @@ export class Resizing extends StateNode {
 
 		this.snapshot = this._createSnapshot()
 
-		if (isCreating) {
-			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
+		this.markId = ''
 
-			this.editor.setCursor({ type: 'cross', rotation: 0 })
+		if (isCreating) {
+			if (creatingMarkId) {
+				this.markId = creatingMarkId
+			} else {
+				// handle legacy implicit `creating:{shapeId}` marks
+				const markId = this.editor.getMarkIdMatching(
+					`creating:${this.editor.getOnlySelectedShapeId()}`
+				)
+				if (markId) {
+					this.markId = markId
+				}
+			}
 		} else {
-			this.markId = 'starting resizing'
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint('starting resizing')
+		}
+
+		if (isCreating) {
+			this.editor.setCursor({ type: 'cross', rotation: 0 })
 		}
 
 		this.handleResizeStart()

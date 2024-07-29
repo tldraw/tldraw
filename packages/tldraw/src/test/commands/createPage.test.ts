@@ -10,7 +10,7 @@ beforeEach(() => {
 it('Creates a page', () => {
 	const oldPageId = editor.getCurrentPageId()
 	const n = editor.getPages().length
-	editor.mark('creating new page')
+	editor.markHistoryStoppingPoint('creating new page')
 	editor.createPage({ name: 'Page 1' })
 	expect(editor.getPages().length).toBe(n + 1)
 	const newPageId = editor.getPages()[n].id

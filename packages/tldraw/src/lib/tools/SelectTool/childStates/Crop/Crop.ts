@@ -13,20 +13,22 @@ export class Crop extends StateNode {
 	}
 
 	markId = ''
+
 	override onEnter() {
-		this.didCancel = false
-		this.markId = 'crop'
-		this.editor.mark(this.markId)
+		this.didExit = false
+		this.markId = this.editor.markHistoryStoppingPoint('crop')
 	}
-	didCancel = false
+	didExit = false
 	override onExit() {
-		if (this.didCancel) {
-			this.editor.bailToMark(this.markId)
-		} else {
+		if (!this.didExit) {
+			this.didExit = true
 			this.editor.squashToMark(this.markId)
 		}
 	}
 	override onCancel() {
-		this.didCancel = true
+		if (!this.didExit) {
+			this.didExit = true
+			this.editor.bailToMark(this.markId)
+		}
 	}
 }

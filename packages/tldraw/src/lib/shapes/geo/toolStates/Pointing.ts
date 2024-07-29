@@ -10,8 +10,6 @@ import {
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	markId = ''
-
 	override onPointerUp() {
 		this.complete()
 	}
@@ -22,9 +20,7 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-
-			this.editor.mark(this.markId)
+			const creatingMarkId = this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 
 			this.editor
 				.createShapes<TLGeoShape>([
@@ -47,6 +43,7 @@ export class Pointing extends StateNode {
 					target: 'selection',
 					handle: 'bottom_right',
 					isCreating: true,
+					creatingMarkId,
 					creationCursorOffset: { x: 1, y: 1 },
 					onInteractionEnd: 'geo',
 				})
@@ -70,9 +67,7 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.markId = `creating:${id}`
-
-		this.editor.mark(this.markId)
+		this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 
 		const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
 
