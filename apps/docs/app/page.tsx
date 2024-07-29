@@ -1,3 +1,4 @@
+import { DetailsSection } from '@/components/marketing/details-section'
 import { FeaturesSection } from '@/components/marketing/features-section'
 import { HeroSection } from '@/components/marketing/hero-section'
 import { LogoSection } from '@/components/marketing/logo-section'
@@ -8,6 +9,7 @@ export default function Page() {
 			<HeroSection />
 			<LogoSection />
 			<FeaturesSection />
+			<DetailsSection />
 		</div>
 	)
 }
