@@ -56,6 +56,7 @@ import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
+import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
@@ -1440,6 +1441,20 @@ export function getFreshUserPreferences(): TLUserPreferences;
 
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
+
+// @public (undocumented)
+export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
+    closed: boolean;
+    end: 'none' | 'outset' | 'skip';
+    forceSolid: boolean;
+    lengthRatio: number;
+    snap: number;
+    start: 'none' | 'outset' | 'skip';
+    style: TLDefaultDashStyle;
+}>): {
+    strokeDasharray: string;
+    strokeDashoffset: string;
+};
 
 // @public (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent): {

@@ -60,7 +60,6 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
-import { TLDefaultDashStyle } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
@@ -911,19 +910,6 @@ export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
 
 // @public (undocumented)
-export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
-    closed: boolean;
-    end: 'none' | 'outset' | 'skip';
-    lengthRatio: number;
-    snap: number;
-    start: 'none' | 'outset' | 'skip';
-    style: TLDefaultDashStyle;
-}>): {
-    strokeDasharray: string;
-    strokeDashoffset: string;
-};
-
-// @public (undocumented)
 export function getSvgAsImage(editor: Editor, svgString: string, options: {
     height: number;
     quality: number;
@@ -1121,8 +1107,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             dash: "dashed" | "dotted" | "draw" | "solid";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow"; points: {
+            points: {
                 [x: string]: {
                     id: string;
                     index: IndexKey;

@@ -251,7 +251,7 @@ function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: num
 				fill={isDot ? theme[shape.props.color].solid : 'none'}
 				stroke={theme[shape.props.color].solid}
 				strokeWidth={sw}
-				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw)}
+				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, zoomLevel)}
 				strokeDashoffset="0"
 			/>
 		</>

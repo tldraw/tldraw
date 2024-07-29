@@ -17,6 +17,20 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
+### [v2.4.2](/releases/v2.4.2)
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `@tldraw/sync-core`, `@tldraw/sync`, `tldraw`, `@tldraw/utils`
+  - v2.4.2 - sync release candidate [#4309](https://github.com/tldraw/tldraw/pull/4309) ([@SomeHats](https://github.com/SomeHats) [@adamwiggins](https://github.com/adamwiggins) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- Adam Wiggins ([@adamwiggins](https://github.com/adamwiggins))
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
 ### [v2.4.1](/releases/v2.4.1)
 
 #### fix assets prop on tldraw component (#4283) ([#4285](https://github.com/tldraw/tldraw/pull/4285))
@@ -509,21 +523,6 @@ Previously, `editor.mark(id)` accepted two additional boolean parameters: `onUnd
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 
 ### [v2.1.3](/releases/v2.1.3)
-
-#### Expose migrations, validators, and versions from tlschema ([#3613](https://github.com/tldraw/tldraw/pull/3613))
-
-Previously, we weren't exporting migrations & validators for our default shapes. This meant that it wasn't possible to make your own tlschema with both our default shapes and some of your own (e.g. for custom multiplayer). This fixes that by exposing all the migrations, validators, and versions from tlschema, plus `defaultShapeSchemas` which can be passed directly to `createTLSchema`
-
----
-
-#### 📚 SDK Changes
-
-- `@tldraw/tlschema`
-  - Expose migrations, validators, and versions from tlschema [#3613](https://github.com/tldraw/tldraw/pull/3613) ([@SomeHats](https://github.com/SomeHats))
-
-#### Authors: 1
-
-- alex ([@SomeHats](https://github.com/SomeHats))
 
 ### [v2.1.2](/releases/v2.1.2)
 

@@ -23,6 +23,7 @@ import {
 	arrowShapeMigrations,
 	arrowShapeProps,
 	getDefaultColorTheme,
+	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
 	structuredClone,
@@ -30,6 +31,7 @@ import {
 	track,
 	useEditor,
 	useIsEditing,
+	useValue,
 } from '@tldraw/editor'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
@@ -42,7 +44,6 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
-import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
@@ -844,6 +845,13 @@ const ArrowSvg = track(function ArrowSvg({
 	const info = getArrowInfo(editor, shape)
 	const bounds = Box.ZeroFix(editor.getShapeGeometry(shape).bounds)
 	const bindings = getArrowBindings(editor, shape)
+	const isForceSolid = useValue(
+		'force solid',
+		() => {
+			return editor.getZoomLevel() < 0.2
+		},
+		[editor]
+	)
 
 	const changeIndex = React.useMemo<number>(() => {
 		return editor.environment.isSafari ? (globalRenderIndex += 1) : 0
@@ -909,6 +917,7 @@ const ArrowSvg = track(function ArrowSvg({
 		strokeWidth,
 		{
 			style: shape.props.dash,
+			forceSolid: isForceSolid,
 		}
 	)
 

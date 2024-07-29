@@ -25,6 +25,7 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	useValue,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -427,15 +428,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 		const { fill, font, align, verticalAlign, size, text } = props
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
-		const isEditingAnything = this.editor.getEditingShapeId() !== null
+		const { editor } = this
+		const isSelected = shape.id === editor.getOnlySelectedShapeId()
+		const isEditingAnything = editor.getEditingShapeId() !== null
 		const showHtmlContainer = isEditingAnything || shape.props.text
+		const isForceSolid = useValue(
+			'force solid',
+			() => {
+				return editor.getZoomLevel() < 0.2
+			},
+			[editor]
+		)
 
 		return (
 			<>
 				<SVGContainer id={id}>
-					<GeoShapeBody shape={shape} shouldScale={true} />
+					<GeoShapeBody shape={shape} shouldScale={true} forceSolid={isForceSolid} />
 				</SVGContainer>
 				{showHtmlContainer && (
 					<HTMLContainer
@@ -563,7 +572,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		return (
 			<>
-				<GeoShapeBody shouldScale={false} shape={newShape} />
+				<GeoShapeBody shouldScale={false} shape={newShape} forceSolid={false} />
 				{textEl}
 			</>
 		)
