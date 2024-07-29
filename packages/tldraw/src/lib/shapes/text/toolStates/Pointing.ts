@@ -14,11 +14,6 @@ export class Pointing extends StateNode {
 	shape?: TLTextShape
 
 	markId = ''
-	originScreenPoint = null as null | Vec
-
-	override onEnter = () => {
-		this.originScreenPoint = this.editor.inputs.currentScreenPoint.clone()
-	}
 
 	override onExit = () => {
 		this.editor.setHintingShapes([])
@@ -28,18 +23,21 @@ export class Pointing extends StateNode {
 		// Don't create a fixed width shape unless the the drag is a little larger,
 		// otherwise you get a vertical column of single characters if you accidentally
 		// drag a bit unintentionally.
+		const { editor } = this
+		const { isPointing, originPagePoint, currentPagePoint } = editor.inputs
 		if (
-			this.editor.inputs.isDragging &&
-			!Vec.DistMin(this.editor.inputs.currentScreenPoint, this.originScreenPoint!, 32)
+			isPointing &&
+			Vec.Dist2(originPagePoint, currentPagePoint) >
+				((editor.getInstanceState().isCoarsePointer
+					? editor.options.coarseDragDistanceSquared
+					: editor.options.dragDistanceSquared) *
+					2) / // double the necessary drag distance for text shapes
+					editor.getZoomLevel()
 		) {
-			const {
-				inputs: { originPagePoint },
-			} = this.editor
-
 			const id = createShapeId()
 
 			this.markId = `creating:${id}`
-			this.editor.mark(this.markId)
+			editor.mark(this.markId)
 
 			const shape = this.createTextShape(id, originPagePoint, false)
 			if (!shape) {
@@ -48,11 +46,11 @@ export class Pointing extends StateNode {
 			}
 
 			// Now save the fresh reference
-			this.shape = this.editor.getShape(shape)
+			this.shape = editor.getShape(shape)
 
-			this.editor.select(id)
+			editor.select(id)
 
-			this.editor.setCurrentTool('select.resizing', {
+			editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'right',
@@ -60,8 +58,8 @@ export class Pointing extends StateNode {
 				creationCursorOffset: { x: 18, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
-					this.editor.setEditingShape(shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
+					editor.setEditingShape(shape.id)
+					editor.setCurrentTool('select.editing_shape')
 				},
 			})
 		}
