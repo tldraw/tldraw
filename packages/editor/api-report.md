@@ -926,7 +926,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     _flushEventForTick(info: TLEventInfo): this | undefined;
     // (undocumented)
-    _flushEventsForTick: (elapsed: number) => void;
+    _flushEventsForTick(elapsed: number): void;
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
@@ -1182,12 +1182,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
-    _setAltKeyTimeout: () => void;
+    _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(options: Partial<TLCameraOptions>): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     // @internal (undocumented)
-    _setCtrlKeyTimeout: () => void;
+    _setCtrlKeyTimeout(): void;
     setCurrentPage(page: TLPage | TLPageId): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
@@ -1200,7 +1200,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setOpacityForSelectedShapes(opacity: number): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
-    _setShiftKeyTimeout: () => void;
+    _setShiftKeyTimeout(): void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     shapeUtils: {

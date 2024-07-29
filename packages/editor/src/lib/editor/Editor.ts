@@ -700,7 +700,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		this.on('tick', this._flushEventsForTick)
+		this.on('tick', (ms) => this._flushEventsForTick(ms))
 
 		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
@@ -8715,8 +8715,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shiftKeyTimeout = -1 as any
 
 	/** @internal */
-	// eslint-disable-next-line local/prefer-class-methods
-	_setShiftKeyTimeout = () => {
+	_setShiftKeyTimeout() {
 		this.inputs.shiftKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8733,8 +8732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _altKeyTimeout = -1 as any
 
 	/** @internal */
-	// eslint-disable-next-line local/prefer-class-methods
-	_setAltKeyTimeout = () => {
+	_setAltKeyTimeout() {
 		this.inputs.altKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8751,8 +8749,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _ctrlKeyTimeout = -1 as any
 
 	/** @internal */
-	// eslint-disable-next-line local/prefer-class-methods
-	_setCtrlKeyTimeout = () => {
+	_setCtrlKeyTimeout() {
 		this.inputs.ctrlKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8818,7 +8815,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _pendingEventsForNextTick: TLEventInfo[] = []
 
 	// eslint-disable-next-line local/prefer-class-methods
-	_flushEventsForTick = (elapsed: number) => {
+	_flushEventsForTick(elapsed: number) {
 		this.run(() => {
 			if (this._pendingEventsForNextTick.length > 0) {
 				const events = [...this._pendingEventsForNextTick]
@@ -8862,7 +8859,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._shiftKeyTimeout = -1
 			inputs.shiftKey = true
 		} else if (!info.shiftKey && inputs.shiftKey && this._shiftKeyTimeout === -1) {
-			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
+			this._shiftKeyTimeout = this.timers.setTimeout(() => this._setShiftKeyTimeout(), 150)
 		}
 
 		if (info.altKey) {
@@ -8870,7 +8867,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._altKeyTimeout = -1
 			inputs.altKey = true
 		} else if (!info.altKey && inputs.altKey && this._altKeyTimeout === -1) {
-			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
+			this._altKeyTimeout = this.timers.setTimeout(() => this._setAltKeyTimeout(), 150)
 		}
 
 		if (info.ctrlKey) {
@@ -8878,7 +8875,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._ctrlKeyTimeout = -1
 			inputs.ctrlKey = true
 		} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
-			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
+			this._ctrlKeyTimeout = this.timers.setTimeout(() => this._setCtrlKeyTimeout(), 150)
 		}
 
 		const { originPagePoint, currentPagePoint } = inputs
