@@ -49,6 +49,7 @@ export interface TldrawOptions {
 	readonly adjacentShapeMargin: number
 	readonly flattenImageBoundsExpand: number
 	readonly flattenImageBoundsPadding: number
+	readonly laserDelayMs: number
 }
 
 /** @public */
@@ -87,4 +88,5 @@ export const defaultTldrawOptions = {
 	adjacentShapeMargin: 10,
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
+	laserDelayMs: 1200,
 } as const satisfies TldrawOptions
