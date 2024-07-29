@@ -24,7 +24,7 @@ interface DoubleDropdownPickerProps<T extends string> {
 	styleB: StyleProp<T>
 	valueA: SharedStyle<T>
 	valueB: SharedStyle<T>
-	onValueChange: (style: StyleProp<T>, value: T) => void
+	onValueChange(style: StyleProp<T>, value: T): void
 }
 
 function _DoubleDropdownPicker<T extends string>({

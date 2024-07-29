@@ -24,7 +24,7 @@ export class UserPreferencesManager {
 		})
 	}
 
-	updateUserPreferences = (userPreferences: Partial<TLUserPreferences>) => {
+	updateUserPreferences(userPreferences: Partial<TLUserPreferences>) {
 		this.user.setUserPreferences({
 			...this.user.userPreferences.get(),
 			...userPreferences,

@@ -9,7 +9,6 @@ import {
 	SvgExportContext,
 	TLHandle,
 	TLNoteShape,
-	TLOnEditEndHandler,
 	TLShape,
 	TLShapeId,
 	Vec,
@@ -51,9 +50,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override props = noteShapeProps
 	static override migrations = noteShapeMigrations
 
-	override canEdit = () => true
-	override hideResizeHandles = () => true
-	override hideSelectionBoundsFg = () => false
+	override canEdit() {
+		return true
+	}
+	override hideResizeHandles() {
+		return true
+	}
+	override hideSelectionBoundsFg() {
+		return false
+	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -264,11 +269,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	override onBeforeCreate = (next: TLNoteShape) => {
+	override onBeforeCreate(next: TLNoteShape) {
 		return getNoteSizeAdjustments(this.editor, next)
 	}
 
-	override onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
+	override onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape) {
 		if (
 			prev.props.text === next.props.text &&
 			prev.props.font === next.props.font &&
@@ -280,7 +285,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return getNoteSizeAdjustments(this.editor, next)
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
+	override onEditEnd(shape: TLNoteShape) {
 		const {
 			id,
 			type,

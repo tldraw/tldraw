@@ -1,6 +1,6 @@
 import {
 	StateNode,
-	TLEventHandlers,
+	TLPointerEventInfo,
 	TLShapeId,
 	TLTextShape,
 	Vec,
@@ -15,11 +15,11 @@ export class Pointing extends StateNode {
 
 	markId = ''
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setHintingShapes([])
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			const {
 				inputs: { originPagePoint },
@@ -56,19 +56,19 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerUp = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onCancel = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 

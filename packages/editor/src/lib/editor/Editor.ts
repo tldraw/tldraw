@@ -63,6 +63,7 @@ import {
 	annotateError,
 	assert,
 	assertExists,
+	bind,
 	compact,
 	dedupe,
 	exhaustiveSwitchError,
@@ -187,7 +188,7 @@ export interface TLEditorOptions {
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
 	 */
-	getContainer: () => HTMLElement
+	getContainer(): HTMLElement
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -1406,10 +1407,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _updateInstanceState = (
+	_updateInstanceState(
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		opts?: TLHistoryBatchOptions
-	) => {
+	) {
 		this.run(() => {
 			this.store.put([
 				{
@@ -1519,7 +1520,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCursor = (cursor: Partial<TLCursor>): this => {
+	setCursor(cursor: Partial<TLCursor>) {
 		this.updateInstanceState({ cursor: { ...this.getInstanceState().cursor, ...cursor } })
 		return this
 	}
@@ -1574,9 +1575,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._updateCurrentPageState(partial)
 		return this
 	}
-	private _updateCurrentPageState = (
-		partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>
-	) => {
+	_updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>) {
 		this.store.update(partial.id ?? this.getCurrentPageState().id, (state) => ({
 			...state,
 			...partial,
@@ -2954,7 +2953,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _viewportAnimation = null as null | {
 		elapsed: number
 		duration: number
-		easing: (t: number) => number
+		easing(t: number): number
 		start: Box
 		end: Box
 	}
@@ -3630,13 +3629,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// box just for rendering, and we only update after the camera stops moving.
 	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
 	private _cameraStateTimeoutRemaining = 0
-	private _decayCameraStateTimeout = (elapsed: number) => {
+	_decayCameraStateTimeout(elapsed: number) {
 		this._cameraStateTimeoutRemaining -= elapsed
 		if (this._cameraStateTimeoutRemaining > 0) return
 		this.off('tick', this._decayCameraStateTimeout)
 		this._cameraState.set('idle')
 	}
-	private _tickCameraState = () => {
+	_tickCameraState() {
 		// always reset the timeout
 		this._cameraStateTimeoutRemaining = this.options.cameraMovingTimeoutMs
 		// If the state is idle, then start the tick
@@ -4627,7 +4626,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// respect this esp. in the part below that does "Check labels first"
 			hitLabels?: boolean
 			hitFrameInside?: boolean
-			filter?: (shape: TLShape) => boolean
+			filter?(shape: TLShape): boolean
 		}
 	): TLShape | undefined {
 		const zoomLevel = this.getZoomLevel()
@@ -7432,7 +7431,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _updateShapes = (_partials: (TLShapePartial | null | undefined)[]) => {
+	_updateShapes(_partials: (TLShapePartial | null | undefined)[]) {
 		if (this.getInstanceState().isReadonly) return
 
 		this.run(() => {
@@ -8716,7 +8715,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shiftKeyTimeout = -1 as any
 
 	/** @internal */
-	private _setShiftKeyTimeout = () => {
+	@bind
+	_setShiftKeyTimeout() {
 		this.inputs.shiftKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8733,7 +8733,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _altKeyTimeout = -1 as any
 
 	/** @internal */
-	private _setAltKeyTimeout = () => {
+	@bind
+	_setAltKeyTimeout() {
 		this.inputs.altKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8750,7 +8751,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _ctrlKeyTimeout = -1 as any
 
 	/** @internal */
-	private _setCtrlKeyTimeout = () => {
+	@bind
+	_setCtrlKeyTimeout() {
 		this.inputs.ctrlKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8799,7 +8801,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	dispatch = (info: TLEventInfo): this => {
+	dispatch(info: TLEventInfo) {
 		this._pendingEventsForNextTick.push(info)
 		if (
 			!(
@@ -8831,7 +8833,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
-	private _flushEventForTick = (info: TLEventInfo) => {
+	_flushEventForTick(info: TLEventInfo) {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.getCrashingError()) return this

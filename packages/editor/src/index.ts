@@ -177,31 +177,12 @@ export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesMan
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
-	type TLOnBeforeCreateHandler,
-	type TLOnBeforeUpdateHandler,
-	type TLOnBindingChangeHandler,
-	type TLOnChildrenChangeHandler,
-	type TLOnClickHandler,
-	type TLOnDoubleClickHandleHandler,
-	type TLOnDoubleClickHandler,
-	type TLOnDragHandler,
-	type TLOnEditEndHandler,
-	type TLOnHandleDragHandler,
-	type TLOnResizeEndHandler,
-	type TLOnResizeHandler,
-	type TLOnResizeStartHandler,
-	type TLOnRotateEndHandler,
-	type TLOnRotateHandler,
-	type TLOnRotateStartHandler,
-	type TLOnTranslateEndHandler,
-	type TLOnTranslateHandler,
-	type TLOnTranslateStartHandler,
+	type TLHandleDragInfo,
 	type TLResizeInfo,
 	type TLResizeMode,
 	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
-	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'

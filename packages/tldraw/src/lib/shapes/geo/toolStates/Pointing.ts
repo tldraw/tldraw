@@ -1,8 +1,8 @@
 import {
 	GeoShapeGeoStyle,
 	StateNode,
-	TLEventHandlers,
 	TLGeoShape,
+	TLPointerEventInfo,
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
@@ -10,11 +10,11 @@ import {
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
@@ -50,15 +50,15 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 

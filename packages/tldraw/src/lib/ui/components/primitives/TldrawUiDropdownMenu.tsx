@@ -215,7 +215,7 @@ export function TldrawUiDropdownMenuItem({ noClose, children }: TLUiDropdownMenu
 /** @public */
 export interface TLUiDropdownMenuCheckboxItemProps {
 	checked?: boolean
-	onSelect?: (e: Event) => void
+	onSelect?(e: Event): void
 	disabled?: boolean
 	title: string
 	children: ReactNode
