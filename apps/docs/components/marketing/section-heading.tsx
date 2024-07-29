@@ -16,7 +16,7 @@ export const SectionHeading: React.FC<{
 				className={cn(
 					'text-black font-black text-2xl sm:text-3xl md:text-4xl text-center px-5 md:px-0',
 					subheading && 'mt-2 md:mt-3',
-					description ? 'mb-6' : 'mb-16'
+					description ? 'mb-6' : 'mb-12'
 				)}
 			>
 				{heading}
