@@ -4,7 +4,6 @@
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
-		"rootDir": "src",
-		"experimentalDecorators": true
+		"rootDir": "src"
 	}
 }
