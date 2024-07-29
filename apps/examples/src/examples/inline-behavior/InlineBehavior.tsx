@@ -30,7 +30,7 @@ import 'tldraw/tldraw.css'
 const focusedEditorContext = createContext(
 	{} as {
 		focusedEditor: Editor | null
-		setFocusedEditor(id: Editor | null): void
+		setFocusedEditor(this: void, id: Editor | null): void
 	}
 )
 
@@ -69,7 +69,6 @@ export default function InlineBehaviorExample() {
 }
 
 function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
-	// eslint-disable-next-line @typescript-eslint/unbound-method
 	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
 	const [editor, setEditor] = useState<Editor>()
 
