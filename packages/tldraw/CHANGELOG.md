@@ -1,3 +1,18 @@
+# v2.4.2 (Mon Jul 29 2024)
+
+#### 🐛 Bug Fix
+
+- v2.4.2 - sync release candidate [#4309](https://github.com/tldraw/tldraw/pull/4309) ([@SomeHats](https://github.com/SomeHats) [@adamwiggins](https://github.com/adamwiggins) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- Adam Wiggins ([@adamwiggins](https://github.com/adamwiggins))
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.4.1 (Thu Jul 25 2024)
 
 ### Release Notes
