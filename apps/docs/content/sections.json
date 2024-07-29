@@ -28,14 +28,6 @@
 		"sidebar_behavior": "show-links"
 	},
 	{
-		"id": "pages",
-		"title": "Pages",
-		"description": "Uncategorized articles.",
-		"categories": [],
-		"sidebar_behavior": "hidden",
-		"hero": null
-	},
-	{
 		"id": "reference",
 		"title": "API Reference",
 		"description": "Reference for the tldraw package's APIs (generated).",

@@ -1,12 +1,4 @@
----
-title: Privacy policy (tldraw.com)
-status: published
-author: steveruizok
-date: 7/29/2024
-order: 2
----
-
-# tldraw.com Privacy Policy
+# Privacy Policy (tldraw.com)
 
 **Effective Date:** 29 July 2024
 

@@ -1,10 +1,4 @@
----
-title: Terms of Service (tldraw.com)
-status: published
-author: steveruizok
-date: 7/29/2024
-order: 1
----
+# Terms of Service (tldraw.com)
 
 **Effective Date:** 29 July 2024
 
