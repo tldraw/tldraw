@@ -29,9 +29,6 @@ export interface TLShapeUtilConstructor<
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 }
 
-/** @public */
-export type TLShapeUtilFlag<T> = (shape: T) => boolean
-
 /**
  * Options passed to {@link ShapeUtil.canBind}. A binding that could be made. At least one of
  * `fromShapeType` or `toShapeType` will belong to this shape util.

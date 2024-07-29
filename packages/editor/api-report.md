@@ -3277,9 +3277,6 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
 }
 
 // @public (undocumented)
-export type TLShapeUtilFlag<T> = (shape: T) => boolean;
-
-// @public (undocumented)
 export interface TLSnapIndicatorProps {
     // (undocumented)
     className?: string;
