@@ -172,13 +172,24 @@ export function HelpGroup() {
 			<TldrawUiMenuSubmenu id="help" label="menu.help">
 				<TldrawUiMenuGroup id="help-actions">
 					<KeyboardShortcutsMenuItem />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="help-actions">
 					<TldrawUiMenuItem
 						id="about"
-						label="help-menu.docs"
+						label="help-menu.terms"
 						icon="external-link"
 						readonlyOk
 						onSelect={() => {
-							openUrl('https://tldraw.dev')
+							openUrl('https://tldraw.dev/pages/terms')
+						}}
+					/>
+					<TldrawUiMenuItem
+						id="about"
+						label="help-menu.privacy"
+						icon="external-link"
+						readonlyOk
+						onSelect={() => {
+							openUrl('https://tldraw.dev/pages/privacy')
 						}}
 					/>
 				</TldrawUiMenuGroup>
