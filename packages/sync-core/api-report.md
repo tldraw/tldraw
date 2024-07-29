@@ -397,10 +397,10 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
         didCancel?(this: void): boolean;
-        onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void;
+        onAfterConnect?(this: void, self: TLSyncClient<R, S>, isNew: boolean): void;
         onLoad(self: TLSyncClient<R, S>): void;
         onLoadError(error: Error): void;
-        onSyncError(reason: TLIncompatibilityReason): void;
+        onSyncError(this: void, reason: TLIncompatibilityReason): void;
         presence: Signal<null | R>;
         socket: TLPersistentClientSocket<R>;
         store: S;

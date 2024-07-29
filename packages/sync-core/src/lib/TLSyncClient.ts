@@ -136,8 +136,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		presence: Signal<R | null>
 		onLoad(self: TLSyncClient<R, S>): void
 		onLoadError(error: Error): void
-		onSyncError(reason: TLIncompatibilityReason): void
-		onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void
+		onSyncError(this: void, reason: TLIncompatibilityReason): void
+		onAfterConnect?(this: void, self: TLSyncClient<R, S>, isNew: boolean): void
 		didCancel?(this: void): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -152,9 +152,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 		this.store = config.store
 		this.socket = config.socket
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this.onAfterConnect = config.onAfterConnect
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this.onSyncError = config.onSyncError
 
 		let didLoad = false
