@@ -46,16 +46,16 @@ export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>
 
 /** @public */
 export type TLUiOverrides = Partial<{
-	actions: (
+	actions(
 		editor: Editor,
 		actions: TLUiActionsContextType,
 		helpers: TLUiOverrideHelpers
-	) => TLUiActionsContextType
-	tools: (
+	): TLUiActionsContextType
+	tools(
 		editor: Editor,
 		tools: TLUiToolsContextType,
-		helpers: { insertMedia: () => void } & TLUiOverrideHelpers
-	) => TLUiToolsContextType
+		helpers: { insertMedia(): void } & TLUiOverrideHelpers
+	): TLUiToolsContextType
 	translations: TLUiTranslationProviderProps['overrides']
 }>
 

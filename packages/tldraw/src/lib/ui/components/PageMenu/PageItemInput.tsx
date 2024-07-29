@@ -22,7 +22,7 @@ export const PageItemInput = function PageItemInput({
 	const rInput = useRef<HTMLInputElement | null>(null)
 
 	const handleFocus = useCallback(() => {
-		editor.mark('rename page')
+		editor.markHistoryStoppingPoint('rename page')
 	}, [editor])
 
 	const handleChange = useCallback(

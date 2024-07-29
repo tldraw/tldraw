@@ -17,8 +17,7 @@ import {
 	Stadium2d,
 	SvgExportContext,
 	TLGeoShape,
-	TLOnEditEndHandler,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	exhaustiveSwitchError,
@@ -65,7 +64,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
 
-	override canEdit = () => true
+	override canEdit() {
+		return true
+	}
 
 	override getDefaultProps(): TLGeoShape['props'] {
 		return {
@@ -404,7 +405,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLGeoShape> = (shape) => {
+	override onEditEnd(shape: TLGeoShape) {
 		const {
 			id,
 			type,
@@ -581,10 +582,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return [getFillDefForCanvas()]
 	}
 
-	override onResize: TLOnResizeHandler<TLGeoShape> = (
-		shape,
-		{ handle, newPoint, scaleX, scaleY, initialShape }
-	) => {
+	override onResize(
+		shape: TLGeoShape,
+		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
+	) {
 		const unscaledInitialW = initialShape.props.w / initialShape.props.scale
 		const unscaledInitialH = initialShape.props.h / initialShape.props.scale
 		const unscaledGrowY = initialShape.props.growY / initialShape.props.scale
@@ -660,7 +661,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override onBeforeCreate = (shape: TLGeoShape) => {
+	override onBeforeCreate(shape: TLGeoShape) {
 		if (!shape.props.text) {
 			if (shape.props.growY) {
 				// No text / some growY, set growY to 0
@@ -702,7 +703,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override onBeforeUpdate = (prev: TLGeoShape, next: TLGeoShape) => {
+	override onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape) {
 		const prevText = prev.props.text
 		const nextText = next.props.text
 
@@ -799,7 +800,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// otherwise, no update needed
 	}
 
-	override onDoubleClick = (shape: TLGeoShape) => {
+	override onDoubleClick(shape: TLGeoShape) {
 		// Little easter egg: double-clicking a rectangle / checkbox while
 		// holding alt will toggle between check-box and rectangle
 		if (this.editor.inputs.altKey) {

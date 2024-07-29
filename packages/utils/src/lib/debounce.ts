@@ -20,8 +20,8 @@ export function debounce<T extends unknown[], U>(
 				// eslint-disable-next-line no-restricted-globals
 				timeout: ReturnType<typeof setTimeout>
 				promise: Promise<U>
-				resolve: (value: U | PromiseLike<U>) => void
-				reject: (value: any) => void
+				resolve(value: U | PromiseLike<U>): void
+				reject(value: any): void
 				latestArgs: T
 		  } = undefined
 

@@ -10,6 +10,7 @@ export {
 	partition,
 	rotateArray,
 } from './lib/array'
+export { bind } from './lib/bind'
 export { WeakCache } from './lib/cache'
 export {
 	Result,
@@ -83,4 +84,4 @@ export {
 	isNonNullish,
 	structuredClone,
 } from './lib/value'
-export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'
+export { warnDeprecatedGetter, warnOnce } from './lib/warn'

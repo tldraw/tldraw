@@ -1,15 +1,17 @@
-# tldraw on cloudflare durable objects
+# tldraw sync server
 
-This repo contains a complete example of tldraw sync ready to deploy on cloudflare.
+This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/sync).
 
-- The client itself can be deployed wherever you like.
-- The server is on [Cloudflare Workers](https://developers.cloudflare.com/workers/).
+- Your client-side tldraw-based app can be served from anywhere you want.
+- This backend uses [Cloudflare Workers](https://developers.cloudflare.com/workers/), and will need
+  to be deployed to your own Cloudflare account.
 - Each whiteboard is synced via
   [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) to a [Cloudflare
   Durable Object](https://developers.cloudflare.com/durable-objects/).
 - Whiteboards and any uploaded images/videos are stored in a [Cloudflare
   R2](https://developers.cloudflare.com/r2/) bucket.
-- URL metadata unfurling for bookmarks shapes is also supported.
+- Although unreliated to tldraw sync, this server also includes a component to fetch link previews
+  for URLs added to the canvas.
 
 This is a minimal setup of the same system that powers multiplayer collaboration for hundreds of
 thousands of rooms & users on www.tldraw.com. Because durable objects effectively create a mini
@@ -40,11 +42,10 @@ them faster.
 To install dependencies, run `yarn`. To start a local development server, run `yarn dev`. This will
 start a [`vite`](https://vitejs.dev/) dev server for the frontend of your application, and a
 [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) dev server for your workers
-backend.
+backend. The app should now be running at http://localhost:5137 (and the server at
+http://localhost:5172).
 
-The client-side code is under [`client`](./client/). The sync integration with tldraw is in
-[`client/App.tsx`](./client/App.tsx). The worker is under [`worker`](./worker/), and is split across
-several files:
+The backend worker is under [`worker`](./worker/), and is split across several files:
 
 - **[`worker/worker.ts`](./worker/worker.ts):** the main entrypoint to the worker, defining each
   route available.
@@ -55,6 +56,38 @@ several files:
 - **[`worker/assetUploads.ts`](./worker/assetUploads.ts):** uploads, downloads, and caching for
   static assets like images and videos.
 - **[`worker/bookmarkUnfurling.ts`](./worker/bookmarkUnfurling.ts):** extract URL metadata for bookmark shapes.
+
+The frontend client is under [`client`](./client):
+
+- **[`client/App.tsx`](./client/App.tsx):** the main client `<App />` component. This connects our
+  sync backend to the `<Tldraw />` component, wiring in assets and bookmark previews.
+- **[`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx):** how does the client
+  upload and retrieve assets like images & videos from the worker?
+- **[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx):** how does the client fetch
+  bookmark previews from the worker?
+
+## Custom shapes
+
+To add support for custom shapes, see the [tldraw sync custom shapes
+docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings).
+
+## Adding cloudflare to your own repo
+
+If you already have an app using tldraw and want to use the system in this repo, you can copy and
+paste the relevant parts to your own app.
+
+To point your existing client at the server defined in this repo, copy
+[`client/multiplayerAssetStore.tsx`](./client/multiplayerAssetStore.tsx) and
+[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx) into your app. Then, adapt the
+code from [`client/App.tsx`](./client/App.tsx) to your own app. When you call `useSync`, you'll need
+to pass it a URL. In development, that's `http://localhost:5172/connect/some-room-id`. We use an
+environment variable set in [`./vite.config.ts`](./vite.config.ts) to set the server URL.
+
+To add the server to your own app, copy the contents of the [`worker`](./worker/) folder and
+[`./wrangler.toml`](./wrangler.toml) into your app. Add the dependencies from
+[`package.json`](./package.json). If you're using TypeScript, you'll also need to adapt
+`tsconfig.worker.json` for your own project. You can run the worker using `wrangler dev` in the same
+folder as `./wrangler.toml`.
 
 ## Deployment
 
@@ -72,3 +105,10 @@ Finally, deploy your client HTML & JavaScript. Create a production build with
 
 When you visit your published client, it should connect to your cloudflare workers domain and sync
 your document across devices.
+
+## License
+
+Whilst the code in this template is available under the MIT license, `tldraw` and `@tldraw/sync` are
+under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) which does not
+allow their use for commercial purposes. To purchase an alternative license for commercial use,
+contact [sales@tldraw.com](mailto:sales@tldraw.com).

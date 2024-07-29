@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'react'
 
-export function ImageExport({ result, onStartAgain }: { result: Blob; onStartAgain: () => void }) {
+export function ImageExport({ result, onStartAgain }: { result: Blob; onStartAgain(): void }) {
 	const [src, setSrc] = useState<string | null>(null)
 	useLayoutEffect(() => {
 		const url = URL.createObjectURL(result)

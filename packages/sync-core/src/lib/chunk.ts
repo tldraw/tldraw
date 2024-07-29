@@ -37,11 +37,11 @@ export class JsonChunkAssembler {
 				totalChunks: number
 		  } = 'idle'
 
-	handleMessage(msg: string): { data?: object; error?: Error } | null {
+	handleMessage(msg: string): { error: Error } | { stringified: string; data: object } | null {
 		if (msg.startsWith('{')) {
 			const error = this.state === 'idle' ? undefined : new Error('Unexpected non-chunk message')
 			this.state = 'idle'
-			return { data: JSON.parse(msg), error }
+			return error ? { error } : { data: JSON.parse(msg), stringified: msg }
 		} else {
 			const match = chunkRe.exec(msg)!
 			if (!match) {
@@ -65,8 +65,9 @@ export class JsonChunkAssembler {
 			}
 			if (this.state.chunksReceived.length === this.state.totalChunks) {
 				try {
-					const data = JSON.parse(this.state.chunksReceived.join(''))
-					return { data }
+					const stringified = this.state.chunksReceived.join('')
+					const data = JSON.parse(stringified)
+					return { data, stringified }
 				} catch (e) {
 					return { error: e as Error }
 				} finally {

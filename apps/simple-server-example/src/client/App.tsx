@@ -1,4 +1,4 @@
-import { useMultiplayerSync } from '@tldraw/sync'
+import { useSync } from '@tldraw/sync'
 import {
 	AssetRecordType,
 	getHashForString,
@@ -15,7 +15,7 @@ const roomId = 'test-room'
 
 function App() {
 	// Create a store connected to multiplayer.
-	const store = useMultiplayerSync({
+	const store = useSync({
 		// We need to know the websocket's URI...
 		uri: `${WORKER_URL}/connect/${roomId}`,
 		// ...and how to handle static assets like images & videos

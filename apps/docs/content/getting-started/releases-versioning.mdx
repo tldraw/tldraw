@@ -7,7 +7,7 @@ order: 3
 
 ## How tldraw is versioned
 
-**We do not follow SemVer**.
+Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), the tldraw SDK does not follow [semantic versioning](https://semver.org/) in its release versions. Here's what we do instead:
 
 - Major version bumps are very rare and we reserve them for special changes that signify a paradigm shift of some kind.
 - Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
@@ -16,6 +16,138 @@ order: 3
 ## Changelog
 
 {/* START AUTO-GENERATED CHANGELOG */}
+
+### [v2.4.1](/releases/v2.4.1)
+
+#### fix assets prop on tldraw component (#4283) ([#4285](https://github.com/tldraw/tldraw/pull/4285))
+
+- The `assets` prop on the `<Tldraw />` and `<TldrawEditor />` components is now respected.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - fix assets prop on tldraw component (#4283) [#4285](https://github.com/tldraw/tldraw/pull/4285) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v2.4.x`
+
+- v2.4.x: fix workflow files ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+### [v2.4.0](/releases/v2.4.0)
+
+Welcome to the 2.4.0 release of the tldraw SDK. This month we’ve been working to bring our sync engine (the backend we developed for tldraw.com) into the SDK as a technology for general use. This release also includes new animation options for shapes, support for image flipping, and a long list of bug fixes and developer experience enhancements. Read on for the highlights and see the bottom of these notes for the list of significant fixes and changes.
+
+Thank you also to our first-time contributors Albert Brand ([@AlbertBrand](https://github.com/AlbertBrand)) and Guillaume Grossetie ([@ggrossetie](https://github.com/ggrossetie))!
+
+#### What's new
+
+##### Sync
+
+For the first time, we’re releasing our real-time collaboration engine—the one we developed for tldraw.com—as a general library that developers can use for their own projects. The SDK will of course still support any backend for collaboration, however we hope this will be the best and easiest for developers to use alongside the rest of the tldraw SDK. While we’re shipping the code in this release, we still have some work to do on our messaging and our documentation, so keep an eye out for an announcement in the coming weeks. For now, see the new `sync` package in the repository and the new multiplayer-demo example in the tldraw repository.
+
+##### Interpolation
+
+Did you know that tldraw has basic support for animation? You can use the `Editor.animateShapes` method to animate shapes on the canvas, but up to now only the position and rotation properties would be animated. In this release, we’ve given the `ShapeUtil` class a new `getInterpolatedProps` method. You can use this to describe how your custom shape’s other properties should be animated. We’ve only started to implement this feature for our own shapes, but check our `BaseBoxShapeUtil` as an example.
+
+```ts
+override getInterpolatedProps(startShape: Shape, endShape: Shape, t: number): Shape['props'] {
+	return {
+		...endShape.props,
+		w: lerp(startShape.props.w, endShape.props.w, t),
+		h: lerp(startShape.props.h, endShape.props.h, t),
+	}
+}
+```
+
+##### `Editor.run`
+
+You can use the new `Editor.run` method to run a function within some additional context. By default, the function will be run inside of a transaction, meaning that all changes made during the transaction will be settled at once. This improves performance and avoids unnecessary renders in the user interface. You can also use `Editor.run`’s contextual options to ignore history or ignore locked shapes.
+
+```ts
+editor.run(
+	() => {
+		editor.createShapes(myShapes)
+		editor.sendToBack(myShapes)
+		editor.selectNone()
+	},
+	{ history: 'ignore' }
+)
+```
+
+##### Assets
+
+As part of our work on sync, we have a new system for handling large assets like images and videos. You can provide a [`TLAssetStore`](https://tldraw.dev/reference/tlschema/TLAssetStore) to control how assets are uploaded and retrieved.
+
+In your own shapes & tools, these options are available through the new [`Editor.uploadAsset`](https://tldraw.dev/reference/editor/Editor#uploadAsset) and [`Editor.resolveAssetURL`](https://staging.tldraw.dev/reference/editor/Editor#resolveAssetUrl) methods.
+
+---
+
+#### Breaking changes
+
+- `editor.history.ignore(cb)` has been replaced with `editor.run(cb, {history: ‘ignore’})`
+- `editor.batch` is deprecated, replaced with `editor.run`
+- If you’re importing from `@tldraw/state` directly, the `track` function and all hooks (e.g. `useValue`) have moved to `@tldraw/state-react`.
+
+#### Improvements
+
+- Images now support horizontal and vertical flipping. ([#4113](https://github.com/tldraw/tldraw/pull/4113))
+- Custom tools can now decide whether or not they are affected by shape lock. [#4208](https://github.com/tldraw/tldraw/pull/4208)
+- We now serve our icons as a single SVG rather than many individual requests. ([#4150](https://github.com/tldraw/tldraw/pull/4150))
+- Paste at point behavior is now based on a user preference. ([#4104](https://github.com/tldraw/tldraw/pull/4104))
+- We now show a toast when uploading an unsupported file type or a file that is too large. ([#4114](https://github.com/tldraw/tldraw/pull/4114))
+- We now show a toast when pasting failed due to missing clipboard permissions. ([#4117](https://github.com/tldraw/tldraw/pull/4117))
+- You can use the new `ShapeIndicators` component to add custom logic about when to display indicators. ([#4083](https://github.com/tldraw/tldraw/pull/4083))
+- A shape’s opacity will now also animate. ([#4242](<[https://github.com/tldraw/tldraw/pull/](https://github.com/tldraw/tldraw/pull/4042)4242>))
+
+#### API changes
+
+- The `@tldraw/state` library is now split into `@tldraw/state` and `@tldraw/state-react`. ([#4170](https://github.com/tldraw/tldraw/pull/4170))
+- We now export the `DefaultMenuPanel`. ([#4193](https://github.com/tldraw/tldraw/pull/4193))
+- The `fileSize` property of `TLImageAsset` and `TLVideoAsset` is now optional. ([#4206](https://github.com/tldraw/tldraw/pull/4206))
+- You can now pass a partial `TLEditorSnapshot` to `TldrawImage` and `useTLStore`. ([#4190](https://github.com/tldraw/tldraw/pull/4190))
+- We explicitly type our defaults for better documentation. ([#4191](https://github.com/tldraw/tldraw/pull/4191))
+- `EffectScheduler` and `useStateTracking` are now public. ([#4155](https://github.com/tldraw/tldraw/pull/4155))]
+- Add `setDefaultValue` to `StyleProp`. ([#4044](https://github.com/tldraw/tldraw/pull/4044))
+- Add `ShapeUtil.getInterpolatedProps`. ([#4162](https://github.com/tldraw/tldraw/pull/4162))
+- Add `Editor.run`, replacing `Editor.batch` ([#4042](https://github.com/tldraw/tldraw/pull/4042))
+
+#### Bug fixes
+
+- The font style is now correctly exported as SVG. ([#4195](https://github.com/tldraw/tldraw/pull/4195))
+- The `force` flag is now taken into account for additional camera methods. ([#4214](https://github.com/tldraw/tldraw/pull/4214))
+- The user's color scheme is shown in the menu by default. ([#4184](https://github.com/tldraw/tldraw/pull/4184))
+- The padding for text shapes is now correct for dynamically scaled text shapes. ([#4140](https://github.com/tldraw/tldraw/pull/4140))
+- Changing `cameraOptions` via react no longer causes the editor to re-mount. ([#4089](https://github.com/tldraw/tldraw/pull/4089))
+- High-res images may now be uploaded. ([#4198](https://github.com/tldraw/tldraw/pull/4198))
+- Locked shapes can no longer be updated, grouped, and ungrouped programmatically. ([#4042](https://github.com/tldraw/tldraw/pull/4042))
+- The snapshots prop is now used by `createTLStore`. ([#4233](https://github.com/tldraw/tldraw/pull/4233)
+- Grid backgrounds work properly with multiple tldraw instances. ([#4132](https://github.com/tldraw/tldraw/pull/4132))
+- The offline icon is back! ([#4127](https://github.com/tldraw/tldraw/pull/4127))
+- Inputs stay in the right place while viewport-following. ([#4108](https://github.com/tldraw/tldraw/pull/4108))
+- Bookmarks render correctly across devices. ([#4118](https://github.com/tldraw/tldraw/pull/4118))
+- The `InFrontOfTheCanvas` component is displayed at the right stack-order. ([#4024](https://github.com/tldraw/tldraw/pull/4024))
+- Frame headers stop editing correctly when they lose focus. ([#4092](https://github.com/tldraw/tldraw/pull/4092))
+- The distance offset for duplicated shapes now matches other duplication distance offsets. ([#4056](https://github.com/tldraw/tldraw/pull/4056))
+- Filled draw shapes work close with correct distance when dynamic sized. ([#3974](https://github.com/tldraw/tldraw/pull/3974))
+- Remove an artificial delay in showing an image. ([#4058](https://github.com/tldraw/tldraw/pull/4058))
+- The context menu no longer displays an empty edit menu. ([#4037](https://github.com/tldraw/tldraw/pull/4037))
+- Right-clicking the selected shape no longer selects its children. ([#4034](https://github.com/tldraw/tldraw/pull/4034))
+
+#### Authors
+
+- Albert Brand ([@AlbertBrand](https://github.com/AlbertBrand))
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Guillaume Grossetie ([@ggrossetie](https://github.com/ggrossetie))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
 
 ### [v2.3.0](/releases/v2.3.0)
 
@@ -395,46 +527,7 @@ Previously, we weren't exporting migrations & validators for our default shapes.
 
 ### [v2.1.2](/releases/v2.1.2)
 
-#### Revert "[signia] Smart dirty checking of active computeds (#3516)" ([#3611](https://github.com/tldraw/tldraw/pull/3611))
-
-This performance optimisation introduced a regression where sometimes computed caches wouldn't get invalidated at the correct time, leading to stale data causing crashes. We're reverting the change for now.
-
----
-
-#### 🐛 Bug Fix
-
-- `@tldraw/state`
-  - Revert "[signia] Smart dirty checking of active computeds (#3516)" [#3611](https://github.com/tldraw/tldraw/pull/3611) ([@SomeHats](https://github.com/SomeHats))
-
-#### 🏠 Internal
-
-- increase publish script timeouts [#3570](https://github.com/tldraw/tldraw/pull/3570) ([@SomeHats](https://github.com/SomeHats))
-- longer retries for package publishing [#3567](https://github.com/tldraw/tldraw/pull/3567) ([@SomeHats](https://github.com/SomeHats))
-
-#### Authors: 1
-
-- alex ([@SomeHats](https://github.com/SomeHats))
-
 ### [v2.1.1](/releases/v2.1.1)
-
-#### fix migration exports ([#3594](https://github.com/tldraw/tldraw/pull/3594))
-
-We were missing an export `createShapePropsMigrationIds`, part of the new migrations API introduced in [v2.1.0](https://tldraw.dev/releases/v2.1.0). This release fixes that, and also adds exports for a few extra APIs that we were using in our examples, but weren't exporting properly: `defaultEditorAssetUrls`, `PORTRAIT_BREAKPOINT`, `useDefaultColorTheme`, & `getPerfectDashProps`
-
----
-
-#### 🐛 Bug Fix
-
-- `tldraw`, `@tldraw/tlschema`
-  - fix migration exports [#3594](https://github.com/tldraw/tldraw/pull/3594) ([@SomeHats](https://github.com/SomeHats))
-
-#### ⚠️ Pushed to `v2.1.x`
-
-- v2.1.x: fix ([@SomeHats](https://github.com/SomeHats))
-
-#### Authors: 1
-
-- alex ([@SomeHats](https://github.com/SomeHats))
 
 ### [v2.1.0](/releases/v2.1.0)
 

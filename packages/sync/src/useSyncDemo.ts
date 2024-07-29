@@ -13,14 +13,10 @@ import {
 	uniqueId,
 	useShallowObjectIdentity,
 } from 'tldraw'
-import {
-	RemoteTLStoreWithStatus,
-	TLMultiplayerUserInfo,
-	useMultiplayerSync,
-} from './useMultiplayerSync'
+import { RemoteTLStoreWithStatus, TLSyncUserInfo, useSync } from './useSync'
 
 /** @public */
-export interface UseMultiplayerDemoOptions {
+export interface UseSyncDemoOptions {
 	/**
 	 * The room ID to sync with. Make sure the room ID is unique. The namespace is shared by
 	 * everyone using the demo server. Consider prefixing it with your company or project name.
@@ -31,7 +27,7 @@ export interface UseMultiplayerDemoOptions {
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userInfo?: TLMultiplayerUserInfo | Signal<TLMultiplayerUserInfo>
+	userInfo?: TLSyncUserInfo | Signal<TLSyncUserInfo>
 	/** @internal */
 	host?: string
 }
@@ -69,17 +65,17 @@ const IMAGE_WORKER = getEnv(() => process.env.TLDRAW_IMAGE_URL) ?? 'https://imag
  * @example
  * ```tsx
  * function MyApp() {
- *     const store = useMultiplayerDemo({roomId: 'my-app-test-room'})
+ *     const store = useSyncDemo({roomId: 'my-app-test-room'})
  *     return <Tldraw store={store} />
  * }
  * ```
  *
- * @param options - Options for the multiplayer demo sync store. See {@link UseMultiplayerDemoOptions} and {@link tldraw#TLStoreSchemaOptions}.
+ * @param options - Options for the multiplayer demo sync store. See {@link UseSyncDemoOptions} and {@link tldraw#TLStoreSchemaOptions}.
  *
  * @public
  */
-export function useMultiplayerDemo(
-	options: UseMultiplayerDemoOptions & TLStoreSchemaOptions
+export function useSyncDemo(
+	options: UseSyncDemoOptions & TLStoreSchemaOptions
 ): RemoteTLStoreWithStatus {
 	const { roomId, userInfo, host = DEMO_WORKER, ..._schemaOpts } = options
 	const assets = useMemo(() => createDemoAssetStore(host), [host])
@@ -101,7 +97,7 @@ export function useMultiplayerDemo(
 		}
 	}, [schemaOpts])
 
-	return useMultiplayerSync({
+	return useSync({
 		uri: `${host}/connect/${encodeURIComponent(roomId)}`,
 		roomId,
 		userInfo,

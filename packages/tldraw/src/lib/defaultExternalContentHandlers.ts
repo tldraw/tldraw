@@ -253,6 +253,10 @@ export function registerDefaultExternalContentHandlers(
 
 		const assets: TLAsset[] = []
 
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
+
 		await Promise.all(
 			files.map(async (file, i) => {
 				if (file.size > maxAssetSize) {
@@ -461,6 +465,18 @@ export function registerDefaultExternalContentHandlers(
 	})
 }
 
+/**
+ * A helper function for an external content handler. It creates bookmarks,
+ * images or video shapes corresponding to the type of assets provided.
+ *
+ * @param editor - The editor instance
+ *
+ * @param assets - An array of asset Ids
+ *
+ * @param position - the position at which to create the shapes
+ *
+ * @public
+ */
 export async function createShapesForAssets(
 	editor: Editor,
 	assets: TLAsset[],
@@ -543,7 +559,17 @@ export async function createShapesForAssets(
 	return partials.map((p) => p.id)
 }
 
-function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
+/**
+ * Repositions selected shapes do that the center of the group is
+ * at the provided position
+ *
+ * @param editor - The editor instance
+ *
+ * @param position - the point to center the shapes around
+ *
+ * @public
+ */
+export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	// Re-position shapes so that the center of the group is at the provided point
 	const viewportPageBounds = editor.getViewportPageBounds()
 	let selectionPageBounds = editor.getSelectionPageBounds()

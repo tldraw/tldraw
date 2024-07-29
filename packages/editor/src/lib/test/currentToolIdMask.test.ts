@@ -15,7 +15,7 @@ class B extends StateNode {
 class C extends StateNode {
 	static override id = 'C'
 
-	override onEnter = () => {
+	override onEnter() {
 		this.setCurrentToolIdMask('A')
 	}
 }

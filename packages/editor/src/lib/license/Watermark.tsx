@@ -1,5 +1,6 @@
 import { useValue } from '@tldraw/state-react'
-import React, { useLayoutEffect, useRef } from 'react'
+import { fetch } from '@tldraw/utils'
+import React, { useEffect, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
@@ -10,8 +11,41 @@ import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
 
 /** @internal */
-export const WATERMARK_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermark/watermark-desktop.svg`
-export const WATERMARK_LOCAL_SRC = `url('data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}') center 100% / 100% no-repeat`
+export const WATERMARK_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-desktop.svg`
+export const WATERMARK_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
+
+let watermarkUrlPromise: Promise<string> | null = null
+async function getWatermarkUrl(forceLocal: boolean): Promise<string> {
+	if (forceLocal) {
+		return WATERMARK_LOCAL_SRC
+	}
+
+	if (!watermarkUrlPromise) {
+		watermarkUrlPromise = Promise.race([
+			// try and load the remote watermark, if it fails, fallback to the local one
+			(async () => {
+				try {
+					const response = await fetch(WATERMARK_REMOTE_SRC)
+					if (!response.ok) return WATERMARK_LOCAL_SRC
+					const blob = await response.blob()
+					return URL.createObjectURL(blob)
+				} catch {
+					return WATERMARK_LOCAL_SRC
+				}
+			})(),
+
+			// but if that's taking a long time (>3s) just show the local one anyway
+			new Promise<string>((resolve) => {
+				// eslint-disable-next-line no-restricted-globals
+				setTimeout(() => {
+					resolve(WATERMARK_LOCAL_SRC)
+				}, 3_000)
+			}),
+		])
+	}
+
+	return watermarkUrlPromise
+}
 
 /** @internal */
 export const Watermark = React.memo(function Watermark({
@@ -29,33 +63,35 @@ export const Watermark = React.memo(function Watermark({
 		() =>
 			featureFlags.enableLicensing.get() &&
 			editor.getViewportScreenBounds().width > 760 &&
-			licenseManager.state.get() === 'unlicensed',
+			['licensed-with-watermark', 'unlicensed'].includes(licenseManager.state.get()),
 		[editor, licenseManager]
 	)
 
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
 
-	const src = licenseManager.isDevelopment
-		? WATERMARK_LOCAL_SRC
-		: navigator.onLine && !forceLocal
-			? WATERMARK_REMOTE_SRC
-			: WATERMARK_LOCAL_SRC
-
-	const ref = useRef<HTMLAnchorElement>(null)
-
-	useLayoutEffect(() => {
-		// Set the style on the element
-		if (!ref.current) return
+	const [src, setSrc] = useState<string | null>(null)
+	const shouldUseLocal = forceLocal || licenseManager.isDevelopment
+	useEffect(() => {
 		if (!showWatermark) return
-		// eslint-disable-next-line deprecation/deprecation
-		ref.current.style.webkitMask = src
-		ref.current.style.mask = src
-	}, [src, showWatermark])
 
-	if (!showWatermark) return null
+		let isCancelled = false
+
+		;(async () => {
+			const src = await getWatermarkUrl(shouldUseLocal)
+			if (isCancelled) return
+			setSrc(src)
+		})()
+
+		return () => {
+			isCancelled = true
+		}
+	}, [shouldUseLocal, showWatermark])
+
+	if (!showWatermark || !src) return null
 
 	const className = LicenseManager.className
+	const maskCss = `url('${src}') center 100% / 100% no-repeat`
 
 	return (
 		<>
@@ -63,8 +99,9 @@ export const Watermark = React.memo(function Watermark({
 				{`
 /* ------------------- SEE LICENSE -------------------
 The tldraw watermark is part of tldraw's license. It is shown for unlicensed
-users. By using this library, you agree to keep the watermark's behavior, 
-keeping it visible, unobscured, and available to user-interaction.
+or "licensed-with-watermark" users. By using this library, you agree to
+keep the watermark's behavior, keeping it visible, unobscured, and
+available to user-interaction.
 
 To remove the watermark, please purchase a license at tldraw.dev.
 */
@@ -126,12 +163,12 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			</style>
 			<div className={className} data-debug={isDebugMode} draggable={false} {...events}>
 				<a
-					ref={ref}
 					href="https://tldraw.dev"
 					target="_blank"
 					rel="noreferrer"
 					draggable={false}
 					onPointerDown={stopEventPropagation}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
 				/>
 			</div>
 		</>
