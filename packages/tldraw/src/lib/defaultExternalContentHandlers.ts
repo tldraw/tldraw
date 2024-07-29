@@ -253,6 +253,10 @@ export function registerDefaultExternalContentHandlers(
 
 		const assets: TLAsset[] = []
 
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
+
 		await Promise.all(
 			files.map(async (file, i) => {
 				if (file.size > maxAssetSize) {

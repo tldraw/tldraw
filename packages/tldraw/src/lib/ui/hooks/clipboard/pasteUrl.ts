@@ -15,7 +15,7 @@ export async function pasteUrl(
 	point?: VecLike,
 	sources?: TLExternalContentSource[]
 ) {
-	editor.mark('paste')
+	editor.markHistoryStoppingPoint('paste')
 
 	return await editor.putExternalContent({
 		type: 'url',

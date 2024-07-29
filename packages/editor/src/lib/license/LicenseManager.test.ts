@@ -308,6 +308,19 @@ describe('LicenseManager', () => {
 		)) as ValidLicenseKeyResult
 		expect(result.isInternalLicense).toBe(true)
 	})
+
+	it('Checks for license with watermark', async () => {
+		const withWatermarkLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+		withWatermarkLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.WITH_WATERMARK
+		const withWatermarkLicenseKey = await generateLicenseKey(
+			JSON.stringify(withWatermarkLicenseInfo),
+			keyPair
+		)
+		const result = (await licenseManager.getLicenseFromKey(
+			withWatermarkLicenseKey
+		)) as ValidLicenseKeyResult
+		expect(result.isLicensedWithWatermark).toBe(true)
+	})
 })
 
 async function generateLicenseKey(
@@ -388,8 +401,6 @@ export function ab2str(buf: ArrayBuffer) {
 	return String.fromCharCode.apply(null, new Uint8Array(buf) as unknown as number[])
 }
 
-// is license?
-
 function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): ValidLicenseKeyResult {
 	return {
 		isAnnualLicense: true,
@@ -400,6 +411,7 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isPerpetualLicense: false,
 		isPerpetualLicenseExpired: false,
 		isLicenseParseable: true as const,
+		isLicensedWithWatermark: false,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
 			id: 'id',
@@ -515,5 +527,12 @@ describe(isEditorUnlicensed, () => {
 			expiryDate,
 		})
 		expect(() => isEditorUnlicensed(licenseResult)).toThrow(/License: Internal license expired/)
+	})
+
+	it('shows watermark when license has that flag specified', () => {
+		const licenseResult = getDefaultLicenseResult({
+			isLicensedWithWatermark: true,
+		})
+		expect(isEditorUnlicensed(licenseResult)).toBe(false)
 	})
 })

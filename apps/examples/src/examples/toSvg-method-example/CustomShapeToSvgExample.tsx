@@ -40,9 +40,15 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 		}
 	}
 
-	override canEdit = () => false
-	override canResize = () => false
-	override isAspectRatioLocked = () => false
+	override canEdit() {
+		return false
+	}
+	override canResize() {
+		return false
+	}
+	override isAspectRatioLocked() {
+		return false
+	}
 
 	getGeometry(shape: ICustomShape): Geometry2d {
 		return new Rectangle2d({

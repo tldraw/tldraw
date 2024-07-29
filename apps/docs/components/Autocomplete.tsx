@@ -30,8 +30,8 @@ interface AutocompleteProps {
 	groupsToLabel?: { [key: string]: string }
 	isLoading: boolean
 	options: DropdownOption[]
-	onChange: (value: string) => void
-	onInputChange: (value: string) => void
+	onChange(value: string): void
+	onInputChange(value: string): void
 }
 
 const DEFAULT_GROUP = 'autocomplete-default'

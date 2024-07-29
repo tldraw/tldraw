@@ -13,15 +13,11 @@ import {
 	TLArrowShape,
 	TLArrowShapeProps,
 	TLHandle,
-	TLOnEditEndHandler,
-	TLOnHandleDragHandler,
-	TLOnResizeHandler,
-	TLOnTranslateHandler,
-	TLOnTranslateStartHandler,
+	TLHandleDragInfo,
+	TLResizeInfo,
 	TLShapePartial,
 	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
-	TLShapeUtilFlag,
 	Vec,
 	WeakCache,
 	arrowShapeMigrations,
@@ -79,18 +75,30 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override props = arrowShapeProps
 	static override migrations = arrowShapeMigrations
 
-	override canEdit = () => true
+	override canEdit() {
+		return true
+	}
 	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
 		// bindings can go from arrows to shapes, but not from shapes to arrows
 		return toShapeType !== 'arrow'
 	}
-	override canSnap = () => false
-	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
-	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
-	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
-	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
+	override canSnap() {
+		return false
+	}
+	override hideResizeHandles() {
+		return true
+	}
+	override hideRotateHandle() {
+		return true
+	}
+	override hideSelectionBoundsBg() {
+		return true
+	}
+	override hideSelectionBoundsFg() {
+		return true
+	}
 
-	override canBeLaidOut: TLShapeUtilFlag<TLArrowShape> = (shape) => {
+	override canBeLaidOut(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 		return !bindings.start && !bindings.end
 	}
@@ -179,7 +187,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		].filter(Boolean) as TLHandle[]
 	}
 
-	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
+	override onHandleDrag(
+		shape: TLArrowShape,
+		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>
+	) {
 		const handleId = handle.id as ARROW_HANDLES
 		const bindings = getArrowBindings(this.editor, shape)
 
@@ -323,7 +334,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return update
 	}
 
-	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
+	override onTranslateStart(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 
 		const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
@@ -392,7 +403,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return
 	}
 
-	override onTranslate?: TLOnTranslateHandler<TLArrowShape> = (initialShape, shape) => {
+	override onTranslate(initialShape: TLArrowShape, shape: TLArrowShape) {
 		const atTranslationStart = shapeAtTranslationStart.get(initialShape)
 		if (!atTranslationStart) return
 
@@ -438,7 +449,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	private readonly _resizeInitialBindings = new WeakCache<TLArrowShape, TLArrowBindings>()
 
-	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
+	override onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>) {
 		const { scaleX, scaleY } = info
 
 		const bindings = this._resizeInitialBindings.get(shape, () =>
@@ -542,10 +553,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return next
 	}
 
-	override onDoubleClickHandle = (
+	override onDoubleClickHandle(
 		shape: TLArrowShape,
 		handle: TLHandle
-	): TLShapePartial<TLArrowShape> | void => {
+	): TLShapePartial<TLArrowShape> | void {
 		switch (handle.id) {
 			case ARROW_HANDLES.START: {
 				return {
@@ -736,7 +747,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		)
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {
+	override onEditEnd(shape: TLArrowShape) {
 		const {
 			id,
 			type,

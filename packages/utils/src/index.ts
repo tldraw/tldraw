@@ -10,6 +10,7 @@ export {
 	partition,
 	rotateArray,
 } from './lib/array'
+export { bind } from './lib/bind'
 export { WeakCache } from './lib/cache'
 export {
 	Result,

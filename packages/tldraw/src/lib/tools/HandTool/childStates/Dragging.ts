@@ -1,28 +1,28 @@
-import { StateNode, TLEventHandlers, Vec } from '@tldraw/editor'
+import { StateNode, Vec } from '@tldraw/editor'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'
 
 	initialCamera = new Vec()
 
-	override onEnter = () => {
+	override onEnter() {
 		this.initialCamera = Vec.From(this.editor.getCamera())
 		this.update()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		this.update()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.parent.transition('idle')
 	}
 
-	override onComplete = () => {
+	override onComplete() {
 		this.complete()
 	}
 

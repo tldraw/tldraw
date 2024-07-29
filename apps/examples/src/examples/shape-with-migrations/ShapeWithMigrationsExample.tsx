@@ -3,7 +3,7 @@ import {
 	HTMLContainer,
 	T,
 	TLBaseShape,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	TLStoreSnapshot,
 	Tldraw,
 	createShapePropsMigrationIds,
@@ -85,7 +85,7 @@ export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 
-	override onResize: TLOnResizeHandler<IMyShape> = (shape, info) => {
+	override onResize(shape: IMyShape, info: TLResizeInfo<IMyShape>) {
 		return resizeBox(shape, info)
 	}
 }
