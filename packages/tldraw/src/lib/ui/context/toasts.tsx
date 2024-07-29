@@ -46,21 +46,18 @@ export interface ToastsProviderProps {
 export function ToastsProvider({ children }: ToastsProviderProps) {
 	const [toasts, setToasts] = useState<TLUiToast[]>([])
 
-	const addToast = useCallback(function (
-		this: void,
-		toast: Omit<TLUiToast, 'id'> & { id?: string }
-	) {
+	const addToast = useCallback((toast: Omit<TLUiToast, 'id'> & { id?: string }) => {
 		const id = toast.id ?? uniqueId()
 		setToasts((d) => [...d.filter((m) => m.id !== toast.id), { ...toast, id }])
 		return id
 	}, [])
 
-	const removeToast = useCallback(function (this: void, id: string) {
+	const removeToast = useCallback((id: string) => {
 		setToasts((d) => d.filter((m) => m.id !== id))
 		return id
 	}, [])
 
-	const clearToasts = useCallback(function (this: void) {
+	const clearToasts = useCallback(() => {
 		setToasts(() => [])
 	}, [])
 
