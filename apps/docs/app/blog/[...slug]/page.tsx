@@ -5,7 +5,6 @@ import { getPageContent } from '@/utils/get-page-content'
 import { notFound } from 'next/navigation'
 
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
-	const db = await getDb()
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await getPageContent(`/blog/${path.join('/')}`)
 	if (!content) notFound()
