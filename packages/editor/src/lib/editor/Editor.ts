@@ -700,7 +700,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		this.on('tick', (ms) => this._flushEventsForTick(ms))
+		this.on('tick', this._flushEventsForTick)
 
 		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
@@ -2958,7 +2958,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _animateViewport(ms: number): void {
+	// eslint-disable-next-line local/prefer-class-methods
+	private _animateViewport = (ms: number) => {
 		if (!this._viewportAnimation) return
 
 		this._viewportAnimation.elapsed += ms
@@ -2966,7 +2967,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { elapsed, easing, duration, start, end } = this._viewportAnimation
 
 		if (elapsed > duration) {
-			this.off('tick', (ms) => this._animateViewport(ms))
+			this.off('tick', this._animateViewport)
 			this._viewportAnimation = null
 			this._setCamera(new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width))
 			return
@@ -3026,12 +3027,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If we ever get a "stop-camera-animation" event, we stop
 		this.once('stop-camera-animation', () => {
-			this.off('tick', (ms) => this._animateViewport(ms))
+			this.off('tick', this._animateViewport)
 			this._viewportAnimation = null
 		})
 
 		// On each tick, animate the viewport
-		this.on('tick', (ms) => this._animateViewport(ms))
+		this.on('tick', this._animateViewport)
 
 		return this
 	}
@@ -3628,10 +3629,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// box just for rendering, and we only update after the camera stops moving.
 	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
 	private _cameraStateTimeoutRemaining = 0
-	_decayCameraStateTimeout(elapsed: number) {
+	// eslint-disable-next-line local/prefer-class-methods
+	_decayCameraStateTimeout = (elapsed: number) => {
 		this._cameraStateTimeoutRemaining -= elapsed
 		if (this._cameraStateTimeoutRemaining > 0) return
-		this.off('tick', (ms) => this._decayCameraStateTimeout(ms))
+		this.off('tick', this._decayCameraStateTimeout)
 		this._cameraState.set('idle')
 	}
 	_tickCameraState() {
@@ -3640,7 +3642,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If the state is idle, then start the tick
 		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
 		this._cameraState.set('moving')
-		this.on('tick', (ms) => this._decayCameraStateTimeout(ms))
+		this.on('tick', this._decayCameraStateTimeout)
 	}
 
 	/**
@@ -8715,7 +8717,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shiftKeyTimeout = -1 as any
 
 	/** @internal */
-	_setShiftKeyTimeout() {
+	// eslint-disable-next-line local/prefer-class-methods
+	_setShiftKeyTimeout = () => {
 		this.inputs.shiftKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8732,7 +8735,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _altKeyTimeout = -1 as any
 
 	/** @internal */
-	_setAltKeyTimeout() {
+	// eslint-disable-next-line local/prefer-class-methods
+	_setAltKeyTimeout = () => {
 		this.inputs.altKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8749,7 +8753,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _ctrlKeyTimeout = -1 as any
 
 	/** @internal */
-	_setCtrlKeyTimeout() {
+	// eslint-disable-next-line local/prefer-class-methods
+	_setCtrlKeyTimeout = () => {
 		this.inputs.ctrlKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8815,7 +8820,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _pendingEventsForNextTick: TLEventInfo[] = []
 
 	// eslint-disable-next-line local/prefer-class-methods
-	_flushEventsForTick(elapsed: number) {
+	_flushEventsForTick = (elapsed: number) => {
 		this.run(() => {
 			if (this._pendingEventsForNextTick.length > 0) {
 				const events = [...this._pendingEventsForNextTick]
@@ -8859,7 +8864,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._shiftKeyTimeout = -1
 			inputs.shiftKey = true
 		} else if (!info.shiftKey && inputs.shiftKey && this._shiftKeyTimeout === -1) {
-			this._shiftKeyTimeout = this.timers.setTimeout(() => this._setShiftKeyTimeout(), 150)
+			this._shiftKeyTimeout = this.timers.setTimeout(this._setShiftKeyTimeout, 150)
 		}
 
 		if (info.altKey) {
@@ -8867,7 +8872,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._altKeyTimeout = -1
 			inputs.altKey = true
 		} else if (!info.altKey && inputs.altKey && this._altKeyTimeout === -1) {
-			this._altKeyTimeout = this.timers.setTimeout(() => this._setAltKeyTimeout(), 150)
+			this._altKeyTimeout = this.timers.setTimeout(this._setAltKeyTimeout, 150)
 		}
 
 		if (info.ctrlKey) {
@@ -8875,7 +8880,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._ctrlKeyTimeout = -1
 			inputs.ctrlKey = true
 		} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
-			this._ctrlKeyTimeout = this.timers.setTimeout(() => this._setCtrlKeyTimeout(), 150)
+			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
 		}
 
 		const { originPagePoint, currentPagePoint } = inputs
