@@ -180,7 +180,7 @@ export function HelpGroup() {
 						icon="external-link"
 						readonlyOk
 						onSelect={() => {
-							openUrl('https://github.com/tldraw/tldraw/blob/main/TERMS_OF_SERVICE.md')
+							openUrl('https://github.com/tldraw/tldraw/blob/main/apps/dotcom/TERMS_OF_SERVICE.md')
 						}}
 					/>
 					<TldrawUiMenuItem
@@ -189,7 +189,7 @@ export function HelpGroup() {
 						icon="external-link"
 						readonlyOk
 						onSelect={() => {
-							openUrl('https://github.com/tldraw/tldraw/blob/main/PRIVACY_POLICY.md')
+							openUrl('https://github.com/tldraw/tldraw/blob/main/apps/dotcom/PRIVACY_POLICY.md')
 						}}
 					/>
 				</TldrawUiMenuGroup>
