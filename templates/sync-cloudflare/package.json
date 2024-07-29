@@ -1,5 +1,5 @@
 {
-	"name": "tldraw-vite-example",
+	"name": "tldraw-sync-cloudflare",
 	"private": true,
 	"version": "0.0.0",
 	"author": {
@@ -22,6 +22,7 @@
 		"@tldraw/sync": "latest",
 		"@tldraw/sync-core": "latest",
 		"@tldraw/tlschema": "latest",
+		"cloudflare-workers-unfurl": "^0.0.7",
 		"itty-router": "^5.0.17",
 		"lodash.throttle": "^4.1.1",
 		"react": "^18.2.0",
