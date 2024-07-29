@@ -1,6 +1,6 @@
+import { handleUnfurlRequest } from 'cloudflare-workers-unfurl'
 import { AutoRouter, cors, error, IRequest } from 'itty-router'
 import { handleAssetDownload, handleAssetUpload } from './assetUploads'
-import { handleUnfurlUrl } from './bookmarkUnfurling'
 import { Environment } from './types'
 
 // make sure our sync durable object is made available to cloudflare
@@ -31,7 +31,7 @@ const router = AutoRouter<IRequest, [env: Environment, ctx: ExecutionContext]>({
 	.get('/uploads/:uploadId', handleAssetDownload)
 
 	// bookmarks need to extract metadata from pasted URLs:
-	.get('/unfurl', handleUnfurlUrl)
+	.get('/unfurl', handleUnfurlRequest)
 
 // export our router for cloudflare
 export default router

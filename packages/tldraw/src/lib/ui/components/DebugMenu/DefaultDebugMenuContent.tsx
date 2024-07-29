@@ -213,8 +213,8 @@ export interface ExampleDialogProps {
 	cancel?: string
 	confirm?: string
 	displayDontShowAgain?: boolean
-	onCancel: () => void
-	onContinue: () => void
+	onCancel(): void
+	onContinue(): void
 }
 
 /** @public @react */
@@ -263,7 +263,7 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 	onChange,
 }: {
 	flag: DebugFlag<boolean>
-	onChange?: (newValue: boolean) => void
+	onChange?(newValue: boolean): void
 }) {
 	const value = flag.get()
 	return (

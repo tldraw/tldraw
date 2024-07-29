@@ -102,7 +102,7 @@ function DuplicateInDirectionButton({
 				const selectionPageBounds = editor.getSelectionPageBounds()!
 				if (!(rotatedPageBounds && selectionPageBounds)) return
 
-				editor.mark('duplicating in direction')
+				editor.markHistoryStoppingPoint()
 
 				const PADDING = 32
 

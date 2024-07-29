@@ -8,9 +8,11 @@ export class EraserTool extends StateNode {
 	static override id = 'eraser'
 	static override initial = 'idle'
 	static override isLockable = false
-	static override children = (): TLStateNodeConstructor[] => [Idle, Pointing, Erasing]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Pointing, Erasing]
+	}
 
-	override onEnter = () => {
+	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 }

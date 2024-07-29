@@ -8,7 +8,7 @@ export function isEditorEmpty(editor: Editor) {
 
 export async function findV1ContentFromIdb(): Promise<{
 	document: TLV1Document
-	clear: () => Promise<void>
+	clear(): Promise<void>
 } | null> {
 	try {
 		const db = await openDB('keyval-store', 1)

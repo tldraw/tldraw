@@ -6134,7 +6134,6 @@ __metadata:
     "@types/bun": "npm:^1.1.6"
     "@types/express": "npm:^4.17.21"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
-    cheerio: "npm:^1.0.0-rc.12"
     concurrently: "npm:^8.2.2"
     fastify: "npm:^4.28.1"
     itty-router: "npm:^5.0.17"
@@ -6317,6 +6316,7 @@ __metadata:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
+    cloudflare-workers-unfurl: "npm:^0.0.7"
     itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
     toucan-js: "npm:^3.4.0"
@@ -9508,6 +9508,13 @@ __metadata:
   version: 1.0.4
   resolution: "clone@npm:1.0.4"
   checksum: d06418b7335897209e77bdd430d04f882189582e67bd1f75a04565f3f07f5b3f119a9d670c943b6697d0afb100f03b866b3b8a1f91d4d02d72c4ecf2bb64b5dd
+  languageName: node
+  linkType: hard
+
+"cloudflare-workers-unfurl@npm:^0.0.7":
+  version: 0.0.7
+  resolution: "cloudflare-workers-unfurl@npm:0.0.7"
+  checksum: 370e593e3689ac60e5084f4061e8c89f401326fc31a2f6c67d1b898133fce894f8ddb0bb29c27ab9100fafb54b484e76626faff86d1f400a7f8f4b55f9009b28
   languageName: node
   linkType: hard
 

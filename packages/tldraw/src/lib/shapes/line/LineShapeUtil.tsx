@@ -6,10 +6,10 @@ import {
 	SVGContainer,
 	ShapeUtil,
 	TLHandle,
+	TLHandleDragInfo,
 	TLLineShape,
 	TLLineShapePoint,
-	TLOnHandleDragHandler,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	Vec,
 	WeakCache,
 	ZERO_INDEX_KEY,
@@ -37,10 +37,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
 
-	override hideResizeHandles = () => true
-	override hideRotateHandle = () => true
-	override hideSelectionBoundsFg = () => true
-	override hideSelectionBoundsBg = () => true
+	override hideResizeHandles() {
+		return true
+	}
+	override hideRotateHandle() {
+		return true
+	}
+	override hideSelectionBoundsFg() {
+		return true
+	}
+	override hideSelectionBoundsBg() {
+		return true
+	}
 
 	override getDefaultProps(): TLLineShape['props'] {
 		const [start, end] = getIndices(2)
@@ -94,7 +102,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	//   Events
 
-	override onResize: TLOnResizeHandler<TLLineShape> = (shape, info) => {
+	override onResize(shape: TLLineShape, info: TLResizeInfo<TLLineShape>) {
 		const { scaleX, scaleY } = info
 
 		return {
@@ -109,7 +117,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
-	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
+	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
 		// we should only ever be dragging vertex handles
 		if (handle.type !== 'vertex') return
 

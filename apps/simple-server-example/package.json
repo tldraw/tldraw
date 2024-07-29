@@ -15,7 +15,7 @@
 		"dev-server-bun": "npx bun --watch ./src/server/server.bun.ts",
 		"dev-client": "vite dev",
 		"test-ci": "echo 'No tests yet'",
-		"test": "yarn run -T jest",
+		"test": "yarn run -T jest --passWithNoTests",
 		"test-coverage": "lazy inherit",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
@@ -41,7 +41,6 @@
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@vitejs/plugin-react-swc": "^3.7.0",
-		"cheerio": "^1.0.0-rc.12",
 		"fastify": "^4.28.1",
 		"itty-router": "^5.0.17",
 		"react": "^18.2.0",

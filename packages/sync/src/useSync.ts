@@ -111,6 +111,17 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		const socket = new ClientWebSocketAdapter(async () => {
 			// set sessionId as a query param on the uri
 			const withParams = new URL(uri)
+			if (withParams.searchParams.has('sessionId')) {
+				throw new Error(
+					'useSync. "sessionId" is a reserved query param name. Please use a different name'
+				)
+			}
+			if (withParams.searchParams.has('storeId')) {
+				throw new Error(
+					'useSync. "storeId" is a reserved query param name. Please use a different name'
+				)
+			}
+
 			withParams.searchParams.set('sessionId', TAB_ID)
 			withParams.searchParams.set('storeId', storeId)
 			return withParams.toString()
@@ -239,7 +250,7 @@ export interface UseSyncOptions {
 	assets: TLAssetStore
 
 	/** @internal */
-	onEditorMount?: (editor: Editor) => void
+	onEditorMount?(editor: Editor): void
 	/** @internal used for analytics only, we should refactor this away */
 	roomId?: string
 	/** @internal */

@@ -15,7 +15,7 @@ export async function SectionDocsPage({ section }: { section: Section }) {
 				<div className="page-header">
 					<h1>{section.title}</h1>
 				</div>
-				Choose your adventure on the left.
+				{`Sorry, there's no content here.`}
 			</main>
 		</>
 	)

@@ -2390,6 +2390,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cloudflare-workers-unfurl@npm:^0.0.1":
+  version: 0.0.1
+  resolution: "cloudflare-workers-unfurl@npm:0.0.1"
+  checksum: cb86a9ad540389292a5f780c87f6ad9f2a1a6210ea533152e9eae0d22a8b2bdc746d03a45589b5f560c0854fe22aa55e64d47a0208fae272a4d4cd1cb9121c01
+  languageName: node
+  linkType: hard
+
 "color-convert@npm:^2.0.1":
   version: 2.0.1
   resolution: "color-convert@npm:2.0.1"
@@ -4630,6 +4637,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.59.0"
     "@typescript-eslint/parser": "npm:^5.59.0"
     "@vitejs/plugin-react-swc": "npm:^3.6.0"
+    cloudflare-workers-unfurl: "npm:^0.0.1"
     concurrently: "npm:^8.2.2"
     eslint: "npm:^8.38.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"

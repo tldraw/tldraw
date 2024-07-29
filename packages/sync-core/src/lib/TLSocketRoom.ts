@@ -1,5 +1,6 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
-import { createTLSchema } from '@tldraw/tlschema'
+import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
+import { objectMapValues } from '@tldraw/utils'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
@@ -8,8 +9,8 @@ import { TLSocketServerSentEvent } from './protocol'
 // TODO: structured logging support
 /** @public */
 export interface TLSyncLog {
-	warn?: (...args: any[]) => void
-	error?: (...args: any[]) => void
+	warn?(...args: any[]): void
+	error?(...args: any[]): void
 }
 
 /** @public */
@@ -17,23 +18,26 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	private room: TLSyncRoom<R, SessionMeta>
 	private readonly sessions = new Map<
 		string,
+		// eslint-disable-next-line @typescript-eslint/method-signature-style
 		{ assembler: JsonChunkAssembler; socket: WebSocketMinimal; unlisten: () => void }
 	>()
 	readonly log?: TLSyncLog
 
 	constructor(
 		public readonly opts: {
-			initialSnapshot?: RoomSnapshot
+			initialSnapshot?: RoomSnapshot | TLStoreSnapshot
 			schema?: StoreSchema<R, any>
 			// how long to wait for a client to communicate before disconnecting them
 			clientTimeout?: number
 			log?: TLSyncLog
 			// a callback that is called when a client is disconnected
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			onSessionRemoved?: (
 				room: TLSocketRoom<R, SessionMeta>,
 				args: { sessionId: string; numSessionsRemaining: number; meta: SessionMeta }
 			) => void
 			// a callback that is called whenever a message is sent
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			onBeforeSendMessage?: (args: {
 				sessionId: string
 				/** @internal keep the protocol private for now */
@@ -41,6 +45,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				stringified: string
 				meta: SessionMeta
 			}) => void
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			onAfterReceiveMessage?: (args: {
 				sessionId: string
 				/** @internal keep the protocol private for now */
@@ -48,13 +53,19 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				stringified: string
 				meta: SessionMeta
 			}) => void
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			onDataChange?: () => void
 		}
 	) {
-		const initialClock = opts.initialSnapshot?.clock ?? 0
+		const initialSnapshot =
+			opts.initialSnapshot && 'store' in opts.initialSnapshot
+				? convertStoreSnapshotToRoomSnapshot(opts.initialSnapshot!)
+				: opts.initialSnapshot
+
+		const initialClock = initialSnapshot?.clock ?? 0
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			schema: opts.schema ?? (createTLSchema() as any),
-			snapshot: opts.initialSnapshot,
+			snapshot: initialSnapshot,
 			log: opts.log,
 		})
 		if (this.room.clock !== initialClock) {
@@ -154,7 +165,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			const messageString =
 				typeof message === 'string' ? message : new TextDecoder().decode(message)
 			const res = assembler.handleMessage(messageString)
-			if (res?.data) {
+			if (!res) {
+				// not enough chunks yet
+				return
+			}
+			if ('data' in res) {
 				// need to do this first in case the session gets removed as a result of handling the message
 				if (this.opts.onAfterReceiveMessage) {
 					const session = this.room.sessions.get(sessionId)
@@ -162,15 +177,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 						this.opts.onAfterReceiveMessage({
 							sessionId,
 							message: res.data as any,
-							stringified: messageString,
+							stringified: res.stringified,
 							meta: session.meta,
 						})
 					}
 				}
 
 				this.room.handleMessage(sessionId, res.data as any)
-			}
-			if (res?.error) {
+			} else {
 				this.log?.error?.('Error assembling message', res.error)
 				// close the socket to reset the connection
 				this.handleSocketError(sessionId)
@@ -237,7 +251,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * Load a snapshot of the document state, overwriting the current state.
 	 * @param snapshot - The snapshot to load
 	 */
-	loadSnapshot(snapshot: RoomSnapshot) {
+	loadSnapshot(snapshot: RoomSnapshot | TLStoreSnapshot) {
+		if ('store' in snapshot) {
+			snapshot = convertStoreSnapshotToRoomSnapshot(snapshot)
+		}
 		const oldRoom = this.room
 		const oldIds = oldRoom.getSnapshot().documents.map((d) => d.state.id)
 		const newIds = new Set(snapshot.documents.map((d) => d.state.id))
@@ -288,4 +305,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 /** @public */
 export type OmitVoid<T, KS extends keyof T = keyof T> = {
 	[K in KS extends any ? (void extends T[KS] ? never : KS) : never]: T[K]
+}
+
+function convertStoreSnapshotToRoomSnapshot(snapshot: TLStoreSnapshot): RoomSnapshot {
+	return {
+		clock: 0,
+		documents: objectMapValues(snapshot.store).map((state) => ({
+			state,
+			lastChangedClock: 0,
+		})),
+		schema: snapshot.schema,
+		tombstones: {},
+	}
 }

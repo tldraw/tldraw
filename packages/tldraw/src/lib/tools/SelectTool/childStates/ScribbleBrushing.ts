@@ -1,7 +1,6 @@
 import {
 	Geometry2d,
 	StateNode,
-	TLEventHandlers,
 	TLFrameShape,
 	TLGroupShape,
 	TLShape,
@@ -23,7 +22,7 @@ export class ScribbleBrushing extends StateNode {
 	initialSelectedShapeIds = new Set<TLShapeId>()
 	newlySelectedShapeIds = new Set<TLShapeId>()
 
-	override onEnter = () => {
+	override onEnter() {
 		this.initialSelectedShapeIds = new Set<TLShapeId>(
 			this.editor.inputs.shiftKey ? this.editor.getSelectedShapeIds() : []
 		)
@@ -44,23 +43,23 @@ export class ScribbleBrushing extends StateNode {
 		this.editor.updateInstanceState({ brush: null })
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.scribbles.stop(this.scribbleId)
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.updateScribbleSelection(true)
 	}
 
-	override onPointerUp = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onKeyDown = () => {
+	override onKeyDown() {
 		this.updateScribbleSelection(false)
 	}
 
-	override onKeyUp = () => {
+	override onKeyUp() {
 		if (!this.editor.inputs.altKey) {
 			this.parent.transition('brushing')
 		} else {
@@ -68,15 +67,15 @@ export class ScribbleBrushing extends StateNode {
 		}
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	private pushPointToScribble = () => {
+	private pushPointToScribble() {
 		const { x, y } = this.editor.inputs.currentPagePoint
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}

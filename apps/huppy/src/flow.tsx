@@ -14,7 +14,7 @@ export type NamedEvent = {
 
 export type Flow<CustomHookPayload = unknown> = {
 	name: string
-	onCustomHook?: (ctx: Ctx, payload: CustomHookPayload) => Promise<void>
+	onCustomHook?(ctx: Ctx, payload: CustomHookPayload): Promise<void>
 } & {
 	[Name in keyof WebhookEventMap as `on${Capitalize<CamelCase<Name>>}`]?: (
 		ctx: Ctx,
