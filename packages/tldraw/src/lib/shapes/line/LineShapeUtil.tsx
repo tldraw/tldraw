@@ -23,8 +23,8 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 
+import { getPerfectDashProps } from '../../..'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
 import { getDrawLinePathData } from './line-helpers'
@@ -275,9 +275,11 @@ export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Pol
 function LineShapeSvg({
 	shape,
 	shouldScale = false,
+	forceSolid = false,
 }: {
 	shape: TLLineShape
 	shouldScale?: boolean
+	forceSolid?: boolean
 }) {
 	const theme = useDefaultColorTheme()
 
@@ -311,15 +313,13 @@ function LineShapeSvg({
 			return (
 				<g stroke={theme[color].solid} strokeWidth={strokeWidth} transform={`scale(${scale})`}>
 					{spline.segments.map((segment, i) => {
-						const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-							segment.length,
-							strokeWidth,
-							{
-								style: dash,
-								start: i > 0 ? 'outset' : 'none',
-								end: i < spline.segments.length - 1 ? 'outset' : 'none',
-							}
-						)
+						const { strokeDasharray, strokeDashoffset } = forceSolid
+							? { strokeDasharray: 'none', strokeDashoffset: 'none' }
+							: getPerfectDashProps(segment.length, strokeWidth, {
+									style: dash,
+									start: i > 0 ? 'outset' : 'none',
+									end: i < spline.segments.length - 1 ? 'outset' : 'none',
+								})
 
 						return (
 							<path
@@ -376,6 +376,7 @@ function LineShapeSvg({
 								style: dash,
 								start: i > 0 ? 'outset' : 'none',
 								end: i < spline.segments.length - 1 ? 'outset' : 'none',
+								forceSolid,
 							}
 						)
 

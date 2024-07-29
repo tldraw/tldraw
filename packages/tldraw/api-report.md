@@ -59,7 +59,6 @@ import { TLBookmarkShape } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
-import { TLDefaultDashStyle } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
@@ -435,7 +434,6 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-
 export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
 // @public (undocumented)
@@ -859,19 +857,6 @@ export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
-
-// @public (undocumented)
-export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
-    closed: boolean;
-    end: 'none' | 'outset' | 'skip';
-    lengthRatio: number;
-    snap: number;
-    start: 'none' | 'outset' | 'skip';
-    style: TLDefaultDashStyle;
-}>): {
-    strokeDasharray: string;
-    strokeDashoffset: string;
-};
 
 // @public (undocumented)
 export function getSvgAsImage(editor: Editor, svgString: string, options: {
