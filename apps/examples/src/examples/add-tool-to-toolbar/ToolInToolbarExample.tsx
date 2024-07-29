@@ -8,8 +8,6 @@ import {
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuItem,
-	useIsToolSelected,
-	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { StickerTool } from './sticker-tool-util'
@@ -29,6 +27,7 @@ const uiOverrides: TLUiOverrides = {
 				editor.setCurrentTool('sticker')
 			},
 		}
+
 		return tools
 	},
 }
@@ -36,22 +35,19 @@ const uiOverrides: TLUiOverrides = {
 // [2]
 const components: TLComponents = {
 	Toolbar: (props) => {
-		const tools = useTools()
-		const isStickerSelected = useIsToolSelected(tools['sticker'])
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...tools['sticker']} isSelected={isStickerSelected} />
+				<TldrawUiMenuItem tool="sticker" />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)
 	},
 	KeyboardShortcutsDialog: (props) => {
-		const tools = useTools()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<DefaultKeyboardShortcutsDialogContent />
 				{/* Ideally, we'd interleave this into the tools group */}
-				<TldrawUiMenuItem {...tools['sticker']} />
+				<TldrawUiMenuItem tool="sticker" />
 			</DefaultKeyboardShortcutsDialog>
 		)
 	},

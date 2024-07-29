@@ -1,6 +1,7 @@
 import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { TLUiActionItem } from '../context/actions'
 import { useDialogs } from '../context/dialogs'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { TLUiIconType } from '../icon-types'
@@ -11,21 +12,15 @@ import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 export interface TLUiToolItem<
 	TranslationKey extends string = string,
 	IconType extends string = string,
-> {
-	id: string
-	label: TranslationKey
+> extends TLUiActionItem<TranslationKey, IconType> {
 	shortcutsLabel?: TranslationKey
-	icon: IconType
-	onSelect(source: TLUiEventSource): void
-	kbd?: string
-	readonlyOk?: boolean
 	meta?: {
 		[key: string]: any
 	}
 }
 
 /** @public */
-export type TLUiToolsContextType = Record<string, TLUiToolItem>
+export type TLUiToolsContextType = Partial<Record<string, TLUiToolItem>>
 
 /** @internal */
 export const ToolsContext = React.createContext<null | TLUiToolsContextType>(null)

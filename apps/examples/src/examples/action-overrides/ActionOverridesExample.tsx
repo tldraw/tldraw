@@ -7,11 +7,13 @@ export default function BasicExample() {
 			<Tldraw
 				overrides={{
 					actions: (_editor, actions, _helpers) => {
-						const newActions = {
-							...actions,
-							delete: { ...actions['delete'], kbd: 'x' },
-						}
-						return newActions
+						// change the keyboard shortcut for delete from backspace to x
+						actions.delete = { ...actions.delete!, kbd: 'x' }
+
+						// remove the duplicate action entirely. this also removes it from the UI.
+						delete actions.duplicate
+
+						return actions
 					},
 				}}
 			/>

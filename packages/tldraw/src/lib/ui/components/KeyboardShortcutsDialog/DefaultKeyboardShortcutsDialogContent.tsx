@@ -1,31 +1,27 @@
-import { useActions } from '../../context/actions'
 import { useIsMultiplayer } from '../../hooks/useIsMultiplayer'
-import { useTools } from '../../hooks/useTools'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public @react */
 export function DefaultKeyboardShortcutsDialogContent() {
-	const actions = useActions()
-	const tools = useTools()
 	const isMultiplayer = useIsMultiplayer()
 	return (
 		<>
 			<TldrawUiMenuGroup label="shortcuts-dialog.tools" id="tools">
-				<TldrawUiMenuItem {...actions['toggle-tool-lock']} />
-				<TldrawUiMenuItem {...actions['insert-media']} />
-				<TldrawUiMenuItem {...tools['select']} />
-				<TldrawUiMenuItem {...tools['draw']} />
-				<TldrawUiMenuItem {...tools['eraser']} />
-				<TldrawUiMenuItem {...tools['hand']} />
-				<TldrawUiMenuItem {...tools['rectangle']} />
-				<TldrawUiMenuItem {...tools['ellipse']} />
-				<TldrawUiMenuItem {...tools['arrow']} />
-				<TldrawUiMenuItem {...tools['line']} />
-				<TldrawUiMenuItem {...tools['text']} />
-				<TldrawUiMenuItem {...tools['frame']} />
-				<TldrawUiMenuItem {...tools['note']} />
-				<TldrawUiMenuItem {...tools['laser']} />
+				<TldrawUiMenuItem action="toggle-tool-lock" />
+				<TldrawUiMenuItem action="insert-media" />
+				<TldrawUiMenuItem tool="select" />
+				<TldrawUiMenuItem tool="draw" />
+				<TldrawUiMenuItem tool="eraser" />
+				<TldrawUiMenuItem tool="hand" />
+				<TldrawUiMenuItem tool="rectangle" />
+				<TldrawUiMenuItem tool="ellipse" />
+				<TldrawUiMenuItem tool="arrow" />
+				<TldrawUiMenuItem tool="line" />
+				<TldrawUiMenuItem tool="text" />
+				<TldrawUiMenuItem tool="frame" />
+				<TldrawUiMenuItem tool="note" />
+				<TldrawUiMenuItem tool="laser" />
 				<TldrawUiMenuItem
 					id="pointer-down"
 					label="tool.pointer-down"
@@ -36,46 +32,46 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				/>
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.preferences" id="preferences">
-				<TldrawUiMenuItem {...actions['toggle-dark-mode']} />
-				<TldrawUiMenuItem {...actions['toggle-focus-mode']} />
-				<TldrawUiMenuItem {...actions['toggle-grid']} />
+				<TldrawUiMenuItem action="toggle-dark-mode" />
+				<TldrawUiMenuItem action="toggle-focus-mode" />
+				<TldrawUiMenuItem action="toggle-grid" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.edit" id="edit">
-				<TldrawUiMenuItem {...actions['undo']} />
-				<TldrawUiMenuItem {...actions['redo']} />
-				<TldrawUiMenuItem {...actions['cut']} />
-				<TldrawUiMenuItem {...actions['copy']} />
-				<TldrawUiMenuItem {...actions['paste']} />
-				<TldrawUiMenuItem {...actions['select-all']} />
-				<TldrawUiMenuItem {...actions['delete']} />
-				<TldrawUiMenuItem {...actions['duplicate']} />
+				<TldrawUiMenuItem action="undo" />
+				<TldrawUiMenuItem action="redo" />
+				<TldrawUiMenuItem action="cut" />
+				<TldrawUiMenuItem action="copy" />
+				<TldrawUiMenuItem action="paste" />
+				<TldrawUiMenuItem action="select-all" />
+				<TldrawUiMenuItem action="delete" />
+				<TldrawUiMenuItem action="duplicate" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.view" id="view">
-				<TldrawUiMenuItem {...actions['zoom-in']} />
-				<TldrawUiMenuItem {...actions['zoom-out']} />
-				<TldrawUiMenuItem {...actions['zoom-to-100']} />
-				<TldrawUiMenuItem {...actions['zoom-to-fit']} />
-				<TldrawUiMenuItem {...actions['zoom-to-selection']} />
+				<TldrawUiMenuItem action="zoom-in" />
+				<TldrawUiMenuItem action="zoom-out" />
+				<TldrawUiMenuItem action="zoom-to-100" />
+				<TldrawUiMenuItem action="zoom-to-fit" />
+				<TldrawUiMenuItem action="zoom-to-selection" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup label="shortcuts-dialog.transform" id="transform">
-				<TldrawUiMenuItem {...actions['bring-to-front']} />
-				<TldrawUiMenuItem {...actions['bring-forward']} />
-				<TldrawUiMenuItem {...actions['send-backward']} />
-				<TldrawUiMenuItem {...actions['send-to-back']} />
-				<TldrawUiMenuItem {...actions['group']} />
-				<TldrawUiMenuItem {...actions['ungroup']} />
-				<TldrawUiMenuItem {...actions['flip-horizontal']} />
-				<TldrawUiMenuItem {...actions['flip-vertical']} />
-				<TldrawUiMenuItem {...actions['align-top']} />
-				<TldrawUiMenuItem {...actions['align-center-vertical']} />
-				<TldrawUiMenuItem {...actions['align-bottom']} />
-				<TldrawUiMenuItem {...actions['align-left']} />
-				<TldrawUiMenuItem {...actions['align-center-horizontal']} />
-				<TldrawUiMenuItem {...actions['align-right']} />
+				<TldrawUiMenuItem action="bring-to-front" />
+				<TldrawUiMenuItem action="bring-forward" />
+				<TldrawUiMenuItem action="send-backward" />
+				<TldrawUiMenuItem action="send-to-back" />
+				<TldrawUiMenuItem action="group" />
+				<TldrawUiMenuItem action="ungroup" />
+				<TldrawUiMenuItem action="flip-horizontal" />
+				<TldrawUiMenuItem action="flip-vertical" />
+				<TldrawUiMenuItem action="align-top" />
+				<TldrawUiMenuItem action="align-center-vertical" />
+				<TldrawUiMenuItem action="align-bottom" />
+				<TldrawUiMenuItem action="align-left" />
+				<TldrawUiMenuItem action="align-center-horizontal" />
+				<TldrawUiMenuItem action="align-right" />
 			</TldrawUiMenuGroup>
 			{isMultiplayer && (
 				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
-					<TldrawUiMenuItem {...actions['open-cursor-chat']} />
+					<TldrawUiMenuItem action="open-cursor-chat" />
 				</TldrawUiMenuGroup>
 			)}
 		</>

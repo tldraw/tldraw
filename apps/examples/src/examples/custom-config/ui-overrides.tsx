@@ -6,8 +6,6 @@ import {
 	TLComponents,
 	TLUiOverrides,
 	TldrawUiMenuItem,
-	useIsToolSelected,
-	useTools,
 } from 'tldraw'
 
 // There's a guide at the bottom of this file!
@@ -30,20 +28,17 @@ export const uiOverrides: TLUiOverrides = {
 
 export const components: TLComponents = {
 	Toolbar: (props) => {
-		const tools = useTools()
-		const isCardSelected = useIsToolSelected(tools['card'])
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...tools['card']} isSelected={isCardSelected} />
+				<TldrawUiMenuItem tool="card" />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)
 	},
 	KeyboardShortcutsDialog: (props) => {
-		const tools = useTools()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuItem {...tools['card']} />
+				<TldrawUiMenuItem tool="card" />
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
 		)

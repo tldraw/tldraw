@@ -148,16 +148,16 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     static type: string;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function ArrowDownToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Element | null;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function ArrowLeftToolbarItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function ArrowRightToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -237,13 +237,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     static type: "arrow";
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function ArrowToolbarItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function ArrowUpToolbarItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function AssetToolbarItem(): JSX_2.Element;
 
 // @internal (undocumented)
@@ -356,13 +356,13 @@ export interface CenteredTopPanelContainerProps {
 // @public
 export function centerSelectionAroundPoint(editor: Editor, position: VecLike): void;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function CheckBoxToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ClipboardMenuGroup(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function CloudToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -508,7 +508,7 @@ export function DefaultZoomMenuContent(): JSX_2.Element;
 // @public (undocumented)
 export function DeleteMenuItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function DiamondToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -572,7 +572,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     static type: "draw";
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function DrawToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -584,7 +584,7 @@ export function EditLinkMenuItem(): JSX_2.Element | null;
 // @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function EllipseToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -636,7 +636,7 @@ export class EraserTool extends StateNode {
     onEnter(): void;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function EraserToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -745,7 +745,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     static type: "frame";
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function FrameToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -954,10 +954,10 @@ export class HandTool extends StateNode {
     onTripleClick(info: TLClickEventInfo): void;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function HandToolbarItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function HexagonToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1012,7 +1012,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     static type: "highlight";
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function HighlightToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1071,7 +1071,7 @@ export class LaserTool extends StateNode {
     onEnter(): void;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function LaserToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1161,7 +1161,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     static type: "line";
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function LineToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1264,7 +1264,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static type: "note";
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function NoteToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1273,7 +1273,7 @@ export function OfflineIndicator(): JSX_2.Element;
 // @public (undocumented)
 export function OpacitySlider(): JSX_2.Element | null;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1357,7 +1357,7 @@ export function preloadFont(id: string, font: TLTypeFace): Promise<FontFace>;
 // @public (undocumented)
 export function PrintItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function RectangleToolbarItem(): JSX_2.Element;
 
 // @public
@@ -1372,7 +1372,7 @@ export function ReorderMenuItems(): JSX_2.Element;
 // @public (undocumented)
 export function ReorderMenuSubmenu(): JSX_2.Element | null;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function RhombusToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1401,7 +1401,7 @@ export class SelectTool extends StateNode {
     reactor: (() => void) | undefined;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function SelectToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1425,7 +1425,7 @@ export function SplineStylePickerSet({ styles }: StylePickerSetProps): JSX_2.Ele
 // @public (undocumented)
 export function StackMenuItems(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1587,7 +1587,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 // @public (undocumented)
 export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps): JSX_2.Element | null;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function TextToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -1816,7 +1816,7 @@ export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ toggle, disabled, checked, ...actionProps }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
@@ -1828,7 +1828,7 @@ export type TldrawUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons
 export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, onSelect, noClose, isSelected, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, noClose, ...actionProps }: TLUiMenuItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
@@ -1907,26 +1907,26 @@ export interface TLTypeFace {
 
 // @public (undocumented)
 export interface TLUiActionItem<TransationKey extends string = string, IconType extends string = string> {
-    // (undocumented)
-    checkbox?: boolean;
-    // (undocumented)
     icon?: IconType;
     // (undocumented)
     id: string;
-    // (undocumented)
     kbd?: string;
-    // (undocumented)
     label?: {
         [key: string]: TransationKey;
     } | TransationKey;
-    // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
-    // (undocumented)
     readonlyOk?: boolean;
 }
 
+// @public
+export type TLUiActionProps<TranslationKey extends string = string, IconType extends string = string> = {
+    action: string | TLUiActionItem<TranslationKey, IconType> | undefined;
+} | {
+    tool: string | TLUiToolItem<TranslationKey, IconType> | undefined;
+} | TLUiActionItem<TranslationKey, IconType> | TLUiToolItem<TranslationKey, IconType>;
+
 // @public (undocumented)
-export type TLUiActionsContextType = Record<string, TLUiActionItem>;
+export type TLUiActionsContextType = Partial<Record<string, TLUiActionItem>>;
 
 // @public (undocumented)
 export interface TLUiActionsMenuProps {
@@ -2497,30 +2497,11 @@ export interface TLUiMainMenuProps {
 }
 
 // @public (undocumented)
-export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = string, IconType extends string = string> {
-    // (undocumented)
+export type TLUiMenuCheckboxItemProps<TranslationKey extends string = string, IconType extends string = string> = TLUiActionProps<TranslationKey, IconType> & {
     checked?: boolean;
-    // (undocumented)
     disabled?: boolean;
-    // (undocumented)
-    icon?: IconType;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    kbd?: string;
-    // (undocumented)
-    label?: {
-        [key: string]: TranslationKey;
-    } | TranslationKey;
-    // (undocumented)
-    onSelect(source: TLUiEventSource): Promise<void> | void;
-    // (undocumented)
-    readonlyOk?: boolean;
-    // (undocumented)
-    title?: string;
-    // (undocumented)
     toggle?: boolean;
-}
+};
 
 // @public (undocumented)
 export interface TLUiMenuContextProviderProps {
@@ -2544,21 +2525,12 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 }
 
 // @public (undocumented)
-export interface TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> {
-    disabled?: boolean;
-    icon?: IconType;
-    // (undocumented)
-    id: string;
-    isSelected?: boolean;
-    kbd?: string;
-    label?: {
-        [key: string]: TranslationKey;
-    } | TranslationKey;
+export type TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> = TLUiActionProps<TranslationKey, IconType> & {
     noClose?: boolean;
-    onSelect(source: TLUiEventSource): Promise<void> | void;
-    readonlyOk?: boolean;
+    isSelected?: boolean;
+    disabled?: boolean;
     spinner?: boolean;
-}
+};
 
 // @public (undocumented)
 export interface TLUiMenuSubmenuProps<Translation extends string = string> {
@@ -2701,29 +2673,17 @@ export interface TLUiToastsContextType {
 }
 
 // @public (undocumented)
-export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> {
-    // (undocumented)
-    icon: IconType;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    kbd?: string;
-    // (undocumented)
-    label: TranslationKey;
+export interface TLUiToolItem<TranslationKey extends string = string, IconType extends string = string> extends TLUiActionItem<TranslationKey, IconType> {
     // (undocumented)
     meta?: {
         [key: string]: any;
     };
     // (undocumented)
-    onSelect(source: TLUiEventSource): void;
-    // (undocumented)
-    readonlyOk?: boolean;
-    // (undocumented)
     shortcutsLabel?: TranslationKey;
 }
 
 // @public (undocumented)
-export type TLUiToolsContextType = Record<string, TLUiToolItem>;
+export type TLUiToolsContextType = Partial<Record<string, TLUiToolItem>>;
 
 // @public (undocumented)
 export interface TLUiToolsProviderProps {
@@ -3235,7 +3195,7 @@ export function ToggleTransparentBgMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export function ToggleWrapModeItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function ToolbarItem({ tool }: ToolbarItemProps): JSX_2.Element;
 
 // @public (undocumented)
@@ -3244,10 +3204,10 @@ export interface ToolbarItemProps {
     tool: string;
 }
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function TrapezoidToolbarItem(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function TriangleToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -3269,7 +3229,7 @@ export function UnlockAllMenuItem(): JSX_2.Element;
 export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string): string | undefined;
 
 // @public (undocumented)
-export function useActions(): TLUiActionsContextType;
+export function useActions(): Partial<Record<string, TLUiActionItem<string, string>>>;
 
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
@@ -3347,8 +3307,8 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
-// @public (undocumented)
-export function useIsToolSelected(tool: TLUiToolItem): boolean;
+// @public @deprecated (undocumented)
+export function useIsToolSelected(toolName: string | TLUiToolItem): boolean;
 
 // @public (undocumented)
 export function useKeyboardShortcuts(): void;
@@ -3388,7 +3348,7 @@ export function useTldrawUiComponents(): TLUiComponents;
 export function useToasts(): TLUiToastsContextType;
 
 // @public (undocumented)
-export function useTools(): TLUiToolsContextType;
+export function useTools(): Partial<Record<string, TLUiToolItem<string, string>>>;
 
 // @public
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
@@ -3421,7 +3381,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 // @public (undocumented)
 export function ViewSubmenu(): JSX_2.Element;
 
-// @public (undocumented)
+// @public @deprecated (undocumented)
 export function XBoxToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)

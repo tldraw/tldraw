@@ -2,7 +2,7 @@ import { ContextMenuItem } from '@radix-ui/react-context-menu'
 import { exhaustiveSwitchError, preventDefault } from '@tldraw/editor'
 import { useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
-import { TLUiEventSource } from '../../../context/events'
+import { TLUiActionProps, useActionProps } from '../../../hooks/useActionProps'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -16,31 +16,10 @@ import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export interface TLUiMenuItemProps<
+export type TLUiMenuItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
-> {
-	id: string
-	/**
-	 * The icon to display on the item.
-	 */
-	icon?: IconType
-	/**
-	 * The keyboard shortcut to display on the item.
-	 */
-	kbd?: string
-	/**
-	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.
-	 */
-	label?: TranslationKey | { [key: string]: TranslationKey }
-	/**
-	 * If the editor is in readonly mode and the item is not marked as readonlyok, it will not be rendered.
-	 */
-	readonlyOk?: boolean
-	/**
-	 * The function to call when the item is clicked.
-	 */
-	onSelect(source: TLUiEventSource): Promise<void> | void
+> = TLUiActionProps<TranslationKey, IconType> & {
 	/**
 	 * Whether this item should be disabled.
 	 */
@@ -66,15 +45,10 @@ export function TldrawUiMenuItem<
 >({
 	disabled = false,
 	spinner = false,
-	readonlyOk = false,
-	id,
-	kbd,
-	label,
-	icon,
-	onSelect,
 	noClose,
-	isSelected,
+	...actionProps
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
+	const action = useActionProps(actionProps)
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
 	const msg = useTranslation()
@@ -82,6 +56,10 @@ export function TldrawUiMenuItem<
 	const [disableClicks, setDisableClicks] = useState(false)
 
 	const isReadonlyMode = useReadonly()
+
+	if (!action) return null
+	const { readonlyOk, label, kbd, onSelect, id, icon, isSelected } = action
+
 	if (isReadonlyMode && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)

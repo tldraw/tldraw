@@ -1,3 +1,4 @@
+/* eslint-disable deprecation/deprecation */
 /// <reference types="react" />
 
 // eslint-disable-next-line local/no-export-star
@@ -381,6 +382,7 @@ export {
 	type TLUiToastsContextType,
 } from './lib/ui/context/toasts'
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
+export { type TLUiActionProps } from './lib/ui/hooks/useActionProps'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'

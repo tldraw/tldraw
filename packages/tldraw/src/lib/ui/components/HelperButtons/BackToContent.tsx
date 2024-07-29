@@ -7,6 +7,7 @@ export function BackToContent() {
 	const editor = useEditor()
 
 	const actions = useActions()
+	const action = actions['back-to-content']
 
 	const [showBackToContent, setShowBackToContent] = useState(false)
 	const rIsShowing = useRef(false)
@@ -29,13 +30,13 @@ export function BackToContent() {
 		[editor]
 	)
 
-	if (!showBackToContent) return null
+	if (!showBackToContent || !action) return null
 
 	return (
 		<TldrawUiMenuItem
-			{...actions['back-to-content']}
+			{...action}
 			onSelect={() => {
-				actions['back-to-content'].onSelect('helper-buttons')
+				action.onSelect('helper-buttons')
 				setShowBackToContent(false)
 			}}
 		/>

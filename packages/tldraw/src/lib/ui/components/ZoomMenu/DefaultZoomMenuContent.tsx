@@ -7,8 +7,8 @@ export function DefaultZoomMenuContent() {
 	const actions = useActions()
 	return (
 		<>
-			<TldrawUiMenuItem {...actions['zoom-in']} noClose />
-			<TldrawUiMenuItem {...actions['zoom-out']} noClose />
+			<TldrawUiMenuItem action="zoom-in" noClose />
+			<TldrawUiMenuItem action="zoom-out" noClose />
 			<ZoomTo100MenuItem />
 			<ZoomToFitMenuItem />
 			<ZoomToSelectionMenuItem />

@@ -9,15 +9,15 @@ const overrides: TLUiOverrides = {
 	actions(_editor, actions): TLUiActionsContextType {
 		const newActions = {
 			...actions,
-			'toggle-grid': { ...actions['toggle-grid'], kbd: 'x' },
-			'copy-as-png': { ...actions['copy-as-png'], kbd: '$1' },
+			'toggle-grid': { ...actions['toggle-grid']!, kbd: 'x' },
+			'copy-as-png': { ...actions['copy-as-png']!, kbd: '$1' },
 		}
 
 		return newActions
 	},
 	//[b]
 	tools(_editor, tools): TLUiToolsContextType {
-		const newTools = { ...tools, draw: { ...tools.draw, kbd: 'p' } }
+		const newTools = { ...tools, draw: { ...tools.draw!, kbd: 'p' } }
 		return newTools
 	},
 }

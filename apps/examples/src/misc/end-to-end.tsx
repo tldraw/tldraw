@@ -35,7 +35,7 @@ function SneakyExportButton() {
 
 	useEffect(() => {
 		const api: EndToEndApi = {
-			exportAsSvg: () => actions['export-as-svg'].onSelect('unknown'),
+			exportAsSvg: () => actions['export-as-svg']!.onSelect('unknown'),
 			exportAsFormat: (format) =>
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), format, 'test'),
 		}

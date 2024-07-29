@@ -24,7 +24,6 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	useActions,
 	useEditor,
 	useTranslation,
 	useValue,
@@ -63,12 +62,11 @@ const components: TLComponents = {
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
+					<TldrawUiMenuItem action={SAVE_FILE_COPY_ACTION} />
+					<TldrawUiMenuItem action={OPEN_FILE_ACTION} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>

@@ -2,7 +2,7 @@ import * as _ContextMenu from '@radix-ui/react-context-menu'
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault } from '@tldraw/editor'
 import { unwrapLabel } from '../../../context/actions'
-import { TLUiEventSource } from '../../../context/events'
+import { TLUiActionProps, useActionProps } from '../../../hooks/useActionProps'
 import { useReadonly } from '../../../hooks/useReadonly'
 import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
@@ -11,17 +11,10 @@ import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export interface TLUiMenuCheckboxItemProps<
+export type TLUiMenuCheckboxItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
-> {
-	icon?: IconType
-	id: string
-	kbd?: string
-	title?: string
-	label?: TranslationKey | { [key: string]: TranslationKey }
-	readonlyOk?: boolean
-	onSelect(source: TLUiEventSource): Promise<void> | void
+> = TLUiActionProps<TranslationKey, IconType> & {
 	toggle?: boolean
 	checked?: boolean
 	disabled?: boolean
@@ -32,18 +25,18 @@ export function TldrawUiMenuCheckboxItem<
 	TranslationKey extends string = string,
 	IconType extends string = string,
 >({
-	id,
-	kbd,
-	label,
-	readonlyOk,
-	onSelect,
 	toggle = false,
 	disabled = false,
 	checked = false,
+	...actionProps
 }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const isReadonlyMode = useReadonly()
 	const msg = useTranslation()
+
+	const action = useActionProps(actionProps)
+	if (!action) return null
+	const { id, kbd, label, readonlyOk, onSelect } = action
 
 	// If the editor is in readonly mode and the item is not marked as readonlyok, return null
 	if (isReadonlyMode && !readonlyOk) return null

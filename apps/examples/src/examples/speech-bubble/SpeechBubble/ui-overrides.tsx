@@ -7,8 +7,6 @@ import {
 	TLUiAssetUrlOverrides,
 	TLUiOverrides,
 	TldrawUiMenuItem,
-	useIsToolSelected,
-	useTools,
 } from 'tldraw'
 
 // There's a guide at the bottom of this file!
@@ -38,20 +36,17 @@ export const customAssetUrls: TLUiAssetUrlOverrides = {
 
 export const components: TLComponents = {
 	Toolbar: (props) => {
-		const tools = useTools()
-		const isSpeechBubbleSelected = useIsToolSelected(tools['speech'])
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...tools['speech']} isSelected={isSpeechBubbleSelected} />
+				<TldrawUiMenuItem tool="speech" />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)
 	},
 	KeyboardShortcutsDialog: (props) => {
-		const tools = useTools()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuItem {...tools['speech']} />
+				<TldrawUiMenuItem tool="speech" />
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
 		)

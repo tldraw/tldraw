@@ -17,7 +17,6 @@ export function LanguageMenu() {
 					<TldrawUiMenuCheckboxItem
 						id={`language-${locale}`}
 						key={locale}
-						title={locale}
 						label={label}
 						checked={locale === currentLanguage}
 						onSelect={() => {

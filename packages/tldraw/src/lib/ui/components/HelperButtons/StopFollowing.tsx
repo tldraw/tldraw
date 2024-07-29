@@ -13,5 +13,5 @@ export function StopFollowing() {
 	)
 	if (!followingUser) return null
 
-	return <TldrawUiMenuItem {...actions['stop-following']} />
+	return <TldrawUiMenuItem action="stop-following" />
 }

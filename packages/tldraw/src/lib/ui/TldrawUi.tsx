@@ -116,7 +116,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	useNativeClipboardEvents()
 	useEditorEvents()
 
-	const { 'toggle-focus-mode': toggleFocus } = useActions()
+	const { 'toggle-focus-mode': toggleFocusAction } = useActions()
 
 	return (
 		<div
@@ -125,13 +125,13 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			})}
 			data-breakpoint={breakpoint}
 		>
-			{isFocusMode ? (
+			{isFocusMode && toggleFocusAction ? (
 				<div className="tlui-layout__top">
 					<TldrawUiButton
 						type="icon"
 						className="tlui-focus-button"
 						title={msg('focus-mode.toggle-focus-mode')}
-						onClick={() => toggleFocus.onSelect('menu')}
+						onClick={() => toggleFocusAction.onSelect('menu')}
 					>
 						<TldrawUiButtonIcon icon="dot" />
 					</TldrawUiButton>

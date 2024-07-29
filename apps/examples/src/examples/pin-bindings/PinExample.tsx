@@ -25,8 +25,6 @@ import {
 	createShapeId,
 	invLerp,
 	lerp,
-	useIsToolSelected,
-	useTools,
 } from 'tldraw'
 
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -319,11 +317,9 @@ const overrides: TLUiOverrides = {
 
 const components: TLUiComponents & TLEditorComponents = {
 	Toolbar: (...props) => {
-		const pin = useTools().pin
-		const isPinSelected = useIsToolSelected(pin)
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...pin} isSelected={isPinSelected} />
+				<TldrawUiMenuItem tool="pin" />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)

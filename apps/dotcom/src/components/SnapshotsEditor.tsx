@@ -11,7 +11,6 @@ import {
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	useActions,
 } from 'tldraw'
 import { UrlStateSync } from '../components/MultiplayerEditor'
 import { assetUrls } from '../utils/assetUrls'
@@ -33,11 +32,10 @@ const components: TLComponents = {
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+					<TldrawUiMenuItem action={SAVE_FILE_COPY_ACTION} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>

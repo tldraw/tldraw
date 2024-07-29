@@ -9,8 +9,6 @@ import {
 	TldrawUiMenuItem,
 	computed,
 	track,
-	useIsToolSelected,
-	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { SlideShapeTool } from './SlideShapeTool'
@@ -23,20 +21,17 @@ const components: TLComponents = {
 	HelperButtons: SlidesPanel,
 	Minimap: null,
 	Toolbar: (props) => {
-		const tools = useTools()
-		const isSlideSelected = useIsToolSelected(tools['slide'])
 		return (
 			<DefaultToolbar {...props}>
-				<TldrawUiMenuItem {...tools['slide']} isSelected={isSlideSelected} />
+				<TldrawUiMenuItem tool="slide" />
 				<DefaultToolbarContent />
 			</DefaultToolbar>
 		)
 	},
 	KeyboardShortcutsDialog: (props) => {
-		const tools = useTools()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuItem {...tools['slide']} />
+				<TldrawUiMenuItem tool="slide" />
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
 		)
@@ -86,7 +81,9 @@ const overrides: TLUiOverrides = {
 			icon: 'group',
 			label: 'Slide',
 			kbd: 's',
-			onSelect: () => editor.setCurrentTool('slide'),
+			onSelect: () => {
+				editor.setCurrentTool('slide')
+			},
 		}
 		return tools
 	},

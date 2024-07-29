@@ -12,6 +12,9 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 /** @public @react */
 export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const actions = useActions()
+	const zoomOutAction = actions['zoom-out']
+	const zoomInAction = actions['zoom-in']
+
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
@@ -49,23 +52,27 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 					</>
 				) : (
 					<>
-						<TldrawUiButton
-							type="icon"
-							data-testid="minimap.zoom-out"
-							title={`${msg(unwrapLabel(actions['zoom-out'].label))} ${kbdStr(actions['zoom-out'].kbd!)}`}
-							onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
-						>
-							<TldrawUiButtonIcon icon="minus" />
-						</TldrawUiButton>
+						{zoomOutAction && (
+							<TldrawUiButton
+								type="icon"
+								data-testid="minimap.zoom-out"
+								title={`${msg(unwrapLabel(zoomOutAction.label))} ${kbdStr(zoomOutAction.kbd!)}`}
+								onClick={() => zoomOutAction.onSelect('navigation-zone')}
+							>
+								<TldrawUiButtonIcon icon="minus" />
+							</TldrawUiButton>
+						)}
 						{ZoomMenu && <ZoomMenu />}
-						<TldrawUiButton
-							type="icon"
-							data-testid="minimap.zoom-in"
-							title={`${msg(unwrapLabel(actions['zoom-in'].label))} ${kbdStr(actions['zoom-in'].kbd!)}`}
-							onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
-						>
-							<TldrawUiButtonIcon icon="plus" />
-						</TldrawUiButton>
+						{zoomInAction && (
+							<TldrawUiButton
+								type="icon"
+								data-testid="minimap.zoom-in"
+								title={`${msg(unwrapLabel(zoomInAction.label))} ${kbdStr(zoomInAction.kbd!)}`}
+								onClick={() => zoomInAction.onSelect('navigation-zone')}
+							>
+								<TldrawUiButtonIcon icon="plus" />
+							</TldrawUiButton>
+						)}
 						{Minimap && (
 							<TldrawUiButton
 								type="icon"

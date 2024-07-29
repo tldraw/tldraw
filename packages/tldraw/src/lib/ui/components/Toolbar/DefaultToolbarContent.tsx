@@ -6,50 +6,56 @@ import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 export function DefaultToolbarContent() {
 	return (
 		<>
-			<SelectToolbarItem />
-			<HandToolbarItem />
-			<DrawToolbarItem />
-			<EraserToolbarItem />
-			<ArrowToolbarItem />
-			<TextToolbarItem />
-			<NoteToolbarItem />
-			<AssetToolbarItem />
-			<RectangleToolbarItem />
-			<EllipseToolbarItem />
-			<TriangleToolbarItem />
-			<DiamondToolbarItem />
-			<HexagonToolbarItem />
-			<OvalToolbarItem />
-			<RhombusToolbarItem />
-			<StarToolbarItem />
-			<CloudToolbarItem />
-			<HeartToolbarItem />
-			<XBoxToolbarItem />
-			<CheckBoxToolbarItem />
-			<ArrowLeftToolbarItem />
-			<ArrowUpToolbarItem />
-			<ArrowDownToolbarItem />
-			<ArrowRightToolbarItem />
-			<LineToolbarItem />
-			<HighlightToolbarItem />
-			<LaserToolbarItem />
-			<FrameToolbarItem />
+			<TldrawUiMenuItem tool="select" />
+			<TldrawUiMenuItem tool="hand" />
+			<TldrawUiMenuItem tool="draw" />
+			<TldrawUiMenuItem tool="eraser" />
+			<TldrawUiMenuItem tool="arrow" />
+			<TldrawUiMenuItem tool="text" />
+			<TldrawUiMenuItem tool="note" />
+			<TldrawUiMenuItem tool="asset" />
+			<TldrawUiMenuItem tool="rectangle" />
+			<TldrawUiMenuItem tool="ellipse" />
+			<TldrawUiMenuItem tool="triangle" />
+			<TldrawUiMenuItem tool="diamond" />
+			<TldrawUiMenuItem tool="hexagon" />
+			<TldrawUiMenuItem tool="oval" />
+			<TldrawUiMenuItem tool="rhombus" />
+			<TldrawUiMenuItem tool="star" />
+			<TldrawUiMenuItem tool="cloud" />
+			<TldrawUiMenuItem tool="heart" />
+			<TldrawUiMenuItem tool="x-box" />
+			<TldrawUiMenuItem tool="check-box" />
+			<TldrawUiMenuItem tool="arrow-left" />
+			<TldrawUiMenuItem tool="arrow-up" />
+			<TldrawUiMenuItem tool="arrow-down" />
+			<TldrawUiMenuItem tool="arrow-right" />
+			<TldrawUiMenuItem tool="line" />
+			<TldrawUiMenuItem tool="highlight" />
+			<TldrawUiMenuItem tool="laser" />
+			<TldrawUiMenuItem tool="frame" />
 		</>
 	)
 }
 
-/** @public */
-export function useIsToolSelected(tool: TLUiToolItem) {
+/**
+ * @public
+ * @deprecated - this is automatically inferred by {@link TldrawUiMenuItem}.
+ */
+export function useIsToolSelected(toolName: TLUiToolItem | string) {
 	const editor = useEditor()
-	const geo = tool.meta?.geo
+	const tools = useTools()
+	const tool = typeof toolName === 'string' ? tools[toolName] : toolName
+	const geo = tool?.meta?.geo
 	return useValue(
 		'is tool selected',
 		() => {
+			if (!tool) return false
 			const activeToolId = editor.getCurrentToolId()
 			const geoState = editor.getSharedStyles().getAsKnownValue(GeoShapeGeoStyle)
 			return geo ? activeToolId === 'geo' && geoState === geo : activeToolId === tool.id
 		},
-		[editor, tool.id, geo]
+		[editor, tool, geo]
 	)
 }
 
@@ -58,160 +64,281 @@ export interface ToolbarItemProps {
 	tool: string
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool={tool} />`
+ */
 export function ToolbarItem({ tool }: ToolbarItemProps) {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools[tool])
-	return <TldrawUiMenuItem {...tools[tool]} isSelected={isSelected} />
+	return <TldrawUiMenuItem tool={tool} />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="select" />`
+ */
 export function SelectToolbarItem() {
-	return <ToolbarItem tool="select" />
+	return <TldrawUiMenuItem tool="select" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="hand" />`
+ */
 export function HandToolbarItem() {
-	return <ToolbarItem tool="hand" />
+	return <TldrawUiMenuItem tool="hand" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="draw" />`
+ */
 export function DrawToolbarItem() {
-	return <ToolbarItem tool="draw" />
+	return <TldrawUiMenuItem tool="draw" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="eraser" />`
+ */
 export function EraserToolbarItem() {
-	return <ToolbarItem tool="eraser" />
+	return <TldrawUiMenuItem tool="eraser" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="arrow" />`
+ */
 export function ArrowToolbarItem() {
-	return <ToolbarItem tool="arrow" />
+	return <TldrawUiMenuItem tool="arrow" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="text" />`
+ */
 export function TextToolbarItem() {
-	return <ToolbarItem tool="text" />
+	return <TldrawUiMenuItem tool="text" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="note" />`
+ */
 export function NoteToolbarItem() {
-	return <ToolbarItem tool="note" />
+	return <TldrawUiMenuItem tool="note" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="asset" />`
+ */
 export function AssetToolbarItem() {
-	const tools = useTools()
-	return <TldrawUiMenuItem {...tools['asset']} />
+	return <TldrawUiMenuItem tool="asset" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="rectangle" />`
+ */
 export function RectangleToolbarItem() {
-	return <ToolbarItem tool="rectangle" />
+	return <TldrawUiMenuItem tool="rectangle" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="ellipse" />`
+ */
 export function EllipseToolbarItem() {
-	return <ToolbarItem tool="ellipse" />
+	return <TldrawUiMenuItem tool="ellipse" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="diamond" />`
+ */
 export function DiamondToolbarItem() {
-	return <ToolbarItem tool="diamond" />
+	return <TldrawUiMenuItem tool="diamond" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="triangle" />`
+ */
 export function TriangleToolbarItem() {
-	return <ToolbarItem tool="triangle" />
+	return <TldrawUiMenuItem tool="triangle" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="trapezoid" />`
+ */
 export function TrapezoidToolbarItem() {
-	return <ToolbarItem tool="trapezoid" />
+	return <TldrawUiMenuItem tool="trapezoid" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="rhombus" />`
+ */
 export function RhombusToolbarItem() {
-	return <ToolbarItem tool="rhombus" />
+	return <TldrawUiMenuItem tool="rhombus" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="pentagon" />`
+ */
 export function PentagonToolbarItem() {
-	return <ToolbarItem tool="pentagon" />
+	return <TldrawUiMenuItem tool="pentagon" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="heart" />`
+ */
 export function HeartToolbarItem() {
-	return <ToolbarItem tool="heart" />
+	return <TldrawUiMenuItem tool="heart" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="hexagon" />`
+ */
 export function HexagonToolbarItem() {
-	return <ToolbarItem tool="hexagon" />
+	return <TldrawUiMenuItem tool="hexagon" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="cloud" />`
+ */
 export function CloudToolbarItem() {
-	return <ToolbarItem tool="cloud" />
+	return <TldrawUiMenuItem tool="cloud" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="star" />`
+ */
 export function StarToolbarItem() {
-	return <ToolbarItem tool="star" />
+	return <TldrawUiMenuItem tool="star" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="oval" />`
+ */
 export function OvalToolbarItem() {
-	return <ToolbarItem tool="oval" />
+	return <TldrawUiMenuItem tool="oval" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="x-box" />`
+ */
 export function XBoxToolbarItem() {
-	return <ToolbarItem tool="x-box" />
+	return <TldrawUiMenuItem tool="x-box" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="check-box" />`
+ */
 export function CheckBoxToolbarItem() {
-	return <ToolbarItem tool="check-box" />
+	return <TldrawUiMenuItem tool="check-box" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="arrow-left" />`
+ */
 export function ArrowLeftToolbarItem() {
-	return <ToolbarItem tool="arrow-left" />
+	return <TldrawUiMenuItem tool="arrow-left" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="arrow-up" />`
+ */
 export function ArrowUpToolbarItem() {
-	return <ToolbarItem tool="arrow-up" />
+	return <TldrawUiMenuItem tool="arrow-up" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="arrow-down" />`
+ */
 export function ArrowDownToolbarItem() {
-	return <ToolbarItem tool="arrow-down" />
+	return <TldrawUiMenuItem tool="arrow-down" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="arrow-right" />`
+ */
 export function ArrowRightToolbarItem() {
-	return <ToolbarItem tool="arrow-right" />
+	return <TldrawUiMenuItem tool="arrow-right" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="line" />`
+ */
 export function LineToolbarItem() {
-	return <ToolbarItem tool="line" />
+	return <TldrawUiMenuItem tool="line" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="highlight" />`
+ */
 export function HighlightToolbarItem() {
-	return <ToolbarItem tool="highlight" />
+	return <TldrawUiMenuItem tool="highlight" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="frame" />`
+ */
 export function FrameToolbarItem() {
-	return <ToolbarItem tool="frame" />
+	return <TldrawUiMenuItem tool="frame" />
 }
 
-/** @public @react */
+/**
+ * @public
+ * @react
+ * @deprecated Use {@link TldrawUiMenuItem} directly: `<TldrawUiMenuItem tool="laser" />`
+ */
 export function LaserToolbarItem() {
-	return <ToolbarItem tool="laser" />
+	return <TldrawUiMenuItem tool="laser" />
 }

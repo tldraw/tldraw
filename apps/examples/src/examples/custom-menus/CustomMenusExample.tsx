@@ -31,9 +31,7 @@ import {
 	TLUiKeyboardShortcutsDialogProps,
 	TLUiStylePanelProps,
 	useEditor,
-	useIsToolSelected,
 	useRelevantStyles,
-	useTools,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -225,12 +223,10 @@ function CustomStylePanel(props: TLUiStylePanelProps) {
 //[11]
 function CustomToolbar() {
 	const editor = useEditor()
-	const tools = useTools()
-	const isScreenshotSelected = useIsToolSelected(tools['rhombus-2'])
 	return (
 		<div>
 			<DefaultToolbar>
-				<TldrawUiMenuItem {...tools['rhombus-2']} isSelected={isScreenshotSelected} />
+				<TldrawUiMenuItem tool="rhombus-2" />
 
 				<DefaultToolbarContent />
 				<button

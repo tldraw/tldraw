@@ -17,8 +17,9 @@ import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ShareButton } from './ShareButton'
 
 export const ExportMenu = React.memo(function ExportMenu() {
-	const { [SHARE_PROJECT_ACTION]: shareProject, [SHARE_SNAPSHOT_ACTION]: shareSnapshot } =
-		useActions()
+	const actions = useActions()
+	const shareProject = actions[SHARE_PROJECT_ACTION]!
+	const shareSnapshot = actions[SHARE_SNAPSHOT_ACTION]!
 	const container = useContainer()
 	const msg = useTranslation()
 	const handleUiEvent = useHandleUiEvents()

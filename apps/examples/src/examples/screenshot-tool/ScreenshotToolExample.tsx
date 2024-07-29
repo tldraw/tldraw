@@ -8,8 +8,6 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	useEditor,
-	useIsToolSelected,
-	useTools,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -40,11 +38,9 @@ const customUiOverrides: TLUiOverrides = {
 }
 
 function CustomToolbar() {
-	const tools = useTools()
-	const isScreenshotSelected = useIsToolSelected(tools['screenshot'])
 	return (
 		<DefaultToolbar>
-			<TldrawUiMenuItem {...tools['screenshot']} isSelected={isScreenshotSelected} />
+			<TldrawUiMenuItem tool="screenshot" />
 			<DefaultToolbarContent />
 		</DefaultToolbar>
 	)

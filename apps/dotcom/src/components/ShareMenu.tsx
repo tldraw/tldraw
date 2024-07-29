@@ -112,8 +112,9 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	const msg = useTranslation()
 	const container = useContainer()
 
-	const { [SHARE_PROJECT_ACTION]: shareProject, [SHARE_SNAPSHOT_ACTION]: shareSnapshot } =
-		useActions()
+	const actions = useActions()
+	const shareProject = actions[SHARE_PROJECT_ACTION]!
+	const shareSnapshot = actions[SHARE_SNAPSHOT_ACTION]!
 
 	const [shareState, setShareState] = useState(getFreshShareState)
 

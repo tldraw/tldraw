@@ -269,7 +269,6 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 	return (
 		<TldrawUiMenuCheckboxItem
 			id={flag.name}
-			title={flag.name}
 			label={flag.name
 				.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
 				.replace(/^[a-z]/, (m) => m.toUpperCase())}

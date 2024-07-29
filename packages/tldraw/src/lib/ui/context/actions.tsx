@@ -44,17 +44,33 @@ export interface TLUiActionItem<
 	TransationKey extends string = string,
 	IconType extends string = string,
 > {
-	icon?: IconType
 	id: string
+	/**
+	 * The icon to display on the item.
+	 */
+	icon?: IconType
+	/**
+	 * The keyboard shortcut to display on the item.
+	 */
 	kbd?: string
+	/**
+	 * The label to display on the item. If it's a string, it will be translated. If it's an object,
+	 * the keys will be used as the language keys and the values will be translated.
+	 */
 	label?: TransationKey | { [key: string]: TransationKey }
+	/**
+	 * If the editor is in readonly mode and the item is not marked as readonlyok, it will not be
+	 * rendered.
+	 */
 	readonlyOk?: boolean
-	checkbox?: boolean
+	/**
+	 * The function to call when the item is clicked.
+	 */
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 
 /** @public */
-export type TLUiActionsContextType = Record<string, TLUiActionItem>
+export type TLUiActionsContextType = Partial<Record<string, TLUiActionItem>>
 
 /** @internal */
 export const ActionsContext = React.createContext<TLUiActionsContextType | null>(null)
@@ -1111,7 +1127,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-snap-mode', { source })
 					editor.user.updateUserPreferences({ isSnapMode: !editor.user.getIsSnapMode() })
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-dark-mode',
@@ -1128,7 +1143,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						colorScheme: value,
 					})
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-wrap-mode',
@@ -1143,7 +1157,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						isWrapMode: !editor.user.getIsWrapMode(),
 					})
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-dynamic-size-mode',
@@ -1158,7 +1171,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						isDynamicSizeMode: !editor.user.getIsDynamicResizeMode(),
 					})
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-paste-at-cursor',
@@ -1173,7 +1185,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						isPasteAtCursorMode: !editor.user.getIsPasteAtCursorMode(),
 					})
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-reduce-motion',
@@ -1188,7 +1199,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						animationSpeed: editor.user.getAnimationSpeed() === 0 ? 1 : 0,
 					})
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-edge-scrolling',
@@ -1203,7 +1213,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						edgeScrollSpeed: editor.user.getEdgeScrollSpeed() === 0 ? 1 : 0,
 					})
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-transparent',
@@ -1219,7 +1228,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						exportBackground: !editor.getInstanceState().exportBackground,
 					})
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-tool-lock',
@@ -1232,7 +1240,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-tool-lock', { source })
 					editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
 				},
-				checkbox: true,
 			},
 			{
 				id: 'unlock-all',
@@ -1258,7 +1265,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				readonlyOk: true,
 				kbd: '$.',
-				checkbox: true,
 				onSelect(source) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
@@ -1284,7 +1290,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-grid-mode', { source })
 					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
 				},
-				checkbox: true,
 			},
 			{
 				id: 'toggle-debug-mode',
@@ -1299,7 +1304,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						isDebugMode: !editor.getInstanceState().isDebugMode,
 					})
 				},
-				checkbox: true,
 			},
 			{
 				id: 'print',
@@ -1475,7 +1479,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		isMultiplayer,
 	])
 
-	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
+	return <ActionsContext.Provider value={actions}>{children}</ActionsContext.Provider>
 }
 
 /** @public */
@@ -1487,10 +1491,6 @@ export function useActions() {
 	}
 
 	return ctx
-}
-
-function asActions<T extends Record<string, TLUiActionItem>>(actions: T) {
-	return actions as Record<keyof typeof actions, TLUiActionItem>
 }
 
 /** @public */
