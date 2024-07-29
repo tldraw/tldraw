@@ -138,9 +138,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoadError(error: Error): void
 		onSyncError(reason: TLIncompatibilityReason): void
 		onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void
-		didCancel?(): boolean
+		didCancel?(this: void): boolean
 	}) {
-		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this.didCancel = config.didCancel
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value

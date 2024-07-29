@@ -396,7 +396,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
 // @internal
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
-        didCancel?(): boolean;
+        didCancel?(this: void): boolean;
         onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void;
         onLoad(self: TLSyncClient<R, S>): void;
         onLoadError(error: Error): void;
