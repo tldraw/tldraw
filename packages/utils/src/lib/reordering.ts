@@ -1,15 +1,66 @@
-import { IndexKey } from './IndexKey'
-import { INTEGER_ZERO, generateNKeysBetween, validateOrder } from './dgreensp/dgreensp'
+import { generateNJitteredKeysBetween, generateNKeysBetween } from 'fractional-indexing-jittered'
+
+const SMALLEST_INTEGER = 'A00000000000000000000000000'
+
+const generateKeysFn =
+	process.env.NODE_ENV === 'test' ? generateNKeysBetween : generateNJitteredKeysBetween
+
+/**
+ * A string made up of an integer part followed by a fraction part. The fraction point consists of
+ * zero or more digits with no trailing zeros. Based on
+ * {@link https://observablehq.com/@dgreensp/implementing-fractional-indexing}.
+ *
+ * @public
+ */
+export type IndexKey = string
 
 /**
  * The index key for the first index - 'a0'.
  * @public
  */
-export const ZERO_INDEX_KEY = INTEGER_ZERO
+export const ZERO_INDEX_KEY = 'a0' as IndexKey
+
+/**
+ * Get the integer part of an index.
+ *
+ * @param index - The index to use.
+ */
+function getIntegerPart(index: string): string {
+	const integerPartLength = getIntegerLength(index.charAt(0))
+	if (integerPartLength > index.length) {
+		throw new Error('invalid index: ' + index)
+	}
+	return index.slice(0, integerPartLength)
+}
+
+/**
+ * Get the length of an integer.
+ *
+ * @param head - The integer to use.
+ */
+function getIntegerLength(head: string): number {
+	if (head >= 'a' && head <= 'z') {
+		return head.charCodeAt(0) - 'a'.charCodeAt(0) + 2
+	} else if (head >= 'A' && head <= 'Z') {
+		return 'Z'.charCodeAt(0) - head.charCodeAt(0) + 2
+	} else {
+		throw new Error('Invalid index key head: ' + head)
+	}
+}
 
 /** @internal */
-export function validateIndexKey(key: string): asserts key is IndexKey {
-	validateOrder(key)
+export function validateIndexKey(index: string): asserts index is IndexKey {
+	if (index === SMALLEST_INTEGER) {
+		throw new Error('invalid index: ' + index)
+	}
+	// getIntegerPart will throw if the first character is bad,
+	// or the key is too short.  we'd call it to check these things
+	// even if we didn't need the result
+	const i = getIntegerPart(index)
+	const f = index.slice(i.length)
+	if (f.slice(-1) === '0') {
+		throw new Error('invalid index: ' + index)
+	}
 }
 
 /**
@@ -20,11 +71,11 @@ export function validateIndexKey(key: string): asserts key is IndexKey {
  * @public
  */
 export function getIndicesBetween(
-	below: IndexKey | undefined,
-	above: IndexKey | undefined,
+	below: IndexKey | null | undefined,
+	above: IndexKey | null | undefined,
 	n: number
 ) {
-	return generateNKeysBetween(below, above, n)
+	return generateKeysFn(below ?? null, above ?? null, n)
 }
 
 /**
@@ -33,8 +84,8 @@ export function getIndicesBetween(
  * @param n - The number of indices to get.
  * @public
  */
-export function getIndicesAbove(below: IndexKey | undefined, n: number) {
-	return generateNKeysBetween(below, undefined, n)
+export function getIndicesAbove(below: IndexKey | null | undefined, n: number) {
+	return generateKeysFn(below ?? null, null, n)
 }
 
 /**
@@ -43,8 +94,8 @@ export function getIndicesAbove(below: IndexKey | undefined, n: number) {
  * @param n - The number of indices to get.
  * @public
  */
-export function getIndicesBelow(above: IndexKey | undefined, n: number) {
-	return generateNKeysBetween(undefined, above, n)
+export function getIndicesBelow(above: IndexKey | null | undefined, n: number) {
+	return generateKeysFn(null, above ?? null, n)
 }
 
 /**
@@ -53,8 +104,11 @@ export function getIndicesBelow(above: IndexKey | undefined, n: number) {
  * @param above - The index above.
  * @public
  */
-export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | undefined) {
-	return generateNKeysBetween(below, above, 1)[0]
+export function getIndexBetween(
+	below: IndexKey | null | undefined,
+	above: IndexKey | null | undefined
+) {
+	return generateKeysFn(below ?? null, above ?? null, 1)[0]
 }
 
 /**
@@ -62,8 +116,8 @@ export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | u
  * @param below - The index below.
  * @public
  */
-export function getIndexAbove(below?: IndexKey | undefined) {
-	return generateNKeysBetween(below, undefined, 1)[0]
+export function getIndexAbove(below: IndexKey | null | undefined = null) {
+	return generateKeysFn(below, null, 1)[0]
 }
 
 /**
@@ -71,8 +125,8 @@ export function getIndexAbove(below?: IndexKey | undefined) {
  * @param above - The index above.
  *  @public
  */
-export function getIndexBelow(above?: IndexKey | undefined) {
-	return generateNKeysBetween(undefined, above, 1)[0]
+export function getIndexBelow(above: IndexKey | null | undefined = null) {
+	return generateKeysFn(null, above, 1)[0]
 }
 
 /**
@@ -82,7 +136,7 @@ export function getIndexBelow(above?: IndexKey | undefined) {
  * @public
  */
 export function getIndices(n: number, start = 'a1' as IndexKey) {
-	return [start, ...generateNKeysBetween(start, undefined, n)]
+	return [start, ...generateKeysFn(start, null, n)]
 }
 
 /**

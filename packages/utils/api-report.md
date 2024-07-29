@@ -132,25 +132,25 @@ export function getHashForObject(obj: any): string;
 export function getHashForString(string: string): string;
 
 // @public
-export function getIndexAbove(below?: IndexKey | undefined): IndexKey;
+export function getIndexAbove(below?: IndexKey | null | undefined): string;
 
 // @public
-export function getIndexBelow(above?: IndexKey | undefined): IndexKey;
+export function getIndexBelow(above?: IndexKey | null | undefined): string;
 
 // @public
-export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | undefined): IndexKey;
+export function getIndexBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined): string;
 
 // @public
-export function getIndices(n: number, start?: IndexKey): IndexKey[];
+export function getIndices(n: number, start?: string): string[];
 
 // @public
-export function getIndicesAbove(below: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesAbove(below: IndexKey | null | undefined, n: number): string[];
 
 // @public
-export function getIndicesBelow(above: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesBelow(above: IndexKey | null | undefined, n: number): string[];
 
 // @public
-export function getIndicesBetween(below: IndexKey | undefined, above: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined, n: number): string[];
 
 // @internal (undocumented)
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
@@ -166,9 +166,7 @@ const Image_2: (width?: number, height?: number) => HTMLImageElement;
 export { Image_2 as Image }
 
 // @public
-export type IndexKey = string & {
-    __orderKey: true;
-};
+export type IndexKey = string;
 
 // @public
 export function invLerp(a: number, b: number, t: number): number;
@@ -409,7 +407,7 @@ export class Timers {
 export { uniq }
 
 // @internal (undocumented)
-export function validateIndexKey(key: string): asserts key is IndexKey;
+export function validateIndexKey(index: string): asserts index is IndexKey;
 
 // @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
@@ -424,7 +422,7 @@ export class WeakCache<K extends object, V> {
 }
 
 // @public
-export const ZERO_INDEX_KEY: IndexKey;
+export const ZERO_INDEX_KEY: string;
 
 // (No @packageDocumentation comment for this package)
 
