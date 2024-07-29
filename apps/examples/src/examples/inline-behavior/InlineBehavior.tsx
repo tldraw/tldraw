@@ -69,6 +69,7 @@ export default function InlineBehaviorExample() {
 }
 
 function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
 	const [editor, setEditor] = useState<Editor>()
 

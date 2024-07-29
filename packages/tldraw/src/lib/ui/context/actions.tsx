@@ -50,7 +50,7 @@ export interface TLUiActionItem<
 	label?: TransationKey | { [key: string]: TransationKey }
 	readonlyOk?: boolean
 	checkbox?: boolean
-	onSelect(source: TLUiEventSource): Promise<void> | void
+	onSelect(this: void, source: TLUiEventSource): Promise<void> | void
 }
 
 /** @public */

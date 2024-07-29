@@ -1,4 +1,3 @@
-import { bind } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
@@ -27,8 +26,8 @@ export class ClickManager {
 
 	private _previousScreenPoint?: Vec
 
-	@bind
-	_getClickTimeout(state: TLClickState, id = uniqueId()) {
+	// eslint-disable-next-line local/prefer-class-methods
+	_getClickTimeout = (state: TLClickState, id = uniqueId()) => {
 		this._clickId = id
 		clearTimeout(this._clickTimeout)
 		this._clickTimeout = this.editor.timers.setTimeout(
@@ -216,8 +215,8 @@ export class ClickManager {
 	 *
 	 * @internal
 	 */
-	@bind
-	cancelDoubleClickTimeout() {
+	// eslint-disable-next-line local/prefer-class-methods
+	cancelDoubleClickTimeout = () => {
 		this._clickTimeout = clearTimeout(this._clickTimeout)
 		this._clickState = 'idle'
 	}

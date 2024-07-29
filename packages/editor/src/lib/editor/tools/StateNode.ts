@@ -47,7 +47,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		public editor: Editor,
 		parent?: StateNode
 	) {
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const { id, children, initial, isLockable } = this.constructor as TLStateNodeConstructor
+		children?.bind(this.constructor)
 
 		this.id = id
 		this._isActive = atom<boolean>('toolIsActive' + this.id, false)

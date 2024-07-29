@@ -79,6 +79,7 @@ declare global {
 // automatically when values change!
 
 if (typeof Element !== 'undefined') {
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	const nativeElementRemoveChild = Element.prototype.removeChild
 	react('element removal logging', () => {
 		if (debugFlags.logElementRemoves.get()) {

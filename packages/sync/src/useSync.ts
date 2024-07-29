@@ -250,9 +250,9 @@ export interface UseSyncOptions {
 	assets: TLAssetStore
 
 	/** @internal */
-	onEditorMount?(editor: Editor): void
+	onEditorMount?(this: void, editor: Editor): void
 	/** @internal used for analytics only, we should refactor this away */
 	roomId?: string
 	/** @internal */
-	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
+	trackAnalyticsEvent?(this: void, name: string, data: { [key: string]: any }): void
 }

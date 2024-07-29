@@ -77,7 +77,7 @@ export interface TLAssetStore {
 	 * @param file - The `File` to be uploaded
 	 * @returns A promise that resolves to the URL of the uploaded asset
 	 */
-	upload(asset: TLAsset, file: File): Promise<string>
+	upload(this: void, asset: TLAsset, file: File): Promise<string>
 	/**
 	 * Resolve an asset to a URL. This is used when rendering the asset in the editor. By default,
 	 * this will just use `asset.props.src`, the URL returned by `upload()`. This can be used to
@@ -88,7 +88,7 @@ export interface TLAssetStore {
 	 * @param ctx - information about the current environment and where the asset is being used
 	 * @returns The URL of the resolved asset, or `null` if the asset is not available
 	 */
-	resolve?(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+	resolve?(this: void, asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
 }
 
 /** @public */

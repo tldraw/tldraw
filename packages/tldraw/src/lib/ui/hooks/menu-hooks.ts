@@ -88,6 +88,7 @@ export const showMenuPaste =
 	typeof window !== 'undefined' &&
 	'navigator' in window &&
 	Boolean(navigator.clipboard) &&
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	Boolean(navigator.clipboard.read)
 
 /**

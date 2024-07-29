@@ -63,7 +63,6 @@ import {
 	annotateError,
 	assert,
 	assertExists,
-	bind,
 	compact,
 	dedupe,
 	exhaustiveSwitchError,
@@ -2953,7 +2952,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _viewportAnimation = null as null | {
 		elapsed: number
 		duration: number
-		easing(t: number): number
+		easing(this: void, t: number): number
 		start: Box
 		end: Box
 	}
@@ -2967,7 +2966,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { elapsed, easing, duration, start, end } = this._viewportAnimation
 
 		if (elapsed > duration) {
-			this.off('tick', this._animateViewport)
+			this.off('tick', (ms) => this._animateViewport(ms))
 			this._viewportAnimation = null
 			this._setCamera(new Vec(-end.x, -end.y, this.getViewportScreenBounds().width / end.width))
 			return
@@ -3027,12 +3026,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If we ever get a "stop-camera-animation" event, we stop
 		this.once('stop-camera-animation', () => {
-			this.off('tick', this._animateViewport)
+			this.off('tick', (ms) => this._animateViewport(ms))
 			this._viewportAnimation = null
 		})
 
 		// On each tick, animate the viewport
-		this.on('tick', this._animateViewport)
+		this.on('tick', (ms) => this._animateViewport(ms))
 
 		return this
 	}
@@ -3632,7 +3631,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	_decayCameraStateTimeout(elapsed: number) {
 		this._cameraStateTimeoutRemaining -= elapsed
 		if (this._cameraStateTimeoutRemaining > 0) return
-		this.off('tick', this._decayCameraStateTimeout)
+		this.off('tick', (ms) => this._decayCameraStateTimeout(ms))
 		this._cameraState.set('idle')
 	}
 	_tickCameraState() {
@@ -3641,7 +3640,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If the state is idle, then start the tick
 		if (this._cameraState.__unsafe__getWithoutCapture() !== 'idle') return
 		this._cameraState.set('moving')
-		this.on('tick', this._decayCameraStateTimeout)
+		this.on('tick', (ms) => this._decayCameraStateTimeout(ms))
 	}
 
 	/**
@@ -4626,7 +4625,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// respect this esp. in the part below that does "Check labels first"
 			hitLabels?: boolean
 			hitFrameInside?: boolean
-			filter?(shape: TLShape): boolean
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
+			filter?: (shape: TLShape) => boolean
 		}
 	): TLShape | undefined {
 		const zoomLevel = this.getZoomLevel()
@@ -8715,8 +8715,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _shiftKeyTimeout = -1 as any
 
 	/** @internal */
-	@bind
-	_setShiftKeyTimeout() {
+	// eslint-disable-next-line local/prefer-class-methods
+	_setShiftKeyTimeout = () => {
 		this.inputs.shiftKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8733,8 +8733,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _altKeyTimeout = -1 as any
 
 	/** @internal */
-	@bind
-	_setAltKeyTimeout() {
+	// eslint-disable-next-line local/prefer-class-methods
+	_setAltKeyTimeout = () => {
 		this.inputs.altKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8751,8 +8751,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _ctrlKeyTimeout = -1 as any
 
 	/** @internal */
-	@bind
-	_setCtrlKeyTimeout() {
+	// eslint-disable-next-line local/prefer-class-methods
+	_setCtrlKeyTimeout = () => {
 		this.inputs.ctrlKey = false
 		this.dispatch({
 			type: 'keyboard',
@@ -8817,7 +8817,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _pendingEventsForNextTick: TLEventInfo[] = []
 
-	private _flushEventsForTick(elapsed: number) {
+	// eslint-disable-next-line local/prefer-class-methods
+	_flushEventsForTick = (elapsed: number) => {
 		this.run(() => {
 			if (this._pendingEventsForNextTick.length > 0) {
 				const events = [...this._pendingEventsForNextTick]

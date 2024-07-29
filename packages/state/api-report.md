@@ -34,7 +34,7 @@ options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
 export interface AtomOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
-    isEqual?(a: any, b: any): boolean;
+    isEqual?(this: void, a: any, b: any): boolean;
 }
 
 // @internal (undocumented)
@@ -78,7 +78,7 @@ export type ComputeDiff<Value, Diff> = (previousValue: Value, currentValue: Valu
 export interface ComputedOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
-    isEqual?(a: any, b: any): boolean;
+    isEqual?(this: void, a: any, b: any): boolean;
 }
 
 // @public

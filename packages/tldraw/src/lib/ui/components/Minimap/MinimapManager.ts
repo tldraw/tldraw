@@ -16,7 +16,8 @@ import { pie, rectangle, roundedRectangle } from './minimap-webgl-shapes'
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
-	close() {
+	// eslint-disable-next-line local/prefer-class-methods
+	close = () => {
 		return this.disposables.forEach((d) => d())
 	}
 	gl: ReturnType<typeof setupWebGl>
@@ -205,7 +206,8 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
-	render() {
+	// eslint-disable-next-line local/prefer-class-methods
+	render = () => {
 		// make sure we update when dark mode switches
 		const context = this.gl.context
 		const canvasSize = this.getCanvasSize()

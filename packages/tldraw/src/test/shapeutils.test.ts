@@ -88,6 +88,7 @@ describe('When interacting with a shape...', () => {
 
 	it('cleans up events', () => {
 		const util = editor.getShapeUtil<TLGeoShape>('geo')
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(util.onRotateStart).toBeUndefined()
 	})
 

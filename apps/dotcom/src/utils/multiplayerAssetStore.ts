@@ -3,7 +3,7 @@ import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
 
 export const multiplayerAssetStore = {
-	upload: async (asset, file) => {
+	upload: async (_asset, file) => {
 		const id = uniqueId()
 
 		const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
@@ -22,7 +22,7 @@ export const multiplayerAssetStore = {
 		return url
 	},
 
-	resolve(asset, context) {
+	resolve(this: void, asset, context) {
 		if (!asset.props.src) return null
 
 		// We don't deal with videos at the moment.

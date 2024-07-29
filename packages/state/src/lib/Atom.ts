@@ -32,7 +32,7 @@ export interface AtomOptions<Value, Diff> {
 	 * @param b - The new value
 	 * @returns
 	 */
-	isEqual?(a: any, b: any): boolean
+	isEqual?(this: void, a: any, b: any): boolean
 }
 
 /**

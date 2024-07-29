@@ -236,9 +236,12 @@ export function CopyAsMenuGroup() {
 		>
 			<TldrawUiMenuGroup id="copy-as-group">
 				<TldrawUiMenuItem {...actions['copy-as-svg']} />
-				{Boolean(window.navigator.clipboard?.write) && (
-					<TldrawUiMenuItem {...actions['copy-as-png']} />
-				)}
+				{
+					// eslint-disable-next-line @typescript-eslint/unbound-method
+					Boolean(window.navigator.clipboard?.write) && (
+						<TldrawUiMenuItem {...actions['copy-as-png']} />
+					)
+				}
 				<TldrawUiMenuItem {...actions['copy-as-json']} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">

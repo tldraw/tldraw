@@ -1618,6 +1618,7 @@ describe('bindings', () => {
 		const arrow = onlySelectedShape() as TLArrowShape
 		const bindings = getArrowBindings(editor, arrow)
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(bindings.start).toBeUndefined
 		expect(bindings.end).toMatchObject({ toId: ids.boxE })
 	})

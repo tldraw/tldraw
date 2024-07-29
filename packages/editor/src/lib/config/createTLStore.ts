@@ -57,7 +57,9 @@ const defaultAssetResolve: NonNullable<TLAssetStore['resolve']> = (asset) => ass
 
 /** @public */
 export const inlineBase64AssetStore: TLAssetStore = {
-	upload: (_, file) => FileHelpers.blobToDataUrl(file),
+	upload: function (this: void, _, file) {
+		return FileHelpers.blobToDataUrl(file)
+	},
 }
 
 /**

@@ -34,6 +34,7 @@ module.exports = {
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
 		'@typescript-eslint/method-signature-style': ['error', 'method'],
+		'@typescript-eslint/unbound-method': ['error', { ignoreStatic: true }],
 		'react/display-name': 'off',
 		'@next/next/no-img-element': 'off',
 		'react/prop-types': 'off',

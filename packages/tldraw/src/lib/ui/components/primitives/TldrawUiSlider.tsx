@@ -10,7 +10,7 @@ export interface TLUiSliderProps {
 	value: number | null
 	label: string
 	title: string
-	onValueChange(value: number): void
+	onValueChange(this: void, value: number): void
 	'data-testid'?: string
 }
 

@@ -39,7 +39,8 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	private readonly annotateError: (error: unknown) => void
 
-	constructor(opts: { store: Store<R>; annotateError?(error: unknown): void }) {
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	constructor(opts: { store: Store<R>; annotateError?: (error: unknown) => void }) {
 		this.store = opts.store
 		this.annotateError = opts.annotateError ?? noop
 		this.dispose = this.store.addHistoryInterceptor((entry, source) => {

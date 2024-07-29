@@ -22,14 +22,14 @@ export interface TLUiToast {
 export interface TLUiToastAction {
 	type: 'primary' | 'danger' | 'normal'
 	label: string
-	onClick(): void
+	onClick(this: void): void
 }
 
 /** @public */
 export interface TLUiToastsContextType {
-	addToast(toast: Omit<TLUiToast, 'id'> & { id?: string }): string
-	removeToast(id: TLUiToast['id']): string
-	clearToasts(): void
+	addToast(this: void, toast: Omit<TLUiToast, 'id'> & { id?: string }): string
+	removeToast(this: void, id: TLUiToast['id']): string
+	clearToasts(this: void): void
 	toasts: TLUiToast[]
 }
 
@@ -46,18 +46,21 @@ export interface ToastsProviderProps {
 export function ToastsProvider({ children }: ToastsProviderProps) {
 	const [toasts, setToasts] = useState<TLUiToast[]>([])
 
-	const addToast = useCallback((toast: Omit<TLUiToast, 'id'> & { id?: string }) => {
+	const addToast = useCallback(function (
+		this: void,
+		toast: Omit<TLUiToast, 'id'> & { id?: string }
+	) {
 		const id = toast.id ?? uniqueId()
 		setToasts((d) => [...d.filter((m) => m.id !== toast.id), { ...toast, id }])
 		return id
 	}, [])
 
-	const removeToast = useCallback((id: string) => {
+	const removeToast = useCallback(function (this: void, id: string) {
 		setToasts((d) => d.filter((m) => m.id !== id))
 		return id
 	}, [])
 
-	const clearToasts = useCallback(() => {
+	const clearToasts = useCallback(function (this: void) {
 		setToasts(() => [])
 	}, [])
 

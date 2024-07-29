@@ -1,4 +1,4 @@
-import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
+import { throttleToNextFrame as _throttleToNextFrame } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
 
@@ -30,8 +30,8 @@ export class TickManager {
 		this.now = Date.now()
 	}
 
-	@bind
-	tick() {
+	// eslint-disable-next-line local/prefer-class-methods
+	tick = () => {
 		if (this.isPaused) {
 			return
 		}
@@ -47,8 +47,8 @@ export class TickManager {
 	}
 
 	// Clear the listener
-	@bind
-	dispose() {
+	// eslint-disable-next-line local/prefer-class-methods
+	dispose = () => {
 		this.isPaused = true
 
 		this.cancelRaf?.()

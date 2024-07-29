@@ -42,11 +42,11 @@ export interface UseSyncDemoOptions {
 export interface UseSyncOptions {
     assets: TLAssetStore;
     // @internal (undocumented)
-    onEditorMount?(editor: Editor): void;
+    onEditorMount?(this: void, editor: Editor): void;
     // @internal
     roomId?: string;
     // @internal (undocumented)
-    trackAnalyticsEvent?(name: string, data: {
+    trackAnalyticsEvent?(this: void, name: string, data: {
         [key: string]: any;
     }): void;
     uri: string;

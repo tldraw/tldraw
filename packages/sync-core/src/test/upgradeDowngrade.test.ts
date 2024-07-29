@@ -368,6 +368,7 @@ test('out-of-date clients will receive incompatibility errors', () => {
 		schema: schemaV2.serialize(),
 	})
 
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	expect(socket.sendMessage).toHaveBeenCalledWith({
 		type: 'incompatibility_error',
 		reason: TLIncompatibilityReason.ClientTooOld,
@@ -392,6 +393,7 @@ test('clients using an out-of-date protocol will receive compatibility errors', 
 			schema: schemaV2.serialize(),
 		})
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(socket.sendMessage).toHaveBeenCalledWith({
 			type: 'incompatibility_error',
 			reason: TLIncompatibilityReason.ClientTooOld,
@@ -421,6 +423,7 @@ test('v5 special case should allow connections', () => {
 		schema: schemaV2.serialize(),
 	})
 
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	expect(socket.sendMessage).toHaveBeenCalledWith({
 		connectRequestId: 'test',
 		diff: {},
@@ -452,6 +455,7 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 		schema: schemaV2.serialize(),
 	})
 
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	expect(socket.sendMessage).toHaveBeenCalledWith({
 		type: 'incompatibility_error',
 		reason: TLIncompatibilityReason.ServerTooOld,
@@ -494,6 +498,7 @@ test('when the client is too new it cannot connect', () => {
 		schema: schemaV2.serialize(),
 	})
 
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	expect(v2_socket.sendMessage).toHaveBeenCalledWith({
 		type: 'incompatibility_error',
 		// this should really be 'serverTooOld' but our schema format is a bit too loose to
@@ -538,11 +543,13 @@ describe('when the client is too old', () => {
 		const v2Id = 'test_upgrade_v2'
 		const v2Socket = mockSocket<RV2>()
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const v2SendMessage = v2Socket.sendMessage as jest.Mock
 
 		const v1Id = 'test_upgrade_v1'
 		const v1Socket = mockSocket<RV1>()
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		const v1SendMessage = v1Socket.sendMessage as jest.Mock
 
 		v2Server.room.handleNewSession(v1Id, v1Socket as any, undefined)
@@ -710,6 +717,7 @@ describe('when the client is the same version', () => {
 			schema: JSON.parse(JSON.stringify(schemaV2.serialize())),
 		})
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(aSocket.sendMessage).toHaveBeenCalledWith({
 			type: 'connect',
 			connectRequestId: 'test',
@@ -720,6 +728,7 @@ describe('when the client is the same version', () => {
 			serverClock: 10,
 		} satisfies TLSocketServerSentEvent<RV2>)
 
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		expect(bSocket.sendMessage).toHaveBeenCalledWith({
 			type: 'connect',
 			connectRequestId: 'test',
@@ -736,7 +745,9 @@ describe('when the client is the same version', () => {
 			v2Server,
 			aId,
 			bId,
+			// eslint-disable-next-line @typescript-eslint/unbound-method
 			v2ClientASendMessage: aSocket.sendMessage as jest.Mock,
+			// eslint-disable-next-line @typescript-eslint/unbound-method
 			v2ClientBSendMessage: bSocket.sendMessage as jest.Mock,
 			steve,
 		}

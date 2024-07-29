@@ -1,4 +1,4 @@
-import { BaseBoxShapeTool, TLShape, TLShapeId, bind } from '@tldraw/editor'
+import { BaseBoxShapeTool, TLShape, TLShapeId } from '@tldraw/editor'
 
 /** @public */
 export class FrameShapeTool extends BaseBoxShapeTool {
@@ -6,8 +6,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 	static override initial = 'idle'
 	override shapeType = 'frame'
 
-	@bind
-	override onCreate(shape: TLShape | null): void {
+	override onCreate(shape: TLShape | null) {
 		if (!shape) return
 
 		const bounds = this.editor.getShapePageBounds(shape)!

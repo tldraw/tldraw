@@ -1920,7 +1920,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
         [key: string]: TransationKey;
     } | TransationKey;
     // (undocumented)
-    onSelect(source: TLUiEventSource): Promise<void> | void;
+    onSelect(this: void, source: TLUiEventSource): Promise<void> | void;
     // (undocumented)
     readonlyOk?: boolean;
 }
@@ -1971,7 +1971,7 @@ export interface TLUiButtonPickerProps<T extends string> {
     // (undocumented)
     items: StyleValuesForUi<T>;
     // (undocumented)
-    onValueChange(style: StyleProp<T>, value: T): void;
+    onValueChange(this: void, style: StyleProp<T>, value: T): void;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
@@ -2099,17 +2099,17 @@ export interface TLUiDialogProps {
 // @public (undocumented)
 export interface TLUiDialogsContextType {
     // (undocumented)
-    addDialog(dialog: Omit<TLUiDialog, 'id'> & {
+    addDialog(this: void, dialog: Omit<TLUiDialog, 'id'> & {
         id?: string;
     }): string;
     // (undocumented)
-    clearDialogs(): void;
+    clearDialogs(this: void): void;
     // (undocumented)
     dialogs: TLUiDialog[];
     // (undocumented)
-    removeDialog(id: string): string;
+    removeDialog(this: void, id: string): string;
     // (undocumented)
-    updateDialog(id: string, newDialogData: Partial<TLUiDialog>): string;
+    updateDialog(this: void, id: string, newDialogData: Partial<TLUiDialog>): string;
 }
 
 // @public (undocumented)
@@ -2633,7 +2633,7 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
-    onValueChange(value: number): void;
+    onValueChange(this: void, value: number): void;
     // (undocumented)
     steps: number;
     // (undocumented)
@@ -2681,7 +2681,7 @@ export interface TLUiToastAction {
     // (undocumented)
     label: string;
     // (undocumented)
-    onClick(): void;
+    onClick(this: void): void;
     // (undocumented)
     type: 'danger' | 'normal' | 'primary';
 }
@@ -2689,13 +2689,13 @@ export interface TLUiToastAction {
 // @public (undocumented)
 export interface TLUiToastsContextType {
     // (undocumented)
-    addToast(toast: Omit<TLUiToast, 'id'> & {
+    addToast(this: void, toast: Omit<TLUiToast, 'id'> & {
         id?: string;
     }): string;
     // (undocumented)
-    clearToasts(): void;
+    clearToasts(this: void): void;
     // (undocumented)
-    removeToast(id: TLUiToast['id']): string;
+    removeToast(this: void, id: TLUiToast['id']): string;
     // (undocumented)
     toasts: TLUiToast[];
 }
@@ -3312,19 +3312,19 @@ export function useDefaultColorTheme(): {
 
 // @public (undocumented)
 export function useDefaultHelpers(): {
-    addDialog: (dialog: Omit<TLUiDialog, "id"> & {
+    addDialog: (this: void, dialog: Omit<TLUiDialog, "id"> & {
         id?: string | undefined;
     }) => string;
-    addToast: (toast: Omit<TLUiToast, "id"> & {
+    addToast: (this: void, toast: Omit<TLUiToast, "id"> & {
         id?: string | undefined;
     }) => string;
-    clearDialogs: () => void;
-    clearToasts: () => void;
+    clearDialogs: (this: void) => void;
+    clearToasts: (this: void) => void;
     isMobile: boolean;
     msg: (id?: string | undefined) => string;
-    removeDialog: (id: string) => string;
-    removeToast: (id: string) => string;
-    updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+    removeDialog: (this: void, id: string) => string;
+    removeToast: (this: void, id: string) => string;
+    updateDialog: (this: void, id: string, newDialogData: Partial<TLUiDialog>) => string;
 };
 
 // @public (undocumented)

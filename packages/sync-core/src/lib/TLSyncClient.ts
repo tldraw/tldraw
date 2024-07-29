@@ -140,6 +140,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void
 		didCancel?(): boolean
 	}) {
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this.didCancel = config.didCancel
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value
@@ -152,7 +153,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 		this.store = config.store
 		this.socket = config.socket
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this.onAfterConnect = config.onAfterConnect
+		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this.onSyncError = config.onSyncError
 
 		let didLoad = false

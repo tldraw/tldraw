@@ -114,7 +114,7 @@ export interface ComputedOptions<Value, Diff> {
 	 * @param b - The new value
 	 * @returns
 	 */
-	isEqual?(a: any, b: any): boolean
+	isEqual?(this: void, a: any, b: any): boolean
 }
 
 /**
@@ -334,6 +334,7 @@ function computedGetterAnnotation(
 	key: string,
 	descriptor: PropertyDescriptor
 ) {
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	const originalMethod = descriptor.get
 	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
 

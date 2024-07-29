@@ -11,7 +11,6 @@ import {
 	TLShapePartial,
 	TLTickEventInfo,
 	Vec,
-	bind,
 	compact,
 	isPageId,
 } from '@tldraw/editor'
@@ -27,7 +26,7 @@ export type TranslatingInfo = TLPointerEventInfo & {
 	target: 'shape'
 	isCreating?: boolean
 	creatingMarkId?: string
-	onCreate?(): void
+	onCreate?(this: void): void
 	didStartInPit?: boolean
 	onInteractionEnd?: string
 }
@@ -293,8 +292,8 @@ export class Translating extends StateNode {
 		}
 	}
 
-	@bind
-	protected updateParentTransforms() {
+	// eslint-disable-next-line local/prefer-class-methods
+	protected updateParentTransforms = () => {
 		const {
 			editor,
 			snapshot: { shapeSnapshots },

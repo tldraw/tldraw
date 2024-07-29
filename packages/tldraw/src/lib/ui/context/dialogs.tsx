@@ -16,10 +16,10 @@ export interface TLUiDialog {
 
 /** @public */
 export interface TLUiDialogsContextType {
-	addDialog(dialog: Omit<TLUiDialog, 'id'> & { id?: string }): string
-	removeDialog(id: string): string
-	updateDialog(id: string, newDialogData: Partial<TLUiDialog>): string
-	clearDialogs(): void
+	addDialog(this: void, dialog: Omit<TLUiDialog, 'id'> & { id?: string }): string
+	removeDialog(this: void, id: string): string
+	updateDialog(this: void, id: string, newDialogData: Partial<TLUiDialog>): string
+	clearDialogs(this: void): void
 	dialogs: TLUiDialog[]
 }
 

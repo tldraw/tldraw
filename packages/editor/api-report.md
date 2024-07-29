@@ -460,12 +460,12 @@ export function clampRadians(r: number): number;
 export class ClickManager {
     constructor(editor: Editor);
     // @internal
-    cancelDoubleClickTimeout(): void;
+    cancelDoubleClickTimeout: () => void;
     get clickState(): TLClickState | undefined;
     // (undocumented)
     editor: Editor;
     // (undocumented)
-    _getClickTimeout(state: TLClickState, id?: string): void;
+    _getClickTimeout: (state: TLClickState, id?: string) => void;
     // (undocumented)
     handlePointerEvent(info: TLPointerEventInfo): TLClickEventInfo | TLPointerEventInfo;
     // (undocumented)
@@ -925,6 +925,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
     _flushEventForTick(info: TLEventInfo): this | undefined;
+    // (undocumented)
+    _flushEventsForTick: (elapsed: number) => void;
     focus({ focusContainer }?: {
         focusContainer?: boolean | undefined;
     }): this;
@@ -1020,7 +1022,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeAtPoint(point: VecLike, opts?: {
-        filter?(shape: TLShape): boolean;
+        filter?: ((shape: TLShape) => boolean) | undefined;
         hitFrameInside?: boolean | undefined;
         hitInside?: boolean | undefined;
         hitLabels?: boolean | undefined;
@@ -1180,12 +1182,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
-    _setAltKeyTimeout(): void;
+    _setAltKeyTimeout: () => void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(options: Partial<TLCameraOptions>): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     // @internal (undocumented)
-    _setCtrlKeyTimeout(): void;
+    _setCtrlKeyTimeout: () => void;
     setCurrentPage(page: TLPage | TLPageId): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor(cursor: Partial<TLCursor>): this;
@@ -1198,7 +1200,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setOpacityForSelectedShapes(opacity: number): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
-    _setShiftKeyTimeout(): void;
+    _setShiftKeyTimeout: () => void;
     setStyleForNextShapes<T>(style: StyleProp<T>, value: T, historyOptions?: TLHistoryBatchOptions): this;
     setStyleForSelectedShapes<S extends StyleProp<any>>(style: S, value: StylePropValue<S>): this;
     shapeUtils: {
@@ -1571,7 +1573,7 @@ export function hardResetEditor(): void;
 // @public (undocumented)
 export class HistoryManager<R extends UnknownRecord> {
     constructor(opts: {
-        annotateError?(error: unknown): void;
+        annotateError?: (error: unknown) => void;
         store: Store<R>;
     });
     // (undocumented)
@@ -2080,7 +2082,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
-    expandSelectionOutlinePx(shape: Shape): number;
+    expandSelectionOutlinePx(_shape: Shape): number;
     getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     abstract getDefaultProps(): Shape['props'];
