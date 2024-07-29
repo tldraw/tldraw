@@ -27,7 +27,7 @@ export class Pointing extends StateNode {
 		const { isPointing, originPagePoint, currentPagePoint } = editor.inputs
 		if (
 			isPointing &&
-			Vec.Dist2(originPagePoint, currentPagePoint) >
+			Math.abs(originPagePoint.x - currentPagePoint.x) ** 2 >
 				((editor.getInstanceState().isCoarsePointer
 					? editor.options.coarseDragDistanceSquared
 					: editor.options.dragDistanceSquared) *
