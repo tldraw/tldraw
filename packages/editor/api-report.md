@@ -3004,65 +3004,8 @@ export interface TLMeasureTextSpanOpts {
     width: number;
 }
 
-// @public (undocumented)
-export type TLOnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void;
-
-// @public (undocumented)
-export type TLOnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void;
-
-// @internal (undocumented)
-export type TLOnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void;
-
-// @public (undocumented)
-export type TLOnClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnDoubleClickHandleHandler<T extends TLShape> = (shape: T, handle: TLHandle) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnDoubleClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R;
-
-// @public (undocumented)
-export type TLOnEditEndHandler<T extends TLShape> = (shape: T) => void;
-
-// @public (undocumented)
-export type TLOnHandleDragHandler<T extends TLShape> = (shape: T, info: TLHandleDragInfo<T>) => TLShapePartial<T> | void;
-
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
-
-// @public (undocumented)
-export type TLOnResizeEndHandler<T extends TLShape> = (initial: T, current: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo<T>) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void;
-
-// @public (undocumented)
-export type TLOnResizeStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnRotateEndHandler<T extends TLShape> = (initial: T, current: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnRotateHandler<T extends TLShape> = (initial: T, current: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnRotateStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnTranslateEndHandler<T extends TLShape> = (initial: T, current: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnTranslateHandler<T extends TLShape> = (initial: T, current: T) => TLShapePartial<T> | void;
-
-// @public (undocumented)
-export type TLOnTranslateStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
 // @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;
