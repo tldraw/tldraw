@@ -58,10 +58,6 @@ export class PointingResizeHandle extends StateNode {
 		this.complete()
 	}
 
-	// override onPinchStart: TLEventHandlers['onPinchStart'] = (info) => {
-	// 	this.parent.transition('pinching', info)
-	// }
-
 	override onCancel() {
 		this.cancel()
 	}
