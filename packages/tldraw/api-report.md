@@ -916,9 +916,6 @@ export class HandTool extends StateNode {
 export function HandToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function HelpGroup(): JSX_2.Element;
-
-// @public (undocumented)
 export function HexagonToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)

@@ -303,7 +303,7 @@ export const DEFAULT_TRANSLATION = {
 	'people-menu.user': '(You)',
 	'people-menu.invite': 'Invite others',
 	'help-menu.title': 'Help and resources',
-	'help-menu.about': 'Learn more',
+	'help-menu.about': 'About tldraw',
 	'help-menu.docs': 'Documentation & API',
 	'help-menu.discord': 'Discord',
 	'help-menu.github': 'GitHub',

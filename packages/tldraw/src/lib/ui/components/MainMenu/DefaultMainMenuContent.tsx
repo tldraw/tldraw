@@ -47,7 +47,6 @@ export function DefaultMainMenuContent() {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
-			<HelpGroup />
 		</>
 	)
 }
@@ -161,43 +160,6 @@ export function ExtrasGroup() {
 	)
 }
 
-/** @public @react */
-export function HelpGroup() {
-	function openUrl(url: string) {
-		window.open(url, '_blank')
-	}
-
-	return (
-		<TldrawUiMenuGroup id="help">
-			<TldrawUiMenuSubmenu id="help" label="menu.help">
-				<TldrawUiMenuGroup id="help-actions">
-					<KeyboardShortcutsMenuItem />
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="help-actions">
-					<TldrawUiMenuItem
-						id="about"
-						label="help-menu.terms"
-						icon="external-link"
-						readonlyOk
-						onSelect={() => {
-							openUrl('https://github.com/tldraw/tldraw/blob/main/apps/dotcom/TERMS_OF_SERVICE.md')
-						}}
-					/>
-					<TldrawUiMenuItem
-						id="about"
-						label="help-menu.privacy"
-						icon="external-link"
-						readonlyOk
-						onSelect={() => {
-							openUrl('https://github.com/tldraw/tldraw/blob/main/apps/dotcom/PRIVACY_POLICY.md')
-						}}
-					/>
-				</TldrawUiMenuGroup>
-			</TldrawUiMenuSubmenu>
-		</TldrawUiMenuGroup>
-	)
-}
-
 /* ------------------- Preferences ------------------ */
 
 /** @public @react */
@@ -220,10 +182,9 @@ export function PreferencesGroup() {
 				<TldrawUiMenuGroup id="color-scheme">
 					<ColorSchemeMenu />
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="language">
-					<LanguageMenu />
-				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
+			<LanguageMenu />
+			<KeyboardShortcutsMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
