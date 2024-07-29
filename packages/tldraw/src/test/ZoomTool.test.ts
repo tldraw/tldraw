@@ -219,6 +219,7 @@ describe('TLSelectTool.ZoomQuick', () => {
 		expect(editor.getZoomLevel()).toBeCloseTo(0.538)
 
 		// Go back to original zoom level.
+		editor.keyUp('shift')
 		editor.keyUp('z')
 		jest.advanceTimersByTime(300)
 		expect(editor.getZoomLevel()).toBe(4)
@@ -226,7 +227,7 @@ describe('TLSelectTool.ZoomQuick', () => {
 		editor.expectToBeIn('select.idle')
 	})
 
-	it('Correctly handles manual zoom via a pointer move', () => {
+	it('Correctly handles manual quick zoom via a pointer move', () => {
 		editor.zoomIn()
 		editor.zoomIn()
 		expect(editor.getZoomLevel()).toBe(4)
@@ -239,6 +240,7 @@ describe('TLSelectTool.ZoomQuick', () => {
 
 		// Move mouse somewhere and let go of keyboard shortcut.
 		editor.pointerMove(100, 100)
+		editor.keyUp('shift')
 		editor.keyUp('z')
 		jest.advanceTimersByTime(300)
 		expect(editor.getZoomLevel()).toBe(4)
@@ -272,6 +274,7 @@ describe('TLSelectTool.ZoomQuick', () => {
 
 		// Move mouse somewhere and let go of keyboard shortcut.
 		editor.pointerMove(-500, -500)
+		editor.keyUp('shift')
 		editor.keyUp('z')
 		jest.advanceTimersByTime(300)
 		expect(editor.getZoomLevel()).toBe(0.4)
@@ -301,6 +304,7 @@ describe('TLSelectTool.ZoomQuick', () => {
 
 		// Complete operation.
 		editor.expectToBeIn('zoom.zoom_quick')
+		editor.keyUp('shift')
 		editor.keyUp('z')
 		editor.expectToBeIn('select.idle')
 	})
@@ -324,10 +328,12 @@ describe('TLSelectTool.ZoomQuick', () => {
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: 270, y: 180, w: 540, h: 360 })
 		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
 		jest.advanceTimersByTime(300)
+		editor.keyUp('shift')
 		editor.keyUp('z')
 		jest.advanceTimersByTime(150)
 		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
 		jest.advanceTimersByTime(300)
+		editor.keyUp('shift')
 		editor.keyUp('z')
 		jest.advanceTimersByTime(300)
 		expect(editor.getZoomLevel()).toBe(2)
