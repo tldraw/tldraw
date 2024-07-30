@@ -14,6 +14,7 @@ interface SearchResult {
 	text: string
 	shape: TLShape
 }
+
 function moveToShape(editor: Editor, shape: TLShape) {
 	const bounds = editor.getShapePageBounds(shape.id)
 	if (!bounds) return
@@ -61,21 +62,21 @@ export const TextSearchPanel = track(() => {
 
 	return !isVisible ? null : (
 		<div
-			className="slides-panel scroll-light"
+			className="text-search-panel scroll-light"
 			onPointerDown={(e) => stopEventPropagation(e)}
 			onKeyDown={keyDown}
 		>
 			<input
-				className="slides-input"
+				className="text-search-input"
 				ref={inputRef}
 				onChange={(e) => setSearchText(e.target.value)}
 			></input>
 			{results.map((result) => {
 				return (
 					<TldrawUiButton
-						key={'slides-panel-button:' + result.shape.id}
+						key={'text-search-panel-button:' + result.shape.id}
 						type="normal"
-						className="slides-panel-button"
+						className="text-search-panel-button"
 						onClick={() => moveToShape(editor, result.shape)}
 					>
 						{result.text}

@@ -1,4 +1,4 @@
-.slides-panel {
+.text-search-panel {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
@@ -15,12 +15,12 @@
 	border-top: 2px solid var(--color-background);
 }
 
-.slides-panel-button {
+.text-search-panel-button {
 	border-radius: var(--radius-4);
 	outline-offset: -1px;
 }
 
-.slide-shape-label {
+.text-search-shape-label {
 	pointer-events: all;
 	position: absolute;
 	background: var(--color-low);
@@ -31,7 +31,7 @@
 	white-space: nowrap;
 }
 
-.slides-input {
+.text-search-input {
 	border-radius: var(--radius-2);
 	margin: 4px;
 }

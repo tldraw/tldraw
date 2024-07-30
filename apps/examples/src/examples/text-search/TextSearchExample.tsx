@@ -1,7 +1,7 @@
 import { TLComponents, TLUiOverrides, Tldraw, atom, track } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { TextSearchPanel } from './TextSearchPanel'
-import './slides.css'
+import './text-search.css'
 
 export const showSearch = atom('showSearch', false)
 
@@ -31,7 +31,7 @@ const overrides: TLUiOverrides = {
 const SlidesExample = track(() => {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="slideshow_example" overrides={overrides} components={components} />
+			<Tldraw persistenceKey="text-search-example" overrides={overrides} components={components} />
 		</div>
 	)
 })

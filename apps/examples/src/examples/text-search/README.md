@@ -7,7 +7,6 @@ keywords:
   [
     annotation,
     camera options,
-    constraints,
     zoom,
     pan,
     camera bounds,
@@ -19,8 +18,6 @@ keywords:
   ]
 ---
 
-Slideshow example.
-
 ---
 
-Make slides for a presentation.
+A simple example of how to use the API to search for text in shapes and display results in the `HelperButtons` part of the user interface.
