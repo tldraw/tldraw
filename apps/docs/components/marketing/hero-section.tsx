@@ -5,14 +5,6 @@ import { Underline } from '@/components/marketing/underline'
 import { cn } from '@/utils/cn'
 import Image from 'next/image'
 
-const avatars = [
-	'https://i.pravatar.cc/300?img=1',
-	'https://i.pravatar.cc/300?img=2',
-	'https://i.pravatar.cc/300?img=3',
-	'https://i.pravatar.cc/300?img=4',
-	'https://i.pravatar.cc/300?img=5',
-]
-
 export const HeroSection = () => {
 	return (
 		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center pt-8 sm:pt-16">
@@ -64,3 +56,11 @@ export const HeroSection = () => {
 		</section>
 	)
 }
+
+const avatars = [
+	'https://i.pravatar.cc/300?img=1',
+	'https://i.pravatar.cc/300?img=2',
+	'https://i.pravatar.cc/300?img=3',
+	'https://i.pravatar.cc/300?img=4',
+	'https://i.pravatar.cc/300?img=5',
+]

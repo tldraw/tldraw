@@ -4,7 +4,7 @@ import { SectionHeading } from './section-heading'
 export const PricingSection = () => {
 	return (
 		<div id="pricing" className="bg-zinc-50 mt-16 sm:mt-24 md:mt-32 lg:mt-40">
-			<Section className="pb-16 sm:pb-24 md:pb-32 lg:pb-40">
+			<Section className="pb-24 md:pb-32 lg:pb-40">
 				<SectionHeading
 					subheading="Pricing"
 					heading="Free for Personal Use"

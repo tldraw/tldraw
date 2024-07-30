@@ -1,4 +1,5 @@
 import { CaseStudiesSection } from '@/components/marketing/case-studies-section'
+import { CTASection } from '@/components/marketing/cta-section'
 import { CustomizationSection } from '@/components/marketing/customization-section'
 import { DetailsSection } from '@/components/marketing/details-section'
 import { FAQSection } from '@/components/marketing/faq-section'
@@ -11,7 +12,7 @@ import { TestimonialsSection } from '@/components/marketing/testimonials-section
 
 export default function Page() {
 	return (
-		<div className="pb-96">
+		<>
 			<HeroSection />
 			<LogoSection />
 			<FeaturesSection />
@@ -22,6 +23,7 @@ export default function Page() {
 			<PricingSection />
 			<TestimonialsSection />
 			<FAQSection />
-		</div>
+			<CTASection />
+		</>
 	)
 }
