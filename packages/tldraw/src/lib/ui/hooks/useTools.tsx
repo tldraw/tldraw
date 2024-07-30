@@ -4,16 +4,12 @@ import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiActionItem } from '../context/actions'
 import { useDialogs } from '../context/dialogs'
 import { TLUiEventSource, useUiEvents } from '../context/events'
-import { TLUiIconType } from '../icon-types'
 import { useInsertMedia } from './useInsertMedia'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export interface TLUiToolItem<
-	TranslationKey extends string = string,
-	IconType extends string = string,
-> extends TLUiActionItem<TranslationKey, IconType> {
-	shortcutsLabel?: TranslationKey
+export interface TLUiToolItem extends TLUiActionItem {
+	shortcutsLabel?: TLUiTranslationKey
 	meta?: {
 		[key: string]: any
 	}
@@ -44,7 +40,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const insertMedia = useInsertMedia()
 
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
-		const toolsArray: TLUiToolItem<TLUiTranslationKey, TLUiIconType>[] = [
+		const toolsArray: TLUiToolItem[] = [
 			{
 				id: 'select',
 				label: 'tool.select',
@@ -94,7 +90,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					geo: id,
 				},
 				kbd: id === 'rectangle' ? 'r' : id === 'ellipse' ? 'o' : undefined,
-				icon: ('geo-' + id) as TLUiIconType,
+				icon: 'geo-' + id,
 				onSelect(source: TLUiEventSource) {
 					editor.run(() => {
 						editor.setStyleForNextShapes(GeoShapeGeoStyle, id)

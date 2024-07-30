@@ -9,9 +9,9 @@ import { TldrawUiIcon } from './TldrawUiIcon'
 /** @public */
 export interface TLUiInputProps {
 	disabled?: boolean
-	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
-	icon?: TLUiIconType | Exclude<string, TLUiIconType>
-	iconLeft?: TLUiIconType | Exclude<string, TLUiIconType>
+	label?: TLUiTranslationKey
+	icon?: TLUiIconType
+	iconLeft?: TLUiIconType
 	autoFocus?: boolean
 	autoSelect?: boolean
 	children?: React.ReactNode

@@ -8,7 +8,7 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 export interface TLUiSliderProps {
 	steps: number
 	value: number | null
-	label: string
+	label: TLUiTranslationKey
 	title: string
 	onValueChange(value: number): void
 	'data-testid'?: string
@@ -50,7 +50,7 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 				onPointerDown={handlePointerDown}
 				onValueChange={handleValueChange}
 				onPointerUp={handlePointerUp}
-				title={title + ' — ' + msg(label as TLUiTranslationKey)}
+				title={title + ' — ' + msg(label)}
 			>
 				<Track className="tlui-slider__track" dir="ltr">
 					{value !== null && <Range className="tlui-slider__range" dir="ltr" />}

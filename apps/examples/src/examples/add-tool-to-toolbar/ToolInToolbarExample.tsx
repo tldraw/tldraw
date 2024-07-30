@@ -20,7 +20,7 @@ const uiOverrides: TLUiOverrides = {
 		// Create a tool item in the ui's context.
 		tools.sticker = {
 			id: 'sticker',
-			icon: 'heart-icon',
+			icon: <>❤️</>,
 			label: 'Sticker',
 			kbd: 's',
 			onSelect: () => {

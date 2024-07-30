@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiActionProps, useActionProps } from '../../../hooks/useActionProps'
 import { useReadonly } from '../../../hooks/useReadonly'
-import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { kbdStr } from '../../../kbd-utils'
 import { Spinner } from '../../Spinner'
@@ -16,10 +15,7 @@ import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export type TLUiMenuItemProps<
-	TranslationKey extends string = string,
-	IconType extends string = string,
-> = TLUiActionProps<TranslationKey, IconType> & {
+export type TLUiMenuItemProps = TLUiActionProps & {
 	/**
 	 * Whether this item should be disabled.
 	 */
@@ -39,15 +35,12 @@ export type TLUiMenuItemProps<
 }
 
 /** @public @react */
-export function TldrawUiMenuItem<
-	TranslationKey extends string = string,
-	IconType extends string = string,
->({
+export function TldrawUiMenuItem({
 	disabled = false,
 	spinner = false,
 	noClose,
 	...actionProps
-}: TLUiMenuItemProps<TranslationKey, IconType>) {
+}: TLUiMenuItemProps) {
 	const action = useActionProps(actionProps)
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 
@@ -65,7 +58,7 @@ export function TldrawUiMenuItem<
 	const labelToUse = unwrapLabel(label, menuType)
 	const kbdTouse = kbd ? kbdStr(kbd) : undefined
 
-	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
+	const labelStr = labelToUse ? msg(labelToUse) : undefined
 	const titleStr = labelStr && kbdTouse ? `${labelStr} ${kbdTouse}` : labelStr
 
 	switch (menuType) {

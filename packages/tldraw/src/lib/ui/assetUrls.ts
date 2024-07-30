@@ -9,7 +9,7 @@ import { TLUiIconType, iconTypes } from './icon-types'
 
 /** @public */
 export type TLUiAssetUrls = TLEditorAssetUrls & {
-	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
+	icons: Record<Extract<TLUiIconType, string>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
 	embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>
 }
@@ -21,7 +21,7 @@ export let defaultUiAssetUrls: TLUiAssetUrls = {
 	...defaultEditorAssetUrls,
 	icons: Object.fromEntries(
 		iconTypes.map((name) => [name, `${getDefaultCdnBaseUrl()}/icons/icon/${name}.svg`])
-	) as Record<TLUiIconType, string>,
+	) as Record<Extract<TLUiIconType, string>, string>,
 	translations: Object.fromEntries(
 		LANGUAGES.map((lang) => [
 			lang.locale,

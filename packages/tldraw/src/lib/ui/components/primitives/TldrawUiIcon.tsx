@@ -5,25 +5,33 @@ import { TLUiIconType } from '../../icon-types'
 
 /** @public */
 export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
-	icon: TLUiIconType | Exclude<string, TLUiIconType>
+	icon: TLUiIconType
 	small?: boolean
 	color?: string
 	children?: undefined
 	invertIcon?: boolean
-	crossOrigin?: 'anonymous' | 'use-credentials'
 }
 
 /** @public @react */
-export const TldrawUiIcon = memo(function TldrawUiIcon({
-	small,
-	invertIcon,
+export const TldrawUiIcon = memo(function TldrawUiIcon(props: TLUiIconProps) {
+	if (typeof props.icon === 'string') {
+		return <AssetIcon {...props} icon={props.icon} />
+	} else {
+		return <CustomIcon {...props} icon={props.icon} />
+	}
+})
+
+function AssetIcon({
 	icon,
+	small,
 	color,
+	invertIcon,
 	className,
+	style,
 	...props
-}: TLUiIconProps) {
+}: TLUiIconProps & { icon: Extract<TLUiIconType, string> }) {
 	const assetUrls = useAssetUrls()
-	const asset = assetUrls.icons[icon as TLUiIconType] ?? assetUrls.icons['question-mark-circle']
+	const asset = assetUrls.icons[icon] ?? assetUrls.icons['question-mark-circle']
 	const ref = useRef<HTMLDivElement>(null)
 
 	useLayoutEffect(() => {
@@ -41,27 +49,48 @@ export const TldrawUiIcon = memo(function TldrawUiIcon({
 	}, [ref, asset, icon])
 
 	if (icon === 'none') {
-		return (
-			<div
-				className={classNames(
-					'tlui-icon tlui-icon__placeholder',
-					{ 'tlui-icon__small': small },
-					className
-				)}
-			/>
-		)
+		return <div className={classNames('tlui-icon', { 'tlui-icon__small': small }, className)} />
 	}
 
 	return (
 		<div
 			{...props}
 			ref={ref}
-			className={classNames('tlui-icon', { 'tlui-icon__small': small }, className)}
+			className={classNames('tlui-icon tlui-icon__asset', { 'tlui-icon__small': small }, className)}
 			style={{
 				color,
 				mask: `url(${asset}) center 100% / 100% no-repeat`,
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,
+				...style,
 			}}
 		/>
 	)
-})
+}
+
+function CustomIcon({
+	icon,
+	small,
+	color,
+	invertIcon,
+	className,
+	style,
+	...props
+}: TLUiIconProps & { icon: React.ReactElement }) {
+	return (
+		<div
+			{...props}
+			className={classNames(
+				'tlui-icon tlui-icon__custom',
+				{ 'tlui-icon__small': small },
+				className
+			)}
+			style={{
+				color,
+				transform: invertIcon ? 'scale(-1, 1)' : undefined,
+				...style,
+			}}
+		>
+			{icon}
+		</div>
+	)
+}

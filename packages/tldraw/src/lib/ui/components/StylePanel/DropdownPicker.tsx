@@ -3,7 +3,6 @@ import * as React from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TLUiIconType } from '../../icon-types'
 import { TLUiButtonProps, TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
@@ -54,7 +53,7 @@ function _DropdownPicker<T extends string>({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton type={type} data-testid={`style.${uiType}`} title={titleStr}>
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-					<TldrawUiButtonIcon icon={(icon as TLUiIconType) ?? 'mixed'} />
+					<TldrawUiButtonIcon icon={icon ?? 'mixed'} />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent side="left" align="center" alignOffset={0}>

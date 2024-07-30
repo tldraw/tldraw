@@ -11,7 +11,7 @@ export const uiOverrides: TLUiOverrides = {
 		// Create a tool item in the ui's context.
 		tools.counter = {
 			id: 'counter',
-			icon: 'color',
+			icon: <>🎲</>,
 			label: 'counter',
 			kbd: 'c',
 			onSelect: () => {

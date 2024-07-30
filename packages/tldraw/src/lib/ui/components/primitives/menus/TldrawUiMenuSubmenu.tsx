@@ -20,22 +20,22 @@ import {
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export interface TLUiMenuSubmenuProps<Translation extends string = string> {
+export interface TLUiMenuSubmenuProps {
 	id: string
-	label?: Translation | { [key: string]: Translation }
+	label?: TLUiTranslationKey | { [key: string]: TLUiTranslationKey }
 	disabled?: boolean
 	children: ReactNode
 	size?: 'tiny' | 'small' | 'medium' | 'wide'
 }
 
 /** @public @react */
-export function TldrawUiMenuSubmenu<Translation extends string = string>({
+export function TldrawUiMenuSubmenu({
 	id,
 	disabled = false,
 	label,
 	size = 'small',
 	children,
-}: TLUiMenuSubmenuProps<Translation>) {
+}: TLUiMenuSubmenuProps) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const container = useContainer()
 	const msg = useTranslation()
@@ -44,7 +44,7 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 			? label
 			: label[menuType] ?? label['default']
 		: undefined
-	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
+	const labelStr = labelToUse ? msg(labelToUse) : undefined
 
 	switch (menuType) {
 		case 'menu': {

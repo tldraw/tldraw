@@ -4,32 +4,25 @@ import { preventDefault } from '@tldraw/editor'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiActionProps, useActionProps } from '../../../hooks/useActionProps'
 import { useReadonly } from '../../../hooks/useReadonly'
-import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export type TLUiMenuCheckboxItemProps<
-	TranslationKey extends string = string,
-	IconType extends string = string,
-> = TLUiActionProps<TranslationKey, IconType> & {
+export type TLUiMenuCheckboxItemProps = TLUiActionProps & {
 	toggle?: boolean
 	checked?: boolean
 	disabled?: boolean
 }
 
 /** @public @react */
-export function TldrawUiMenuCheckboxItem<
-	TranslationKey extends string = string,
-	IconType extends string = string,
->({
+export function TldrawUiMenuCheckboxItem({
 	toggle = false,
 	disabled = false,
 	checked = false,
 	...actionProps
-}: TLUiMenuCheckboxItemProps<TranslationKey, IconType>) {
+}: TLUiMenuCheckboxItemProps) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const isReadonlyMode = useReadonly()
 	const msg = useTranslation()
@@ -42,7 +35,7 @@ export function TldrawUiMenuCheckboxItem<
 	if (isReadonlyMode && !readonlyOk) return null
 
 	const labelToUse = unwrapLabel(label, menuType)
-	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
+	const labelStr = labelToUse ? msg(labelToUse) : undefined
 
 	switch (menuType) {
 		case 'menu': {

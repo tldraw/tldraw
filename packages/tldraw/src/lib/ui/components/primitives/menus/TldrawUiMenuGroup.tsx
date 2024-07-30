@@ -7,12 +7,13 @@ import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
+export interface TLUiMenuGroupProps {
 	id: string
 	/**
-	 * The label to display on the item. If it's a string, it will be translated. If it's an object, the keys will be used as the language keys and the values will be translated.
+	 * The label to display on the item. If it's a string, it will be translated. If it's an object,
+	 * the keys will be used as the language keys and the values will be translated.
 	 */
-	label?: TranslationKey | { [key: string]: TranslationKey }
+	label?: TLUiTranslationKey | { [key: string]: TLUiTranslationKey }
 	children?: ReactNode
 }
 
@@ -21,7 +22,7 @@ export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps) {
 	const { type: menuType, sourceId } = useTldrawUiMenuContext()
 	const msg = useTranslation()
 	const labelToUse = unwrapLabel(label, menuType)
-	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
+	const labelStr = labelToUse ? msg(labelToUse) : undefined
 
 	switch (menuType) {
 		case 'panel': {
