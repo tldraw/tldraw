@@ -1036,11 +1036,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
-    // (undocumented)
-    getShapesWithText(text: string): {
-        shape: TLShape;
-        text: string;
-    }[];
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;

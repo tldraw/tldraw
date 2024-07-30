@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	EASINGS,
 	Editor,
@@ -10,7 +10,7 @@ import {
 } from 'tldraw'
 import { showSearch } from './TextSearchExample'
 
-interface SearchResults {
+interface SearchResult {
 	text: string
 	shape: TLShape
 }
@@ -29,25 +29,28 @@ function keyDown(e: React.KeyboardEvent) {
 	}
 }
 
+function getShapesWithText(editor: Editor, text: string): { text: string; shape: TLShape }[] {
+	if (!text || text.length === 0) return []
+	const shapes = editor.getCurrentPageShapes()
+	const result: SearchResult[] = []
+	shapes.forEach((shape) => {
+		const util = editor.getShapeUtil(shape)
+		const shapeText = util.getText(shape)
+		if (shapeText && shapeText.includes(text)) {
+			result.push({ text: shapeText, shape })
+		}
+	})
+
+	return result.sort((a, b) => a.text.localeCompare(b.text))
+}
+
 export const TextSearchPanel = track(() => {
 	const editor = useEditor()
-	const currentPageShapes = editor.getCurrentPageShapes()
-	const [results, setResults] = useState<SearchResults[]>([])
 	const [searchText, setSearchText] = useState('')
 	const inputRef = useRef<HTMLInputElement>(null)
 	const isVisible = showSearch.get()
 
-	const getResults = useCallback(() => {
-		if (!searchText || searchText === '') {
-			setResults([])
-			return
-		}
-		setResults(editor.getShapesWithText(searchText))
-	}, [searchText, editor])
-
-	useEffect(() => {
-		getResults()
-	}, [currentPageShapes, getResults])
+	const results = getShapesWithText(editor, searchText)
 
 	useEffect(() => {
 		if (isVisible) {
