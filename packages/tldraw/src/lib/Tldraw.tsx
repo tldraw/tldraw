@@ -187,7 +187,7 @@ function InsideOfEditorAndUiContext({
 		)
 
 		// ...then we call the store's on mount which may override them...
-		unsubs.push(editor.store.props.onEditorMount(editor))
+		unsubs.push(editor.store.props.onMount(editor))
 
 		// ...then we run the user's onMount prop, which may override things again.
 		unsubs.push(onMount?.(editor))
