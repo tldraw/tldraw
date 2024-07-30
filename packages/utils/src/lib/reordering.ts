@@ -12,7 +12,7 @@ const generateKeysFn =
  *
  * @public
  */
-export type IndexKey = string
+export type IndexKey = string & { __brand: 'indexKey' }
 
 /**
  * The index key for the first index - 'a0'.
@@ -75,7 +75,7 @@ export function getIndicesBetween(
 	above: IndexKey | null | undefined,
 	n: number
 ) {
-	return generateKeysFn(below ?? null, above ?? null, n)
+	return generateKeysFn(below ?? null, above ?? null, n) as IndexKey[]
 }
 
 /**
@@ -85,7 +85,7 @@ export function getIndicesBetween(
  * @public
  */
 export function getIndicesAbove(below: IndexKey | null | undefined, n: number) {
-	return generateKeysFn(below ?? null, null, n)
+	return generateKeysFn(below ?? null, null, n) as IndexKey[]
 }
 
 /**
@@ -95,7 +95,7 @@ export function getIndicesAbove(below: IndexKey | null | undefined, n: number) {
  * @public
  */
 export function getIndicesBelow(above: IndexKey | null | undefined, n: number) {
-	return generateKeysFn(null, above ?? null, n)
+	return generateKeysFn(null, above ?? null, n) as IndexKey[]
 }
 
 /**
@@ -108,7 +108,7 @@ export function getIndexBetween(
 	below: IndexKey | null | undefined,
 	above: IndexKey | null | undefined
 ) {
-	return generateKeysFn(below ?? null, above ?? null, 1)[0]
+	return generateKeysFn(below ?? null, above ?? null, 1)[0] as IndexKey
 }
 
 /**
@@ -117,7 +117,7 @@ export function getIndexBetween(
  * @public
  */
 export function getIndexAbove(below: IndexKey | null | undefined = null) {
-	return generateKeysFn(below, null, 1)[0]
+	return generateKeysFn(below, null, 1)[0] as IndexKey
 }
 
 /**
@@ -126,7 +126,7 @@ export function getIndexAbove(below: IndexKey | null | undefined = null) {
  *  @public
  */
 export function getIndexBelow(above: IndexKey | null | undefined = null) {
-	return generateKeysFn(null, above, 1)[0]
+	return generateKeysFn(null, above, 1)[0] as IndexKey
 }
 
 /**
@@ -136,7 +136,7 @@ export function getIndexBelow(above: IndexKey | null | undefined = null) {
  * @public
  */
 export function getIndices(n: number, start = 'a1' as IndexKey) {
-	return [start, ...generateKeysFn(start, null, n)]
+	return [start, ...generateKeysFn(start, null, n)] as IndexKey[]
 }
 
 /**

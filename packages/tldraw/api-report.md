@@ -23,6 +23,7 @@ import { EmbedDefinition } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
+import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
@@ -268,7 +269,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     onBeforeCreate(next: TLBookmarkShape): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -288,7 +289,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -780,7 +781,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onBeforeCreate(shape: TLGeoShape): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -811,7 +812,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -842,7 +843,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onDoubleClick(shape: TLGeoShape): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -857,7 +858,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     } | {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -1114,7 +1115,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -1124,7 +1125,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow"; points: {
                 [x: string]: {
                     id: string;
-                    index: string;
+                    index: IndexKey;
                     x: number;
                     y: number;
                 } | TLLineShapePoint;
@@ -1145,7 +1146,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
             points: {
                 [x: string]: {
                     id: string;
-                    index: string;
+                    index: IndexKey;
                     x: number;
                     y: number;
                 };
@@ -1204,7 +1205,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onBeforeCreate(next: TLNoteShape): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -1230,7 +1231,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;
@@ -1533,7 +1534,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     onBeforeUpdate(prev: TLTextShape, next: TLTextShape): {
         id: TLShapeId;
-        index: string;
+        index: IndexKey;
         isLocked: boolean;
         meta: JsonObject;
         opacity: number;

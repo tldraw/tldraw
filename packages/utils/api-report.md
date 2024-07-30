@@ -132,25 +132,25 @@ export function getHashForObject(obj: any): string;
 export function getHashForString(string: string): string;
 
 // @public
-export function getIndexAbove(below?: IndexKey | null | undefined): string;
+export function getIndexAbove(below?: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndexBelow(above?: IndexKey | null | undefined): string;
+export function getIndexBelow(above?: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndexBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined): string;
+export function getIndexBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndices(n: number, start?: string): string[];
+export function getIndices(n: number, start?: IndexKey): IndexKey[];
 
 // @public
-export function getIndicesAbove(below: IndexKey | null | undefined, n: number): string[];
+export function getIndicesAbove(below: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBelow(above: IndexKey | null | undefined, n: number): string[];
+export function getIndicesBelow(above: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined, n: number): string[];
+export function getIndicesBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @internal (undocumented)
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
@@ -166,7 +166,9 @@ const Image_2: (width?: number, height?: number) => HTMLImageElement;
 export { Image_2 as Image }
 
 // @public
-export type IndexKey = string;
+export type IndexKey = string & {
+    __brand: 'indexKey';
+};
 
 // @public
 export function invLerp(a: number, b: number, t: number): number;
@@ -422,7 +424,7 @@ export class WeakCache<K extends object, V> {
 }
 
 // @public
-export const ZERO_INDEX_KEY: string;
+export const ZERO_INDEX_KEY: IndexKey;
 
 // (No @packageDocumentation comment for this package)
 

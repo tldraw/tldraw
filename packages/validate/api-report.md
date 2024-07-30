@@ -5,6 +5,7 @@
 ```ts
 
 import { Expand } from '@tldraw/utils';
+import { IndexKey } from '@tldraw/utils';
 import { JsonValue } from '@tldraw/utils';
 
 // @public
@@ -59,7 +60,7 @@ export type ExtractRequiredKeys<T extends object> = {
 const httpUrl: Validator<string>;
 
 // @public
-const indexKey: Validator<string>;
+const indexKey: Validator<IndexKey>;
 
 // @public
 const integer: Validator<number>;
