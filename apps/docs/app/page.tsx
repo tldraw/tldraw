@@ -1,6 +1,7 @@
 import { CaseStudiesSection } from '@/components/marketing/case-studies-section'
 import { CustomizationSection } from '@/components/marketing/customization-section'
 import { DetailsSection } from '@/components/marketing/details-section'
+import { FAQSection } from '@/components/marketing/faq-section'
 import { FeaturesSection } from '@/components/marketing/features-section'
 import { HeroSection } from '@/components/marketing/hero-section'
 import { InstallationSection } from '@/components/marketing/installation-section'
@@ -20,6 +21,7 @@ export default function Page() {
 			<CaseStudiesSection />
 			<PricingSection />
 			<TestimonialsSection />
+			<FAQSection />
 		</div>
 	)
 }
