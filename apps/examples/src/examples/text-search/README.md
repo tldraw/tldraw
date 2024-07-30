@@ -3,19 +3,7 @@ title: Text search
 component: ./TextSearchExample.tsx
 category: editor-api
 priority: 3
-keywords:
-  [
-    annotation,
-    camera options,
-    zoom,
-    pan,
-    camera bounds,
-    pan speed,
-    zoom speed,
-    scroll,
-    search,
-    text,
-  ]
+keywords: [zoom, pan, camera bounds, search, text]
 ---
 
 ---

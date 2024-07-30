@@ -7,7 +7,6 @@ export const showSearch = atom('showSearch', false)
 
 const components: TLComponents = {
 	HelperButtons: TextSearchPanel,
-	Minimap: null,
 }
 
 const overrides: TLUiOverrides = {
