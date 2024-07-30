@@ -1,5 +1,4 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../context/actions'
 import {
 	useCanRedo,
 	useCanUndo,
@@ -11,8 +10,6 @@ import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
 /** @public @react */
 export function DefaultQuickActionsContent() {
-	const actions = useActions()
-
 	const editor = useEditor()
 
 	const canUndo = useCanUndo()

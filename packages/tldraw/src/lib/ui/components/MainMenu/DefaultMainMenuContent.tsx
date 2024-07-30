@@ -1,5 +1,4 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../context/actions'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
@@ -53,8 +52,6 @@ export function DefaultMainMenuContent() {
 
 /** @public @react */
 export function ExportFileContentSubMenu() {
-	const actions = useActions()
-
 	return (
 		<TldrawUiMenuSubmenu id="export-all-as" label="context-menu.export-all-as" size="small">
 			<TldrawUiMenuGroup id="export-all-as-group">
@@ -122,7 +119,6 @@ export function LockGroup() {
 
 /** @public @react */
 export function UndoRedoGroup() {
-	const actions = useActions()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
 	return (
@@ -135,7 +131,6 @@ export function UndoRedoGroup() {
 
 /** @public @react */
 export function ViewSubmenu() {
-	const actions = useActions()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
@@ -151,7 +146,6 @@ export function ViewSubmenu() {
 
 /** @public @react */
 export function ExtrasGroup() {
-	const actions = useActions()
 	return (
 		<TldrawUiMenuGroup id="extras">
 			<TldrawUiMenuItem action="insert-embed" />

@@ -1,6 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
-import { useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
 import {
 	useAllowGroup,
@@ -109,7 +108,6 @@ export function ZoomTo100MenuItem() {
 /** @public @react */
 
 export function RotateCCWMenuItem() {
-	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 	const isInSelectState = useIsInSelectState()
 	const enabled = oneSelected && isInSelectState
