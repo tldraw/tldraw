@@ -6,8 +6,7 @@ import {
 	Image,
 	MediaHelpers,
 	TLImageShape,
-	TLOnDoubleClickHandler,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	TLShapePartial,
 	Vec,
 	fetch,
@@ -36,8 +35,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override props = imageShapeProps
 	static override migrations = imageShapeMigrations
 
-	override isAspectRatioLocked = () => true
-	override canCrop = () => true
+	override isAspectRatioLocked() {
+		return true
+	}
+	override canCrop() {
+		return true
+	}
 
 	override getDefaultProps(): TLImageShape['props'] {
 		return {
@@ -52,7 +55,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
-	override onResize: TLOnResizeHandler<any> = (shape: TLImageShape, info) => {
+	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
 		const { flipX, flipY } = info.initialShape.props
 
@@ -280,7 +283,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
-	override onDoubleClick = (shape: TLImageShape) => {
+	override onDoubleClick(shape: TLImageShape) {
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
 		if (!asset) return
@@ -300,7 +303,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		])
 	}
 
-	override onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape> = (shape) => {
+	override onDoubleClickEdge(shape: TLImageShape) {
 		const props = shape.props
 		if (!props) return
 

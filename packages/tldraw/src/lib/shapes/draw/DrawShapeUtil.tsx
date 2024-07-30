@@ -8,7 +8,7 @@ import {
 	SvgExportContext,
 	TLDrawShape,
 	TLDrawShapeSegment,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
 	drawShapeMigrations,
@@ -33,9 +33,15 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override props = drawShapeProps
 	static override migrations = drawShapeMigrations
 
-	override hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
-	override hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)
-	override hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
+	override hideResizeHandles(shape: TLDrawShape) {
+		return getIsDot(shape)
+	}
+	override hideRotateHandle(shape: TLDrawShape) {
+		return getIsDot(shape)
+	}
+	override hideSelectionBoundsFg(shape: TLDrawShape) {
+		return getIsDot(shape)
+	}
 
 	override getDefaultProps(): TLDrawShape['props'] {
 		return {
@@ -137,7 +143,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return [getFillDefForCanvas()]
 	}
 
-	override onResize: TLOnResizeHandler<TLDrawShape> = (shape, info) => {
+	override onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>) {
 		const { scaleX, scaleY } = info
 
 		const newSegments: TLDrawShapeSegment[] = []
@@ -245,7 +251,7 @@ function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: num
 				fill={isDot ? theme[shape.props.color].solid : 'none'}
 				stroke={theme[shape.props.color].solid}
 				strokeWidth={sw}
-				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw)}
+				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, zoomLevel)}
 				strokeDashoffset="0"
 			/>
 		</>

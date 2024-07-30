@@ -5,10 +5,8 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLOnEditEndHandler,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	TLShapeId,
-	TLShapeUtilFlag,
 	TLTextShape,
 	Vec,
 	WeakCache,
@@ -68,9 +66,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return shape.props.text
 	}
 
-	override canEdit = () => true
+	override canEdit() {
+		return true
+	}
 
-	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
+	override isAspectRatioLocked() {
+		return true
+	} // WAIT NO THIS IS HARD CODED IN THE RESIZE HANDLER
 
 	component(shape: TLTextShape) {
 		const {
@@ -138,7 +140,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		)
 	}
 
-	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
+	override onResize(shape: TLTextShape, info: TLResizeInfo<TLTextShape>) {
 		const { newPoint, initialBounds, initialShape, scaleX, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
@@ -165,7 +167,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLTextShape> = (shape) => {
+	override onEditEnd(shape: TLTextShape) {
 		const {
 			id,
 			type,
@@ -191,7 +193,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	override onBeforeUpdate = (prev: TLTextShape, next: TLTextShape) => {
+	override onBeforeUpdate(prev: TLTextShape, next: TLTextShape) {
 		if (!next.props.autoSize) return
 
 		const styleDidChange =

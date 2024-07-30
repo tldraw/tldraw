@@ -3,7 +3,7 @@ import { lerp } from '@tldraw/utils'
 import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Rectangle2d } from '../../primitives/geometry/Rectangle2d'
 import { HandleSnapGeometry } from '../managers/SnapManager/HandleSnaps'
-import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
+import { ShapeUtil, TLResizeInfo } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'
 
 /** @public */
@@ -19,7 +19,7 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 		})
 	}
 
-	override onResize: TLOnResizeHandler<any> = (shape, info) => {
+	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
 	}
 

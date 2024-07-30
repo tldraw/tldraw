@@ -50,8 +50,8 @@ export const assertExists = omitFromStackTrace(<T>(value: T, message?: string): 
 
 /** @internal */
 export function promiseWithResolve<T>(): Promise<T> & {
-	resolve: (value: T) => void
-	reject: (reason?: any) => void
+	resolve(value: T): void
+	reject(reason?: any): void
 } {
 	let resolve: (value: T) => void
 	let reject: (reason?: any) => void

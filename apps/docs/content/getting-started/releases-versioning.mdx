@@ -7,7 +7,7 @@ order: 3
 
 ## How tldraw is versioned
 
-**We do not follow SemVer**.
+Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), the tldraw SDK does not follow [semantic versioning](https://semver.org/) in its release versions. Here's what we do instead:
 
 - Major version bumps are very rare and we reserve them for special changes that signify a paradigm shift of some kind.
 - Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
@@ -16,6 +16,41 @@ order: 3
 ## Changelog
 
 {/* START AUTO-GENERATED CHANGELOG */}
+
+### [v2.4.2](/releases/v2.4.2)
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `@tldraw/sync-core`, `@tldraw/sync`, `tldraw`, `@tldraw/utils`
+  - v2.4.2 - sync release candidate [#4309](https://github.com/tldraw/tldraw/pull/4309) ([@SomeHats](https://github.com/SomeHats) [@adamwiggins](https://github.com/adamwiggins) [@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- Adam Wiggins ([@adamwiggins](https://github.com/adamwiggins))
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+### [v2.4.1](/releases/v2.4.1)
+
+#### fix assets prop on tldraw component (#4283) ([#4285](https://github.com/tldraw/tldraw/pull/4285))
+
+- The `assets` prop on the `<Tldraw />` and `<TldrawEditor />` components is now respected.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - fix assets prop on tldraw component (#4283) [#4285](https://github.com/tldraw/tldraw/pull/4285) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `v2.4.x`
+
+- v2.4.x: fix workflow files ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
 
 ### [v2.4.0](/releases/v2.4.0)
 
@@ -489,42 +524,7 @@ Previously, `editor.mark(id)` accepted two additional boolean parameters: `onUnd
 
 ### [v2.1.3](/releases/v2.1.3)
 
-#### Expose migrations, validators, and versions from tlschema ([#3613](https://github.com/tldraw/tldraw/pull/3613))
-
-Previously, we weren't exporting migrations & validators for our default shapes. This meant that it wasn't possible to make your own tlschema with both our default shapes and some of your own (e.g. for custom multiplayer). This fixes that by exposing all the migrations, validators, and versions from tlschema, plus `defaultShapeSchemas` which can be passed directly to `createTLSchema`
-
----
-
-#### 📚 SDK Changes
-
-- `@tldraw/tlschema`
-  - Expose migrations, validators, and versions from tlschema [#3613](https://github.com/tldraw/tldraw/pull/3613) ([@SomeHats](https://github.com/SomeHats))
-
-#### Authors: 1
-
-- alex ([@SomeHats](https://github.com/SomeHats))
-
 ### [v2.1.2](/releases/v2.1.2)
-
-#### Revert "[signia] Smart dirty checking of active computeds (#3516)" ([#3611](https://github.com/tldraw/tldraw/pull/3611))
-
-This performance optimisation introduced a regression where sometimes computed caches wouldn't get invalidated at the correct time, leading to stale data causing crashes. We're reverting the change for now.
-
----
-
-#### 🐛 Bug Fix
-
-- `@tldraw/state`
-  - Revert "[signia] Smart dirty checking of active computeds (#3516)" [#3611](https://github.com/tldraw/tldraw/pull/3611) ([@SomeHats](https://github.com/SomeHats))
-
-#### 🏠 Internal
-
-- increase publish script timeouts [#3570](https://github.com/tldraw/tldraw/pull/3570) ([@SomeHats](https://github.com/SomeHats))
-- longer retries for package publishing [#3567](https://github.com/tldraw/tldraw/pull/3567) ([@SomeHats](https://github.com/SomeHats))
-
-#### Authors: 1
-
-- alex ([@SomeHats](https://github.com/SomeHats))
 
 ### [v2.1.1](/releases/v2.1.1)
 

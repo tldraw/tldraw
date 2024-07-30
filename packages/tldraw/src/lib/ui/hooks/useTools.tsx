@@ -16,7 +16,7 @@ export interface TLUiToolItem<
 	label: TranslationKey
 	shortcutsLabel?: TranslationKey
 	icon: IconType
-	onSelect: (source: TLUiEventSource) => void
+	onSelect(source: TLUiEventSource): void
 	kbd?: string
 	readonlyOk?: boolean
 	meta?: {
@@ -32,11 +32,11 @@ export const ToolsContext = React.createContext<null | TLUiToolsContextType>(nul
 
 /** @public */
 export interface TLUiToolsProviderProps {
-	overrides?: (
+	overrides?(
 		editor: Editor,
 		tools: TLUiToolsContextType,
-		helpers: { insertMedia: () => void }
-	) => TLUiToolsContextType
+		helpers: { insertMedia(): void }
+	): TLUiToolsContextType
 	children: React.ReactNode
 }
 

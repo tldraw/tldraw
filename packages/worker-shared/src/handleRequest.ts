@@ -34,7 +34,7 @@ export async function handleApiRequest<
 	request: Request
 	env: Env
 	ctx: Ctx
-	after: (response: Response) => Response | Promise<Response>
+	after(response: Response): Response | Promise<Response>
 }) {
 	let response
 	try {
