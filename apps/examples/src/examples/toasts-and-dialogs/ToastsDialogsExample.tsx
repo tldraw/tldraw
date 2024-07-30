@@ -1,7 +1,17 @@
-import { ExampleDialog, TLComponents, Tldraw, useDialogs, useToasts } from 'tldraw'
+import { TLComponents, Tldraw, useDialogs, useToasts } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file
+
+function MyDialog({ onClose }: { onClose: () => void }) {
+	return (
+		<div>
+			<h1>My Dialog Title</h1>
+			<p>My dialog body</p>
+			<button onClick={onClose}>close</button>
+		</div>
+	)
+}
 
 const CustomSharePanel = () => {
 	const { addToast } = useToasts()
@@ -13,17 +23,9 @@ const CustomSharePanel = () => {
 			onClick={() => {
 				addToast({ title: 'Hello world!', severity: 'success' })
 				addDialog({
-					component: ({ onClose }) => (
-						<ExampleDialog
-							title="Hello World!"
-							body="This is a dialog body."
-							cancel="myCancelButton"
-							confirm="myConfirmButton"
-							onCancel={() => onClose()}
-							onContinue={() => onClose()}
-						/>
-					),
+					component: ({ onClose }) => <MyDialog onClose={() => onClose()} />,
 					onClose: () => {
+						// You can do something after the dialog is closed
 						void null
 					},
 				})
