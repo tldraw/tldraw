@@ -5675,7 +5675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shapeIds.set(shapeId, createShapeId())
 			}
 
-			const { shapesToCreate, bindingsToCreate } = withIsolatedShapes(
+			const { shapesToCreateWithOriginals, bindingsToCreate } = withIsolatedShapes(
 				this,
 				shapeIdSet,
 				(bindingIdsToMaintain) => {
@@ -5693,7 +5693,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						})
 					}
 
-					const shapesToCreate: TLShape[] = []
+					const shapesToCreateWithOriginals: { shape: TLShape; originalShape: TLShape }[] = []
 					for (const originalId of orderedShapeIds) {
 						const duplicatedId = assertExists(shapeIds.get(originalId))
 						const originalShape = this.getShape(originalId)
@@ -5709,29 +5709,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 							oy = vec.y
 						}
 
-						const parentId = originalShape.parentId
-						const siblings = this.getSortedChildIdsForParent(parentId)
-						const currentIndex = siblings.indexOf(originalShape.id)
-						const siblingAboveId = siblings[currentIndex + 1]
-						const siblingAbove = siblingAboveId ? this.getShape(siblingAboveId) : null
-
-						const index = siblingAbove
-							? getIndexBetween(originalShape.index, siblingAbove.index)
-							: getIndexAbove(originalShape.index)
-
-						shapesToCreate.push({
-							...originalShape,
-							id: duplicatedId,
-							x: originalShape.x + ox,
-							y: originalShape.y + oy,
-							index,
-							parentId: shapeIds.get(originalShape.parentId as TLShapeId) ?? originalShape.parentId,
+						shapesToCreateWithOriginals.push({
+							shape: {
+								...originalShape,
+								id: duplicatedId,
+								x: originalShape.x + ox,
+								y: originalShape.y + oy,
+								// Use a dummy index for now, it will get updated outside of the `withIsolatedShapes`
+								index: 'a1' as IndexKey,
+								parentId:
+									shapeIds.get(originalShape.parentId as TLShapeId) ?? originalShape.parentId,
+							},
+							originalShape,
 						})
 					}
 
-					return { shapesToCreate, bindingsToCreate }
+					return { shapesToCreateWithOriginals, bindingsToCreate }
 				}
 			)
+
+			// We will update the indexes after the `withIsolatedShapes`, since we cannot rely on the indexes
+			// to be correct inside of it.
+			shapesToCreateWithOriginals.forEach(({ shape, originalShape }) => {
+				const parentId = originalShape.parentId
+				const siblings = this.getSortedChildIdsForParent(parentId)
+				const currentIndex = siblings.indexOf(originalShape.id)
+				const siblingAboveId = siblings[currentIndex + 1]
+				const siblingAbove = siblingAboveId ? this.getShape(siblingAboveId) : undefined
+
+				const index = getIndexBetween(originalShape.index, siblingAbove?.index)
+
+				shape.index = index
+			})
+			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape }) => shape)
 
 			const maxShapesReached =
 				shapesToCreate.length + this.getCurrentPageShapeIds().size > this.options.maxShapesPerPage
