@@ -10,19 +10,19 @@ export const BlogPostPreview: React.FC<{ article: any }> = ({ article }) => {
 	return (
 		<Link
 			href={article.path ?? `/blog/${article.categoryId}/${article.id}`}
-			className="flex gap-x-12 items-center"
+			className="flex flex-col md:flex-row gap-x-12 gap-y-6 -mx-5 md:mx-0 items-center"
 		>
-			<div className="bg-zinc-100 py-1 md:rounded-2xl -mx-5 md:mx-0 md:px-1 md:w-1/3 shrink-0">
+			<div className="bg-zinc-100 py-1 md:rounded-2xl -mx-5 md:mx-0 md:px-1 w-full md:w-1/3 shrink-0">
 				<div className="relative w-full aspect-video">
 					<Image
 						src={article.hero ?? ''}
 						alt={article.title}
 						fill
-						className="object-cover object-center rounded-xl !my-0 shadow"
+						className="object-cover object-center md:rounded-xl !my-0 shadow"
 					/>
 				</div>
 			</div>
-			<div>
+			<div className="px-5 md:px-0 w-full md:w-2/3">
 				<h2 className="font-bold text-black text-2xl leading-none">{article.title}</h2>
 				<p className="text-zinc-800 my-4">{article.description}</p>
 				<p className="text-xs text-zinc-600">
