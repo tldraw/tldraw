@@ -5674,7 +5674,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			for (const shapeId of shapeIdSet) {
 				shapeIds.set(shapeId, createShapeId())
 			}
-			const orderedShapes = compact(orderedShapeIds.map((id) => this.getShape(id)))
 
 			const { shapesToCreate, bindingsToCreate } = withIsolatedShapes(
 				this,
@@ -5695,9 +5694,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 
 					const shapesToCreate: TLShape[] = []
-					for (const originalShape of orderedShapes) {
-						const originalId = originalShape.id
+					for (const originalId of orderedShapeIds) {
+						const originalShape = this.getShape(originalId)
 						const duplicatedId = assertExists(shapeIds.get(originalId))
+						if (!originalShape) continue
 
 						let ox = 0
 						let oy = 0
@@ -5724,7 +5724,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			)
 
-			orderedShapes.forEach((originalShape, i) => {
+			orderedShapeIds.forEach((originalId, i) => {
+				const originalShape = this.getShape(originalId)
+				if (!originalShape) return
 				const parentId = originalShape.parentId
 				const siblings = this.getSortedChildIdsForParent(parentId)
 				const currentIndex = siblings.indexOf(originalShape.id)
