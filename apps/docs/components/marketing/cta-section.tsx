@@ -33,7 +33,7 @@ export const CTASection = () => {
 				</div>
 			</div>
 			<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-				<Button href="/quick-start" caption="Get Started" size="lg" type="black" />
+				<Button href="/quick-start" caption="Get Started" type="black" />
 				<div>
 					or{' '}
 					<Link href="#pricing" className="font-semibold text-blue-500 hover:text-blue-600">
