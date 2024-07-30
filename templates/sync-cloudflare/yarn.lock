@@ -2390,10 +2390,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cloudflare-workers-unfurl@npm:^0.0.1":
-  version: 0.0.1
-  resolution: "cloudflare-workers-unfurl@npm:0.0.1"
-  checksum: cb86a9ad540389292a5f780c87f6ad9f2a1a6210ea533152e9eae0d22a8b2bdc746d03a45589b5f560c0854fe22aa55e64d47a0208fae272a4d4cd1cb9121c01
+"cloudflare-workers-unfurl@npm:^0.0.7":
+  version: 0.0.7
+  resolution: "cloudflare-workers-unfurl@npm:0.0.7"
+  checksum: 370e593e3689ac60e5084f4061e8c89f401326fc31a2f6c67d1b898133fce894f8ddb0bb29c27ab9100fafb54b484e76626faff86d1f400a7f8f4b55f9009b28
   languageName: node
   linkType: hard
 
@@ -4637,7 +4637,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^5.59.0"
     "@typescript-eslint/parser": "npm:^5.59.0"
     "@vitejs/plugin-react-swc": "npm:^3.6.0"
-    cloudflare-workers-unfurl: "npm:^0.0.1"
+    cloudflare-workers-unfurl: "npm:^0.0.7"
     concurrently: "npm:^8.2.2"
     eslint: "npm:^8.38.0"
     eslint-plugin-react-hooks: "npm:^4.6.0"
