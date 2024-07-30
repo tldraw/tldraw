@@ -17,9 +17,9 @@ export const ArrowDown: React.FC<{
 		>
 			<motion.path
 				d="M2 2C10.6667 8.5 25.4 28.1 15 54.5"
-				stroke-width="3"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeWidth="3"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 				initial={{ pathLength: 0, opacity: 0 }}
 				animate={{
 					pathLength: 1,
@@ -33,9 +33,9 @@ export const ArrowDown: React.FC<{
 			/>
 			<motion.path
 				d="M12.127 47.4806L14.1317 57.5791L21.6469 50.5419"
-				stroke-width="3"
-				stroke-linecap="round"
-				stroke-linejoin="round"
+				strokeWidth="3"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 				initial={{ pathLength: 0, opacity: 0 }}
 				animate={{
 					pathLength: 1,

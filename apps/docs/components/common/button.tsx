@@ -1,8 +1,12 @@
+'use client'
+
 import { Icon, IconName } from '@/components/common/icon'
 import { cn } from '@/utils/cn'
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 import { MouseEventHandler } from 'react'
+import { useFormStatus } from 'react-dom'
+import { Loader } from './loader'
 
 export const Button: React.FC<{
 	href?: string
@@ -15,6 +19,7 @@ export const Button: React.FC<{
 	className?: string
 	size?: 'xs' | 'sm' | 'base' | 'lg'
 	type?: 'primary' | 'secondary' | 'tertiary' | 'black'
+	darkRingOffset?: boolean
 }> = ({
 	href,
 	newTab,
@@ -26,10 +31,13 @@ export const Button: React.FC<{
 	className,
 	size = 'base',
 	type = 'primary',
+	darkRingOffset,
 }) => {
+	const { pending } = useFormStatus()
 	const iconSizes = { xs: 'h-3', sm: 'h-3.5', base: 'h-4', lg: 'h-5' }
 	className = cn(
-		'flex items-center',
+		'relative overflow-hidden flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
+		darkRingOffset ? 'focus:ring-offset-zinc-900' : 'focus:ring-offset-zinc-50',
 		size === 'xs' && 'h-6 px-2 gap-1.5 rounded-md text-xs',
 		size === 'sm' && 'h-7 px-3 gap-2 rounded-md text-sm',
 		size === 'base' && 'h-9 px-4 gap-2.5 rounded-lg text-base',
@@ -64,11 +72,23 @@ export const Button: React.FC<{
 		)
 	if (submit)
 		return (
-			<button type="submit" className={className}>
+			<button type="submit" disabled={pending} className={className}>
 				{arrow === 'left' && <ArrowLongLeftIcon className={cn(iconSizes[size])} />}
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
 				<span>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
+				{pending && (
+					<div
+						className={cn(
+							'absolute inset-0 flex items-center justify-center',
+							type === 'primary' && 'bg-blue-500',
+							type === 'black' && 'bg-black',
+							type === 'secondary' && 'bg-zinc-100'
+						)}
+					>
+						<Loader className="w-5" />
+					</div>
+				)}
 			</button>
 		)
 	return null
