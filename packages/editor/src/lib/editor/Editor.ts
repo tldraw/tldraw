@@ -5731,12 +5731,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const parentId = originalShape.parentId
 				const siblings = this.getSortedChildIdsForParent(parentId)
 				const currentIndex = siblings.indexOf(originalShape.id)
-				const siblingAboveId = siblings[currentIndex + 1]
-				const siblingAbove = siblingAboveId ? this.getShape(siblingAboveId) : null
 
-				const index = siblingAbove
-					? getIndexBetween(originalShape.index, siblingAbove.index)
-					: getIndexAbove(originalShape.index)
+				const index = getIndexBetween(
+					originalShape.index,
+					this.getShape(siblings[currentIndex + 1])?.index
+				)
 				shape.index = index
 			})
 			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape }) => shape)
