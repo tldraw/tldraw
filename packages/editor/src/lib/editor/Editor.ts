@@ -5675,8 +5675,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shapeIds.set(shapeId, createShapeId())
 			}
 
-			const { shapesToCreatWithOriginals: shapesToCreateWithOriginals, bindingsToCreate } =
-				withIsolatedShapes(this, shapeIdSet, (bindingIdsToMaintain) => {
+			const { shapesToCreateWithOriginals, bindingsToCreate } = withIsolatedShapes(
+				this,
+				shapeIdSet,
+				(bindingIdsToMaintain) => {
 					const bindingsToCreate: TLBinding[] = []
 					for (const originalId of bindingIdsToMaintain) {
 						const originalBinding = this.getBinding(originalId)
@@ -5691,7 +5693,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						})
 					}
 
-					const shapesToCreatWithOriginals: { shape: TLShape; originalShape: TLShape }[] = []
+					const shapesToCreateWithOriginals: { shape: TLShape; originalShape: TLShape }[] = []
 					for (const originalId of orderedShapeIds) {
 						const duplicatedId = assertExists(shapeIds.get(originalId))
 						const originalShape = this.getShape(originalId)
@@ -5707,7 +5709,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							oy = vec.y
 						}
 
-						shapesToCreatWithOriginals.push({
+						shapesToCreateWithOriginals.push({
 							shape: {
 								...originalShape,
 								id: duplicatedId,
@@ -5722,8 +5724,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 						})
 					}
 
-					return { shapesToCreatWithOriginals, bindingsToCreate }
-				})
+					return { shapesToCreateWithOriginals, bindingsToCreate }
+				}
+			)
 
 			// We will update the indexes after the `withIsolatedShapes`, since we cannot rely on the indexes
 			// to be correct inside of it.
