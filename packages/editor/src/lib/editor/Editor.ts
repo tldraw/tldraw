@@ -5674,6 +5674,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			for (const shapeId of shapeIdSet) {
 				shapeIds.set(shapeId, createShapeId())
 			}
+			const orderedShapes = compact(orderedShapeIds.map((id) => this.getShape(id)))
 
 			const { shapesToCreate, bindingsToCreate } = withIsolatedShapes(
 				this,
@@ -5694,10 +5695,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 
 					const shapesToCreate: TLShape[] = []
-					for (const originalId of orderedShapeIds) {
+					for (const originalShape of orderedShapes) {
+						const originalId = originalShape.id
 						const duplicatedId = assertExists(shapeIds.get(originalId))
-						const originalShape = this.getShape(originalId)
-						if (!originalShape) continue
 
 						let ox = 0
 						let oy = 0
@@ -5709,22 +5709,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 							oy = vec.y
 						}
 
-						const parentId = originalShape.parentId
-						const siblings = this.getSortedChildIdsForParent(parentId)
-						const currentIndex = siblings.indexOf(originalShape.id)
-						const siblingAboveId = siblings[currentIndex + 1]
-						const siblingAbove = siblingAboveId ? this.getShape(siblingAboveId) : null
-
-						const index = siblingAbove
-							? getIndexBetween(originalShape.index, siblingAbove.index)
-							: getIndexAbove(originalShape.index)
-
 						shapesToCreate.push({
 							...originalShape,
 							id: duplicatedId,
 							x: originalShape.x + ox,
 							y: originalShape.y + oy,
-							index,
+							// Use a dummy index for now, it will get updated outside of the `withIsolatedShapes`
+							index: 'a1' as IndexKey,
 							parentId: shapeIds.get(originalShape.parentId as TLShapeId) ?? originalShape.parentId,
 						})
 					}
@@ -5732,6 +5723,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return { shapesToCreate, bindingsToCreate }
 				}
 			)
+
+			orderedShapes.forEach((originalShape, i) => {
+				const parentId = originalShape.parentId
+				const siblings = this.getSortedChildIdsForParent(parentId)
+				const currentIndex = siblings.indexOf(originalShape.id)
+				const siblingAboveId = siblings[currentIndex + 1]
+				const siblingAbove = siblingAboveId ? this.getShape(siblingAboveId) : null
+
+				const index = siblingAbove
+					? getIndexBetween(originalShape.index, siblingAbove.index)
+					: getIndexAbove(originalShape.index)
+				shapesToCreate[i].index = index
+			})
 
 			const maxShapesReached =
 				shapesToCreate.length + this.getCurrentPageShapeIds().size > this.options.maxShapesPerPage
