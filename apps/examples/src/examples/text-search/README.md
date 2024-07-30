@@ -1,8 +1,8 @@
 ---
 title: Text search
 component: ./TextSearchExample.tsx
-category: use-cases
-priority: 1
+category: editor-api
+priority: 3
 keywords:
   [
     annotation,
