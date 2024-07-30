@@ -5675,10 +5675,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shapeIds.set(shapeId, createShapeId())
 			}
 
-			const { shapesToCreatWithOriginals, bindingsToCreate } = withIsolatedShapes(
-				this,
-				shapeIdSet,
-				(bindingIdsToMaintain) => {
+			const { shapesToCreatWithOriginals: shapesToCreateWithOriginals, bindingsToCreate } =
+				withIsolatedShapes(this, shapeIdSet, (bindingIdsToMaintain) => {
 					const bindingsToCreate: TLBinding[] = []
 					for (const originalId of bindingIdsToMaintain) {
 						const originalBinding = this.getBinding(originalId)
@@ -5725,12 +5723,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 
 					return { shapesToCreatWithOriginals, bindingsToCreate }
-				}
-			)
+				})
 
 			// We will update the indexes after the `withIsolatedShapes`, since we cannot rely on the indexes
 			// to be correct inside of it.
-			shapesToCreatWithOriginals.forEach(({ shape, originalShape }) => {
+			shapesToCreateWithOriginals.forEach(({ shape, originalShape }) => {
 				const parentId = originalShape.parentId
 				const siblings = this.getSortedChildIdsForParent(parentId)
 				const currentIndex = siblings.indexOf(originalShape.id)
@@ -5742,7 +5739,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					: getIndexAbove(originalShape.index)
 				shape.index = index
 			})
-			const shapesToCreate = shapesToCreatWithOriginals.map(({ shape }) => shape)
+			const shapesToCreate = shapesToCreateWithOriginals.map(({ shape }) => shape)
 
 			const maxShapesReached =
 				shapesToCreate.length + this.getCurrentPageShapeIds().size > this.options.maxShapesPerPage
