@@ -7,12 +7,10 @@ export const InstallationSection = () => {
 	return (
 		<Section>
 			<SectionHeading subheading="Features" heading="Easy Installation" />
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto px-5 md:px-0">
-				<Code files={[code.terminal]} hideCopyButton className="my-0" />
-				<Code files={[code.app]} hideCopyButton className="my-0" />
-			</div>
-			<div className="flex flex-col items-center gap-8 mt-8 px-5">
-				<p className="text-center max-w-lg text-balance">
+			<div className="flex flex-col items-center gap-8 mt-8 md:max-w-xl mx-auto">
+				<Code files={[code.terminal]} hideTabs className="my-0 w-full" />
+				<Code files={[code.app]} className="my-0 w-full" />
+				<p className="text-center max-w-lg text-balance px-5">
 					Import the styles and render the Tldraw React component inside your app. Easy as that.
 				</p>
 				<Button href="/quick-start" caption="Get Started" />
@@ -24,11 +22,7 @@ export const InstallationSection = () => {
 const code = {
 	terminal: {
 		name: 'Terminal',
-		content: `npm install tldraw
-                        
-yarn add tldraw
-
-pnpm install tldraw`,
+		content: `npm install tldraw`,
 	},
 	app: {
 		name: 'App.jsx',

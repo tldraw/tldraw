@@ -9,8 +9,9 @@ import { useRef, useState } from 'react'
 export const Code: React.FC<{
 	files: { name: string; content: any }[]
 	hideCopyButton?: boolean
+	hideTabs?: boolean
 	className?: string
-}> = ({ files, hideCopyButton, className }) => {
+}> = ({ files, hideCopyButton, hideTabs, className }) => {
 	const container = useRef<HTMLPreElement>(null)
 	const [copied, setCopied] = useState<boolean>(false)
 
@@ -29,7 +30,12 @@ export const Code: React.FC<{
 				className
 			)}
 		>
-			<TabList className="bg-zinc-900 shrink-0 text-sm text-zinc-400 shadow md:rounded-t-xl border-b border-zinc-700/50 px-5 md:px-4 gap-4 flex">
+			<TabList
+				className={cn(
+					'bg-zinc-900 shrink-0 text-sm text-zinc-400 shadow md:rounded-t-xl border-b border-zinc-700/50 px-5 md:px-4 gap-4 flex',
+					hideTabs && 'hidden'
+				)}
+			>
 				{files.map(({ name }, index) => (
 					<Tab
 						key={index}
@@ -39,7 +45,12 @@ export const Code: React.FC<{
 					</Tab>
 				))}
 			</TabList>
-			<TabPanels className="bg-zinc-900 grow text-sm text-white shadow md:rounded-b-xl overflow-x-auto px-5 md:px-4 py-4">
+			<TabPanels
+				className={cn(
+					'bg-zinc-900 grow text-sm text-white shadow md:rounded-b-xl overflow-x-auto px-5 md:px-4 py-4',
+					hideTabs && 'md:rounded-t-xl'
+				)}
+			>
 				{files.map(({ content }, index) => (
 					<TabPanel key={index}>
 						<pre className="max-h-96 overflow-y-auto">
