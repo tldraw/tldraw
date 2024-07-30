@@ -28,7 +28,7 @@ const overrides: TLUiOverrides = {
 	},
 }
 
-const SlidesExample = track(() => {
+const TextSearchExample = track(() => {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw persistenceKey="text-search-example" overrides={overrides} components={components} />
@@ -36,4 +36,4 @@ const SlidesExample = track(() => {
 	)
 })
 
-export default SlidesExample
+export default TextSearchExample

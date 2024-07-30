@@ -30,7 +30,7 @@ function keyDown(e: React.KeyboardEvent) {
 	}
 }
 
-function getShapesWithText(editor: Editor, text: string): { text: string; shape: TLShape }[] {
+function getShapesWithText(editor: Editor, text: string): SearchResult[] {
 	if (!text || text.length === 0) return []
 	const shapes = editor.getCurrentPageShapes()
 	const result: SearchResult[] = []
@@ -41,7 +41,6 @@ function getShapesWithText(editor: Editor, text: string): { text: string; shape:
 			result.push({ text: shapeText, shape })
 		}
 	})
-
 	return result.sort((a, b) => a.text.localeCompare(b.text))
 }
 
@@ -51,8 +50,6 @@ export const TextSearchPanel = track(() => {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const isVisible = showSearch.get()
 
-	const results = getShapesWithText(editor, searchText)
-
 	useEffect(() => {
 		if (isVisible) {
 			setSearchText('')
@@ -60,7 +57,10 @@ export const TextSearchPanel = track(() => {
 		}
 	}, [isVisible])
 
-	return !isVisible ? null : (
+	if (!isVisible) return null
+
+	const results = getShapesWithText(editor, searchText)
+	return (
 		<div
 			className="text-search-panel scroll-light"
 			onPointerDown={(e) => stopEventPropagation(e)}
