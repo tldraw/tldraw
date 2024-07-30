@@ -20,13 +20,21 @@ export class Pointing extends StateNode {
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		if (this.editor.inputs.isDragging) {
-			const {
-				inputs: { originPagePoint },
-			} = this.editor
-
+		// Don't create a fixed width shape unless the the drag is a little larger,
+		// otherwise you get a vertical column of single characters if you accidentally
+		// drag a bit unintentionally.
+		const { editor } = this
+		const { isPointing, originPagePoint, currentPagePoint } = editor.inputs
+		if (
+			isPointing &&
+			Math.abs(originPagePoint.x - currentPagePoint.x) ** 2 >
+				((editor.getInstanceState().isCoarsePointer
+					? editor.options.coarseDragDistanceSquared
+					: editor.options.dragDistanceSquared) *
+					4) / // double the necessary drag distance for text shapes
+					editor.getZoomLevel()
+		) {
 			const id = createShapeId()
-
 			this.markId = this.editor.markHistoryStoppingPoint(`creating_text:${id}`)
 
 			const shape = this.createTextShape(id, originPagePoint, false)
@@ -36,11 +44,11 @@ export class Pointing extends StateNode {
 			}
 
 			// Now save the fresh reference
-			this.shape = this.editor.getShape(shape)
+			this.shape = editor.getShape(shape)
 
-			this.editor.select(id)
+			editor.select(id)
 
-			this.editor.setCurrentTool('select.resizing', {
+			editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'right',
@@ -49,8 +57,8 @@ export class Pointing extends StateNode {
 				creationCursorOffset: { x: 18, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
-					this.editor.setEditingShape(shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
+					editor.setEditingShape(shape.id)
+					editor.setCurrentTool('select.editing_shape')
 				},
 			})
 		}
