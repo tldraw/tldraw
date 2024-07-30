@@ -27,7 +27,8 @@ export const FeaturesSection = () => {
 						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Based on React</h3>
 						<p className="max-w-xs">
 							Every shape on the canvas is a React component, meaning anything that’s possible on
-							the web - tldraw can do it too.
+							the web -<br className="lg:hidden" />
+							tldraw can do it too.
 						</p>
 					</div>
 				</Card>

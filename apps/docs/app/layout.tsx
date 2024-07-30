@@ -64,7 +64,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 				'font-sans bg-white antialiased text-zinc-600'
 			)}
 		>
-			<body className="pt-14 md:pt-[4.5rem]">
+			<body className="pt-14 md:pt-[4.5rem] overflow-x-hidden">
 				<Header />
 				{children}
 				<Footer />
