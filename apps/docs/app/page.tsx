@@ -1,3 +1,4 @@
+import { CaseStudiesSection } from '@/components/marketing/case-studies-section'
 import { CustomizationSection } from '@/components/marketing/customization-section'
 import { DetailsSection } from '@/components/marketing/details-section'
 import { FeaturesSection } from '@/components/marketing/features-section'
@@ -14,6 +15,7 @@ export default function Page() {
 			<DetailsSection />
 			<InstallationSection />
 			<CustomizationSection />
+			<CaseStudiesSection />
 		</div>
 	)
 }
