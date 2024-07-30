@@ -41,7 +41,10 @@ export const CustomizationSection = async () => {
 						<TabPanel key={index}>
 							<p className="text-center px-5 md:px-0 mx-auto mb-12">
 								<span>{description}</span>
-								<Link href={example} className="inline-flex ml-2 gap-1 items-center text-blue-500">
+								<Link
+									href={example}
+									className="inline-flex ml-2 gap-1 items-center text-blue-500 hover:text-blue-600"
+								>
 									<span>See Docs</span>
 									<ArrowLongRightIcon className="size-4" />
 								</Link>
