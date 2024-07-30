@@ -2,8 +2,11 @@ import { TLComponents, Tldraw, useDialogs, useToasts } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file
+interface MyDialogProps {
+	onClose: () => void
+}
 
-function MyDialog({ onClose }: { onClose: () => void }) {
+function MyDialog({ onClose }: MyDialogProps) {
 	return (
 		<div>
 			<h1>My Dialog Title</h1>
