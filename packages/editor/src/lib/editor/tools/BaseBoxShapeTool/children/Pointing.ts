@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/tlschema'
+import { TLShape, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Vec } from '../../../../primitives/Vec'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
@@ -49,7 +49,7 @@ export class Pointing extends StateNode {
 					creatingMarkId,
 					creationCursorOffset: { x: 1, y: 1 },
 					onInteractionEnd: this.parent.id,
-					onCreate: (this.parent as BaseBoxShapeTool).onCreate,
+					onCreate: (shape: TLShape | null) => (this.parent as BaseBoxShapeTool).onCreate?.(shape),
 				} /** satisfies ResizingInfo, defined in main tldraw package 😧 */
 			)
 		}

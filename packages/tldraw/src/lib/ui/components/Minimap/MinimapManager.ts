@@ -5,6 +5,7 @@ import {
 	TLShape,
 	Vec,
 	atom,
+	bind,
 	clamp,
 	computed,
 	react,
@@ -16,6 +17,8 @@ import { pie, rectangle, roundedRectangle } from './minimap-webgl-shapes'
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
+
+	@bind
 	close() {
 		return this.disposables.forEach((d) => d())
 	}
@@ -205,6 +208,7 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
+	@bind
 	render() {
 		// make sure we update when dark mode switches
 		const context = this.gl.context
