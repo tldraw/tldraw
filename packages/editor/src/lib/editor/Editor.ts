@@ -5695,8 +5695,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					const shapesToCreate: TLShape[] = []
 					for (const originalId of orderedShapeIds) {
-						const originalShape = this.getShape(originalId)
 						const duplicatedId = assertExists(shapeIds.get(originalId))
+						const originalShape = this.getShape(originalId)
 						if (!originalShape) continue
 
 						let ox = 0
