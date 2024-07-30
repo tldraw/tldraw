@@ -7,7 +7,7 @@ export const InstallationSection = () => {
 	return (
 		<Section>
 			<SectionHeading subheading="Features" heading="Easy Installation" />
-			<div className="flex flex-col items-center gap-8 mt-8 md:max-w-xl mx-auto">
+			<div className="flex flex-col items-center gap-8 mt-8 md:max-w-2xl mx-auto">
 				<Code files={[code.terminal]} hideTabs className="my-0 w-full" />
 				<Code files={[code.app]} className="my-0 w-full" />
 				<p className="text-center max-w-lg text-balance px-5">

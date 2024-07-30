@@ -46,7 +46,9 @@ export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size 
 				)}
 			>
 				<Field className={cn(size === 'large' && 'grow sm:max-w-xs')}>
-					<Label className="sr-only">Email-Address</Label>
+					<Label htmlFor="email" className="sr-only">
+						Email-Address
+					</Label>
 					<Input
 						name="email"
 						type="email"

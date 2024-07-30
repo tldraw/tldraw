@@ -1,5 +1,9 @@
-import { Section } from './section'
-import { SectionHeading } from './section-heading'
+'use client'
+
+import { RequestForm } from '@/components/marketing/request-form'
+import { Section } from '@/components/marketing/section'
+import { SectionHeading } from '@/components/marketing/section-heading'
+import { CheckBadgeIcon } from '@heroicons/react/24/solid'
 
 export const PricingSection = () => {
 	return (
@@ -7,10 +11,22 @@ export const PricingSection = () => {
 			<Section className="pb-24 md:pb-32 lg:pb-40">
 				<SectionHeading
 					subheading="Pricing"
-					heading="Free for Personal Use"
-					description="This section is a work in progress..."
+					heading="Free for Non-Commercial Use"
+					description="The tldraw SDK is completely free to use and build non-commercial projects with. You'll have a watermark in the corner of the canvas."
 				/>
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-5"></div>
+				<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 max-w-2xl">
+					<div className="relative w-full h-full bg-zinc-900 md:rounded-xl shadow p-5 md:p-8 overflow-hidden text-zinc-300">
+						<div className="flex items-center gap-1 mb-4 -mt-1">
+							<h3 className="text-white font-black text-xl md:text-2xl">Commercial License</h3>
+							<CheckBadgeIcon className="h-6 shrink-0 text-blue-400" />
+						</div>
+						<p className="pr-8">
+							Interested in purchasing a commercial license for the tldraw SDK? Please fill out our
+							form and we'll get back to you with more information.
+						</p>
+						<RequestForm />
+					</div>
+				</div>
 			</Section>
 		</div>
 	)
