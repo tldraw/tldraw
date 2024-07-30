@@ -46,7 +46,7 @@ export const CustomizationSection = async () => {
 									<ArrowLongRightIcon className="size-4" />
 								</Link>
 							</p>
-							<Example path={example} />
+							<Example path={example} showPlaceholder={index === 0} />
 						</TabPanel>
 					))}
 				</TabPanels>
