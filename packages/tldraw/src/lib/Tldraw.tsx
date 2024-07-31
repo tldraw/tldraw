@@ -142,6 +142,7 @@ export function Tldraw(props: TldrawProps) {
 			shapeUtils={shapeUtilsWithDefaults}
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
+			embeds={embeds}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>
 				<InsideOfEditorAndUiContext

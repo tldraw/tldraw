@@ -10,10 +10,10 @@ import {
 	embedShapePermissionDefaults,
 	embedShapeProps,
 	toDomPrecision,
+	useEmbedDefinitions,
 	useIsEditing,
 	useValue,
 } from '@tldraw/editor'
-import { useEmbedDefinitions } from '@tldraw/editor/src/lib/hooks/useEmbedDefinitions'
 import { useMemo } from 'react'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
 import { resizeBox } from '../shared/resizeBox'
@@ -84,9 +84,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override component(shape: TLEmbedShape) {
 		const definitions = useEmbedDefinitions()
-		console.log(definitions)
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
+
 		const embedInfo = useMemo(() => getEmbedInfoUnsafely(definitions, url), [definitions, url])
 
 		const isHoveringWhileEditingSameShape = useValue(

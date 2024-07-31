@@ -60,7 +60,7 @@ export function registerDefaultExternalContentHandlers(
 		acceptedVideoMimeTypes,
 	}: Required<TLExternalContentProps>,
 	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
-	embedDefitions: readonly EmbedDefinition[]
+	embedDefinitions: readonly EmbedDefinition[]
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
@@ -411,7 +411,7 @@ export function registerDefaultExternalContentHandlers(
 	// url
 	editor.registerExternalContentHandler('url', async ({ point, url }) => {
 		// try to paste as an embed first
-		const embedInfo = getEmbedInfo(embedDefitions, url)
+		const embedInfo = getEmbedInfo(embedDefinitions, url)
 
 		if (embedInfo) {
 			return editor.putExternalContent({
