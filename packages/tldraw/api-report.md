@@ -1155,6 +1155,9 @@ export function LineToolbarItem(): JSX_2.Element;
 export function MiscMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
+export function MobileStylePanel(): JSX_2.Element | null;
+
+// @public (undocumented)
 export function MoveToPageMenu(): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -1262,6 +1265,15 @@ export function OpacitySlider(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function OvalToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function OverflowingToolbar({ children }: OverflowingToolbarProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface OverflowingToolbarProps {
+    // (undocumented)
+    children: React.ReactNode;
+}
 
 // @public (undocumented)
 export const PageItemInput: ({ name, id, isCurrentPage, }: PageItemInputProps) => JSX_2.Element;
