@@ -103,7 +103,7 @@ describe('When in the pointing state', () => {
 	it('transitions to select.resizing when dragging and edits on pointer up', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
-		editor.pointerMove(24, 24)
+		editor.pointerMove(34, 34)
 		editor.expectToBeIn('select.resizing')
 		editor.pointerUp()
 		expect(editor.getCurrentPageShapes().length).toBe(1)
