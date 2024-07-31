@@ -5,6 +5,7 @@ import {
 	TLImageShape,
 	TLPageId,
 	useEditor,
+	useEmbedDefinitions,
 	useValue,
 } from '@tldraw/editor'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
@@ -512,6 +513,7 @@ export function ConvertToBookmarkMenuItem() {
 export function ConvertToEmbedMenuItem() {
 	const editor = useEditor()
 	const actions = useActions()
+	const definitions = useEmbedDefinitions()
 
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
@@ -521,11 +523,11 @@ export function ConvertToEmbedMenuItem() {
 			return !!(
 				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
 				onlySelectedShape.props.url &&
-				getEmbedInfo(onlySelectedShape.props.url) &&
+				getEmbedInfo(definitions, onlySelectedShape.props.url) &&
 				!editor.isShapeOrAncestorLocked(onlySelectedShape)
 			)
 		},
-		[editor]
+		[definitions, editor]
 	)
 
 	if (!oneEmbeddableBookmarkSelected) return null

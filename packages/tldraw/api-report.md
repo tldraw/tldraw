@@ -17,8 +17,8 @@ import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
+import { DEFAULT_EMBED_DEFINITIONS } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
-import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { EmbedDefinition } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
@@ -396,6 +396,8 @@ export function CutMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function DebugFlags(): JSX_2.Element | null;
+
+export { DEFAULT_EMBED_DEFINITIONS }
 
 // @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
@@ -904,7 +906,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public
-export function getEmbedInfo(inputUrl: string): TLEmbedResult;
+export function getEmbedInfo(defintions: readonly EmbedDefinition[], inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
@@ -1926,7 +1928,7 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 
 // @public (undocumented)
 export type TLUiAssetUrls = TLEditorAssetUrls & {
-    embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>;
+    embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>;
     icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
     translations: Record<(typeof LANGUAGES)[number]['locale'], string>;
 };

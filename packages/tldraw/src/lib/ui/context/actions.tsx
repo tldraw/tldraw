@@ -18,6 +18,7 @@ import {
 	createShapeId,
 	openWindow,
 	useEditor,
+	useEmbedDefinitions,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
@@ -99,6 +100,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const defaultDocumentName = msg('document.default-name')
 
 	const trackEvent = useUiEvents()
+
+	const definitions = useEmbedDefinitions()
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
@@ -450,7 +453,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 							const { url } = shape.props
 
-							const embedInfo = getEmbedInfo(shape.props.url)
+							const embedInfo = getEmbedInfo(definitions, shape.props.url)
 
 							if (!embedInfo) continue
 							if (!embedInfo.definition) continue
@@ -1473,6 +1476,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		msg,
 		defaultDocumentName,
 		isMultiplayer,
+		definitions,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

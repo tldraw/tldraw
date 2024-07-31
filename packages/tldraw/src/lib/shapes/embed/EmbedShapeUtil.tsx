@@ -13,6 +13,7 @@ import {
 	useIsEditing,
 	useValue,
 } from '@tldraw/editor'
+import { useEmbedDefinitions } from '@tldraw/editor/src/lib/hooks/useEmbedDefinitions'
 import { useMemo } from 'react'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
 import { resizeBox } from '../shared/resizeBox'
@@ -38,7 +39,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return true
 	}
 	override canResize(shape: TLEmbedShape) {
-		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
+		const defintions = useEmbedDefinitions()
+		return !!getEmbedInfo(defintions, shape.props.url)?.definition?.doesResize
 	}
 	override canEditInReadOnly() {
 		return true
@@ -53,13 +55,15 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override isAspectRatioLocked(shape: TLEmbedShape) {
-		const embedInfo = getEmbedInfo(shape.props.url)
+		const defintions = useEmbedDefinitions()
+		const embedInfo = getEmbedInfo(defintions, shape.props.url)
 		return embedInfo?.definition.isAspectRatioLocked ?? false
 	}
 
 	override onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>) {
+		const defintions = useEmbedDefinitions()
 		const isAspectRatioLocked = this.isAspectRatioLocked(shape)
-		const embedInfo = getEmbedInfo(shape.props.url)
+		const embedInfo = getEmbedInfo(defintions, shape.props.url)
 		let minWidth = embedInfo?.definition.minWidth ?? 200
 		let minHeight = embedInfo?.definition.minHeight ?? 200
 		if (isAspectRatioLocked) {
@@ -79,9 +83,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override component(shape: TLEmbedShape) {
+		const definitions = useEmbedDefinitions()
+		console.log(definitions)
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
-		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])
+		const embedInfo = useMemo(() => getEmbedInfoUnsafely(definitions, url), [definitions, url])
 
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
@@ -159,7 +165,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override indicator(shape: TLEmbedShape) {
-		const embedInfo = useMemo(() => getEmbedInfo(shape.props.url), [shape.props.url])
+		const definitions = useEmbedDefinitions()
+		const embedInfo = useMemo(
+			() => getEmbedInfo(definitions, shape.props.url),
+			[definitions, shape.props.url]
+		)
 		return (
 			<rect
 				width={toDomPrecision(shape.props.w)}

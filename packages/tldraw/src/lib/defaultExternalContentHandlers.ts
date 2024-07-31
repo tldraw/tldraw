@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	EmbedDefinition,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
@@ -58,7 +59,8 @@ export function registerDefaultExternalContentHandlers(
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 	}: Required<TLExternalContentProps>,
-	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
+	embedDefitions: readonly EmbedDefinition[]
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
@@ -409,7 +411,7 @@ export function registerDefaultExternalContentHandlers(
 	// url
 	editor.registerExternalContentHandler('url', async ({ point, url }) => {
 		// try to paste as an embed first
-		const embedInfo = getEmbedInfo(url)
+		const embedInfo = getEmbedInfo(embedDefitions, url)
 
 		if (embedInfo) {
 			return editor.putExternalContent({

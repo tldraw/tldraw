@@ -161,121 +161,7 @@ export function createTLSchema({ shapes, bindings, migrations, }?: {
 }): TLSchema;
 
 // @public (undocumented)
-export const defaultBindingSchemas: {
-    arrow: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLArrowBinding>;
-    };
-};
-
-// @public (undocumented)
-export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
-
-// @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-
-// @public (undocumented)
-export const DefaultColorThemePalette: {
-    darkMode: TLDefaultColorTheme;
-    lightMode: TLDefaultColorTheme;
-};
-
-// @public (undocumented)
-export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-
-// @public (undocumented)
-export const DefaultFillStyle: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
-
-// @public (undocumented)
-export const DefaultFontFamilies: {
-    draw: string;
-    mono: string;
-    sans: string;
-    serif: string;
-};
-
-// @public (undocumented)
-export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-
-// @public (undocumented)
-export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-
-// @public (undocumented)
-export const defaultShapeSchemas: {
-    arrow: {
-        migrations: MigrationSequence;
-        props: RecordProps<TLArrowShape>;
-    };
-    bookmark: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLBookmarkShape>;
-    };
-    draw: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLDrawShape>;
-    };
-    embed: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLEmbedShape>;
-    };
-    frame: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLFrameShape>;
-    };
-    geo: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLGeoShape>;
-    };
-    group: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLGroupShape>;
-    };
-    highlight: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLHighlightShape>;
-    };
-    image: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLImageShape>;
-    };
-    line: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLLineShape>;
-    };
-    note: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLNoteShape>;
-    };
-    text: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLTextShape>;
-    };
-    video: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLVideoShape>;
-    };
-};
-
-// @public (undocumented)
-export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
-
-// @public (undocumented)
-export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
-
-// @public (undocumented)
-export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
-
-// @public (undocumented)
-export const DocumentRecordType: RecordType<TLDocument, never>;
-
-// @public (undocumented)
-export const drawShapeMigrations: TLPropsMigrations;
-
-// @public (undocumented)
-export const drawShapeProps: RecordProps<TLDrawShape>;
-
-// @public (undocumented)
-export const EMBED_DEFINITIONS: readonly [{
+export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly doesResize: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
     readonly height: 500;
@@ -474,6 +360,120 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly type: "desmos";
     readonly width: 700;
 }];
+
+// @public (undocumented)
+export const defaultBindingSchemas: {
+    arrow: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLArrowBinding>;
+    };
+};
+
+// @public (undocumented)
+export const defaultColorNames: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red", "white"];
+
+// @public (undocumented)
+export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
+
+// @public (undocumented)
+export const DefaultColorThemePalette: {
+    darkMode: TLDefaultColorTheme;
+    lightMode: TLDefaultColorTheme;
+};
+
+// @public (undocumented)
+export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
+
+// @public (undocumented)
+export const DefaultFillStyle: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
+
+// @public (undocumented)
+export const DefaultFontFamilies: {
+    draw: string;
+    mono: string;
+    sans: string;
+    serif: string;
+};
+
+// @public (undocumented)
+export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+
+// @public (undocumented)
+export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+
+// @public (undocumented)
+export const defaultShapeSchemas: {
+    arrow: {
+        migrations: MigrationSequence;
+        props: RecordProps<TLArrowShape>;
+    };
+    bookmark: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLBookmarkShape>;
+    };
+    draw: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLDrawShape>;
+    };
+    embed: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLEmbedShape>;
+    };
+    frame: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLFrameShape>;
+    };
+    geo: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLGeoShape>;
+    };
+    group: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLGroupShape>;
+    };
+    highlight: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLHighlightShape>;
+    };
+    image: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLImageShape>;
+    };
+    line: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLLineShape>;
+    };
+    note: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLNoteShape>;
+    };
+    text: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLTextShape>;
+    };
+    video: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLVideoShape>;
+    };
+};
+
+// @public (undocumented)
+export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
+
+// @public (undocumented)
+export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
+
+// @public (undocumented)
+export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
+
+// @public (undocumented)
+export const DocumentRecordType: RecordType<TLDocument, never>;
+
+// @public (undocumented)
+export const drawShapeMigrations: TLPropsMigrations;
+
+// @public (undocumented)
+export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public (undocumented)
 export interface EmbedDefinition {

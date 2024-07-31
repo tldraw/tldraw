@@ -15,7 +15,7 @@ const safeParseUrl = (url: string) => {
 }
 
 /** @public */
-export const EMBED_DEFINITIONS = [
+export const DEFAULT_EMBED_DEFINITIONS = [
 	{
 		type: 'tldraw',
 		title: 'tldraw',
@@ -683,7 +683,7 @@ export const embedShapeMigrations = createShapePropsMigrationSequence({
 					const url = props.url
 					const host = new URL(url).host.replace('www.', '')
 					let originalUrl
-					for (const localEmbedDef of EMBED_DEFINITIONS) {
+					for (const localEmbedDef of DEFAULT_EMBED_DEFINITIONS) {
 						if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
 							try {
 								originalUrl = localEmbedDef.fromEmbedUrl(url)

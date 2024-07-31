@@ -2572,6 +2572,7 @@ export interface TldrawEditorBaseProps {
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
+    embeds?: readonly EmbedDefinition[];
     inferDarkMode?: boolean;
     initialState?: string;
     licenseKey?: string;
@@ -3435,6 +3436,9 @@ export function useEditor(): Editor;
 
 // @public (undocumented)
 export function useEditorComponents(): Required<TLEditorComponents>;
+
+// @public (undocumented)
+export function useEmbedDefinitions(): readonly EmbedDefinition[];
 
 // @internal
 export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;

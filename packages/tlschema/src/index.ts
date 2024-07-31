@@ -151,7 +151,7 @@ export {
 	type TLDrawShapeSegment,
 } from './shapes/TLDrawShape'
 export {
-	EMBED_DEFINITIONS,
+	DEFAULT_EMBED_DEFINITIONS,
 	embedShapeMigrations,
 	embedShapePermissionDefaults,
 	embedShapeProps,

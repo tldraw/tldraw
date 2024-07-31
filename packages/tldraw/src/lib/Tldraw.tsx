@@ -1,7 +1,9 @@
 import {
+	DEFAULT_EMBED_DEFINITIONS,
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
+	EmbedDefinition,
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
@@ -83,6 +85,7 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		tools = [],
+		embeds = DEFAULT_EMBED_DEFINITIONS,
 		...rest
 	} = props
 
@@ -147,6 +150,7 @@ export function Tldraw(props: TldrawProps) {
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
 					onMount={onMount}
+					embeds={embeds}
 				/>
 				{children}
 			</TldrawUi>
@@ -161,7 +165,8 @@ function InsideOfEditorAndUiContext({
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-}: TLExternalContentProps & { onMount?: TLOnMountHandler }) {
+	embeds,
+}: TLExternalContentProps & { onMount?: TLOnMountHandler; embeds: readonly EmbedDefinition[] }) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
@@ -183,7 +188,8 @@ function InsideOfEditorAndUiContext({
 			{
 				toasts,
 				msg,
-			}
+			},
+			embeds
 		)
 
 		// ...then we call the store's on mount which may override them...
