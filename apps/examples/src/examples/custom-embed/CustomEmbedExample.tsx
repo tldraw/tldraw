@@ -1,7 +1,7 @@
-import { EmbedDefinition, Tldraw } from 'tldraw'
+import { EmbedDefinitionOverride, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
-const embeds: readonly EmbedDefinition[] = [
+const embeds: readonly EmbedDefinitionOverride[] = [
 	{
 		type: 'jsfiddle',
 		title: 'JSFiddle',
@@ -27,6 +27,7 @@ const embeds: readonly EmbedDefinition[] = [
 			}
 			return
 		},
+		icon: 'https://jsfiddle.net/img/favicon.png',
 	},
 ]
 

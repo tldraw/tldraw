@@ -1,4 +1,11 @@
-import { EmbedDefinition, track, useEditor, useEmbedDefinitions } from '@tldraw/editor'
+import {
+	EmbedDefinition,
+	isDefaultEmbedType,
+	isEmbedDefintionOverride,
+	track,
+	useEditor,
+	useEmbedDefinitions,
+} from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../context/asset-urls'
@@ -137,12 +144,18 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 				<>
 					<TldrawUiDialogBody className="tlui-embed-dialog__list">
 						{definitions.map((def) => {
+							const url = isDefaultEmbedType(def.type)
+								? assetUrls.embedIcons[def.type]
+								: isEmbedDefintionOverride(def)
+									? def.icon
+									: undefined
+							if (!url) return null
 							return (
 								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
 									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
 									<div
 										className="tlui-embed-dialog__item__image"
-										style={{ backgroundImage: `url(${assetUrls.embedIcons[def.type]})` }}
+										style={{ backgroundImage: `url(${url})` }}
 									/>
 								</TldrawUiButton>
 							)

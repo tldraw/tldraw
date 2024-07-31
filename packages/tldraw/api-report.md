@@ -397,8 +397,6 @@ export function CutMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export function DebugFlags(): JSX_2.Element | null;
 
-export { DEFAULT_EMBED_DEFINITIONS }
-
 // @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 
@@ -906,7 +904,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public
-export function getEmbedInfo(defintions: readonly EmbedDefinition[], inputUrl: string): TLEmbedResult;
+export function getEmbedInfo(definitions: readonly EmbedDefinition[], inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];

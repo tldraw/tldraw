@@ -567,6 +567,22 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 	},
 ] as const satisfies readonly EmbedDefinition[]
 
+/** @public */
+export type DefaultEmbedTypes = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type']
+const DEFAULT_EMBED_TYPES = DEFAULT_EMBED_DEFINITIONS.map((def) => def.type) as DefaultEmbedTypes[]
+
+/** @public */
+export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes {
+	return DEFAULT_EMBED_TYPES.includes(type as DefaultEmbedTypes)
+}
+
+/** @public */
+export function isEmbedDefintionOverride(
+	def: EmbedDefinition | EmbedDefinitionOverride
+): def is EmbedDefinitionOverride {
+	return 'icon' in def
+}
+
 /**
  * Permissions with note inline from
  * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#attr-sandbox
@@ -639,6 +655,11 @@ export const embedShapeProps: RecordProps<TLEmbedShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	url: T.string,
+}
+
+/** @public */
+export interface EmbedDefinitionOverride extends EmbedDefinition {
+	readonly icon: string
 }
 
 /** @public */

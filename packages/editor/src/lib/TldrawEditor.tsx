@@ -1,5 +1,10 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { EmbedDefinition, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import {
+	EmbedDefinition,
+	EmbedDefinitionOverride,
+	TLStore,
+	TLStoreSnapshot,
+} from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -127,7 +132,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * An array of embed definitions to use in the editor.
 	 */
-	embeds?: readonly EmbedDefinition[]
+	embeds?: readonly (EmbedDefinitionOverride | EmbedDefinition)[]
 
 	/**
 	 * Whether to automatically focus the editor when it mounts.

@@ -385,6 +385,9 @@ export const DefaultColorThemePalette: {
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
+export type DefaultEmbedTypes = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
+
+// @public (undocumented)
 export const DefaultFillStyle: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
 
 // @public (undocumented)
@@ -510,6 +513,12 @@ export interface EmbedDefinition {
 }
 
 // @public (undocumented)
+export interface EmbedDefinitionOverride extends EmbedDefinition {
+    // (undocumented)
+    readonly icon: string;
+}
+
+// @public (undocumented)
 export const embedShapeMigrations: TLPropsMigrations;
 
 // @public
@@ -602,6 +611,12 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 
 // @public (undocumented)
 export function isBindingId(id?: string): id is TLBindingId;
+
+// @public (undocumented)
+export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes;
+
+// @public (undocumented)
+export function isEmbedDefintionOverride(def: EmbedDefinition | EmbedDefinitionOverride): def is EmbedDefinitionOverride;
 
 // @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
