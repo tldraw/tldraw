@@ -24,16 +24,9 @@ export class Pointing extends StateNode {
 		// otherwise you get a vertical column of single characters if you accidentally
 		// drag a bit unintentionally.
 		const { editor } = this
-		const { isPointing, originPagePoint, currentPagePoint } = editor.inputs
-		if (
-			isPointing &&
-			Math.abs(originPagePoint.x - currentPagePoint.x) ** 2 >
-				((editor.getInstanceState().isCoarsePointer
-					? editor.options.coarseDragDistanceSquared
-					: editor.options.dragDistanceSquared) *
-					4) / // double the necessary drag distance for text shapes
-					editor.getZoomLevel()
-		) {
+		const { isPointing, originPagePoint, originScreenPoint, currentScreenPoint } = editor.inputs
+
+		if (isPointing && Math.abs(originScreenPoint.x - currentScreenPoint.x) > 32) {
 			const id = createShapeId()
 			this.markId = this.editor.markHistoryStoppingPoint(`creating_text:${id}`)
 
@@ -107,7 +100,11 @@ export class Pointing extends StateNode {
 			props: {
 				text: '',
 				autoSize,
-				w: 20,
+				w: autoSize
+					? 20
+					: this.editor.user.getIsDynamicResizeMode()
+						? 24 * this.editor.getZoomLevel()
+						: 64,
 				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 			},
 		})
