@@ -14,10 +14,12 @@ export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	centerSelectionAroundPoint,
 	createShapesForAssets,
+	registerDefaultExternalContentHandlers,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
+export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export { defaultTools } from './lib/defaultTools'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'

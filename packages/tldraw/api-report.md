@@ -1347,6 +1347,15 @@ export function PrintItem(): JSX_2.Element;
 // @public (undocumented)
 export function RectangleToolbarItem(): JSX_2.Element;
 
+// @public (undocumented)
+export function registerDefaultExternalContentHandlers(editor: Editor, { maxImageDimension, maxAssetSize, acceptedImageMimeTypes, acceptedVideoMimeTypes, }: Required<TLExternalContentProps>, { toasts, msg }: {
+    msg: ReturnType<typeof useTranslation>;
+    toasts: TLUiToastsContextType;
+}): void;
+
+// @public (undocumented)
+export function registerDefaultSideEffects(editor: Editor): () => void;
+
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 
