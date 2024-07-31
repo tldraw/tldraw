@@ -49,7 +49,6 @@ export {
 	objectMapValues,
 } from './lib/object'
 export { measureAverageDuration, measureCbDuration, measureDuration } from './lib/perf'
-export { type IndexKey } from './lib/reordering/IndexKey'
 export {
 	ZERO_INDEX_KEY,
 	getIndexAbove,
@@ -61,7 +60,8 @@ export {
 	getIndicesBetween,
 	sortByIndex,
 	validateIndexKey,
-} from './lib/reordering/reordering'
+	type IndexKey,
+} from './lib/reordering'
 export { sortById } from './lib/sort'
 export {
 	clearLocalStorage,
