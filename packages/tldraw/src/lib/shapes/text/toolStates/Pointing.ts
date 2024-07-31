@@ -15,29 +15,38 @@ export class Pointing extends StateNode {
 
 	markId = ''
 
+	enterTime = 0
+	override onEnter(): void {
+		this.enterTime = Date.now()
+	}
+
 	override onExit() {
 		this.editor.setHintingShapes([])
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
-		// Don't create a fixed width shape unless the the drag is a little larger,
-		// otherwise you get a vertical column of single characters if you accidentally
-		// drag a bit unintentionally.
 		const { editor } = this
-		const { isPointing, originPagePoint, currentPagePoint } = editor.inputs
-		if (
-			isPointing &&
-			Math.abs(originPagePoint.x - currentPagePoint.x) ** 2 >
-				((editor.getInstanceState().isCoarsePointer
-					? editor.options.coarseDragDistanceSquared
-					: editor.options.dragDistanceSquared) *
-					4) / // double the necessary drag distance for text shapes
-					editor.getZoomLevel()
-		) {
+		if (!editor.inputs.isPointing) return
+
+		// Only create a fixed width shape if the drag duration is long enough.
+		// Prevents accidentally creating a vertical column of single characters if you click while the mouse is moving.
+		const timeSinceEnter = Date.now() - this.enterTime
+		if (timeSinceEnter < 150) return
+
+		// Only create a fixed width shape if the drag distance is long enough.
+		// Prevents accidentally creating a tiny text shape during longer presses.
+		const minDragX = editor.getInstanceState().isCoarsePointer
+			? editor.options.coarseDragDistanceSquared
+			: editor.options.dragDistanceSquared
+
+		const currentDragX =
+			Math.abs(editor.inputs.originScreenPoint.x - editor.inputs.currentScreenPoint.x) ** 2
+
+		if (currentDragX > minDragX) {
 			const id = createShapeId()
 			this.markId = this.editor.markHistoryStoppingPoint(`creating_text:${id}`)
 
-			const shape = this.createTextShape(id, originPagePoint, false)
+			const shape = this.createTextShape(id, editor.inputs.originPagePoint, false)
 			if (!shape) {
 				this.cancel()
 				return
