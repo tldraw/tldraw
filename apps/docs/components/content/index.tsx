@@ -1,7 +1,7 @@
 import { ApiHeading } from '@/components/content/api-heading'
 import { Blockquote } from '@/components/content/blockquote'
 import { Callout } from '@/components/content/callout'
-import { CodeLinkProvider } from '@/components/content/code-link-provider'
+import { CodeLinkProvider, CodeLinks } from '@/components/content/code-link-provider'
 import { Embed } from '@/components/content/embed'
 import { Image } from '@/components/content/image'
 import { ParametersTable } from '@/components/content/parameters-table'
@@ -43,6 +43,7 @@ export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type })
 					ApiHeading,
 					Callout,
 					CodeLinkProvider,
+					CodeLinks,
 					ParametersTable,
 					ParametersTableDescription,
 					ParametersTableName,
