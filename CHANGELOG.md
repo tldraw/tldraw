@@ -1,3 +1,16 @@
+# v2.4.3 (Wed Jul 31 2024)
+
+#### 🐛 Bug Fix
+
+- `tldraw`
+  - Alex/v2.4.3 [#4328](https://github.com/tldraw/tldraw/pull/4328) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v2.4.2 (Mon Jul 29 2024)
 
 #### 🐛 Bug Fix
