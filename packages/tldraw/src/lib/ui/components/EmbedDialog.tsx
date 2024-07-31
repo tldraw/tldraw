@@ -1,10 +1,4 @@
-import {
-	DEFAULT_EMBED_DEFINITIONS,
-	EmbedDefinition,
-	track,
-	useEditor,
-	useEmbedDefinitions,
-} from '@tldraw/editor'
+import { EmbedDefinition, track, useEditor, useEmbedDefinitions } from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../context/asset-urls'
@@ -142,7 +136,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 			) : (
 				<>
 					<TldrawUiDialogBody className="tlui-embed-dialog__list">
-						{DEFAULT_EMBED_DEFINITIONS.map((def) => {
+						{definitions.map((def) => {
 							return (
 								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
 									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
