@@ -50,6 +50,7 @@ export interface TLExternalContentProps {
 	acceptedVideoMimeTypes?: readonly string[]
 }
 
+/** @public */
 export function registerDefaultExternalContentHandlers(
 	editor: Editor,
 	{
@@ -461,6 +462,7 @@ export function registerDefaultExternalContentHandlers(
 	})
 }
 
+/** @public */
 export async function createShapesForAssets(
 	editor: Editor,
 	assets: TLAsset[],
