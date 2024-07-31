@@ -18,8 +18,13 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 
 export const IsInOverflowContext = createContext(false)
 
+/** @public */
+export interface OverflowingToolbarProps {
+	children: React.ReactNode
+}
+
 /** @public @react */
-export function OverflowingToolbar({ children }: { children: React.ReactNode }) {
+export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	const editor = useEditor()
 	const id = useSafeId()
 	const breakpoint = useBreakpoint()

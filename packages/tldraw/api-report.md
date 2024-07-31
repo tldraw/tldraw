@@ -1267,9 +1267,13 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export function OverflowingToolbar({ children }: {
+export function OverflowingToolbar({ children }: OverflowingToolbarProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface OverflowingToolbarProps {
+    // (undocumented)
     children: React.ReactNode;
-}): JSX_2.Element;
+}
 
 // @public (undocumented)
 export const PageItemInput: ({ name, id, isCurrentPage, }: PageItemInputProps) => JSX_2.Element;

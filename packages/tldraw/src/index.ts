@@ -203,7 +203,10 @@ export {
 	useIsToolSelected,
 	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
-export { OverflowingToolbar } from './lib/ui/components/Toolbar/OverflowingToolbar'
+export {
+	OverflowingToolbar,
+	type OverflowingToolbarProps,
+} from './lib/ui/components/Toolbar/OverflowingToolbar'
 export {
 	CenteredTopPanelContainer,
 	type CenteredTopPanelContainerProps,
