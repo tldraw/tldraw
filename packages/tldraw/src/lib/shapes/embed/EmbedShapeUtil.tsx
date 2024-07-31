@@ -39,8 +39,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return true
 	}
 	override canResize(shape: TLEmbedShape) {
-		const defintions = useEmbedDefinitions()
-		return !!getEmbedInfo(defintions, shape.props.url)?.definition?.doesResize
+		const definitions = useEmbedDefinitions()
+		return !!getEmbedInfo(definitions, shape.props.url)?.definition?.doesResize
 	}
 	override canEditInReadOnly() {
 		return true
@@ -55,15 +55,15 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override isAspectRatioLocked(shape: TLEmbedShape) {
-		const defintions = useEmbedDefinitions()
-		const embedInfo = getEmbedInfo(defintions, shape.props.url)
+		const definitions = useEmbedDefinitions()
+		const embedInfo = getEmbedInfo(definitions, shape.props.url)
 		return embedInfo?.definition.isAspectRatioLocked ?? false
 	}
 
 	override onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>) {
-		const defintions = useEmbedDefinitions()
+		const definitions = useEmbedDefinitions()
 		const isAspectRatioLocked = this.isAspectRatioLocked(shape)
-		const embedInfo = getEmbedInfo(defintions, shape.props.url)
+		const embedInfo = getEmbedInfo(definitions, shape.props.url)
 		let minWidth = embedInfo?.definition.minWidth ?? 200
 		let minHeight = embedInfo?.definition.minHeight ?? 200
 		if (isAspectRatioLocked) {

@@ -12,9 +12,9 @@ function escapeStringRegexp(string: string) {
 }
 
 /** @public */
-export function matchEmbedUrl(defintions: readonly EmbedDefinition[], url: string) {
+export function matchEmbedUrl(definitions: readonly EmbedDefinition[], url: string) {
 	const host = new URL(url).host.replace('www.', '')
-	for (const localEmbedDef of defintions) {
+	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
 			const originalUrl = localEmbedDef.fromEmbedUrl(url)
 			if (originalUrl) {
@@ -91,11 +91,11 @@ export function getEmbedInfoUnsafely(
  * @public
  */
 export function getEmbedInfo(
-	defintions: readonly EmbedDefinition[],
+	definitions: readonly EmbedDefinition[],
 	inputUrl: string
 ): TLEmbedResult {
 	try {
-		return getEmbedInfoUnsafely(defintions, inputUrl)
+		return getEmbedInfoUnsafely(definitions, inputUrl)
 	} catch (e) {
 		// Don't throw here! We'll throw it from the embed shape's shape util
 		console.error(e)

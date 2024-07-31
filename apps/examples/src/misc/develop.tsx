@@ -5,7 +5,6 @@ import { usePerformance } from '../hooks/usePerformance'
 
 export default function Develop() {
 	const performanceOverrides = usePerformance()
-
 	return (
 		<div className="tldraw__editor">
 			<Tldraw

@@ -1,9 +1,9 @@
 import { DEFAULT_EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import { ReactNode, createContext, useContext } from 'react'
 
-const EmbedDefintionsContext = createContext<null | readonly EmbedDefinition[]>(null)
+const EmbedDefinitionsContext = createContext<null | readonly EmbedDefinition[]>(null)
 
-interface EmbedDefintionsProviderProps {
+interface EmbedDefinitionsProviderProps {
 	embeds?: readonly EmbedDefinition[] | undefined
 	children: ReactNode
 }
@@ -11,17 +11,17 @@ interface EmbedDefintionsProviderProps {
 export function EmbedDefinitionsProvider({
 	embeds = DEFAULT_EMBED_DEFINITIONS,
 	children,
-}: EmbedDefintionsProviderProps) {
+}: EmbedDefinitionsProviderProps) {
 	return (
-		<EmbedDefintionsContext.Provider value={embeds}>{children}</EmbedDefintionsContext.Provider>
+		<EmbedDefinitionsContext.Provider value={embeds}>{children}</EmbedDefinitionsContext.Provider>
 	)
 }
 
 /** @public */
 export function useEmbedDefinitions() {
-	const embeds = useContext(EmbedDefintionsContext)
+	const embeds = useContext(EmbedDefinitionsContext)
 	if (!embeds) {
-		throw new Error('useEditorComponents must be used inside of <EditorComponentsProvider />')
+		throw new Error('useEmbedDefinitions must be used inside of <EmbedDefinitionsProvider />')
 	}
 	return embeds
 }
