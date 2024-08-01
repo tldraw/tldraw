@@ -17,6 +17,7 @@ import {
 	assert,
 	createShapeId,
 	fetch,
+	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
@@ -62,7 +63,7 @@ export function registerDefaultExternalContentHandlers(
 	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
-	editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
+	editor.registerExternalAssetHandler('file', async ({ file }) => {
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
@@ -85,7 +86,8 @@ export function registerDefaultExternalContentHandlers(
 			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
 		)
 
-		assetId ??= AssetRecordType.createId()
+		const hash = await getHashForBuffer(await file.arrayBuffer())
+		const assetId: TLAssetId = AssetRecordType.createId(hash)
 		const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 
 		if (isFinite(maxImageDimension)) {
@@ -275,7 +277,8 @@ export function registerDefaultExternalContentHandlers(
 
 			const isImageType = acceptedImageMimeTypes.includes(file.type)
 			const isVideoType = acceptedVideoMimeTypes.includes(file.type)
-			const assetId: TLAssetId = AssetRecordType.createId()
+			const hash = await getHashForBuffer(await file.arrayBuffer())
+			const assetId: TLAssetId = AssetRecordType.createId(hash)
 			const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 			let temporaryAssetPreview
 			if (isImageType) {
@@ -291,7 +294,6 @@ export function registerDefaultExternalContentHandlers(
 					const newAsset = await editor.getAssetForExternalContent({
 						type: 'file',
 						file: assetAndFile.file,
-						assetId: assetAndFile.asset.id,
 					})
 
 					if (!newAsset) {
