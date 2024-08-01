@@ -7892,7 +7892,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createTemporaryAssetPreview(assetId: TLAssetId, file: File) {
-		assert(!this.temporaryAssetPreview.has(assetId), 'Asset preview already exists')
+		if (this.temporaryAssetPreview.has(assetId)) {
+			return this.temporaryAssetPreview.get(assetId)
+		}
 
 		const objectUrl = URL.createObjectURL(file)
 		this.temporaryAssetPreview.set(assetId, objectUrl)
