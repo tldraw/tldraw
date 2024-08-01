@@ -23,7 +23,6 @@ import {
 	fetch,
 	isShape,
 } from 'tldraw'
-import { getViewportUrlQuery } from '../hooks/useUrlState'
 import { cloneAssetForShare } from './cloneAssetForShare'
 import { getParentOrigin, isInIframe } from './iFrame'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
@@ -67,16 +66,11 @@ async function getSnapshotLink(
 		console.error(await res.text())
 		return ''
 	}
-	const paramsToUse = getViewportUrlQuery(editor)
-	// React router has an issue with the search params being encoded, which can cause multiple navigations
-	// and can also make us believe that the URL has changed when it hasn't.
-	// https://github.com/tldraw/tldraw/pull/3663#discussion_r1584946080
-	const params = paramsToUse
-		? decodeURIComponent(`?${new URLSearchParams(paramsToUse).toString()}`)
-		: ''
-	return new Blob([`${window.location.origin}/${SNAPSHOT_PREFIX}/${response.roomId}${params}`], {
-		type: 'text/plain',
+
+	const url = editor.addStateToUrl({
+		url: `${window.location.origin}/${SNAPSHOT_PREFIX}/${response.roomId}`,
 	})
+	return new Blob([url.toString()], { type: 'text/plain' })
 }
 
 export async function getNewRoomResponse(snapshot: Snapshot) {
@@ -141,20 +135,20 @@ export function useSharing(): TLUiOverrides {
 								throw new Error('Failed to upload snapshot')
 							}
 
-							const query = getViewportUrlQuery(editor)
-							const origin = window.location.origin
+							const url = editor.addStateToUrl({
+								url: `${window.location.origin}/${ROOM_PREFIX}/${response.slug}`,
+							})
 
-							// React router has an issue with the search params being encoded, which can cause multiple navigations
-							// and can also make us believe that the URL has changed when it hasn't.
-							// https://github.com/tldraw/tldraw/pull/3663#discussion_r1584946080
-							const pathname = decodeURIComponent(
-								`/${ROOM_PREFIX}/${response.slug}?${new URLSearchParams(query ?? {}).toString()}`
-							)
 							clearToasts()
 							if (runningInIFrame) {
-								window.open(`${origin}${pathname}`)
+								window.open(url)
 							} else {
-								navigate(pathname, { state: { shouldOpenShareMenu: true } })
+								// React router has an issue with the search params being encoded, which can cause multiple navigations
+								// and can also make us believe that the URL has changed when it hasn't.
+								// https://github.com/tldraw/tldraw/pull/3663#discussion_r1584946080
+								navigate(decodeURIComponent(`${url.pathname}${url.search}`), {
+									state: { shouldOpenShareMenu: true },
+								})
 							}
 						} catch (error) {
 							console.error(error)

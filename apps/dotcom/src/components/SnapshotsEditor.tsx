@@ -12,7 +12,7 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 } from 'tldraw'
-import { UrlStateSync } from '../components/MultiplayerEditor'
+import { convertLegacyUrlParams } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
@@ -80,13 +80,14 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 					;(window as any).app = editor
 					;(window as any).editor = editor
 					editor.updateInstanceState({ isReadonly: true })
+					convertLegacyUrlParams()
+					editor.loadStateFromUrl()
+					return editor.updateUrlOnStateChange()
 				}}
 				components={components}
 				renderDebugMenuItems={() => <DebugMenuItems />}
 				inferDarkMode
-			>
-				<UrlStateSync />
-			</Tldraw>
+			></Tldraw>
 		</div>
 	)
 }

@@ -30,7 +30,7 @@ import {
 	useValue,
 	ViewSubmenu,
 } from 'tldraw'
-import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
+import { convertLegacyUrlParams } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -143,6 +143,9 @@ export function MultiplayerEditor({
 				isReadonly,
 			})
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
+			convertLegacyUrlParams()
+			editor.loadStateFromUrl()
+			return editor.updateUrlOnStateChange()
 		},
 		[isReadonly]
 	)
@@ -164,24 +167,9 @@ export function MultiplayerEditor({
 				components={components}
 				inferDarkMode
 			>
-				<UrlStateSync />
 				<SneakyOnDropOverride isMultiplayer />
 				<ThemeUpdater />
 			</Tldraw>
 		</div>
 	)
-}
-
-export function UrlStateSync() {
-	const syncViewport = useCallback((params: UrlStateParams) => {
-		window.history.replaceState(
-			{},
-			document.title,
-			window.location.pathname + `?v=${params.v}&p=${params.p}`
-		)
-	}, [])
-
-	useUrlState(syncViewport)
-
-	return null
 }
