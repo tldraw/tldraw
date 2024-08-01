@@ -25,7 +25,7 @@ export { debounce } from './lib/debounce'
 export { annotateError, getErrorAnnotations, type ErrorAnnotations } from './lib/error'
 export { FileHelpers } from './lib/file'
 export { noop, omitFromStackTrace } from './lib/function'
-export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
+export { getHashForObject, getHashForString, lns } from './lib/hash'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export {

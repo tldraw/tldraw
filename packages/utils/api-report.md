@@ -123,9 +123,6 @@ export function getFromLocalStorage(key: string): null | string;
 export function getFromSessionStorage(key: string): null | string;
 
 // @public
-export function getHashForBuffer(buffer: ArrayBuffer): string;
-
-// @public
 export function getHashForObject(obj: any): string;
 
 // @public
