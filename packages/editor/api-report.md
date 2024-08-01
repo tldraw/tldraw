@@ -881,6 +881,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    createTemporaryAssetPreview(assetId: TLAssetId, file: File): string | undefined;
     // (undocumented)
     _decayCameraStateTimeout(elapsed: number): void;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
@@ -1071,6 +1072,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         svg: string;
         width: number;
     } | undefined>;
+    getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): {
         backgroundIndex: number;
