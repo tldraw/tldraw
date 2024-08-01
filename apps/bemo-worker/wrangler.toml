@@ -60,7 +60,7 @@ preview_bucket_name = 'sync-demo-preview'
 binding = 'BEMO_BUCKET'
 bucket_name = 'sync-demo-preview'
 
-[[env.stating.r2_buckets]]
+[[env.staging.r2_buckets]]
 binding = 'BEMO_BUCKET'
 bucket_name = 'sync-demo-preview'
 

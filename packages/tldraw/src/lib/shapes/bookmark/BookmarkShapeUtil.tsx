@@ -7,7 +7,6 @@ import {
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
-	TLOnBeforeUpdateHandler,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
 	debounce,
@@ -30,9 +29,13 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override props = bookmarkShapeProps
 	static override migrations = bookmarkShapeMigrations
 
-	override canResize = () => false
+	override canResize() {
+		return false
+	}
 
-	override hideSelectionBoundsFg = () => true
+	override hideSelectionBoundsFg() {
+		return true
+	}
 
 	override getDefaultProps(): TLBookmarkShape['props'] {
 		return {
@@ -130,11 +133,11 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		)
 	}
 
-	override onBeforeCreate = (next: TLBookmarkShape) => {
+	override onBeforeCreate(next: TLBookmarkShape) {
 		return getBookmarkSize(this.editor, next)
 	}
 
-	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape> = (prev, shape) => {
+	override onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape) {
 		if (prev.props.url !== shape.props.url) {
 			if (!T.linkUrl.isValid(shape.props.url)) {
 				return { ...shape, props: { ...shape.props, url: prev.props.url } }
@@ -234,7 +237,7 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 		return
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		// Create the new asset
 		editor.createAssets([asset])
 

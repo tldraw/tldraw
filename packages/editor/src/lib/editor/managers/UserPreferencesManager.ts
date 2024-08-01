@@ -9,22 +9,22 @@ export class UserPreferencesManager {
 		private readonly user: TLUser,
 		private readonly inferDarkMode: boolean
 	) {
-		if (window) {
-			const darkModeMediaQuery = window.matchMedia?.('(prefers-color-scheme: dark)')
-			if (darkModeMediaQuery?.matches) {
-				this.systemColorScheme.set('dark')
-			}
-			darkModeMediaQuery?.addEventListener('change', (e) => {
-				if (e.matches) {
-					this.systemColorScheme.set('dark')
-				} else {
-					this.systemColorScheme.set('light')
-				}
-			})
+		if (typeof window === 'undefined' || !('matchMedia' in window)) return
+
+		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+		if (darkModeMediaQuery?.matches) {
+			this.systemColorScheme.set('dark')
 		}
+		darkModeMediaQuery?.addEventListener('change', (e) => {
+			if (e.matches) {
+				this.systemColorScheme.set('dark')
+			} else {
+				this.systemColorScheme.set('light')
+			}
+		})
 	}
 
-	updateUserPreferences = (userPreferences: Partial<TLUserPreferences>) => {
+	updateUserPreferences(userPreferences: Partial<TLUserPreferences>) {
 		this.user.setUserPreferences({
 			...this.user.userPreferences.get(),
 			...userPreferences,
@@ -44,6 +44,7 @@ export class UserPreferencesManager {
 			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 		}
 	}
+
 	@computed getIsDarkMode() {
 		switch (this.user.userPreferences.get().colorScheme) {
 			case 'dark':

@@ -87,7 +87,7 @@ function CustomStylePanel() {
 						style={{ width: '100%', padding: 4 }}
 						value={rating.type === 'mixed' ? '' : rating.value}
 						onChange={(e) => {
-							editor.mark('changing rating')
+							editor.markHistoryStoppingPoint()
 							const value = myRatingStyle.validate(+e.currentTarget.value)
 							editor.setStyleForSelectedShapes(myRatingStyle, value)
 						}}

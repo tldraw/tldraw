@@ -452,7 +452,7 @@ export function MoveToPageMenu() {
 						disabled={currentPageId === page.id}
 						label={page.name}
 						onSelect={() => {
-							editor.mark('move_shapes_to_page')
+							editor.markHistoryStoppingPoint('move_shapes_to_page')
 							editor.moveShapesToPage(editor.getSelectedShapeIds(), page.id as TLPageId)
 
 							const toPage = editor.getPage(page.id)
@@ -466,7 +466,7 @@ export function MoveToPageMenu() {
 											label: 'Go Back',
 											type: 'primary',
 											onClick: () => {
-												editor.mark('change-page')
+												editor.markHistoryStoppingPoint('change-page')
 												editor.setCurrentPage(currentPageId)
 											},
 										},
@@ -479,7 +479,7 @@ export function MoveToPageMenu() {
 				))}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="new-page">
-				<TldrawUiMenuItem {...actions['new-page']} />
+				<TldrawUiMenuItem {...actions['move-to-new-page']} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

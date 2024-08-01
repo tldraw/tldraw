@@ -469,14 +469,29 @@ a.example__sidebar__header-link {
 	color: var(--text);
 	font-size: 14px;
 }
-.MultiplayerExampleWrapper-picker button {
+.MultiplayerExampleWrapper-copy {
 	background: var(--black-transparent-lighter);
 	border: 1px solid var(--gray-dark);
 	border-radius: 4px;
 	padding: 4px 12px;
+	height: 24px;
 	cursor: pointer;
+	position: relative;
+	text-align: center;
 }
-.MultiplayerExampleWrapper-picker button:hover {
+.MultiplayerExampleWrapper-copy:has(.MultiplayerExampleWrapper-copied) {
+	color: transparent;
+}
+.MultiplayerExampleWrapper-copied {
+	color: var(--text);
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.MultiplayerExampleWrapper-copy:hover {
 	border: 1px solid var(--black-transparent-lighter);
 }
 .MultiplayerExampleWrapper-example {

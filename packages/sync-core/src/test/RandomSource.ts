@@ -19,6 +19,7 @@ export class RandomSource {
 	}
 
 	randomAction<Result>(
+		// eslint-disable-next-line @typescript-eslint/method-signature-style
 		choices: Array<(() => Result) | { weight: number; do: () => any }>,
 		randomWeights?: boolean
 	): Result {

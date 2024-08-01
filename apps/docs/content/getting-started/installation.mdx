@@ -80,26 +80,6 @@ To enable your license key, use the `licenseKey` prop in the [Tldraw](?) compone
 <Tldraw licenseKey={YOUR_LICENSE_KEY} />
 ```
 
-## Server Rendering
-
-The [Tldraw](?) component can't be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you need to import it dynamically.
-
-```tsx
-const Tldraw = dynamic(async () => (await import('tldraw')).Tldraw, { ssr: false })
-```
-
-### Using a bundler
-
-If you're using a bundler like webpack or rollup, you can import the assets directly from the `assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
-
-```tsx
-import { getAssetUrlsByMetaUrl } from 'assets/urls'
-
-const assetUrls = getAssetUrlsByMetaUrl()
-
-<Tldraw assetUrls={assetUrls} />
-```
-
 ## Usage in Frameworks
 
 Visit our [framework examples repository](https://github.com/tldraw/examples) to see examples of tldraw being used in various frameworks.
@@ -107,6 +87,26 @@ Visit our [framework examples repository](https://github.com/tldraw/examples) to
 ## Static Assets
 
 In order to use the [Tldraw](?) component, the app must be able to find certain assets. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. We offer a few different ways of making these assets available to your app.
+
+### Using a bundler
+
+If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Your bundler should be able to copy across the assets with your bundle, and insert the correct URLs in their place.
+
+There are three options:
+
+- `import {getAssetUrlsByImport} from '@tldraw/assets/imports`: import asset files using import statements. You'll need to configure your bundler to treat imports of .svg, .png, .json, and .woff2 files as external assets.
+- `import {getAssetUrlsByImport} from '@tldraw/assets/imports.vite`: import asset files, appending `?url` to the asset path. This works correctly with [vite](https://vitejs.dev/guide/assets#explicit-url-imports) without any extra configuration needed.
+- `import {getAssetUrlsByMeta} from '@tldraw/assets/urls`: get asset urls using `new URL(path, import.meta.url)`. This is a standards-based approach that works natively in most modern browsers & bundlers.
+
+Call the function, and pass the resulting `assetUrls` into the `Tldraw` component:
+
+```tsx
+import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
+
+const assetUrls = getAssetUrlsByMetaUrl()
+
+<Tldraw assetUrls={assetUrls} />
+```
 
 ### Using a public CDN
 

@@ -98,7 +98,6 @@
 }
 
 html {
-	background-color: #000;
 	border-bottom: none;
 	scroll-padding-top: calc(var(--header-height) + var(--header-padding));
 }
@@ -548,12 +547,28 @@ body {
 	margin: 20px 0px;
 }
 
-.article > blockquote {
+.article > blockquote,
+.article__callout {
 	max-width: 100%;
 	margin: 32px 0px;
 	padding: 16px;
 	border-radius: var(--border-radius-menu);
 	background-color: var(--color-blockquote);
+}
+
+.article__callout {
+	display: flex;
+	align-items: start;
+	gap: 16px;
+}
+.article__callout__icon {
+	/* use the system font so we get proper emoji: */
+	font-family: sans-serif;
+	font-size: 20px;
+	flex: 0 0 auto;
+}
+.article__callout__message {
+	flex: 1 1 auto;
 }
 
 .article pre {
@@ -710,6 +725,7 @@ body {
 .article__embed--quickstart {
 	aspect-ratio: 16 / 9;
 	min-height: 405px;
+	max-width: 100%;
 	margin: 32px 0px;
 }
 

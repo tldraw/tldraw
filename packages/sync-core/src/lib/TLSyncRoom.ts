@@ -29,6 +29,7 @@ import {
 	SESSION_REMOVAL_WAIT_TIME,
 	SESSION_START_WAIT_TIME,
 } from './RoomSession'
+import { TLSyncLog } from './TLSocketRoom'
 import {
 	NetworkDiff,
 	ObjectDiff,
@@ -47,11 +48,11 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @public */
+/** @internal */
 export interface TLRoomSocket<R extends UnknownRecord> {
 	isOpen: boolean
-	sendMessage: (msg: TLSocketServerSentEvent<R>) => void
-	close: () => void
+	sendMessage(msg: TLSocketServerSentEvent<R>): void
+	close(): void
 }
 
 // the max number of tombstones to keep in the store
@@ -63,7 +64,8 @@ export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
 const timeSince = (time: number) => Date.now() - time
 
-class DocumentState<R extends UnknownRecord> {
+/** @internal */
+export class DocumentState<R extends UnknownRecord> {
 	_atom: Atom<{ state: R; lastChangedClock: number }>
 
 	static createWithoutValidating<R extends UnknownRecord>(
@@ -131,19 +133,20 @@ export interface RoomSnapshot {
  * A room is a workspace for a group of clients. It allows clients to collaborate on documents
  * within that workspace.
  *
- * @public
+ * @internal
  */
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// A table of connected clients
 	readonly sessions = new Map<string, RoomSession<R, SessionMeta>>()
 
+	// eslint-disable-next-line local/prefer-class-methods
 	pruneSessions = () => {
 		for (const client of this.sessions.values()) {
 			switch (client.state) {
 				case RoomSessionState.Connected: {
 					const hasTimedOut = timeSince(client.lastInteractionTime) > SESSION_IDLE_TIMEOUT
 					if (hasTimedOut || !client.socket.isOpen) {
-						this.cancelSession(client.sessionKey)
+						this.cancelSession(client.sessionId)
 					}
 					break
 				}
@@ -151,14 +154,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					const hasTimedOut = timeSince(client.sessionStartTime) > SESSION_START_WAIT_TIME
 					if (hasTimedOut || !client.socket.isOpen) {
 						// remove immediately
-						this.removeSession(client.sessionKey)
+						this.removeSession(client.sessionId)
 					}
 					break
 				}
 				case RoomSessionState.AwaitingRemoval: {
 					const hasTimedOut = timeSince(client.cancellationTime) > SESSION_REMOVAL_WAIT_TIME
 					if (hasTimedOut) {
-						this.removeSession(client.sessionKey)
+						this.removeSession(client.sessionId)
 					}
 					break
 				}
@@ -171,19 +174,27 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private disposables: Array<() => void> = [interval(this.pruneSessions, 2000)]
 
+	private _isClosed = false
+
 	close() {
 		this.disposables.forEach((d) => d())
 		this.sessions.forEach((session) => {
 			session.socket.close()
 		})
+		this._isClosed = true
+	}
+
+	isClosed() {
+		return this._isClosed
 	}
 
 	readonly events = createNanoEvents<{
-		room_became_empty: () => void
-		session_removed: (args: { sessionKey: string; meta: SessionMeta }) => void
+		room_became_empty(): void
+		session_removed(args: { sessionId: string; meta: SessionMeta }): void
 	}>()
 
 	// Values associated with each uid (must be serializable).
+	/** @internal */
 	state = atom<{
 		documents: Record<string, DocumentState<R>>
 		tombstones: Record<string, number>
@@ -204,11 +215,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	readonly documentTypes: Set<string>
 	readonly presenceType: RecordType<R, any>
+	private log?: TLSyncLog
+	public readonly schema: StoreSchema<R, any>
 
-	constructor(
-		public readonly schema: StoreSchema<R, any>,
-		snapshot?: RoomSnapshot
-	) {
+	constructor(opts: { log?: TLSyncLog; schema: StoreSchema<R, any>; snapshot?: RoomSnapshot }) {
+		this.schema = opts.schema
+		let snapshot = opts.snapshot
+		this.log = opts.log
+
 		assert(
 			isNativeStructuredClone,
 			'TLSyncRoom is supposed to run either on Cloudflare Workers' +
@@ -216,16 +230,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		)
 
 		// do a json serialization cycle to make sure the schema has no 'undefined' values
-		this.serializedSchema = JSON.parse(JSON.stringify(schema.serialize()))
+		this.serializedSchema = JSON.parse(JSON.stringify(this.schema.serialize()))
 
 		this.documentTypes = new Set(
-			Object.values<RecordType<R, any>>(schema.types)
+			Object.values<RecordType<R, any>>(this.schema.types)
 				.filter((t) => t.scope === 'document')
 				.map((t) => t.typeName)
 		)
 
 		const presenceTypes = new Set(
-			Object.values<RecordType<R, any>>(schema.types).filter((t) => t.scope === 'presence')
+			Object.values<RecordType<R, any>>(this.schema.types).filter((t) => t.scope === 'presence')
 		)
 
 		if (presenceTypes.size != 1) {
@@ -278,17 +292,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				DocumentState.createWithoutValidating<R>(
 					r.state as R,
 					r.lastChangedClock,
-					assertExists(getOwnProperty(schema.types, r.state.typeName))
+					assertExists(getOwnProperty(this.schema.types, r.state.typeName))
 				),
 			])
 		)
 
-		const migrationResult = schema.migrateStoreSnapshot({
+		const migrationResult = this.schema.migrateStoreSnapshot({
 			store: Object.fromEntries(
 				objectMapEntries(documents).map(([id, { state }]) => [id, state as R])
 			) as Record<IdOf<R>, R>,
 			// eslint-disable-next-line deprecation/deprecation
-			schema: snapshot.schema ?? schema.serializeEarliestVersion(),
+			schema: snapshot.schema ?? this.schema.serializeEarliestVersion(),
 		})
 
 		if (migrationResult.type === 'error') {
@@ -304,7 +318,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				documents[id] = DocumentState.createWithoutValidating(
 					r,
 					this.clock,
-					assertExists(getOwnProperty(schema.types, r.typeName)) as any
+					assertExists(getOwnProperty(this.schema.types, r.typeName)) as any
 				)
 			} else if (!isEqual(existing.state, r)) {
 				// record was maybe updated during migration
@@ -328,6 +342,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.documentClock = this.clock
 	}
 
+	// eslint-disable-next-line local/prefer-class-methods
 	private pruneTombstones = () => {
 		// avoid blocking any pending responses
 		this.state.update(({ tombstones, documents }) => {
@@ -394,20 +409,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	/**
 	 * Send a message to a particular client. Debounces data events
 	 *
-	 * @param sessionKey - The session to send the message to.
+	 * @param sessionId - The id of the session to send the message to.
 	 * @param message - The message to send.
 	 */
 	private sendMessage(
-		sessionKey: string,
+		sessionId: string,
 		message: TLSocketServerSentEvent<R> | TLSocketServerSentDataEvent<R>
 	) {
-		const session = this.sessions.get(sessionKey)
+		const session = this.sessions.get(sessionId)
 		if (!session) {
-			console.warn('Tried to send message to unknown session', message.type)
+			this.log?.warn?.('Tried to send message to unknown session', message.type)
 			return
 		}
 		if (session.state !== RoomSessionState.Connected) {
-			console.warn('Tried to send message to disconnected client', message.type)
+			this.log?.warn?.('Tried to send message to disconnected client', message.type)
 			return
 		}
 		if (session.socket.isOpen) {
@@ -416,7 +431,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (message.type !== 'pong') {
 					// non-data messages like "connect" might still need to be ordered correctly with
 					// respect to data messages, so it's better to flush just in case
-					this._flushDataMessages(sessionKey)
+					this._flushDataMessages(sessionId)
 				}
 				session.socket.sendMessage(message)
 			} else {
@@ -425,7 +440,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					session.socket.sendMessage({ type: 'data', data: [message] })
 
 					session.debounceTimer = setTimeout(
-						() => this._flushDataMessages(sessionKey),
+						() => this._flushDataMessages(sessionId),
 						DATA_MESSAGE_DEBOUNCE_INTERVAL
 					)
 				} else {
@@ -433,14 +448,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 			}
 		} else {
-			this.cancelSession(session.sessionKey)
+			this.cancelSession(session.sessionId)
 		}
 	}
 
-	// needs to accept sessionKey and not a session because the session might be dead by the time
+	// needs to accept sessionId and not a session because the session might be dead by the time
 	// the timer fires
-	_flushDataMessages(sessionKey: string) {
-		const session = this.sessions.get(sessionKey)
+	_flushDataMessages(sessionId: string) {
+		const session = this.sessions.get(sessionId)
 
 		if (!session || session.state !== RoomSessionState.Connected) {
 			return
@@ -454,14 +469,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	private removeSession(sessionKey: string) {
-		const session = this.sessions.get(sessionKey)
+	private removeSession(sessionId: string) {
+		const session = this.sessions.get(sessionId)
 		if (!session) {
-			console.warn('Tried to remove unknown session')
+			this.log?.warn?.('Tried to remove unknown session')
 			return
 		}
 
-		this.sessions.delete(sessionKey)
+		this.sessions.delete(sessionId)
 
 		const presence = this.getDocument(session.presenceId)
 
@@ -482,30 +497,30 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 			this.broadcastPatch({
 				diff: { [session.presenceId]: [RecordOpType.Remove] },
-				sourceSessionKey: sessionKey,
+				sourceSessionId: sessionId,
 			})
 		}
 
-		this.events.emit('session_removed', { sessionKey, meta: session.meta })
+		this.events.emit('session_removed', { sessionId, meta: session.meta })
 		if (this.sessions.size === 0) {
 			this.events.emit('room_became_empty')
 		}
 	}
 
-	private cancelSession(sessionKey: string) {
-		const session = this.sessions.get(sessionKey)
+	private cancelSession(sessionId: string) {
+		const session = this.sessions.get(sessionId)
 		if (!session) {
 			return
 		}
 
 		if (session.state === RoomSessionState.AwaitingRemoval) {
-			console.warn('Tried to cancel session that is already awaiting removal')
+			this.log?.warn?.('Tried to cancel session that is already awaiting removal')
 			return
 		}
 
-		this.sessions.set(sessionKey, {
+		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingRemoval,
-			sessionKey,
+			sessionId,
 			presenceId: session.presenceId,
 			socket: session.socket,
 			cancellationTime: Date.now(),
@@ -514,23 +529,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Broadcast a message to all connected clients except the one with the sessionKey provided.
+	 * Broadcast a message to all connected clients except the one with the sessionId provided.
 	 *
 	 * @param message - The message to broadcast.
-	 * @param sourceSessionKey - The session to exclude.
+	 * @param sourceSessionId - The session to exclude.
 	 */
-	broadcastPatch({
-		diff,
-		sourceSessionKey: sourceSessionKey,
-	}: {
-		diff: NetworkDiff<R>
-		sourceSessionKey: string
-	}) {
+	broadcastPatch({ diff, sourceSessionId }: { diff: NetworkDiff<R>; sourceSessionId: string }) {
 		this.sessions.forEach((session) => {
 			if (session.state !== RoomSessionState.Connected) return
-			if (sourceSessionKey === session.sessionKey) return
+			if (sourceSessionId === session.sessionId) return
 			if (!session.socket.isOpen) {
-				this.cancelSession(session.sessionKey)
+				this.cancelSession(session.sessionId)
 				return
 			}
 
@@ -547,7 +556,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				return
 			}
 
-			this.sendMessage(session.sessionKey, {
+			this.sendMessage(session.sessionId, {
 				type: 'patch',
 				diff: res.value,
 				serverClock: this.clock,
@@ -560,14 +569,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * When a client connects to the room, add them to the list of clients and then merge the history
 	 * down into the snapshots.
 	 *
-	 * @param sessionKey - The session of the client that connected to the room.
+	 * @param sessionId - The session of the client that connected to the room.
 	 * @param socket - Their socket.
 	 */
-	handleNewSession = (sessionKey: string, socket: TLRoomSocket<R>, meta: SessionMeta) => {
-		const existing = this.sessions.get(sessionKey)
-		this.sessions.set(sessionKey, {
+	handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) {
+		const existing = this.sessions.get(sessionId)
+		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingConnectMessage,
-			sessionKey,
+			sessionId,
 			socket,
 			presenceId: existing?.presenceId ?? this.presenceType.createId(),
 			sessionStartTime: Date.now(),
@@ -622,13 +631,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * When the server receives a message from the clients Currently, supports connect and patches.
 	 * Invalid messages types throws an error. Currently, doesn't validate data.
 	 *
-	 * @param sessionKey - The session that sent the message
+	 * @param sessionId - The session that sent the message
 	 * @param message - The message that was sent
 	 */
-	handleMessage = async (sessionKey: string, message: TLSocketClientSentEvent<R>) => {
-		const session = this.sessions.get(sessionKey)
+	async handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>) {
+		const session = this.sessions.get(sessionId)
 		if (!session) {
-			console.warn('Received message from unknown session')
+			this.log?.warn?.('Received message from unknown session')
 			return
 		}
 		switch (message.type) {
@@ -642,7 +651,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (session.state === RoomSessionState.Connected) {
 					session.lastInteractionTime = Date.now()
 				}
-				return this.sendMessage(session.sessionKey, { type: 'pong' })
+				return this.sendMessage(session.sessionId, { type: 'pong' })
 			}
 			default: {
 				exhaustiveSwitchError(message)
@@ -662,7 +671,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		} catch (e) {
 			// noop
 		} finally {
-			this.removeSession(session.sessionKey)
+			this.removeSession(session.sessionId)
 		}
 	}
 
@@ -703,9 +712,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			: message.schema
 
 		const connect = (msg: TLSocketServerSentEvent<R>) => {
-			this.sessions.set(session.sessionKey, {
+			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
-				sessionKey: session.sessionKey,
+				sessionId: session.sessionId,
 				presenceId: session.presenceId,
 				socket: session.socket,
 				serializedSchema: sessionSchema,
@@ -714,7 +723,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				outstandingDataMessages: [],
 				meta: session.meta,
 			})
-			this.sendMessage(session.sessionKey, msg)
+			this.sendMessage(session.sessionId, msg)
 		}
 
 		transaction((rollback) => {
@@ -834,7 +843,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				rollback()
 				this.rejectSession(session, reason)
 				if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
-					console.error('failed to apply push', reason, message)
+					this.log?.error?.('failed to apply push', reason, message)
 				}
 				return Result.err(undefined)
 			}
@@ -1015,7 +1024,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// COMMIT
 				// Applying the client's changes had the exact same effect on the server as
 				// they had on the client, so the client should keep the diff
-				this.sendMessage(session.sessionKey, {
+				this.sendMessage(session.sessionId, {
 					type: 'push_result',
 					serverClock: this.clock,
 					clientClock,
@@ -1024,7 +1033,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			} else if (!docChanges.diff) {
 				// DISCARD
 				// Applying the client's changes had no effect, so the client should drop the diff
-				this.sendMessage(session.sessionKey, {
+				this.sendMessage(session.sessionId, {
 					type: 'push_result',
 					serverClock: this.clock,
 					clientClock,
@@ -1044,7 +1053,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					)
 				}
 				// If the migration worked, send the rebased diff to the client
-				this.sendMessage(session.sessionKey, {
+				this.sendMessage(session.sessionId, {
 					type: 'push_result',
 					serverClock: this.clock,
 					clientClock,
@@ -1055,7 +1064,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// If there are merged changes, broadcast them to all other clients
 			if (docChanges.diff || presenceChanges.diff) {
 				this.broadcastPatch({
-					sourceSessionKey: session.sessionKey,
+					sourceSessionId: session.sessionId,
 					diff: {
 						...docChanges.diff,
 						...presenceChanges.diff,
@@ -1074,9 +1083,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	/**
 	 * Handle the event when a client disconnects.
 	 *
-	 * @param sessionKey - The session that disconnected.
+	 * @param sessionId - The session that disconnected.
 	 */
-	handleClose = (sessionKey: string) => {
-		this.cancelSession(sessionKey)
+	handleClose(sessionId: string) {
+		this.cancelSession(sessionId)
 	}
 }

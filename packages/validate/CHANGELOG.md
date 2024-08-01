@@ -1,3 +1,28 @@
+# v2.4.0 (Mon Jul 22 2024)
+
+### Release Notes
+
+#### Unfurl bookmarks in worker ([#4039](https://github.com/tldraw/tldraw/pull/4039))
+
+- Do link unfurling on the same subdomain as all our other api endpoints.
+
+---
+
+#### 🐛 Bug Fix
+
+- Demo server bookmark unfurl endpoint [#4062](https://github.com/tldraw/tldraw/pull/4062) ([@SomeHats](https://github.com/SomeHats))
+
+#### 💄 Product Improvements
+
+- Unfurl bookmarks in worker [#4039](https://github.com/tldraw/tldraw/pull/4039) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.3.0 (Tue Jun 25 2024)
 
 ### Release Notes

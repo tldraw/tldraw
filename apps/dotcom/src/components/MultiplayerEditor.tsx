@@ -4,7 +4,7 @@ import {
 	RoomOpenModeToPath,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { useMultiplayerSync } from '@tldraw/sync'
+import { useSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import {
 	assertExists,
@@ -15,7 +15,6 @@ import {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	HelpGroup,
 	PeopleMenu,
 	PreferencesGroup,
 	TLComponents,
@@ -37,6 +36,7 @@ import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { multiplayerAssetStore } from '../utils/multiplayerAssetStore'
 import { useSharing } from '../utils/sharing'
+import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
@@ -59,7 +59,6 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
-			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),
@@ -122,10 +121,11 @@ export function MultiplayerEditor({
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const storeWithStatus = useMultiplayerSync({
+	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 		assets: multiplayerAssetStore,
+		trackAnalyticsEvent,
 	})
 
 	const sharingUiOverrides = useSharing()

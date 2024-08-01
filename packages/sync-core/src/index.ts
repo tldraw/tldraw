@@ -1,13 +1,16 @@
-export { ClientWebSocketAdapter } from './lib/ClientWebSocketAdapter'
+export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
+export { RoomSessionState, type RoomSession } from './lib/RoomSession'
+export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
-export { TLSocketRoom } from './lib/TLSocketRoom'
+export { TLSocketRoom, type OmitVoid, type TLSyncLog } from './lib/TLSocketRoom'
 export {
 	TLCloseEventCode,
 	TLSyncClient,
+	type SubscribingFn,
 	type TLPersistentClientSocket,
 	type TLPersistentClientSocketStatus,
 } from './lib/TLSyncClient'
-export { TLSyncRoom, type RoomSnapshot, type TLRoomSocket } from './lib/TLSyncRoom'
+export { DocumentState, TLSyncRoom, type RoomSnapshot, type TLRoomSocket } from './lib/TLSyncRoom'
 export { chunk } from './lib/chunk'
 export {
 	RecordOpType,
@@ -31,6 +34,7 @@ export {
 	type TLPingRequest,
 	type TLPushRequest,
 	type TLSocketClientSentEvent,
+	type TLSocketServerSentDataEvent,
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'

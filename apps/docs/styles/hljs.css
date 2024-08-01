@@ -96,3 +96,8 @@ a.code-link::before {
 	vertical-align: -0.142em; /* 2px when font-size is 14px */
 	margin-right: 0.142em;
 }
+
+.hljs [data-line-state='blur'] {
+	color: var(--hl);
+	opacity: 0.5;
+}

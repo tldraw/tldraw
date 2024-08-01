@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RecordPropsType } from '../recordsWithProps'
+import { RecordProps } from '../recordsWithProps'
 import { TLBaseShape } from './TLBaseShape'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
@@ -625,17 +625,21 @@ export const embedShapePermissionDefaults = {
 export type TLEmbedShapePermissions = { [K in keyof typeof embedShapePermissionDefaults]?: boolean }
 
 /** @public */
-export const embedShapeProps = {
+export interface TLEmbedShapeProps {
+	w: number
+	h: number
+	url: string
+}
+
+/** @public */
+export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
+
+/** @public */
+export const embedShapeProps: RecordProps<TLEmbedShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	url: T.string,
 }
-
-/** @public */
-export type TLEmbedShapeProps = RecordPropsType<typeof embedShapeProps>
-
-/** @public */
-export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
 /** @public */
 export interface EmbedDefinition {
@@ -653,7 +657,9 @@ export interface EmbedDefinition {
 	readonly backgroundColor?: string
 	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
 	readonly overrideOutlineRadius?: number
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly toEmbedUrl: (url: string) => string | undefined
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly fromEmbedUrl: (url: string) => string | undefined
 }
 

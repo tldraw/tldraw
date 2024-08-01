@@ -12,6 +12,7 @@ import React, {
 } from 'react'
 
 import classNames from 'classnames'
+import { version } from '../version'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
@@ -36,6 +37,8 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
+import { LicenseProvider } from './license/LicenseProvider'
+import { Watermark } from './license/Watermark'
 import { TldrawOptions } from './options'
 import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
@@ -223,6 +226,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	return (
 		<div
 			ref={setContainer}
+			data-tldraw={version}
 			draggable={false}
 			className={classNames(`${TL_CONTAINER_CLASS} tl-theme__light`, className)}
 			onPointerDown={stopEventPropagation}
@@ -233,22 +237,24 @@ export const TldrawEditor = memo(function TldrawEditor({
 				onError={(error) => annotateError(error, { tags: { origin: 'react.tldraw-before-app' } })}
 			>
 				{container && (
-					<ContainerProvider container={container}>
-						<EditorComponentsProvider overrides={components}>
-							{store ? (
-								store instanceof Store ? (
-									// Store is ready to go, whether externally synced or not
-									<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+					<LicenseProvider licenseKey={rest.licenseKey}>
+						<ContainerProvider container={container}>
+							<EditorComponentsProvider overrides={components}>
+								{store ? (
+									store instanceof Store ? (
+										// Store is ready to go, whether externally synced or not
+										<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+									) : (
+										// Store is a synced store, so handle syncing stages internally
+										<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+									)
 								) : (
-									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
-								)
-							) : (
-								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
-							)}
-						</EditorComponentsProvider>
-					</ContainerProvider>
+									// We have no store (it's undefined) so create one and possibly sync it
+									<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+								)}
+							</EditorComponentsProvider>
+						</ContainerProvider>
+					</LicenseProvider>
 				)}
 			</OptionalErrorBoundary>
 		</div>
@@ -270,6 +276,7 @@ function TldrawEditorWithOwnStore(
 		persistenceKey,
 		sessionId,
 		user,
+		assets,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -280,6 +287,7 @@ function TldrawEditorWithOwnStore(
 		sessionId,
 		defaultName,
 		snapshot,
+		assets,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
@@ -447,7 +455,10 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorContext.Provider value={editor}>
-					<Layout onMount={onMount}>{children ?? (Canvas ? <Canvas /> : null)}</Layout>
+					<Layout onMount={onMount}>
+						{children ?? (Canvas ? <Canvas /> : null)}
+						<Watermark />
+					</Layout>
 				</EditorContext.Provider>
 			)}
 		</OptionalErrorBoundary>
@@ -460,7 +471,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useDarkMode()
 	useForceUpdate()
 	useOnMount((editor) => {
-		const teardownStore = editor.store.props.onEditorMount(editor)
+		const teardownStore = editor.store.props.onMount(editor)
 		const teardownCallback = onMount?.(editor)
 
 		return () => {
@@ -497,10 +508,15 @@ export function useOnMount(onMount?: TLOnMountHandler) {
 
 	const onMountEvent = useEvent((editor: Editor) => {
 		let teardown: (() => void) | void = undefined
-		editor.history.ignore(() => {
-			teardown = onMount?.(editor)
-			editor.emit('mount')
-		})
+		// If the user wants to do something when the editor mounts, we make sure it doesn't effect the history.
+		// todo: is this reeeeally what we want to do, or should we leave it up to the caller?
+		editor.run(
+			() => {
+				teardown = onMount?.(editor)
+				editor.emit('mount')
+			},
+			{ history: 'ignore' }
+		)
 		window.tldrawReady = true
 		return teardown
 	})

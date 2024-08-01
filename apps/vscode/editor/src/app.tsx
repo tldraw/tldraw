@@ -8,7 +8,6 @@ import {
 	ErrorBoundary,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	HelpGroup,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
@@ -118,7 +117,6 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
-			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),

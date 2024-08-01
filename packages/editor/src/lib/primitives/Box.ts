@@ -389,19 +389,19 @@ export class Box {
 		return new Box(A.minX - n, A.minY - n, A.width + n * 2, A.height + n * 2)
 	}
 
-	static Collides = (A: Box, B: Box) => {
+	static Collides(A: Box, B: Box) {
 		return !(A.maxX < B.minX || A.minX > B.maxX || A.maxY < B.minY || A.minY > B.maxY)
 	}
 
-	static Contains = (A: Box, B: Box) => {
+	static Contains(A: Box, B: Box) {
 		return A.minX < B.minX && A.minY < B.minY && A.maxY > B.maxY && A.maxX > B.maxX
 	}
 
-	static Includes = (A: Box, B: Box) => {
+	static Includes(A: Box, B: Box) {
 		return Box.Collides(A, B) || Box.Contains(A, B)
 	}
 
-	static ContainsPoint = (A: Box, B: VecLike, margin = 0) => {
+	static ContainsPoint(A: Box, B: VecLike, margin = 0) {
 		return !(
 			B.x < A.minX - margin ||
 			B.y < A.minY - margin ||
@@ -410,7 +410,7 @@ export class Box {
 		)
 	}
 
-	static Common = (boxes: Box[]): Box => {
+	static Common(boxes: Box[]) {
 		let minX = Infinity
 		let minY = Infinity
 		let maxX = -Infinity
@@ -427,7 +427,7 @@ export class Box {
 		return new Box(minX, minY, maxX - minX, maxY - minY)
 	}
 
-	static Sides = (A: Box, inset = 0) => {
+	static Sides(A: Box, inset = 0) {
 		const { corners } = A
 		if (inset) {
 			// TODO: Inset the corners by the inset amount.

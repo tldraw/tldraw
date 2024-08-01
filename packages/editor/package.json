@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "A tiny little drawing app (editor).",
-	"version": "2.3.0",
+	"version": "2.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -46,6 +46,7 @@
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
+		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",

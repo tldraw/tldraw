@@ -1,4 +1,3 @@
-import { TLAnyShapeUtilConstructor } from '@tldraw/editor'
 import { ArrowShapeUtil } from './shapes/arrow/ArrowShapeUtil'
 import { BookmarkShapeUtil } from './shapes/bookmark/BookmarkShapeUtil'
 import { DrawShapeUtil } from './shapes/draw/DrawShapeUtil'
@@ -13,7 +12,7 @@ import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { VideoShapeUtil } from './shapes/video/VideoShapeUtil'
 
 /** @public */
-export const defaultShapeUtils: TLAnyShapeUtilConstructor[] = [
+export const defaultShapeUtils = [
 	TextShapeUtil,
 	BookmarkShapeUtil,
 	DrawShapeUtil,
@@ -26,4 +25,4 @@ export const defaultShapeUtils: TLAnyShapeUtilConstructor[] = [
 	EmbedShapeUtil,
 	ImageShapeUtil,
 	VideoShapeUtil,
-]
+] as const
