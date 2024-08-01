@@ -6,6 +6,8 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 
+// There's a guide at the bottom of this file!
+
 // [1]
 const defaultEmbedTypesToKeep: DefaultEmbedDefinitionType[] = ['tldraw', 'youtube']
 const defaultEmbedsToKeep = DEFAULT_EMBED_DEFINITIONS.filter((embed) =>
@@ -54,12 +56,17 @@ export default function CustomEmbedExample() {
 }
 
 /**
-[1] tldraw comes with several default embed definitions. In this example, we filter the default embed definitions to only include the 'tldraw' and 'youtube' embed definitions. 
 
-[2] We will also add a new embed for embeding JSFiddles. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
+[1]
+tldraw comes with several default embed definitions. In this example, we filter the default embed definitions to only include the 'tldraw' and 'youtube' embed definitions. 
 
-[3] We concatenate the default embed definitions with the custom embed definition. 
+[2]
+We will also add a new embed for embeding JSFiddles. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
 
-[4] We pass the custom embed definitions to the `Tldraw` component as a prop. 
+[3]
+We concatenate the default embed definitions with the custom embed definition. 
+
+[4]
+We pass the custom embed definitions to the `Tldraw` component as a prop. 
 
 */
