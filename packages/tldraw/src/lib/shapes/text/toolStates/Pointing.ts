@@ -41,21 +41,23 @@ export class Pointing extends StateNode {
 
 		const { originPagePoint, currentPagePoint } = editor.inputs
 
-		const currentSquaredDragDist = Math.abs(originPagePoint.x - currentPagePoint.x) ** 2
+		const currentDragDist = Math.abs(originPagePoint.x - currentPagePoint.x)
 
-		const baseMinSquaredDragDistForFixedWidth = editor.getInstanceState().isCoarsePointer
-			? editor.options.coarseDragDistanceSquared
-			: editor.options.dragDistanceSquared
+		const baseMinDragDistForFixedWidth = Math.sqrt(
+			editor.getInstanceState().isCoarsePointer
+				? editor.options.coarseDragDistanceSquared
+				: editor.options.dragDistanceSquared
+		)
 
 		// Ten times the base drag distance for fixed width
-		const minSquaredDragDist = (baseMinSquaredDragDistForFixedWidth * 10) / editor.getZoomLevel()
+		const minSquaredDragDist = (baseMinDragDistForFixedWidth * 10) / editor.getZoomLevel()
 
-		if (currentSquaredDragDist > minSquaredDragDist) {
+		if (currentDragDist > minSquaredDragDist) {
 			const id = createShapeId()
 			this.markId = editor.markHistoryStoppingPoint(`creating_text:${id}`)
 
 			// create the initial shape with the width that we've dragged
-			const shape = this.createTextShape(id, originPagePoint, false, currentSquaredDragDist)
+			const shape = this.createTextShape(id, originPagePoint, false, currentDragDist)
 
 			if (!shape) {
 				this.cancel()
@@ -74,7 +76,7 @@ export class Pointing extends StateNode {
 				isCreating: true,
 				creatingMarkId: this.markId,
 				// Make sure the cursor offset takes into account how far we've already dragged
-				creationCursorOffset: { x: currentSquaredDragDist, y: 1 },
+				creationCursorOffset: { x: currentDragDist, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
 					editor.setEditingShape(shape.id)
