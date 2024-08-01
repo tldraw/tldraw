@@ -82,12 +82,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
-		const [loaded, setLoaded] = useState<null | {
-			src: string
-			isPlaceholder: boolean
-		}>(null)
+		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url, isPlaceholder } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
@@ -106,7 +103,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
-					setLoaded({ src: url, isPlaceholder })
+					setLoadedUrl(url)
 				}
 				image.crossOrigin = 'anonymous'
 				image.src = url
@@ -115,7 +112,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					cancelled = true
 				}
 			}
-		}, [prefersReducedMotion, url, shape, isPlaceholder])
+		}, [prefersReducedMotion, url, shape])
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
@@ -129,8 +126,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		const nextSrc = url === loaded?.src ? null : url
-		const loadedSrc = !shape.props.playing || reduceMotion ? staticFrameSrc : loaded?.src
+		const nextSrc = url === loadedUrl ? null : url
+		const loadedSrc = !shape.props.playing || reduceMotion ? staticFrameSrc : loadedUrl
 
 		// This logic path is for when it's broken/missing asset.
 		if (!url && !asset?.props.src) {
@@ -214,7 +211,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 								src={nextSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
 								draggable={false}
-								onLoad={() => setLoaded({ src: nextSrc, isPlaceholder })}
+								onLoad={() => setLoadedUrl(nextSrc)}
 							/>
 						)}
 						{this.isAnimated(shape) && !shape.props.playing && (
