@@ -12,7 +12,6 @@ import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
-import { CustomEmbedDefinition } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { EffectScheduler } from '@tldraw/state';
 import { EmbedDefinition } from '@tldraw/tlschema';
@@ -60,6 +59,7 @@ import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
+import { TLEmbedDefinition } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
@@ -3439,7 +3439,7 @@ export function useEditor(): Editor;
 export function useEditorComponents(): Required<TLEditorComponents>;
 
 // @public (undocumented)
-export function useEmbedDefinitions(): readonly (CustomEmbedDefinition | EmbedDefinition)[];
+export function useEmbedDefinitions(): readonly TLEmbedDefinition[];
 
 // @internal
 export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
