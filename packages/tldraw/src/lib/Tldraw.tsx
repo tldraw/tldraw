@@ -4,6 +4,7 @@ import {
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
 	EmbedDefinition,
+	EmbedDefinitionOverride,
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
@@ -85,7 +86,7 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		tools = [],
-		embeds = DEFAULT_EMBED_DEFINITIONS,
+		embeds,
 		...rest
 	} = props
 
@@ -126,6 +127,9 @@ export function Tldraw(props: TldrawProps) {
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
+
+	const embedsWithDefaults = embeds ?? DEFAULT_EMBED_DEFINITIONS
+
 	if (!preloadingComplete) {
 		return (
 			<LoadingScreen>
@@ -151,7 +155,7 @@ export function Tldraw(props: TldrawProps) {
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
 					onMount={onMount}
-					embeds={embeds}
+					embeds={embedsWithDefaults}
 				/>
 				{children}
 			</TldrawUi>
@@ -167,7 +171,10 @@ function InsideOfEditorAndUiContext({
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
 	embeds,
-}: TLExternalContentProps & { onMount?: TLOnMountHandler; embeds: readonly EmbedDefinition[] }) {
+}: TLExternalContentProps & {
+	onMount?: TLOnMountHandler
+	embeds: readonly (EmbedDefinition | EmbedDefinitionOverride)[]
+}) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()

@@ -569,6 +569,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 
 /** @public */
 export type DefaultEmbedTypes = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type']
+
 const DEFAULT_EMBED_TYPES = DEFAULT_EMBED_DEFINITIONS.map((def) => def.type) as DefaultEmbedTypes[]
 
 /** @public */

@@ -149,14 +149,15 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								: isEmbedDefintionOverride(def)
 									? def.icon
 									: undefined
-							if (!url) return null
 							return (
 								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
 									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
-									<div
-										className="tlui-embed-dialog__item__image"
-										style={{ backgroundImage: `url(${url})` }}
-									/>
+									{url && (
+										<div
+											className="tlui-embed-dialog__item__image"
+											style={{ backgroundImage: `url(${url})` }}
+										/>
+									)}
 								</TldrawUiButton>
 							)
 						})}

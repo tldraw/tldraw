@@ -1,7 +1,6 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
 	DEFAULT_EMBED_DEFINITIONS,
-	EmbedDefinition,
 	EmbedDefinitionOverride,
 	TLStore,
 	TLStoreSnapshot,
@@ -133,7 +132,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * An array of embed definitions to use in the editor.
 	 */
-	embeds?: readonly (EmbedDefinitionOverride | EmbedDefinition)[]
+	embeds?: readonly EmbedDefinitionOverride[]
 
 	/**
 	 * Whether to automatically focus the editor when it mounts.
@@ -215,7 +214,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
 	className,
-	embeds = DEFAULT_EMBED_DEFINITIONS,
+	embeds,
 	user: _user,
 	...rest
 }: TldrawEditorProps) {
@@ -236,6 +235,8 @@ export const TldrawEditor = memo(function TldrawEditor({
 		components,
 	}
 
+	const embedsWithDefaults = embeds ?? DEFAULT_EMBED_DEFINITIONS
+
 	return (
 		<div
 			ref={setContainer}
@@ -253,7 +254,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 					<LicenseProvider licenseKey={rest.licenseKey}>
 						<ContainerProvider container={container}>
 							<EditorComponentsProvider overrides={components}>
-								<EmbedDefinitionsProvider embeds={embeds}>
+								<EmbedDefinitionsProvider embeds={embedsWithDefaults}>
 									{store ? (
 										store instanceof Store ? (
 											// Store is ready to go, whether externally synced or not
