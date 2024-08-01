@@ -231,7 +231,7 @@ export class LicenseManager {
 			// Glob testing, we only support '*.somedomain.com' right now.
 			if (host.includes('*')) {
 				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
-				return globToRegex.test(currentHostname)
+				return globToRegex.test(currentHostname) || globToRegex.test(`www.${currentHostname}`)
 			}
 
 			return false
