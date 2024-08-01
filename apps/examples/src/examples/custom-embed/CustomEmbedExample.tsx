@@ -45,7 +45,12 @@ const customEmbed: CustomEmbedDefinition = {
 const embeds = [...defaultEmbedsToKeep, customEmbed]
 
 export default function CustomEmbedExample() {
-	return <Tldraw embeds={embeds} />
+	return (
+		<div className="tldraw__editor">
+			{/* [4] */}
+			<Tldraw embeds={embeds} />
+		</div>
+	)
 }
 
 /**
