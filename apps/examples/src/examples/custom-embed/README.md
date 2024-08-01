@@ -6,6 +6,8 @@ priority: 1
 keywords: [embed, custom]
 ---
 
+Create custom embeds
+
 ---
 
-Create a custom embed
+tldraw comes with support for many types of embeds out of the box, but it also comes with the ability to create custom embeds. In this example we'll create a JSFiddle embed.
