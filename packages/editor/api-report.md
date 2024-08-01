@@ -1262,6 +1262,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
+    updateUrlOnStateChange(opts?: {
+        debounceMs?: number;
+        paramNames?: TLUrlStateParams;
+    } & ({
+        onChange?(url: URL): void;
+    } | {
+        onChange(url: URL): void;
+        url: (() => string | URL) | string | URL;
+    })): () => void;
     updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File): Promise<string>;
     readonly user: UserPreferencesManager;

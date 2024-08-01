@@ -65,6 +65,7 @@ import {
 	assertExists,
 	bind,
 	compact,
+	debounce,
 	dedupe,
 	exhaustiveSwitchError,
 	fetch,
@@ -8869,6 +8870,98 @@ export class Editor extends EventEmitter<TLEventMap> {
 			window.history.replaceState({}, document.title, url.toString())
 		}
 		return url
+	}
+
+	/**
+	 * Sets up a listener to add the current page and viewport state to the URL search params.
+	 *
+	 * e.g. `https://my-app.com/my-document?p=foo&v=100,100,200,200`
+	 *
+	 * Returns a function that will stop the listener.
+	 *
+	 * @example
+	 * ```tsx
+	 * <Tldraw onMount={editor => {
+	 *   const unlisten = editor.updateUrlOnStateChange()
+	 *   return () => {
+	 *     unlisten()
+	 *   }
+	 * }}/>
+	 * ```
+	 *
+	 * By default this will update `window.location` in place, but you can provide a custom callback
+	 * to handle state changes on your own.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateUrlOnStateChange({
+	 *   onChange(url) {
+	 *     window.history.replaceState({}, document.title, url.toString())
+	 *   }
+	 * })
+	 * ```
+	 *
+	 * You can also provide a custom URL to update, in which case you must also provide `onChange`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateUrlOnStateChange({
+	 *   url: `https://my-app.com/my-document`,
+	 *   onChange(url) {
+	 *     setShareUrl(url.toString())
+	 *   }
+	 * })
+	 * ```
+	 *
+	 * By default this will update with a debounce interval of 500ms, but you can provide a custom interval.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateUrlOnStateChange({ debounceMs: 1000 })
+	 * ```
+	 * The default parameter names are `p` (page) and `v` (viewport). You can override or
+	 * disable these.
+	 *
+	 * @example
+	 * ```ts
+	 * // disable page parameter if there's only one page
+	 * editor.updateUrlOnStateChange({ paramNames: { page: null } })
+	 * ```
+	 *
+	 *
+	 * @param opts - Options for setting up the listener.
+	 * @returns a function that will stop the listener.
+	 */
+	updateUrlOnStateChange(
+		opts?: { paramNames?: TLUrlStateParams; debounceMs?: number } & (
+			| {
+					url: string | URL | (() => string | URL)
+					onChange(url: URL): void
+			  }
+			| { onChange?(url: URL): void }
+		)
+	): () => void {
+		const url$ = computed('url with state', () => {
+			const url =
+				opts && 'url' in opts
+					? typeof opts.url === 'function'
+						? opts.url()
+						: opts.url
+					: window.location.href
+			const urlWithState = this.addStateToUrl({ url, paramNames: opts?.paramNames })
+			return urlWithState.toString()
+		})
+		const announceChange =
+			opts?.onChange ?? (() => this.addStateToUrl({ paramNames: opts?.paramNames }))
+		return react(
+			'update url on state change',
+			() => {
+				announceChange(new URL(url$.get()))
+			},
+			{
+				scheduleEffect: debounce((execute) => execute(), opts?.debounceMs ?? 500),
+			}
+		)
 	}
 
 	/**
