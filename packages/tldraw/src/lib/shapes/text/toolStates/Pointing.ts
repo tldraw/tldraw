@@ -15,27 +15,48 @@ export class Pointing extends StateNode {
 
 	markId = ''
 
+	enterTime = 0
+	override onEnter(): void {
+		this.enterTime = Date.now()
+	}
+
 	override onExit() {
 		this.editor.setHintingShapes([])
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
+		// Create a fixed width shape if the user wants to do that.
+
 		// Don't create a fixed width shape unless the the drag is a little larger,
 		// otherwise you get a vertical column of single characters if you accidentally
 		// drag a bit unintentionally.
+
+		// If the user hasn't been pointing for more than 150ms, don't create a fixed width shape
+		if (Date.now() - this.enterTime < 150) return
+
 		const { editor } = this
 		const { isPointing, originPagePoint, currentPagePoint } = editor.inputs
+
+		// only create a fixed width text shape if the user has dragged a certain distance
+		// along the x axis. the y axis doesn't matter, ignore that.
+		const currentSquaredDragDist = Math.abs(originPagePoint.x - currentPagePoint.x) ** 2
+
+		// This is how far we want the user to drag before making a fixed width text shape
+		const minSquaredDragDistForFixedWidth = editor.getInstanceState().isCoarsePointer
+			? editor.options.coarseDragDistanceSquared
+			: editor.options.dragDistanceSquared * 4
+
+		// We want to multiply the zoom level when we're above 100%, but not below it
+		// The drag distance will be longer when zoomed in but never less than the
+		// minSquaredDragDistForFixedWidth distance.
+		const zoomLevelAtMinimumOne = Math.max(1, editor.getZoomLevel())
+
 		if (
 			isPointing &&
-			Math.abs(originPagePoint.x - currentPagePoint.x) ** 2 >
-				((editor.getInstanceState().isCoarsePointer
-					? editor.options.coarseDragDistanceSquared
-					: editor.options.dragDistanceSquared) *
-					4) / // double the necessary drag distance for text shapes
-					editor.getZoomLevel()
+			currentSquaredDragDist > minSquaredDragDistForFixedWidth / zoomLevelAtMinimumOne
 		) {
 			const id = createShapeId()
-			this.markId = this.editor.markHistoryStoppingPoint(`creating_text:${id}`)
+			this.markId = editor.markHistoryStoppingPoint(`creating_text:${id}`)
 
 			const shape = this.createTextShape(id, originPagePoint, false)
 			if (!shape) {
