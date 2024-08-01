@@ -1668,8 +1668,51 @@ export function intersectPolygonBounds(points: VecLike[], bounds: Box): null | V
 // @public
 export function intersectPolygonPolygon(polygonA: VecLike[], polygonB: VecLike[]): null | VecLike[];
 
+// @internal (undocumented)
+export interface InvalidLicenseKeyResult {
+    // (undocumented)
+    isLicenseParseable: false;
+    // (undocumented)
+    reason: InvalidLicenseReason;
+}
+
+// @internal (undocumented)
+export type InvalidLicenseReason = 'has-key-development-mode' | 'invalid-license-key' | 'no-key-provided';
+
 // @public
 export const isSafeFloat: (n: number) => boolean;
+
+// @internal (undocumented)
+export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
+
+// @internal (undocumented)
+export interface LicenseInfo {
+    // (undocumented)
+    expiryDate: string;
+    // (undocumented)
+    flags: number;
+    // (undocumented)
+    hosts: string[];
+    // (undocumented)
+    id: string;
+}
+
+// @internal (undocumented)
+export class LicenseManager {
+    constructor(licenseKey: string | undefined, testPublicKey?: string, testEnvironment?: TestEnvironment);
+    // (undocumented)
+    static className: string;
+    // (undocumented)
+    getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult>;
+    // (undocumented)
+    isCryptoAvailable: boolean;
+    // (undocumented)
+    isDevelopment: boolean;
+    // (undocumented)
+    isTest: boolean;
+    // (undocumented)
+    state: Atom<"licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
+}
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
@@ -2351,6 +2394,9 @@ export interface SvgExportDef {
 
 // @public
 export const TAB_ID: string;
+
+// @internal (undocumented)
+export type TestEnvironment = 'development' | 'production';
 
 // @public (undocumented)
 export class TextManager {
@@ -3556,6 +3602,32 @@ export function useTLStore(opts: TLStoreOptions): TLStore;
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 export { useValue }
+
+// @internal (undocumented)
+export interface ValidLicenseKeyResult {
+    // (undocumented)
+    expiryDate: Date;
+    // (undocumented)
+    isAnnualLicense: boolean;
+    // (undocumented)
+    isAnnualLicenseExpired: boolean;
+    // (undocumented)
+    isDevelopment: boolean;
+    // (undocumented)
+    isDomainValid: boolean;
+    // (undocumented)
+    isInternalLicense: boolean;
+    // (undocumented)
+    isLicensedWithWatermark: boolean;
+    // (undocumented)
+    isLicenseParseable: true;
+    // (undocumented)
+    isPerpetualLicense: boolean;
+    // (undocumented)
+    isPerpetualLicenseExpired: boolean;
+    // (undocumented)
+    license: LicenseInfo;
+}
 
 // @public (undocumented)
 export class Vec {

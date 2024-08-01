@@ -82,6 +82,7 @@
 		"rimraf": "^4.4.0",
 		"sqlite": "^5.0.1",
 		"sqlite3": "^5.1.6",
+		"tldraw": "workspace:^",
 		"tsx": "^4.0.0",
 		"typescript": "^5.3.3",
 		"unist-util-is": "^6.0.0",
