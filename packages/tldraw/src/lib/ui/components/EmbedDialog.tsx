@@ -1,7 +1,7 @@
 import {
 	EmbedDefinition,
 	isDefaultEmbedType,
-	isEmbedDefintionOverride,
+	isEmbedDefinitionOverride,
 	track,
 	useEditor,
 	useEmbedDefinitions,
@@ -146,7 +146,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 						{definitions.map((def) => {
 							const url = isDefaultEmbedType(def.type)
 								? assetUrls.embedIcons[def.type]
-								: isEmbedDefintionOverride(def)
+								: isEmbedDefinitionOverride(def)
 									? def.icon
 									: undefined
 							return (

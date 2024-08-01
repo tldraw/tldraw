@@ -156,7 +156,7 @@ export {
 	embedShapePermissionDefaults,
 	embedShapeProps,
 	isDefaultEmbedType,
-	isEmbedDefintionOverride,
+	isEmbedDefinitionOverride,
 	type CustomEmbedDefinition,
 	type DefaultEmbedTypes,
 	type EmbedDefinition,
