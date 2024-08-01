@@ -1,10 +1,15 @@
-import { CustomEmbedDefinition, DEFAULT_EMBED_DEFINITIONS, Tldraw } from 'tldraw'
+import {
+	CustomEmbedDefinition,
+	DEFAULT_EMBED_DEFINITIONS,
+	DefaultEmbedDefinitionType,
+	Tldraw,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
-const defaultEmbedsToKeep = ['tldraw', 'youtube']
-const defaultEmbeds = DEFAULT_EMBED_DEFINITIONS.filter((embed) =>
-	defaultEmbedsToKeep.includes(embed.type)
+const defaultEmbedTypesToKeep: DefaultEmbedDefinitionType[] = ['tldraw', 'youtube']
+const defaultEmbedsToKeep = DEFAULT_EMBED_DEFINITIONS.filter((embed) =>
+	defaultEmbedTypesToKeep.includes(embed.type)
 )
 
 // [2]
@@ -37,15 +42,10 @@ const customEmbed: CustomEmbedDefinition = {
 }
 
 // [3]
-const embeds = [...defaultEmbeds, customEmbed]
+const embeds = [...defaultEmbedsToKeep, customEmbed]
 
 export default function CustomEmbedExample() {
-	return (
-		<div className="tldraw__editor">
-			{/* [4] */}
-			<Tldraw embeds={embeds} />
-		</div>
-	)
+	return <Tldraw embeds={embeds} />
 }
 
 /**
