@@ -1,5 +1,6 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
+	DEFAULT_EMBED_DEFINITIONS,
 	EmbedDefinition,
 	EmbedDefinitionOverride,
 	TLStore,
@@ -214,7 +215,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
 	className,
-	embeds,
+	embeds = DEFAULT_EMBED_DEFINITIONS,
 	user: _user,
 	...rest
 }: TldrawEditorProps) {

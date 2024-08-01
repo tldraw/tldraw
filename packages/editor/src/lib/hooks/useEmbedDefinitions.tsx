@@ -1,8 +1,4 @@
-import {
-	DEFAULT_EMBED_DEFINITIONS,
-	EmbedDefinition,
-	EmbedDefinitionOverride,
-} from '@tldraw/tlschema'
+import { EmbedDefinition, EmbedDefinitionOverride } from '@tldraw/tlschema'
 import { ReactNode, createContext, useContext } from 'react'
 
 const EmbedDefinitionsContext = createContext<
@@ -10,14 +6,11 @@ const EmbedDefinitionsContext = createContext<
 >(null)
 
 interface EmbedDefinitionsProviderProps {
-	embeds?: readonly EmbedDefinition[] | EmbedDefinitionOverride[] | undefined
+	embeds: readonly EmbedDefinition[] | EmbedDefinitionOverride[]
 	children: ReactNode
 }
 
-export function EmbedDefinitionsProvider({
-	embeds = DEFAULT_EMBED_DEFINITIONS,
-	children,
-}: EmbedDefinitionsProviderProps) {
+export function EmbedDefinitionsProvider({ embeds, children }: EmbedDefinitionsProviderProps) {
 	return (
 		<EmbedDefinitionsContext.Provider value={embeds}>{children}</EmbedDefinitionsContext.Provider>
 	)

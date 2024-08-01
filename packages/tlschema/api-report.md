@@ -516,6 +516,8 @@ export interface EmbedDefinition {
 export interface EmbedDefinitionOverride extends EmbedDefinition {
     // (undocumented)
     readonly icon: string;
+    // (undocumented)
+    readonly type: string;
 }
 
 // @public (undocumented)
