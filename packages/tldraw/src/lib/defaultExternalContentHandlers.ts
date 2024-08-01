@@ -1,11 +1,11 @@
 import {
 	AssetRecordType,
 	Editor,
-	EmbedDefinition,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkShape,
+	TLEmbedDefinition,
 	TLEmbedShape,
 	TLShapeId,
 	TLShapePartial,
@@ -61,7 +61,7 @@ export function registerDefaultExternalContentHandlers(
 		acceptedVideoMimeTypes,
 	}: Required<TLExternalContentProps>,
 	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
-	embedDefinitions: readonly EmbedDefinition[]
+	embedDefinitions: readonly TLEmbedDefinition[]
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {

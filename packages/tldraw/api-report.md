@@ -71,6 +71,7 @@ import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
+import { TLEmbedDefinition } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
@@ -904,7 +905,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public
-export function getEmbedInfo(definitions: readonly EmbedDefinition[], inputUrl: string): TLEmbedResult;
+export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
@@ -1363,7 +1364,7 @@ export function RectangleToolbarItem(): JSX_2.Element;
 export function registerDefaultExternalContentHandlers(editor: Editor, { maxImageDimension, maxAssetSize, acceptedImageMimeTypes, acceptedVideoMimeTypes, }: Required<TLExternalContentProps>, { toasts, msg }: {
     msg: ReturnType<typeof useTranslation>;
     toasts: TLUiToastsContextType;
-}, embedDefinitions: readonly EmbedDefinition[]): void;
+}, embedDefinitions: readonly TLEmbedDefinition[]): void;
 
 // @public (undocumented)
 export function registerDefaultSideEffects(editor: Editor): () => void;

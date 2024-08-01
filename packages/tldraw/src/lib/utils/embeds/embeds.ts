@@ -1,4 +1,4 @@
-import { EmbedDefinition } from '@tldraw/editor'
+import { EmbedDefinition, TLEmbedDefinition } from '@tldraw/editor'
 
 // https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
 function escapeStringRegexp(string: string) {
@@ -12,7 +12,7 @@ function escapeStringRegexp(string: string) {
 }
 
 /** @public */
-export function matchEmbedUrl(definitions: readonly EmbedDefinition[], url: string) {
+export function matchEmbedUrl(definitions: readonly TLEmbedDefinition[], url: string) {
 	const host = new URL(url).host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
@@ -43,7 +43,7 @@ const checkHostnames = (hostnames: readonly string[], targetHostname: string) =>
 }
 
 /** @public */
-export function matchUrl(definitions: readonly EmbedDefinition[], url: string) {
+export function matchUrl(definitions: readonly TLEmbedDefinition[], url: string) {
 	const host = new URL(url).host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
@@ -76,7 +76,7 @@ export type TLEmbedResult =
  * @public
  */
 export function getEmbedInfoUnsafely(
-	definitions: readonly EmbedDefinition[],
+	definitions: readonly TLEmbedDefinition[],
 	inputUrl: string
 ): TLEmbedResult {
 	const result = matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
@@ -91,7 +91,7 @@ export function getEmbedInfoUnsafely(
  * @public
  */
 export function getEmbedInfo(
-	definitions: readonly EmbedDefinition[],
+	definitions: readonly TLEmbedDefinition[],
 	inputUrl: string
 ): TLEmbedResult {
 	try {
