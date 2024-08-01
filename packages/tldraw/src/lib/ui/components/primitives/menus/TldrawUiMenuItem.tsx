@@ -40,7 +40,7 @@ export interface TLUiMenuItemProps<
 	/**
 	 * The function to call when the item is clicked.
 	 */
-	onSelect: (source: TLUiEventSource) => Promise<void> | void
+	onSelect(source: TLUiEventSource): Promise<void> | void
 	/**
 	 * Whether this item should be disabled.
 	 */

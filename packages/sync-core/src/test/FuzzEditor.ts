@@ -350,7 +350,7 @@ export class FuzzEditor extends RandomSource {
 			}
 
 			case 'mark-stopping-point': {
-				this.editor.mark()
+				this.editor.markHistoryStoppingPoint()
 				break
 			}
 

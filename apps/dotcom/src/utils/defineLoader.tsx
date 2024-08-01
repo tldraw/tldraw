@@ -1,8 +1,8 @@
 import { LoaderFunctionArgs, useLoaderData } from 'react-router-dom'
 
 export function defineLoader<T>(_loader: (args: LoaderFunctionArgs) => Promise<T>): {
-	loader: (args: LoaderFunctionArgs) => Promise<{ [specialSymbol]: T }>
-	useData: () => Exclude<T, Response>
+	loader(args: LoaderFunctionArgs): Promise<{ [specialSymbol]: T }>
+	useData(): Exclude<T, Response>
 } {
 	const specialSymbol = Symbol('loader')
 	const loader = async (params: any) => {

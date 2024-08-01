@@ -1,6 +1,6 @@
 import {
 	StateNode,
-	TLEventHandlers,
+	TLPointerEventInfo,
 	TLShapeId,
 	TLTextShape,
 	Vec,
@@ -15,20 +15,27 @@ export class Pointing extends StateNode {
 
 	markId = ''
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setHintingShapes([])
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.editor.inputs.isDragging) {
-			const {
-				inputs: { originPagePoint },
-			} = this.editor
-
+	override onPointerMove(info: TLPointerEventInfo) {
+		// Don't create a fixed width shape unless the the drag is a little larger,
+		// otherwise you get a vertical column of single characters if you accidentally
+		// drag a bit unintentionally.
+		const { editor } = this
+		const { isPointing, originPagePoint, currentPagePoint } = editor.inputs
+		if (
+			isPointing &&
+			Math.abs(originPagePoint.x - currentPagePoint.x) ** 2 >
+				((editor.getInstanceState().isCoarsePointer
+					? editor.options.coarseDragDistanceSquared
+					: editor.options.dragDistanceSquared) *
+					4) / // double the necessary drag distance for text shapes
+					editor.getZoomLevel()
+		) {
 			const id = createShapeId()
-
-			this.markId = `creating:${id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_text:${id}`)
 
 			const shape = this.createTextShape(id, originPagePoint, false)
 			if (!shape) {
@@ -37,43 +44,44 @@ export class Pointing extends StateNode {
 			}
 
 			// Now save the fresh reference
-			this.shape = this.editor.getShape(shape)
+			this.shape = editor.getShape(shape)
 
-			this.editor.select(id)
+			editor.select(id)
 
-			this.editor.setCurrentTool('select.resizing', {
+			editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'right',
 				isCreating: true,
+				creatingMarkId: this.markId,
 				creationCursorOffset: { x: 18, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
-					this.editor.setEditingShape(shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
+					editor.setEditingShape(shape.id)
+					editor.setCurrentTool('select.editing_shape')
 				},
 			})
 		}
 	}
 
-	override onPointerUp = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onCancel = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
 	private complete() {
-		this.editor.mark('creating text shape')
+		this.editor.markHistoryStoppingPoint('creating text shape')
 		const id = createShapeId()
 		const { currentPagePoint } = this.editor.inputs
 		const shape = this.createTextShape(id, currentPagePoint, true)

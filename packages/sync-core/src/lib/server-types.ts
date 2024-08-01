@@ -1,6 +1,6 @@
 import { RoomSnapshot } from './TLSyncRoom'
 
-/** @public */
+/** @internal */
 export interface PersistedRoomSnapshotForSupabase {
 	id: string
 	slug: string

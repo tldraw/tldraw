@@ -1,6 +1,6 @@
 import * as customComponents from '../article-components'
 import * as apiComponents from './api-docs'
-import { Code, CodeBlock, CodeLinkProvider } from './code'
+import { Code, CodeBlock, CodeLinks, FocusLines } from './code'
 import {
 	A,
 	ApiHeading,
@@ -33,7 +33,8 @@ export const components = {
 	a: A,
 	blockquote: Blockquote,
 	code: Code,
-	CodeLinkProvider,
+	CodeLinks: CodeLinks,
+	FocusLines: FocusLines,
 	h1: Heading1,
 	h2: Heading2,
 	h3: Heading3,

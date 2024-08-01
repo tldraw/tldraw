@@ -4,7 +4,7 @@ import { NoteShapeTool } from './NoteShapeTool'
 let editor: TestEditor
 
 beforeEach(() => {
-	editor = new TestEditor()
+	editor = new TestEditor({ options: { adjacentShapeMargin: 20 } })
 })
 afterEach(() => {
 	editor?.dispose()

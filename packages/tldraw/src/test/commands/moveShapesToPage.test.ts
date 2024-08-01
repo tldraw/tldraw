@@ -91,7 +91,7 @@ describe('Editor.moveShapesToPage', () => {
 			ids.ellipse1,
 		])
 
-		editor.mark('move shapes to page')
+		editor.markHistoryStoppingPoint('move shapes to page')
 		editor.moveShapesToPage([ids.box2], ids.page2)
 
 		expect(editor.getCurrentPageId()).toBe(ids.page2)

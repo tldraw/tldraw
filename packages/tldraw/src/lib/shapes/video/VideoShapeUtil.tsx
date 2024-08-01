@@ -20,8 +20,12 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override props = videoShapeProps
 	static override migrations = videoShapeMigrations
 
-	override canEdit = () => true
-	override isAspectRatioLocked = () => true
+	override canEdit() {
+		return true
+	}
+	override isAspectRatioLocked() {
+		return true
+	}
 
 	override getDefaultProps(): TLVideoShape['props'] {
 		return {

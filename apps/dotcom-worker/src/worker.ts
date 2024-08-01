@@ -8,14 +8,12 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	createRouter,
-	getUrlMetadata,
 	handleApiRequest,
+	handleUnfurlRequest,
 	notFound,
-	parseRequestQuery,
-	urlMetadataQueryValidator,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors, json } from 'itty-router'
+import { cors } from 'itty-router'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
@@ -49,10 +47,7 @@ const router = createRouter<Environment>()
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
-	.get('/unfurl', async (req) => {
-		const query = parseRequestQuery(req, urlMetadataQueryValidator)
-		return json(await getUrlMetadata(query))
-	})
+	.get('/unfurl', handleUnfurlRequest)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.all('*', notFound)
 

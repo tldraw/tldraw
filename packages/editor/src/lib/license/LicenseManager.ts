@@ -9,6 +9,7 @@ export const FLAGS = {
 	ANNUAL_LICENSE: 0x1,
 	PERPETUAL_LICENSE: 0x2,
 	INTERNAL_LICENSE: 0x4,
+	WITH_WATERMARK: 0x8,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -56,6 +57,7 @@ export interface ValidLicenseKeyResult {
 	isPerpetualLicense: boolean
 	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
+	isLicensedWithWatermark: boolean
 }
 
 /** @internal */
@@ -64,11 +66,14 @@ export type TestEnvironment = 'development' | 'production'
 /** @internal */
 export class LicenseManager {
 	private publicKey =
-		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ=='
+		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ'
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean
-	state = atom<'pending' | 'licensed' | 'unlicensed'>('license state', 'pending')
+	state = atom<'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed'>(
+		'license state',
+		'pending'
+	)
 
 	constructor(
 		licenseKey: string | undefined,
@@ -85,9 +90,12 @@ export class LicenseManager {
 		} else {
 			this.getLicenseFromKey(licenseKey).then((result) => {
 				const isUnlicensed = isEditorUnlicensed(result)
-				this.state.set(isUnlicensed ? 'unlicensed' : 'licensed')
 				if (isUnlicensed) {
-					// todo: fetch to analytics endpoint?
+					this.state.set('unlicensed')
+				} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
+					this.state.set('licensed-with-watermark')
+				} else {
+					this.state.set('licensed')
 				}
 			})
 		}
@@ -196,6 +204,7 @@ export class LicenseManager {
 				isPerpetualLicense,
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
+				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
 			}
 			this.outputLicenseInfoIfNeeded(result)
 
@@ -345,5 +354,6 @@ export function isEditorUnlicensed(result: LicenseFromKeyResult) {
 		}
 		return true
 	}
+
 	return false
 }

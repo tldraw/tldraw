@@ -17,17 +17,6 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-### [v2.4.3](/releases/v2.4.3)
-
-#### 🐛 Bug Fix
-
-- `tldraw`
-  - Alex/v2.4.3 [#4328](https://github.com/tldraw/tldraw/pull/4328) ([@SomeHats](https://github.com/SomeHats))
-
-#### Authors: 1
-
-- alex ([@SomeHats](https://github.com/SomeHats))
-
 ### [v2.4.2](/releases/v2.4.2)
 
 #### 🐛 Bug Fix
@@ -513,6 +502,25 @@ Previously, `editor.mark(id)` accepted two additional boolean parameters: `onUnd
 - Trevor Dobbertin ([@Trevato](https://github.com/Trevato))
 
 ### [v2.1.4](/releases/v2.1.4)
+
+### Release Notes
+
+#### textfields: fix up flakiness in text selection and for unfilled geo shapes fix edit->edit (#3577) ([#3643](https://github.com/tldraw/tldraw/pull/3643))
+
+- Text labels: fix up regression to selection when clicking into a text shape. (was causing flaky selections)
+- Text labels: fix edit→edit not working as expected when unfilled geo shapes are on 'top' of other shapes.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - textfields: fix up flakiness in text selection (#3578)
+  - textfields: for unfilled geo shapes fix edit->edit (#3577) [#3643](https://github.com/tldraw/tldraw/pull/3643) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 
 ### [v2.1.3](/releases/v2.1.3)
 

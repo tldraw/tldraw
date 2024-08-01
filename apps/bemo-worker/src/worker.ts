@@ -2,13 +2,11 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import {
-	getUrlMetadata,
 	handleApiRequest,
+	handleUnfurlRequest,
 	handleUserAssetGet,
 	handleUserAssetUpload,
 	notFound,
-	parseRequestQuery,
-	urlMetadataQueryValidator,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { Router, cors } from 'itty-router'
@@ -37,10 +35,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 				context: this.ctx,
 			})
 		})
-		.get('/bookmarks/unfurl', async (request) => {
-			const query = parseRequestQuery(request, urlMetadataQueryValidator)
-			return Response.json(await getUrlMetadata(query))
-		})
+		.get('/bookmarks/unfurl', handleUnfurlRequest)
 		.get('/connect/:slug', (request) => {
 			const slug = request.params.slug
 			if (!slug) return new Response('Not found', { status: 404 })

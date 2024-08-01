@@ -10,14 +10,14 @@ import { makePermissiveSchema } from './makePermissiveSchema'
 import { Environment } from './types'
 
 const connectRequestQuery = T.object({
-	sessionKey: T.string,
+	sessionId: T.string,
 	storeId: T.string.optional(),
 })
 
 interface AnalyticsEvent {
 	type: 'connect' | 'send_message' | 'receive_message'
 	origin: string
-	sessionKey: string
+	sessionId: string
 	slug: string
 }
 
@@ -27,9 +27,9 @@ export class BemoDO extends DurableObject<Environment> {
 
 	analytics?: AnalyticsEngineDataset
 
-	writeEvent({ type, origin, sessionKey, slug }: AnalyticsEvent) {
+	writeEvent({ type, origin, sessionId, slug }: AnalyticsEvent) {
 		this.analytics?.writeDataPoint({
-			blobs: [type, origin, slug, sessionKey],
+			blobs: [type, origin, slug, sessionId],
 		})
 	}
 
@@ -79,7 +79,7 @@ export class BemoDO extends DurableObject<Environment> {
 
 	async handleConnect(req: IRequest) {
 		// extract query params from request, should include instanceId
-		const { sessionKey } = parseRequestQuery(req, connectRequestQuery)
+		const { sessionId } = parseRequestQuery(req, connectRequestQuery)
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
@@ -100,11 +100,15 @@ export class BemoDO extends DurableObject<Environment> {
 			}
 
 			// all good
-			room.handleSocketConnect(sessionKey, serverWebSocket, { origin })
+			room.handleSocketConnect({
+				sessionId,
+				socket: serverWebSocket,
+				meta: { origin },
+			})
 			this.writeEvent({
 				type: 'connect',
 				origin,
-				sessionKey,
+				sessionId,
 				slug: this.getSlug(),
 			})
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
@@ -138,7 +142,7 @@ export class BemoDO extends DurableObject<Environment> {
 						this.writeEvent({
 							type: 'receive_message',
 							origin: meta.origin,
-							sessionKey: sessionId,
+							sessionId,
 							slug,
 						})
 					},
@@ -146,7 +150,7 @@ export class BemoDO extends DurableObject<Environment> {
 						this.writeEvent({
 							type: 'send_message',
 							origin: meta.origin,
-							sessionKey: sessionId,
+							sessionId,
 							slug,
 						})
 					},

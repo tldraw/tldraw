@@ -6,3 +6,10 @@
 </div>
 
 This repo contains a very basic example of how to use [tldraw](https://github.com/tldraw/tldraw) in a [Next.js](https://nextjs.org/) app using the src directory and App router.
+
+## License
+
+Whilst the code in this template is available under the MIT license, `tldraw` and `@tldraw/sync` are
+under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) which does not
+allow their use for commercial purposes. To purchase an alternative license for commercial use,
+contact [sales@tldraw.com](mailto:sales@tldraw.com).

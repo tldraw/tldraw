@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync",
 	"description": "A tiny little drawing app (multiplayer sync react bindings).",
-	"version": "2.3.0",
+	"version": "2.4.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -59,6 +59,8 @@
 		]
 	},
 	"dependencies": {
+		"@tldraw/state": "workspace:*",
+		"@tldraw/state-react": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"lodash.isequal": "^4.5.0",

@@ -23,7 +23,7 @@ describe('resizing a shape', () => {
 	it('always squashes history entries', () => {
 		editor.createShapes([{ id: ids.boxA, type: 'geo', props: { w: 100, h: 100 } }])
 
-		editor.mark('start')
+		editor.markHistoryStoppingPoint('start')
 		const startHistoryLength = editor.getHistory().getNumUndos()
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
 		expect(editor.getHistory().getNumUndos()).toBe(startHistoryLength + 1)

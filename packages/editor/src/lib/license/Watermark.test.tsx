@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
 import { featureFlags } from '../utils/debug-flags'
 import { LicenseManager } from './LicenseManager'
 import { Watermark } from './Watermark'
@@ -17,8 +17,11 @@ jest.mock('./LicenseProvider', () => ({
 	useLicenseContext: jest.fn().mockReturnValue({ state: { get: () => mockLicenseState } }),
 }))
 
+jest.useFakeTimers()
+
 export async function renderComponent() {
 	const result = render(<Watermark />)
+	jest.advanceTimersByTime(3000)
 	return result
 }
 
@@ -38,9 +41,26 @@ describe('Watermark', () => {
 	it('Displays the watermark when the editor is unlicensed', async () => {
 		featureFlags.enableLicensing.set(true)
 		const result = await renderComponent()
-		// Don't wanna but a data-testid here - makes it too easy to querySelect on.
-		expect((result.container.firstChild! as Element).nextElementSibling!.className).toBe(
-			LicenseManager.className
+
+		// Don't wanna put a data-testid here - makes it too easy to querySelect on.
+		await waitFor(() =>
+			expect((result.container.firstChild! as Element).nextElementSibling!.className).toBe(
+				LicenseManager.className
+			)
+		)
+	})
+
+	it('Displays the watermark when the editor is licensed with watermark', async () => {
+		featureFlags.enableLicensing.set(true)
+
+		mockLicenseState = 'licensed-with-watermark'
+		const result = await renderComponent()
+
+		// Don't wanna put a data-testid here - makes it too easy to querySelect on.
+		await waitFor(() =>
+			expect((result.container.firstChild! as Element).nextElementSibling!.className).toBe(
+				LicenseManager.className
+			)
 		)
 	})
 
