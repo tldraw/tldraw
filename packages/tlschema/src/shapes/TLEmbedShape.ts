@@ -578,7 +578,7 @@ export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes {
 }
 
 /** @public */
-export function isEmbedDefinitionOverride(
+export function isCustomEmbedDefinition(
 	def: EmbedDefinition | CustomEmbedDefinition
 ): def is CustomEmbedDefinition {
 	return 'icon' in def

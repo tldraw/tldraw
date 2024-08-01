@@ -613,10 +613,10 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 export function isBindingId(id?: string): id is TLBindingId;
 
 // @public (undocumented)
-export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes;
+export function isCustomEmbedDefinition(def: CustomEmbedDefinition | EmbedDefinition): def is CustomEmbedDefinition;
 
 // @public (undocumented)
-export function isEmbedDefinitionOverride(def: CustomEmbedDefinition | EmbedDefinition): def is CustomEmbedDefinition;
+export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes;
 
 // @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
