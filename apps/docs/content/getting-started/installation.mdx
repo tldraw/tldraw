@@ -80,25 +80,7 @@ To enable your license key, use the `licenseKey` prop in the [Tldraw](?) compone
 <Tldraw licenseKey={YOUR_LICENSE_KEY} />
 ```
 
-## Server Rendering
-
-The [Tldraw](?) component can't be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you need to import it dynamically.
-
-```tsx
-const Tldraw = dynamic(async () => (await import('tldraw')).Tldraw, { ssr: false })
-```
-
-### Using a bundler
-
-If you're using a bundler like webpack or rollup, you can import the assets directly from the `assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
-
-```tsx
-import { getAssetUrlsByMetaUrl } from 'assets/urls'
-
-const assetUrls = getAssetUrlsByMetaUrl()
-
-<Tldraw assetUrls={assetUrls} />
-```
+<VerifyLicense />
 
 ## Usage in Frameworks
 
