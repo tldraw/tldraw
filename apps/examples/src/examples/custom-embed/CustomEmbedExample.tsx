@@ -1,8 +1,11 @@
-import { CustomEmbedDefinition, DEFAULT_EMBED_DEFINITIONS, TLEmbedDefinition, Tldraw } from 'tldraw'
+import { CustomEmbedDefinition, DEFAULT_EMBED_DEFINITIONS, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 // [1]
-const embedsToKeep = ['tldraw', 'youtube']
+const defaultEmbedsToKeep = ['tldraw', 'youtube']
+const defaultEmbeds = DEFAULT_EMBED_DEFINITIONS.filter((embed) =>
+	defaultEmbedsToKeep.includes(embed.type)
+)
 
 // [2]
 const customEmbed: CustomEmbedDefinition = {
@@ -34,10 +37,7 @@ const customEmbed: CustomEmbedDefinition = {
 }
 
 // [3]
-const embeds: TLEmbedDefinition[] = [
-	...DEFAULT_EMBED_DEFINITIONS.filter((embed) => embedsToKeep.includes(embed.type)),
-	customEmbed,
-]
+const embeds = [...defaultEmbeds, customEmbed]
 
 export default function CustomEmbedExample() {
 	return (
@@ -49,12 +49,12 @@ export default function CustomEmbedExample() {
 }
 
 /**
-[1] The embeds to keep are the default embeds that we want to keep in the editor.
+[1] tldraw comes with several default embed definitions. In this example, we filter the default embed definitions to only include the 'tldraw' and 'youtube' embed definitions. 
 
-[2] This is the custom embed definition for JSFiddle. It has a type of 'jsfiddle'. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
+[2] This is the custom embed definition for JSFiddle. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
 
-[3] We concatenate the default embed definitions with the custom embed definition. We filter the default embed definitions to only include the embeds that we want to keep.
+[3] We concatenate the default embed definitions with the custom embed definition. 
 
-[4] We pass the custom embed definitions to the `Tldraw` component as a prop. The editor will now include the custom embed definition for JSFiddle.
+[4] We pass the custom embed definitions to the `Tldraw` component as a prop. 
 
 */
