@@ -1,7 +1,7 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
 	DEFAULT_EMBED_DEFINITIONS,
-	EmbedDefinition,
+	TLEmbedDefinition,
 	TLStore,
 	TLStoreSnapshot,
 } from '@tldraw/tlschema'
@@ -132,7 +132,7 @@ export interface TldrawEditorBaseProps {
 	/**
 	 * An array of embed definitions to use in the editor.
 	 */
-	embeds?: readonly EmbedDefinition[]
+	embeds?: readonly TLEmbedDefinition[]
 
 	/**
 	 * Whether to automatically focus the editor when it mounts.

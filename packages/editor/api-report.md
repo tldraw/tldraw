@@ -2573,7 +2573,7 @@ export interface TldrawEditorBaseProps {
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
-    embeds?: readonly EmbedDefinition[];
+    embeds?: readonly TLEmbedDefinition[];
     inferDarkMode?: boolean;
     initialState?: string;
     licenseKey?: string;
