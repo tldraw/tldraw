@@ -3,11 +3,10 @@ import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
-	EmbedDefinition,
-	EmbedDefinitionOverride,
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
+	TLEmbedDefinition,
 	TLOnMountHandler,
 	TldrawEditor,
 	TldrawEditorBaseProps,
@@ -173,7 +172,7 @@ function InsideOfEditorAndUiContext({
 	embeds,
 }: TLExternalContentProps & {
 	onMount?: TLOnMountHandler
-	embeds: readonly (EmbedDefinition | EmbedDefinitionOverride)[]
+	embeds: readonly TLEmbedDefinition[]
 }) {
 	const editor = useEditor()
 	const toasts = useToasts()

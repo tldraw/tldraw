@@ -579,8 +579,8 @@ export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes {
 
 /** @public */
 export function isEmbedDefintionOverride(
-	def: EmbedDefinition | EmbedDefinitionOverride
-): def is EmbedDefinitionOverride {
+	def: EmbedDefinition | CustomEmbedDefinition
+): def is CustomEmbedDefinition {
 	return 'icon' in def
 }
 
@@ -659,7 +659,7 @@ export const embedShapeProps: RecordProps<TLEmbedShape> = {
 }
 
 /** @public */
-export interface EmbedDefinitionOverride extends EmbedDefinition {
+export interface CustomEmbedDefinition extends EmbedDefinition {
 	readonly icon: string
 }
 
@@ -684,6 +684,9 @@ export interface EmbedDefinition {
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly fromEmbedUrl: (url: string) => string | undefined
 }
+
+/** @public */
+export type TLEmbedDefinition = EmbedDefinition | CustomEmbedDefinition
 
 const Versions = createShapePropsMigrationIds('embed', {
 	GenOriginalUrlInEmbed: 1,

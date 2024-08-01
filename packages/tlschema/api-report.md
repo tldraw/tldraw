@@ -161,6 +161,12 @@ export function createTLSchema({ shapes, bindings, migrations, }?: {
 }): TLSchema;
 
 // @public (undocumented)
+export interface CustomEmbedDefinition extends EmbedDefinition {
+    // (undocumented)
+    readonly icon: string;
+}
+
+// @public (undocumented)
 export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly doesResize: true;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -513,12 +519,6 @@ export interface EmbedDefinition {
 }
 
 // @public (undocumented)
-export interface EmbedDefinitionOverride extends EmbedDefinition {
-    // (undocumented)
-    readonly icon: string;
-}
-
-// @public (undocumented)
 export const embedShapeMigrations: TLPropsMigrations;
 
 // @public
@@ -616,7 +616,7 @@ export function isBindingId(id?: string): id is TLBindingId;
 export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes;
 
 // @public (undocumented)
-export function isEmbedDefintionOverride(def: EmbedDefinition | EmbedDefinitionOverride): def is EmbedDefinitionOverride;
+export function isEmbedDefintionOverride(def: CustomEmbedDefinition | EmbedDefinition): def is CustomEmbedDefinition;
 
 // @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
@@ -1184,6 +1184,9 @@ export interface TLDrawShapeSegment {
     // (undocumented)
     type: 'free' | 'straight';
 }
+
+// @public (undocumented)
+export type TLEmbedDefinition = CustomEmbedDefinition | EmbedDefinition;
 
 // @public (undocumented)
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;

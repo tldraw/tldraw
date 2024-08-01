@@ -1,12 +1,12 @@
-import { EmbedDefinition, EmbedDefinitionOverride } from '@tldraw/tlschema'
+import { CustomEmbedDefinition, EmbedDefinition } from '@tldraw/tlschema'
 import { ReactNode, createContext, useContext } from 'react'
 
 const EmbedDefinitionsContext = createContext<
-	null | readonly (EmbedDefinition | EmbedDefinitionOverride)[]
+	null | readonly (EmbedDefinition | CustomEmbedDefinition)[]
 >(null)
 
 interface EmbedDefinitionsProviderProps {
-	embeds: readonly (EmbedDefinition | EmbedDefinitionOverride)[]
+	embeds: readonly (EmbedDefinition | CustomEmbedDefinition)[]
 	children: ReactNode
 }
 

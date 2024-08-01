@@ -12,10 +12,10 @@ import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
+import { CustomEmbedDefinition } from '@tldraw/tlschema';
 import { Dispatch } from 'react';
 import { EffectScheduler } from '@tldraw/state';
 import { EmbedDefinition } from '@tldraw/tlschema';
-import { EmbedDefinitionOverride } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
@@ -2573,7 +2573,7 @@ export interface TldrawEditorBaseProps {
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
-    embeds?: readonly EmbedDefinitionOverride[];
+    embeds?: readonly EmbedDefinition[];
     inferDarkMode?: boolean;
     initialState?: string;
     licenseKey?: string;
@@ -3439,7 +3439,7 @@ export function useEditor(): Editor;
 export function useEditorComponents(): Required<TLEditorComponents>;
 
 // @public (undocumented)
-export function useEmbedDefinitions(): readonly (EmbedDefinition | EmbedDefinitionOverride)[];
+export function useEmbedDefinitions(): readonly (CustomEmbedDefinition | EmbedDefinition)[];
 
 // @internal
 export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
