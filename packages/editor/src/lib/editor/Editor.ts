@@ -8756,6 +8756,122 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Extracts and applies the page and camera state encoded in URL search params.
+	 *
+	 * This is useful for handling shareable URLs created with {@link Editor#addStateToUrl}.
+	 *
+	 * If no URL is provided, it will use the current `window.location.href`.
+	 * You should call this right after your store has been initialized with data.
+	 *
+	 * @example
+	 * ```ts
+	 * const snapshot = await loadDocumentSnapshot()
+	 * loadSnapshot(editor.store, snapshot)
+	 * editor.loadStateFromUrl()
+	 * ```
+	 *
+	 * The default parameter names are `p` (page) and `v` (viewport). You can override or
+	 * disable these.
+	 *
+	 * @example
+	 * ```ts
+	 * // disable page parameter and change viewport parameter to 'c'
+	 * editor.loadStateFromUrl({ paramNames: { page: null, viewport: 'c' } })
+	 * ```
+	 *
+	 * @param opts - Options for loading the state from the URL.
+	 */
+	loadStateFromUrl(opts?: { url?: string | URL; paramNames?: TLUrlStateParams }): Editor {
+		const url = new URL(opts?.url ?? window.location.href)
+		const paramNames = urlStateParams(opts?.paramNames)
+
+		this.run(
+			() => {
+				const page = paramNames.page
+					? this.getPage(PageRecordType.createId(url.searchParams.get(paramNames.page) ?? ''))
+					: null
+
+				if (page) {
+					this.setCurrentPage(page)
+				}
+
+				if (paramNames.viewport) {
+					const viewport = url.searchParams.get(paramNames.viewport)
+					if (viewport?.match(/^-?\d+,-?\d+,-?\d+,-?\d+$/)) {
+						const [x, y, w, h] = viewport.split(',').map(Number)
+						this.zoomToBounds(new Box(x, y, w, h), { inset: 0, immediate: true })
+					} else if (viewport) {
+						console.warn('Invalid viewport URL parameter:', viewport)
+					}
+				}
+			},
+			{ history: 'ignore' }
+		)
+
+		return this
+	}
+
+	/**
+	 * Adds the current page and viewport state to the URL search params.
+	 *
+	 * This is useful for creating shareable URLs that can be used to link to particular parts of a document.
+	 *
+	 * e.g. `https://my-app.com/my-document?p=foo&v=100,100,200,200`
+	 *
+	 * If no URL is provided, it will update the current `window.location.href` in place.
+	 *
+	 * @example
+	 * ```ts
+	 * // Update the address bar every 500 ms
+	 * setInterval(() => {
+	 *   editor.addStateToUrl()
+	 * }, 500)
+	 * ```
+	 *
+	 * Otherwise, if you provide a URL it will not modify `window.location` and will simply return the updated URL.
+	 *
+	 * @example
+	 * ```ts
+	 * // create a share link without updating the address bar
+	 * const shareUrl = editor.addStateToUrl({ url: window.location.href })
+	 * navigator.clipboard.writeText(shareUrl.toString())
+	 * ```
+	 *
+	 * The default parameter names are `p` (page) and `v` (viewport). You can override or
+	 * disable these.
+	 *
+	 * @example
+	 * ```ts
+	 * // disable page parameter if there's only one page
+	 * editor.addStateToUrl({ paramNames: { page: null } })
+	 * ```
+	 *
+	 * @param opts - Options for adding the state to the URL.
+	 * @returns the updated URL
+	 */
+	addStateToUrl(opts?: { url?: string | URL; paramNames?: TLUrlStateParams }): URL {
+		const url = new URL(opts?.url ?? window.location.href)
+		const paramNames = urlStateParams(opts?.paramNames)
+
+		if (paramNames.page) {
+			url.searchParams.set(paramNames.page, PageRecordType.parseId(this.getCurrentPageId()))
+		}
+
+		if (paramNames.viewport) {
+			const { x, y, w, h } = this.getViewportPageBounds()
+			url.searchParams.set(
+				paramNames.viewport,
+				`${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`
+			)
+		}
+
+		if (!opts?.url && url.search !== window.location.search) {
+			window.history.replaceState({}, document.title, url.toString())
+		}
+		return url
+	}
+
+	/**
 	 * A manager for recording multiple click events.
 	 *
 	 * @internal
@@ -9492,4 +9608,16 @@ function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
 	const zx = (vsb.w - px * 2) / bounds.w
 	const zy = (vsb.h - py * 2) / bounds.h
 	return { zx, zy }
+}
+
+/** @public */
+export interface TLUrlStateParams {
+	viewport?: string | null
+	page?: string | null
+}
+function urlStateParams(params?: TLUrlStateParams): Required<TLUrlStateParams> {
+	return {
+		viewport: typeof params?.viewport === 'undefined' ? 'v' : params.viewport,
+		page: typeof params?.page === 'undefined' ? 'p' : params.page,
+	}
 }

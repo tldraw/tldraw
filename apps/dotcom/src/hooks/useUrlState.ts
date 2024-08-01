@@ -1,5 +1,5 @@
 import { default as React, useEffect } from 'react'
-import { Editor, TLPageId, Vec, clamp, debounce, react, useEditor } from 'tldraw'
+import { Editor, TLPageId, debounce, react, useEditor } from 'tldraw'
 
 const PARAMS = {
 	// deprecated
@@ -71,17 +71,7 @@ export function useUrlState(onChangeUrl: (params: UrlStateParams) => void) {
 			if (newViewportRaw) {
 				try {
 					const viewport = viewportFromString(newViewportRaw)
-					const { x, y, w, h } = viewport
-					const { w: sw, h: sh } = editor.getViewportScreenBounds()
-					const initialZoom = editor.getInitialZoom()
-					const { zoomSteps } = editor.getCameraOptions()
-					const zoomMin = zoomSteps[0]
-					const zoomMax = zoomSteps[zoomSteps.length - 1]
-					const zoom = clamp(Math.min(sw / w, sh / h), zoomMin * initialZoom, zoomMax * initialZoom)
-					editor.setCamera(
-						new Vec(-x + (sw - w * zoom) / 2 / zoom, -y + (sh - h * zoom) / 2 / zoom, zoom),
-						{ immediate: true }
-					)
+					editor.zoomToBounds(viewport, { immediate: true, inset: 0 })
 				} catch (err) {
 					console.error(err)
 				}

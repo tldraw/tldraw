@@ -143,6 +143,7 @@ export {
 	type TLEditorOptions,
 	type TLEditorRunOptions,
 	type TLResizeShapeOptions,
+	type TLUrlStateParams,
 } from './lib/editor/Editor'
 export {
 	BindingUtil,
