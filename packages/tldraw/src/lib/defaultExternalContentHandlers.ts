@@ -51,6 +51,7 @@ export interface TLExternalContentProps {
 	acceptedVideoMimeTypes?: readonly string[]
 }
 
+/** @public */
 export function registerDefaultExternalContentHandlers(
 	editor: Editor,
 	{
@@ -219,6 +220,10 @@ export function registerDefaultExternalContentHandlers(
 
 	// files
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
+
 		const position =
 			point ??
 			(editor.inputs.shiftKey

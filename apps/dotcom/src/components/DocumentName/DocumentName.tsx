@@ -135,7 +135,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	isReadonly,
 }: {
 	state: NameState
-	setState: (update: SetStateAction<NameState>) => void
+	setState(update: SetStateAction<NameState>): void
 	isReadonly: boolean
 }) {
 	const inputRef = useRef<HTMLInputElement>(null)

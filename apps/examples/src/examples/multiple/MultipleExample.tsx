@@ -8,7 +8,7 @@ import 'tldraw/tldraw.css'
 const focusedEditorContext = createContext(
 	{} as {
 		focusedEditor: Editor | null
-		setFocusedEditor: (id: Editor | null) => void
+		setFocusedEditor(id: Editor | null): void
 	}
 )
 

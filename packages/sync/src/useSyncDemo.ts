@@ -102,7 +102,7 @@ export function useSyncDemo(
 		roomId,
 		userInfo,
 		assets,
-		onEditorMount: useCallback(
+		onMount: useCallback(
 			(editor: Editor) => {
 				editor.registerExternalAssetHandler('url', async ({ url }) => {
 					return await createAssetFromUrlUsingDemoServer(host, url)

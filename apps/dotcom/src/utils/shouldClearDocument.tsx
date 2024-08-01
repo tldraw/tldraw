@@ -34,13 +34,7 @@ export async function shouldClearDocument(addDialog: TLUiDialogsContextType['add
 	return shouldContinue
 }
 
-function ConfirmClearDialog({
-	onCancel,
-	onContinue,
-}: {
-	onCancel: () => void
-	onContinue: () => void
-}) {
+function ConfirmClearDialog({ onCancel, onContinue }: { onCancel(): void; onContinue(): void }) {
 	const msg = useTranslation()
 	return (
 		<>

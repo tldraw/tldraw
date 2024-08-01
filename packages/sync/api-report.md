@@ -42,7 +42,7 @@ export interface UseSyncDemoOptions {
 export interface UseSyncOptions {
     assets: TLAssetStore;
     // @internal (undocumented)
-    onEditorMount?: (editor: Editor) => void;
+    onMount?(editor: Editor): void;
     // @internal
     roomId?: string;
     // @internal (undocumented)
