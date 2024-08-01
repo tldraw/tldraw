@@ -194,6 +194,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
+    getText(shape: TLArrowShape): string;
+    // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
     hideRotateHandle(): boolean;
@@ -725,6 +727,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
+    getText(shape: TLFrameShape): string | undefined;
+    // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -773,6 +777,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getGeometry(shape: TLGeoShape): Group2d;
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
+    // (undocumented)
+    getText(shape: TLGeoShape): string;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -1185,6 +1191,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
     // (undocumented)
+    getText(shape: TLNoteShape): string;
+    // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
@@ -1533,6 +1541,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         height: number;
         width: number;
     };
+    // (undocumented)
+    getText(shape: TLTextShape): string;
     // (undocumented)
     indicator(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)

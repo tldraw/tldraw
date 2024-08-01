@@ -2103,6 +2103,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getHandles?(shape: Shape): TLHandle[];
     getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
+    // (undocumented)
+    getText(_shape: Shape): string | undefined;
     hideResizeHandles(_shape: Shape): boolean;
     hideRotateHandle(_shape: Shape): boolean;
     hideSelectionBoundsBg(_shape: Shape): boolean;
