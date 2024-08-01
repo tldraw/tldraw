@@ -51,7 +51,7 @@ export default function CustomEmbedExample() {
 /**
 [1] tldraw comes with several default embed definitions. In this example, we filter the default embed definitions to only include the 'tldraw' and 'youtube' embed definitions. 
 
-[2] This is the custom embed definition for JSFiddle. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
+[2] We will also add a new embed for embeding JSFiddles. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
 
 [3] We concatenate the default embed definitions with the custom embed definition. 
 
