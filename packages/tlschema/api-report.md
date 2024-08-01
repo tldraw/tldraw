@@ -391,7 +391,7 @@ export const DefaultColorThemePalette: {
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
-export type DefaultEmbedTypes = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
+export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
 
 // @public (undocumented)
 export const DefaultFillStyle: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
@@ -616,7 +616,7 @@ export function isBindingId(id?: string): id is TLBindingId;
 export function isCustomEmbedDefinition(def: CustomEmbedDefinition | EmbedDefinition): def is CustomEmbedDefinition;
 
 // @public (undocumented)
-export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes;
+export function isDefaultEmbedDefintionType(type: string): type is DefaultEmbedDefinitionType;
 
 // @public (undocumented)
 export function isPageId(id: string): id is TLPageId;

@@ -568,13 +568,15 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 ] as const satisfies readonly EmbedDefinition[]
 
 /** @public */
-export type DefaultEmbedTypes = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type']
+export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type']
 
-const DEFAULT_EMBED_TYPES = DEFAULT_EMBED_DEFINITIONS.map((def) => def.type) as DefaultEmbedTypes[]
+const DEFAULT_EMBED_DEFINITION_TYPES = DEFAULT_EMBED_DEFINITIONS.map(
+	(def) => def.type
+) as DefaultEmbedDefinitionType[]
 
 /** @public */
-export function isDefaultEmbedType(type: string): type is DefaultEmbedTypes {
-	return DEFAULT_EMBED_TYPES.includes(type as DefaultEmbedTypes)
+export function isDefaultEmbedDefintionType(type: string): type is DefaultEmbedDefinitionType {
+	return DEFAULT_EMBED_DEFINITION_TYPES.includes(type as DefaultEmbedDefinitionType)
 }
 
 /** @public */
