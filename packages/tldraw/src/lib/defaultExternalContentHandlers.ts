@@ -51,6 +51,7 @@ export interface TLExternalContentProps {
 	acceptedVideoMimeTypes?: readonly string[]
 }
 
+/** @public */
 export function registerDefaultExternalContentHandlers(
 	editor: Editor,
 	{

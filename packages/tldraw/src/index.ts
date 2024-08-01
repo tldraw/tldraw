@@ -14,10 +14,12 @@ export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	centerSelectionAroundPoint,
 	createShapesForAssets,
+	registerDefaultExternalContentHandlers,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
+export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export { defaultTools } from './lib/defaultTools'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
@@ -132,6 +134,7 @@ export {
 	ViewSubmenu,
 } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
+export { MobileStylePanel } from './lib/ui/components/MobileStylePanel'
 export { DefaultNavigationPanel } from './lib/ui/components/NavigationPanel/DefaultNavigationPanel'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
@@ -202,6 +205,10 @@ export {
 	useIsToolSelected,
 	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
+export {
+	OverflowingToolbar,
+	type OverflowingToolbarProps,
+} from './lib/ui/components/Toolbar/OverflowingToolbar'
 export {
 	CenteredTopPanelContainer,
 	type CenteredTopPanelContainerProps,

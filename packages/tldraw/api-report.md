@@ -1155,6 +1155,9 @@ export function LineToolbarItem(): JSX_2.Element;
 export function MiscMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
+export function MobileStylePanel(): JSX_2.Element | null;
+
+// @public (undocumented)
 export function MoveToPageMenu(): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -1264,6 +1267,15 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function OverflowingToolbar({ children }: OverflowingToolbarProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface OverflowingToolbarProps {
+    // (undocumented)
+    children: React.ReactNode;
+}
+
+// @public (undocumented)
 export const PageItemInput: ({ name, id, isCurrentPage, }: PageItemInputProps) => JSX_2.Element;
 
 // @public (undocumented)
@@ -1346,6 +1358,15 @@ export function PrintItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function RectangleToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function registerDefaultExternalContentHandlers(editor: Editor, { maxImageDimension, maxAssetSize, acceptedImageMimeTypes, acceptedVideoMimeTypes, }: Required<TLExternalContentProps>, { toasts, msg }: {
+    msg: ReturnType<typeof useTranslation>;
+    toasts: TLUiToastsContextType;
+}, embedDefinitions: readonly EmbedDefinition[]): void;
+
+// @public (undocumented)
+export function registerDefaultSideEffects(editor: Editor): () => void;
 
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
