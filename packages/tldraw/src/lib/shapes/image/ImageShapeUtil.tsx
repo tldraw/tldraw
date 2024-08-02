@@ -67,6 +67,23 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				flipY: info.scaleY < 0 !== flipY,
 			},
 		}
+		if (shape.props.crop && info.mode === 'scale_shape') {
+			const { topLeft, bottomRight } = shape.props.crop
+			// Vertical flip
+			if (info.scaleY === -1) {
+				resized.props.crop = {
+					topLeft: { x: topLeft.x, y: 1 - bottomRight.y },
+					bottomRight: { x: bottomRight.x, y: 1 - topLeft.y },
+				}
+			}
+			// Horizontal flip
+			if (info.scaleX === -1) {
+				resized.props.crop = {
+					topLeft: { x: 1 - bottomRight.x, y: topLeft.y },
+					bottomRight: { x: 1 - topLeft.x, y: bottomRight.y },
+				}
+			}
+		}
 		return resized
 	}
 
