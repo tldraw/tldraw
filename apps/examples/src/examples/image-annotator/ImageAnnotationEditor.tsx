@@ -22,7 +22,7 @@ export function ImageAnnotationEditor({
 	onDone,
 }: {
 	image: AnnotatorImage
-	onDone: (result: Blob) => void
+	onDone(result: Blob): void
 }) {
 	const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null)
 	const [editor, setEditor] = useState(null as Editor | null)
@@ -218,7 +218,7 @@ function DoneButton({
 	onClick,
 }: {
 	imageShapeId: TLShapeId
-	onClick: (result: Blob) => void
+	onClick(result: Blob): void
 }) {
 	const editor = useEditor()
 	return (

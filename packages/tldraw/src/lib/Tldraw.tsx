@@ -37,7 +37,26 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
-/** @public */
+/**
+ * Override the default react components used by the editor and UI. Set components to null to
+ * disable them entirely.
+ *
+ * @example
+ * ```tsx
+ * import {Tldraw, TLComponents} from 'tldraw'
+ *
+ * const components: TLComponents = {
+ *    Scribble: MyCustomScribble,
+ * }
+ *
+ * export function MyApp() {
+ *   return <Tldraw components={components} />
+ * }
+ * ```
+ *
+ *
+ * @public
+ */
 export interface TLComponents extends TLEditorComponents, TLUiComponents {}
 
 /** @public */
@@ -150,7 +169,7 @@ function InsideOfEditorAndUiContext({
 	useOnMount(() => {
 		const unsubs: (void | (() => void) | undefined)[] = []
 
-		unsubs.push(...registerDefaultSideEffects(editor))
+		unsubs.push(registerDefaultSideEffects(editor))
 
 		// for content handling, first we register the default handlers...
 		registerDefaultExternalContentHandlers(
@@ -168,7 +187,7 @@ function InsideOfEditorAndUiContext({
 		)
 
 		// ...then we call the store's on mount which may override them...
-		unsubs.push(editor.store.props.onEditorMount(editor))
+		unsubs.push(editor.store.props.onMount(editor))
 
 		// ...then we run the user's onMount prop, which may override things again.
 		unsubs.push(onMount?.(editor))

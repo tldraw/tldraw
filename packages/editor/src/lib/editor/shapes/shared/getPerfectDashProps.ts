@@ -1,5 +1,6 @@
 import { TLDefaultDashStyle } from '@tldraw/tlschema'
 
+/** @public */
 export function getPerfectDashProps(
 	totalLength: number,
 	strokeWidth: number,
@@ -10,6 +11,7 @@ export function getPerfectDashProps(
 		start: 'skip' | 'outset' | 'none'
 		lengthRatio: number
 		closed: boolean
+		forceSolid: boolean
 	}>
 ): {
 	strokeDasharray: string
@@ -22,6 +24,7 @@ export function getPerfectDashProps(
 		end = 'outset',
 		lengthRatio = 2,
 		style = 'dashed',
+		forceSolid = false,
 	} = opts
 
 	let dashLength = 0
@@ -29,6 +32,13 @@ export function getPerfectDashProps(
 	let ratio = 1
 	let gapLength = 0
 	let strokeDashoffset = 0
+
+	if (forceSolid) {
+		return {
+			strokeDasharray: 'none',
+			strokeDashoffset: 'none',
+		}
+	}
 
 	switch (style) {
 		case 'dashed': {
@@ -69,16 +79,15 @@ export function getPerfectDashProps(
 	dashCount -= dashCount % snap
 
 	if (dashCount < 3 && style === 'dashed') {
-		if (totalLength / strokeWidth < 5) {
+		if (totalLength / strokeWidth < 4) {
 			dashLength = totalLength
 			dashCount = 1
 			gapLength = 0
 		} else {
-			dashLength = totalLength * 0.333
-			gapLength = totalLength * 0.333
+			dashLength = totalLength * (1 / 3)
+			gapLength = totalLength * (1 / 3)
 		}
 	} else {
-		dashCount = Math.max(dashCount, 3)
 		dashLength = totalLength / dashCount / (2 * ratio)
 
 		if (closed) {

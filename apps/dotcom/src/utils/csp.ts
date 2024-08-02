@@ -22,3 +22,8 @@ export const cspDirectives: { [key: string]: string[] } = {
 export const csp = Object.keys(cspDirectives)
 	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
 	.join('; ')
+
+export const cspDev = Object.keys(cspDirectives)
+	.filter((key) => key !== 'report-uri')
+	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
+	.join('; ')

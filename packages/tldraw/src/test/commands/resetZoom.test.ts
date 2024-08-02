@@ -30,12 +30,12 @@ describe('When resetting zoom', () => {
 
 	it('is not undoable', () => {
 		editor.zoomOut()
-		editor.mark()
+		editor.markHistoryStoppingPoint()
 		editor.resetZoom()
 		editor.undo()
 		expect(editor.getZoomLevel()).toBe(1)
 
-		editor.mark()
+		editor.markHistoryStoppingPoint()
 		editor.zoomIn()
 		editor.resetZoom()
 		editor.undo()

@@ -39,6 +39,32 @@ function stripCommonMinimumIndentation(text: string): string {
 	return lines.map((line) => line.slice(minIndentation)).join('\n')
 }
 
+const COMMON_ENTITY_MAP = {
+	'&amp;': '&',
+	'&quot;': '"',
+	'&apos;': "'",
+	'&#34;': '"',
+	'&#38;': '&',
+	'&#39;': "'",
+	'&#8211;': '–',
+	'&#8212;': '—',
+	'&#8216;': '‘',
+	'&#8217;': '’',
+	'&#8220;': '“',
+	'&#8221;': '”',
+	'&#8230;': '…',
+}
+const entityRegex = new RegExp(Object.keys(COMMON_ENTITY_MAP).join('|'), 'g')
+
+/**
+ * Takes common HTML entities found in web page titles and converts them to regular characters.
+ * @param text - The text to convert HTML entities.
+ * @internal
+ */
+export function convertCommonTitleHTMLEntities(text: string) {
+	return text.replace(entityRegex, (m) => COMMON_ENTITY_MAP[m as keyof typeof COMMON_ENTITY_MAP])
+}
+
 /**
  * Strip trailing whitespace from each line and remove any trailing newlines.
  * @param text - The text to strip.

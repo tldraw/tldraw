@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers } from 'tldraw'
+import { StateNode } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -6,7 +6,7 @@ export class ScreenshotIdle extends StateNode {
 	static override id = 'idle'
 
 	// [1]
-	override onPointerDown: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerDown() {
 		this.parent.transition('pointing')
 	}
 }

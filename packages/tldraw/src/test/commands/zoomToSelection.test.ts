@@ -42,7 +42,7 @@ it('does not zoom to selection when camera is frozen', () => {
 })
 
 it('is ignored by undo/redo', () => {
-	editor.mark()
+	editor.markHistoryStoppingPoint()
 	editor.setSelectedShapes([ids.box1, ids.box2])
 	editor.zoomToSelection()
 	const camera = editor.getCamera()

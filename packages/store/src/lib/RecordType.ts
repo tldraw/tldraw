@@ -41,6 +41,7 @@ export class RecordType<
 		 */
 		public readonly typeName: R['typeName'],
 		config: {
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			readonly createDefaultProperties: () => Exclude<
 				Omit<R, 'id' | 'typeName'>,
 				RequiredProperties
@@ -154,7 +155,7 @@ export class RecordType<
 	 * @param record - The record to check.
 	 * @returns Whether the record is an instance of this record type.
 	 */
-	isInstance = (record?: UnknownRecord): record is R => {
+	isInstance(record?: UnknownRecord): record is R {
 		return record?.typeName === this.typeName
 	}
 

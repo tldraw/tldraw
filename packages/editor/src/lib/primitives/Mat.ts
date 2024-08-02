@@ -157,17 +157,13 @@ export class Mat {
 		return Mat.Compose(Mat.Translate(cx, cy!), rotationMatrix, Mat.Translate(-cx, -cy!))
 	}
 
-	static Scale: {
-		(x: number, y: number): MatModel
-		(x: number, y: number, cx: number, cy: number): MatModel
-	} = (x: number, y: number, cx?: number, cy?: number) => {
+	static Scale(x: number, y: number): MatModel
+	static Scale(x: number, y: number, cx: number, cy: number): MatModel
+	static Scale(x: number, y: number, cx?: number, cy?: number): MatModel {
 		const scaleMatrix = new Mat(x, 0, 0, y, 0, 0)
-
 		if (cx === undefined) return scaleMatrix
-
 		return Mat.Compose(Mat.Translate(cx, cy!), scaleMatrix, Mat.Translate(-cx, -cy!))
 	}
-
 	static Multiply(m1: MatModel, m2: MatModel): MatModel {
 		return {
 			a: m1.a * m2.a + m1.c * m2.b,

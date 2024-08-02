@@ -7,6 +7,8 @@ const altKey = isDarwin ? '⌥' : 'Alt'
 
 /** @public */
 export function kbd(str: string) {
+	if (str === ',') return [',']
+
 	return str
 		.split(',')[0]
 		.split('')

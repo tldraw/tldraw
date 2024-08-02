@@ -6,16 +6,17 @@ import {
 	SVGContainer,
 	ShapeUtil,
 	TLHandle,
+	TLHandleDragInfo,
 	TLLineShape,
 	TLLineShapePoint,
-	TLOnHandleDragHandler,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	Vec,
 	WeakCache,
 	ZERO_INDEX_KEY,
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
+	getPerfectDashProps,
 	lerp,
 	lineShapeMigrations,
 	lineShapeProps,
@@ -23,8 +24,7 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 
-import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { STROKE_SIZES } from '../arrow/shared'
 import { interpolateDiscrete } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
@@ -38,10 +38,18 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override props = lineShapeProps
 	static override migrations = lineShapeMigrations
 
-	override hideResizeHandles = () => true
-	override hideRotateHandle = () => true
-	override hideSelectionBoundsFg = () => true
-	override hideSelectionBoundsBg = () => true
+	override hideResizeHandles() {
+		return true
+	}
+	override hideRotateHandle() {
+		return true
+	}
+	override hideSelectionBoundsFg() {
+		return true
+	}
+	override hideSelectionBoundsBg() {
+		return true
+	}
 
 	override getDefaultProps(): TLLineShape['props'] {
 		const [start, end] = getIndices(2)
@@ -95,7 +103,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	//   Events
 
-	override onResize: TLOnResizeHandler<TLLineShape> = (shape, info) => {
+	override onResize(shape: TLLineShape, info: TLResizeInfo<TLLineShape>) {
 		const { scaleX, scaleY } = info
 
 		return {
@@ -110,7 +118,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
-	override onHandleDrag: TLOnHandleDragHandler<TLLineShape> = (shape, { handle }) => {
+	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
 		// we should only ever be dragging vertex handles
 		if (handle.type !== 'vertex') return
 
@@ -281,9 +289,11 @@ export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Pol
 function LineShapeSvg({
 	shape,
 	shouldScale = false,
+	forceSolid = false,
 }: {
 	shape: TLLineShape
 	shouldScale?: boolean
+	forceSolid?: boolean
 }) {
 	const theme = useDefaultColorTheme()
 
@@ -317,15 +327,13 @@ function LineShapeSvg({
 			return (
 				<g stroke={theme[color].solid} strokeWidth={strokeWidth} transform={`scale(${scale})`}>
 					{spline.segments.map((segment, i) => {
-						const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-							segment.length,
-							strokeWidth,
-							{
-								style: dash,
-								start: i > 0 ? 'outset' : 'none',
-								end: i < spline.segments.length - 1 ? 'outset' : 'none',
-							}
-						)
+						const { strokeDasharray, strokeDashoffset } = forceSolid
+							? { strokeDasharray: 'none', strokeDashoffset: 'none' }
+							: getPerfectDashProps(segment.length, strokeWidth, {
+									style: dash,
+									start: i > 0 ? 'outset' : 'none',
+									end: i < spline.segments.length - 1 ? 'outset' : 'none',
+								})
 
 						return (
 							<path
@@ -382,6 +390,7 @@ function LineShapeSvg({
 								style: dash,
 								start: i > 0 ? 'outset' : 'none',
 								end: i < spline.segments.length - 1 ? 'outset' : 'none',
+								forceSolid,
 							}
 						)
 

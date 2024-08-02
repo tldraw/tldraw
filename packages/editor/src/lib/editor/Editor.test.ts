@@ -1,5 +1,4 @@
-import { createTLStore } from '../config/createTLStore'
-import { Box } from '../primitives/Box'
+import { Box, createShapeId, createTLStore } from '../..'
 import { Editor } from './Editor'
 
 let editor: Editor
@@ -14,6 +13,7 @@ beforeEach(() => {
 	})
 	editor.setCameraOptions({ isLocked: true })
 	editor.setCamera = jest.fn()
+	editor.user.getAnimationSpeed = jest.fn()
 })
 
 describe('centerOnPoint', () => {
@@ -28,14 +28,28 @@ describe('centerOnPoint', () => {
 	})
 })
 
-describe('resetZoom', () => {
+describe('zoomToFit', () => {
 	it('no-op when isLocked is set', () => {
-		editor.centerOnPoint({ x: 0, y: 0 })
+		editor.getCurrentPageShapeIds = jest.fn(() => new Set([createShapeId('box1')]))
+		editor.zoomToFit()
 		expect(editor.setCamera).not.toHaveBeenCalled()
 	})
 
 	it('sets camera when isLocked is set and force flag is set', () => {
-		editor.centerOnPoint({ x: 0, y: 0 }, { force: true })
+		editor.getCurrentPageShapeIds = jest.fn(() => new Set([createShapeId('box1')]))
+		editor.zoomToFit({ force: true })
+		expect(editor.setCamera).toHaveBeenCalled()
+	})
+})
+
+describe('resetZoom', () => {
+	it('no-op when isLocked is set', () => {
+		editor.resetZoom()
+		expect(editor.setCamera).not.toHaveBeenCalled()
+	})
+
+	it('sets camera when isLocked is set and force flag is set', () => {
+		editor.resetZoom(undefined, { force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
 	})
 })
@@ -75,6 +89,18 @@ describe('zoomToSelection', () => {
 		editor.getSelectionPageBounds = jest.fn(() => Box.From({ x: 0, y: 0, w: 100, h: 100 }))
 		editor.zoomToSelection({ force: true })
 		expect(editor.setCamera).toHaveBeenCalled()
+	})
+})
+
+describe('slideCamera', () => {
+	it('no-op when isLocked is set', () => {
+		editor.slideCamera({ speed: 1, direction: { x: 1, y: 1 } })
+		expect(editor.user.getAnimationSpeed).not.toHaveBeenCalled()
+	})
+
+	it('performs animation when isLocked is set and force flag is set', () => {
+		editor.slideCamera({ speed: 1, direction: { x: 1, y: 1 }, force: true })
+		expect(editor.user.getAnimationSpeed).toHaveBeenCalled()
 	})
 })
 

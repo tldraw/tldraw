@@ -10,7 +10,7 @@ export interface TLUiSliderProps {
 	value: number | null
 	label: string
 	title: string
-	onValueChange: (value: number) => void
+	onValueChange(value: number): void
 	'data-testid'?: string
 }
 
@@ -28,7 +28,7 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 	)
 
 	const handlePointerDown = useCallback(() => {
-		editor.mark('click slider')
+		editor.markHistoryStoppingPoint('click slider')
 	}, [editor])
 
 	const handlePointerUp = useCallback(() => {

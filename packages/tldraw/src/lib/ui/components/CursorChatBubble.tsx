@@ -97,7 +97,7 @@ const CursorChatInput = track(function CursorChatInput({
 }: {
 	chatMessage: string
 	value: string
-	setValue: (value: string) => void
+	setValue(value: string): void
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()

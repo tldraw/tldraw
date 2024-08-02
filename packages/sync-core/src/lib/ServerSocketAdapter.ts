@@ -12,12 +12,16 @@ import { TLSocketServerSentEvent } from './protocol'
  * @public
  */
 export interface WebSocketMinimal {
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	addEventListener?: (type: 'message' | 'close' | 'error', listener: (event: any) => void) => void
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	removeEventListener?: (
 		type: 'message' | 'close' | 'error',
 		listener: (event: any) => void
 	) => void
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	send: (data: string) => void
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	close: () => void
 	readyState: number
 }
@@ -25,6 +29,7 @@ export interface WebSocketMinimal {
 /** @internal */
 export interface ServerSocketAdapterOptions<R extends UnknownRecord> {
 	readonly ws: WebSocketMinimal
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly onBeforeSendMessage?: (msg: TLSocketServerSentEvent<R>, stringified: string) => void
 }
 

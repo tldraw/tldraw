@@ -276,6 +276,7 @@ function TldrawEditorWithOwnStore(
 		persistenceKey,
 		sessionId,
 		user,
+		assets,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -286,6 +287,7 @@ function TldrawEditorWithOwnStore(
 		sessionId,
 		defaultName,
 		snapshot,
+		assets,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
@@ -469,7 +471,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useDarkMode()
 	useForceUpdate()
 	useOnMount((editor) => {
-		const teardownStore = editor.store.props.onEditorMount(editor)
+		const teardownStore = editor.store.props.onMount(editor)
 		const teardownCallback = onMount?.(editor)
 
 		return () => {
