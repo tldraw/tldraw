@@ -55,7 +55,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const [isFullscreen, setIsFullscreen] = useState(false)
 
 		useEffect(() => {
-			const fullscreenChange = () => setIsFullscreen(!!document.fullscreenElement)
+			const fullscreenChange = () => setIsFullscreen(document.fullscreenElement === rVideo.current)
 			document.addEventListener('fullscreenchange', fullscreenChange)
 
 			return () => document.removeEventListener('fullscreenchange', fullscreenChange)
