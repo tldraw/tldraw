@@ -5955,6 +5955,7 @@ __metadata:
     rimraf: "npm:^4.4.0"
     sqlite: "npm:^5.0.1"
     sqlite3: "npm:^5.1.6"
+    tldraw: "workspace:*"
     tsx: "npm:^4.0.0"
     typescript: "npm:^5.3.3"
     unist-util-is: "npm:^6.0.0"

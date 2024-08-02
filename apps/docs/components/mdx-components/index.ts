@@ -27,6 +27,7 @@ import {
 	UnorderedList,
 	Video,
 } from './generic'
+import { VerifyLicense } from './license'
 
 export const components = {
 	a: A,
@@ -59,6 +60,7 @@ export const components = {
 	Small: Small,
 	Video,
 	Callout,
+	VerifyLicense,
 	...customComponents,
 	...apiComponents,
 }
