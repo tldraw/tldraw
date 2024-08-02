@@ -21,7 +21,7 @@ import { TLStoreBaseOptions } from './config/createTLStore'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
-import { Editor } from './editor/Editor'
+import { Editor, TLUrlStateOptions } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -173,6 +173,11 @@ export interface TldrawEditorBaseProps {
 	 * The license key.
 	 */
 	licenseKey?: string
+
+	/**
+	 * Options for syncing the editor's camera state with the URL.
+	 */
+	urlStateSync?: true | TLUrlStateOptions
 }
 
 /**
@@ -353,6 +358,7 @@ function TldrawEditorWithReadyStore({
 	cameraOptions,
 	options,
 	licenseKey,
+	urlStateSync,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -371,6 +377,7 @@ function TldrawEditorWithReadyStore({
 		autoFocus: autoFocus && !noAutoFocus(),
 		inferDarkMode,
 		initialState,
+		urlStateSync,
 
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
@@ -382,12 +389,14 @@ function TldrawEditorWithReadyStore({
 			inferDarkMode,
 			initialState,
 			cameraOptions,
+			urlStateSync,
 		}
-	}, [autoFocus, inferDarkMode, initialState, cameraOptions])
+	}, [autoFocus, inferDarkMode, initialState, cameraOptions, urlStateSync])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions } = editorOptionsRef.current
+			const { autoFocus, inferDarkMode, initialState, cameraOptions, urlStateSync } =
+				editorOptionsRef.current
 			const editor = new Editor({
 				store,
 				shapeUtils,
@@ -402,6 +411,7 @@ function TldrawEditorWithReadyStore({
 				cameraOptions,
 				options,
 				licenseKey,
+				urlStateSync: urlStateSync === true ? {} : urlStateSync,
 			})
 
 			setEditor(editor)

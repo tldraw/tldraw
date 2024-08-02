@@ -1,5 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
@@ -56,6 +56,9 @@ interface SnapshotEditorProps {
 }
 
 export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
+	// make sure this runs before the editor is instantiated
+	useState(convertLegacyUrlParams)
+
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
@@ -80,12 +83,10 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 					;(window as any).app = editor
 					;(window as any).editor = editor
 					editor.updateInstanceState({ isReadonly: true })
-					convertLegacyUrlParams()
-					editor.loadStateFromUrl()
-					return editor.updateUrlOnStateChange()
 				}}
 				components={components}
 				renderDebugMenuItems={() => <DebugMenuItems />}
+				urlStateSync
 				inferDarkMode
 			></Tldraw>
 		</div>

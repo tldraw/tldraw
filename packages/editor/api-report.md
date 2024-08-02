@@ -796,10 +796,10 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, urlStateSync, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     addStateToUrl(opts?: {
-        paramNames?: TLUrlStateParams;
+        paramNames?: TLUrlStateParamNames;
         url?: string | URL;
     }): URL;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
@@ -1140,7 +1140,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): this;
     loadStateFromUrl(opts?: {
-        paramNames?: TLUrlStateParams;
+        paramNames?: TLUrlStateParamNames;
         url?: string | URL;
     }): Editor;
     // @deprecated
@@ -1262,16 +1262,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
-    updateUrlOnStateChange(opts?: {
-        debounceMs?: number;
-        paramNames?: TLUrlStateParams;
-    } & ({
-        onChange?(url: URL): void;
-    } | {
-        onChange(url: URL): void;
-        url: (() => string | URL) | string | URL;
-    })): () => void;
-    updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
+    updateUrlOnStateChange(opts?: TLUrlStateOptions): () => void;
+    updateViewportScreenBounds(screenBounds?: Box, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File): Promise<string>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
@@ -2645,6 +2637,7 @@ export interface TldrawEditorBaseProps {
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
+    urlStateSync?: TLUrlStateOptions | true;
     user?: TLUser;
 }
 
@@ -2813,6 +2806,7 @@ export interface TLEditorOptions {
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
+    urlStateSync?: TLUrlStateOptions;
     user?: TLUser;
 }
 
@@ -3419,7 +3413,19 @@ export interface TLTickEventInfo {
 }
 
 // @public (undocumented)
-export interface TLUrlStateParams {
+export interface TLUrlStateOptions {
+    // (undocumented)
+    debounceMs?: number;
+    // (undocumented)
+    getUrl?(): string | URL;
+    // (undocumented)
+    onChange?(url: URL): void;
+    // (undocumented)
+    paramNames?: TLUrlStateParamNames;
+}
+
+// @public (undocumented)
+export interface TLUrlStateParamNames {
     // (undocumented)
     page?: null | string;
     // (undocumented)

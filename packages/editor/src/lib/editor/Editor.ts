@@ -210,6 +210,10 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+	/**
+	 * Options for syncing the editor's state with the URL.
+	 */
+	urlStateSync?: TLUrlStateOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
 }
@@ -236,6 +240,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
+		urlStateSync,
 	}: TLEditorOptions) {
 		super()
 
@@ -707,6 +712,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.timers.requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
+
+		this.updateViewportScreenBounds()
+
+		if (urlStateSync) {
+			if (!urlStateSync.getUrl) {
+				// load the state from window.location
+				this.loadStateFromUrl(urlStateSync)
+			} else {
+				// load the state from the provided URL
+				this.loadStateFromUrl({ ...urlStateSync, url: urlStateSync.getUrl() })
+			}
+
+			this.disposables.add(this.updateUrlOnStateChange(urlStateSync))
+		}
 
 		this.performanceTracker = new PerformanceTracker()
 	}
@@ -3172,9 +3191,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(screenBounds: Box, center = false): this {
-		screenBounds.width = Math.max(screenBounds.width, 1)
-		screenBounds.height = Math.max(screenBounds.height, 1)
+	updateViewportScreenBounds(screenBounds?: Box, center = false): this {
+		if (!screenBounds) {
+			const rect = this.getContainer().getBoundingClientRect()
+
+			screenBounds = new Box(
+				rect.left || rect.x,
+				rect.top || rect.y,
+				Math.max(rect.width, 1),
+				Math.max(rect.height, 1)
+			)
+		} else {
+			screenBounds.width = Math.max(screenBounds.width, 1)
+			screenBounds.height = Math.max(screenBounds.height, 1)
+		}
 
 		const insets = [
 			// top
@@ -8782,7 +8812,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param opts - Options for loading the state from the URL.
 	 */
-	loadStateFromUrl(opts?: { url?: string | URL; paramNames?: TLUrlStateParams }): Editor {
+	loadStateFromUrl(opts?: { url?: string | URL; paramNames?: TLUrlStateParamNames }): Editor {
 		const url = new URL(opts?.url ?? window.location.href)
 		const paramNames = urlStateParams(opts?.paramNames)
 
@@ -8850,7 +8880,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - Options for adding the state to the URL.
 	 * @returns the updated URL
 	 */
-	addStateToUrl(opts?: { url?: string | URL; paramNames?: TLUrlStateParams }): URL {
+	addStateToUrl(opts?: { url?: string | URL; paramNames?: TLUrlStateParamNames }): URL {
 		const url = new URL(opts?.url ?? window.location.href)
 		const paramNames = urlStateParams(opts?.paramNames)
 
@@ -8906,7 +8936,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.updateUrlOnStateChange({
-	 *   url: `https://my-app.com/my-document`,
+	 *   getUrl: () => `https://my-app.com/my-document`,
 	 *   onChange(url) {
 	 *     setShareUrl(url.toString())
 	 *   }
@@ -8927,27 +8957,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * // disable page parameter if there's only one page
 	 * editor.updateUrlOnStateChange({ paramNames: { page: null } })
 	 * ```
-	 *
-	 *
 	 * @param opts - Options for setting up the listener.
 	 * @returns a function that will stop the listener.
 	 */
-	updateUrlOnStateChange(
-		opts?: { paramNames?: TLUrlStateParams; debounceMs?: number } & (
-			| {
-					url: string | URL | (() => string | URL)
-					onChange(url: URL): void
-			  }
-			| { onChange?(url: URL): void }
-		)
-	): () => void {
+	updateUrlOnStateChange(opts?: TLUrlStateOptions): () => void {
+		if (opts?.getUrl && !opts?.onChange) {
+			throw Error(
+				'[tldraw:urlStateSync] If you specify getUrl, you must also specify the onChange callback.'
+			)
+		}
 		const url$ = computed('url with state', () => {
-			const url =
-				opts && 'url' in opts
-					? typeof opts.url === 'function'
-						? opts.url()
-						: opts.url
-					: window.location.href
+			const url = opts?.getUrl?.() ?? window.location.href
 			const urlWithState = this.addStateToUrl({ url, paramNames: opts?.paramNames })
 			return urlWithState.toString()
 		})
@@ -9704,11 +9724,20 @@ function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
 }
 
 /** @public */
-export interface TLUrlStateParams {
+export interface TLUrlStateParamNames {
 	viewport?: string | null
 	page?: string | null
 }
-function urlStateParams(params?: TLUrlStateParams): Required<TLUrlStateParams> {
+
+/** @public */
+export interface TLUrlStateOptions {
+	paramNames?: TLUrlStateParamNames
+	debounceMs?: number
+	getUrl?(): string | URL
+	onChange?(url: URL): void
+}
+
+function urlStateParams(params?: TLUrlStateParamNames): Required<TLUrlStateParamNames> {
 	return {
 		viewport: typeof params?.viewport === 'undefined' ? 'v' : params.viewport,
 		page: typeof params?.page === 'undefined' ? 'p' : params.page,

@@ -5,7 +5,7 @@ import {
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import {
 	assertExists,
 	DefaultKeyboardShortcutsDialog,
@@ -119,6 +119,9 @@ export function MultiplayerEditor({
 	roomOpenMode: RoomOpenMode
 	roomSlug: string
 }) {
+	// make sure this runs before the editor is instantiated
+	useState(convertLegacyUrlParams)
+
 	const handleUiEvent = useHandleUiEvents()
 
 	const storeWithStatus = useSync({
@@ -143,9 +146,6 @@ export function MultiplayerEditor({
 				isReadonly,
 			})
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
-			convertLegacyUrlParams()
-			editor.loadStateFromUrl()
-			return editor.updateUrlOnStateChange()
 		},
 		[isReadonly]
 	)
@@ -165,6 +165,7 @@ export function MultiplayerEditor({
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
+				urlStateSync
 				inferDarkMode
 			>
 				<SneakyOnDropOverride isMultiplayer />
