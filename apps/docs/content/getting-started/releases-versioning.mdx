@@ -17,6 +17,17 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
+### [v2.4.3](/releases/v2.4.3)
+
+#### 🐛 Bug Fix
+
+- `tldraw`
+  - Alex/v2.4.3 [#4328](https://github.com/tldraw/tldraw/pull/4328) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
 ### [v2.4.2](/releases/v2.4.2)
 
 #### 🐛 Bug Fix
@@ -97,7 +108,7 @@ editor.run(
 
 As part of our work on sync, we have a new system for handling large assets like images and videos. You can provide a [`TLAssetStore`](https://tldraw.dev/reference/tlschema/TLAssetStore) to control how assets are uploaded and retrieved.
 
-In your own shapes & tools, these options are available through the new [`Editor.uploadAsset`](https://tldraw.dev/reference/editor/Editor#uploadAsset) and [`Editor.resolveAssetURL`](https://staging.tldraw.dev/reference/editor/Editor#resolveAssetUrl) methods.
+In your own shapes & tools, these options are available through the new [`Editor.uploadAsset`](https://tldraw.dev/reference/editor/Editor#uploadAsset) and [`Editor.resolveAssetURL`](https://tldraw.dev/reference/editor/Editor#resolveAssetUrl) methods.
 
 ---
 
@@ -116,7 +127,7 @@ In your own shapes & tools, these options are available through the new [`Editor
 - We now show a toast when uploading an unsupported file type or a file that is too large. ([#4114](https://github.com/tldraw/tldraw/pull/4114))
 - We now show a toast when pasting failed due to missing clipboard permissions. ([#4117](https://github.com/tldraw/tldraw/pull/4117))
 - You can use the new `ShapeIndicators` component to add custom logic about when to display indicators. ([#4083](https://github.com/tldraw/tldraw/pull/4083))
-- A shape’s opacity will now also animate. ([#4242](<[https://github.com/tldraw/tldraw/pull/](https://github.com/tldraw/tldraw/pull/4042)4242>))
+- A shape’s opacity will now also animate. ([#4242](<https://github.com/tldraw/tldraw/pull/](https://github.com/tldraw/tldraw/pull/4042)>)
 
 #### API changes
 
@@ -502,25 +513,6 @@ Previously, `editor.mark(id)` accepted two additional boolean parameters: `onUnd
 - Trevor Dobbertin ([@Trevato](https://github.com/Trevato))
 
 ### [v2.1.4](/releases/v2.1.4)
-
-### Release Notes
-
-#### textfields: fix up flakiness in text selection and for unfilled geo shapes fix edit->edit (#3577) ([#3643](https://github.com/tldraw/tldraw/pull/3643))
-
-- Text labels: fix up regression to selection when clicking into a text shape. (was causing flaky selections)
-- Text labels: fix edit→edit not working as expected when unfilled geo shapes are on 'top' of other shapes.
-
----
-
-#### 🐛 Bug Fix
-
-- `@tldraw/editor`, `tldraw`
-  - textfields: fix up flakiness in text selection (#3578)
-  - textfields: for unfilled geo shapes fix edit->edit (#3577) [#3643](https://github.com/tldraw/tldraw/pull/3643) ([@mimecuvalo](https://github.com/mimecuvalo))
-
-#### Authors: 1
-
-- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 
 ### [v2.1.3](/releases/v2.1.3)
 
