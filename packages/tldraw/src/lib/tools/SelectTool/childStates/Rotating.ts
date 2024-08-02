@@ -1,7 +1,6 @@
 import {
 	RotateCorner,
 	StateNode,
-	TLEventHandlers,
 	TLPointerEventInfo,
 	TLRotationSnapshot,
 	applyRotationToSnapshotShapes,
@@ -24,9 +23,7 @@ export class Rotating extends StateNode {
 
 	markId = ''
 
-	override onEnter = (
-		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }
-	) => {
+	override onEnter(info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }) {
 		// Store the event information
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
@@ -56,40 +53,40 @@ export class Rotating extends StateNode {
 		})
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.parent.setCurrentToolIdMask(undefined)
 
 		this.snapshot = {} as TLRotationSnapshot
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.update()
 	}
 
-	override onKeyDown = () => {
+	override onKeyDown() {
 		this.update()
 	}
 
-	override onKeyUp = () => {
+	override onKeyUp() {
 		this.update()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
 	// ---
 
-	private update = () => {
+	private update() {
 		const newSelectionRotation = this._getRotationFromPointerPosition({
 			snapToNearestDegree: false,
 		})
@@ -108,7 +105,7 @@ export class Rotating extends StateNode {
 		})
 	}
 
-	private cancel = () => {
+	private cancel() {
 		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
@@ -117,7 +114,7 @@ export class Rotating extends StateNode {
 		}
 	}
 
-	private complete = () => {
+	private complete() {
 		applyRotationToSnapshotShapes({
 			editor: this.editor,
 			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: true }),

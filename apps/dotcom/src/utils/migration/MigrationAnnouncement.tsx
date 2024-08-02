@@ -4,7 +4,7 @@ export function MigrationAnnouncement({
 	onClose,
 	originalFile,
 }: {
-	onClose: () => void
+	onClose(): void
 	originalFile: { name: string; document: TLV1Document }
 }) {
 	const editor = useEditor()

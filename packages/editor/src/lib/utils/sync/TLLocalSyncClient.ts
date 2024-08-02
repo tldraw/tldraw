@@ -96,8 +96,8 @@ export class TLLocalSyncClient {
 		}: {
 			persistenceKey: string
 			sessionId?: string
-			onLoad: (self: TLLocalSyncClient) => void
-			onLoadError: (error: Error) => void
+			onLoad(self: TLLocalSyncClient): void
+			onLoadError(error: Error): void
 		},
 		public readonly channel = new BC(`tldraw-tab-sync-${persistenceKey}`)
 	) {

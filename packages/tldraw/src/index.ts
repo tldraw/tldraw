@@ -13,11 +13,14 @@ export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	centerSelectionAroundPoint,
+	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
 	createShapesForAssets,
+	registerDefaultExternalContentHandlers,
 	type TLExternalContentProps,
 } from './lib/defaultExternalContentHandlers'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
+export { registerDefaultSideEffects } from './lib/defaultSideEffects'
 export { defaultTools } from './lib/defaultTools'
 export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
 export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
@@ -48,7 +51,6 @@ export {
 	LABEL_FONT_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
-export { getPerfectDashProps } from './lib/shapes/shared/getPerfectDashProps'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
@@ -127,13 +129,13 @@ export {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	HelpGroup,
 	MiscMenuGroup,
 	PreferencesGroup,
 	UndoRedoGroup,
 	ViewSubmenu,
 } from './lib/ui/components/MainMenu/DefaultMainMenuContent'
 export { DefaultMinimap } from './lib/ui/components/Minimap/DefaultMinimap'
+export { MobileStylePanel } from './lib/ui/components/MobileStylePanel'
 export { DefaultNavigationPanel } from './lib/ui/components/NavigationPanel/DefaultNavigationPanel'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { DefaultPageMenu } from './lib/ui/components/PageMenu/DefaultPageMenu'
@@ -204,6 +206,10 @@ export {
 	useIsToolSelected,
 	type ToolbarItemProps,
 } from './lib/ui/components/Toolbar/DefaultToolbarContent'
+export {
+	OverflowingToolbar,
+	type OverflowingToolbarProps,
+} from './lib/ui/components/Toolbar/OverflowingToolbar'
 export {
 	CenteredTopPanelContainer,
 	type CenteredTopPanelContainerProps,

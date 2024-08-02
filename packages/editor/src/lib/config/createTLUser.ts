@@ -7,6 +7,7 @@ import { TLUserPreferences, getUserPreferences, setUserPreferences } from './TLU
 /** @public */
 export interface TLUser {
 	readonly userPreferences: Signal<TLUserPreferences>
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly setUserPreferences: (userPreferences: TLUserPreferences) => void
 }
 
@@ -18,6 +19,7 @@ const defaultLocalStorageUserPrefs = computed('defaultLocalStorageUserPrefs', ()
 export function createTLUser(
 	opts = {} as {
 		userPreferences?: Signal<TLUserPreferences>
+		// eslint-disable-next-line @typescript-eslint/method-signature-style
 		setUserPreferences?: (userPreferences: TLUserPreferences) => void
 	}
 ): TLUser {
@@ -32,6 +34,7 @@ export function createTLUser(
  */
 export function useTldrawUser(opts: {
 	userPreferences?: Signal<TLUserPreferences> | TLUserPreferences
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	setUserPreferences?: (userPreferences: TLUserPreferences) => void
 }): TLUser {
 	const prefs = useShallowObjectIdentity(opts.userPreferences ?? defaultLocalStorageUserPrefs)

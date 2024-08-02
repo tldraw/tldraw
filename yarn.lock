@@ -5955,6 +5955,7 @@ __metadata:
     rimraf: "npm:^4.4.0"
     sqlite: "npm:^5.0.1"
     sqlite3: "npm:^5.1.6"
+    tldraw: "workspace:*"
     tsx: "npm:^4.0.0"
     typescript: "npm:^5.3.3"
     unist-util-is: "npm:^6.0.0"
@@ -6269,6 +6270,7 @@ __metadata:
   dependencies:
     "@types/lodash.throttle": "npm:^4.1.7"
     "@types/lodash.uniq": "npm:^4.5.7"
+    fractional-indexing-jittered: "npm:^0.9.1"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.throttle: "npm:^4.1.1"
@@ -12504,6 +12506,13 @@ __metadata:
   version: 2.16.2
   resolution: "fp-ts@npm:2.16.2"
   checksum: 61c1f3db171191527e9d902a8a0195942e8de9380c0c491c61e3e2c39d6007c6432be03e9f55d73dd8aae1431f35083c729636c59bbd185830b09e5db2615adb
+  languageName: node
+  linkType: hard
+
+"fractional-indexing-jittered@npm:^0.9.1":
+  version: 0.9.1
+  resolution: "fractional-indexing-jittered@npm:0.9.1"
+  checksum: 2908f1109ba52e7dfc96cf212c1fb95aebfe3a0dabd4e1b7663fe8d855f74d4554e3ebf600f47af28acdbc307bb149eaf78b975208a44a0a85a5c993471b32a4
   languageName: node
   linkType: hard
 

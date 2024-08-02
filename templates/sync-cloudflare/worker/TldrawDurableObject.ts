@@ -28,10 +28,13 @@ export class TldrawDurableObject {
 	// load it once.
 	private roomPromise: Promise<TLSocketRoom<TLRecord, void>> | null = null
 
-	constructor(state: DurableObjectState, env: Environment) {
+	constructor(
+		private readonly ctx: DurableObjectState,
+		env: Environment
+	) {
 		this.r2 = env.TLDRAW_BUCKET
 
-		state.blockConcurrencyWhile(async () => {
+		ctx.blockConcurrencyWhile(async () => {
 			this.roomId = ((await this.ctx.storage.get('roomId')) ?? null) as string | null
 		})
 	}

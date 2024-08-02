@@ -1,8 +1,8 @@
-import { createShapeId } from '@tldraw/tlschema'
+import { TLShape, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Vec } from '../../../../primitives/Vec'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
-import { TLEventHandlers } from '../../../types/event-types'
+import { TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 
@@ -11,11 +11,11 @@ export class Pointing extends StateNode {
 
 	wasFocusedOnEnter = false
 
-	override onEnter = () => {
+	override onEnter() {
 		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
@@ -49,25 +49,25 @@ export class Pointing extends StateNode {
 					creatingMarkId,
 					creationCursorOffset: { x: 1, y: 1 },
 					onInteractionEnd: this.parent.id,
-					onCreate: (this.parent as BaseBoxShapeTool).onCreate,
+					onCreate: (shape: TLShape | null) => (this.parent as BaseBoxShapeTool).onCreate?.(shape),
 				} /** satisfies ResizingInfo, defined in main tldraw package 😧 */
 			)
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 

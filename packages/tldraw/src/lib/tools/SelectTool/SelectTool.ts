@@ -25,29 +25,31 @@ export class SelectTool extends StateNode {
 	static override isLockable = false
 	reactor: undefined | (() => void) = undefined
 
-	static override children = (): TLStateNodeConstructor[] => [
-		Crop,
-		Cropping,
-		Idle,
-		PointingCanvas,
-		PointingShape,
-		Translating,
-		Brushing,
-		ScribbleBrushing,
-		PointingCropHandle,
-		PointingSelection,
-		PointingResizeHandle,
-		EditingShape,
-		Resizing,
-		Rotating,
-		PointingRotateHandle,
-		PointingArrowLabel,
-		PointingHandle,
-		DraggingHandle,
-	]
+	static override children(): TLStateNodeConstructor[] {
+		return [
+			Crop,
+			Cropping,
+			Idle,
+			PointingCanvas,
+			PointingShape,
+			Translating,
+			Brushing,
+			ScribbleBrushing,
+			PointingCropHandle,
+			PointingSelection,
+			PointingResizeHandle,
+			EditingShape,
+			Resizing,
+			Rotating,
+			PointingRotateHandle,
+			PointingArrowLabel,
+			PointingHandle,
+			DraggingHandle,
+		]
+	}
 
 	// We want to clean up the duplicate props when the selection changes
-	private cleanUpDuplicateProps = () => {
+	cleanUpDuplicateProps() {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const instance = this.editor.getInstanceState()
 		if (!instance.duplicateProps) return
@@ -63,7 +65,7 @@ export class SelectTool extends StateNode {
 		})
 	}
 
-	override onEnter = () => {
+	override onEnter() {
 		this.reactor = react('clean duplicate props', () => {
 			try {
 				this.cleanUpDuplicateProps()
@@ -77,7 +79,7 @@ export class SelectTool extends StateNode {
 		})
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.reactor?.()
 		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)

@@ -307,6 +307,8 @@ export type TLUiTranslationKey =
 	| 'help-menu.github'
 	| 'help-menu.keyboard-shortcuts'
 	| 'help-menu.twitter'
+	| 'help-menu.terms'
+	| 'help-menu.privacy'
 	| 'actions-menu.title'
 	| 'edit-link-dialog.title'
 	| 'edit-link-dialog.invalid-url'

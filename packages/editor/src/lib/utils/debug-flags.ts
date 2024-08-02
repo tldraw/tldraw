@@ -61,7 +61,7 @@ export const debugFlags = {
 
 declare global {
 	interface Window {
-		tldrawLog: (message: any) => void
+		tldrawLog(message: any): void
 	}
 }
 

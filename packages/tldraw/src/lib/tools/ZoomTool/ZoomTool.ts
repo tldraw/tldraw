@@ -1,7 +1,6 @@
 import {
 	StateNode,
-	TLInterruptEvent,
-	TLKeyboardEvent,
+	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLStateNodeConstructor,
 } from '@tldraw/editor'
@@ -14,35 +13,30 @@ import { ZoomQuick } from './childStates/ZoomQuick'
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'
-	static override children = (): TLStateNodeConstructor[] => [
-		Idle,
-		Pointing,
-		ZoomBrushing,
-		ZoomQuick,
-	]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Pointing, ZoomBrushing, ZoomQuick]
+	}
 	static override isLockable = false
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string; isQuickZoom: boolean }
 
-	override onEnter = (
-		info: TLPointerEventInfo & { onInteractionEnd: string; isQuickZoom: boolean }
-	) => {
+	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string; isQuickZoom: boolean }) {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.updateCursor()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.updateInstanceState({ zoomBrush: null, cursor: { type: 'default', rotation: 0 } })
 		this.parent.setCurrentToolIdMask(undefined)
 	}
 
-	override onKeyDown: TLKeyboardEvent | undefined = () => {
+	override onKeyDown() {
 		this.updateCursor()
 	}
 
-	override onKeyUp: TLKeyboardEvent = (info) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		if (this.info.isQuickZoom) {
 			return
 		}
@@ -54,7 +48,7 @@ export class ZoomTool extends StateNode {
 		}
 	}
 
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.complete()
 	}
 

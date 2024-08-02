@@ -7,9 +7,11 @@ import { Pointing } from './children/Pointing'
 export abstract class BaseBoxShapeTool extends StateNode {
 	static override id = 'box'
 	static override initial = 'idle'
-	static override children = (): TLStateNodeConstructor[] => [Idle, Pointing]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Pointing]
+	}
 
 	abstract override shapeType: string
 
-	onCreate?: (_shape: TLShape | null) => void | null
+	onCreate?(_shape: TLShape | null): void | null
 }

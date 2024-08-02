@@ -5,8 +5,7 @@ import {
 	HTMLContainer,
 	TLEmbedShape,
 	TLEmbedShapePermissions,
-	TLOnResizeHandler,
-	TLShapeUtilFlag,
+	TLResizeInfo,
 	embedShapeMigrations,
 	embedShapePermissionDefaults,
 	embedShapeProps,
@@ -32,12 +31,18 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
 
-	override hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
-	override canEdit: TLShapeUtilFlag<TLEmbedShape> = () => true
-	override canResize = (shape: TLEmbedShape) => {
+	override hideSelectionBoundsFg(shape: TLEmbedShape) {
+		return !this.canResize(shape)
+	}
+	override canEdit() {
+		return true
+	}
+	override canResize(shape: TLEmbedShape) {
 		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
 	}
-	override canEditInReadOnly = () => true
+	override canEditInReadOnly() {
+		return true
+	}
 
 	override getDefaultProps(): TLEmbedShape['props'] {
 		return {
@@ -47,12 +52,12 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		}
 	}
 
-	override isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape> = (shape) => {
+	override isAspectRatioLocked(shape: TLEmbedShape) {
 		const embedInfo = getEmbedInfo(shape.props.url)
 		return embedInfo?.definition.isAspectRatioLocked ?? false
 	}
 
-	override onResize: TLOnResizeHandler<TLEmbedShape> = (shape, info) => {
+	override onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>) {
 		const isAspectRatioLocked = this.isAspectRatioLocked(shape)
 		const embedInfo = getEmbedInfo(shape.props.url)
 		let minWidth = embedInfo?.definition.minWidth ?? 200

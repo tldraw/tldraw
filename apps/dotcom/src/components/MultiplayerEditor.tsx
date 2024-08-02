@@ -15,7 +15,6 @@ import {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	HelpGroup,
 	PeopleMenu,
 	PreferencesGroup,
 	TLComponents,
@@ -60,7 +59,6 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
-			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),

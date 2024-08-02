@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react'
 export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: number) {
 	const editor = useEditor()
 	const [url, setUrl] = useState<string | null>(null)
+	const [isPlaceholder, setIsPlaceholder] = useState(false)
 	const asset = assetId ? editor.getAsset(assetId) : null
 	const culledShapes = editor.getCulledShapes()
 	const isCulled = culledShapes.has(shapeId)
@@ -29,18 +30,37 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 	])
 
 	useEffect(() => {
+		if (url) didAlreadyResolve.current = true
+	}, [url])
+
+	useEffect(() => {
 		if (isCulled) return
 
+		if (assetId && !asset?.props.src) {
+			const preview = editor.getTemporaryAssetPreview(assetId)
+
+			if (preview) {
+				setUrl(preview)
+				setIsPlaceholder(true)
+				return
+			}
+		}
+
 		let isCancelled = false
-		const timer = editor.timers.setTimeout(
-			async () => {
-				const resolvedUrl = await editor.resolveAssetUrl(assetId, {
-					screenScale,
-				})
-				if (!isCancelled) setUrl(resolvedUrl)
-			},
-			didAlreadyResolve.current ? 500 : 0
-		)
+
+		async function resolve() {
+			const resolvedUrl = await editor.resolveAssetUrl(assetId, {
+				screenScale,
+			})
+
+			if (!isCancelled) {
+				setUrl(resolvedUrl)
+				setIsPlaceholder(false)
+			}
+		}
+
+		// If we already resolved the URL, debounce fetching potentially multiple image variations.
+		const timer = editor.timers.setTimeout(resolve, didAlreadyResolve.current ? 500 : 0)
 
 		return () => {
 			clearTimeout(timer)
@@ -48,5 +68,5 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 		}
 	}, [assetId, asset?.props.src, isCulled, screenScale, editor])
 
-	return { asset, url }
+	return { asset, url, isPlaceholder }
 }
