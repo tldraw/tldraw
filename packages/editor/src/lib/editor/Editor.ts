@@ -3200,15 +3200,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			screenBounds.minX !== 0,
 		]
 
+		const { _willSetInitialBounds } = this
+
+		this._willSetInitialBounds = false
+
 		const { screenBounds: prevScreenBounds, insets: prevInsets } = this.getInstanceState()
 		if (screenBounds.equals(prevScreenBounds) && insets.every((v, i) => v === prevInsets[i])) {
 			// nothing to do
 			return this
 		}
-
-		const { _willSetInitialBounds } = this
-
-		this._willSetInitialBounds = false
 
 		if (_willSetInitialBounds) {
 			// If we have just received the initial bounds, don't center the camera.
