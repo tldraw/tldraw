@@ -23,21 +23,29 @@ const NUMBER_OF_KNOWN_PROPERTIES = Object.keys(PROPERTIES).length
 
 const LICENSE_EMAIL = 'sales@tldraw.com'
 
-interface LicenseInfo {
+/** @internal */
+export interface LicenseInfo {
 	id: string
 	hosts: string[]
 	flags: number
 	expiryDate: string
 }
-type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided' | 'has-key-development-mode'
+/** @internal */
+export type InvalidLicenseReason =
+	| 'invalid-license-key'
+	| 'no-key-provided'
+	| 'has-key-development-mode'
 
+/** @internal */
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult
 
-interface InvalidLicenseKeyResult {
+/** @internal */
+export interface InvalidLicenseKeyResult {
 	isLicenseParseable: false
 	reason: InvalidLicenseReason
 }
 
+/** @internal */
 export interface ValidLicenseKeyResult {
 	isLicenseParseable: true
 	license: LicenseInfo
@@ -52,7 +60,8 @@ export interface ValidLicenseKeyResult {
 	isLicensedWithWatermark: boolean
 }
 
-type TestEnvironment = 'development' | 'production'
+/** @internal */
+export type TestEnvironment = 'development' | 'production'
 
 /** @internal */
 export class LicenseManager {
@@ -231,7 +240,7 @@ export class LicenseManager {
 			// Glob testing, we only support '*.somedomain.com' right now.
 			if (host.includes('*')) {
 				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
-				return globToRegex.test(currentHostname)
+				return globToRegex.test(currentHostname) || globToRegex.test(`www.${currentHostname}`)
 			}
 
 			return false

@@ -405,6 +405,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
+	override getText(shape: TLGeoShape) {
+		return shape.props.text
+	}
+
 	override onEditEnd(shape: TLGeoShape) {
 		const {
 			id,

@@ -78,6 +78,7 @@ import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
+import { TLImageAsset } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
@@ -102,6 +103,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
@@ -193,6 +195,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     getHandles(shape: TLArrowShape): TLHandle[];
     // (undocumented)
     getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
+    // (undocumented)
+    getText(shape: TLArrowShape): string;
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -387,6 +391,9 @@ export function CopyAsMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean): Promise<TLImageAsset | TLVideoAsset>;
 
 // @public
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
@@ -725,6 +732,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
+    getText(shape: TLFrameShape): string | undefined;
+    // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -773,6 +782,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getGeometry(shape: TLGeoShape): Group2d;
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
+    // (undocumented)
+    getText(shape: TLGeoShape): string;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -1006,7 +1017,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop(): boolean;
     // (undocumented)
-    component(shape: TLImageShape): JSX_2.Element | null;
+    component(shape: TLImageShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
     // (undocumented)
@@ -1184,6 +1195,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     getGeometry(shape: TLNoteShape): Group2d;
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
+    // (undocumented)
+    getText(shape: TLNoteShape): string;
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -1533,6 +1546,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         height: number;
         width: number;
     };
+    // (undocumented)
+    getText(shape: TLTextShape): string;
     // (undocumented)
     indicator(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)

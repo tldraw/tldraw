@@ -4,6 +4,7 @@ import {
 	HTMLContainer,
 	TLVideoShape,
 	toDomPrecision,
+	useEditorComponents,
 	useIsEditing,
 	videoShapeMigrations,
 	videoShapeProps,
@@ -45,6 +46,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
+		const { Spinner } = useEditorComponents()
 
 		const rVideo = useRef<HTMLVideoElement>(null!)
 
@@ -162,31 +164,42 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 				>
 					<div className="tl-counter-scaled">
 						<div className="tl-video-container">
-							{!asset?.props.src ? (
+							{!asset ? (
 								<BrokenAssetIcon />
+							) : Spinner && !asset.props.src ? (
+								<Spinner />
 							) : url ? (
-								<video
-									ref={rVideo}
-									style={isEditing ? { pointerEvents: 'all' } : undefined}
-									className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
-									width="100%"
-									height="100%"
-									draggable={false}
-									playsInline
-									autoPlay
-									muted
-									loop
-									disableRemotePlayback
-									disablePictureInPicture
-									controls={isEditing && showControls}
-									onPlay={handlePlay}
-									onPause={handlePause}
-									onTimeUpdate={handleSetCurrentTime}
-									onLoadedData={handleLoadedData}
-									hidden={!isLoaded}
-								>
-									<source src={url} />
-								</video>
+								<>
+									<video
+										ref={rVideo}
+										style={
+											isEditing
+												? { pointerEvents: 'all' }
+												: !isLoaded
+													? { display: 'none' }
+													: undefined
+										}
+										className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
+										width="100%"
+										height="100%"
+										draggable={false}
+										playsInline
+										autoPlay
+										muted
+										loop
+										disableRemotePlayback
+										disablePictureInPicture
+										controls={isEditing && showControls}
+										onPlay={handlePlay}
+										onPause={handlePause}
+										onTimeUpdate={handleSetCurrentTime}
+										onLoadedData={handleLoadedData}
+										hidden={!isLoaded}
+									>
+										<source src={url} />
+									</video>
+									{!isLoaded && Spinner && <Spinner />}
+								</>
 							) : null}
 						</div>
 					</div>

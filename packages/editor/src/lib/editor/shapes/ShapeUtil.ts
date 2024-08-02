@@ -373,6 +373,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		return {}
 	}
 
+	getText(_shape: Shape): string | undefined {
+		return undefined
+	}
+
 	//  Events
 
 	/**
