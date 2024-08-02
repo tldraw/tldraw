@@ -34,8 +34,8 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 
 	const handlePointerUp = useCallback(() => {
 		if (!value) return
-		onPointerUp?.()
 		onValueChange(value)
+		onPointerUp?.()
 	}, [value, onValueChange, onPointerUp])
 
 	return (
