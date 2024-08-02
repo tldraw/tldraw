@@ -19,7 +19,7 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
-import { AUDIO_HEIGHT } from './shapes/audio/AudioShapeUtil'
+import { AUDIO_HEIGHT, AUDIO_WIDTH } from './shapes/audio/AudioShapeUtil'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -100,7 +100,7 @@ export function registerDefaultExternalContentHandlers(
 		}
 
 		let size = isAudioType
-			? { w: 260, h: AUDIO_HEIGHT }
+			? { w: AUDIO_WIDTH, h: AUDIO_HEIGHT }
 			: isImageType
 				? await MediaHelpers.getImageSize(file)
 				: await MediaHelpers.getVideoSize(file)
@@ -129,17 +129,19 @@ export function registerDefaultExternalContentHandlers(
 			id: assetId,
 			type: isAudioType ? 'audio' : isImageType ? 'image' : 'video',
 			typeName: 'asset',
-			props: {
-				name,
-				src: '',
-				w: size.w,
-				h: size.h,
-				fileSize: file.size,
-				mimeType: file.type,
-				isAnimated,
-				title,
-				coverArt,
-			},
+			props: Object.fromEntries(
+				Object.entries({
+					name,
+					src: '',
+					w: size.w,
+					h: size.h,
+					fileSize: file.size,
+					mimeType: file.type,
+					isAnimated,
+					title,
+					coverArt,
+				}).filter(([, v]) => v !== undefined)
+			),
 		} as TLAsset
 
 		assetInfo.props.src = await editor.uploadAsset(assetInfo, file)

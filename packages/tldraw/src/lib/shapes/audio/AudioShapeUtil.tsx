@@ -12,6 +12,10 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
+import { TldrawUiButton } from '../../ui/components/primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../../ui/components/primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiSlider } from '../../ui/components/primitives/TldrawUiSlider'
+import { useTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useAsset } from '../shared/useAsset'
@@ -27,8 +31,8 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 
 	override getDefaultProps(): TLAudioShape['props'] {
 		return {
-			w: 100,
-			h: 100,
+			w: AUDIO_WIDTH,
+			h: AUDIO_HEIGHT,
 			assetId: null,
 			time: 0,
 			playing: true,
@@ -40,6 +44,10 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 		const { editor } = this
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 		const isEditing = useIsEditing(shape.id)
+		const [isPlaying, setIsPlaying] = useState(false)
+		const [isMuted, setIsMuted] = useState(false)
+		const [currentTime, setCurrentTime] = useState(0)
+		const msg = useTranslation()
 
 		const rAudio = useRef<HTMLAudioElement>(null!)
 
@@ -64,9 +72,39 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 			}
 		}, [isEditing, isLoaded])
 
+		const handleOnPlay = () => setIsPlaying(true)
+		const handleOnPause = () => setIsPlaying(false)
+		const handleSetCurrentTime = (e: React.SyntheticEvent<HTMLAudioElement>) => {
+			const audio = e.currentTarget
+			if (!audio) return
+
+			setCurrentTime(audio.currentTime)
+		}
+		const handleSeek = (time: number) => {
+			if (!rAudio.current) return
+			rAudio.current.currentTime = time
+			console.log(time)
+			setCurrentTime(time)
+		}
+
+		const handlePlayControl = useCallback(() => {
+			if (isPlaying) {
+				rAudio.current?.pause()
+			} else {
+				rAudio.current?.play()
+			}
+		}, [isPlaying])
+		const handleVolumeControl = () => {
+			rAudio.current.muted = !isMuted
+			setIsMuted(!isMuted)
+		}
+
 		const audioAsset = asset as TLAudioAsset | undefined
 		const coverArt = audioAsset?.props.coverArt
 		const title = audioAsset?.props.title
+		const zoom = editor.getZoomLevel()
+		const widthScaled = (shape.props.w * zoom) / AUDIO_WIDTH
+		const heightScaled = (shape.props.h * zoom) / AUDIO_HEIGHT
 
 		return (
 			<>
@@ -79,8 +117,8 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 					}}
 				>
 					<div className="tl-counter-scaled">
-						<div className="tl-audio-container" data-hastitle={false}>
-							{coverArt && (
+						<div className="tl-audio-container" data-hastitle={!!title}>
+							{coverArt && heightScaled > 0.2 && (
 								<div
 									className="tl-audio-cover-art"
 									style={{ backgroundImage: `url(${coverArt})` }}
@@ -90,20 +128,59 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 							{!asset?.props.src ? (
 								<BrokenAssetIcon />
 							) : url ? (
-								<audio
-									ref={rAudio}
-									style={isEditing ? { pointerEvents: 'all' } : undefined}
-									className={`tl-audio tl-audio-shape-${shape.id.split(':')[1]}`}
-									draggable={false}
-									loop
-									controls
-									onLoadedData={handleLoadedData}
-									hidden={!isLoaded}
-								>
-									<source src={url} />
-								</audio>
+								<>
+									<audio
+										ref={rAudio}
+										style={isEditing ? { pointerEvents: 'all' } : undefined}
+										className={`tl-audio tl-audio-shape-${shape.id.split(':')[1]}`}
+										draggable={false}
+										onPlay={handleOnPlay}
+										onPause={handleOnPause}
+										onTimeUpdate={handleSetCurrentTime}
+										onLoadedData={handleLoadedData}
+										hidden={!isLoaded}
+									>
+										<source src={url} />
+									</audio>
+									<div className="tl-audio-controls">
+										<TldrawUiButton
+											type="icon"
+											title={msg(isPlaying ? 'audio.pause' : 'audio.play')}
+											onMouseDown={handlePlayControl}
+										>
+											<TldrawUiButtonIcon icon={isPlaying ? 'pause' : 'play'} />
+										</TldrawUiButton>
+										{rAudio.current?.duration && widthScaled > 0.5 ? (
+											<div className="tl-audio-time">
+												<span className="tl-audio-time-current">{`${secondsToTime(currentTime)}`}</span>
+												<span>{' / '}</span>
+												<span className="tl-audio-time-total">
+													{secondsToTime(rAudio.current.duration)}
+												</span>
+											</div>
+										) : null}
+										{widthScaled > 0.75 && (
+											<TldrawUiSlider
+												// XXX(mime): the slider messes up when it's resized. We set a key here to force a re-render.
+												key={`slider-${shape.props.w}`}
+												value={currentTime}
+												label={secondsToTime(currentTime)}
+												onValueChange={handleSeek}
+												steps={rAudio.current?.duration || 0}
+												title={msg('audio.seek')}
+											/>
+										)}
+										<TldrawUiButton
+											type="icon"
+											title={msg(isMuted ? 'audio.unmute' : 'audio.mute')}
+											onMouseDown={handleVolumeControl}
+										>
+											<TldrawUiButtonIcon icon={isMuted ? 'speaker-off' : 'speaker-loud'} />
+										</TldrawUiButton>
+									</div>
+								</>
 							) : null}
-							{title && (
+							{title && heightScaled > 0.2 && (
 								<div className="tl-audio-title" title={title}>
 									{title}
 								</div>
@@ -146,9 +223,11 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 }
 
 /** @internal */
-export const AUDIO_HEIGHT = 260
-const AUDIO_WITHOUT_COVER_ART_HEIGHT = 72
-const AUDIO_WITHOUT_ANYTHING_HEIGHT = 40
+export const AUDIO_WIDTH = 260
+/** @internal */
+export const AUDIO_HEIGHT = 252
+const AUDIO_WITHOUT_COVER_ART_HEIGHT = 60
+const AUDIO_WITHOUT_ANYTHING_HEIGHT = 32
 
 function getAudioSize(editor: Editor, shape: TLAudioShape) {
 	const asset = (shape.props.assetId ? editor.getAsset(shape.props.assetId) : null) as TLAudioAsset
@@ -172,4 +251,10 @@ function getAudioSize(editor: Editor, shape: TLAudioShape) {
 			h,
 		},
 	}
+}
+
+function secondsToTime(seconds: number) {
+	const minutes = Math.floor(seconds / 60)
+	const remainingSeconds = Math.floor(seconds % 60)
+	return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }
