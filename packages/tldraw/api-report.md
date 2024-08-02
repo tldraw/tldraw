@@ -2582,6 +2582,8 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
+    onPointerUp?: () => void;
+    // (undocumented)
     onValueChange: (value: number) => void;
     // (undocumented)
     steps: number;

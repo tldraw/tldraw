@@ -10,13 +10,14 @@ export interface TLUiSliderProps {
 	value: number | null
 	label: string
 	title: string
+	onPointerUp?: () => void
 	onValueChange: (value: number) => void
 	'data-testid'?: string
 }
 
 /** @internal */
 export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
-	const { title, steps, value, label, onValueChange } = props
+	const { title, steps, value, label, onValueChange, onPointerUp } = props
 	const editor = useEditor()
 	const msg = useTranslation()
 
@@ -33,8 +34,9 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 
 	const handlePointerUp = useCallback(() => {
 		if (!value) return
+		onPointerUp?.()
 		onValueChange(value)
-	}, [value, onValueChange])
+	}, [value, onValueChange, onPointerUp])
 
 	return (
 		<div className="tlui-slider__container">

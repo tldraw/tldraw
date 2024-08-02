@@ -46,6 +46,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 		const isEditing = useIsEditing(shape.id)
 		const [isPlaying, setIsPlaying] = useState(false)
 		const [isMuted, setIsMuted] = useState(false)
+		const [newSeekTime, setNewSeekTime] = useState<number | null>(null)
 		const [currentTime, setCurrentTime] = useState(0)
 		const msg = useTranslation()
 
@@ -81,10 +82,12 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 			setCurrentTime(audio.currentTime)
 		}
 		const handleSeek = (time: number) => {
+			setNewSeekTime(time)
+		}
+		const handleSliderPointerUp = () => {
 			if (!rAudio.current) return
-			rAudio.current.currentTime = time
-			console.log(time)
-			setCurrentTime(time)
+			rAudio.current.currentTime = newSeekTime ?? 0
+			setNewSeekTime(null)
 		}
 
 		const handlePlayControl = useCallback(() => {
@@ -142,17 +145,18 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 									>
 										<source src={url} />
 									</audio>
-									<div className="tl-audio-controls">
+									{/* We stop propagation here because otherwise onPointerDown in useCanvasEvents screws things up. */}
+									<div className="tl-audio-controls" onPointerDown={(e) => e.stopPropagation()}>
 										<TldrawUiButton
 											type="icon"
 											title={msg(isPlaying ? 'audio.pause' : 'audio.play')}
-											onMouseDown={handlePlayControl}
+											onClick={handlePlayControl}
 										>
 											<TldrawUiButtonIcon icon={isPlaying ? 'pause' : 'play'} />
 										</TldrawUiButton>
 										{rAudio.current?.duration && widthScaled > 0.5 ? (
 											<div className="tl-audio-time">
-												<span className="tl-audio-time-current">{`${secondsToTime(currentTime)}`}</span>
+												<span className="tl-audio-time-current">{`${secondsToTime(newSeekTime ?? currentTime)}`}</span>
 												<span>{' / '}</span>
 												<span className="tl-audio-time-total">
 													{secondsToTime(rAudio.current.duration)}
@@ -163,9 +167,10 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 											<TldrawUiSlider
 												// XXX(mime): the slider messes up when it's resized. We set a key here to force a re-render.
 												key={`slider-${shape.props.w}`}
-												value={currentTime}
-												label={secondsToTime(currentTime)}
+												value={newSeekTime ?? currentTime}
+												label={secondsToTime(newSeekTime ?? currentTime)}
 												onValueChange={handleSeek}
+												onPointerUp={handleSliderPointerUp}
 												steps={rAudio.current?.duration || 0}
 												title={msg('audio.seek')}
 											/>
