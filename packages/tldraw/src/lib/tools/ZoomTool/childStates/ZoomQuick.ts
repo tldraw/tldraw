@@ -1,11 +1,4 @@
-import {
-	Box,
-	StateNode,
-	TLEventHandlers,
-	TLKeyboardEvent,
-	TLPointerEventInfo,
-	Vec,
-} from '@tldraw/editor'
+import { Box, StateNode, TLKeyboardEventInfo, TLPointerEventInfo, Vec } from '@tldraw/editor'
 
 const ANIMATION_DURATION = 220
 
@@ -22,7 +15,7 @@ export class ZoomQuick extends StateNode {
 	viewportInFlightFromPreviousQuickZoom = null as null | Box
 	previousZoomTimeout = null as null | number
 
-	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
+	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		this.info = info
 		this.zoomBrush = null
 		this.keysPressed = ['z', 'shift']
@@ -48,11 +41,11 @@ export class ZoomQuick extends StateNode {
 		this.editor.zoomToFit({ animation: { duration: ANIMATION_DURATION } })
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.updateInstanceState({ zoomBrush: null })
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		if (
 			this.zoomBrush ||
 			!Vec.DistMin(this.editor.inputs.currentScreenPoint, this.originScreenPoint!, 16)
@@ -61,16 +54,16 @@ export class ZoomQuick extends StateNode {
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.updateBrush()
 		this.zoomToNewViewport()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onKeyUp: TLKeyboardEvent = (info) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		// We have to wait until both Shift and Z are released in non-Quick Zoom's case.
 		// N.B. 'Ω' is Alt-Z on Mac, which can happen if you release Shift before the Alt+Z.
 		this.keysPressed = this.keysPressed.filter((key) =>
