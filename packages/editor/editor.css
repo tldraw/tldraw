@@ -684,6 +684,15 @@ input,
 	-webkit-line-clamp: 1;
 }
 
+.tl-image-container {
+	position: relative;
+	overflow: hidden;
+}
+.tl-image {
+	position: absolute;
+	inset: 0;
+}
+
 .tl-image__tg {
 	--scale: calc(min(2, var(--tl-scale)));
 	position: absolute;

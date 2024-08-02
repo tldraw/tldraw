@@ -240,8 +240,8 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
     connectionStatus: 'error' | 'offline' | 'online';
     onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>;
     onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>;
-    restart: () => void;
-    sendMessage: (msg: TLSocketClientSentEvent<R>) => void;
+    restart(): void;
+    sendMessage(msg: TLSocketClientSentEvent<R>): void;
 }
 
 // @internal (undocumented)
@@ -277,11 +277,11 @@ export class TLRemoteSyncError extends Error {
 // @internal (undocumented)
 export interface TLRoomSocket<R extends UnknownRecord> {
     // (undocumented)
-    close: () => void;
+    close(): void;
     // (undocumented)
     isOpen: boolean;
     // (undocumented)
-    sendMessage: (msg: TLSocketServerSentEvent<R>) => void;
+    sendMessage(msg: TLSocketServerSentEvent<R>): void;
 }
 
 // @internal (undocumented)
@@ -396,11 +396,11 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
 // @internal
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
-        didCancel?: () => boolean;
-        onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void;
-        onLoad: (self: TLSyncClient<R, S>) => void;
-        onLoadError: (error: Error) => void;
-        onSyncError: (reason: TLIncompatibilityReason) => void;
+        didCancel?(): boolean;
+        onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void;
+        onLoad(self: TLSyncClient<R, S>): void;
+        onLoadError(error: Error): void;
+        onSyncError(reason: TLIncompatibilityReason): void;
         presence: Signal<null | R>;
         socket: TLPersistentClientSocket<R>;
         store: S;
@@ -431,9 +431,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 // @public (undocumented)
 export interface TLSyncLog {
     // (undocumented)
-    error?: (...args: any[]) => void;
+    error?(...args: any[]): void;
     // (undocumented)
-    warn?: (...args: any[]) => void;
+    warn?(...args: any[]): void;
 }
 
 // @internal
@@ -457,19 +457,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly documentTypes: Set<string>;
     // (undocumented)
     readonly events: Emitter<    {
-    room_became_empty: () => void;
-    session_removed: (args: {
+    room_became_empty(): void;
+    session_removed(args: {
     meta: SessionMeta;
     sessionId: string;
-    }) => void;
+    }): void;
     }>;
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
     // (undocumented)
     getSnapshot(): RoomSnapshot;
-    handleClose: (sessionId: string) => void;
-    handleMessage: (sessionId: string, message: TLSocketClientSentEvent<R>) => Promise<void>;
-    handleNewSession: (sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) => this;
+    handleClose(sessionId: string): void;
+    handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
+    handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta): this;
     // (undocumented)
     isClosed(): boolean;
     // (undocumented)

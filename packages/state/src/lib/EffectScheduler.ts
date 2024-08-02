@@ -36,6 +36,7 @@ export interface EffectSchedulerOptions {
 	 * @param execute - A function that will execute the effect.
 	 * @returns
 	 */
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	scheduleEffect?: (execute: () => void) => void
 }
 
@@ -108,6 +109,7 @@ class __EffectScheduler__<Result> implements EffectScheduler<Result> {
 	}
 
 	/** @internal */
+	// eslint-disable-next-line local/prefer-class-methods
 	readonly maybeExecute = () => {
 		// bail out if we have been detached before this runs
 		if (!this._isActivelyListening) return

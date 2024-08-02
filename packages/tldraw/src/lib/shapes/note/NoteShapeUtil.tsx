@@ -9,7 +9,6 @@ import {
 	SvgExportContext,
 	TLHandle,
 	TLNoteShape,
-	TLOnEditEndHandler,
 	TLShape,
 	TLShapeId,
 	Vec,
@@ -51,9 +50,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override props = noteShapeProps
 	static override migrations = noteShapeMigrations
 
-	override canEdit = () => true
-	override hideResizeHandles = () => true
-	override hideSelectionBoundsFg = () => false
+	override canEdit() {
+		return true
+	}
+	override hideResizeHandles() {
+		return true
+	}
+	override hideSelectionBoundsFg() {
+		return false
+	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -160,6 +165,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		]
 	}
 
+	override getText(shape: TLNoteShape) {
+		return shape.props.text
+	}
+
 	component(shape: TLNoteShape) {
 		const {
 			id,
@@ -264,11 +273,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	override onBeforeCreate = (next: TLNoteShape) => {
+	override onBeforeCreate(next: TLNoteShape) {
 		return getNoteSizeAdjustments(this.editor, next)
 	}
 
-	override onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
+	override onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape) {
 		if (
 			prev.props.text === next.props.text &&
 			prev.props.font === next.props.font &&
@@ -280,7 +289,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return getNoteSizeAdjustments(this.editor, next)
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
+	override onEditEnd(shape: TLNoteShape) {
 		const {
 			id,
 			type,
@@ -432,7 +441,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					editor.mark('editing adjacent shape')
+					editor.markHistoryStoppingPoint('editing adjacent shape')
 					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
 				}
 			}

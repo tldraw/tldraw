@@ -5,7 +5,6 @@ import {
 	HTMLContainer,
 	TLAudioAsset,
 	TLAudioShape,
-	TLOnBeforeUpdateHandler,
 	audioShapeMigrations,
 	audioShapeProps,
 	toDomPrecision,
@@ -26,8 +25,13 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 	static override props = audioShapeProps
 	static override migrations = audioShapeMigrations
 
-	override canEdit = () => true
-	override isAspectRatioLocked = () => true
+	override canEdit() {
+		return true
+	}
+
+	override isAspectRatioLocked() {
+		return true
+	}
 
 	override getDefaultProps(): TLAudioShape['props'] {
 		return {
@@ -216,11 +220,11 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 		}
 	}
 
-	override onBeforeCreate = (next: TLAudioShape) => {
+	override onBeforeCreate(next: TLAudioShape) {
 		return getAudioSize(this.editor, next)
 	}
 
-	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLAudioShape> = (prev, shape) => {
+	override onBeforeUpdate(prev: TLAudioShape, shape: TLAudioShape) {
 		if (prev.props.assetId !== shape.props.assetId) {
 			return getAudioSize(this.editor, shape)
 		}

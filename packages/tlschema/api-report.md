@@ -1682,7 +1682,7 @@ export interface TLStoreProps {
     defaultName: string;
     // (undocumented)
     multiplayerStatus: null | Signal<'offline' | 'online'>;
-    onEditorMount: (editor: unknown) => (() => void) | void;
+    onMount(editor: unknown): (() => void) | void;
 }
 
 // @public (undocumented)

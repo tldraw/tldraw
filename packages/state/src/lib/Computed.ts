@@ -114,7 +114,7 @@ export interface ComputedOptions<Value, Diff> {
 	 * @param b - The new value
 	 * @returns
 	 */
-	isEqual?: (a: any, b: any) => boolean
+	isEqual?(a: any, b: any): boolean
 }
 
 /**

@@ -17,7 +17,7 @@ export async function pasteFiles(
 	const blobs = await Promise.all(urls.map(async (url) => await (await fetch(url)).blob()))
 	const files = blobs.map((blob) => new File([blob], 'tldrawFile', { type: blob.type }))
 
-	editor.mark('paste')
+	editor.markHistoryStoppingPoint('paste')
 
 	await editor.putExternalContent({
 		type: 'files',

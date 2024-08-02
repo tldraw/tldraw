@@ -8,7 +8,7 @@ export interface TLUiPopoverProps {
 	id: string
 	open?: boolean
 	children: React.ReactNode
-	onOpenChange?: (isOpen: boolean) => void
+	onOpenChange?(isOpen: boolean): void
 }
 
 /** @public @react */

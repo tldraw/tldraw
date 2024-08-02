@@ -102,7 +102,7 @@ export function useSyncDemo(
 		roomId,
 		userInfo,
 		assets,
-		onEditorMount: useCallback(
+		onMount: useCallback(
 			(editor: Editor) => {
 				editor.registerExternalAssetHandler('url', async ({ url }) => {
 					return await createAssetFromUrlUsingDemoServer(host, url)
@@ -119,7 +119,7 @@ function createDemoAssetStore(host: string): TLAssetStore {
 		upload: async (asset, file) => {
 			const id = uniqueId()
 
-			const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
+			const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
 			const url = `${host}/uploads/${objectName}`
 
 			await fetch(url, {
