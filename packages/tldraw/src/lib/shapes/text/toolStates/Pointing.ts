@@ -105,8 +105,8 @@ export class Pointing extends StateNode {
 	private complete() {
 		this.editor.markHistoryStoppingPoint('creating text shape')
 		const id = createShapeId()
-		const { currentPagePoint } = this.editor.inputs
-		const shape = this.createTextShape(id, currentPagePoint, true, 20)
+		const { originPagePoint } = this.editor.inputs
+		const shape = this.createTextShape(id, originPagePoint, true, 20)
 		if (!shape) return
 
 		this.editor.select(id)
