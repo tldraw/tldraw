@@ -261,6 +261,30 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
+    onBeforeCreate: (next: TLAudioShape) => {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
+            assetId: TLAssetId | null;
+            h: number;
+            playing: boolean;
+            time: number;
+            url: string;
+            w: number;
+        };
+        rotation: number;
+        type: "audio";
+        typeName: "shape";
+        x: number;
+        y: number;
+    };
+    // (undocumented)
+    onBeforeUpdate?: TLOnBeforeUpdateHandler<TLAudioShape>;
+    // (undocumented)
     static props: RecordProps<TLAudioShape>;
     // (undocumented)
     toSvg(shape: TLAudioShape): JSX_2.Element;

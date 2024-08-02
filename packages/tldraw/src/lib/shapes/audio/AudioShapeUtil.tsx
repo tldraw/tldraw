@@ -1,9 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Editor,
 	HTMLContainer,
 	TLAudioAsset,
 	TLAudioShape,
+	TLOnBeforeUpdateHandler,
 	audioShapeMigrations,
 	audioShapeProps,
 	toDomPrecision,
@@ -37,103 +39,30 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 	component(shape: TLAudioShape) {
 		const { editor } = this
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
-		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
 
 		const rAudio = useRef<HTMLAudioElement>(null!)
 
-		const handlePlay = useCallback<ReactEventHandler<HTMLAudioElement>>(
-			(e) => {
-				const audio = e.currentTarget
-				if (!audio) return
-
-				editor.updateShapes([
-					{
-						type: 'audio',
-						id: shape.id,
-						props: {
-							playing: true,
-							time: audio.currentTime,
-						},
-					},
-				])
-			},
-			[shape.id, editor]
-		)
-
-		const handlePause = useCallback<ReactEventHandler<HTMLAudioElement>>(
-			(e) => {
-				const audio = e.currentTarget
-				if (!audio) return
-
-				editor.updateShapes([
-					{
-						type: 'audio',
-						id: shape.id,
-						props: {
-							playing: false,
-							time: audio.currentTime,
-						},
-					},
-				])
-			},
-			[shape.id, editor]
-		)
-
-		const handleSetCurrentTime = useCallback<ReactEventHandler<HTMLAudioElement>>(
-			(e) => {
-				const audio = e.currentTarget
-				if (!audio) return
-
-				if (isEditing) {
-					editor.updateShapes([
-						{
-							type: 'audio',
-							id: shape.id,
-							props: {
-								time: audio.currentTime,
-							},
-						},
-					])
-				}
-			},
-			[isEditing, shape.id, editor]
-		)
-
 		const [isLoaded, setIsLoaded] = useState(false)
 
-		const handleLoadedData = useCallback<ReactEventHandler<HTMLAudioElement>>(
-			(e) => {
-				const audio = e.currentTarget
-				if (!audio) return
-				if (time !== audio.currentTime) {
-					audio.currentTime = time
-				}
+		const handleLoadedData = useCallback<ReactEventHandler<HTMLAudioElement>>((e) => {
+			const audio = e.currentTarget
+			if (!audio) return
 
-				if (!playing) {
-					audio.pause()
-				}
-
-				setIsLoaded(true)
-			},
-			[playing, time]
-		)
+			setIsLoaded(true)
+		}, [])
 
 		// If the current time changes and we're not editing the audio, update the audio time
 		useEffect(() => {
 			const audio = rAudio.current
 			if (!audio) return
 
-			if (isLoaded && !isEditing && time !== audio.currentTime) {
-				audio.currentTime = time
-			}
-
 			if (isEditing) {
 				if (document.activeElement !== audio) {
 					audio.focus()
 				}
 			}
-		}, [isEditing, isLoaded, time])
+		}, [isEditing, isLoaded])
 
 		const audioAsset = asset as TLAudioAsset | undefined
 		const coverArt = audioAsset?.props.coverArt
@@ -150,7 +79,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 					}}
 				>
 					<div className="tl-counter-scaled">
-						<div className="tl-audio-container">
+						<div className="tl-audio-container" data-hastitle={false}>
 							{coverArt && (
 								<div
 									className="tl-audio-cover-art"
@@ -168,9 +97,6 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 									draggable={false}
 									loop
 									controls
-									onPlay={handlePlay}
-									onPause={handlePause}
-									onTimeUpdate={handleSetCurrentTime}
 									onLoadedData={handleLoadedData}
 									hidden={!isLoaded}
 								>
@@ -206,5 +132,44 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 		} else {
 			return <text>🎵</text>
 		}
+	}
+
+	override onBeforeCreate = (next: TLAudioShape) => {
+		return getAudioSize(this.editor, next)
+	}
+
+	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLAudioShape> = (prev, shape) => {
+		if (prev.props.assetId !== shape.props.assetId) {
+			return getAudioSize(this.editor, shape)
+		}
+	}
+}
+
+/** @internal */
+export const AUDIO_HEIGHT = 260
+const AUDIO_WITHOUT_COVER_ART_HEIGHT = 72
+const AUDIO_WITHOUT_ANYTHING_HEIGHT = 40
+
+function getAudioSize(editor: Editor, shape: TLAudioShape) {
+	const asset = (shape.props.assetId ? editor.getAsset(shape.props.assetId) : null) as TLAudioAsset
+
+	let h = AUDIO_HEIGHT
+
+	if (asset) {
+		if (!asset.props.coverArt) {
+			if (!asset.props.title) {
+				h = AUDIO_WITHOUT_ANYTHING_HEIGHT
+			} else {
+				h = AUDIO_WITHOUT_COVER_ART_HEIGHT
+			}
+		}
+	}
+
+	return {
+		...shape,
+		props: {
+			...shape.props,
+			h,
+		},
 	}
 }

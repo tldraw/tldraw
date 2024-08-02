@@ -19,6 +19,7 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
+import { AUDIO_HEIGHT } from './shapes/audio/AudioShapeUtil'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -99,7 +100,7 @@ export function registerDefaultExternalContentHandlers(
 		}
 
 		let size = isAudioType
-			? { w: 200, h: 260 }
+			? { w: 260, h: AUDIO_HEIGHT }
 			: isImageType
 				? await MediaHelpers.getImageSize(file)
 				: await MediaHelpers.getVideoSize(file)

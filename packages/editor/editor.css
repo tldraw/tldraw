@@ -605,6 +605,9 @@ input,
 
 .tl-audio-container {
 	flex-direction: column;
+}
+
+.tl-audio-container[data-hastitle='true'] {
 	padding-bottom: var(--space-3);
 }
 
@@ -617,11 +620,13 @@ input,
 }
 
 .tl-audio-title {
+	flex-shrink: 0;
 	color: var(--color-text);
 	font-size: 10px;
 	height: 12px;
 	padding: 0 var(--space-6);
 	display: -webkit-box;
+	max-width: 100%;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	-webkit-box-orient: vertical;
