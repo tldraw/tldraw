@@ -1,5 +1,6 @@
 import { TLDrawShapeSegment, VecModel, lerp } from '@tldraw/editor'
 
+/** @public */
 export const interpolateSegments = (
 	startSegments: TLDrawShapeSegment[],
 	endSegments: TLDrawShapeSegment[],
@@ -43,6 +44,7 @@ export const interpolateSegments = (
 	]
 }
 
+/** @public */
 export function interpolateDiscrete<T, K extends keyof T>(
 	start: { props: T },
 	end: { props: T },
