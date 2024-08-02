@@ -8,6 +8,7 @@ import {
 	videoShapeMigrations,
 	videoShapeProps,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -42,104 +43,40 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const { editor } = this
 		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
-		const { time, playing } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
 
 		const rVideo = useRef<HTMLVideoElement>(null!)
 
-		const handlePlay = useCallback<ReactEventHandler<HTMLVideoElement>>(
-			(e) => {
-				const video = e.currentTarget
-				if (!video) return
-
-				editor.updateShapes([
-					{
-						type: 'video',
-						id: shape.id,
-						props: {
-							playing: true,
-							time: video.currentTime,
-						},
-					},
-				])
-			},
-			[shape.id, editor]
-		)
-
-		const handlePause = useCallback<ReactEventHandler<HTMLVideoElement>>(
-			(e) => {
-				const video = e.currentTarget
-				if (!video) return
-
-				editor.updateShapes([
-					{
-						type: 'video',
-						id: shape.id,
-						props: {
-							playing: false,
-							time: video.currentTime,
-						},
-					},
-				])
-			},
-			[shape.id, editor]
-		)
-
-		const handleSetCurrentTime = useCallback<ReactEventHandler<HTMLVideoElement>>(
-			(e) => {
-				const video = e.currentTarget
-				if (!video) return
-
-				if (isEditing) {
-					editor.updateShapes([
-						{
-							type: 'video',
-							id: shape.id,
-							props: {
-								time: video.currentTime,
-							},
-						},
-					])
-				}
-			},
-			[isEditing, shape.id, editor]
-		)
-
 		const [isLoaded, setIsLoaded] = useState(false)
 
-		const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>(
-			(e) => {
-				const video = e.currentTarget
-				if (!video) return
-				if (time !== video.currentTime) {
-					video.currentTime = time
-				}
+		const [isFullscreen, setIsFullscreen] = useState(false)
 
-				if (!playing) {
-					video.pause()
-				}
+		useEffect(() => {
+			const fullscreenChange = () => setIsFullscreen(!!document.fullscreenElement)
+			document.addEventListener('fullscreenchange', fullscreenChange)
 
-				setIsLoaded(true)
-			},
-			[playing, time]
-		)
+			return () => document.removeEventListener('fullscreenchange', fullscreenChange)
+		})
+
+		const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
+			const video = e.currentTarget
+			if (!video) return
+
+			setIsLoaded(true)
+		}, [])
 
 		// If the current time changes and we're not editing the video, update the video time
 		useEffect(() => {
 			const video = rVideo.current
 			if (!video) return
 
-			if (isLoaded && !isEditing && time !== video.currentTime) {
-				video.currentTime = time
-			}
-
 			if (isEditing) {
 				if (document.activeElement !== video) {
 					video.focus()
 				}
 			}
-		}, [isEditing, isLoaded, time])
+		}, [isEditing, isLoaded])
 
 		useEffect(() => {
 			if (prefersReducedMotion) {
@@ -168,7 +105,9 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 								<video
 									ref={rVideo}
 									style={isEditing ? { pointerEvents: 'all' } : undefined}
-									className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
+									className={classNames('tl-video', `tl-video-shape-${shape.id.split(':')[1]}`, {
+										'tl-video-is-fullscreen': isFullscreen,
+									})}
 									width="100%"
 									height="100%"
 									draggable={false}
@@ -179,9 +118,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 									disableRemotePlayback
 									disablePictureInPicture
 									controls={isEditing && showControls}
-									onPlay={handlePlay}
-									onPause={handlePause}
-									onTimeUpdate={handleSetCurrentTime}
 									onLoadedData={handleLoadedData}
 									hidden={!isLoaded}
 								>
