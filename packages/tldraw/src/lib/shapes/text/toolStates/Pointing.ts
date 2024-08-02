@@ -50,7 +50,7 @@ export class Pointing extends StateNode {
 		)
 
 		// Ten times the base drag distance for fixed width
-		const minSquaredDragDist = (baseMinDragDistForFixedWidth * 10) / editor.getZoomLevel()
+		const minSquaredDragDist = (baseMinDragDistForFixedWidth * 6) / editor.getZoomLevel()
 
 		if (currentDragDist > minSquaredDragDist) {
 			const id = createShapeId()
