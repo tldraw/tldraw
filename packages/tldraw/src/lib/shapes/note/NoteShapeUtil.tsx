@@ -39,7 +39,6 @@ import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 
-import { interpolateDiscrete, interpolateText } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,
@@ -315,24 +314,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override getInterpolatedProps(
 		startShape: TLNoteShape,
 		endShape: TLNoteShape,
-		progress: number
+		t: number
 	): TLNoteShapeProps {
 		return {
-			...endShape.props,
-			color: interpolateDiscrete(startShape, endShape, 'color', progress),
-			size: interpolateDiscrete(startShape, endShape, 'size', progress),
-			font: interpolateDiscrete(startShape, endShape, 'font', progress),
-			fontSizeAdjustment: lerp(
-				startShape.props.fontSizeAdjustment,
-				endShape.props.fontSizeAdjustment,
-				progress
-			),
-			align: interpolateDiscrete(startShape, endShape, 'align', progress),
-			verticalAlign: interpolateDiscrete(startShape, endShape, 'verticalAlign', progress),
-			growY: lerp(startShape.props.growY, endShape.props.growY, progress),
-			url: interpolateDiscrete(startShape, endShape, 'url', progress),
-			text: interpolateText(startShape, endShape, progress),
-			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
+			...(t > 0.5 ? endShape.props : startShape.props),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }

@@ -18,7 +18,6 @@ import {
 import { useMemo } from 'react'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
 
-import { interpolateDiscrete } from '../shared/interpolate-props'
 import { resizeBox } from '../shared/resizeBox'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
@@ -179,8 +178,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		t: number
 	): TLEmbedShapeProps {
 		return {
-			...endShape.props,
-			url: interpolateDiscrete(startShape, endShape, 'url', t),
+			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
 		}

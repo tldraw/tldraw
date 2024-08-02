@@ -44,7 +44,6 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
-import { interpolateDiscrete, interpolateText } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
@@ -815,15 +814,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		progress: number
 	): TLArrowShapeProps {
 		return {
-			...endShape.props,
-			labelColor: interpolateDiscrete(startShape, endShape, 'labelColor', progress),
-			color: interpolateDiscrete(startShape, endShape, 'color', progress),
-			fill: interpolateDiscrete(startShape, endShape, 'fill', progress),
-			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),
-			size: interpolateDiscrete(startShape, endShape, 'size', progress),
-			arrowheadStart: interpolateDiscrete(startShape, endShape, 'arrowheadStart', progress),
-			arrowheadEnd: interpolateDiscrete(startShape, endShape, 'arrowheadEnd', progress),
-			font: interpolateDiscrete(startShape, endShape, 'font', progress),
+			...(progress > 0.5 ? endShape.props : startShape.props),
+			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
 			start: {
 				x: lerp(startShape.props.start.x, endShape.props.start.x, progress),
 				y: lerp(startShape.props.start.y, endShape.props.start.y, progress),
@@ -833,9 +825,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				y: lerp(startShape.props.end.y, endShape.props.end.y, progress),
 			},
 			bend: lerp(startShape.props.bend, endShape.props.bend, progress),
-			text: interpolateText(startShape, endShape, progress),
 			labelPosition: lerp(startShape.props.labelPosition, endShape.props.labelPosition, progress),
-			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
 		}
 	}
 }

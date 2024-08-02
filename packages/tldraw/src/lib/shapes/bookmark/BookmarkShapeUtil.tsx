@@ -20,7 +20,6 @@ import { useState } from 'react'
 import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
-import { interpolateDiscrete } from '../shared/interpolate-props'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const BOOKMARK_WIDTH = 300
@@ -168,11 +167,9 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		t: number
 	): TLBookmarkShapeProps {
 		return {
-			...endShape.props,
-			url: interpolateDiscrete(startShape, endShape, 'url', t),
+			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
-			assetId: interpolateDiscrete(startShape, endShape, 'assetId', t),
 		}
 	}
 }

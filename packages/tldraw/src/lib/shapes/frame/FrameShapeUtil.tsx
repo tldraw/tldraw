@@ -22,7 +22,6 @@ import {
 import classNames from 'classnames'
 
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
-import { interpolateDiscrete } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 
@@ -242,10 +241,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		t: number
 	): TLFrameShapeProps {
 		return {
-			...endShape.props,
+			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
-			name: interpolateDiscrete(startShape, endShape, 'name', t),
 		}
 	}
 }

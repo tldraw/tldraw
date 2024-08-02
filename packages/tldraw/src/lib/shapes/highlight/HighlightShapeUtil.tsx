@@ -24,7 +24,7 @@ import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoint
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
-import { interpolateDiscrete, interpolateSegments } from '../shared/interpolate-props'
+import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
@@ -186,16 +186,13 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	override getInterpolatedProps(
 		startShape: TLHighlightShape,
 		endShape: TLHighlightShape,
-		progress: number
+		t: number
 	): TLHighlightShapeProps {
 		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
 			...endShape.props,
-			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, progress),
-			color: interpolateDiscrete(startShape, endShape, 'color', progress),
-			size: interpolateDiscrete(startShape, endShape, 'size', progress),
-			isComplete: interpolateDiscrete(startShape, endShape, 'isComplete', progress),
-			isPen: interpolateDiscrete(startShape, endShape, 'isPen', progress),
-			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
+			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }

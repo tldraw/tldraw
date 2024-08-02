@@ -23,7 +23,6 @@ import { useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { interpolateDiscrete } from '../shared/interpolate-props'
 import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -388,15 +387,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		return {
-			...endShape.props,
+			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
-			playing: interpolateDiscrete(startShape, endShape, 'playing', t),
-			url: interpolateDiscrete(startShape, endShape, 'url', t),
-			assetId: interpolateDiscrete(startShape, endShape, 'assetId', t),
 			crop: interpolateCrop(startShape, endShape),
-			flipX: interpolateDiscrete(startShape, endShape, 'flipX', t),
-			flipY: interpolateDiscrete(startShape, endShape, 'flipY', t),
 		}
 	}
 }

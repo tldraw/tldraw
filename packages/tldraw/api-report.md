@@ -565,7 +565,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
-    getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, progress: number): TLDrawShapeProps;
+    getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, t: number): TLDrawShapeProps;
     // (undocumented)
     hideResizeHandles(shape: TLDrawShape): boolean;
     // (undocumented)
@@ -1002,7 +1002,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
-    getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, progress: number): TLHighlightShapeProps;
+    getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, t: number): TLHighlightShapeProps;
     // (undocumented)
     hideResizeHandles(shape: TLHighlightShape): boolean;
     // (undocumented)
@@ -1118,7 +1118,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
-    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, progress: number): TLLineShape['props'];
+    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, t: number): TLLineShape['props'];
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -1140,8 +1140,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            dash: "dashed" | "dotted" | "draw" | "solid";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            dash: "dashed" | "dotted" | "draw" | "solid";
             points: {
                 [x: string]: {
                     id: string;
@@ -1218,7 +1218,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
     // (undocumented)
-    getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, progress: number): TLNoteShapeProps;
+    getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)

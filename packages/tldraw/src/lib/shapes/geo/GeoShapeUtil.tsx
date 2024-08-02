@@ -45,7 +45,6 @@ import {
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
-import { interpolateDiscrete, interpolateText } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { GeoShapeBody } from './components/GeoShapeBody'
 import {
@@ -839,21 +838,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		t: number
 	): TLGeoShapeProps {
 		return {
-			...endShape.props,
-			geo: interpolateDiscrete(startShape, endShape, 'geo', t),
-			labelColor: interpolateDiscrete(startShape, endShape, 'labelColor', t),
-			color: interpolateDiscrete(startShape, endShape, 'color', t),
-			fill: interpolateDiscrete(startShape, endShape, 'fill', t),
-			dash: interpolateDiscrete(startShape, endShape, 'dash', t),
-			size: interpolateDiscrete(startShape, endShape, 'size', t),
-			font: interpolateDiscrete(startShape, endShape, 'font', t),
-			align: interpolateDiscrete(startShape, endShape, 'align', t),
-			verticalAlign: interpolateDiscrete(startShape, endShape, 'verticalAlign', t),
-			url: interpolateDiscrete(startShape, endShape, 'url', t),
+			...(t > 0.5 ? endShape.props : startShape.props),
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
-			growY: lerp(startShape.props.growY, endShape.props.growY, t),
-			text: interpolateText(startShape, endShape, t),
 			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}

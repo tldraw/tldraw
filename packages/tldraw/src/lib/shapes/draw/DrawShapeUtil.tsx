@@ -26,7 +26,7 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
-import { interpolateDiscrete, interpolateSegments } from '../shared/interpolate-props'
+import { interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -178,19 +178,12 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	override getInterpolatedProps(
 		startShape: TLDrawShape,
 		endShape: TLDrawShape,
-		progress: number
+		t: number
 	): TLDrawShapeProps {
 		return {
-			...endShape.props,
-			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, progress),
-			color: interpolateDiscrete(startShape, endShape, 'color', progress),
-			fill: interpolateDiscrete(startShape, endShape, 'fill', progress),
-			dash: interpolateDiscrete(startShape, endShape, 'dash', progress),
-			size: interpolateDiscrete(startShape, endShape, 'size', progress),
-			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
-			isComplete: interpolateDiscrete(startShape, endShape, 'isComplete', progress),
-			isClosed: interpolateDiscrete(startShape, endShape, 'isClosed', progress),
-			isPen: interpolateDiscrete(startShape, endShape, 'isPen', progress),
+			...(t > 0.5 ? endShape.props : startShape.props),
+			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }
