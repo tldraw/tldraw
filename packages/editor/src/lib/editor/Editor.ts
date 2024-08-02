@@ -210,10 +210,6 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
-	/**
-	 * Options for syncing the editor's state with the URL.
-	 */
-	urlStateSync?: TLUrlStateOptions
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
 }
@@ -240,7 +236,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
-		urlStateSync,
 	}: TLEditorOptions) {
 		super()
 
@@ -714,18 +709,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.updateViewportScreenBounds()
-
-		if (urlStateSync) {
-			if (!urlStateSync.getUrl) {
-				// load the state from window.location
-				this.loadStateFromUrl(urlStateSync)
-			} else {
-				// load the state from the provided URL
-				this.loadStateFromUrl({ ...urlStateSync, url: urlStateSync.getUrl() })
-			}
-
-			this.disposables.add(this.updateUrlOnStateChange(urlStateSync))
-		}
 
 		this.performanceTracker = new PerformanceTracker()
 	}

@@ -35,6 +35,7 @@ import {
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
+import { useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
@@ -358,7 +359,7 @@ function TldrawEditorWithReadyStore({
 	cameraOptions,
 	options,
 	licenseKey,
-	urlStateSync,
+	urlStateSync: _urlStateSync,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -377,11 +378,27 @@ function TldrawEditorWithReadyStore({
 		autoFocus: autoFocus && !noAutoFocus(),
 		inferDarkMode,
 		initialState,
-		urlStateSync,
 
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
 	})
+
+	const urlStateSync = useShallowObjectIdentity(_urlStateSync === true ? {} : _urlStateSync)
+	const urlStateSyncRef = useRef(urlStateSync)
+
+	useLayoutEffect(() => {
+		const isCurrentVersionAnObject = typeof urlStateSync === 'object'
+		const wasPreviousVersionAnObject = typeof urlStateSyncRef.current === 'object'
+		if (
+			(isCurrentVersionAnObject && !wasPreviousVersionAnObject) ||
+			(!isCurrentVersionAnObject && wasPreviousVersionAnObject)
+		) {
+			console.error('urlStateSync cannot be changed to an object after mounting')
+			return
+		}
+		if (!isCurrentVersionAnObject) return
+		Object.assign(urlStateSyncRef.current!, urlStateSync)
+	}, [urlStateSync])
 
 	useLayoutEffect(() => {
 		editorOptionsRef.current = {
@@ -389,14 +406,12 @@ function TldrawEditorWithReadyStore({
 			inferDarkMode,
 			initialState,
 			cameraOptions,
-			urlStateSync,
 		}
 	}, [autoFocus, inferDarkMode, initialState, cameraOptions, urlStateSync])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions, urlStateSync } =
-				editorOptionsRef.current
+			const { autoFocus, inferDarkMode, initialState, cameraOptions } = editorOptionsRef.current
 			const editor = new Editor({
 				store,
 				shapeUtils,
@@ -411,8 +426,18 @@ function TldrawEditorWithReadyStore({
 				cameraOptions,
 				options,
 				licenseKey,
-				urlStateSync: urlStateSync === true ? {} : urlStateSync,
 			})
+
+			// Use the ref here because we only want to do this once when the editor is created.
+			// We don't want changes to the urlStateSync prop to trigger creating new editors.
+			const urlStateSync = urlStateSyncRef.current
+			if (!urlStateSync?.getUrl) {
+				// load the state from window.location
+				editor.loadStateFromUrl(urlStateSync)
+			} else {
+				// load the state from the provided URL
+				editor.loadStateFromUrl({ ...urlStateSync, url: urlStateSync.getUrl() })
+			}
 
 			setEditor(editor)
 
@@ -423,6 +448,13 @@ function TldrawEditorWithReadyStore({
 		// if any of these change, we need to recreate the editor.
 		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor, licenseKey]
 	)
+
+	useLayoutEffect(() => {
+		if (!editor) return
+		if (urlStateSync) {
+			return editor.updateUrlOnStateChange(urlStateSync)
+		}
+	}, [editor, urlStateSync])
 
 	// keep the editor up to date with the latest camera options
 	useLayoutEffect(() => {
