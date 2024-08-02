@@ -431,12 +431,14 @@ function TldrawEditorWithReadyStore({
 			// Use the ref here because we only want to do this once when the editor is created.
 			// We don't want changes to the urlStateSync prop to trigger creating new editors.
 			const urlStateSync = urlStateSyncRef.current
-			if (!urlStateSync?.getUrl) {
-				// load the state from window.location
-				editor.loadStateFromUrl(urlStateSync)
-			} else {
-				// load the state from the provided URL
-				editor.loadStateFromUrl({ ...urlStateSync, url: urlStateSync.getUrl() })
+			if (urlStateSync) {
+				if (!urlStateSync?.getUrl) {
+					// load the state from window.location
+					editor.loadStateFromUrl(urlStateSync)
+				} else {
+					// load the state from the provided URL
+					editor.loadStateFromUrl({ ...urlStateSync, url: urlStateSync.getUrl() })
+				}
 			}
 
 			setEditor(editor)
