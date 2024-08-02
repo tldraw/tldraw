@@ -62,6 +62,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		})
 	}
 
+	override getText(shape: TLTextShape) {
+		return shape.props.text
+	}
+
 	override canEdit() {
 		return true
 	}

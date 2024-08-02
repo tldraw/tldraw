@@ -165,6 +165,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		]
 	}
 
+	override getText(shape: TLNoteShape) {
+		return shape.props.text
+	}
+
 	component(shape: TLNoteShape) {
 		const {
 			id,

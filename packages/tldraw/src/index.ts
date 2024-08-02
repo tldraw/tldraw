@@ -13,6 +13,7 @@ export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	centerSelectionAroundPoint,
+	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
 	createShapesForAssets,
 	registerDefaultExternalContentHandlers,
 	type TLExternalContentProps,

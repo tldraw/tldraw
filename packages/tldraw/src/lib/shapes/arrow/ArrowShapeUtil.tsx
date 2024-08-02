@@ -188,6 +188,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		].filter(Boolean) as TLHandle[]
 	}
 
+	override getText(shape: TLArrowShape) {
+		return shape.props.text
+	}
+
 	override onHandleDrag(
 		shape: TLArrowShape,
 		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>
