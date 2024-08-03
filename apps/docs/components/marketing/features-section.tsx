@@ -26,8 +26,8 @@ export const FeaturesSection = () => {
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
 						<h3 className="text-black font-black text-xl md:text-2xl mb-4">React canvas</h3>
 						<p className="max-w-xs">
-							Every object on the tldraw canvas is a React component. If you can do it on the web,
-							you can do on the canvas, too.
+							Everything on the tldraw canvas is its own React component. If you can do it on the
+							web, you can now do it on the canvas too.
 						</p>
 					</div>
 				</Card>
@@ -48,11 +48,13 @@ export const FeaturesSection = () => {
 				<Card className="col-span-6 md:col-span-2">
 					<Image
 						src={FeaturesMultiplayer}
-						alt="Real-time collaboration"
+						alt="Real-time collaborative"
 						className="absolute bottom-5 right-7 w-1/2"
 					/>
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Built-in Multiplayer</h3>
+						<h3 className="text-black font-black text-xl md:text-2xl mb-4">
+							Real-time collaborative
+						</h3>
 						<p className="max-w-xs">
 							Create shared experiences with real-time collaboration, live cursors, viewport
 							following and cursor chat. Go live with tldraw sync or bring your own backend.
@@ -62,11 +64,11 @@ export const FeaturesSection = () => {
 				<Card className="col-span-6 md:col-span-2">
 					<Image
 						src={FeaturesRichMedia}
-						alt="Rich Media"
+						alt="Media and more"
 						className="absolute bottom-4 right-8 w-5/6"
 					/>
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Rich Media</h3>
+						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Media and more</h3>
 						<p className="max-w-xs">
 							Drop in images, videos, and even other websites to add them to the canvas. Paste URLs
 							to create interactive bookmarks. Export images and data.
@@ -82,8 +84,8 @@ export const FeaturesSection = () => {
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
 						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Make it yours</h3>
 						<p className="max-w-xs">
-							Create your own custom shapes, tools, and user interface. The SDK is highly hackable
-							and built for customization.
+							Highly hackable and built for customization. Create your own custom shapes, tools, and
+							user interface. Use the runtime API to drive the canvas.
 						</p>
 					</div>
 				</Card>

@@ -12,8 +12,8 @@ export const DetailsSection = () => {
 		<Section>
 			<SectionHeading
 				subheading="Features"
-				heading="Fine Tuned Details"
-				description="From the bending of our arrows to the shadows of our cursors, we obsess over every design detail."
+				heading="Fine-tuned details"
+				description="Carefully considered details that turn table-stakes features into best-in-class user experience."
 			/>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-5">
 				{details.map(({ icon, heading, description }, index) => {
@@ -36,13 +36,13 @@ export const DetailsSection = () => {
 const details = [
 	{
 		icon: PencilIcon,
-		heading: 'Best Pencil Tool',
+		heading: 'Perfect ink',
 		description:
 			'Create beautiful, pressure-sensitive freehand lines with the pen tool, powered by our custom algorithm for virtual ink.',
 	},
 	{
 		icon: ArrowUturnUpIcon,
-		heading: 'Perfect Arrows',
+		heading: 'Perfect arrows',
 		description:
 			'Linking lines never looked so good. Customize arrowheads and create beautiful curves between shapes, notes, and more.',
 	},
@@ -50,12 +50,12 @@ const details = [
 		icon: MoonIcon,
 		heading: 'Dark Mode',
 		description:
-			'Tldraw comes with full light and dark mode support that effect menus, shapes, and even image exports.',
+			'Switch between full light and dark mode themes that effect menus, shapes, and even image exports.',
 	},
 	{
 		icon: Bars3BottomLeftIcon,
-		heading: 'Rich Text',
+		heading: 'Works everywhere',
 		description:
-			'Auto-sizing text fields that support headers, code blocks, lists, and rich text styles. Markdown syntax? Got you.',
+			'High performance in all modern browsers and on desktop, tablet, and mobile devices. Quality constantly maintained.',
 	},
 ]
