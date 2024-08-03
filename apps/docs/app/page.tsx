@@ -1,6 +1,5 @@
 import { CaseStudiesSection } from '@/components/marketing/case-studies-section'
 import { CTASection } from '@/components/marketing/cta-section'
-import { CustomizationSection } from '@/components/marketing/customization-section'
 import { DetailsSection } from '@/components/marketing/details-section'
 import { FAQSection } from '@/components/marketing/faq-section'
 import { FeaturesSection } from '@/components/marketing/features-section'
@@ -18,7 +17,7 @@ export default function Page() {
 			<FeaturesSection />
 			<DetailsSection />
 			<InstallationSection />
-			<CustomizationSection />
+			{/* <CustomizationSection /> */}
 			<CaseStudiesSection />
 			<PricingSection />
 			<TestimonialsSection />

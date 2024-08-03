@@ -13,22 +13,21 @@ export const FeaturesSection = () => {
 		<Section>
 			<SectionHeading
 				subheading="Features"
-				heading="The Feature Complete Whiteboard"
-				description="Wether you’re looking for a drop-in whiteboard or a starting point for your own canvas, tldraw has you covered."
+				heading="Feature complete"
+				description="We've designed the tldraw SDK to be a solid foundation. It's built for the web and packed with table-stakes features."
 			/>
 			<div className="grid grid-cols-6 gap-x-8 md:gap-y-8">
 				<Card className="col-span-6 md:col-span-3">
 					<Image
 						src={FeaturesReact}
-						alt="Based on React"
+						alt="React canvas"
 						className="absolute bottom-4 right-8 w-1/2"
 					/>
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Based on React</h3>
+						<h3 className="text-black font-black text-xl md:text-2xl mb-4">React canvas</h3>
 						<p className="max-w-xs">
-							Every shape on the canvas is a React component, meaning anything that’s possible on
-							the web -<br className="lg:hidden" />
-							tldraw can do it too.
+							Every object on the tldraw canvas is a React component. If you can do it on the web,
+							you can do on the canvas, too.
 						</p>
 					</div>
 				</Card>
@@ -39,26 +38,24 @@ export const FeaturesSection = () => {
 						className="absolute bottom-0 right-0 w-5/6"
 					/>
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">
-							Performance Guaranteed
-						</h3>
+						<h3 className="text-black font-black text-xl md:text-2xl mb-4">High performance</h3>
 						<p className="max-w-xs">
-							Try moving 100 objects – minimal latency and smooth multiplayer experience come
-							guaranteed with tldraw.
+							Create and edit thousands of objects without missing a frame. We've tuned performance
+							for desktop, tablets, and mobile devices.
 						</p>
 					</div>
 				</Card>
 				<Card className="col-span-6 md:col-span-2">
 					<Image
 						src={FeaturesMultiplayer}
-						alt="Built-in Multiplayer"
+						alt="Real-time collaboration"
 						className="absolute bottom-5 right-7 w-1/2"
 					/>
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
 						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Built-in Multiplayer</h3>
 						<p className="max-w-xs">
-							Tldraw supports user names, viewport following and cursor chat, enabling you to build
-							great multiplayer experiences.
+							Create shared experiences with real-time collaboration, live cursors, viewport
+							following and cursor chat. Go live with tldraw sync or bring your own backend.
 						</p>
 					</div>
 				</Card>
@@ -71,22 +68,22 @@ export const FeaturesSection = () => {
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
 						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Rich Media</h3>
 						<p className="max-w-xs">
-							Drop in files to add them to the canvas, no server needed. Paste URLs to create
-							interactive bookmarks.
+							Drop in images, videos, and even other websites to add them to the canvas. Paste URLs
+							to create interactive bookmarks. Export images and data.
 						</p>
 					</div>
 				</Card>
 				<Card className="col-span-6 md:col-span-2">
 					<Image
 						src={FeaturesShapes}
-						alt="Custom Shapes"
+						alt="Make it yours"
 						className="absolute -bottom-12 right-4 w-1/2"
 					/>
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Custom Shapes</h3>
+						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Make it yours</h3>
 						<p className="max-w-xs">
-							In addition to the 16+ default shapes, the tldraw APIs allow you to add your own
-							custom shapes.
+							Create your own custom shapes, tools, and user interface. The SDK is highly hackable
+							and built for customization.
 						</p>
 					</div>
 				</Card>
