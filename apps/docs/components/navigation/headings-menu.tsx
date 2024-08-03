@@ -13,7 +13,7 @@ export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings
 			let current = ''
 			for (const { slug } of headings) {
 				const element = document.getElementById(slug)
-				if (element && element.getBoundingClientRect().top < 256) current = slug
+				if (element && element.getBoundingClientRect().top < 100) current = slug
 			}
 			setActiveSlug(current)
 		}

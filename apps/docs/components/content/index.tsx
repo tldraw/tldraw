@@ -30,7 +30,7 @@ export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type })
 				'prose-th:text-left prose-th:font-semibold prose-th:uppercase prose-th:text-xs prose-th:border-l prose-th:border-white prose-th:py-3 prose-th:px-4',
 				'prose-tr:border-t prose-tr:border-white',
 				'prose-td:border-l first:prose-td:border-l-0 prose-td:border-white prose-td:py-3 prose-td:px-4',
-				'prose-hr:border-zinc-100'
+				'prose-hr:border-zinc-100 prose-h1:scroll-mt-20 prose-h2:scroll-mt-20 prose-h3:scroll-mt-20 prose-h4:scroll-mt-20 prose-h5:scroll-mt-20'
 			)}
 		>
 			<MDXRemote

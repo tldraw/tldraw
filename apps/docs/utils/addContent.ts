@@ -157,7 +157,9 @@ function getHeadingLinks(content: string) {
 	const visited = new Set<string>()
 
 	while ((match = MATCH_HEADINGS.exec(content)) !== null) {
-		const title = match[2].replace(/\[.*?\]\(.*?\)/g, '').trim()
+		const rawTitle = match[2]
+		// extract the title from the markdown link
+		const title = rawTitle.replace(/\[([^\]]+)\]\(.*\)/, '$1')
 
 		if (visited.has(title)) continue
 		visited.add(title)
