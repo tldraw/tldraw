@@ -27,7 +27,7 @@ export const NavigationLink: React.FC<{
 			<Popover className="relative group/dropdown">
 				<PopoverButton
 					className={cn(
-						'flex items-center gap-1',
+						'cursor-pointer flex items-center gap-1 focus:outline-none',
 						active ? 'font-semibold text-black' : 'hover:text-zinc-600'
 					)}
 				>
