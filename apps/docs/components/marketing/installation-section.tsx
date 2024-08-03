@@ -6,14 +6,15 @@ import { Button } from '../common/button'
 export const InstallationSection = () => {
 	return (
 		<Section>
-			<SectionHeading subheading="Features" heading="Easy Installation" />
+			<SectionHeading
+				subheading="Features"
+				heading="Installation"
+				description="Install the tldraw package, import the styles, and render the component in your React app."
+			/>
 			<div className="flex flex-col items-center gap-8 mt-8 md:max-w-2xl mx-auto">
 				<Code files={[code.terminal]} hideTabs className="my-0 w-full" />
 				<Code files={[code.app]} className="my-0 w-full" />
-				<p className="text-center max-w-lg text-balance px-5">
-					Import the styles and render the Tldraw React component inside your app. Easy as that.
-				</p>
-				<Button href="/quick-start" caption="Get Started" />
+				<Button href="/quick-start" caption="Read our Quick Start guide" />
 			</div>
 		</Section>
 	)

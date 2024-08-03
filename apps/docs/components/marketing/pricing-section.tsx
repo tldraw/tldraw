@@ -11,8 +11,8 @@ export const PricingSection = () => {
 			<Section className="pb-24 md:pb-32 lg:pb-40">
 				<SectionHeading
 					subheading="Pricing"
-					heading="Free for Non-Commercial Use"
-					description="The tldraw SDK is completely free to use and build non-commercial projects with. You'll have a watermark in the corner of the canvas."
+					heading="Free for non-commercial use"
+					description="The tldraw SDK is source available and free to use in non-commercial projects."
 				/>
 				<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 max-w-2xl">
 					<div className="relative w-full h-full bg-zinc-900 md:rounded-xl shadow p-5 md:p-8 overflow-hidden text-zinc-300">

@@ -19,8 +19,8 @@ export const CaseStudiesSection = () => {
 		<Section>
 			<SectionHeading
 				subheading="Case Studies"
-				heading="Under the Hood of Great Products"
-				description="Many great products are built with Tldraw. Here are some of them to give you an idea of what’s possible."
+				heading="Used by the best"
+				description="Great products choose tldraw for whiteboards, design tools, image annotation, generative content, and more."
 			/>
 			<div className="grid grid-cols-6 gap-x-8 gap-y-12 md:gap-y-8">
 				{caseStudies.map(({ logo, screenshot, name }, index) => (

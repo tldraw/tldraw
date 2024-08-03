@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import { Button } from '../common/button'
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
 
@@ -8,8 +7,8 @@ export const TestimonialsSection = () => {
 		<Section>
 			<SectionHeading
 				subheading="Testimonials"
-				heading="Hear them out"
-				description="34,000+ GitHub stars. As seen at the top of Hacker News. Used by top teams of the industry."
+				heading="Friends of the draw"
+				description="34,000+ GitHub stars. 60,000 followers on X. Join the 5,000+ strong community on Discord."
 			/>
 			<div className="flow-root px-5 md:px-0 relative">
 				<div className="-mt-8 sm:columns-2 lg:columns-3 gap-8">
@@ -32,13 +31,7 @@ export const TestimonialsSection = () => {
 						</div>
 					))}
 				</div>
-				<div className="absolute h-64 bottom-0 inset-x-0 bg-gradient-to-t from-white via-white/90 flex flex-col items-center justify-end">
-					<div className="flex items-center gap-2 font-semibold text-black">
-						<span>Okay,</span>
-						<Button href="/quick-start" caption="Get Started" />
-						<span>already!</span>
-					</div>
-				</div>
+				{/* Mailing list */}
 			</div>
 		</Section>
 	)
