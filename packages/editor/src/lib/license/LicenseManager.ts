@@ -9,6 +9,7 @@ export const FLAGS = {
 	ANNUAL_LICENSE: 0x1,
 	PERPETUAL_LICENSE: 0x2,
 	INTERNAL_LICENSE: 0x4,
+	WITH_WATERMARK: 0x8,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -22,21 +23,29 @@ const NUMBER_OF_KNOWN_PROPERTIES = Object.keys(PROPERTIES).length
 
 const LICENSE_EMAIL = 'sales@tldraw.com'
 
-interface LicenseInfo {
+/** @internal */
+export interface LicenseInfo {
 	id: string
 	hosts: string[]
 	flags: number
 	expiryDate: string
 }
-type InvalidLicenseReason = 'invalid-license-key' | 'no-key-provided' | 'has-key-development-mode'
+/** @internal */
+export type InvalidLicenseReason =
+	| 'invalid-license-key'
+	| 'no-key-provided'
+	| 'has-key-development-mode'
 
+/** @internal */
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult
 
-interface InvalidLicenseKeyResult {
+/** @internal */
+export interface InvalidLicenseKeyResult {
 	isLicenseParseable: false
 	reason: InvalidLicenseReason
 }
 
+/** @internal */
 export interface ValidLicenseKeyResult {
 	isLicenseParseable: true
 	license: LicenseInfo
@@ -48,9 +57,11 @@ export interface ValidLicenseKeyResult {
 	isPerpetualLicense: boolean
 	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
+	isLicensedWithWatermark: boolean
 }
 
-type TestEnvironment = 'development' | 'production'
+/** @internal */
+export type TestEnvironment = 'development' | 'production'
 
 /** @internal */
 export class LicenseManager {
@@ -59,7 +70,10 @@ export class LicenseManager {
 	public isDevelopment: boolean
 	public isTest: boolean
 	public isCryptoAvailable: boolean
-	state = atom<'pending' | 'licensed' | 'unlicensed'>('license state', 'pending')
+	state = atom<'pending' | 'licensed' | 'licensed-with-watermark' | 'unlicensed'>(
+		'license state',
+		'pending'
+	)
 
 	constructor(
 		licenseKey: string | undefined,
@@ -76,9 +90,12 @@ export class LicenseManager {
 		} else {
 			this.getLicenseFromKey(licenseKey).then((result) => {
 				const isUnlicensed = isEditorUnlicensed(result)
-				this.state.set(isUnlicensed ? 'unlicensed' : 'licensed')
 				if (isUnlicensed) {
-					// todo: fetch to analytics endpoint?
+					this.state.set('unlicensed')
+				} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
+					this.state.set('licensed-with-watermark')
+				} else {
+					this.state.set('licensed')
 				}
 			})
 		}
@@ -187,6 +204,7 @@ export class LicenseManager {
 				isPerpetualLicense,
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
+				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
 			}
 			this.outputLicenseInfoIfNeeded(result)
 
@@ -222,7 +240,7 @@ export class LicenseManager {
 			// Glob testing, we only support '*.somedomain.com' right now.
 			if (host.includes('*')) {
 				const globToRegex = new RegExp(host.replace(/\*/g, '.*?'))
-				return globToRegex.test(currentHostname)
+				return globToRegex.test(currentHostname) || globToRegex.test(`www.${currentHostname}`)
 			}
 
 			return false
@@ -336,5 +354,6 @@ export function isEditorUnlicensed(result: LicenseFromKeyResult) {
 		}
 		return true
 	}
+
 	return false
 }

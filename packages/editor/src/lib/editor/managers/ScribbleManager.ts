@@ -20,7 +20,7 @@ export class ScribbleManager {
 
 	constructor(private editor: Editor) {}
 
-	addScribble = (scribble: Partial<TLScribble>, id = uniqueId()) => {
+	addScribble(scribble: Partial<TLScribble>, id = uniqueId()) {
 		const item: ScribbleItem = {
 			id,
 			scribble: {
@@ -54,7 +54,7 @@ export class ScribbleManager {
 	 *
 	 * @public
 	 */
-	stop = (id: ScribbleItem['id']) => {
+	stop(id: ScribbleItem['id']) {
 		const item = this.scribbleItems.get(id)
 		if (!item) throw Error(`Scribble with id ${id} not found`)
 		item.delayRemaining = Math.min(item.delayRemaining, 200)
@@ -68,7 +68,7 @@ export class ScribbleManager {
 	 * @param point - The point to add.
 	 * @public
 	 */
-	addPoint = (id: ScribbleItem['id'], x: number, y: number, z = 0.5) => {
+	addPoint(id: ScribbleItem['id'], x: number, y: number, z = 0.5) {
 		const item = this.scribbleItems.get(id)
 		if (!item) throw Error(`Scribble with id ${id} not found`)
 		const { prev } = item
@@ -85,7 +85,7 @@ export class ScribbleManager {
 	 * @param elapsed - The number of milliseconds since the last tick.
 	 * @public
 	 */
-	tick = (elapsed: number) => {
+	tick(elapsed: number) {
 		if (this.scribbleItems.size === 0) return
 		this.editor.run(() => {
 			this.scribbleItems.forEach((item) => {

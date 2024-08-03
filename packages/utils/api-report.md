@@ -22,6 +22,9 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
+// @public (undocumented)
+export function bind<T extends Function>(_target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void;
+
 // @internal
 export function clearLocalStorage(): void;
 
@@ -129,25 +132,25 @@ export function getHashForObject(obj: any): string;
 export function getHashForString(string: string): string;
 
 // @public
-export function getIndexAbove(below?: IndexKey | undefined): IndexKey;
+export function getIndexAbove(below?: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndexBelow(above?: IndexKey | undefined): IndexKey;
+export function getIndexBelow(above?: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | undefined): IndexKey;
+export function getIndexBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined): IndexKey;
 
 // @public
 export function getIndices(n: number, start?: IndexKey): IndexKey[];
 
 // @public
-export function getIndicesAbove(below: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesAbove(below: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBelow(above: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesBelow(above: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBetween(below: IndexKey | undefined, above: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @internal (undocumented)
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
@@ -164,7 +167,7 @@ export { Image_2 as Image }
 
 // @public
 export type IndexKey = string & {
-    __orderKey: true;
+    __brand: 'indexKey';
 };
 
 // @public
@@ -333,8 +336,8 @@ export class PngHelpers {
 
 // @internal (undocumented)
 export function promiseWithResolve<T>(): Promise<T> & {
-    reject: (reason?: any) => void;
-    resolve: (value: T) => void;
+    reject(reason?: any): void;
+    resolve(value: T): void;
 };
 
 // @public (undocumented)
@@ -406,7 +409,7 @@ export class Timers {
 export { uniq }
 
 // @internal (undocumented)
-export function validateIndexKey(key: string): asserts key is IndexKey;
+export function validateIndexKey(index: string): asserts index is IndexKey;
 
 // @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;

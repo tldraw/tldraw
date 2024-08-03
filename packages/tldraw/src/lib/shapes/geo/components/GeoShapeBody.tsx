@@ -1,7 +1,13 @@
-import { Group2d, TLGeoShape, Vec, canonicalizeRotation, useEditor } from '@tldraw/editor'
+import {
+	Group2d,
+	TLGeoShape,
+	Vec,
+	canonicalizeRotation,
+	getPerfectDashProps,
+	useEditor,
+} from '@tldraw/editor'
 import { ShapeFill } from '../../shared/ShapeFill'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
-import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { useDefaultColorTheme } from '../../shared/useDefaultColorTheme'
 import {
 	getCloudArcs,
@@ -15,7 +21,15 @@ import {
 } from '../geo-shape-helpers'
 import { getLines } from '../getLines'
 
-export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; shouldScale: boolean }) {
+export function GeoShapeBody({
+	shape,
+	shouldScale,
+	forceSolid,
+}: {
+	shape: TLGeoShape
+	shouldScale: boolean
+	forceSolid: boolean
+}) {
 	const scaleToUse = shouldScale ? shape.props.scale : 1
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
@@ -71,6 +85,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 										style: dash,
 										start: 'outset',
 										end: 'outset',
+										forceSolid,
 									}
 								)
 
@@ -109,6 +124,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 						style: dash,
 						snap: 4,
 						closed: true,
+						forceSolid,
 					}
 				)
 
@@ -158,6 +174,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 						start: 'outset',
 						end: 'outset',
 						closed: true,
+						forceSolid,
 					}
 				)
 
@@ -201,6 +218,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 									start: 'outset',
 									end: 'outset',
 									closed: true,
+									forceSolid,
 								}
 							)
 							return (
@@ -277,6 +295,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 										style: dash,
 										start: 'outset',
 										end: 'outset',
+										forceSolid,
 									}
 								)
 
@@ -304,6 +323,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 											start: 'skip',
 											end: 'skip',
 											snap: dash === 'dotted' ? 4 : undefined,
+											forceSolid,
 										}
 									)
 
