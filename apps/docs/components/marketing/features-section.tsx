@@ -10,7 +10,7 @@ import { SectionHeading } from './section-heading'
 
 export const FeaturesSection = () => {
 	return (
-		<Section>
+		<Section id="features">
 			<SectionHeading
 				subheading="Features"
 				heading="Feature complete"
