@@ -6,18 +6,21 @@ import {
 	Image,
 	MediaHelpers,
 	TLImageShape,
+	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
+	lerp,
 	resizeBox,
 	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
+
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useAsset } from '../shared/useAsset'
@@ -360,6 +363,35 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		this.editor.updateShapes([partial])
+	}
+	override getInterpolatedProps(
+		startShape: TLImageShape,
+		endShape: TLImageShape,
+		t: number
+	): TLImageShapeProps {
+		function interpolateCrop(
+			startShape: TLImageShape,
+			endShape: TLImageShape
+		): TLImageShapeProps['crop'] {
+			if (startShape.props.crop === null && endShape.props.crop === null) return null
+
+			const startTL = startShape.props.crop?.topLeft || { x: 0, y: 0 }
+			const startBR = startShape.props.crop?.bottomRight || { x: 1, y: 1 }
+			const endTL = endShape.props.crop?.topLeft || { x: 0, y: 0 }
+			const endBR = endShape.props.crop?.bottomRight || { x: 1, y: 1 }
+
+			return {
+				topLeft: { x: lerp(startTL.x, endTL.x, t), y: lerp(startTL.y, endTL.y, t) },
+				bottomRight: { x: lerp(startBR.x, endBR.x, t), y: lerp(startBR.y, endBR.y, t) },
+			}
+		}
+
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			crop: interpolateCrop(startShape, endShape),
+		}
 	}
 }
 

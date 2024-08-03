@@ -9,11 +9,13 @@ import {
 	SvgExportContext,
 	TLHandle,
 	TLNoteShape,
+	TLNoteShapeProps,
 	TLShape,
 	TLShapeId,
 	Vec,
 	WeakCache,
 	getDefaultColorTheme,
+	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
 	rng,
@@ -36,6 +38,7 @@ import {
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
+
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,
@@ -306,6 +309,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					},
 				},
 			])
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLNoteShape,
+		endShape: TLNoteShape,
+		t: number
+	): TLNoteShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }

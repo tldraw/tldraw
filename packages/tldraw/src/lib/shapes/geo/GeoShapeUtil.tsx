@@ -17,6 +17,7 @@ import {
 	Stadium2d,
 	SvgExportContext,
 	TLGeoShape,
+	TLGeoShapeProps,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
@@ -25,6 +26,7 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	lerp,
 	useValue,
 } from '@tldraw/editor'
 
@@ -829,6 +831,18 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		return
+	}
+	override getInterpolatedProps(
+		startShape: TLGeoShape,
+		endShape: TLGeoShape,
+		t: number
+	): TLGeoShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
+		}
 	}
 }
 

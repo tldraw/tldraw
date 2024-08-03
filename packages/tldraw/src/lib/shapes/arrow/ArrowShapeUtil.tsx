@@ -814,7 +814,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		progress: number
 	): TLArrowShapeProps {
 		return {
-			...endShape.props,
+			...(progress > 0.5 ? endShape.props : startShape.props),
+			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
 			start: {
 				x: lerp(startShape.props.start.x, endShape.props.start.x, progress),
 				y: lerp(startShape.props.start.y, endShape.props.start.y, progress),
