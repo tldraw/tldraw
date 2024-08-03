@@ -1,4 +1,5 @@
 import { Article, ArticleHeadings, GeneratedContent } from '@/types/content-types'
+import console from 'console'
 import GithubSlugger from 'github-slugger'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
@@ -149,19 +150,24 @@ export async function addFTS(db: Database<sqlite3.Database, sqlite3.Statement>) 
 const slugs = new GithubSlugger()
 
 const MATCH_HEADINGS = /(?:^|\n)(#{1,6})\s+(.+?)(?=\n|$)/g
+
 function getHeadingLinks(content: string) {
 	let match
 	const headings: ArticleHeadings = []
 	const visited = new Set<string>()
+
 	while ((match = MATCH_HEADINGS.exec(content)) !== null) {
-		if (visited.has(match[2])) continue
-		visited.add(match[2])
+		const title = match[2].replace(/\[.*?\]\(.*?\)/g, '').trim()
+
+		if (visited.has(title)) continue
+		visited.add(title)
 		slugs.reset()
+
 		headings.push({
 			level: match[1].length,
-			title: match[2].replaceAll('`', ''),
-			slug: slugs.slug(match[2], true),
-			isCode: match[2].startsWith('`'),
+			title: title.replaceAll('`', ''),
+			slug: slugs.slug(title, true),
+			isCode: title.startsWith('`'),
 		})
 	}
 	return headings
