@@ -4,7 +4,7 @@ import { memo, useCallback } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
-/** @internal */
+/** @public */
 export interface TLUiSliderProps {
 	steps: number
 	value: number | null
@@ -14,7 +14,7 @@ export interface TLUiSliderProps {
 	'data-testid'?: string
 }
 
-/** @internal */
+/** @public @react */
 export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 	const { title, steps, value, label, onValueChange } = props
 	const editor = useEditor()

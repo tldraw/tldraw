@@ -1898,7 +1898,7 @@ export interface TldrawUiProps extends TldrawUiContextProviderProps {
     renderDebugMenuItems?(): React_3.ReactNode;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
 
 // @public (undocumented)
@@ -2673,7 +2673,7 @@ export interface TLUiQuickActionsProps {
     children?: ReactNode;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
