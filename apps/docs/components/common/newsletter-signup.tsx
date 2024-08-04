@@ -8,7 +8,7 @@ import { getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
 import { FC, FormEventHandler, useCallback, useLayoutEffect, useState } from 'react'
 
 // when debugging is true, the form will always show (even if the user has submitted)
-const DEBUGGING = true
+const DEBUGGING = false
 
 export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'large' }) => {
 	// If the user has submitted their email, we don't show the form anymore
@@ -108,7 +108,7 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 					)}
 				>
 					<CheckCircleIcon className="h-4 text-emerald-500" />
-					<span>Thanks for subscribing! 👋</span>
+					<span>Thanks for subscribing!</span>
 				</p>
 			)}
 			{formState === 'error' && (
