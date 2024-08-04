@@ -7,5 +7,5 @@ export function ExitPenMode() {
 
 	if (!isPenMode) return null
 
-	return <TldrawUiMenuActionItem action={'exit-pen-mode'} />
+	return <TldrawUiMenuActionItem actionId="exit-pen-mode" />
 }

@@ -35,14 +35,14 @@ export function AlignMenuItems() {
 
 	return (
 		<>
-			<TldrawUiMenuActionItem action="align-left" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="align-center-horizontal" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="align-right" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="stretch-horizontal" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="align-top" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="align-center-vertical" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="align-bottom" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="stretch-vertical" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="align-left" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="align-center-horizontal" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="align-right" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="stretch-horizontal" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="align-top" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="align-center-vertical" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="align-bottom" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="stretch-vertical" disabled={!enabled} />
 		</>
 	)
 }
@@ -55,8 +55,8 @@ export function DistributeMenuItems() {
 
 	return (
 		<>
-			<TldrawUiMenuActionItem action="distribute-horizontal" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="distribute-vertical" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="distribute-horizontal" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="distribute-vertical" disabled={!enabled} />
 		</>
 	)
 }
@@ -69,8 +69,8 @@ export function StackMenuItems() {
 
 	return (
 		<>
-			<TldrawUiMenuActionItem action="stack-horizontal" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="stack-vertical" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="stack-horizontal" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="stack-vertical" disabled={!enabled} />
 		</>
 	)
 }
@@ -83,10 +83,10 @@ export function ReorderMenuItems() {
 
 	return (
 		<>
-			<TldrawUiMenuActionItem action="send-to-back" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="send-backward" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="bring-forward" disabled={!enabled} />
-			<TldrawUiMenuActionItem action="bring-to-front" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="send-to-back" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="send-backward" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="bring-forward" disabled={!enabled} />
+			<TldrawUiMenuActionItem actionId="bring-to-front" disabled={!enabled} />
 		</>
 	)
 }
@@ -103,7 +103,7 @@ export function ZoomTo100MenuItem() {
 	const editor = useEditor()
 	const isZoomedTo100 = useValue('zoom is 1', () => editor.getZoomLevel() === 1, [editor])
 
-	return <TldrawUiMenuActionItem action="zoom-to-100" disabled={isZoomedTo100} />
+	return <TldrawUiMenuActionItem actionId="zoom-to-100" disabled={isZoomedTo100} />
 }
 /** @public @react */
 
@@ -112,7 +112,7 @@ export function RotateCCWMenuItem() {
 	const isInSelectState = useIsInSelectState()
 	const enabled = oneSelected && isInSelectState
 
-	return <TldrawUiMenuActionItem action="rotate-ccw" disabled={!enabled} />
+	return <TldrawUiMenuActionItem actionId="rotate-ccw" disabled={!enabled} />
 }
 /** @public @react */
 
@@ -121,7 +121,7 @@ export function RotateCWMenuItem() {
 	const isInSelectState = useIsInSelectState()
 	const enabled = oneSelected && isInSelectState
 
-	return <TldrawUiMenuActionItem action="rotate-cw" disabled={!enabled} />
+	return <TldrawUiMenuActionItem actionId="rotate-cw" disabled={!enabled} />
 }
 /** @public @react */
 
@@ -130,7 +130,7 @@ export function EditLinkMenuItem() {
 	const isInSelectState = useIsInSelectState()
 	const enabled = showEditLink && isInSelectState
 
-	return <TldrawUiMenuActionItem action="edit-link" disabled={!enabled} />
+	return <TldrawUiMenuActionItem actionId="edit-link" disabled={!enabled} />
 }
 /** @public @react */
 
@@ -146,10 +146,10 @@ export function GroupMenuItem() {
 	const isInSelectState = useIsInSelectState()
 	const enabled = twoSelected && isInSelectState
 
-	return <TldrawUiMenuActionItem action="group" disabled={!enabled} />
+	return <TldrawUiMenuActionItem actionId="group" disabled={!enabled} />
 }
 /** @public @react */
 
 export function UngroupMenuItem() {
-	return <TldrawUiMenuActionItem action="ungroup" />
+	return <TldrawUiMenuActionItem actionId="ungroup" />
 }

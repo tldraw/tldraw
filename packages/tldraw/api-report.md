@@ -1863,10 +1863,10 @@ export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuActionCheckboxItem({ action: actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX_2.Element | null;
+export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuActionItem({ action: actionId, ...rest }: TLUiMenuActionItemProps): JSX_2.Element | null;
+export function TldrawUiMenuActionItem({ actionId, ...rest }: TLUiMenuActionItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
@@ -1887,7 +1887,7 @@ export function TldrawUiMenuItem<TranslationKey extends string = string, IconTyp
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuToolItem({ tool: toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
+export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
@@ -2554,12 +2554,12 @@ export interface TLUiMainMenuProps {
 
 // @public (undocumented)
 export type TLUiMenuActionCheckboxItemProps = {
-    action?: string;
+    actionId?: string;
 } & Pick<TLUiMenuCheckboxItemProps, 'checked' | 'disabled' | 'toggle'>;
 
 // @public (undocumented)
 export type TLUiMenuActionItemProps = {
-    action?: string;
+    actionId?: string;
 } & Partial<Pick<TLUiMenuItemProps, 'disabled' | 'isSelected' | 'noClose' | 'onSelect'>>;
 
 // @public (undocumented)
@@ -2644,7 +2644,7 @@ export interface TLUiMenuSubmenuProps<Translation extends string = string> {
 
 // @public (undocumented)
 export type TLUiMenuToolItemProps = {
-    tool?: string;
+    toolId?: string;
 } & Pick<TLUiMenuItemProps, 'disabled' | 'isSelected'>;
 
 // @public (undocumented)

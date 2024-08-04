@@ -33,7 +33,7 @@ export function BackToContent() {
 
 	return (
 		<TldrawUiMenuActionItem
-			action="back-to-content"
+			actionId="back-to-content"
 			onSelect={() => {
 				actions['back-to-content'].onSelect('helper-buttons')
 				setShowBackToContent(false)

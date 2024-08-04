@@ -50,8 +50,8 @@ const components: TLComponents = {
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuActionItem action={SAVE_FILE_COPY_ACTION} />
-					<TldrawUiMenuActionItem action={OPEN_FILE_ACTION} />
+					<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
+					<TldrawUiMenuActionItem actionId={OPEN_FILE_ACTION} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>

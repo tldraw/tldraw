@@ -3,11 +3,11 @@ import { TldrawUiMenuItem, TLUiMenuItemProps } from './TldrawUiMenuItem'
 
 /** @public */
 export type TLUiMenuToolItemProps = {
-	tool?: string
+	toolId?: string
 } & Pick<TLUiMenuItemProps, 'isSelected' | 'disabled'>
 
 /** @public @react */
-export function TldrawUiMenuToolItem({ tool: toolId = '', ...rest }: TLUiMenuToolItemProps) {
+export function TldrawUiMenuToolItem({ toolId = '', ...rest }: TLUiMenuToolItemProps) {
 	const tools = useTools()
 	const tool = tools[toolId]
 	if (!tool) return null

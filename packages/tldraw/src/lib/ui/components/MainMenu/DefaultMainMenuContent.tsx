@@ -55,9 +55,9 @@ export function ExportFileContentSubMenu() {
 	return (
 		<TldrawUiMenuSubmenu id="export-all-as" label="context-menu.export-all-as" size="small">
 			<TldrawUiMenuGroup id="export-all-as-group">
-				<TldrawUiMenuActionItem action="export-all-as-svg" />
-				<TldrawUiMenuActionItem action="export-all-as-png" />
-				<TldrawUiMenuActionItem action="export-all-as-json" />
+				<TldrawUiMenuActionItem actionId="export-all-as-svg" />
+				<TldrawUiMenuActionItem actionId="export-all-as-png" />
+				<TldrawUiMenuActionItem actionId="export-all-as-json" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="export-all-as-bg">
 				<ToggleTransparentBgMenuItem />
@@ -123,8 +123,8 @@ export function UndoRedoGroup() {
 	const canRedo = useCanRedo()
 	return (
 		<TldrawUiMenuGroup id="undo-redo">
-			<TldrawUiMenuActionItem action="undo" disabled={!canUndo} />
-			<TldrawUiMenuActionItem action="redo" disabled={!canRedo} />
+			<TldrawUiMenuActionItem actionId="undo" disabled={!canUndo} />
+			<TldrawUiMenuActionItem actionId="redo" disabled={!canRedo} />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -134,8 +134,8 @@ export function ViewSubmenu() {
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
-				<TldrawUiMenuActionItem action="zoom-in" />
-				<TldrawUiMenuActionItem action="zoom-out" />
+				<TldrawUiMenuActionItem actionId="zoom-in" />
+				<TldrawUiMenuActionItem actionId="zoom-out" />
 				<ZoomTo100MenuItem />
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
@@ -148,8 +148,8 @@ export function ViewSubmenu() {
 export function ExtrasGroup() {
 	return (
 		<TldrawUiMenuGroup id="extras">
-			<TldrawUiMenuActionItem action="insert-embed" />
-			<TldrawUiMenuActionItem action="insert-media" />
+			<TldrawUiMenuActionItem actionId="insert-embed" />
+			<TldrawUiMenuActionItem actionId="insert-media" />
 		</TldrawUiMenuGroup>
 	)
 }

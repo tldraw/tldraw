@@ -62,7 +62,7 @@ export interface ToolbarItemProps {
 export function ToolbarItem({ tool }: ToolbarItemProps) {
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools[tool])
-	return <TldrawUiMenuToolItem tool={tool} isSelected={isSelected} />
+	return <TldrawUiMenuToolItem toolId={tool} isSelected={isSelected} />
 }
 
 /** @public @react */
@@ -102,7 +102,7 @@ export function NoteToolbarItem() {
 
 /** @public @react */
 export function AssetToolbarItem() {
-	return <TldrawUiMenuToolItem tool="asset" />
+	return <TldrawUiMenuToolItem toolId="asset" />
 }
 
 /** @public @react */

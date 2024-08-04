@@ -30,10 +30,10 @@ export function DefaultQuickActionsContent() {
 
 	return (
 		<>
-			<TldrawUiMenuActionItem action="undo" disabled={!canUndo} />
-			<TldrawUiMenuActionItem action="redo" disabled={!canRedo} />
-			<TldrawUiMenuActionItem action="delete" disabled={!selectDependentActionsEnabled} />
-			<TldrawUiMenuActionItem action="duplicate" disabled={!selectDependentActionsEnabled} />
+			<TldrawUiMenuActionItem actionId="undo" disabled={!canUndo} />
+			<TldrawUiMenuActionItem actionId="redo" disabled={!canRedo} />
+			<TldrawUiMenuActionItem actionId="delete" disabled={!selectDependentActionsEnabled} />
+			<TldrawUiMenuActionItem actionId="duplicate" disabled={!selectDependentActionsEnabled} />
 		</>
 	)
 }

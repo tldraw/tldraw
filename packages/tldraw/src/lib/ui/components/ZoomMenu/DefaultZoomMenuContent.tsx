@@ -5,8 +5,8 @@ import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionIt
 export function DefaultZoomMenuContent() {
 	return (
 		<>
-			<TldrawUiMenuActionItem action="zoom-in" noClose />
-			<TldrawUiMenuActionItem action="zoom-out" noClose />
+			<TldrawUiMenuActionItem actionId="zoom-in" noClose />
+			<TldrawUiMenuActionItem actionId="zoom-out" noClose />
 			<ZoomTo100MenuItem />
 			<ZoomToFitMenuItem />
 			<ZoomToSelectionMenuItem />
