@@ -64,7 +64,7 @@ const CustomSharePanel = () => {
 				onClick={() => {
 					addDialog({
 						component: MyDialog,
-						onClose: () => {
+						onClose() {
 							// You can do something after the dialog is closed
 							void null
 						},
@@ -77,7 +77,7 @@ const CustomSharePanel = () => {
 				onClick={() => {
 					addDialog({
 						component: MySimpleDialog,
-						onClose: () => {
+						onClose() {
 							// You can do something after the dialog is closed
 							void null
 						},
