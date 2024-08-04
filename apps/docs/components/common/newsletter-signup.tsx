@@ -4,16 +4,45 @@ import { Button } from '@/components/common/button'
 import { cn } from '@/utils/cn'
 import { Field, Input, Label } from '@headlessui/react'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
-import { FormEventHandler, useState } from 'react'
+import { getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
+import { FC, FormEventHandler, useCallback, useLayoutEffect, useState } from 'react'
 
-export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size = 'large' }) => {
-	const [state, setState] = useState<'idle' | 'success' | 'error'>('idle')
-	const [email, setEmail] = useState<string>('')
+// when debugging is true, the form will always show (even if the user has submitted)
+const DEBUGGING = true
 
-	const submit: FormEventHandler = (e) => {
-		e.preventDefault()
-		setState('success')
-	}
+export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'large' }) => {
+	// If the user has submitted their email, we don't show the form anymore
+	const [didSubmit, setDidSubmit] = useLocalStorageState('dev_did_submit_newsletter', false)
+
+	// Todo: replace with react query or something to handle the async work
+	const [formState, setFormState] = useState<'idle' | 'success' | 'error'>('idle')
+
+	const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
+		(e) => {
+			if (formState !== 'idle') return
+
+			e.preventDefault()
+			try {
+				const _email = new FormData(e.currentTarget)?.get('email') as string
+				// todo: submit email to backend...
+				setFormState('success')
+				// After a pause, we locally save that the user has submitted the form
+				setTimeout(() => {
+					setDidSubmit(true)
+					setTimeout(() => setFormState('idle'), 3000)
+				}, 3000)
+			} catch (e) {
+				setFormState('error')
+				// After a pause, we set the form state to idle
+				setTimeout(() => setFormState('idle'), 3000)
+			}
+		},
+		[setDidSubmit, formState]
+	)
+
+	// If the user has already submitted the form, we don't show it anymore,
+	// unless we're both in development mode AND the debug flag is enabled.
+	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null
 
 	return (
 		<div
@@ -38,7 +67,7 @@ export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size 
 				Team news, product updates and deep dives from the team.
 			</p>
 			<form
-				onSubmit={submit}
+				onSubmit={handleSubmit}
 				className={cn(
 					'pb-3',
 					size === 'large' &&
@@ -57,9 +86,7 @@ export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size 
 							'resize-none bg-zinc-200/50 w-full rounded-md placeholder-zinc-400 text-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-50',
 							size === 'small' ? 'h-6 px-2' : 'text-base h-9 px-3'
 						)}
-						value={email}
 						required
-						onChange={(e) => setEmail(e.target.value)}
 					/>
 				</Field>
 				<Button
@@ -70,10 +97,10 @@ export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size 
 					className={cn('justify-center', size === 'small' && 'w-full mt-2')}
 				/>
 			</form>
-			{state === 'idle' && size === 'large' && (
+			{formState === 'idle' && size === 'large' && (
 				<p className="mb-3 text-sm">Join 1,000+ subscribers</p>
 			)}
-			{state === 'success' && (
+			{formState === 'success' && (
 				<p
 					className={cn(
 						'flex items-center gap-1.5 mb-3',
@@ -81,10 +108,10 @@ export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size 
 					)}
 				>
 					<CheckCircleIcon className="h-4 text-emerald-500" />
-					<span>Thanks for subscribing!</span>
+					<span>Thanks for subscribing! 👋</span>
 				</p>
 			)}
-			{state === 'error' && (
+			{formState === 'error' && (
 				<p
 					className={cn(
 						'flex items-center gap-1.5 mb-3',
@@ -97,4 +124,33 @@ export const NewsletterSignup: React.FC<{ size?: 'small' | 'large' }> = ({ size 
 			)}
 		</div>
 	)
+}
+
+/** @public */
+export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
+	const [state, setState] = useState(defaultValue)
+
+	useLayoutEffect(() => {
+		const value = getFromLocalStorage(key)
+		if (value) {
+			try {
+				setState(JSON.parse(value))
+			} catch (e) {
+				console.error(`Could not restore value ${key} from local storage.`)
+			}
+		}
+	}, [key])
+
+	const updateValue = useCallback(
+		(setter: T | ((value: T) => T)) => {
+			setState((s) => {
+				const value = typeof setter === 'function' ? (setter as any)(s) : setter
+				setInLocalStorage(key, JSON.stringify(value))
+				return value
+			})
+		},
+		[key]
+	)
+
+	return [state, updateValue] as const
 }
