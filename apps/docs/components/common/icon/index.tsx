@@ -13,6 +13,7 @@ const icons = {
 	twitter: TwitterIcon,
 	paperclip: HeroiconsOutline.PaperClipIcon,
 	play: HeroiconsSolid.PlayIcon,
+	copy: HeroiconsOutline.ClipboardIcon,
 }
 
 export type IconName = keyof typeof icons

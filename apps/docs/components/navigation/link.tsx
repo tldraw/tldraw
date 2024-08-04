@@ -77,7 +77,7 @@ export const NavigationLink: React.FC<{
 				{icon && (
 					<div
 						className={cn(
-							'h-6 w-6 rounded-lg flex items-center justify-center',
+							'h-6 w-6 rounded-md flex items-center justify-center',
 							active ? 'bg-black text-white' : 'bg-zinc-100'
 						)}
 					>

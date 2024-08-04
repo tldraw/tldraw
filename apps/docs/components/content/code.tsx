@@ -69,7 +69,7 @@ export const Code: React.FC<{
 				<Button
 					onClick={copy}
 					caption={copied ? 'Copied' : 'Copy'}
-					icon={copied ? 'check' : 'paperclip'}
+					icon={copied ? 'check' : 'copy'}
 					size="xs"
 					className="absolute -top-2 right-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-100"
 				/>

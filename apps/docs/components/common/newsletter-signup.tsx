@@ -4,8 +4,8 @@ import { Button } from '@/components/common/button'
 import { cn } from '@/utils/cn'
 import { Field, Input, Label } from '@headlessui/react'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
-import { getFromLocalStorage, setInLocalStorage } from '@tldraw/utils'
-import { FC, FormEventHandler, useCallback, useLayoutEffect, useState } from 'react'
+import { FC, FormEventHandler, useCallback, useState } from 'react'
+import { useLocalStorageState } from 'tldraw'
 
 // when debugging is true, the form will always show (even if the user has submitted)
 const DEBUGGING = false
@@ -124,33 +124,4 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 			)}
 		</div>
 	)
-}
-
-/** @public */
-export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
-	const [state, setState] = useState(defaultValue)
-
-	useLayoutEffect(() => {
-		const value = getFromLocalStorage(key)
-		if (value) {
-			try {
-				setState(JSON.parse(value))
-			} catch (e) {
-				console.error(`Could not restore value ${key} from local storage.`)
-			}
-		}
-	}, [key])
-
-	const updateValue = useCallback(
-		(setter: T | ((value: T) => T)) => {
-			setState((s) => {
-				const value = typeof setter === 'function' ? (setter as any)(s) : setter
-				setInLocalStorage(key, JSON.stringify(value))
-				return value
-			})
-		},
-		[key]
-	)
-
-	return [state, updateValue] as const
 }

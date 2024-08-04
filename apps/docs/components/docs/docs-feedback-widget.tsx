@@ -4,18 +4,103 @@ import { cn } from '@/utils/cn'
 import { Field, Label, Textarea } from '@headlessui/react'
 import { ArrowLongRightIcon, CheckCircleIcon, HandThumbDownIcon } from '@heroicons/react/20/solid'
 import { HandThumbUpIcon } from '@heroicons/react/24/solid'
-import { FormEventHandler, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import { FormEventHandler, useCallback, useState } from 'react'
+import { useLocalStorageState } from 'tldraw'
+
+const DEBUGGING = false
+
+async function submitFeedback(
+	_sessionId: string,
+	_pathname: string,
+	_feedback: 1 | -1 | 0,
+	_note: string
+) {
+	// todo
+	await new Promise((resolve) => setTimeout(resolve, 2000))
+	return
+}
 
 export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className }) => {
-	const [state, setState] = useState<'idle' | 'thumbs-up' | 'thumbs-down' | 'success' | 'error'>(
-		'idle'
-	)
-	const [feedback, setFeedback] = useState<string>('')
+	const pathname = usePathname()
 
-	const submit: FormEventHandler = (e) => {
-		e.preventDefault()
-		setState('success')
-	}
+	const [didSubmit, setDidSubmit] = useLocalStorageState(pathname + '-feedback-submitted', false)
+
+	// Set the feedback session id to a random id and stash it in storage
+	const [sessionId] = useLocalStorageState(
+		'feedback-session-id',
+		Math.random().toString(36).substring(7)
+	)
+	const [state, setState] = useState<
+		'idle' | 'thumbs-up' | 'thumbs-down' | 'loading' | 'success' | 'error'
+	>('idle')
+
+	const handleThumbsDown = useCallback(async () => {
+		if (state === 'loading') return
+		if (state === 'thumbs-down') {
+			setState('idle')
+			try {
+				await submitFeedback(sessionId, pathname, 0, '')
+			} catch (e) {
+				setState('error')
+			}
+			return
+		}
+
+		// todo: send feedback to endpoint
+		setState('thumbs-down')
+		try {
+			await submitFeedback(sessionId, pathname, -1, '')
+		} catch (e) {
+			setState('error')
+		}
+	}, [pathname, sessionId, state])
+
+	const handleThumbsUp = useCallback(() => {
+		if (state === 'loading') return
+		if (state === 'thumbs-up') {
+			setState('idle')
+			try {
+				submitFeedback(sessionId, pathname, 0, '')
+			} catch (e) {
+				setState('error')
+			}
+			return
+		}
+
+		// todo: send feedback to endpoint
+		setState('thumbs-up')
+		try {
+			submitFeedback(sessionId, pathname, 1, '')
+		} catch (e) {
+			setState('error')
+		}
+	}, [pathname, sessionId, state])
+
+	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
+		async (e) => {
+			e.preventDefault()
+			if (state === 'loading') return
+
+			try {
+				const form = e.currentTarget
+				const formData = new FormData(form)
+				const feedback = formData.get('feedback') as string
+
+				setState('loading')
+				await submitFeedback(sessionId, pathname, state === 'thumbs-up' ? 1 : -1, feedback)
+				setState('success')
+				setTimeout(() => {
+					setDidSubmit(true)
+				}, 3000)
+			} catch (e) {
+				setState('error')
+			}
+		},
+		[state, sessionId, pathname, setDidSubmit]
+	)
+
+	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null
 
 	return (
 		<div
@@ -26,9 +111,7 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 					<span>Is this page helpful?</span>
 					<div className="flex">
 						<button
-							onClick={() =>
-								setState((state) => (state === 'thumbs-down' ? 'idle' : 'thumbs-down'))
-							}
+							onClick={handleThumbsDown}
 							className={cn(
 								'h-9 w-7 flex items-center justify-center pt-0.5',
 								state === 'thumbs-down' && 'text-blue-500',
@@ -38,7 +121,7 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 							<HandThumbDownIcon className="h-4" />
 						</button>
 						<button
-							onClick={() => setState((state) => (state === 'thumbs-up' ? 'idle' : 'thumbs-up'))}
+							onClick={handleThumbsUp}
 							className={cn(
 								'h-9 w-7 flex items-center justify-center pb-0.5 -mr-1',
 								state === 'thumbs-up' && 'text-blue-500',
@@ -50,8 +133,8 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 					</div>
 				</div>
 			)}
-			{(state === 'thumbs-up' || state === 'thumbs-down') && (
-				<form onSubmit={submit} className="pb-3">
+			{(state === 'thumbs-up' || state === 'thumbs-down' || state === 'loading') && (
+				<form onSubmit={handleSubmit} className="pb-3">
 					<Field>
 						<Label className="sr-only">Your feedback</Label>
 						<Textarea
@@ -59,12 +142,11 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 							placeholder="Your feedback..."
 							rows={3}
 							className="resize-none bg-zinc-200/50 w-full rounded-md placeholder-zinc-400 text-black px-2 py-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-50"
-							value={feedback}
-							onChange={(e) => setFeedback(e.target.value)}
 						/>
 					</Field>
 					<button
 						type="submit"
+						disabled={state === 'loading'}
 						className="bg-blue-500 rounded-md h-6 px-3 flex items-center text-white gap-1.5 font-medium ml-auto mt-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-50 hover:bg-blue-600"
 					>
 						<span>Submit</span>
