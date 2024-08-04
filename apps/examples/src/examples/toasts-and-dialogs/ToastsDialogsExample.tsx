@@ -16,7 +16,7 @@ import 'tldraw/tldraw.css'
 // There's a guide at the bottom of this file
 
 // [1]
-function MyDialog({ onClose }: { onClose: () => void }) {
+function MyDialog({ onClose }: { onClose(): void }) {
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -37,7 +37,7 @@ function MyDialog({ onClose }: { onClose: () => void }) {
 }
 
 // [2]
-function MySimpleDialog({ onClose }: { onClose: () => void }) {
+function MySimpleDialog({ onClose }: { onClose(): void }) {
 	return (
 		<div style={{ padding: 16 }}>
 			<h2>Title</h2>
