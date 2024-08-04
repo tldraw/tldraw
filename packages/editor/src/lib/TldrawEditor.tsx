@@ -392,7 +392,8 @@ function TldrawEditorWithReadyStore({
 				getContainer: () => container,
 				user,
 				initialState,
-				autoFocus,
+				// we should check for some kind of query parameter that turns off autofocus
+				autoFocus: autoFocus && !document.location.search.includes('preserveFocus'),
 				inferDarkMode,
 				cameraOptions,
 				options,

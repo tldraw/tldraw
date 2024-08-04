@@ -12,7 +12,8 @@ export const Example: React.FC<{ article: Article }> = ({ article }) => {
 
 	return (
 		<div className="w-full mt-12">
-			<Embed src={`${server}/${article.id}/full`} />
+			{/* Disable auto focus using the preserveFocus search param */}
+			<Embed src={`${server}/${article.id}/full?preserveFocus=true`} />
 			<Code files={files} />
 		</div>
 	)
