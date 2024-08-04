@@ -8,7 +8,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
-import { useActions } from '../context/actions'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
 import {
@@ -22,7 +21,8 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../hooks/menu-hooks'
-import { TldrawUiMenuCheckboxItem } from './primitives/menus/TldrawUiMenuCheckboxItem'
+import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
+import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from './primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
@@ -30,30 +30,26 @@ import { TldrawUiMenuSubmenu } from './primitives/menus/TldrawUiMenuSubmenu'
 /* -------------------- Selection ------------------- */
 /** @public @react */
 export function ToggleAutoSizeMenuItem() {
-	const actions = useActions()
 	const shouldDisplay = useShowAutoSizeToggle()
 	if (!shouldDisplay) return null
-	return <TldrawUiMenuItem {...actions['toggle-auto-size']} />
+	return <TldrawUiMenuActionItem action="toggle-auto-size" />
 }
 /** @public @react */
 export function EditLinkMenuItem() {
-	const actions = useActions()
 	const shouldDisplay = useHasLinkShapeSelected()
 	if (!shouldDisplay) return null
 
-	return <TldrawUiMenuItem {...actions['edit-link']} />
+	return <TldrawUiMenuActionItem action="edit-link" />
 }
 /** @public @react */
 export function DuplicateMenuItem() {
-	const actions = useActions()
 	const shouldDisplay = useUnlockedSelectedShapesCount(1)
 	if (!shouldDisplay) return null
 
-	return <TldrawUiMenuItem {...actions['duplicate']} />
+	return <TldrawUiMenuActionItem action="duplicate" />
 }
 /** @public @react */
 export function FlattenMenuItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const shouldDisplay = useValue(
 		'should display flatten option',
@@ -70,28 +66,25 @@ export function FlattenMenuItem() {
 	)
 	if (!shouldDisplay) return null
 
-	return <TldrawUiMenuItem {...actions['flatten-to-image']} />
+	return <TldrawUiMenuActionItem action="flatten-to-image" />
 }
 /** @public @react */
 export function GroupMenuItem() {
-	const actions = useActions()
 	const shouldDisplay = useAllowGroup()
 	if (!shouldDisplay) return null
 
-	return <TldrawUiMenuItem {...actions['group']} />
+	return <TldrawUiMenuActionItem action="group" />
 }
 /** @public @react */
 export function UngroupMenuItem() {
-	const actions = useActions()
 	const shouldDisplay = useAllowUngroup()
 	if (!shouldDisplay) return null
 
-	return <TldrawUiMenuItem {...actions['ungroup']} />
+	return <TldrawUiMenuActionItem action="ungroup" />
 }
 /** @public @react */
 export function RemoveFrameMenuItem() {
 	const editor = useEditor()
-	const actions = useActions()
 	const shouldDisplay = useValue(
 		'allow unframe',
 		() => {
@@ -103,12 +96,11 @@ export function RemoveFrameMenuItem() {
 	)
 	if (!shouldDisplay) return null
 
-	return <TldrawUiMenuItem {...actions['remove-frame']} />
+	return <TldrawUiMenuActionItem action="remove-frame" />
 }
 /** @public @react */
 export function FitFrameToContentMenuItem() {
 	const editor = useEditor()
-	const actions = useActions()
 	const shouldDisplay = useValue(
 		'allow fit frame to content',
 		() => {
@@ -123,22 +115,20 @@ export function FitFrameToContentMenuItem() {
 	)
 	if (!shouldDisplay) return null
 
-	return <TldrawUiMenuItem {...actions['fit-frame-to-content']} />
+	return <TldrawUiMenuActionItem action="fit-frame-to-content" />
 }
 /** @public @react */
 export function ToggleLockMenuItem() {
 	const editor = useEditor()
-	const actions = useActions()
 	const shouldDisplay = useValue('selected shapes', () => editor.getSelectedShapes().length > 0, [
 		editor,
 	])
 	if (!shouldDisplay) return null
 
-	return <TldrawUiMenuItem {...actions['toggle-lock']} />
+	return <TldrawUiMenuActionItem action="toggle-lock" />
 }
 /** @public @react */
 export function ToggleTransparentBgMenuItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isTransparentBg = useValue(
 		'isTransparentBg',
@@ -146,18 +136,17 @@ export function ToggleTransparentBgMenuItem() {
 		[editor]
 	)
 	return (
-		<TldrawUiMenuCheckboxItem {...actions['toggle-transparent']} checked={isTransparentBg} toggle />
+		<TldrawUiMenuActionCheckboxItem action="toggle-transparent" checked={isTransparentBg} toggle />
 	)
 }
 /** @public @react */
 export function UnlockAllMenuItem() {
 	const editor = useEditor()
-	const actions = useActions()
 	const shouldDisplay = useValue('any shapes', () => editor.getCurrentPageShapeIds().size > 0, [
 		editor,
 	])
 
-	return <TldrawUiMenuItem {...actions['unlock-all']} disabled={!shouldDisplay} />
+	return <TldrawUiMenuActionItem action="unlock-all" disabled={!shouldDisplay} />
 }
 
 /* ---------------------- Zoom ---------------------- */
@@ -165,19 +154,17 @@ export function UnlockAllMenuItem() {
 export function ZoomTo100MenuItem() {
 	const editor = useEditor()
 	const isZoomedTo100 = useValue('zoomed to 100', () => editor.getZoomLevel() === 1, [editor])
-	const actions = useActions()
 
-	return <TldrawUiMenuItem {...actions['zoom-to-100']} noClose disabled={isZoomedTo100} />
+	return <TldrawUiMenuActionItem action="zoom-to-100" noClose disabled={isZoomedTo100} />
 }
 /** @public @react */
 export function ZoomToFitMenuItem() {
 	const editor = useEditor()
 	const hasShapes = useValue('has shapes', () => editor.getCurrentPageShapeIds().size > 0, [editor])
-	const actions = useActions()
 
 	return (
-		<TldrawUiMenuItem
-			{...actions['zoom-to-fit']}
+		<TldrawUiMenuActionItem
+			action="zoom-to-fit"
 			disabled={!hasShapes}
 			data-testid="minimap.zoom-menu.zoom-to-fit"
 			noClose
@@ -190,11 +177,10 @@ export function ZoomToSelectionMenuItem() {
 	const hasSelected = useValue('has shapes', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
-	const actions = useActions()
 
 	return (
-		<TldrawUiMenuItem
-			{...actions['zoom-to-selection']}
+		<TldrawUiMenuActionItem
+			action="zoom-to-selection"
 			disabled={!hasSelected}
 			data-testid="minimap.zoom-menu.zoom-to-selection"
 			noClose
@@ -220,7 +206,6 @@ export function ClipboardMenuGroup() {
 /** @public @react */
 export function CopyAsMenuGroup() {
 	const editor = useEditor()
-	const actions = useActions()
 	const atLeastOneShapeOnPage = useValue(
 		'atLeastOneShapeOnPage',
 		() => editor.getCurrentPageShapeIds().size > 0,
@@ -235,11 +220,11 @@ export function CopyAsMenuGroup() {
 			disabled={!atLeastOneShapeOnPage}
 		>
 			<TldrawUiMenuGroup id="copy-as-group">
-				<TldrawUiMenuItem {...actions['copy-as-svg']} />
+				<TldrawUiMenuActionItem action="copy-as-svg" />
 				{Boolean(window.navigator.clipboard?.write) && (
-					<TldrawUiMenuItem {...actions['copy-as-png']} />
+					<TldrawUiMenuActionItem action="copy-as-png" />
 				)}
-				<TldrawUiMenuItem {...actions['copy-as-json']} />
+				<TldrawUiMenuActionItem action="copy-as-json" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="copy-as-bg">
 				<ToggleTransparentBgMenuItem />
@@ -250,26 +235,23 @@ export function CopyAsMenuGroup() {
 
 /** @public @react */
 export function CutMenuItem() {
-	const actions = useActions()
 	const shouldDisplay = useUnlockedSelectedShapesCount(1)
 
-	return <TldrawUiMenuItem {...actions['cut']} disabled={!shouldDisplay} />
+	return <TldrawUiMenuActionItem action="cut" disabled={!shouldDisplay} />
 }
 
 /** @public @react */
 export function CopyMenuItem() {
-	const actions = useActions()
 	const shouldDisplay = useAnySelectedShapesCount(1)
 
-	return <TldrawUiMenuItem {...actions['copy']} disabled={!shouldDisplay} />
+	return <TldrawUiMenuActionItem action="copy" disabled={!shouldDisplay} />
 }
 
 /** @public @react */
 export function PasteMenuItem() {
-	const actions = useActions()
 	const shouldDisplay = showMenuPaste
 
-	return <TldrawUiMenuItem {...actions['paste']} disabled={!shouldDisplay} />
+	return <TldrawUiMenuActionItem action="paste" disabled={!shouldDisplay} />
 }
 
 /* ------------------- Conversions ------------------ */
@@ -277,7 +259,6 @@ export function PasteMenuItem() {
 /** @public @react */
 export function ConversionsMenuGroup() {
 	const editor = useEditor()
-	const actions = useActions()
 	const atLeastOneShapeOnPage = useValue(
 		'atLeastOneShapeOnPage',
 		() => editor.getCurrentPageShapeIds().size > 0,
@@ -291,9 +272,9 @@ export function ConversionsMenuGroup() {
 			<CopyAsMenuGroup />
 			<TldrawUiMenuSubmenu id="export-as" label="context-menu.export-as" size="small">
 				<TldrawUiMenuGroup id="export-as-group">
-					<TldrawUiMenuItem {...actions['export-as-svg']} />
-					<TldrawUiMenuItem {...actions['export-as-png']} />
-					<TldrawUiMenuItem {...actions['export-as-json']} />
+					<TldrawUiMenuActionItem action="export-as-svg" />
+					<TldrawUiMenuActionItem action="export-as-png" />
+					<TldrawUiMenuActionItem action="export-as-json" />
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="export-as-bg">
 					<ToggleTransparentBgMenuItem />
@@ -306,7 +287,6 @@ export function ConversionsMenuGroup() {
 /* ------------------ Set Selection ----------------- */
 /** @public @react */
 export function SelectAllMenuItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const atLeastOneShapeOnPage = useValue(
 		'atLeastOneShapeOnPage',
@@ -314,16 +294,15 @@ export function SelectAllMenuItem() {
 		[editor]
 	)
 
-	return <TldrawUiMenuItem {...actions['select-all']} disabled={!atLeastOneShapeOnPage} />
+	return <TldrawUiMenuActionItem action="select-all" disabled={!atLeastOneShapeOnPage} />
 }
 
 /* ------------------ Delete Group ------------------ */
 /** @public @react */
 export function DeleteMenuItem() {
-	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 
-	return <TldrawUiMenuItem {...actions['delete']} disabled={!oneSelected} />
+	return <TldrawUiMenuActionItem action="delete" disabled={!oneSelected} />
 }
 
 /* --------------------- Modify --------------------- */
@@ -352,7 +331,6 @@ export function EditMenuSubmenu() {
 export function ArrangeMenuSubmenu() {
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
-	const actions = useActions()
 
 	if (!(twoSelected || onlyFlippableShapeSelected)) return null
 
@@ -360,25 +338,25 @@ export function ArrangeMenuSubmenu() {
 		<TldrawUiMenuSubmenu id="arrange" label="context-menu.arrange" size="small">
 			{twoSelected && (
 				<TldrawUiMenuGroup id="align">
-					<TldrawUiMenuItem {...actions['align-left']} />
-					<TldrawUiMenuItem {...actions['align-center-horizontal']} />
-					<TldrawUiMenuItem {...actions['align-right']} />
-					<TldrawUiMenuItem {...actions['align-top']} />
-					<TldrawUiMenuItem {...actions['align-center-vertical']} />
-					<TldrawUiMenuItem {...actions['align-bottom']} />
+					<TldrawUiMenuActionItem action="align-left" />
+					<TldrawUiMenuActionItem action="align-center-horizontal" />
+					<TldrawUiMenuActionItem action="align-right" />
+					<TldrawUiMenuActionItem action="align-top" />
+					<TldrawUiMenuActionItem action="align-center-vertical" />
+					<TldrawUiMenuActionItem action="align-bottom" />
 				</TldrawUiMenuGroup>
 			)}
 			<DistributeMenuGroup />
 			{twoSelected && (
 				<TldrawUiMenuGroup id="stretch">
-					<TldrawUiMenuItem {...actions['stretch-horizontal']} />
-					<TldrawUiMenuItem {...actions['stretch-vertical']} />
+					<TldrawUiMenuActionItem action="stretch-horizontal" />
+					<TldrawUiMenuActionItem action="stretch-vertical" />
 				</TldrawUiMenuGroup>
 			)}
 			{(twoSelected || onlyFlippableShapeSelected) && (
 				<TldrawUiMenuGroup id="flip">
-					<TldrawUiMenuItem {...actions['flip-horizontal']} />
-					<TldrawUiMenuItem {...actions['flip-vertical']} />
+					<TldrawUiMenuActionItem action="flip-horizontal" />
+					<TldrawUiMenuActionItem action="flip-vertical" />
 				</TldrawUiMenuGroup>
 			)}
 			<OrderMenuGroup />
@@ -387,45 +365,42 @@ export function ArrangeMenuSubmenu() {
 }
 
 function DistributeMenuGroup() {
-	const actions = useActions()
 	const threeSelected = useUnlockedSelectedShapesCount(3)
 	if (!threeSelected) return null
 
 	return (
 		<TldrawUiMenuGroup id="distribute">
-			<TldrawUiMenuItem {...actions['distribute-horizontal']} />
-			<TldrawUiMenuItem {...actions['distribute-vertical']} />
+			<TldrawUiMenuActionItem action="distribute-horizontal" />
+			<TldrawUiMenuActionItem action="distribute-vertical" />
 		</TldrawUiMenuGroup>
 	)
 }
 
 function OrderMenuGroup() {
-	const actions = useActions()
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 	const threeStackableItems = useThreeStackableItems()
 	if (!twoSelected) return null
 
 	return (
 		<TldrawUiMenuGroup id="order">
-			<TldrawUiMenuItem {...actions['pack']} />
-			{threeStackableItems && <TldrawUiMenuItem {...actions['stack-horizontal']} />}
-			{threeStackableItems && <TldrawUiMenuItem {...actions['stack-vertical']} />}
+			<TldrawUiMenuActionItem action="pack" />
+			{threeStackableItems && <TldrawUiMenuActionItem action="stack-horizontal" />}
+			{threeStackableItems && <TldrawUiMenuActionItem action="stack-vertical" />}
 		</TldrawUiMenuGroup>
 	)
 }
 /** @public @react */
 export function ReorderMenuSubmenu() {
-	const actions = useActions()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 	if (!oneSelected) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="reorder" label="context-menu.reorder" size="small">
 			<TldrawUiMenuGroup id="reorder">
-				<TldrawUiMenuItem {...actions['bring-to-front']} />
-				<TldrawUiMenuItem {...actions['bring-forward']} />
-				<TldrawUiMenuItem {...actions['send-backward']} />
-				<TldrawUiMenuItem {...actions['send-to-back']} />
+				<TldrawUiMenuActionItem action="bring-to-front" />
+				<TldrawUiMenuActionItem action="bring-forward" />
+				<TldrawUiMenuActionItem action="send-backward" />
+				<TldrawUiMenuActionItem action="send-to-back" />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
@@ -436,7 +411,6 @@ export function MoveToPageMenu() {
 	const pages = useValue('pages', () => editor.getPages(), [editor])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 	const { addToast } = useToasts()
-	const actions = useActions()
 	const trackEvent = useUiEvents()
 
 	const oneSelected = useUnlockedSelectedShapesCount(1)
@@ -479,7 +453,7 @@ export function MoveToPageMenu() {
 				))}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="new-page">
-				<TldrawUiMenuItem {...actions['move-to-new-page']} />
+				<TldrawUiMenuActionItem action="move-to-new-page" />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
@@ -488,7 +462,6 @@ export function MoveToPageMenu() {
 /** @public @react */
 export function ConvertToBookmarkMenuItem() {
 	const editor = useEditor()
-	const actions = useActions()
 
 	const oneEmbedSelected = useValue(
 		'oneEmbedSelected',
@@ -505,13 +478,12 @@ export function ConvertToBookmarkMenuItem() {
 	)
 
 	if (!oneEmbedSelected) return null
-	return <TldrawUiMenuItem {...actions['convert-to-bookmark']} />
+	return <TldrawUiMenuActionItem action="convert-to-bookmark" />
 }
 
 /** @public @react */
 export function ConvertToEmbedMenuItem() {
 	const editor = useEditor()
-	const actions = useActions()
 
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
@@ -530,88 +502,78 @@ export function ConvertToEmbedMenuItem() {
 
 	if (!oneEmbeddableBookmarkSelected) return null
 
-	return <TldrawUiMenuItem {...actions['convert-to-embed']} />
+	return <TldrawUiMenuActionItem action="convert-to-embed" />
 }
 
 /* ------------------- Preferences ------------------ */
 /** @public @react */
 export function ToggleSnapModeItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isSnapMode = useValue('isSnapMode', () => editor.user.getIsSnapMode(), [editor])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-snap-mode']} checked={isSnapMode} />
+	return <TldrawUiMenuActionCheckboxItem action="toggle-snap-mode" checked={isSnapMode} />
 }
 /** @public @react */
 export function ToggleToolLockItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-tool-lock']} checked={isToolLock} />
+	return <TldrawUiMenuActionCheckboxItem action="toggle-tool-lock" checked={isToolLock} />
 }
 /** @public @react */
 export function ToggleGridItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-grid']} checked={isGridMode} />
+	return <TldrawUiMenuActionCheckboxItem action="toggle-grid" checked={isGridMode} />
 }
 
 /** @public @react */
 export function ToggleWrapModeItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isWrapMode = useValue('isWrapMode', () => editor.user.getIsWrapMode(), [editor])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-wrap-mode']} checked={isWrapMode} />
+	return <TldrawUiMenuActionCheckboxItem action="toggle-wrap-mode" checked={isWrapMode} />
 }
 
 /** @public @react */
 export function ToggleDarkModeItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-dark-mode']} checked={isDarkMode} />
+	return <TldrawUiMenuActionCheckboxItem action="toggle-dark-mode" checked={isDarkMode} />
 }
 /** @public @react */
 export function ToggleFocusModeItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-focus-mode']} checked={isFocusMode} />
+	return <TldrawUiMenuActionCheckboxItem action="toggle-focus-mode" checked={isFocusMode} />
 }
 /** @public @react */
 export function ToggleEdgeScrollingItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const edgeScrollSpeed = useValue('edgeScrollSpeed', () => editor.user.getEdgeScrollSpeed(), [
 		editor,
 	])
 	return (
-		<TldrawUiMenuCheckboxItem
-			{...actions['toggle-edge-scrolling']}
+		<TldrawUiMenuActionCheckboxItem
+			action="toggle-edge-scrolling"
 			checked={edgeScrollSpeed === 1}
 		/>
 	)
 }
 /** @public @react */
 export function ToggleReduceMotionItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const animationSpeed = useValue('animationSpeed', () => editor.user.getAnimationSpeed(), [editor])
 	return (
-		<TldrawUiMenuCheckboxItem {...actions['toggle-reduce-motion']} checked={animationSpeed === 0} />
+		<TldrawUiMenuActionCheckboxItem action="toggle-reduce-motion" checked={animationSpeed === 0} />
 	)
 }
 /** @public @react */
 export function ToggleDebugModeItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-debug-mode']} checked={isDebugMode} />
+	return <TldrawUiMenuActionCheckboxItem action="toggle-debug-mode" checked={isDebugMode} />
 }
 
 /** @public @react */
 export function ToggleDynamicSizeModeItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const isDynamicResizeMode = useValue(
 		'dynamic resize',
@@ -619,8 +581,8 @@ export function ToggleDynamicSizeModeItem() {
 		[editor]
 	)
 	return (
-		<TldrawUiMenuCheckboxItem
-			{...actions['toggle-dynamic-size-mode']}
+		<TldrawUiMenuActionCheckboxItem
+			action="toggle-dynamic-size-mode"
 			checked={isDynamicResizeMode}
 		/>
 	)
@@ -628,30 +590,27 @@ export function ToggleDynamicSizeModeItem() {
 
 /** @public @react */
 export function TogglePasteAtCursorItem() {
-	const actions = useActions()
 	const editor = useEditor()
 	const pasteAtCursor = useValue('paste at cursor', () => editor.user.getIsPasteAtCursorMode(), [
 		editor,
 	])
-	return <TldrawUiMenuCheckboxItem {...actions['toggle-paste-at-cursor']} checked={pasteAtCursor} />
+	return <TldrawUiMenuActionCheckboxItem action="toggle-paste-at-cursor" checked={pasteAtCursor} />
 }
 
 /* ---------------------- Print --------------------- */
 /** @public @react */
 export function PrintItem() {
 	const editor = useEditor()
-	const actions = useActions()
 	const emptyPage = useValue('emptyPage', () => editor.getCurrentPageShapeIds().size === 0, [
 		editor,
 	])
-	return <TldrawUiMenuItem {...actions['print']} disabled={emptyPage} />
+	return <TldrawUiMenuActionItem action="print" disabled={emptyPage} />
 }
 
 /* ---------------------- Multiplayer --------------------- */
 /** @public @react */
 export function CursorChatItem() {
 	const editor = useEditor()
-	const actions = useActions()
 	const shouldShow = useValue(
 		'show cursor chat',
 		() => editor.getCurrentToolId() === 'select' && !editor.getInstanceState().isCoarsePointer,
@@ -660,5 +619,5 @@ export function CursorChatItem() {
 
 	if (!shouldShow) return null
 
-	return <TldrawUiMenuItem {...actions['open-cursor-chat']} />
+	return <TldrawUiMenuActionItem action="open-cursor-chat" />
 }

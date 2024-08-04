@@ -1863,6 +1863,12 @@ export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
+export function TldrawUiMenuActionCheckboxItem({ action: actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export function TldrawUiMenuActionItem({ action: actionId, ...rest }: TLUiMenuActionItemProps): JSX_2.Element | null;
+
+// @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -1879,6 +1885,9 @@ export function TldrawUiMenuItem<TranslationKey extends string = string, IconTyp
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
+
+// @public (undocumented)
+export function TldrawUiMenuToolItem({ tool: toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
@@ -2544,6 +2553,16 @@ export interface TLUiMainMenuProps {
 }
 
 // @public (undocumented)
+export type TLUiMenuActionCheckboxItemProps = {
+    action?: string;
+} & Pick<TLUiMenuCheckboxItemProps, 'checked' | 'disabled' | 'toggle'>;
+
+// @public (undocumented)
+export type TLUiMenuActionItemProps = {
+    action?: string;
+} & Partial<Pick<TLUiMenuItemProps, 'disabled' | 'isSelected' | 'noClose' | 'onSelect'>>;
+
+// @public (undocumented)
 export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checked?: boolean;
@@ -2622,6 +2641,11 @@ export interface TLUiMenuSubmenuProps<Translation extends string = string> {
     // (undocumented)
     size?: 'medium' | 'small' | 'tiny' | 'wide';
 }
+
+// @public (undocumented)
+export type TLUiMenuToolItemProps = {
+    tool?: string;
+} & Pick<TLUiMenuItemProps, 'disabled' | 'isSelected'>;
 
 // @public (undocumented)
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;
@@ -3441,7 +3465,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventContextType;
+export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

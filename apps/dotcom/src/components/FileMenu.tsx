@@ -1,4 +1,4 @@
-import { TldrawUiMenuGroup, TldrawUiMenuItem, TldrawUiMenuSubmenu, useActions } from 'tldraw'
+import { TldrawUiMenuActionItem, TldrawUiMenuGroup, TldrawUiMenuSubmenu } from 'tldraw'
 import {
 	FORK_PROJECT_ACTION,
 	LEAVE_SHARED_PROJECT_ACTION,
@@ -12,35 +12,31 @@ import {
 } from '../utils/useFileSystem'
 
 export function LocalFileMenu() {
-	const actions = useActions()
-
 	return (
 		<TldrawUiMenuSubmenu id="file" label="menu.file">
 			<TldrawUiMenuGroup id="file-actions">
-				<TldrawUiMenuItem {...actions[NEW_PROJECT_ACTION]} />
-				<TldrawUiMenuItem {...actions[NEW_SHARED_PROJECT_ACTION]} />
-				<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
-				<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+				<TldrawUiMenuActionItem action={NEW_PROJECT_ACTION} />
+				<TldrawUiMenuActionItem action={NEW_SHARED_PROJECT_ACTION} />
+				<TldrawUiMenuActionItem action={OPEN_FILE_ACTION} />
+				<TldrawUiMenuActionItem action={SAVE_FILE_COPY_ACTION} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="share">
-				<TldrawUiMenuItem {...actions[SHARE_PROJECT_ACTION]} />
+				<TldrawUiMenuActionItem action={SHARE_PROJECT_ACTION} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
 }
 
 export function MultiplayerFileMenu() {
-	const actions = useActions()
-
 	return (
 		<TldrawUiMenuSubmenu id="file" label="menu.file">
 			<TldrawUiMenuGroup id="file-actions">
-				<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+				<TldrawUiMenuActionItem action={SAVE_FILE_COPY_ACTION} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="share">
-				<TldrawUiMenuItem {...actions[NEW_SHARED_PROJECT_ACTION]} />
-				<TldrawUiMenuItem {...actions[FORK_PROJECT_ACTION]} />
-				<TldrawUiMenuItem {...actions[LEAVE_SHARED_PROJECT_ACTION]} />
+				<TldrawUiMenuActionItem action={NEW_SHARED_PROJECT_ACTION} />
+				<TldrawUiMenuActionItem action={FORK_PROJECT_ACTION} />
+				<TldrawUiMenuActionItem action={LEAVE_SHARED_PROJECT_ACTION} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
