@@ -421,36 +421,6 @@ function TldrawEditorWithReadyStore({
 		}
 	}, [editor, cameraOptions])
 
-	useEffect(
-		function handleFocusOnPointerDownForPreserveFocusMode() {
-			if (!editor) return
-
-			function handleFocusOnPointerDown() {
-				if (!editor) return
-				editor.focus()
-			}
-
-			function handleBlurOnPointerDown() {
-				if (!editor) return
-				editor.blur()
-			}
-
-			// If the user wants to autofocus the editor but prevent it (by force), then
-			// focus when the user clicks on the editor and unfocus it when the user clicks
-			// on the body (ie anything outside the editor).
-			if (autoFocus && noAutoFocus()) {
-				editor.getContainer().addEventListener('pointerdown', handleFocusOnPointerDown)
-				document.body.addEventListener('pointerdown', handleBlurOnPointerDown)
-
-				return () => {
-					editor.getContainer()?.removeEventListener('pointerdown', handleFocusOnPointerDown)
-					document.body.removeEventListener('pointerdown', handleBlurOnPointerDown)
-				}
-			}
-		},
-		[editor, autoFocus]
-	)
-
 	const crashingError = useSyncExternalStore(
 		useCallback(
 			(onStoreChange) => {
@@ -465,6 +435,38 @@ function TldrawEditorWithReadyStore({
 			[editor]
 		),
 		() => editor?.getCrashingError() ?? null
+	)
+
+	// For our examples site, we want autoFocus to be true on the examples site, but not
+	// when embedded in our docs site. If present, the `preserveFocus` search param
+	// overrides the `autoFocus` prop and prevents the editor from focusing immediately,
+	// however here we also add some logic to focus the editor when the user clicks
+	// on it and unfocus it when the user clicks away from it.
+	useEffect(
+		function handleFocusOnPointerDownForPreserveFocusMode() {
+			if (!editor) return
+
+			function handleFocusOnPointerDown() {
+				if (!editor) return
+				editor.focus()
+			}
+
+			function handleBlurOnPointerDown() {
+				if (!editor) return
+				editor.blur()
+			}
+
+			if (autoFocus && noAutoFocus()) {
+				editor.getContainer().addEventListener('pointerdown', handleFocusOnPointerDown)
+				document.body.addEventListener('pointerdown', handleBlurOnPointerDown)
+
+				return () => {
+					editor.getContainer()?.removeEventListener('pointerdown', handleFocusOnPointerDown)
+					document.body.removeEventListener('pointerdown', handleBlurOnPointerDown)
+				}
+			}
+		},
+		[editor, autoFocus]
 	)
 
 	const { Canvas } = useEditorComponents()
