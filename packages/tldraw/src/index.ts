@@ -1,5 +1,18 @@
 /// <reference types="react" />
 
+export {
+	TldrawUiMenuActionCheckboxItem,
+	type TLUiMenuActionCheckboxItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuActionCheckboxItem'
+export {
+	TldrawUiMenuActionItem,
+	type TLUiMenuActionItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
+export {
+	TldrawUiMenuToolItem,
+	type TLUiMenuToolItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
+
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
