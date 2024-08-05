@@ -7,19 +7,20 @@ import {
 import { Idle } from './childStates/Idle'
 import { Pointing } from './childStates/Pointing'
 import { ZoomBrushing } from './childStates/ZoomBrushing'
+import { ZoomQuick } from './childStates/ZoomQuick'
 
 /** @public */
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'
 	static override children(): TLStateNodeConstructor[] {
-		return [Idle, ZoomBrushing, Pointing]
+		return [Idle, Pointing, ZoomBrushing, ZoomQuick]
 	}
 	static override isLockable = false
 
-	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
+	info = {} as TLPointerEventInfo & { onInteractionEnd?: string; isQuickZoom: boolean }
 
-	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
+	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string; isQuickZoom: boolean }) {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.updateCursor()
@@ -36,9 +37,13 @@ export class ZoomTool extends StateNode {
 	}
 
 	override onKeyUp(info: TLKeyboardEventInfo) {
+		if (this.info.isQuickZoom) {
+			return
+		}
+
 		this.updateCursor()
 
-		if (info.code === 'KeyZ') {
+		if (info.key === 'z') {
 			this.complete()
 		}
 	}
@@ -52,12 +57,12 @@ export class ZoomTool extends StateNode {
 		if (this.info.onInteractionEnd && this.info.onInteractionEnd !== 'select') {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.parent.transition('select')
+			this.editor.setCurrentTool('select')
 		}
 	}
 
 	private updateCursor() {
-		if (this.editor.inputs.altKey) {
+		if (this.editor.inputs.altKey && !this.info.isQuickZoom) {
 			this.editor.setCursor({ type: 'zoom-out', rotation: 0 })
 		} else {
 			this.editor.setCursor({ type: 'zoom-in', rotation: 0 })

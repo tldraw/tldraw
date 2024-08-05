@@ -5,40 +5,23 @@ let editor: TestEditor
 
 const ids = {
 	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
 }
 
 jest.useFakeTimers()
 
-beforeEach(() => {
-	editor = new TestEditor()
-	editor
-		.selectAll()
-		.deleteShapes(editor.getSelectedShapeIds())
-		.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
-})
-
 describe('TLSelectTool.Zooming', () => {
-	it('Correctly enters and exists zooming mode when pressing and relasing z', () => {
-		editor.expectToBeIn('select.idle')
-		editor.keyDown('z')
-		editor.expectToBeIn('zoom.idle')
-		editor.keyUp('z')
-		editor.expectToBeIn('select.idle')
-	})
-
-	it('Correctly enters and exists zooming mode when holding alt and pressing and relasing z', () => {
-		editor.expectToBeIn('select.idle')
-		editor.keyDown('Alt')
-		editor.keyDown('z')
-		editor.expectToBeIn('zoom.idle')
-		editor.keyUp('z')
-		editor.expectToBeIn('select.idle')
-		editor.keyUp('Alt')
-		editor.expectToBeIn('select.idle')
+	beforeEach(() => {
+		editor = new TestEditor()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 	})
 
 	it('Correctly zooms in when clicking', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
@@ -49,7 +32,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Correctly zooms out when clicking while pressing Alt', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		editor.keyDown('Alt')
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
@@ -60,7 +43,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Cancels while pointing', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown()
 		editor.expectToBeIn('zoom.pointing')
@@ -71,7 +54,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Cancels while brushing', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('zoom.pointing')
@@ -84,7 +67,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Interrupts while pointing', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown()
 		editor.expectToBeIn('zoom.pointing')
@@ -95,7 +78,7 @@ describe('TLSelectTool.Zooming', () => {
 	})
 
 	it('Interrupts while brushing', () => {
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('zoom.pointing')
@@ -114,7 +97,7 @@ describe('TLSelectTool.Zooming', () => {
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject(originalPageBounds)
 		expect(editor.getViewportPageCenter()).toMatchObject(originalCenter)
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('zoom.pointing')
@@ -145,7 +128,7 @@ describe('TLSelectTool.Zooming', () => {
 		expect(editor.getZoomLevel()).toBe(1)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(newBoundsX, newBoundsY)
 		editor.pointerMove(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
@@ -183,7 +166,7 @@ describe('TLSelectTool.Zooming', () => {
 		expect(editor.getZoomLevel()).toBe(originalZoomLevel)
 		expect(editor.getViewportPageBounds()).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.getViewportPageCenter()).toMatchObject({ x: 540, y: 360 })
-		editor.keyDown('z')
+		editor.setCurrentTool('zoom', { onInteractionEnd: 'select', isQuickZoom: false })
 		editor.expectToBeIn('zoom.idle')
 		editor.keyDown('Alt')
 		editor.pointerDown(newBoundsX, newBoundsY)
@@ -208,5 +191,153 @@ describe('TLSelectTool.Zooming', () => {
 			y: newBoundsY + newBoundsHeight / 2,
 		})
 		editor.expectToBeIn('zoom.idle')
+	})
+})
+
+describe('TLSelectTool.ZoomQuick', () => {
+	beforeEach(() => {
+		editor = new TestEditor()
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+				{ id: ids.box2, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+				{ id: ids.box3, type: 'geo', x: 1000, y: 1000, props: { w: 100, h: 100 } },
+			])
+	})
+
+	it('Correctly handles zoom out and zoom back in', () => {
+		editor.zoomIn()
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 405, y: 270, w: 270, h: 180 })
+
+		// Zoomed out, eagle eyes.
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBeCloseTo(0.538)
+
+		// Go back to original zoom level.
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 405, y: 270, w: 270, h: 180 })
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Correctly handles manual quick zoom via a pointer move', () => {
+		editor.zoomIn()
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 405, y: 270, w: 270, h: 180 })
+
+		// Zoomed out, eagle eyes.
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBeCloseTo(0.538)
+
+		// Move mouse somewhere and let go of keyboard shortcut.
+		editor.pointerMove(100, 100)
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds().w).toBe(270)
+		expect(editor.getViewportPageBounds().h).toBe(180)
+		expect(editor.getViewportPageBounds().x).toBeCloseTo(-402.567)
+		expect(editor.getViewportPageBounds().y).toBeCloseTo(-23.108)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Dont have a viewport box as big as the zoomed-out screen bounds', () => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapeIds())
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+				{ id: ids.box2, type: 'geo', x: 200, y: 200, props: { w: 100, h: 100 } },
+				{ id: ids.box3, type: 'geo', x: 10000, y: 10000, props: { w: 100, h: 100 } },
+			])
+
+		editor.zoomOut()
+		editor.zoomOut()
+		editor.zoomOut()
+		expect(editor.getZoomLevel()).toBe(0.1)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: -4860, y: -3240, w: 10800, h: 7200 })
+
+		// Zoomed out, eagle eyes.
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(0.1)
+
+		// Move mouse somewhere and let go of keyboard shortcut.
+		editor.pointerMove(-500, -500)
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(0.4)
+		expect(editor.getViewportPageBounds()).toMatchObject({ w: 2700, h: 1800, x: -6700, y: -4450 })
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Correctly handles manual zoom via manual click', () => {
+		editor.zoomIn()
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 405, y: 270, w: 270, h: 180 })
+
+		// Zoomed out, eagle eyes.
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBeCloseTo(0.538)
+
+		// Click to zoom in back to original zoom level.
+		editor.pointerUp(100, 100)
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(4)
+		expect(editor.getViewportPageBounds().w).toBe(270)
+		expect(editor.getViewportPageBounds().h).toBe(180)
+		expect(editor.getViewportPageBounds().x).toBeCloseTo(-402.567)
+		expect(editor.getViewportPageBounds().y).toBeCloseTo(-23.108)
+
+		// Complete operation.
+		editor.expectToBeIn('zoom.zoom_quick')
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Handles quick zoom cancel', () => {
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(2)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 270, y: 180, w: 540, h: 360 })
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
+		editor.pointerDown(100, 100)
+		editor.cancel()
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(2)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 270, y: 180, w: 540, h: 360 })
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('Handles several quick zooms in succession consistently', () => {
+		editor.zoomIn()
+		expect(editor.getZoomLevel()).toBe(2)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 270, y: 180, w: 540, h: 360 })
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
+		jest.advanceTimersByTime(300)
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		jest.advanceTimersByTime(150)
+		editor.setCurrentTool('zoom.zoom_quick', { onInteractionEnd: 'select', isQuickZoom: true })
+		jest.advanceTimersByTime(300)
+		editor.keyUp('shift')
+		editor.keyUp('z')
+		jest.advanceTimersByTime(300)
+		expect(editor.getZoomLevel()).toBe(2)
+		expect(editor.getViewportPageBounds()).toMatchObject({ x: 270, y: 180, w: 540, h: 360 })
+		editor.expectToBeIn('select.idle')
 	})
 })
