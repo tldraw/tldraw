@@ -1,7 +1,7 @@
 import { ApiHeading } from '@/components/content/api-heading'
 import { Blockquote } from '@/components/content/blockquote'
 import { Callout } from '@/components/content/callout'
-import { CodeLinkProvider, CodeLinks } from '@/components/content/code-link-provider'
+import { Code, CodeLinks, FocusLines } from '@/components/content/code'
 import { Embed } from '@/components/content/embed'
 import { Image } from '@/components/content/image'
 import { ParametersTable } from '@/components/content/parameters-table'
@@ -16,6 +16,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
+import { A } from './a'
 
 export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type }) => {
 	return (
@@ -36,13 +37,15 @@ export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type })
 			<MDXRemote
 				source={mdx}
 				components={{
+					a: A,
 					Embed,
 					pre: Pre,
+					code: Code,
 					Image,
 					img: Image,
 					ApiHeading,
 					Callout,
-					CodeLinkProvider,
+					FocusLines,
 					CodeLinks,
 					ParametersTable,
 					ParametersTableDescription,

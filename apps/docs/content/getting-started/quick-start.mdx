@@ -41,6 +41,8 @@ You'll be starting from our default [shapes](/docs/shapes), [tools](/docs/tools)
 
 Let's add local persistence by passing a `persistenceKey` prop to the `Tldraw` component:
 
+<FocusLines lines={[4]}>
+
 ```javascript
 export default function App() {
 	return (
@@ -50,6 +52,8 @@ export default function App() {
 	)
 }
 ```
+
+</FocusLines>
 
 Using a `persistenceKey` will use your browser's storage to ensure that your project can survive a browser refresh. It will also synchronize the project between other instances that share the same `persistenceKey`—including in other browser tabs! Give it a try by opening your app in a second window.
 
@@ -64,6 +68,8 @@ npm install @tldraw/sync
 ```
 
 Next, import the `useSyncDemo` hook from the `@tldraw/sync` package. Call it in your component with a unique ID and pass the store that it returns to the `Tldraw` component:
+
+<FocusLines lines={[2,6,10]}>
 
 ```javascript
 import { Tldraw } from 'tldraw'
@@ -80,6 +86,8 @@ export default function App() {
 	)
 }
 ```
+
+</FocusLines>
 
 Try it out by opening your project in a second incognito window, or else access it from another device. You should see all of tldraw's multiplayer features: live cursors, user names, viewport following, cursor chat, and more.
 
