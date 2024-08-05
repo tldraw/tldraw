@@ -56,7 +56,7 @@ function AssetIcon({
 		<div
 			{...props}
 			ref={ref}
-			className={classNames('tlui-icon tlui-icon__asset', { 'tlui-icon__small': small }, className)}
+			className={classNames('tlui-icon', 'tlui-icon__asset', { 'tlui-icon__small': small }, className)}
 			style={{
 				color,
 				mask: `url(${asset}) center 100% / 100% no-repeat`,
