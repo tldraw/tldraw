@@ -3334,10 +3334,11 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
+    collaboration?: {
+        status: null | Signal<'offline' | 'online'>;
+    };
     id?: string;
-} & TLStoreSchemaOptions &
-/** Collaboration options for the store. */
-Pick<TLStoreProps, 'collaboration'>;
+} & TLStoreSchemaOptions;
 
 // @public (undocumented)
 export type TLStoreSchemaOptions = {
