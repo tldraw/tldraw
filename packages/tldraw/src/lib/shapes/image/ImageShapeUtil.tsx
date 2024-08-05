@@ -188,7 +188,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				{showCropPreview && loadedSrc && (
 					<div style={containerStyle}>
 						<img
-							className="tl-image"
+							className={classNames('tl-image', {
+								'tl-flip-x': shape.props.flipX && !shape.props.flipY,
+								'tl-flip-y': shape.props.flipY && !shape.props.flipX,
+								'tl-flip-xy': shape.props.flipY && shape.props.flipX,
+							})}
 							crossOrigin={crossOrigin}
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
