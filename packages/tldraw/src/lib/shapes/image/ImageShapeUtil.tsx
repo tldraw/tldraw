@@ -73,7 +73,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 		if (!shape.props.crop) return resized
 
-		const { topLeft, bottomRight } = shape.props.crop
 		const flipCropHorizontally =
 			// We used the flip horizontally feature
 			(mode === 'scale_shape' && scaleX === -1) ||
@@ -85,6 +84,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			// We resized the shape past it's bounds, so it flipped
 			(mode === 'resize_bounds' && flipY !== resized.props.flipY)
 
+		const { topLeft, bottomRight } = shape.props.crop
 		if (flipCropHorizontally) {
 			resized.props.crop = {
 				topLeft: { x: 1 - bottomRight.x, y: topLeft.y },
