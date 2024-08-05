@@ -13,7 +13,7 @@ export const MobileMenu: React.FC<{
 		caption: string
 		href?: string
 		children?: { caption: string; href: string }[]
-		active: (pathname: string) => boolean
+		active(pathname: string): boolean
 	}[]
 	social: { caption: string; icon: IconName; href: string }[]
 }> = ({ main, social }) => {

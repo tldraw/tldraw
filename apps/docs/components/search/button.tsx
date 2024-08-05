@@ -28,7 +28,7 @@ export const SearchButton: React.FC<{
 		if (layout !== 'desktop') return
 		document.addEventListener('keydown', onKeyDown)
 		return () => document.removeEventListener('keydown', onKeyDown)
-	}, [])
+	}, [layout])
 
 	useEffect(() => {
 		setOpen(false)

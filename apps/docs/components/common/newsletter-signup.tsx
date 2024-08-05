@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/common/button'
 import { cn } from '@/utils/cn'
+import { useLocalStorageState } from '@/utils/storage'
 import { Field, Input, Label } from '@headlessui/react'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
 import { FC, FormEventHandler, useCallback, useState } from 'react'
-import { useLocalStorageState } from 'tldraw'
 
 // when debugging is true, the form will always show (even if the user has submitted)
 const DEBUGGING = false

@@ -10,7 +10,7 @@ export const SearchInput = () => {
 
 	useEffect(() => {
 		refine(search)
-	}, [search])
+	}, [search, refine])
 
 	return (
 		<Command.Input

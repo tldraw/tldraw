@@ -11,7 +11,7 @@ export const CloseOnNavigation = () => {
 		// @ts-ignore
 		// button.current?.click()
 		close()
-	}, [pathname, searchParams])
+	}, [pathname, searchParams, close])
 
 	return null
 }

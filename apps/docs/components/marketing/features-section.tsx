@@ -34,14 +34,14 @@ export const FeaturesSection = () => {
 				<Card className="col-span-6 md:col-span-3">
 					<Image
 						src={FeaturesPerformance}
-						alt="Performance Guaranteed"
+						alt="High performance"
 						className="absolute bottom-0 right-0 w-5/6"
 					/>
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
 						<h3 className="text-black font-black text-xl md:text-2xl mb-4">High performance</h3>
 						<p className="max-w-xs">
-							Create and edit thousands of objects without missing a frame. We've tuned performance
-							for desktop, tablets, and mobile devices.
+							Create and edit thousands of objects. We&apos;ve tuned performance for desktop,
+							tablets, and mobile devices.
 						</p>
 					</div>
 				</Card>
