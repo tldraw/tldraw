@@ -3354,6 +3354,9 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 };
 
 // @public (undocumented)
+export function useEmbedDefinition(url: string): TLEmbedResult;
+
+// @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public (undocumented)
