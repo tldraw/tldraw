@@ -15,7 +15,7 @@ export const Demo = () => {
 
 	return (
 		<div className="py-16 w-full">
-			<div className="w-full bg-blue-500 py-1 md:rounded-2xl md:-mx-1 md:px-1 mt-1 h-96 sm:h-[40rem] max-h-[80vh]">
+			<div className="w-full bg-blue-500 py-1 md:rounded-2xl md:px-1 mt-1 h-96 sm:h-[40rem] max-h-[80vh]">
 				<div className="relative w-full h-full md:rounded-xl overflow-hidden shadow bg-white">
 					{showCanvas ? (
 						<iframe
