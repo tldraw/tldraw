@@ -1,5 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
@@ -12,7 +12,7 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 } from 'tldraw'
-import { convertLegacyUrlParams } from '../hooks/useUrlState'
+import { useLegacyUrlParams } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
@@ -57,7 +57,7 @@ interface SnapshotEditorProps {
 
 export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 	// make sure this runs before the editor is instantiated
-	useState(convertLegacyUrlParams)
+	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()

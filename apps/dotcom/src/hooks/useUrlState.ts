@@ -1,3 +1,5 @@
+import { useLayoutEffect } from 'react'
+
 const PARAMS = {
 	// deprecated
 	viewport: 'viewport',
@@ -21,17 +23,19 @@ const viewportToString = (
 	)}`
 }
 
-export function convertLegacyUrlParams() {
-	const url = new URL(window.location.href)
-	const viewport = url.searchParams.get(PARAMS.viewport)
-	if (viewport) {
-		url.searchParams.set(PARAMS.v, viewportToString(viewportFromString(viewport)))
-		url.searchParams.delete(PARAMS.viewport)
-	}
-	const page = url.searchParams.get(PARAMS.page)
-	if (page) {
-		url.searchParams.set(PARAMS.p, page.slice('page:'.length))
-		url.searchParams.delete(PARAMS.page)
-	}
-	window.history.replaceState({}, document.title, url.toString())
+export function useLegacyUrlParams() {
+	useLayoutEffect(() => {
+		const url = new URL(window.location.href)
+		const viewport = url.searchParams.get(PARAMS.viewport)
+		if (viewport) {
+			url.searchParams.set(PARAMS.v, viewportToString(viewportFromString(viewport)))
+			url.searchParams.delete(PARAMS.viewport)
+		}
+		const page = url.searchParams.get(PARAMS.page)
+		if (page) {
+			url.searchParams.set(PARAMS.p, page.slice('page:'.length))
+			url.searchParams.delete(PARAMS.page)
+		}
+		window.history.replaceState({}, document.title, url.toString())
+	}, [])
 }

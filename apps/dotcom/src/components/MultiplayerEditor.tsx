@@ -5,7 +5,7 @@ import {
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import {
 	assertExists,
 	DefaultKeyboardShortcutsDialog,
@@ -30,7 +30,7 @@ import {
 	useValue,
 	ViewSubmenu,
 } from 'tldraw'
-import { convertLegacyUrlParams } from '../hooks/useUrlState'
+import { useLegacyUrlParams } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -120,7 +120,7 @@ export function MultiplayerEditor({
 	roomSlug: string
 }) {
 	// make sure this runs before the editor is instantiated
-	useState(convertLegacyUrlParams)
+	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
 
