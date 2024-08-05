@@ -13,7 +13,7 @@ import './globals.css'
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: 'tldraw • Infinite canvas SDK for React',
+		default: 'tldraw SDK',
 		template: `%s • tldraw SDK`,
 	},
 	description:
