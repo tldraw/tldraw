@@ -29,9 +29,6 @@
 	"references": [
 		{
 			"path": "../../packages/utils"
-		},
-		{
-			"path": "../../packages/tldraw"
 		}
 	]
 }

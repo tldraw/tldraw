@@ -39,9 +39,9 @@ export const HeroSection = () => {
 					Loved by <span className="text-black font-semibold">5000+</span> developers and users.
 				</div>
 			</div> */}
-			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 sm:text-lg ">
+			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 sm:text-lg max-w-xl">
 				Whether you need a drop in whiteboard or an engine for your web canvas, the{' '}
-				<b>tldraw SDK</b> has you covered with components, APIs, and services to build faster.
+				<b>tldraw SDK</b> provides the components, APIs, and services to get you there.
 			</p>
 			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl">
 				<Button href="/quick-start" caption="Get started" type="black" size="lg" />

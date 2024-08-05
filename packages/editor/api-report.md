@@ -497,7 +497,7 @@ export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | 
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, onMount, multiplayerStatus, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, onMount, collaboration, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -3325,7 +3325,6 @@ export interface TLStoreBaseOptions {
     assets?: TLAssetStore;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
-    multiplayerStatus?: null | Signal<'offline' | 'online'>;
     onMount?(editor: Editor): (() => void) | void;
     snapshot?: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }
@@ -3335,6 +3334,9 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
+    collaboration?: {
+        status: null | Signal<'offline' | 'online'>;
+    };
     id?: string;
 } & TLStoreSchemaOptions;
 
