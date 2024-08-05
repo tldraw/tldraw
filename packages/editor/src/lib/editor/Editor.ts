@@ -7855,6 +7855,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		url: null,
 	}
 
+	/** @internal */
+	private readonly temporaryAssetPreview = new Map<TLAssetId, string>()
+
 	/**
 	 * Register an external asset handler. This handler will be called when the editor needs to
 	 * create an asset for some external content, like an image/video file or a bookmark URL. For
@@ -7880,6 +7883,57 @@ export class Editor extends EventEmitter<TLEventMap> {
 	): this {
 		this.externalAssetContentHandlers[type] = handler as any
 		return this
+	}
+
+	/**
+	 * Register a temporary preview of an asset. This is useful for showing a ghost image of
+	 * something that is being uploaded. Returns an `RC` of the URL - call `.retain` to keep it in
+	 * memory, and `.release` when you're done with it.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setTemporaryAssetPreview('someid', file)
+	 * ```
+	 *
+	 * @param assetId - The asset's id.
+	 * @param file - The raw file.
+	 *
+	 * @public
+	 */
+	createTemporaryAssetPreview(assetId: TLAssetId, file: File) {
+		if (this.temporaryAssetPreview.has(assetId)) {
+			return this.temporaryAssetPreview.get(assetId)
+		}
+
+		const objectUrl = URL.createObjectURL(file)
+		this.temporaryAssetPreview.set(assetId, objectUrl)
+
+		this.timers.setTimeout(
+			() => {
+				this.temporaryAssetPreview.delete(assetId)
+				URL.revokeObjectURL(objectUrl)
+			},
+			3 * 60 * 1000 /* 3 minutes */
+		)
+
+		return objectUrl
+	}
+
+	/**
+	 * Get temporary preview of an asset. This is useful for showing a ghost
+	 * image of something that is being uploaded.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getTemporaryAssetPreview('someid')
+	 * ```
+	 *
+	 * @param assetId - The asset's id.
+	 *
+	 * @public
+	 */
+	getTemporaryAssetPreview(assetId: TLAssetId) {
+		return this.temporaryAssetPreview.get(assetId)
 	}
 
 	/**

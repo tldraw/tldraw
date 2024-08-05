@@ -85,7 +85,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 
 	/**
 	 * Migrations allow you to make changes to a shape's props over time. Read the
-	 * {@link https://staging.tldraw.dev/docs/persistence#Shape-props-migrations | shape prop migrations}
+	 * {@link https://www.tldraw.dev/docs/persistence#Shape-props-migrations | shape prop migrations}
 	 * guide for more information.
 	 */
 	static migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
@@ -371,6 +371,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry {
 		return {}
+	}
+
+	getText(_shape: Shape): string | undefined {
+		return undefined
 	}
 
 	//  Events

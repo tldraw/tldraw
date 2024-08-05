@@ -13,6 +13,7 @@ export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
 	centerSelectionAroundPoint,
+	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
 	createShapesForAssets,
 	registerDefaultExternalContentHandlers,
 	type TLExternalContentProps,
@@ -227,10 +228,12 @@ export {
 	ConvertToEmbedMenuItem,
 	CopyAsMenuGroup,
 	CopyMenuItem,
+	CursorChatItem,
 	CutMenuItem,
 	DeleteMenuItem,
 	DuplicateMenuItem,
 	EditLinkMenuItem,
+	EditMenuSubmenu,
 	FitFrameToContentMenuItem,
 	GroupMenuItem,
 	MoveToPageMenu,
@@ -391,6 +394,7 @@ export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useEmbedDefinition } from './lib/ui/hooks/useEmbedDefinition'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
+export { useIsMultiplayer, useMultiplayerStatus } from './lib/ui/hooks/useIsMultiplayer'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'

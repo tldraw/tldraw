@@ -7,13 +7,17 @@ import {
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
+	TLBookmarkShapeProps,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
 	debounce,
 	getHashForString,
+	lerp,
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { useState } from 'react'
+import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
@@ -55,6 +59,10 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 		const address = getHumanReadableAddress(shape)
 
+		/* eslint-disable-next-line react-hooks/rules-of-hooks */
+		const [isFaviconValid, setIsFaviconValid] = useState(true)
+		const onFaviconError = () => setIsFaviconValid(false)
+
 		return (
 			<HTMLContainer>
 				<div
@@ -84,7 +92,9 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 					)}
 					<div className="tl-bookmark__copy_container">
 						{asset?.props.title ? (
-							<h2 className="tl-bookmark__heading">{asset.props.title}</h2>
+							<h2 className="tl-bookmark__heading">
+								{convertCommonTitleHTMLEntities(asset.props.title)}
+							</h2>
 						) : null}
 						{asset?.props.description && asset?.props.image ? (
 							<p className="tl-bookmark__description">{asset.props.description}</p>
@@ -98,11 +108,12 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 							onPointerUp={stopEventPropagation}
 							onClick={stopEventPropagation}
 						>
-							{asset?.props.favicon ? (
+							{isFaviconValid && asset?.props.favicon ? (
 								<img
 									className="tl-bookmark__favicon"
 									src={asset?.props.favicon}
 									referrerPolicy="strict-origin-when-cross-origin"
+									onError={onFaviconError}
 									alt={`favicon of ${address}`}
 								/>
 							) : (
@@ -148,6 +159,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 		if (prev.props.assetId !== shape.props.assetId) {
 			return getBookmarkSize(this.editor, shape)
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLBookmarkShape,
+		endShape: TLBookmarkShape,
+		t: number
+	): TLBookmarkShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
 }

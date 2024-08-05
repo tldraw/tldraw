@@ -56,11 +56,7 @@ export function validateIndexKey(index: string): asserts index is IndexKey {
 	// getIntegerPart will throw if the first character is bad,
 	// or the key is too short.  we'd call it to check these things
 	// even if we didn't need the result
-	const i = getIntegerPart(index)
-	const f = index.slice(i.length)
-	if (f.slice(-1) === '0') {
-		throw new Error('invalid index: ' + index)
-	}
+	getIntegerPart(index)
 }
 
 /**

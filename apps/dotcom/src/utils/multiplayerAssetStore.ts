@@ -7,7 +7,7 @@ export const multiplayerAssetStore = {
 		const id = uniqueId()
 
 		const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
-		const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
+		const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
 		const url = `${UPLOAD_URL}/${objectName}`
 
 		const response = await fetch(url, {

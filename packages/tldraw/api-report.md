@@ -57,6 +57,7 @@ import { TLArrowShapeProps } from '@tldraw/editor';
 import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
+import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
@@ -68,22 +69,30 @@ import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
+import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedDefinition } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
+import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
+import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
+import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
+import { TLHighlightShapeProps } from '@tldraw/editor';
+import { TLImageAsset } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
+import { TLImageShapeProps } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
+import { TLNoteShapeProps } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
@@ -103,6 +112,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
@@ -195,6 +205,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
+    getText(shape: TLArrowShape): string;
+    // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
     hideRotateHandle(): boolean;
@@ -260,6 +272,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     component(shape: TLBookmarkShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
     // (undocumented)
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
@@ -389,8 +403,14 @@ export function CopyAsMenuGroup(): JSX_2.Element;
 // @public (undocumented)
 export function CopyMenuItem(): JSX_2.Element;
 
+// @public (undocumented)
+export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean): Promise<TLImageAsset | TLVideoAsset>;
+
 // @public
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
+
+// @public (undocumented)
+export function CursorChatItem(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function CutMenuItem(): JSX_2.Element;
@@ -549,6 +569,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, t: number): TLDrawShapeProps;
+    // (undocumented)
     hideResizeHandles(shape: TLDrawShape): boolean;
     // (undocumented)
     hideRotateHandle(shape: TLDrawShape): boolean;
@@ -582,6 +604,9 @@ export function DuplicateMenuItem(): JSX_2.Element | null;
 export function EditLinkMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
+export function EditMenuSubmenu(): JSX_2.Element | null;
+
+// @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
 
 // @public (undocumented)
@@ -599,6 +624,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     component(shape: TLEmbedShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
     hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
     // (undocumented)
@@ -726,6 +753,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLFrameShape, endShape: TLFrameShape, t: number): TLFrameShapeProps;
+    // (undocumented)
+    getText(shape: TLFrameShape): string | undefined;
+    // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -774,6 +805,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getGeometry(shape: TLGeoShape): Group2d;
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
+    // (undocumented)
+    getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
+    // (undocumented)
+    getText(shape: TLGeoShape): string;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -974,6 +1009,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, t: number): TLHighlightShapeProps;
+    // (undocumented)
     hideResizeHandles(shape: TLHighlightShape): boolean;
     // (undocumented)
     hideRotateHandle(shape: TLHighlightShape): boolean;
@@ -1007,9 +1044,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop(): boolean;
     // (undocumented)
-    component(shape: TLImageShape): JSX_2.Element | null;
+    component(shape: TLImageShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
@@ -1086,7 +1125,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
-    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, progress: number): TLLineShape['props'];
+    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, t: number): TLLineShape['props'];
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -1185,6 +1224,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     getGeometry(shape: TLNoteShape): Group2d;
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
+    // (undocumented)
+    getText(shape: TLNoteShape): string;
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -1535,6 +1578,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         width: number;
     };
     // (undocumented)
+    getText(shape: TLTextShape): string;
+    // (undocumented)
     indicator(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)
     isAspectRatioLocked(): boolean;
@@ -1860,7 +1905,7 @@ export interface TldrawUiProps extends TldrawUiContextProviderProps {
     renderDebugMenuItems?(): React_3.ReactNode;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
 
 // @public (undocumented)
@@ -2635,7 +2680,7 @@ export interface TLUiQuickActionsProps {
     children?: ReactNode;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
@@ -3360,6 +3405,9 @@ export function useEmbedDefinition(url: string): TLEmbedResult;
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public (undocumented)
+export function useIsMultiplayer(): boolean;
+
+// @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;
 
 // @public (undocumented)
@@ -3377,6 +3425,9 @@ export function useMenuClipboardEvents(): {
 
 // @public (undocumented)
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
+
+// @public (undocumented)
+export function useMultiplayerStatus(): "offline" | "online" | null;
 
 // @public (undocumented)
 export function useNativeClipboardEvents(): void;
