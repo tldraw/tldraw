@@ -337,7 +337,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
-const noAutoFocus = () => document.location.search.includes('preserveFocus')
+const noAutoFocus = () => document.location.search.includes('tldraw_preserveFocus')
 
 function TldrawEditorWithReadyStore({
 	onMount,
@@ -438,7 +438,7 @@ function TldrawEditorWithReadyStore({
 	)
 
 	// For our examples site, we want autoFocus to be true on the examples site, but not
-	// when embedded in our docs site. If present, the `preserveFocus` search param
+	// when embedded in our docs site. If present, the `tldraw_preserveFocus` search param
 	// overrides the `autoFocus` prop and prevents the editor from focusing immediately,
 	// however here we also add some logic to focus the editor when the user clicks
 	// on it and unfocus it when the user clicks away from it.
