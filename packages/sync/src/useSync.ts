@@ -139,14 +139,18 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		let didCancel = false
 
+		const collaborationStatusSignal = computed('collaboration status', () =>
+			socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+		)
+
 		const store = createTLStore({
 			id: storeId,
 			schema,
 			assets,
 			onMount,
-			multiplayerStatus: computed('multiplayer status', () =>
-				socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-			),
+			collaboration: {
+				status: collaborationStatusSignal,
+			},
 		})
 
 		const client = new TLSyncClient({

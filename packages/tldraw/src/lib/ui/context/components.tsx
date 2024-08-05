@@ -34,7 +34,7 @@ import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
-import { useIsMultiplayer } from '../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 
 /** @public */
 export interface TLUiComponents {
@@ -73,7 +73,7 @@ export function TldrawUiComponentsProvider({
 	children,
 }: TLUiComponentsProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
-	const isMultiplayer = useIsMultiplayer()
+	const showCollaborationUi = useShowCollaborationUi()
 
 	return (
 		<TldrawUiComponentsContext.Provider
@@ -95,12 +95,12 @@ export function TldrawUiComponentsProvider({
 					DebugPanel: DefaultDebugPanel,
 					DebugMenu: DefaultDebugMenu,
 					MenuPanel: DefaultMenuPanel,
-					SharePanel: isMultiplayer ? DefaultSharePanel : null,
-					CursorChatBubble: isMultiplayer ? CursorChatBubble : null,
-					TopPanel: isMultiplayer ? DefaultTopPanel : null,
+					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
+					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
+					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
 					..._overrides,
 				}),
-				[_overrides, isMultiplayer]
+				[_overrides, showCollaborationUi]
 			)}
 		>
 			{children}
