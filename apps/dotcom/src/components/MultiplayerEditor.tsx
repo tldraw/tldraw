@@ -82,7 +82,7 @@ const components: TLComponents = {
 			'offline',
 			() => {
 				const status = assertExists(
-					editor.store.props.multiplayerStatus,
+					editor.store.props.collaboration?.status,
 					'should be used with multiplayer store'
 				)
 				return status.get() === 'offline'
