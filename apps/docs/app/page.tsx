@@ -4,6 +4,7 @@ import { FeaturesSection } from '@/components/marketing/features-section'
 import { HeroSection } from '@/components/marketing/hero-section'
 import { InstallationSection } from '@/components/marketing/installation-section'
 import { LogoSection } from '@/components/marketing/logo-section'
+import { PricingSection } from '@/components/marketing/pricing-section'
 
 export default function Page() {
 	return (
@@ -15,10 +16,12 @@ export default function Page() {
 			<InstallationSection />
 			{/* <CustomizationSection /> */}
 			{/* <CaseStudiesSection /> */}
-			{/* <PricingSection /> */}
+			<PricingSection />
 			{/* <TestimonialsSection /> */}
 			{/* <FAQSection /> */}
-			<CTASection />
+			<div className="flex flex-col items-center justify-center gap-4">
+				<CTASection />
+			</div>
 		</>
 	)
 }
