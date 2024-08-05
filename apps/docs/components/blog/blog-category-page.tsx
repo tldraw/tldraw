@@ -17,7 +17,7 @@ export const BlogCategoryPage: React.FC<{
 			<div className="fixed w-full h-12 border-b border-zinc-100 flex items-center justify-between px-5 bg-white/90 backdrop-blur md:hidden z-10">
 				<BlogMobileSidebar />
 			</div>
-			<main className="relative shrink w-full md:overflow-x-hidden px-5 md:pr-0 lg:pl-12 pt-24 md:pt-0">
+			<main className="relative shrink w-full md:overflow-x-hidden px-5 md:pr-0 lg:pl-12 py-24 md:pt-0">
 				<section className="pb-6 mb-6 md:mb-12 md:pb-12 border-b border-zinc-100">
 					<Breadcrumbs section={section} className="mb-2" />
 					<PageTitle>{title}</PageTitle>
