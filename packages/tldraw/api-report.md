@@ -409,6 +409,9 @@ export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isI
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
 
 // @public (undocumented)
+export function CursorChatItem(): JSX_2.Element | null;
+
+// @public (undocumented)
 export function CutMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -598,6 +601,9 @@ export function DuplicateMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function EditLinkMenuItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function EditMenuSubmenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
@@ -3395,6 +3401,9 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public (undocumented)
+export function useIsMultiplayer(): boolean;
+
+// @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;
 
 // @public (undocumented)
@@ -3412,6 +3421,9 @@ export function useMenuClipboardEvents(): {
 
 // @public (undocumented)
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
+
+// @public (undocumented)
+export function useMultiplayerStatus(): "offline" | "online" | null;
 
 // @public (undocumented)
 export function useNativeClipboardEvents(): void;
