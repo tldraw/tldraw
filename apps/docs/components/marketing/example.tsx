@@ -1,5 +1,5 @@
 import { getPageContent } from '@/utils/get-page-content'
-import { Code } from '../content/code'
+import { CodeFiles } from '../content/code-files'
 import { ExamplePlaceholder } from './example-placeholder'
 
 export const Example: React.FC<{ path: string; showPlaceholder?: boolean }> = async ({
@@ -17,7 +17,7 @@ export const Example: React.FC<{ path: string; showPlaceholder?: boolean }> = as
 
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-5 md:px-0">
-			<Code files={files} hideCopyButton className="my-0 lg:h-96" />
+			<CodeFiles files={files} hideCopyButton className="my-0 lg:h-96" />
 			<div className="bg-blue-500 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1">
 				<div className="relative h-full md:rounded-xl overflow-hidden shadow bg-white">
 					{showPlaceholder ? (

@@ -1,55 +1,239 @@
-import { cn } from '@/utils/cn'
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
-import hljs from 'highlight.js/lib/common'
+'use client'
 
-export const Code: React.FC<{
-	files: { name: string; content: any }[]
-	hideCopyButton?: boolean
-	hideTabs?: boolean
-	className?: string
-}> = ({ files, hideTabs, className }) => {
+import { cn } from '@/utils/cn'
+import { ArrowRightIcon } from '@heroicons/react/20/solid'
+import { getOwnProperty } from '@tldraw/utils'
+import {
+	cloneElement,
+	createContext,
+	isValidElement,
+	ReactElement,
+	ReactNode,
+	useContext,
+	useMemo,
+} from 'react'
+import { A } from './a'
+
+const CodeLinksContext = createContext<Record<string, string>>({})
+
+export function CodeLinks({
+	children,
+	links,
+}: {
+	children: React.ReactNode
+	links: Record<string, string>
+}) {
+	return <CodeLinksContext.Provider value={links}>{children}</CodeLinksContext.Provider>
+}
+
+const FocusLinesContext = createContext<null | number[]>(null)
+export function FocusLines({ children, lines }: { children: ReactNode; lines: number[] }) {
+	return <FocusLinesContext.Provider value={lines}>{children}</FocusLinesContext.Provider>
+}
+
+const blurredLineClassName = 'opacity-50 !text-white'
+
+function CodeLink({ children, href }: { children: ReactNode; href: string }) {
 	return (
-		<TabGroup
-			className={cn(
-				'group relative not-prose bg-zinc-100 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1 my-6 flex flex-col',
-				'[td_&]:m-0 [td_&]:mb-2 [td_&]:p-0 [td_&]:bg-transparent [td_&]:rounded-none',
-				className
-			)}
-		>
-			<TabList
-				className={cn(
-					'bg-zinc-900 shrink-0 text-sm text-zinc-400 shadow md:rounded-t-xl border-b border-zinc-700/50 px-5 md:px-4 gap-4 flex',
-					hideTabs && 'hidden'
-				)}
-			>
-				{files.map(({ name }, index) => (
-					<Tab
-						key={index}
-						className="h-8 data-[selected]:text-white border-b border-transparent data-[selected]:border-white -mb-px focus:outline-none"
-					>
-						{name}
-					</Tab>
-				))}
-			</TabList>
-			<TabPanels
-				className={cn(
-					'bg-zinc-900 grow text-sm text-white shadow md:rounded-b-xl overflow-x-auto px-5 md:px-4 py-4',
-					hideTabs && 'md:rounded-t-xl'
-				)}
-			>
-				{files.map(({ content }, index) => (
-					<TabPanel key={index}>
-						<pre className="max-h-96 overflow-y-auto">
-							<code
-								className="hljs language-ts"
-								dangerouslySetInnerHTML={{
-									__html: hljs.highlight(content, { language: 'ts' }).value,
-								}}
-							/>
-						</pre>
-					</TabPanel>
-				))}
-			</TabPanels>
-		</TabGroup>
+		<A href={href} className="group-[.not-prose]:hover:underline">
+			{children}
+			<ArrowRightIcon className="h-3 -rotate-45 inline-block mb-0.5" />
+		</A>
 	)
+}
+
+export function Code({ children, ...props }: React.ComponentProps<'code'>) {
+	const codeLinks = useContext(CodeLinksContext)
+	const focusLines = useContext(FocusLinesContext)
+
+	const newChildren = useMemo(() => {
+		// to linkify code, we have to do quite a lot of work. we need to take the output of
+		// Highlight.js and transform it to add hyperlinks to certain tokens. There are a few things
+		// that make this difficult:
+		//
+		// 1, the structure is recursive. A function span will include a bunch of other spans making
+		// up the whole definition of the function, for example.
+		//
+		// 2, a given span doesn't necessarily correspond to a single identifier. For example, this
+		// code: `dispatch: (info: TLEventInfo) => this` will be split like this:
+		// - `dispatch`
+		// - `: (info: TLEventInfo) => `
+		// - `this`
+		//
+		// That means we need to take highlight.js's tokens and split them into our own tokens that
+		// contain single identifiers to linkify.
+		//
+		// 3, a single identifier can be split across multiple spans. For example,
+		// `Omit<Geometry2dOptions>` will be split like this:
+		// - `Omit`
+		// - `<`
+		// - `Geometry2`
+		// - `dOptions`
+		// - `>`
+		//
+		// I don't know why this happens, it feels like a bug. We handle this by keeping track of &
+		// merging consecutive tokens if they're identifiers with no non-identifier tokens in
+		// between.
+
+		// does this token look like a JS identifier?
+		function isIdentifier(token: string): boolean {
+			return /^[_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*$/g.test(token)
+		}
+
+		// split the code into an array of identifiers, and the bits in between them
+		function tokenize(code: string): string[] {
+			const identifierRegex = /[_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*/g
+
+			let currentIdx = 0
+			const tokens = []
+			for (const identifierMatch of code.matchAll(identifierRegex)) {
+				const [identifier] = identifierMatch
+				const idx = identifierMatch.index
+				if (idx > currentIdx) {
+					tokens.push(code.slice(currentIdx, idx))
+				}
+				tokens.push(identifier)
+				currentIdx = idx + identifier.length
+			}
+			if (currentIdx < code.length) {
+				tokens.push(code.slice(currentIdx))
+			}
+
+			return tokens
+		}
+
+		// what line are we on?
+		let lineNumber = 1
+
+		// recursively process the children array
+		function processChildrenArray(children: ReactNode): ReactNode {
+			if (!Array.isArray(children)) {
+				if (!children) return children
+				return processChildrenArray([children])
+			}
+
+			// these are the new linkified children, the result of this function
+			const newChildren = []
+
+			// in order to deal with token splitting/merging, we need to keep track of the last
+			// highlight span we saw. this has the right classes on it to colorize the current
+			// token.
+			let lastSeenHighlightSpan: ReactElement | null = null
+			// the current identifier that we're building up by merging consecutive tokens
+			let currentIdentifier: string | null = null
+			// whether the current span is closed, but we're still in the same identifier and might
+			// still need to append to it
+			let isCurrentSpanClosed = false
+
+			function startSpan(span: ReactElement) {
+				lastSeenHighlightSpan = span
+				isCurrentSpanClosed = false
+			}
+
+			function closeSpan() {
+				isCurrentSpanClosed = true
+				if (!currentIdentifier) {
+					lastSeenHighlightSpan = null
+				}
+			}
+
+			function pushInCurrentSpan(content: ReactNode) {
+				const isLineInFocus = focusLines ? focusLines.includes(lineNumber) : true
+				const lineProps = {
+					'data-line': lineNumber,
+					className: cn(
+						lastSeenHighlightSpan?.props.className,
+						isLineInFocus ? '' : blurredLineClassName
+					),
+				}
+
+				if (lastSeenHighlightSpan) {
+					newChildren.push(
+						cloneElement(lastSeenHighlightSpan, {
+							key: newChildren.length,
+							children: content,
+							...lineProps,
+						})
+					)
+				} else {
+					newChildren.push(
+						<span key={newChildren.length} {...lineProps}>
+							{content}
+						</span>
+					)
+				}
+			}
+
+			function finishCurrentIdentifier() {
+				if (currentIdentifier) {
+					const link = getOwnProperty(codeLinks, currentIdentifier)
+					if (link) {
+						pushInCurrentSpan(<CodeLink href={link}>{currentIdentifier}</CodeLink>)
+					} else {
+						pushInCurrentSpan(currentIdentifier)
+					}
+					currentIdentifier = null
+				}
+				if (isCurrentSpanClosed) {
+					lastSeenHighlightSpan = null
+				}
+			}
+
+			function pushToken(token: string) {
+				if (isIdentifier(token)) {
+					if (currentIdentifier) {
+						currentIdentifier += token
+					} else {
+						currentIdentifier = token
+					}
+				} else {
+					finishCurrentIdentifier()
+
+					const lineParts = token.split('\n')
+					for (let i = 0; i < lineParts.length; i++) {
+						let part = lineParts[i]
+						if (i > 0) {
+							lineNumber += 1
+							part = '\n' + part
+						}
+						pushInCurrentSpan(part)
+					}
+				}
+			}
+
+			for (const child of children) {
+				if (typeof child === 'string') {
+					for (const token of tokenize(child)) {
+						pushToken(token)
+					}
+				} else if (isValidElement<{ children: ReactNode }>(child)) {
+					if (child.type === 'span' && typeof child.props.children === 'string') {
+						startSpan(child)
+						for (const token of tokenize(child.props.children)) {
+							pushToken(token)
+						}
+						closeSpan()
+					} else {
+						finishCurrentIdentifier()
+						newChildren.push(
+							cloneElement(child, {
+								key: newChildren.length,
+								children: processChildrenArray(child.props.children),
+							})
+						)
+					}
+				} else {
+					throw new Error(`Invalid code child: ${JSON.stringify(child)}`)
+				}
+			}
+
+			finishCurrentIdentifier()
+
+			return newChildren
+		}
+
+		return processChildrenArray(children)
+	}, [children, codeLinks, focusLines])
+
+	return <code {...props}>{newChildren}</code>
 }
