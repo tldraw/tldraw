@@ -8580,9 +8580,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	focus({ focusContainer = true } = {}): this {
-		if (focusContainer) {
-			this.focusManager.focus()
-		}
+		if (this.getIsFocused()) return this
+		if (focusContainer) this.focusManager.focus()
 		this.updateInstanceState({ isFocused: true })
 		return this
 	}

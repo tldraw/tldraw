@@ -98,8 +98,10 @@ export interface TLStoreProps {
 	/**
 	 * Called an {@link @tldraw/editor#Editor} connected to this store is mounted.
 	 */
-	onEditorMount: (editor: unknown) => void | (() => void)
-	multiplayerStatus: Signal<'online' | 'offline'> | null
+	onMount(editor: unknown): void | (() => void)
+	collaboration?: {
+		status: Signal<'online' | 'offline'> | null
+	}
 }
 
 /** @public */

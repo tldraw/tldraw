@@ -71,7 +71,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		roomId = 'default',
 		assets,
-		onEditorMount,
+		onMount,
 		trackAnalyticsEvent: track,
 		userInfo,
 		...schemaOpts
@@ -139,14 +139,18 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		let didCancel = false
 
+		const collaborationStatusSignal = computed('collaboration status', () =>
+			socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+		)
+
 		const store = createTLStore({
 			id: storeId,
 			schema,
 			assets,
-			onEditorMount,
-			multiplayerStatus: computed('multiplayer status', () =>
-				socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-			),
+			onMount,
+			collaboration: {
+				status: collaborationStatusSignal,
+			},
 		})
 
 		const client = new TLSyncClient({
@@ -184,7 +188,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket.close()
 			setState(null)
 		}
-	}, [assets, onEditorMount, userAtom, roomId, schema, setState, track, uri])
+	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -250,7 +254,7 @@ export interface UseSyncOptions {
 	assets: TLAssetStore
 
 	/** @internal */
-	onEditorMount?: (editor: Editor) => void
+	onMount?(editor: Editor): void
 	/** @internal used for analytics only, we should refactor this away */
 	roomId?: string
 	/** @internal */

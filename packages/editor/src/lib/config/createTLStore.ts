@@ -30,10 +30,7 @@ export interface TLStoreBaseOptions {
 	assets?: TLAssetStore
 
 	/** Called when the store is connected to an {@link Editor}. */
-	onEditorMount?: (editor: Editor) => void | (() => void)
-
-	/** Is this store connected to a multiplayer sync server? */
-	multiplayerStatus?: Signal<'online' | 'offline'> | null
+	onMount?(editor: Editor): void | (() => void)
 }
 
 /** @public */
@@ -48,7 +45,13 @@ export type TLStoreSchemaOptions =
 	  }
 
 /** @public */
-export type TLStoreOptions = TLStoreBaseOptions & { id?: string } & TLStoreSchemaOptions
+export type TLStoreOptions = TLStoreBaseOptions & {
+	id?: string
+	/** Collaboration options for the store. */
+	collaboration?: {
+		status: Signal<'online' | 'offline'> | null
+	}
+} & TLStoreSchemaOptions
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
@@ -98,8 +101,8 @@ export function createTLStore({
 	defaultName = '',
 	id,
 	assets = inlineBase64AssetStore,
-	onEditorMount,
-	multiplayerStatus,
+	onMount,
+	collaboration,
 	...rest
 }: TLStoreOptions = {}): TLStore {
 	const schema = createTLSchemaFromUtils(rest)
@@ -114,11 +117,11 @@ export function createTLStore({
 				upload: assets.upload,
 				resolve: assets.resolve ?? defaultAssetResolve,
 			},
-			onEditorMount: (editor) => {
+			onMount: (editor) => {
 				assert(editor instanceof Editor)
-				onEditorMount?.(editor)
+				onMount?.(editor)
 			},
-			multiplayerStatus: multiplayerStatus ?? null,
+			collaboration,
 		},
 	})
 
