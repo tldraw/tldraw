@@ -337,7 +337,8 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
-const noAutoFocus = () => document.location.search.includes('tldraw_preserve_focus')
+const noAutoFocus = () =>
+	document.location.search.includes('tldraw_preserve_focus') || !document.hasFocus()
 
 function TldrawEditorWithReadyStore({
 	onMount,
@@ -397,7 +398,7 @@ function TldrawEditorWithReadyStore({
 				user,
 				initialState,
 				// we should check for some kind of query parameter that turns off autofocus
-				autoFocus: autoFocus && !document.location.search.includes('preserveFocus'),
+				autoFocus,
 				inferDarkMode,
 				cameraOptions,
 				options,
