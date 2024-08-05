@@ -3337,6 +3337,9 @@ export function useCanRedo(): boolean;
 export function useCanUndo(): boolean;
 
 // @public (undocumented)
+export function useCollaborationStatus(): "offline" | "online" | null;
+
+// @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
@@ -3401,9 +3404,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public (undocumented)
-export function useIsMultiplayer(): boolean;
-
-// @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;
 
 // @public (undocumented)
@@ -3423,9 +3423,6 @@ export function useMenuClipboardEvents(): {
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
 
 // @public (undocumented)
-export function useMultiplayerStatus(): "offline" | "online" | null;
-
-// @public (undocumented)
 export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
@@ -3439,6 +3436,9 @@ export function useReadonly(): boolean;
 
 // @public (undocumented)
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
+
+// @public (undocumented)
+export function useShowCollaborationUi(): boolean;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;
