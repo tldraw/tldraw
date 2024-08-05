@@ -1,4 +1,5 @@
 import { getAllArticles } from '@/utils/get-all-articles'
+import { nicelog } from '@/utils/nicelog'
 import algoliasearch from 'algoliasearch'
 
 const sectionPriority = {
@@ -18,21 +19,21 @@ const updateAlgoliaIndex = async () => {
 			process.env.ALGOLIA_API_KEY!
 		)
 
-		console.log(`Indexing ${docs.length} docs articles...`)
+		nicelog(`Indexing ${docs.length} docs articles...`)
 		const docsIndex = client.initIndex('docs')
 		await docsIndex.replaceAllObjects(
 			// @ts-ignore
 			docs.map((article) => ({ ...article, sectionPriority: sectionPriority[article.sectionId] })),
 			{ autoGenerateObjectIDIfNotExist: true }
 		)
-		console.log('Done.')
+		nicelog('Done.')
 
-		console.log(`Indexing ${blog.length} blog posts...`)
+		nicelog(`Indexing ${blog.length} blog posts...`)
 		const blogIndex = client.initIndex('blog')
 		await blogIndex.replaceAllObjects(blog, { autoGenerateObjectIDIfNotExist: true })
-		console.log('Done.')
+		nicelog('Done.')
 	} catch (error) {
-		console.log(error)
+		nicelog(error)
 	}
 }
 

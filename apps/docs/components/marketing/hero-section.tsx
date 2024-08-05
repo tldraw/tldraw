@@ -61,10 +61,10 @@ export const HeroSection = () => {
 	)
 }
 
-const avatars = [
-	'https://i.pravatar.cc/300?img=1',
-	'https://i.pravatar.cc/300?img=2',
-	'https://i.pravatar.cc/300?img=3',
-	'https://i.pravatar.cc/300?img=4',
-	'https://i.pravatar.cc/300?img=5',
-]
+// const avatars = [
+// 	'https://i.pravatar.cc/300?img=1',
+// 	'https://i.pravatar.cc/300?img=2',
+// 	'https://i.pravatar.cc/300?img=3',
+// 	'https://i.pravatar.cc/300?img=4',
+// 	'https://i.pravatar.cc/300?img=5',
+// ]
