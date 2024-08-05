@@ -1,27 +1,13 @@
-'use client'
-
-import { Button } from '@/components/common/button'
 import { cn } from '@/utils/cn'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import hljs from 'highlight.js/lib/common'
-import { useRef, useState } from 'react'
 
 export const Code: React.FC<{
 	files: { name: string; content: any }[]
 	hideCopyButton?: boolean
 	hideTabs?: boolean
 	className?: string
-}> = ({ files, hideCopyButton, hideTabs, className }) => {
-	const container = useRef<HTMLPreElement>(null)
-	const [copied, setCopied] = useState<boolean>(false)
-
-	const copy = () => {
-		const code: string = container.current?.innerText ?? ''
-		navigator.clipboard.writeText(code)
-		setCopied(true)
-		setTimeout(() => setCopied(false), 1500)
-	}
-
+}> = ({ files, hideTabs, className }) => {
 	return (
 		<TabGroup
 			className={cn(
@@ -55,7 +41,6 @@ export const Code: React.FC<{
 					<TabPanel key={index}>
 						<pre className="max-h-96 overflow-y-auto">
 							<code
-								ref={container}
 								className="hljs language-ts"
 								dangerouslySetInnerHTML={{
 									__html: hljs.highlight(content, { language: 'ts' }).value,
@@ -65,15 +50,6 @@ export const Code: React.FC<{
 					</TabPanel>
 				))}
 			</TabPanels>
-			{!hideCopyButton && (
-				<Button
-					onClick={copy}
-					caption={copied ? 'Copied' : 'Copy'}
-					icon={copied ? 'check' : 'copy'}
-					size="xs"
-					className="absolute -top-2 right-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-100"
-				/>
-			)}
 		</TabGroup>
 	)
 }
