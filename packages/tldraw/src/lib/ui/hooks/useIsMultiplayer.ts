@@ -1,6 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 
-export function useIsCollaborative() {
+export function useShowCollaborationUi() {
 	const editor = useEditor()
 	return editor.store.props.collaboration !== undefined
 }

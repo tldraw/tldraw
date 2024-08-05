@@ -30,7 +30,7 @@ import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { useInsertMedia } from '../hooks/useInsertMedia'
-import { useIsCollaborative } from '../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -85,7 +85,7 @@ function getExportName(editor: Editor, defaultName: string) {
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
-	const isMultiplayer = useIsCollaborative()
+	const showCollaborationUi = useShowCollaborationUi()
 
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts, addToast } = useToasts()
@@ -1426,7 +1426,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 		]
 
-		if (isMultiplayer) {
+		if (showCollaborationUi) {
 			actionItems.push({
 				id: 'open-cursor-chat',
 				label: 'action.open-cursor-chat',
@@ -1472,7 +1472,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		printSelectionOrPages,
 		msg,
 		defaultDocumentName,
-		isMultiplayer,
+		showCollaborationUi,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

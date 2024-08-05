@@ -3323,9 +3323,6 @@ export interface TLStateNodeConstructor {
 // @public (undocumented)
 export interface TLStoreBaseOptions {
     assets?: TLAssetStore;
-    collaboration?: {
-        status: Signal<'offline' | 'online'>;
-    };
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
@@ -3338,7 +3335,9 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
     id?: string;
-} & TLStoreSchemaOptions;
+} & TLStoreSchemaOptions &
+/** Collaboration options for the store. */
+Pick<TLStoreProps, 'collaboration'>;
 
 // @public (undocumented)
 export type TLStoreSchemaOptions = {

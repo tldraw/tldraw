@@ -1,4 +1,3 @@
-import { Signal } from '@tldraw/state'
 import { HistoryEntry, MigrationSequence, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import {
 	SchemaPropsInfo,
@@ -31,11 +30,6 @@ export interface TLStoreBaseOptions {
 
 	/** Called when the store is connected to an {@link Editor}. */
 	onMount?(editor: Editor): void | (() => void)
-
-	/** Collaboration options for the store. */
-	collaboration?: {
-		status: Signal<'online' | 'offline'>
-	}
 }
 
 /** @public */
@@ -50,7 +44,9 @@ export type TLStoreSchemaOptions =
 	  }
 
 /** @public */
-export type TLStoreOptions = TLStoreBaseOptions & { id?: string } & TLStoreSchemaOptions
+export type TLStoreOptions = TLStoreBaseOptions & { id?: string } & TLStoreSchemaOptions &
+	/** Collaboration options for the store. */
+	Pick<TLStoreProps, 'collaboration'>
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
