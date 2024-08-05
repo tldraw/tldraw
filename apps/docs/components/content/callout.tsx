@@ -1,0 +1,31 @@
+import { cn } from '@/utils/cn'
+import {
+	ExclamationCircleIcon,
+	ExclamationTriangleIcon,
+	InformationCircleIcon,
+} from '@heroicons/react/20/solid'
+
+export const Callout: React.FC<{
+	type?: 'info' | 'warning' | 'critical'
+	children: React.ReactNode
+}> = ({ type = 'info', children }) => {
+	return (
+		<div
+			className={cn(
+				'py-1 -mx-5 md:mx-0 md:px-1 md:rounded-2xl',
+				type === 'info' && 'bg-blue-50',
+				type === 'warning' && 'bg-amber-50',
+				type === 'critical' && 'bg-rose-50'
+			)}
+		>
+			<div className={cn('flex flex-col sm:flex-row gap-4 w-full shadow p-5 md:rounded-xl')}>
+				{type === 'info' && <InformationCircleIcon className="size-5 shrink-0 text-blue-500" />}
+				{type === 'warning' && (
+					<ExclamationTriangleIcon className="size-5 shrink-0 text-amber-500" />
+				)}
+				{type === 'critical' && <ExclamationCircleIcon className="size-5 shrink-0 text-rose-500" />}
+				<div className="-mt-0.5 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">{children}</div>
+			</div>
+		</div>
+	)
+}
