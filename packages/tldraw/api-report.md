@@ -409,6 +409,9 @@ export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isI
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
 
 // @public (undocumented)
+export function CursorChatItem(): JSX_2.Element | null;
+
+// @public (undocumented)
 export function CutMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -598,6 +601,9 @@ export function DuplicateMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function EditLinkMenuItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function EditMenuSubmenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
@@ -3355,6 +3361,9 @@ export function useCanRedo(): boolean;
 export function useCanUndo(): boolean;
 
 // @public (undocumented)
+export function useCollaborationStatus(): "offline" | "online" | null;
+
+// @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
@@ -3453,6 +3462,9 @@ export function useReadonly(): boolean;
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
 
 // @public (undocumented)
+export function useShowCollaborationUi(): boolean;
+
+// @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;
 
 // @public (undocumented)
@@ -3465,7 +3477,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
+export function useUiEvents(): TLUiEventContextType;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

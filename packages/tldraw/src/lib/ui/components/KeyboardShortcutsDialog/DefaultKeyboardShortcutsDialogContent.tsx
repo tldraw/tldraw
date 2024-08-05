@@ -1,4 +1,4 @@
-import { useIsMultiplayer } from '../../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../../hooks/useIsMultiplayer'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
@@ -6,7 +6,7 @@ import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
 /** @public @react */
 export function DefaultKeyboardShortcutsDialogContent() {
-	const isMultiplayer = useIsMultiplayer()
+	const showCollaborationUi = useShowCollaborationUi()
 	return (
 		<>
 			<TldrawUiMenuGroup label="shortcuts-dialog.tools" id="tools">
@@ -71,7 +71,7 @@ export function DefaultKeyboardShortcutsDialogContent() {
 				<TldrawUiMenuActionItem actionId="align-center-horizontal" />
 				<TldrawUiMenuActionItem actionId="align-right" />
 			</TldrawUiMenuGroup>
-			{isMultiplayer && (
+			{showCollaborationUi && (
 				<TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
 					<TldrawUiMenuActionItem actionId="open-cursor-chat" />
 				</TldrawUiMenuGroup>
