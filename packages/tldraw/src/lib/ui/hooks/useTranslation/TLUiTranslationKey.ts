@@ -396,3 +396,6 @@ export type TLUiTranslationKey =
 	| 'vscode.file-open.backup-failed'
 	| 'vscode.file-open.dont-show-again'
 	| 'cursor-chat.type-to-chat'
+	// we also allow arbitrary strings, but the & {} means that our keys still get auto-completed.
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	| (string & {})

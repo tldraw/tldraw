@@ -407,19 +407,23 @@
 	flex-shrink: 0;
 	width: 18px;
 	height: 18px;
-	background-color: currentColor;
 }
-
-.tlui-icon__placeholder {
-	flex-shrink: 0;
-	width: 18px;
-	height: 18px;
-	background-color: transparent;
+.tlui-icon__asset {
+	background-color: currentColor;
 }
 
 .tlui-icon__small {
 	width: 15px;
 	height: 15px;
+}
+
+.tlui-icon__custom {
+	font-size: 18px;
+	line-height: 18px;
+}
+.tlui-icon__custom.tlui-icon__small {
+	font-size: 15px;
+	line-height: 15px;
 }
 
 /* --------------------- Slider --------------------- */

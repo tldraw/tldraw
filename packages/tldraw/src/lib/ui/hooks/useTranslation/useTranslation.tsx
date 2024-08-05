@@ -112,7 +112,7 @@ export const TranslationProvider = track(function TranslationProvider({
 export function useTranslation() {
 	const translation = useCurrentTranslation()
 	return React.useCallback(
-		function msg(id?: Exclude<string, TLUiTranslationKey> | string) {
+		function msg(id?: TLUiTranslationKey): string {
 			return translation.messages[id as TLUiTranslationKey] ?? id
 		},
 		[translation]

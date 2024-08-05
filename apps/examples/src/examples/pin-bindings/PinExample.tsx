@@ -305,7 +305,7 @@ const overrides: TLUiOverrides = {
 		schema['pin'] = {
 			id: 'pin',
 			label: 'Pin',
-			icon: 'heart-icon',
+			icon: <>📍</>,
 			kbd: 'p',
 			onSelect: () => {
 				editor.setCurrentTool('pin')

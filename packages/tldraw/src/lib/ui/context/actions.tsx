@@ -40,15 +40,12 @@ import { TLUiEventSource, useUiEvents } from './events'
 import { useToasts } from './toasts'
 
 /** @public */
-export interface TLUiActionItem<
-	TransationKey extends string = string,
-	IconType extends string = string,
-> {
+export interface TLUiActionItem {
 	id: string
 	/**
 	 * The icon to display on the item.
 	 */
-	icon?: IconType
+	icon?: TLUiIconType
 	/**
 	 * The keyboard shortcut to display on the item.
 	 */
@@ -57,7 +54,7 @@ export interface TLUiActionItem<
 	 * The label to display on the item. If it's a string, it will be translated. If it's an object,
 	 * the keys will be used as the language keys and the values will be translated.
 	 */
-	label?: TransationKey | { [key: string]: TransationKey }
+	label?: TLUiTranslationKey | { [key: string]: TLUiTranslationKey }
 	/**
 	 * If the editor is in readonly mode and the item is not marked as readonlyok, it will not be
 	 * rendered.
@@ -133,7 +130,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
 		}
 
-		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
+		const actionItems: TLUiActionItem[] = [
 			{
 				id: 'edit-link',
 				label: 'action.edit-link',

@@ -112,9 +112,16 @@ async function copyIcons() {
 
 	// Get the names of all of the svg icons and create a TypeScript file of valid icon names
 	const iconTypeFile = `
+		import { ReactElement } from 'react'
+		
 		/** @public */
 		export type TLUiIconType = 
 			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(' | ')}
+			// we also allow arbitrary strings, but the & {} means that our icon types still get auto-completed.
+			// eslint-disable-next-line @typescript-eslint/ban-types
+			| (string & {})
+			// and we allow react elements for completely custom icons:
+			| ReactElement
 
 		/** @public */
 		export const iconTypes = [
@@ -291,6 +298,9 @@ async function copyTranslations() {
 	const translationKeysFile = `
 		/** @public */
 		export type TLUiTranslationKey = ${translationKeys.join(' | ')}
+			// we also allow arbitrary strings, but the & {} means that our keys still get auto-completed.
+			// eslint-disable-next-line @typescript-eslint/ban-types
+			| (string & {})
 	`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',

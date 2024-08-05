@@ -1,8 +1,9 @@
+import { TLUiIconType } from '../../../icon-types'
 import { TldrawUiIcon } from '../TldrawUiIcon'
 
 /** @public */
 export interface TLUiButtonIconProps {
-	icon: string
+	icon: TLUiIconType
 	small?: boolean
 	invertIcon?: boolean
 }

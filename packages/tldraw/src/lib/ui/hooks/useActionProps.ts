@@ -9,14 +9,11 @@ import { TLUiToolItem, useTools } from './useTools'
  *
  * @public
  */
-export type TLUiActionProps<
-	TranslationKey extends string = string,
-	IconType extends string = string,
-> =
-	| TLUiActionItem<TranslationKey, IconType>
-	| TLUiToolItem<TranslationKey, IconType>
-	| { action: string | TLUiActionItem<TranslationKey, IconType> | undefined }
-	| { tool: string | TLUiToolItem<TranslationKey, IconType> | undefined }
+export type TLUiActionProps =
+	| TLUiActionItem
+	| TLUiToolItem
+	| { action: string | TLUiActionItem | undefined }
+	| { tool: string | TLUiToolItem | undefined }
 
 export function useActionProps<Props extends TLUiActionProps>(
 	props: Props & { isSelected?: boolean }

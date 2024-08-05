@@ -1,7 +1,9 @@
+import { TLUiIconType } from './ui/icon-types'
+
 /** @public */
 export type StyleValuesForUi<T> = readonly {
 	readonly value: T
-	readonly icon: string
+	readonly icon: TLUiIconType
 }[]
 
 // todo: default styles prop?
