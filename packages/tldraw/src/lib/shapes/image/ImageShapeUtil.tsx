@@ -61,30 +61,40 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
 		const { flipX, flipY } = info.initialShape.props
+		const { scaleX, scaleY, mode } = info
 
 		resized = {
 			...resized,
 			props: {
 				...resized.props,
-				flipX: info.scaleX < 0 !== flipX,
-				flipY: info.scaleY < 0 !== flipY,
+				flipX: scaleX < 0 !== flipX,
+				flipY: scaleY < 0 !== flipY,
 			},
 		}
-		if (shape.props.crop && info.mode === 'scale_shape') {
-			const { topLeft, bottomRight } = shape.props.crop
-			// Vertical flip
-			if (info.scaleY === -1) {
-				resized.props.crop = {
-					topLeft: { x: topLeft.x, y: 1 - bottomRight.y },
-					bottomRight: { x: bottomRight.x, y: 1 - topLeft.y },
-				}
+		if (!shape.props.crop) return resized
+
+		const { topLeft, bottomRight } = shape.props.crop
+		const flipCropHorizontally =
+			// We used the flip horizontally feature
+			(mode === 'scale_shape' && scaleX === -1) ||
+			// We resized the shape past it's bounds, so it flipped
+			(mode === 'resize_bounds' && flipX !== resized.props.flipX)
+		const flipCropVertically =
+			// We used the flip vertically feature
+			(mode === 'scale_shape' && scaleY === -1) ||
+			// We resized the shape past it's bounds, so it flipped
+			(mode === 'resize_bounds' && flipY !== resized.props.flipY)
+
+		if (flipCropHorizontally) {
+			resized.props.crop = {
+				topLeft: { x: 1 - bottomRight.x, y: topLeft.y },
+				bottomRight: { x: 1 - topLeft.x, y: bottomRight.y },
 			}
-			// Horizontal flip
-			if (info.scaleX === -1) {
-				resized.props.crop = {
-					topLeft: { x: 1 - bottomRight.x, y: topLeft.y },
-					bottomRight: { x: 1 - topLeft.x, y: bottomRight.y },
-				}
+		}
+		if (flipCropVertically) {
+			resized.props.crop = {
+				topLeft: { x: topLeft.x, y: 1 - bottomRight.y },
+				bottomRight: { x: bottomRight.x, y: 1 - topLeft.y },
 			}
 		}
 		return resized

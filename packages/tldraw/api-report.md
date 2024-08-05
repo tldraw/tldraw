@@ -1063,8 +1063,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>): TLImageShape;
     // (undocumented)
-    previousScale: null | VecModel;
-    // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<JSX_2.Element | null>;
