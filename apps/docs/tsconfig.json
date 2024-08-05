@@ -27,10 +27,10 @@
 	"exclude": ["node_modules", ".next"],
 	"references": [
 		{
-			"path": "../../packages/utils"
+			"path": "../../packages/tldraw"
 		},
 		{
-			"path": "../../packages/tldraw"
+			"path": "../../packages/utils"
 		}
 	]
 }
