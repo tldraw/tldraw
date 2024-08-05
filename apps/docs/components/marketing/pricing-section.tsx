@@ -22,7 +22,7 @@ export const PricingSection = () => {
 						</div>
 						<p className="pr-8">
 							Interested in purchasing a commercial license for the tldraw SDK? Please fill out our
-							form and we'll get back to you with more information.
+							form and we will get back to you with more information.
 						</p>
 						<RequestForm />
 					</div>

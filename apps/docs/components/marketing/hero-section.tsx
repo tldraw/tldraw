@@ -39,17 +39,18 @@ export const HeroSection = () => {
 					Loved by <span className="text-black font-semibold">5000+</span> developers and users.
 				</div>
 			</div> */}
-			<p className="mt-5 sm:mt-8 px-5 text-center max-w-lg text-zinc-800 sm:text-lg sm:max-w-xl">
-				Whether you need a drop in whiteboard or an engine for your web canvas app, the{' '}
-				<b>tldraw SDK</b> provides the components, APIs, and services to build faster and better.
+			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 sm:text-lg ">
+				Whether you need a drop in whiteboard or an engine for your web canvas, the{' '}
+				<b>tldraw SDK</b> has you covered with components, APIs, and services to build faster.
 			</p>
-			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center">
+			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl">
 				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
 				<Button
 					href="https://github.com/tldraw/tldraw"
-					caption="Star us on GitHub"
+					caption="GitHub"
 					type="black"
 					size="lg"
+					icon="github"
 				/>
 				{/* <div className="pt-2">
 					<div className="font-hand text-blue-500 text-lg">or try here</div>
