@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "A tiny little drawing app (multiplayer sync).",
-	"version": "2.4.3",
+	"version": "2.4.4",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
