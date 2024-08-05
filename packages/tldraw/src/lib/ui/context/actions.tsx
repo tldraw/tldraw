@@ -30,7 +30,7 @@ import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { useInsertMedia } from '../hooks/useInsertMedia'
-import { useIsMultiplayer } from '../hooks/useIsMultiplayer'
+import { useIsCollaborative } from '../hooks/useIsMultiplayer'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -85,7 +85,7 @@ function getExportName(editor: Editor, defaultName: string) {
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
-	const isMultiplayer = useIsMultiplayer()
+	const isMultiplayer = useIsCollaborative()
 
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts, addToast } = useToasts()

@@ -34,7 +34,7 @@ import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
-import { useIsMultiplayer } from '../hooks/useIsMultiplayer'
+import { useIsCollaborative } from '../hooks/useIsMultiplayer'
 
 /** @public */
 export interface TLUiComponents {
@@ -73,7 +73,7 @@ export function TldrawUiComponentsProvider({
 	children,
 }: TLUiComponentsProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
-	const isMultiplayer = useIsMultiplayer()
+	const isMultiplayer = useIsCollaborative()
 
 	return (
 		<TldrawUiComponentsContext.Provider

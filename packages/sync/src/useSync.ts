@@ -144,9 +144,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			schema,
 			assets,
 			onMount,
-			multiplayerStatus: computed('multiplayer status', () =>
-				socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-			),
+			collaboration: {
+				status: computed('multiplayer status', () =>
+					socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+				),
+			},
 		})
 
 		const client = new TLSyncClient({

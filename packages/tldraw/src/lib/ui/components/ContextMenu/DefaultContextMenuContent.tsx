@@ -1,5 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useIsMultiplayer } from '../../hooks/useIsMultiplayer'
+import { useIsCollaborative } from '../../hooks/useIsMultiplayer'
 import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
@@ -15,7 +15,7 @@ import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 /** @public @react */
 export function DefaultContextMenuContent() {
 	const editor = useEditor()
-	const isMultiplayer = useIsMultiplayer()
+	const isMultiplayer = useIsCollaborative()
 
 	const selectToolActive = useValue(
 		'isSelectToolActive',
