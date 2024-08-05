@@ -1,3 +1,4 @@
+import { cn } from '@/utils/cn'
 import { ArrowRightIcon } from '@heroicons/react/16/solid'
 import { CodeBracketIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
@@ -12,12 +13,12 @@ export const TitleWithSourceLink: React.FC<{
 	large?: boolean
 	tags?: string[]
 	inherited?: { name: string; link: string }
-}> = ({ children, source, tags, inherited }) => {
+}> = ({ children, source, tags, inherited, large }) => {
 	return (
 		<>
 			<div className="flex items-end gap-2 prose-headings:mb-0">
 				{children}
-				<div className="flex gap-2 items-center pb-2">
+				<div className={cn('flex gap-2 items-center pb-1.5', !large && 'ml-auto')}>
 					{tags?.map((tag) => (
 						<Tag key={tag} tag={tag}>
 							{tag}
