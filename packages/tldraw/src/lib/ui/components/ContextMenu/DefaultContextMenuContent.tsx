@@ -22,6 +22,9 @@ export function DefaultContextMenuContent() {
 		() => editor.getCurrentToolId() === 'select',
 		[editor]
 	)
+	const isSinglePageMode = useValue('isSinglePageMode', () => editor.options.maxPages <= 1, [
+		editor,
+	])
 
 	if (!selectToolActive) return null
 
@@ -32,7 +35,7 @@ export function DefaultContextMenuContent() {
 				<EditMenuSubmenu />
 				<ArrangeMenuSubmenu />
 				<ReorderMenuSubmenu />
-				<MoveToPageMenu />
+				{!isSinglePageMode && <MoveToPageMenu />}
 			</TldrawUiMenuGroup>
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />
