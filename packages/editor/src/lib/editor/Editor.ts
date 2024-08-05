@@ -111,6 +111,7 @@ import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
+import { TLDeepLink, createDeepLinkString, parseDeepLinkString } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -8795,34 +8796,59 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param opts - Options for loading the state from the URL.
 	 */
-	loadStateFromUrl(opts?: { url?: string | URL; paramNames?: TLUrlStateParamNames }): Editor {
+	handleDeepLink(opts?: { url?: string | URL; param?: string }): Editor {
+		const goToDefaultPosition = () => {
+			this.zoomToBounds(this.getCurrentPageBounds() ?? new Box(), {
+				immediate: true,
+				targetZoom: this.getBaseZoom(),
+			})
+		}
 		const url = new URL(opts?.url ?? window.location.href)
-		const paramNames = urlStateParams(opts?.paramNames)
-
-		this.run(
-			() => {
-				const page = paramNames.page
-					? this.getPage(PageRecordType.createId(url.searchParams.get(paramNames.page) ?? ''))
-					: null
-
-				if (page) {
-					this.setCurrentPage(page)
-				}
-
-				if (paramNames.viewport) {
-					const viewport = url.searchParams.get(paramNames.viewport)
-					if (viewport?.match(/^-?\d+,-?\d+,-?\d+,-?\d+$/)) {
-						const [x, y, w, h] = viewport.split(',').map(Number)
-						this.zoomToBounds(new Box(x, y, w, h), { inset: 0, immediate: true })
-					} else if (viewport) {
-						console.warn('Invalid viewport URL parameter:', viewport)
-					}
-				}
-			},
-			{ history: 'ignore' }
-		)
-
-		return this
+		const deepLinkString = url.searchParams.get(opts?.param ?? 'd')
+		if (!deepLinkString) {
+			goToDefaultPosition()
+			return this
+		}
+		try {
+			const deepLink = parseDeepLinkString(deepLinkString)
+			switch (deepLink.type) {
+				case 'page':
+					return this.run(() => {
+						const page = this.getPage(PageRecordType.createId(deepLink.pageId))
+						if (page) {
+							this.setCurrentPage(page)
+							goToDefaultPosition()
+						} else {
+							throw new Error('Page not found: ' + deepLink.pageId)
+						}
+					})
+				case 'selection':
+					return this.run(() => {
+						const shapes = compact(deepLink.shapeIds.map((id) => this.getShape(id)))
+						if (!shapes.length) {
+							throw new Error('No shapes found in selection')
+						}
+						const bounds = Box.Common(shapes.map((s) => this.getShapePageBounds(s)!))
+						this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
+					})
+				case 'viewport':
+					return this.run(() => {
+						if (deepLink.pageId) {
+							if (!this.getPage(deepLink.pageId)) {
+								throw new Error('Page not found:' + deepLink.pageId)
+							}
+							this.setCurrentPage(deepLink.pageId)
+						}
+						this.zoomToBounds(deepLink.bounds, { immediate: true, inset: 0 })
+					})
+				default:
+					exhaustiveSwitchError(deepLink)
+			}
+		} catch (e) {
+			console.warn(e)
+			goToDefaultPosition()
+			return this
+		}
 	}
 
 	/**
@@ -8863,25 +8889,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - Options for adding the state to the URL.
 	 * @returns the updated URL
 	 */
-	addStateToUrl(opts?: { url?: string | URL; paramNames?: TLUrlStateParamNames }): URL {
+	createDeepLink(opts?: {
+		url?: string | URL
+		param?: string
+		to?: TLDeepLink
+		updateAddressBar?: boolean
+	}): URL {
 		const url = new URL(opts?.url ?? window.location.href)
-		const paramNames = urlStateParams(opts?.paramNames)
 
-		if (paramNames.page) {
-			url.searchParams.set(paramNames.page, PageRecordType.parseId(this.getCurrentPageId()))
-		}
-
-		if (paramNames.viewport) {
-			const { x, y, w, h } = this.getViewportPageBounds()
-			url.searchParams.set(
-				paramNames.viewport,
-				`${Math.round(x)},${Math.round(y)},${Math.round(w)},${Math.round(h)}`
+		if (opts?.updateAddressBar && opts.url && opts.url.toString() !== window.location.href) {
+			throw new Error(
+				`If you specify updateAddressBar, the given url must be window.location.href or undefined.`
 			)
 		}
 
-		if (!opts?.url && url.search !== window.location.search) {
+		url.searchParams.set(
+			opts?.param ?? 'd',
+			createDeepLinkString(
+				opts?.to ?? {
+					type: 'viewport',
+					pageId: this.options.maxPages === 1 ? undefined : this.getCurrentPageId(),
+					bounds: this.getViewportPageBounds(),
+				}
+			)
+		)
+
+		if (opts?.updateAddressBar) {
 			window.history.replaceState({}, document.title, url.toString())
 		}
+
 		return url
 	}
 
@@ -8943,19 +8979,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - Options for setting up the listener.
 	 * @returns a function that will stop the listener.
 	 */
-	updateUrlOnStateChange(opts?: TLUrlStateOptions): () => void {
+	updateDeepLinkOnStateChange(opts?: TLUrlStateOptions): () => void {
 		if (opts?.getUrl && !opts?.onChange) {
 			throw Error(
 				'[tldraw:urlStateSync] If you specify getUrl, you must also specify the onChange callback.'
 			)
 		}
+
 		const url$ = computed('url with state', () => {
 			const url = opts?.getUrl?.() ?? window.location.href
-			const urlWithState = this.addStateToUrl({ url, paramNames: opts?.paramNames })
+			const urlWithState = this.createDeepLink({ param: opts?.param, url })
 			return urlWithState.toString()
 		})
+
 		const announceChange =
-			opts?.onChange ?? (() => this.addStateToUrl({ paramNames: opts?.paramNames }))
+			opts?.onChange ?? (() => this.createDeepLink({ param: opts?.param, updateAddressBar: true }))
+
 		return react(
 			'update url on state change',
 			() => {
@@ -9707,22 +9746,9 @@ function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
 }
 
 /** @public */
-export interface TLUrlStateParamNames {
-	viewport?: string | null
-	page?: string | null
-}
-
-/** @public */
 export interface TLUrlStateOptions {
-	paramNames?: TLUrlStateParamNames
+	param?: string
 	debounceMs?: number
 	getUrl?(): string | URL
 	onChange?(url: URL): void
-}
-
-function urlStateParams(params?: TLUrlStateParamNames): Required<TLUrlStateParamNames> {
-	return {
-		viewport: typeof params?.viewport === 'undefined' ? 'v' : params.viewport,
-		page: typeof params?.page === 'undefined' ? 'p' : params.page,
-	}
 }

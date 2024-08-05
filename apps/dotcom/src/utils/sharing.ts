@@ -67,7 +67,7 @@ async function getSnapshotLink(
 		return ''
 	}
 
-	const url = editor.addStateToUrl({
+	const url = editor.createDeepLink({
 		url: `${window.location.origin}/${SNAPSHOT_PREFIX}/${response.roomId}`,
 	})
 	return new Blob([url.toString()], { type: 'text/plain' })
@@ -135,7 +135,7 @@ export function useSharing(): TLUiOverrides {
 								throw new Error('Failed to upload snapshot')
 							}
 
-							const url = editor.addStateToUrl({
+							const url = editor.createDeepLink({
 								url: `${window.location.origin}/${ROOM_PREFIX}/${response.slug}`,
 							})
 

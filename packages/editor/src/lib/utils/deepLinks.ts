@@ -1,0 +1,68 @@
+import { PageRecordType, TLPageId, TLShapeId, createShapeId } from '@tldraw/tlschema'
+import { exhaustiveSwitchError } from '@tldraw/utils'
+import { Box } from '../primitives/Box'
+
+/** @public */
+export type TLDeepLink =
+	| {
+			type: 'selection'
+			shapeIds: TLShapeId[]
+	  }
+	| { type: 'viewport'; bounds: Box; pageId?: TLPageId }
+	| { type: 'page'; pageId: TLPageId }
+
+/** @internal */
+export function createDeepLinkString(deepLink: TLDeepLink): string {
+	switch (deepLink.type) {
+		case 'selection': {
+			const ids = deepLink.shapeIds.map((id) => encodeId(id.slice('shape:'.length)))
+			return `s${ids.join('.')}`
+		}
+		case 'page': {
+			return 'p' + encodeId(PageRecordType.parseId(deepLink.pageId))
+		}
+		case 'viewport': {
+			const { bounds, pageId } = deepLink
+			let res = `v${Math.round(bounds.x)}.${Math.round(bounds.y)}.${Math.round(bounds.w)}.${Math.round(bounds.h)}`
+			if (pageId) {
+				res += '.' + encodeId(PageRecordType.parseId(pageId))
+			}
+			return res
+		}
+		default:
+			exhaustiveSwitchError(deepLink)
+	}
+}
+
+/** @internal */
+export function parseDeepLinkString(deepLinkString: string): TLDeepLink {
+	const type = deepLinkString[0]
+	switch (type) {
+		case 's': {
+			const shapeIds = deepLinkString
+				.slice(1)
+				.split('.')
+				.map((id) => createShapeId(decodeURIComponent(id)))
+			return { type: 'selection', shapeIds }
+		}
+		case 'p': {
+			const pageId = PageRecordType.createId(decodeURIComponent(deepLinkString.slice(1)))
+			return { type: 'page', pageId }
+		}
+		case 'v': {
+			const [x, y, w, h, pageId] = deepLinkString.slice(1).split('.')
+			return {
+				type: 'viewport',
+				bounds: new Box(Number(x), Number(y), Number(w), Number(h)),
+				pageId: pageId ? PageRecordType.createId(decodeURIComponent(pageId)) : undefined,
+			}
+		}
+		default:
+			throw Error('Invalid deep link string')
+	}
+}
+
+function encodeId(str: string): string {
+	// need to encode dots because they are used as separators
+	return encodeURIComponent(str).replace(/\./g, '%2E')
+}

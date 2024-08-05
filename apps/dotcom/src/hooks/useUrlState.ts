@@ -1,4 +1,5 @@
 import { useLayoutEffect } from 'react'
+import { Box, PageRecordType, createDeepLinkString } from 'tldraw'
 
 const PARAMS = {
 	// deprecated
@@ -14,28 +15,28 @@ const viewportFromString = (str: string) => {
 	return { x, y, w, h }
 }
 
-const viewportToString = (
-	{ x, y, w, h }: { x: number; y: number; w: number; h: number },
-	precision = 0
-) => {
-	return `${x.toFixed(precision)},${y.toFixed(precision)},${w.toFixed(precision)},${h.toFixed(
-		precision
-	)}`
-}
-
 export function useLegacyUrlParams() {
 	useLayoutEffect(() => {
 		const url = new URL(window.location.href)
-		const viewport = url.searchParams.get(PARAMS.viewport)
-		if (viewport) {
-			url.searchParams.set(PARAMS.v, viewportToString(viewportFromString(viewport)))
-			url.searchParams.delete(PARAMS.viewport)
+
+		const viewportString = url.searchParams.get(PARAMS.viewport) ?? url.searchParams.get(PARAMS.v)
+		const pageString = url.searchParams.get(PARAMS.page) ?? url.searchParams.get(PARAMS.p)
+		if (!viewportString || !pageString) {
+			return
 		}
-		const page = url.searchParams.get(PARAMS.page)
-		if (page) {
-			url.searchParams.set(PARAMS.p, page.slice('page:'.length))
-			url.searchParams.delete(PARAMS.page)
-		}
+
+		url.searchParams.delete(PARAMS.viewport)
+		url.searchParams.delete(PARAMS.page)
+		url.searchParams.delete(PARAMS.v)
+		url.searchParams.delete(PARAMS.p)
+
+		const viewport = Box.From(viewportFromString(viewportString))
+		const pageId = PageRecordType.isId(pageString)
+			? pageString
+			: PageRecordType.createId(pageString)
+
+		url.searchParams.set('d', createDeepLinkString({ type: 'viewport', bounds: viewport, pageId }))
+
 		window.history.replaceState({}, document.title, url.toString())
 	}, [])
 }

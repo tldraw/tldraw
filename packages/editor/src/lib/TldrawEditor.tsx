@@ -434,10 +434,10 @@ function TldrawEditorWithReadyStore({
 			if (urlStateSync) {
 				if (!urlStateSync?.getUrl) {
 					// load the state from window.location
-					editor.loadStateFromUrl(urlStateSync)
+					editor.handleDeepLink(urlStateSync)
 				} else {
 					// load the state from the provided URL
-					editor.loadStateFromUrl({ ...urlStateSync, url: urlStateSync.getUrl() })
+					editor.handleDeepLink({ ...urlStateSync, url: urlStateSync.getUrl() })
 				}
 			}
 
@@ -454,7 +454,7 @@ function TldrawEditorWithReadyStore({
 	useLayoutEffect(() => {
 		if (!editor) return
 		if (urlStateSync) {
-			return editor.updateUrlOnStateChange(urlStateSync)
+			return editor.updateDeepLinkOnStateChange(urlStateSync)
 		}
 	}, [editor, urlStateSync])
 
