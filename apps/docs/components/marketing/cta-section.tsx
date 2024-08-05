@@ -7,8 +7,8 @@ export const CTASection = () => {
 		<Section className="pb-24 md:pb-32 lg:pb-40">
 			<SectionHeading
 				subheading="Get Started"
-				heading="The infinite canvas calls to you."
-				description="Will you answer? Follow our quick start guide and build something today with the tldraw SDK."
+				heading="Get started today"
+				description="Follow our quick start guide and build something today with the tldraw SDK."
 			/>
 			{/* <div className="flex items-center gap-3 justify-center -mt-6 mb-12">
 				<ul className="flex">
@@ -30,9 +30,9 @@ export const CTASection = () => {
 					Loved by <span className="text-black font-semibold">5000+</span> developers and users.
 				</div>
 			</div> */}
-			<div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-				<Button href="/quick-start" caption="Get Started" type="black" />
-				<Button href="/quick-start" caption="Contact us" type="black" />
+			<div className="flex flex-row items-center justify-center gap-4">
+				<Button href="/quick-start" caption="Read the quick start" type="black" />
+				{/* <Button href="/quick-start" caption="Contact us" type="black" /> */}
 				{/* <div>
 					or{' '}
 					<Link href="#pricing" className="font-semibold text-blue-500 hover:text-blue-600">
@@ -44,10 +44,10 @@ export const CTASection = () => {
 	)
 }
 
-const avatars = [
-	'https://i.pravatar.cc/300?img=1',
-	'https://i.pravatar.cc/300?img=2',
-	'https://i.pravatar.cc/300?img=3',
-	'https://i.pravatar.cc/300?img=4',
-	'https://i.pravatar.cc/300?img=5',
-]
+// const avatars = [
+// 	'https://i.pravatar.cc/300?img=1',
+// 	'https://i.pravatar.cc/300?img=2',
+// 	'https://i.pravatar.cc/300?img=3',
+// 	'https://i.pravatar.cc/300?img=4',
+// 	'https://i.pravatar.cc/300?img=5',
+// ]

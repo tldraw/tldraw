@@ -15,16 +15,7 @@ export const Demo = () => {
 
 	return (
 		<div className="py-16 w-full">
-			<div
-				// initial={{ y: 150, opacity: 0, scale: 0.9 }}
-				// animate={{
-				// 	y: 0,
-				// 	opacity: 1,
-				// 	scale: 1,
-				// 	transition: { type: 'spring', duration: 0.6, delay: 0.8, bounce: 0.15 },
-				// }}
-				className="w-full bg-blue-500 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1 mt-1 h-96 sm:h-[40rem] max-h-[80vh]"
-			>
+			<div className="w-full bg-blue-500 py-1 md:rounded-2xl md:-mx-1 md:px-1 mt-1 h-96 sm:h-[40rem] max-h-[80vh]">
 				<div className="relative w-full h-full md:rounded-xl overflow-hidden shadow bg-white">
 					{showCanvas ? (
 						<iframe

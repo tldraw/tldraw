@@ -5,9 +5,10 @@ export const HeroSection = () => {
 	return (
 		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center pt-8 sm:pt-16">
 			<div className="relative">
-				<h1 className="relative font-black text-black text-center text-3xl max-w-xs leading-tight sm:text-4xl sm:max-w-xl sm:leading-tight md:text-5xl md:max-w-3xl md:leading-tight">
-					<div>The&nbsp;infinite&nbsp;canvas&nbsp;SDK</div>
-					for&nbsp;React&nbsp;developers
+				<h1 className="relative font-black text-black text-center text-3xl leading-tight sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight w-full px-[8px]">
+					The infinite&nbsp;canvas&nbsp;SDK
+					<br />
+					for React developers
 				</h1>
 				{/* <Underline
 					className={cn(
@@ -42,7 +43,7 @@ export const HeroSection = () => {
 				Whether you need a drop in whiteboard or an engine for your web canvas app, the{' '}
 				<b>tldraw SDK</b> provides the components, APIs, and services to build faster and better.
 			</p>
-			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9">
+			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center">
 				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
 				<Button
 					href="https://github.com/tldraw/tldraw"
