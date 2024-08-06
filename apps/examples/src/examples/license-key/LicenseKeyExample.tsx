@@ -1,9 +1,11 @@
+import { useEffect } from 'react'
 import { Tldraw, debugEnableLicensing } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function LicenseKeyExample() {
 	// [1]
-	debugEnableLicensing()
+	useEffect(() => debugEnableLicensing(), [])
+
 	return (
 		<div className="tldraw__editor">
 			{/* [2] */}

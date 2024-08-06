@@ -392,4 +392,7 @@ export { openWindow } from './lib/utils/window-open'
 /** @public */
 export function debugEnableLicensing() {
 	featureFlags.enableLicensing.set(true)
+	return () => {
+		featureFlags.enableLicensing.set(false)
+	}
 }
