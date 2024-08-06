@@ -136,6 +136,17 @@ export {
 } from './lib/config/createTLStore'
 export { createTLUser, useTldrawUser, type TLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
+export {
+	DEFAULT_EMBED_DEFINITIONS,
+	embedShapePermissionDefaults,
+	isCustomEmbedDefinition,
+	isDefaultEmbedDefintionType,
+	type CustomEmbedDefinition,
+	type DefaultEmbedDefinitionType,
+	type EmbedDefinition,
+	type TLEmbedDefinition,
+	type TLEmbedShapePermissions,
+} from './lib/config/defaultEmbedDefintions'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
 export {

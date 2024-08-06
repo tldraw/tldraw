@@ -123,7 +123,7 @@ export function Tldraw(props: TldrawProps) {
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
-	const embeds = useShallowArrayIdentity(rest.embeds ?? DEFAULT_EMBED_DEFINITIONS)
+	const embeds = rest.embeds ?? DEFAULT_EMBED_DEFINITIONS
 
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>

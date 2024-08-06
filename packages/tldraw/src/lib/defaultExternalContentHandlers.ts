@@ -88,7 +88,7 @@ export function registerDefaultExternalContentHandlers(
 			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
 		)
 
-		const hash = await getHashForBuffer(await file.arrayBuffer())
+		const hash = getHashForBuffer(await file.arrayBuffer())
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
 		const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 

@@ -1,5 +1,5 @@
-import { TLEmbedDefinition } from '@tldraw/tlschema'
 import { ReactNode, createContext, useContext } from 'react'
+import { TLEmbedDefinition } from '../config/defaultEmbedDefintions'
 
 const EmbedDefinitionsContext = createContext<null | readonly TLEmbedDefinition[]>(null)
 

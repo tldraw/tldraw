@@ -1,10 +1,5 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import {
-	DEFAULT_EMBED_DEFINITIONS,
-	TLEmbedDefinition,
-	TLStore,
-	TLStoreSnapshot,
-} from '@tldraw/tlschema'
+import { TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -25,6 +20,7 @@ import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { TLStoreBaseOptions } from './config/createTLStore'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
+import { DEFAULT_EMBED_DEFINITIONS, TLEmbedDefinition } from './config/defaultEmbedDefintions'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
