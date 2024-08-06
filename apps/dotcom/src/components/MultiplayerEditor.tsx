@@ -30,7 +30,7 @@ import {
 	useValue,
 	ViewSubmenu,
 } from 'tldraw'
-import { useLegacyUrlParams } from '../hooks/useUrlState'
+import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'

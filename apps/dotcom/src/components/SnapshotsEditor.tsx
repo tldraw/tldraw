@@ -12,7 +12,7 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 } from 'tldraw'
-import { useLegacyUrlParams } from '../hooks/useUrlState'
+import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
