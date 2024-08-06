@@ -21,7 +21,7 @@ import {
 	getTlsyncProtocolVersion,
 } from './protocol'
 
-/** @public */
+/** @internal */
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
 /**
@@ -29,32 +29,32 @@ export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
  * They are in the private range of the websocket code range.
  * See: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
  *
- * @public
+ * @internal
  */
 export const TLCloseEventCode = {
 	NOT_FOUND: 4099,
 } as const
 
-/** @public */
+/** @internal */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
 /**
  * A socket that can be used to send and receive messages to the server. It should handle staying
  * open and reconnecting when the connection is lost. In actual client code this will be a wrapper
  * around a websocket or socket.io or something similar.
  *
- * @public
+ * @internal
  */
 export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
 	/** Whether there is currently an open connection to the server. */
 	connectionStatus: 'online' | 'offline' | 'error'
 	/** Send a message to the server */
-	sendMessage: (msg: TLSocketClientSentEvent<R>) => void
+	sendMessage(msg: TLSocketClientSentEvent<R>): void
 	/** Attach a listener for messages sent by the server */
 	onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>
 	/** Attach a listener for connection status changes */
 	onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>
 	/** Restart the connection */
-	restart: () => void
+	restart(): void
 }
 
 const PING_INTERVAL = 5000
@@ -67,7 +67,7 @@ const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING
  *
  * It uses a git-style push/pull/rebase model.
  *
- * @public
+ * @internal
  */
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
 	/** The last clock time from the most recent server update */
@@ -108,8 +108,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * requests idempotently (i.e. the server will keep track of each client's clock and not execute
 	 * requests it has already handled), but at the time of writing this is neither needed nor
 	 * implemented.
-	 *
-	 * @public
 	 */
 	private clientClock = 0
 
@@ -136,11 +134,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		store: S
 		socket: TLPersistentClientSocket<R>
 		presence: Signal<R | null>
-		onLoad: (self: TLSyncClient<R, S>) => void
-		onLoadError: (error: Error) => void
-		onSyncError: (reason: TLIncompatibilityReason) => void
-		onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void
-		didCancel?: () => boolean
+		onLoad(self: TLSyncClient<R, S>): void
+		onLoadError(error: Error): void
+		onSyncError(reason: TLIncompatibilityReason): void
+		onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void
+		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
 
@@ -378,7 +376,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	incomingDiffBuffer: TLSocketServerSentDataEvent<R>[] = []
 
 	/** Handle events received from the server */
-	private handleServerEvent = (event: TLSocketServerSentEvent<R>) => {
+	private handleServerEvent(event: TLSocketServerSentEvent<R>) {
 		this.debug('received server event', event)
 		this.lastServerInteractionTimestamp = Date.now()
 		// always update the lastServerClock when it is present
@@ -569,6 +567,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
+	// eslint-disable-next-line local/prefer-class-methods
 	private rebase = () => {
 		// need to make sure that our speculative changes are in sync with the actual store instance before
 		// proceeding, to avoid inconsistency bugs.

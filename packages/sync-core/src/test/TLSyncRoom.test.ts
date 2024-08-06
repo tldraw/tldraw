@@ -64,14 +64,17 @@ const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
 
 describe('TLSyncRoom', () => {
 	it('can be constructed with a schema alone', () => {
-		const room = new TLSyncRoom<any, undefined>(schema)
+		const room = new TLSyncRoom<any, undefined>({ schema })
 
 		// we populate the store with a default document if none is given
 		expect(room.getSnapshot().documents.length).toBeGreaterThan(0)
 	})
 
 	it('can be constructed with a snapshot', () => {
-		const room = new TLSyncRoom<TLRecord, undefined>(schema, makeSnapshot(records))
+		const room = new TLSyncRoom<TLRecord, undefined>({
+			schema,
+			snapshot: makeSnapshot(records),
+		})
 
 		expect(
 			room
@@ -84,12 +87,15 @@ describe('TLSyncRoom', () => {
 	})
 
 	it('trims tombstones down if you pass too many in the snapshot', () => {
-		const room = new TLSyncRoom(schema, {
-			documents: [],
-			clock: MAX_TOMBSTONES + 100,
-			tombstones: Object.fromEntries(
-				Array.from({ length: MAX_TOMBSTONES + 100 }, (_, i) => [PageRecordType.createId(), i])
-			),
+		const room = new TLSyncRoom({
+			schema,
+			snapshot: {
+				documents: [],
+				clock: MAX_TOMBSTONES + 100,
+				tombstones: Object.fromEntries(
+					Array.from({ length: MAX_TOMBSTONES + 100 }, (_, i) => [PageRecordType.createId(), i])
+				),
+			},
 		})
 
 		expect(Object.keys(room.getSnapshot().tombstones ?? {})).toHaveLength(
@@ -107,12 +113,12 @@ describe('TLSyncRoom', () => {
 			},
 		}
 
-		const room = new TLSyncRoom(
+		const room = new TLSyncRoom({
 			schema,
-			makeSnapshot([...records, oldArrow], {
+			snapshot: makeSnapshot([...records, oldArrow], {
 				schema: oldSerializedSchema,
-			})
-		)
+			}),
+		})
 
 		const arrow = room.getSnapshot().documents.find((r) => r.state.id === oldArrow.id)
 			?.state as TLArrowShape
@@ -121,9 +127,9 @@ describe('TLSyncRoom', () => {
 
 	it('filters out instance state records', () => {
 		const schema = createTLSchema({ shapes: {} })
-		const room = new TLSyncRoom(
+		const room = new TLSyncRoom({
 			schema,
-			makeSnapshot([
+			snapshot: makeSnapshot([
 				...records,
 				schema.types.instance.create({
 					currentPageId: PageRecordType.createId('page_1'),
@@ -136,8 +142,8 @@ describe('TLSyncRoom', () => {
 				CameraRecordType.create({
 					id: CameraRecordType.createId('camera_1'),
 				}),
-			])
-		)
+			]),
+		})
 
 		expect(
 			room

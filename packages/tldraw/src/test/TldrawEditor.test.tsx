@@ -4,6 +4,7 @@ import {
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
+	TLAssetStore,
 	TLBaseShape,
 	TldrawEditor,
 	createShapeId,
@@ -340,6 +341,39 @@ describe('<TldrawEditor />', () => {
 			},
 		])
 	})
+
+	it('passes through the `assets` prop when creating its own in-memory store', async () => {
+		const myUploadFn = jest.fn()
+		const assetStore: TLAssetStore = { upload: myUploadFn }
+
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<TldrawEditor onMount={onMount} shapeUtils={defaultShapeUtils} assets={assetStore} />
+			),
+			{ waitForPatterns: true }
+		)
+
+		expect(editor.store.props.assets.upload).toBe(myUploadFn)
+	})
+
+	it('passes through the `assets` prop when using `persistenceKey`', async () => {
+		const myUploadFn = jest.fn()
+		const assetStore: TLAssetStore = { upload: myUploadFn }
+
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<TldrawEditor
+					onMount={onMount}
+					shapeUtils={defaultShapeUtils}
+					assets={assetStore}
+					persistenceKey="hello-world"
+				/>
+			),
+			{ waitForPatterns: true }
+		)
+
+		expect(editor.store.props.assets.upload).toBe(myUploadFn)
+	})
 })
 
 describe('Custom shapes', () => {
@@ -354,8 +388,12 @@ describe('Custom shapes', () => {
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {
 		static override type = 'card' as const
 
-		override isAspectRatioLocked = (_shape: CardShape) => false
-		override canResize = (_shape: CardShape) => true
+		override isAspectRatioLocked(_shape: CardShape) {
+			return false
+		}
+		override canResize(_shape: CardShape) {
+			return true
+		}
 
 		override getDefaultProps(): CardShape['props'] {
 			return {

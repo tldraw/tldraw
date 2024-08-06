@@ -30,7 +30,7 @@ export type TLCameraMoveOptions = Partial<{
 		/** The time the animation should take to arrive at the specified camera coordinates. */
 		duration: number
 		/** An easing function to apply to the animation's progress from start to end. */
-		easing: (t: number) => number
+		easing(t: number): number
 	}>
 }>
 

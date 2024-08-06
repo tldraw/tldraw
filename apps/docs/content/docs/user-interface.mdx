@@ -3,7 +3,7 @@ title: User interface
 status: published
 author: steveruizok
 date: 3/22/2023
-order: 7
+order: 3
 keywords:
   - ui
   - interface
@@ -67,7 +67,7 @@ The content of tldraw's menus can be controlled via the `overrides` prop. This p
 
 The user interface has a set of shared `actions` that are used in the menus and keyboard shortcuts. These actions can be overridden by passing a new set of actions to the `overrides.actions` method.
 
-To create, update, or delete actions, provide an `actions` method that receives both the editor and the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/hooks/useActions.tsx) and returns a mutated actions object.
+To create, update, or delete actions, provide an `actions` method that receives both the editor and the [default actions](https://github.com/tldraw/tldraw/blob/main/packages/tldraw/src/lib/ui/context/actions.tsx) and returns a mutated actions object.
 
 ```ts
 const myOverrides: TLUiOverrides = {

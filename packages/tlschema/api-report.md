@@ -931,7 +931,7 @@ export type TLAssetShape = Extract<TLShape, {
 
 // @public
 export interface TLAssetStore {
-    resolve(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
+    resolve?(asset: TLAsset, ctx: TLAssetContext): null | Promise<null | string> | string;
     upload(asset: TLAsset, file: File): Promise<string>;
 }
 
@@ -1635,12 +1635,14 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 // @public (undocumented)
 export interface TLStoreProps {
     // (undocumented)
-    assets: TLAssetStore;
+    assets: Required<TLAssetStore>;
+    // (undocumented)
+    collaboration?: {
+        status: null | Signal<'offline' | 'online'>;
+    };
     // (undocumented)
     defaultName: string;
-    // (undocumented)
-    multiplayerStatus: null | Signal<'offline' | 'online'>;
-    onEditorMount: (editor: unknown) => (() => void) | void;
+    onMount(editor: unknown): (() => void) | void;
 }
 
 // @public (undocumented)

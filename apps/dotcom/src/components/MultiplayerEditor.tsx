@@ -4,7 +4,7 @@ import {
 	RoomOpenModeToPath,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { useMultiplayerSync } from '@tldraw/sync'
+import { useSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import {
 	assertExists,
@@ -15,7 +15,6 @@ import {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	HelpGroup,
 	PeopleMenu,
 	PreferencesGroup,
 	TLComponents,
@@ -60,7 +59,6 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
-			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),
@@ -82,7 +80,7 @@ const components: TLComponents = {
 			'offline',
 			() => {
 				const status = assertExists(
-					editor.store.props.multiplayerStatus,
+					editor.store.props.collaboration?.status,
 					'should be used with multiplayer store'
 				)
 				return status.get() === 'offline'
@@ -123,7 +121,7 @@ export function MultiplayerEditor({
 }) {
 	const handleUiEvent = useHandleUiEvents()
 
-	const storeWithStatus = useMultiplayerSync({
+	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 		assets: multiplayerAssetStore,

@@ -5,6 +5,7 @@ import React, {
 	ReactNode,
 	memo,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -276,6 +277,7 @@ function TldrawEditorWithOwnStore(
 		persistenceKey,
 		sessionId,
 		user,
+		assets,
 	} = props
 
 	const syncedStore = useLocalStore({
@@ -286,6 +288,7 @@ function TldrawEditorWithOwnStore(
 		sessionId,
 		defaultName,
 		snapshot,
+		assets,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
@@ -334,6 +337,9 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
+const noAutoFocus = () =>
+	document.location.search.includes('tldraw_preserve_focus') || !document.hasFocus()
+
 function TldrawEditorWithReadyStore({
 	onMount,
 	children,
@@ -363,16 +369,17 @@ function TldrawEditorWithReadyStore({
 	// props in this ref can be changed without causing the editor to be recreated.
 	const editorOptionsRef = useRef({
 		// for these, it's because they're only used when the editor first mounts:
-		autoFocus,
+		autoFocus: autoFocus && !noAutoFocus(),
 		inferDarkMode,
 		initialState,
 
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
 	})
+
 	useLayoutEffect(() => {
 		editorOptionsRef.current = {
-			autoFocus,
+			autoFocus: autoFocus && !noAutoFocus(),
 			inferDarkMode,
 			initialState,
 			cameraOptions,
@@ -390,6 +397,7 @@ function TldrawEditorWithReadyStore({
 				getContainer: () => container,
 				user,
 				initialState,
+				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
@@ -428,6 +436,38 @@ function TldrawEditorWithReadyStore({
 			[editor]
 		),
 		() => editor?.getCrashingError() ?? null
+	)
+
+	// For our examples site, we want autoFocus to be true on the examples site, but not
+	// when embedded in our docs site. If present, the `tldraw_preserve_focus` search param
+	// overrides the `autoFocus` prop and prevents the editor from focusing immediately,
+	// however here we also add some logic to focus the editor when the user clicks
+	// on it and unfocus it when the user clicks away from it.
+	useEffect(
+		function handleFocusOnPointerDownForPreserveFocusMode() {
+			if (!editor) return
+
+			function handleFocusOnPointerDown() {
+				if (!editor) return
+				editor.focus()
+			}
+
+			function handleBlurOnPointerDown() {
+				if (!editor) return
+				editor.blur()
+			}
+
+			if (autoFocus && noAutoFocus()) {
+				editor.getContainer().addEventListener('pointerdown', handleFocusOnPointerDown)
+				document.body.addEventListener('pointerdown', handleBlurOnPointerDown)
+
+				return () => {
+					editor.getContainer()?.removeEventListener('pointerdown', handleFocusOnPointerDown)
+					document.body.removeEventListener('pointerdown', handleBlurOnPointerDown)
+				}
+			}
+		},
+		[editor, autoFocus]
 	)
 
 	const { Canvas } = useEditorComponents()
@@ -469,7 +509,7 @@ function Layout({ children, onMount }: { children: ReactNode; onMount?: TLOnMoun
 	useDarkMode()
 	useForceUpdate()
 	useOnMount((editor) => {
-		const teardownStore = editor.store.props.onEditorMount(editor)
+		const teardownStore = editor.store.props.onMount(editor)
 		const teardownCallback = onMount?.(editor)
 
 		return () => {

@@ -1,16 +1,16 @@
-import { StateNode, TLEventHandlers } from '@tldraw/editor'
+import { StateNode } from '@tldraw/editor'
 
 export class Lasering extends StateNode {
 	static override id = 'lasering'
 
 	scribbleId = 'id'
 
-	override onEnter = () => {
+	override onEnter() {
 		const scribble = this.editor.scribbles.addScribble({
 			color: 'laser',
 			opacity: 0.7,
 			size: 4,
-			delay: 1200,
+			delay: this.editor.options.laserDelayMs,
 			shrink: 0.05,
 			taper: true,
 		})
@@ -18,28 +18,28 @@ export class Lasering extends StateNode {
 		this.pushPointToScribble()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.scribbles.stop(this.scribbleId)
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.pushPointToScribble()
 	}
 
-	override onPointerUp = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	private pushPointToScribble = () => {
+	private pushPointToScribble() {
 		const { x, y } = this.editor.inputs.currentPagePoint
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 

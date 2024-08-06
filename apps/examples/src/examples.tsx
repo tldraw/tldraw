@@ -12,7 +12,7 @@ export interface Example {
 	componentFile: string
 	keywords: string[]
 	multiplayer: boolean
-	loadComponent: () => Promise<ComponentType<{ roomId?: string }>>
+	loadComponent(): Promise<ComponentType<{ roomId?: string }>>
 }
 
 type Category =
@@ -34,7 +34,7 @@ const getExamplesForCategory = (category: Category) =>
 
 const categories: Record<Category, string> = {
 	basic: 'Getting started',
-	collaboration: 'Collaboration',
+	collaboration: 'Sync',
 	ui: 'UI & theming',
 	'shapes/tools': 'Shapes & tools',
 	'data/assets': 'Data & assets',

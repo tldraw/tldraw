@@ -2,12 +2,12 @@ import { MediaHelpers, TLAssetStore, fetch, uniqueId } from 'tldraw'
 import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
 
-export const multiplayerAssetStore: TLAssetStore = {
+export const multiplayerAssetStore = {
 	upload: async (asset, file) => {
 		const id = uniqueId()
 
 		const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
-		const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
+		const objectName = `${id}-${file.name}`.replace(/\W/g, '-')
 		const url = `${UPLOAD_URL}/${objectName}`
 
 		const response = await fetch(url, {
@@ -76,4 +76,4 @@ export const multiplayerAssetStore: TLAssetStore = {
 		const newUrl = `${IMAGE_WORKER}/${url.host}/${url.toString().slice(url.origin.length + 1)}`
 		return newUrl
 	},
-}
+} satisfies TLAssetStore

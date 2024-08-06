@@ -1,17 +1,25 @@
-import { StateNode, TLEventHandlers, TLUnknownShape, createShapeId } from 'tldraw'
+import {
+	StateNode,
+	TLClickEventInfo,
+	TLPointerEventInfo,
+	TLUnknownShape,
+	createShapeId,
+} from 'tldraw'
 // There's a guide at the bottom of this file!
 
 //[1]
 export class MiniSelectTool extends StateNode {
 	static override id = 'select'
-	static override children = () => [IdleState, PointingState, DraggingState]
+	static override children() {
+		return [IdleState, PointingState, DraggingState]
+	}
 	static override initial = 'idle'
 }
 //[2]
 class IdleState extends StateNode {
 	static override id = 'idle'
 	//[a]
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		const { editor } = this
 
 		switch (info.target) {
@@ -44,7 +52,7 @@ class IdleState extends StateNode {
 		}
 	}
 	//[b]
-	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+	override onDoubleClick(info: TLClickEventInfo) {
 		const { editor } = this
 
 		if (info.phase !== 'up') return
@@ -88,11 +96,11 @@ class IdleState extends StateNode {
 class PointingState extends StateNode {
 	static override id = 'pointing'
 	//[a]
-	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+	override onPointerUp(info: TLPointerEventInfo) {
 		this.parent.transition('idle', info)
 	}
 	//[b]
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove() {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('dragging', { shapes: [...this.editor.getSelectedShapes()] })
 		}
@@ -105,15 +113,15 @@ class DraggingState extends StateNode {
 	//[a]
 	private initialDraggingShapes = [] as TLUnknownShape[]
 	//[b]
-	override onEnter = (info: { shapes: TLUnknownShape[] }) => {
+	override onEnter(info: { shapes: TLUnknownShape[] }) {
 		this.initialDraggingShapes = info.shapes
 	}
 	//[c]
-	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+	override onPointerUp(info: TLPointerEventInfo) {
 		this.parent.transition('idle', info)
 	}
 	//[d]
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove() {
 		const { initialDraggingShapes } = this
 		const { originPagePoint, currentPagePoint } = this.editor.inputs
 

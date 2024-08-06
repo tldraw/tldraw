@@ -10,14 +10,12 @@ import {
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	HelpGroup,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	ViewSubmenu,
-	useActions,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -45,17 +43,15 @@ const components: TLComponents = {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
-			<HelpGroup />
 			<Links />
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
+					<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
+					<TldrawUiMenuActionItem actionId={OPEN_FILE_ACTION} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
