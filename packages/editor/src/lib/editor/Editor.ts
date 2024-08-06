@@ -8796,10 +8796,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 				case 'shapes': {
-					const shapes = compact(deepLink.shapeIds.map((id) => this.getShape(id)))
-					if (!shapes.length) {
+					const allShapes = compact(deepLink.shapeIds.map((id) => this.getShape(id)))
+					const byPage: { [pageId: string]: TLShape[] } = {}
+					for (const shape of allShapes) {
+						const pageId = this.getAncestorPageId(shape)
+						if (!pageId) continue
+						byPage[pageId] ??= []
+						byPage[pageId].push(shape)
+					}
+					const [pageId, shapes] = Object.entries(byPage).sort(
+						([_, a], [__, b]) => b.length - a.length
+					)[0] ?? ['', []]
+
+					if (!pageId || !shapes.length) {
 						this._zoomToFitPageContentAt100Percent()
 					} else {
+						this.setCurrentPage(pageId as TLPageId)
 						const bounds = Box.Common(shapes.map((s) => this.getShapePageBounds(s)!))
 						this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
 					}
