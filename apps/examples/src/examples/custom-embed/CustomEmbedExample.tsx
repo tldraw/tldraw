@@ -64,7 +64,7 @@ tldraw has built-in support for embedding content from several popular apps. In 
 We will also add a new embed for embeding JSFiddles. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
 
 [3]
-We concatenate the default embed definitions with the custom embed definition. 
+We concatenate the filtered embed definitions with our custom JSFiddle one. 
 
 [4]
 We pass the custom embed definitions to the `Tldraw` component as a prop. 
