@@ -4,6 +4,18 @@ const nextConfig = {
 	experimental: {
 		scrollRestoration: true,
 	},
+	images: {
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 'substackcdn.com',
+			},
+			{
+				protocol: 'https',
+				hostname: 'i.pravatar.cc',
+			},
+		],
+	},
 	transpilePackages: [],
 	async redirects() {
 		return [

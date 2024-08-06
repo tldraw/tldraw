@@ -1,5 +1,18 @@
 /// <reference types="react" />
 
+export {
+	TldrawUiMenuActionCheckboxItem,
+	type TLUiMenuActionCheckboxItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuActionCheckboxItem'
+export {
+	TldrawUiMenuActionItem,
+	type TLUiMenuActionItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuActionItem'
+export {
+	TldrawUiMenuToolItem,
+	type TLUiMenuToolItemProps,
+} from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
+
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
@@ -394,7 +407,7 @@ export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useEmbedDefinition } from './lib/ui/hooks/useEmbedDefinition'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
-export { useIsMultiplayer, useMultiplayerStatus } from './lib/ui/hooks/useIsMultiplayer'
+export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'

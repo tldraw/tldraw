@@ -61,31 +61,39 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
 		const { flipX, flipY } = info.initialShape.props
+		const { scaleX, scaleY, mode } = info
 
 		resized = {
 			...resized,
 			props: {
 				...resized.props,
-				flipX: info.scaleX < 0 !== flipX,
-				flipY: info.scaleY < 0 !== flipY,
+				flipX: scaleX < 0 !== flipX,
+				flipY: scaleY < 0 !== flipY,
 			},
 		}
-		if (shape.props.crop && info.mode === 'scale_shape') {
-			const { topLeft, bottomRight } = shape.props.crop
-			// Vertical flip
-			if (info.scaleY === -1) {
-				resized.props.crop = {
-					topLeft: { x: topLeft.x, y: 1 - bottomRight.y },
-					bottomRight: { x: bottomRight.x, y: 1 - topLeft.y },
-				}
-			}
-			// Horizontal flip
-			if (info.scaleX === -1) {
-				resized.props.crop = {
-					topLeft: { x: 1 - bottomRight.x, y: topLeft.y },
-					bottomRight: { x: 1 - topLeft.x, y: bottomRight.y },
-				}
-			}
+		if (!shape.props.crop) return resized
+
+		const flipCropHorizontally =
+			// We used the flip horizontally feature
+			(mode === 'scale_shape' && scaleX === -1) ||
+			// We resized the shape past it's bounds, so it flipped
+			(mode === 'resize_bounds' && flipX !== resized.props.flipX)
+		const flipCropVertically =
+			// We used the flip vertically feature
+			(mode === 'scale_shape' && scaleY === -1) ||
+			// We resized the shape past it's bounds, so it flipped
+			(mode === 'resize_bounds' && flipY !== resized.props.flipY)
+
+		const { topLeft, bottomRight } = shape.props.crop
+		resized.props.crop = {
+			topLeft: {
+				x: flipCropHorizontally ? 1 - bottomRight.x : topLeft.x,
+				y: flipCropVertically ? 1 - bottomRight.y : topLeft.y,
+			},
+			bottomRight: {
+				x: flipCropHorizontally ? 1 - topLeft.x : bottomRight.x,
+				y: flipCropVertically ? 1 - topLeft.y : bottomRight.y,
+			},
 		}
 		return resized
 	}
@@ -188,7 +196,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				{showCropPreview && loadedSrc && (
 					<div style={containerStyle}>
 						<img
-							className="tl-image"
+							className={classNames('tl-image', {
+								'tl-flip-x': shape.props.flipX && !shape.props.flipY,
+								'tl-flip-y': shape.props.flipY && !shape.props.flipX,
+								'tl-flip-xy': shape.props.flipY && shape.props.flipX,
+							})}
 							crossOrigin={crossOrigin}
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
