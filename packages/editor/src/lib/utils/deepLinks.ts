@@ -62,6 +62,7 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink {
 			const shapeIds = deepLinkString
 				.slice(1)
 				.split('.')
+				.filter(Boolean)
 				.map((id) => createShapeId(decodeURIComponent(id)))
 			return { type: 'shapes', shapeIds }
 		}
