@@ -85,7 +85,6 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		tools = [],
-		embeds,
 		...rest
 	} = props
 
@@ -123,11 +122,12 @@ export function Tldraw(props: TldrawProps) {
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+
+	const embeds = useShallowArrayIdentity(rest.embeds ?? DEFAULT_EMBED_DEFINITIONS)
+
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
-
-	const embedsWithDefaults = embeds ?? DEFAULT_EMBED_DEFINITIONS
 
 	if (!preloadingComplete) {
 		return (
@@ -145,7 +145,7 @@ export function Tldraw(props: TldrawProps) {
 			shapeUtils={shapeUtilsWithDefaults}
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
-			embeds={embedsWithDefaults}
+			embeds={embeds}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>
 				<InsideOfEditorAndUiContext
@@ -154,7 +154,7 @@ export function Tldraw(props: TldrawProps) {
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
 					onMount={onMount}
-					embeds={embedsWithDefaults}
+					embeds={embeds}
 				/>
 				{children}
 			</TldrawUi>
