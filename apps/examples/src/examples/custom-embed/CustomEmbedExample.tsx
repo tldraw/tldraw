@@ -58,7 +58,7 @@ export default function CustomEmbedExample() {
 /**
 
 [1]
-tldraw comes with several default embed definitions. In this example, we filter the default embed definitions to only include the 'tldraw' and 'youtube' embed definitions. 
+tldraw has built-in support for embedding content from several popular apps. In this example, we extract the definitions for handling 'tldraw' and 'youtube' content, and discard the rest.
 
 [2]
 We will also add a new embed for embeding JSFiddles. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
