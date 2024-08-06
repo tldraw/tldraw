@@ -61,7 +61,7 @@ export default function CustomEmbedExample() {
 tldraw has built-in support for embedding content from several popular apps. In this example, we extract the definitions for handling 'tldraw' and 'youtube' content, and discard the rest.
 
 [2]
-We will also add a new embed for embeding JSFiddles. Please note that you have to specify an icon that will be displayed in the `EmbedDialog`.
+We will also add support for embedding JSFiddles. Please note that you have to specify an icon that will be displayed in the `EmbedDialog` component.
 
 [3]
 We concatenate the filtered embed definitions with our custom JSFiddle one. 
