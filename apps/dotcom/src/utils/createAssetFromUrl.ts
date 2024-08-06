@@ -19,7 +19,7 @@ export async function createAssetFromUrl({ url }: { type: 'url'; url: string }):
 				url,
 			}).toString()
 
-		const meta = (await (await fetch(fetchUrl)).json()) as ResponseBody | null
+		const meta = (await (await fetch(fetchUrl, { method: 'POST' })).json()) as ResponseBody | null
 
 		return {
 			id: AssetRecordType.createId(urlHash),

@@ -159,6 +159,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
 		const text = createTextJsxFromSpans(this.editor, spans, {
 			offsetY: -opts.height - 2,
+			verticalTextAlign: 'middle' as const,
 			...opts,
 		})
 

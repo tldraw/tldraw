@@ -22,7 +22,7 @@ const textAlignmentsForLtr = {
 
 /** @public */
 export interface TLMeasureTextSpanOpts {
-	overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
+	truncate: false | { lines: number; type: 'ellipsis' | 'clip' }
 	width: number
 	height: number
 	padding: number
@@ -115,7 +115,7 @@ export class TextManager {
 	 */
 	measureElementTextNodeSpans(
 		element: HTMLElement,
-		{ shouldTruncateToFirstLine = false }: { shouldTruncateToFirstLine?: boolean } = {}
+		{ maxLines = Infinity }: { maxLines?: number } = {}
 	): { spans: { box: BoxModel; text: string }[]; didTruncate: boolean } {
 		const spans = []
 
@@ -129,11 +129,13 @@ export class TextManager {
 		const textNode = element.childNodes[0]
 		let idx = 0
 
+		let currentLine = ''
 		let currentSpan = null
 		let prevCharWasSpaceCharacter = null
 		let prevCharTop = 0
 		let prevCharLeftForRTLTest = 0
 		let didTruncate = false
+		let remainingLines = maxLines
 		for (const childNode of element.childNodes) {
 			if (childNode.nodeType !== Node.TEXT_NODE) continue
 
@@ -165,12 +167,20 @@ export class TextManager {
 					// ...then we're at a span boundary!
 
 					if (currentSpan) {
-						// if we're truncating to a single line & we just finished the first line, stop there
-						if (shouldTruncateToFirstLine && top !== prevCharTop) {
+						// if we've just started a new line, track that
+						if (top !== prevCharTop) {
+							currentLine = ''
+							remainingLines--
+						}
+
+						// but if we've now run out of lines, stop here
+						if (remainingLines <= 0) {
 							didTruncate = true
 							break
 						}
+
 						// otherwise add the span to the list ready to start a new one
+						currentLine += currentSpan.text
 						spans.push(currentSpan)
 					}
 
@@ -239,10 +249,18 @@ export class TextManager {
 		elm.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
 		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
 
-		const shouldTruncateToFirstLine =
-			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
+		if (opts.truncate) {
+			if (opts.truncate.lines === 1) {
+				elm.style.setProperty('overflow-wrap', 'anywhere')
+				elm.style.setProperty('word-break', 'break-all')
+			}
+		}
 
-		if (shouldTruncateToFirstLine) {
+		// const shouldTruncateToFirstLine =
+		// 	opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
+		const truncate = opts.truncate ? opts.truncate : undefined
+
+		if (truncate?.lines === 1) {
 			elm.style.setProperty('overflow-wrap', 'anywhere')
 			elm.style.setProperty('word-break', 'break-all')
 		}
@@ -254,10 +272,10 @@ export class TextManager {
 
 		// actually measure the text:
 		const { spans, didTruncate } = this.measureElementTextNodeSpans(elm, {
-			shouldTruncateToFirstLine,
+			maxLines: truncate?.lines,
 		})
 
-		if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
+		if (didTruncate && truncate?.type === 'ellipsis') {
 			// we need to measure the ellipsis to know how much space it takes up
 			elm.textContent = '…'
 			const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(elm).spans[0].box.w)
@@ -266,7 +284,7 @@ export class TextManager {
 			elm.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
 			elm.textContent = normalizedText
 			const truncatedSpans = this.measureElementTextNodeSpans(elm, {
-				shouldTruncateToFirstLine: true,
+				maxLines: truncate.lines,
 			}).spans
 
 			// Finally, we add in our ellipsis at the end of the last span. We

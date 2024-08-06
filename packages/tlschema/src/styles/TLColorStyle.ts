@@ -42,6 +42,8 @@ export type TLDefaultColorTheme = Expand<
 		text: string
 		background: string
 		solid: string
+		panel: string
+		panelContrast: string
 	} & Record<(typeof defaultColorNames)[number], TLDefaultColorThemeColor>
 >
 
@@ -55,6 +57,9 @@ export const DefaultColorThemePalette: {
 		text: '#000000',
 		background: 'rgb(249, 250, 251)',
 		solid: '#fcfffe',
+		panel: 'hsl(0, 0%, 99%)',
+		panelContrast: 'hsl(0, 0%, 100%)',
+
 		black: {
 			solid: '#1d1d1d',
 			fill: '#1d1d1d',
@@ -243,6 +248,8 @@ export const DefaultColorThemePalette: {
 		text: 'hsl(210, 17%, 98%)',
 		background: 'hsl(240, 5%, 6.5%)',
 		solid: '#010403',
+		panel: 'hsl(235, 6.8%, 13.5%)',
+		panelContrast: 'hsl(245, 12%, 23%)',
 
 		black: {
 			solid: '#f2f2f2',

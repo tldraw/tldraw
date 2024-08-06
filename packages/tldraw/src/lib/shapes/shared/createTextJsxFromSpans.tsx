@@ -21,7 +21,6 @@ export function createTextJsxFromSpans(
 		verticalTextAlign: TLDefaultVerticalAlignStyle
 		fontWeight: string
 		fontStyle: string
-		width: number
 		height: number
 		stroke?: string
 		strokeWidth?: number
