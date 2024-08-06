@@ -1,6 +1,8 @@
-import { generateNJitteredKeysBetween, generateNKeysBetween } from 'fractional-indexing-jittered'
-
-const SMALLEST_INTEGER = 'A00000000000000000000000000'
+import {
+	generateJitteredKeyBetween,
+	generateNJitteredKeysBetween,
+	generateNKeysBetween,
+} from 'fractional-indexing-jittered'
 
 const generateKeysFn =
 	process.env.NODE_ENV === 'test' ? generateNKeysBetween : generateNJitteredKeysBetween
@@ -20,43 +22,13 @@ export type IndexKey = string & { __brand: 'indexKey' }
  */
 export const ZERO_INDEX_KEY = 'a0' as IndexKey
 
-/**
- * Get the integer part of an index.
- *
- * @param index - The index to use.
- */
-function getIntegerPart(index: string): string {
-	const integerPartLength = getIntegerLength(index.charAt(0))
-	if (integerPartLength > index.length) {
-		throw new Error('invalid index: ' + index)
-	}
-	return index.slice(0, integerPartLength)
-}
-
-/**
- * Get the length of an integer.
- *
- * @param head - The integer to use.
- */
-function getIntegerLength(head: string): number {
-	if (head >= 'a' && head <= 'z') {
-		return head.charCodeAt(0) - 'a'.charCodeAt(0) + 2
-	} else if (head >= 'A' && head <= 'Z') {
-		return 'Z'.charCodeAt(0) - head.charCodeAt(0) + 2
-	} else {
-		throw new Error('Invalid index key head: ' + head)
-	}
-}
-
 /** @internal */
 export function validateIndexKey(index: string): asserts index is IndexKey {
-	if (index === SMALLEST_INTEGER) {
+	try {
+		generateJitteredKeyBetween(index, null)
+	} catch (e) {
 		throw new Error('invalid index: ' + index)
 	}
-	// getIntegerPart will throw if the first character is bad,
-	// or the key is too short.  we'd call it to check these things
-	// even if we didn't need the result
-	getIntegerPart(index)
 }
 
 /**
