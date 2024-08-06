@@ -102,6 +102,8 @@ export type AssetUrls = {
 		minus: string
 		mixed: string
 		pack: string
+		pause: string
+		play: string
 		plus: string
 		'question-mark-circle': string
 		'question-mark': string
@@ -116,6 +118,10 @@ export type AssetUrls = {
 		'size-large': string
 		'size-medium': string
 		'size-small': string
+		'speaker-loud': string
+		'speaker-moderate': string
+		'speaker-off': string
+		'speaker-quiet': string
 		'spline-cubic': string
 		'spline-line': string
 		'stack-horizontal': string

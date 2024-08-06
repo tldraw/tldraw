@@ -287,9 +287,10 @@ export class Idle extends StateNode {
 				const { shape } = info
 				const util = this.editor.getShapeUtil(shape)
 
-				// Allow playing videos and embeds
+				// Allow playing videos, audio, and embeds
 				if (
 					shape.type !== 'video' &&
+					shape.type !== 'audio' &&
 					shape.type !== 'embed' &&
 					this.editor.getInstanceState().isReadonly
 				)
