@@ -44,6 +44,17 @@ export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum('tldraw:arrowhea
 /** @public */
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>
 
+const arrowTypes = ['arc', 'right-angle'] as const
+
+/** @public */
+export const ArrowShapeArrowStyle = StyleProp.defineEnum('tldraw:arrow', {
+	defaultValue: 'arc',
+	values: arrowTypes,
+})
+
+/** @public */
+export type TLArrowShapeArrowStyle = T.TypeOf<typeof ArrowShapeArrowStyle>
+
 /** @public */
 export interface TLArrowShapeProps {
 	labelColor: TLDefaultColorStyle
@@ -51,6 +62,7 @@ export interface TLArrowShapeProps {
 	fill: TLDefaultFillStyle
 	dash: TLDefaultDashStyle
 	size: TLDefaultSizeStyle
+	arrow: TLArrowShapeArrowStyle
 	arrowheadStart: TLArrowShapeArrowheadStyle
 	arrowheadEnd: TLArrowShapeArrowheadStyle
 	font: TLDefaultFontStyle
@@ -72,6 +84,7 @@ export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	fill: DefaultFillStyle,
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
+	arrow: ArrowShapeArrowStyle,
 	arrowheadStart: ArrowShapeArrowheadStartStyle,
 	arrowheadEnd: ArrowShapeArrowheadEndStyle,
 	font: DefaultFontStyle,
@@ -89,6 +102,7 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddLabelPosition: 3,
 	ExtractBindings: 4,
 	AddScale: 5,
+	AddArrow: 6,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -226,6 +240,15 @@ export const arrowShapeMigrations = createMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		}),
+		propsMigration({
+			id: arrowShapeVersions.AddArrow,
+			up: (props) => {
+				props.arrow = 'arc'
+			},
+			down: (props) => {
+				delete props.arrow
 			},
 		}),
 	],

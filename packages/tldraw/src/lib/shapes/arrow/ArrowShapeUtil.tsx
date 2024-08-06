@@ -49,6 +49,7 @@ import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {
 	getCurvedArrowHandlePath,
+	getRightAngleArrowPath,
 	getSolidCurvedArrowPath,
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
@@ -869,8 +870,12 @@ const ArrowSvg = track(function ArrowSvg({
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
-
-	const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
+	const path =
+		shape.props.arrow === 'arc'
+			? info.isStraight
+				? getSolidStraightArrowPath(info)
+				: getSolidCurvedArrowPath(info)
+			: getRightAngleArrowPath(info)
 
 	let handlePath: null | React.JSX.Element = null
 
