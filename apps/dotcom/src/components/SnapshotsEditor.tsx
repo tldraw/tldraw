@@ -88,7 +88,7 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 				renderDebugMenuItems={() => <DebugMenuItems />}
 				deepLinks
 				inferDarkMode
-			></Tldraw>
+			/>
 		</div>
 	)
 }
