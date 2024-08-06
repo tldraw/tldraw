@@ -67,6 +67,6 @@ We will also add support for embedding JSFiddles. Please note that you have to s
 We concatenate the filtered embed definitions with our custom JSFiddle one. 
 
 [4]
-We pass the custom embed definitions to the `Tldraw` component as a prop. 
+We pass the final list of embed definitions to the `Tldraw` component as a prop. 
 
 */
