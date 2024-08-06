@@ -86,7 +86,7 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 				}}
 				components={components}
 				renderDebugMenuItems={() => <DebugMenuItems />}
-				urlStateSync
+				deepLinks
 				inferDarkMode
 			></Tldraw>
 		</div>

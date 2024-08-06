@@ -165,7 +165,7 @@ export function MultiplayerEditor({
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
-				urlStateSync
+				deepLinks
 				inferDarkMode
 			>
 				<SneakyOnDropOverride isMultiplayer />

@@ -143,7 +143,6 @@ export {
 	type TLEditorOptions,
 	type TLEditorRunOptions,
 	type TLResizeShapeOptions,
-	type TLUrlStateOptions,
 } from './lib/editor/Editor'
 export {
 	BindingUtil,
@@ -365,7 +364,12 @@ export {
 	type DebugFlagDef,
 	type DebugFlagDefaults,
 } from './lib/utils/debug-flags'
-export { createDeepLinkString, parseDeepLinkString, type TLDeepLink } from './lib/utils/deepLinks'
+export {
+	createDeepLinkString,
+	parseDeepLinkString,
+	type TLDeepLink,
+	type TLDeepLinkOptions,
+} from './lib/utils/deepLinks'
 export {
 	loopToHtmlElement,
 	preventDefault,

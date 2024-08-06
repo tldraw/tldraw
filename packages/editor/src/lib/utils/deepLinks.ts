@@ -5,16 +5,29 @@ import { Box } from '../primitives/Box'
 /** @public */
 export type TLDeepLink =
 	| {
-			type: 'selection'
+			type: 'shapes'
 			shapeIds: TLShapeId[]
 	  }
 	| { type: 'viewport'; bounds: Box; pageId?: TLPageId }
 	| { type: 'page'; pageId: TLPageId }
 
-/** @internal */
+/**
+ * Converts a deep link descriptor to a url-safe string
+ *
+ * @example
+ * ```ts
+ * const url = `https://example.com?d=${createDeepLinkString({ type: 'shapes', shapeIds: ['shape:1', 'shape:2'] })}`
+ * navigator.clipboard.writeText(url)
+ * ```
+ *
+ * @param deepLink - the deep link descriptor
+ * @returns a url-safe string
+ *
+ * @public
+ */
 export function createDeepLinkString(deepLink: TLDeepLink): string {
 	switch (deepLink.type) {
-		case 'selection': {
+		case 'shapes': {
 			const ids = deepLink.shapeIds.map((id) => encodeId(id.slice('shape:'.length)))
 			return `s${ids.join('.')}`
 		}
@@ -34,7 +47,14 @@ export function createDeepLinkString(deepLink: TLDeepLink): string {
 	}
 }
 
-/** @internal */
+/**
+ * Parses a string created by {@link createDeepLinkString} back into a deep link descriptor.
+ *
+ * @param deepLinkString - the deep link string
+ * @returns a deep link descriptor
+ *
+ * @public
+ */
 export function parseDeepLinkString(deepLinkString: string): TLDeepLink {
 	const type = deepLinkString[0]
 	switch (type) {
@@ -43,7 +63,7 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink {
 				.slice(1)
 				.split('.')
 				.map((id) => createShapeId(decodeURIComponent(id)))
-			return { type: 'selection', shapeIds }
+			return { type: 'shapes', shapeIds }
 		}
 		case 'p': {
 			const pageId = PageRecordType.createId(decodeURIComponent(deepLinkString.slice(1)))
@@ -65,4 +85,36 @@ export function parseDeepLinkString(deepLinkString: string): TLDeepLink {
 function encodeId(str: string): string {
 	// need to encode dots because they are used as separators
 	return encodeURIComponent(str).replace(/\./g, '%2E')
+}
+
+/** @public */
+export interface TLDeepLinkOptions {
+	/**
+	 * The name of the url search param to use for the deep link.
+	 *
+	 * Defaults to `'d'`
+	 */
+	param?: string
+	/**
+	 * The debounce time in ms for updating the url.
+	 */
+	debounceMs?: number
+	/**
+	 * Should return the current url to augment with a deep link query parameter.
+	 * If you supply this function, you must also supply an `onChange` function.
+	 */
+	getUrl?(): string | URL
+	/**
+	 * Should return the current deep link target.
+	 * Defaults to returning the current page and viewport position.
+	 */
+	getTarget?(): TLDeepLink
+	/**
+	 * This is fired when the URL is updated.
+	 *
+	 * If not supplied, the default behavior is to update `window.location`.
+	 *
+	 * @param url - the updated URL
+	 */
+	onChange?(url: URL): void
 }

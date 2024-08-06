@@ -111,7 +111,12 @@ import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
-import { TLDeepLink, createDeepLinkString, parseDeepLinkString } from '../utils/deepLinks'
+import {
+	TLDeepLink,
+	TLDeepLinkOptions,
+	createDeepLinkString,
+	parseDeepLinkString,
+} from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -8770,120 +8775,140 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	private _zoomToFitPageContentAt100Percent() {
+		const bounds = this.getCurrentPageBounds()
+		const targetZoom = this.getBaseZoom()
+		if (!bounds) {
+			this.setCamera({ x: 0, y: 0, z: targetZoom }, { immediate: true })
+		} else {
+			this.zoomToBounds(bounds, { immediate: true, targetZoom })
+		}
+	}
+	private _handleDeepLink(deepLink: TLDeepLink) {
+		this.run(() => {
+			switch (deepLink.type) {
+				case 'page': {
+					const page = this.getPage(PageRecordType.createId(deepLink.pageId))
+					if (page) {
+						this.setCurrentPage(page)
+					}
+					this._zoomToFitPageContentAt100Percent()
+					return
+				}
+				case 'shapes': {
+					const shapes = compact(deepLink.shapeIds.map((id) => this.getShape(id)))
+					if (!shapes.length) {
+						this._zoomToFitPageContentAt100Percent()
+					} else {
+						const bounds = Box.Common(shapes.map((s) => this.getShapePageBounds(s)!))
+						this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
+					}
+					return
+				}
+				case 'viewport': {
+					if (deepLink.pageId) {
+						if (!this.getPage(deepLink.pageId)) {
+							this._zoomToFitPageContentAt100Percent()
+							return
+						}
+						this.setCurrentPage(deepLink.pageId)
+					}
+					this.zoomToBounds(deepLink.bounds, { immediate: true, inset: 0 })
+					return
+				}
+				default:
+					exhaustiveSwitchError(deepLink)
+			}
+		})
+	}
+
 	/**
-	 * Extracts and applies the page and camera state encoded in URL search params.
+	 * Handles navigating to the content specified by the query param in the given URL.
 	 *
-	 * This is useful for handling shareable URLs created with {@link Editor#addStateToUrl}.
+	 * Use {@link Editor#createDeepLink} to create a URL with a deep link query param.
 	 *
-	 * If no URL is provided, it will use the current `window.location.href`.
-	 * You should call this right after your store has been initialized with data.
+	 * If no URL is provided, it will look for the param in the current `window.location.href`.
 	 *
 	 * @example
 	 * ```ts
-	 * const snapshot = await loadDocumentSnapshot()
-	 * loadSnapshot(editor.store, snapshot)
-	 * editor.loadStateFromUrl()
+	 * editor.handleDeepLink()
 	 * ```
 	 *
-	 * The default parameter names are `p` (page) and `v` (viewport). You can override or
-	 * disable these.
+	 * The default parameter name is 'd'. You can override this by providing the `param` option.
 	 *
 	 * @example
 	 * ```ts
 	 * // disable page parameter and change viewport parameter to 'c'
-	 * editor.loadStateFromUrl({ paramNames: { page: null, viewport: 'c' } })
+	 * editor.handleDeepLink({
+	 *   param: 'x',
+	 *   url: 'https://my-app.com/my-document?x=200.12.454.23.xyz123',
+	 * })
 	 * ```
 	 *
 	 * @param opts - Options for loading the state from the URL.
 	 */
-	handleDeepLink(opts?: { url?: string | URL; param?: string }): Editor {
-		const goToDefaultPosition = () => {
-			this.zoomToBounds(this.getCurrentPageBounds() ?? new Box(), {
-				immediate: true,
-				targetZoom: this.getBaseZoom(),
-			})
+	handleDeepLink(opts?: TLDeepLink | { url?: string | URL; param?: string }): Editor {
+		if (opts && 'type' in opts) {
+			this._handleDeepLink(opts)
+			return this
 		}
+
 		const url = new URL(opts?.url ?? window.location.href)
 		const deepLinkString = url.searchParams.get(opts?.param ?? 'd')
+
 		if (!deepLinkString) {
-			goToDefaultPosition()
+			this._zoomToFitPageContentAt100Percent()
 			return this
 		}
+
 		try {
-			const deepLink = parseDeepLinkString(deepLinkString)
-			switch (deepLink.type) {
-				case 'page':
-					return this.run(() => {
-						const page = this.getPage(PageRecordType.createId(deepLink.pageId))
-						if (page) {
-							this.setCurrentPage(page)
-							goToDefaultPosition()
-						} else {
-							throw new Error('Page not found: ' + deepLink.pageId)
-						}
-					})
-				case 'selection':
-					return this.run(() => {
-						const shapes = compact(deepLink.shapeIds.map((id) => this.getShape(id)))
-						if (!shapes.length) {
-							throw new Error('No shapes found in selection')
-						}
-						const bounds = Box.Common(shapes.map((s) => this.getShapePageBounds(s)!))
-						this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
-					})
-				case 'viewport':
-					return this.run(() => {
-						if (deepLink.pageId) {
-							if (!this.getPage(deepLink.pageId)) {
-								throw new Error('Page not found:' + deepLink.pageId)
-							}
-							this.setCurrentPage(deepLink.pageId)
-						}
-						this.zoomToBounds(deepLink.bounds, { immediate: true, inset: 0 })
-					})
-				default:
-					exhaustiveSwitchError(deepLink)
-			}
+			this._handleDeepLink(parseDeepLinkString(deepLinkString))
 		} catch (e) {
 			console.warn(e)
-			goToDefaultPosition()
-			return this
+			this._zoomToFitPageContentAt100Percent()
 		}
+		return this
 	}
 
 	/**
-	 * Adds the current page and viewport state to the URL search params.
+	 * Turns the given URL into a deep link by adding a query parameter.
 	 *
-	 * This is useful for creating shareable URLs that can be used to link to particular parts of a document.
+	 * e.g. `https://my-app.com/my-document?d=100.100.200.200.xyz123`
 	 *
-	 * e.g. `https://my-app.com/my-document?p=foo&v=100,100,200,200`
+	 * If no URL is provided, it will use the current `window.location.href`.
 	 *
-	 * If no URL is provided, it will update the current `window.location.href` in place.
+	 * @example
+	 * ```ts
+	 * // create a deep link to the current page + viewport
+	 * navigator.clipboard.writeText(editor.createDeepLink())
+	 * ```
+	 *
+	 * You can link to a particular set of shapes by providing a `to` parameter.
+	 *
+	 * @example
+	 * ```ts
+	 * // create a deep link to the set of currently selected shapes
+	 * navigator.clipboard.writeText(editor.createDeepLink({
+	 *   to: { type: 'selection', shapeIds: editor.getSelectedShapeIds() }
+	 * }))
+	 * ```
+	 *
+	 * You can also update the address bar with the new URL by providing `updateAddressBar: true`.
 	 *
 	 * @example
 	 * ```ts
 	 * // Update the address bar every 500 ms
 	 * setInterval(() => {
-	 *   editor.addStateToUrl()
+	 *   editor.createDeepLink({ updateAddressBar: true })
 	 * }, 500)
 	 * ```
 	 *
-	 * Otherwise, if you provide a URL it will not modify `window.location` and will simply return the updated URL.
+	 * The default query param is 'd'. You can override this by providing a `param` parameter.
 	 *
 	 * @example
 	 * ```ts
-	 * // create a share link without updating the address bar
-	 * const shareUrl = editor.addStateToUrl({ url: window.location.href })
-	 * navigator.clipboard.writeText(shareUrl.toString())
-	 * ```
-	 *
-	 * The default parameter names are `p` (page) and `v` (viewport). You can override or
-	 * disable these.
-	 *
-	 * @example
-	 * ```ts
-	 * // disable page parameter if there's only one page
-	 * editor.addStateToUrl({ paramNames: { page: null } })
+	 * // Use `x` as the param name instead
+	 * editor.createDeepLink({ param: 'x' })
 	 * ```
 	 *
 	 * @param opts - Options for adding the state to the URL.
@@ -8922,28 +8947,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Sets up a listener to add the current page and viewport state to the URL search params.
+	 * Register a listener for changes to a deep link for the current document.
 	 *
-	 * e.g. `https://my-app.com/my-document?p=foo&v=100,100,200,200`
-	 *
-	 * Returns a function that will stop the listener.
-	 *
-	 * @example
-	 * ```tsx
-	 * <Tldraw onMount={editor => {
-	 *   const unlisten = editor.updateUrlOnStateChange()
-	 *   return () => {
-	 *     unlisten()
-	 *   }
-	 * }}/>
-	 * ```
+	 * You'll typically want to use this indirectly via the {@link TldrawEditorBaseProps.deepLinks} prop on the `<Tldraw />` component.
 	 *
 	 * By default this will update `window.location` in place, but you can provide a custom callback
 	 * to handle state changes on your own.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateUrlOnStateChange({
+	 * editor.registerDeepLinkListener({
 	 *   onChange(url) {
 	 *     window.history.replaceState({}, document.title, url.toString())
 	 *   }
@@ -8954,7 +8967,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateUrlOnStateChange({
+	 * editor.registerDeepLinkListener({
 	 *   getUrl: () => `https://my-app.com/my-document`,
 	 *   onChange(url) {
 	 *     setShareUrl(url.toString())
@@ -8966,20 +8979,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateUrlOnStateChange({ debounceMs: 1000 })
+	 * editor.registerDeepLinkListener({ debounceMs: 1000 })
 	 * ```
-	 * The default parameter names are `p` (page) and `v` (viewport). You can override or
-	 * disable these.
+	 * The default parameter name is `d`. You can override this by providing a `param` option.
 	 *
 	 * @example
 	 * ```ts
-	 * // disable page parameter if there's only one page
-	 * editor.updateUrlOnStateChange({ paramNames: { page: null } })
+	 * editor.registerDeepLinkListener({ param: 'x' })
 	 * ```
 	 * @param opts - Options for setting up the listener.
 	 * @returns a function that will stop the listener.
 	 */
-	updateDeepLinkOnStateChange(opts?: TLUrlStateOptions): () => void {
+	registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void {
 		if (opts?.getUrl && !opts?.onChange) {
 			throw Error(
 				'[tldraw:urlStateSync] If you specify getUrl, you must also specify the onChange callback.'
@@ -8988,22 +8999,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const url$ = computed('url with state', () => {
 			const url = opts?.getUrl?.() ?? window.location.href
-			const urlWithState = this.createDeepLink({ param: opts?.param, url })
+			const urlWithState = this.createDeepLink({ param: opts?.param, url, to: opts?.getTarget?.() })
 			return urlWithState.toString()
 		})
 
 		const announceChange =
 			opts?.onChange ?? (() => this.createDeepLink({ param: opts?.param, updateAddressBar: true }))
 
-		return react(
-			'update url on state change',
-			() => {
-				announceChange(new URL(url$.get()))
-			},
-			{
-				scheduleEffect: debounce((execute) => execute(), opts?.debounceMs ?? 500),
-			}
-		)
+		return react('update url on state change', () => announceChange(new URL(url$.get())), {
+			scheduleEffect: debounce((execute) => execute(), opts?.debounceMs ?? 500),
+		})
 	}
 
 	/**
@@ -9743,12 +9748,4 @@ function getCameraFitXFitY(editor: Editor, cameraOptions: TLCameraOptions) {
 	const zx = (vsb.w - px * 2) / bounds.w
 	const zy = (vsb.h - py * 2) / bounds.h
 	return { zx, zy }
-}
-
-/** @public */
-export interface TLUrlStateOptions {
-	param?: string
-	debounceMs?: number
-	getUrl?(): string | URL
-	onChange?(url: URL): void
 }
