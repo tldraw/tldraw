@@ -2629,7 +2629,7 @@ export interface TLCursorProps {
 
 // @public (undocumented)
 export type TLDeepLink = {
-    bounds: Box;
+    bounds: BoxModel;
     pageId?: TLPageId;
     type: 'viewport';
 } | {

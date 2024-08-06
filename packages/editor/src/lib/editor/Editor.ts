@@ -8788,7 +8788,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.run(() => {
 			switch (deepLink.type) {
 				case 'page': {
-					const page = this.getPage(PageRecordType.createId(deepLink.pageId))
+					const page = this.getPage(deepLink.pageId)
 					if (page) {
 						this.setCurrentPage(page)
 					}

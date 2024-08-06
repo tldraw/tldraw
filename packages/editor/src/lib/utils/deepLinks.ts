@@ -1,4 +1,4 @@
-import { PageRecordType, TLPageId, TLShapeId, createShapeId } from '@tldraw/tlschema'
+import { BoxModel, PageRecordType, TLPageId, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 import { Box } from '../primitives/Box'
 
@@ -8,7 +8,7 @@ export type TLDeepLink =
 			type: 'shapes'
 			shapeIds: TLShapeId[]
 	  }
-	| { type: 'viewport'; bounds: Box; pageId?: TLPageId }
+	| { type: 'viewport'; bounds: BoxModel; pageId?: TLPageId }
 	| { type: 'page'; pageId: TLPageId }
 
 /**
