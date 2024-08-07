@@ -5,7 +5,6 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLBookmarkShape,
-	TLEmbedDefinition,
 	TLEmbedShape,
 	TLImageAsset,
 	TLShapeId,
@@ -21,11 +20,11 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
-import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /** @public */
@@ -61,8 +60,7 @@ export function registerDefaultExternalContentHandlers(
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 	}: Required<TLExternalContentProps>,
-	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
-	embedDefinitions: readonly TLEmbedDefinition[]
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
 	editor.registerExternalAssetHandler('file', async ({ file }) => {
@@ -279,7 +277,7 @@ export function registerDefaultExternalContentHandlers(
 
 			const isImageType = acceptedImageMimeTypes.includes(file.type)
 			const isVideoType = acceptedVideoMimeTypes.includes(file.type)
-			const hash = await getHashForBuffer(await file.arrayBuffer())
+			const hash = getHashForBuffer(await file.arrayBuffer())
 			const assetId: TLAssetId = AssetRecordType.createId(hash)
 			const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 			let temporaryAssetPreview
@@ -415,7 +413,7 @@ export function registerDefaultExternalContentHandlers(
 	// url
 	editor.registerExternalContentHandler('url', async ({ point, url }) => {
 		// try to paste as an embed first
-		const embedInfo = getEmbedInfo(embedDefinitions, url)
+		const embedInfo = EmbedShapeUtil.getEmbedDefinition(url)
 
 		if (embedInfo) {
 			return editor.putExternalContent({

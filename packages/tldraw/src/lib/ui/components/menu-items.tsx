@@ -5,9 +5,9 @@ import {
 	TLImageShape,
 	TLPageId,
 	useEditor,
-	useEmbedDefinitions,
 	useValue,
 } from '@tldraw/editor'
+import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
@@ -489,7 +489,7 @@ export function ConvertToBookmarkMenuItem() {
 /** @public @react */
 export function ConvertToEmbedMenuItem() {
 	const editor = useEditor()
-	const definitions = useEmbedDefinitions()
+	const definitions = EmbedShapeUtil.getEmbedDefinitions()
 
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',

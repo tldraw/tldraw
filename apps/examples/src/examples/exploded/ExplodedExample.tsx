@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import {
 	ContextMenu,
-	DEFAULT_EMBED_DEFINITIONS,
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultContextMenuContent,
@@ -93,8 +92,7 @@ function InsideEditorAndUiContext() {
 			{
 				toasts,
 				msg,
-			},
-			DEFAULT_EMBED_DEFINITIONS
+			}
 		)
 
 		const cleanupSideEffects = registerDefaultSideEffects(editor)

@@ -1,12 +1,10 @@
 import {
-	DEFAULT_EMBED_DEFINITIONS,
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
-	TLEmbedDefinition,
 	TLOnMountHandler,
 	TldrawEditor,
 	TldrawEditorBaseProps,
@@ -123,8 +121,6 @@ export function Tldraw(props: TldrawProps) {
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
-	const embeds = rest.embeds ?? DEFAULT_EMBED_DEFINITIONS
-
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
@@ -145,7 +141,6 @@ export function Tldraw(props: TldrawProps) {
 			shapeUtils={shapeUtilsWithDefaults}
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
-			embeds={embeds}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault}>
 				<InsideOfEditorAndUiContext
@@ -154,7 +149,6 @@ export function Tldraw(props: TldrawProps) {
 					acceptedImageMimeTypes={acceptedImageMimeTypes}
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
 					onMount={onMount}
-					embeds={embeds}
 				/>
 				{children}
 			</TldrawUi>
@@ -169,10 +163,8 @@ function InsideOfEditorAndUiContext({
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-	embeds,
 }: TLExternalContentProps & {
 	onMount?: TLOnMountHandler
-	embeds: readonly TLEmbedDefinition[]
 }) {
 	const editor = useEditor()
 	const toasts = useToasts()
@@ -195,8 +187,7 @@ function InsideOfEditorAndUiContext({
 			{
 				toasts,
 				msg,
-			},
-			embeds
+			}
 		)
 
 		// ...then we call the store's on mount which may override them...

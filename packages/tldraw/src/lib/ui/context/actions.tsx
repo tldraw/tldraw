@@ -18,9 +18,9 @@ import {
 	createShapeId,
 	openWindow,
 	useEditor,
-	useEmbedDefinitions,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
 import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
@@ -101,7 +101,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 	const trackEvent = useUiEvents()
 
-	const definitions = useEmbedDefinitions()
+	const definitions = EmbedShapeUtil.getEmbedDefinitions()
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {

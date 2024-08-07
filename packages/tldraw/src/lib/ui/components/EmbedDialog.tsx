@@ -4,9 +4,9 @@ import {
 	isDefaultEmbedDefintionType,
 	track,
 	useEditor,
-	useEmbedDefinitions,
 } from '@tldraw/editor'
 import { useRef, useState } from 'react'
+import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../context/asset-urls'
 import { TLUiDialogProps } from '../context/dialogs'
@@ -41,7 +41,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 	const [showError, setShowError] = useState(false)
 	const rShowErrorTimeout = useRef<any>(-1)
 
-	const definitions = useEmbedDefinitions()
+	const definitions = EmbedShapeUtil.getEmbedDefinitions()
 
 	return (
 		<>

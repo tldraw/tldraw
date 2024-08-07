@@ -625,6 +625,10 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
+    static getEmbedDefinition(url: string): TLEmbedResult;
+    // (undocumented)
+    static getEmbedDefinitions(): readonly EmbedDefinition[];
+    // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
     hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
@@ -645,6 +649,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     };
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
+    // (undocumented)
+    static setEmbedDefinitions(definitions: EmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
 }
@@ -1407,7 +1413,7 @@ export function RectangleToolbarItem(): JSX_2.Element;
 export function registerDefaultExternalContentHandlers(editor: Editor, { maxImageDimension, maxAssetSize, acceptedImageMimeTypes, acceptedVideoMimeTypes, }: Required<TLExternalContentProps>, { toasts, msg }: {
     msg: ReturnType<typeof useTranslation>;
     toasts: TLUiToastsContextType;
-}, embedDefinitions: readonly TLEmbedDefinition[]): void;
+}): void;
 
 // @public (undocumented)
 export function registerDefaultSideEffects(editor: Editor): () => void;
@@ -3426,9 +3432,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 };
 
 // @public (undocumented)
-export function useEmbedDefinition(url: string): TLEmbedResult;
-
-// @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public (undocumented)
@@ -3481,7 +3484,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
+export function useUiEvents(): TLUiEventContextType;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
