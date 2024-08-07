@@ -623,8 +623,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     component(shape: TLEmbedShape): JSX_2.Element | null;
     // (undocumented)
-    static EMBED_DEFINTIONS: never[];
-    // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
@@ -3483,7 +3481,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventContextType;
+export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
