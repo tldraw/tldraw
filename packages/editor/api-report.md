@@ -1152,14 +1152,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         select?: boolean;
     }): this;
-    putExternalContent<R>(info: TLExternalContent<R>): Promise<void>;
+    putExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
     redo(): this;
     registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(type: T, handler: ((info: TLExternalAssetContent & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
-    registerExternalContentHandler<T extends TLExternalContent<R>['type'], R>(type: T, handler: ((info: T extends TLExternalContent<R>['type'] ? TLExternalContent<R> & {
+    registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? TLExternalContent<E> & {
         type: T;
-    } : TLExternalContent<R>) => void) | null): this;
+    } : TLExternalContent<E>) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
