@@ -6,6 +6,7 @@ import { HighlightShapeTool } from './shapes/highlight/HighlightShapeTool'
 import { LineShapeTool } from './shapes/line/LineShapeTool'
 import { NoteShapeTool } from './shapes/note/NoteShapeTool'
 import { TextShapeTool } from './shapes/text/TextShapeTool'
+import { TimerShapeTool } from './shapes/timer/TimerShapeTool'
 
 /** @public */
 export const defaultShapeTools = [
@@ -17,4 +18,5 @@ export const defaultShapeTools = [
 	FrameShapeTool,
 	ArrowShapeTool,
 	HighlightShapeTool,
+	TimerShapeTool,
 ] as const

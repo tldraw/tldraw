@@ -578,6 +578,12 @@ export const textShapeMigrations: TLPropsMigrations;
 // @public (undocumented)
 export const textShapeProps: RecordProps<TLTextShape>;
 
+// @public (undocumented)
+export const timerShapeMigrations: TLPropsMigrations;
+
+// @public (undocumented)
+export const timerShapeProps: RecordProps<TLTimerShape>;
+
 // @public
 export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
@@ -1414,6 +1420,15 @@ export interface TLTextShapeProps {
     textAlign: TLDefaultTextAlignStyle;
     // (undocumented)
     w: number;
+}
+
+// @public (undocumented)
+export type TLTimerShape = TLBaseShape<'timer', TLTimerShapeProps>;
+
+// @public (undocumented)
+export interface TLTimerShapeProps {
+    // (undocumented)
+    color: TLDefaultColorStyle;
 }
 
 // @public

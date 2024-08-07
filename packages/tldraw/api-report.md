@@ -109,6 +109,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLTimerShape } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -694,10 +695,10 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
+export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool, typeof TimerShapeTool];
 
 // @public (undocumented)
-export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
+export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil, typeof TimerShapeUtil];
 
 // @public (undocumented)
 export function DefaultSharePanel(): JSX_2.Element;
@@ -1915,6 +1916,38 @@ export interface ThemeStylePickerSetProps {
     styles: ReadonlySharedStyleMap;
     // (undocumented)
     theme: TLDefaultColorTheme;
+}
+
+// @public (undocumented)
+export class TimerShapeTool extends StateNode {
+    // (undocumented)
+    static children(): TLStateNodeConstructor[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
+    shapeType: string;
+}
+
+// @public (undocumented)
+export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
+    // (undocumented)
+    component(_shape: TLTimerShape): JSX_2.Element;
+    // (undocumented)
+    getDefaultProps(): TLTimerShape['props'];
+    // (undocumented)
+    getGeometry(_shape: TLTimerShape): Geometry2d;
+    // (undocumented)
+    indicator(shape: TLTimerShape): JSX_2.Element;
+    // (undocumented)
+    static migrations: TLPropsMigrations;
+    // (undocumented)
+    static props: RecordProps<TLTimerShape>;
+    // (undocumented)
+    static type: "timer";
 }
 
 // @public (undocumented)
@@ -3753,7 +3786,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
+export function useUiEvents(): TLUiEventContextType;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
