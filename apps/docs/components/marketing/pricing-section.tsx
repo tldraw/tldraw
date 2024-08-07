@@ -1,6 +1,4 @@
-'use client'
-
-import { Button } from '@/components/common/button'
+import { RequestForm } from '@/components/marketing/request-form'
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { CheckBadgeIcon } from '@heroicons/react/20/solid'
@@ -24,12 +22,7 @@ export const PricingSection = () => {
 							Interested in purchasing a commercial license for the tldraw SDK? Please fill out our
 							form and we will get back to you with more information.
 						</p>
-						<div className="flex flex-col items-center justify-center gap-4 mt-8">
-							<Button
-								href="https://forms.gle/PmS4wNzngnbD3fb89"
-								caption="Ask about a commercial license"
-							/>
-						</div>
+						<RequestForm />
 					</div>
 				</div>
 			</Section>
