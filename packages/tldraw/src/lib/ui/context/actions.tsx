@@ -21,7 +21,6 @@ import {
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
-import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -29,6 +28,7 @@ import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
 import { flattenShapesToImages } from '../hooks/useFlatten'
+import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
 import { useInsertMedia } from '../hooks/useInsertMedia'
 import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 import { usePrint } from '../hooks/usePrint'
@@ -97,6 +97,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
 	const defaultDocumentName = msg('document.default-name')
+
+	const getEmbedDefinition = useGetEmbedDefinition()
 
 	const trackEvent = useUiEvents()
 
@@ -450,7 +452,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 							const { url } = shape.props
 
-							const embedInfo = getEmbedInfo(shape.props.url)
+							const embedInfo = getEmbedDefinition(url)
 
 							if (!embedInfo) continue
 							if (!embedInfo.definition) continue
@@ -1473,6 +1475,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		msg,
 		defaultDocumentName,
 		showCollaborationUi,
+		getEmbedDefinition,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

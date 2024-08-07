@@ -7,7 +7,6 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
 import {
@@ -21,6 +20,7 @@ import {
 	useThreeStackableItems,
 	useUnlockedSelectedShapesCount,
 } from '../hooks/menu-hooks'
+import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
@@ -488,6 +488,7 @@ export function ConvertToBookmarkMenuItem() {
 /** @public @react */
 export function ConvertToEmbedMenuItem() {
 	const editor = useEditor()
+	const getEmbedDefinition = useGetEmbedDefinition()
 
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
@@ -497,7 +498,7 @@ export function ConvertToEmbedMenuItem() {
 			return !!(
 				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
 				onlySelectedShape.props.url &&
-				getEmbedInfo(onlySelectedShape.props.url) &&
+				getEmbedDefinition(onlySelectedShape.props.url) &&
 				!editor.isShapeOrAncestorLocked(onlySelectedShape)
 			)
 		},

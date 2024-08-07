@@ -366,6 +366,9 @@ export function rng(seed?: string): () => number;
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
+// @public (undocumented)
+export const safeParseUrl: (url: string) => undefined | URL;
+
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
 
