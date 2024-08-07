@@ -1931,6 +1931,8 @@ export const TLDRAW_FILE_EXTENSION: ".tldr";
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     // (undocumented)
     components?: TLComponents;
+    // (undocumented)
+    embeds?: TLEmbedDefinition[];
 }
 
 // @public (undocumented)

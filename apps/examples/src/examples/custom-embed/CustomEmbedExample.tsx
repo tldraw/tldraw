@@ -48,11 +48,11 @@ const customEmbed: CustomEmbedDefinition = {
 const embeds = [...defaultEmbedsToKeep, customEmbed]
 
 export default function CustomEmbedExample() {
-	// [4]
 	EmbedShapeUtil.setEmbedDefinitions(embeds)
 	return (
 		<div className="tldraw__editor">
-			<Tldraw />
+			{/* [4] */}
+			<Tldraw embeds={embeds} />
 		</div>
 	)
 }
@@ -69,6 +69,6 @@ We will also add support for embedding JSFiddles. Please note that you have to s
 We concatenate the filtered embed definitions with our custom JSFiddle one. 
 
 [4]
-We now let the `EmbedShapeUtil` know about our custom embed definitions. 
+We now pass the custom embed definitions to the `Tldraw` component. 
 
 */

@@ -5,6 +5,7 @@ import {
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
+	TLEmbedDefinition,
 	TLOnMountHandler,
 	TldrawEditor,
 	TldrawEditorBaseProps,
@@ -30,6 +31,7 @@ import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
@@ -65,6 +67,7 @@ export interface TldrawBaseProps
 		TldrawEditorBaseProps,
 		TLExternalContentProps {
 	components?: TLComponents
+	embeds?: TLEmbedDefinition[]
 }
 
 /** @public */
@@ -83,6 +86,7 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		tools = [],
+		embeds,
 		...rest
 	} = props
 
@@ -120,9 +124,15 @@ export function Tldraw(props: TldrawProps) {
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
+
+	if (embeds) {
+		EmbedShapeUtil.setEmbedDefinitions(embeds)
+	}
+
 	if (!preloadingComplete) {
 		return (
 			<LoadingScreen>
@@ -161,7 +171,9 @@ function InsideOfEditorAndUiContext({
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-}: TLExternalContentProps & { onMount?: TLOnMountHandler }) {
+}: TLExternalContentProps & {
+	onMount?: TLOnMountHandler
+}) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
