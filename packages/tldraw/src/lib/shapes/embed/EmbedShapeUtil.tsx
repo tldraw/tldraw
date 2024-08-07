@@ -37,18 +37,18 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
-	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
+	private embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
 
-	static setEmbedDefinitions(definitions: TLEmbedDefinition[]) {
-		EmbedShapeUtil.embedDefinitions = definitions
+	setEmbedDefinitions(definitions: TLEmbedDefinition[]) {
+		this.embedDefinitions = definitions
 	}
 
-	static getEmbedDefinitions(): readonly TLEmbedDefinition[] {
-		return EmbedShapeUtil.embedDefinitions
+	getEmbedDefinitions(): readonly TLEmbedDefinition[] {
+		return this.embedDefinitions
 	}
 
-	static getEmbedDefinition(url: string): TLEmbedResult {
-		return getEmbedInfo(EmbedShapeUtil.embedDefinitions, url)
+	getEmbedDefinition(url: string): TLEmbedResult {
+		return getEmbedInfo(this.embedDefinitions, url)
 	}
 
 	override hideSelectionBoundsFg(shape: TLEmbedShape) {
@@ -58,7 +58,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return true
 	}
 	override canResize(shape: TLEmbedShape) {
-		return !!EmbedShapeUtil.getEmbedDefinition(shape.props.url)?.definition?.doesResize
+		return !!this.getEmbedDefinition(shape.props.url)?.definition?.doesResize
 	}
 	override canEditInReadOnly() {
 		return true
@@ -73,13 +73,13 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override isAspectRatioLocked(shape: TLEmbedShape) {
-		const embedInfo = EmbedShapeUtil.getEmbedDefinition(shape.props.url)
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		return embedInfo?.definition.isAspectRatioLocked ?? false
 	}
 
 	override onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>) {
 		const isAspectRatioLocked = this.isAspectRatioLocked(shape)
-		const embedInfo = EmbedShapeUtil.getEmbedDefinition(shape.props.url)
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		let minWidth = embedInfo?.definition.minWidth ?? 200
 		let minHeight = embedInfo?.definition.minHeight ?? 200
 		if (isAspectRatioLocked) {
@@ -102,7 +102,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 
-		const embedInfo = EmbedShapeUtil.getEmbedDefinition(url)
+		const embedInfo = this.getEmbedDefinition(url)
 
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
@@ -180,7 +180,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override indicator(shape: TLEmbedShape) {
-		const embedInfo = EmbedShapeUtil.getEmbedDefinition(shape.props.url)
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		return (
 			<rect
 				width={toDomPrecision(shape.props.w)}

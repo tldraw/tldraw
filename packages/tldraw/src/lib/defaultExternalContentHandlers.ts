@@ -417,7 +417,8 @@ export function registerDefaultExternalContentHandlers(
 	// url
 	editor.registerExternalContentHandler('url', async ({ point, url }) => {
 		// try to paste as an embed first
-		const embedInfo = EmbedShapeUtil.getEmbedDefinition(url)
+		const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
+		const embedInfo = embedUtil?.getEmbedDefinition(url)
 
 		if (embedInfo) {
 			return editor.putExternalContent({

@@ -5,10 +5,11 @@ import {
 	isCustomEmbedDefinition,
 	isDefaultEmbedDefinitionType,
 } from '../../defaultEmbedDefinitions'
-import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { TLEmbedResult } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../context/asset-urls'
 import { TLUiDialogProps } from '../context/dialogs'
+import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
+import { useGetEmbedDefinitions } from '../hooks/useGetEmbedDefinitions'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
@@ -40,7 +41,8 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 	const [showError, setShowError] = useState(false)
 	const rShowErrorTimeout = useRef<any>(-1)
 
-	const definitions = EmbedShapeUtil.getEmbedDefinitions()
+	const definitions = useGetEmbedDefinitions()
+	const getEmbedDefinition = useGetEmbedDefinition()
 
 	return (
 		<>
@@ -67,7 +69,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								// Set the embed info to either the embed info for the URL (if
 								// that embed info can be found and of a type that matches the
 								// user's selected definition type)
-								const embedInfo = EmbedShapeUtil.getEmbedDefinition(url)
+								const embedInfo = getEmbedDefinition(url)
 								setEmbedInfoForUrl(
 									embedInfo && embedInfo.definition.type === embedDefinition.type ? embedInfo : null
 								)

@@ -884,9 +884,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
-    static getEmbedDefinition(url: string): TLEmbedResult;
+    getEmbedDefinition(url: string): TLEmbedResult;
     // (undocumented)
-    static getEmbedDefinitions(): readonly TLEmbedDefinition[];
+    getEmbedDefinitions(): readonly TLEmbedDefinition[];
     // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
@@ -909,7 +909,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
     // (undocumented)
-    static setEmbedDefinitions(definitions: TLEmbedDefinition[]): void;
+    setEmbedDefinitions(definitions: TLEmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
 }
@@ -3753,7 +3753,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventContextType;
+export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
