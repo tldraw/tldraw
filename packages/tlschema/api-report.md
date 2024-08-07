@@ -161,12 +161,6 @@ export function createTLSchema({ shapes, bindings, migrations, }?: {
 }): TLSchema;
 
 // @public (undocumented)
-export interface CustomEmbedDefinition extends EmbedDefinition {
-    // (undocumented)
-    readonly icon: string;
-}
-
-// @public (undocumented)
 export const defaultBindingSchemas: {
     arrow: {
         migrations: TLPropsMigrations;
@@ -281,59 +275,7 @@ export const drawShapeMigrations: TLPropsMigrations;
 export const drawShapeProps: RecordProps<TLDrawShape>;
 
 // @public (undocumented)
-export interface EmbedDefinition {
-    // (undocumented)
-    readonly backgroundColor?: string;
-    // (undocumented)
-    readonly doesResize: boolean;
-    // (undocumented)
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-    // (undocumented)
-    readonly height: number;
-    // (undocumented)
-    readonly hostnames: readonly string[];
-    // (undocumented)
-    readonly instructionLink?: string;
-    // (undocumented)
-    readonly isAspectRatioLocked?: boolean;
-    // (undocumented)
-    readonly minHeight?: number;
-    // (undocumented)
-    readonly minWidth?: number;
-    // (undocumented)
-    readonly overrideOutlineRadius?: number;
-    // (undocumented)
-    readonly overridePermissions?: TLEmbedShapePermissions;
-    // (undocumented)
-    readonly title: string;
-    // (undocumented)
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    // (undocumented)
-    readonly type: string;
-    // (undocumented)
-    readonly width: number;
-}
-
-// @public (undocumented)
 export const embedShapeMigrations: TLPropsMigrations;
-
-// @public
-export const embedShapePermissionDefaults: {
-    readonly 'allow-downloads-without-user-activation': false;
-    readonly 'allow-downloads': false;
-    readonly 'allow-forms': true;
-    readonly 'allow-modals': false;
-    readonly 'allow-orientation-lock': false;
-    readonly 'allow-pointer-lock': false;
-    readonly 'allow-popups-to-escape-sandbox': false;
-    readonly 'allow-popups': true;
-    readonly 'allow-presentation': false;
-    readonly 'allow-same-origin': true;
-    readonly 'allow-scripts': true;
-    readonly 'allow-storage-access-by-user-activation': false;
-    readonly 'allow-top-navigation-by-user-activation': false;
-    readonly 'allow-top-navigation': false;
-};
 
 // @public (undocumented)
 export const embedShapeProps: RecordProps<TLEmbedShape>;
@@ -976,15 +918,7 @@ export interface TLDrawShapeSegment {
 }
 
 // @public (undocumented)
-export type TLEmbedDefinition = CustomEmbedDefinition | EmbedDefinition;
-
-// @public (undocumented)
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
-
-// @public (undocumented)
-export type TLEmbedShapePermissions = {
-    [K in keyof typeof embedShapePermissionDefaults]?: boolean;
-};
 
 // @public (undocumented)
 export interface TLEmbedShapeProps {

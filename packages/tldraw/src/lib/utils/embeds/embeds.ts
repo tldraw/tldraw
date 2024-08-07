@@ -1,4 +1,4 @@
-import { TLEmbedDefinition } from '@tldraw/editor'
+import { TLEmbedDefinition } from '../../defaultEmbedDefinitions'
 
 // https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
 function escapeStringRegexp(string: string) {

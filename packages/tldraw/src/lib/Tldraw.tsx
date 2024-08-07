@@ -5,7 +5,6 @@ import {
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
-	TLEmbedDefinition,
 	TLOnMountHandler,
 	TldrawEditor,
 	TldrawEditorBaseProps,
@@ -23,6 +22,7 @@ import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
+import { TLEmbedDefinition } from './defaultEmbedDefinitions'
 import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,

@@ -2,15 +2,11 @@
 
 import {
 	BaseBoxShapeUtil,
-	EmbedDefinition,
 	HTMLContainer,
-	TLEmbedDefinition,
 	TLEmbedShape,
-	TLEmbedShapePermissions,
 	TLEmbedShapeProps,
 	TLResizeInfo,
 	embedShapeMigrations,
-	embedShapePermissionDefaults,
 	embedShapeProps,
 	lerp,
 	toDomPrecision,
@@ -18,7 +14,13 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
-import { DEFAULT_EMBED_DEFINITIONS } from '../../defaultEmbedDefinitions'
+import {
+	DEFAULT_EMBED_DEFINITIONS,
+	EmbedDefinition,
+	TLEmbedDefinition,
+	TLEmbedShapePermissions,
+	embedShapePermissionDefaults,
+} from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { resizeBox } from '../shared/resizeBox'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'

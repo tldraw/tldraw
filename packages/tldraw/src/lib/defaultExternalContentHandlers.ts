@@ -20,6 +20,7 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
+import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
@@ -192,31 +193,34 @@ export function registerDefaultExternalContentHandlers(
 	})
 
 	// embeds
-	editor.registerExternalContentHandler('embed', ({ point, url, embed }) => {
-		const position =
-			point ??
-			(editor.inputs.shiftKey
-				? editor.inputs.currentPagePoint
-				: editor.getViewportPageBounds().center)
+	editor.registerExternalContentHandler<'embed', EmbedDefinition>(
+		'embed',
+		({ point, url, embed }) => {
+			const position =
+				point ??
+				(editor.inputs.shiftKey
+					? editor.inputs.currentPagePoint
+					: editor.getViewportPageBounds().center)
 
-		const { width, height } = embed
+			const { width, height } = embed
 
-		const id = createShapeId()
+			const id = createShapeId()
 
-		const shapePartial: TLShapePartial<TLEmbedShape> = {
-			id,
-			type: 'embed',
-			x: position.x - (width || 450) / 2,
-			y: position.y - (height || 450) / 2,
-			props: {
-				w: width,
-				h: height,
-				url,
-			},
+			const shapePartial: TLShapePartial<TLEmbedShape> = {
+				id,
+				type: 'embed',
+				x: position.x - (width || 450) / 2,
+				y: position.y - (height || 450) / 2,
+				props: {
+					w: width,
+					h: height,
+					url,
+				},
+			}
+
+			editor.createShapes([shapePartial]).select(id)
 		}
-
-		editor.createShapes([shapePartial]).select(id)
-	})
+	)
 
 	// files
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {

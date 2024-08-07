@@ -1,6 +1,10 @@
-import { TLEmbedDefinition, track, useEditor } from '@tldraw/editor'
+import { track, useEditor } from '@tldraw/editor'
 import { useRef, useState } from 'react'
-import { isCustomEmbedDefinition, isDefaultEmbedDefintionType } from '../../defaultEmbedDefinitions'
+import {
+	TLEmbedDefinition,
+	isCustomEmbedDefinition,
+	isDefaultEmbedDefintionType,
+} from '../../defaultEmbedDefinitions'
 import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { TLEmbedResult } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../context/asset-urls'

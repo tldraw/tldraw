@@ -7958,8 +7958,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	externalContentHandlers: {
-		[K in TLExternalContent['type']]: {
-			[Key in K]: null | ((info: TLExternalContent & { type: Key }) => void)
+		[K in TLExternalContent<undefined>['type']]: {
+			[Key in K]: null | ((info: TLExternalContent<undefined> & { type: Key }) => void)
 		}[K]
 	} = {
 		text: null,
@@ -7984,14 +7984,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	registerExternalContentHandler<T extends TLExternalContent['type']>(
+	registerExternalContentHandler<T extends TLExternalContent<R>['type'], R>(
 		type: T,
 		handler:
 			| null
 			| ((
-					info: T extends TLExternalContent['type']
-						? TLExternalContent & { type: T }
-						: TLExternalContent
+					info: T extends TLExternalContent<R>['type']
+						? TLExternalContent<R> & { type: T }
+						: TLExternalContent<R>
 			  ) => void)
 	): this {
 		this.externalContentHandlers[type] = handler as any
@@ -8003,7 +8003,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param info - Info about the external content.
 	 */
-	async putExternalContent(info: TLExternalContent): Promise<void> {
+	async putExternalContent<R>(info: TLExternalContent<R>): Promise<void> {
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 

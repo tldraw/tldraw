@@ -58,7 +58,6 @@ import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
-import { TLEmbedDefinition } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
@@ -916,8 +915,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     // @internal (undocumented)
     externalContentHandlers: {
-        [K in TLExternalContent['type']]: {
-            [Key in K]: ((info: TLExternalContent & {
+        [K in TLExternalContent<undefined>['type']]: {
+            [Key in K]: ((info: TLExternalContent<undefined> & {
                 type: Key;
             }) => void) | null;
         }[K];
@@ -1153,14 +1152,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         select?: boolean;
     }): this;
-    putExternalContent(info: TLExternalContent): Promise<void>;
+    putExternalContent<R>(info: TLExternalContent<R>): Promise<void>;
     redo(): this;
     registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(type: T, handler: ((info: TLExternalAssetContent & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
-    registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
+    registerExternalContentHandler<T extends TLExternalContent<R>['type'], R>(type: T, handler: ((info: T extends TLExternalContent<R>['type'] ? TLExternalContent<R> & {
         type: T;
-    } : TLExternalContent) => void) | null): this;
+    } : TLExternalContent<R>) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -2927,11 +2926,11 @@ export type TLExternalAssetContent = {
 };
 
 // @public (undocumented)
-export type TLExternalContent = {
+export type TLExternalContent<EmbedDefinition> = {
     point?: VecLike;
     sources?: TLExternalContentSource[];
 } & ({
-    embed: TLEmbedDefinition;
+    embed: EmbedDefinition;
     type: 'embed';
     url: string;
 } | {
