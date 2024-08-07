@@ -651,7 +651,7 @@ const DEFAULT_EMBED_DEFINITION_TYPES = DEFAULT_EMBED_DEFINITIONS.map(
 ) as DefaultEmbedDefinitionType[]
 
 /** @public */
-export function isDefaultEmbedDefintionType(type: string): type is DefaultEmbedDefinitionType {
+export function isDefaultEmbedDefinitionType(type: string): type is DefaultEmbedDefinitionType {
 	return DEFAULT_EMBED_DEFINITION_TYPES.includes(type as DefaultEmbedDefinitionType)
 }
 

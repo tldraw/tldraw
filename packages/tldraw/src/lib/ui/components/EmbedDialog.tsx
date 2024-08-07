@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import {
 	TLEmbedDefinition,
 	isCustomEmbedDefinition,
-	isDefaultEmbedDefintionType,
+	isDefaultEmbedDefinitionType,
 } from '../../defaultEmbedDefinitions'
 import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { TLEmbedResult } from '../../utils/embeds/embeds'
@@ -143,7 +143,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 				<>
 					<TldrawUiDialogBody className="tlui-embed-dialog__list">
 						{definitions.map((def) => {
-							const url = isDefaultEmbedDefintionType(def.type)
+							const url = isDefaultEmbedDefinitionType(def.type)
 								? assetUrls.embedIcons[def.type]
 								: isCustomEmbedDefinition(def)
 									? def.icon
