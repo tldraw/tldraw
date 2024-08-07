@@ -120,11 +120,9 @@ export function Tldraw(props: TldrawProps) {
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
-
 	if (!preloadingComplete) {
 		return (
 			<LoadingScreen>
@@ -163,9 +161,7 @@ function InsideOfEditorAndUiContext({
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-}: TLExternalContentProps & {
-	onMount?: TLOnMountHandler
-}) {
+}: TLExternalContentProps & { onMount?: TLOnMountHandler }) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
