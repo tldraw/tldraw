@@ -2,7 +2,6 @@ import {
 	CustomEmbedDefinition,
 	DEFAULT_EMBED_DEFINITIONS,
 	DefaultEmbedDefinitionType,
-	EmbedShapeUtil,
 	Tldraw,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -48,7 +47,6 @@ const customEmbed: CustomEmbedDefinition = {
 const embeds = [...defaultEmbedsToKeep, customEmbed]
 
 export default function CustomEmbedExample() {
-	EmbedShapeUtil.setEmbedDefinitions(embeds)
 	return (
 		<div className="tldraw__editor">
 			{/* [4] */}
