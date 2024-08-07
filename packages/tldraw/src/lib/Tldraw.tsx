@@ -122,17 +122,15 @@ export function Tldraw(props: TldrawProps) {
 		[_tools]
 	)
 
-	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
-	}
-
 	if (embeds) {
 		EmbedShapeUtil.setEmbedDefinitions(embeds)
 	}
 
+	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
+	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+	if (preloadingError) {
+		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
+	}
 	if (!preloadingComplete) {
 		return (
 			<LoadingScreen>
