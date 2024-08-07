@@ -48,9 +48,10 @@ export const HeroSection = () => {
 				<Button
 					href="https://github.com/tldraw/tldraw"
 					caption="GitHub"
-					type="black"
+					type="tertiary"
 					size="lg"
 					icon="github"
+					newTab
 				/>
 				{/* <div className="pt-2">
 					<div className="font-hand text-blue-500 text-lg">or try here</div>

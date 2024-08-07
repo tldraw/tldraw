@@ -45,6 +45,7 @@ export const Button: React.FC<{
 		type === 'primary' && 'bg-blue-500 text-white hover:bg-blue-600',
 		type === 'black' && 'bg-black text-white hover:bg-zinc-800',
 		type === 'secondary' && 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200',
+		type === 'tertiary' && 'text-black hover:text-zinc-700',
 		className
 	)
 	if (href)
