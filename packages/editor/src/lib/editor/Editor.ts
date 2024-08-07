@@ -8934,12 +8934,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}): URL {
 		const url = new URL(opts?.url ?? window.location.href)
 
-		if (opts?.updateAddressBar && opts.url && opts.url.toString() !== window.location.href) {
-			throw new Error(
-				`If you specify updateAddressBar, the given url must be window.location.href or undefined.`
-			)
-		}
-
 		url.searchParams.set(
 			opts?.param ?? 'd',
 			createDeepLinkString(
@@ -9010,15 +9004,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const url$ = computed('url with state', () => {
-			const url = opts?.getUrl?.() ?? window.location.href
-			const urlWithState = this.createDeepLink({ param: opts?.param, url, to: opts?.getTarget?.() })
+			const url = opts?.getUrl?.(this) ?? window.location.href
+			const urlWithState = this.createDeepLink({
+				param: opts?.param,
+				url,
+				to: opts?.getTarget?.(this),
+			})
 			return urlWithState.toString()
 		})
 
 		const announceChange =
-			opts?.onChange ?? (() => this.createDeepLink({ param: opts?.param, updateAddressBar: true }))
+			opts?.onChange ??
+			(() =>
+				this.createDeepLink({
+					param: opts?.param,
+					to: opts?.getTarget?.(this),
+					updateAddressBar: true,
+				}))
 
-		return react('update url on state change', () => announceChange(new URL(url$.get())), {
+		return react('update url on state change', () => announceChange(new URL(url$.get()), this), {
 			scheduleEffect: debounce((execute) => execute(), opts?.debounceMs ?? 500),
 		})
 	}

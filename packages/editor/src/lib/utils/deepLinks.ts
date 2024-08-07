@@ -1,5 +1,6 @@
 import { BoxModel, PageRecordType, TLPageId, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { exhaustiveSwitchError } from '@tldraw/utils'
+import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
 
 /** @public */
@@ -104,12 +105,12 @@ export interface TLDeepLinkOptions {
 	 * Should return the current url to augment with a deep link query parameter.
 	 * If you supply this function, you must also supply an `onChange` function.
 	 */
-	getUrl?(): string | URL
+	getUrl?(editor: Editor): string | URL
 	/**
 	 * Should return the current deep link target.
 	 * Defaults to returning the current page and viewport position.
 	 */
-	getTarget?(): TLDeepLink
+	getTarget?(editor: Editor): TLDeepLink
 	/**
 	 * This is fired when the URL is updated.
 	 *
@@ -117,5 +118,5 @@ export interface TLDeepLinkOptions {
 	 *
 	 * @param url - the updated URL
 	 */
-	onChange?(url: URL): void
+	onChange?(url: URL, editor: Editor): void
 }

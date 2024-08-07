@@ -1,4 +1,4 @@
-import { PageRecordType, TLDeepLink, createDeepLinkString } from '@tldraw/editor'
+import { PageRecordType, TLDeepLink, createDeepLinkString, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -20,7 +20,7 @@ const makeUrl = (link: TLDeepLink, name = 'd') => {
 	return `http://localhost/?${name}=${createDeepLinkString(link)}`
 }
 
-describe('handleDeepLink', () => {
+describe('type: viewport', () => {
 	it('handles linking to a viewport of the same dimensions', () => {
 		const bounds = { x: -500, y: 2342, w: editor.bounds.width, h: editor.bounds.height }
 		expect(editor.getViewportPageBounds()).not.toMatchObject(bounds)
@@ -83,7 +83,9 @@ describe('handleDeepLink', () => {
 		expect(editor.getCurrentPageId()).not.toBe(pageId)
 		expect(editor.getViewportPageBounds()).not.toMatchObject(bounds)
 	})
+})
 
+describe('type: page', () => {
 	it('handles linking to a page only, and will center the content on the page', () => {
 		const initialPageId = editor.getCurrentPageId()
 		const pageId = PageRecordType.createId('foo')
@@ -117,5 +119,74 @@ describe('handleDeepLink', () => {
 			x: 250 - editor.bounds.width / 2,
 			y: 250 - editor.bounds.height / 2,
 		})
+	})
+})
+
+describe('type: shapes', () => {
+	it('keeps it a 100% if they fit within the viewport', () => {
+		const boxA = createShapeId()
+		const boxB = createShapeId()
+		const boxC = createShapeId()
+		editor.createShapesFromJsx([
+			<TL.geo id={boxA} x={100} y={100} w={100} h={100} />,
+			<TL.geo id={boxB} x={-200} y={-200} w={100} h={100} />,
+			<TL.geo id={boxC} x={300} y={300} w={100} h={100} />,
+		])
+
+		const url = makeUrl({ type: 'shapes', shapeIds: [boxA, boxB] })
+
+		editor.handleDeepLink({ url })
+		const viewport = editor.getViewportPageBounds()
+		expect(viewport.contains(editor.getShapePageBounds(boxA)!)).toBe(true)
+		expect(viewport.contains(editor.getShapePageBounds(boxB)!)).toBe(true)
+		expect(viewport.contains(editor.getShapePageBounds(boxC)!)).toBe(false)
+		expect(viewport).toMatchObject({ w: editor.bounds.width, h: editor.bounds.height })
+		expect(editor.getZoomLevel()).toBe(1)
+	})
+
+	it('zooms out if the shapes do not quite fit', () => {
+		const boxA = createShapeId()
+		const boxB = createShapeId()
+		const boxC = createShapeId()
+		editor.createShapesFromJsx([
+			<TL.geo id={boxA} x={500} y={500} w={100} h={100} />,
+			<TL.geo id={boxB} x={-500} y={-500} w={100} h={100} />,
+			<TL.geo id={boxC} x={1300} y={1300} w={100} h={100} />,
+		])
+
+		const url = makeUrl({ type: 'shapes', shapeIds: [boxA, boxB] })
+
+		editor.handleDeepLink({ url })
+		const viewport = editor.getViewportPageBounds()
+		expect(viewport.contains(editor.getShapePageBounds(boxA)!)).toBe(true)
+		expect(viewport.contains(editor.getShapePageBounds(boxB)!)).toBe(true)
+		expect(viewport.contains(editor.getShapePageBounds(boxC)!)).toBe(false)
+		expect(viewport).not.toMatchObject({ w: editor.bounds.width, h: editor.bounds.height })
+		expect(editor.getZoomLevel()).toBeLessThan(1)
+	})
+
+	it('switches to the page that most of the shapes are on', () => {
+		const initialPageId = editor.getCurrentPageId()
+		const otherPageId = PageRecordType.createId('foo')
+		const boxA = createShapeId()
+		const boxB = createShapeId()
+		const boxC = createShapeId()
+		editor.createShapesFromJsx([<TL.geo id={boxA} x={500} y={500} w={100} h={100} />])
+		editor.createPage({ id: otherPageId })
+		editor.setCurrentPage(otherPageId)
+		editor.createShapesFromJsx([
+			<TL.geo id={boxB} x={-500} y={-500} w={100} h={100} />,
+			<TL.geo id={boxC} x={1300} y={1300} w={100} h={100} />,
+		])
+		editor.setCurrentPage(initialPageId)
+
+		const url = makeUrl({ type: 'shapes', shapeIds: [boxA, boxB, boxC] })
+
+		editor.handleDeepLink({ url })
+
+		expect(editor.getCurrentPageId()).toBe(otherPageId)
+		const viewport = editor.getViewportPageBounds()
+		expect(viewport.contains(editor.getShapePageBounds(boxB)!)).toBe(true)
+		expect(viewport.contains(editor.getShapePageBounds(boxC)!)).toBe(true)
 	})
 })

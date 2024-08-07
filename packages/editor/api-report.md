@@ -2643,9 +2643,9 @@ export type TLDeepLink = {
 // @public (undocumented)
 export interface TLDeepLinkOptions {
     debounceMs?: number;
-    getTarget?(): TLDeepLink;
-    getUrl?(): string | URL;
-    onChange?(url: URL): void;
+    getTarget?(editor: Editor): TLDeepLink;
+    getUrl?(editor: Editor): string | URL;
+    onChange?(url: URL, editor: Editor): void;
     param?: string;
 }
 
