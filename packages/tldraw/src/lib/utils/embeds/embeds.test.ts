@@ -1,4 +1,4 @@
-import { DEFAULT_EMBED_DEFINITIONS } from '@tldraw/editor'
+import { DEFAULT_EMBED_DEFINITIONS } from '../../defaultEmbedDefinitions'
 import { getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
 
 interface MatchUrlTestMatchDef {

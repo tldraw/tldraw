@@ -2,9 +2,9 @@
 
 import {
 	BaseBoxShapeUtil,
-	DEFAULT_EMBED_DEFINITIONS,
 	EmbedDefinition,
 	HTMLContainer,
+	TLEmbedDefinition,
 	TLEmbedShape,
 	TLEmbedShapePermissions,
 	TLEmbedShapeProps,
@@ -18,6 +18,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
+import { DEFAULT_EMBED_DEFINITIONS } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { resizeBox } from '../shared/resizeBox'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
@@ -36,11 +37,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override migrations = embedShapeMigrations
 	private static embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
 
-	static setEmbedDefinitions(definitions: EmbedDefinition[]) {
+	static setEmbedDefinitions(definitions: TLEmbedDefinition[]) {
 		EmbedShapeUtil.embedDefinitions = definitions
 	}
 
-	static getEmbedDefinitions() {
+	static getEmbedDefinitions(): readonly TLEmbedDefinition[] {
 		return EmbedShapeUtil.embedDefinitions
 	}
 

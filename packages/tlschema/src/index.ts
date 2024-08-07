@@ -152,9 +152,16 @@ export {
 } from './shapes/TLDrawShape'
 export {
 	embedShapeMigrations,
+	embedShapePermissionDefaults,
 	embedShapeProps,
 	type TLEmbedShape,
+	type TLEmbedShapePermissions,
 	type TLEmbedShapeProps,
+} from './shapes/TLEmbedShape'
+export type {
+	CustomEmbedDefinition,
+	EmbedDefinition,
+	TLEmbedDefinition,
 } from './shapes/TLEmbedShape'
 export {
 	frameShapeMigrations,

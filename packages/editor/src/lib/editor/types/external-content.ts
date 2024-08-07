@@ -1,4 +1,4 @@
-import { EmbedDefinition } from '../../config/defaultEmbedDefintions'
+import { TLEmbedDefinition } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec'
 import { TLContent } from './clipboard-types'
 
@@ -48,7 +48,7 @@ export type TLExternalContent = {
 	| {
 			type: 'embed'
 			url: string
-			embed: EmbedDefinition
+			embed: TLEmbedDefinition
 	  }
 )
 

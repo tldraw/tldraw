@@ -245,6 +245,93 @@ const EMBED_DEFINITIONS = [
 	},
 ]
 
+/**
+ * Permissions with note inline from
+ * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#attr-sandbox
+ *
+ * @public
+ */
+export const embedShapePermissionDefaults = {
+	// ========================================================================================
+	// Disabled permissions
+	// ========================================================================================
+	// [MDN] Experimental: Allows for downloads to occur without a gesture from the user.
+	// [REASON] Disabled because otherwise the <iframe/> can trick the user on behalf of us to perform an action.
+	'allow-downloads-without-user-activation': false,
+	// [MDN] Allows for downloads to occur with a gesture from the user.
+	// [REASON] Disabled because otherwise the <iframe/> can trick the user on behalf of us to perform an action.
+	'allow-downloads': false,
+	// [MDN] Lets the resource open modal windows.
+	// [REASON] The <iframe/> could 'window.prompt("Enter your tldraw password")'.
+	'allow-modals': false,
+	// [MDN] Lets the resource lock the screen orientation.
+	// [REASON] Would interfere with the tldraw interface.
+	'allow-orientation-lock': false,
+	// [MDN] Lets the resource use the Pointer Lock API.
+	// [REASON] Maybe we should allow this for games embeds (scratch/codepen/codesandbox).
+	'allow-pointer-lock': false,
+	// [MDN] Allows popups (such as window.open(), target="_blank", or showModalDialog()). If this keyword is not used, the popup will silently fail to open.
+	// [REASON] We want to allow embeds to link back to their original sites (e.g. YouTube).
+	'allow-popups': true,
+	// [MDN] Lets the sandboxed document open new windows without those windows inheriting the sandboxing. For example, this can safely sandbox an advertisement without forcing the same restrictions upon the page the ad links to.
+	// [REASON] We shouldn't allow popups as a embed could pretend to be us by opening a mocked version of tldraw. This is very unobvious when it is performed as an action within our app.
+	'allow-popups-to-escape-sandbox': false,
+	// [MDN] Lets the resource start a presentation session.
+	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us.
+	'allow-presentation': false,
+	// [MDN] Experimental: Lets the resource request access to the parent's storage capabilities with the Storage Access API.
+	// [REASON] We don't want anyone else to access our storage.
+	'allow-storage-access-by-user-activation': false,
+	// [MDN] Lets the resource navigate the top-level browsing context (the one named _top).
+	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us.
+	'allow-top-navigation': false,
+	// [MDN] Lets the resource navigate the top-level browsing context, but only if initiated by a user gesture.
+	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us.
+	'allow-top-navigation-by-user-activation': false,
+	// ========================================================================================
+	// Enabled permissions
+	// ========================================================================================
+	// [MDN] Lets the resource run scripts (but not create popup windows).
+	'allow-scripts': true,
+	// [MDN] If this token is not used, the resource is treated as being from a special origin that always fails the same-origin policy (potentially preventing access to data storage/cookies and some JavaScript APIs).
+	'allow-same-origin': true,
+	// [MDN] Allows the resource to submit forms. If this keyword is not used, form submission is blocked.
+	'allow-forms': true,
+} as const
+
+/** @public */
+export type TLEmbedShapePermissions = { [K in keyof typeof embedShapePermissionDefaults]?: boolean }
+
+/** @public */
+export interface EmbedDefinition {
+	readonly type: string
+	readonly title: string
+	readonly hostnames: readonly string[]
+	readonly minWidth?: number
+	readonly minHeight?: number
+	readonly width: number
+	readonly height: number
+	readonly doesResize: boolean
+	readonly isAspectRatioLocked?: boolean
+	readonly overridePermissions?: TLEmbedShapePermissions
+	readonly instructionLink?: string
+	readonly backgroundColor?: string
+	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
+	readonly overrideOutlineRadius?: number
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	readonly toEmbedUrl: (url: string) => string | undefined
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
+	readonly fromEmbedUrl: (url: string) => string | undefined
+}
+
+/** @public */
+export interface CustomEmbedDefinition extends EmbedDefinition {
+	readonly icon: string
+}
+
+/** @public */
+export type TLEmbedDefinition = EmbedDefinition | CustomEmbedDefinition
+
 /** @public */
 export interface TLEmbedShapeProps {
 	w: number

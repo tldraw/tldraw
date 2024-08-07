@@ -1,4 +1,4 @@
-import { EmbedDefinition, TLEmbedDefinition } from '@tldraw/editor'
+import { TLEmbedDefinition } from '@tldraw/editor'
 
 // https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
 function escapeStringRegexp(string: string) {
@@ -63,7 +63,7 @@ export function matchUrl(definitions: readonly TLEmbedDefinition[], url: string)
 /** @public */
 export type TLEmbedResult =
 	| {
-			definition: EmbedDefinition
+			definition: TLEmbedDefinition
 			url: string
 			embedUrl: string
 	  }

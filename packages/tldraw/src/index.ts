@@ -15,6 +15,10 @@ export {
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
+export {
+	DEFAULT_EMBED_DEFINITIONS,
+	type DefaultEmbedDefinitionType,
+} from '../src/lib/defaultEmbedDefinitions'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { ArrowBindingUtil } from './lib/bindings/arrow/ArrowBindingUtil'
