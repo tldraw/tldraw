@@ -8,7 +8,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
-import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { useUiEvents } from '../context/events'
 import { useToasts } from '../context/toasts'
 import {
@@ -489,7 +488,6 @@ export function ConvertToBookmarkMenuItem() {
 /** @public @react */
 export function ConvertToEmbedMenuItem() {
 	const editor = useEditor()
-	const definitions = EmbedShapeUtil.getEmbedDefinitions()
 
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
@@ -499,11 +497,11 @@ export function ConvertToEmbedMenuItem() {
 			return !!(
 				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
 				onlySelectedShape.props.url &&
-				getEmbedInfo(definitions, onlySelectedShape.props.url) &&
+				EmbedShapeUtil.getEmbedDefinition(onlySelectedShape.props.url) &&
 				!editor.isShapeOrAncestorLocked(onlySelectedShape)
 			)
 		},
-		[definitions, editor]
+		[editor]
 	)
 
 	if (!oneEmbeddableBookmarkSelected) return null

@@ -22,7 +22,6 @@ import {
 import * as React from 'react'
 import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
-import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -100,8 +99,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const defaultDocumentName = msg('document.default-name')
 
 	const trackEvent = useUiEvents()
-
-	const definitions = EmbedShapeUtil.getEmbedDefinitions()
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
@@ -453,7 +450,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 							const { url } = shape.props
 
-							const embedInfo = getEmbedInfo(definitions, shape.props.url)
+							const embedInfo = EmbedShapeUtil.getEmbedDefinition(url)
 
 							if (!embedInfo) continue
 							if (!embedInfo.definition) continue
@@ -1475,7 +1472,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		printSelectionOrPages,
 		msg,
 		defaultDocumentName,
-		definitions,
 		showCollaborationUi,
 	])
 

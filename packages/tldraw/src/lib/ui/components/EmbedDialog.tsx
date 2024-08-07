@@ -2,7 +2,7 @@ import { TLEmbedDefinition, track, useEditor } from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { isCustomEmbedDefinition, isDefaultEmbedDefintionType } from '../../defaultEmbedDefinitions'
 import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
-import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
+import { TLEmbedResult } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../context/asset-urls'
 import { TLUiDialogProps } from '../context/dialogs'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -63,7 +63,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								// Set the embed info to either the embed info for the URL (if
 								// that embed info can be found and of a type that matches the
 								// user's selected definition type)
-								const embedInfo = getEmbedInfo(definitions, value)
+								const embedInfo = EmbedShapeUtil.getEmbedDefinition(url)
 								setEmbedInfoForUrl(
 									embedInfo && embedInfo.definition.type === embedDefinition.type ? embedInfo : null
 								)
