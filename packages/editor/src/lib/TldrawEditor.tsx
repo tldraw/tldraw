@@ -211,7 +211,6 @@ export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
 	className,
-	embeds,
 	user: _user,
 	...rest
 }: TldrawEditorProps) {
@@ -232,7 +231,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		components,
 	}
 
-	const embedsWithDefaults = embeds ?? DEFAULT_EMBED_DEFINITIONS
+	const embeds = rest.embeds ?? DEFAULT_EMBED_DEFINITIONS
 
 	return (
 		<div
@@ -251,7 +250,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 					<LicenseProvider licenseKey={rest.licenseKey}>
 						<ContainerProvider container={container}>
 							<EditorComponentsProvider overrides={components}>
-								<EmbedDefinitionsProvider embeds={embedsWithDefaults}>
+								<EmbedDefinitionsProvider embeds={embeds}>
 									{store ? (
 										store instanceof Store ? (
 											// Store is ready to go, whether externally synced or not
