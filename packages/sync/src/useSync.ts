@@ -201,7 +201,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				status: 'synced-remote',
 				connectionStatus: connectionStatus === 'error' ? 'offline' : connectionStatus,
 				store: state.readyClient.store,
-				serverOffset: state.readyClient.serverOffset,
 			}
 		},
 		[state]
