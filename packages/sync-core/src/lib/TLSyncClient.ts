@@ -73,9 +73,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private lastServerClock = 0
 	private lastServerInteractionTimestamp = Date.now()
 
-	/** The last clock time from the most recent server update */
-	public serverOffset = 0
-
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: { request: TLPushRequest<R>; sent: boolean }[] = []
 
@@ -410,7 +407,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			case 'pong':
 				// noop, we only use ping/pong to set lastSeverInteractionTimestamp
 				break
-
 			default:
 				exhaustiveSwitchError(event)
 		}

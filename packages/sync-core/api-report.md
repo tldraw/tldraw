@@ -422,7 +422,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly onSyncError: (reason: TLIncompatibilityReason) => void;
     // (undocumented)
     readonly presenceState: Signal<null | R> | undefined;
-    serverOffset: number;
     // (undocumented)
     readonly socket: TLPersistentClientSocket<R>;
     // (undocumented)
