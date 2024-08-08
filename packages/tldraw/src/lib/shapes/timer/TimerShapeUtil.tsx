@@ -106,6 +106,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 			case 'running':
 				return shape.props.remainingTime - this.getElapsedTime(shape)
 			case 'stopped':
+				return shape.props.initialTime
 			case 'paused':
 				return shape.props.remainingTime
 		}
