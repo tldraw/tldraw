@@ -30,3 +30,7 @@ export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
 }
+
+export interface GetServerTimeResponseBody {
+	serverTime: number
+}

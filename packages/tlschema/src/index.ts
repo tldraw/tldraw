@@ -212,6 +212,13 @@ export {
 	type TLTextShapeProps,
 } from './shapes/TLTextShape'
 export {
+	timerShapeMigrations,
+	timerShapeProps,
+	type TLTimerShape,
+	type TLTimerShapeProps,
+	type TLTimerState,
+} from './shapes/TLTimerShape'
+export {
 	videoShapeMigrations,
 	videoShapeProps,
 	type TLVideoShape,

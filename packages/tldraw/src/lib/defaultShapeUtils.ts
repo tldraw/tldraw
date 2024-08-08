@@ -9,6 +9,7 @@ import { ImageShapeUtil } from './shapes/image/ImageShapeUtil'
 import { LineShapeUtil } from './shapes/line/LineShapeUtil'
 import { NoteShapeUtil } from './shapes/note/NoteShapeUtil'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
+import { TimerShapeUtil } from './shapes/timer/TimerShapeUtil'
 import { VideoShapeUtil } from './shapes/video/VideoShapeUtil'
 
 /** @public */
@@ -25,4 +26,5 @@ export const defaultShapeUtils = [
 	EmbedShapeUtil,
 	ImageShapeUtil,
 	VideoShapeUtil,
+	TimerShapeUtil,
 ] as const

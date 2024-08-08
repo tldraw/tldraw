@@ -109,6 +109,8 @@ import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLTimerShape } from '@tldraw/editor';
+import { TLTimerState } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -694,10 +696,10 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
+export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool, typeof TimerShapeTool];
 
 // @public (undocumented)
-export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
+export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil, typeof TimerShapeUtil];
 
 // @public (undocumented)
 export function DefaultSharePanel(): JSX_2.Element;
@@ -1915,6 +1917,60 @@ export interface ThemeStylePickerSetProps {
     styles: ReadonlySharedStyleMap;
     // (undocumented)
     theme: TLDefaultColorTheme;
+}
+
+// @public (undocumented)
+export class TimerShapeTool extends StateNode {
+    // (undocumented)
+    static children(): TLStateNodeConstructor[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
+    // (undocumented)
+    shapeType: string;
+}
+
+// @public (undocumented)
+export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
+    // (undocumented)
+    canResize(_shape: TLTimerShape): boolean;
+    // (undocumented)
+    component(shape: TLTimerShape): JSX_2.Element;
+    // (undocumented)
+    formatTime(time: number): string;
+    // (undocumented)
+    getBackgroundColor(state: TLTimerState): "green" | "red" | "yellow";
+    // (undocumented)
+    getCurrentServerTime(): any;
+    // (undocumented)
+    getDefaultProps(): TLTimerShape['props'];
+    // (undocumented)
+    getElapsedTime(shape: TLTimerShape): number;
+    // (undocumented)
+    getGeometry(_shape: TLTimerShape): Geometry2d;
+    // (undocumented)
+    getTimeRemaining(shape: TLTimerShape): number;
+    // (undocumented)
+    hideResizeHandles(_shape: TLTimerShape): boolean;
+    // (undocumented)
+    hideRotateHandle(_shape: TLTimerShape): boolean;
+    // (undocumented)
+    indicator(): null;
+    // (undocumented)
+    static migrations: TLPropsMigrations;
+    // (undocumented)
+    pauseTimer(shape: TLTimerShape): void;
+    // (undocumented)
+    static props: RecordProps<TLTimerShape>;
+    // (undocumented)
+    startTimer(shape: TLTimerShape): void;
+    // (undocumented)
+    stopTimer(shape: TLTimerShape): void;
+    // (undocumented)
+    static type: "timer";
 }
 
 // @public (undocumented)

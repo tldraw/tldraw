@@ -13,5 +13,6 @@ export type {
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
 	GetReadonlySlugResponseBody,
+	GetServerTimeResponseBody,
 	Snapshot,
 } from './types'
