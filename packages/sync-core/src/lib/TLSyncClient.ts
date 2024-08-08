@@ -278,10 +278,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		})
 	}
 
-	public sendGetServerTimeMessage() {
-		this.socket.sendMessage({ type: 'serverTime', clientTime: Date.now() })
-	}
-
 	/** Switch to offline mode */
 	private resetConnection(hard = false) {
 		this.debug('resetting connection')
@@ -416,16 +412,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				// noop, we only use ping/pong to set lastSeverInteractionTimestamp
 				break
 
-			case 'serverTime': {
-				const { clientTime, serverTime } = event
-				const now = Date.now()
-				const requestTime = serverTime - clientTime
-				const responseTime = now - serverTime
-				this.serverOffset = (requestTime - responseTime) / 2
-				console.log('serverOffset', this.serverOffset)
-				;(window as any).serverOffset = this.serverOffset
-				break
-			}
 			default:
 				exhaustiveSwitchError(event)
 		}

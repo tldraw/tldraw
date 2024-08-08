@@ -160,7 +160,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
 				setState({ readyClient: client })
-				client.sendGetServerTimeMessage()
 			},
 			onLoadError(err) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load-error', roomId })
@@ -202,6 +201,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				status: 'synced-remote',
 				connectionStatus: connectionStatus === 'error' ? 'offline' : connectionStatus,
 				store: state.readyClient.store,
+				serverOffset: state.readyClient.serverOffset,
 			}
 		},
 		[state]

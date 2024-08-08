@@ -30,6 +30,7 @@ import {
 	useValue,
 	ViewSubmenu,
 } from 'tldraw'
+import { useGetServerOffset } from '../hooks/useServerOffset'
 import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
@@ -120,6 +121,8 @@ export function MultiplayerEditor({
 	roomSlug: string
 }) {
 	const handleUiEvent = useHandleUiEvents()
+	const offset = useGetServerOffset()
+	;(window as any).serverOffset = offset
 
 	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
