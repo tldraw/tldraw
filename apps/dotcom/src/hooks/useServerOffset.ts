@@ -15,7 +15,8 @@ export function useGetServerOffset() {
 			const { serverTime: t1 } = (await response.json()) as GetServerTimeResponseBody
 			// We don't have a better time for this. The date header of the reponse is in seconds, so it's not precise enough
 			const t2 = t1
-			// Pretty much this https://en.wikipedia.org/wiki/Network_Time_Protocol#Clock_synchronization_algorithm
+			// NTP Clock_synchronization_algorithm
+			// https://en.wikipedia.org/wiki/Network_Time_Protocol#Clock_synchronization_algorithm
 			const serverOffset = (t1 - t0 + t2 - t3) / 2
 			setServerOffset(serverOffset)
 		}
