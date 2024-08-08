@@ -285,7 +285,15 @@ export interface TLRoomSocket<R extends UnknownRecord> {
 }
 
 // @internal (undocumented)
-export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest | TLPingRequest | TLPushRequest<R>;
+export interface TLServerOffsetRequest {
+    // (undocumented)
+    clientTime: number;
+    // (undocumented)
+    type: 'serverTime';
+}
+
+// @internal (undocumented)
+export type TLSocketClientSentEvent<R extends UnknownRecord> = TLConnectRequest | TLPingRequest | TLPushRequest<R> | TLServerOffsetRequest;
 
 // @public (undocumented)
 export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta = void> {
@@ -373,6 +381,10 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 
 // @internal (undocumented)
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
+    clientTime: number;
+    serverTime: number;
+    type: 'serverTime';
+} | {
     connectRequestId: string;
     diff: NetworkDiff<R>;
     hydrationType: 'wipe_all' | 'wipe_presence';
@@ -422,6 +434,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly onSyncError: (reason: TLIncompatibilityReason) => void;
     // (undocumented)
     readonly presenceState: Signal<null | R> | undefined;
+    // (undocumented)
+    sendGetServerTimeMessage(): void;
+    serverOffset: number;
     // (undocumented)
     readonly socket: TLPersistentClientSocket<R>;
     // (undocumented)

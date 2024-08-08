@@ -74,6 +74,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private lastServerClock = 0
 	private lastServerInteractionTimestamp = Date.now()
 
+	/** The last clock time from the most recent server update */
+	public serverOffset = 0
+
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: { request: TLPushRequest<R>; sent: boolean }[] = []
 
@@ -275,6 +278,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		})
 	}
 
+	public sendGetServerTimeMessage() {
+		this.socket.sendMessage({ type: 'serverTime', clientTime: Date.now() })
+	}
+
 	/** Switch to offline mode */
 	private resetConnection(hard = false) {
 		this.debug('resetting connection')
@@ -408,6 +415,17 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			case 'pong':
 				// noop, we only use ping/pong to set lastSeverInteractionTimestamp
 				break
+
+			case 'serverTime': {
+				const { clientTime, serverTime } = event
+				const now = Date.now()
+				const requestTime = serverTime - clientTime
+				const responseTime = now - serverTime
+				this.serverOffset = (requestTime - responseTime) / 2
+				console.log('serverOffset', this.serverOffset)
+				;(window as any).serverOffset = this.serverOffset
+				break
+			}
 			default:
 				exhaustiveSwitchError(event)
 		}

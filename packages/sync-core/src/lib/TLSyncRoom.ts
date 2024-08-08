@@ -653,6 +653,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 				return this.sendMessage(session.sessionId, { type: 'pong' })
 			}
+			case 'serverTime': {
+				const { clientTime } = message
+				return this.sendMessage(session.sessionId, {
+					type: 'serverTime',
+					clientTime,
+					serverTime: Date.now() + 500,
+				})
+			}
 			default: {
 				exhaustiveSwitchError(message)
 			}
