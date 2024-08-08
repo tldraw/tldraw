@@ -1941,7 +1941,11 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
     // (undocumented)
     getBackgroundColor(state: TLTimerState): "green" | "red" | "yellow";
     // (undocumented)
+    getCurrentServerTime(): any;
+    // (undocumented)
     getDefaultProps(): TLTimerShape['props'];
+    // (undocumented)
+    getElapsedTime(shape: TLTimerShape): number;
     // (undocumented)
     getGeometry(_shape: TLTimerShape): Geometry2d;
     // (undocumented)
@@ -3815,7 +3819,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
+export function useUiEvents(): TLUiEventContextType;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

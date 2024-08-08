@@ -62,7 +62,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 			id: shape.id,
 			type: shape.type,
 			props: {
-				state: { state: 'running', lastStartTime: Date.now() },
+				state: { state: 'running', lastStartTime: this.getCurrentServerTime() },
 			},
 		})
 	}
@@ -80,7 +80,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 
 	pauseTimer(shape: TLTimerShape) {
 		if (shape.props.state.state !== 'running') return
-		const elapsed = Date.now() - shape.props.state.lastStartTime
+		const elapsed = this.getElapsedTime(shape)
 		this.editor.updateShape<TLTimerShape>({
 			id: shape.id,
 			type: shape.type,
@@ -91,13 +91,20 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 		})
 	}
 
-	getTimeRemaining(shape: TLTimerShape) {
+	getElapsedTime(shape: TLTimerShape) {
+		if (shape.props.state.state !== 'running') return 0
+		return this.getCurrentServerTime() - shape.props.state.lastStartTime
+	}
+
+	getCurrentServerTime() {
 		const offset = (window as any).serverOffset ?? 0
-		console.log('offset in timer util', offset)
-		const now = Date.now() + offset
+		return Date.now() + offset
+	}
+
+	getTimeRemaining(shape: TLTimerShape) {
 		switch (shape.props.state.state) {
 			case 'running':
-				return shape.props.remainingTime - (now - shape.props.state.lastStartTime)
+				return shape.props.remainingTime - this.getElapsedTime(shape)
 			case 'stopped':
 			case 'paused':
 				return shape.props.remainingTime
