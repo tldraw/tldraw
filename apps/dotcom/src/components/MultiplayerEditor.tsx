@@ -30,8 +30,8 @@ import {
 	useValue,
 	ViewSubmenu,
 } from 'tldraw'
+import { useGetServerOffset } from '../hooks/useGetServerOffset'
 import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
-import { useGetServerOffset } from '../hooks/useServerOffset'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
