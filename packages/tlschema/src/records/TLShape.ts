@@ -22,6 +22,7 @@ import { TLImageShape } from '../shapes/TLImageShape'
 import { TLLineShape } from '../shapes/TLLineShape'
 import { TLNoteShape } from '../shapes/TLNoteShape'
 import { TLTextShape } from '../shapes/TLTextShape'
+import { TLTimerShape } from '../shapes/TLTimerShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
 import { StyleProp } from '../styles/StyleProp'
 import { TLPageId } from './TLPage'
@@ -42,6 +43,7 @@ export type TLDefaultShape =
 	| TLLineShape
 	| TLNoteShape
 	| TLTextShape
+	| TLTimerShape
 	| TLVideoShape
 	| TLHighlightShape
 

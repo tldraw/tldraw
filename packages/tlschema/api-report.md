@@ -250,6 +250,10 @@ export const defaultShapeSchemas: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLTextShape>;
     };
+    timer: {
+        migrations: TLPropsMigrations;
+        props: RecordProps<TLTimerShape>;
+    };
     video: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLVideoShape>;
@@ -866,7 +870,7 @@ export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLTimerShape | TLVideoShape;
 
 // @public (undocumented)
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
@@ -1428,7 +1432,9 @@ export type TLTimerShape = TLBaseShape<'timer', TLTimerShapeProps>;
 // @public (undocumented)
 export interface TLTimerShapeProps {
     // (undocumented)
-    color: TLDefaultColorStyle;
+    state: string;
+    // (undocumented)
+    time: number;
 }
 
 // @public

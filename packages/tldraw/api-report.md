@@ -1932,17 +1932,33 @@ export class TimerShapeTool extends StateNode {
 // @public (undocumented)
 export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
     // (undocumented)
-    component(_shape: TLTimerShape): JSX_2.Element;
+    canResize(_shape: TLTimerShape): boolean;
+    // (undocumented)
+    component(shape: TLTimerShape): JSX_2.Element;
+    // (undocumented)
+    formatTime(time: number): string;
     // (undocumented)
     getDefaultProps(): TLTimerShape['props'];
     // (undocumented)
     getGeometry(_shape: TLTimerShape): Geometry2d;
     // (undocumented)
-    indicator(shape: TLTimerShape): JSX_2.Element;
+    hideResizeHandles(_shape: TLTimerShape): boolean;
+    // (undocumented)
+    hideRotateHandle(_shape: TLTimerShape): boolean;
+    // (undocumented)
+    indicator(): null;
+    // (undocumented)
+    intervalId: null | number;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
+    onClick(shape: TLTimerShape): void;
+    // (undocumented)
     static props: RecordProps<TLTimerShape>;
+    // (undocumented)
+    startTimer(shape: TLTimerShape): void;
+    // (undocumented)
+    stopTimer(shape: TLTimerShape): void;
     // (undocumented)
     static type: "timer";
 }
@@ -3796,7 +3812,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventContextType;
+export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

@@ -30,9 +30,6 @@ export class Pointing extends StateNode {
 					type: 'timer',
 					x: center.x,
 					y: center.y,
-					props: {
-						color: 'black',
-					},
 				})
 				.select(id)
 		}
