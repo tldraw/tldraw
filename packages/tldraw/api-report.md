@@ -110,6 +110,7 @@ import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTimerShape } from '@tldraw/editor';
+import { TLTimerState } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -1940,6 +1941,8 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
     component(shape: TLTimerShape): JSX_2.Element;
     // (undocumented)
     formatTime(time: number): string;
+    // (undocumented)
+    getBackgroundColor(state: TLTimerState): "green" | "red" | "yellow";
     // (undocumented)
     getDefaultProps(): TLTimerShape['props'];
     // (undocumented)
