@@ -11,6 +11,7 @@ export default function Develop() {
 				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides]}
 				persistenceKey="example"
+				initialState="timer"
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor

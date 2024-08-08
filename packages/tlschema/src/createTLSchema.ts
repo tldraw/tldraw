@@ -35,6 +35,7 @@ import { imageShapeMigrations, imageShapeProps } from './shapes/TLImageShape'
 import { lineShapeMigrations, lineShapeProps } from './shapes/TLLineShape'
 import { noteShapeMigrations, noteShapeProps } from './shapes/TLNoteShape'
 import { textShapeMigrations, textShapeProps } from './shapes/TLTextShape'
+import { timerShapeMigrations, timerShapeProps } from './shapes/TLTimerShape'
 import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 import { StyleProp } from './styles/StyleProp'
@@ -63,6 +64,7 @@ export const defaultShapeSchemas = {
 	line: { migrations: lineShapeMigrations, props: lineShapeProps },
 	note: { migrations: noteShapeMigrations, props: noteShapeProps },
 	text: { migrations: textShapeMigrations, props: textShapeProps },
+	timer: { migrations: timerShapeMigrations, props: timerShapeProps },
 	video: { migrations: videoShapeMigrations, props: videoShapeProps },
 } satisfies { [T in TLDefaultShape['type']]: SchemaPropsInfo }
 
