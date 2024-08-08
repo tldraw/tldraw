@@ -31,6 +31,7 @@ import {
 	ViewSubmenu,
 } from 'tldraw'
 import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
+import { useGetServerOffset } from '../hooks/useServerOffset'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -123,6 +124,8 @@ export function MultiplayerEditor({
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
+	const offset = useGetServerOffset()
+	;(window as any).serverOffset = offset
 
 	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,

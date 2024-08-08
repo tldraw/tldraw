@@ -44,7 +44,6 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			type: 'pong'
 	  }
 	| { type: 'data'; data: TLSocketServerSentDataEvent<R>[] }
-	| { type: 'serverTime'; clientTime: number; serverTime: number }
 	| TLSocketServerSentDataEvent<R>
 
 /** @internal */
@@ -84,14 +83,7 @@ export interface TLPingRequest {
 }
 
 /** @internal */
-export interface TLServerOffsetRequest {
-	type: 'serverTime'
-	clientTime: number
-}
-
-/** @internal */
 export type TLSocketClientSentEvent<R extends UnknownRecord> =
 	| TLPushRequest<R>
 	| TLConnectRequest
 	| TLPingRequest
-	| TLServerOffsetRequest
