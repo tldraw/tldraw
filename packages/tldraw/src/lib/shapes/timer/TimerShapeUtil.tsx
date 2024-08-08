@@ -6,6 +6,7 @@ import {
 	timerShapeMigrations,
 	timerShapeProps,
 } from '@tldraw/editor'
+import { useTimer } from './useTimer'
 
 /** @public */
 export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
@@ -22,11 +23,10 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 		return true
 	}
 
-	intervalId: number | null = null
 	override getGeometry(_shape: TLTimerShape): Geometry2d {
 		return new Rectangle2d({
-			width: 100,
-			height: 100,
+			width: 150,
+			height: 40,
 			isFilled: true,
 			isLabel: false,
 		})
@@ -39,13 +39,22 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 
 	getDefaultProps(): TLTimerShape['props'] {
 		return {
-			time: 300,
-			state: 'idle',
+			initialTime: 30 * 1000,
+			remainingTime: 30 * 1000,
+			state: { state: 'stopped' },
 		}
 	}
 
 	formatTime(time: number) {
-		return `${Math.floor(time / 60)}:${time % 60}`
+		const seconds = time / 1000
+		// format time with leading zeros if needed
+		const minutesString = Math.floor(seconds / 60)
+			.toString()
+			.padStart(2, '0')
+		const secondsString = Math.floor(seconds % 60)
+			.toString()
+			.padStart(2, '0')
+		return `${minutesString}:${secondsString}`
 	}
 
 	startTimer(shape: TLTimerShape) {
@@ -53,55 +62,87 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 			id: shape.id,
 			type: shape.type,
 			props: {
-				state: 'running',
+				state: { state: 'running', lastStartTime: Date.now() },
 			},
 		})
-		this.intervalId = this.editor.timers.setInterval(() => {
-			const s = this.editor.getShape<TLTimerShape>(shape.id)
-			if (!s) return
-			this.editor.updateShape({
-				id: shape.id,
-				type: shape.type,
-				props: {
-					time: s.props.time - 1,
-				},
-			})
-		}, 1000)
 	}
 
 	stopTimer(shape: TLTimerShape) {
-		if (this.intervalId) {
-			clearInterval(this.intervalId)
-			this.intervalId = null
-		}
-		this.editor.updateShape({
+		this.editor.updateShape<TLTimerShape>({
 			id: shape.id,
 			type: shape.type,
 			props: {
-				state: 'idle',
+				remainingTime: shape.props.initialTime,
+				state: { state: 'stopped' },
 			},
 		})
 	}
 
-	override onClick(shape: TLTimerShape) {
-		switch (shape.props.state) {
-			case 'idle':
-				this.startTimer(shape)
-				break
+	pauseTimer(shape: TLTimerShape) {
+		if (shape.props.state.state !== 'running') return
+		const elapsed = Date.now() - shape.props.state.lastStartTime
+		this.editor.updateShape<TLTimerShape>({
+			id: shape.id,
+			type: shape.type,
+			props: {
+				remainingTime: Math.max(0, shape.props.remainingTime - elapsed),
+				state: { state: 'paused' },
+			},
+		})
+	}
+
+	getTimeRemaining(shape: TLTimerShape) {
+		const now = Date.now()
+		switch (shape.props.state.state) {
 			case 'running':
-				this.stopTimer(shape)
-				break
+				return shape.props.remainingTime - (now - shape.props.state.lastStartTime)
+			case 'stopped':
+			case 'paused':
+				return shape.props.remainingTime
 		}
 	}
 
 	component(shape: TLTimerShape) {
+		const remainingTime = this.getTimeRemaining(shape)
+		const state = shape.props.state
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars, react-hooks/rules-of-hooks
+		const _counter = useTimer(shape.props.state.state)
+		if (remainingTime <= 0) {
+			this.editor.timers.setTimeout(() => {
+				this.editor.updateShape({
+					id: shape.id,
+					type: shape.type,
+					props: {
+						state: { state: 'stopped' },
+					},
+				})
+			}, 0)
+		}
+		const showPlay = (state.state === 'stopped' || state.state === 'paused') && remainingTime > 0
 		return (
 			<div
 				style={{
-					backgroundColor: shape.props.state === 'running' ? 'red' : 'green',
+					pointerEvents: 'all',
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+					backgroundColor: shape.props.state.state === 'running' ? 'red' : 'green',
 				}}
 			>
-				{this.formatTime(shape.props.time)}
+				<button onPointerDown={(e) => e.stopPropagation()} onClick={() => this.stopTimer(shape)}>
+					Stop
+				</button>
+				<div>{this.formatTime(remainingTime)}</div>
+				{showPlay && (
+					<button onPointerDown={(e) => e.stopPropagation()} onClick={() => this.startTimer(shape)}>
+						Play
+					</button>
+				)}
+				{!showPlay && (
+					<button onPointerDown={(e) => e.stopPropagation()} onClick={() => this.pauseTimer(shape)}>
+						Pause
+					</button>
+				)}
 			</div>
 		)
 	}

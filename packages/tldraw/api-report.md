@@ -1942,17 +1942,17 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
     // (undocumented)
     getGeometry(_shape: TLTimerShape): Geometry2d;
     // (undocumented)
+    getTimeRemaining(shape: TLTimerShape): number;
+    // (undocumented)
     hideResizeHandles(_shape: TLTimerShape): boolean;
     // (undocumented)
     hideRotateHandle(_shape: TLTimerShape): boolean;
     // (undocumented)
     indicator(): null;
     // (undocumented)
-    intervalId: null | number;
-    // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onClick(shape: TLTimerShape): void;
+    pauseTimer(shape: TLTimerShape): void;
     // (undocumented)
     static props: RecordProps<TLTimerShape>;
     // (undocumented)
@@ -3812,7 +3812,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
+export function useUiEvents(): TLUiEventContextType;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
