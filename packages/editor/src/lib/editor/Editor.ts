@@ -8777,11 +8777,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _zoomToFitPageContentAt100Percent() {
 		const bounds = this.getCurrentPageBounds()
-		const targetZoom = this.getBaseZoom()
-		if (!bounds) {
-			this.setCamera({ x: 0, y: 0, z: targetZoom }, { immediate: true })
-		} else {
-			this.zoomToBounds(bounds, { immediate: true, targetZoom })
+		if (bounds) {
+			this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
 		}
 	}
 	private _handleDeepLink(deepLink: TLDeepLink) {
