@@ -92,7 +92,9 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 	}
 
 	getTimeRemaining(shape: TLTimerShape) {
-		const now = Date.now()
+		const offset = (window as any).serverOffset ?? 0
+		console.log('offset in timer util', offset)
+		const now = Date.now() + offset
 		switch (shape.props.state.state) {
 			case 'running':
 				return shape.props.remainingTime - (now - shape.props.state.lastStartTime)

@@ -162,6 +162,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
 				setState({ readyClient: client })
+				client.sendGetServerTimeMessage()
 			},
 			onLoadError(err) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load-error', roomId })
