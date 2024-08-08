@@ -216,6 +216,7 @@ export {
 	timerShapeProps,
 	type TLTimerShape,
 	type TLTimerShapeProps,
+	type TLTimerState,
 } from './shapes/TLTimerShape'
 export {
 	videoShapeMigrations,

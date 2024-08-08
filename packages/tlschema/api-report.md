@@ -1432,10 +1432,20 @@ export type TLTimerShape = TLBaseShape<'timer', TLTimerShapeProps>;
 // @public (undocumented)
 export interface TLTimerShapeProps {
     // (undocumented)
-    state: string;
+    initialTime: number;
     // (undocumented)
-    time: number;
+    remainingTime: number;
+    // (undocumented)
+    state: {
+        lastStartTime: number;
+        state: 'running';
+    } | {
+        state: 'paused' | 'stopped';
+    };
 }
+
+// @public (undocumented)
+export type TLTimerState = TLTimerShapeProps['state']['state'];
 
 // @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;
