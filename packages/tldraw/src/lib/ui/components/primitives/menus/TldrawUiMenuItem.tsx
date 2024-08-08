@@ -206,6 +206,7 @@ export function TldrawUiMenuItem<
 					data-value={id}
 					onClick={() => onSelect('toolbar')}
 					title={titleStr}
+					disabled={disabled}
 					onTouchStart={(e) => {
 						preventDefault(e)
 						onSelect('toolbar')
