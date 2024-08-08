@@ -229,6 +229,7 @@ export function TldrawUiMenuItem<
 						}}
 						data-testid={`tools.more.${id}`}
 						title={titleStr}
+						disabled={disabled}
 						role="radio"
 						aria-checked={isSelected ? 'true' : 'false'}
 						data-value={id}
