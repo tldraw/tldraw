@@ -3,6 +3,7 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	TLTimerShape,
+	TLTimerState,
 	timerShapeMigrations,
 	timerShapeProps,
 } from '@tldraw/editor'
@@ -16,6 +17,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 	override canResize(_shape: TLTimerShape) {
 		return false
 	}
+
 	override hideRotateHandle(_shape: TLTimerShape): boolean {
 		return true
 	}
@@ -33,8 +35,6 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 	}
 	override indicator() {
 		return null
-		// const bounds = this.editor.getShapeGeometry(shape).bounds
-		// return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
 	getDefaultProps(): TLTimerShape['props'] {
@@ -102,6 +102,17 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 		}
 	}
 
+	getBackgroundColor(state: TLTimerState) {
+		switch (state) {
+			case 'running':
+				return 'green'
+			case 'paused':
+				return 'yellow'
+			case 'stopped':
+				return 'red'
+		}
+	}
+
 	component(shape: TLTimerShape) {
 		const remainingTime = this.getTimeRemaining(shape)
 		const state = shape.props.state
@@ -126,7 +137,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'space-between',
-					backgroundColor: shape.props.state.state === 'running' ? 'red' : 'green',
+					backgroundColor: this.getBackgroundColor(shape.props.state.state),
 				}}
 			>
 				<button onPointerDown={(e) => e.stopPropagation()} onClick={() => this.stopTimer(shape)}>
