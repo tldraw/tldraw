@@ -26,6 +26,7 @@ const arrowheadTypes = [
 	'diamond',
 	'inverted',
 	'bar',
+	'crow',
 	'none',
 ] as const
 
