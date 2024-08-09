@@ -28,6 +28,14 @@ const menus = [
 			{ caption: 'GitHub', href: 'https://github.com/tldraw/tldraw' },
 		],
 	},
+	{
+		heading: 'Legal',
+		items: [
+			{ caption: 'Trademarks', href: '/legal/trademarks' },
+			{ caption: 'CLA', href: '/legal/cla' },
+			{ caption: 'License', href: '/legal/license' },
+		],
+	},
 ]
 
 export const Footer = () => {
