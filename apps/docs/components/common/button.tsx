@@ -46,7 +46,7 @@ export const Button: React.FC<{
 		type === 'black' &&
 			'bg-black text-white dark:text-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100',
 		type === 'secondary' &&
-			'bg-zinc-100 text-zinc-800 text-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700',
+			'bg-zinc-100 text-zinc-800 dark:text-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700',
 		type === 'tertiary' &&
 			'text-black dark:text-white dark:hover:text-zinc-200 hover:text-zinc-700',
 		className

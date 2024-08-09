@@ -1,7 +1,21 @@
 import { PageTitle } from '@/components/common/page-title'
 import { Content } from '@/components/content'
 import { getPageContent } from '@/utils/get-page-content'
+import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+
+export async function generateMetadata({
+	params,
+}: {
+	params: { slug: string }
+}): Promise<Metadata> {
+	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
+	const content = await getPageContent(`/legal/${path.join('/')}`)
+	if (!content || content.type !== 'article' || content.article.sectionId !== 'legal') notFound()
+	let metadata: Metadata = { title: content.article.title }
+	if (content.article.description) metadata.description = content.article.description
+	return metadata
+}
 
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug

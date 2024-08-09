@@ -14,8 +14,8 @@ import './globals.css'
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: 'tldraw SDK',
-		template: `%s • tldraw SDK`,
+		default: 'The infinite canvas SDK • tldraw',
+		template: `%s • tldraw`,
 	},
 	description:
 		'Infinite canvas SDK from tldraw. Build whiteboards, design tools, and canvas experiences for the web.',
