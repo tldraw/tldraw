@@ -1,6 +1,6 @@
 export const ParametersTable: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	return (
-		<div className="prose-p:my-0 prose-pre:hidden prose-code:!bg-zinc-200">
+		<div className="prose-p:my-0 prose-pre:hidden prose-code:!bg-zinc-200 dark:prose-code:!bg-zinc-800">
 			<table>
 				<thead>
 					<tr>

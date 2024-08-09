@@ -1,20 +1,18 @@
-'use client'
-
-import { Button } from '@/components/common/button'
+import { RequestForm } from '@/components/marketing/request-form'
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { CheckBadgeIcon } from '@heroicons/react/20/solid'
 
 export const PricingSection = () => {
 	return (
-		<div className="bg-zinc-50 mt-16 sm:mt-24 md:mt-32 lg:mt-40">
+		<div className="bg-zinc-50 dark:bg-zinc-900 mt-16 sm:mt-24 md:mt-32 lg:mt-40">
 			<Section id="pricing" className="pb-24 md:pb-32 lg:pb-40">
 				<SectionHeading
 					subheading="Pricing"
 					heading="Free for non-commercial use"
 					description="The tldraw SDK is source available and free to use in non-commercial projects."
 				/>
-				<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 max-w-2xl">
+				<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 max-w-2xl">
 					<div className="relative w-full h-full bg-zinc-900 md:rounded-xl shadow p-5 md:p-8 overflow-hidden text-zinc-300">
 						<div className="flex items-center gap-1 mb-4 -mt-1">
 							<h3 className="text-white font-black text-xl md:text-2xl">Commercial License</h3>
@@ -24,12 +22,7 @@ export const PricingSection = () => {
 							Interested in purchasing a commercial license for the tldraw SDK? Please fill out our
 							form and we will get back to you with more information.
 						</p>
-						<div className="flex flex-col items-center justify-center gap-4 mt-8">
-							<Button
-								href="https://forms.gle/PmS4wNzngnbD3fb89"
-								caption="Ask about a commercial license"
-							/>
-						</div>
+						<RequestForm />
 					</div>
 				</div>
 			</Section>

@@ -36,15 +36,19 @@ export const Button: React.FC<{
 	const { pending } = useFormStatus()
 	const iconSizes = { xs: 'h-3', sm: 'h-3.5', base: 'h-4', lg: 'h-5' }
 	className = cn(
-		'relative overflow-hidden flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500',
+		'relative overflow-hidden flex items-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-zinc-900',
 		darkRingOffset ? 'focus:ring-offset-zinc-900' : 'focus:ring-offset-zinc-50',
 		size === 'xs' && 'h-6 px-2 gap-1.5 rounded-md text-xs',
 		size === 'sm' && 'h-7 px-3 gap-2 rounded-md text-sm',
 		size === 'base' && 'h-9 px-4 gap-2.5 rounded-lg text-base',
 		size === 'lg' && 'h-11 px-5 gap-3 rounded-xl text-lg',
-		type === 'primary' && 'bg-blue-500 text-white hover:bg-blue-600',
-		type === 'black' && 'bg-black text-white hover:bg-zinc-800',
-		type === 'secondary' && 'bg-zinc-100 text-zinc-800 hover:bg-zinc-200',
+		type === 'primary' && 'bg-blue-500 text-white hover:bg-blue-600 dark:hover:bg-blue-400',
+		type === 'black' &&
+			'bg-black text-white dark:text-black hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100',
+		type === 'secondary' &&
+			'bg-zinc-100 text-zinc-800 dark:text-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700',
+		type === 'tertiary' &&
+			'text-black dark:text-white dark:hover:text-zinc-200 hover:text-zinc-700',
 		className
 	)
 	if (href)
@@ -82,8 +86,8 @@ export const Button: React.FC<{
 						className={cn(
 							'absolute inset-0 flex items-center justify-center',
 							type === 'primary' && 'bg-blue-500',
-							type === 'black' && 'bg-black',
-							type === 'secondary' && 'bg-zinc-100'
+							type === 'black' && 'bg-black dark:bg-white',
+							type === 'secondary' && 'bg-zinc-100 dark:bg-zinc-800'
 						)}
 					>
 						<Loader className="w-5" />

@@ -17,7 +17,7 @@ export const Breadcrumbs: React.FC<{
 				.map((item) => (
 					<li key={item.id} className="flex items-center gap-2">
 						{item.path ? <Link href={item.path}>{item.title}</Link> : <span>{item.title}</span>}
-						<ChevronRightIcon className="h-4 text-zinc-300" />
+						<ChevronRightIcon className="h-4 text-zinc-300 dark:text-zinc-600" />
 					</li>
 				))}
 		</ul>

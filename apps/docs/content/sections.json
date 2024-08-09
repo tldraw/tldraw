@@ -14,6 +14,13 @@
 		"sidebar_behavior": "hidden"
 	},
 	{
+		"id": "legal",
+		"title": "Legal Information",
+		"description": "Legal pages like terms and conditions.",
+		"categories": [],
+		"sidebar_behavior": "hidden"
+	},
+	{
 		"id": "blog",
 		"title": "Blog",
 		"description": "The latest posts from the tldraw blog.",

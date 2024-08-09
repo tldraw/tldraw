@@ -6,6 +6,7 @@ import { SocialLink } from '@/components/navigation/social-link'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { EllipsisVerticalIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import { usePathname } from 'next/navigation'
+import { ThemeSwitch } from '../common/theme-switch'
 import { CloseOnNavigation } from './close-on-navigation'
 
 export const MobileMenu: React.FC<{
@@ -21,12 +22,12 @@ export const MobileMenu: React.FC<{
 
 	return (
 		<Popover className="group">
-			<PopoverButton className="flex items-center justify-center w-8 h-8 rounded focus:outline-none focus:bg-zinc-100 text-black">
+			<PopoverButton className="flex items-center justify-center w-8 h-8 rounded focus:outline-none focus:bg-zinc-100 text-black dark:text-white dark:focus:bg-zinc-800">
 				<EllipsisVerticalIcon className="h-6 group-data-[open]:hidden" />
 				<XMarkIcon className="h-6 hidden group-data-[open]:block" />
 			</PopoverButton>
 			<CloseOnNavigation />
-			<PopoverPanel className="fixed left-0 top-14 bg-white w-screen h-screen px-5 py-8 z-20">
+			<PopoverPanel className="fixed left-0 top-14 bg-white dark:bg-zinc-950 w-screen h-screen px-5 py-8 z-20">
 				<ul className="flex flex-col items-end gap-4">
 					{main.map((item, index) => (
 						<li key={index}>
@@ -41,6 +42,7 @@ export const MobileMenu: React.FC<{
 						</li>
 					))}
 				</ul>
+				<ThemeSwitch />
 			</PopoverPanel>
 		</Popover>
 	)

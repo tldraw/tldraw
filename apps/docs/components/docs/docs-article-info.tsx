@@ -13,7 +13,7 @@ export const DocsArticleInfo: React.FC<{ article: Article }> = ({ article }) => 
 			{article.sourceUrl && (
 				<Link
 					href={`${githubContentRoot}${article.sourceUrl}`}
-					className="flex items-center gap-1.5 text-blue-500 hover:text-blue-600"
+					className="flex items-center gap-1.5 text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
 				>
 					<GithubIcon className="h-3.5" />
 					<span>Edit this page on GitHub</span>
