@@ -24,7 +24,7 @@ export const Search: React.FC<{ type: 'blog' | 'docs' }> = ({ type }) => {
 						<MagnifyingGlassIcon className="h-4 shrink-0" />
 						<SearchInput />
 					</div>
-					<span className="text-xs shrink-0">ESC</span>
+					<span className="hidden md:block text-xs shrink-0">ESC</span>
 				</div>
 				<Hits />
 			</Command>

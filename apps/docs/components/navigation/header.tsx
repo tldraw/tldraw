@@ -97,7 +97,7 @@ export const Header = () => {
 					))}
 				</ul>
 				<div className="flex items-center sm:hidden -mr-2">
-					<SearchButton type="docs" layout="mobile" />
+					<SearchButton type={pathname.startsWith('/blog') ? 'blog' : 'docs'} layout="mobile" />
 					<Suspense>
 						<MobileMenu main={mainLinks} social={socialLinks} />
 					</Suspense>
