@@ -18,7 +18,7 @@
 		"title": "Legal Information",
 		"description": "Legal pages like terms and conditions.",
 		"categories": [],
-		"sidebar_behavior": "show-links"
+		"sidebar_behavior": "hidden"
 	},
 	{
 		"id": "blog",
