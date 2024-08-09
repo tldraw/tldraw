@@ -42,7 +42,9 @@ export const DocsSidebarMenu: React.FC<{
 											<li key={index}>
 												<Link
 													href={url}
+													data-active={pathname === url}
 													className={cn(
+														'sidebar-link line-clamp-1',
 														pathname === url
 															? 'text-black dark:text-white font-semibold'
 															: 'hover:text-zinc-800 dark:hover:text-zinc-200'
@@ -62,9 +64,11 @@ export const DocsSidebarMenu: React.FC<{
 						<li key={index}>
 							<Link
 								href={url}
+								data-active={pathname === url}
 								className={cn(
+									'sidebar-link',
 									pathname === url
-										? 'text-black dark:text-white font-semibold'
+										? 'text-black dark:text-white font-semibold line-clamp-1'
 										: 'hover:text-zinc-800 dark:hover:text-zinc-200'
 								)}
 							>
