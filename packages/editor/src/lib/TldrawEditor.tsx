@@ -373,6 +373,8 @@ function TldrawEditorWithReadyStore({
 
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
+	const canvasRef = useRef<HTMLDivElement | null>(null)
+
 	// props in this ref can be changed without causing the editor to be recreated.
 	const editorOptionsRef = useRef({
 		// for these, it's because they're only used when the editor first mounts:
@@ -415,6 +417,8 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 			})
+
+			editor.updateViewportScreenBounds(canvasRef.current ?? container)
 
 			// Use the ref here because we only want to do this once when the editor is created.
 			// We don't want changes to the urlStateSync prop to trigger creating new editors.
@@ -504,7 +508,7 @@ function TldrawEditorWithReadyStore({
 	const { Canvas } = useEditorComponents()
 
 	if (!editor) {
-		return null
+		return <div className="tl-canvas" ref={canvasRef} />
 	}
 
 	return (

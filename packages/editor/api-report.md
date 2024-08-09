@@ -1268,7 +1268,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
-    updateViewportScreenBounds(screenBounds?: Box, center?: boolean): this;
+    updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File): Promise<string>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;

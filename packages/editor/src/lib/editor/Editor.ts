@@ -714,8 +714,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._tickManager.start()
 		})
 
-		this.updateViewportScreenBounds()
-
 		this.performanceTracker = new PerformanceTracker()
 	}
 
@@ -3180,10 +3178,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(screenBounds?: Box, center = false): this {
-		if (!screenBounds) {
-			const rect = this.getContainer().getBoundingClientRect()
-
+	updateViewportScreenBounds(screenBounds: Box | HTMLElement, center = false): this {
+		if (screenBounds instanceof HTMLElement) {
+			const rect = screenBounds.getBoundingClientRect()
 			screenBounds = new Box(
 				rect.left || rect.x,
 				rect.top || rect.y,

@@ -7,9 +7,16 @@ export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 
 	useLayoutEffect(() => {
 		// Everything else uses a debounced update...
-		const updateBounds = throttle(() => editor.updateViewportScreenBounds(), 200, {
-			trailing: true,
-		})
+		const updateBounds = throttle(
+			() => {
+				if (!ref.current) return
+				editor.updateViewportScreenBounds(ref.current)
+			},
+			200,
+			{
+				trailing: true,
+			}
+		)
 
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes.
