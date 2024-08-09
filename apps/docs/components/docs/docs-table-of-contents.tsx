@@ -8,7 +8,6 @@ import { getDb } from '@/utils/ContentDatabase'
 export const DocsTableOfContents: React.FC<{ article: Article }> = async ({ article }) => {
 	const db = await getDb()
 	const headings = await db.getArticleHeadings(article.id)
-	console.log(headings)
 
 	return (
 		<Aside className="hidden xl:flex pl-12">

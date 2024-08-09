@@ -21,7 +21,7 @@ export default async function Page({ params }: { params: { slug: string | string
 				categoryId={content.article.categoryId}
 				articleId={content.article.id}
 			/>
-			<div className="fixed w-full h-12 border-b border-zinc-100 flex items-center justify-between px-5 bg-white/90 backdrop-blur md:hidden z-10">
+			<div className="fixed w-full h-12 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between px-5 bg-white dark:bg-zinc-950 backdrop-blur md:hidden z-10">
 				<DocsMobileSidebar
 					sectionId={content.article.sectionId}
 					categoryId={content.article.categoryId}

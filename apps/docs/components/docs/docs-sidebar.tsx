@@ -18,12 +18,12 @@ export const DocsSidebar: React.FC<{
 		<Aside className="hidden md:flex">
 			<DocsCategoryMenu />
 			<div className="relative grow overflow-y-auto pr-12">
-				<div className="sticky top-0 h-12 -mb-12 w-full bg-gradient-to-b from-white" />
+				<div className="sticky top-0 h-12 -mb-12 w-full bg-gradient-to-b from-white dark:from-zinc-950" />
 				{elements.map((menu: any, index: number) => (
 					// @ts-ignore
 					<DocsSidebarMenu key={index} title={menu.title} elements={menu.children} />
 				))}
-				<div className="sticky bottom-0 h-12 w-full bg-gradient-to-t from-white" />
+				<div className="sticky bottom-0 h-12 w-full bg-gradient-to-t from-white dark:from-zinc-950" />
 			</div>
 		</Aside>
 	)

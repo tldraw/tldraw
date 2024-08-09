@@ -37,7 +37,7 @@ export default function NotFound() {
 			<DocsSearchBar />
 			<section className="flex flex-col items-center justify-center py-16 md:py-32 px-5">
 				<Image src={Handwritten404} alt="404 - Page not found" className="w-64" />
-				<h1 className="font-hand text-black text-2xl">page not found :(</h1>
+				<h1 className="font-hand text-black dark:text-white text-2xl">page not found :(</h1>
 				<p className="mt-8 max-w-md text-center text-balance">
 					There's nothing here. You may want to look at these pages to find what you're looking for:
 				</p>
@@ -52,7 +52,7 @@ export default function NotFound() {
 					You can always ask for help in our welcoming community on{' '}
 					<Link
 						href="https://discord.com/invite/SBBEVCA4PG"
-						className="text-blue-500 hover:text-blue-600"
+						className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
 					>
 						<DiscordIcon className="h-3.5 mb-0.5 ml-0.5 inline" />
 						<span> Discord</span>

@@ -19,7 +19,9 @@ export const FeaturesSection = () => {
 			<div className="grid grid-cols-6 gap-x-8 sm:gap-y-8">
 				<Card className="col-span-6 md:col-span-3">
 					<div className="relative p-5 pb-8 lg:px-10 lg:py-9">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">React canvas</h3>
+						<h3 className="text-black dark:text-white font-black text-xl md:text-2xl mb-4">
+							React canvas
+						</h3>
 						<p className="max-w-xs">
 							Everything on the tldraw canvas is its own React component. If you can do it on the
 							web, you can now do it on the canvas too.
@@ -34,7 +36,9 @@ export const FeaturesSection = () => {
 				<Card className="col-span-6 md:col-span-3">
 					<div className="flex flex-col justify-between h-full">
 						<div className="relative p-5 pb-8 lg:px-10 lg:py-9">
-							<h3 className="text-black font-black text-xl md:text-2xl mb-4">High performance</h3>
+							<h3 className="text-black dark:text-white font-black text-xl md:text-2xl mb-4">
+								High performance
+							</h3>
 							<p className="max-w-xs">
 								Create and edit thousands of objects. We&apos;ve tuned performance for desktop,
 								tablets, and mobile devices.
@@ -49,7 +53,7 @@ export const FeaturesSection = () => {
 				</Card>
 				<Card className="col-span-6 md:col-span-2">
 					<div className="relative p-5 pb-8 lg:px-10 lg:py-9">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">
+						<h3 className="text-black dark:text-white font-black text-xl md:text-2xl mb-4">
 							Real-time collaborative
 						</h3>
 						<p className="max-w-xs">
@@ -66,7 +70,9 @@ export const FeaturesSection = () => {
 				<Card className="col-span-6 md:col-span-2">
 					<div className="flex flex-col justify-between h-full">
 						<div className="relative p-5 pb-8 lg:px-10 lg:py-9">
-							<h3 className="text-black font-black text-xl md:text-2xl mb-4">Media and more</h3>
+							<h3 className="text-black dark:text-white font-black text-xl md:text-2xl mb-4">
+								Media and more
+							</h3>
 							<p className="max-w-xs">
 								Drop in images, videos, and even other websites to add them to the canvas. Paste
 								URLs to create interactive bookmarks. Export images and data.
@@ -81,7 +87,9 @@ export const FeaturesSection = () => {
 				</Card>
 				<Card className="col-span-6 md:col-span-2">
 					<div className="relative p-5 pb-8 lg:px-10 lg:py-9">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Make it yours</h3>
+						<h3 className="text-black dark:text-white font-black text-xl md:text-2xl mb-4">
+							Make it yours
+						</h3>
 						<p className="max-w-xs">
 							Highly hackable and built for customization. Create your own custom shapes, tools, and
 							user interface. Use the runtime API to drive the canvas.

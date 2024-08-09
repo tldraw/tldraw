@@ -5,6 +5,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import { Metadata, Viewport } from 'next'
+import { ThemeProvider } from 'next-themes'
 import localFont from 'next/font/local'
 import './github-dark.css'
 import './github-light.css'
@@ -61,14 +62,16 @@ export default async function Layout({ children }: { children: React.ReactNode }
 				GeistSans.variable,
 				GeistMono.variable,
 				ShantellSans.variable,
-				'font-sans bg-white antialiased text-zinc-600'
+				'font-sans antialiased'
 			)}
 		>
-			<body className="pt-14 md:pt-[4.5rem] overflow-x-hidden">
-				<Header />
-				{children}
-				<Footer />
-				<Analytics />
+			<body className="pt-14 md:pt-[4.5rem] overflow-x-hidden bg-white text-zinc-600 dark:bg-zinc-950 dark:text-zinc-400">
+				<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+					<Header />
+					{children}
+					<Footer />
+					<Analytics />
+				</ThemeProvider>
 			</body>
 		</html>
 	)

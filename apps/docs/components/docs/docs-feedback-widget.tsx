@@ -104,7 +104,10 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 
 	return (
 		<div
-			className={cn('-ml-4 px-4 bg-zinc-50 rounded-lg shrink-0 mt-12 text-xs h-auto', className)}
+			className={cn(
+				'-ml-4 px-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg shrink-0 mt-12 text-xs h-auto',
+				className
+			)}
 		>
 			{state !== 'success' && (
 				<div className="flex justify-between items-center">
@@ -115,7 +118,7 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 							className={cn(
 								'h-9 w-7 flex items-center justify-center pt-0.5',
 								state === 'thumbs-down' && 'text-blue-500',
-								state !== 'thumbs-down' && 'hover:text-black'
+								state !== 'thumbs-down' && 'hover:text-black dark:hover:text-white'
 							)}
 						>
 							<HandThumbDownIcon className="h-4" />
@@ -125,7 +128,7 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 							className={cn(
 								'h-9 w-7 flex items-center justify-center pb-0.5 -mr-1',
 								state === 'thumbs-up' && 'text-blue-500',
-								state !== 'thumbs-up' && 'hover:text-black'
+								state !== 'thumbs-up' && 'hover:text-black dark:hover:text-white'
 							)}
 						>
 							<HandThumbUpIcon className="h-4" />
@@ -141,13 +144,13 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 							name="feedback"
 							placeholder="Your feedback..."
 							rows={3}
-							className="resize-none bg-zinc-200/50 w-full rounded-md placeholder-zinc-400 text-black px-2 py-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-50"
+							className="resize-none bg-zinc-200/50 dark:bg-zinc-700/50 w-full rounded-md placeholder-zinc-400 dark:placeholder-zinc-600 text-black dark:text-white px-2 py-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-50 dark:focus:ring-offset-zinc-900"
 						/>
 					</Field>
 					<button
 						type="submit"
 						disabled={state === 'loading'}
-						className="bg-blue-500 rounded-md h-6 px-3 flex items-center text-white gap-1.5 font-medium ml-auto mt-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-50 hover:bg-blue-600"
+						className="bg-blue-500 rounded-md h-6 px-3 flex items-center text-white gap-1.5 font-medium ml-auto mt-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-50 hover:bg-blue-600 dark:hover:bg-blue-400 dark:focus:ring-offset-zinc-900"
 					>
 						<span>Submit</span>
 						<ArrowLongRightIcon className="h-3.5" />
@@ -156,7 +159,7 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 			)}
 			{state === 'success' && (
 				<p className="h-9 flex items-center gap-1.5">
-					<CheckCircleIcon className="h-4 text-emerald-500" />
+					<CheckCircleIcon className="h-4 text-emerald-500 dark:text-emerald-400" />
 					<span>Thanks for your feedback!</span>
 				</p>
 			)}

@@ -32,7 +32,7 @@ const menus = [
 
 export const Footer = () => {
 	return (
-		<footer className="bg-zinc-50 py-12 md:py-16">
+		<footer className="bg-zinc-50 dark:bg-zinc-900 py-12 md:py-16">
 			<div className="w-full max-w-screen-xl mx-auto px-5 flex flex-col sm:flex-row sm:justify-between gap-12">
 				<div>
 					<Link href="/" className="w-28">
@@ -43,11 +43,13 @@ export const Footer = () => {
 				<div className="flex gap-12 flex-wrap">
 					{menus.map(({ heading, items }, index) => (
 						<div key={index}>
-							<h4 className="text-black uppercase text-xs font-semibold">{heading}</h4>
+							<h4 className="text-black dark:text-white uppercase text-xs font-semibold">
+								{heading}
+							</h4>
 							<ul className="flex flex-col mt-2 gap-2 text-sm">
 								{items.map(({ caption, href }, index) => (
 									<li key={index}>
-										<Link href={href} className="hover:text-zinc-800">
+										<Link href={href} className="hover:text-zinc-800 dark:hover:text-zinc-200">
 											{caption}
 										</Link>
 									</li>

@@ -22,7 +22,7 @@ export const DocsSidebarMenu: React.FC<{
 
 	return (
 		<div className="mt-8 md:mt-12">
-			<h4 className="text-black uppercase text-xs font-semibold">{title}</h4>
+			<h4 className="text-black dark:text-white uppercase text-xs font-semibold">{title}</h4>
 			<ul className="flex flex-col mt-2 gap-2 text-sm break-words">
 				{groups?.map((group, index) => {
 					const groupElements = elements.filter((e) => e.groupId === group)
@@ -31,19 +31,21 @@ export const DocsSidebarMenu: React.FC<{
 						<li key={index}>
 							<Disclosure defaultOpen={groupElements.some((e) => e.url === pathname)}>
 								<DisclosureButton className="group w-full flex justify-between gap-4">
-									<span className="group-data-[open]:text-black group-data-[open]:font-semibold">
+									<span className="group-data-[open]:text-black dark:group-data-[open]:text-white group-data-[open]:font-semibold">
 										{group}
 									</span>
-									<ChevronRightIcon className="h-3.5 shrink-0 group-data-[open]:rotate-90 text-zinc-400 group-data-[open]:text-black" />
+									<ChevronRightIcon className="h-3.5 shrink-0 group-data-[open]:rotate-90 text-zinc-400 dark:text-zinc-600 group-data-[open]:text-black dark:group-data-[open]:text-white" />
 								</DisclosureButton>
 								<DisclosurePanel>
-									<ul className="flex flex-col gap-2 ml-1 pl-2 pt-2 border-l border-zinc-100">
+									<ul className="flex flex-col gap-2 ml-1 pl-2 pt-2 border-l border-zinc-100 dark:border-zinc-800">
 										{groupElements.map(({ title, url }, index) => (
 											<li key={index}>
 												<Link
 													href={url}
 													className={cn(
-														pathname === url ? 'text-black font-semibold' : 'hover:text-zinc-800'
+														pathname === url
+															? 'text-black dark:text-white font-semibold'
+															: 'hover:text-zinc-800 dark:hover:text-zinc-200'
 													)}
 												>
 													{title}
@@ -61,7 +63,9 @@ export const DocsSidebarMenu: React.FC<{
 							<Link
 								href={url}
 								className={cn(
-									pathname === url ? 'text-black font-semibold' : 'hover:text-zinc-800'
+									pathname === url
+										? 'text-black dark:text-white font-semibold'
+										: 'hover:text-zinc-800 dark:hover:text-zinc-200'
 								)}
 							>
 								{title}

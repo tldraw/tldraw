@@ -17,7 +17,7 @@ export const Search: React.FC<{ type: 'blog' | 'docs' }> = ({ type }) => {
 		<InstantSearch indexName={type} searchClient={searchClient}>
 			<Command
 				shouldFilter={false}
-				className="pointer-events-auto bg-zinc-50 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500"
+				className="pointer-events-auto bg-zinc-50 dark:bg-zinc-900 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500"
 			>
 				<div className="w-full h-10 flex items-center px-4">
 					<div className="flex h-full grow items-center gap-3">
