@@ -13,6 +13,7 @@ import React, {
 } from 'react'
 
 import classNames from 'classnames'
+import { TLDeepLinkOptions } from '..'
 import { version } from '../version'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
@@ -35,6 +36,7 @@ import {
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
+import { useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
@@ -173,6 +175,11 @@ export interface TldrawEditorBaseProps {
 	 * The license key.
 	 */
 	licenseKey?: string
+
+	/**
+	 * Options for syncing the editor's camera state with the URL.
+	 */
+	deepLinks?: true | TLDeepLinkOptions
 }
 
 /**
@@ -354,6 +361,7 @@ function TldrawEditorWithReadyStore({
 	cameraOptions,
 	options,
 	licenseKey,
+	deepLinks: _deepLinks,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -366,6 +374,8 @@ function TldrawEditorWithReadyStore({
 
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
+	const canvasRef = useRef<HTMLDivElement | null>(null)
+
 	// props in this ref can be changed without causing the editor to be recreated.
 	const editorOptionsRef = useRef({
 		// for these, it's because they're only used when the editor first mounts:
@@ -376,6 +386,10 @@ function TldrawEditorWithReadyStore({
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
 	})
+
+	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
+	const deepLinksRef = useRef(deepLinks)
+	deepLinksRef.current = deepLinks
 
 	useLayoutEffect(() => {
 		editorOptionsRef.current = {
@@ -405,6 +419,21 @@ function TldrawEditorWithReadyStore({
 				licenseKey,
 			})
 
+			editor.updateViewportScreenBounds(canvasRef.current ?? container)
+
+			// Use the ref here because we only want to do this once when the editor is created.
+			// We don't want changes to the urlStateSync prop to trigger creating new editors.
+			const deepLinks = deepLinksRef.current
+			if (deepLinks) {
+				if (!deepLinks?.getUrl) {
+					// load the state from window.location
+					editor.handleDeepLink(deepLinks)
+				} else {
+					// load the state from the provided URL
+					editor.handleDeepLink({ ...deepLinks, url: deepLinks.getUrl(editor) })
+				}
+			}
+
 			setEditor(editor)
 
 			return () => {
@@ -414,6 +443,13 @@ function TldrawEditorWithReadyStore({
 		// if any of these change, we need to recreate the editor.
 		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor, licenseKey]
 	)
+
+	useLayoutEffect(() => {
+		if (!editor) return
+		if (deepLinks) {
+			return editor.registerDeepLinkListener(deepLinks)
+		}
+	}, [editor, deepLinks])
 
 	// keep the editor up to date with the latest camera options
 	useLayoutEffect(() => {
@@ -473,7 +509,7 @@ function TldrawEditorWithReadyStore({
 	const { Canvas } = useEditorComponents()
 
 	if (!editor) {
-		return null
+		return <div className="tl-canvas" ref={canvasRef} />
 	}
 
 	return (

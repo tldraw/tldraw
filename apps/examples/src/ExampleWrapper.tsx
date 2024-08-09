@@ -82,9 +82,10 @@ function MultiplayerExampleWrapper({
 	}
 
 	useEffect(() => {
+		if (roomId === params.get('roomId')) return
 		storeRoomId(exampleSlug, roomId)
-		setParams({ roomId })
-	}, [exampleSlug, roomId, setParams])
+		setParams({ ...params, roomId }, { replace: true })
+	}, [exampleSlug, roomId, setParams, params])
 
 	return (
 		<div className="MultiplayerExampleWrapper">
@@ -95,7 +96,9 @@ function MultiplayerExampleWrapper({
 					className="MultiplayerExampleWrapper-copy"
 					onClick={() => {
 						// copy current url with roomId=roomId to clipboard
-						navigator.clipboard.writeText(window.location.href.split('?')[0] + `?roomId=${roomId}`)
+						const url = new URL(window.location.href)
+						url.searchParams.set('roomId', roomId)
+						navigator.clipboard.writeText(url.toString())
 						confirmFn()
 					}}
 					aria-label="join"

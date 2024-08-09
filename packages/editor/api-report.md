@@ -490,6 +490,9 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 export function counterClockwiseAngleDist(a0: number, a1: number): number;
 
 // @public
+export function createDeepLinkString(deepLink: TLDeepLink): string;
+
+// @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
@@ -864,6 +867,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     createAssets(assets: TLAsset[]): this;
     createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>): this;
     createBindings(partials: TLBindingCreate[]): this;
+    createDeepLink(opts?: {
+        param?: string;
+        to?: TLDeepLink;
+        updateAddressBar?: boolean;
+        url?: string | URL;
+    }): URL;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
         extras: {
@@ -1094,6 +1103,10 @@ export class Editor extends EventEmitter<TLEventMap> {
         groupId: TLShapeId;
         select: boolean;
     }>): this;
+    handleDeepLink(opts?: {
+        param?: string;
+        url?: string | URL;
+    } | TLDeepLink): Editor;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     // (undocumented)
     hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
@@ -1154,6 +1167,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     putExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
     redo(): this;
+    registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
     registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(type: T, handler: ((info: TLExternalAssetContent & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
@@ -1254,7 +1268,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
-    updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
+    updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File): Promise<string>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
@@ -1879,6 +1893,9 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
 
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// @public
+export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
@@ -2611,6 +2628,28 @@ export interface TLCursorProps {
 }
 
 // @public (undocumented)
+export type TLDeepLink = {
+    bounds: BoxModel;
+    pageId?: TLPageId;
+    type: 'viewport';
+} | {
+    pageId: TLPageId;
+    type: 'page';
+} | {
+    shapeIds: TLShapeId[];
+    type: 'shapes';
+};
+
+// @public (undocumented)
+export interface TLDeepLinkOptions {
+    debounceMs?: number;
+    getTarget?(editor: Editor): TLDeepLink;
+    getUrl?(editor: Editor): string | URL;
+    onChange?(url: URL, editor: Editor): void;
+    param?: string;
+}
+
+// @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
@@ -2621,6 +2660,7 @@ export interface TldrawEditorBaseProps {
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
+    deepLinks?: TLDeepLinkOptions | true;
     inferDarkMode?: boolean;
     initialState?: string;
     licenseKey?: string;

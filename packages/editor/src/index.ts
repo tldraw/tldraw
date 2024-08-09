@@ -365,6 +365,12 @@ export {
 	type DebugFlagDefaults,
 } from './lib/utils/debug-flags'
 export {
+	createDeepLinkString,
+	parseDeepLinkString,
+	type TLDeepLink,
+	type TLDeepLinkOptions,
+} from './lib/utils/deepLinks'
+export {
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,
