@@ -337,8 +337,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
-const noAutoFocus = () =>
-	document.location.search.includes('tldraw_preserve_focus') || !document.hasFocus()
+const noAutoFocus = () => document.location.search.includes('tldraw_preserve_focus') // || !document.hasFocus() // breaks in nextjs
 
 function TldrawEditorWithReadyStore({
 	onMount,
