@@ -21,142 +21,83 @@ export function generateSection(section: InputSection, articles: Articles, index
 	)
 
 	// The file directory for this section
-	const isExamples = section.id === 'examples'
-	const dir = isExamples
+	const isExamplesSection = section.id === 'examples'
+	const dir = isExamplesSection
 		? path.join(process.cwd(), '..', 'examples', 'src', 'examples')
 		: path.join(CONTENT_DIR, section.id)
 	const files = fs.readdirSync(dir, { withFileTypes: false })
 
 	const isGenerated = section.id === 'reference'
 
+	const { id: sectionId, sidebar_behavior, categories: sectionCategories } = section
+
+	const skipUnpublished = process.env.NODE_ENV !== 'development' && !isExamplesSection
+
 	for (const file of files) {
 		const filename = file.toString()
 		if (filename.startsWith('.')) continue
-		const pathname = isExamples ? path.join(dir, filename, 'README.md') : path.join(dir, filename)
-		const fileContent = fs.readFileSync(pathname).toString()
+		const pathname = isExamplesSection
+			? path.join(dir, filename, 'README.md')
+			: path.join(dir, filename)
 		const extension = path.extname(filename)
 		const articleId = filename.replace(extension, '')
-
+		const fileContent = fs.readFileSync(pathname).toString()
 		const parsed = matter({ content: fileContent }, {})
 
 		// If we're in prod and the article isn't published, skip it
-		if (
-			process.env.NODE_ENV !== 'development' &&
-			!isExamples &&
-			parsed.data.status !== 'published'
-		) {
+		if (skipUnpublished && parsed.data.status !== 'published') {
 			continue
 		}
 
-		// If a category was provided but that category was not found in the section, throw an error
-		const category =
-			parsed.data.category && section.categories.find((c) => c.id === parsed.data.category)
+		const article = getArticleData({
+			articleId,
+			sectionId,
+			parsed,
+			isGenerated,
+			extension,
+			componentCode: getComponentCode({ dir, filename, parsed }),
+			componentCodeFiles: getComponentCodeFiles({ dir, filename, parsed }),
+		})
 
-		// By default, the category is ucg (uncategorized, with the section id in the id)
-		const { category: categoryId = section.id + '_ucg', author = 'api' } = parsed.data
+		const category = sectionCategories.find((c) => c.id === article.categoryId)
 
-		const isUncategorized = categoryId === section.id + '_ucg'
-		const isIndex = articleId === section.id
-		const componentCode = parsed.data.component
-			? fs
-					.readFileSync(
-						path.join(
-							dir,
-							filename,
-							`${parsed.data.component}${parsed.data.component.endsWith('.tsx') ? '' : '.tsx'}`
-						)
-					)
-					.toString()
-			: null
-		const componentCodeFiles: { [key: string]: string } = {}
-		if (parsed.data.component) {
-			const exampleParentDirectory = path.join(dir, filename)
-			const codeFilenames = fs.readdirSync(exampleParentDirectory, {
-				withFileTypes: true,
-				recursive: true,
-			})
-			codeFilenames
-				.filter(
-					(file) =>
-						!file.isDirectory() &&
-						file.name !== 'README.md' &&
-						file.name.replace('.tsx', '') !==
-							parsed.data.component.replace('./', '').replace('.tsx', '')
-				)
-				.forEach((file) => {
-					componentCodeFiles[file.name] = fs
-						.readFileSync(path.join(file.path, file.name))
-						.toString()
-				})
-		}
-
-		const article: Article = {
-			id: articleId,
-			type: 'article',
-			sectionIndex: 0,
-			groupIndex: -1,
-			groupId: parsed.data.group ?? null,
-			categoryIndex: parsed.data.order ?? parsed.data.priority ?? -1,
-			sectionId: section.id,
-			author,
-			categoryId,
-			status: parsed.data.status ?? ArticleStatus.Draft,
-			title: parsed.data.title ?? 'Untitled article',
-			description: parsed.data.description,
-			hero: parsed.data.hero ?? null,
-			date: parsed.data.date ? new Date(parsed.data.date).toISOString() : null,
-			keywords: parsed.data.keywords ?? [],
-			sourceUrl: isGenerated // if it's a generated API doc, then we don't have a link
-				? parsed.data.sourceUrl ?? null
-				: `${section.id}/${articleId}${extension}`,
-			componentCode,
-			componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
-			content: parsed.content,
-			path:
-				section.id === 'getting-started'
-					? `/${articleId}`
-					: isUncategorized
-						? `/${section.id}/${articleId}`
-						: `/${section.id}/${categoryId}/${articleId}`,
-			apiTags: parsed.data.apiTags ?? null,
-		}
-
-		if (isExamples) {
-			// split content above the first ---
-			const splitUp = parsed.content.split('---\n')
-			article.description = splitUp[0]
-			article.content = splitUp.slice(1).join('---\n')
-		}
-
-		if (isIndex) {
+		if (articleId === section.id) {
+			// The article is an index page, ie docs/docs
 			article.categoryIndex = -1
 			article.sectionIndex = -1
 			articles[section.id + '_index'] = article
 		} else {
+			// If the article is in a category...
 			if (category) {
+				// The article is a category index page, ie docs/editor/editor
 				if (article.id === category.id) {
 					article.categoryIndex = -1
 					article.sectionIndex = -1
 					articles[category.id + '_index'] = article
 				} else {
-					_categoryArticles[categoryId].push(article)
+					// Otherwise, add it to the category's list of articles
+					_categoryArticles[article.categoryId].push(article)
 				}
 			} else {
+				// otherwise, add it to the section's uncategorized list
 				_ucg.push(article)
 			}
 		}
 	}
 
-	let sectionIndex = 0
+	// The section index is the "flattened" index of the article in the section.
+	// Keep track of the section index as we go through sorted articles.
+	let articleSectionIndex = 0
 
-	// Sort ucg articles by date and add them to the articles table
+	// Sort uncategorized articles by date and add them to the articles table
 	_ucg.sort(sortArticles).forEach((article, i) => {
 		article.categoryIndex = i
-		article.sectionIndex = sectionIndex
+		article.sectionIndex = articleSectionIndex
 		articles[article.id] = article
-		sectionIndex++
+		articleSectionIndex++
 	})
 
+	// Start with the uncategorized category
 	const categories: Category[] = [
 		{
 			id: section.id + '_ucg',
@@ -173,17 +114,19 @@ export function generateSection(section: InputSection, articles: Articles, index
 	]
 
 	// Sort categorized articles by date and add them to the articles table
-	section.categories.forEach((inputCategory, i) => {
+	sectionCategories.forEach((inputCategory, i) => {
 		const categoryArticles = _categoryArticles[inputCategory.id]
 
-		categoryArticles.sort(sortArticles).forEach((article, i) => {
-			article.categoryIndex = i
-			article.sectionIndex = sectionIndex
-			articles[article.id] = article
-			sectionIndex++
-		})
-
 		if (categoryArticles.length) {
+			// Sort the articles by category index and apply their indicese
+			categoryArticles.sort(sortArticles).forEach((article, i) => {
+				article.categoryIndex = i
+				article.sectionIndex = articleSectionIndex
+				articles[article.id] = article
+				articleSectionIndex++
+			})
+
+			// Create the category
 			categories.push({
 				...inputCategory,
 				type: 'category',
@@ -207,10 +150,11 @@ export function generateSection(section: InputSection, articles: Articles, index
 		}
 	})
 
+	// Section is done, return it
 	return {
 		...section,
 		type: 'section',
-		sidebar_behavior: section.sidebar_behavior,
+		sidebar_behavior,
 		index,
 		categories,
 		content: '',
@@ -226,4 +170,135 @@ const sortArticles = (articleA: Article, articleB: Article) => {
 	return categoryIndexA === categoryIndexB
 		? titleA.localeCompare(titleB)
 		: categoryIndexA - categoryIndexB
+}
+
+function getArticleData({
+	articleId,
+	sectionId,
+	parsed,
+	isGenerated,
+	extension,
+	componentCode,
+	componentCodeFiles,
+}: {
+	articleId: Article['id']
+	sectionId: Section['id']
+	parsed: matter.GrayMatterFile<string>
+	isGenerated: boolean
+	extension: string
+	componentCode: string | null
+	componentCodeFiles: { [key: string]: string }
+}): Article {
+	const {
+		group = null,
+		priority = -1,
+		hero = null,
+		author = 'api',
+		status = ArticleStatus.Draft,
+		title = 'Untitled article',
+		description = null,
+		keywords = [],
+		date = null,
+		sourceUrl = null,
+		order,
+		apiTags = null,
+		category: categoryId = sectionId + '_ucg',
+	} = parsed.data
+
+	const { content } = parsed
+
+	const article: Article = {
+		id: articleId,
+		type: 'article',
+		sectionIndex: 0,
+		groupIndex: -1,
+		groupId: group,
+		categoryIndex: order ?? priority,
+		sectionId: sectionId,
+		author: [author],
+		categoryId,
+		status,
+		title,
+		description,
+		hero,
+		date: date ? new Date(date).toISOString() : null,
+		keywords,
+		sourceUrl: isGenerated // if it's a generated API doc, then we don't have a link
+			? sourceUrl
+			: `${sectionId}/${articleId}${extension}`,
+		content,
+		apiTags,
+		path:
+			sectionId === 'getting-started'
+				? `/${articleId}`
+				: categoryId === sectionId + '_ucg'
+					? `/${sectionId}/${articleId}` // index page
+					: `/${sectionId}/${categoryId}/${articleId}`,
+		componentCode,
+		componentCodeFiles: componentCode ? JSON.stringify(componentCodeFiles) : null,
+	}
+
+	if (sectionId === 'examples' && article.content) {
+		const splitUp = article.content.split('---\n')
+		article.description = splitUp[0]
+		article.content = splitUp.slice(1).join('---\n')
+	}
+
+	return article
+}
+
+function getComponentCode({
+	dir,
+	filename,
+	parsed,
+}: {
+	dir: string
+	filename: string
+	parsed: matter.GrayMatterFile<string>
+}) {
+	return parsed.data.component
+		? fs
+				.readFileSync(
+					path.join(
+						dir,
+						filename,
+						`${parsed.data.component}${parsed.data.component.endsWith('.tsx') ? '' : '.tsx'}`
+					)
+				)
+				.toString()
+		: null
+}
+
+function getComponentCodeFiles({
+	dir,
+	filename,
+	parsed,
+}: {
+	dir: string
+	filename: string
+	parsed: matter.GrayMatterFile<string>
+}) {
+	const componentCodeFiles: { [key: string]: string } = {}
+
+	if (parsed.data.component) {
+		// Get the files from the example directory
+		fs.readdirSync(path.join(dir, filename), {
+			withFileTypes: true,
+			recursive: true,
+		})
+			// filter the files to only include files that are not directories, not the README, and not the component itself
+			.filter(
+				(file) =>
+					!file.isDirectory() &&
+					file.name !== 'README.md' &&
+					file.name.replace('.tsx', '') !==
+						parsed.data.component.replace('./', '').replace('.tsx', '')
+			)
+			// For each of these component files, read the file and add it to the componentCodeFiles object
+			.forEach((file) => {
+				componentCodeFiles[file.name] = fs.readFileSync(path.join(file.path, file.name)).toString()
+			})
+	}
+
+	return componentCodeFiles
 }
