@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import FeaturesMultiplayer from '../../public/images/features/features-multiplayer.jpg'
 import FeaturesPerformance from '../../public/images/features/features-performance.jpg'
 import FeaturesReact from '../../public/images/features/features-react.jpg'
@@ -13,8 +14,8 @@ export const FeaturesSection = () => {
 		<Section id="features">
 			<SectionHeading
 				subheading="Features"
-				heading="Feature complete"
-				description="We've designed the tldraw SDK to be a solid foundation. It's built for the web and packed with table-stakes features."
+				heading="Good technology"
+				description="We've designed the tldraw SDK to be a solid foundation for developers: built for the web, packed with table-stakes features, and designed for extension."
 			/>
 			<div className="grid grid-cols-6 gap-x-8 md:gap-y-8">
 				<Card className="col-span-6 md:col-span-3">
@@ -57,7 +58,8 @@ export const FeaturesSection = () => {
 						</h3>
 						<p className="max-w-xs">
 							Create shared experiences with real-time collaboration, live cursors, viewport
-							following and cursor chat. Go live with tldraw sync or bring your own backend.
+							following and cursor chat. Go live with <Link href="/docs/sync">tldraw sync</Link> or
+							bring your own backend.
 						</p>
 					</div>
 				</Card>
@@ -78,14 +80,14 @@ export const FeaturesSection = () => {
 				<Card className="col-span-6 md:col-span-2">
 					<Image
 						src={FeaturesShapes}
-						alt="Make it yours"
+						alt="Customization"
 						className="absolute -bottom-12 right-4 w-1/2"
 					/>
 					<div className="relative px-5 md:px-10 pt-9 pb-32">
-						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Make it yours</h3>
+						<h3 className="text-black font-black text-xl md:text-2xl mb-4">Customization</h3>
 						<p className="max-w-xs">
-							Highly hackable and built for customization. Create your own custom shapes, tools, and
-							user interface. Use the runtime API to drive the canvas.
+							Create your own custom shapes, tools, and user interface. Use the runtime Editor API
+							to drive the canvas.
 						</p>
 					</div>
 				</Card>
