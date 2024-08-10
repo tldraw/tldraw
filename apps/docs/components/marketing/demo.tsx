@@ -20,7 +20,7 @@ export const Demo = () => {
 					{showCanvas ? (
 						<iframe
 							className="iframe"
-							src="https://examples.tldraw.com/develop"
+							src="https://examples.tldraw.com/develop?tldraw_preserve_focus=true"
 							width="100%"
 							height="100%"
 						/>
