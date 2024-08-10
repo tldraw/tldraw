@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import FeaturesMultiplayer from '../../public/images/features/features-multiplayer.jpg'
 import FeaturesPerformance from '../../public/images/features/features-performance.jpg'
 import FeaturesReact from '../../public/images/features/features-react.jpg'
@@ -57,7 +58,8 @@ export const FeaturesSection = () => {
 						</h3>
 						<p className="max-w-xs">
 							Create shared experiences with real-time collaboration, live cursors, viewport
-							following and cursor chat. Go live with tldraw sync or bring your own backend.
+							following and cursor chat. Go live with <Link href="/docs/sync">tldraw sync</Link> or
+							bring your own backend.
 						</p>
 					</div>
 				</Card>
