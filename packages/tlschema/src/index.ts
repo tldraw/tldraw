@@ -151,13 +151,9 @@ export {
 	type TLDrawShapeSegment,
 } from './shapes/TLDrawShape'
 export {
-	EMBED_DEFINITIONS,
 	embedShapeMigrations,
-	embedShapePermissionDefaults,
 	embedShapeProps,
-	type EmbedDefinition,
 	type TLEmbedShape,
-	type TLEmbedShapePermissions,
 	type TLEmbedShapeProps,
 } from './shapes/TLEmbedShape'
 export {

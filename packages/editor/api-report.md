@@ -14,7 +14,6 @@ import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { Dispatch } from 'react';
 import { EffectScheduler } from '@tldraw/state';
-import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
@@ -916,8 +915,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     // @internal (undocumented)
     externalContentHandlers: {
-        [K in TLExternalContent['type']]: {
-            [Key in K]: ((info: TLExternalContent & {
+        [K in TLExternalContent<any>['type']]: {
+            [Key in K]: ((info: TLExternalContent<any> & {
                 type: Key;
             }) => void) | null;
         }[K];
@@ -1153,14 +1152,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         select?: boolean;
     }): this;
-    putExternalContent(info: TLExternalContent): Promise<void>;
+    putExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
     redo(): this;
     registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(type: T, handler: ((info: TLExternalAssetContent & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
-    registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
+    registerExternalContentHandler<T extends TLExternalContent<E>['type'], E>(type: T, handler: ((info: T extends TLExternalContent<E>['type'] ? TLExternalContent<E> & {
         type: T;
-    } : TLExternalContent) => void) | null): this;
+    } : TLExternalContent<E>) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
@@ -2927,7 +2926,7 @@ export type TLExternalAssetContent = {
 };
 
 // @public (undocumented)
-export type TLExternalContent = {
+export type TLExternalContent<EmbedDefinition> = {
     point?: VecLike;
     sources?: TLExternalContentSource[];
 } & ({

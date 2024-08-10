@@ -1,9 +1,10 @@
 import Image from 'next/image'
-import FeaturesRichMedia from '../../public/images/features/media.png'
-import FeaturesMultiplayer from '../../public/images/features/multiplayer.png'
-import FeaturesPerformance from '../../public/images/features/performance.png'
-import FeaturesReact from '../../public/images/features/react.png'
-import FeaturesShapes from '../../public/images/features/shapes.png'
+import Link from 'next/link'
+import FeaturesMultiplayer from '../../public/images/features/features-multiplayer.jpg'
+import FeaturesPerformance from '../../public/images/features/features-performance.jpg'
+import FeaturesReact from '../../public/images/features/features-react.jpg'
+import FeaturesRichMedia from '../../public/images/features/features-rich-media.jpg'
+import FeaturesShapes from '../../public/images/features/features-shapes.jpg'
 import { Card } from './card'
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
@@ -13,8 +14,8 @@ export const FeaturesSection = () => {
 		<Section id="features">
 			<SectionHeading
 				subheading="Features"
-				heading="Feature complete"
-				description="We've designed the tldraw SDK to be a solid foundation. It's built for the web and packed with table-stakes features."
+				heading="Good technology"
+				description="We've designed the tldraw SDK to be a solid foundation for developers: built for the web, packed with table-stakes features, and designed for extension."
 			/>
 			<div className="grid grid-cols-6 gap-x-8 sm:gap-y-8">
 				<Card className="col-span-6 md:col-span-3">
@@ -58,7 +59,8 @@ export const FeaturesSection = () => {
 						</h3>
 						<p className="max-w-xs">
 							Create shared experiences with real-time collaboration, live cursors, viewport
-							following and cursor chat. Go live with tldraw sync or bring your own backend.
+							following and cursor chat. Go live with <Link href="/docs/sync">tldraw sync</Link> or
+							bring your own backend.
 						</p>
 					</div>
 					<Image
@@ -88,16 +90,16 @@ export const FeaturesSection = () => {
 				<Card className="col-span-6 md:col-span-2">
 					<div className="relative p-5 pb-8 lg:px-10 lg:py-9">
 						<h3 className="text-black dark:text-white font-black text-xl md:text-2xl mb-4">
-							Make it yours
+							Customization
 						</h3>
 						<p className="max-w-xs">
-							Highly hackable and built for customization. Create your own custom shapes, tools, and
-							user interface. Use the runtime API to drive the canvas.
+							Create your own custom shapes, tools, and user interface. Use the runtime Editor API
+							to drive the canvas.
 						</p>
 					</div>
 					<Image
 						src={FeaturesShapes}
-						alt="Make it yours"
+						alt="Customization"
 						className="w-1/2 mx-auto -mb-12 max-w-40 xl:-mt-4 xl:-mb-14 xl:mr-12"
 					/>
 				</Card>

@@ -25,6 +25,15 @@ export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForegroun
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
 export {
+	DEFAULT_EMBED_DEFINITIONS,
+	embedShapePermissionDefaults,
+	type CustomEmbedDefinition,
+	type DefaultEmbedDefinitionType,
+	type EmbedDefinition,
+	type TLEmbedDefinition,
+	type TLEmbedShapePermissions,
+} from './lib/defaultEmbedDefinitions'
+export {
 	centerSelectionAroundPoint,
 	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
 	createShapesForAssets,
