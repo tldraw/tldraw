@@ -6,60 +6,58 @@ import {
 	ArticleStatus,
 	Articles,
 	Category,
+	InputCategory,
 	InputSection,
 	Section,
 } from '../../types/content-types'
 import { CONTENT_DIR } from '../utils'
 
 export function generateSection(section: InputSection, articles: Articles, index: number): Section {
+	const { id: sectionId, sidebar_behavior, categories: sectionCategories } = section
+
+	const isExamplesSection = sectionId === 'examples'
+	const isReferenceSection = sectionId === 'reference'
+	const skipUnpublishedArticles = process.env.NODE_ENV !== 'development' && !isExamplesSection
+
 	// Uncategorized articles
-	const _ucg: Article[] = []
+	const sectionUncategorizedArticles: Article[] = []
 
 	// A temporary table of articles mapped to categories
-	const _categoryArticles: Record<string, Article[]> = Object.fromEntries(
+	const sectionCategoryArticles: Record<string, Article[]> = Object.fromEntries(
 		section.categories.map((category) => [category.id, []])
 	)
 
-	// The file directory for this section
-	const isExamplesSection = section.id === 'examples'
+	// Create the article files for this section
 	const dir = isExamplesSection
 		? path.join(process.cwd(), '..', 'examples', 'src', 'examples')
-		: path.join(CONTENT_DIR, section.id)
+		: path.join(CONTENT_DIR, sectionId)
 	const files = fs.readdirSync(dir, { withFileTypes: false })
-
-	const isGenerated = section.id === 'reference'
-
-	const { id: sectionId, sidebar_behavior, categories: sectionCategories } = section
-
-	const skipUnpublished = process.env.NODE_ENV !== 'development' && !isExamplesSection
 
 	for (const file of files) {
 		const filename = file.toString()
 		if (filename.startsWith('.')) continue
+
+		// Get the parsed file content using matter
 		const pathname = isExamplesSection
 			? path.join(dir, filename, 'README.md')
 			: path.join(dir, filename)
-		const extension = path.extname(filename)
-		const articleId = filename.replace(extension, '')
 		const fileContent = fs.readFileSync(pathname).toString()
 		const parsed = matter({ content: fileContent }, {})
 
-		// If we're in prod and the article isn't published, skip it
-		if (skipUnpublished && parsed.data.status !== 'published') {
-			continue
-		}
+		if (skipUnpublishedArticles && parsed.data.status !== 'published') continue
+
+		const extension = path.extname(filename)
+		const articleId = filename.replace(extension, '')
 
 		const article = getArticleData({
 			articleId,
 			sectionId,
 			parsed,
-			isGenerated,
+			isGenerated: isReferenceSection,
 			extension,
 			componentCode: getComponentCode({ dir, filename, parsed }),
 			componentCodeFiles: getComponentCodeFiles({ dir, filename, parsed }),
 		})
-
-		const category = sectionCategories.find((c) => c.id === article.categoryId)
 
 		if (articleId === section.id) {
 			// The article is an index page, ie docs/docs
@@ -67,37 +65,25 @@ export function generateSection(section: InputSection, articles: Articles, index
 			article.sectionIndex = -1
 			articles[section.id + '_index'] = article
 		} else {
-			// If the article is in a category...
-			if (category) {
+			// If the article is in a category and that category exists...
+			if (article.categoryId && sectionCategoryArticles[article.categoryId]) {
 				// The article is a category index page, ie docs/editor/editor
-				if (article.id === category.id) {
+				if (article.id === article.categoryId) {
 					article.categoryIndex = -1
 					article.sectionIndex = -1
-					articles[category.id + '_index'] = article
+					articles[article.categoryId + '_index'] = article
 				} else {
 					// Otherwise, add it to the category's list of articles
-					_categoryArticles[article.categoryId].push(article)
+					sectionCategoryArticles[article.categoryId].push(article)
 				}
 			} else {
 				// otherwise, add it to the section's uncategorized list
-				_ucg.push(article)
+				sectionUncategorizedArticles.push(article)
 			}
 		}
 	}
 
-	// The section index is the "flattened" index of the article in the section.
-	// Keep track of the section index as we go through sorted articles.
-	let articleSectionIndex = 0
-
-	// Sort uncategorized articles by date and add them to the articles table
-	_ucg.sort(sortArticles).forEach((article, i) => {
-		article.categoryIndex = i
-		article.sectionIndex = articleSectionIndex
-		articles[article.id] = article
-		articleSectionIndex++
-	})
-
-	// Start with the uncategorized category
+	// Crate the categories
 	const categories: Category[] = [
 		{
 			id: section.id + '_ucg',
@@ -111,43 +97,33 @@ export function generateSection(section: InputSection, articles: Articles, index
 			content: null,
 			hero: null,
 		},
+		...sectionCategories
+			.filter((inputCategory) => sectionCategoryArticles[inputCategory.id].length > 0)
+			.map((inputCategory, i) =>
+				getCategory({
+					index: i + 1,
+					sectionId,
+					inputCategory,
+				})
+			),
 	]
 
-	// Sort categorized articles by date and add them to the articles table
-	sectionCategories.forEach((inputCategory, i) => {
-		const categoryArticles = _categoryArticles[inputCategory.id]
+	// Finish the articles now that we have all of the categories done.
+	// Keep track of the section index through all of the sorted category articles.
+	// The section index is the "flattened" index of the article in the section.
+	let articleSectionIndex = 0
+	categories.forEach((category) => {
+		const categoryArticles =
+			category.id === section.id + '_ucg'
+				? sectionUncategorizedArticles
+				: sectionCategoryArticles[category.id]
 
-		if (categoryArticles.length) {
-			// Sort the articles by category index and apply their indicese
-			categoryArticles.sort(sortArticles).forEach((article, i) => {
-				article.categoryIndex = i
-				article.sectionIndex = articleSectionIndex
-				articles[article.id] = article
-				articleSectionIndex++
-			})
-
-			// Create the category
-			categories.push({
-				...inputCategory,
-				type: 'category',
-				sectionId: section.id,
-				index: i + 1,
-				path: `/${section.id}/${inputCategory.id}`,
-				content: null,
-				hero: null,
-				groups: inputCategory.groups.map(({ id }, i) => ({
-					id,
-					title: id,
-					index: i,
-					type: 'group',
-					sectionId: section.id,
-					categoryId: inputCategory.id,
-					description: null,
-					content: null,
-					path: `/${section.id}/${inputCategory.id}/${id}`,
-				})),
-			})
-		}
+		categoryArticles.sort(sortArticles).forEach((article, i) => {
+			article.categoryIndex = i
+			article.sectionIndex = articleSectionIndex
+			articles[article.id] = article
+			articleSectionIndex++
+		})
 	})
 
 	// Section is done, return it
@@ -301,4 +277,35 @@ function getComponentCodeFiles({
 	}
 
 	return componentCodeFiles
+}
+
+function getCategory({
+	inputCategory,
+	sectionId,
+	index,
+}: {
+	index: number
+	sectionId: Section['id']
+	inputCategory: InputCategory
+}): Category {
+	return {
+		...inputCategory,
+		type: 'category',
+		sectionId,
+		index,
+		path: `/${sectionId}/${inputCategory.id}`,
+		content: null,
+		hero: null,
+		groups: inputCategory.groups.map(({ id }, i) => ({
+			id,
+			title: id,
+			index: i,
+			type: 'group',
+			sectionId,
+			categoryId: inputCategory.id,
+			description: null,
+			content: null,
+			path: `/${sectionId}/${inputCategory.id}/${id}`,
+		})),
+	}
 }
