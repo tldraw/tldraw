@@ -8778,7 +8778,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
 		}
 	}
-	private _handleDeepLink(deepLink: TLDeepLink) {
+	private _navigateToDeepLink(deepLink: TLDeepLink) {
 		this.run(() => {
 			switch (deepLink.type) {
 				case 'page': {
@@ -8837,7 +8837,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.handleDeepLink()
+	 * editor.navigateToDeepLink()
 	 * ```
 	 *
 	 * The default parameter name is 'd'. You can override this by providing the `param` option.
@@ -8845,7 +8845,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * // disable page parameter and change viewport parameter to 'c'
-	 * editor.handleDeepLink({
+	 * editor.navigateToDeepLink({
 	 *   param: 'x',
 	 *   url: 'https://my-app.com/my-document?x=200.12.454.23.xyz123',
 	 * })
@@ -8853,9 +8853,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param opts - Options for loading the state from the URL.
 	 */
-	handleDeepLink(opts?: TLDeepLink | { url?: string | URL; param?: string }): Editor {
+	navigateToDeepLink(opts?: TLDeepLink | { url?: string | URL; param?: string }): Editor {
 		if (opts && 'type' in opts) {
-			this._handleDeepLink(opts)
+			this._navigateToDeepLink(opts)
 			return this
 		}
 
@@ -8868,7 +8868,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		try {
-			this._handleDeepLink(parseDeepLinkString(deepLinkString))
+			this._navigateToDeepLink(parseDeepLinkString(deepLinkString))
 		} catch (e) {
 			console.warn(e)
 			this._zoomToFitPageContentAt100Percent()

@@ -1103,10 +1103,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         groupId: TLShapeId;
         select: boolean;
     }>): this;
-    handleDeepLink(opts?: {
-        param?: string;
-        url?: string | URL;
-    } | TLDeepLink): Editor;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     // (undocumented)
     hasExternalAssetHandler(type: TLExternalAssetContent['type']): boolean;
@@ -1152,6 +1148,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(markId?: string): this;
     markHistoryStoppingPoint(name?: string): string;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
+    navigateToDeepLink(opts?: {
+        param?: string;
+        url?: string | URL;
+    } | TLDeepLink): Editor;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;

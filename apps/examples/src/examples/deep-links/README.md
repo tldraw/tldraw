@@ -83,16 +83,16 @@ editor.createDeepLink({ to: { type: 'page', pageId: 'page:abc123' } })
 
 You can parse a deep link string with [`parseDeepLinkString`](?) which returns a [`TLDeepLink`](?) descriptor object.
 
-You can then call [`Editor#handleDeepLink`](?) with this descriptor to navigate to the part of the document described by the deep link.
+You can then call [`Editor#navigateToDeepLink`](?) with this descriptor to navigate to the part of the document described by the deep link.
 
-`Editor#handleDeepLink` also can take a plain URL if the deep link is encoded as a query param.
+`Editor#navigateToDeepLink` also can take a plain URL if the deep link is encoded as a query param.
 
 ```tsx
-editor.handleDeepLink(parseDeepLinkString('pabc123'))
+editor.navigateToDeepLink(parseDeepLinkString('pabc123'))
 // or pass in a url
-editor.handleDeepLink({ url: 'https://my-app.com/document-name?d=pabc123' })
+editor.navigateToDeepLink({ url: 'https://my-app.com/document-name?d=pabc123' })
 // or call without options to use the current `window.location`
-editor.handleDeepLink()
+editor.navigateToDeepLink()
 ```
 
 ### Listening for deep link changes

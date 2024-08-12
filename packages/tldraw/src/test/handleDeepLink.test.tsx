@@ -26,7 +26,7 @@ describe('type: viewport', () => {
 		expect(editor.getViewportPageBounds()).not.toMatchObject(bounds)
 		const link = makeUrl({ type: 'viewport', bounds })
 		window.history.pushState({}, '', link)
-		editor.handleDeepLink()
+		editor.navigateToDeepLink()
 		expect(editor.getViewportPageBounds()).toMatchObject(bounds)
 	})
 
@@ -34,7 +34,7 @@ describe('type: viewport', () => {
 		const bounds = { x: -500, y: 2342, w: editor.bounds.width, h: editor.bounds.height }
 		expect(editor.getViewportPageBounds()).not.toMatchObject(bounds)
 		const url = makeUrl({ type: 'viewport', bounds })
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 		expect(editor.getViewportPageBounds()).toMatchObject(bounds)
 	})
 
@@ -45,7 +45,7 @@ describe('type: viewport', () => {
 		const expected = { x: -600, y: 2342, w: editor.bounds.width, h: editor.bounds.height }
 		expect(editor.getViewportPageBounds()).not.toMatchObject(expected)
 		const url = makeUrl({ type: 'viewport', bounds })
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 		expect(editor.getViewportPageBounds()).toMatchObject(expected)
 	})
 
@@ -56,7 +56,7 @@ describe('type: viewport', () => {
 		const expected = { x: -500, y: 2242, w: editor.bounds.width, h: editor.bounds.height }
 		expect(editor.getViewportPageBounds()).not.toMatchObject(expected)
 		const url = makeUrl({ type: 'viewport', bounds })
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 		expect(editor.getViewportPageBounds()).toMatchObject(expected)
 	})
 
@@ -68,7 +68,7 @@ describe('type: viewport', () => {
 		const bounds = { x: -500, y: 2342, w: editor.bounds.width, h: editor.bounds.height }
 		const url = makeUrl({ type: 'viewport', bounds, pageId })
 
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 		expect(editor.getCurrentPageId()).toBe(pageId)
 		expect(editor.getViewportPageBounds()).toMatchObject(bounds)
 	})
@@ -79,7 +79,7 @@ describe('type: viewport', () => {
 		const bounds = { x: -500, y: 2342, w: editor.bounds.width, h: editor.bounds.height }
 		const url = makeUrl({ type: 'viewport', bounds, pageId })
 
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 		expect(editor.getCurrentPageId()).not.toBe(pageId)
 		expect(editor.getViewportPageBounds()).not.toMatchObject(bounds)
 	})
@@ -96,7 +96,7 @@ describe('type: page', () => {
 
 		const url = makeUrl({ type: 'page', pageId })
 
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 
 		expect(editor.getCurrentPageId()).toBe(pageId)
 		expect(editor.getViewportPageBounds()).toMatchObject({
@@ -112,7 +112,7 @@ describe('type: page', () => {
 
 		const url = makeUrl({ type: 'page', pageId })
 
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 
 		expect(editor.getCurrentPageId()).toBe(initialPageId)
 		expect(editor.getViewportPageBounds()).toMatchObject({
@@ -135,7 +135,7 @@ describe('type: shapes', () => {
 
 		const url = makeUrl({ type: 'shapes', shapeIds: [boxA, boxB] })
 
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 		const viewport = editor.getViewportPageBounds()
 		expect(viewport.contains(editor.getShapePageBounds(boxA)!)).toBe(true)
 		expect(viewport.contains(editor.getShapePageBounds(boxB)!)).toBe(true)
@@ -156,7 +156,7 @@ describe('type: shapes', () => {
 
 		const url = makeUrl({ type: 'shapes', shapeIds: [boxA, boxB] })
 
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 		const viewport = editor.getViewportPageBounds()
 		expect(viewport.contains(editor.getShapePageBounds(boxA)!)).toBe(true)
 		expect(viewport.contains(editor.getShapePageBounds(boxB)!)).toBe(true)
@@ -182,7 +182,7 @@ describe('type: shapes', () => {
 
 		const url = makeUrl({ type: 'shapes', shapeIds: [boxA, boxB, boxC] })
 
-		editor.handleDeepLink({ url })
+		editor.navigateToDeepLink({ url })
 
 		expect(editor.getCurrentPageId()).toBe(otherPageId)
 		const viewport = editor.getViewportPageBounds()
