@@ -30,12 +30,6 @@ test('it does not include page if maxPages is 1', () => {
 	expect(editor.createDeepLink()).toMatchInlineSnapshot(`"http://localhost/test?d=v0.0.1080.720"`)
 })
 
-test('it updates window.location if you set updateAddressBar to true', () => {
-	expect(window.location.href).toBe('http://localhost/test')
-	editor.createDeepLink({ updateAddressBar: true })
-	expect(window.location.href).toMatchInlineSnapshot(`"http://localhost/test?d=v0.0.1080.720.page"`)
-})
-
 test('it allows specifying a page target', () => {
 	const pageId = PageRecordType.createId('foo')
 	const url = editor.createDeepLink({

@@ -8899,16 +8899,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * }))
 	 * ```
 	 *
-	 * You can also update the address bar with the new URL by providing `updateAddressBar: true`.
-	 *
-	 * @example
-	 * ```ts
-	 * // Update the address bar every 500 ms
-	 * setInterval(() => {
-	 *   editor.createDeepLink({ updateAddressBar: true })
-	 * }, 500)
-	 * ```
-	 *
 	 * The default query param is 'd'. You can override this by providing a `param` parameter.
 	 *
 	 * @example
@@ -8920,12 +8910,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - Options for adding the state to the URL.
 	 * @returns the updated URL
 	 */
-	createDeepLink(opts?: {
-		url?: string | URL
-		param?: string
-		to?: TLDeepLink
-		updateAddressBar?: boolean
-	}): URL {
+	createDeepLink(opts?: { url?: string | URL; param?: string; to?: TLDeepLink }): URL {
 		const url = new URL(opts?.url ?? window.location.href)
 
 		url.searchParams.set(
@@ -8938,10 +8923,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			)
 		)
-
-		if (opts?.updateAddressBar) {
-			window.history.replaceState({}, document.title, url.toString())
-		}
 
 		return url
 	}
@@ -9009,16 +8990,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const announceChange =
 			opts?.onChange ??
-			(() =>
-				this.createDeepLink({
+			(() => {
+				const url = this.createDeepLink({
 					param: opts?.param,
 					to: opts?.getTarget?.(this),
-					updateAddressBar: true,
-				}))
+				})
 
-		return react('update url on state change', () => announceChange(new URL(url$.get()), this), {
-			scheduleEffect: debounce((execute) => execute(), opts?.debounceMs ?? 500),
-		})
+				window.history.replaceState({}, document.title, url.toString())
+			})
+
+		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)
+
+		const unlisten = react(
+			'update url on state change',
+			() => announceChange(new URL(url$.get()), this),
+			{ scheduleEffect }
+		)
+
+		return () => {
+			unlisten()
+			scheduleEffect.cancel()
+		}
 	}
 
 	/**

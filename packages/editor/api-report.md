@@ -870,7 +870,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     createDeepLink(opts?: {
         param?: string;
         to?: TLDeepLink;
-        updateAddressBar?: boolean;
         url?: string | URL;
     }): URL;
     // @internal (undocumented)
