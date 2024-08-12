@@ -1,3 +1,4 @@
+import { A } from '@/components/content/a'
 import { ApiHeading } from '@/components/content/api-heading'
 import { Blockquote } from '@/components/content/blockquote'
 import { Callout } from '@/components/content/callout'
@@ -10,13 +11,14 @@ import { ParametersTableName } from '@/components/content/parameters-table-name'
 import { ParametersTableRow } from '@/components/content/parameters-table-row'
 import { Pre } from '@/components/content/pre'
 import { TitleWithSourceLink } from '@/components/content/title-with-source-link'
+import { Video } from '@/components/content/video'
+import { YouTube } from '@/components/content/youtube'
 import { cn } from '@/utils/cn'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
-import { A } from './a'
 
 export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type }) => {
 	return (
@@ -54,6 +56,8 @@ export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type })
 					ParametersTableRow,
 					TitleWithSourceLink,
 					blockquote: Blockquote,
+					Video,
+					YouTube,
 				}}
 				options={{
 					mdxOptions: {
