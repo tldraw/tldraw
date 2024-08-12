@@ -375,6 +375,8 @@ function TldrawEditorWithReadyStore({
 
 	const canvasRef = useRef<HTMLDivElement | null>(null)
 
+	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
+
 	// props in this ref can be changed without causing the editor to be recreated.
 	const editorOptionsRef = useRef({
 		// for these, it's because they're only used when the editor first mounts:
@@ -384,11 +386,8 @@ function TldrawEditorWithReadyStore({
 
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
+		deepLinks,
 	})
-
-	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
-	const deepLinksRef = useRef(deepLinks)
-	deepLinksRef.current = deepLinks
 
 	useLayoutEffect(() => {
 		editorOptionsRef.current = {
@@ -396,12 +395,14 @@ function TldrawEditorWithReadyStore({
 			inferDarkMode,
 			initialState,
 			cameraOptions,
+			deepLinks,
 		}
-	}, [autoFocus, inferDarkMode, initialState, cameraOptions])
+	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions } = editorOptionsRef.current
+			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks } =
+				editorOptionsRef.current
 			const editor = new Editor({
 				store,
 				shapeUtils,
@@ -422,7 +423,6 @@ function TldrawEditorWithReadyStore({
 
 			// Use the ref here because we only want to do this once when the editor is created.
 			// We don't want changes to the urlStateSync prop to trigger creating new editors.
-			const deepLinks = deepLinksRef.current
 			if (deepLinks) {
 				if (!deepLinks?.getUrl) {
 					// load the state from window.location
