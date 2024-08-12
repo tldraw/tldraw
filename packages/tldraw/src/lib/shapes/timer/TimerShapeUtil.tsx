@@ -4,6 +4,7 @@ import {
 	ShapeUtil,
 	TLTimerShape,
 	TLTimerState,
+	exhaustiveSwitchError,
 	timerShapeMigrations,
 	timerShapeProps,
 } from '@tldraw/editor'
@@ -109,6 +110,10 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 				return shape.props.initialTime
 			case 'paused':
 				return shape.props.remainingTime
+			case 'completed':
+				return 0
+			default:
+				exhaustiveSwitchError(shape.props.state)
 		}
 	}
 
@@ -120,6 +125,10 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 				return 'yellow'
 			case 'stopped':
 				return 'red'
+			case 'completed':
+				return 'blue'
+			default:
+				exhaustiveSwitchError(state)
 		}
 	}
 
@@ -134,7 +143,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 					id: shape.id,
 					type: shape.type,
 					props: {
-						state: { state: 'stopped' },
+						state: { state: 'completed' },
 					},
 				})
 			}, 0)

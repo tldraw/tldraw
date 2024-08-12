@@ -1440,7 +1440,11 @@ export interface TLTimerShapeProps {
         lastStartTime: number;
         state: 'running';
     } | {
-        state: 'paused' | 'stopped';
+        state: 'completed';
+    } | {
+        state: 'paused';
+    } | {
+        state: 'stopped';
     };
 }
 

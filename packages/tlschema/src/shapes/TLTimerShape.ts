@@ -7,7 +7,11 @@ import { TLBaseShape } from './TLBaseShape'
 export interface TLTimerShapeProps {
 	initialTime: number
 	remainingTime: number
-	state: { state: 'running'; lastStartTime: number } | { state: 'stopped' | 'paused' }
+	state:
+		| { state: 'running'; lastStartTime: number }
+		| { state: 'stopped' }
+		| { state: 'paused' }
+		| { state: 'completed' }
 }
 
 /** @public */
@@ -19,12 +23,18 @@ export type TLTimerShape = TLBaseShape<'timer', TLTimerShapeProps>
 const runningState = T.object({ state: T.literal('running'), lastStartTime: T.positiveNumber })
 const pausedState = T.object({ state: T.literal('paused') })
 const stoppedState = T.object({ state: T.literal('stopped') })
+const completedState = T.object({ state: T.literal('completed') })
 
 /** @public */
 export const timerShapeProps: RecordProps<TLTimerShape> = {
 	initialTime: T.positiveNumber,
 	remainingTime: T.positiveNumber,
-	state: T.union('state', { running: runningState, paused: pausedState, stopped: stoppedState }),
+	state: T.union('state', {
+		running: runningState,
+		paused: pausedState,
+		stopped: stoppedState,
+		completed: completedState,
+	}),
 }
 
 /** @public */

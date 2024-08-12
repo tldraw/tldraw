@@ -1942,7 +1942,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
     // (undocumented)
     formatTime(time: number): string;
     // (undocumented)
-    getBackgroundColor(state: TLTimerState): "green" | "red" | "yellow";
+    getBackgroundColor(state: TLTimerState): "blue" | "green" | "red" | "yellow";
     // (undocumented)
     getCurrentServerTime(): any;
     // (undocumented)
