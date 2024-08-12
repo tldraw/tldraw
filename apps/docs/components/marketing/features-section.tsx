@@ -1,13 +1,13 @@
+import { Card } from '@/components/marketing/card'
+import { Section } from '@/components/marketing/section'
+import { SectionHeading } from '@/components/marketing/section-heading'
+import FeaturesRichMedia from '@/public/images/features/media.png'
+import FeaturesMultiplayer from '@/public/images/features/multiplayer.png'
+import FeaturesPerformance from '@/public/images/features/performance.png'
+import FeaturesReact from '@/public/images/features/react.png'
+import FeaturesShapes from '@/public/images/features/shapes.png'
 import Image from 'next/image'
 import Link from 'next/link'
-import FeaturesMultiplayer from '../../public/images/features/features-multiplayer.jpg'
-import FeaturesPerformance from '../../public/images/features/features-performance.jpg'
-import FeaturesReact from '../../public/images/features/features-react.jpg'
-import FeaturesRichMedia from '../../public/images/features/features-rich-media.jpg'
-import FeaturesShapes from '../../public/images/features/features-shapes.jpg'
-import { Card } from './card'
-import { Section } from './section'
-import { SectionHeading } from './section-heading'
 
 export const FeaturesSection = () => {
 	return (
