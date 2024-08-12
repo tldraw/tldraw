@@ -39,6 +39,7 @@
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
+		"@vis.gl/react-google-maps": "^1.1.0",
 		"classnames": "^2.3.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",

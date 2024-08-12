@@ -6657,7 +6657,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/google.maps@npm:^3.45.3":
+"@types/google.maps@npm:^3.45.3, @types/google.maps@npm:^3.54.10":
   version: 3.55.12
   resolution: "@types/google.maps@npm:3.55.12"
   checksum: 08a76e67b2435b38aaedbe7dddbe95198c27ee340032908e440ce2eb6baaa556acd2940784dfd9c93f125c37c14b091ec0b8ec8365c6d5eedc1b9eb01b4ea3c5
@@ -7670,6 +7670,19 @@ __metadata:
     json-schema-to-ts: "npm:1.6.4"
     ts-morph: "npm:12.0.0"
   checksum: 69d9b0a4b1edd4dec767c512963a2000563c3923ce4343bf6f12bcfb30c8689338eb6216ab16d52f5ff16d4839fcc53ae6d4898a02582db8359d1ead5abd4cf1
+  languageName: node
+  linkType: hard
+
+"@vis.gl/react-google-maps@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@vis.gl/react-google-maps@npm:1.1.0"
+  dependencies:
+    "@types/google.maps": "npm:^3.54.10"
+    fast-deep-equal: "npm:^3.1.3"
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: ec1b4d9d7b270b75cdaab034a05176b2b9efb9fb079a6a29d4b5a17b941c53fbb9c48fec7f6287091388438bbb43f00462642f23d404a06aff477d7f3d70a81c
   languageName: node
   linkType: hard
 
@@ -11948,6 +11961,7 @@ __metadata:
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@vercel/analytics": "npm:^1.1.1"
+    "@vis.gl/react-google-maps": "npm:^1.1.0"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
     classnames: "npm:^2.3.2"
     dotenv: "npm:^16.3.1"

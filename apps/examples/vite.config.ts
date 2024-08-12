@@ -69,6 +69,11 @@ export default defineConfig(({ mode }) => ({
 		},
 	},
 	define: {
+		...Object.fromEntries(
+			Object.entries(process.env)
+				.filter(([key]) => key.startsWith('NEXT_PUBLIC_'))
+				.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
+		),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
 		'process.env.TLDRAW_DEPLOY_ID': JSON.stringify(
 			process.env.VERCEL_GIT_COMMIT_SHA ?? `local-${Date.now()}`
