@@ -12827,19 +12827,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gaxios@npm:^6.0.0":
-  version: 6.3.0
-  resolution: "gaxios@npm:6.3.0"
-  dependencies:
-    extend: "npm:^3.0.2"
-    https-proxy-agent: "npm:^7.0.1"
-    is-stream: "npm:^2.0.0"
-    node-fetch: "npm:^2.6.9"
-  checksum: 7b24f6480134e09967ddb5e743b5c549fbeaab8ca6d2b4d939080f9ad9472e963652f3c94d316c129aadff015d0ebb7144e93abc25b8ac54522ac86fdbaa27c4
-  languageName: node
-  linkType: hard
-
-"gaxios@npm:^6.1.1":
+"gaxios@npm:^6.0.0, gaxios@npm:^6.1.1":
   version: 6.7.0
   resolution: "gaxios@npm:6.7.0"
   dependencies:
