@@ -12,7 +12,7 @@ export async function generateMetadata({
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await getPageContent(`/legal/${path.join('/')}`)
 	if (!content || content.type !== 'article' || content.article.sectionId !== 'legal') notFound()
-	let metadata: Metadata = { title: content.article.title }
+	const metadata: Metadata = { title: content.article.title }
 	if (content.article.description) metadata.description = content.article.description
 	return metadata
 }

@@ -3,7 +3,7 @@ export const replaceMarkdownLinks = (text: string) => {
 	if (links !== null && links.length > 0) {
 		for (const link of links) {
 			const caption = link.match(/\[(.*?)\]/)![1]
-			const url = link.match(/\((.*?)\)/)![1]
+			// const url = link.match(/\((.*?)\)/)![1]
 			text = text.replace(link, caption)
 		}
 	}

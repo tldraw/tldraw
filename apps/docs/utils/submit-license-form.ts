@@ -45,7 +45,7 @@ export async function submitLicenseForm(prevState: any, formData: FormData) {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(body),
 		})
-		console.log(response)
+		// console.log(response)
 		if (response.status !== 200) throw response.statusText
 		return { success: true }
 	} catch (error) {
