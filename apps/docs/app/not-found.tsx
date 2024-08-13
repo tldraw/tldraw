@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 'use client'
 
 import { DiscordIcon } from '@/components/common/icon/discord'

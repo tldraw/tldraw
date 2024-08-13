@@ -215,7 +215,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				>
 					<div className={classNames('tl-image-container')} style={containerStyle}>
 						{/* We have two images: the currently loaded image, and the next image that
-						we're waiting to load. we keep the loaded image mounted whilst we're waiting
+						we're waiting to load. we keep the loaded image mounted while we're waiting
 						for the next one by storing the loaded URL in state. We use `key` props with
 						the src of the image so that when the next image is ready, the previous one will
 						be unmounted and the next will be shown with the browser having to remount a

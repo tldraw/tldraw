@@ -15,11 +15,11 @@ export async function generateMetadata({
 	if (!content) notFound()
 
 	if (content.type === 'category' && content.category.sectionId === 'blog') {
-		let metadata: Metadata = { title: content.category.title }
+		const metadata: Metadata = { title: content.category.title }
 		if (content.category.description) metadata.description = content.category.description
 		return metadata
 	} else if (content.type === 'article' && content.article.sectionId === 'blog') {
-		let metadata: Metadata = { title: content.article.title }
+		const metadata: Metadata = { title: content.article.title }
 		if (content.article.description) metadata.description = content.article.description
 		return metadata
 	}
