@@ -17,6 +17,7 @@ export default function SyncDemoShapeExample({ roomId }: { roomId: string }) {
 				tools={customTools}
 				overrides={uiOverrides}
 				components={components}
+				deepLinks
 			/>
 		</div>
 	)

@@ -14,6 +14,7 @@ import {
 	unwrapLabel,
 	useActions,
 	useContainer,
+	useEditor,
 	useToasts,
 	useTranslation,
 } from 'tldraw'
@@ -124,7 +125,9 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	const currentQrCodeUrl = isReadOnlyLink
 		? shareState.readonlyQrCodeDataUrl
 		: shareState.qrCodeDataUrl
+
 	const toasts = useToasts()
+	const editor = useEditor()
 
 	useEffect(() => {
 		if (shareState.state === SHARE_CURRENT_STATE.OFFLINE) {
@@ -133,13 +136,8 @@ export const ShareMenu = React.memo(function ShareMenu() {
 
 		let cancelled = false
 
-		const shareUrl = window.location.href
-		const url = new URL(shareUrl)
-		if (
-			!shareState.qrCodeDataUrl &&
-			shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE &&
-			(url.searchParams.has('v') || url.searchParams.has('p'))
-		) {
+		const shareUrl = editor.createDeepLink().toString()
+		if (!shareState.qrCodeDataUrl && shareState.state === SHARE_CURRENT_STATE.SHARED_READ_WRITE) {
 			// Fetch the QR code data URL
 			createQRCodeImageDataString(shareUrl).then((dataUrl) => {
 				if (!cancelled) {
@@ -177,7 +175,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 			clearInterval(interval)
 			cancelled = true
 		}
-	}, [shareState])
+	}, [editor, shareState])
 
 	const [isOpen, onOpenChange] = useShareMenuIsOpen()
 
