@@ -12,7 +12,7 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 } from 'tldraw'
-import { UrlStateSync } from '../components/MultiplayerEditor'
+import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
@@ -56,6 +56,9 @@ interface SnapshotEditorProps {
 }
 
 export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
+	// make sure this runs before the editor is instantiated
+	useLegacyUrlParams()
+
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
@@ -83,10 +86,9 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 				}}
 				components={components}
 				renderDebugMenuItems={() => <DebugMenuItems />}
+				deepLinks
 				inferDarkMode
-			>
-				<UrlStateSync />
-			</Tldraw>
+			/>
 		</div>
 	)
 }
