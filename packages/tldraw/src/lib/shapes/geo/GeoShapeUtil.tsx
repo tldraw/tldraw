@@ -103,7 +103,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		switch (shape.props.geo) {
 			case 'cloud': {
 				body = new Polygon2d({
-					points: cloudOutline(w, h, shape.id, shape.props.size),
+					points: cloudOutline(w, h, shape.id, shape.props.size, shape.props.scale),
 					isFilled,
 				})
 				break
@@ -508,7 +508,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				return <path d={geometry.getSvgPathData(true)} />
 			}
 			case 'cloud': {
-				return <path d={getCloudPath(w, h, id, size)} />
+				return <path d={getCloudPath(w, h, id, size, shape.props.scale)} />
 			}
 
 			default: {
