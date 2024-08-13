@@ -22,7 +22,7 @@ const schema = createTLSchema({
 // handles websocket connections. periodically, it persists the room state to the R2 bucket.
 export class TldrawDurableObject {
 	private r2: R2Bucket
-	// the room ID will be missing whilst the room is being initialized
+	// the room ID will be missing while the room is being initialized
 	private roomId: string | null = null
 	// when we load the room from the R2 bucket, we keep it here. it's a promise so we only ever
 	// load it once.

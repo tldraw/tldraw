@@ -65,6 +65,7 @@ import {
 	assertExists,
 	bind,
 	compact,
+	debounce,
 	dedupe,
 	exhaustiveSwitchError,
 	fetch,
@@ -110,6 +111,12 @@ import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { dataUrlToFile } from '../utils/assets'
 import { debugFlags } from '../utils/debug-flags'
+import {
+	TLDeepLink,
+	TLDeepLinkOptions,
+	createDeepLinkString,
+	parseDeepLinkString,
+} from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -3171,9 +3178,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(screenBounds: Box, center = false): this {
-		screenBounds.width = Math.max(screenBounds.width, 1)
-		screenBounds.height = Math.max(screenBounds.height, 1)
+	updateViewportScreenBounds(screenBounds: Box | HTMLElement, center = false): this {
+		if (screenBounds instanceof HTMLElement) {
+			const rect = screenBounds.getBoundingClientRect()
+			screenBounds = new Box(
+				rect.left || rect.x,
+				rect.top || rect.y,
+				Math.max(rect.width, 1),
+				Math.max(rect.height, 1)
+			)
+		} else {
+			screenBounds.width = Math.max(screenBounds.width, 1)
+			screenBounds.height = Math.max(screenBounds.height, 1)
+		}
 
 		const insets = [
 			// top
@@ -3186,15 +3203,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			screenBounds.minX !== 0,
 		]
 
+		const { _willSetInitialBounds } = this
+
+		this._willSetInitialBounds = false
+
 		const { screenBounds: prevScreenBounds, insets: prevInsets } = this.getInstanceState()
 		if (screenBounds.equals(prevScreenBounds) && insets.every((v, i) => v === prevInsets[i])) {
 			// nothing to do
 			return this
 		}
-
-		const { _willSetInitialBounds } = this
-
-		this._willSetInitialBounds = false
 
 		if (_willSetInitialBounds) {
 			// If we have just received the initial bounds, don't center the camera.
@@ -8753,6 +8770,247 @@ export class Editor extends EventEmitter<TLEventMap> {
 	loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot) {
 		loadSnapshot(this.store, snapshot)
 		return this
+	}
+
+	private _zoomToFitPageContentAt100Percent() {
+		const bounds = this.getCurrentPageBounds()
+		if (bounds) {
+			this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
+		}
+	}
+	private _navigateToDeepLink(deepLink: TLDeepLink) {
+		this.run(() => {
+			switch (deepLink.type) {
+				case 'page': {
+					const page = this.getPage(deepLink.pageId)
+					if (page) {
+						this.setCurrentPage(page)
+					}
+					this._zoomToFitPageContentAt100Percent()
+					return
+				}
+				case 'shapes': {
+					const allShapes = compact(deepLink.shapeIds.map((id) => this.getShape(id)))
+					const byPage: { [pageId: string]: TLShape[] } = {}
+					for (const shape of allShapes) {
+						const pageId = this.getAncestorPageId(shape)
+						if (!pageId) continue
+						byPage[pageId] ??= []
+						byPage[pageId].push(shape)
+					}
+					const [pageId, shapes] = Object.entries(byPage).sort(
+						([_, a], [__, b]) => b.length - a.length
+					)[0] ?? ['', []]
+
+					if (!pageId || !shapes.length) {
+						this._zoomToFitPageContentAt100Percent()
+					} else {
+						this.setCurrentPage(pageId as TLPageId)
+						const bounds = Box.Common(shapes.map((s) => this.getShapePageBounds(s)!))
+						this.zoomToBounds(bounds, { immediate: true, targetZoom: this.getBaseZoom() })
+					}
+					return
+				}
+				case 'viewport': {
+					if (deepLink.pageId) {
+						if (!this.getPage(deepLink.pageId)) {
+							this._zoomToFitPageContentAt100Percent()
+							return
+						}
+						this.setCurrentPage(deepLink.pageId)
+					}
+					this.zoomToBounds(deepLink.bounds, { immediate: true, inset: 0 })
+					return
+				}
+				default:
+					exhaustiveSwitchError(deepLink)
+			}
+		})
+	}
+
+	/**
+	 * Handles navigating to the content specified by the query param in the given URL.
+	 *
+	 * Use {@link Editor#createDeepLink} to create a URL with a deep link query param.
+	 *
+	 * If no URL is provided, it will look for the param in the current `window.location.href`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.navigateToDeepLink()
+	 * ```
+	 *
+	 * The default parameter name is 'd'. You can override this by providing the `param` option.
+	 *
+	 * @example
+	 * ```ts
+	 * // disable page parameter and change viewport parameter to 'c'
+	 * editor.navigateToDeepLink({
+	 *   param: 'x',
+	 *   url: 'https://my-app.com/my-document?x=200.12.454.23.xyz123',
+	 * })
+	 * ```
+	 *
+	 * @param opts - Options for loading the state from the URL.
+	 */
+	navigateToDeepLink(opts?: TLDeepLink | { url?: string | URL; param?: string }): Editor {
+		if (opts && 'type' in opts) {
+			this._navigateToDeepLink(opts)
+			return this
+		}
+
+		const url = new URL(opts?.url ?? window.location.href)
+		const deepLinkString = url.searchParams.get(opts?.param ?? 'd')
+
+		if (!deepLinkString) {
+			this._zoomToFitPageContentAt100Percent()
+			return this
+		}
+
+		try {
+			this._navigateToDeepLink(parseDeepLinkString(deepLinkString))
+		} catch (e) {
+			console.warn(e)
+			this._zoomToFitPageContentAt100Percent()
+		}
+		return this
+	}
+
+	/**
+	 * Turns the given URL into a deep link by adding a query parameter.
+	 *
+	 * e.g. `https://my-app.com/my-document?d=100.100.200.200.xyz123`
+	 *
+	 * If no URL is provided, it will use the current `window.location.href`.
+	 *
+	 * @example
+	 * ```ts
+	 * // create a deep link to the current page + viewport
+	 * navigator.clipboard.writeText(editor.createDeepLink())
+	 * ```
+	 *
+	 * You can link to a particular set of shapes by providing a `to` parameter.
+	 *
+	 * @example
+	 * ```ts
+	 * // create a deep link to the set of currently selected shapes
+	 * navigator.clipboard.writeText(editor.createDeepLink({
+	 *   to: { type: 'selection', shapeIds: editor.getSelectedShapeIds() }
+	 * }))
+	 * ```
+	 *
+	 * The default query param is 'd'. You can override this by providing a `param` parameter.
+	 *
+	 * @example
+	 * ```ts
+	 * // Use `x` as the param name instead
+	 * editor.createDeepLink({ param: 'x' })
+	 * ```
+	 *
+	 * @param opts - Options for adding the state to the URL.
+	 * @returns the updated URL
+	 */
+	createDeepLink(opts?: { url?: string | URL; param?: string; to?: TLDeepLink }): URL {
+		const url = new URL(opts?.url ?? window.location.href)
+
+		url.searchParams.set(
+			opts?.param ?? 'd',
+			createDeepLinkString(
+				opts?.to ?? {
+					type: 'viewport',
+					pageId: this.options.maxPages === 1 ? undefined : this.getCurrentPageId(),
+					bounds: this.getViewportPageBounds(),
+				}
+			)
+		)
+
+		return url
+	}
+
+	/**
+	 * Register a listener for changes to a deep link for the current document.
+	 *
+	 * You'll typically want to use this indirectly via the {@link TldrawEditorBaseProps.deepLinks} prop on the `<Tldraw />` component.
+	 *
+	 * By default this will update `window.location` in place, but you can provide a custom callback
+	 * to handle state changes on your own.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerDeepLinkListener({
+	 *   onChange(url) {
+	 *     window.history.replaceState({}, document.title, url.toString())
+	 *   }
+	 * })
+	 * ```
+	 *
+	 * You can also provide a custom URL to update, in which case you must also provide `onChange`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerDeepLinkListener({
+	 *   getUrl: () => `https://my-app.com/my-document`,
+	 *   onChange(url) {
+	 *     setShareUrl(url.toString())
+	 *   }
+	 * })
+	 * ```
+	 *
+	 * By default this will update with a debounce interval of 500ms, but you can provide a custom interval.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerDeepLinkListener({ debounceMs: 1000 })
+	 * ```
+	 * The default parameter name is `d`. You can override this by providing a `param` option.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerDeepLinkListener({ param: 'x' })
+	 * ```
+	 * @param opts - Options for setting up the listener.
+	 * @returns a function that will stop the listener.
+	 */
+	registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void {
+		if (opts?.getUrl && !opts?.onChange) {
+			throw Error(
+				'[tldraw:urlStateSync] If you specify getUrl, you must also specify the onChange callback.'
+			)
+		}
+
+		const url$ = computed('url with state', () => {
+			const url = opts?.getUrl?.(this) ?? window.location.href
+			const urlWithState = this.createDeepLink({
+				param: opts?.param,
+				url,
+				to: opts?.getTarget?.(this),
+			})
+			return urlWithState.toString()
+		})
+
+		const announceChange =
+			opts?.onChange ??
+			(() => {
+				const url = this.createDeepLink({
+					param: opts?.param,
+					to: opts?.getTarget?.(this),
+				})
+
+				window.history.replaceState({}, document.title, url.toString())
+			})
+
+		const scheduleEffect = debounce((execute: () => void) => execute(), opts?.debounceMs ?? 500)
+
+		const unlisten = react(
+			'update url on state change',
+			() => announceChange(new URL(url$.get()), this),
+			{ scheduleEffect }
+		)
+
+		return () => {
+			unlisten()
+			scheduleEffect.cancel()
+		}
 	}
 
 	/**
