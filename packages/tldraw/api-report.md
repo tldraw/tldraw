@@ -110,7 +110,6 @@ import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTimerShape } from '@tldraw/editor';
-import { TLTimerState } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -1920,6 +1919,17 @@ export interface ThemeStylePickerSetProps {
 }
 
 // @public (undocumented)
+export function Timer({ shape, editor }: TimerProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface TimerProps {
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    shape: TLTimerShape;
+}
+
+// @public (undocumented)
 export class TimerShapeTool extends StateNode {
     // (undocumented)
     static children(): TLStateNodeConstructor[];
@@ -1940,19 +1950,9 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
     // (undocumented)
     component(shape: TLTimerShape): JSX_2.Element;
     // (undocumented)
-    formatTime(time: number): string;
-    // (undocumented)
-    getBackgroundColor(state: TLTimerState, darkMode: boolean): string;
-    // (undocumented)
-    getCurrentServerTime(): any;
-    // (undocumented)
     getDefaultProps(): TLTimerShape['props'];
     // (undocumented)
-    getElapsedTime(shape: TLTimerShape): number;
-    // (undocumented)
     getGeometry(_shape: TLTimerShape): Geometry2d;
-    // (undocumented)
-    getTimeRemaining(shape: TLTimerShape): number;
     // (undocumented)
     hideResizeHandles(_shape: TLTimerShape): boolean;
     // (undocumented)
@@ -1962,13 +1962,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    pauseTimer(shape: TLTimerShape): void;
-    // (undocumented)
     static props: RecordProps<TLTimerShape>;
-    // (undocumented)
-    startTimer(shape: TLTimerShape): void;
-    // (undocumented)
-    stopTimer(shape: TLTimerShape): void;
     // (undocumented)
     static type: "timer";
 }
