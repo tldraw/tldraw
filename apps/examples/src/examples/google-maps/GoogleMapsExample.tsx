@@ -29,6 +29,7 @@ const components: TLComponents = {
 					fullscreenControl={false}
 					streetViewControl={false}
 				>
+					{/* [3] */}
 					<MapControls />
 				</Map>
 			</div>
@@ -36,7 +37,7 @@ const components: TLComponents = {
 	},
 }
 
-// [3]
+// [4]
 export default function GoogleMapsExample() {
 	return (
 		<APIProvider apiKey={process.env.NEXT_PUBLIC_GC_API_KEY!}>
@@ -56,5 +57,7 @@ export default function GoogleMapsExample() {
  *
  * 2. We set an initial zoom level and center point for the map. We disable all the default controls that come with the map to avoid clashing with the Tldraw editor UI.
  *
- * 3. We wrap the `Tldraw` component in an `APIProvider` component from `@vis.gl/react-google-maps` and pass in the Google Maps API key as a prop. We also pass in the custom components to the `Tldraw` component.
+ * 3. We render the `MapControls` component inside the `Map` component. This component syncs the Tldraw viewport with the Google Maps viewport.
+ *
+ * 4. We wrap the `Tldraw` component in an `APIProvider` component from `@vis.gl/react-google-maps` and pass in the Google Maps API key as a prop. We also pass in the custom components to the `Tldraw` component.
  */
