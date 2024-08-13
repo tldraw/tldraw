@@ -1,13 +1,13 @@
-import { Signal, transact } from '@tldraw/state'
+import { Signal } from '@tldraw/state'
 import { RecordsDiff, SerializedSchema, UnknownRecord, squashRecordDiffs } from '@tldraw/store'
 import { TLStore } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
+import { TLEditorSnapshot, loadSnapshot } from '../../config/TLEditorSnapshot'
 import {
 	TAB_ID,
 	TLSessionStateSnapshot,
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
-	loadSessionStateSnapshotIntoStore,
 } from '../../config/TLSessionStateSnapshot'
 import { LocalIndexedDb } from './LocalIndexedDb'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
@@ -168,34 +168,23 @@ export class TLLocalSyncClient {
 		if (this.didDispose) return
 
 		try {
-			if (data) {
+			if (data?.records.length) {
 				const documentSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r]))
 				const sessionStateSnapshot =
 					data.sessionStateSnapshot ?? extractSessionStateFromLegacySnapshot(documentSnapshot)
-				const migrationResult = this.store.schema.migrateStoreSnapshot({
-					store: documentSnapshot,
-					// eslint-disable-next-line deprecation/deprecation
-					schema: data.schema ?? this.store.schema.serializeEarliestVersion(),
-				})
 
-				if (migrationResult.type === 'error') {
-					console.error('failed to migrate store', migrationResult)
-					onLoadError(new Error(`Failed to migrate store: ${migrationResult.reason}`))
-					return
+				const snapshot: Partial<TLEditorSnapshot> = {
+					document: {
+						store: documentSnapshot,
+						schema: data.schema,
+					},
 				}
-
-				// 3. Merge the changes into the REAL STORE
-				this.store.mergeRemoteChanges(() => {
-					// Calling put will validate the records!
-					this.store.put(
-						Object.values(migrationResult.value).filter((r) => this.documentTypes.has(r.typeName)),
-						'initialize'
-					)
-				})
 
 				if (sessionStateSnapshot) {
-					loadSessionStateSnapshotIntoStore(this.store, sessionStateSnapshot)
+					snapshot.session = sessionStateSnapshot
 				}
+
+				loadSnapshot(this.store, snapshot)
 			}
 
 			this.channel.onmessage = ({ data }) => {
@@ -234,11 +223,9 @@ export class TLLocalSyncClient {
 				// otherwise, all good, same version :)
 				if (msg.type === 'diff') {
 					this.debug('applying diff')
-					transact(() => {
-						this.store.mergeRemoteChanges(() => {
-							this.store.applyDiff(msg.changes as any)
-							this.store.ensureStoreIsUsable()
-						})
+					this.store.mergeRemoteChanges(() => {
+						this.store.applyDiff(msg.changes as any)
+						this.store.ensureStoreIsUsable()
 					})
 				}
 			}
