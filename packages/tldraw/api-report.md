@@ -1939,7 +1939,7 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
     // (undocumented)
     formatTime(time: number): string;
     // (undocumented)
-    getBackgroundColor(state: TLTimerState): "blue" | "green" | "red" | "yellow";
+    getBackgroundColor(state: TLTimerState, darkMode: boolean): string;
     // (undocumented)
     getCurrentServerTime(): any;
     // (undocumented)
@@ -3819,7 +3819,7 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id?: Exclude<string, TLUiTranslationKey> | string) => string;
 
 // @public (undocumented)
-export function useUiEvents(): TLUiEventContextType;
+export function useUiEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
