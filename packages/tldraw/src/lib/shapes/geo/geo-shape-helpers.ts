@@ -451,6 +451,7 @@ export function getCloudArcs(
 		}
 
 		const center = centerOfCircleFromThreePoints(leftWigglePoint, rightWigglePoint, arcPoint)
+
 		const radius = Vec.Dist(
 			center ? center : Vec.Average([leftWigglePoint, rightWigglePoint]),
 			leftWigglePoint
@@ -552,7 +553,7 @@ export function inkyCloudSvgPath(
 		arcs.reduce((sum, arc) => sum + Vec.Dist2(arc.leftPoint, arc.rightPoint), 0) / arcs.length
 	const shouldMutatePoints = avgArcLengthSquared > (mutMultiplier * 15) ** 2
 	const mutPoint = shouldMutatePoints
-		? (p: Vec) => p.addXY(getRandom() * mutMultiplier * 2, getRandom() * mutMultiplier * 2)
+		? (p: Vec) => Vec.AddXY(p, getRandom() * mutMultiplier * 2, getRandom() * mutMultiplier * 2)
 		: (p: Vec) => p
 	let pathA = `M${arcs[0].leftPoint.toFixed()}`
 	let leftMutPoint = mutPoint(arcs[0].leftPoint)
@@ -574,7 +575,7 @@ export function inkyCloudSvgPath(
 		const mutCenter = centerOfCircleFromThreePoints(leftMutPoint, rightMutPoint, mutArcPoint)
 
 		// handle situations where the points are colinear (this happens when the cloud is very small)
-		if (!Number.isFinite(mutCenter.x) || !Number.isFinite(mutCenter.y)) {
+		if (!mutCenter) {
 			// draw a line to rightMutPoint instead
 			pathB += ` L${rightMutPoint.toFixed()}`
 			leftMutPoint = rightMutPoint
