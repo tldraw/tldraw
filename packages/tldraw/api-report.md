@@ -110,6 +110,7 @@ import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTimerShape } from '@tldraw/editor';
+import { TLTimerShapeProps } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -1919,14 +1920,16 @@ export interface ThemeStylePickerSetProps {
 }
 
 // @public (undocumented)
-export function Timer({ shape, editor }: TimerProps): JSX_2.Element;
+export function Timer({ props, editor, store }: TimerProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface TimerProps {
     // (undocumented)
     editor: Editor;
     // (undocumented)
-    shape: TLTimerShape;
+    props: TLTimerShapeProps;
+    // (undocumented)
+    store(timer: Partial<TLTimerShapeProps>): void;
 }
 
 // @public (undocumented)

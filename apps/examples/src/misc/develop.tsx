@@ -1,9 +1,10 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { useCallback } from 'react'
 import {
 	DefaultHelperButtons,
 	DefaultQuickActions,
 	DefaultQuickActionsContent,
-	TLTimerShape,
+	TLTimerShapeProps,
 	TLUiComponents,
 	Timer,
 	Tldraw,
@@ -19,7 +20,16 @@ const showTimer = atom('timer', false)
 
 const HelperButtons = track(function HelperButtons() {
 	const editor = useEditor()
-	const shape = editor.getCurrentPageShapes().filter((s) => s.type === 'timer')[0] as TLTimerShape
+	const props = editor.getDocumentSettings().meta
+	const store = useCallback(
+		(newProps: TLTimerShapeProps) => {
+			editor.updateDocumentSettings({
+				meta: { ...props, ...newProps },
+			})
+		},
+		[editor, props]
+	)
+	if (!props || !props.initialTime) return
 
 	return (
 		<>
@@ -29,7 +39,7 @@ const HelperButtons = track(function HelperButtons() {
 						margin: '5px',
 					}}
 				>
-					<Timer shape={shape} editor={editor} />
+					<Timer props={props as any} editor={editor} store={store} />
 				</div>
 			)}
 			<DefaultHelperButtons />
@@ -75,6 +85,17 @@ export default function Develop() {
 				initialState="timer"
 				components={components}
 				onMount={(editor) => {
+					let meta = editor.getDocumentSettings().meta
+					if (!meta.initialTime) {
+						meta = {
+							initialTime: 30 * 1000,
+							remainingTime: 30 * 1000,
+							state: { state: 'stopped' },
+						}
+						editor.updateDocumentSettings({
+							meta,
+						})
+					}
 					;(window as any).app = editor
 					;(window as any).editor = editor
 				}}
