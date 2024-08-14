@@ -3,6 +3,7 @@ import {
 	Rectangle2d,
 	ShapeUtil,
 	TLTimerShape,
+	TLTimerShapeProps,
 	timerShapeMigrations,
 	timerShapeProps,
 } from '@tldraw/editor'
@@ -45,6 +46,11 @@ export class TimerShapeUtil extends ShapeUtil<TLTimerShape> {
 	}
 
 	component(shape: TLTimerShape) {
-		return <Timer shape={shape} editor={this.editor} />
+		const { editor } = this
+		function store(props: TLTimerShapeProps) {
+			editor.updateShape({ id: shape.id, type: shape.type, props })
+		}
+
+		return <Timer props={shape.props} editor={this.editor} store={store} />
 	}
 }

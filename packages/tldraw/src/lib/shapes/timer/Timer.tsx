@@ -1,7 +1,7 @@
 import {
 	DefaultColorThemePalette,
 	Editor,
-	TLTimerShape,
+	TLTimerShapeProps,
 	TLTimerState,
 	exhaustiveSwitchError,
 } from '@tldraw/editor'
@@ -20,42 +20,30 @@ function formatTime(time: number) {
 	return `${minutesString}:${secondsString}`
 }
 
-function startTimer(shape: TLTimerShape, editor: Editor) {
-	editor.updateShape({
-		id: shape.id,
-		type: shape.type,
-		props: {
-			state: { state: 'running', lastStartTime: getCurrentServerTime() },
-		},
+function startTimer(store: TimerProps['store']) {
+	store({
+		state: { state: 'running', lastStartTime: getCurrentServerTime() },
 	})
 }
 
-function stopTimer(shape: TLTimerShape, editor: Editor) {
-	editor.updateShape<TLTimerShape>({
-		id: shape.id,
-		type: shape.type,
-		props: {
-			remainingTime: shape.props.initialTime,
-			state: { state: 'stopped' },
-		},
+function stopTimer(props: TLTimerShapeProps, store: TimerProps['store']) {
+	store({
+		remainingTime: props.initialTime,
+		state: { state: 'stopped' },
 	})
 }
 
-function pauseTimer(shape: TLTimerShape, editor: Editor) {
-	if (shape.props.state.state !== 'running') return
-	const elapsed = getElapsedTime(shape)
-	editor.updateShape<TLTimerShape>({
-		id: shape.id,
-		type: shape.type,
-		props: {
-			remainingTime: Math.max(0, shape.props.remainingTime - elapsed),
-			state: { state: 'paused' },
-		},
+function pauseTimer(props: TLTimerShapeProps, store: TimerProps['store']) {
+	if (props.state.state !== 'running') return
+	const elapsed = getElapsedTime(props)
+	store({
+		remainingTime: Math.max(0, props.remainingTime - elapsed),
+		state: { state: 'paused' },
 	})
 }
-function getElapsedTime(shape: TLTimerShape) {
-	if (shape.props.state.state !== 'running') return 0
-	return getCurrentServerTime() - shape.props.state.lastStartTime
+function getElapsedTime(props: TLTimerShapeProps) {
+	if (props.state.state !== 'running') return 0
+	return getCurrentServerTime() - props.state.lastStartTime
 }
 
 function getCurrentServerTime() {
@@ -80,71 +68,62 @@ function getBackgroundColor(state: TLTimerState, darkMode: boolean) {
 	}
 }
 
-function getTimeRemaining(shape: TLTimerShape) {
-	switch (shape.props.state.state) {
+function getTimeRemaining(props: TLTimerShapeProps) {
+	switch (props.state.state) {
 		case 'running':
-			return shape.props.remainingTime - getElapsedTime(shape)
+			return props.remainingTime - getElapsedTime(props)
 		case 'stopped':
-			return shape.props.initialTime
+			return props.initialTime
 		case 'paused':
-			return shape.props.remainingTime
+			return props.remainingTime
 		case 'completed':
 			return 0
 		default:
-			exhaustiveSwitchError(shape.props.state)
+			exhaustiveSwitchError(props.state)
 	}
 }
 
 /** @public */
 export interface TimerProps {
-	shape: TLTimerShape
+	props: TLTimerShapeProps
 	editor: Editor
+	store(timer: Partial<TLTimerShapeProps>): void
 }
 
 /** @public @react */
-export function Timer({ shape, editor }: TimerProps) {
-	const remainingTime = getTimeRemaining(shape)
+export function Timer({ props, editor, store }: TimerProps) {
+	const remainingTime = getTimeRemaining(props)
 	const darkMode = editor.user.getIsDarkMode()
 	const [isExpanded, setIsExpanded] = useState(true)
-	const state = shape.props.state
+	const state = props.state
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const _counter = useTimer(shape.props.state.state)
+	const _counter = useTimer(props.state.state)
 	if (remainingTime <= 0) {
 		editor.timers.setTimeout(() => {
-			editor.updateShape({
-				id: shape.id,
-				type: shape.type,
-				props: {
-					state: { state: 'completed' },
-				},
-			})
+			store({ state: { state: 'completed' } })
 		}, 0)
 	}
 	const increaseTime = useCallback(() => {
 		const newTime =
-			shape.props.initialTime < 5 * 60 * 1000
-				? shape.props.initialTime + 30 * 1000
-				: shape.props.initialTime + 60 * 1000
-		editor.updateShape<TLTimerShape>({
-			id: shape.id,
-			type: shape.type,
-			props: {
-				initialTime: newTime,
-				remainingTime: newTime,
-			},
+			props.initialTime < 5 * 60 * 1000
+				? props.initialTime + 30 * 1000
+				: props.initialTime + 60 * 1000
+		store({
+			initialTime: newTime,
+			remainingTime: newTime,
 		})
-	}, [editor, shape.id, shape.props.initialTime, shape.type])
+	}, [props.initialTime, store])
 
 	const showPlay = (state.state === 'stopped' || state.state === 'paused') && remainingTime > 0
 	const remainingSeconds = Math.ceil(remainingTime / 1000)
-	const initialSeconds = Math.ceil(shape.props.initialTime / 1000)
+	const initialSeconds = Math.ceil(props.initialTime / 1000)
 	const width = state.state === 'running' ? `${(remainingSeconds / initialSeconds) * 100}%` : '100%'
 	return (
 		<div
 			style={{
 				pointerEvents: 'all',
 				display: 'flex',
-				borderRadius: '5px',
+				borderRadius: '3px',
 				border: '1px solid black',
 				padding: '5px',
 				gap: '5px',
@@ -158,7 +137,7 @@ export function Timer({ shape, editor }: TimerProps) {
 					</button>
 					<button
 						onPointerDown={(e) => e.stopPropagation()}
-						onClick={() => stopTimer(shape, editor)}
+						onClick={() => stopTimer(props, store)}
 					>
 						Stop
 					</button>
@@ -171,7 +150,7 @@ export function Timer({ shape, editor }: TimerProps) {
 					width: '60px',
 					overflow: 'hidden',
 					border: '1px solid black',
-					borderRadius: '5px',
+					borderRadius: '3px',
 					position: 'relative',
 					justifyContent: 'center',
 				}}
@@ -184,19 +163,19 @@ export function Timer({ shape, editor }: TimerProps) {
 			>
 				<div
 					style={{
-						borderRadius: '5px',
+						borderRadius: '3px',
 						margin: '-2px',
 						zIndex: 0,
 						height: 'calc(100%' + ' + 4px)',
 						position: 'absolute',
 						top: 0,
 						left: 0,
-						backgroundColor: getBackgroundColor(shape.props.state.state, darkMode),
+						backgroundColor: getBackgroundColor(props.state.state, darkMode),
 						border:
-							shape.props.state.state === 'running'
+							props.state.state === 'running'
 								? `1px solid ${DefaultColorThemePalette.lightMode.red.solid}`
 								: 'none',
-						width,
+						width: `calc(${width} + 3px)`,
 					}}
 				/>
 				<div
@@ -213,19 +192,22 @@ export function Timer({ shape, editor }: TimerProps) {
 						+
 					</button>
 					{showPlay && (
-						<button
-							onPointerDown={(e) => e.stopPropagation()}
-							onClick={() => startTimer(shape, editor)}
-						>
+						<button onPointerDown={(e) => e.stopPropagation()} onClick={() => startTimer(store)}>
 							Play
 						</button>
 					)}
 					{!showPlay && (
 						<button
 							onPointerDown={(e) => e.stopPropagation()}
-							onClick={() => pauseTimer(shape, editor)}
+							onClick={() => {
+								if (props.state.state === 'completed') {
+									stopTimer(props, store)
+								} else {
+									pauseTimer(props, store)
+								}
+							}}
 						>
-							Pause
+							{props.state.state === 'completed' ? 'Reset' : 'Pause'}
 						</button>
 					)}
 				</>
