@@ -410,7 +410,7 @@ export type BoxLike = Box | BoxModel;
 export function canonicalizeRotation(a: number): number;
 
 // @public
-export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike): Vec;
+export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike): null | Vec;
 
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
