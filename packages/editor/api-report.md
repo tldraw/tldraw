@@ -802,24 +802,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
-    animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
-        animation: Partial<{
-            duration: number;
-            easing(t: number): number;
-        }>;
-        force: boolean;
-        immediate: boolean;
-        reset: boolean;
-    }>): this;
-    animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: Partial<{
-        animation: Partial<{
-            duration: number;
-            easing(t: number): number;
-        }>;
-        force: boolean;
-        immediate: boolean;
-        reset: boolean;
-    }>): this;
+    animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
+    animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         extras?: Record<string, unknown>;
@@ -2049,20 +2033,19 @@ export function resizeBox<T extends TLBaseBoxShape>(shape: T, info: {
     newPoint: VecModel;
     scaleX: number;
     scaleY: number;
-}, opts?: Partial<{
-    maxHeight: number;
-    maxWidth: number;
-    minHeight: number;
-    minWidth: number;
-}>): T;
+}, opts?: ResizeBoxOptions): T;
 
 // @public (undocumented)
-export type ResizeBoxOptions = Partial<{
-    maxHeight: number;
-    maxWidth: number;
-    minHeight: number;
-    minWidth: number;
-}>;
+export interface ResizeBoxOptions {
+    // (undocumented)
+    maxHeight?: number;
+    // (undocumented)
+    maxWidth?: number;
+    // (undocumented)
+    minHeight?: number;
+    // (undocumented)
+    minWidth?: number;
+}
 
 // @public (undocumented)
 export const ROTATE_CORNER_TO_SELECTION_CORNER: {
@@ -2513,15 +2496,15 @@ export interface TLCameraConstraints {
 }
 
 // @public (undocumented)
-export type TLCameraMoveOptions = Partial<{
-    animation: Partial<{
-        easing(t: number): number;
-        duration: number;
-    }>;
-    force: boolean;
-    immediate: boolean;
-    reset: boolean;
-}>;
+export interface TLCameraMoveOptions {
+    animation?: {
+        easing?(t: number): number;
+        duration?: number;
+    };
+    force?: boolean;
+    immediate?: boolean;
+    reset?: boolean;
+}
 
 // @public (undocumented)
 export interface TLCameraOptions {

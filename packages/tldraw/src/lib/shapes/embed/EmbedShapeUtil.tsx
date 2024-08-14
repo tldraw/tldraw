@@ -9,6 +9,7 @@ import {
 	embedShapeMigrations,
 	embedShapeProps,
 	lerp,
+	resizeBox,
 	toDomPrecision,
 	useIsEditing,
 	useValue,
@@ -22,7 +23,6 @@ import {
 	embedShapePermissionDefaults,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
-import { resizeBox } from '../shared/resizeBox'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
