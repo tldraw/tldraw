@@ -112,7 +112,8 @@ export class Pointing extends StateNode {
 		this.editor.select(id)
 		this.editor.setEditingShape(id)
 		this.editor.setCurrentTool('select')
-		this.editor.root.getCurrent()?.transition('editing_shape')
+		// todo
+		// this.editor.root.getCurrent()?.transition('editing_shape')
 	}
 
 	private cancel() {
