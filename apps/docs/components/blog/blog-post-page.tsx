@@ -11,7 +11,7 @@ export const BlogPostPage: React.FC<{
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-16 isolate">
 			<BlogSidebar>{/* <NewsletterSignup size="small" /> */}</BlogSidebar>
-			<div className="fixed w-full h-12 border-b border-zinc-100 flex items-center justify-between px-5 bg-white/90 backdrop-blur md:hidden z-10">
+			<div className="fixed w-full h-12 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between px-5 bg-white dark:bg-zinc-950 backdrop-blur md:hidden z-10">
 				<BlogMobileSidebar />
 			</div>
 			<main className="relative shrink w-full md:overflow-x-hidden px-5 md:pr-0 lg:pl-12 xl:pr-12 py-24 md:pt-0">

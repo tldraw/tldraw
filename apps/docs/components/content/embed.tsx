@@ -3,8 +3,13 @@ import { cn } from '@/utils/cn'
 export const Embed = (props: any) => {
 	return (
 		<div>
-			<div className="bg-zinc-100 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1">
-				<div className={cn(props.className, 'md:rounded-xl overflow-hidden shadow bg-white')}>
+			<div className="bg-zinc-100 dark:bg-zinc-700 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1">
+				<div
+					className={cn(
+						props.className,
+						'md:rounded-xl overflow-hidden shadow bg-white dark:bg-zinc-950'
+					)}
+				>
 					<iframe className="iframe" src={props.src} width="100%" height={600} />
 				</div>
 			</div>
