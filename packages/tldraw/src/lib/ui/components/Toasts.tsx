@@ -1,4 +1,5 @@
 import * as T from '@radix-ui/react-toast'
+import { useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -82,38 +83,31 @@ function Toast({ toast }: { toast: TLUiToast }) {
 function _Toasts() {
 	const { toasts } = useToasts()
 
-	return (
-		<>
-			{toasts.map((toast) => (
-				<Toast key={toast.id} toast={toast} />
-			))}
-		</>
-	)
+	return toasts.map((toast) => <Toast key={toast.id} toast={toast} />)
 }
 
 export const Toasts = React.memo(_Toasts)
 
 export function ToastViewport() {
+	const editor = useEditor()
 	const { toasts } = useToasts()
 
 	const [hasToasts, setHasToasts] = React.useState(false)
 
 	React.useEffect(() => {
-		let cancelled = false
+		let timeoutId = -1
 		if (toasts.length) {
 			setHasToasts(true)
 		} else {
-			setTimeout(() => {
-				if (!cancelled) {
-					setHasToasts(false)
-				}
+			timeoutId = editor.timers.setTimeout(() => {
+				setHasToasts(false)
 			}, 1000)
 		}
 
 		return () => {
-			cancelled = true
+			clearTimeout(timeoutId)
 		}
-	}, [toasts.length, setHasToasts])
+	}, [toasts.length, setHasToasts, editor])
 
 	if (!hasToasts) return null
 

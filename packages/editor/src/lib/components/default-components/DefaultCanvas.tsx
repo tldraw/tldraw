@@ -1,9 +1,9 @@
-import { react, useQuickReactor, useStateTracking, useValue } from '@tldraw/state'
+import { react } from '@tldraw/state'
+import { useQuickReactor, useStateTracking, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
-import { COARSE_HANDLE_RADIUS, HANDLE_RADIUS, TEXT_SHADOW_LOD } from '../../constants'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 import { useContainer } from '../../hooks/useContainer'
@@ -20,19 +20,20 @@ import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
-import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
 
 /** @public */
-export type TLCanvasComponentProps = { className?: string }
+export interface TLCanvasComponentProps {
+	className?: string
+}
 
-/** @public */
+/** @public @react */
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { Background, SvgDefs } = useEditorComponents()
+	const { Background, SvgDefs, ShapeIndicators } = useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
@@ -63,16 +64,12 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			// If we're below the lod distance for text shadows, turn them off
 			if (
 				rMemoizedStuff.current.allowTextOutline &&
-				z < TEXT_SHADOW_LOD !== rMemoizedStuff.current.lodDisableTextOutline
+				z < editor.options.textShadowLod !== rMemoizedStuff.current.lodDisableTextOutline
 			) {
-				const lodDisableTextOutline = z < TEXT_SHADOW_LOD
+				const lodDisableTextOutline = z < editor.options.textShadowLod
 				container.style.setProperty(
 					'--tl-text-outline',
-					lodDisableTextOutline
-						? 'none'
-						: `0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
-				var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
-				var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background)`
+					lodDisableTextOutline ? 'none' : `var(--tl-text-outline-reference)`
 				)
 				rMemoizedStuff.current.lodDisableTextOutline = lodDisableTextOutline
 			}
@@ -128,49 +125,51 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	)
 
 	return (
-		<div
-			ref={rCanvas}
-			draggable={false}
-			data-iseditinganything={isEditingAnything}
-			data-isselectinganything={isSelectingAnything}
-			className={classNames('tl-canvas', className)}
-			data-testid="canvas"
-			{...events}
-		>
-			<svg className="tl-svg-context">
-				<defs>
-					{shapeSvgDefs}
-					<CursorDef />
-					<CollaboratorHintDef />
-					{SvgDefs && <SvgDefs />}
-				</defs>
-			</svg>
-			{Background && (
-				<div className="tl-background__wrapper">
-					<Background />
+		<>
+			<div
+				ref={rCanvas}
+				draggable={false}
+				data-iseditinganything={isEditingAnything}
+				data-isselectinganything={isSelectingAnything}
+				className={classNames('tl-canvas', className)}
+				data-testid="canvas"
+				{...events}
+			>
+				<svg className="tl-svg-context">
+					<defs>
+						{shapeSvgDefs}
+						<CursorDef />
+						<CollaboratorHintDef />
+						{SvgDefs && <SvgDefs />}
+					</defs>
+				</svg>
+				{Background && (
+					<div className="tl-background__wrapper">
+						<Background />
+					</div>
+				)}
+				<GridWrapper />
+				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+					<ActiveToolUnderlay />
+					<OnTheCanvasWrapper />
+					<SelectionBackgroundWrapper />
+					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
-			)}
-			<GridWrapper />
-			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
-				<ActiveToolUnderlay />
-				<OnTheCanvasWrapper />
-				<SelectionBackgroundWrapper />
-				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
-			</div>
-			<div className="tl-overlays">
-				<div ref={rHtmlLayer2} className="tl-html-layer">
-					{debugGeometry ? <GeometryDebuggingView /> : null}
-					<ActiveToolOverlay />
-					<HandlesWrapper />
-					<ScribbleWrapper />
-					<ZoomBrushWrapper />
-					<SnapIndicatorWrapper />
-					{/* <SelectionForegroundWrapper /> */}
-					<LiveCollaborators />
+				<div className="tl-overlays">
+					<div ref={rHtmlLayer2} className="tl-html-layer">
+						{debugGeometry ? <GeometryDebuggingView /> : null}
+						<ActiveToolOverlay />
+						<HandlesWrapper />
+						<ZoomBrushWrapper />
+						{ShapeIndicators && <ShapeIndicators />}
+						<SnapIndicatorWrapper />
+						<LiveCollaborators />
+					</div>
 				</div>
+				<MovingCameraHitTestBlocker />
 			</div>
-			<MovingCameraHitTestBlocker />
-		</div>
+			<InFrontOfTheCanvasWrapper />
+		</>
 	)
 }
 
@@ -186,6 +185,12 @@ function ActiveToolOverlay() {
 	return useStateTracking('Active tool overlay', () => activeTool.overlay?.())
 }
 
+function InFrontOfTheCanvasWrapper() {
+	const { InFrontOfTheCanvas } = useEditorComponents()
+	if (!InFrontOfTheCanvas) return null
+	return <InFrontOfTheCanvas />
+}
+
 function GridWrapper() {
 	const editor = useEditor()
 	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
@@ -196,28 +201,6 @@ function GridWrapper() {
 	if (!(Grid && isGridMode)) return null
 
 	return <Grid x={x} y={y} z={z} size={gridSize} />
-}
-
-function ScribbleWrapper() {
-	const editor = useEditor()
-	const scribbles = useValue('scribbles', () => editor.getInstanceState().scribbles, [editor])
-	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
-	const { Scribble } = useEditorComponents()
-
-	if (!(Scribble && scribbles.length)) return null
-
-	return (
-		<>
-			{scribbles.map((scribble) => (
-				<Scribble
-					key={scribble.id}
-					className="tl-user-scribble"
-					scribble={scribble}
-					zoom={zoomLevel}
-				/>
-			))}
-		</>
-	)
 }
 
 function ZoomBrushWrapper() {
@@ -238,13 +221,9 @@ function SnapIndicatorWrapper() {
 
 	if (!(SnapIndicator && lines.length > 0)) return null
 
-	return (
-		<>
-			{lines.map((line) => (
-				<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
-			))}
-		</>
-	)
+	return lines.map((line) => (
+		<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
+	))
 }
 
 function HandlesWrapper() {
@@ -296,7 +275,8 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 			if (!handles) return null
 
 			const minDistBetweenVirtualHandlesAndRegularHandles =
-				((isCoarse ? COARSE_HANDLE_RADIUS : HANDLE_RADIUS) / zoomLevel) * 2
+				((isCoarse ? editor.options.coarseHandleRadius : editor.options.handleRadius) / zoomLevel) *
+				2
 
 			return (
 				handles
@@ -373,25 +353,12 @@ function ShapesWithSVGs() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	const dprMultiple = useValue(
-		'dpr multiple',
-		() =>
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
-		[editor]
-	)
-
-	return (
-		<>
-			{renderingShapes.map((result) => (
-				<Fragment key={result.id + '_fragment'}>
-					<Shape {...result} dprMultiple={dprMultiple} />
-					<DebugSvgCopy id={result.id} />
-				</Fragment>
-			))}
-		</>
-	)
+	return renderingShapes.map((result) => (
+		<Fragment key={result.id + '_fragment'}>
+			<Shape {...result} />
+			<DebugSvgCopy id={result.id} />
+		</Fragment>
+	))
 }
 function ReflowIfNeeded() {
 	const editor = useEditor()
@@ -423,19 +390,10 @@ function ShapesToDisplay() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	const dprMultiple = useValue(
-		'dpr multiple',
-		() =>
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
-		[editor]
-	)
-
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
+				<Shape key={result.id + '_shape'} {...result} />
 			))}
 			{editor.environment.isSafari && <ReflowIfNeeded />}
 		</>
@@ -517,6 +475,7 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 			src={image.src}
 			width={image.bounds.width}
 			height={image.bounds.height}
+			referrerPolicy="no-referrer"
 			style={{
 				position: 'absolute',
 				top: 0,

@@ -2,6 +2,7 @@
 title: Custom renderer
 component: ./CustomRendererExample.tsx
 category: basic
+keywords: [html, canvas, background, context]
 ---
 
 You can _sort of_ use a custom renderer with tldraw.

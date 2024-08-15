@@ -18,7 +18,7 @@ export function copyAs(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLCopyType = 'svg',
-	opts = {} as Partial<TLSvgOptions>
+	opts: TLSvgOptions = {}
 ): Promise<void> {
 	// Note:  it's important that this function itself isn't async and doesn't really use promises -
 	// we need to create the relevant `ClipboardItem`s and call window.navigator.clipboard.write

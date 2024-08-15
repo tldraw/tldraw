@@ -876,7 +876,7 @@ describe('right clicking in detail', () => {
 			box(ids.boxB, 20, 0, 10, 10, 'solid'),
 			box(ids.boxC, 0, 50, 10, 10, 'none'),
 		])
-		editor.groupShapes([ids.boxA, ids.boxB], groupId)
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: groupId })
 		editor.selectNone()
 	})
 
@@ -908,9 +908,9 @@ describe('the select tool', () => {
 			box(ids.boxC, 60, 0, 10, 10),
 			box(ids.boxD, 90, 0, 10, 10),
 		])
-		editor.groupShapes([ids.boxA, ids.boxB], groupAId)
-		editor.groupShapes([ids.boxC, ids.boxD], groupBId)
-		editor.groupShapes([groupAId, groupBId], groupCId)
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: groupAId })
+		editor.groupShapes([ids.boxC, ids.boxD], { groupId: groupBId })
+		editor.groupShapes([groupAId, groupBId], { groupId: groupCId })
 		editor.selectNone()
 	})
 
@@ -938,13 +938,15 @@ describe('the select tool', () => {
 		editor
 			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
 			.pointerUp(0, 0, { button: 2 })
-		expect(onlySelectedId()).toBe(groupAId)
+		expect(onlySelectedId()).toBe(groupCId)
+		expect(editor.getFocusedGroupId()).toBe(editor.getCurrentPageId())
+		editor.select(groupAId)
 		expect(editor.getFocusedGroupId()).toBe(groupCId)
 		editor
 			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
 			.pointerUp(0, 0, { button: 2 })
-		expect(onlySelectedId()).toBe(ids.boxA)
-		expect(editor.getFocusedGroupId()).toBe(groupAId)
+		expect(onlySelectedId()).toBe(groupAId)
+		expect(editor.getFocusedGroupId()).toBe(groupCId)
 	})
 
 	it('should allow to shift-select other shapes outside of the current focus layer', () => {
@@ -1969,7 +1971,7 @@ describe('Group opacity', () => {
 describe('Grouping / ungrouping locked shapes', () => {
 	it('keeps locked shapes locked when grouped', () => {
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 200, 0)])
-		editor.groupShapes([ids.boxA, ids.boxB], ids.groupA)
+		editor.groupShapes([ids.boxA, ids.boxB], { groupId: ids.groupA })
 		editor.select(ids.boxA)
 
 		// Lock boxA

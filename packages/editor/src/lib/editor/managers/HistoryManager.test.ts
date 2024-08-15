@@ -1,7 +1,6 @@
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
 import { TLHistoryBatchOptions } from '../types/history-types'
 import { HistoryManager } from './HistoryManager'
-import { stack } from './Stack'
 
 interface TestRecord extends BaseRecord<'test', TestRecordId> {
 	value: number | string
@@ -57,7 +56,7 @@ function createCounterHistoryManager() {
 	}
 
 	const setName = (name = 'David') => {
-		manager.ignore(() => _setName(name))
+		manager.batch(() => _setName(name), { history: 'ignore' })
 	}
 
 	const setAge = (age = 35) => {
@@ -93,15 +92,15 @@ describe(HistoryManager, () => {
 		expect(editor.getCount()).toBe(0)
 		editor.increment()
 		editor.increment()
-		editor.history.mark('stop at 2')
+		editor.history._mark('stop at 2')
 		editor.increment()
 		editor.increment()
 		editor.decrement()
 		expect(editor.getCount()).toBe(3)
 
-		const undos = [...editor.history.stacks.get().undos]
+		const undos = editor.history.debug().undos
 		const parsedUndos = JSON.parse(JSON.stringify(undos))
-		editor.history.stacks.update(({ redos }) => ({ undos: stack(parsedUndos), redos }))
+		expect(parsedUndos).toEqual(undos)
 
 		editor.history.undo()
 
@@ -111,12 +110,12 @@ describe(HistoryManager, () => {
 	it('allows undoing and redoing', () => {
 		expect(editor.getCount()).toBe(0)
 		editor.increment()
-		editor.history.mark('stop at 1')
+		editor.history._mark('stop at 1')
 		editor.increment()
-		editor.history.mark('stop at 2')
+		editor.history._mark('stop at 2')
 		editor.increment()
 		editor.increment()
-		editor.history.mark('stop at 4')
+		editor.history._mark('stop at 4')
 		editor.increment()
 		editor.increment()
 		editor.increment()
@@ -148,12 +147,12 @@ describe(HistoryManager, () => {
 	it('clears the redo stack if you execute commands, but not if you mark stopping points', () => {
 		expect(editor.getCount()).toBe(0)
 		editor.increment()
-		editor.history.mark('stop at 1')
+		editor.history._mark('stop at 1')
 		editor.increment()
-		editor.history.mark('stop at 2')
+		editor.history._mark('stop at 2')
 		editor.increment()
 		editor.increment()
-		editor.history.mark('stop at 4')
+		editor.history._mark('stop at 4')
 		editor.increment()
 		editor.increment()
 		editor.increment()
@@ -161,7 +160,7 @@ describe(HistoryManager, () => {
 		editor.history.undo()
 		editor.history.undo()
 		expect(editor.getCount()).toBe(2)
-		editor.history.mark('wayward stopping point')
+		editor.history._mark('wayward stopping point')
 		editor.history.redo()
 		editor.history.redo()
 		expect(editor.getCount()).toBe(7)
@@ -180,7 +179,7 @@ describe(HistoryManager, () => {
 	it('allows squashing of commands', () => {
 		editor.increment()
 
-		editor.history.mark('stop at 1')
+		editor.history._mark('stop at 1')
 		expect(editor.getCount()).toBe(1)
 
 		editor.increment(1)
@@ -194,7 +193,7 @@ describe(HistoryManager, () => {
 	})
 	it('allows ignore commands that do not affect the stack', () => {
 		editor.increment()
-		editor.history.mark('stop at 1')
+		editor.history._mark('stop at 1')
 		editor.increment()
 		editor.setName('wilbur')
 		editor.increment()
@@ -207,14 +206,14 @@ describe(HistoryManager, () => {
 
 	it('allows inconsequential commands that do not clear the redo stack', () => {
 		editor.increment()
-		editor.history.mark('stop at 1')
+		editor.history._mark('stop at 1')
 		editor.increment()
 		expect(editor.getCount()).toBe(2)
 		editor.history.undo()
 		expect(editor.getCount()).toBe(1)
-		editor.history.mark('stop at age 35')
+		editor.history._mark('stop at age 35')
 		editor.setAge(23)
-		editor.history.mark('stop at age 23')
+		editor.history._mark('stop at age 23')
 		expect(editor.getCount()).toBe(1)
 		editor.history.redo()
 		expect(editor.getCount()).toBe(2)
@@ -240,9 +239,9 @@ describe(HistoryManager, () => {
 	})
 
 	it('does not allow new history entries to be pushed if a command invokes them while bailing', () => {
-		editor.history.mark('0')
+		editor.history._mark('0')
 		editor.incrementTwice()
-		editor.history.mark('2')
+		editor.history._mark('2')
 		editor.incrementTwice()
 		editor.incrementTwice()
 		expect(editor.history.getNumUndos()).toBe(4)
@@ -257,11 +256,11 @@ describe(HistoryManager, () => {
 
 	it('supports bailing to a particular mark', () => {
 		editor.increment()
-		editor.history.mark('1')
+		editor.history._mark('1')
 		editor.increment()
-		editor.history.mark('2')
+		editor.history._mark('2')
 		editor.increment()
-		editor.history.mark('3')
+		editor.history._mark('3')
 		editor.increment()
 
 		expect(editor.getCount()).toBe(4)
@@ -300,11 +299,11 @@ describe('history options', () => {
 	})
 
 	it('undos, redoes, separate marks', () => {
-		manager.mark()
+		manager._mark('')
 		setA(1)
-		manager.mark()
+		manager._mark('')
 		setB(1)
-		manager.mark()
+		manager._mark('')
 		setB(2)
 
 		expect(getState()).toMatchObject({ a: 1, b: 2 })
@@ -319,11 +318,11 @@ describe('history options', () => {
 	})
 
 	it('undos, redos, squashing', () => {
-		manager.mark()
+		manager._mark('')
 		setA(1)
-		manager.mark()
+		manager._mark('')
 		setB(1)
-		manager.mark()
+		manager._mark('')
 		setB(2)
 		setB(3)
 		setB(4)
@@ -340,11 +339,11 @@ describe('history options', () => {
 	})
 
 	it('undos, redos, ignore', () => {
-		manager.mark()
+		manager._mark('')
 		setA(1)
-		manager.mark()
+		manager._mark('')
 		setB(1) // B 0->1
-		manager.mark()
+		manager._mark('')
 		setB(2, { history: 'ignore' }) // B 0->2, but ignore
 
 		expect(getState()).toMatchObject({ a: 1, b: 2 })
@@ -359,9 +358,9 @@ describe('history options', () => {
 	})
 
 	it('squashing, undos, redos', () => {
-		manager.mark()
+		manager._mark('')
 		setA(1)
-		manager.mark()
+		manager._mark('')
 		setB(1)
 		setB(2) // squashes with the previous command
 		setB(3) // squashes with the previous command
@@ -378,9 +377,9 @@ describe('history options', () => {
 	})
 
 	it('squashing, undos, redos, ignore', () => {
-		manager.mark()
+		manager._mark('')
 		setA(1)
-		manager.mark()
+		manager._mark('')
 		setB(1)
 		setB(2) // squashes with the previous command
 		setB(3, { history: 'ignore' }) // squashes with the previous command
@@ -397,7 +396,7 @@ describe('history options', () => {
 	})
 
 	it('nested ignore', () => {
-		manager.mark()
+		manager._mark('')
 		manager.batch(
 			() => {
 				setA(1)
@@ -413,7 +412,7 @@ describe('history options', () => {
 		manager.undo()
 		expect(getState()).toMatchObject({ a: 2, b: 1 })
 
-		manager.mark()
+		manager._mark('')
 		manager.batch(
 			() => {
 				setA(3)
@@ -430,5 +429,46 @@ describe('history options', () => {
 		// We can still redo because we preserved the redo stack:
 		manager.redo()
 		expect(getState()).toMatchObject({ a: 3, b: 2 })
+	})
+
+	it('squashToMark works', () => {
+		manager._mark('a')
+		setA(1)
+		manager._mark('b')
+		setB(1)
+		setB(2)
+		setB(3)
+		manager._mark('')
+		setA(2)
+		setB(4)
+		manager._mark('')
+		setB(5)
+		setB(6)
+
+		expect(getState()).toMatchObject({ a: 2, b: 6 })
+
+		manager.squashToMark('b')
+
+		// does not affect state
+		expect(getState()).toMatchObject({ a: 2, b: 6 })
+
+		// but now undoing should take us back to a
+		manager.undo()
+		expect(getState()).toMatchObject({ a: 1, b: 0 })
+
+		// and redoing should take us back to the end
+		manager.redo()
+		expect(getState()).toMatchObject({ a: 2, b: 6 })
+
+		// and we can get back to the start with two undos
+		manager.undo().undo()
+		expect(getState()).toMatchObject({ a: 0, b: 0 })
+
+		manager.redo().redo()
+		manager.squashToMark('a')
+
+		expect(getState()).toMatchObject({ a: 2, b: 6 })
+		manager.undo()
+		expect(getState()).toMatchObject({ a: 0, b: 0 })
 	})
 })

@@ -116,10 +116,10 @@ class RandomSource {
 	}
 }
 
-type TestType = {
+interface TestType {
 	validator: T.Validator<any>
-	generateValid: (source: RandomSource) => any
-	generateInvalid: (source: RandomSource) => any
+	generateValid(source: RandomSource): any
+	generateInvalid(source: RandomSource): any
 }
 const builtinTypes = {
 	string: {

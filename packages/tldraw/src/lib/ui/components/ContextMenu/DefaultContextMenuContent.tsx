@@ -1,52 +1,41 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { useShowCollaborationUi } from '../../hooks/useIsMultiplayer'
 import {
 	ArrangeMenuSubmenu,
 	ClipboardMenuGroup,
 	ConversionsMenuGroup,
-	ConvertToBookmarkMenuItem,
-	ConvertToEmbedMenuItem,
-	EditLinkMenuItem,
-	FitFrameToContentMenuItem,
-	GroupMenuItem,
+	CursorChatItem,
+	EditMenuSubmenu,
 	MoveToPageMenu,
-	RemoveFrameMenuItem,
 	ReorderMenuSubmenu,
 	SelectAllMenuItem,
-	ToggleAutoSizeMenuItem,
-	ToggleLockMenuItem,
-	UngroupMenuItem,
 } from '../menu-items'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
 
-/** @public */
+/** @public @react */
 export function DefaultContextMenuContent() {
 	const editor = useEditor()
+	const showCollaborationUi = useShowCollaborationUi()
 
 	const selectToolActive = useValue(
 		'isSelectToolActive',
 		() => editor.getCurrentToolId() === 'select',
 		[editor]
 	)
+	const isSinglePageMode = useValue('isSinglePageMode', () => editor.options.maxPages <= 1, [
+		editor,
+	])
 
 	if (!selectToolActive) return null
 
 	return (
 		<>
-			<TldrawUiMenuGroup id="misc">
-				<GroupMenuItem />
-				<UngroupMenuItem />
-				<EditLinkMenuItem />
-				<ToggleAutoSizeMenuItem />
-				<RemoveFrameMenuItem />
-				<FitFrameToContentMenuItem />
-				<ConvertToEmbedMenuItem />
-				<ConvertToBookmarkMenuItem />
-				<ToggleLockMenuItem />
-			</TldrawUiMenuGroup>
+			{showCollaborationUi && <CursorChatItem />}
 			<TldrawUiMenuGroup id="modify">
+				<EditMenuSubmenu />
 				<ArrangeMenuSubmenu />
 				<ReorderMenuSubmenu />
-				<MoveToPageMenu />
+				{!isSinglePageMode && <MoveToPageMenu />}
 			</TldrawUiMenuGroup>
 			<ClipboardMenuGroup />
 			<ConversionsMenuGroup />

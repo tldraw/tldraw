@@ -1,4 +1,4 @@
-import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/editor'
+import { TLEmbedDefinition } from '../../defaultEmbedDefinitions'
 
 // https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
 function escapeStringRegexp(string: string) {
@@ -12,9 +12,9 @@ function escapeStringRegexp(string: string) {
 }
 
 /** @public */
-export function matchEmbedUrl(url: string) {
+export function matchEmbedUrl(definitions: readonly TLEmbedDefinition[], url: string) {
 	const host = new URL(url).host.replace('www.', '')
-	for (const localEmbedDef of EMBED_DEFINITIONS) {
+	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
 			const originalUrl = localEmbedDef.fromEmbedUrl(url)
 			if (originalUrl) {
@@ -43,9 +43,9 @@ const checkHostnames = (hostnames: readonly string[], targetHostname: string) =>
 }
 
 /** @public */
-export function matchUrl(url: string) {
+export function matchUrl(definitions: readonly TLEmbedDefinition[], url: string) {
 	const host = new URL(url).host.replace('www.', '')
-	for (const localEmbedDef of EMBED_DEFINITIONS) {
+	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
 			const embedUrl = localEmbedDef.toEmbedUrl(url)
 
@@ -63,7 +63,7 @@ export function matchUrl(url: string) {
 /** @public */
 export type TLEmbedResult =
 	| {
-			definition: EmbedDefinition
+			definition: TLEmbedDefinition
 			url: string
 			embedUrl: string
 	  }
@@ -75,8 +75,11 @@ export type TLEmbedResult =
  * @param inputUrl - The URL to match
  * @public
  */
-export function getEmbedInfoUnsafely(inputUrl: string): TLEmbedResult {
-	const result = matchUrl(inputUrl) ?? matchEmbedUrl(inputUrl)
+export function getEmbedInfoUnsafely(
+	definitions: readonly TLEmbedDefinition[],
+	inputUrl: string
+): TLEmbedResult {
+	const result = matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
 	return result
 }
 
@@ -87,9 +90,12 @@ export function getEmbedInfoUnsafely(inputUrl: string): TLEmbedResult {
  * @param inputUrl - The URL to match
  * @public
  */
-export function getEmbedInfo(inputUrl: string): TLEmbedResult {
+export function getEmbedInfo(
+	definitions: readonly TLEmbedDefinition[],
+	inputUrl: string
+): TLEmbedResult {
 	try {
-		return getEmbedInfoUnsafely(inputUrl)
+		return getEmbedInfoUnsafely(definitions, inputUrl)
 	} catch (e) {
 		// Don't throw here! We'll throw it from the embed shape's shape util
 		console.error(e)

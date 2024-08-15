@@ -1,10 +1,10 @@
 import { execFile } from 'child_process'
 import { nicelog } from './nicelog'
 
-type ExecOpts = {
+interface ExecOpts {
 	pwd?: string
-	processStdoutLine?: (line: string) => void
-	processStderrLine?: (line: string) => void
+	processStdoutLine?(line: string): void
+	processStderrLine?(line: string): void
 	env?: Partial<NodeJS.ProcessEnv>
 }
 

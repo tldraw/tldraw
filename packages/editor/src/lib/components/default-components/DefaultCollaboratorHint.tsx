@@ -7,7 +7,7 @@ import { Vec } from '../../primitives/Vec'
 import { clamp } from '../../primitives/utils'
 
 /** @public */
-export type TLCollaboratorHintProps = {
+export interface TLCollaboratorHintProps {
 	className?: string
 	point: VecModel
 	viewport: Box
@@ -16,7 +16,7 @@ export type TLCollaboratorHintProps = {
 	color: string
 }
 
-/** @public */
+/** @public @react */
 export function DefaultCollaboratorHint({
 	className,
 	zoom,

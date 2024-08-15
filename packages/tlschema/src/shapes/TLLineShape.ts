@@ -1,11 +1,11 @@
 import { IndexKey, getIndices, objectMapFromEntries, sortByIndex } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
+import { RecordProps } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
-import { DefaultColorStyle } from '../styles/TLColorStyle'
-import { DefaultDashStyle } from '../styles/TLDashStyle'
-import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultDashStyle, TLDefaultDashStyle } from '../styles/TLDashStyle'
+import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -17,7 +17,15 @@ export const LineShapeSplineStyle = StyleProp.defineEnum('tldraw:spline', {
 /** @public */
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>
 
-const lineShapePointValidator = T.object({
+/** @public */
+export interface TLLineShapePoint {
+	id: string
+	index: IndexKey
+	x: number
+	y: number
+}
+
+const lineShapePointValidator: T.ObjectValidator<TLLineShapePoint> = T.object({
 	id: T.string,
 	index: T.indexKey,
 	x: T.number,
@@ -25,19 +33,27 @@ const lineShapePointValidator = T.object({
 })
 
 /** @public */
-export const lineShapeProps = {
+export interface TLLineShapeProps {
+	color: TLDefaultColorStyle
+	dash: TLDefaultDashStyle
+	size: TLDefaultSizeStyle
+	spline: TLLineShapeSplineStyle
+	points: Record<string, TLLineShapePoint>
+	scale: number
+}
+
+/** @public */
+export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
+
+/** @public */
+export const lineShapeProps: RecordProps<TLLineShape> = {
 	color: DefaultColorStyle,
 	dash: DefaultDashStyle,
 	size: DefaultSizeStyle,
 	spline: LineShapeSplineStyle,
 	points: T.dict(T.string, lineShapePointValidator),
+	scale: T.nonZeroNumber,
 }
-
-/** @public */
-export type TLLineShapeProps = RecordPropsType<typeof lineShapeProps>
-
-/** @public */
-export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
 /** @public */
 export const lineShapeVersions = createShapePropsMigrationIds('line', {
@@ -45,6 +61,7 @@ export const lineShapeVersions = createShapePropsMigrationIds('line', {
 	RemoveExtraHandleProps: 2,
 	HandlesToPoints: 3,
 	PointIndexIds: 4,
+	AddScale: 5,
 })
 
 /** @public */
@@ -57,7 +74,7 @@ export const lineShapeMigrations = createShapePropsMigrationSequence({
 					;(handle as any).canSnap = true
 				}
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: lineShapeVersions.RemoveExtraHandleProps,
@@ -153,6 +170,15 @@ export const lineShapeMigrations = createShapePropsMigrationSequence({
 				).sort(sortByIndex)
 
 				props.points = sortedHandles.map(({ x, y }) => ({ x, y }))
+			},
+		},
+		{
+			id: lineShapeVersions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
 			},
 		},
 	],

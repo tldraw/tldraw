@@ -18,7 +18,7 @@ export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShortcutsDialog({
 	children,
 }: TLUiKeyboardShortcutsDialogProps) {

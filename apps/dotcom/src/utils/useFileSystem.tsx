@@ -1,5 +1,6 @@
 import { fileOpen, fileSave } from 'browser-fs-access'
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
 	Editor,
 	TLDRAW_FILE_EXTENSION,
@@ -18,11 +19,13 @@ import { useHandleUiEvents } from './useHandleUiEvent'
 export const SAVE_FILE_COPY_ACTION = 'save-file-copy'
 export const OPEN_FILE_ACTION = 'open-file'
 export const NEW_PROJECT_ACTION = 'new-file'
+export const NEW_SHARED_PROJECT_ACTION = 'new-shared-file'
 
 const saveFileNames = new WeakMap<TLStore, string>()
 
 export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TLUiOverrides {
 	const handleUiEvent = useHandleUiEvents()
+	const navigate = useNavigate()
 
 	return useMemo((): TLUiOverrides => {
 		return {
@@ -67,6 +70,15 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 						await parseAndLoadDocument(editor, await file.text(), msg, addToast)
 					},
 				}
+				actions[NEW_SHARED_PROJECT_ACTION] = {
+					id: NEW_SHARED_PROJECT_ACTION,
+					label: 'action.new-shared-project',
+					readonlyOk: true,
+					async onSelect(source) {
+						handleUiEvent('create-new-shared-project', { source })
+						navigate('/new')
+					},
+				}
 				actions[NEW_PROJECT_ACTION] = {
 					id: NEW_PROJECT_ACTION,
 					label: 'action.new-project',
@@ -75,25 +87,16 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 						handleUiEvent('create-new-project', { source })
 						const shouldOverride = await shouldClearDocument(addDialog)
 						if (!shouldOverride) return
-
 						transact(() => {
-							const isFocused = editor.getInstanceState().isFocused
-
-							const bounds = editor.getViewportScreenBounds().clone()
-
-							editor.store.clear()
-							editor.store.ensureStoreIsUsable()
-							editor.history.clear()
-							// Put the old bounds back in place
-							editor.updateViewportScreenBounds(bounds)
-							editor.updateInstanceState({ isFocused })
+							editor.loadSnapshot({ store: {}, schema: editor.store.schema.serialize() })
+							editor.clearHistory()
 						})
 					},
 				}
 				return actions
 			},
 		}
-	}, [isMultiplayer, handleUiEvent])
+	}, [handleUiEvent, isMultiplayer, navigate])
 }
 
 export function getSaveFileCopyAction(
@@ -115,7 +118,7 @@ export function getSaveFileCopyAction(
 			const defaultName =
 				saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
 
-			const blobToSave = serializeTldrawJsonBlob(editor.store)
+			const blobToSave = serializeTldrawJsonBlob(editor)
 			let handle
 			try {
 				handle = await fileSave(blobToSave, {

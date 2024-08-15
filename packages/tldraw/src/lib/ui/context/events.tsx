@@ -29,8 +29,14 @@ export interface TLUiEventMap {
 	undo: null
 	redo: null
 	'change-language': { locale: string }
+	'change-page': null
+	'delete-page': null
+	'duplicate-page': null
+	'move-page': null
 	'new-page': null
+	'rename-page': null
 	'move-to-page': null
+	'move-to-new-page': null
 	'group-shapes': null
 	'ungroup-shapes': null
 	'remove-frame': null
@@ -84,46 +90,53 @@ export interface TLUiEventMap {
 	'toggle-snap-mode': null
 	'toggle-tool-lock': null
 	'toggle-grid-mode': null
-	'toggle-dark-mode': null
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
 	'toggle-debug-mode': null
+	'toggle-dynamic-size-mode': null
+	'toggle-paste-at-cursor': null
 	'toggle-lock': null
 	'toggle-reduce-motion': null
 	'toggle-edge-scrolling': null
+	'color-scheme': { value: string }
 	'exit-pen-mode': null
+	'start-following': null
 	'stop-following': null
+	'set-color': null
+	'change-user-name': null
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
+	'flatten-to-image': null
 }
 
-type Join<T, K> = K extends null
-	? { [R in keyof T]: T[R] }
-	: { [R in keyof T]: T[R] } & { [R in keyof K]: K[R] }
+/** @public */
+export type TLUiEventData<K> = K extends null
+	? { source: TLUiEventSource }
+	: { source: TLUiEventSource } & K
 
 /** @public */
 export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (
 	name: T,
-	data: Join<{ source: TLUiEventSource }, TLUiEventMap[T]>
+	data: TLUiEventData<TLUiEventMap[T]>
 ) => void
-
-/** @internal */
-const defaultEventHandler: TLUiEventHandler = () => void null
 
 /** @public */
 export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
 
 /** @internal */
-export const EventsContext = React.createContext<TLUiEventContextType>({} as TLUiEventContextType)
+const defaultEventHandler: TLUiEventContextType = () => void null
+
+/** @internal */
+export const EventsContext = React.createContext<TLUiEventContextType | null>(null)
 
 /** @public */
-export type EventsProviderProps = {
+export interface EventsProviderProps {
 	onEvent?: TLUiEventHandler
 	children: React.ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
 		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>
@@ -133,7 +146,7 @@ export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 }
 
 /** @public */
-export function useUiEvents() {
+export function useUiEvents(): TLUiEventContextType {
 	const eventHandler = React.useContext(EventsContext)
 	return eventHandler ?? defaultEventHandler
 }

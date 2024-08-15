@@ -5,33 +5,36 @@ import {
 	MatModel,
 	PageRecordType,
 	StateNode,
-	TLEventHandlers,
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapePartial,
+	TLTickEventInfo,
 	Vec,
+	bind,
 	compact,
 	isPageId,
-	moveCameraWhenCloseToEdge,
 } from '@tldraw/editor'
 import {
-	NOTE_PIT_RADIUS,
-	NOTE_SIZE,
+	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
+	NOTE_CENTER_OFFSET,
 	getAvailableNoteAdjacentPositions,
 } from '../../../shapes/note/noteHelpers'
 import { DragAndDropManager } from '../DragAndDropManager'
 import { kickoutOccludedShapes } from '../selectHelpers'
 
+export type TranslatingInfo = TLPointerEventInfo & {
+	target: 'shape'
+	isCreating?: boolean
+	creatingMarkId?: string
+	onCreate?(): void
+	didStartInPit?: boolean
+	onInteractionEnd?: string
+}
+
 export class Translating extends StateNode {
 	static override id = 'translating'
-
-	info = {} as TLPointerEventInfo & {
-		target: 'shape'
-		isCreating?: boolean
-		onCreate?: () => void
-		onInteractionEnd?: string
-	}
+	info = {} as TranslatingInfo
 
 	selectionSnapshot: TranslatingSnapshot = {} as any
 
@@ -41,19 +44,14 @@ export class Translating extends StateNode {
 
 	isCloning = false
 	isCreating = false
-	onCreate: (shape: TLShape | null) => void = () => void null
+	onCreate(_shape: TLShape | null): void {
+		return
+	}
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
-	override onEnter = (
-		info: TLPointerEventInfo & {
-			target: 'shape'
-			isCreating?: boolean
-			onCreate?: () => void
-			onInteractionEnd?: string
-		}
-	) => {
-		const { isCreating = false, onCreate = () => void null } = info
+	override onEnter(info: TranslatingInfo) {
+		const { isCreating = false, creatingMarkId, onCreate = () => void null } = info
 
 		if (!this.editor.getSelectedShapeIds()?.length) {
 			this.parent.transition('idle')
@@ -63,14 +61,26 @@ export class Translating extends StateNode {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.isCreating = isCreating
-		this.onCreate = onCreate
+
+		this.markId = ''
 
 		if (isCreating) {
-			this.markId = `creating:${this.editor.getOnlySelectedShape()!.id}`
+			if (creatingMarkId) {
+				this.markId = creatingMarkId
+			} else {
+				// handle legacy implicit `creating:{shapeId}` marks
+				const markId = this.editor.getMarkIdMatching(
+					`creating:${this.editor.getOnlySelectedShapeId()}`
+				)
+				if (markId) {
+					this.markId = markId
+				}
+			}
 		} else {
-			this.markId = 'translating'
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint('translating')
 		}
+
+		this.onCreate = onCreate
 
 		this.isCloning = false
 		this.info = info
@@ -91,7 +101,7 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
@@ -100,19 +110,20 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.clear()
 	}
 
-	override onTick = () => {
+	override onTick({ elapsed }: TLTickEventInfo) {
+		const { editor } = this
 		this.dragAndDropManager.updateDroppingNode(
 			this.snapshot.movingShapes,
 			this.updateParentTransforms
 		)
-		moveCameraWhenCloseToEdge(this.editor)
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.updateShapes()
 	}
 
-	override onKeyDown = () => {
+	override onKeyDown() {
 		if (this.editor.inputs.altKey && !this.isCloning) {
 			this.startCloning()
 			return
@@ -122,7 +133,7 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	override onKeyUp: TLEventHandlers['onKeyUp'] = () => {
+	override onKeyUp() {
 		if (!this.editor.inputs.altKey && this.isCloning) {
 			this.stopCloning()
 			return
@@ -132,15 +143,15 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
@@ -149,8 +160,7 @@ export class Translating extends StateNode {
 
 		this.isCloning = true
 		this.reset()
-		this.markId = 'translating'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('translate cloning')
 
 		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
 
@@ -163,8 +173,7 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.snapshot = this.selectionSnapshot
 		this.reset()
-		this.markId = 'translating'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('translate')
 		this.updateShapes()
 	}
 
@@ -283,7 +292,8 @@ export class Translating extends StateNode {
 		}
 	}
 
-	protected updateParentTransforms = () => {
+	@bind
+	protected updateParentTransforms() {
 		const {
 			editor,
 			snapshot: { shapeSnapshots },
@@ -352,7 +362,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	}
 
 	let noteAdjacentPositions: Vec[] | undefined
-	let noteSnapshot: MovingShapeSnapshot | undefined
+	let noteSnapshot: (MovingShapeSnapshot & { shape: TLNoteShape }) | undefined
 
 	const { originPagePoint } = editor.inputs
 
@@ -360,7 +370,7 @@ function getTranslatingSnapshot(editor: Editor) {
 		(s) =>
 			editor.isShapeOfType<TLNoteShape>(s.shape, 'note') &&
 			editor.isPointInShape(s.shape, originPagePoint)
-	)
+	) as (MovingShapeSnapshot & { shape: TLNoteShape })[]
 
 	if (allHoveredNotes.length === 0) {
 		// noop
@@ -382,7 +392,8 @@ function getTranslatingSnapshot(editor: Editor) {
 		noteAdjacentPositions = getAvailableNoteAdjacentPositions(
 			editor,
 			noteSnapshot.pageRotation,
-			(noteSnapshot.shape as TLNoteShape).props.growY ?? 0
+			noteSnapshot.shape.props.scale,
+			noteSnapshot.shape.props.growY ?? 0
 		)
 	}
 
@@ -460,14 +471,16 @@ export function moveShapesToPoint({
 	} else {
 		// for sticky notes, snap to grid position next to other notes
 		if (noteSnapshot && noteAdjacentPositions) {
-			let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
+			const { scale } = noteSnapshot.shape.props
+			const pageCenter = noteSnapshot.pagePoint
+				.clone()
+				.add(delta)
+				// use the middle of the note, disregarding extra height
+				.add(NOTE_CENTER_OFFSET.clone().mul(scale).rot(noteSnapshot.pageRotation))
+
+			// Find the pit with the center closest to the put center
+			let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 			let offset = new Vec(0, 0)
-
-			const pageCenter = Vec.Add(
-				Vec.Add(noteSnapshot.pagePoint, delta),
-				new Vec(NOTE_SIZE / 2, NOTE_SIZE / 2).rot(noteSnapshot.pageRotation)
-			)
-
 			for (const pit of noteAdjacentPositions) {
 				// We've already filtered pits with the same page rotation
 				const deltaToPit = Vec.Sub(pageCenter, pit)

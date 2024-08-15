@@ -13,7 +13,7 @@ const mockSequence = ({
 	id: string
 	retroactive: boolean
 	versions: number
-	filter?: (r: TestRecordType) => boolean
+	filter?(r: TestRecordType): boolean
 }): MigrationSequence => ({
 	sequenceId: id,
 	retroactive,

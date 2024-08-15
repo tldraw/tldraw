@@ -1,11 +1,11 @@
 import { Editor, objectMapEntries } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { PORTRAIT_BREAKPOINT } from './constants'
-import { ActionsProviderProps } from './context/actions'
+import { ActionsProviderProps, TLUiActionsContextType } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
 import { useDialogs } from './context/dialogs'
 import { useToasts } from './context/toasts'
-import { TLUiToolsProviderProps } from './hooks/useTools'
+import { TLUiToolsContextType, TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
@@ -41,31 +41,33 @@ export function useDefaultHelpers() {
 	)
 }
 
-type DefaultHelpers = ReturnType<typeof useDefaultHelpers>
-
-export type TLUiOverride<Type, Helpers> = (editor: Editor, schema: Type, helpers: Helpers) => Type
-
-type WithDefaultHelpers<T extends TLUiOverride<any, any>> =
-	T extends TLUiOverride<infer Type, infer Helpers>
-		? TLUiOverride<Type, Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers>
-		: never
+/** @public */
+export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>
 
 /** @public */
-export type TLUiOverrides = Partial<{
-	actions: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
-	tools: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>
-	translations: TLUiTranslationProviderProps['overrides']
-}>
+export interface TLUiOverrides {
+	actions?(
+		editor: Editor,
+		actions: TLUiActionsContextType,
+		helpers: TLUiOverrideHelpers
+	): TLUiActionsContextType
+	tools?(
+		editor: Editor,
+		tools: TLUiToolsContextType,
+		helpers: { insertMedia(): void } & TLUiOverrideHelpers
+	): TLUiToolsContextType
+	translations?: TLUiTranslationProviderProps['overrides']
+}
 
-export type TLUiOverridesWithoutDefaults = Partial<{
-	actions: ActionsProviderProps['overrides']
-	tools: TLUiToolsProviderProps['overrides']
-	translations: TLUiTranslationProviderProps['overrides']
-}>
+export interface TLUiOverridesWithoutDefaults {
+	actions?: ActionsProviderProps['overrides']
+	tools?: TLUiToolsProviderProps['overrides']
+	translations?: TLUiTranslationProviderProps['overrides']
+}
 
 export function mergeOverrides(
 	overrides: TLUiOverrides[],
-	defaultHelpers: DefaultHelpers
+	defaultHelpers: TLUiOverrideHelpers
 ): TLUiOverridesWithoutDefaults {
 	const mergedTranslations: TLUiTranslationProviderProps['overrides'] = {}
 	for (const override of overrides) {

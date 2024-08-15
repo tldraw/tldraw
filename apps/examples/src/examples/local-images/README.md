@@ -3,6 +3,7 @@ title: Local images
 component: ./LocalImagesExample.tsx
 category: data/assets
 priority: 2
+keywords: [asset, record, create asset]
 ---
 
 How to use local images in the built-in `ImageShape` shape.

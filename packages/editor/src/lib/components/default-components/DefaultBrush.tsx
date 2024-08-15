@@ -4,14 +4,14 @@ import { useTransform } from '../../hooks/useTransform'
 import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
-export type TLBrushProps = {
+export interface TLBrushProps {
 	brush: BoxModel
 	color?: string
 	opacity?: number
 	className?: string
 }
 
-/** @public */
+/** @public @react */
 export const DefaultBrush = ({ brush, color, opacity, className }: TLBrushProps) => {
 	const rSvg = useRef<SVGSVGElement>(null)
 	useTransform(rSvg, brush.x, brush.y)

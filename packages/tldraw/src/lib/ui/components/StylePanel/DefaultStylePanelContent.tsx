@@ -35,11 +35,11 @@ import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 
 /** @public */
-export type TLUiStylePanelContentProps = {
+export interface TLUiStylePanelContentProps {
 	styles: ReturnType<typeof useRelevantStyles>
 }
 
-/** @public */
+/** @public @react */
 export function DefaultStylePanelContent({ styles }: TLUiStylePanelContentProps) {
 	const isDarkMode = useIsDarkMode()
 
@@ -80,7 +80,7 @@ function useStyleChangeCallback() {
 	return React.useMemo(
 		() =>
 			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
-				editor.batch(() => {
+				editor.run(() => {
 					if (editor.isIn('select')) {
 						editor.setStyleForSelectedShapes(style, value)
 					}
@@ -95,13 +95,18 @@ function useStyleChangeCallback() {
 }
 
 /** @public */
-export function CommonStylePickerSet({
-	styles,
-	theme,
-}: {
+export interface ThemeStylePickerSetProps {
 	styles: ReadonlySharedStyleMap
 	theme: TLDefaultColorTheme
-}) {
+}
+
+/** @public */
+export interface StylePickerSetProps {
+	styles: ReadonlySharedStyleMap
+}
+
+/** @public @react */
+export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps) {
 	const msg = useTranslation()
 	const editor = useEditor()
 
@@ -182,14 +187,8 @@ export function CommonStylePickerSet({
 	)
 }
 
-/** @public */
-export function TextStylePickerSet({
-	theme,
-	styles,
-}: {
-	theme: TLDefaultColorTheme
-	styles: ReadonlySharedStyleMap
-}) {
+/** @public @react */
+export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) {
 	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
@@ -277,8 +276,8 @@ export function TextStylePickerSet({
 		</div>
 	)
 }
-/** @public */
-export function GeoStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+/** @public @react */
+export function GeoStylePickerSet({ styles }: StylePickerSetProps) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const geo = styles.get(GeoShapeGeoStyle)
@@ -299,8 +298,8 @@ export function GeoStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }
 		/>
 	)
 }
-/** @public */
-export function SplineStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+/** @public @react */
+export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const spline = styles.get(LineShapeSplineStyle)
@@ -322,8 +321,8 @@ export function SplineStylePickerSet({ styles }: { styles: ReadonlySharedStyleMa
 	)
 }
 
-/** @public */
-export function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
+/** @public @react */
+export function ArrowheadStylePickerSet({ styles }: StylePickerSetProps) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
@@ -351,7 +350,7 @@ export function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyl
 }
 
 const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
-/** @public */
+/** @public @react */
 export function OpacitySlider() {
 	const editor = useEditor()
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
@@ -361,7 +360,7 @@ export function OpacitySlider() {
 	const handleOpacityValueChange = React.useCallback(
 		(value: number) => {
 			const item = tldrawSupportedOpacities[value]
-			editor.batch(() => {
+			editor.run(() => {
 				if (editor.isIn('select')) {
 					editor.setOpacityForSelectedShapes(item)
 				}

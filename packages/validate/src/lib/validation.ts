@@ -1,4 +1,5 @@
 import {
+	Expand,
 	IndexKey,
 	JsonValue,
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
@@ -17,8 +18,8 @@ export type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (
 ) => Out
 
 /** @public */
-export type Validatable<T> = {
-	validate: (value: unknown) => T
+export interface Validatable<T> {
+	validate(value: unknown): T
 	/**
 	 * This is a performance optimizing version of validate that can use a previous
 	 * version of the value to avoid revalidating every part of the new value if
@@ -28,7 +29,7 @@ export type Validatable<T> = {
 	 * should return the previous value.
 	 * @returns
 	 */
-	validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T
+	validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T
 }
 
 function formatPath(path: ReadonlyArray<number | string>): string | null {
@@ -380,9 +381,10 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 }
 
 // pass this into itself e.g. Config extends UnionObjectSchemaConfig<Key, Config>
-type UnionValidatorConfig<Key extends string, Config> = {
+/** @public */
+export type UnionValidatorConfig<Key extends string, Config> = {
 	readonly [Variant in keyof Config]: Validatable<any> & {
-		validate: (input: any) => { readonly [K in Key]: Variant }
+		validate(input: any): { readonly [K in Key]: Variant }
 	}
 }
 /** @public */
@@ -677,11 +679,13 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
 	return value as Record<string, unknown>
 })
 
-type ExtractRequiredKeys<T extends object> = {
+/** @public */
+export type ExtractRequiredKeys<T extends object> = {
 	[K in keyof T]: undefined extends T[K] ? never : K
 }[keyof T]
 
-type ExtractOptionalKeys<T extends object> = {
+/** @public */
+export type ExtractOptionalKeys<T extends object> = {
 	[K in keyof T]: undefined extends T[K] ? K : never
 }[keyof T]
 
@@ -693,7 +697,11 @@ type ExtractOptionalKeys<T extends object> = {
 export function object<Shape extends object>(config: {
 	readonly [K in keyof Shape]: Validatable<Shape[K]>
 }): ObjectValidator<
-	{ [P in ExtractRequiredKeys<Shape>]: Shape[P] } & { [P in ExtractOptionalKeys<Shape>]?: Shape[P] }
+	Expand<
+		{ [P in ExtractRequiredKeys<Shape>]: Shape[P] } & {
+			[P in ExtractOptionalKeys<Shape>]?: Shape[P]
+		}
+	>
 > {
 	return new ObjectValidator(config) as any
 }
@@ -821,8 +829,8 @@ export function dict<Key extends string, Value>(
  * @example
  *
  * ```ts
- * const catValidator = T.object({ kind: T.value('cat'), meow: T.boolean })
- * const dogValidator = T.object({ kind: T.value('dog'), bark: T.boolean })
+ * const catValidator = T.object({ kind: T.literal('cat'), meow: T.boolean })
+ * const dogValidator = T.object({ kind: T.literal('dog'), bark: T.boolean })
  * const animalValidator = T.union('kind', { cat: catValidator, dog: dogValidator })
  * ```
  *
@@ -835,7 +843,7 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
 	return new UnionValidator(
 		key,
 		config,
-		(unknownValue, unknownVariant) => {
+		(_unknownValue, unknownVariant) => {
 			throw new ValidationError(
 				`Expected one of ${Object.keys(config)
 					.map((key) => JSON.stringify(key))
@@ -981,7 +989,8 @@ export const linkUrl = string.check((value) => {
 	}
 })
 
-const validSrcProtocols = new Set(['http:', 'https:', 'data:'])
+// N.B. asset: is a reference to the local indexedDB object store.
+const validSrcProtocols = new Set(['http:', 'https:', 'data:', 'asset:'])
 
 /**
  * Validates that a valid is a url safe to load as an asset.
@@ -993,6 +1002,22 @@ export const srcUrl = string.check((value) => {
 	const url = parseUrl(value)
 
 	if (!validSrcProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
+})
+
+/**
+ * Validates an http(s) url
+ *
+ * @public
+ */
+export const httpUrl = string.check((value) => {
+	if (value === '') return
+	const url = parseUrl(value)
+
+	if (!url.protocol.toLowerCase().match(/^https?:$/)) {
 		throw new ValidationError(
 			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
 		)

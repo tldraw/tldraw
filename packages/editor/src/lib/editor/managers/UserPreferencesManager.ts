@@ -1,18 +1,30 @@
-import { computed } from '@tldraw/state'
-import {
-	TLUserPreferences,
-	defaultUserPreferences,
-	userPrefersDarkUI,
-} from '../../config/TLUserPreferences'
+import { atom, computed } from '@tldraw/state'
+import { TLUserPreferences, defaultUserPreferences } from '../../config/TLUserPreferences'
 import { TLUser } from '../../config/createTLUser'
 
+/** @public */
 export class UserPreferencesManager {
+	systemColorScheme = atom<'dark' | 'light'>('systemColorScheme', 'light')
 	constructor(
 		private readonly user: TLUser,
 		private readonly inferDarkMode: boolean
-	) {}
+	) {
+		if (typeof window === 'undefined' || !('matchMedia' in window)) return
 
-	updateUserPreferences = (userPreferences: Partial<TLUserPreferences>) => {
+		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+		if (darkModeMediaQuery?.matches) {
+			this.systemColorScheme.set('dark')
+		}
+		darkModeMediaQuery?.addEventListener('change', (e) => {
+			if (e.matches) {
+				this.systemColorScheme.set('dark')
+			} else {
+				this.systemColorScheme.set('light')
+			}
+		})
+	}
+
+	updateUserPreferences(userPreferences: Partial<TLUserPreferences>) {
 		this.user.setUserPreferences({
 			...this.user.userPreferences.get(),
 			...userPreferences,
@@ -26,15 +38,24 @@ export class UserPreferencesManager {
 			color: this.getColor(),
 			animationSpeed: this.getAnimationSpeed(),
 			isSnapMode: this.getIsSnapMode(),
+			colorScheme: this.user.userPreferences.get().colorScheme,
 			isDarkMode: this.getIsDarkMode(),
 			isWrapMode: this.getIsWrapMode(),
+			isDynamicResizeMode: this.getIsDynamicResizeMode(),
 		}
 	}
+
 	@computed getIsDarkMode() {
-		return (
-			this.user.userPreferences.get().isDarkMode ??
-			(this.inferDarkMode ? userPrefersDarkUI() : false)
-		)
+		switch (this.user.userPreferences.get().colorScheme) {
+			case 'dark':
+				return true
+			case 'light':
+				return false
+			case 'system':
+				return this.systemColorScheme.get() === 'dark'
+			default:
+				return this.inferDarkMode ? this.systemColorScheme.get() === 'dark' : false
+		}
 	}
 
 	/**
@@ -70,5 +91,18 @@ export class UserPreferencesManager {
 
 	@computed getIsWrapMode() {
 		return this.user.userPreferences.get().isWrapMode ?? defaultUserPreferences.isWrapMode
+	}
+
+	@computed getIsDynamicResizeMode() {
+		return (
+			this.user.userPreferences.get().isDynamicSizeMode ?? defaultUserPreferences.isDynamicSizeMode
+		)
+	}
+
+	@computed getIsPasteAtCursorMode() {
+		return (
+			this.user.userPreferences.get().isPasteAtCursorMode ??
+			defaultUserPreferences.isPasteAtCursorMode
+		)
 	}
 }

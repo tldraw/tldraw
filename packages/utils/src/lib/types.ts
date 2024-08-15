@@ -6,7 +6,5 @@ export type RecursivePartial<T> = {
 /** @public */
 export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never
 
-type _Required<T> = { [K in keyof T]-?: T[K] }
-
 /** @internal */
-export type Required<T, K extends keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>>>
+export type Required<T, K extends keyof T> = Expand<Omit<T, K> & { [P in K]-?: T[P] }>

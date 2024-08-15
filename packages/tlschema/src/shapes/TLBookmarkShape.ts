@@ -1,22 +1,28 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
+import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
+import { RecordProps } from '../recordsWithProps'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const bookmarkShapeProps = {
+export interface TLBookmarkShapeProps {
+	w: number
+	h: number
+	assetId: TLAssetId | null
+	url: string
+}
+
+/** @public */
+export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
+
+/** @public */
+export const bookmarkShapeProps: RecordProps<TLBookmarkShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	assetId: assetIdValidator.nullable(),
 	url: T.linkUrl,
 }
-
-/** @public */
-export type TLBookmarkShapeProps = RecordPropsType<typeof bookmarkShapeProps>
-
-/** @public */
-export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
 
 const Versions = createShapePropsMigrationIds('bookmark', {
 	NullAssetId: 1,
@@ -35,7 +41,7 @@ export const bookmarkShapeMigrations = createShapePropsMigrationSequence({
 					props.assetId = null
 				}
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: Versions.MakeUrlsValid,

@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/utils",
 	"description": "A tiny little drawing app (private utilities).",
-	"version": "2.1.0",
+	"version": "2.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -49,7 +49,14 @@
 			"^~(.*)": "<rootDir>/src/$1"
 		}
 	},
+	"dependencies": {
+		"fractional-indexing-jittered": "^0.9.1",
+		"lodash.throttle": "^4.1.1",
+		"lodash.uniq": "^4.5.0"
+	},
 	"devDependencies": {
+		"@types/lodash.throttle": "^4.1.7",
+		"@types/lodash.uniq": "^4.5.7",
 		"jest-environment-jsdom": "^29.4.3",
 		"lazyrepo": "0.0.0-alpha.27"
 	}

@@ -9,7 +9,9 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
 export const featureFlags: Record<string, DebugFlag<boolean>> = {
-	// canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
+	enableLicensing: createFeatureFlag('enableLicensing', {
+		defaults: { all: true, production: false },
+	}),
 }
 
 /** @internal */
@@ -59,7 +61,7 @@ export const debugFlags = {
 
 declare global {
 	interface Window {
-		tldrawLog: (message: any) => void
+		tldrawLog(message: any): void
 	}
 }
 
@@ -97,7 +99,7 @@ function createDebugValue<T>(
 	{
 		defaults,
 		shouldStoreForSession = true,
-	}: { defaults: Defaults<T>; shouldStoreForSession?: boolean }
+	}: { defaults: DebugFlagDefaults<T>; shouldStoreForSession?: boolean }
 ) {
 	return createDebugValueBase({
 		name,
@@ -106,16 +108,19 @@ function createDebugValue<T>(
 	})
 }
 
-// function createFeatureFlag(
-// 	name: string,
-// 	defaults: Defaults<boolean> = { all: true, production: false }
-// ) {
-// 	return createDebugValueBase({
-// 		name,
-// 		defaults,
-// 		shouldStoreForSession: true,
-// 	})
-// }
+function createFeatureFlag<T>(
+	name: string,
+	{
+		defaults,
+		shouldStoreForSession = true,
+	}: { defaults: DebugFlagDefaults<T>; shouldStoreForSession?: boolean }
+) {
+	return createDebugValueBase({
+		name,
+		defaults,
+		shouldStoreForSession,
+	})
+}
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
@@ -188,16 +193,18 @@ function getDefaultValue<T>(def: DebugFlagDef<T>): T {
 	}
 }
 
-interface Defaults<T> {
+/** @internal */
+export interface DebugFlagDefaults<T> {
 	development?: T
 	staging?: T
 	production?: T
 	all: T
 }
 
-interface DebugFlagDef<T> {
+/** @internal */
+export interface DebugFlagDef<T> {
 	name: string
-	defaults: Defaults<T>
+	defaults: DebugFlagDefaults<T>
 	shouldStoreForSession: boolean
 }
 

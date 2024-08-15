@@ -103,7 +103,7 @@ export function createMigrationIds<
 /** @internal */
 export function createRecordMigrationSequence(opts: {
 	recordType: string
-	filter?: (record: UnknownRecord) => boolean
+	filter?(record: UnknownRecord): boolean
 	retroactive?: boolean
 	sequenceId: string
 	sequence: Omit<Extract<Migration, { scope: 'record' }>, 'scope'>[]
@@ -128,8 +128,10 @@ export function createRecordMigrationSequence(opts: {
 }
 
 /** @public */
-export type LegacyMigration<Before = any, After = any> = {
+export interface LegacyMigration<Before = any, After = any> {
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	up: (oldState: Before) => After
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	down: (newState: After) => Before
 }
 
@@ -137,7 +139,7 @@ export type LegacyMigration<Before = any, After = any> = {
 export type MigrationId = `${string}/${number}`
 
 /** @public */
-export type StandaloneDependsOn = {
+export interface StandaloneDependsOn {
 	readonly dependsOn: readonly MigrationId[]
 }
 
@@ -148,22 +150,28 @@ export type Migration = {
 } & (
 	| {
 			readonly scope: 'record'
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			readonly filter?: (record: UnknownRecord) => boolean
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			readonly up: (oldState: UnknownRecord) => void | UnknownRecord
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			readonly down?: (newState: UnknownRecord) => void | UnknownRecord
 	  }
 	| {
 			readonly scope: 'store'
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			readonly up: (
 				oldState: SerializedStore<UnknownRecord>
 			) => void | SerializedStore<UnknownRecord>
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			readonly down?: (
 				newState: SerializedStore<UnknownRecord>
 			) => void | SerializedStore<UnknownRecord>
 	  }
 )
 
-interface LegacyBaseMigrationsInfo {
+/** @public */
+export interface LegacyBaseMigrationsInfo {
 	firstVersion: number
 	currentVersion: number
 	migrators: { [version: number]: LegacyMigration }

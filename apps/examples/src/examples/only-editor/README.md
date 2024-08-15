@@ -3,6 +3,7 @@ title: Minimal
 component: ./OnlyEditor.tsx
 category: editor-api
 priority: 3
+keywords: [select, tool, editor, bare, bones]
 ---
 
 Use the `<TldrawEditor/>` component to render a bare-bones editor with minimal built-in shapes and tools.

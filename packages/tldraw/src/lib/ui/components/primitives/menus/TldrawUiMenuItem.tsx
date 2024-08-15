@@ -16,10 +16,10 @@ import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export type TLUiMenuItemProps<
+export interface TLUiMenuItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
-> = {
+> {
 	id: string
 	/**
 	 * The icon to display on the item.
@@ -40,7 +40,7 @@ export type TLUiMenuItemProps<
 	/**
 	 * The function to call when the item is clicked.
 	 */
-	onSelect: (source: TLUiEventSource) => Promise<void> | void
+	onSelect(source: TLUiEventSource): Promise<void> | void
 	/**
 	 * Whether this item should be disabled.
 	 */
@@ -59,7 +59,7 @@ export type TLUiMenuItemProps<
 	isSelected?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuItem<
 	TranslationKey extends string = string,
 	IconType extends string = string,
@@ -206,6 +206,7 @@ export function TldrawUiMenuItem<
 					data-value={id}
 					onClick={() => onSelect('toolbar')}
 					title={titleStr}
+					disabled={disabled}
 					onTouchStart={(e) => {
 						preventDefault(e)
 						onSelect('toolbar')
@@ -228,6 +229,7 @@ export function TldrawUiMenuItem<
 						}}
 						data-testid={`tools.more.${id}`}
 						title={titleStr}
+						disabled={disabled}
 						role="radio"
 						aria-checked={isSelected ? 'true' : 'false'}
 						data-value={id}

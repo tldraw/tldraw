@@ -1,4 +1,5 @@
 import { equals, getObjectSubset, iterableEquality, subsetEquality } from '@jest/expect-utils'
+import crypto from 'crypto'
 import {
 	matcherHint,
 	printDiffOrStringify,
@@ -10,6 +11,8 @@ import { TextDecoder, TextEncoder } from 'util'
 
 global.TextEncoder = TextEncoder
 global.TextDecoder = TextDecoder
+delete global.crypto
+global.crypto = crypto
 
 Image.prototype.decode = async function () {
 	return true

@@ -1,15 +1,11 @@
-import {
-	COARSE_DRAG_DISTANCE,
-	DOUBLE_CLICK_DURATION,
-	DRAG_DISTANCE,
-	MULTI_CLICK_DURATION,
-} from '../../constants'
+import { bind } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'
 
-type TLClickState =
+/** @public */
+export type TLClickState =
 	| 'idle'
 	| 'pendingDouble'
 	| 'pendingTriple'
@@ -19,6 +15,7 @@ type TLClickState =
 
 const MAX_CLICK_DISTANCE = 40
 
+/** @public */
 export class ClickManager {
 	constructor(public editor: Editor) {}
 
@@ -30,10 +27,11 @@ export class ClickManager {
 
 	private _previousScreenPoint?: Vec
 
-	private _getClickTimeout = (state: TLClickState, id = uniqueId()) => {
+	@bind
+	_getClickTimeout(state: TLClickState, id = uniqueId()) {
 		this._clickId = id
 		clearTimeout(this._clickTimeout)
-		this._clickTimeout = setTimeout(
+		this._clickTimeout = this.editor.timers.setTimeout(
 			() => {
 				if (this._clickState === state && this._clickId === id) {
 					switch (this._clickState) {
@@ -72,7 +70,9 @@ export class ClickManager {
 					this._clickState = 'idle'
 				}
 			},
-			state === 'idle' || state === 'pendingDouble' ? DOUBLE_CLICK_DURATION : MULTI_CLICK_DURATION
+			state === 'idle' || state === 'pendingDouble'
+				? this.editor.options.doubleClickDurationMs
+				: this.editor.options.multiClickDurationMs
 		)
 	}
 
@@ -95,7 +95,7 @@ export class ClickManager {
 
 	lastPointerInfo = {} as TLPointerEventInfo
 
-	handlePointerEvent = (info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo => {
+	handlePointerEvent(info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo {
 		switch (info.name) {
 			case 'pointer_down': {
 				if (!this._clickState) return info
@@ -199,7 +199,9 @@ export class ClickManager {
 					this._clickState !== 'idle' &&
 					this._clickScreenPoint &&
 					Vec.Dist2(this._clickScreenPoint, this.editor.inputs.currentScreenPoint) >
-						(this.editor.getInstanceState().isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
+						(this.editor.getInstanceState().isCoarsePointer
+							? this.editor.options.coarseDragDistanceSquared
+							: this.editor.options.dragDistanceSquared)
 				) {
 					this.cancelDoubleClickTimeout()
 				}
@@ -214,7 +216,8 @@ export class ClickManager {
 	 *
 	 * @internal
 	 */
-	cancelDoubleClickTimeout = () => {
+	@bind
+	cancelDoubleClickTimeout() {
 		this._clickTimeout = clearTimeout(this._clickTimeout)
 		this._clickState = 'idle'
 	}

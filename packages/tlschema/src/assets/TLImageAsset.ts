@@ -16,6 +16,7 @@ export type TLImageAsset = TLBaseAsset<
 		isAnimated: boolean
 		mimeType: string | null
 		src: string | null
+		fileSize?: number
 	}
 >
 
@@ -29,6 +30,7 @@ export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidat
 		isAnimated: T.boolean,
 		mimeType: T.string.nullable(),
 		src: T.srcUrl.nullable(),
+		fileSize: T.nonZeroNumber.optional(),
 	})
 )
 
@@ -36,6 +38,8 @@ const Versions = createMigrationIds('com.tldraw.asset.image', {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 	MakeUrlsValid: 3,
+	AddFileSize: 4,
+	MakeFileSizeOptional: 5,
 } as const)
 
 export { Versions as imageAssetVersions }
@@ -79,6 +83,28 @@ export const imageAssetMigrations = createRecordMigrationSequence({
 			},
 			down: (_asset) => {
 				// noop
+			},
+		},
+		{
+			id: Versions.AddFileSize,
+			up: (asset: any) => {
+				asset.props.fileSize = -1
+			},
+			down: (asset: any) => {
+				delete asset.props.fileSize
+			},
+		},
+		{
+			id: Versions.MakeFileSizeOptional,
+			up: (asset: any) => {
+				if (asset.props.fileSize === -1) {
+					asset.props.fileSize = undefined
+				}
+			},
+			down: (asset: any) => {
+				if (asset.props.fileSize === undefined) {
+					asset.props.fileSize = -1
+				}
 			},
 		},
 	],

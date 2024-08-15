@@ -191,7 +191,7 @@
 		 * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
 		 * DEFAULT VALUE: "<projectFolder>/temp/<unscopedPackageName>.api.json"
 		 */
-		"apiJsonFilePath": "<projectFolder>/packages/<unscopedPackageName>/api/api.json"
+		"apiJsonFilePath": "<projectFolder>/packages/<unscopedPackageName>/api/api.json",
 		/**
 		 * Whether "forgotten exports" should be included in the doc model file. Forgotten exports are declarations
 		 * flagged with `ae-forgotten-export` warnings. See https://api-extractor.com/pages/messages/ae-forgotten-export/ to
@@ -214,7 +214,7 @@
 		 * SUPPORTED TOKENS: none
 		 * DEFAULT VALUE: ""
 		 */
-		// "projectFolderUrl": "http://github.com/path/to/your/projectFolder"
+		"projectFolderUrl": "https://github.com/tldraw/tldraw/blob/main"
 	},
 	/**
 	 * Configures how the .d.ts rollup file will be generated.
@@ -370,7 +370,7 @@
 				"addToApiReportFile": false
 			},
 			"ae-forgotten-export": {
-				"logLevel": "none",
+				"logLevel": "error",
 				"addToApiReportFile": false
 			}
 			// "ae-extra-release-tag": {

@@ -21,7 +21,7 @@ describe('TLUserPreferences', () => {
 			animationSpeed: 1,
 			color: '#000000',
 			id: '123',
-			isDarkMode: true,
+			colorScheme: 'dark',
 			isSnapMode: false,
 			locale: 'en',
 			name: 'test',
@@ -38,15 +38,15 @@ describe('TLUserPreferences', () => {
 
 		userPreferences.set({
 			...userPreferences.get(),
-			isDarkMode: false,
+			colorScheme: 'light',
 		})
 
 		expect(editor.user.getIsDarkMode()).toBe(false)
 
-		editor.user.updateUserPreferences({ isDarkMode: true })
+		editor.user.updateUserPreferences({ colorScheme: 'dark' })
 
 		expect(editor.user.getIsDarkMode()).toBe(true)
-		expect(userPreferences.get().isDarkMode).toBe(true)
+		expect(userPreferences.get().colorScheme).toBe('dark')
 	})
 
 	it('can have null values and it will use defaults', () => {
@@ -54,7 +54,7 @@ describe('TLUserPreferences', () => {
 			id: '123',
 			animationSpeed: null,
 			color: null,
-			isDarkMode: null,
+			colorScheme: 'system',
 			isSnapMode: null,
 			locale: null,
 			name: null,

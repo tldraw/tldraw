@@ -1,17 +1,11 @@
-import {
-	LegacyTldrawDocument,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { TLV1Document, TldrawUiButton, TldrawUiButtonLabel, useEditor, useValue } from 'tldraw'
 
 export function MigrationAnnouncement({
 	onClose,
 	originalFile,
 }: {
-	onClose: () => void
-	originalFile: { name: string; document: LegacyTldrawDocument }
+	onClose(): void
+	originalFile: { name: string; document: TLV1Document }
 }) {
 	const editor = useEditor()
 	const isDarkMode = useValue('is dark mode', () => editor.user.getIsDarkMode(), [editor])

@@ -4,13 +4,16 @@ import {
 	HTMLContainer,
 	TLVideoShape,
 	toDomPrecision,
+	useEditorComponents,
 	useIsEditing,
 	videoShapeMigrations,
 	videoShapeProps,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 /** @public */
@@ -19,8 +22,12 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override props = videoShapeProps
 	static override migrations = videoShapeMigrations
 
-	override canEdit = () => true
-	override isAspectRatioLocked = () => true
+	override canEdit() {
+		return true
+	}
+	override isAspectRatioLocked() {
+		return true
+	}
 
 	override getDefaultProps(): TLVideoShape['props'] {
 		return {
@@ -36,105 +43,42 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	component(shape: TLVideoShape) {
 		const { editor } = this
 		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
-		const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
-		const { time, playing } = shape.props
+		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
+		const { Spinner } = useEditorComponents()
 
 		const rVideo = useRef<HTMLVideoElement>(null!)
 
-		const handlePlay = useCallback<ReactEventHandler<HTMLVideoElement>>(
-			(e) => {
-				const video = e.currentTarget
-				if (!video) return
-
-				editor.updateShapes([
-					{
-						type: 'video',
-						id: shape.id,
-						props: {
-							playing: true,
-							time: video.currentTime,
-						},
-					},
-				])
-			},
-			[shape.id, editor]
-		)
-
-		const handlePause = useCallback<ReactEventHandler<HTMLVideoElement>>(
-			(e) => {
-				const video = e.currentTarget
-				if (!video) return
-
-				editor.updateShapes([
-					{
-						type: 'video',
-						id: shape.id,
-						props: {
-							playing: false,
-							time: video.currentTime,
-						},
-					},
-				])
-			},
-			[shape.id, editor]
-		)
-
-		const handleSetCurrentTime = useCallback<ReactEventHandler<HTMLVideoElement>>(
-			(e) => {
-				const video = e.currentTarget
-				if (!video) return
-
-				if (isEditing) {
-					editor.updateShapes([
-						{
-							type: 'video',
-							id: shape.id,
-							props: {
-								time: video.currentTime,
-							},
-						},
-					])
-				}
-			},
-			[isEditing, shape.id, editor]
-		)
-
 		const [isLoaded, setIsLoaded] = useState(false)
 
-		const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>(
-			(e) => {
-				const video = e.currentTarget
-				if (!video) return
-				if (time !== video.currentTime) {
-					video.currentTime = time
-				}
+		const [isFullscreen, setIsFullscreen] = useState(false)
 
-				if (!playing) {
-					video.pause()
-				}
+		useEffect(() => {
+			const fullscreenChange = () => setIsFullscreen(document.fullscreenElement === rVideo.current)
+			document.addEventListener('fullscreenchange', fullscreenChange)
 
-				setIsLoaded(true)
-			},
-			[playing, time]
-		)
+			return () => document.removeEventListener('fullscreenchange', fullscreenChange)
+		})
+
+		const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
+			const video = e.currentTarget
+			if (!video) return
+
+			setIsLoaded(true)
+		}, [])
 
 		// If the current time changes and we're not editing the video, update the video time
 		useEffect(() => {
 			const video = rVideo.current
 			if (!video) return
 
-			if (isLoaded && !isEditing && time !== video.currentTime) {
-				video.currentTime = time
-			}
-
 			if (isEditing) {
 				if (document.activeElement !== video) {
 					video.focus()
 				}
 			}
-		}, [isEditing, isLoaded, time])
+		}, [isEditing, isLoaded])
 
 		useEffect(() => {
 			if (prefersReducedMotion) {
@@ -157,32 +101,42 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 				>
 					<div className="tl-counter-scaled">
 						<div className="tl-video-container">
-							{asset?.props.src ? (
-								<video
-									ref={rVideo}
-									style={isEditing ? { pointerEvents: 'all' } : undefined}
-									className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
-									width="100%"
-									height="100%"
-									draggable={false}
-									playsInline
-									autoPlay
-									muted
-									loop
-									disableRemotePlayback
-									disablePictureInPicture
-									controls={isEditing && showControls}
-									onPlay={handlePlay}
-									onPause={handlePause}
-									onTimeUpdate={handleSetCurrentTime}
-									onLoadedData={handleLoadedData}
-									hidden={!isLoaded}
-								>
-									<source src={asset.props.src} />
-								</video>
-							) : (
+							{!asset ? (
 								<BrokenAssetIcon />
-							)}
+							) : Spinner && !asset.props.src ? (
+								<Spinner />
+							) : url ? (
+								<>
+									<video
+										ref={rVideo}
+										style={
+											isEditing
+												? { pointerEvents: 'all' }
+												: !isLoaded
+													? { display: 'none' }
+													: undefined
+										}
+										className={classNames('tl-video', `tl-video-shape-${shape.id.split(':')[1]}`, {
+											'tl-video-is-fullscreen': isFullscreen,
+										})}
+										width="100%"
+										height="100%"
+										draggable={false}
+										playsInline
+										autoPlay
+										muted
+										loop
+										disableRemotePlayback
+										disablePictureInPicture
+										controls={isEditing && showControls}
+										onLoadedData={handleLoadedData}
+										hidden={!isLoaded}
+									>
+										<source src={url} />
+									</video>
+									{!isLoaded && Spinner && <Spinner />}
+								</>
+							) : null}
 						</div>
 					</div>
 				</HTMLContainer>

@@ -1,13 +1,13 @@
-import { StateNode, react } from '@tldraw/editor'
+import { StateNode, TLStateNodeConstructor, react } from '@tldraw/editor'
 import { Brushing } from './childStates/Brushing'
 import { Crop } from './childStates/Crop/Crop'
-import { Cropping } from './childStates/Cropping'
+import { Cropping } from './childStates/Crop/children/Cropping'
+import { PointingCropHandle } from './childStates/Crop/children/PointingCropHandle'
 import { DraggingHandle } from './childStates/DraggingHandle'
 import { EditingShape } from './childStates/EditingShape'
 import { Idle } from './childStates/Idle'
 import { PointingArrowLabel } from './childStates/PointingArrowLabel'
 import { PointingCanvas } from './childStates/PointingCanvas'
-import { PointingCropHandle } from './childStates/PointingCropHandle'
 import { PointingHandle } from './childStates/PointingHandle'
 import { PointingResizeHandle } from './childStates/PointingResizeHandle'
 import { PointingRotateHandle } from './childStates/PointingRotateHandle'
@@ -22,31 +22,34 @@ import { Translating } from './childStates/Translating'
 export class SelectTool extends StateNode {
 	static override id = 'select'
 	static override initial = 'idle'
+	static override isLockable = false
 	reactor: undefined | (() => void) = undefined
 
-	static override children = () => [
-		Brushing,
-		Crop,
-		Cropping,
-		DraggingHandle,
-		EditingShape,
-		Idle,
-		PointingArrowLabel,
-		PointingCanvas,
-		PointingCropHandle,
-		PointingHandle,
-		PointingResizeHandle,
-		PointingRotateHandle,
-		PointingSelection,
-		PointingShape,
-		Resizing,
-		Rotating,
-		ScribbleBrushing,
-		Translating,
-	]
+	static override children(): TLStateNodeConstructor[] {
+		return [
+			Crop,
+			Cropping,
+			Idle,
+			PointingCanvas,
+			PointingShape,
+			Translating,
+			Brushing,
+			ScribbleBrushing,
+			PointingCropHandle,
+			PointingSelection,
+			PointingResizeHandle,
+			EditingShape,
+			Resizing,
+			Rotating,
+			PointingRotateHandle,
+			PointingArrowLabel,
+			PointingHandle,
+			DraggingHandle,
+		]
+	}
 
 	// We want to clean up the duplicate props when the selection changes
-	private cleanUpDuplicateProps = () => {
+	cleanUpDuplicateProps() {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const instance = this.editor.getInstanceState()
 		if (!instance.duplicateProps) return
@@ -62,7 +65,7 @@ export class SelectTool extends StateNode {
 		})
 	}
 
-	override onEnter = () => {
+	override onEnter() {
 		this.reactor = react('clean duplicate props', () => {
 			try {
 				this.cleanUpDuplicateProps()
@@ -76,7 +79,7 @@ export class SelectTool extends StateNode {
 		})
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.reactor?.()
 		if (this.editor.getCurrentPageState().editingShapeId) {
 			this.editor.setEditingShape(null)

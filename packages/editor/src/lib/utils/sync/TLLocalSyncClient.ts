@@ -9,8 +9,8 @@ import {
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
 } from '../../config/TLSessionStateSnapshot'
+import { LocalIndexedDb } from './LocalIndexedDb'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
-import { loadDataFromStore, storeChangesInIndexedDb, storeSnapshotInIndexedDb } from './indexedDb'
 
 /** How should we debounce persists? */
 const PERSIST_THROTTLE_MS = 350
@@ -26,7 +26,7 @@ const UPDATE_INSTANCE_STATE = Symbol('UPDATE_INSTANCE_STATE')
  * once it has the db integrated
  */
 
-type SyncMessage = {
+interface SyncMessage {
 	type: 'diff'
 	storeId: string
 	changes: RecordsDiff<UnknownRecord>
@@ -36,7 +36,7 @@ type SyncMessage = {
 // Sent by new clients when they connect
 // If another client is on the channel with a newer schema version
 // It will
-type AnnounceMessage = {
+interface AnnounceMessage {
 	type: 'announce'
 	schema: SerializedSchema
 }
@@ -76,6 +76,8 @@ export class TLLocalSyncClient {
 	private isDebugging = false
 	private readonly documentTypes: ReadonlySet<string>
 	private readonly $sessionStateSnapshot: Signal<TLSessionStateSnapshot | null>
+	/** @internal */
+	readonly db: LocalIndexedDb
 
 	initTime = Date.now()
 	private debug(...args: any[]) {
@@ -94,8 +96,8 @@ export class TLLocalSyncClient {
 		}: {
 			persistenceKey: string
 			sessionId?: string
-			onLoad: (self: TLLocalSyncClient) => void
-			onLoadError: (error: Error) => void
+			onLoad(self: TLLocalSyncClient): void
+			onLoadError(error: Error): void
 		},
 		public readonly channel = new BC(`tldraw-tab-sync-${persistenceKey}`)
 	) {
@@ -104,6 +106,8 @@ export class TLLocalSyncClient {
 		}
 		this.persistenceKey = persistenceKey
 		this.sessionId = sessionId
+		this.db = new LocalIndexedDb(persistenceKey)
+		this.disposables.add(() => this.db.close())
 
 		this.serializedSchema = this.store.schema.serialize()
 		this.$sessionStateSnapshot = createSessionStateSnapshotSignal(this.store)
@@ -150,20 +154,13 @@ export class TLLocalSyncClient {
 
 	private async connect(onLoad: (client: this) => void, onLoadError: (error: Error) => void) {
 		this.debug('connecting')
-		let data: UnpackPromise<ReturnType<typeof loadDataFromStore>> | undefined
+		let data: UnpackPromise<ReturnType<LocalIndexedDb['load']>> | undefined
 
 		try {
-			data = await loadDataFromStore({
-				persistenceKey: this.persistenceKey,
-				sessionId: this.sessionId,
-				didCancel: () => this.didDispose,
-			})
+			data = await this.db.load({ sessionId: this.sessionId })
 		} catch (error: any) {
 			onLoadError(error)
 			showCantReadFromIndexDbAlert()
-			if (typeof window !== 'undefined') {
-				window.location.reload()
-			}
 			return
 		}
 
@@ -266,6 +263,7 @@ export class TLLocalSyncClient {
 
 	private isPersisting = false
 	private didLastWriteError = false
+	// eslint-disable-next-line no-restricted-globals
 	private scheduledPersistTimeout: ReturnType<typeof setTimeout> | null = null
 
 	/**
@@ -277,6 +275,7 @@ export class TLLocalSyncClient {
 	private schedulePersist() {
 		this.debug('schedulePersist', this.scheduledPersistTimeout)
 		if (this.scheduledPersistTimeout) return
+		// eslint-disable-next-line no-restricted-globals
 		this.scheduledPersistTimeout = setTimeout(
 			() => {
 				this.scheduledPersistTimeout = null
@@ -334,6 +333,7 @@ export class TLLocalSyncClient {
 	 */
 	private async doPersist() {
 		assert(!this.isPersisting, 'persist already in progress')
+		if (this.didDispose) return
 		this.isPersisting = true
 
 		this.debug('doPersist start')
@@ -346,11 +346,9 @@ export class TLLocalSyncClient {
 		try {
 			if (this.shouldDoFullDBWrite) {
 				this.shouldDoFullDBWrite = false
-				await storeSnapshotInIndexedDb({
-					persistenceKey: this.persistenceKey,
+				await this.db.storeSnapshot({
 					schema: this.store.schema,
 					snapshot: this.store.serialize(),
-					didCancel: () => this.didDispose,
 					sessionId: this.sessionId,
 					sessionStateSnapshot: this.$sessionStateSnapshot.get(),
 				})
@@ -358,11 +356,9 @@ export class TLLocalSyncClient {
 				const diffs = squashRecordDiffs(
 					diffQueue.filter((d): d is RecordsDiff<UnknownRecord> => d !== UPDATE_INSTANCE_STATE)
 				)
-				await storeChangesInIndexedDb({
-					persistenceKey: this.persistenceKey,
+				await this.db.storeChanges({
 					changes: diffs,
 					schema: this.store.schema,
-					didCancel: () => this.didDispose,
 					sessionId: this.sessionId,
 					sessionStateSnapshot: this.$sessionStateSnapshot.get(),
 				})

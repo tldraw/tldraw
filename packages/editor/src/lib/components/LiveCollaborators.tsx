@@ -1,11 +1,7 @@
-import { track } from '@tldraw/state'
+import { track } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useEffect, useRef, useState } from 'react'
-import {
-	COLLABORATOR_CHECK_INTERVAL,
-	COLLABORATOR_IDLE_TIMEOUT,
-	COLLABORATOR_INACTIVE_TIMEOUT,
-} from '../constants'
+import { Editor } from '../editor/Editor'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { usePeerIds } from '../hooks/usePeerIds'
@@ -13,13 +9,7 @@ import { usePresence } from '../hooks/usePresence'
 
 export const LiveCollaborators = track(function Collaborators() {
 	const peerIds = usePeerIds()
-	return (
-		<>
-			{peerIds.map((id) => (
-				<CollaboratorGuard key={id} collaboratorId={id} />
-			))}
-		</>
-	)
+	return peerIds.map((id) => <CollaboratorGuard key={id} collaboratorId={id} />)
 })
 
 const CollaboratorGuard = track(function CollaboratorGuard({
@@ -29,7 +19,7 @@ const CollaboratorGuard = track(function CollaboratorGuard({
 }) {
 	const editor = useEditor()
 	const presence = usePresence(collaboratorId)
-	const collaboratorState = useCollaboratorState(presence)
+	const collaboratorState = useCollaboratorState(editor, presence)
 
 	if (!(presence && presence.currentPageId === editor.getCurrentPageId())) {
 		// No need to render if we don't have a presence or if they're on a different page
@@ -153,28 +143,28 @@ const Collaborator = track(function Collaborator({
 	)
 })
 
-function getStateFromElapsedTime(elapsed: number) {
-	return elapsed > COLLABORATOR_INACTIVE_TIMEOUT
+function getStateFromElapsedTime(editor: Editor, elapsed: number) {
+	return elapsed > editor.options.collaboratorInactiveTimeoutMs
 		? 'inactive'
-		: elapsed > COLLABORATOR_IDLE_TIMEOUT
+		: elapsed > editor.options.collaboratorIdleTimeoutMs
 			? 'idle'
 			: 'active'
 }
 
-function useCollaboratorState(latestPresence: TLInstancePresence | null) {
+function useCollaboratorState(editor: Editor, latestPresence: TLInstancePresence | null) {
 	const rLastActivityTimestamp = useRef(latestPresence?.lastActivityTimestamp ?? -1)
 
 	const [state, setState] = useState<'active' | 'idle' | 'inactive'>(() =>
-		getStateFromElapsedTime(Date.now() - rLastActivityTimestamp.current)
+		getStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current)
 	)
 
 	useEffect(() => {
-		const interval = setInterval(() => {
-			setState(getStateFromElapsedTime(Date.now() - rLastActivityTimestamp.current))
-		}, COLLABORATOR_CHECK_INTERVAL)
+		const interval = editor.timers.setInterval(() => {
+			setState(getStateFromElapsedTime(editor, Date.now() - rLastActivityTimestamp.current))
+		}, editor.options.collaboratorCheckIntervalMs)
 
 		return () => clearInterval(interval)
-	}, [])
+	}, [editor])
 
 	if (latestPresence) {
 		// We can do this on every render, it's free and cheaper than an effect

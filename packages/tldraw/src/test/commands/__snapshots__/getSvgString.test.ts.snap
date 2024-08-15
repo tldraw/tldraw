@@ -49,7 +49,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       </mask>
       <pattern
         height="8"
-        id="hash_pattern_zoom_1_light"
+        id="tldraw_hash_pattern_light_0"
         patternUnits="userSpaceOnUse"
         width="8"
       >
@@ -79,7 +79,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
         fill="rgb(249, 250, 251)"
         font-family="'tldraw_draw', sans-serif"
         font-size="22"
-        font-style="'tldraw_draw', sans-serif"
+        font-style="normal"
         font-weight="normal"
         stroke="rgb(249, 250, 251)"
         stroke-width="2"
@@ -99,7 +99,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
         fill="#1d1d1d"
         font-family="'tldraw_draw', sans-serif"
         font-size="22"
-        font-style="'tldraw_draw', sans-serif"
+        font-style="normal"
         font-weight="normal"
       >
         <tspan
@@ -133,7 +133,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       />
       <path
         d="M0, 0L100, 0,100, 100,0, 100Z"
-        fill="url(#hash_pattern_zoom_1_light)"
+        fill="url(#tldraw_hash_pattern_light_0)"
       />
       <path
         d="M0, 0L100, 0,100, 100,0, 100Z"

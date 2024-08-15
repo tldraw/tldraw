@@ -5,21 +5,24 @@ import {
 	SVGContainer,
 	SvgExportContext,
 	TLFrameShape,
+	TLFrameShapeProps,
 	TLGroupShape,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	TLShape,
 	canonicalizeRotation,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
 	last,
+	lerp,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useDefaultColorTheme } from '../shared/ShapeFill'
+
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 
 export function defaultEmptyAs(str: string, dflt: string) {
@@ -35,9 +38,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override props = frameShapeProps
 	static override migrations = frameShapeMigrations
 
-	override canBind = () => true
-
-	override canEdit = () => true
+	override canEdit() {
+		return true
+	}
 
 	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '' }
@@ -49,6 +52,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			height: shape.props.h,
 			isFilled: false,
 		})
+	}
+
+	override getText(shape: TLFrameShape): string | undefined {
+		return shape.props.name
 	}
 
 	override component(shape: TLFrameShape) {
@@ -194,7 +201,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override canReceiveNewChildrenOfType = (shape: TLShape, _type: TLShape['type']) => {
+	override canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']) {
 		return !shape.isLocked
 	}
 
@@ -202,17 +209,17 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return true
 	}
 
-	override canDropShapes = (shape: TLFrameShape, _shapes: TLShape[]): boolean => {
+	override canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean {
 		return !shape.isLocked
 	}
 
-	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]) => {
+	override onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]) {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
 			this.editor.reparentShapes(shapes, frame.id)
 		}
 	}
 
-	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
+	override onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void {
 		const parent = this.editor.getShape(_shape.parentId)
 		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
 
@@ -226,7 +233,18 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 	}
 
-	override onResize: TLOnResizeHandler<any> = (shape, info) => {
+	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
+	}
+	override getInterpolatedProps(
+		startShape: TLFrameShape,
+		endShape: TLFrameShape,
+		t: number
+	): TLFrameShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+		}
 	}
 }

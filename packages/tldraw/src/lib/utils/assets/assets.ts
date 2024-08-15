@@ -1,8 +1,8 @@
 import { MediaHelpers, assertExists } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
-import { isAnimated } from './is-gif-animated'
 
-type BoxWidthHeight = {
+/** @public */
+export interface BoxWidthHeight {
 	w: number
 	h: number
 }
@@ -44,7 +44,7 @@ export function containBoxSize(
  * ```ts
  * const image = await (await fetch('/image.jpg')).blob()
  * const size = await getImageSize(image)
- * const resizedImage = await downsizeImage(image, size.w / 2, size.h / 2, { type: "image/jpeg", quality: 0.92 })
+ * const resizedImage = await downsizeImage(image, size.w / 2, size.h / 2, { type: "image/jpeg", quality: 0.85 })
  * ```
  *
  * @param image - The image Blob.
@@ -60,7 +60,7 @@ export async function downsizeImage(
 	opts = {} as { type?: string; quality?: number }
 ): Promise<Blob> {
 	const image = await MediaHelpers.usingObjectURL(blob, MediaHelpers.loadImage)
-	const { type = blob.type, quality = 0.92 } = opts
+	const { type = blob.type, quality = 0.85 } = opts
 	const [desiredWidth, desiredHeight] = await clampToBrowserMaxCanvasSize(
 		Math.min(width * 2, image.naturalWidth),
 		Math.min(height * 2, image.naturalHeight)
@@ -90,14 +90,4 @@ export async function downsizeImage(
 			quality
 		)
 	})
-}
-
-/** @public */
-export const DEFAULT_ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
-/** @public */
-export const DEFAULT_ACCEPTED_VID_TYPE = ['video/mp4', 'video/quicktime']
-
-/** @public */
-export async function isGifAnimated(file: Blob): Promise<boolean> {
-	return isAnimated(await file.arrayBuffer())
 }

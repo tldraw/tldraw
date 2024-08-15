@@ -4,18 +4,17 @@ import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { VecModel, vecModelValidator } from '../misc/geometry-types'
 import { createBindingId } from '../records/TLBinding'
 import { TLShapeId, createShapePropsMigrationIds } from '../records/TLShape'
-import {
-	RETIRED_DOWN_MIGRATION,
-	RecordPropsType,
-	TLPropsMigration,
-	createPropsMigration,
-} from '../recordsWithProps'
+import { RecordProps, TLPropsMigration, createPropsMigration } from '../recordsWithProps'
 import { StyleProp } from '../styles/StyleProp'
-import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
-import { DefaultDashStyle } from '../styles/TLDashStyle'
-import { DefaultFillStyle } from '../styles/TLFillStyle'
-import { DefaultFontStyle } from '../styles/TLFontStyle'
-import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import {
+	DefaultColorStyle,
+	DefaultLabelColorStyle,
+	TLDefaultColorStyle,
+} from '../styles/TLColorStyle'
+import { DefaultDashStyle, TLDefaultDashStyle } from '../styles/TLDashStyle'
+import { DefaultFillStyle, TLDefaultFillStyle } from '../styles/TLFillStyle'
+import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
+import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
 
 const arrowheadTypes = [
@@ -46,7 +45,28 @@ export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum('tldraw:arrowhea
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>
 
 /** @public */
-export const arrowShapeProps = {
+export interface TLArrowShapeProps {
+	labelColor: TLDefaultColorStyle
+	color: TLDefaultColorStyle
+	fill: TLDefaultFillStyle
+	dash: TLDefaultDashStyle
+	size: TLDefaultSizeStyle
+	arrowheadStart: TLArrowShapeArrowheadStyle
+	arrowheadEnd: TLArrowShapeArrowheadStyle
+	font: TLDefaultFontStyle
+	start: VecModel
+	end: VecModel
+	bend: number
+	text: string
+	labelPosition: number
+	scale: number
+}
+
+/** @public */
+export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
+
+/** @public */
+export const arrowShapeProps: RecordProps<TLArrowShape> = {
 	labelColor: DefaultLabelColorStyle,
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
@@ -60,19 +80,15 @@ export const arrowShapeProps = {
 	bend: T.number,
 	text: T.string,
 	labelPosition: T.number,
+	scale: T.nonZeroNumber,
 }
-
-/** @public */
-export type TLArrowShapeProps = RecordPropsType<typeof arrowShapeProps>
-
-/** @public */
-export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
 export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddLabelColor: 1,
 	AddIsPrecise: 2,
 	AddLabelPosition: 3,
 	ExtractBindings: 4,
+	AddScale: 5,
 })
 
 function propsMigration(migration: TLPropsMigration) {
@@ -82,13 +98,14 @@ function propsMigration(migration: TLPropsMigration) {
 /** @public */
 export const arrowShapeMigrations = createMigrationSequence({
 	sequenceId: 'com.tldraw.shape.arrow',
+	retroactive: false,
 	sequence: [
 		propsMigration({
 			id: arrowShapeVersions.AddLabelColor,
 			up: (props) => {
 				props.labelColor = 'black'
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		}),
 
 		propsMigration({
@@ -202,5 +219,14 @@ export const arrowShapeMigrations = createMigrationSequence({
 				}
 			},
 		},
+		propsMigration({
+			id: arrowShapeVersions.AddScale,
+			up: (props) => {
+				props.scale = 1
+			},
+			down: (props) => {
+				delete props.scale
+			},
+		}),
 	],
 })

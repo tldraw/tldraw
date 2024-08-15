@@ -58,6 +58,7 @@ export type AssetUrls = {
 		duplicate: string
 		edit: string
 		'external-link': string
+		'fill-fill': string
 		'fill-none': string
 		'fill-pattern': string
 		'fill-semi': string
@@ -76,6 +77,7 @@ export type AssetUrls = {
 		'geo-cloud': string
 		'geo-diamond': string
 		'geo-ellipse': string
+		'geo-heart': string
 		'geo-hexagon': string
 		'geo-octagon': string
 		'geo-oval': string
@@ -114,8 +116,11 @@ export type AssetUrls = {
 		'size-large': string
 		'size-medium': string
 		'size-small': string
+		'spline-cubic': string
+		'spline-line': string
 		'stack-horizontal': string
 		'stack-vertical': string
+		'status-offline': string
 		'stretch-horizontal': string
 		'stretch-vertical': string
 		'text-align-center': string

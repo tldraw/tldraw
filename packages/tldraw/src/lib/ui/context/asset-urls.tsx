@@ -1,3 +1,4 @@
+import { Image } from '@tldraw/editor'
 import { createContext, useContext, useEffect } from 'react'
 import { TLUiAssetUrls } from '../assetUrls'
 
@@ -16,12 +17,12 @@ export function AssetUrlsProvider({
 }) {
 	useEffect(() => {
 		for (const src of Object.values(assetUrls.icons)) {
-			const image = new Image()
+			const image = Image()
 			image.src = src
 			image.decode()
 		}
 		for (const src of Object.values(assetUrls.embedIcons)) {
-			const image = new Image()
+			const image = Image()
 			image.src = src
 			image.decode()
 		}

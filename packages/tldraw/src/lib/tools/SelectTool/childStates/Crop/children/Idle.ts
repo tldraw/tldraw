@@ -1,38 +1,37 @@
-import { StateNode, TLEventHandlers, TLExitEventHandler, TLGroupShape, Vec } from '@tldraw/editor'
+import {
+	StateNode,
+	TLClickEventInfo,
+	TLGroupShape,
+	TLKeyboardEventInfo,
+	TLPointerEventInfo,
+	Vec,
+} from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onEnter = () => {
+	override onEnter() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 
-		// well this fucking sucks. what the fuck.
-		// it's possible for a user to enter cropping, then undo
-		// (which clears the cropping id) but still remain in this state.
-		this.editor.on('tick', this.cleanupCroppingState)
-
 		if (onlySelectedShape) {
-			this.editor.mark('crop')
 			this.editor.setCroppingShape(onlySelectedShape.id)
 		}
 	}
 
-	override onExit: TLExitEventHandler = () => {
+	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
-
-		this.editor.off('tick', this.cleanupCroppingState)
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.editor.setCroppingShape(null)
 		this.editor.setCurrentTool('select.idle', {})
 	}
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		if (this.editor.getIsMenuOpen()) return
 
 		if (info.ctrlKey) {
@@ -85,27 +84,21 @@ export class Idle extends StateNode {
 					case 'bottom_right_rotate': {
 						this.editor.setCurrentTool('select.pointing_rotate_handle', {
 							...info,
-							onInteractionEnd: 'select.crop',
+							onInteractionEnd: 'select.crop.idle',
 						})
 						break
 					}
 					case 'top':
 					case 'right':
 					case 'bottom':
-					case 'left': {
-						this.editor.setCurrentTool('select.pointing_crop_handle', {
-							...info,
-							onInteractionEnd: 'select.crop',
-						})
-						break
-					}
+					case 'left':
 					case 'top_left':
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
-						this.editor.setCurrentTool('select.pointing_crop_handle', {
+						this.editor.setCurrentTool('select.crop.pointing_crop_handle', {
 							...info,
-							onInteractionEnd: 'select.crop',
+							onInteractionEnd: 'select.crop.idle',
 						})
 						break
 					}
@@ -118,7 +111,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+	override onDoubleClick(info: TLClickEventInfo) {
 		// Without this, the double click's "settle" would trigger the reset
 		// after the user double clicked the edge to begin cropping
 		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
@@ -133,18 +126,24 @@ export class Idle extends StateNode {
 
 		if (info.target === 'selection') {
 			util.onDoubleClickEdge?.(shape)
+			return
 		}
+
+		// If the user double clicks the canvas, we want to cancel cropping,
+		// especially if it's an animated image, we want the image to continue playing.
+		this.cancel()
+		this.editor.root.handleEvent(info)
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {
+	override onKeyDown() {
 		this.nudgeCroppingImage(false)
 	}
 
-	override onKeyRepeat: TLEventHandlers['onKeyRepeat'] = () => {
+	override onKeyRepeat() {
 		this.nudgeCroppingImage(true)
 	}
 
-	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'Enter': {
 				this.editor.setCroppingShape(null)
@@ -157,12 +156,6 @@ export class Idle extends StateNode {
 	private cancel() {
 		this.editor.setCroppingShape(null)
 		this.editor.setCurrentTool('select.idle', {})
-	}
-
-	private cleanupCroppingState = () => {
-		if (!this.editor.getCroppingShapeId()) {
-			this.editor.setCurrentTool('select.idle', {})
-		}
 	}
 
 	private nudgeCroppingImage(ephemeral = false) {
@@ -196,7 +189,7 @@ export class Idle extends StateNode {
 			if (!ephemeral) {
 				// We don't want to create new marks if the user
 				// is just holding down the arrow keys
-				this.editor.mark('translate crop')
+				this.editor.markHistoryStoppingPoint('translate crop')
 			}
 
 			this.editor.updateShapes<ShapeWithCrop>([partial])

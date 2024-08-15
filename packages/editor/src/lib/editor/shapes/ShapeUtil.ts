@@ -29,8 +29,20 @@ export interface TLShapeUtilConstructor<
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 }
 
-/** @public */
-export type TLShapeUtilFlag<T> = (shape: T) => boolean
+/**
+ * Options passed to {@link ShapeUtil.canBind}. A binding that could be made. At least one of
+ * `fromShapeType` or `toShapeType` will belong to this shape util.
+ *
+ * @public
+ */
+export interface TLShapeUtilCanBindOpts<Shape extends TLUnknownShape = TLShape> {
+	/** The type of shape referenced by the `fromId` of the binding. */
+	fromShapeType: string
+	/** The type of shape referenced by the `toId` of the binding. */
+	toShapeType: string
+	/** The type of binding. */
+	bindingType: string
+}
 
 /** @public */
 export interface TLShapeUtilCanvasSvgDef {
@@ -41,7 +53,41 @@ export interface TLShapeUtilCanvasSvgDef {
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
+
+	/**
+	 * Props allow you to define the shape's properties in a way that the editor can understand.
+	 * This has two main uses:
+	 *
+	 * 1. Validation. Shapes will be validated using these props to stop bad data from being saved.
+	 * 2. Styles. Each {@link @tldraw/tlschema#StyleProp} in the props can be set on many shapes at
+	 *    once, and will be remembered from one shape to the next.
+	 *
+	 * @example
+	 * ```tsx
+	 * import {T, TLBaseShape, TLDefaultColorStyle, DefaultColorStyle, ShapeUtil} from 'tldraw'
+	 *
+	 * type MyShape = TLBaseShape<'mine', {
+	 *      color: TLDefaultColorStyle,
+	 *      text: string,
+	 * }>
+	 *
+	 * class MyShapeUtil extends ShapeUtil<MyShape> {
+	 *     static props = {
+	 *         // we use tldraw's built-in color style:
+	 *         color: DefaultColorStyle,
+	 *         // validate that the text prop is a string:
+	 *         text: T.string,
+	 *     }
+	 * }
+	 * ```
+	 */
 	static props?: RecordProps<TLUnknownShape>
+
+	/**
+	 * Migrations allow you to make changes to a shape's props over time. Read the
+	 * {@link https://www.tldraw.dev/docs/persistence#Shape-props-migrations | shape prop migrations}
+	 * guide for more information.
+	 */
 	static migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
 
 	/**
@@ -87,57 +133,72 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canSnap: TLShapeUtilFlag<Shape> = () => true
+	canSnap(_shape: Shape): boolean {
+		return true
+	}
 
 	/**
 	 * Whether the shape can be scrolled while editing.
 	 *
 	 * @public
 	 */
-	canScroll: TLShapeUtilFlag<Shape> = () => false
+	canScroll(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
-	 * Whether the shape can be bound to by an arrow.
+	 * Whether the shape can be bound to. See {@link TLShapeUtilCanBindOpts} for details.
 	 *
-	 * @param _otherShape - The other shape attempting to bind to this shape.
 	 * @public
 	 */
-	canBind = <K>(_shape: Shape, _otherShape?: K) => true
+	canBind(_opts: TLShapeUtilCanBindOpts<Shape>): boolean {
+		return true
+	}
 
 	/**
 	 * Whether the shape can be double clicked to edit.
 	 *
 	 * @public
 	 */
-	canEdit: TLShapeUtilFlag<Shape> = () => false
+	canEdit(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
 	 * Whether the shape can be resized.
 	 *
 	 * @public
 	 */
-	canResize: TLShapeUtilFlag<Shape> = () => true
+	canResize(_shape: Shape): boolean {
+		return true
+	}
 
 	/**
 	 * Whether the shape can be edited in read-only mode.
 	 *
 	 * @public
 	 */
-	canEditInReadOnly: TLShapeUtilFlag<Shape> = () => false
+	canEditInReadOnly(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
 	 * Whether the shape can be cropped.
 	 *
 	 * @public
 	 */
-	canCrop: TLShapeUtilFlag<Shape> = () => false
+	canCrop(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
 	 * Whether the shape participates in stacking, aligning, and distributing.
 	 *
 	 * @public
 	 */
-	canBeLaidOut: TLShapeUtilFlag<Shape> = () => true
+	canBeLaidOut(_shape: Shape): boolean {
+		return true
+	}
 
 	/**
 	 * Does this shape provide a background for its children? If this is true,
@@ -148,7 +209,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @internal
 	 */
-	providesBackgroundForChildren(shape: Shape): boolean {
+	providesBackgroundForChildren(_shape: Shape): boolean {
 		return false
 	}
 
@@ -157,35 +218,45 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	hideResizeHandles: TLShapeUtilFlag<Shape> = () => false
+	hideResizeHandles(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
 	 * Whether the shape should hide its rotation handles when selected.
 	 *
 	 * @public
 	 */
-	hideRotateHandle: TLShapeUtilFlag<Shape> = () => false
+	hideRotateHandle(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
 	 * Whether the shape should hide its selection bounds background when selected.
 	 *
 	 * @public
 	 */
-	hideSelectionBoundsBg: TLShapeUtilFlag<Shape> = () => false
+	hideSelectionBoundsBg(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
 	 * Whether the shape should hide its selection bounds foreground when selected.
 	 *
 	 * @public
 	 */
-	hideSelectionBoundsFg: TLShapeUtilFlag<Shape> = () => false
+	hideSelectionBoundsFg(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
 	 * Whether the shape's aspect ratio is locked.
 	 *
 	 * @public
 	 */
-	isAspectRatioLocked: TLShapeUtilFlag<Shape> = () => false
+	isAspectRatioLocked(_shape: Shape): boolean {
+		return false
+	}
 
 	/**
 	 * Get a JSX element for the shape (as an HTML element) to be rendered as part of the canvas background - behind any other shape content.
@@ -194,6 +265,22 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @internal
 	 */
 	backgroundComponent?(shape: Shape): any
+
+	/**
+	 * Get the interpolated props for an animating shape. This is an optional method.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getInterpolatedProps?.(startShape, endShape, t)
+	 * ```
+	 *
+	 * @param startShape - The initial shape.
+	 * @param endShape - The initial shape.
+	 * @param progress - The normalized progress between zero (start) and 1 (end).
+	 * @public
+	 */
+	getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props']
 
 	/**
 	 * Get an array of handle models for the shape. This is an optional method.
@@ -215,7 +302,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
+	canReceiveNewChildrenOfType(_shape: Shape, _type: TLShape['type']) {
 		return false
 	}
 
@@ -226,7 +313,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dropped.
 	 * @public
 	 */
-	canDropShapes(shape: Shape, shapes: TLShape[]) {
+	canDropShapes(_shape: Shape, _shapes: TLShape[]) {
 		return false
 	}
 
@@ -274,7 +361,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the geometry to use when snapping to this this shape in translate/resize operations. See
 	 * {@link BoundsSnapGeometry} for details.
 	 */
-	getBoundsSnapGeometry(shape: Shape): BoundsSnapGeometry {
+	getBoundsSnapGeometry(_shape: Shape): BoundsSnapGeometry {
 		return {}
 	}
 
@@ -282,8 +369,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the geometry to use when snapping handles to this shape. See {@link HandleSnapGeometry}
 	 * for details.
 	 */
-	getHandleSnapGeometry(shape: Shape): HandleSnapGeometry {
+	getHandleSnapGeometry(_shape: Shape): HandleSnapGeometry {
 		return {}
+	}
+
+	getText(_shape: Shape): string | undefined {
+		return undefined
 	}
 
 	//  Events
@@ -304,7 +395,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns The next shape or void.
 	 * @public
 	 */
-	onBeforeCreate?: TLOnBeforeCreateHandler<Shape>
+	onBeforeCreate?(next: Shape): Shape | void
 
 	/**
 	 * A callback called just before a shape is updated. This method provides a last chance to modify
@@ -325,7 +416,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns The next shape or void.
 	 * @public
 	 */
-	onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>
+	onBeforeUpdate?(prev: Shape, next: Shape): Shape | void
 
 	/**
 	 * A callback called when some other shapes are dragged over this one.
@@ -342,7 +433,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged over this one.
 	 * @public
 	 */
-	onDragShapesOver?: TLOnDragHandler<Shape>
+	onDragShapesOver?(shape: Shape, shapes: TLShape[]): void
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
@@ -351,7 +442,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged out.
 	 * @public
 	 */
-	onDragShapesOut?: TLOnDragHandler<Shape>
+	onDragShapesOut?(shape: Shape, shapes: TLShape[]): void
 
 	/**
 	 * A callback called when some other shapes are dropped over this one.
@@ -360,7 +451,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dropped over this one.
 	 * @public
 	 */
-	onDropShapesOver?: TLOnDragHandler<Shape>
+	onDropShapesOver?(shape: Shape, shapes: TLShape[]): void
 
 	/**
 	 * A callback called when a shape starts being resized.
@@ -369,7 +460,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResizeStart?: TLOnResizeStartHandler<Shape>
+	onResizeStart?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a resize.
@@ -379,7 +470,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResize?: TLOnResizeHandler<Shape>
+	onResize?(
+		shape: Shape,
+		info: TLResizeInfo<Shape>
+	): Omit<TLShapePartial<Shape>, 'id' | 'type'> | undefined | void
 
 	/**
 	 * A callback called when a shape finishes resizing.
@@ -389,7 +483,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResizeEnd?: TLOnResizeEndHandler<Shape>
+	onResizeEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape starts being translated.
@@ -398,7 +492,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslateStart?: TLOnTranslateStartHandler<Shape>
+	onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a translation.
@@ -408,7 +502,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslate?: TLOnTranslateHandler<Shape>
+	onTranslate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes translating.
@@ -418,7 +512,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslateEnd?: TLOnTranslateEndHandler<Shape>
+	onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's handle changes.
@@ -428,7 +522,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onHandleDrag?: TLOnHandleDragHandler<Shape>
+	onHandleDrag?(shape: Shape, info: TLHandleDragInfo<Shape>): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape starts being rotated.
@@ -437,7 +531,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotateStart?: TLOnRotateStartHandler<Shape>
+	onRotateStart?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape changes from a rotation.
@@ -447,7 +541,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotate?: TLOnRotateHandler<Shape>
+	onRotate?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes rotating.
@@ -457,14 +551,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotateEnd?: TLOnRotateEndHandler<Shape>
+	onRotateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * Not currently used.
 	 *
 	 * @internal
 	 */
-	onBindingChange?: TLOnBindingChangeHandler<Shape>
+	onBindingChange?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's children change.
@@ -473,7 +567,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An array of shape updates, or void.
 	 * @public
 	 */
-	onChildrenChange?: TLOnChildrenChangeHandler<Shape>
+	onChildrenChange?(shape: Shape): TLShapePartial[] | void
 
 	/**
 	 * A callback called when a shape's handle is double clicked.
@@ -483,7 +577,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>
+	onDoubleClickHandle?(shape: Shape, handle: TLHandle): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape's edge is double clicked.
@@ -492,7 +586,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>
+	onDoubleClickEdge?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is double clicked.
@@ -501,7 +595,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClick?: TLOnDoubleClickHandler<Shape>
+	onDoubleClick?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape is clicked.
@@ -510,7 +604,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onClick?: TLOnClickHandler<Shape>
+	onClick?(shape: Shape): TLShapePartial<Shape> | void
 
 	/**
 	 * A callback called when a shape finishes being editing.
@@ -518,25 +612,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	onEditEnd?: TLOnEditEndHandler<Shape>
+	onEditEnd?(shape: Shape): void
 }
-
-/** @public */
-export type TLOnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void
-/** @public */
-export type TLOnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void
-/** @public */
-export type TLOnTranslateStartHandler<T extends TLShape> = TLEventStartHandler<T>
-/** @public */
-export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>
-/** @public */
-export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
-/** @public */
-export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>
-/** @public */
-export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>
-/** @public */
-export type TLOnRotateEndHandler<T extends TLShape> = TLEventChangeHandler<T>
 
 /**
  * The type of resize.
@@ -562,7 +639,7 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @param initialShape - The shape at the start of the resize.
  * @public
  */
-export type TLResizeInfo<T extends TLShape> = {
+export interface TLResizeInfo<T extends TLShape> {
 	newPoint: Vec
 	handle: TLResizeHandle
 	mode: TLResizeMode
@@ -572,50 +649,11 @@ export type TLResizeInfo<T extends TLShape> = {
 	initialShape: T
 }
 
-/** @public */
-export type TLOnResizeHandler<T extends TLShape> = (
-	shape: T,
-	info: TLResizeInfo<T>
-) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void
-
-/** @public */
-export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>
-
-/** @public */
-export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>
-
 /* -------------------- Dragging -------------------- */
 
 /** @public */
-export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R
-
-/** @internal */
-export type TLOnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-
-/** @public */
-export type TLOnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void
-
-/** @public */
-export type TLOnHandleDragHandler<T extends TLShape> = (
-	shape: T,
-	info: {
-		handle: TLHandle
-		isPrecise: boolean
-		initial?: T | undefined
-	}
-) => TLShapePartial<T> | void
-
-/** @public */
-export type TLOnClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-/** @public */
-export type TLOnEditEndHandler<T extends TLShape> = (shape: T) => void
-/** @public */
-export type TLOnDoubleClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-/** @public */
-export type TLOnDoubleClickHandleHandler<T extends TLShape> = (
-	shape: T,
+export interface TLHandleDragInfo<T extends TLShape> {
 	handle: TLHandle
-) => TLShapePartial<T> | void
-
-type TLEventStartHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-type TLEventChangeHandler<T extends TLShape> = (initial: T, current: T) => TLShapePartial<T> | void
+	isPrecise: boolean
+	initial?: T | undefined
+}

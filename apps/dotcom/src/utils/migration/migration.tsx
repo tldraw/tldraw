@@ -1,5 +1,5 @@
 import { openDB } from 'idb'
-import { Editor, LegacyTldrawDocument, buildFromV1Document } from 'tldraw'
+import { Editor, TLV1Document, buildFromV1Document, fetch } from 'tldraw'
 
 export function isEditorEmpty(editor: Editor) {
 	const hasAnyShapes = editor.store.allRecords().some((r) => r.typeName === 'shape')
@@ -7,8 +7,8 @@ export function isEditorEmpty(editor: Editor) {
 }
 
 export async function findV1ContentFromIdb(): Promise<{
-	document: LegacyTldrawDocument
-	clear: () => Promise<void>
+	document: TLV1Document
+	clear(): Promise<void>
 } | null> {
 	try {
 		const db = await openDB('keyval-store', 1)
@@ -28,7 +28,7 @@ export async function findV1ContentFromIdb(): Promise<{
 			typeof home.document.version === 'number'
 		) {
 			return {
-				document: home.document as LegacyTldrawDocument,
+				document: home.document as TLV1Document,
 				clear: async () => {
 					try {
 						const tx = db.transaction('keyval', 'readwrite')
@@ -52,7 +52,7 @@ export async function findV1ContentFromIdb(): Promise<{
 export async function importFromV1LocalRoom(
 	editor: Editor,
 	didCancel: () => boolean
-): Promise<{ didImport: false } | { didImport: true; document: LegacyTldrawDocument }> {
+): Promise<{ didImport: false } | { didImport: true; document: TLV1Document }> {
 	const v1Doc = await findV1ContentFromIdb()
 	if (didCancel() || !v1Doc) return { didImport: false }
 
@@ -75,7 +75,7 @@ export async function importFromV1MultiplayerRoom(
 	editor: Editor,
 	roomSlug: string,
 	didCancel: () => boolean
-): Promise<{ didImport: false } | { didImport: true; document: LegacyTldrawDocument }> {
+): Promise<{ didImport: false } | { didImport: true; document: TLV1Document }> {
 	const response = await fetch(`/api/static-legacy-multiplayer?roomSlug=${roomSlug}`)
 	if (!response.ok || didCancel()) {
 		return { didImport: false }
@@ -89,7 +89,7 @@ export async function importFromV1MultiplayerRoom(
 	// TODO: handle weird data formats (TLD-1605) & v1 migrations (TLD-1638)
 	const { assets, bindings, shapes, version } = data.room.storage.data
 	const PAGE_ID = 'page'
-	const document: LegacyTldrawDocument = {
+	const document: TLV1Document = {
 		id: 'doc',
 		name: roomSlug,
 		version,

@@ -1,6 +1,6 @@
 import { Spinner } from '../../Spinner'
 
-/** @public */
+/** @public @react */
 export function TldrawUiButtonSpinner() {
 	return <Spinner />
 }

@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
+import { Editor, TLShape, TLShapeId, Vec, bind, compact } from '@tldraw/editor'
 import { getOccludedChildren } from './selectHelpers'
 
 const INITIAL_POINTER_LAG_DURATION = 20
@@ -12,7 +12,7 @@ export class DragAndDropManager {
 
 	prevDroppingShapeId: TLShapeId | null = null
 
-	droppingNodeTimer: ReturnType<typeof setTimeout> | null = null
+	droppingNodeTimer: number | null = null
 
 	first = true
 
@@ -33,14 +33,14 @@ export class DragAndDropManager {
 		if (this.droppingNodeTimer === null) {
 			this.setDragTimer(movingShapes, INITIAL_POINTER_LAG_DURATION, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
-			clearInterval(this.droppingNodeTimer)
+			clearTimeout(this.droppingNodeTimer)
 			this.setDragTimer(movingShapes, FAST_POINTER_LAG_DURATION, cb)
 		}
 	}
 
 	private setDragTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
-		this.droppingNodeTimer = setTimeout(() => {
-			this.editor.batch(() => {
+		this.droppingNodeTimer = this.editor.timers.setTimeout(() => {
+			this.editor.run(() => {
 				this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
 			})
 			this.droppingNodeTimer = null
@@ -129,7 +129,7 @@ export class DragAndDropManager {
 		this.prevDroppingShapeId = null
 
 		if (this.droppingNodeTimer !== null) {
-			clearInterval(this.droppingNodeTimer)
+			clearTimeout(this.droppingNodeTimer)
 		}
 
 		this.droppingNodeTimer = null
@@ -137,7 +137,8 @@ export class DragAndDropManager {
 		this.first = true
 	}
 
-	dispose = () => {
+	@bind
+	dispose() {
 		this.clear()
 	}
 }

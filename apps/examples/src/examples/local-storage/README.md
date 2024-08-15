@@ -2,6 +2,8 @@
 title: Local Storage
 component: ./LocalStorageExample.tsx
 category: data/assets
+priority: 1
+keywords: [store, snapshot, debounce]
 ---
 
 Save the contents of the editor

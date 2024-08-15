@@ -1,4 +1,4 @@
-import { debugFlags, track, useEditor, useValue } from '@tldraw/editor'
+import { debugFlags, track, useEditor, useValue, Vec } from '@tldraw/editor'
 import { memo, useEffect, useRef } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 
@@ -52,10 +52,28 @@ const CurrentState = track(function CurrentState() {
 	// 			)}] = ${Vec.Dist(editor.inputs.originPagePoint, editor.inputs.currentPagePoint).toFixed(0)}`
 	// 		: ''
 
-	return <div className="tlui-debug-panel__current-state">{`${tool.id} - ${toolState.name}`}</div>
+	const path = editor.getPath()
+	const hoverShape = editor.getHoveredShape()
+	const selectedShape = editor.getOnlySelectedShape()
+	const shape = path === 'select.idle' || !path.includes('select.') ? hoverShape : selectedShape
+	const shapeInfo =
+		shape && path.includes('select.')
+			? ` / ${shape.type || ''}${
+					'geo' in shape.props ? ' / ' + shape.props.geo : ''
+				} / [${Vec.ToInt(editor.getPointInShapeSpace(shape, editor.inputs.currentPagePoint))}]`
+			: ''
+	const ruler =
+		path.startsWith('select.') && !path.includes('.idle')
+			? ` / [${Vec.ToInt(editor.inputs.originPagePoint)}] → [${Vec.ToInt(
+					editor.inputs.currentPagePoint
+				)}] = ${Vec.Dist(editor.inputs.originPagePoint, editor.inputs.currentPagePoint).toFixed(0)}`
+			: ''
+
+	return <div className="tlui-debug-panel__current-state">{`${path}${shapeInfo}${ruler}`}</div>
 })
 
 function FPS() {
+	const editor = useEditor()
 	const showFps = useValue('show_fps', () => debugFlags.showFps.get(), [debugFlags])
 
 	const fpsRef = useRef<HTMLDivElement>(null)
@@ -65,7 +83,7 @@ function FPS() {
 
 		const TICK_LENGTH = 250
 		let maxKnownFps = 0
-		let cancelled = false
+		let raf = -1
 
 		let start = performance.now()
 		let currentTickLength = 0
@@ -80,8 +98,6 @@ function FPS() {
 		// of frames that we've seen since the last time we rendered,
 		// and the actual time since the last render.
 		function loop() {
-			if (cancelled) return
-
 			// Count the frame
 			framesInCurrentTick++
 
@@ -113,15 +129,15 @@ function FPS() {
 				start = performance.now()
 			}
 
-			requestAnimationFrame(loop)
+			raf = editor.timers.requestAnimationFrame(loop)
 		}
 
 		loop()
 
 		return () => {
-			cancelled = true
+			cancelAnimationFrame(raf)
 		}
-	}, [showFps])
+	}, [showFps, editor])
 
 	if (!showFps) return null
 

@@ -11,23 +11,23 @@ import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
-export type TLUiMenuCheckboxItemProps<
+export interface TLUiMenuCheckboxItemProps<
 	TranslationKey extends string = string,
 	IconType extends string = string,
-> = {
+> {
 	icon?: IconType
 	id: string
 	kbd?: string
 	title?: string
 	label?: TranslationKey | { [key: string]: TranslationKey }
 	readonlyOk?: boolean
-	onSelect: (source: TLUiEventSource) => Promise<void> | void
+	onSelect(source: TLUiEventSource): Promise<void> | void
 	toggle?: boolean
 	checked?: boolean
 	disabled?: boolean
 }
 
-/** @public */
+/** @public @react */
 export function TldrawUiMenuCheckboxItem<
 	TranslationKey extends string = string,
 	IconType extends string = string,

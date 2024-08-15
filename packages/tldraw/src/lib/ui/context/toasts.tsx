@@ -1,3 +1,4 @@
+import { ToastProvider } from '@radix-ui/react-toast'
 import { Editor, uniqueId } from '@tldraw/editor'
 import { ReactNode, createContext, useCallback, useContext, useState } from 'react'
 import { TLUiIconType } from '../icon-types'
@@ -21,23 +22,23 @@ export interface TLUiToast {
 export interface TLUiToastAction {
 	type: 'primary' | 'danger' | 'normal'
 	label: string
-	onClick: () => void
+	onClick(): void
 }
 
 /** @public */
-export type TLUiToastsContextType = {
-	addToast: (toast: Omit<TLUiToast, 'id'> & { id?: string }) => string
-	removeToast: (id: TLUiToast['id']) => string
-	clearToasts: () => void
+export interface TLUiToastsContextType {
+	addToast(toast: Omit<TLUiToast, 'id'> & { id?: string }): string
+	removeToast(id: TLUiToast['id']): string
+	clearToasts(): void
 	toasts: TLUiToast[]
 }
 
 /** @internal */
-export const ToastsContext = createContext({} as TLUiToastsContextType)
+export const ToastsContext = createContext<TLUiToastsContextType | null>(null)
 
 /** @internal */
-export type ToastsProviderProps = {
-	overrides?: (editor: Editor) => TLUiToastsContextType
+export interface ToastsProviderProps {
+	overrides?(editor: Editor): TLUiToastsContextType
 	children: ReactNode
 }
 
@@ -61,9 +62,11 @@ export function ToastsProvider({ children }: ToastsProviderProps) {
 	}, [])
 
 	return (
-		<ToastsContext.Provider value={{ toasts, addToast, removeToast, clearToasts }}>
-			{children}
-		</ToastsContext.Provider>
+		<ToastProvider>
+			<ToastsContext.Provider value={{ toasts, addToast, removeToast, clearToasts }}>
+				{children}
+			</ToastsContext.Provider>
+		</ToastProvider>
 	)
 }
 

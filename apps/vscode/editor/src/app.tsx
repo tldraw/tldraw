@@ -1,13 +1,17 @@
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
+	DefaultMainMenu,
+	DefaultSpinner,
+	EditSubmenu,
 	Editor,
 	ErrorBoundary,
+	ExportFileContentSubMenu,
+	ExtrasGroup,
+	PreferencesGroup,
 	TLComponents,
 	Tldraw,
-	TldrawUiMenuGroup,
+	ViewSubmenu,
 	setRuntimeOverrides,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -90,13 +94,15 @@ export const TldrawWrapper = () => {
 	}, [setTldrawInnerProps])
 
 	return tldrawInnerProps === null ? (
-		<FullPageMessage>Loading</FullPageMessage>
+		<FullPageMessage>
+			<DefaultSpinner />
+		</FullPageMessage>
 	) : (
 		<TldrawInner {...tldrawInnerProps} />
 	)
 }
 
-export type TLDrawInnerProps = {
+export interface TLDrawInnerProps {
 	assetSrc: string
 	fileContents: string
 	uri: string
@@ -104,13 +110,15 @@ export type TLDrawInnerProps = {
 }
 
 const components: TLComponents = {
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
+	MainMenu: () => (
+		<DefaultMainMenu>
+			<EditSubmenu />
+			<ViewSubmenu />
+			<ExportFileContentSubMenu />
+			<ExtrasGroup />
+			<PreferencesGroup />
 			<Links />
-		</DefaultHelpMenu>
+		</DefaultMainMenu>
 	),
 }
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
@@ -126,7 +134,6 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 			persistenceKey={uri}
 			onMount={handleMount}
 			components={components}
-			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 

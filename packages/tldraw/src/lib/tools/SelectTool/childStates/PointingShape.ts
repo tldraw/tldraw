@@ -1,10 +1,4 @@
-import {
-	HIT_TEST_MARGIN,
-	StateNode,
-	TLEventHandlers,
-	TLPointerEventInfo,
-	TLShape,
-} from '@tldraw/editor'
+import { StateNode, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 
 export class PointingShape extends StateNode {
@@ -16,7 +10,7 @@ export class PointingShape extends StateNode {
 
 	didSelectOnEnter = false
 
-	override onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
+	override onEnter(info: TLPointerEventInfo & { target: 'shape' }) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
@@ -54,16 +48,16 @@ export class PointingShape extends StateNode {
 		if (shiftKey && !altKey) {
 			this.editor.cancelDoubleClick()
 			if (!selectedShapeIds.includes(outermostSelectingShape.id)) {
-				this.editor.mark('shift selecting shape')
+				this.editor.markHistoryStoppingPoint('shift selecting shape')
 				this.editor.setSelectedShapes([...selectedShapeIds, outermostSelectingShape.id])
 			}
 		} else {
-			this.editor.mark('selecting shape')
+			this.editor.markHistoryStoppingPoint('selecting shape')
 			this.editor.setSelectedShapes([outermostSelectingShape.id])
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+	override onPointerUp(info: TLPointerEventInfo) {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const zoomLevel = this.editor.getZoomLevel()
@@ -73,7 +67,7 @@ export class PointingShape extends StateNode {
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
-				margin: HIT_TEST_MARGIN / zoomLevel,
+				margin: this.editor.options.hitTestMargin / zoomLevel,
 				hitInside: true,
 				renderingOnly: true,
 			}) ?? this.hitShape
@@ -88,7 +82,7 @@ export class PointingShape extends StateNode {
 			if (util.onClick) {
 				const change = util.onClick?.(selectingShape)
 				if (change) {
-					this.editor.mark('shape on click')
+					this.editor.markHistoryStoppingPoint('shape on click')
 					this.editor.updateShapes([change])
 					this.parent.transition('idle', info)
 					return
@@ -97,7 +91,7 @@ export class PointingShape extends StateNode {
 
 			if (selectingShape.id === focusedGroupId) {
 				if (selectedShapeIds.length > 0) {
-					this.editor.mark('clearing shape ids')
+					this.editor.markHistoryStoppingPoint('clearing shape ids')
 					this.editor.setSelectedShapes([])
 				} else {
 					this.editor.popFocusedGroupId()
@@ -122,7 +116,7 @@ export class PointingShape extends StateNode {
 			if (selectedShapeIds.includes(outermostSelectableShape.id)) {
 				// same shape, so deselect it if shift is pressed, otherwise deselect all others
 				if (shiftKey) {
-					this.editor.mark('deselecting on pointer up')
+					this.editor.markHistoryStoppingPoint('deselecting on pointer up')
 					this.editor.deselect(selectingShape)
 				} else {
 					if (selectedShapeIds.includes(selectingShape.id)) {
@@ -148,8 +142,8 @@ export class PointingShape extends StateNode {
 									textLabel.bounds.containsPoint(pointInShapeSpace, 0) &&
 									textLabel.hitTestPoint(pointInShapeSpace)
 								) {
-									this.editor.batch(() => {
-										this.editor.mark('editing on pointer up')
+									this.editor.run(() => {
+										this.editor.markHistoryStoppingPoint('editing on pointer up')
 										this.editor.select(selectingShape.id)
 
 										const util = this.editor.getShapeUtil(selectingShape)
@@ -172,10 +166,10 @@ export class PointingShape extends StateNode {
 						}
 
 						// We just want to select the single shape from the selection
-						this.editor.mark('selecting on pointer up')
+						this.editor.markHistoryStoppingPoint('selecting on pointer up')
 						this.editor.select(selectingShape.id)
 					} else {
-						this.editor.mark('selecting on pointer up')
+						this.editor.markHistoryStoppingPoint('selecting on pointer up')
 						this.editor.select(selectingShape)
 					}
 				}
@@ -184,13 +178,13 @@ export class PointingShape extends StateNode {
 				// Deselect any ancestors and add the target shape to the selection
 				const ancestors = this.editor.getShapeAncestors(outermostSelectableShape)
 
-				this.editor.mark('shift deselecting on pointer up')
+				this.editor.markHistoryStoppingPoint('shift deselecting on pointer up')
 				this.editor.setSelectedShapes([
 					...this.editor.getSelectedShapeIds().filter((id) => !ancestors.find((a) => a.id === id)),
 					outermostSelectableShape.id,
 				])
 			} else {
-				this.editor.mark('selecting on pointer up')
+				this.editor.markHistoryStoppingPoint('selecting on pointer up')
 				// different shape and we are drilling down, but no shift held so just select it straight up
 				this.editor.setSelectedShapes([outermostSelectableShape.id])
 			}
@@ -199,17 +193,17 @@ export class PointingShape extends StateNode {
 		this.parent.transition('idle', info)
 	}
 
-	override onDoubleClick: TLEventHandlers['onDoubleClick'] = () => {
+	override onDoubleClick() {
 		this.isDoubleClick = true
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			this.startTranslating(info)
 		}
 	}
 
-	override onLongPress: TLEventHandlers['onLongPress'] = (info) => {
+	override onLongPress(info: TLPointerEventInfo) {
 		this.startTranslating(info)
 	}
 
@@ -217,19 +211,18 @@ export class PointingShape extends StateNode {
 		if (this.editor.getInstanceState().isReadonly) return
 
 		// Re-focus the editor, just in case the text label of the shape has stolen focus
-		this.editor.getContainer().focus()
+		this.editor.focus()
 		this.parent.transition('translating', info)
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
+		this.cancel()
+	}
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
-		this.cancel()
-	}
-
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 

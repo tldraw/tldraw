@@ -1,13 +1,12 @@
 import {
 	Editor,
 	Group2d,
-	HIT_TEST_MARGIN,
 	StateNode,
 	TLArrowShape,
 	TLClickEventInfo,
-	TLEventHandlers,
 	TLGroupShape,
 	TLKeyboardEventInfo,
+	TLPointerEventInfo,
 	TLShape,
 	TLTextShape,
 	Vec,
@@ -36,17 +35,21 @@ const SKIPPED_KEYS_FOR_AUTO_EDITING = [
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onEnter = () => {
+	override onEnter() {
 		this.parent.setCurrentToolIdMask(undefined)
 		updateHoveredShapeId(this.editor)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onExit() {
+		updateHoveredShapeId.cancel()
+	}
+
+	override onPointerMove() {
 		updateHoveredShapeId(this.editor)
 	}
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		if (this.editor.getIsMenuOpen()) return
 
 		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
@@ -138,20 +141,13 @@ export class Idle extends StateNode {
 					case 'top':
 					case 'right':
 					case 'bottom':
-					case 'left': {
-						if (shouldEnterCropMode) {
-							this.parent.transition('pointing_crop_handle', info)
-						} else {
-							this.parent.transition('pointing_resize_handle', info)
-						}
-						break
-					}
+					case 'left':
 					case 'top_left':
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
 						if (shouldEnterCropMode) {
-							this.parent.transition('pointing_crop_handle', info)
+							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
 							this.parent.transition('pointing_resize_handle', info)
 						}
@@ -180,7 +176,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+	override onDoubleClick(info: TLClickEventInfo) {
 		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
 
 		switch (info.target) {
@@ -199,7 +195,7 @@ export class Idle extends StateNode {
 						? hoveredShape
 						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
 							this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
+								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 							})
 
@@ -265,7 +261,7 @@ export class Idle extends StateNode {
 					) {
 						const change = util.onDoubleClickEdge?.(onlySelectedShape)
 						if (change) {
-							this.editor.mark('double click edge')
+							this.editor.markHistoryStoppingPoint('double click edge')
 							this.editor.updateShapes([change])
 							kickoutOccludedShapes(this.editor, [onlySelectedShape.id])
 							return
@@ -307,7 +303,7 @@ export class Idle extends StateNode {
 						return
 					} else if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
 						// crop on double click
-						this.editor.mark('select and crop')
+						this.editor.markHistoryStoppingPoint('select and crop')
 						this.editor.select(info.shape?.id)
 						this.parent.transition('crop', info)
 						return
@@ -345,7 +341,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onRightClick: TLEventHandlers['onRightClick'] = (info) => {
+	override onRightClick(info: TLPointerEventInfo) {
 		switch (info.target) {
 			case 'canvas': {
 				const hoveredShape = this.editor.getHoveredShape()
@@ -353,7 +349,7 @@ export class Idle extends StateNode {
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-								margin: HIT_TEST_MARGIN / this.editor.getZoomLevel(),
+								margin: this.editor.options.hitTestMargin / this.editor.getZoomLevel(),
 								hitInside: false,
 								hitLabels: true,
 								hitLocked: true,
@@ -402,8 +398,13 @@ export class Idle extends StateNode {
 					(parent) => !selectedShapeIds.includes(parent.id)
 				)
 
-				if (!selectedShapeIds.includes(targetShape.id)) {
-					this.editor.mark('selecting shape')
+				if (
+					!selectedShapeIds.includes(targetShape.id) &&
+					!this.editor.findShapeAncestor(targetShape, (shape) =>
+						selectedShapeIds.includes(shape.id)
+					)
+				) {
+					this.editor.markHistoryStoppingPoint('selecting shape')
 					this.editor.setSelectedShapes([targetShape.id])
 				}
 				break
@@ -411,19 +412,19 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		if (
 			this.editor.getFocusedGroupId() !== this.editor.getCurrentPageId() &&
 			this.editor.getSelectedShapeIds().length > 0
 		) {
 			this.editor.popFocusedGroupId()
 		} else {
-			this.editor.mark('clearing selection')
+			this.editor.markHistoryStoppingPoint('clearing selection')
 			this.editor.selectNone()
 		}
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
@@ -463,7 +464,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onKeyRepeat: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyRepeat(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
@@ -475,7 +476,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onKeyUp = (info: TLKeyboardEventInfo) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'Enter': {
 				const selectedShapes = this.editor.getSelectedShapes()
@@ -529,7 +530,7 @@ export class Idle extends StateNode {
 		shouldSelectAll?: boolean
 	) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
-		this.editor.mark('editing shape')
+		this.editor.markHistoryStoppingPoint('editing shape')
 		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
 		this.parent.transition('editing_shape', info)
 	}
@@ -562,7 +563,7 @@ export class Idle extends StateNode {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getInstanceState().isReadonly) return
 
-		this.editor.mark('creating text shape')
+		this.editor.markHistoryStoppingPoint('creating text shape')
 
 		const id = createShapeId()
 
@@ -617,7 +618,7 @@ export class Idle extends StateNode {
 
 		if (delta.equals(new Vec(0, 0))) return
 
-		if (!ephemeral) this.editor.mark('nudge shapes')
+		if (!ephemeral) this.editor.markHistoryStoppingPoint('nudge shapes')
 
 		const { gridSize } = this.editor.getDocumentSettings()
 

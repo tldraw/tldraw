@@ -1,15 +1,16 @@
 import {
 	Editor,
 	StateNode,
-	TLEventHandlers,
-	TLInterruptEvent,
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
-import { NOTE_PIT_RADIUS, getAvailableNoteAdjacentPositions } from '../noteHelpers'
+import {
+	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
+	getAvailableNoteAdjacentPositions,
+} from '../noteHelpers'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -24,36 +25,43 @@ export class Pointing extends StateNode {
 
 	shape = {} as TLNoteShape
 
-	override onEnter = () => {
+	override onEnter() {
 		const { editor } = this
 
 		this.wasFocusedOnEnter = !editor.getIsMenuOpen()
 
 		if (this.wasFocusedOnEnter) {
 			const id = createShapeId()
-			this.markId = `creating:${id}`
-			editor.mark(this.markId)
+			this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
 
 			// Check for note pits; if the pointer is close to one, place the note centered on the pit
 			const center = this.editor.inputs.originPagePoint.clone()
-			const offset = getNotePitOffset(this.editor, center)
+			const offset = getNoteShapeAdjacentPositionOffset(
+				this.editor,
+				center,
+				this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
+			)
 			if (offset) {
 				center.sub(offset)
 			}
-			this.shape = createSticky(this.editor, id, center)
+			this.shape = createNoteShape(this.editor, id, center)
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			if (!this.wasFocusedOnEnter) {
 				const id = createShapeId()
 				const center = this.editor.inputs.originPagePoint.clone()
-				const offset = getNotePitOffset(this.editor, center)
+				const offset = getNoteShapeAdjacentPositionOffset(
+					this.editor,
+					center,
+					this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
+				)
 				if (offset) {
 					center.sub(offset)
 				}
-				this.shape = createSticky(this.editor, id, center)
+				this.shape = createNoteShape(this.editor, id, center)
 			}
 
 			this.editor.setCurrentTool('select.translating', {
@@ -62,6 +70,7 @@ export class Pointing extends StateNode {
 				shape: this.shape,
 				onInteractionEnd: 'note',
 				isCreating: true,
+				creatingMarkId: this.markId,
 				onCreate: () => {
 					this.editor.setEditingShape(this.shape.id)
 					this.editor.setCurrentTool('select.editing_shape')
@@ -70,19 +79,19 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
@@ -107,10 +116,10 @@ export class Pointing extends StateNode {
 	}
 }
 
-export function getNotePitOffset(editor: Editor, center: Vec) {
-	let min = NOTE_PIT_RADIUS / editor.getZoomLevel() // in screen space
+export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: Vec, scale: number) {
+	let min = NOTE_ADJACENT_POSITION_SNAP_RADIUS / editor.getZoomLevel() // in screen space
 	let offset: Vec | undefined
-	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, 0)) {
+	for (const pit of getAvailableNoteAdjacentPositions(editor, 0, scale, 0)) {
 		// only check page rotations of zero
 		const deltaToPit = Vec.Sub(center, pit)
 		const dist = deltaToPit.len()
@@ -122,13 +131,16 @@ export function getNotePitOffset(editor: Editor, center: Vec) {
 	return offset
 }
 
-export function createSticky(editor: Editor, id: TLShapeId, center: Vec) {
+export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 	editor
 		.createShape({
 			id,
 			type: 'note',
 			x: center.x,
 			y: center.y,
+			props: {
+				scale: editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1,
+			},
 		})
 		.select(id)
 

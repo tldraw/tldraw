@@ -21,21 +21,40 @@
 	--radius-2: 6px;
 	--radius-3: 9px;
 	--radius-4: 11px;
-	/* Z Index */
-	--layer-background: 100;
-	--layer-grid: 150;
-	--layer-culled-shapes: 175;
-	--layer-canvas: 200;
-	--layer-shapes: 300;
-	--layer-overlays: 400;
-	--layer-in-front: 500;
-	--layer-following-indicator: 1000;
-	--layer-blocker: 10000;
 
-	/* z index for text editors */
+	/* Canvas z-index */
+	--layer-canvas-hidden: -999999;
+	--layer-canvas-background: 100;
+	--layer-canvas-grid: 150;
+	--layer-canvas-shapes: 300;
+	--layer-canvas-overlays: 500;
+	--layer-canvas-blocker: 10000;
+
+	/* Canvas overlays z-index */
+	--layer-overlays-collaborator-scribble: 10;
+	--layer-overlays-collaborator-brush: 20;
+	--layer-overlays-collaborator-shape-indicator: 30;
+	--layer-overlays-user-scribble: 40;
+	--layer-overlays-user-brush: 50;
+	--layer-overlays-user-indicator-selected: 60;
+	--layer-overlays-user-indicator-hovered: 70;
+	--layer-overlays-user-handles: 80;
+	--layer-overlays-user-snapline: 90;
+	--layer-overlays-selection-fg: 100;
+	--layer-overlays-user-indicator-hint: 110;
+	--layer-overlays-collaborator-cursor-hint: 120;
+	--layer-overlays-collaborator-cursor: 130;
+
+	/* Text editor z-index */
 	--layer-text-container: 1;
 	--layer-text-content: 3;
 	--layer-text-editor: 4;
+
+	/* Error fallback z-index */
+	--layer-error-overlay: 1;
+	--layer-error-canvas: 2;
+	--layer-error-canvas-after: 3;
+	--layer-error-content: 4;
 
 	/* Misc */
 	--tl-zoom: 1;
@@ -93,9 +112,11 @@
 	/* fext outline */
 	--a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
 	--b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
-	--tl-text-outline: 0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
-		var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
-		var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background);
+	--tl-text-outline-reference: 0 var(--b) 0 var(--color-background),
+		0 var(--a) 0 var(--color-background), var(--b) var(--b) 0 var(--color-background),
+		var(--a) var(--b) 0 var(--color-background), var(--a) var(--a) 0 var(--color-background),
+		var(--b) var(--a) 0 var(--color-background);
+	--tl-text-outline: var(--tl-text-outline-reference);
 	/* own properties */
 	position: relative;
 	inset: 0px;
@@ -217,7 +238,7 @@
 	-webkit-touch-callout: initial;
 }
 
-.tl-container:focus-within {
+.tl-container__focused {
 	outline: 1px solid var(--color-low);
 }
 
@@ -237,7 +258,6 @@ input,
 	height: 100%;
 	width: 100%;
 	color: var(--color-text);
-	z-index: var(--layer-canvas);
 	cursor: var(--tl-cursor);
 	overflow: clip;
 	content-visibility: auto;
@@ -245,23 +265,9 @@ input,
 	contain: strict;
 }
 
-.tl-culled-shapes {
-	width: 100%;
-	height: 100%;
-	z-index: var(--layer-culled-shapes);
-	position: absolute;
-	pointer-events: none;
-	contain: size layout;
-}
-
-.tl-culled-shapes__canvas {
-	width: 100%;
-	height: 100%;
-}
-
 .tl-shapes {
 	position: relative;
-	z-index: var(--layer-shapes);
+	z-index: var(--layer-canvas-shapes);
 }
 
 .tl-overlays {
@@ -272,7 +278,7 @@ input,
 	width: 100%;
 	contain: strict;
 	pointer-events: none;
-	z-index: var(--layer-overlays);
+	z-index: var(--layer-canvas-overlays);
 }
 
 .tl-overlays__item {
@@ -293,21 +299,10 @@ input,
 	pointer-events: none;
 }
 
-.tl-front {
-	z-index: 600;
-	position: absolute;
-	inset: 0px;
-	height: 100%;
-	width: 100%;
-	overflow: clip;
-	content-visibility: auto;
-	touch-action: none;
-	pointer-events: none;
-}
 /* ------------------- Background ------------------- */
 
 .tl-background__wrapper {
-	z-index: var(--layer-background);
+	z-index: var(--layer-canvas-background);
 	position: absolute;
 	inset: 0px;
 	height: 100%;
@@ -329,7 +324,7 @@ input,
 	height: 100%;
 	touch-action: none;
 	pointer-events: none;
-	z-index: var(--layer-grid);
+	z-index: var(--layer-canvas-grid);
 	contain: strict;
 }
 
@@ -379,16 +374,6 @@ input,
 	contain: size layout;
 }
 
-.tl-shape__culled {
-	position: absolute;
-	pointer-events: none;
-	overflow: visible;
-	transform-origin: top left;
-	contain: size layout;
-	background-color: var(--color-culled);
-	z-index: 0;
-}
-
 /* ---------------- Shape Containers ---------------- */
 
 .tl-svg-container {
@@ -420,58 +405,58 @@ input,
 
 /* back of the stack, behind user's stuff */
 .tl-collaborator__scribble {
-	z-index: 10;
+	z-index: var(--layer-overlays-collaborator-scribble);
 }
 
 .tl-collaborator__brush {
-	z-index: 20;
+	z-index: var(--layer-overlays-collaborator-brush);
 }
 
 .tl-collaborator__shape-indicator {
-	z-index: 30;
+	z-index: var(--layer-overlays-collaborator-shape-indicator);
 }
 
 .tl-user-scribble {
-	z-index: 40;
+	z-index: var(--layer-overlays-user-scribble);
 }
 
 .tl-user-brush {
-	z-index: 50;
+	z-index: var(--layer-overlays-user-brush);
 }
 
 .tl-user-indicator__selected {
-	z-index: 60;
+	z-index: var(--layer-overlays-user-indicator-selected);
 }
 
 .tl-user-indicator__hovered {
-	z-index: 70;
+	z-index: var(--layer-overlays-user-indicator-hovered);
 }
 
 .tl-user-handles {
-	z-index: 80;
+	z-index: var(--layer-overlays-user-handles);
 }
 
 .tl-user-snapline {
-	z-index: 90;
+	z-index: var(--layer-overlays-user-snapline);
 }
 
 .tl-selection__fg {
 	pointer-events: none;
-	z-index: 100;
+	z-index: var(--layer-overlays-selection-fg);
 }
 
 .tl-user-indicator__hint {
-	z-index: 110;
+	z-index: var(--layer-overlays-user-indicator-hint);
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* behind collaborator cursor */
 .tl-collaborator__cursor-hint {
-	z-index: 120;
+	z-index: var(--layer-overlays-collaborator-cursor-hint);
 }
 
 .tl-collaborator__cursor {
-	z-index: 130;
+	z-index: var(--layer-overlays-collaborator-cursor);
 }
 
 .tl-cursor {
@@ -598,6 +583,11 @@ input,
 	height: 100%;
 }
 
+.tl-video.tl-video-is-fullscreen {
+	object-fit: contain;
+	background-size: contain;
+}
+
 .tl-video-container,
 .tl-image-container,
 .tl-embed-container {
@@ -611,6 +601,15 @@ input,
 	align-items: center;
 }
 
+.tl-image-container {
+	position: relative;
+	overflow: hidden;
+}
+.tl-image {
+	position: absolute;
+	inset: 0;
+}
+
 .tl-image__tg {
 	--scale: calc(min(2, var(--tl-scale)));
 	position: absolute;
@@ -621,6 +620,16 @@ input,
 	background-color: var(--color-background);
 	padding: 2px 4px;
 	border-radius: var(--radius-1);
+}
+
+.tl-flip-x {
+	transform: scale(-1, 1);
+}
+.tl-flip-y {
+	transform: scale(1, -1);
+}
+.tl-flip-xy {
+	transform: scale(-1, -1);
 }
 
 /* --------------------- Nametag -------------------- */
@@ -788,37 +797,43 @@ input,
 	/* remove overflow from textarea on windows */
 	margin: 0px;
 	padding: 0px;
-	border: 0px;
-	color: inherit;
-	caret-color: var(--color-text);
+
+	appearance: auto;
 	background: none;
 	border-image: none;
-	font-size: inherit;
-	font-family: inherit;
-	font-weight: inherit;
-	line-height: inherit;
-	font-variant: inherit;
-	font-style: inherit;
-	text-align: inherit;
-	letter-spacing: inherit;
-	text-shadow: inherit;
-	outline: none;
-	white-space: pre-wrap;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	text-rendering: auto;
-	text-transform: none;
-	text-indent: 0px;
-	display: inline-block;
-	appearance: auto;
+	border: 0px;
+	caret-color: var(--color-text);
+	color: inherit;
 	column-count: initial !important;
-	writing-mode: horizontal-tb !important;
+	display: inline-block;
+	font-family: inherit;
+	font-feature-settings: normal;
+	font-kerning: auto;
+	font-optical-sizing: auto;
+	font-size: inherit;
+	font-stretch: 100%;
+	font-style: inherit;
+	font-variant: inherit;
+	font-variation-settings: normal;
+	font-weight: inherit;
+	letter-spacing: inherit;
+	line-height: inherit;
+	outline: none;
+	overflow-wrap: break-word;
+	text-align: inherit;
+	text-indent: 0px;
+	text-rendering: auto;
+	text-shadow: inherit;
+	text-transform: none;
+	white-space: pre-wrap;
 	word-spacing: 0px;
+	word-wrap: break-word;
+	writing-mode: horizontal-tb !important;
 }
 
 .tl-text-measure {
 	position: absolute;
-	z-index: -999999;
+	z-index: var(--layer-canvas-hidden);
 	top: 0px;
 	left: 0px;
 	opacity: 0;
@@ -920,7 +935,7 @@ input,
 }
 
 .tl-bookmark__image_container {
-	flex: 1;
+	flex: 1 1 100%;
 	overflow: hidden;
 	border-top-left-radius: var(--radius-1);
 	border-top-right-radius: var(--radius-1);
@@ -947,12 +962,17 @@ input,
 	height: 100%;
 	object-fit: cover;
 	object-position: center;
+	border-bottom: 1px solid var(--color-muted-2);
 }
 
 .tl-bookmark__copy_container {
 	background-color: var(--color-muted);
 	padding: var(--space-4);
 	pointer-events: all;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	flex: 1;
 }
 
 .tl-bookmark__heading,
@@ -965,27 +985,62 @@ input,
 
 .tl-bookmark__heading {
 	font-size: 16px;
+	line-height: 1.5;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
-	margin: 8px 0px;
+	overflow: hidden;
+	max-height: calc((16px * 1.5) * 2);
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	text-overflow: ellipsis;
+	display: -webkit-box;
 }
 
 .tl-bookmark__description {
 	font-size: 12px;
-	padding-bottom: var(--space-4);
+	line-height: 1.5;
+	overflow: hidden;
+	max-height: calc((12px * 1.5) * 3);
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	color: var(--color-text-2);
+	margin: var(--space-2) 0px;
 }
 
+.tl-bookmark__heading + .tl-bookmark__link,
+.tl-bookmark__description + .tl-bookmark__link {
+	margin-top: var(--space-3);
+}
 .tl-bookmark__link {
-	font-size: 14px;
+	font-size: 12px;
 	pointer-events: all;
-	z-index: 999;
-	overflow: hidden;
-	display: block;
-	color: var(--color-text);
-	text-overflow: ellipsis;
-	text-decoration: none;
-	color: var(--color-text-1);
+	display: flex;
+	color: var(--color-text-2);
+	align-items: center;
 	cursor: var(--tl-cursor-pointer);
+	width: fit-content;
+	max-width: 100%;
+}
+
+.tl-bookmark__link > span {
+	flex-shrink: 0px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.tl-bookmark__link > .tl-hyperlink__icon {
+	margin-right: 8px;
+	flex-shrink: 0;
+}
+
+.tl-bookmark__link > .tl-bookmark__favicon {
+	margin-right: 8px;
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
 }
 
 /* ---------------- Hyperlink Button ---------------- */
@@ -1001,7 +1056,6 @@ input,
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: 200;
 	font-size: 12px;
 	font-weight: 400;
 	color: var(--color-text-1);
@@ -1030,9 +1084,9 @@ input,
 	color: var(--color-selected);
 }
 
-.tl-hyperlink-button__icon {
-	width: 18px;
-	height: 18px;
+.tl-hyperlink__icon {
+	width: 16px;
+	height: 16px;
 	background-color: currentColor;
 	pointer-events: none;
 }
@@ -1054,7 +1108,6 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: 10;
 }
 
 .tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
@@ -1075,7 +1128,7 @@ input,
 	position: relative;
 	top: 0px;
 	left: 0px;
-	padding: 16px;
+	padding: inherit;
 	height: fit-content;
 	width: fit-content;
 	border-radius: var(--radius-1);
@@ -1087,7 +1140,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	padding: 16px;
+	padding: inherit;
 }
 
 .tl-text-wrapper[data-isselected='true'] .tl-text-input {
@@ -1173,12 +1226,12 @@ input,
 .tl-arrow-label .tl-arrow {
 	position: relative;
 	height: max-content;
-	padding: 4px;
+	padding: inherit;
 	overflow: visible;
 }
 
 .tl-arrow-label textarea {
-	padding: 4px;
+	padding: inherit;
 	/* Don't allow textarea to be zero width */
 	min-width: 4px;
 }
@@ -1364,7 +1417,6 @@ input,
 	background-color: var(--color-background);
 	color: var(--color-text-1);
 	position: absolute;
-	z-index: 600;
 }
 
 .tl-error-boundary__overlay {
@@ -1372,7 +1424,7 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: 500;
+	z-index: var(--layer-error-overlay);
 	background-color: var(--color-overlay);
 }
 
@@ -1388,8 +1440,9 @@ input,
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: -1;
+	z-index: var(--layer-error-canvas);
 }
+
 /* some browsers seem to have some weird interactions between stacking contexts
 and pointer-events. this ::after pseudo element covers the canvas and prevents
 it from receiving any pointer events or affecting the cursor. */
@@ -1400,7 +1453,7 @@ it from receiving any pointer events or affecting the cursor. */
 	inset: 0px;
 	height: 100%;
 	width: 100%;
-	z-index: 600;
+	z-index: var(--layer-error-canvas-after);
 	pointer-events: all;
 }
 
@@ -1419,7 +1472,7 @@ it from receiving any pointer events or affecting the cursor. */
 	display: flex;
 	flex-direction: column;
 	overflow: auto;
-	z-index: 600;
+	z-index: var(--layer-error-content);
 	gap: 12px;
 }
 
@@ -1528,7 +1581,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-hit-test-blocker {
 	position: absolute;
-	z-index: var(--layer-blocker);
+	z-index: var(--layer-canvas-blocker);
 	inset: 0px;
 	width: 100%;
 	height: 100%;

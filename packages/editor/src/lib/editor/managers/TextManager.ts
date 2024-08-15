@@ -20,9 +20,9 @@ const textAlignmentsForLtr = {
 	'end-legacy': 'right',
 }
 
-type TLOverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
-type TLMeasureTextSpanOpts = {
-	overflow: TLOverflowMode
+/** @public */
+export interface TLMeasureTextSpanOpts {
+	overflow: 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
 	width: number
 	height: number
 	padding: number
@@ -36,27 +36,26 @@ type TLMeasureTextSpanOpts = {
 
 const spaceCharacterRegex = /\s/
 
+/** @public */
 export class TextManager {
 	baseElm: HTMLDivElement
 
 	constructor(public editor: Editor) {
 		const container = this.editor.getContainer()
 
-		// Remove any existing text measure element that
-		// is a descendant of this editor's container
-		container.querySelector('#tldraw_text_measure')?.remove()
-
 		const elm = document.createElement('div')
-		elm.id = `tldraw_text_measure`
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.tabIndex = -1
 		container.appendChild(elm)
 
 		this.baseElm = elm
+		editor.disposables.add(() => {
+			elm.remove()
+		})
 	}
 
-	measureText = (
+	measureText(
 		textToMeasure: string,
 		opts: {
 			fontStyle: string
@@ -74,7 +73,7 @@ export class TextManager {
 			padding: string
 			disableOverflowWrapBreaking?: boolean
 		}
-	): BoxModel & { scrollWidth: number } => {
+	): BoxModel & { scrollWidth: number } {
 		// Duplicate our base element; we don't need to clone deep
 		const elm = this.baseElm?.cloneNode() as HTMLDivElement
 		this.baseElm.insertAdjacentElement('afterend', elm)

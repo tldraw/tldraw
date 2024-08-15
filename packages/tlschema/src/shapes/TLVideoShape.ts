@@ -1,11 +1,25 @@
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
+import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RETIRED_DOWN_MIGRATION, RecordPropsType } from '../recordsWithProps'
+import { RecordProps } from '../recordsWithProps'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const videoShapeProps = {
+export interface TLVideoShapeProps {
+	w: number
+	h: number
+	time: number
+	playing: boolean
+	url: string
+	assetId: TLAssetId | null
+}
+
+/** @public */
+export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
+
+/** @public */
+export const videoShapeProps: RecordProps<TLVideoShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	time: T.number,
@@ -13,12 +27,6 @@ export const videoShapeProps = {
 	url: T.linkUrl,
 	assetId: assetIdValidator.nullable(),
 }
-
-/** @public */
-export type TLVideoShapeProps = RecordPropsType<typeof videoShapeProps>
-
-/** @public */
-export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 
 const Versions = createShapePropsMigrationIds('video', {
 	AddUrlProp: 1,
@@ -35,7 +43,7 @@ export const videoShapeMigrations = createShapePropsMigrationSequence({
 			up: (props) => {
 				props.url = ''
 			},
-			down: RETIRED_DOWN_MIGRATION,
+			down: 'retired',
 		},
 		{
 			id: Versions.MakeUrlsValid,

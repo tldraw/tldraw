@@ -1,9 +1,10 @@
+import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../../context/components'
 import { useDialogs } from '../../context/dialogs'
 import { LanguageMenu } from '../LanguageMenu'
 import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 
-/** @public */
+/** @public @react */
 export function DefaultHelpMenuContent() {
 	return (
 		<>
@@ -12,10 +13,14 @@ export function DefaultHelpMenuContent() {
 		</>
 	)
 }
-/** @public */
+/** @public @react */
 export function KeyboardShortcutsMenuItem() {
 	const { KeyboardShortcutsDialog } = useTldrawUiComponents()
 	const { addDialog } = useDialogs()
+
+	const handleSelect = useCallback(() => {
+		if (KeyboardShortcutsDialog) addDialog({ component: KeyboardShortcutsDialog })
+	}, [addDialog, KeyboardShortcutsDialog])
 
 	if (!KeyboardShortcutsDialog) return null
 
@@ -24,9 +29,7 @@ export function KeyboardShortcutsMenuItem() {
 			id="keyboard-shortcuts-button"
 			label="help-menu.keyboard-shortcuts"
 			readonlyOk
-			onSelect={() => {
-				addDialog({ component: KeyboardShortcutsDialog })
-			}}
+			onSelect={handleSelect}
 		/>
 	)
 }

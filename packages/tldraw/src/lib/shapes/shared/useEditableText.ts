@@ -2,6 +2,7 @@ import {
 	TLShapeId,
 	TLUnknownShape,
 	getPointerInfo,
+	noop,
 	stopEventPropagation,
 	useEditor,
 	useValue,
@@ -13,7 +14,6 @@ import { INDENT, TextHelpers } from './TextHelpers'
 export function useEditableText(id: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const rSelectionRanges = useRef<Range[] | null>()
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor])
 	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
 		editor,
@@ -21,97 +21,35 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 	useEffect(() => {
 		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
-			// We wait a tick, because on iOS, the keyboard will not show if we focus immediately.
-			requestAnimationFrame(() => {
-				if (shapeId === id) {
-					const elm = rInput.current
-					if (elm) {
-						if (document.activeElement !== elm) {
-							elm.focus()
-						}
-						elm.select()
-					}
-				}
-			})
+			if (shapeId === id) {
+				rInput.current?.select()
+			}
 		}
 
 		editor.on('select-all-text', selectAllIfEditing)
 		return () => {
 			editor.off('select-all-text', selectAllIfEditing)
 		}
-	}, [editor, id])
+	}, [editor, id, isEditing])
 
 	useEffect(() => {
 		if (!isEditing) return
 
-		const elm = rInput.current
-		if (!elm) return
-
-		// Focus if we're not already focused
-		if (document.activeElement !== elm) {
-			elm.focus()
-
-			// On mobile etc, just select all the text when we start focusing
-			if (editor.getInstanceState().isCoarsePointer) {
-				elm.select()
-			}
-		} else {
-			// This fixes iOS not showing the cursor sometimes. This "shakes" the cursor
-			// awake.
-			if (editor.environment.isSafari) {
-				elm.blur()
-				elm.focus()
-			}
+		if (document.activeElement !== rInput.current) {
+			rInput.current?.focus()
 		}
 
-		// When the selection changes, save the selection ranges
-		function updateSelection() {
-			const selection = window.getSelection?.()
-			if (selection && selection.type !== 'None') {
-				const ranges: Range[] = []
-				for (let i = 0; i < selection.rangeCount; i++) {
-					ranges.push(selection.getRangeAt?.(i))
-				}
-				rSelectionRanges.current = ranges
-			}
+		if (editor.getInstanceState().isCoarsePointer) {
+			rInput.current?.select()
 		}
 
-		document.addEventListener('selectionchange', updateSelection)
-		return () => {
-			document.removeEventListener('selectionchange', updateSelection)
+		// XXX(mime): This fixes iOS not showing the cursor sometimes.
+		// This "shakes" the cursor awake.
+		if (editor.environment.isSafari) {
+			rInput.current?.blur()
+			rInput.current?.focus()
 		}
 	}, [editor, isEditing])
-
-	// 2. Restore the selection changes (and focus) if the element blurs
-	// When the label blurs, deselect all of the text and complete.
-	// This makes it so that the canvas does not have to be focused
-	// in order to exit the editing state and complete the editing state
-	const handleBlur = useCallback(() => {
-		const ranges = rSelectionRanges.current
-
-		requestAnimationFrame(() => {
-			const elm = rInput.current
-			const editingShapeId = editor.getEditingShapeId()
-
-			// Did we move to a different shape?
-			if (editingShapeId) {
-				// important! these ^v are two different things
-				// is that shape OUR shape?
-				if (elm && editingShapeId === id) {
-					elm.focus()
-
-					if (ranges && ranges.length) {
-						const selection = window.getSelection()
-						if (selection) {
-							ranges.forEach((range) => selection.addRange(range))
-						}
-					}
-				}
-			} else {
-				window.getSelection()?.removeAllRanges()
-			}
-		})
-	}, [editor, id])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
@@ -186,7 +124,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	return {
 		rInput,
 		handleFocus: noop,
-		handleBlur,
+		handleBlur: noop,
 		handleKeyDown,
 		handleChange,
 		handleInputPointerDown,
@@ -195,8 +133,4 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		isEditing,
 		isEditingAnything,
 	}
-}
-
-function noop() {
-	return
 }

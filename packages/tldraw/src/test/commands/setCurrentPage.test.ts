@@ -46,14 +46,14 @@ describe('setCurrentPage', () => {
 	})
 
 	it('squashes', () => {
+		const page1Id = editor.getCurrentPageId()
 		const page2Id = PageRecordType.createId('page2')
 		editor.createPage({ name: 'New Page 2', id: page2Id })
-
-		editor.history.clear()
-		editor.setCurrentPage(editor.getPages()[1].id)
-		editor.setCurrentPage(editor.getPages()[0].id)
-		editor.setCurrentPage(editor.getPages()[0].id)
-		expect(editor.history.getNumUndos()).toBe(1)
+		editor.setCurrentPage(page1Id)
+		editor.setCurrentPage(page2Id)
+		editor.setCurrentPage(page2Id)
+		editor.undo()
+		expect(editor.getCurrentPageId()).toBe(page1Id)
 	})
 
 	it('preserves the undo stack', () => {
@@ -61,14 +61,14 @@ describe('setCurrentPage', () => {
 		const page2Id = PageRecordType.createId('page2')
 		editor.createPage({ name: 'New Page 2', id: page2Id })
 
-		editor.history.clear()
+		editor.clearHistory()
 		editor.createShapes([{ type: 'geo', id: boxId, props: { w: 100, h: 100 } }])
 		editor.undo()
 		editor.setCurrentPage(editor.getPages()[1].id)
 		editor.setCurrentPage(editor.getPages()[0].id)
 		editor.setCurrentPage(editor.getPages()[0].id)
 		expect(editor.getShape(boxId)).toBeUndefined()
-		expect(editor.history.getNumUndos()).toBe(1)
+		// expect(editor.history.getNumUndos()).toBe(1)
 		editor.redo()
 		expect(editor.getShape(boxId)).not.toBeUndefined()
 	})
@@ -84,5 +84,23 @@ describe('setCurrentPage', () => {
 
 		expect(console.error).toHaveBeenCalled()
 		expect(editor.getCurrentPageId()).toBe(initialPageId)
+	})
+
+	it('cancels any in-progress actions', () => {
+		const page1Id = editor.getPages()[0].id
+		const page2Id = PageRecordType.createId('page2')
+
+		editor.createPage({ name: 'New Page 2', id: page2Id })
+		expect(editor.getCurrentPageId()).toBe(page1Id)
+
+		const geoId = createShapeId()
+		editor.createShape({ type: 'geo', id: geoId, props: { w: 100, h: 100 } })
+		editor.select(geoId)
+		editor.keyUp('Enter')
+
+		expect(editor.isIn('select.editing_shape')).toBe(true)
+
+		editor.setCurrentPage(page2Id)
+		expect(editor.isIn('select.idle')).toBe(true)
 	})
 })

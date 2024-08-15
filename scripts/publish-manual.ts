@@ -1,6 +1,11 @@
 import { appendFileSync } from 'fs'
 import { exec } from './lib/exec'
-import { getLatestVersion, publish } from './lib/publishing'
+import {
+	getLatestVersion,
+	publish,
+	publishProductionDocsAndExamplesAndBemo,
+} from './lib/publishing'
+import { uploadStaticAssets } from './upload-static-assets'
 
 // This expects the package.json files to be in the correct state.
 // You might want to run this locally after a failed publish attempt on CI.
@@ -16,7 +21,13 @@ async function main() {
 		appendFileSync(process.env.GITHUB_OUTPUT, `is_latest_version=${isLatestVersion}\n`)
 	}
 
-	publish()
+	await uploadStaticAssets(latestVersionInBranch.version)
+
+	await publish()
+
+	if (isLatestVersion) {
+		await publishProductionDocsAndExamplesAndBemo()
+	}
 }
 
 main()

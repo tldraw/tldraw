@@ -6,11 +6,12 @@ import { nicelog } from './lib/nicelog'
 import { getAllWorkspacePackages } from './lib/workspace'
 
 const packagesOurTypesCanDependOn = [
+	'@types/lodash.throttle',
+	'@types/lodash.uniq',
 	'@types/react',
 	'@types/react-dom',
 	'eventemitter3',
-	// todo: external types shouldn't depend on this
-	'@types/ws',
+	'nanoevents',
 ]
 
 main()

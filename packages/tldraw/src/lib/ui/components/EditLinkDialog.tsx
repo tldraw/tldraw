@@ -51,8 +51,8 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	const rInput = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
-		requestAnimationFrame(() => rInput.current?.focus())
-	}, [])
+		editor.timers.requestAnimationFrame(() => rInput.current?.focus())
+	}, [editor])
 
 	const rInitialValue = useRef(selectedShape.props.url)
 
@@ -150,7 +150,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						ref={rInput}
 						className="tlui-edit-link-dialog__input"
 						label="edit-link-dialog.url"
-						autofocus
+						autoFocus
 						value={urlInputState.actual}
 						onValueChange={handleChange}
 						onComplete={handleComplete}

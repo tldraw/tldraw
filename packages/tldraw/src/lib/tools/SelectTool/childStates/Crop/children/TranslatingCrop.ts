@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLKeyboardEventInfo, TLPointerEventInfo } from '@tldraw/editor'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 type Snapshot = ReturnType<TranslatingCrop['createSnapshot']>
@@ -12,26 +12,26 @@ export class TranslatingCrop extends StateNode {
 		onInteractionEnd?: string
 	}
 
-	markId = 'translating crop'
+	markId = ''
 
 	private snapshot = {} as any as Snapshot
 
-	override onEnter = (
+	override onEnter(
 		info: TLPointerEventInfo & {
 			target: 'shape'
 			isCreating?: boolean
 			onInteractionEnd?: string
 		}
-	) => {
+	) {
 		this.info = info
 		this.snapshot = this.createSnapshot()
 
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('translating_crop')
 		this.editor.setCursor({ type: 'move', rotation: 0 })
 		this.updateTranslatingCroppingShape()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
@@ -39,19 +39,19 @@ export class TranslatingCrop extends StateNode {
 		this.updateTranslatingCroppingShape()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown(info: TLKeyboardEventInfo) {
 		switch (info.key) {
 			case 'Alt':
 			case 'Shift': {
@@ -61,7 +61,7 @@ export class TranslatingCrop extends StateNode {
 		}
 	}
 
-	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.key) {
 			case 'Enter': {
 				this.complete()

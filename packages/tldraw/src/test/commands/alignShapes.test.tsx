@@ -32,7 +32,7 @@ describe('when less than two shapes are selected', () => {
 
 describe('when multiple shapes are selected', () => {
 	it('does, undoes and redoes command', () => {
-		editor.mark('align')
+		editor.markHistoryStoppingPoint('align')
 		editor.alignShapes(editor.getSelectedShapeIds(), 'top')
 		jest.advanceTimersByTime(1000)
 

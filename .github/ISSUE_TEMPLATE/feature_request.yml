@@ -15,6 +15,16 @@ body:
       description: Describe the feature, who it would help, and link to any examples from other apps.
     validations:
       required: true
+  - type: dropdown
+    id: product
+    attributes:
+      label: Where would you like this feature?
+      options:
+        - The developer package
+        - The tldraw.com website
+        - The makereal.tldraw.com website
+    validations:
+      required: true
   - type: input
     id: contact
     attributes:

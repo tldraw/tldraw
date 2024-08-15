@@ -13,11 +13,13 @@ import { createComputedCache } from '@tldraw/store'
 import { getCurvedArrowInfo } from './curved-arrow'
 import { getStraightArrowInfo } from './straight-arrow'
 
+const MIN_ARROW_BEND = 8
+
 export function getIsArrowStraight(shape: TLArrowShape) {
-	return Math.abs(shape.props.bend) < 8 // snap to +-8px
+	return Math.abs(shape.props.bend) < MIN_ARROW_BEND * shape.props.scale // snap to +-8px
 }
 
-export type BoundShapeInfo<T extends TLShape = TLShape> = {
+export interface BoundShapeInfo<T extends TLShape = TLShape> {
 	shape: T
 	didIntersect: boolean
 	isExact: boolean

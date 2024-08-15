@@ -25,4 +25,9 @@ export class Point2d extends Geometry2d {
 	hitTestLineSegment(A: Vec, B: Vec, margin: number): boolean {
 		return Vec.DistanceToLineSegment(A, B, this.point) < margin
 	}
+
+	getSvgPathData() {
+		const { point } = this
+		return `M${point.toFixed()}`
+	}
 }

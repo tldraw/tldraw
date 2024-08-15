@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, createShapeId } from 'tldraw'
+import { StateNode, TLClickEventInfo, TLPointerEventInfo, createShapeId } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -6,7 +6,7 @@ import { StateNode, TLEventHandlers, createShapeId } from 'tldraw'
 export class MicroSelectTool extends StateNode {
 	static override id = 'select'
 	//[2]
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		const { editor } = this
 
 		switch (info.target) {
@@ -32,7 +32,7 @@ export class MicroSelectTool extends StateNode {
 		}
 	}
 	//[3]
-	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+	override onDoubleClick(info: TLClickEventInfo) {
 		const { editor } = this
 
 		if (info.phase !== 'up') return

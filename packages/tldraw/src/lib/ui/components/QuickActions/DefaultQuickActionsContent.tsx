@@ -1,13 +1,15 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../context/actions'
-import { useCanRedo, useCanUndo, useUnlockedSelectedShapesCount } from '../../hooks/menu-hooks'
+import {
+	useCanRedo,
+	useCanUndo,
+	useIsInSelectState,
+	useUnlockedSelectedShapesCount,
+} from '../../hooks/menu-hooks'
 import { useReadonly } from '../../hooks/useReadonly'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
-/** @public */
+/** @public @react */
 export function DefaultQuickActionsContent() {
-	const actions = useActions()
-
 	const editor = useEditor()
 
 	const canUndo = useCanUndo()
@@ -21,15 +23,17 @@ export function DefaultQuickActionsContent() {
 		() => editor.isInAny('select', 'hand', 'zoom'),
 		[editor]
 	)
+	const isInSelectState = useIsInSelectState()
+	const selectDependentActionsEnabled = oneSelected && isInSelectState
 
 	if (isReadonlyMode && !isInAcceptableReadonlyState) return
 
 	return (
 		<>
-			<TldrawUiMenuItem {...actions['undo']} disabled={!canUndo} />
-			<TldrawUiMenuItem {...actions['redo']} disabled={!canRedo} />
-			<TldrawUiMenuItem {...actions['delete']} disabled={!oneSelected} />
-			<TldrawUiMenuItem {...actions['duplicate']} disabled={!oneSelected} />
+			<TldrawUiMenuActionItem actionId="undo" disabled={!canUndo} />
+			<TldrawUiMenuActionItem actionId="redo" disabled={!canRedo} />
+			<TldrawUiMenuActionItem actionId="delete" disabled={!selectDependentActionsEnabled} />
+			<TldrawUiMenuActionItem actionId="duplicate" disabled={!selectDependentActionsEnabled} />
 		</>
 	)
 }

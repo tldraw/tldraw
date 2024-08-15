@@ -3,7 +3,7 @@ import { GetServerSideProps } from 'next'
 import { useEffect, useState } from 'react'
 import { getAppOctokit } from '../src/octokit'
 
-type Props = {
+interface Props {
 	deliveries: {
 		id: number
 		guid: string
@@ -39,7 +39,7 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
 	return { props: { deliveries: deliveries.data, cursor } }
 }
 
-type SelectedDelivery = {
+interface SelectedDelivery {
 	id: number
 	data?: unknown
 }

@@ -7,11 +7,26 @@ config({
 })
 
 export const getMultiplayerServerURL = () => {
-	return process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http') ?? 'http://127.0.0.1:8787'
+	return process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http')
+}
+
+function urlOrLocalFallback(mode: string, url: string | undefined, localFallbackPort: number) {
+	if (url) {
+		return JSON.stringify(url)
+	}
+
+	if (mode === 'development') {
+		// in dev, vite lets us inline javascript expressions - so we return a template string that
+		// will be evaluated on the client
+		return '`http://${location.hostname}:' + localFallbackPort + '`'
+	} else {
+		// in production, we have to fall back to a hardcoded value
+		return JSON.stringify(`http://localhost:${localFallbackPort}`)
+	}
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig((env) => ({
 	plugins: [react({ tsDecorators: true })],
 	publicDir: './public',
 	build: {
@@ -29,9 +44,11 @@ export default defineConfig({
 				.filter(([key]) => key.startsWith('NEXT_PUBLIC_'))
 				.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
 		),
-		'process.env.MULTIPLAYER_SERVER': JSON.stringify(getMultiplayerServerURL()),
-		'process.env.ASSET_UPLOAD': JSON.stringify(process.env.ASSET_UPLOAD ?? 'http://127.0.0.1:8788'),
+		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(env.mode, getMultiplayerServerURL(), 8787),
+		'process.env.ASSET_UPLOAD': urlOrLocalFallback(env.mode, process.env.ASSET_UPLOAD, 8788),
+		'process.env.IMAGE_WORKER': urlOrLocalFallback(env.mode, process.env.IMAGE_WORKER, 8786),
 		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
+		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
 		// Fall back to staging DSN for local develeopment, although you still need to
 		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
 		'process.env.SENTRY_DSN': JSON.stringify(
@@ -42,7 +59,7 @@ export default defineConfig({
 	server: {
 		proxy: {
 			'/api': {
-				target: getMultiplayerServerURL(),
+				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
 				rewrite: (path) => path.replace(/^\/api/, ''),
 				ws: false, // we talk to the websocket directly via workers.dev
 				// Useful for debugging proxy issues
@@ -64,4 +81,4 @@ export default defineConfig({
 			},
 		},
 	},
-})
+}))

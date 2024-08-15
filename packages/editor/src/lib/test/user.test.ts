@@ -19,7 +19,7 @@ describe('user', () => {
 	})
 
 	it('gets a user with the correct', () => {
-		editor.user.updateUserPreferences({ isDarkMode: true })
+		editor.user.updateUserPreferences({ colorScheme: 'dark' })
 		expect(editor.user.getIsDarkMode()).toBe(true)
 	})
 })

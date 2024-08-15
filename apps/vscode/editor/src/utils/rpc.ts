@@ -2,7 +2,7 @@ import { uniqueId } from 'tldraw'
 import type { VscodeMessagePairs } from '../../../messages'
 import { vscode } from './vscode'
 
-type SimpleRpcOpts = {
+interface SimpleRpcOpts {
 	timeout: number
 }
 class SimpleRpcError extends Error {
@@ -36,7 +36,8 @@ export function rpc(
 		vscode.postMessage(inMessage)
 
 		const handler = ({ data: response }: MessageEvent<ResponseType | ErrorType>) => {
-			if (uuid === response.uuid) {
+			// Only handle messages that are meant to be a direct response to the message we sent
+			if (response.uuid !== uuid + '_response') {
 				return
 			}
 

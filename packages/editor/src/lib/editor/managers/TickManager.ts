@@ -1,4 +1,4 @@
-import { throttleToNextFrame as _throttleToNextFrame } from '@tldraw/utils'
+import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
 
@@ -7,6 +7,7 @@ const throttleToNextFrame =
 		? // At test time we should use actual raf and not throttle, because throttle was set up to evaluate immediately during tests, which causes stack overflow
 			// for the tick manager since it sets up a raf loop.
 			function mockThrottle(cb: any) {
+				// eslint-disable-next-line no-restricted-globals
 				const frame = requestAnimationFrame(cb)
 				return () => cancelAnimationFrame(frame)
 			}
@@ -22,14 +23,15 @@ export class TickManager {
 	isPaused = true
 	now = 0
 
-	start = () => {
+	start() {
 		this.isPaused = false
 		this.cancelRaf?.()
 		this.cancelRaf = throttleToNextFrame(this.tick)
 		this.now = Date.now()
 	}
 
-	tick = () => {
+	@bind
+	tick() {
 		if (this.isPaused) {
 			return
 		}
@@ -45,7 +47,8 @@ export class TickManager {
 	}
 
 	// Clear the listener
-	dispose = () => {
+	@bind
+	dispose() {
 		this.isPaused = true
 
 		this.cancelRaf?.()
@@ -53,7 +56,7 @@ export class TickManager {
 
 	private prevPoint = new Vec()
 
-	private updatePointerVelocity = (elapsed: number) => {
+	updatePointerVelocity(elapsed: number) {
 		const {
 			prevPoint,
 			editor: {

@@ -1,7 +1,7 @@
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
-import { RoomSnapshot } from '@tldraw/tlsync'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { useCallback, useState } from 'react'
-import { Tldraw, createTLStore, defaultShapeUtils } from 'tldraw'
+import { Tldraw, fetch } from 'tldraw'
 import '../../../styles/core.css'
 import { assetUrls } from '../../utils/assetUrls'
 import { useFileSystem } from '../../utils/useFileSystem'
@@ -17,14 +17,10 @@ export function BoardHistorySnapshot({
 	timestamp: string
 	token?: string
 }) {
-	const [store] = useState(() => {
-		const store = createTLStore({ shapeUtils: defaultShapeUtils })
-		store.loadSnapshot({
-			schema: data.schema!,
-			store: Object.fromEntries(data.documents.map((doc) => [doc.state.id, doc.state])) as any,
-		})
-		return store
-	})
+	const [snapshot] = useState(() => ({
+		schema: data.schema!,
+		store: Object.fromEntries(data.documents.map((doc) => [doc.state.id, doc.state])) as any,
+	}))
 
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 
@@ -57,7 +53,7 @@ export function BoardHistorySnapshot({
 		<>
 			<div className="tldraw__editor">
 				<Tldraw
-					store={store}
+					snapshot={snapshot}
 					assetUrls={assetUrls}
 					onMount={(editor) => {
 						editor.updateInstanceState({ isReadonly: true })
@@ -67,7 +63,6 @@ export function BoardHistorySnapshot({
 					}}
 					overrides={[fileSystemUiOverrides]}
 					inferDarkMode
-					autoFocus
 				/>
 			</div>
 			<div className="board-history__restore">

@@ -208,7 +208,7 @@ test.describe('Export snapshots', () => {
 	for (const [name, shapes] of filteredSnapshots) {
 		test(`Exports with ${name} in dark mode`, async ({ page, api }) => {
 			await page.evaluate((shapes) => {
-				editor.user.updateUserPreferences({ isDarkMode: true })
+				editor.user.updateUserPreferences({ colorScheme: 'dark' })
 				editor
 					.updateInstanceState({ exportBackground: false })
 					.selectAll()

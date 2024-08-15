@@ -22,24 +22,23 @@ export function useKeyboardShortcuts() {
 	const actions = useActions()
 	const tools = useTools()
 	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
-
 	useEffect(() => {
 		if (!isFocused) return
 
-		const container = editor.getContainer()
-
-		hotkeys.setScope(editor.store.id)
+		const disposables = new Array<() => void>()
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: document.body, scope: editor.store.id }, callback)
+			hotkeys(keys, { element: document.body }, callback)
+			disposables.push(() => {
+				hotkeys.unbind(keys, callback)
+			})
 		}
 
 		const hotUp = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(
-				keys,
-				{ element: document.body, keyup: true, keydown: false, scope: editor.store.id },
-				callback
-			)
+			hotkeys(keys, { element: document.body, keyup: true, keydown: false }, callback)
+			disposables.push(() => {
+				hotkeys.unbind(keys, callback)
+			})
 		}
 
 		// Add hotkeys for actions and tools.
@@ -78,15 +77,17 @@ export function useKeyboardShortcuts() {
 			if (editor.inputs.keys.has('Comma')) return
 
 			preventDefault(e) // prevent whatever would normally happen
-			container.focus() // Focus if not already focused
+			editor.focus() // Focus if not already focused
 
 			editor.inputs.keys.add('Comma')
 
-			const { x, y, z } = editor.inputs.currentScreenPoint
+			const { x, y, z } = editor.inputs.currentPagePoint
+			const screenpoints = editor.pageToScreen({ x, y })
+
 			const info: TLPointerEventInfo = {
 				type: 'pointer',
 				name: 'pointer_down',
-				point: { x, y, z },
+				point: { x: screenpoints.x, y: screenpoints.y, z },
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
@@ -123,7 +124,7 @@ export function useKeyboardShortcuts() {
 		})
 
 		return () => {
-			hotkeys.deleteScope(editor.store.id)
+			disposables.forEach((d) => d())
 		}
 	}, [actions, tools, isReadonlyMode, editor, isFocused])
 }

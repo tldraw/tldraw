@@ -1,3 +1,109 @@
+# v2.4.0 (Mon Jul 22 2024)
+
+### Release Notes
+
+#### serve icons via a single merged .svg file ([#4150](https://github.com/tldraw/tldraw/pull/4150))
+
+- Serve icons more efficiently, and make sure they're still available if tldraw goes offline.
+
+#### Add offline icon back ([#4127](https://github.com/tldraw/tldraw/pull/4127))
+
+- Fixed a bug with…
+
+---
+
+#### 🐛 Bug Fixes
+
+- Add offline icon back [#4127](https://github.com/tldraw/tldraw/pull/4127) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- serve icons via a single merged .svg file [#4150](https://github.com/tldraw/tldraw/pull/4150) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v2.3.0 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### Dynamic size mode + fill fill ([#3835](https://github.com/tldraw/tldraw/pull/3835))
+
+- Adds a dynamic size user preferences.
+- Removes double click to reset scale on text shapes.
+- Removes double click to reset autosize on text shapes.
+
+---
+
+#### 📚 SDK Changes
+
+- Dynamic size mode + fill fill [#3835](https://github.com/tldraw/tldraw/pull/3835) ([@steveruizok](https://github.com/steveruizok) [@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
+# v2.2.0 (Tue Jun 11 2024)
+
+### Release Notes
+
+#### Add heart geo shape ([#3787](https://github.com/tldraw/tldraw/pull/3787))
+
+- Adds a heart shape to the geo shape set.
+
+#### add missing spline icons ([#3778](https://github.com/tldraw/tldraw/pull/3778))
+
+- Add a brief release note for your PR here.
+
+#### Separate text-align property for shapes ([#3627](https://github.com/tldraw/tldraw/pull/3627))
+
+- Separates the text align property for text shapes and labels.
+
+#### Add desmos graph embed type ([#3608](https://github.com/tldraw/tldraw/pull/3608))
+
+- (feature) add desmos embed
+
+---
+
+#### 🐛 Bug Fix
+
+- Lokalise: Translations update [#3649](https://github.com/tldraw/tldraw/pull/3649) ([@TodePond](https://github.com/TodePond))
+
+#### 📚 SDK Changes
+
+- Add heart geo shape [#3787](https://github.com/tldraw/tldraw/pull/3787) ([@steveruizok](https://github.com/steveruizok))
+- add missing spline icons [#3778](https://github.com/tldraw/tldraw/pull/3778) ([@ds300](https://github.com/ds300))
+- Fix missing icons [#3654](https://github.com/tldraw/tldraw/pull/3654) ([@steveruizok](https://github.com/steveruizok))
+- Separate text-align property for shapes [#3627](https://github.com/tldraw/tldraw/pull/3627) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### 🖥️ tldraw.com Changes
+
+- Add desmos graph embed type [#3608](https://github.com/tldraw/tldraw/pull/3608) ([@not-first](https://github.com/not-first) [@steveruizok](https://github.com/steveruizok))
+
+#### 🏠 Internal
+
+- Update READMEs, add form link [#3741](https://github.com/tldraw/tldraw/pull/3741) ([@steveruizok](https://github.com/steveruizok))
+- delete untracked api.json and stale api-report.md files [#3619](https://github.com/tldraw/tldraw/pull/3619) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- fakerr ([@not-first](https://github.com/not-first))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.1.0 (Tue Apr 23 2024)
 
 ### Release Notes

@@ -1,3 +1,84 @@
+# v2.4.0 (Mon Jul 22 2024)
+
+### Release Notes
+
+#### Unfurl bookmarks in worker ([#4039](https://github.com/tldraw/tldraw/pull/4039))
+
+- Do link unfurling on the same subdomain as all our other api endpoints.
+
+---
+
+#### 🐛 Bug Fix
+
+- Demo server bookmark unfurl endpoint [#4062](https://github.com/tldraw/tldraw/pull/4062) ([@SomeHats](https://github.com/SomeHats))
+
+#### 💄 Product Improvements
+
+- Unfurl bookmarks in worker [#4039](https://github.com/tldraw/tldraw/pull/4039) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v2.3.0 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### assets: store in indexedDB, not as base64 ([#3836](https://github.com/tldraw/tldraw/pull/3836))
+
+- Assets: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot.
+
+---
+
+#### 📚 SDK Changes
+
+- assets: store in indexedDB, not as base64 [#3836](https://github.com/tldraw/tldraw/pull/3836) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
+# v2.2.0 (Tue Jun 11 2024)
+
+### Release Notes
+
+#### Update validation.ts ([#3324](https://github.com/tldraw/tldraw/pull/3324))
+
+- Update example for Union type
+
+---
+
+I believe this type was changed and `literal` is what it should be now.
+
+---
+
+#### 📚 SDK Changes
+
+- Force `interface` instead of `type` for better docs [#3815](https://github.com/tldraw/tldraw/pull/3815) ([@SomeHats](https://github.com/SomeHats))
+
+#### 📖 Documentation changes
+
+- make sure everything marked @public gets documented [#3892](https://github.com/tldraw/tldraw/pull/3892) ([@SomeHats](https://github.com/SomeHats))
+- Update validation.ts [#3324](https://github.com/tldraw/tldraw/pull/3324) ([@lorenzolewis](https://github.com/lorenzolewis))
+
+#### 🏠 Internal
+
+- Update READMEs, add form link [#3741](https://github.com/tldraw/tldraw/pull/3741) ([@steveruizok](https://github.com/steveruizok))
+- Don't check api.json files into git [#3565](https://github.com/tldraw/tldraw/pull/3565) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Lorenzo Lewis ([@lorenzolewis](https://github.com/lorenzolewis))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.1.0 (Tue Apr 23 2024)
 
 ### Release Notes

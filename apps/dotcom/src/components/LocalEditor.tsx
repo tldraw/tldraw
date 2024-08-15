@@ -1,9 +1,8 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -14,10 +13,9 @@ import {
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	ViewSubmenu,
-	useActions,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -37,14 +35,6 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<LocalFileMenu />
@@ -57,12 +47,11 @@ const components: TLComponents = {
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
+					<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
+					<TldrawUiMenuActionItem actionId={OPEN_FILE_ACTION} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
@@ -99,10 +88,10 @@ export function LocalEditor() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}
-				autoFocus
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}

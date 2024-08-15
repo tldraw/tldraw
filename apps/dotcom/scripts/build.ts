@@ -1,5 +1,5 @@
 import glob from 'fast-glob'
-import { mkdirSync, writeFileSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { exec } from '../../../scripts/lib/exec'
 import { Config } from './vercel-output-config'
 
@@ -8,7 +8,15 @@ import json5 from 'json5'
 import { nicelog } from '../../../scripts/lib/nicelog'
 
 import { T } from '@tldraw/validate'
+import { csp } from '../src/utils/csp'
 import { getMultiplayerServerURL } from '../vite.config'
+
+const commonSecurityHeaders = {
+	'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+	'X-Content-Type-Options': 'nosniff',
+	'Referrer-Policy': 'no-referrer-when-downgrade',
+	'Content-Security-Policy-Report-Only': csp,
+}
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.
 // It uses a jest snapshot file because deriving the set of routes from our
@@ -27,6 +35,7 @@ function loadSpaRoutes() {
 		check: true,
 		src: route.vercelRouterPattern,
 		dest: '/index.html',
+		headers: commonSecurityHeaders,
 	}))
 }
 
@@ -48,6 +57,35 @@ async function build() {
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
 	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
 
+	// Add fonts to preload into index.html
+	const assetsList = (await exec('ls', ['-1', 'dist/assets'])).split('\n').filter(Boolean)
+	const fontsToPreload = [
+		'Shantell_Sans-Tldrawish',
+		'IBMPlexSerif-Medium',
+		'IBMPlexSans-Medium',
+		'IBMPlexMono-Medium',
+	]
+	const indexHtml = await readFileSync('.vercel/output/static/index.html', 'utf8')
+	await writeFileSync(
+		'.vercel/output/static/index.html',
+		indexHtml.replace(
+			'<!-- $PRELOADED_FONTS -->',
+			fontsToPreload
+				.map(
+					(font) => `<link
+		rel="preload"
+		href="/assets/${assetsList.find((a) => a.startsWith(font))}"
+		as="font"
+		type="font/woff2"
+		crossorigin="anonymous"
+	/>`
+				)
+				.join('\n')
+		)
+	)
+
+	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
+
 	writeFileSync(
 		'.vercel/output/config.json',
 		JSON.stringify(
@@ -57,13 +95,25 @@ async function build() {
 					// rewrite api calls to the multiplayer server
 					{
 						src: '^/api(/(.*))?$',
-						dest: `${getMultiplayerServerURL()}$1`,
+						dest: `${multiplayerServerUrl}$1`,
 						check: true,
 					},
 					// cache static assets immutably
 					{
 						src: '^/assets/(.*)$',
-						headers: { 'Cache-Control': 'public, max-age=31536000, immutable' },
+						headers: {
+							'Cache-Control': 'public, max-age=31536000, immutable',
+							'X-Content-Type-Options': 'nosniff',
+						},
+					},
+					// server up index.html specifically because we want to include
+					// security headers. otherwise, it goes to the handle: 'miss'
+					// part below (and _not_ to the spaRoutes as maybe expected!)
+					{
+						check: true,
+						src: '/',
+						dest: '/index.html',
+						headers: commonSecurityHeaders,
 					},
 					// serve static files
 					{
@@ -77,6 +127,7 @@ async function build() {
 						src: '.*',
 						dest: '/index.html',
 						status: 404,
+						headers: commonSecurityHeaders,
 					},
 				],
 				overrides: {},

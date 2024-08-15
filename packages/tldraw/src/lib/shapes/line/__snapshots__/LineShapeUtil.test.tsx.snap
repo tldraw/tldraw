@@ -25,6 +25,7 @@ exports[`Misc resizes: line shape after resize 1`] = `
         "y": 700,
       },
     },
+    "scale": 1,
     "size": "m",
     "spline": "line",
   },

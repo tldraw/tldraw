@@ -4,7 +4,7 @@ import { memo, useRef } from 'react'
 import { useTransform } from '../../hooks/useTransform'
 
 /** @public */
-export type TLCursorProps = {
+export interface TLCursorProps {
 	className?: string
 	point: VecModel | null
 	zoom: number
@@ -13,7 +13,7 @@ export type TLCursorProps = {
 	chatMessage: string
 }
 
-/** @public */
+/** @public @react */
 export const DefaultCursor = memo(function DefaultCursor({
 	className,
 	zoom,

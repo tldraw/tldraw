@@ -3,7 +3,7 @@ import {
 	HTMLContainer,
 	T,
 	TLBaseShape,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	TLStoreSnapshot,
 	Tldraw,
 	createShapePropsMigrationIds,
@@ -85,7 +85,7 @@ export class MigratedShapeUtil extends BaseBoxShapeUtil<IMyShape> {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 
-	override onResize: TLOnResizeHandler<IMyShape> = (shape, info) => {
+	override onResize(shape: IMyShape, info: TLResizeInfo<IMyShape>) {
 		return resizeBox(shape, info)
 	}
 }
@@ -133,7 +133,7 @@ How it works:
 
 Each time the editor's store creates a snapshot (`editor.store.createSnapshot`), it serializes all
 of the records (the snapshot's `store`) as well as versions of each record that it contains (the
-snapshot's `scena`). When the editor loads a snapshot, it compares its current schema with the
+snapshot's `schema`). When the editor loads a snapshot, it compares its current schema with the
 snapshot's schema to determine which migrations to apply to each record.
 
 In this example, we have a snapshot (snapshot.json) that we created in version 0, however our shape
@@ -167,7 +167,7 @@ Note that the shape in the snapshot doesn't have a 'color' prop.
 
 Note also that the schema's version for this shape is 0.
 
-When the editor loads the snapshot, it will compare the serialzied schema's version with its current
+When the editor loads the snapshot, it will compare the serialized schema's version with its current
 schema's version for the shape, which is 1 as defined in our shape's migrations. Since the
 serialized version is older than its current version, it will use our migration to bring it up to
 date: it will run the migration's `up` function, which will add the 'color' prop to the shape.

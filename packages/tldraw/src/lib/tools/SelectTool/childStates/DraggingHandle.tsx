@@ -1,11 +1,7 @@
 import {
 	StateNode,
 	TLArrowShape,
-	TLCancelEvent,
-	TLEnterEventHandler,
-	TLEventHandlers,
 	TLHandle,
-	TLKeyboardEvent,
 	TLLineShape,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -17,6 +13,14 @@ import {
 } from '@tldraw/editor'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import { kickoutOccludedShapes } from '../selectHelpers'
+
+export type DraggingHandleInfo = TLPointerEventInfo & {
+	shape: TLArrowShape | TLLineShape
+	target: 'handle'
+	onInteractionEnd?: string
+	isCreating?: boolean
+	creatingMarkId?: string
+}
 
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'
@@ -30,31 +34,34 @@ export class DraggingHandle extends StateNode {
 	initialPageTransform: any
 	initialPageRotation: any
 
-	info = {} as TLPointerEventInfo & {
-		shape: TLArrowShape | TLLineShape
-		target: 'handle'
-		onInteractionEnd?: string
-		isCreating: boolean
-	}
+	info = {} as DraggingHandleInfo
 
 	isPrecise = false
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
 
-	override onEnter: TLEnterEventHandler = (
-		info: TLPointerEventInfo & {
-			shape: TLArrowShape | TLLineShape
-			target: 'handle'
-			onInteractionEnd?: string
-			isCreating: boolean
-		}
-	) => {
-		const { shape, isCreating, handle } = info
+	override onEnter(info: DraggingHandleInfo) {
+		const { shape, isCreating, creatingMarkId, handle } = info
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.shapeId = shape.id
-		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
-		if (!isCreating) this.editor.mark(this.markId)
+		this.markId = ''
+
+		if (isCreating) {
+			if (creatingMarkId) {
+				this.markId = creatingMarkId
+			} else {
+				// handle legacy implicit `creating:{shapeId}` marks
+				const markId = this.editor.getMarkIdMatching(
+					`creating:${this.editor.getOnlySelectedShapeId()}`
+				)
+				if (markId) {
+					this.markId = markId
+				}
+			}
+		} else {
+			this.markId = this.editor.markHistoryStoppingPoint('dragging handle')
+		}
 
 		this.initialHandle = structuredClone(handle)
 
@@ -145,7 +152,7 @@ export class DraggingHandle extends StateNode {
 			this.clearExactTimeout()
 		}
 
-		this.exactTimeout = setTimeout(() => {
+		this.exactTimeout = this.editor.timers.setTimeout(() => {
 			if (this.getIsActive() && !this.isPrecise) {
 				this.isPrecise = true
 				this.isPreciseId = this.pointingId
@@ -163,32 +170,32 @@ export class DraggingHandle extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		this.updateDraggingHandle()
 	}
 
-	override onKeyDown: TLKeyboardEvent | undefined = () => {
+	override onKeyDown() {
 		this.updateDraggingHandle()
 	}
 
-	override onKeyUp: TLKeyboardEvent | undefined = () => {
+	override onKeyUp() {
 		this.updateDraggingHandle()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.updateDraggingHandle()
 		this.complete()
 	}
 
-	override onCancel: TLCancelEvent = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setHintingShapes([])
 		this.editor.snaps.clearIndicators()
@@ -283,7 +290,10 @@ export class DraggingHandle extends StateNode {
 		const next: TLShapePartial<any> = { id: shape.id, type: shape.type, ...changes }
 
 		// Arrows
-		if (initialHandle.canBind && this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+		if (
+			initialHandle.type === 'vertex' &&
+			this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+		) {
 			const bindingAfter = getArrowBindings(editor, shape)[initialHandle.id as 'start' | 'end']
 
 			if (bindingAfter) {

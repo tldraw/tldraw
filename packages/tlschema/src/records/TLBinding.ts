@@ -5,7 +5,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { mapObjectMapValues } from '@tldraw/utils'
+import { Expand, mapObjectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
 import { TLArrowBinding } from '../bindings/TLArrowBinding'
@@ -34,16 +34,32 @@ export type TLUnknownBinding = TLBaseBinding<string, object>
 export type TLBinding = TLDefaultBinding | TLUnknownBinding
 
 /** @public */
-export type TLBindingPartial<T extends TLBinding = TLBinding> = T extends T
-	? {
-			id: TLBindingId
-			type: T['type']
-			props?: Partial<T['props']>
-			meta?: Partial<T['meta']>
-		} & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
-	: never
+export type TLBindingUpdate<T extends TLBinding = TLBinding> = Expand<{
+	id: TLBindingId
+	type: T['type']
+	typeName?: T['typeName']
+	fromId?: T['fromId']
+	toId?: T['toId']
+	props?: Partial<T['props']>
+	meta?: Partial<T['meta']>
+}>
 
 /** @public */
+export type TLBindingCreate<T extends TLBinding = TLBinding> = Expand<{
+	id?: TLBindingId
+	type: T['type']
+	typeName?: T['typeName']
+	fromId: T['fromId']
+	toId: T['toId']
+	props?: Partial<T['props']>
+	meta?: Partial<T['meta']>
+}>
+
+/**
+ * An ID for a {@link TLBinding}.
+ *
+ * @public
+ */
 export type TLBindingId = RecordId<TLUnknownBinding>
 
 /** @public */

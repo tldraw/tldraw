@@ -1,4 +1,4 @@
-import { MAX_PAGES, PageRecordType } from '@tldraw/editor'
+import { PageRecordType } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -10,7 +10,7 @@ beforeEach(() => {
 it('Creates a page', () => {
 	const oldPageId = editor.getCurrentPageId()
 	const n = editor.getPages().length
-	editor.mark('creating new page')
+	editor.markHistoryStoppingPoint('creating new page')
 	editor.createPage({ name: 'Page 1' })
 	expect(editor.getPages().length).toBe(n + 1)
 	const newPageId = editor.getPages()[n].id
@@ -31,10 +31,10 @@ it('Creates a page', () => {
 })
 
 it("Doesn't create a page if max pages is reached", () => {
-	for (let i = 0; i < MAX_PAGES + 1; i++) {
+	for (let i = 0; i < editor.options.maxPages + 1; i++) {
 		editor.createPage({ name: `Test Page ${i}` })
 	}
-	expect(editor.getPages().length).toBe(MAX_PAGES)
+	expect(editor.getPages().length).toBe(editor.options.maxPages)
 })
 
 it('[regression] does not die if every page has the same index', () => {

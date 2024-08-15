@@ -1,7 +1,5 @@
 import {
-	HIT_TEST_MARGIN,
 	StateNode,
-	TLEventHandlers,
 	TLFrameShape,
 	TLGroupShape,
 	TLPointerEventInfo,
@@ -11,7 +9,7 @@ import {
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	override onEnter = () => {
+	override onEnter() {
 		const zoomLevel = this.editor.getZoomLevel()
 		const currentPageShapesSorted = this.editor.getCurrentPageShapesSorted()
 		const {
@@ -34,7 +32,7 @@ export class Pointing extends StateNode {
 			if (
 				this.editor.isPointInShape(shape, currentPagePoint, {
 					hitInside: false,
-					margin: HIT_TEST_MARGIN / zoomLevel,
+					margin: this.editor.options.hitTestMargin / zoomLevel,
 				})
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
@@ -53,29 +51,29 @@ export class Pointing extends StateNode {
 		this.editor.setErasingShapes([...erasing])
 	}
 
-	override onLongPress: TLEventHandlers['onLongPress'] = (info) => {
+	override onLongPress(info: TLPointerEventInfo) {
 		this.startErasing(info)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			this.startErasing(info)
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
@@ -87,7 +85,7 @@ export class Pointing extends StateNode {
 		const erasingShapeIds = this.editor.getErasingShapeIds()
 
 		if (erasingShapeIds.length) {
-			this.editor.mark('erase end')
+			this.editor.markHistoryStoppingPoint('erase end')
 			this.editor.deleteShapes(erasingShapeIds)
 		}
 

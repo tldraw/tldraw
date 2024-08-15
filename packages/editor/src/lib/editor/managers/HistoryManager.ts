@@ -9,7 +9,6 @@ import {
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
 import { exhaustiveSwitchError, noop } from '@tldraw/utils'
-import { uniqueId } from '../../utils/uniqueId'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../types/history-types'
 import { stack } from './Stack'
 
@@ -27,8 +26,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	private state: HistoryRecorderState = HistoryRecorderState.Recording
 	private readonly pendingDiff = new PendingDiff<R>()
-	/** @internal */
-	stacks = atom(
+	private stacks = atom(
 		'HistoryManager.stacks',
 		{
 			undos: stack<TLHistoryEntry<R>>(),
@@ -41,7 +39,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	private readonly annotateError: (error: unknown) => void
 
-	constructor(opts: { store: Store<R>; annotateError?: (error: unknown) => void }) {
+	constructor(opts: { store: Store<R>; annotateError?(error: unknown): void }) {
 		this.store = opts.store
 		this.annotateError = opts.annotateError ?? noop
 		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
@@ -73,18 +71,18 @@ export class HistoryManager<R extends UnknownRecord> {
 		}))
 	}
 
-	onBatchComplete: () => void = () => void null
-
 	getNumUndos() {
 		return this.stacks.get().undos.length + (this.pendingDiff.isEmpty() ? 0 : 1)
 	}
+
 	getNumRedos() {
 		return this.stacks.get().redos.length
 	}
 
 	/** @internal */
 	_isInBatch = false
-	batch = (fn: () => void, opts?: TLHistoryBatchOptions) => {
+
+	batch(fn: () => void, opts?: TLHistoryBatchOptions) {
 		const previousState = this.state
 
 		// we move to the new state only if we haven't explicitly paused
@@ -94,16 +92,13 @@ export class HistoryManager<R extends UnknownRecord> {
 
 		try {
 			if (this._isInBatch) {
-				fn()
+				transact(fn)
 				return this
 			}
 
 			this._isInBatch = true
 			try {
-				transact(() => {
-					fn()
-					this.onBatchComplete()
-				})
+				transact(fn)
 			} catch (error) {
 				this.annotateError(error)
 				throw error
@@ -117,18 +112,8 @@ export class HistoryManager<R extends UnknownRecord> {
 		}
 	}
 
-	ignore(fn: () => void) {
-		return this.batch(fn, { history: 'ignore' })
-	}
-
 	// History
-	private _undo = ({
-		pushToRedoStack,
-		toMark = undefined,
-	}: {
-		pushToRedoStack: boolean
-		toMark?: string
-	}) => {
+	_undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMark?: string }) {
 		const previousState = this.state
 		this.state = HistoryRecorderState.Paused
 		try {
@@ -175,12 +160,21 @@ export class HistoryManager<R extends UnknownRecord> {
 							break
 						case 'stop':
 							if (!toMark) break loop
-							if (undo.id === toMark) break loop
+							if (undo.id === toMark) {
+								didFindMark = true
+								break loop
+							}
 							break
 						default:
 							exhaustiveSwitchError(undo)
 					}
 				}
+			}
+
+			if (!didFindMark && toMark) {
+				// whoops, we didn't find the mark we were looking for
+				// don't do anything
+				return this
 			}
 
 			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
@@ -193,13 +187,13 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
-	undo = () => {
+	undo() {
 		this._undo({ pushToRedoStack: true })
 
 		return this
 	}
 
-	redo = () => {
+	redo() {
 		const previousState = this.state
 		this.state = HistoryRecorderState.Paused
 		try {
@@ -207,7 +201,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 			let { undos, redos } = this.stacks.get()
 			if (redos.length === 0) {
-				return
+				return this
 			}
 
 			// ignore any intermediate marks - this should take us to the first `diff` entry
@@ -241,30 +235,76 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
-	bail = () => {
+	bail() {
 		this._undo({ pushToRedoStack: false })
 
 		return this
 	}
 
-	bailToMark = (id: string) => {
+	bailToMark(id: string) {
 		this._undo({ pushToRedoStack: false, toMark: id })
 
 		return this
 	}
 
-	mark = (id = uniqueId()) => {
+	squashToMark(id: string) {
+		// remove marks between head and the mark
+
+		let top = this.stacks.get().undos
+		const popped: Array<RecordsDiff<R>> = []
+
+		while (top.head && !(top.head.type === 'stop' && top.head.id === id)) {
+			if (top.head.type === 'diff') {
+				popped.push(top.head.diff)
+			}
+			top = top.tail
+		}
+
+		if (!top.head || top.head?.id !== id) {
+			console.error('Could not find mark to squash to: ', id)
+			return this
+		}
+		if (popped.length === 0) {
+			return this
+		}
+
+		const diff = createEmptyRecordsDiff<R>()
+		squashRecordDiffsMutable(diff, popped.reverse())
+
+		this.stacks.update(({ redos }) => ({
+			undos: top.push({
+				type: 'diff',
+				diff,
+			}),
+			redos,
+		}))
+
+		return this
+	}
+
+	/** @internal */
+	_mark(id: string) {
 		transact(() => {
 			this.flushPendingDiff()
 			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
 		})
-
-		return id
 	}
 
 	clear() {
 		this.stacks.set({ undos: stack(), redos: stack() })
 		this.pendingDiff.clear()
+	}
+
+	/** @internal */
+	getMarkIdMatching(idSubstring: string) {
+		let top = this.stacks.get().undos
+		while (top.head) {
+			if (top.head.type === 'stop' && top.head.id.includes(idSubstring)) {
+				return top.head.id
+			}
+			top = top.tail
+		}
+		return null
 	}
 
 	/** @internal */
@@ -274,7 +314,7 @@ export class HistoryManager<R extends UnknownRecord> {
 			undos: undos.toArray(),
 			redos: redos.toArray(),
 			pendingDiff: this.pendingDiff.debug(),
-			state: this.state,
+			state: this.state as string,
 		}
 	}
 }

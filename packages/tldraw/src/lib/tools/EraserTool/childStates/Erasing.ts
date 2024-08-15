@@ -1,7 +1,5 @@
 import {
-	HIT_TEST_MARGIN,
 	StateNode,
-	TLEventHandlers,
 	TLFrameShape,
 	TLGroupShape,
 	TLPointerEventInfo,
@@ -17,9 +15,8 @@ export class Erasing extends StateNode {
 	private markId = ''
 	private excludedShapeIds = new Set<TLShapeId>()
 
-	override onEnter = (info: TLPointerEventInfo) => {
-		this.markId = 'erase scribble begin'
-		this.editor.mark(this.markId)
+	override onEnter(info: TLPointerEventInfo) {
+		this.markId = this.editor.markHistoryStoppingPoint('erase scribble begin')
 		this.info = info
 
 		const { originPagePoint } = this.editor.inputs
@@ -53,28 +50,28 @@ export class Erasing extends StateNode {
 		this.update()
 	}
 
-	private pushPointToScribble = () => {
+	private pushPointToScribble() {
 		const { x, y } = this.editor.inputs.currentPagePoint
 		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.scribbles.stop(this.scribbleId)
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.update()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
@@ -90,7 +87,7 @@ export class Erasing extends StateNode {
 		this.pushPointToScribble()
 
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
-		const minDist = HIT_TEST_MARGIN / zoomLevel
+		const minDist = this.editor.options.hitTestMargin / zoomLevel
 
 		for (const shape of currentPageShapes) {
 			if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue

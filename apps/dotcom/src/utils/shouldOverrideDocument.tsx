@@ -35,13 +35,7 @@ export async function shouldOverrideDocument(addDialog: TLUiDialogsContextType['
 	return shouldContinue
 }
 
-function ConfirmOpenDialog({
-	onCancel,
-	onContinue,
-}: {
-	onCancel: () => void
-	onContinue: () => void
-}) {
+function ConfirmOpenDialog({ onCancel, onContinue }: { onCancel(): void; onContinue(): void }) {
 	const msg = useTranslation()
 	return (
 		<>

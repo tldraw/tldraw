@@ -13,11 +13,11 @@ import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuCon
 import { DefaultHelpMenuContent } from './DefaultHelpMenuContent'
 
 /** @public */
-export type TLUiHelpMenuProps = {
+export interface TLUiHelpMenuProps {
 	children?: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiHelpMenuProps) {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()

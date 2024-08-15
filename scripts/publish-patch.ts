@@ -7,8 +7,14 @@ import { didAnyPackageChange } from './lib/didAnyPackageChange'
 import { exec } from './lib/exec'
 import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
-import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
+import {
+	getLatestVersion,
+	publish,
+	publishProductionDocsAndExamplesAndBemo,
+	setAllVersions,
+} from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
+import { uploadStaticAssets } from './upload-static-assets'
 
 async function main() {
 	const huppyToken = process.env.HUPPY_TOKEN
@@ -40,7 +46,7 @@ async function main() {
 	}
 
 	if (isLatestVersion) {
-		await exec('git', ['push', 'origin', `HEAD:docs-production`, '--force'])
+		await publishProductionDocsAndExamplesAndBemo()
 	}
 
 	// Skip releasing a new version if the package contents are identical.
@@ -102,6 +108,8 @@ async function main() {
 
 	// create a release on github
 	await auto.runRelease({ useVersion: nextVersion })
+
+	await uploadStaticAssets(nextVersion)
 
 	// if we're on the latest version, publish to npm under 'latest' tag.
 	// otherwise we don't want to overwrite the latest tag, so we publish under 'revision'.

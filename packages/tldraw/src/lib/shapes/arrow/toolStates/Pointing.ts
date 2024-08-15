@@ -1,4 +1,4 @@
-import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
+import { StateNode, TLArrowShape, createShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -7,12 +7,16 @@ export class Pointing extends StateNode {
 
 	markId = ''
 
-	override onEnter = () => {
+	override onEnter() {
+		this.markId = ''
 		this.didTimeout = false
 
 		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				return (
+					!targetShape.isLocked &&
+					this.editor.canBindShapes({ fromShape: 'arrow', toShape: targetShape, binding: 'arrow' })
+				)
 			},
 			margin: 0,
 			hitInside: true,
@@ -28,13 +32,13 @@ export class Pointing extends StateNode {
 		this.startPreciseTimeout()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.shape = undefined
 		this.editor.setHintingShapes([])
 		this.clearPreciseTimeout()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		if (this.editor.inputs.isDragging) {
 			if (!this.shape) {
 				this.createArrowShape()
@@ -47,26 +51,27 @@ export class Pointing extends StateNode {
 
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
-				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0, canBind: true },
+				handle: { id: 'end', type: 'vertex', index: 'a3', x: 0, y: 0 },
 				isCreating: true,
+				creatingMarkId: this.markId || undefined,
 				onInteractionEnd: 'arrow',
 			})
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.cancel()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
@@ -84,17 +89,17 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.markId = `creating:${id}`
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint(`creating_arrow:${id}`)
 
-		this.editor.createShapes<TLArrowShape>([
-			{
-				id,
-				type: 'arrow',
-				x: originPagePoint.x,
-				y: originPagePoint.y,
+		this.editor.createShape<TLArrowShape>({
+			id,
+			type: 'arrow',
+			x: originPagePoint.x,
+			y: originPagePoint.y,
+			props: {
+				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 			},
-		])
+		})
 
 		const shape = this.editor.getShape<TLArrowShape>(id)
 		if (!shape) throw Error(`expected shape`)
@@ -167,7 +172,7 @@ export class Pointing extends StateNode {
 	private preciseTimeout = -1
 	private didTimeout = false
 	private startPreciseTimeout() {
-		this.preciseTimeout = window.setTimeout(() => {
+		this.preciseTimeout = this.editor.timers.setTimeout(() => {
 			if (!this.getIsActive()) return
 			this.didTimeout = true
 		}, 320)

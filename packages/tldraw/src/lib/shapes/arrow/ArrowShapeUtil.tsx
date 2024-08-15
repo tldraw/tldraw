@@ -11,38 +11,41 @@ import {
 	SvgExportContext,
 	TLArrowBinding,
 	TLArrowShape,
+	TLArrowShapeProps,
 	TLHandle,
-	TLOnEditEndHandler,
-	TLOnHandleDragHandler,
-	TLOnResizeHandler,
-	TLOnResizeStartHandler,
-	TLOnTranslateHandler,
-	TLOnTranslateStartHandler,
+	TLHandleDragInfo,
+	TLResizeInfo,
 	TLShapePartial,
+	TLShapeUtilCanBindOpts,
 	TLShapeUtilCanvasSvgDef,
-	TLShapeUtilFlag,
 	Vec,
+	WeakCache,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	getDefaultColorTheme,
+	getPerfectDashProps,
+	lerp,
 	mapObjectMapValues,
 	structuredClone,
 	toDomPrecision,
 	track,
 	useEditor,
 	useIsEditing,
+	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
+import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
+import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { ARROW_LABEL_FONT_SIZES, STROKE_SIZES } from '../shared/default-shape-constants'
+import { TextLabel } from '../shared/TextLabel'
+import { STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
-import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getArrowLabelPosition } from './arrowLabel'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { getArrowLabelFontSize, getArrowLabelPosition } from './arrowLabel'
 import { getArrowheadPathForType } from './arrowheads'
 import {
 	getCurvedArrowHandlePath,
@@ -50,7 +53,6 @@ import {
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
 } from './arrowpaths'
-import { ArrowTextLabel } from './components/ArrowTextLabel'
 import {
 	TLArrowBindings,
 	createOrUpdateArrowBinding,
@@ -74,15 +76,30 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override props = arrowShapeProps
 	static override migrations = arrowShapeMigrations
 
-	override canEdit = () => true
-	override canBind = () => false
-	override canSnap = () => false
-	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
-	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
-	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
-	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
+	override canEdit() {
+		return true
+	}
+	override canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean {
+		// bindings can go from arrows to shapes, but not from shapes to arrows
+		return toShapeType !== 'arrow'
+	}
+	override canSnap() {
+		return false
+	}
+	override hideResizeHandles() {
+		return true
+	}
+	override hideRotateHandle() {
+		return true
+	}
+	override hideSelectionBoundsBg() {
+		return true
+	}
+	override hideSelectionBoundsFg() {
+		return true
+	}
 
-	override canBeLaidOut: TLShapeUtilFlag<TLArrowShape> = (shape) => {
+	override canBeLaidOut(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 		return !bindings.start && !bindings.end
 	}
@@ -102,6 +119,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			text: '',
 			labelPosition: 0.5,
 			font: 'draw',
+			scale: 1,
 		}
 	}
 
@@ -117,7 +135,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				})
 			: new Arc2d({
 					center: Vec.Cast(info.handleArc.center),
-					radius: info.handleArc.radius,
 					start: Vec.Cast(info.start.point),
 					end: Vec.Cast(info.end.point),
 					sweepFlag: info.bodyArc.sweepFlag,
@@ -153,7 +170,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a0',
 				x: info.start.handle.x,
 				y: info.start.handle.y,
-				canBind: true,
 			},
 			{
 				id: ARROW_HANDLES.MIDDLE,
@@ -161,7 +177,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a2',
 				x: info.middle.x,
 				y: info.middle.y,
-				canBind: false,
 			},
 			{
 				id: ARROW_HANDLES.END,
@@ -169,12 +184,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				index: 'a3',
 				x: info.end.handle.x,
 				y: info.end.handle.y,
-				canBind: true,
 			},
 		].filter(Boolean) as TLHandle[]
 	}
 
-	override onHandleDrag: TLOnHandleDragHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
+	override getText(shape: TLArrowShape) {
+		return shape.props.text
+	}
+
+	override onHandleDrag(
+		shape: TLArrowShape,
+		{ handle, isPrecise }: TLHandleDragInfo<TLArrowShape>
+	) {
 		const handleId = handle.id as ARROW_HANDLES
 		const bindings = getArrowBindings(this.editor, shape)
 
@@ -223,7 +244,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			hitFrameInside: true,
 			margin: 0,
 			filter: (targetShape) => {
-				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+				return (
+					!targetShape.isLocked &&
+					this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
+				)
 			},
 		})
 
@@ -315,7 +339,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return update
 	}
 
-	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
+	override onTranslateStart(shape: TLArrowShape) {
 		const bindings = getArrowBindings(this.editor, shape)
 
 		const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
@@ -352,6 +376,25 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}),
 		})
 
+		// update arrow terminal bindings eagerly to make sure the arrows unbind nicely when translating
+		if (bindings.start) {
+			updateArrowTerminal({
+				editor: this.editor,
+				arrow: shape,
+				terminal: 'start',
+				useHandle: true,
+			})
+			shape = this.editor.getShape(shape.id) as TLArrowShape
+		}
+		if (bindings.end) {
+			updateArrowTerminal({
+				editor: this.editor,
+				arrow: shape,
+				terminal: 'end',
+				useHandle: true,
+			})
+		}
+
 		for (const handleName of [ARROW_HANDLES.START, ARROW_HANDLES.END] as const) {
 			const binding = bindings[handleName]
 			if (!binding) continue
@@ -365,7 +408,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return
 	}
 
-	override onTranslate?: TLOnTranslateHandler<TLArrowShape> = (initialShape, shape) => {
+	override onTranslate(initialShape: TLArrowShape, shape: TLArrowShape) {
 		const atTranslationStart = shapeAtTranslationStart.get(initialShape)
 		if (!atTranslationStart) return
 
@@ -384,7 +427,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				hitFrameInside: true,
 				margin: 0,
 				filter: (targetShape) => {
-					return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+					return (
+						!targetShape.isLocked &&
+						this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
+					)
 				},
 			})
 
@@ -406,15 +452,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	// replace this with memo bag?
-	private _resizeInitialBindings: TLArrowBindings = { start: undefined, end: undefined }
-	override onResizeStart?: TLOnResizeStartHandler<TLArrowShape> = (shape) => {
-		this._resizeInitialBindings = getArrowBindings(this.editor, shape)
-	}
-	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
+	private readonly _resizeInitialBindings = new WeakCache<TLArrowShape, TLArrowBindings>()
+
+	override onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>) {
 		const { scaleX, scaleY } = info
 
-		const bindings = this._resizeInitialBindings
+		const bindings = this._resizeInitialBindings.get(shape, () =>
+			getArrowBindings(this.editor, shape)
+		)
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape, bindings)
 
 		const { start, end } = structuredClone<TLArrowShape['props']>(shape.props)
@@ -513,10 +558,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return next
 	}
 
-	override onDoubleClickHandle = (
+	override onDoubleClickHandle(
 		shape: TLArrowShape,
 		handle: TLHandle
-	): TLShapePartial<TLArrowShape> | void => {
+	): TLShapePartial<TLArrowShape> | void {
 		switch (handle.id) {
 			case ARROW_HANDLES.START: {
 				return {
@@ -542,6 +587,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
 		const shouldDisplayHandles =
 			this.editor.isInAny(
@@ -565,19 +612,27 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
-						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape === shape}
+						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
 					/>
 				</SVGContainer>
 				{showArrowLabel && (
-					<ArrowTextLabel
+					<TextLabel
 						id={shape.id}
-						text={shape.props.text}
+						classNamePrefix="tl-arrow"
+						type="arrow"
 						font={shape.props.font}
-						size={shape.props.size}
-						position={labelPosition.box.center}
-						width={labelPosition.box.w}
+						fontSize={getArrowLabelFontSize(shape)}
+						lineHeight={TEXT_PROPS.lineHeight}
+						align="middle"
+						verticalAlign="middle"
+						text={shape.props.text}
+						labelColor={theme[shape.props.labelColor].solid}
+						textWidth={labelPosition.box.w}
 						isSelected={isSelected}
-						labelColor={shape.props.labelColor}
+						padding={0}
+						style={{
+							transform: `translate(${labelPosition.box.center.x}px, ${labelPosition.box.center.y}px)`,
+						}}
 					/>
 				)}
 			</>
@@ -599,7 +654,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (Vec.Equals(start, end)) return null
 
-		const strokeWidth = STROKE_SIZES[shape.props.size]
+		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -620,8 +675,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					y={toDomPrecision(labelGeometry.y)}
 					width={labelGeometry.w}
 					height={labelGeometry.h}
-					rx={3.5}
-					ry={3.5}
+					rx={3.5 * shape.props.scale}
+					ry={3.5 * shape.props.scale}
 				/>
 			)
 		}
@@ -645,8 +700,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 									width={labelGeometry.w}
 									height={labelGeometry.h}
 									fill="black"
-									rx={3.5}
-									ry={3.5}
+									rx={3.5 * shape.props.scale}
+									ry={3.5 * shape.props.scale}
 								/>
 							)}
 							{as && (
@@ -697,7 +752,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		)
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {
+	override onEditEnd(shape: TLArrowShape) {
 		const {
 			id,
 			type,
@@ -721,21 +776,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		ctx.addExportDef(getFillDefForExport(shape.props.fill))
 		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme(ctx)
+		const scaleFactor = 1 / shape.props.scale
 
 		return (
-			<>
+			<g transform={`scale(${scaleFactor})`}>
 				<ArrowSvg shape={shape} shouldDisplayHandles={false} />
 				<SvgTextLabel
-					fontSize={ARROW_LABEL_FONT_SIZES[shape.props.size]}
+					fontSize={getArrowLabelFontSize(shape)}
 					font={shape.props.font}
 					align="middle"
 					verticalAlign="middle"
 					text={shape.props.text}
 					labelColor={theme[shape.props.labelColor].solid}
 					bounds={getArrowLabelPosition(this.editor, shape).box}
-					padding={4}
+					padding={4 * shape.props.scale}
 				/>
-			</>
+			</g>
 		)
 	}
 
@@ -752,9 +808,29 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 		]
 	}
+	override getInterpolatedProps(
+		startShape: TLArrowShape,
+		endShape: TLArrowShape,
+		progress: number
+	): TLArrowShapeProps {
+		return {
+			...(progress > 0.5 ? endShape.props : startShape.props),
+			scale: lerp(startShape.props.scale, endShape.props.scale, progress),
+			start: {
+				x: lerp(startShape.props.start.x, endShape.props.start.x, progress),
+				y: lerp(startShape.props.start.y, endShape.props.start.y, progress),
+			},
+			end: {
+				x: lerp(startShape.props.end.x, endShape.props.end.x, progress),
+				y: lerp(startShape.props.end.y, endShape.props.end.y, progress),
+			},
+			bend: lerp(startShape.props.bend, endShape.props.bend, progress),
+			labelPosition: lerp(startShape.props.labelPosition, endShape.props.labelPosition, progress),
+		}
+	}
 }
 
-function getLength(editor: Editor, shape: TLArrowShape): number {
+export function getArrowLength(editor: Editor, shape: TLArrowShape): number {
 	const info = getArrowInfo(editor, shape)!
 
 	return info.isStraight
@@ -774,6 +850,13 @@ const ArrowSvg = track(function ArrowSvg({
 	const info = getArrowInfo(editor, shape)
 	const bounds = Box.ZeroFix(editor.getShapeGeometry(shape).bounds)
 	const bindings = getArrowBindings(editor, shape)
+	const isForceSolid = useValue(
+		'force solid',
+		() => {
+			return editor.getZoomLevel() < 0.2
+		},
+		[editor]
+	)
 
 	const changeIndex = React.useMemo<number>(() => {
 		return editor.environment.isSafari ? (globalRenderIndex += 1) : 0
@@ -782,7 +865,7 @@ const ArrowSvg = track(function ArrowSvg({
 
 	if (!info?.isValid) return null
 
-	const strokeWidth = STROKE_SIZES[shape.props.size]
+	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 
 	const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 	const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -792,9 +875,9 @@ const ArrowSvg = track(function ArrowSvg({
 	let handlePath: null | React.JSX.Element = null
 
 	if (shouldDisplayHandles) {
-		const sw = 2
+		const sw = 2 / editor.getZoomLevel()
 		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
-			getLength(editor, shape),
+			getArrowLength(editor, shape),
 			sw,
 			{
 				end: 'skip',
@@ -839,6 +922,7 @@ const ArrowSvg = track(function ArrowSvg({
 		strokeWidth,
 		{
 			style: shape.props.dash,
+			forceSolid: isForceSolid,
 		}
 	)
 
@@ -903,10 +987,22 @@ const ArrowSvg = track(function ArrowSvg({
 					<path d={path} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
 				</g>
 				{as && maskStartArrowhead && shape.props.fill !== 'none' && (
-					<ShapeFill theme={theme} d={as} color={shape.props.color} fill={shape.props.fill} />
+					<ShapeFill
+						theme={theme}
+						d={as}
+						color={shape.props.color}
+						fill={shape.props.fill}
+						scale={shape.props.scale}
+					/>
 				)}
 				{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
-					<ShapeFill theme={theme} d={ae} color={shape.props.color} fill={shape.props.fill} />
+					<ShapeFill
+						theme={theme}
+						d={ae}
+						color={shape.props.color}
+						fill={shape.props.fill}
+						scale={shape.props.scale}
+					/>
 				)}
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}

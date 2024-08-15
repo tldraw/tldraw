@@ -4,6 +4,9 @@
 
 ```ts
 
+import { default as throttle } from 'lodash.throttle';
+import { default as uniq } from 'lodash.uniq';
+
 // @internal
 export function annotateError(error: unknown, annotations: Partial<ErrorAnnotations>): void;
 
@@ -11,13 +14,16 @@ export function annotateError(error: unknown, annotations: Partial<ErrorAnnotati
 export function areArraysShallowEqual<T>(arr1: readonly T[], arr2: readonly T[]): boolean;
 
 // @internal (undocumented)
-export function areObjectsShallowEqual<T extends Record<string, unknown>>(obj1: T, obj2: T): boolean;
+export function areObjectsShallowEqual<T extends object>(obj1: T, obj2: T): boolean;
 
 // @internal (undocumented)
 export const assert: (value: unknown, message?: string) => asserts value;
 
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
+
+// @public (undocumented)
+export function bind<T extends Function>(_target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void;
 
 // @internal
 export function clearLocalStorage(): void;
@@ -37,6 +43,15 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 // @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
+// @public (undocumented)
+export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly string[];
+
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_IMAGE_TYPES: readonly string[];
+
+// @public (undocumented)
+export const DEFAULT_SUPPORTED_MEDIA_TYPE_LIST: string;
+
 // @internal
 export function deleteFromLocalStorage(key: string): void;
 
@@ -44,10 +59,20 @@ export function deleteFromLocalStorage(key: string): void;
 export function deleteFromSessionStorage(key: string): void;
 
 // @public (undocumented)
-export type ErrorResult<E> = {
+export interface ErrorAnnotations {
+    // (undocumented)
+    extras: Record<string, unknown>;
+    // (undocumented)
+    tags: Record<string, bigint | boolean | null | number | string | symbol | undefined>;
+}
+
+// @public (undocumented)
+export interface ErrorResult<E> {
+    // (undocumented)
     readonly error: E;
+    // (undocumented)
     readonly ok: false;
-};
+}
 
 // @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
@@ -56,6 +81,10 @@ export function exhaustiveSwitchError(value: never, property?: string): never;
 export type Expand<T> = T extends infer O ? {
     [K in keyof O]: O[K];
 } : never;
+
+// @internal
+function fetch_2(input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
+export { fetch_2 as fetch }
 
 // @public
 export class FileHelpers {
@@ -73,7 +102,13 @@ export function filterEntries<Key extends string, Value>(object: {
 };
 
 // @internal
-export function fpsThrottle(fn: () => void): () => void;
+export function fpsThrottle(fn: {
+    (): void;
+    cancel?(): void;
+}): {
+    (): void;
+    cancel?(): void;
+};
 
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
@@ -97,25 +132,25 @@ export function getHashForObject(obj: any): string;
 export function getHashForString(string: string): string;
 
 // @public
-export function getIndexAbove(below?: IndexKey | undefined): IndexKey;
+export function getIndexAbove(below?: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndexBelow(above?: IndexKey | undefined): IndexKey;
+export function getIndexBelow(above?: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | undefined): IndexKey;
+export function getIndexBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined): IndexKey;
 
 // @public
 export function getIndices(n: number, start?: IndexKey): IndexKey[];
 
 // @public
-export function getIndicesAbove(below: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesAbove(below: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBelow(above: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesBelow(above: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBetween(below: IndexKey | undefined, above: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @internal (undocumented)
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
@@ -126,9 +161,13 @@ export function getOwnProperty(obj: object, key: string): unknown;
 // @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
 
+// @internal
+const Image_2: (width?: number, height?: number) => HTMLImageElement;
+export { Image_2 as Image }
+
 // @public
 export type IndexKey = string & {
-    __orderKey: true;
+    __brand: 'indexKey';
 };
 
 // @public
@@ -150,9 +189,10 @@ export function isNonNullish<T>(value: T): value is typeof value extends undefin
 export type JsonArray = JsonValue[];
 
 // @public (undocumented)
-export type JsonObject = {
+export interface JsonObject {
+    // (undocumented)
     [key: string]: JsonValue | undefined;
-};
+}
 
 // @public (undocumented)
 export type JsonPrimitive = boolean | null | number | string;
@@ -195,6 +235,16 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
+    // (undocumented)
+    static isAnimated(file: Blob): Promise<boolean>;
+    // (undocumented)
+    static isAnimatedImageType(mimeType: null | string): boolean;
+    // (undocumented)
+    static isImageType(mimeType: string): boolean;
+    // (undocumented)
+    static isStaticImageType(mimeType: null | string): boolean;
+    // (undocumented)
+    static isVectorImageType(mimeType: null | string): boolean;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)
@@ -208,7 +258,7 @@ export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefi
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
 // @internal
-export function noop(): void;
+export const noop: () => void;
 
 // @internal
 export function objectMapEntries<Key extends string, Value>(object: {
@@ -231,10 +281,12 @@ export function objectMapValues<Key extends string, Value>(object: {
 }): Array<Value>;
 
 // @public (undocumented)
-export type OkResult<T> = {
+export interface OkResult<T> {
+    // (undocumented)
     readonly ok: true;
+    // (undocumented)
     readonly value: T;
-};
+}
 
 // @internal
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...args: Args) => Return): (...args: Args) => Return;
@@ -284,8 +336,8 @@ export class PngHelpers {
 
 // @internal (undocumented)
 export function promiseWithResolve<T>(): Promise<T> & {
-    reject: (reason?: any) => void;
-    resolve: (value: T) => void;
+    reject(reason?: any): void;
+    resolve(value: T): void;
 };
 
 // @public (undocumented)
@@ -294,7 +346,9 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
-type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>>>;
+type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
+    [P in K]-?: T[P];
+}>;
 export { Required_2 as Required }
 
 // @public (undocumented)
@@ -311,6 +365,9 @@ export function rng(seed?: string): () => number;
 
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
+
+// @public (undocumented)
+export const safeParseUrl: (url: string) => undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
@@ -335,17 +392,33 @@ export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
-// @public
-export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
+export { throttle }
 
 // @internal
 export function throttleToNextFrame(fn: () => void): () => void;
 
+// @public (undocumented)
+export class Timers {
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
+    requestAnimationFrame(callback: FrameRequestCallback): number;
+    // (undocumented)
+    setInterval(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    // (undocumented)
+    setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+}
+
+export { uniq }
+
 // @internal (undocumented)
-export function validateIndexKey(key: string): asserts key is IndexKey;
+export function validateIndexKey(index: string): asserts index is IndexKey;
 
 // @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
+
+// @internal (undocumented)
+export function warnOnce(message: string): void;
 
 // @public
 export class WeakCache<K extends object, V> {

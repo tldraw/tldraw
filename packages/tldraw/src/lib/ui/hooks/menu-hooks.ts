@@ -3,6 +3,7 @@ import {
 	TLArrowShape,
 	TLDrawShape,
 	TLGroupShape,
+	TLImageShape,
 	TLLineShape,
 	TLTextShape,
 	useEditor,
@@ -30,6 +31,12 @@ function shapesWithUnboundArrows(editor: Editor) {
 export const useThreeStackableItems = () => {
 	const editor = useEditor()
 	return useValue('threeStackableItems', () => shapesWithUnboundArrows(editor).length > 2, [editor])
+}
+
+/** @internal */
+export const useIsInSelectState = () => {
+	const editor = useEditor()
+	return useValue('isInSelectState', () => editor.isIn('select'), [editor])
 }
 
 /** @internal */
@@ -189,6 +196,7 @@ export function useOnlyFlippableShape() {
 			return (
 				shape &&
 				(editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+					editor.isShapeOfType<TLImageShape>(shape, 'image') ||
 					editor.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
 					editor.isShapeOfType<TLLineShape>(shape, 'line') ||
 					editor.isShapeOfType<TLDrawShape>(shape, 'draw'))

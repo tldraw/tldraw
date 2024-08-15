@@ -2,7 +2,6 @@ import {
 	Editor,
 	StateNode,
 	TLArrowShape,
-	TLEventHandlers,
 	TLHandle,
 	TLNoteShape,
 	TLPointerEventInfo,
@@ -21,7 +20,7 @@ export class PointingHandle extends StateNode {
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
 
-	override onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
+	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
 
 		const { shape } = info
@@ -36,12 +35,12 @@ export class PointingHandle extends StateNode {
 		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setHintingShapes([])
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		const { shape, handle } = this.info
 
 		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
@@ -56,14 +55,14 @@ export class PointingHandle extends StateNode {
 		this.parent.transition('idle', this.info)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		const { editor } = this
 		if (editor.inputs.isDragging) {
 			this.startDraggingHandle()
 		}
 	}
 
-	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+	override onLongPress() {
 		this.startDraggingHandle()
 	}
 
@@ -78,7 +77,7 @@ export class PointingHandle extends StateNode {
 				// Center the shape on the current pointer
 				const centeredOnPointer = editor
 					.getPointInParentSpace(nextNote, editor.inputs.originPagePoint)
-					.sub(Vec.Rot(NOTE_CENTER_OFFSET, nextNote.rotation))
+					.sub(Vec.Rot(NOTE_CENTER_OFFSET.clone().mul(shape.props.scale), nextNote.rotation))
 				editor.updateShape({ ...nextNote, x: centeredOnPointer.x, y: centeredOnPointer.y })
 
 				// Then select and begin translating the shape
@@ -103,15 +102,15 @@ export class PointingHandle extends StateNode {
 		this.parent.transition('dragging_handle', this.info)
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
@@ -124,7 +123,14 @@ function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, for
 	const pageTransform = editor.getShapePageTransform(shape.id)!
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
-	const pits = getNoteAdjacentPositions(pagePoint, pageRotation, shape.props.growY, 0)
+	const pits = getNoteAdjacentPositions(
+		editor,
+		pagePoint,
+		pageRotation,
+		shape.props.growY,
+		0,
+		shape.props.scale
+	)
 	const pit = pits[handle.index]
 	if (pit) {
 		return getNoteShapeForAdjacentPosition(editor, shape, pit, pageRotation, forceNew)

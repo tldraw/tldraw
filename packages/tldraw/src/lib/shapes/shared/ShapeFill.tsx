@@ -2,28 +2,28 @@ import {
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
-	getDefaultColorTheme,
 	useEditor,
-	useIsDarkMode,
 	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { HASH_PATTERN_ZOOM_NAMES } from './defaultStyleDefs'
+import { getHashPatternZoomName } from './defaultStyleDefs'
 
-export interface ShapeFillProps {
+interface ShapeFillProps {
 	d: string
 	fill: TLDefaultFillStyle
 	color: TLDefaultColorStyle
 	theme: TLDefaultColorTheme
+	scale: number
 }
 
-/** @public */
-export function useDefaultColorTheme() {
-	return getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
-}
-
-export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }: ShapeFillProps) {
+export const ShapeFill = React.memo(function ShapeFill({
+	theme,
+	d,
+	color,
+	fill,
+	scale,
+}: ShapeFillProps) {
 	switch (fill) {
 		case 'none': {
 			return null
@@ -34,8 +34,11 @@ export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }
 		case 'semi': {
 			return <path fill={theme.solid} d={d} />
 		}
+		case 'fill': {
+			return <path fill={theme[color].fill} d={d} />
+		}
 		case 'pattern': {
-			return <PatternFill theme={theme} color={color} fill={fill} d={d} />
+			return <PatternFill theme={theme} color={color} fill={fill} d={d} scale={scale} />
 		}
 	}
 })
@@ -45,7 +48,6 @@ export function PatternFill({ d, color, theme }: ShapeFillProps) {
 	const svgExport = useSvgExportContext()
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
 
-	const intZoom = Math.ceil(zoomLevel)
 	const teenyTiny = editor.getZoomLevel() <= 0.18
 
 	return (
@@ -54,10 +56,10 @@ export function PatternFill({ d, color, theme }: ShapeFillProps) {
 			<path
 				fill={
 					svgExport
-						? `url(#${HASH_PATTERN_ZOOM_NAMES[`1_${theme.id}`]})`
+						? `url(#${getHashPatternZoomName(1, theme.id)})`
 						: teenyTiny
 							? theme[color].semi
-							: `url(#${HASH_PATTERN_ZOOM_NAMES[`${intZoom}_${theme.id}`]})`
+							: `url(#${getHashPatternZoomName(zoomLevel, theme.id)})`
 				}
 				d={d}
 			/>

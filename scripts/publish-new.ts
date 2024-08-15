@@ -7,8 +7,14 @@ import { SemVer, parse } from 'semver'
 import { exec } from './lib/exec'
 import { generateAutoRcFile } from './lib/labels'
 import { nicelog } from './lib/nicelog'
-import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
+import {
+	getLatestVersion,
+	publish,
+	publishProductionDocsAndExamplesAndBemo,
+	setAllVersions,
+} from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
+import { uploadStaticAssets } from './upload-static-assets'
 
 type ReleaseType =
 	| {
@@ -125,11 +131,14 @@ async function main() {
 	if (!isPrerelease) {
 		const { major, minor } = parse(nextVersion)!
 		await exec('git', ['push', 'origin', `${gitTag}:refs/heads/v${major}.${minor}.x`])
-		await exec('git', ['push', 'origin', `${gitTag}:docs-production`, `--force`])
+		await publishProductionDocsAndExamplesAndBemo({ gitRef: gitTag })
 	}
 
 	// create a release on github
 	await auto.runRelease({ useVersion: nextVersion })
+
+	// upload static assets
+	await uploadStaticAssets(nextVersion)
 
 	// finally, publish the packages [IF THIS STEP FAILS, RUN THE `publish-manual.ts` script locally]
 	await publish()

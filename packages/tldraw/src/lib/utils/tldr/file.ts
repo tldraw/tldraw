@@ -17,7 +17,7 @@ import {
 	UnknownRecord,
 	createTLStore,
 	exhaustiveSwitchError,
-	partition,
+	fetch,
 	transact,
 } from '@tldraw/editor'
 import { TLUiToastsContextType } from '../../ui/context/toasts'
@@ -175,9 +175,9 @@ function pruneUnusedAssets(records: TLRecord[]) {
 }
 
 /** @public */
-export async function serializeTldrawJson(store: TLStore): Promise<string> {
+export async function serializeTldrawJson(editor: Editor): Promise<string> {
 	const records: TLRecord[] = []
-	for (const record of store.allRecords()) {
+	for (const record of editor.store.allRecords()) {
 		switch (record.typeName) {
 			case 'asset':
 				if (
@@ -187,10 +187,13 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 				) {
 					let assetSrcToSave
 					try {
+						let src = record.props.src
+						if (!src.startsWith('http')) {
+							src =
+								(await editor.resolveAssetUrl(record.id, { shouldResolveToOriginal: true })) || ''
+						}
 						// try to save the asset as a base64 string
-						assetSrcToSave = await FileHelpers.blobToDataUrl(
-							await (await fetch(record.props.src)).blob()
-						)
+						assetSrcToSave = await FileHelpers.blobToDataUrl(await (await fetch(src)).blob())
 					} catch {
 						// if that fails, just save the original src
 						assetSrcToSave = record.props.src
@@ -215,14 +218,14 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 
 	return JSON.stringify({
 		tldrawFileFormatVersion: LATEST_TLDRAW_FILE_FORMAT_VERSION,
-		schema: store.schema.serialize(),
+		schema: editor.store.schema.serialize(),
 		records: pruneUnusedAssets(records),
 	})
 }
 
 /** @public */
-export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
-	return new Blob([await serializeTldrawJson(store)], { type: TLDRAW_FILE_MIMETYPE })
+export async function serializeTldrawJsonBlob(editor: Editor): Promise<Blob> {
+	return new Blob([await serializeTldrawJson(editor)], { type: TLDRAW_FILE_MIMETYPE })
 }
 
 /** @internal */
@@ -293,26 +296,14 @@ export async function parseAndLoadDocument(
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
 	transact(() => {
-		const initialBounds = editor.getViewportScreenBounds().clone()
-		const isFocused = editor.getInstanceState().isFocused
-		editor.store.clear()
-		const [shapes, nonShapes] = partition(
-			parseFileResult.value.allRecords(),
-			(record) => record.typeName === 'shape'
-		)
-		editor.store.put(nonShapes, 'initialize')
-		editor.store.ensureStoreIsUsable()
-		editor.store.put(shapes, 'initialize')
-		editor.history.clear()
-		// Put the old bounds back in place
-		editor.updateViewportScreenBounds(initialBounds)
+		editor.loadSnapshot(parseFileResult.value.getStoreSnapshot())
+		editor.clearHistory()
 
 		const bounds = editor.getCurrentPageBounds()
 		if (bounds) {
-			editor.zoomToBounds(bounds, { targetZoom: 1 })
+			editor.zoomToBounds(bounds, { targetZoom: 1, immediate: true })
 		}
-		editor.updateInstanceState({ isFocused })
 	})
 
-	if (forceDarkMode) editor.user.updateUserPreferences({ isDarkMode: true })
+	if (forceDarkMode) editor.user.updateUserPreferences({ colorScheme: 'dark' })
 }

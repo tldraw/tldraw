@@ -7,7 +7,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { memo, useMemo, useRef } from 'react'
+import { ReactElement, memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -22,10 +22,13 @@ export interface TLUiButtonPickerProps<T extends string> {
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
 	theme: TLDefaultColorTheme
-	onValueChange: (style: StyleProp<T>, value: T) => void
+	onValueChange(style: StyleProp<T>, value: T): void
 }
 
-function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>) {
+/** @public */
+export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends string>(
+	props: TLUiButtonPickerProps<T>
+) {
 	const {
 		uiType,
 		items,
@@ -40,6 +43,7 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 	const msg = useTranslation()
 
 	const rPointing = useRef(false)
+	const rPointingOriginalActiveElement = useRef<HTMLElement | null>(null)
 
 	const {
 		handleButtonClick,
@@ -50,23 +54,33 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 		const handlePointerUp = () => {
 			rPointing.current = false
 			window.removeEventListener('pointerup', handlePointerUp)
+
+			// This is fun little micro-optimization to make sure that the focus
+			// is retained on a text label. That way, you can continue typing
+			// after selecting a style.
+			const origActiveEl = rPointingOriginalActiveElement.current
+			if (origActiveEl && ['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName)) {
+				origActiveEl.focus()
+			}
+			rPointingOriginalActiveElement.current = null
 		}
 
 		const handleButtonClick = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
-			editor.mark('point picker item')
+			editor.markHistoryStoppingPoint('point picker item')
 			onValueChange(style, id as T)
 		}
 
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
-			editor.mark('point picker item')
+			editor.markHistoryStoppingPoint('point picker item')
 			onValueChange(style, id as T)
 
 			rPointing.current = true
+			rPointingOriginalActiveElement.current = document.activeElement as HTMLElement
 			window.addEventListener('pointerup', handlePointerUp) // see TLD-658
 		}
 
@@ -119,6 +133,4 @@ function _TldrawUiButtonPicker<T extends string>(props: TLUiButtonPickerProps<T>
 			))}
 		</div>
 	)
-}
-/** @public */
-export const TldrawUiButtonPicker = memo(_TldrawUiButtonPicker) as typeof _TldrawUiButtonPicker
+}) as <T extends string>(props: TLUiButtonPickerProps<T>) => ReactElement

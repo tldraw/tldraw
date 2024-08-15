@@ -3,7 +3,7 @@ title: Persistence
 status: published
 author: steveruizok
 date: 3/22/2023
-order: 6
+order: 4
 keywords:
   - data
   - sync
@@ -13,7 +13,9 @@ keywords:
   - localstorage
 ---
 
-Persistence in tldraw means storing information about the editor's state to a database and then restoring it later. There are a few options that developers have for getting data into tldraw and out again.
+In tldraw, persitence means storing information about the editor's state to a database and then restoring it later.
+
+The simplest implementation is the browser's local storage. But this also provides the hooks for a sync engine, which can send realtime incremenal updates the canvas to your backend server, allowing multiple people to collaborate on the canvas.
 
 ## The `"persistenceKey"` prop
 
@@ -54,19 +56,22 @@ export default function () {
 
 In the example above, both editors would synchronize their document locally. They would still have two independent instance states (e.g. selections) but the document would be kept in sync and persisted under the same key.
 
-## Document Snapshots
+## State Snapshots
 
-You can get a JSON snapshot of the editor's content using the [Editor#store](?)'s [Store#getSnapshot](?) method.
+You can get a JSON snapshot of the document content and the user 'session' state using the [getSnapshot](?) function.
 
 ```tsx
-function SaveButton() {
+function SaveButton({ documentId, userId }) {
 	const editor = useEditor()
 	return (
 		<button
 			onClick={() => {
-				const snapshot = editor.store.getSnapshot()
-				const stringified = JSON.stringify(snapshot)
-				localStorage.setItem('my-editor-snapshot', stringified)
+				const { document, session } = getSnapshot(editor.store)
+				// If you are building a multi-user app, you probably want to store
+				// the document and session states separately because the
+				// session state is user-specific and normally shouldn't be shared.
+				await saveDocumentState(documentId, document)
+				await saveSessionState(documentId, userId, session)
 			}}
 		>
 			Save
@@ -75,17 +80,18 @@ function SaveButton() {
 }
 ```
 
-You can load the snapshot into a new editor with [Store#loadSnapshot](?).
+To load the snapshot back into an existing editor, use the [loadSnapshot](?) function.
 
 ```tsx
-function LoadButton() {
+function LoadButton({ documentId, userId }) {
 	const editor = useEditor()
 	return (
 		<button
 			onClick={() => {
-				const stringified = localStorage.getItem('my-editor-snapshot')
-				const snapshot = JSON.parse(stringified)
-				editor.store.loadSnapshot(snapshot)
+				const document = await loadDocumentState(documentId)
+				const session = await loadSessionState(documentId, userId)
+				editor.setCurrentTool('select') // need to reset tool state separately
+				loadSnapshot(editor.store, { document, session })
 			}}
 		>
 			Load
@@ -94,11 +100,27 @@ function LoadButton() {
 }
 ```
 
-A [snapshot](/reference/store/StoreSnapshot) includes both the store's [serialized records](/reference/store/SerializedStore) and its [serialized schema](/reference/store/SerializedSchema), which is used for migrations.
+You can also pass a snapshot as a prop to set the initial editor state.
 
-> By default, the `getSnapshot` method returns only the editor's document data. If you want to get records from a different scope, you can pass in `session`, `document`, `presence`, or else `all` for all scopes.
+```tsx
+function MyApp({ userId, documentId }) {
+	const [snapshot, setSnapshot] = useState(null)
 
-Note that loading a snapshot does not reset the editor's in memory state or UI state. For example, loading a snapshot during a resizing operation may lead to a crash. This is because the resizing state maintains its own cache of information about which shapes it is resizing, and its possible that those shapes may no longer exist!
+	useEffect(() => {
+		async function load() {
+			const document = await getDocumentState(documentId)
+			const session = await getSessionState(documentId, userId)
+			setSnapshot({ document, session })
+		}
+
+		load()
+	}, [documentId, userId])
+
+	return snapshot ? <Tldraw snapshot={snapshot} /> : null
+}
+```
+
+When tldraw loads a snapshot, it will run any necessary migrations to bring the data up to the latest tldraw schema version.
 
 ## The `"store"` prop
 
@@ -110,16 +132,14 @@ The `store` property of the `<Tldraw>` / `<TldrawEditor>` components accepts a s
 export default function () {
 	const [store] = useState(() => {
 		// Create the store
-		const newStore = createTLStore({
-			shapeUtils: defaultShapeUtils,
-		})
+		const newStore = createTLStore()
 
 		// Get the snapshot
 		const stringified = localStorage.getItem('my-editor-snapshot')
 		const snapshot = JSON.parse(stringified)
 
 		// Load the snapshot
-		newStore.loadSnapshot(snapshot)
+		loadSnapshot(newStore, snapshot)
 
 		return newStore
 	})
@@ -144,12 +164,10 @@ export default function () {
 			if (cancelled) return
 
 			// Create the store
-			const newStore = createTLStore({
-				shapeUtils: defaultShapeUtils,
-			})
+			const newStore = createTLStore()
 
 			// Load the snapshot
-			newStore.loadSnapshot(snapshot)
+			loadSnapshot(newStore, snapshot)
 
 			// Update the store with status
 			setStoreWithStatus({
@@ -211,7 +229,7 @@ myRemoteSource.on('change', (changes) => {
 
 ## Migrations
 
-Tldraw uses migrations to bring data from old snapshots up to date. These run automatically when calling `editor.store.loadSnapshot`.
+Tldraw uses migrations to bring data from old snapshots up to date. These run automatically when calling [loadSnapshot](?).
 
 ### Running migrations manually
 
@@ -389,18 +407,6 @@ const migrations = createShapePropsMigrationSequence({
 ### Local persistence
 
 Tldraw ships with a local-only sync engine based on `IndexedDb` and `BroadcastChannel` called [`TLLocalSyncClient`](https://github.com/tldraw/tldraw/blob/main/packages/editor/src/lib/utils/sync/TLLocalSyncClient.ts).
-
-### Tldraw.com sync engine
-
-[tldraw.com/r](https://tldraw.com/r) currently uses a simple custom sync engine based on a push/pull/rebase-style algorithm.
-It can be found [here](https://github.com/tldraw/tldraw/tree/main/packages/tlsync).
-It was optimized for Cloudflare workers with [DurableObjects](https://developers.cloudflare.com/durable-objects/)
-
-We don't suggest using our code directly yet, but it may serve as a good reference for your own sync engine.
-
-### Yjs sync example
-
-We created a [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) to illustrate a way of using yjs with the tldraw SDK.
 
 ### Shape props migrations example
 

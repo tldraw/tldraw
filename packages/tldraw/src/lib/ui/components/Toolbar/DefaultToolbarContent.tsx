@@ -1,8 +1,8 @@
 import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
 import { TLUiToolItem, useTools } from '../../hooks/useTools'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
-/** @public */
+/** @public @react */
 export function DefaultToolbarContent() {
 	return (
 		<>
@@ -16,14 +16,14 @@ export function DefaultToolbarContent() {
 			<AssetToolbarItem />
 			<RectangleToolbarItem />
 			<EllipseToolbarItem />
-			<DiamondToolbarItem />
 			<TriangleToolbarItem />
-			<TrapezoidToolbarItem />
-			<RhombusToolbarItem />
+			<DiamondToolbarItem />
 			<HexagonToolbarItem />
-			<CloudToolbarItem />
-			<StarToolbarItem />
 			<OvalToolbarItem />
+			<RhombusToolbarItem />
+			<StarToolbarItem />
+			<CloudToolbarItem />
+			<HeartToolbarItem />
 			<XBoxToolbarItem />
 			<CheckBoxToolbarItem />
 			<ArrowLeftToolbarItem />
@@ -32,8 +32,8 @@ export function DefaultToolbarContent() {
 			<ArrowRightToolbarItem />
 			<LineToolbarItem />
 			<HighlightToolbarItem />
-			<FrameToolbarItem />
 			<LaserToolbarItem />
+			<FrameToolbarItem />
 		</>
 	)
 }
@@ -54,197 +54,163 @@ export function useIsToolSelected(tool: TLUiToolItem) {
 }
 
 /** @public */
+export interface ToolbarItemProps {
+	tool: string
+}
+
+/** @public @react */
+export function ToolbarItem({ tool }: ToolbarItemProps) {
+	const tools = useTools()
+	const isSelected = useIsToolSelected(tools[tool])
+	return <TldrawUiMenuToolItem toolId={tool} isSelected={isSelected} />
+}
+
+/** @public @react */
 export function SelectToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['select'])
-	return <TldrawUiMenuItem {...tools['select']} isSelected={isSelected} />
+	return <ToolbarItem tool="select" />
 }
 
-/** @public */
+/** @public @react */
 export function HandToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['hand'])
-	return <TldrawUiMenuItem {...tools['hand']} isSelected={isSelected} />
+	return <ToolbarItem tool="hand" />
 }
 
-/** @public */
+/** @public @react */
 export function DrawToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['draw'])
-	return <TldrawUiMenuItem {...tools['draw']} isSelected={isSelected} />
+	return <ToolbarItem tool="draw" />
 }
 
-/** @public */
+/** @public @react */
 export function EraserToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['eraser'])
-	return <TldrawUiMenuItem {...tools['eraser']} isSelected={isSelected} />
+	return <ToolbarItem tool="eraser" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow'])
-	return <TldrawUiMenuItem {...tools['arrow']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow" />
 }
 
-/** @public */
+/** @public @react */
 export function TextToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['text'])
-	return <TldrawUiMenuItem {...tools['text']} isSelected={isSelected} />
+	return <ToolbarItem tool="text" />
 }
 
-/** @public */
+/** @public @react */
 export function NoteToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['note'])
-	return <TldrawUiMenuItem {...tools['note']} isSelected={isSelected} />
+	return <ToolbarItem tool="note" />
 }
 
-/** @public */
+/** @public @react */
 export function AssetToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['asset'])
-	return <TldrawUiMenuItem {...tools['asset']} isSelected={isSelected} />
+	return <TldrawUiMenuToolItem toolId="asset" />
 }
 
-/** @public */
+/** @public @react */
 export function RectangleToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['rectangle'])
-	return <TldrawUiMenuItem {...tools['rectangle']} isSelected={isSelected} />
+	return <ToolbarItem tool="rectangle" />
 }
 
-/** @public */
+/** @public @react */
 export function EllipseToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['ellipse'])
-	return <TldrawUiMenuItem {...tools['ellipse']} isSelected={isSelected} />
+	return <ToolbarItem tool="ellipse" />
 }
 
-/** @public */
+/** @public @react */
 export function DiamondToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['diamond'])
-	return <TldrawUiMenuItem {...tools['diamond']} isSelected={isSelected} />
+	return <ToolbarItem tool="diamond" />
 }
 
-/** @public */
+/** @public @react */
 export function TriangleToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['triangle'])
-	return <TldrawUiMenuItem {...tools['triangle']} isSelected={isSelected} />
+	return <ToolbarItem tool="triangle" />
 }
 
-/** @public */
+/** @public @react */
 export function TrapezoidToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['trapezoid'])
-	return <TldrawUiMenuItem {...tools['trapezoid']} isSelected={isSelected} />
+	return <ToolbarItem tool="trapezoid" />
 }
 
-/** @public */
+/** @public @react */
 export function RhombusToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['rhombus'])
-	return <TldrawUiMenuItem {...tools['rhombus']} isSelected={isSelected} />
+	return <ToolbarItem tool="rhombus" />
 }
 
-/** @public */
+/** @public @react */
+export function PentagonToolbarItem() {
+	return <ToolbarItem tool="pentagon" />
+}
+
+/** @public @react */
+export function HeartToolbarItem() {
+	return <ToolbarItem tool="heart" />
+}
+
+/** @public @react */
 export function HexagonToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['hexagon'])
-	return <TldrawUiMenuItem {...tools['hexagon']} isSelected={isSelected} />
+	return <ToolbarItem tool="hexagon" />
 }
 
-/** @public */
+/** @public @react */
 export function CloudToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['cloud'])
-	return <TldrawUiMenuItem {...tools['cloud']} isSelected={isSelected} />
+	return <ToolbarItem tool="cloud" />
 }
 
-/** @public */
+/** @public @react */
 export function StarToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['star'])
-	return <TldrawUiMenuItem {...tools['star']} isSelected={isSelected} />
+	return <ToolbarItem tool="star" />
 }
 
-/** @public */
+/** @public @react */
 export function OvalToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['oval'])
-	return <TldrawUiMenuItem {...tools['oval']} isSelected={isSelected} />
+	return <ToolbarItem tool="oval" />
 }
 
-/** @public */
+/** @public @react */
 export function XBoxToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['x-box'])
-	return <TldrawUiMenuItem {...tools['x-box']} isSelected={isSelected} />
+	return <ToolbarItem tool="x-box" />
 }
 
-/** @public */
+/** @public @react */
 export function CheckBoxToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['check-box'])
-	return <TldrawUiMenuItem {...tools['check-box']} isSelected={isSelected} />
+	return <ToolbarItem tool="check-box" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowLeftToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow-left'])
-	return <TldrawUiMenuItem {...tools['arrow-left']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow-left" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowUpToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow-up'])
-	return <TldrawUiMenuItem {...tools['arrow-up']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow-up" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowDownToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow-down'])
-	return <TldrawUiMenuItem {...tools['arrow-down']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow-down" />
 }
 
-/** @public */
+/** @public @react */
 export function ArrowRightToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['arrow-right'])
-	return <TldrawUiMenuItem {...tools['arrow-right']} isSelected={isSelected} />
+	return <ToolbarItem tool="arrow-right" />
 }
 
-/** @public */
+/** @public @react */
 export function LineToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['line'])
-	return <TldrawUiMenuItem {...tools['line']} isSelected={isSelected} />
+	return <ToolbarItem tool="line" />
 }
 
-/** @public */
+/** @public @react */
 export function HighlightToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['highlight'])
-	return <TldrawUiMenuItem {...tools['highlight']} isSelected={isSelected} />
+	return <ToolbarItem tool="highlight" />
 }
 
-/** @public */
+/** @public @react */
 export function FrameToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['frame'])
-	return <TldrawUiMenuItem {...tools['frame']} isSelected={isSelected} />
+	return <ToolbarItem tool="frame" />
 }
 
-/** @public */
+/** @public @react */
 export function LaserToolbarItem() {
-	const tools = useTools()
-	const isSelected = useIsToolSelected(tools['laser'])
-	return <TldrawUiMenuItem {...tools['laser']} isSelected={isSelected} />
+	return <ToolbarItem tool="laser" />
 }

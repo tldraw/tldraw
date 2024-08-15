@@ -36,6 +36,7 @@ export const FrameHeading = function FrameHeading({
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent) => {
 			const event = getPointerInfo(e)
+			e.preventDefault()
 
 			// If we're editing the frame label, we shouldn't hijack the pointer event
 			if (editor.getEditingShapeId() === id) return
@@ -47,7 +48,6 @@ export const FrameHeading = function FrameHeading({
 				shape: editor.getShape(id)!,
 				...event,
 			})
-			e.preventDefault()
 		},
 		[editor, id]
 	)
@@ -58,14 +58,6 @@ export const FrameHeading = function FrameHeading({
 			// On iOS, we must focus here
 			el.focus()
 			el.select()
-
-			requestAnimationFrame(() => {
-				// On desktop, the input may have lost focus, so try try try again!
-				if (document.activeElement !== el) {
-					el.focus()
-					el.select()
-				}
-			})
 		}
 	}, [rInput, isEditing])
 

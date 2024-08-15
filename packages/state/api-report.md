@@ -4,8 +4,19 @@
 
 ```ts
 
-import { FunctionComponent } from 'react';
-import { default as React_2 } from 'react';
+// @internal
+export class ArraySet<T> {
+    add(elem: T): boolean;
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    has(elem: T): boolean;
+    get isEmpty(): boolean;
+    remove(elem: T): boolean;
+    // (undocumented)
+    size(): number;
+    visit(visitor: (item: T) => void): void;
+}
 
 // @public
 export interface Atom<Value, Diff = unknown> extends Signal<Value, Diff> {
@@ -23,7 +34,21 @@ options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
 export interface AtomOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
-    isEqual?: (a: any, b: any) => boolean;
+    isEqual?(a: any, b: any): boolean;
+}
+
+// @internal (undocumented)
+export interface Child {
+    // (undocumented)
+    isActivelyListening: boolean;
+    // (undocumented)
+    lastTraversedEpoch: number;
+    // (undocumented)
+    readonly parentEpochs: number[];
+    // (undocumented)
+    readonly parents: Signal<any, any>[];
+    // (undocumented)
+    readonly parentSet: ArraySet<Signal<any, any>>;
 }
 
 // @public
@@ -47,17 +72,45 @@ export function computed(target: any, key: string, descriptor: PropertyDescripto
 export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
 
 // @public
+export type ComputeDiff<Value, Diff> = (previousValue: Value, currentValue: Value, lastComputedEpoch: number, currentEpoch: number) => Diff | RESET_VALUE;
+
+// @public
 export interface ComputedOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
-    isEqual?: (a: any, b: any) => boolean;
+    isEqual?(a: any, b: any): boolean;
 }
 
 // @public
-export const EffectScheduler: typeof __EffectScheduler__;
+export const EffectScheduler: new <Result>(name: string, runEffect: (lastReactedEpoch: number) => Result, options?: EffectSchedulerOptions) => EffectScheduler<Result>;
 
 // @public (undocumented)
-export type EffectScheduler<Result> = __EffectScheduler__<Result>;
+export interface EffectScheduler<Result> {
+    attach(): void;
+    detach(): void;
+    execute(): Result;
+    readonly isActivelyListening: boolean;
+    // @internal (undocumented)
+    readonly lastTraversedEpoch: number;
+    // @internal (undocumented)
+    maybeExecute(): void;
+    // @internal (undocumented)
+    maybeScheduleEffect(): void;
+    // @internal (undocumented)
+    readonly parentEpochs: number[];
+    // @internal (undocumented)
+    readonly parents: Signal<any, any>[];
+    // @internal (undocumented)
+    readonly parentSet: ArraySet<Signal<any, any>>;
+    readonly scheduleCount: number;
+    // @internal (undocumented)
+    scheduleEffect(): void;
+}
+
+// @public (undocumented)
+export interface EffectSchedulerOptions {
+    scheduleEffect?: (execute: () => void) => void;
+}
 
 // @public (undocumented)
 export const EMPTY_ARRAY: [];
@@ -107,46 +160,38 @@ export interface Signal<Value, Diff = unknown> {
 }
 
 // @public
-export function track<T extends FunctionComponent<any>>(baseComponent: T): T extends React_2.MemoExoticComponent<any> ? T : React_2.MemoExoticComponent<T>;
-
-// @public
 export function transact<T>(fn: () => T): T;
 
 // @public
 export function transaction<T>(fn: (rollback: () => void) => T): T;
 
+// @public (undocumented)
+export const UNINITIALIZED: unique symbol;
+
+// @public
+export type UNINITIALIZED = typeof UNINITIALIZED;
+
 // @public
 export function unsafe__withoutCapture<T>(fn: () => T): T;
 
 // @public
-export function useAtom<Value, Diff = unknown>(
-name: string,
-valueOrInitialiser: (() => Value) | Value,
-options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
-
-// @public
-export function useComputed<Value>(name: string, compute: () => Value, deps: any[]): Computed<Value>;
-
-// @public (undocumented)
-export function useComputed<Value, Diff = unknown>(name: string, compute: () => Value, opts: ComputedOptions<Value, Diff>, deps: any[]): Computed<Value>;
-
-// @public (undocumented)
-export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
-
-// @public (undocumented)
-export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
-
-// @internal (undocumented)
-export function useStateTracking<T>(name: string, render: () => T): T;
-
-// @public
-export function useValue<Value>(value: Signal<Value>): Value;
-
-// @public (undocumented)
-export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value;
-
-// @public
 export function whyAmIRunning(): void;
+
+// @public (undocumented)
+export const WithDiff: {
+    new <Value, Diff>(value: Value, diff: Diff): {
+        diff: Diff;
+        value: Value;
+    };
+};
+
+// @public (undocumented)
+export interface WithDiff<Value, Diff> {
+    // (undocumented)
+    diff: Diff;
+    // (undocumented)
+    value: Value;
+}
 
 // @public
 export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value, Diff>;

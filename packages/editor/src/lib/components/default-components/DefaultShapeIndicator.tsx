@@ -1,4 +1,4 @@
-import { useQuickReactor, useStateTracking, useValue } from '@tldraw/state'
+import { useQuickReactor, useStateTracking, useValue } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { memo, useLayoutEffect, useRef } from 'react'
@@ -10,7 +10,11 @@ import { OptionalErrorBoundary } from '../ErrorBoundary'
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
 const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
-	return useStateTracking('Indicator: ' + shape.type, () => util.indicator(shape))
+	return useStateTracking('Indicator: ' + shape.type, () =>
+		// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
+		// calling the render method with stale data.
+		util.indicator(util.editor.store.unsafeGetWithoutCapture(shape.id) as TLShape)
+	)
 }
 
 const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
@@ -33,7 +37,7 @@ const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
 }
 
 /** @public */
-export type TLShapeIndicatorProps = {
+export interface TLShapeIndicatorProps {
 	shapeId: TLShapeId
 	color?: string | undefined
 	opacity?: number
@@ -41,7 +45,7 @@ export type TLShapeIndicatorProps = {
 	hidden?: boolean
 }
 
-/** @public */
+/** @public @react */
 export const DefaultShapeIndicator = memo(function DefaultShapeIndicator({
 	shapeId,
 	className,
