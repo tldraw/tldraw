@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from '@/components/common/button'
+import { submitNewsletterSignup } from '@/scripts/submit-newsletter-signup'
 import { cn } from '@/utils/cn'
 import { useLocalStorageState } from '@/utils/storage'
 import { Field, Input, Label } from '@headlessui/react'
@@ -15,16 +16,17 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 	const [didSubmit, setDidSubmit] = useLocalStorageState('dev_did_submit_newsletter', false)
 
 	// Todo: replace with react query or something to handle the async work
-	const [formState, setFormState] = useState<'idle' | 'success' | 'error'>('idle')
+	const [formState, setFormState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
 	const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
-		(e) => {
+		async (e) => {
 			if (formState !== 'idle') return
-
 			e.preventDefault()
+			setFormState('loading')
 			try {
 				const _email = new FormData(e.currentTarget)?.get('email') as string
-				// todo: submit email to backend...
+				const { error } = await submitNewsletterSignup(_email)
+				if (error) throw error
 				setFormState('success')
 				// After a pause, we locally save that the user has submitted the form
 				setTimeout(() => {
@@ -95,9 +97,10 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 					arrow="right"
 					size={size === 'small' ? 'xs' : 'base'}
 					className={cn('justify-center', size === 'small' && 'w-full mt-2')}
+					loading={formState === 'loading'}
 				/>
 			</form>
-			{formState === 'idle' && size === 'large' && (
+			{(formState === 'idle' || formState === 'loading') && size === 'large' && (
 				<p className="mb-3 text-sm">Join 1,000+ subscribers</p>
 			)}
 			{formState === 'success' && (
@@ -125,3 +128,13 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 		</div>
 	)
 }
+
+// Sendgrid List
+// {
+//     "name": "Tldraw Blog Newsletter",
+//     "id": "f6dff24d-dbfb-4ceb-a76b-2cde94ac241b",
+//     "contact_count": 0,
+//     "_metadata": {
+//         "self": "https://api.sendgrid.com/v3/marketing/lists/f6dff24d-dbfb-4ceb-a76b-2cde94ac241b"
+//     }
+// }
