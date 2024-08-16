@@ -44,6 +44,9 @@ export function loadSnapshot(
 	// We need to preserve a bunch of instance state properties that the Editor sets
 	// to avoid breaking the editor or causing jarring changes when loading a snapshot.
 	const preservingInstanceState = pluckPreservingValues(store.get(TLINSTANCE_ID))
+	const preservingSessionState = sessionStateCache
+		.get(store, createSessionStateSnapshotSignal)
+		.get()
 
 	store.atomic(() => {
 		// first load the document state (this will wipe the store if it happens)
@@ -55,6 +58,10 @@ export function loadSnapshot(
 		// this is a noop if the document state wasn't loaded above
 		if (preservingInstanceState) {
 			store.update(TLINSTANCE_ID, (r) => ({ ...r, ...preservingInstanceState }))
+		}
+		if (preservingSessionState) {
+			// there's some duplication here with the instanceState but it's fine
+			loadSessionStateSnapshotIntoStore(store, preservingSessionState)
 		}
 
 		// finally reinstate the UI state

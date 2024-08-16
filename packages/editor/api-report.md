@@ -3247,27 +3247,27 @@ export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 // @public
 export interface TLSessionStateSnapshot {
     // (undocumented)
-    currentPageId: TLPageId;
+    currentPageId?: TLPageId;
     // (undocumented)
-    exportBackground: boolean;
+    exportBackground?: boolean;
     // (undocumented)
-    isDebugMode: boolean;
+    isDebugMode?: boolean;
     // (undocumented)
-    isFocusMode: boolean;
+    isFocusMode?: boolean;
     // (undocumented)
-    isGridMode: boolean;
+    isGridMode?: boolean;
     // (undocumented)
-    isToolLocked: boolean;
+    isToolLocked?: boolean;
     // (undocumented)
-    pageStates: Array<{
-        camera: {
+    pageStates?: Array<{
+        camera?: {
             x: number;
             y: number;
             z: number;
         };
-        focusedGroupId: null | TLShapeId;
+        focusedGroupId?: null | TLShapeId;
         pageId: TLPageId;
-        selectedShapeIds: TLShapeId[];
+        selectedShapeIds?: TLShapeId[];
     }>;
     // (undocumented)
     version: number;

@@ -46,7 +46,7 @@ describe('createSessionStateSnapshotSignal', () => {
 
 		react('', () => {
 			isGridMode = $snapshot.get()?.isGridMode ?? false
-			numPages = $snapshot.get()?.pageStates.length ?? 0
+			numPages = $snapshot.get()?.pageStates?.length ?? 0
 		})
 
 		expect(isGridMode).toBe(false)
@@ -77,8 +77,8 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 		snapshot = JSON.parse(JSON.stringify(snapshot)) as TLSessionStateSnapshot
 
 		snapshot.isGridMode = true
-		snapshot.pageStates[0].camera.x = 1
-		snapshot.pageStates[0].camera.y = 2
+		snapshot.pageStates![0].camera!.x = 1
+		snapshot.pageStates![0].camera!.y = 2
 
 		loadSessionStateSnapshotIntoStore(editor.store, snapshot)
 

@@ -93,28 +93,28 @@ function migrate(snapshot: any) {
  */
 export interface TLSessionStateSnapshot {
 	version: number
-	currentPageId: TLPageId
-	isFocusMode: boolean
-	exportBackground: boolean
-	isDebugMode: boolean
-	isToolLocked: boolean
-	isGridMode: boolean
-	pageStates: Array<{
+	currentPageId?: TLPageId
+	isFocusMode?: boolean
+	exportBackground?: boolean
+	isDebugMode?: boolean
+	isToolLocked?: boolean
+	isGridMode?: boolean
+	pageStates?: Array<{
 		pageId: TLPageId
-		camera: { x: number; y: number; z: number }
-		selectedShapeIds: TLShapeId[]
-		focusedGroupId: TLShapeId | null
+		camera?: { x: number; y: number; z: number }
+		selectedShapeIds?: TLShapeId[]
+		focusedGroupId?: TLShapeId | null
 	}>
 }
 
 const sessionStateSnapshotValidator: T.Validator<TLSessionStateSnapshot> = T.object({
 	version: T.number,
-	currentPageId: pageIdValidator,
-	isFocusMode: T.boolean,
-	exportBackground: T.boolean,
-	isDebugMode: T.boolean,
-	isToolLocked: T.boolean,
-	isGridMode: T.boolean,
+	currentPageId: pageIdValidator.optional(),
+	isFocusMode: T.boolean.optional(),
+	exportBackground: T.boolean.optional(),
+	isDebugMode: T.boolean.optional(),
+	isToolLocked: T.boolean.optional(),
+	isGridMode: T.boolean.optional(),
 	pageStates: T.arrayOf(
 		T.object({
 			pageId: pageIdValidator,
@@ -122,11 +122,11 @@ const sessionStateSnapshotValidator: T.Validator<TLSessionStateSnapshot> = T.obj
 				x: T.number,
 				y: T.number,
 				z: T.number,
-			}),
-			selectedShapeIds: T.arrayOf(shapeIdValidator),
-			focusedGroupId: shapeIdValidator.nullable(),
+			}).optional(),
+			selectedShapeIds: T.arrayOf(shapeIdValidator).optional(),
+			focusedGroupId: shapeIdValidator.nullable().optional(),
 		})
-	),
+	).optional(),
 })
 
 function migrateAndValidateSessionStateSnapshot(state: unknown): TLSessionStateSnapshot | null {
@@ -187,7 +187,7 @@ export function createSessionStateSnapshotSignal(
 					},
 					selectedShapeIds: ps?.selectedShapeIds ?? [],
 					focusedGroupId: ps?.focusedGroupId ?? null,
-				} satisfies TLSessionStateSnapshot['pageStates'][0]
+				} satisfies NonNullable<TLSessionStateSnapshot['pageStates']>[0]
 			}),
 		} satisfies TLSessionStateSnapshot
 	})
@@ -208,38 +208,38 @@ export function loadSessionStateSnapshotIntoStore(
 	const res = migrateAndValidateSessionStateSnapshot(snapshot)
 	if (!res) return
 
+	const preserved = pluckPreservingValues(store.get(TLINSTANCE_ID))
 	const instanceState = store.schema.types.instance.create({
 		id: TLINSTANCE_ID,
-		...pluckPreservingValues(store.get(TLINSTANCE_ID)),
+		...preserved,
+		// the integrity checker will ensure that the currentPageId is valid
 		currentPageId: res.currentPageId,
-		isDebugMode: res.isDebugMode,
-		isFocusMode: res.isFocusMode,
-		isToolLocked: res.isToolLocked,
-		isGridMode: res.isGridMode,
-		exportBackground: res.exportBackground,
+		isDebugMode: preserved?.isDebugMode ?? res.isDebugMode,
+		isFocusMode: preserved?.isFocusMode ?? res.isFocusMode,
+		isToolLocked: preserved?.isToolLocked ?? res.isToolLocked,
+		isGridMode: preserved?.isGridMode ?? res.isGridMode,
+		exportBackground: preserved?.exportBackground ?? res.exportBackground,
 	})
 
-	// remove all page states and cameras and the instance state
-	const allPageStatesAndCameras = store
-		.allRecords()
-		.filter((r) => r.typeName === 'instance_page_state' || r.typeName === 'camera')
-
 	store.atomic(() => {
-		store.remove(allPageStatesAndCameras.map((r) => r.id))
-		// replace them with new ones
-		for (const ps of res.pageStates) {
+		for (const ps of res.pageStates ?? []) {
+			if (!store.has(ps.pageId)) continue
+			const cameraId = CameraRecordType.createId(ps.pageId)
+			const instancePageState = InstancePageStateRecordType.createId(ps.pageId)
+			const previousCamera = store.get(cameraId)
+			const previousInstanceState = store.get(instancePageState)
 			store.put([
 				CameraRecordType.create({
-					id: CameraRecordType.createId(ps.pageId),
-					x: ps.camera.x,
-					y: ps.camera.y,
-					z: ps.camera.z,
+					id: cameraId,
+					x: ps.camera?.x ?? previousCamera?.x,
+					y: ps.camera?.y ?? previousCamera?.y,
+					z: ps.camera?.z ?? previousCamera?.z,
 				}),
 				InstancePageStateRecordType.create({
-					id: InstancePageStateRecordType.createId(ps.pageId),
+					id: instancePageState,
 					pageId: ps.pageId,
-					selectedShapeIds: ps.selectedShapeIds,
-					focusedGroupId: ps.focusedGroupId,
+					selectedShapeIds: ps.selectedShapeIds ?? previousInstanceState?.selectedShapeIds,
+					focusedGroupId: ps.focusedGroupId ?? previousInstanceState?.focusedGroupId,
 				}),
 			])
 		}
@@ -279,7 +279,7 @@ export function extractSessionStateFromLegacySnapshot(
 		isGridMode: false,
 		pageStates: instanceRecords
 			.filter((r: any) => r.typeName === 'instance_page_state' && r.instanceId === oldInstance.id)
-			.map((ps: any): TLSessionStateSnapshot['pageStates'][0] => {
+			.map((ps: any) => {
 				const camera = (store[ps.cameraId] as any) ?? { x: 0, y: 0, z: 1 }
 				return {
 					pageId: ps.pageId,
@@ -290,7 +290,7 @@ export function extractSessionStateFromLegacySnapshot(
 					},
 					selectedShapeIds: ps.selectedShapeIds,
 					focusedGroupId: ps.focusedGroupId,
-				}
+				} satisfies NonNullable<TLSessionStateSnapshot['pageStates']>[0]
 			}),
 	}
 
