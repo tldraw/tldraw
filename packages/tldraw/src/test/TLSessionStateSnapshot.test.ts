@@ -80,7 +80,7 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 		snapshot.pageStates![0].camera!.x = 1
 		snapshot.pageStates![0].camera!.y = 2
 
-		loadSessionStateSnapshotIntoStore(editor.store, snapshot)
+		loadSessionStateSnapshotIntoStore(editor.store, snapshot, { forceOverwrite: true })
 
 		expect(editor.getInstanceState().isGridMode).toBe(true)
 		expect(editor.getCamera().x).toBe(1)

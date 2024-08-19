@@ -14,12 +14,26 @@ export interface TLEditorSnapshot {
 }
 
 /**
+ * Options for {@link loadSnapshot}
+ * @public
+ */
+export interface TLLoadSnapshotOptions {
+	/**
+	 * By default, some session state flags like `isDebugMode` are not overwritten when loading a snapshot.
+	 * These are usually considered "sticky" by users while the document data is not.
+	 * If you want to overwrite these flags, set this to `true`.
+	 */
+	forceOverwriteSessionState?: boolean
+}
+
+/**
  * Loads a snapshot into a store.
  * @public
  */
 export function loadSnapshot(
 	store: TLStore,
-	_snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot
+	_snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot,
+	opts?: TLLoadSnapshotOptions
 ) {
 	let snapshot: Partial<TLEditorSnapshot> = {}
 	if ('store' in _snapshot) {
@@ -66,7 +80,9 @@ export function loadSnapshot(
 
 		// finally reinstate the UI state
 		if (snapshot.session) {
-			loadSessionStateSnapshotIntoStore(store, snapshot.session)
+			loadSessionStateSnapshotIntoStore(store, snapshot.session, {
+				forceOverwrite: opts?.forceOverwriteSessionState,
+			})
 		}
 	})
 }

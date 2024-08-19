@@ -194,6 +194,19 @@ export function createSessionStateSnapshotSignal(
 }
 
 /**
+ * Options for {@link loadSessionStateSnapshotIntoStore}
+ * @public
+ */
+export interface TLLoadSessionStateSnapshotOptions {
+	/**
+	 * By default, some session state flags like `isDebugMode` are not overwritten when loading a snapshot.
+	 * These are usually considered "sticky" by users while the document data is not.
+	 * If you want to overwrite these flags, set this to `true`.
+	 */
+	forceOverwrite?: boolean
+}
+
+/**
  * Loads a snapshot of the editor's instance state into the store of a new editor instance.
  *
  * @public
@@ -203,22 +216,26 @@ export function createSessionStateSnapshotSignal(
  */
 export function loadSessionStateSnapshotIntoStore(
 	store: TLStore,
-	snapshot: TLSessionStateSnapshot
+	snapshot: TLSessionStateSnapshot,
+	opts?: TLLoadSessionStateSnapshotOptions
 ) {
 	const res = migrateAndValidateSessionStateSnapshot(snapshot)
 	if (!res) return
 
 	const preserved = pluckPreservingValues(store.get(TLINSTANCE_ID))
+	const primary = opts?.forceOverwrite ? res : preserved
+	const secondary = opts?.forceOverwrite ? preserved : res
+
 	const instanceState = store.schema.types.instance.create({
 		id: TLINSTANCE_ID,
 		...preserved,
 		// the integrity checker will ensure that the currentPageId is valid
 		currentPageId: res.currentPageId,
-		isDebugMode: preserved?.isDebugMode ?? res.isDebugMode,
-		isFocusMode: preserved?.isFocusMode ?? res.isFocusMode,
-		isToolLocked: preserved?.isToolLocked ?? res.isToolLocked,
-		isGridMode: preserved?.isGridMode ?? res.isGridMode,
-		exportBackground: preserved?.exportBackground ?? res.exportBackground,
+		isDebugMode: primary?.isDebugMode ?? secondary?.isDebugMode,
+		isFocusMode: primary?.isFocusMode ?? secondary?.isFocusMode,
+		isToolLocked: primary?.isToolLocked ?? secondary?.isToolLocked,
+		isGridMode: primary?.isGridMode ?? secondary?.isGridMode,
+		exportBackground: primary?.exportBackground ?? secondary?.exportBackground,
 	})
 
 	store.atomic(() => {
