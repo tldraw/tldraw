@@ -9,6 +9,7 @@ import React, {
 	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 	useSyncExternalStore,
 } from 'react'
 
@@ -22,7 +23,7 @@ import { TLStoreBaseOptions } from './config/createTLStore'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
-import { Editor } from './editor/Editor'
+import { Editor, TLEditorContainer } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -206,6 +207,22 @@ const EMPTY_TOOLS_ARRAY = [] as const
 /** @internal */
 export const TL_CONTAINER_CLASS = 'tl-container'
 
+function useContainerRef(): [TLEditorContainer | null, (container: HTMLDivElement | null) => void] {
+	const [container, setContainer] = useState<TLEditorContainer | null>(null)
+	return [
+		container,
+		useCallback((_container: HTMLDivElement | null) => {
+			if (_container) {
+				const container = _container as unknown as TLEditorContainer
+				if (!container.__tldraw__) container.__tldraw__ = {}
+				setContainer(container)
+			} else {
+				setContainer(null)
+			}
+		}, []),
+	]
+}
+
 /** @public @react */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
@@ -214,7 +231,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	user: _user,
 	...rest
 }: TldrawEditorProps) {
-	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
+	const [container, setContainer] = useContainerRef()
 	const user = useMemo(() => _user ?? createTLUser(), [_user])
 
 	const ErrorFallback =

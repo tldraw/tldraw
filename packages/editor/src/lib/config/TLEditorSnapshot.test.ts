@@ -1,6 +1,6 @@
 import { PageRecordType, TLStore, createShapeId } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
-import { Editor } from '../editor/Editor'
+import { Editor, TLEditorContainer } from '../editor/Editor'
 import { Box } from '../primitives/Box'
 import { TLEditorSnapshot, getSnapshot, loadSnapshot } from './TLEditorSnapshot'
 import { createTLStore } from './createTLStore'
@@ -10,7 +10,11 @@ const createEditor = (store: TLStore) => {
 		store,
 		bindingUtils: [],
 		shapeUtils: [],
-		getContainer: () => document.createElement('div'),
+		getContainer: () => {
+			const container = document.createElement('div') as unknown as TLEditorContainer
+			container.__tldraw__ = {}
+			return container
+		},
 		tools: [],
 	})
 }

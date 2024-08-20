@@ -1,5 +1,5 @@
 import { createTLStore } from '../config/createTLStore'
-import { Editor, TLEditorOptions } from '../editor/Editor'
+import { Editor, TLEditorContainer, TLEditorOptions } from '../editor/Editor'
 import { StateNode } from '../editor/tools/StateNode'
 
 class CustomTool extends StateNode {
@@ -8,7 +8,8 @@ class CustomTool extends StateNode {
 
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
-		const elm = document.createElement('div')
+		const elm = document.createElement('div') as unknown as TLEditorContainer
+		elm.__tldraw__ = {}
 		elm.tabIndex = 0
 
 		const shapeUtils = [...(options.shapeUtils ?? [])]

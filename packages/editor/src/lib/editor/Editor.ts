@@ -84,8 +84,6 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import { flushSync } from 'react-dom'
-import { createRoot } from 'react-dom/client'
 import {
 	TLEditorSnapshot,
 	TLLoadSnapshotOptions,
@@ -105,6 +103,8 @@ import {
 	STYLUS_ERASER_BUTTON,
 	ZOOM_TO_FIT_PADDING,
 } from '../constants'
+import { exportToSvg } from '../exports/exportToSvg'
+import { TLEditorComponents } from '../hooks/useEditorComponents'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
@@ -131,7 +131,6 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { getSvgJsx } from './getSvgJsx'
 import { ClickManager } from './managers/ClickManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
@@ -178,6 +177,14 @@ export type TLResizeShapeOptions = Partial<{
 }>
 
 /** @public */
+export interface TLEditorContainer extends HTMLElement {
+	/** @internal */
+	__tldraw__: {
+		editorComponents?: Required<TLEditorComponents>
+	}
+}
+
+/** @public */
 export interface TLEditorOptions {
 	/**
 	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
@@ -200,7 +207,7 @@ export interface TLEditorOptions {
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
 	 */
-	getContainer(): HTMLElement
+	getContainer(): TLEditorContainer
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -270,7 +277,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
-		this.getContainer = getContainer ?? (() => document.body)
+		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
 		this._tickManager = new TickManager(this)
@@ -829,7 +836,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getContainer: () => HTMLElement
+	getContainer: () => TLEditorContainer
 
 	/**
 	 * Dispose the editor.
@@ -8506,20 +8513,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
-		const result = await getSvgJsx(this, shapes, opts)
-		if (!result) return undefined
+		const ids =
+			typeof shapes[0] === 'string'
+				? (shapes as TLShapeId[])
+				: (shapes as TLShape[]).map((s) => s.id)
 
-		const fragment = document.createDocumentFragment()
-		const root = createRoot(fragment)
-		flushSync(() => {
-			root.render(result.jsx)
-		})
+		if (ids.length === 0) return undefined
 
-		const svg = fragment.firstElementChild
-		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
-
-		root.unmount()
-		return { svg, width: result.width, height: result.height }
+		return exportToSvg(this, ids, opts)
 	}
 
 	/**

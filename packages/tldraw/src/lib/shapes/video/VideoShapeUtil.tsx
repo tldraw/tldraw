@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Editor,
 	HTMLContainer,
 	TLVideoShape,
 	toDomPrecision,
@@ -151,20 +152,35 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override toSvg(shape: TLVideoShape) {
-		return <image href={serializeVideo(shape.id)} width={shape.props.w} height={shape.props.h} />
+	override async toSvg(shape: TLVideoShape) {
+		const image = await serializeVideo(this.editor, shape)
+		if (!image) return null
+		return <image href={image} width={shape.props.w} height={shape.props.h} />
 	}
 }
 
-// Function from v1, could be improved but explicitly using this.model.time (?)
-function serializeVideo(id: string): string {
-	const splitId = id.split(':')[1]
-	const video = document.querySelector(`.tl-video-shape-${splitId}`) as HTMLVideoElement
-	if (video) {
-		const canvas = document.createElement('canvas')
-		canvas.width = video.videoWidth
-		canvas.height = video.videoHeight
-		canvas.getContext('2d')!.drawImage(video, 0, 0)
-		return canvas.toDataURL('image/png')
-	} else throw new Error('Video with not found when attempting serialization.')
+async function serializeVideo(editor: Editor, shape: TLVideoShape): Promise<string | null> {
+	const assetUrl = await editor.resolveAssetUrl(shape.props.assetId, {
+		shouldResolveToOriginal: true,
+	})
+	if (!assetUrl) return null
+
+	const video = await new Promise<HTMLVideoElement>((resolve, reject) => {
+		const video = document.createElement('video')
+		video.onseeked = () => resolve(video)
+		video.onerror = (e) => {
+			console.error(e)
+			reject(new Error('Could not load video'))
+		}
+		video.crossOrigin = 'anonymous'
+		video.src = assetUrl
+		video.currentTime = 0.001
+	})
+
+	const canvas = document.createElement('canvas')
+	canvas.width = shape.props.w
+	canvas.height = shape.props.h
+	const ctx = canvas.getContext('2d')!
+	ctx.drawImage(video, 0, 0, shape.props.w, shape.props.h)
+	return canvas.toDataURL()
 }

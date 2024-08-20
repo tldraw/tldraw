@@ -1,5 +1,5 @@
 import { Box, createShapeId, createTLStore } from '../..'
-import { Editor } from './Editor'
+import { Editor, TLEditorContainer } from './Editor'
 
 let editor: Editor
 
@@ -9,7 +9,7 @@ beforeEach(() => {
 		bindingUtils: [],
 		tools: [],
 		store: createTLStore({ shapeUtils: [] }),
-		getContainer: () => document.body,
+		getContainer: () => document.body as any as TLEditorContainer,
 	})
 	editor.setCameraOptions({ isLocked: true })
 	editor.setCamera = jest.fn()

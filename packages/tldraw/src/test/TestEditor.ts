@@ -30,6 +30,7 @@ import {
 	createTLStore,
 	rotateSelectionHandle,
 } from '@tldraw/editor'
+import { TLEditorContainer } from '@tldraw/editor/src/lib/editor/Editor'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
@@ -61,7 +62,8 @@ declare global {
 
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
-		const elm = document.createElement('div')
+		const elm = document.createElement('div') as any as TLEditorContainer
+		elm.__tldraw__ = {}
 		const bounds = {
 			x: 0,
 			y: 0,
@@ -169,7 +171,7 @@ export class TestEditor extends Editor {
 		return this.getShape<T>(lastShape)!
 	}
 
-	elm: HTMLDivElement
+	elm: TLEditorContainer
 	readonly bounds: {
 		x: number
 		y: number
