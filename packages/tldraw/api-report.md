@@ -2635,6 +2635,10 @@ export interface TLUiEventMap {
         id: string;
     };
     // (undocumented)
+    'open-url': {
+        url: string;
+    };
+    // (undocumented)
     'pack-shapes': null;
     // (undocumented)
     'remove-frame': null;

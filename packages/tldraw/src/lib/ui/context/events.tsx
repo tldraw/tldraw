@@ -108,6 +108,7 @@ export interface TLUiEventMap {
 	'zoom-tool': null
 	'unlock-all': null
 	'flatten-to-image': null
+	'open-url': { url: string }
 }
 
 /** @public */
