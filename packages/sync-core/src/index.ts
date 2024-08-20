@@ -1,3 +1,4 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export { RoomSessionState, type RoomSession } from './lib/RoomSession'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
@@ -38,3 +39,9 @@ export {
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
+
+registerTldrawLibraryVersion(
+	process.env.TLDRAW_LIBRARY_VERSION_NAME,
+	process.env.TLDRAW_LIBRARY_VERSION_VERSION,
+	process.env.TLDRAW_LIBRARY_VERSION_MODULES
+)

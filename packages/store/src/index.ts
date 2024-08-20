@@ -1,3 +1,4 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
 export { RecordType, assertIdType, createRecordType, type RecordScope } from './lib/RecordType'
@@ -66,3 +67,9 @@ export {
 	type MigrationSequence,
 	type StandaloneDependsOn,
 } from './lib/migrate'
+
+registerTldrawLibraryVersion(
+	process.env.TLDRAW_LIBRARY_VERSION_NAME,
+	process.env.TLDRAW_LIBRARY_VERSION_VERSION,
+	process.env.TLDRAW_LIBRARY_VERSION_MODULES
+)

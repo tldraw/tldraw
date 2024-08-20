@@ -1,3 +1,4 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 import { singleton } from './lib/helpers'
 
 export { ArraySet } from './lib/ArraySet'
@@ -31,3 +32,9 @@ if (actualApiVersion !== currentApiVersion) {
 		`You have multiple incompatible versions of @tldraw/state in your app. Please deduplicate the package.`
 	)
 }
+
+registerTldrawLibraryVersion(
+	process.env.TLDRAW_LIBRARY_VERSION_NAME,
+	process.env.TLDRAW_LIBRARY_VERSION_VERSION,
+	process.env.TLDRAW_LIBRARY_VERSION_MODULES
+)

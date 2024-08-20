@@ -1,3 +1,4 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export {
 	type TLAssetContext,
 	type TLAssetStore,
@@ -250,3 +251,9 @@ export {
 	type TLLanguage,
 } from './translations/translations'
 export { type SetValue } from './util-types'
+
+registerTldrawLibraryVersion(
+	process.env.TLDRAW_LIBRARY_VERSION_NAME,
+	process.env.TLDRAW_LIBRARY_VERSION_VERSION,
+	process.env.TLDRAW_LIBRARY_VERSION_MODULES
+)

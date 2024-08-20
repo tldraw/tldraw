@@ -1,5 +1,6 @@
 /// <reference types="react" />
 
+import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -496,3 +497,9 @@ export {
 	type TldrawFile,
 	type TldrawFileParseError,
 } from './lib/utils/tldr/file'
+
+registerTldrawLibraryVersion(
+	process.env.TLDRAW_LIBRARY_VERSION_NAME,
+	process.env.TLDRAW_LIBRARY_VERSION_VERSION,
+	process.env.TLDRAW_LIBRARY_VERSION_MODULES
+)
