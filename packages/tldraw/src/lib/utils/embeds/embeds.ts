@@ -1,3 +1,4 @@
+import { safeParseUrl } from '@tldraw/editor'
 import { TLEmbedDefinition } from '../../defaultEmbedDefinitions'
 
 // https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
@@ -13,7 +14,9 @@ function escapeStringRegexp(string: string) {
 
 /** @public */
 export function matchEmbedUrl(definitions: readonly TLEmbedDefinition[], url: string) {
-	const host = new URL(url).host.replace('www.', '')
+	const parsed = safeParseUrl(url)
+	if (!parsed) return
+	const host = parsed.host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
 			const originalUrl = localEmbedDef.fromEmbedUrl(url)
@@ -44,7 +47,9 @@ const checkHostnames = (hostnames: readonly string[], targetHostname: string) =>
 
 /** @public */
 export function matchUrl(definitions: readonly TLEmbedDefinition[], url: string) {
-	const host = new URL(url).host.replace('www.', '')
+	const parsed = safeParseUrl(url)
+	if (!parsed) return
+	const host = parsed.host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
 			const embedUrl = localEmbedDef.toEmbedUrl(url)
