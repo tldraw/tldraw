@@ -141,6 +141,7 @@ export function DefaultDebugMenuContent() {
 							onClose: () => {
 								void null
 							},
+							id: 'example-dialog',
 						})
 					}}
 				/>

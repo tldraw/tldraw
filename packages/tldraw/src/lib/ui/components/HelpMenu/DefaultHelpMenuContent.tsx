@@ -19,7 +19,9 @@ export function KeyboardShortcutsMenuItem() {
 	const { addDialog } = useDialogs()
 
 	const handleSelect = useCallback(() => {
-		if (KeyboardShortcutsDialog) addDialog({ component: KeyboardShortcutsDialog })
+		if (KeyboardShortcutsDialog) {
+			addDialog({ component: KeyboardShortcutsDialog, id: 'keyboard-shortcuts' })
+		}
 	}, [addDialog, KeyboardShortcutsDialog])
 
 	if (!KeyboardShortcutsDialog) return null
