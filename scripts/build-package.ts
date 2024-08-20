@@ -83,10 +83,13 @@ function getCommonEsbuildOptions(info: LibraryInfo) {
 		define['process.env.TLDRAW_BEMO_URL'] = JSON.stringify(process.env.TLDRAW_BEMO_URL)
 	}
 
-	define['process.env.TLDRAW_LIBRARY_VERSION_NAME'] = JSON.stringify(info.name)
-	define['process.env.TLDRAW_LIBRARY_VERSION_VERSION'] = JSON.stringify(info.version)
-	define['process.env.TLDRAW_LIBRARY_VERSION_MODULES'] = JSON.stringify(info.moduleSystem)
-	define['process.env.TLDRAW_LIBRARY_IS_BUILD'] = JSON.stringify(true)
+	// we use `globalThis` instead of `process.env` because although it'll get compiled away in
+	// library code, we use the un-compiled versions in our own apps and not every environment
+	// supports process.env.
+	define['globalThis.TLDRAW_LIBRARY_NAME'] = JSON.stringify(info.name)
+	define['globalThis.TLDRAW_LIBRARY_VERSION'] = JSON.stringify(info.version)
+	define['globalThis.TLDRAW_LIBRARY_MODULES'] = JSON.stringify(info.moduleSystem)
+	define['globalThis.TLDRAW_LIBRARY_IS_BUILD'] = JSON.stringify(true)
 
 	return {
 		bundle: false,

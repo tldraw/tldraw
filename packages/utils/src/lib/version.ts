@@ -51,7 +51,7 @@ export function clearRegisteredVersionsForTests() {
 /** @internal */
 export function registerTldrawLibraryVersion(name?: string, version?: string, modules?: string) {
 	if (!name || !version || !modules) {
-		if (process.env.TLDRAW_LIBRARY_IS_BUILD) {
+		if ((globalThis as any).TLDRAW_LIBRARY_IS_BUILD) {
 			throw new Error('Missing name/version/module system in built version of tldraw library')
 		}
 		return

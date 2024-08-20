@@ -499,7 +499,7 @@ export {
 } from './lib/utils/tldr/file'
 
 registerTldrawLibraryVersion(
-	process.env.TLDRAW_LIBRARY_VERSION_NAME,
-	process.env.TLDRAW_LIBRARY_VERSION_VERSION,
-	process.env.TLDRAW_LIBRARY_VERSION_MODULES
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
 )

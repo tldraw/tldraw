@@ -258,9 +258,9 @@ async function checkLibraryContents({
 
 		const search = [
 			'registerTldrawLibraryVersion(',
-			'\tprocess.env.TLDRAW_LIBRARY_VERSION_NAME,',
-			'\tprocess.env.TLDRAW_LIBRARY_VERSION_VERSION,',
-			'\tprocess.env.TLDRAW_LIBRARY_VERSION_MODULES',
+			'\t(globalThis as any).TLDRAW_LIBRARY_NAME,',
+			'\t(globalThis as any).TLDRAW_LIBRARY_VERSION,',
+			'\t(globalThis as any).TLDRAW_LIBRARY_MODULES',
 			')',
 		].join('\n')
 
@@ -276,9 +276,9 @@ async function checkLibraryContents({
 				sourceFileContents,
 				'',
 				'registerTldrawLibraryVersion(',
-				'process.env.TLDRAW_LIBRARY_VERSION_NAME,',
-				'process.env.TLDRAW_LIBRARY_VERSION_VERSION,',
-				'process.env.TLDRAW_LIBRARY_VERSION_MODULES',
+				'(globalThis as any).TLDRAW_LIBRARY_NAME,',
+				'(globalThis as any).TLDRAW_LIBRARY_VERSION,',
+				'(globalThis as any).TLDRAW_LIBRARY_NAME',
 				')',
 			].join('\n')
 
