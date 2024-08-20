@@ -143,6 +143,7 @@ export type TLUiTranslationKey =
 	| 'color-style.yellow'
 	| 'fill-style.none'
 	| 'document.default-name'
+	| 'document-name.copy-link'
 	| 'fill-style.semi'
 	| 'fill-style.solid'
 	| 'fill-style.pattern'

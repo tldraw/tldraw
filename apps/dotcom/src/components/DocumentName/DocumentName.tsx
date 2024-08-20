@@ -27,6 +27,7 @@ import {
 	useEditor,
 	useToasts,
 	useTranslation,
+	useUiEvents,
 } from 'tldraw'
 import { FORK_PROJECT_ACTION } from '../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION } from '../../utils/useFileSystem'
@@ -62,6 +63,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const toasts = useToasts()
+	const trackEvent = useUiEvents()
 	const isReadonly = editor.getInstanceState().isReadonly
 
 	return (
@@ -93,6 +95,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 							<TldrawUiButton
 								type="menu"
 								onClick={async () => {
+									trackEvent('copy-link', { source: 'document-name' })
 									const shareLink = await getShareUrl(
 										window.location.href,
 										editor.getInstanceState().isReadonly
@@ -104,7 +107,9 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 									})
 								}}
 							>
-								<span className={'tlui-button__label' as any}>Copy link</span>
+								<span className={'tlui-button__label' as any}>
+									{msg('document-name.copy-link')}
+								</span>
 							</TldrawUiButton>
 						</TldrawUiDropdownMenuItem>
 						<TldrawUiDropdownMenuItem>
@@ -142,6 +147,7 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	const editor = useEditor()
 	const documentSettings = editor.getDocumentSettings()
 	const msg = useTranslation()
+	const trackEvent = useUiEvents()
 	const defaultDocumentName = msg('document.default-name')
 
 	useEffect(() => {
@@ -162,13 +168,14 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 				return
 			}
 
+			trackEvent('rename-document', { source: 'document-name' })
 			editor.updateDocumentSettings({ name: trimmed })
 		}
 
 		if (!state.isEditing) {
 			save()
 		}
-	}, [documentSettings.name, editor, state.isEditing, state.name, setState])
+	}, [documentSettings.name, editor, state.isEditing, state.name, setState, trackEvent])
 
 	useEffect(() => {
 		if (documentSettings.name) {

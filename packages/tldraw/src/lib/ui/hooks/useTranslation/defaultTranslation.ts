@@ -144,6 +144,7 @@ export const DEFAULT_TRANSLATION = {
 	'color-style.yellow': 'Yellow',
 	'fill-style.none': 'None',
 	'document.default-name': 'Untitled',
+	'document-name.copy-link': 'Copy link',
 	'fill-style.semi': 'Semi',
 	'fill-style.solid': 'Solid',
 	'fill-style.pattern': 'Pattern',
