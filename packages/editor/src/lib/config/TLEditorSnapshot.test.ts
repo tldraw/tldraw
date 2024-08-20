@@ -1,4 +1,4 @@
-import { PageRecordType, TLStore } from '@tldraw/tlschema'
+import { PageRecordType, TLStore, createShapeId } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
@@ -223,5 +223,22 @@ describe('loadSnapshot', () => {
 		// and because we updated the page1 camera after the snapshot was taken, it should still be the same
 		editor.setCurrentPage(page1Id)
 		expect(editor.getCamera()).toMatchObject({ x: 1, y: 2, z: 3 })
+	})
+
+	it('cleans up references to missing shapes from page state', () => {
+		const store = createTLStore({})
+		const editor = createEditor(store)
+
+		const shapeA = createShapeId('a')
+		editor.createShape({ type: 'group', id: shapeA })
+
+		const snapshot = getSnapshot(store)
+
+		const shapeB = createShapeId('b')
+		editor.createShape({ type: 'group', id: shapeB }).select(shapeB, shapeA)
+
+		loadSnapshot(store, snapshot.document)
+
+		expect(editor.getCurrentPageState().selectedShapeIds).toEqual([shapeA])
 	})
 })
