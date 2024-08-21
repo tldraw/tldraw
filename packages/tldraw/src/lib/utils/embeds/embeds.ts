@@ -85,5 +85,9 @@ export function getEmbedInfo(
 	definitions: readonly TLEmbedDefinition[],
 	inputUrl: string
 ): TLEmbedResult {
-	return matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
+	try {
+		return matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
+	} catch (_e) {
+		return undefined
+	}
 }
