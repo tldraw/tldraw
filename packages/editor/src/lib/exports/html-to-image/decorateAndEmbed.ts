@@ -13,15 +13,6 @@ function copyAttrs(source: Element, target: Element) {
 	})
 }
 
-function getCanvasReplacement(canvas: HTMLCanvasElement) {
-	try {
-		const dataURL = canvas.toDataURL()
-		return createImage(dataURL, canvas)
-	} catch {
-		return createImage(null, canvas)
-	}
-}
-
 function replace(original: HTMLElement, replacement: HTMLElement) {
 	original.replaceWith(replacement)
 	return replacement
@@ -44,6 +35,15 @@ async function createImage(dataUrl: string | null, cloneAttributesFrom?: HTMLEle
 		// this is fine
 	}
 	return image
+}
+
+async function getCanvasReplacement(canvas: HTMLCanvasElement) {
+	try {
+		const dataURL = canvas.toDataURL()
+		return await createImage(dataURL, canvas)
+	} catch {
+		return await createImage(null, canvas)
+	}
 }
 
 async function getVideoReplacement(video: HTMLVideoElement) {

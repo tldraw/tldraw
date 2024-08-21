@@ -985,14 +985,6 @@ input,
 	line-clamp: 2;
 	text-overflow: ellipsis;
 	display: -webkit-box;
-	color: purple;
-}
-.tl-bookmark__heading::after {
-	content: 'weow';
-	color: red;
-	background: lime;
-	display: 'inline-block';
-	padding: 4px;
 }
 
 .tl-bookmark__description {
@@ -1002,6 +994,7 @@ input,
 	max-height: calc((12px * 1.5) * 3);
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 3;
+	line-clamp: 3;
 	text-overflow: ellipsis;
 	display: -webkit-box;
 	color: var(--color-text-2);

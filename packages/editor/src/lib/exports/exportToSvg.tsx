@@ -49,6 +49,7 @@ export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: T
 
 async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 	const foreignObjectChildren = svg.querySelectorAll('foreignObject.tl-shape-foreign-object > *')
+	if (!foreignObjectChildren.length) return
 
 	const fontEmbedder = new FontEmbedder()
 
