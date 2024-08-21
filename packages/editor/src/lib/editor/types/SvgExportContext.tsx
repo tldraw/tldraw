@@ -1,6 +1,5 @@
 import { ReactElement, ReactNode, createContext, useContext } from 'react'
 import { EditorContext } from '../../hooks/useEditor'
-import { EditorComponentsProvider } from '../../hooks/useEditorComponents'
 import { Editor } from '../Editor'
 
 /** @public */
@@ -34,11 +33,9 @@ export function SvgExportContextProvider({
 	children: ReactNode
 }) {
 	return (
-		<EditorComponentsProvider overrides={editor.getContainer().__tldraw__.editorComponents}>
-			<EditorContext.Provider value={editor}>
-				<Context.Provider value={context}>{children}</Context.Provider>
-			</EditorContext.Provider>
-		</EditorComponentsProvider>
+		<EditorContext.Provider value={editor}>
+			<Context.Provider value={context}>{children}</Context.Provider>
+		</EditorContext.Provider>
 	)
 }
 

@@ -1,4 +1,3 @@
-import { TLEditorContainer } from '@tldraw/editor/src/lib/editor/Editor'
 import {
 	Editor,
 	PageRecordType,
@@ -104,7 +103,7 @@ export class FuzzEditor extends RandomSource {
 			tools: defaultTools,
 			initialState: 'select',
 			store,
-			getContainer: () => document.createElement('div') as any as TLEditorContainer,
+			getContainer: () => document.createElement('div'),
 		})
 	}
 

@@ -12,7 +12,6 @@ import {
 	useShallowArrayIdentity,
 	useTLStore,
 } from '@tldraw/editor'
-import { TLEditorContainer } from '@tldraw/editor/src/lib/editor/Editor'
 import { memo, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
@@ -104,8 +103,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 
 		let isCancelled = false
 
-		const tempElm = document.createElement('div') as any as TLEditorContainer
-		tempElm.__tldraw__ = {}
+		const tempElm = document.createElement('div')
 		container.appendChild(tempElm)
 		container.classList.add('tl-container', 'tl-theme__light')
 

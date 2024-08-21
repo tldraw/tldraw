@@ -1,5 +1,6 @@
+import { describe } from 'node:test'
 import { createTLStore } from '../config/createTLStore'
-import { Editor, TLEditorContainer } from '../editor/Editor'
+import { Editor } from '../editor/Editor'
 import { StateNode } from '../editor/tools/StateNode'
 
 let editor: Editor
@@ -27,7 +28,7 @@ beforeEach(() => {
 		bindingUtils: [],
 		tools: [A, B, C],
 		store: createTLStore({ shapeUtils: [] }),
-		getContainer: () => document.body as any as TLEditorContainer,
+		getContainer: () => document.body,
 	})
 })
 

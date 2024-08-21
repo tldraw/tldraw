@@ -1,11 +1,4 @@
-import {
-	ComponentType,
-	ReactNode,
-	createContext,
-	useContext,
-	useLayoutEffect,
-	useMemo,
-} from 'react'
+import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
 import { DefaultBackground } from '../components/default-components/DefaultBackground'
 import { DefaultBrush, TLBrushProps } from '../components/default-components/DefaultBrush'
 import {
@@ -53,7 +46,6 @@ import {
 } from '../components/default-components/DefaultSnapIndictor'
 import { DefaultSpinner } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs } from '../components/default-components/DefaultSvgDefs'
-import { useContainerIfExists } from './useContainer'
 import { useShallowObjectIdentity } from './useIdentity'
 
 /** @public */
@@ -134,11 +126,6 @@ export function EditorComponentsProvider({
 		}),
 		[_overrides]
 	)
-
-	const container = useContainerIfExists()
-	useLayoutEffect(() => {
-		if (container) container.__tldraw__.editorComponents = value
-	}, [value, container])
 
 	return (
 		<EditorComponentsContext.Provider value={value}>{children}</EditorComponentsContext.Provider>

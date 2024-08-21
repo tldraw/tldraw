@@ -1,3 +1,4 @@
+import { promiseWithResolve } from '../control'
 import { Image } from '../network'
 import { isApngAnimated } from './apng'
 import { isAvifAnimated } from './avif'
@@ -58,6 +59,38 @@ export class MediaHelpers {
 			video.crossOrigin = 'anonymous'
 			video.src = src
 		})
+	}
+
+	static async getVideoFrameAsDataUrl(video: HTMLVideoElement, time = 0): Promise<string> {
+		const canvas = document.createElement('canvas')
+		canvas.width = video.videoWidth
+		canvas.height = video.videoHeight
+		const ctx = canvas.getContext('2d')
+		if (!ctx) {
+			throw new Error('Could not get 2d context')
+		}
+
+		const promise = promiseWithResolve<string>()
+		const onSeeked = () => {
+			ctx.drawImage(video, 0, 0)
+			promise.resolve(canvas.toDataURL())
+		}
+		const onError = (e: Event) => {
+			console.error(e)
+			promise.reject(new Error('Could not get video frame'))
+		}
+
+		video.addEventListener('seeked', onSeeked)
+		video.addEventListener('error', onError)
+
+		video.currentTime = time
+
+		try {
+			return await promise
+		} finally {
+			video.removeEventListener('seeked', onSeeked)
+			video.removeEventListener('error', onError)
+		}
 	}
 
 	/**

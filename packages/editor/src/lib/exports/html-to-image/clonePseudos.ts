@@ -1,33 +1,36 @@
 import { uniqueId } from '../../utils/uniqueId'
+import { embedCssValueUrlsIfNeeded } from './embedCss'
 
 type Pseudo = ':before' | ':after'
 
-function formatCSSText(style: CSSStyleDeclaration) {
-	const content = style.getPropertyValue('content')
-	return `${style.cssText} content: '${content.replace(/'|"/g, '')}';`
+async function formatCSSProperties(style: CSSStyleDeclaration) {
+	let cssText = ''
+	for (const property of style) {
+		let value = style.getPropertyValue(property)
+		const priority = style.getPropertyPriority(property)
+
+		const replaced = embedCssValueUrlsIfNeeded(value)
+		if (replaced) {
+			value = await replaced
+		}
+
+		cssText += `${property}: ${value}${priority ? ' !important' : ''};`
+	}
+	return cssText
 }
 
-function formatCSSProperties(style: CSSStyleDeclaration) {
-	return Array.from(style, (name) => {
-		const value = style.getPropertyValue(name)
-		const priority = style.getPropertyPriority(name)
-
-		return `${name}: ${value}${priority ? ' !important' : ''};`
-	}).join(' ')
-}
-
-function getPseudoElementStyle(
+async function getPseudoElementStyle(
 	className: string,
 	pseudo: Pseudo,
 	style: CSSStyleDeclaration
-): Text {
+): Promise<Text> {
 	const selector = `.${className}:${pseudo}`
-	const cssText = style.cssText ? formatCSSText(style) : formatCSSProperties(style)
+	const cssText = await formatCSSProperties(style)
 
 	return document.createTextNode(`${selector}{${cssText}}`)
 }
 
-function clonePseudoElement(node: HTMLElement, pseudo: Pseudo) {
+async function clonePseudoElement(node: HTMLElement, pseudo: Pseudo) {
 	const style = window.getComputedStyle(node, pseudo)
 	const content = style.getPropertyValue('content')
 	if (content === '' || content === 'none') {
@@ -42,11 +45,11 @@ function clonePseudoElement(node: HTMLElement, pseudo: Pseudo) {
 	}
 
 	const styleElement = document.createElement('style')
-	styleElement.appendChild(getPseudoElementStyle(className, pseudo, style))
+	styleElement.appendChild(await getPseudoElementStyle(className, pseudo, style))
 	node.parentNode!.insertBefore(styleElement, node)
 }
 
-export function clonePseudoElements(node: HTMLElement) {
-	clonePseudoElement(node, ':before')
-	clonePseudoElement(node, ':after')
+export async function clonePseudoElements(node: HTMLElement) {
+	await clonePseudoElement(node, ':before')
+	await clonePseudoElement(node, ':after')
 }

@@ -104,7 +104,6 @@ import {
 	ZOOM_TO_FIT_PADDING,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
-import { TLEditorComponents } from '../hooks/useEditorComponents'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
@@ -177,14 +176,6 @@ export type TLResizeShapeOptions = Partial<{
 }>
 
 /** @public */
-export interface TLEditorContainer extends HTMLElement {
-	/** @internal */
-	__tldraw__: {
-		editorComponents?: Required<TLEditorComponents>
-	}
-}
-
-/** @public */
 export interface TLEditorOptions {
 	/**
 	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
@@ -207,7 +198,7 @@ export interface TLEditorOptions {
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
 	 */
-	getContainer(): TLEditorContainer
+	getContainer(): HTMLElement
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -836,7 +827,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getContainer: () => TLEditorContainer
+	getContainer: () => HTMLElement
 
 	/**
 	 * Dispose the editor.

@@ -1,25 +1,24 @@
 import { assertExists } from '@tldraw/utils'
 import { createContext, useContext } from 'react'
-import { TLEditorContainer } from '../editor/Editor'
 
-const ContainerContext = createContext<TLEditorContainer | null>(null)
+const ContainerContext = createContext<HTMLElement | null>(null)
 
 /** @internal */
 export function ContainerProvider({
 	container,
 	children,
 }: {
-	container: TLEditorContainer
+	container: HTMLElement
 	children: React.ReactNode
 }) {
 	return <ContainerContext.Provider value={container}>{children}</ContainerContext.Provider>
 }
 
 /** @public */
-export function useContainer(): TLEditorContainer {
+export function useContainer(): HTMLElement {
 	return assertExists(useContext(ContainerContext), 'useContainer used outside of <Tldraw />')
 }
 
-export function useContainerIfExists(): TLEditorContainer | null {
+export function useContainerIfExists(): HTMLElement | null {
 	return useContext(ContainerContext)
 }

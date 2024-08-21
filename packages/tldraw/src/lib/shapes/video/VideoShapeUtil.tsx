@@ -3,6 +3,7 @@ import {
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
+	MediaHelpers,
 	TLVideoShape,
 	toDomPrecision,
 	useEditorComponents,
@@ -165,22 +166,6 @@ async function serializeVideo(editor: Editor, shape: TLVideoShape): Promise<stri
 	})
 	if (!assetUrl) return null
 
-	const video = await new Promise<HTMLVideoElement>((resolve, reject) => {
-		const video = document.createElement('video')
-		video.onseeked = () => resolve(video)
-		video.onerror = (e) => {
-			console.error(e)
-			reject(new Error('Could not load video'))
-		}
-		video.crossOrigin = 'anonymous'
-		video.src = assetUrl
-		video.currentTime = 0.001
-	})
-
-	const canvas = document.createElement('canvas')
-	canvas.width = shape.props.w
-	canvas.height = shape.props.h
-	const ctx = canvas.getContext('2d')!
-	ctx.drawImage(video, 0, 0, shape.props.w, shape.props.h)
-	return canvas.toDataURL()
+	const video = await MediaHelpers.loadVideo(assetUrl)
+	return MediaHelpers.getVideoFrameAsDataUrl(video, 0)
 }

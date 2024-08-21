@@ -256,12 +256,11 @@ function ForeignObjectShape({
 }) {
 	const editor = useEditor()
 
-	const transform = editor
-		.getShapePageTransform(shape.id)!
-		.clone()
-		.translate(-bbox.minX, -bbox.minY)
-	const bounds = editor.getShapeGeometry(shape).bounds
+	const transform = Mat.Translate(-bbox.minX, -bbox.minY).multiply(
+		editor.getShapePageTransform(shape.id)!
+	)
 
+	const bounds = editor.getShapeGeometry(shape.id).bounds
 	const width = Math.max(bounds.width, 1)
 	const height = Math.max(bounds.height, 1)
 

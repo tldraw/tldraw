@@ -234,6 +234,8 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
+    // (undocumented)
+    static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
     static getVideoSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -379,7 +381,7 @@ export function rng(seed?: string): () => number;
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public (undocumented)
-export const safeParseUrl: (url: string) => undefined | URL;
+export const safeParseUrl: (url: string, baseUrl?: string | URL) => undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;

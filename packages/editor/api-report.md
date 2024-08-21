@@ -480,7 +480,7 @@ export { computed }
 // @internal (undocumented)
 export function ContainerProvider({ container, children, }: {
     children: React.ReactNode;
-    container: HTMLDivElement;
+    container: HTMLElement;
 }): JSX_2.Element;
 
 // @public (undocumented)
@@ -3515,7 +3515,7 @@ export function uniq<T>(array: {
 export { useComputed }
 
 // @public (undocumented)
-export function useContainer(): HTMLDivElement;
+export function useContainer(): HTMLElement;
 
 // @public (undocumented)
 export function useEditor(): Editor;
