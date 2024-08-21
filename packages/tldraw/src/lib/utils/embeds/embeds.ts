@@ -75,20 +75,6 @@ export type TLEmbedResult =
 	| undefined
 
 /**
- * Tests whether an URL supports embedding and returns the result.
- *
- * @param inputUrl - The URL to match
- * @public
- */
-export function getEmbedInfoUnsafely(
-	definitions: readonly TLEmbedDefinition[],
-	inputUrl: string
-): TLEmbedResult {
-	const result = matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
-	return result
-}
-
-/**
  * Tests whether an URL supports embedding and returns the result. If we encounter an error, we
  * return undefined.
  *
@@ -99,12 +85,5 @@ export function getEmbedInfo(
 	definitions: readonly TLEmbedDefinition[],
 	inputUrl: string
 ): TLEmbedResult {
-	try {
-		return getEmbedInfoUnsafely(definitions, inputUrl)
-	} catch (e) {
-		// Don't throw here! We'll throw it from the embed shape's shape util
-		console.error(e)
-	}
-
-	return undefined
+	return matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
 }
