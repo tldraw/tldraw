@@ -1,6 +1,4 @@
-// Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
-// incorrect output. https://github.com/evanw/esbuild/issues/1737
-
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 import 'core-js/stable/array/at.js'
 import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
@@ -408,3 +406,9 @@ export function debugEnableLicensing() {
 		featureFlags.enableLicensing.set(false)
 	}
 }
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

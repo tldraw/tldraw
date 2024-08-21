@@ -53,7 +53,8 @@
 		]
 	},
 	"dependencies": {
-		"@tldraw/state": "workspace:*"
+		"@tldraw/state": "workspace:*",
+		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.14.188",

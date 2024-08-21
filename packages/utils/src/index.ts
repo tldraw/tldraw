@@ -1,3 +1,5 @@
+import { registerTldrawLibraryVersion } from './lib/version'
+
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
 export { PerformanceTracker } from './lib/PerformanceTracker'
@@ -85,4 +87,11 @@ export {
 	isNonNullish,
 	structuredClone,
 } from './lib/value'
+export { registerTldrawLibraryVersion } from './lib/version'
 export { warnDeprecatedGetter, warnOnce } from './lib/warn'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

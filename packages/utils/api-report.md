@@ -346,6 +346,9 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
+export function registerTldrawLibraryVersion(name?: string, version?: string, modules?: string): void;
+
+// @internal (undocumented)
 type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
     [P in K]-?: T[P];
 }>;
