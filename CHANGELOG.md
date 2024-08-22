@@ -3006,7 +3006,7 @@ Add `newMenuItem` creation in "Toolbar and Menus" example
 
 - fix typo in hideRotateHandle method
 
-#### Maintain bindings whilst translating arrows ([#2424](https://github.com/tldraw/tldraw/pull/2424))
+#### Maintain bindings while translating arrows ([#2424](https://github.com/tldraw/tldraw/pull/2424))
 
 - You can now move arrows without them becoming unattached the shapes they're pointing to
 
@@ -3155,7 +3155,7 @@ Add `newMenuItem` creation in "Toolbar and Menus" example
   - debug: add FPS counter [#2558](https://github.com/tldraw/tldraw/pull/2558) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
   - [improvement] better comma control for pointer [#2568](https://github.com/tldraw/tldraw/pull/2568) ([@steveruizok](https://github.com/steveruizok))
   - Allow snapping of shapes to the frame when dragging inside the frame. [#2520](https://github.com/tldraw/tldraw/pull/2520) ([@MitjaBezensek](https://github.com/MitjaBezensek))
-  - Maintain bindings whilst translating arrows [#2424](https://github.com/tldraw/tldraw/pull/2424) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+  - Maintain bindings while translating arrows [#2424](https://github.com/tldraw/tldraw/pull/2424) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
   - [improvement] update dark mode [#2468](https://github.com/tldraw/tldraw/pull/2468) ([@steveruizok](https://github.com/steveruizok))
 - `@tldraw/editor`, `@tldraw/tldraw`, `@tldraw/tlschema`
   - arrows: add ability to change label placement [#2557](https://github.com/tldraw/tldraw/pull/2557) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))

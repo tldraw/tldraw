@@ -1,3 +1,5 @@
+import { registerTldrawLibraryVersion } from './lib/version'
+
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
 export { PerformanceTracker } from './lib/PerformanceTracker'
@@ -77,6 +79,7 @@ export {
 export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export { Timers } from './lib/timers'
 export type { Expand, RecursivePartial, Required } from './lib/types'
+export { safeParseUrl } from './lib/url'
 export {
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
 	isDefined,
@@ -85,4 +88,11 @@ export {
 	isNonNullish,
 	structuredClone,
 } from './lib/value'
+export { registerTldrawLibraryVersion } from './lib/version'
 export { warnDeprecatedGetter, warnOnce } from './lib/warn'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

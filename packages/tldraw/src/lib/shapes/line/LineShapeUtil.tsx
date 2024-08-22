@@ -16,6 +16,7 @@ import {
 	getIndexAbove,
 	getIndexBetween,
 	getIndices,
+	getPerfectDashProps,
 	lerp,
 	lineShapeMigrations,
 	lineShapeProps,
@@ -23,8 +24,7 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 
-import { getPerfectDashProps } from '../../..'
-import { STROKE_SIZES } from '../shared/default-shape-constants'
+import { STROKE_SIZES } from '../arrow/shared'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
 import { getDrawLinePathData } from './line-helpers'
@@ -200,7 +200,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override getInterpolatedProps(
 		startShape: TLLineShape,
 		endShape: TLLineShape,
-		progress: number
+		t: number
 	): TLLineShape['props'] {
 		const startPoints = linePointsToArray(startShape)
 		const endPoints = linePointsToArray(endShape)
@@ -244,7 +244,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 
 		return {
-			...endShape.props,
+			...(t > 0.5 ? endShape.props : startShape.props),
 			points: Object.fromEntries(
 				pointsToUseStart.map((point, i) => {
 					const endPoint = pointsToUseEnd[i]
@@ -252,12 +252,13 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						point.id,
 						{
 							...point,
-							x: lerp(point.x, endPoint.x, progress),
-							y: lerp(point.y, endPoint.y, progress),
+							x: lerp(point.x, endPoint.x, t),
+							y: lerp(point.y, endPoint.y, t),
 						},
 					]
 				})
 			),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }

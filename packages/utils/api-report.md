@@ -355,6 +355,9 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
+export function registerTldrawLibraryVersion(name?: string, version?: string, modules?: string): void;
+
+// @internal (undocumented)
 type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
     [P in K]-?: T[P];
 }>;
@@ -374,6 +377,9 @@ export function rng(seed?: string): () => number;
 
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
+
+// @public (undocumented)
+export const safeParseUrl: (url: string) => undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;

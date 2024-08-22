@@ -21,7 +21,6 @@ import {
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
-import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { fitFrameToContent, removeFrame } from '../../utils/frames/frames'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -29,8 +28,9 @@ import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useCopyAs } from '../hooks/useCopyAs'
 import { useExportAs } from '../hooks/useExportAs'
 import { flattenShapesToImages } from '../hooks/useFlatten'
+import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
 import { useInsertMedia } from '../hooks/useInsertMedia'
-import { useIsMultiplayer } from '../hooks/useIsMultiplayer'
+import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 import { usePrint } from '../hooks/usePrint'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -85,7 +85,7 @@ function getExportName(editor: Editor, defaultName: string) {
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
-	const isMultiplayer = useIsMultiplayer()
+	const showCollaborationUi = useShowCollaborationUi()
 
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts, addToast } = useToasts()
@@ -97,6 +97,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
 	const defaultDocumentName = msg('document.default-name')
+
+	const getEmbedDefinition = useGetEmbedDefinition()
 
 	const trackEvent = useUiEvents()
 
@@ -450,7 +452,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 							const { url } = shape.props
 
-							const embedInfo = getEmbedInfo(shape.props.url)
+							const embedInfo = getEmbedDefinition(url)
 
 							if (!embedInfo) continue
 							if (!embedInfo.definition) continue
@@ -1426,7 +1428,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 		]
 
-		if (isMultiplayer) {
+		if (showCollaborationUi) {
 			actionItems.push({
 				id: 'open-cursor-chat',
 				label: 'action.open-cursor-chat',
@@ -1472,7 +1474,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		printSelectionOrPages,
 		msg,
 		defaultDocumentName,
-		isMultiplayer,
+		showCollaborationUi,
+		getEmbedDefinition,
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>

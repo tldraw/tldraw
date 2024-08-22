@@ -121,11 +121,11 @@ export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> 
 	data: TLUiEventData<TLUiEventMap[T]>
 ) => void
 
-/** @internal */
-const defaultEventHandler: TLUiEventHandler = () => void null
-
 /** @public */
 export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
+
+/** @internal */
+const defaultEventHandler: TLUiEventContextType = () => void null
 
 /** @internal */
 export const EventsContext = React.createContext<TLUiEventContextType | null>(null)
@@ -146,7 +146,7 @@ export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 }
 
 /** @public */
-export function useUiEvents() {
+export function useUiEvents(): TLUiEventContextType {
 	const eventHandler = React.useContext(EventsContext)
 	return eventHandler ?? defaultEventHandler
 }

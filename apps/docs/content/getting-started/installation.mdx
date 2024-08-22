@@ -6,19 +6,13 @@ date: 3/22/2023
 order: 1
 ---
 
-## Installation
-
-First, install the `tldraw` package:
+To use the tldraw SDK, first install the `tldraw` package:
 
 ```bash
 npm i tldraw
 ```
 
-> The tldraw SDK [does not follow semantic versioning](/releases-versioning).
-
-## Usage
-
-You can use the [Tldraw](?) component inside of any React component.
+Now import and use the [Tldraw](?) component inside of any React component.
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -73,14 +67,13 @@ This may not be critical to [Tldraw](?) performing correctly, however some featu
 
 ## License
 
-tldraw requires a license for commercial use (see [License terms](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) for more details).
-To enable your license key, use the `licenseKey` prop in the [Tldraw](?) component. Contact [sales@tldraw.com](mailto:sales@tldraw.com) to obtain a license for your company.
+tldraw requires a license for commercial use (see [License terms](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) for more details). Contact [sales@tldraw.com](mailto:sales@tldraw.com) to obtain a license for your company.
+
+If you have a license, use the `licenseKey` prop in the [Tldraw](?) component to register the key and disable the "Made with tldraw" link.
 
 ```tsx
 <Tldraw licenseKey={YOUR_LICENSE_KEY} />
 ```
-
-<VerifyLicense />
 
 ## Usage in Frameworks
 
@@ -196,3 +189,7 @@ const components: TLComponents = {
 
 <Tldraw components={components}/>
 ```
+
+## Versioning
+
+The tldraw SDK does not follow semantic versioning. To learn more, read about how we do [release versioning](/releases-versioning).

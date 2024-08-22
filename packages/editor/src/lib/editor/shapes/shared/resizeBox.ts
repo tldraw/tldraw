@@ -6,12 +6,12 @@ import { TLBaseBoxShape } from '../BaseBoxShapeUtil'
 import { TLResizeMode } from '../ShapeUtil'
 
 /** @public */
-export type ResizeBoxOptions = Partial<{
-	minWidth: number
-	maxWidth: number
-	minHeight: number
-	maxHeight: number
-}>
+export interface ResizeBoxOptions {
+	minWidth?: number
+	maxWidth?: number
+	minHeight?: number
+	maxHeight?: number
+}
 
 /** @public */
 export function resizeBox<T extends TLBaseBoxShape>(

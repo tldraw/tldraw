@@ -1,6 +1,4 @@
-// Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
-// incorrect output. https://github.com/evanw/esbuild/issues/1737
-
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 import 'core-js/stable/array/at.js'
 import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
@@ -109,12 +107,18 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
-export { getSnapshot, loadSnapshot, type TLEditorSnapshot } from './lib/config/TLEditorSnapshot'
+export {
+	getSnapshot,
+	loadSnapshot,
+	type TLEditorSnapshot,
+	type TLLoadSnapshotOptions,
+} from './lib/config/TLEditorSnapshot'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
+	type TLLoadSessionStateSnapshotOptions,
 	type TLSessionStateSnapshot,
 } from './lib/config/TLSessionStateSnapshot'
 export {
@@ -365,6 +369,12 @@ export {
 	type DebugFlagDefaults,
 } from './lib/utils/debug-flags'
 export {
+	createDeepLinkString,
+	parseDeepLinkString,
+	type TLDeepLink,
+	type TLDeepLinkOptions,
+} from './lib/utils/deepLinks'
+export {
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,
@@ -392,4 +402,13 @@ export { openWindow } from './lib/utils/window-open'
 /** @public */
 export function debugEnableLicensing() {
 	featureFlags.enableLicensing.set(true)
+	return () => {
+		featureFlags.enableLicensing.set(false)
+	}
 }
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

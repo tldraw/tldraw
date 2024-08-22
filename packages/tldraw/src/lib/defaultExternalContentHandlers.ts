@@ -21,12 +21,13 @@ import {
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
+import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { AUDIO_HEIGHT, AUDIO_WIDTH } from './shapes/audio/AudioShapeUtil'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
-import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /** @public */
@@ -95,7 +96,7 @@ export function registerDefaultExternalContentHandlers(
 			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
 		)
 
-		const hash = await getHashForBuffer(await file.arrayBuffer())
+		const hash = getHashForBuffer(await file.arrayBuffer())
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
 		const assetInfo = await getMediaAssetInfoPartial(
 			file,
@@ -207,31 +208,34 @@ export function registerDefaultExternalContentHandlers(
 	})
 
 	// embeds
-	editor.registerExternalContentHandler('embed', ({ point, url, embed }) => {
-		const position =
-			point ??
-			(editor.inputs.shiftKey
-				? editor.inputs.currentPagePoint
-				: editor.getViewportPageBounds().center)
+	editor.registerExternalContentHandler<'embed', EmbedDefinition>(
+		'embed',
+		({ point, url, embed }) => {
+			const position =
+				point ??
+				(editor.inputs.shiftKey
+					? editor.inputs.currentPagePoint
+					: editor.getViewportPageBounds().center)
 
-		const { width, height } = embed
+			const { width, height } = embed
 
-		const id = createShapeId()
+			const id = createShapeId()
 
-		const shapePartial: TLShapePartial<TLEmbedShape> = {
-			id,
-			type: 'embed',
-			x: position.x - (width || 450) / 2,
-			y: position.y - (height || 450) / 2,
-			props: {
-				w: width,
-				h: height,
-				url,
-			},
+			const shapePartial: TLShapePartial<TLEmbedShape> = {
+				id,
+				type: 'embed',
+				x: position.x - (width || 450) / 2,
+				y: position.y - (height || 450) / 2,
+				props: {
+					w: width,
+					h: height,
+					url,
+				},
+			}
+
+			editor.createShapes([shapePartial]).select(id)
 		}
-
-		editor.createShapes([shapePartial]).select(id)
-	})
+	)
 
 	// files
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
@@ -298,7 +302,7 @@ export function registerDefaultExternalContentHandlers(
 			const isImageType = acceptedImageMimeTypes.includes(file.type)
 			const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 			const isAudioType = acceptedAudioMimeTypes.includes(file.type)
-			const hash = await getHashForBuffer(await file.arrayBuffer())
+			const hash = getHashForBuffer(await file.arrayBuffer())
 			const assetId: TLAssetId = AssetRecordType.createId(hash)
 			const assetInfo = await getMediaAssetInfoPartial(
 				file,
@@ -440,7 +444,8 @@ export function registerDefaultExternalContentHandlers(
 	// url
 	editor.registerExternalContentHandler('url', async ({ point, url }) => {
 		// try to paste as an embed first
-		const embedInfo = getEmbedInfo(url)
+		const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
+		const embedInfo = embedUtil?.getEmbedDefinition(url)
 
 		if (embedInfo) {
 			return editor.putExternalContent({

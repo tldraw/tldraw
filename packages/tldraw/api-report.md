@@ -18,8 +18,6 @@ import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
-import { EMBED_DEFINITIONS } from '@tldraw/editor';
-import { EmbedDefinition } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -59,6 +57,7 @@ import { TLAssetId } from '@tldraw/editor';
 import { TLAudioAsset } from '@tldraw/editor';
 import { TLAudioShape } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
+import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
@@ -70,22 +69,29 @@ import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
+import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
+import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
+import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
+import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
 import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
+import { TLHighlightShapeProps } from '@tldraw/editor';
 import { TLImageAsset } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
+import { TLImageShapeProps } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
 import { TLLineShapePoint } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
+import { TLNoteShapeProps } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
@@ -332,6 +338,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
+    getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
+    // (undocumented)
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX_2.Element;
@@ -467,10 +475,220 @@ export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isI
 export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
 
 // @public (undocumented)
+export function CursorChatItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface CustomEmbedDefinition extends EmbedDefinition {
+    // (undocumented)
+    readonly icon: string;
+}
+
+// @public (undocumented)
 export function CutMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function DebugFlags(): JSX_2.Element | null;
+
+// @public (undocumented)
+export const DEFAULT_EMBED_DEFINITIONS: readonly [{
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "localhost:3000"];
+    readonly minHeight: 300;
+    readonly minWidth: 300;
+    readonly overridePermissions: {
+        readonly 'allow-top-navigation': true;
+    };
+    readonly title: "tldraw";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "tldraw";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["figma.com"];
+    readonly title: "Figma";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "figma";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["google.*"];
+    readonly overridePermissions: {
+        readonly 'allow-presentation': true;
+    };
+    readonly title: "Google Maps";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "google_maps";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["val.town"];
+    readonly minHeight: 100;
+    readonly minWidth: 260;
+    readonly title: "Val Town";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "val_town";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["codesandbox.io"];
+    readonly minHeight: 300;
+    readonly minWidth: 300;
+    readonly title: "CodeSandbox";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "codesandbox";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 400;
+    readonly hostnames: readonly ["codepen.io"];
+    readonly minHeight: 300;
+    readonly minWidth: 300;
+    readonly title: "Codepen";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "codepen";
+    readonly width: 520;
+}, {
+    readonly doesResize: false;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 400;
+    readonly hostnames: readonly ["scratch.mit.edu"];
+    readonly title: "Scratch";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "scratch";
+    readonly width: 520;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 450;
+    readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
+    readonly isAspectRatioLocked: true;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+        readonly 'allow-presentation': true;
+    };
+    readonly title: "YouTube";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "youtube";
+    readonly width: 800;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["calendar.google.*"];
+    readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
+    readonly minHeight: 360;
+    readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
+    readonly title: "Google Calendar";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "google_calendar";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["docs.google.*"];
+    readonly minHeight: 360;
+    readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
+    readonly title: "Google Slides";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "google_slides";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["gist.github.com"];
+    readonly title: "GitHub Gist";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "github_gist";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["replit.com"];
+    readonly title: "Replit";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "replit";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["felt.com"];
+    readonly title: "Felt";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "felt";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["open.spotify.com"];
+    readonly minHeight: 500;
+    readonly overrideOutlineRadius: 12;
+    readonly title: "Spotify";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "spotify";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 360;
+    readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
+    readonly isAspectRatioLocked: true;
+    readonly title: "Vimeo";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "vimeo";
+    readonly width: 640;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["excalidraw.com"];
+    readonly isAspectRatioLocked: true;
+    readonly title: "Excalidraw";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "excalidraw";
+    readonly width: 720;
+}, {
+    readonly backgroundColor: "#fff";
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["observablehq.com"];
+    readonly isAspectRatioLocked: false;
+    readonly title: "Observable";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "observable";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 450;
+    readonly hostnames: readonly ["desmos.com"];
+    readonly title: "Desmos";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "desmos";
+    readonly width: 700;
+}];
 
 // @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
@@ -497,6 +715,9 @@ export function DefaultDebugMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
 export let defaultEditorAssetUrls: TLEditorAssetUrls;
+
+// @public (undocumented)
+export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
 
 // @public (undocumented)
 export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX_2.Element;
@@ -623,6 +844,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, t: number): TLDrawShapeProps;
+    // (undocumented)
     hideResizeHandles(shape: TLDrawShape): boolean;
     // (undocumented)
     hideRotateHandle(shape: TLDrawShape): boolean;
@@ -656,10 +879,65 @@ export function DuplicateMenuItem(): JSX_2.Element | null;
 export function EditLinkMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
+export function EditMenuSubmenu(): JSX_2.Element | null;
+
+// @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
 
 // @public (undocumented)
 export function EllipseToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export interface EmbedDefinition {
+    // (undocumented)
+    readonly backgroundColor?: string;
+    // (undocumented)
+    readonly doesResize: boolean;
+    // (undocumented)
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    // (undocumented)
+    readonly height: number;
+    // (undocumented)
+    readonly hostnames: readonly string[];
+    // (undocumented)
+    readonly instructionLink?: string;
+    // (undocumented)
+    readonly isAspectRatioLocked?: boolean;
+    // (undocumented)
+    readonly minHeight?: number;
+    // (undocumented)
+    readonly minWidth?: number;
+    // (undocumented)
+    readonly overrideOutlineRadius?: number;
+    // (undocumented)
+    readonly overridePermissions?: TLEmbedShapePermissions;
+    // (undocumented)
+    readonly title: string;
+    // (undocumented)
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    // (undocumented)
+    readonly type: string;
+    // (undocumented)
+    readonly width: number;
+}
+
+// @public
+export const embedShapePermissionDefaults: {
+    readonly 'allow-downloads-without-user-activation': false;
+    readonly 'allow-downloads': false;
+    readonly 'allow-forms': true;
+    readonly 'allow-modals': false;
+    readonly 'allow-orientation-lock': false;
+    readonly 'allow-pointer-lock': false;
+    readonly 'allow-popups-to-escape-sandbox': false;
+    readonly 'allow-popups': true;
+    readonly 'allow-presentation': false;
+    readonly 'allow-same-origin': true;
+    readonly 'allow-scripts': true;
+    readonly 'allow-storage-access-by-user-activation': false;
+    readonly 'allow-top-navigation-by-user-activation': false;
+    readonly 'allow-top-navigation': false;
+};
 
 // @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
@@ -674,6 +952,12 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
+    getEmbedDefinition(url: string): TLEmbedResult;
+    // (undocumented)
+    getEmbedDefinitions(): readonly TLEmbedDefinition[];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
+    // (undocumented)
     hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
     // (undocumented)
     indicator(shape: TLEmbedShape): JSX_2.Element;
@@ -682,16 +966,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): {
-        props: {
-            h: number;
-            w: number;
-        };
-        x: number;
-        y: number;
-    };
+    onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): TLEmbedShape;
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
+    // (undocumented)
+    setEmbedDefinitions(definitions: TLEmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
 }
@@ -800,6 +1079,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLFrameShape, endShape: TLFrameShape, t: number): TLFrameShapeProps;
+    // (undocumented)
     getText(shape: TLFrameShape): string | undefined;
     // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
@@ -850,6 +1131,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getGeometry(shape: TLGeoShape): Group2d;
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
+    // (undocumented)
+    getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
     getText(shape: TLGeoShape): string;
     // (undocumented)
@@ -983,7 +1266,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 };
 
 // @public
-export function getEmbedInfo(inputUrl: string): TLEmbedResult;
+export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
@@ -1052,6 +1335,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, t: number): TLHighlightShapeProps;
+    // (undocumented)
     hideResizeHandles(shape: TLHighlightShape): boolean;
     // (undocumented)
     hideRotateHandle(shape: TLHighlightShape): boolean;
@@ -1088,6 +1373,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     component(shape: TLImageShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
@@ -1164,7 +1451,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
-    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, progress: number): TLLineShape['props'];
+    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, t: number): TLLineShape['props'];
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -1263,6 +1550,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     getGeometry(shape: TLNoteShape): Group2d;
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
     getText(shape: TLNoteShape): string;
     // (undocumented)
@@ -1760,6 +2049,8 @@ export const TLDRAW_FILE_EXTENSION: ".tldr";
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     // (undocumented)
     components?: TLComponents;
+    // (undocumented)
+    embeds?: TLEmbedDefinition[];
 }
 
 // @public (undocumented)
@@ -1907,6 +2198,12 @@ export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
+export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export function TldrawUiMenuActionItem({ actionId, ...rest }: TLUiMenuActionItemProps): JSX_2.Element | null;
+
+// @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -1923,6 +2220,9 @@ export function TldrawUiMenuItem<TranslationKey extends string = string, IconTyp
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
+
+// @public (undocumented)
+export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
 
 // @public (undocumented)
 export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
@@ -1942,7 +2242,7 @@ export interface TldrawUiProps extends TldrawUiContextProviderProps {
     renderDebugMenuItems?(): React_3.ReactNode;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
 
 // @public (undocumented)
@@ -1957,11 +2257,19 @@ export interface TLEditorAssetUrls {
 }
 
 // @public (undocumented)
+export type TLEmbedDefinition = CustomEmbedDefinition | EmbedDefinition;
+
+// @public (undocumented)
 export type TLEmbedResult = {
-    definition: EmbedDefinition;
+    definition: TLEmbedDefinition;
     embedUrl: string;
     url: string;
 } | undefined;
+
+// @public (undocumented)
+export type TLEmbedShapePermissions = {
+    [K in keyof typeof embedShapePermissionDefaults]?: boolean;
+};
 
 // @public (undocumented)
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
@@ -2031,7 +2339,7 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 
 // @public (undocumented)
 export type TLUiAssetUrls = TLEditorAssetUrls & {
-    embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>;
+    embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>;
     icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
     translations: Record<(typeof LANGUAGES)[number]['locale'], string>;
 };
@@ -2589,6 +2897,16 @@ export interface TLUiMainMenuProps {
 }
 
 // @public (undocumented)
+export type TLUiMenuActionCheckboxItemProps = {
+    actionId?: string;
+} & Pick<TLUiMenuCheckboxItemProps, 'checked' | 'disabled' | 'toggle'>;
+
+// @public (undocumented)
+export type TLUiMenuActionItemProps = {
+    actionId?: string;
+} & Partial<Pick<TLUiMenuItemProps, 'disabled' | 'isSelected' | 'noClose' | 'onSelect'>>;
+
+// @public (undocumented)
 export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checked?: boolean;
@@ -2669,16 +2987,24 @@ export interface TLUiMenuSubmenuProps<Translation extends string = string> {
 }
 
 // @public (undocumented)
+export type TLUiMenuToolItemProps = {
+    toolId?: string;
+} & Pick<TLUiMenuItemProps, 'disabled' | 'isSelected'>;
+
+// @public (undocumented)
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;
 
 // @public (undocumented)
-export type TLUiOverrides = Partial<{
-    actions(editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers): TLUiActionsContextType;
-    tools(editor: Editor, tools: TLUiToolsContextType, helpers: {
+export interface TLUiOverrides {
+    // (undocumented)
+    actions?(editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers): TLUiActionsContextType;
+    // (undocumented)
+    tools?(editor: Editor, tools: TLUiToolsContextType, helpers: {
         insertMedia(): void;
     } & TLUiOverrideHelpers): TLUiToolsContextType;
-    translations: TLUiTranslationProviderProps['overrides'];
-}>;
+    // (undocumented)
+    translations?: TLUiTranslationProviderProps['overrides'];
+}
 
 // @public (undocumented)
 export interface TLUiPopoverContentProps {
@@ -2718,7 +3044,7 @@ export interface TLUiQuickActionsProps {
     children?: ReactNode;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
@@ -3378,6 +3704,9 @@ export function useCanRedo(): boolean;
 export function useCanUndo(): boolean;
 
 // @public (undocumented)
+export function useCollaborationStatus(): "offline" | "online" | null;
+
+// @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
@@ -3474,6 +3803,9 @@ export function useReadonly(): boolean;
 
 // @public (undocumented)
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
+
+// @public (undocumented)
+export function useShowCollaborationUi(): boolean;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;

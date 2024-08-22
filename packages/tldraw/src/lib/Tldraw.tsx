@@ -23,6 +23,7 @@ import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
+import { TLEmbedDefinition } from './defaultEmbedDefinitions'
 import {
 	TLExternalContentProps,
 	registerDefaultExternalContentHandlers,
@@ -31,6 +32,7 @@ import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
@@ -66,6 +68,7 @@ export interface TldrawBaseProps
 		TldrawEditorBaseProps,
 		TLExternalContentProps {
 	components?: TLComponents
+	embeds?: TLEmbedDefinition[]
 }
 
 /** @public */
@@ -85,6 +88,7 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		tools = [],
+		embeds,
 		...rest
 	} = props
 
@@ -150,6 +154,7 @@ export function Tldraw(props: TldrawProps) {
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
 					acceptedAudioMimeTypes={acceptedAudioMimeTypes}
 					onMount={onMount}
+					embeds={embeds}
 				/>
 				{children}
 			</TldrawUi>
@@ -165,12 +170,20 @@ function InsideOfEditorAndUiContext({
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
 	onMount,
-}: TLExternalContentProps & { onMount?: TLOnMountHandler }) {
+	embeds,
+}: TLExternalContentProps & {
+	onMount?: TLOnMountHandler
+	embeds?: TLEmbedDefinition[]
+}) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
 
 	useOnMount(() => {
+		const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
+		if (embedUtil && embeds) {
+			embedUtil.setEmbedDefinitions(embeds)
+		}
 		const unsubs: (void | (() => void) | undefined)[] = []
 
 		unsubs.push(registerDefaultSideEffects(editor))
