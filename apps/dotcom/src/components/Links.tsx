@@ -1,7 +1,9 @@
 import { TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
-import { openUrl } from '../utils/url'
+import { useOpenUrlAndTrack } from '../hooks/useOpenUrlAndTrack'
 
 export function Links() {
+	const openAndTrack = useOpenUrlAndTrack('main-menu')
+
 	return (
 		<>
 			<TldrawUiMenuGroup id="links">
@@ -11,7 +13,9 @@ export function Links() {
 					icon="external-link"
 					readonlyOk
 					onSelect={() => {
-						openUrl('https://github.com/tldraw/tldraw/blob/main/apps/dotcom/TERMS_OF_SERVICE.md')
+						openAndTrack(
+							'https://github.com/tldraw/tldraw/blob/main/apps/dotcom/TERMS_OF_SERVICE.md'
+						)
 					}}
 				/>
 				<TldrawUiMenuItem
@@ -20,7 +24,7 @@ export function Links() {
 					icon="external-link"
 					readonlyOk
 					onSelect={() => {
-						openUrl('https://github.com/tldraw/tldraw/blob/main/apps/dotcom/PRIVACY_POLICY.md')
+						openAndTrack('https://github.com/tldraw/tldraw/blob/main/apps/dotcom/PRIVACY_POLICY.md')
 					}}
 				/>
 			</TldrawUiMenuGroup>
@@ -31,7 +35,7 @@ export function Links() {
 					icon="external-link"
 					readonlyOk
 					onSelect={() => {
-						openUrl('https://tldraw.dev')
+						openAndTrack('https://tldraw.dev')
 					}}
 				/>
 			</TldrawUiMenuGroup>
