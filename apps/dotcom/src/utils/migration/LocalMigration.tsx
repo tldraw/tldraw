@@ -23,7 +23,6 @@ export function LocalMigration() {
 							originalFile={{ name: 'New Document', document: v1Result.document }}
 						/>
 					),
-					id: 'migration-announcement',
 				})
 			}
 		})()

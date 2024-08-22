@@ -28,7 +28,6 @@ export async function shouldClearDocument(addDialog: TLUiDialogsContextType['add
 			onClose: () => {
 				resolve(false)
 			},
-			id: 'clear-document',
 		})
 	})
 

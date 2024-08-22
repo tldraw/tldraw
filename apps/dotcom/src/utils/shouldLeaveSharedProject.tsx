@@ -32,7 +32,6 @@ export async function shouldLeaveSharedProject(addDialog: TLUiDialogsContextType
 				onClose: () => {
 					resolve(false)
 				},
-				id: 'leave-shared-project',
 			})
 		})
 

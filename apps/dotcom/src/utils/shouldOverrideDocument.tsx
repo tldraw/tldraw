@@ -29,7 +29,6 @@ export async function shouldOverrideDocument(addDialog: TLUiDialogsContextType['
 			onClose: () => {
 				resolve(false)
 			},
-			id: 'document-override',
 		})
 	})
 
