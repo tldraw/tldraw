@@ -121,10 +121,11 @@ function getRandomColor() {
 
 /** @internal */
 export function userPrefersReducedMotion() {
-	if (typeof window === 'undefined') {
-		return false
+	if (typeof window !== 'undefined' && 'matchMedia' in window) {
+		return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 	}
-	return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
+
+	return false
 }
 
 /** @public */
@@ -138,12 +139,14 @@ export const defaultUserPreferences = Object.freeze({
 	isWrapMode: false,
 	isDynamicSizeMode: false,
 	isPasteAtCursorMode: false,
+	colorScheme: 'system',
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */
 export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
+		color: getRandomColor(),
 	}
 }
 
@@ -233,7 +236,7 @@ export function getUserPreferences(): TLUserPreferences {
 	let prefs = globalUserPreferences.get()
 	if (!prefs) {
 		prefs = loadUserPreferences()
-		globalUserPreferences.set(prefs)
+		setUserPreferences(prefs)
 	}
 	return prefs
 }

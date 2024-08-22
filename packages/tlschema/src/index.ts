@@ -1,3 +1,4 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export {
 	type TLAssetContext,
 	type TLAssetStore,
@@ -25,6 +26,7 @@ export {
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export {
 	createTLSchema,
+	defaultBindingSchemas,
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
 	type TLSchema,
@@ -150,13 +152,9 @@ export {
 	type TLDrawShapeSegment,
 } from './shapes/TLDrawShape'
 export {
-	EMBED_DEFINITIONS,
 	embedShapeMigrations,
-	embedShapePermissionDefaults,
 	embedShapeProps,
-	type EmbedDefinition,
 	type TLEmbedShape,
-	type TLEmbedShapePermissions,
 	type TLEmbedShapeProps,
 } from './shapes/TLEmbedShape'
 export {
@@ -170,6 +168,7 @@ export {
 	geoShapeMigrations,
 	geoShapeProps,
 	type TLGeoShape,
+	type TLGeoShapeGeoStyle,
 	type TLGeoShapeProps,
 } from './shapes/TLGeoShape'
 export {
@@ -197,7 +196,9 @@ export {
 	lineShapeMigrations,
 	lineShapeProps,
 	type TLLineShape,
+	type TLLineShapePoint,
 	type TLLineShapeProps,
+	type TLLineShapeSplineStyle,
 } from './shapes/TLLineShape'
 export {
 	noteShapeMigrations,
@@ -250,3 +251,9 @@ export {
 	type TLLanguage,
 } from './translations/translations'
 export { type SetValue } from './util-types'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

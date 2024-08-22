@@ -88,18 +88,20 @@ export interface TLAssetStore {
 	 * @param ctx - information about the current environment and where the asset is being used
 	 * @returns The URL of the resolved asset, or `null` if the asset is not available
 	 */
-	resolve(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+	resolve?(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
 }
 
 /** @public */
 export interface TLStoreProps {
 	defaultName: string
-	assets: TLAssetStore
+	assets: Required<TLAssetStore>
 	/**
 	 * Called an {@link @tldraw/editor#Editor} connected to this store is mounted.
 	 */
-	onEditorMount: (editor: unknown) => void | (() => void)
-	multiplayerStatus: Signal<'online' | 'offline'> | null
+	onMount(editor: unknown): void | (() => void)
+	collaboration?: {
+		status: Signal<'online' | 'offline'> | null
+	}
 }
 
 /** @public */
@@ -146,6 +148,7 @@ function getDefaultPages() {
 /** @internal */
 export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): () => void {
 	const $pageIds = store.query.ids('page')
+	const $pageStates = store.query.records('instance_page_state')
 
 	const ensureStoreIsUsable = (): void => {
 		// make sure we have exactly one document
@@ -190,7 +193,8 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 		const missingCameraIds = new Set<TLCameraId>()
 		for (const id of pageIds) {
 			const pageStateId = InstancePageStateRecordType.createId(id)
-			if (!store.has(pageStateId)) {
+			const pageState = store.get(pageStateId)
+			if (!pageState) {
 				missingPageStateIds.add(pageStateId)
 			}
 			const cameraId = CameraRecordType.createId(id)
@@ -209,8 +213,44 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 				)
 			)
 		}
+
 		if (missingCameraIds.size > 0) {
 			store.put([...missingCameraIds].map((id) => CameraRecordType.create({ id })))
+		}
+
+		const pageStates = $pageStates.get()
+		for (const pageState of pageStates) {
+			if (!pageIds.has(pageState.pageId)) {
+				store.remove([pageState.id])
+				continue
+			}
+			if (pageState.croppingShapeId && !store.has(pageState.croppingShapeId)) {
+				store.put([{ ...pageState, croppingShapeId: null }])
+				return ensureStoreIsUsable()
+			}
+			if (pageState.focusedGroupId && !store.has(pageState.focusedGroupId)) {
+				store.put([{ ...pageState, focusedGroupId: null }])
+				return ensureStoreIsUsable()
+			}
+			if (pageState.hoveredShapeId && !store.has(pageState.hoveredShapeId)) {
+				store.put([{ ...pageState, hoveredShapeId: null }])
+				return ensureStoreIsUsable()
+			}
+			const filteredSelectedIds = pageState.selectedShapeIds.filter((id) => store.has(id))
+			if (filteredSelectedIds.length !== pageState.selectedShapeIds.length) {
+				store.put([{ ...pageState, selectedShapeIds: filteredSelectedIds }])
+				return ensureStoreIsUsable()
+			}
+			const filteredHintingIds = pageState.hintingShapeIds.filter((id) => store.has(id))
+			if (filteredHintingIds.length !== pageState.hintingShapeIds.length) {
+				store.put([{ ...pageState, hintingShapeIds: filteredHintingIds }])
+				return ensureStoreIsUsable()
+			}
+			const filteredErasingIds = pageState.erasingShapeIds.filter((id) => store.has(id))
+			if (filteredErasingIds.length !== pageState.erasingShapeIds.length) {
+				store.put([{ ...pageState, erasingShapeIds: filteredErasingIds }])
+				return ensureStoreIsUsable()
+			}
 		}
 	}
 

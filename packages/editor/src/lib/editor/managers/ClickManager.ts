@@ -1,3 +1,4 @@
+import { bind } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
@@ -26,7 +27,8 @@ export class ClickManager {
 
 	private _previousScreenPoint?: Vec
 
-	private _getClickTimeout = (state: TLClickState, id = uniqueId()) => {
+	@bind
+	_getClickTimeout(state: TLClickState, id = uniqueId()) {
 		this._clickId = id
 		clearTimeout(this._clickTimeout)
 		this._clickTimeout = this.editor.timers.setTimeout(
@@ -93,7 +95,7 @@ export class ClickManager {
 
 	lastPointerInfo = {} as TLPointerEventInfo
 
-	handlePointerEvent = (info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo => {
+	handlePointerEvent(info: TLPointerEventInfo): TLPointerEventInfo | TLClickEventInfo {
 		switch (info.name) {
 			case 'pointer_down': {
 				if (!this._clickState) return info
@@ -214,7 +216,8 @@ export class ClickManager {
 	 *
 	 * @internal
 	 */
-	cancelDoubleClickTimeout = () => {
+	@bind
+	cancelDoubleClickTimeout() {
 		this._clickTimeout = clearTimeout(this._clickTimeout)
 		this._clickState = 'idle'
 	}

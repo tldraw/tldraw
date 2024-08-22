@@ -1,11 +1,10 @@
-// Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
-// incorrect output. https://github.com/evanw/esbuild/issues/1737
-
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 import 'core-js/stable/array/at.js'
 import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
+import { featureFlags } from './lib/utils/debug-flags'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -18,20 +17,24 @@ export * from '@tldraw/validate'
 
 export {
 	EMPTY_ARRAY,
+	EffectScheduler,
 	atom,
 	computed,
 	react,
-	track,
 	transact,
 	transaction,
-	useComputed,
-	useQuickReactor,
-	useReactor,
-	useValue,
 	whyAmIRunning,
 	type Atom,
 	type Signal,
 } from '@tldraw/state'
+export {
+	track,
+	useComputed,
+	useQuickReactor,
+	useReactor,
+	useStateTracking,
+	useValue,
+} from '@tldraw/state-react'
 export {
 	ErrorScreen,
 	LoadingScreen,
@@ -104,12 +107,18 @@ export {
 } from './lib/components/default-components/DefaultSnapIndictor'
 export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
-export { getSnapshot, loadSnapshot, type TLEditorSnapshot } from './lib/config/TLEditorSnapshot'
+export {
+	getSnapshot,
+	loadSnapshot,
+	type TLEditorSnapshot,
+	type TLLoadSnapshotOptions,
+} from './lib/config/TLEditorSnapshot'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
+	type TLLoadSessionStateSnapshotOptions,
 	type TLSessionStateSnapshot,
 } from './lib/config/TLSessionStateSnapshot'
 export {
@@ -121,16 +130,24 @@ export {
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export {
+	createTLSchemaFromUtils,
 	createTLStore,
+	inlineBase64AssetStore,
 	type TLStoreBaseOptions,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
+	type TLStoreSchemaOptions,
 } from './lib/config/createTLStore'
-export { createTLUser, type TLUser } from './lib/config/createTLUser'
+export { createTLUser, useTldrawUser, type TLUser } from './lib/config/createTLUser'
 export { type TLAnyBindingUtilConstructor } from './lib/config/defaultBindings'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export { DEFAULT_ANIMATION_OPTIONS, DEFAULT_CAMERA_OPTIONS, SIDES } from './lib/constants'
-export { Editor, type TLEditorOptions, type TLResizeShapeOptions } from './lib/editor/Editor'
+export {
+	Editor,
+	type TLEditorOptions,
+	type TLEditorRunOptions,
+	type TLResizeShapeOptions,
+} from './lib/editor/Editor'
 export {
 	BindingUtil,
 	type BindingOnChangeOptions,
@@ -164,33 +181,15 @@ export { UserPreferencesManager } from './lib/editor/managers/UserPreferencesMan
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
-	type TLOnBeforeCreateHandler,
-	type TLOnBeforeUpdateHandler,
-	type TLOnBindingChangeHandler,
-	type TLOnChildrenChangeHandler,
-	type TLOnClickHandler,
-	type TLOnDoubleClickHandleHandler,
-	type TLOnDoubleClickHandler,
-	type TLOnDragHandler,
-	type TLOnEditEndHandler,
-	type TLOnHandleDragHandler,
-	type TLOnResizeEndHandler,
-	type TLOnResizeHandler,
-	type TLOnResizeStartHandler,
-	type TLOnRotateEndHandler,
-	type TLOnRotateHandler,
-	type TLOnRotateStartHandler,
-	type TLOnTranslateEndHandler,
-	type TLOnTranslateHandler,
-	type TLOnTranslateStartHandler,
+	type TLHandleDragInfo,
 	type TLResizeInfo,
 	type TLResizeMode,
 	type TLShapeUtilCanBindOpts,
 	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
-	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
+export { getPerfectDashProps } from './lib/editor/shapes/shared/getPerfectDashProps'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
@@ -271,8 +270,17 @@ export { usePresence } from './lib/hooks/usePresence'
 export { useRefState } from './lib/hooks/useRefState'
 export { useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
-export { useTLStore } from './lib/hooks/useTLStore'
+export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
+export {
+	LicenseManager,
+	type InvalidLicenseKeyResult,
+	type InvalidLicenseReason,
+	type LicenseFromKeyResult,
+	type LicenseInfo,
+	type TestEnvironment,
+	type ValidLicenseKeyResult,
+} from './lib/license/LicenseManager'
 export { defaultTldrawOptions, type TldrawOptions } from './lib/options'
 export {
 	Box,
@@ -352,7 +360,7 @@ export {
 	SharedStyleMap,
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
-export { dataUrlToFile } from './lib/utils/assets'
+export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export {
 	debugFlags,
 	featureFlags,
@@ -360,6 +368,12 @@ export {
 	type DebugFlagDef,
 	type DebugFlagDefaults,
 } from './lib/utils/debug-flags'
+export {
+	createDeepLinkString,
+	parseDeepLinkString,
+	type TLDeepLink,
+	type TLDeepLinkOptions,
+} from './lib/utils/deepLinks'
 export {
 	loopToHtmlElement,
 	preventDefault,
@@ -384,3 +398,17 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'
 export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
+
+/** @public */
+export function debugEnableLicensing() {
+	featureFlags.enableLicensing.set(true)
+	return () => {
+		featureFlags.enableLicensing.set(false)
+	}
+}
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

@@ -3,6 +3,7 @@ import { TestEditor } from '../../../test/TestEditor'
 import { TextShapeTool } from './TextShapeTool'
 
 let editor: TestEditor
+jest.useFakeTimers()
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -103,10 +104,32 @@ describe('When in the pointing state', () => {
 	it('transitions to select.resizing when dragging and edits on pointer up', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
-		editor.pointerMove(10, 10)
+
+		// doesn't matter how far we move if we haven't been pointing long enough
+		editor.pointerMove(100, 100)
+		editor.expectToBeIn('text.pointing')
+
+		// Go back to start and wait a little to satisfy the time requirement
+		editor.pointerMove(0, 0)
+		jest.advanceTimersByTime(200)
+
+		// y axis doesn't matter
+		editor.pointerMove(0, 100)
+		editor.expectToBeIn('text.pointing')
+
+		// x axis matters
+		editor.pointerMove(0, 10)
+		editor.expectToBeIn('text.pointing')
+
+		// needs to be far enough
+		editor.pointerMove(100, 0)
 		editor.expectToBeIn('select.resizing')
-		editor.pointerUp()
+
+		// Create the shape immediately
 		expect(editor.getCurrentPageShapes().length).toBe(1)
+
+		// Go to editing on pointer up
+		editor.pointerUp()
 		editor.expectToBeIn('select.editing_shape')
 	})
 
@@ -160,6 +183,7 @@ describe('When resizing', () => {
 	it('bails on escape while resizing and returns to text.idle', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
+		jest.advanceTimersByTime(200)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
 		editor.cancel()
@@ -170,6 +194,7 @@ describe('When resizing', () => {
 	it('does not bails on interrupt while resizing', () => {
 		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
+		jest.advanceTimersByTime(200)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
 		editor.interrupt()
@@ -181,6 +206,7 @@ describe('When resizing', () => {
 		const x = 0
 		const y = 0
 		editor.pointerDown(x, y)
+		jest.advanceTimersByTime(200)
 		editor.pointerMove(x + 100, y + 100)
 		expect(editor.getCurrentPageShapes()[0]).toMatchObject({
 			x,

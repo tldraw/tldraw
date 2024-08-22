@@ -1,6 +1,13 @@
-import { StateNode, TLEventHandlers, TLFrameShape, TLShape, TLTextShape } from '@tldraw/editor'
+import {
+	StateNode,
+	TLCancelEventInfo,
+	TLCompleteEventInfo,
+	TLFrameShape,
+	TLPointerEventInfo,
+	TLShape,
+	TLTextShape,
+} from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
-import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 
 export class EditingShape extends StateNode {
@@ -8,7 +15,7 @@ export class EditingShape extends StateNode {
 
 	hitShapeForPointerUp: TLShape | null = null
 
-	override onEnter = () => {
+	override onEnter() {
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
 		this.hitShapeForPointerUp = null
@@ -16,7 +23,7 @@ export class EditingShape extends StateNode {
 		this.editor.select(editingShape)
 	}
 
-	override onExit = () => {
+	override onExit() {
 		const { editingShapeId } = this.editor.getCurrentPageState()
 		if (!editingShapeId) return
 
@@ -32,7 +39,7 @@ export class EditingShape extends StateNode {
 		util.onEditEnd?.(shape)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		// In the case where on pointer down we hit a shape's label, we need to check if the user is dragging.
 		// and if they are, we need to transition to translating instead.
 		if (this.hitShapeForPointerUp && this.editor.inputs.isDragging) {
@@ -53,22 +60,10 @@ export class EditingShape extends StateNode {
 		}
 	}
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		this.hitShapeForPointerUp = null
 
 		switch (info.target) {
-			case 'canvas': {
-				const hitShape = getHitShapeOnCanvasPointerDown(this.editor, true /* hitLabels */)
-				if (hitShape) {
-					this.onPointerDown({
-						...info,
-						shape: hitShape,
-						target: 'shape',
-					})
-					return
-				}
-				break
-			}
 			case 'shape': {
 				const { shape: selectingShape } = info
 				const editingShape = this.editor.getEditingShape()
@@ -101,7 +96,7 @@ export class EditingShape extends StateNode {
 						} else {
 							this.hitShapeForPointerUp = selectingShape
 
-							this.editor.mark('editing on pointer up')
+							this.editor.markHistoryStoppingPoint('editing on pointer up')
 							this.editor.select(selectingShape.id)
 							return
 						}
@@ -131,7 +126,7 @@ export class EditingShape extends StateNode {
 		this.editor.root.handleEvent(info)
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+	override onPointerUp(info: TLPointerEventInfo) {
 		// If we're not dragging, and it's a hit to the label, begin editing the shape.
 		const hitShape = this.hitShapeForPointerUp
 		if (!hitShape) return
@@ -154,11 +149,11 @@ export class EditingShape extends StateNode {
 		updateHoveredShapeId(this.editor)
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = (info) => {
+	override onComplete(info: TLCompleteEventInfo) {
 		this.parent.transition('idle', info)
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = (info) => {
+	override onCancel(info: TLCancelEventInfo) {
 		this.parent.transition('idle', info)
 	}
 }

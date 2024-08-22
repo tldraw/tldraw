@@ -11,9 +11,7 @@ import {
 	StateNode,
 	TLBaseBinding,
 	TLBaseShape,
-	TLEventHandlers,
-	TLOnTranslateEndHandler,
-	TLOnTranslateStartHandler,
+	TLPointerEventInfo,
 	TLUiComponents,
 	TLUiOverrides,
 	Tldraw,
@@ -43,11 +41,21 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		// stickers can bind to anything
 		return true
 	}
-	override canEdit = () => false
-	override canResize = () => false
-	override canSnap = () => false
-	override hideRotateHandle = () => true
-	override isAspectRatioLocked = () => true
+	override canEdit() {
+		return false
+	}
+	override canResize() {
+		return false
+	}
+	override canSnap() {
+		return false
+	}
+	override hideRotateHandle() {
+		return true
+	}
+	override isAspectRatioLocked() {
+		return true
+	}
 
 	override getGeometry() {
 		return new Rectangle2d({
@@ -80,16 +88,17 @@ class StickerShapeUtil extends ShapeUtil<StickerShape> {
 		return <rect width={32} height={32} x={offsetX} y={offsetY} />
 	}
 
-	override onTranslateStart: TLOnTranslateStartHandler<StickerShape> = (shape) => {
+	override onTranslateStart(shape: StickerShape) {
 		const bindings = this.editor.getBindingsFromShape(shape, 'sticker')
 		this.editor.deleteBindings(bindings)
 	}
 
-	override onTranslateEnd: TLOnTranslateEndHandler<StickerShape> = (initial, sticker) => {
+	override onTranslateEnd(_initial: StickerShape, sticker: StickerShape) {
 		const pageAnchor = this.editor.getShapePageTransform(sticker).applyToPoint({ x: 0, y: 0 })
 		const target = this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
 			filter: (shape) =>
+				shape.id !== sticker.id &&
 				this.editor.canBindShapes({ fromShape: sticker, toShape: shape, binding: 'sticker' }),
 		})
 
@@ -165,14 +174,14 @@ class StickerBindingUtil extends BindingUtil<StickerBinding> {
 class StickerTool extends StateNode {
 	static override id = 'sticker'
 
-	override onEnter = () => {
+	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		const { currentPagePoint } = this.editor.inputs
 		const stickerId = createShapeId()
-		this.editor.mark(`creating:${stickerId}`)
+		this.editor.markHistoryStoppingPoint()
 		this.editor.createShape({
 			id: stickerId,
 			type: 'sticker',

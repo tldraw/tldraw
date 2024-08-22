@@ -1,168 +1,53 @@
-# @tldraw/tlsync
+# v2.4.0 (Mon Jul 22 2024)
 
-## 2.0.0-alpha.11
+### Release Notes
 
-### Patch Changes
+#### Finesse sync api ([#4212](https://github.com/tldraw/tldraw/pull/4212))
 
-- Updated dependencies
-  - @tldraw/tlschema@2.0.0-alpha.11
-  - @tldraw/tlstore@2.0.0-alpha.11
-  - @tldraw/utils@2.0.0-alpha.10
+- Fixed a bug with…
 
-## 2.0.0-alpha.10
+#### Make asset.fileSize optional ([#4206](https://github.com/tldraw/tldraw/pull/4206))
 
-### Patch Changes
+- Made the `fileSize` property of `TLImageAsset` and `TLVideoAsset` optional
 
-- Updated dependencies [4b4399b6e]
-  - @tldraw/tlschema@2.0.0-alpha.10
-  - @tldraw/tlstore@2.0.0-alpha.10
-  - @tldraw/utils@2.0.0-alpha.9
+#### [bemo] allow special chars in roomId ([#4153](https://github.com/tldraw/tldraw/pull/4153))
 
-## 2.0.0-alpha.9
+- Fixed a bug with…
 
-### Patch Changes
+#### [bemo] allow custom shapes ([#4144](https://github.com/tldraw/tldraw/pull/4144))
 
-- Release day!
-- Updated dependencies
-  - @tldraw/tlschema@2.0.0-alpha.9
-  - @tldraw/tlstore@2.0.0-alpha.9
-  - @tldraw/utils@2.0.0-alpha.8
+- Fixed a bug with…
 
-## 2.0.0-alpha.8
+#### put sync stuff in bemo worker ([#4060](https://github.com/tldraw/tldraw/pull/4060))
 
-### Patch Changes
+- Fixed a bug with...
 
-- 23dd81cfe: Make signia a peer dependency
-- Updated dependencies [23dd81cfe]
-  - @tldraw/tlstore@2.0.0-alpha.8
-  - @tldraw/tlschema@2.0.0-alpha.8
+---
 
-## 2.0.0-alpha.7
+#### 🐛 Bug Fix
 
-### Patch Changes
+- bemo custom shape example [#4174](https://github.com/tldraw/tldraw/pull/4174) ([@SomeHats](https://github.com/SomeHats))
+- publish bemo canaries [#4175](https://github.com/tldraw/tldraw/pull/4175) ([@SomeHats](https://github.com/SomeHats))
+- [5/5] Move bemo from dotcom to examples [#4135](https://github.com/tldraw/tldraw/pull/4135) ([@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300))
+- [4/5] sync -> sync-core, sync-react -> sync [#4123](https://github.com/tldraw/tldraw/pull/4123) ([@SomeHats](https://github.com/SomeHats))
 
-- Bug fixes.
-- Updated dependencies
-  - @tldraw/tlschema@2.0.0-alpha.7
-  - @tldraw/tlstore@2.0.0-alpha.7
-  - @tldraw/utils@2.0.0-alpha.7
+#### 💄 Product Improvements
 
-## 2.0.0-alpha.6
+- [bemo] allow special chars in roomId [#4153](https://github.com/tldraw/tldraw/pull/4153) ([@ds300](https://github.com/ds300))
 
-### Patch Changes
+#### 🎉 New Features
 
-- Add licenses.
-- Updated dependencies
-  - @tldraw/tlschema@2.0.0-alpha.6
-  - @tldraw/tlstore@2.0.0-alpha.6
-  - @tldraw/utils@2.0.0-alpha.6
+- [bemo] allow custom shapes [#4144](https://github.com/tldraw/tldraw/pull/4144) ([@ds300](https://github.com/ds300))
+- put sync stuff in bemo worker [#4060](https://github.com/tldraw/tldraw/pull/4060) ([@ds300](https://github.com/ds300))
 
-## 2.0.0-alpha.5
+#### 🛠️ API Changes
 
-### Patch Changes
+- Rename APIs for new sync demo [#4248](https://github.com/tldraw/tldraw/pull/4248) ([@SomeHats](https://github.com/SomeHats))
+- Finesse sync api [#4212](https://github.com/tldraw/tldraw/pull/4212) ([@ds300](https://github.com/ds300))
+- Make asset.fileSize optional [#4206](https://github.com/tldraw/tldraw/pull/4206) ([@steveruizok](https://github.com/steveruizok))
 
-- Add CSS files to tldraw/tldraw.
-- Updated dependencies
-  - @tldraw/tlschema@2.0.0-alpha.5
-  - @tldraw/tlstore@2.0.0-alpha.5
-  - @tldraw/utils@2.0.0-alpha.5
+#### Authors: 3
 
-## 2.0.0-alpha.4
-
-### Patch Changes
-
-- Add children to tldraw/tldraw
-- Updated dependencies
-  - @tldraw/tlschema@2.0.0-alpha.4
-  - @tldraw/tlstore@2.0.0-alpha.4
-  - @tldraw/utils@2.0.0-alpha.4
-
-## 2.0.0-alpha.3
-
-### Patch Changes
-
-- Change permissions.
-- Updated dependencies
-  - @tldraw/tlschema@2.0.0-alpha.3
-  - @tldraw/tlstore@2.0.0-alpha.3
-  - @tldraw/utils@2.0.0-alpha.3
-
-## 2.0.0-alpha.2
-
-### Patch Changes
-
-- Add tldraw, editor
-- Updated dependencies
-  - @tldraw/tlschema@2.0.0-alpha.2
-  - @tldraw/tlstore@2.0.0-alpha.2
-  - @tldraw/utils@2.0.0-alpha.2
-
-## 0.1.0-alpha.11
-
-### Patch Changes
-
-- Fix stale reactors.
-- Updated dependencies
-  - @tldraw/tlschema@0.1.0-alpha.11
-  - @tldraw/tlstore@0.1.0-alpha.11
-  - @tldraw/utils@0.1.0-alpha.11
-
-## 0.1.0-alpha.10
-
-### Patch Changes
-
-- Fix type export bug.
-- Updated dependencies
-  - @tldraw/tlschema@0.1.0-alpha.10
-  - @tldraw/tlstore@0.1.0-alpha.10
-  - @tldraw/utils@0.1.0-alpha.10
-
-## 0.1.0-alpha.9
-
-### Patch Changes
-
-- Fix import bugs.
-- Updated dependencies
-  - @tldraw/tlschema@0.1.0-alpha.9
-  - @tldraw/tlstore@0.1.0-alpha.9
-  - @tldraw/utils@0.1.0-alpha.9
-
-## 0.1.0-alpha.8
-
-### Patch Changes
-
-- Changes validation requirements, exports validation helpers.
-- Updated dependencies
-  - @tldraw/tlschema@0.1.0-alpha.8
-  - @tldraw/tlstore@0.1.0-alpha.8
-  - @tldraw/utils@0.1.0-alpha.8
-
-## 0.1.0-alpha.7
-
-### Patch Changes
-
-- - Pre-pre-release update
-- Updated dependencies
-  - @tldraw/tlschema@0.1.0-alpha.7
-  - @tldraw/tlstore@0.1.0-alpha.7
-  - @tldraw/utils@0.1.0-alpha.7
-
-## 0.0.2-alpha.1
-
-### Patch Changes
-
-- Fix error with HMR
-- Updated dependencies
-  - @tldraw/tlschema@0.0.2-alpha.1
-  - @tldraw/tlstore@0.0.2-alpha.1
-  - @tldraw/utils@0.0.2-alpha.1
-
-## 0.0.2-alpha.0
-
-### Patch Changes
-
-- Initial release
-- Updated dependencies
-  - @tldraw/tlschema@0.0.2-alpha.0
-  - @tldraw/tlstore@0.0.2-alpha.0
-  - @tldraw/utils@0.0.2-alpha.0
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))

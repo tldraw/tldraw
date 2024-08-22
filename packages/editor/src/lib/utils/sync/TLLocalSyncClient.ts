@@ -96,8 +96,8 @@ export class TLLocalSyncClient {
 		}: {
 			persistenceKey: string
 			sessionId?: string
-			onLoad: (self: TLLocalSyncClient) => void
-			onLoadError: (error: Error) => void
+			onLoad(self: TLLocalSyncClient): void
+			onLoadError(error: Error): void
 		},
 		public readonly channel = new BC(`tldraw-tab-sync-${persistenceKey}`)
 	) {
@@ -333,6 +333,7 @@ export class TLLocalSyncClient {
 	 */
 	private async doPersist() {
 		assert(!this.isPersisting, 'persist already in progress')
+		if (this.didDispose) return
 		this.isPersisting = true
 
 		this.debug('doPersist start')

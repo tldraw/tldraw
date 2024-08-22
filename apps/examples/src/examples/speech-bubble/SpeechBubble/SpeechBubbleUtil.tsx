@@ -14,9 +14,8 @@ import {
 	TEXT_PROPS,
 	TLBaseShape,
 	TLHandle,
-	TLOnBeforeUpdateHandler,
-	TLOnHandleDragHandler,
-	TLOnResizeHandler,
+	TLHandleDragInfo,
+	TLResizeInfo,
 	TextLabel,
 	Vec,
 	ZERO_INDEX_KEY,
@@ -61,11 +60,17 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 	// [2]
 	static override props = speechBubbleShapeProps
 
-	override isAspectRatioLocked = (_shape: SpeechBubbleShape) => false
+	override isAspectRatioLocked(_shape: SpeechBubbleShape) {
+		return false
+	}
 
-	override canResize = (_shape: SpeechBubbleShape) => true
+	override canResize(_shape: SpeechBubbleShape) {
+		return true
+	}
 
-	override canEdit = () => true
+	override canEdit() {
+		return true
+	}
 
 	// [3]
 	getDefaultProps(): SpeechBubbleShapeProps {
@@ -113,7 +118,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		]
 	}
 
-	override onHandleDrag: TLOnHandleDragHandler<SpeechBubbleShape> = (shape, { handle }) => {
+	override onHandleDrag(shape: SpeechBubbleShape, { handle }: TLHandleDragInfo<SpeechBubbleShape>) {
 		return {
 			...shape,
 			props: {
@@ -125,15 +130,12 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		}
 	}
 
-	override onBeforeCreate = (next: SpeechBubbleShape) => {
+	override onBeforeCreate(next: SpeechBubbleShape) {
 		return this.getGrowY(next, next.props.growY)
 	}
 
 	// [5]
-	override onBeforeUpdate: TLOnBeforeUpdateHandler<SpeechBubbleShape> | undefined = (
-		prev: SpeechBubbleShape,
-		shape: SpeechBubbleShape
-	) => {
+	override onBeforeUpdate(prev: SpeechBubbleShape, shape: SpeechBubbleShape) {
 		const { w, tail } = shape.props
 		const fullHeight = this.getHeight(shape)
 
@@ -214,7 +216,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		return <path d={pathData} />
 	}
 
-	override onResize: TLOnResizeHandler<SpeechBubbleShape> = (shape, info) => {
+	override onResize(shape: SpeechBubbleShape, info: TLResizeInfo<SpeechBubbleShape>) {
 		const resized = resizeBox(shape, info)
 		const next = structuredClone(info.initialShape)
 		next.x = resized.x

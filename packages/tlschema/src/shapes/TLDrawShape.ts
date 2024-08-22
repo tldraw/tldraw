@@ -1,11 +1,11 @@
 import { T } from '@tldraw/validate'
 import { VecModel, vecModelValidator } from '../misc/geometry-types'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RecordPropsType } from '../recordsWithProps'
-import { DefaultColorStyle } from '../styles/TLColorStyle'
-import { DefaultDashStyle } from '../styles/TLDashStyle'
-import { DefaultFillStyle } from '../styles/TLFillStyle'
-import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { RecordProps } from '../recordsWithProps'
+import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultDashStyle, TLDefaultDashStyle } from '../styles/TLDashStyle'
+import { DefaultFillStyle, TLDefaultFillStyle } from '../styles/TLFillStyle'
+import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
@@ -14,13 +14,30 @@ export interface TLDrawShapeSegment {
 	points: VecModel[]
 }
 
-export const DrawShapeSegment: T.Validator<TLDrawShapeSegment> = T.object<TLDrawShapeSegment>({
+/** @public */
+export const DrawShapeSegment: T.ObjectValidator<TLDrawShapeSegment> = T.object({
 	type: T.literalEnum('free', 'straight'),
 	points: T.arrayOf(vecModelValidator),
 })
 
 /** @public */
-export const drawShapeProps = {
+export interface TLDrawShapeProps {
+	color: TLDefaultColorStyle
+	fill: TLDefaultFillStyle
+	dash: TLDefaultDashStyle
+	size: TLDefaultSizeStyle
+	segments: TLDrawShapeSegment[]
+	isComplete: boolean
+	isClosed: boolean
+	isPen: boolean
+	scale: number
+}
+
+/** @public */
+export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
+
+/** @public */
+export const drawShapeProps: RecordProps<TLDrawShape> = {
 	color: DefaultColorStyle,
 	fill: DefaultFillStyle,
 	dash: DefaultDashStyle,
@@ -31,12 +48,6 @@ export const drawShapeProps = {
 	isPen: T.boolean,
 	scale: T.nonZeroNumber,
 }
-
-/** @public */
-export type TLDrawShapeProps = RecordPropsType<typeof drawShapeProps>
-
-/** @public */
-export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
 const Versions = createShapePropsMigrationIds('draw', {
 	AddInPen: 1,

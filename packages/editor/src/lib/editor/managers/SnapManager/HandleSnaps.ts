@@ -58,6 +58,12 @@ export class HandleSnaps {
 		const { editor } = this
 		return editor.store.createComputedCache('handle snap geometry', (shape: TLShape) => {
 			const snapGeometry = editor.getShapeUtil(shape).getHandleSnapGeometry(shape)
+			const getSelfSnapOutline = snapGeometry.getSelfSnapOutline
+				? snapGeometry.getSelfSnapOutline.bind(snapGeometry)
+				: defaultGetSelfSnapOutline
+			const getSelfSnapPoints = snapGeometry.getSelfSnapPoints
+				? snapGeometry.getSelfSnapPoints.bind(snapGeometry)
+				: defaultGetSelfSnapPoints
 
 			return {
 				outline:
@@ -66,8 +72,8 @@ export class HandleSnaps {
 						: snapGeometry.outline,
 
 				points: snapGeometry.points ?? [],
-				getSelfSnapOutline: snapGeometry.getSelfSnapOutline ?? defaultGetSelfSnapOutline,
-				getSelfSnapPoints: snapGeometry.getSelfSnapPoints ?? defaultGetSelfSnapPoints,
+				getSelfSnapOutline,
+				getSelfSnapPoints,
 			}
 		})
 	}

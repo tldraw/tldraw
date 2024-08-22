@@ -6,7 +6,7 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseShape,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	Tldraw,
 	resizeBox,
 } from 'tldraw'
@@ -44,9 +44,15 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	}
 
 	// [c]
-	override canEdit = () => false
-	override canResize = () => true
-	override isAspectRatioLocked = () => false
+	override canEdit() {
+		return false
+	}
+	override canResize() {
+		return true
+	}
+	override isAspectRatioLocked() {
+		return false
+	}
 
 	// [d]
 	getGeometry(shape: ICustomShape): Geometry2d {
@@ -58,7 +64,7 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 	}
 
 	// [e]
-	override onResize: TLOnResizeHandler<any> = (shape, info) => {
+	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
 	}
 
@@ -75,6 +81,7 @@ export class MyShapeUtil extends ShapeUtil<ICustomShape> {
 
 // [3]
 const customShape = [MyShapeUtil]
+
 export default function CustomShapeExample() {
 	return (
 		<div className="tldraw__editor">

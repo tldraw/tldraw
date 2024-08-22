@@ -583,6 +583,11 @@ input,
 	height: 100%;
 }
 
+.tl-video.tl-video-is-fullscreen {
+	object-fit: contain;
+	background-size: contain;
+}
+
 .tl-video-container,
 .tl-image-container,
 .tl-embed-container {
@@ -594,6 +599,15 @@ input,
 	display: flex;
 	justify-content: center;
 	align-items: center;
+}
+
+.tl-image-container {
+	position: relative;
+	overflow: hidden;
+}
+.tl-image {
+	position: absolute;
+	inset: 0;
 }
 
 .tl-image__tg {

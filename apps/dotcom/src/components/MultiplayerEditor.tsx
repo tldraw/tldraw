@@ -1,14 +1,18 @@
-import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
-import { useMultiplayerSync } from '@tldraw/sync-react'
+import {
+	getLicenseKey,
+	ROOM_OPEN_MODE,
+	RoomOpenModeToPath,
+	type RoomOpenMode,
+} from '@tldraw/dotcom-shared'
+import { useSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import {
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
+	assertExists,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	EditSubmenu,
 	Editor,
+	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PeopleMenu,
@@ -20,19 +24,19 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	ViewSubmenu,
-	assertExists,
 	useActions,
 	useEditor,
 	useTranslation,
 	useValue,
+	ViewSubmenu,
 } from 'tldraw'
-import { UrlStateParams, useUrlState } from '../hooks/useUrlState'
+import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { multiplayerAssetStore } from '../utils/multiplayerAssetStore'
 import { useSharing } from '../utils/sharing'
+import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
@@ -47,14 +51,6 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
@@ -84,7 +80,7 @@ const components: TLComponents = {
 			'offline',
 			() => {
 				const status = assertExists(
-					editor.store.props.multiplayerStatus,
+					editor.store.props.collaboration?.status,
 					'should be used with multiplayer store'
 				)
 				return status.get() === 'offline'
@@ -123,12 +119,16 @@ export function MultiplayerEditor({
 	roomOpenMode: RoomOpenMode
 	roomSlug: string
 }) {
+	// make sure this runs before the editor is instantiated
+	useLegacyUrlParams()
+
 	const handleUiEvent = useHandleUiEvents()
 
-	const storeWithStatus = useMultiplayerSync({
+	const storeWithStatus = useSync({
 		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 		assets: multiplayerAssetStore,
+		trackAnalyticsEvent,
 	})
 
 	const sharingUiOverrides = useSharing()
@@ -157,6 +157,7 @@ export function MultiplayerEditor({
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}
@@ -164,26 +165,12 @@ export function MultiplayerEditor({
 				initialState={isReadonly ? 'hand' : 'select'}
 				onUiEvent={handleUiEvent}
 				components={components}
+				deepLinks
 				inferDarkMode
 			>
-				<UrlStateSync />
 				<SneakyOnDropOverride isMultiplayer />
 				<ThemeUpdater />
 			</Tldraw>
 		</div>
 	)
-}
-
-export function UrlStateSync() {
-	const syncViewport = useCallback((params: UrlStateParams) => {
-		window.history.replaceState(
-			{},
-			document.title,
-			window.location.pathname + `?v=${params.v}&p=${params.p}`
-		)
-	}, [])
-
-	useUrlState(syncViewport)
-
-	return null
 }

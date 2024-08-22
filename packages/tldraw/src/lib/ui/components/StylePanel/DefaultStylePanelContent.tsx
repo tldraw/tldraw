@@ -80,7 +80,7 @@ function useStyleChangeCallback() {
 	return React.useMemo(
 		() =>
 			function handleStyleChange<T>(style: StyleProp<T>, value: T) {
-				editor.batch(() => {
+				editor.run(() => {
 					if (editor.isIn('select')) {
 						editor.setStyleForSelectedShapes(style, value)
 					}
@@ -360,7 +360,7 @@ export function OpacitySlider() {
 	const handleOpacityValueChange = React.useCallback(
 		(value: number) => {
 			const item = tldrawSupportedOpacities[value]
-			editor.batch(() => {
+			editor.run(() => {
 				if (editor.isIn('select')) {
 					editor.setOpacityForSelectedShapes(item)
 				}

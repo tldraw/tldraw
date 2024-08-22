@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state",
 	"description": "A tiny little drawing app (state).",
-	"version": "2.3.0",
+	"version": "2.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -54,13 +54,10 @@
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.14.188",
-		"@types/react": "^18.2.47",
-		"@types/react-test-renderer": "^18.0.0",
-		"lodash": "^4.17.21",
-		"react-test-renderer": "^18.2.0"
+		"lodash": "^4.17.21"
 	},
-	"peerDependencies": {
-		"react": "^18"
+	"dependencies": {
+		"@tldraw/utils": "workspace:*"
 	},
 	"typedoc": {
 		"readmeFile": "none",

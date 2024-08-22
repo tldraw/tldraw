@@ -10,7 +10,7 @@ const myAssetStore: TLAssetStore = {
 	async upload(asset, file) {
 		const id = uniqueId()
 
-		const objectName = `${id}-${file.name}`.replaceAll(/[^a-zA-Z0-9.]/g, '-')
+		const objectName = `${id}-${file.name}`.replaceAll(/\W/g, '-')
 		const url = `${UPLOAD_URL}/${objectName}`
 
 		await fetch(url, {

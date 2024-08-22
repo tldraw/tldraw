@@ -11,13 +11,13 @@
 			"path": "../state"
 		},
 		{
-			"path": "../store"
+			"path": "../state-react"
+		},
+		{
+			"path": "../sync-core"
 		},
 		{
 			"path": "../tldraw"
-		},
-		{
-			"path": "../tlschema"
 		},
 		{
 			"path": "../utils"
