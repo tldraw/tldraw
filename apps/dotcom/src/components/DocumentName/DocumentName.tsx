@@ -108,7 +108,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 								}}
 							>
 								<span className={'tlui-button__label' as any}>
-									{msg('document-name.copy-link')}
+									{msg('document-name-menu.copy-link')}
 								</span>
 							</TldrawUiButton>
 						</TldrawUiDropdownMenuItem>
