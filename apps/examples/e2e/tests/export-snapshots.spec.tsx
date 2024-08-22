@@ -2,14 +2,19 @@
 import { Page, expect } from '@playwright/test'
 import assert from 'assert'
 import { rename, writeFile } from 'fs/promises'
-import { ReactElement } from 'react'
+import { Fragment, ReactElement } from 'react'
 import {
+	DefaultColorStyle,
+	DefaultDashStyle,
 	DefaultFillStyle,
 	DefaultFontStyle,
 	Editor,
+	GeoShapeGeoStyle,
 	TLShapePartial,
 	TLTextShape,
+	degreesToRadians,
 	mapObjectMapValues,
+	mockUniqueId,
 } from 'tldraw'
 import { TL, shapesFromJsx } from 'tldraw/src/test/test-jsx'
 import { EndToEndApi } from '../../src/misc/EndToEndApi'
@@ -19,9 +24,28 @@ import test, { ApiFixture } from './fixtures/fixtures'
 declare const editor: Editor
 declare const tldrawApi: EndToEndApi
 
+let nextNanoId = 0
+mockUniqueId(() => `mock-${nextNanoId++}`)
+
 interface Snapshots {
 	[name: string]: { [row: string]: { [testCase: string]: ReactElement } }
 }
+
+const frameContent = (
+	<Fragment>
+		<TL.geo
+			text="content"
+			w={100}
+			h={100}
+			x={50}
+			y={50}
+			rotation={degreesToRadians(35)}
+			fill="solid"
+			color="orange"
+		/>
+		<TL.arrow start={{ x: 50, y: 50 }} end={{ x: 50, y: 20 }} />
+	</Fragment>
+)
 
 const snapshots: Snapshots = {
 	'Text rendering': {
@@ -112,6 +136,61 @@ const snapshots: Snapshots = {
 			},
 		])
 	),
+	'Geo shapes': Object.fromEntries(
+		GeoShapeGeoStyle.values.map((geoStyle, y) => [
+			geoStyle,
+			Object.fromEntries(
+				DefaultDashStyle.values.map((dashStyle, x) => [
+					dashStyle,
+					<TL.geo
+						key={x}
+						w={100}
+						h={100}
+						fill="solid"
+						color={DefaultColorStyle.values[(x + y) % DefaultColorStyle.values.length]}
+						geo={geoStyle}
+						dash={dashStyle}
+					/>,
+				])
+			),
+		])
+	),
+	Frames: {
+		'': {
+			empty: <TL.frame w={100} h={100} />,
+			labelled: <TL.frame w={100} h={100} name="test" />,
+			content: (
+				<TL.frame w={100} h={100} name="test">
+					{frameContent}
+				</TL.frame>
+			),
+			nested: (
+				<TL.frame w={200} h={100} name="tilted" rotation={degreesToRadians(10)}>
+					<TL.geo x={-10} y={-10} w={220} h={120} fill="solid" color="light-blue" />
+					{frameContent}
+					<TL.frame
+						x={140}
+						y={15}
+						w={200}
+						h={100}
+						name="ttiilltteedd"
+						rotation={degreesToRadians(10)}
+					>
+						<TL.geo x={-10} y={-10} w={220} h={120} fill="solid" color="light-green" />
+						{frameContent}
+					</TL.frame>
+				</TL.frame>
+			),
+		},
+		'label rotation': Object.fromEntries(
+			[10, 70, 130, 190, 150, 310].map((rotation, i) => [
+				`${rotation}°`,
+				<TL.frame key={i} w={100} h={100} name="test" rotation={degreesToRadians(rotation)}>
+					{frameContent}
+				</TL.frame>,
+			])
+		),
+	},
 }
 
 interface SnapshotWithoutJsx {
@@ -124,6 +203,7 @@ test.describe('Export snapshots', () => {
 	test.beforeEach(setup)
 
 	for (const [name, snapshotWithJsx] of snapshotsToTest) {
+		nextNanoId = 0
 		const snapshot: SnapshotWithoutJsx = mapObjectMapValues(snapshotWithJsx, (key, row) =>
 			mapObjectMapValues(row, (key, testCase) => shapesFromJsx(testCase).shapes)
 		)
@@ -131,10 +211,18 @@ test.describe('Export snapshots', () => {
 		for (const colorScheme of ['light', 'dark'] as const) {
 			test(`${name} (${colorScheme})`, async ({ page, api }) => {
 				await page.evaluate(
-					({ name, snapshot }: { name: string; snapshot: SnapshotWithoutJsx }) => {
-						editor.user.updateUserPreferences({ colorScheme: 'dark' })
+					({
+						colorScheme,
+						name,
+						snapshot,
+					}: {
+						colorScheme: 'light' | 'dark'
+						name: string
+						snapshot: SnapshotWithoutJsx
+					}) => {
+						editor.user.updateUserPreferences({ colorScheme })
 						editor
-							.updateInstanceState({ exportBackground: false })
+							.updateInstanceState({ exportBackground: true })
 							.selectAll()
 							.deleteShapes(editor.getSelectedShapeIds())
 
@@ -147,7 +235,7 @@ test.describe('Export snapshots', () => {
 							props: { text: name, font: 'mono', size: 'xl' },
 						})
 
-						let y = editor.getShapePageBounds(titleId)!.maxY + 20
+						let y = editor.getShapePageBounds(titleId)!.maxY + 30
 
 						for (const [rowName, testCases] of Object.entries(snapshot)) {
 							const rowTitleId = tldrawApi.createShapeId()
@@ -156,22 +244,22 @@ test.describe('Export snapshots', () => {
 								type: 'text',
 								x: 0,
 								y,
-								props: { text: rowName, font: 'mono', size: 'l' },
+								props: { text: rowName, font: 'mono', size: 'm' },
 							})
 							y = editor.getShapePageBounds(rowTitleId)!.maxY + 20
 
 							let x = 0
 							let bottom = y
 							for (const [testCaseName, shapes] of Object.entries(testCases)) {
-								const group = tldrawApi.createShapeId()
+								const testCaseTitleId = tldrawApi.createShapeId()
 								editor.createShape<TLTextShape>({
-									id: group,
+									id: testCaseTitleId,
 									type: 'text',
 									x,
 									y,
 									props: { text: testCaseName, font: 'mono', size: 's' },
 								})
-								x = editor.getShapePageBounds(group)!.maxX + 20
+								const testCastTitleBounds = editor.getShapePageBounds(testCaseTitleId)!
 
 								for (const shape of shapes) {
 									editor.createShape(shape)
@@ -183,20 +271,20 @@ test.describe('Export snapshots', () => {
 								let bounds = editor.getSelectionPageBounds()!
 								editor.nudgeShapes(topLevelShapeIds, {
 									x: x - bounds.minX,
-									y: y - bounds.minY,
+									y: testCastTitleBounds.maxY + 25 - bounds.minY,
 								})
 
 								bounds = editor.getSelectionPageBounds()!
-								x = bounds.maxX + 20
+								x = Math.max(testCastTitleBounds.maxX, bounds.maxX) + 60
 								bottom = Math.max(bottom, bounds.maxY)
 							}
 
-							y = bottom + 20
+							y = bottom + 40
 						}
 
 						editor.selectAll()
 					},
-					{ name, snapshot } as any
+					{ colorScheme, name, snapshot } as any
 				)
 
 				await snapshotTest(page, api)
@@ -237,6 +325,7 @@ test.describe('Export snapshots', () => {
 			await expect(page).toHaveScreenshot({
 				omitBackground: true,
 				clip,
+				fullPage: true,
 			})
 		})
 		await api.exportAsSvg()
