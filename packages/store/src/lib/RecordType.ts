@@ -1,5 +1,4 @@
-import { objectMapEntries, structuredClone } from '@tldraw/utils'
-import { nanoid } from 'nanoid'
+import { objectMapEntries, structuredClone, uniqueId } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 
@@ -109,7 +108,7 @@ export class RecordType<
 	 * @public
 	 */
 	createId(customUniquePart?: string): IdOf<R> {
-		return (this.typeName + ':' + (customUniquePart ?? nanoid())) as IdOf<R>
+		return (this.typeName + ':' + (customUniquePart ?? uniqueId())) as IdOf<R>
 	}
 
 	/**

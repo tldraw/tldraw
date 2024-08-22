@@ -1,8 +1,7 @@
 import { atom } from '@tldraw/state'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
-import { getFromLocalStorage, setInLocalStorage, structuredClone } from '@tldraw/utils'
+import { getFromLocalStorage, setInLocalStorage, structuredClone, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { uniqueId } from '../utils/uniqueId'
 
 const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 

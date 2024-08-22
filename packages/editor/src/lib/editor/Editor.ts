@@ -81,6 +81,7 @@ import {
 	sortById,
 	sortByIndex,
 	structuredClone,
+	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import { flushSync } from 'react-dom'
@@ -125,7 +126,6 @@ import {
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
-import { uniqueId } from '../utils/uniqueId'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'

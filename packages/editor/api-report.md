@@ -3512,9 +3512,6 @@ export function uniq<T>(array: {
     readonly length: number;
 } | null | undefined): T[];
 
-// @public
-export function uniqueId(): string;
-
 export { useComputed }
 
 // @public (undocumented)

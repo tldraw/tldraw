@@ -28,6 +28,7 @@ export { annotateError, getErrorAnnotations, type ErrorAnnotations } from './lib
 export { FileHelpers } from './lib/file'
 export { noop, omitFromStackTrace } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
+export { mockUniqueId, restoreUniqueId, uniqueId } from './lib/id'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export {

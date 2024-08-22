@@ -30,10 +30,7 @@
 		"preset": "config/jest/node",
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
-		},
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid|escape-string-regexp)/)"
-		]
+		}
 	},
 	"dependencies": {
 		"@fastify/cors": "^9.0.1",

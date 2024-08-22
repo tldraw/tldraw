@@ -5893,7 +5893,6 @@ __metadata:
     esbuild: "npm:^0.21.5"
     itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
-    nanoid: "npm:4.0.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     typescript: "npm:^5.3.3"
@@ -5993,7 +5992,6 @@ __metadata:
     esbuild: "npm:^0.21.5"
     itty-router: "npm:^5.0.17"
     lazyrepo: "npm:0.0.0-alpha.27"
-    nanoid: "npm:4.0.2"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     typescript: "npm:^5.3.3"
@@ -6029,7 +6027,6 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
-    nanoid: "npm:4.0.2"
     react-test-renderer: "npm:^18.2.0"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:
@@ -6186,7 +6183,6 @@ __metadata:
     "@types/lodash.isequal": "npm:^4.5.6"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
-    nanoid: "npm:4.0.2"
     raf: "npm:^3.4.1"
   peerDependencies:
     react: ^18
@@ -6201,9 +6197,9 @@ __metadata:
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@types/uuid-readable": "npm:^0.0.3"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
-    nanoid: "npm:4.0.2"
     tldraw: "workspace:*"
     typescript: "npm:^5.3.3"
     uuid-by-string: "npm:^4.0.0"
@@ -6225,7 +6221,6 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     lodash.isequal: "npm:^4.5.0"
     nanoevents: "npm:^7.0.1"
-    nanoid: "npm:4.0.2"
     tldraw: "workspace:*"
     typescript: "npm:^5.3.3"
     uuid-by-string: "npm:^4.0.0"
@@ -6260,7 +6255,6 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     kleur: "npm:^4.1.5"
     lazyrepo: "npm:0.0.0-alpha.27"
-    nanoid: "npm:4.0.2"
   peerDependencies:
     react: ^18
   languageName: unknown
@@ -7196,6 +7190,13 @@ __metadata:
   version: 2.0.10
   resolution: "@types/unist@npm:2.0.10"
   checksum: e2924e18dedf45f68a5c6ccd6015cd62f1643b1b43baac1854efa21ae9e70505db94290434a23da1137d9e31eb58e54ca175982005698ac37300a1c889f6c4aa
+  languageName: node
+  linkType: hard
+
+"@types/uuid-readable@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "@types/uuid-readable@npm:0.0.3"
+  checksum: cf9ae12d9d6757d0001745a47959843ffe97bac770f1a5b88e7865bd269c00b2d82ee3f4aa40aae1f9c80bb2e60c2f35055b6f0176028e5d7228700311268358
   languageName: node
   linkType: hard
 
@@ -10607,7 +10608,6 @@ __metadata:
     idb: "npm:^7.1.1"
     json5: "npm:^2.2.3"
     lazyrepo: "npm:0.0.0-alpha.27"
-    nanoid: "npm:4.0.2"
     qrcode: "npm:^1.5.1"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -17956,15 +17956,6 @@ __metadata:
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 306f2cb9e4dcfb94738b09de9dc63839a37db33626f66b24dbcc8f66d4b91784645794a7c4f250d629e4d66f5385164c6748c58ac5b7c95217e9e048590efbe4
-  languageName: node
-  linkType: hard
-
-"nanoid@npm:4.0.2":
-  version: 4.0.2
-  resolution: "nanoid@npm:4.0.2"
-  bin:
-    nanoid: bin/nanoid.js
-  checksum: 8c0c267de44cddcad79c3361d2cbd281694c36bf7ab6a163f36dd8f6e6ee43e9783561302c55fab2986a2fa847e7a6b30fedabd1e117fdb8aecc5ab21555428d
   languageName: node
   linkType: hard
 
