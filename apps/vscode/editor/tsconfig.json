@@ -19,8 +19,7 @@
 		"baseUrl": ".",
 		"composite": true,
 		"importHelpers": false,
-		"skipDefaultLibCheck": true,
-		"experimentalDecorators": true
+		"skipDefaultLibCheck": true
 	},
 	"include": ["src", "../messages", "scripts"],
 	"references": [
