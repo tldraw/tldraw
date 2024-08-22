@@ -8,6 +8,7 @@ export interface PageItemInputProps {
 	name: string
 	id: TLPageId
 	isCurrentPage: boolean
+	onCancel(): void
 }
 
 /** @public @react */
@@ -15,14 +16,16 @@ export const PageItemInput = function PageItemInput({
 	name,
 	id,
 	isCurrentPage,
+	onCancel,
 }: PageItemInputProps) {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
 	const rInput = useRef<HTMLInputElement | null>(null)
+	const rMark = useRef<string | null>(null)
 
 	const handleFocus = useCallback(() => {
-		editor.markHistoryStoppingPoint('rename page')
+		rMark.current = editor.markHistoryStoppingPoint('rename page')
 	}, [editor])
 
 	const handleChange = useCallback(
@@ -33,12 +36,20 @@ export const PageItemInput = function PageItemInput({
 		[editor, id, trackEvent]
 	)
 
+	const handleCancel = useCallback(() => {
+		if (rMark.current) {
+			editor.bailToMark(rMark.current)
+		}
+		onCancel()
+	}, [editor, onCancel])
+
 	return (
 		<TldrawUiInput
 			className="tlui-page-menu__item__input"
 			ref={(el) => (rInput.current = el)}
 			defaultValue={name}
 			onValueChange={handleChange}
+			onCancel={handleCancel}
 			onFocus={handleFocus}
 			shouldManuallyMaintainScrollPositionWhenFocused
 			autoFocus={isCurrentPage}

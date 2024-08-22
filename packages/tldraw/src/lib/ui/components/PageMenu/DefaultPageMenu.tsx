@@ -291,7 +291,14 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					<TldrawUiButtonIcon icon="chevron-down" small />
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={6}>
+			<TldrawUiPopoverContent
+				side="bottom"
+				align="start"
+				sideOffset={6}
+				onEscapeKeyDown={(e) => {
+					e.preventDefault()
+				}}
+			>
 				<div className="tlui-page-menu__wrapper">
 					<div className="tlui-page-menu__header">
 						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
@@ -384,6 +391,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												id={page.id}
 												name={page.name}
 												isCurrentPage={page.id === currentPage.id}
+												onCancel={() => {
+													setIsEditing(false)
+													editor.clearOpenMenus()
+												}}
 											/>
 										</div>
 									)}
