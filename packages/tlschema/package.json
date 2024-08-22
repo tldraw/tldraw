@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tlschema",
 	"description": "A tiny little drawing app (schema).",
-	"version": "2.4.4",
+	"version": "2.4.5",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

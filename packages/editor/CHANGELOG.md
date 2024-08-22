@@ -1,3 +1,15 @@
+# v2.4.5 (Thu Aug 22 2024)
+
+#### 🐛 Bug Fix
+
+- [patch] Prevent unhandled promise rejection during strict mode (#4406) [#4407](https://github.com/tldraw/tldraw/pull/4407) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.4.4 (Mon Aug 05 2024)
 
 #### 🐛 Bug Fix
