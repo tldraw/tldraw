@@ -4,11 +4,11 @@ import {
 	TLShapePartial,
 	ZERO_INDEX_KEY,
 	assert,
-	assertExists,
 	createShapeId,
 	getIndexAbove,
 	omitFromStackTrace,
 } from '@tldraw/editor'
+import React, { Fragment } from 'react'
 
 const shapeTypeSymbol = Symbol('shapeJsx')
 
@@ -21,8 +21,8 @@ const createElement = (tag: string) => {
 }
 
 interface CommonProps {
-	x: number
-	y: number
+	x?: number
+	y?: number
 	id?: TLShapeId
 	rotation?: number
 	isLocked?: number
@@ -62,6 +62,11 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 		let nextIndex = ZERO_INDEX_KEY
 
 		for (const el of Array.isArray(children) ? children : [children]) {
+			if (el.type === Fragment) {
+				addChildren(el.props.children, parentId)
+				continue
+			}
+
 			const shapeType = (el.type as any)[shapeTypeSymbol] as string
 			if (!shapeType) {
 				throw new Error(
@@ -82,8 +87,8 @@ export function shapesFromJsx(shapes: React.JSX.Element | Array<React.JSX.Elemen
 				id = createShapeId()
 			}
 
-			const x: number = assertExists(el.props.x, `Shape ${id} is missing x prop`)
-			const y: number = assertExists(el.props.y, `Shape ${id} is missing y prop`)
+			const x: number = el.props.x ?? 0
+			const y: number = el.props.y ?? 0
 
 			const shapePartial = {
 				id,
