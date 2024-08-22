@@ -65,7 +65,6 @@
 		"@tldraw/utils": "workspace:*",
 		"lodash.isequal": "^4.5.0",
 		"nanoevents": "^7.0.1",
-		"nanoid": "4.0.2",
 		"tldraw": "workspace:*",
 		"ws": "^8.16.0"
 	},

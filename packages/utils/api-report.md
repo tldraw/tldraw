@@ -254,6 +254,9 @@ export class MediaHelpers {
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
+// @internal (undocumented)
+export function mockUniqueId(fn: (size?: number) => string): void;
+
 // @public
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
@@ -354,6 +357,9 @@ type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
 }>;
 export { Required_2 as Required }
 
+// @internal (undocumented)
+export function restoreUniqueId(): void;
+
 // @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 
@@ -413,6 +419,9 @@ export class Timers {
 }
 
 export { uniq }
+
+// @public
+export function uniqueId(size?: number): string;
 
 // @internal (undocumented)
 export function validateIndexKey(index: string): asserts index is IndexKey;
