@@ -30,7 +30,6 @@ import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
 import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
-import * as PopoverPrimitive from '@radix-ui/react-popover';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
@@ -2949,7 +2948,7 @@ export interface TLUiPopoverContentProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
-    onEscapeKeyDown?: PopoverPrimitive.PopoverContentProps['onEscapeKeyDown'];
+    onEscapeKeyDown?(event: KeyboardEvent): void;
     // (undocumented)
     side: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)

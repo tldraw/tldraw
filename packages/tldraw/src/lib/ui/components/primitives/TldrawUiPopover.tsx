@@ -46,7 +46,7 @@ export interface TLUiPopoverContentProps {
 	align?: 'start' | 'center' | 'end'
 	alignOffset?: number
 	sideOffset?: number
-	onEscapeKeyDown?: PopoverPrimitive.PopoverContentProps['onEscapeKeyDown']
+	onEscapeKeyDown?(event: KeyboardEvent): void
 }
 
 /** @public @react */
