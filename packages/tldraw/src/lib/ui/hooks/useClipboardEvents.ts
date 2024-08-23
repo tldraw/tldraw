@@ -506,7 +506,7 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		// Extract the text from the clipboard
 		const textItems = content.shapes
 			.map((shape) => {
-				const util = editor.getShapeUtil(shape.type)
+				const util = editor.getShapeUtil(shape)
 				return util.getText(shape)
 			})
 			.filter(isDefined)
