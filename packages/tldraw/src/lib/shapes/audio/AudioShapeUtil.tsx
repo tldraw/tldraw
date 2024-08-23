@@ -11,12 +11,9 @@ import {
 	useIsEditing,
 } from '@tldraw/editor'
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
-import { TldrawUiButton } from '../../ui/components/primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../../ui/components/primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiSlider } from '../../ui/components/primitives/TldrawUiSlider'
-import { useTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { MediaControls } from '../shared/MediaControls'
 import { useAsset } from '../shared/useAsset'
 
 /** @public */
@@ -48,11 +45,6 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 		const { editor } = this
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 		const isEditing = useIsEditing(shape.id)
-		const [isPlaying, setIsPlaying] = useState(false)
-		const [isMuted, setIsMuted] = useState(false)
-		const [newSeekTime, setNewSeekTime] = useState<number | null>(null)
-		const [currentTime, setCurrentTime] = useState(0)
-		const msg = useTranslation()
 
 		const rAudio = useRef<HTMLAudioElement>(null!)
 
@@ -76,35 +68,6 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 				}
 			}
 		}, [isEditing, isLoaded])
-
-		const handleOnPlay = () => setIsPlaying(true)
-		const handleOnPause = () => setIsPlaying(false)
-		const handleSetCurrentTime = (e: React.SyntheticEvent<HTMLAudioElement>) => {
-			const audio = e.currentTarget
-			if (!audio) return
-
-			setCurrentTime(audio.currentTime)
-		}
-		const handleSeek = (time: number) => {
-			setNewSeekTime(time)
-		}
-		const handleSliderPointerUp = () => {
-			if (!rAudio.current) return
-			rAudio.current.currentTime = newSeekTime ?? 0
-			setNewSeekTime(null)
-		}
-
-		const handlePlayControl = useCallback(() => {
-			if (isPlaying) {
-				rAudio.current?.pause()
-			} else {
-				rAudio.current?.play()
-			}
-		}, [isPlaying])
-		const handleVolumeControl = () => {
-			rAudio.current.muted = !isMuted
-			setIsMuted(!isMuted)
-		}
 
 		const audioAsset = asset as TLAudioAsset | undefined
 		const coverArt = audioAsset?.props.coverArt
@@ -135,59 +98,18 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 							{!asset?.props.src ? (
 								<BrokenAssetIcon />
 							) : url ? (
-								<>
+								<MediaControls shape={shape} widthScaled={widthScaled}>
 									<audio
 										ref={rAudio}
 										style={isEditing ? { pointerEvents: 'all' } : undefined}
 										className={`tl-audio tl-audio-shape-${shape.id.split(':')[1]}`}
 										draggable={false}
-										onPlay={handleOnPlay}
-										onPause={handleOnPause}
-										onTimeUpdate={handleSetCurrentTime}
 										onLoadedData={handleLoadedData}
 										hidden={!isLoaded}
 									>
 										<source src={url} />
 									</audio>
-									{/* We stop propagation here because otherwise onPointerDown in useCanvasEvents screws things up. */}
-									<div className="tl-audio-controls" onPointerDown={(e) => e.stopPropagation()}>
-										<TldrawUiButton
-											type="icon"
-											title={msg(isPlaying ? 'audio.pause' : 'audio.play')}
-											onClick={handlePlayControl}
-										>
-											<TldrawUiButtonIcon icon={isPlaying ? 'pause' : 'play'} />
-										</TldrawUiButton>
-										{rAudio.current?.duration && widthScaled > 0.5 ? (
-											<div className="tl-audio-time">
-												<span className="tl-audio-time-current">{`${secondsToTime(newSeekTime ?? currentTime)}`}</span>
-												<span>{' / '}</span>
-												<span className="tl-audio-time-total">
-													{secondsToTime(rAudio.current.duration)}
-												</span>
-											</div>
-										) : null}
-										{widthScaled > 0.75 && (
-											<TldrawUiSlider
-												// XXX(mime): the slider messes up when it's resized. We set a key here to force a re-render.
-												key={`slider-${shape.props.w}`}
-												value={newSeekTime ?? currentTime}
-												label={secondsToTime(newSeekTime ?? currentTime)}
-												onValueChange={handleSeek}
-												onPointerUp={handleSliderPointerUp}
-												steps={rAudio.current?.duration || 0}
-												title={msg('audio.seek')}
-											/>
-										)}
-										<TldrawUiButton
-											type="icon"
-											title={msg(isMuted ? 'audio.unmute' : 'audio.mute')}
-											onMouseDown={handleVolumeControl}
-										>
-											<TldrawUiButtonIcon icon={isMuted ? 'speaker-off' : 'speaker-loud'} />
-										</TldrawUiButton>
-									</div>
-								</>
+								</MediaControls>
 							) : null}
 							{title && heightScaled > 0.2 && (
 								<div className="tl-audio-title" title={title}>
@@ -260,10 +182,4 @@ function getAudioSize(editor: Editor, shape: TLAudioShape) {
 			h,
 		},
 	}
-}
-
-function secondsToTime(seconds: number) {
-	const minutes = Math.floor(seconds / 60)
-	const remainingSeconds = Math.floor(seconds % 60)
-	return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
 }

@@ -85,16 +85,16 @@ export function registerDefaultExternalContentHandlers(
 		}
 		assert(isImageType || isVideoType || isAudioType, `File type not allowed: ${file.type}`)
 
-		if (file.size > maxAssetSize) {
-			toasts.addToast({
-				title: msg('assets.files.size-too-big'),
-				severity: 'error',
-			})
-		}
-		assert(
-			file.size <= maxAssetSize,
-			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
-		)
+		// if (file.size > maxAssetSize) {
+		// 	toasts.addToast({
+		// 		title: msg('assets.files.size-too-big'),
+		// 		severity: 'error',
+		// 	})
+		// }
+		// assert(
+		// 	file.size <= maxAssetSize,
+		// 	`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
+		// )
 
 		const hash = getHashForBuffer(await file.arrayBuffer())
 		const assetId: TLAssetId = AssetRecordType.createId(hash)
@@ -257,19 +257,19 @@ export function registerDefaultExternalContentHandlers(
 			temporaryAssetPreview?: string
 		}[] = []
 		for (const file of files) {
-			if (file.size > maxAssetSize) {
-				toasts.addToast({
-					title: msg('assets.files.size-too-big'),
-					severity: 'error',
-				})
+			// if (file.size > maxAssetSize) {
+			// 	toasts.addToast({
+			// 		title: msg('assets.files.size-too-big'),
+			// 		severity: 'error',
+			// 	})
 
-				console.warn(
-					`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
-						maxAssetSize / 1024
-					).toFixed()}kb`
-				)
-				continue
-			}
+			// 	console.warn(
+			// 		`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
+			// 			maxAssetSize / 1024
+			// 		).toFixed()}kb`
+			// 	)
+			// 	continue
+			// }
 
 			// Use mime type instead of file ext, this is because
 			// window.navigator.clipboard does not preserve file names
