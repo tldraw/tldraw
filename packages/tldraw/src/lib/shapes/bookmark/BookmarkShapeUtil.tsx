@@ -41,6 +41,10 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		return true
 	}
 
+	override getText(shape: TLBookmarkShape) {
+		return shape.props.url
+	}
+
 	override getDefaultProps(): TLBookmarkShape['props'] {
 		return {
 			url: '',
