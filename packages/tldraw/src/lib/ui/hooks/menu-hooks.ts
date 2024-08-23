@@ -1,15 +1,21 @@
 import {
 	Editor,
 	TLArrowShape,
+	TLBookmarkShape,
 	TLDrawShape,
+	TLEmbedShape,
+	TLFrameShape,
 	TLGroupShape,
 	TLImageShape,
 	TLLineShape,
 	TLTextShape,
 	useEditor,
+	useQuickReactor,
 	useValue,
 } from '@tldraw/editor'
+import { useRef, useState } from 'react'
 import { getArrowBindings } from '../../shapes/arrow/shared'
+import { useGetEmbedDefinition } from './useGetEmbedDefinition'
 
 function shapesWithUnboundArrows(editor: Editor) {
 	const selectedShapeIds = editor.getSelectedShapeIds()
@@ -216,4 +222,138 @@ export function useCanRedo() {
 export function useCanUndo() {
 	const editor = useEditor()
 	return useValue('useCanUndo', () => editor.getCanUndo(), [editor])
+}
+
+/** @public */
+export function useOneEmbeddableBookmarkSelected() {
+	const editor = useEditor()
+	const getEmbedDefinition = useGetEmbedDefinition()
+
+	return useValue(
+		'oneEmbeddableBookmarkSelected',
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape) return false
+			return !!(
+				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
+				onlySelectedShape.props.url &&
+				getEmbedDefinition(onlySelectedShape.props.url) &&
+				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+			)
+		},
+		[editor]
+	)
+}
+
+/** @public */
+export function useOneEmbedSelected() {
+	const editor = useEditor()
+
+	return useValue(
+		'oneEmbedSelected',
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape) return false
+			return !!(
+				editor.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed') &&
+				onlySelectedShape.props.url &&
+				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+			)
+		},
+		[editor]
+	)
+}
+
+/** @public */
+export function useCanFlattenToImage() {
+	const editor = useEditor()
+	return useValue(
+		'should display flatten option',
+		() => {
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			if (selectedShapeIds.length === 0) return false
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (onlySelectedShape && editor.isShapeOfType<TLImageShape>(onlySelectedShape, 'image')) {
+				return false
+			}
+			return true
+		},
+		[editor]
+	)
+}
+
+/** @public */
+export function useCanRemoveFrame() {
+	const editor = useEditor()
+	return useValue(
+		'allow unframe',
+		() => {
+			const selectedShapes = editor.getSelectedShapes()
+			if (selectedShapes.length === 0) return false
+			return selectedShapes.every((shape) => editor.isShapeOfType<TLFrameShape>(shape, 'frame'))
+		},
+		[editor]
+	)
+}
+
+/** @public */
+export function useCanFitFrameToContent() {
+	const editor = useEditor()
+	return useValue(
+		'allow fit frame to content',
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (!onlySelectedShape) return false
+			return (
+				editor.isShapeOfType<TLFrameShape>(onlySelectedShape, 'frame') &&
+				editor.getSortedChildIdsForParent(onlySelectedShape).length > 0
+			)
+		},
+		[editor]
+	)
+}
+
+/** @public */
+export function useCanUnlockAll() {
+	const editor = useEditor()
+	return useValue('any shapes', () => editor.getCurrentPageShapeIds().size > 0, [editor])
+}
+
+/** @public */
+export function useIsSinglePageMode() {
+	const editor = useEditor()
+	return useValue('isSinglePageMode', () => editor.options.maxPages <= 1, [editor])
+}
+
+/** @public  */
+export function useIsFollowingUser() {
+	const editor = useEditor()
+	return useValue('isFollowingUser', () => !!editor.getInstanceState().followingUserId, [editor])
+}
+
+/** @public  */
+export function useShowBackToContent() {
+	const editor = useEditor()
+
+	const [showBackToContent, setShowBackToContent] = useState(false)
+	const rIsShowing = useRef(false)
+
+	useQuickReactor(
+		'toggle showback to content',
+		() => {
+			const showBackToContentPrev = rIsShowing.current
+			const shapeIds = editor.getCurrentPageShapeIds()
+			let showBackToContentNow = false
+			if (shapeIds.size) {
+				showBackToContentNow = shapeIds.size === editor.getCulledShapes().size
+			}
+
+			if (showBackToContentPrev !== showBackToContentNow) {
+				setShowBackToContent(showBackToContentNow)
+				rIsShowing.current = showBackToContentNow
+			}
+		},
+		[editor]
+	)
+	return [showBackToContent, setShowBackToContent] as const
 }

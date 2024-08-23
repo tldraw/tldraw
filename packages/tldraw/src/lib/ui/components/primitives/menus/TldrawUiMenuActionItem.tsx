@@ -11,5 +11,5 @@ export function TldrawUiMenuActionItem({ actionId = '', ...rest }: TLUiMenuActio
 	const actions = useActions()
 	const action = actions[actionId]
 	if (!action) return null
-	return <TldrawUiMenuItem {...action} {...rest} />
+	return <TldrawUiMenuItem {...action} disabled={!action.enabled?.()} {...rest} />
 }

@@ -1,6 +1,7 @@
 import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
+import { COMMAND_BAR_ID } from '../components/CommandBar/CommandBar'
 import { useActions } from '../context/actions'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
@@ -121,6 +122,10 @@ export function useKeyboardShortcuts() {
 			}
 
 			editor.dispatch(info)
+		})
+
+		hot(getHotkeysStringFromKbd('$k'), () => {
+			editor.addOpenMenu(COMMAND_BAR_ID)
 		})
 
 		return () => {

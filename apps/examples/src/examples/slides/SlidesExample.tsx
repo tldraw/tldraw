@@ -62,6 +62,9 @@ const overrides: TLUiOverrides = {
 						moveToSlide(editor, nextSlide)
 					}
 				},
+				enabled() {
+					return $slides.get().length > 1
+				},
 			},
 			'previous-slide': {
 				id: 'previous-slide',
@@ -76,6 +79,9 @@ const overrides: TLUiOverrides = {
 						editor.stopCameraAnimation()
 						moveToSlide(editor, previousSlide)
 					}
+				},
+				enabled() {
+					return $slides.get().length > 1
 				},
 			},
 		}

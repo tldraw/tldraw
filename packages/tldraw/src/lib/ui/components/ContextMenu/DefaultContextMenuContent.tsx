@@ -1,4 +1,5 @@
 import { useEditor, useValue } from '@tldraw/editor'
+import { useIsSinglePageMode } from '../../hooks/menu-hooks'
 import { useShowCollaborationUi } from '../../hooks/useIsMultiplayer'
 import {
 	ArrangeMenuSubmenu,
@@ -22,9 +23,7 @@ export function DefaultContextMenuContent() {
 		() => editor.getCurrentToolId() === 'select',
 		[editor]
 	)
-	const isSinglePageMode = useValue('isSinglePageMode', () => editor.options.maxPages <= 1, [
-		editor,
-	])
+	const isSinglePageMode = useIsSinglePageMode()
 
 	if (!selectToolActive) return null
 

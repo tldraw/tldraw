@@ -69,6 +69,9 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 
 						await parseAndLoadDocument(editor, await file.text(), msg, addToast)
 					},
+					enabled() {
+						return !isMultiplayer
+					},
 				}
 				actions[NEW_SHARED_PROJECT_ACTION] = {
 					id: NEW_SHARED_PROJECT_ACTION,
@@ -77,6 +80,9 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 					async onSelect(source) {
 						handleUiEvent('create-new-shared-project', { source })
 						navigate('/new')
+					},
+					enabled() {
+						return true
 					},
 				}
 				actions[NEW_PROJECT_ACTION] = {
@@ -91,6 +97,9 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 							editor.loadSnapshot({ store: {}, schema: editor.store.schema.serialize() })
 							editor.clearHistory()
 						})
+					},
+					enabled() {
+						return true
 					},
 				}
 				return actions
@@ -138,6 +147,9 @@ export function getSaveFileCopyAction(
 				// they used
 				saveFileNames.set(editor.store, handle.name)
 			}
+		},
+		enabled() {
+			return true
 		},
 	}
 }

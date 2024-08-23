@@ -1,5 +1,4 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
 import { LanguageMenu } from '../LanguageMenu'
@@ -119,12 +118,10 @@ export function LockGroup() {
 
 /** @public @react */
 export function UndoRedoGroup() {
-	const canUndo = useCanUndo()
-	const canRedo = useCanRedo()
 	return (
 		<TldrawUiMenuGroup id="undo-redo">
-			<TldrawUiMenuActionItem actionId="undo" disabled={!canUndo} />
-			<TldrawUiMenuActionItem actionId="redo" disabled={!canRedo} />
+			<TldrawUiMenuActionItem actionId="undo" />
+			<TldrawUiMenuActionItem actionId="redo" />
 		</TldrawUiMenuGroup>
 	)
 }

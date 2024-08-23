@@ -21,6 +21,7 @@ export type TLUiEventSource =
 	| 'help-menu'
 	| 'helper-buttons'
 	| 'style-panel'
+	| 'command-bar'
 	| 'unknown'
 
 /** @public */

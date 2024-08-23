@@ -22,6 +22,9 @@ const overrides: TLUiOverrides = {
 						showSearch.set(true)
 					}
 				},
+				enabled() {
+					return true
+				},
 			},
 		}
 	},

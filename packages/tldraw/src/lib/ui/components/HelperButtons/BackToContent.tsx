@@ -1,34 +1,11 @@
-import { useEditor, useQuickReactor } from '@tldraw/editor'
-import { useRef, useState } from 'react'
 import { useActions } from '../../context/actions'
+import { useShowBackToContent } from '../../hooks/menu-hooks'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
 export function BackToContent() {
-	const editor = useEditor()
-
 	const actions = useActions()
 
-	const [showBackToContent, setShowBackToContent] = useState(false)
-	const rIsShowing = useRef(false)
-
-	useQuickReactor(
-		'toggle showback to content',
-		() => {
-			const showBackToContentPrev = rIsShowing.current
-			const shapeIds = editor.getCurrentPageShapeIds()
-			let showBackToContentNow = false
-			if (shapeIds.size) {
-				showBackToContentNow = shapeIds.size === editor.getCulledShapes().size
-			}
-
-			if (showBackToContentPrev !== showBackToContentNow) {
-				setShowBackToContent(showBackToContentNow)
-				rIsShowing.current = showBackToContentNow
-			}
-		},
-		[editor]
-	)
-
+	const [showBackToContent, setShowBackToContent] = useShowBackToContent()
 	if (!showBackToContent) return null
 
 	return (

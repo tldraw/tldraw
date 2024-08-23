@@ -2,6 +2,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
+import { CommmandBar } from './components/CommandBar/CommandBar'
 import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { ToastViewport, Toasts } from './components/Toasts'
@@ -161,6 +162,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
+			<CommmandBar />
 			<Toasts />
 			<Dialogs />
 			<ToastViewport />

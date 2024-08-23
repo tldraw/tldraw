@@ -108,6 +108,9 @@ export function useSharing(): TLUiOverrides {
 
 						navigate('/')
 					},
+					enabled() {
+						return true
+					},
 				}
 				actions[SHARE_PROJECT_ACTION] = {
 					id: SHARE_PROJECT_ACTION,
@@ -159,6 +162,9 @@ export function useSharing(): TLUiOverrides {
 							})
 						}
 					},
+					enabled() {
+						return true
+					},
 				}
 				actions[SHARE_SNAPSHOT_ACTION] = {
 					id: SHARE_SNAPSHOT_ACTION,
@@ -182,11 +188,17 @@ export function useSharing(): TLUiOverrides {
 							severity: 'success',
 						})
 					},
+					enabled() {
+						return true
+					},
 				}
 				actions[FORK_PROJECT_ACTION] = {
 					...actions[SHARE_PROJECT_ACTION],
 					id: FORK_PROJECT_ACTION,
 					label: runningInIFrame ? 'action.fork-project-on-tldraw' : 'action.fork-project',
+					enabled() {
+						return true
+					},
 				}
 				return actions
 			},
