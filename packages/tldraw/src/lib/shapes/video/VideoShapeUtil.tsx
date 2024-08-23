@@ -13,7 +13,10 @@ import classNames from 'classnames'
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { TextLabel } from '../shared/TextLabel'
+import { LABEL_FONT_SIZES, LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { useAsset } from '../shared/useAsset'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 /** @public */
@@ -37,7 +40,21 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			time: 0,
 			playing: true,
 			url: '',
+
+			// Text properties
+			color: 'black',
+			labelColor: 'black',
+			fill: 'none',
+			size: 'm',
+			font: 'draw',
+			text: '',
+			align: 'middle',
+			verticalAlign: 'middle',
 		}
+	}
+
+	override getText(shape: TLVideoShape) {
+		return shape.props.text
 	}
 
 	component(shape: TLVideoShape) {
@@ -47,6 +64,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const { Spinner } = useEditorComponents()
+		const theme = useDefaultColorTheme()
 
 		const rVideo = useRef<HTMLVideoElement>(null!)
 
@@ -68,18 +86,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			setIsLoaded(true)
 		}, [])
 
-		// If the current time changes and we're not editing the video, update the video time
-		useEffect(() => {
-			const video = rVideo.current
-			if (!video) return
-
-			if (isEditing) {
-				if (document.activeElement !== video) {
-					video.focus()
-				}
-			}
-		}, [isEditing, isLoaded])
-
 		useEffect(() => {
 			if (prefersReducedMotion) {
 				const video = rVideo.current
@@ -88,6 +94,9 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 				video.currentTime = 0
 			}
 		}, [rVideo, prefersReducedMotion])
+
+		const { fill, font, align, verticalAlign, size, text, color: labelColor } = shape.props
+		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
 		return (
 			<>
@@ -143,6 +152,22 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 				{'url' in shape.props && shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
 				)}
+
+				<TextLabel
+					id={shape.id}
+					type={shape.type}
+					font={font}
+					fontSize={LABEL_FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					padding={LABEL_PADDING}
+					fill={fill}
+					align={align}
+					verticalAlign={verticalAlign}
+					text={text}
+					isSelected={isSelected}
+					labelColor={theme[labelColor].solid}
+					wrap
+				/>
 			</>
 		)
 	}

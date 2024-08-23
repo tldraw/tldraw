@@ -23,7 +23,10 @@ import { useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { TextLabel } from '../shared/TextLabel'
+import { LABEL_FONT_SIZES, LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { useAsset } from '../shared/useAsset'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -44,6 +47,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override canCrop() {
 		return true
 	}
+	override canEdit() {
+		return true
+	}
 
 	override getDefaultProps(): TLImageShape['props'] {
 		return {
@@ -55,7 +61,21 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			crop: null,
 			flipX: false,
 			flipY: false,
+
+			// Text properties
+			color: 'black',
+			labelColor: 'black',
+			fill: 'none',
+			size: 'm',
+			font: 'draw',
+			text: '',
+			align: 'middle',
+			verticalAlign: 'middle',
 		}
+	}
+
+	override getText(shape: TLImageShape) {
+		return shape.props.text
 	}
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
@@ -116,6 +136,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const theme = useDefaultColorTheme()
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
@@ -190,6 +211,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
 		// have that set up.
 		const crossOrigin = this.isAnimated(shape) ? 'anonymous' : undefined
+		const { fill, font, align, verticalAlign, size, text, color: labelColor } = shape.props
 
 		return (
 			<>
@@ -257,6 +279,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
 				</HTMLContainer>
+
+				<TextLabel
+					id={shape.id}
+					type={shape.type}
+					font={font}
+					fontSize={LABEL_FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					padding={LABEL_PADDING}
+					fill={fill}
+					align={align}
+					verticalAlign={verticalAlign}
+					text={text}
+					isSelected={isSelected}
+					labelColor={theme[labelColor].solid}
+					wrap
+				/>
 			</>
 		)
 	}
