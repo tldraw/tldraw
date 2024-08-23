@@ -1,5 +1,5 @@
 import { TLAudioShape, TLVideoShape } from '@tldraw/editor'
-import { Children, cloneElement, ReactElement, useCallback, useRef, useState } from 'react'
+import { Children, ReactElement, cloneElement, useCallback, useRef, useState } from 'react'
 import { TldrawUiButton } from '../../ui/components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../../ui/components/primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../../ui/components/primitives/TldrawUiSlider'
@@ -39,6 +39,7 @@ export function MediaControls({
 	const handleSliderPointerUp = () => {
 		if (!rMedia.current) return
 		rMedia.current.currentTime = newSeekTime ?? 0
+		setCurrentTime(newSeekTime ?? 0)
 		setNewSeekTime(null)
 	}
 
