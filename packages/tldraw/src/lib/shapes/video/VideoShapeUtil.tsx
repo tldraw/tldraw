@@ -1,7 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Box,
+	getDefaultColorTheme,
+	Group2d,
 	HTMLContainer,
+	Rectangle2d,
+	SvgExportContext,
 	TLVideoShape,
 	toDomPrecision,
 	useEditorComponents,
@@ -12,9 +17,16 @@ import {
 import classNames from 'classnames'
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
+import {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	LABEL_PADDING,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
-import { LABEL_FONT_SIZES, LABEL_PADDING, TEXT_PROPS } from '../shared/default-shape-constants'
 import { useAsset } from '../shared/useAsset'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
@@ -55,6 +67,38 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 	override getText(shape: TLVideoShape) {
 		return shape.props.text
+	}
+
+	override getGeometry(shape: TLVideoShape) {
+		const children = [
+			new Rectangle2d({
+				width: shape.props.w,
+				height: shape.props.h,
+				isFilled: true,
+			}),
+		]
+
+		if (shape.props.text) {
+			const textDimensions = this.editor.textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: LABEL_FONT_SIZES[shape.props.size],
+				maxWidth: shape.props.w - LABEL_PADDING * 2,
+			})
+
+			children.push(
+				new Rectangle2d({
+					x: 0,
+					y: shape.props.h + LABEL_PADDING,
+					width: shape.props.w,
+					height: textDimensions.h,
+					isFilled: true,
+					isLabel: true,
+				})
+			)
+		}
+
+		return new Group2d({ children })
 	}
 
 	component(shape: TLVideoShape) {
@@ -176,8 +220,41 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override toSvg(shape: TLVideoShape) {
-		return <image href={serializeVideo(shape.id)} width={shape.props.w} height={shape.props.h} />
+	override toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
+		const props = shape.props
+
+		let textEl
+		if (props.text) {
+			ctx.addExportDef(getFontDefForExport(props.font))
+			const theme = getDefaultColorTheme(ctx)
+
+			const textDimensions = this.editor.textMeasure.measureText(props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[props.font],
+				fontSize: LABEL_FONT_SIZES[props.size],
+				maxWidth: props.w - LABEL_PADDING * 2,
+			})
+			const bounds = new Box(0, props.h + LABEL_PADDING, props.w, textDimensions.h)
+			textEl = (
+				<SvgTextLabel
+					fontSize={LABEL_FONT_SIZES[props.size]}
+					font={props.font}
+					align={props.align}
+					verticalAlign={props.verticalAlign}
+					text={props.text}
+					labelColor={theme[props.labelColor].solid}
+					bounds={bounds}
+					padding={LABEL_PADDING}
+				/>
+			)
+		}
+
+		return (
+			<>
+				<image href={serializeVideo(shape.id)} width={shape.props.w} height={shape.props.h} />
+				{textEl}
+			</>
+		)
 	}
 }
 
