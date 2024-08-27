@@ -123,6 +123,7 @@
 	height: 100%;
 	width: 100%;
 	overflow: clip;
+	color: var(--color-text);
 }
 
 .tl-theme__light {

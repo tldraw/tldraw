@@ -66,6 +66,14 @@ export function parseCssFontFamilyValue(value: string) {
 	return fontFamilies
 }
 
+export function shouldIncludeCssProperty(property: string) {
+	if (property.startsWith('-')) return false
+	if (property.startsWith('animation')) return false
+	if (property.startsWith('transition')) return false
+	if (property === 'cursor') return false
+	return true
+}
+
 export function parseCss(css: string, baseUrl: string) {
 	return {
 		imports: parseCssImports(css),

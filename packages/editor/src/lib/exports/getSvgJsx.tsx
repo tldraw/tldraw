@@ -229,6 +229,8 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOpt
 							: theme.background
 						: 'transparent',
 				}}
+				data-color-mode={isDarkMode ? 'dark' : 'light'}
+				className={`tl-container tl-theme__force-sRGB ${isDarkMode ? 'tl-theme__dark' : 'tl-theme__light'}`}
 			>
 				<defs>{defChildren}</defs>
 				{unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex).map(({ element }) => element)}

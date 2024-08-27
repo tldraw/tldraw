@@ -1,11 +1,12 @@
-import { uniqueId } from '../../utils/uniqueId'
-import { embedCssValueUrlsIfNeeded } from './embedCss'
+import { uniqueId } from '@tldraw/utils'
+import { embedCssValueUrlsIfNeeded, shouldIncludeCssProperty } from './embedCss'
 
 type Pseudo = ':before' | ':after'
 
 async function formatCSSProperties(style: CSSStyleDeclaration) {
 	let cssText = ''
 	for (const property of style) {
+		if (!shouldIncludeCssProperty(property)) continue
 		let value = style.getPropertyValue(property)
 		const priority = style.getPropertyPriority(property)
 

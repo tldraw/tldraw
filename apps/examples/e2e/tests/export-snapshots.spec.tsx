@@ -233,6 +233,141 @@ const snapshots: Snapshots = {
 			),
 		},
 	},
+	Bookmarks: {
+		'not rotated': {
+			full: (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/man.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			long: (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="Add a tldraw canvas to your React app in just 5 minutes. You can use the tldraw SDK to craft infinite canvas experiences for the web. It's perfect for collaborative whiteboards but you can use it for lots of other things, too."
+							description="At this point, you have a complete working single-user whiteboard. To add support for multiple users collaborating in realtime, you can use the tldraw sync extension library."
+							image="/man.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'no image': (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image=""
+							favicon="/man.png"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'no favicon': (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/man.png"
+							favicon=""
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'no meta': (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title=""
+							description=""
+							image="/man.png"
+							favicon="/man.png"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			empty: (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title=""
+							description=""
+							image=""
+							favicon=""
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+		},
+		'rotated (note shadow)': {
+			'30°': (
+				<TL.bookmark
+					rotation={degreesToRadians(30)}
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/tldraw.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'135°': (
+				<TL.bookmark
+					rotation={degreesToRadians(135)}
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/tldraw.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'255°': (
+				<TL.bookmark
+					rotation={degreesToRadians(255)}
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/tldraw.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+		},
+	},
 }
 
 interface SnapshotWithoutJsx {

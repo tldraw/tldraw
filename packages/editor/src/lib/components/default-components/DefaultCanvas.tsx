@@ -369,7 +369,7 @@ function ShapesWithSVGs() {
 	return renderingShapes.map((result) => (
 		<Fragment key={result.id + '_fragment'}>
 			<Shape {...result} />
-			<DebugSvgCopy id={result.id} mode="img" />
+			<DebugSvgCopy id={result.id} mode="iframe" />
 		</Fragment>
 	))
 }

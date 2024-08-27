@@ -1,5 +1,9 @@
 import { clonePseudoElements } from './clonePseudos'
-import { embedCssValueUrlsIfNeeded, parseCssFontFamilyValue } from './embedCss'
+import {
+	embedCssValueUrlsIfNeeded,
+	parseCssFontFamilyValue,
+	shouldIncludeCssProperty,
+} from './embedCss'
 import { resourceToDataUrl } from './fetchCache'
 
 interface ForeignObjectEmbedOpts {
@@ -99,6 +103,7 @@ async function applyCss(node: HTMLElement, opts: ForeignObjectEmbedOpts) {
 
 	if (!target) return
 	for (const property of source) {
+		if (!shouldIncludeCssProperty(property)) continue
 		let value = source.getPropertyValue(property)
 
 		const replaced = embedCssValueUrlsIfNeeded(value)
