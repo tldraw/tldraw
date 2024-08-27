@@ -350,7 +350,7 @@ function computedMethodTc39Decorator<This extends object, Value>(
 	assert(context.kind === 'method', '@computed can only be used on methods')
 	const derivationKey = Symbol.for('__@tldraw/state__computed__' + String(context.name))
 
-	return function (this: any) {
+	const fn = function (this: any) {
 		let d = this[derivationKey] as Computed<any> | undefined
 
 		if (!d) {
@@ -364,6 +364,8 @@ function computedMethodTc39Decorator<This extends object, Value>(
 		}
 		return d.get()
 	}
+	fn[isComputedMethodKey] = true
+	return fn
 }
 
 function computedDecorator(
