@@ -1,8 +1,7 @@
 /*!
- * MIT License: https://github.com/ai/nanoid/blob/master/LICENSE
+ * MIT License: https://github.com/ai/nanoid/blob/main/LICENSE
+ * Modified code originally from <https://github.com/ai/nanoid>
  * Copyright 2017 Andrey Sitnik <andrey@sitnik.ru>
- *
- * The code in this file is adapted from `nanoid`: https://github.com/ai/nanoid
  *
  * `nanoid` is currently only distributed as an ES module. Some tools (jest, playwright) don't
  * properly support ESM-only code yet, and tldraw itself is distributed as both an ES module and a
