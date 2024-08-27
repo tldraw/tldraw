@@ -39,7 +39,6 @@ export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: T
 		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
 		await applyChangesToForeignObjects(svg)
 
-		renderTarget.appendChild(svg)
 		return { svg, width: result.width, height: result.height }
 	} finally {
 		root.unmount()

@@ -29,10 +29,6 @@ export function copyAs(
 	if (window.navigator.clipboard.write) {
 		const { blobPromise, mimeType } = exportToBlobPromise(editor, ids, format, opts)
 
-		blobPromise.catch((err) => {
-			console.error(err)
-		})
-
 		return window.navigator.clipboard
 			.write([new ClipboardItem({ [mimeType]: blobPromise })])
 			.catch((err) => {
