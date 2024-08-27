@@ -1,3 +1,4 @@
+import { MediaHelpers } from '@tldraw/utils'
 import { clonePseudoElements } from './clonePseudos'
 import {
 	embedCssValueUrlsIfNeeded,
@@ -51,11 +52,11 @@ async function getCanvasReplacement(canvas: HTMLCanvasElement) {
 }
 
 async function getVideoReplacement(video: HTMLVideoElement) {
-	if (video.currentSrc) {
-		const dataUrl = await resourceToDataUrl(video.currentSrc)
-		if (dataUrl) {
-			return createImage(dataUrl, video)
-		}
+	try {
+		const dataUrl = await MediaHelpers.getVideoFrameAsDataUrl(video)
+		return createImage(dataUrl, video)
+	} catch (err) {
+		console.error('Could not get video frame', err)
 	}
 
 	if (video.poster) {

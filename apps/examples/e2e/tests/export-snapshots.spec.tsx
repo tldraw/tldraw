@@ -368,6 +368,90 @@ const snapshots: Snapshots = {
 			),
 		},
 	},
+	'Foreign objects': {
+		'HTML & CSS': {
+			simple: (
+				<TL.html
+					html="Hello, <span>world</span>!"
+					css="#self {color: green;} #self span { color: red; }"
+				/>
+			),
+			pseudos: (
+				<TL.html
+					html="Hello, <span>world</span>!"
+					css={`
+						#self {
+							color: green;
+						}
+						#self span {
+							color: red;
+						}
+						#self::before {
+							content: 'before ';
+							color: blue;
+						}
+						#self::after {
+							content: ' after';
+							color: purple;
+						}
+					`}
+				/>
+			),
+			transforms: (
+				<TL.html
+					html="Hello, <span>world</span>!"
+					css={`
+						#self {
+							color: green;
+							transform: rotate(30deg) scale(1.5);
+						}
+						#self span {
+							color: red;
+							display: inline-block;
+							transform: rotate(-30deg) scale(0.5);
+						}
+					`}
+				/>
+			),
+			'@font-face': (
+				<TL.html
+					html="Hello, <span>world</span>!"
+					css={`
+						@font-face {
+							font-family: 'font_#self';
+							src: url('/ComicMono.woff');
+						}
+						#self span {
+							color: red;
+							font-family: 'font_#self';
+							font-size: 20px;
+						}
+					`}
+				/>
+			),
+		},
+		Embeds: {
+			Video: <TL.html w={300} h={169} html='<video src="/bonk.webm" width="300" height="169" />' />,
+			Image: <TL.html w={100} h={200} html='<img src="/man.png" width="100" />' />,
+			Background: (
+				<TL.html
+					w={200}
+					h={200}
+					html="Hello, world!"
+					css={`
+						#self {
+							width: 100%;
+							height: 100%;
+							background: url('/man.png') repeat center center / 15px 30px;
+							display: flex;
+							justify-content: center;
+							align-items: center;
+						}
+					`}
+				/>
+			),
+		},
+	},
 }
 
 interface SnapshotWithoutJsx {

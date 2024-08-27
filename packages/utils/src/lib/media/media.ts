@@ -62,34 +62,56 @@ export class MediaHelpers {
 	}
 
 	static async getVideoFrameAsDataUrl(video: HTMLVideoElement, time = 0): Promise<string> {
-		const canvas = document.createElement('canvas')
-		canvas.width = video.videoWidth
-		canvas.height = video.videoHeight
-		const ctx = canvas.getContext('2d')
-		if (!ctx) {
-			throw new Error('Could not get 2d context')
-		}
-
 		const promise = promiseWithResolve<string>()
-		const onSeeked = () => {
-			ctx.drawImage(video, 0, 0)
-			promise.resolve(canvas.toDataURL())
+		let didSetTime = false
+
+		const onReadyStateChanged = () => {
+			if (!didSetTime) {
+				if (video.readyState >= video.HAVE_METADATA) {
+					didSetTime = true
+					video.currentTime = time
+				} else {
+					return
+				}
+			}
+
+			if (video.readyState >= video.HAVE_CURRENT_DATA) {
+				const canvas = document.createElement('canvas')
+				canvas.width = video.videoWidth
+				canvas.height = video.videoHeight
+				const ctx = canvas.getContext('2d')
+				if (!ctx) {
+					throw new Error('Could not get 2d context')
+				}
+				ctx.drawImage(video, 0, 0)
+				promise.resolve(canvas.toDataURL())
+			}
 		}
 		const onError = (e: Event) => {
 			console.error(e)
 			promise.reject(new Error('Could not get video frame'))
 		}
 
-		video.addEventListener('seeked', onSeeked)
-		video.addEventListener('error', onError)
+		video.addEventListener('loadedmetadata', onReadyStateChanged)
+		video.addEventListener('loadeddata', onReadyStateChanged)
+		video.addEventListener('canplay', onReadyStateChanged)
+		video.addEventListener('seeked', onReadyStateChanged)
 
-		video.currentTime = time
+		video.addEventListener('error', onError)
+		video.addEventListener('stalled', onError)
+
+		onReadyStateChanged()
 
 		try {
 			return await promise
 		} finally {
-			video.removeEventListener('seeked', onSeeked)
+			video.removeEventListener('loadedmetadata', onReadyStateChanged)
+			video.removeEventListener('loadeddata', onReadyStateChanged)
+			video.removeEventListener('canplay', onReadyStateChanged)
+			video.removeEventListener('seeked', onReadyStateChanged)
+
 			video.removeEventListener('error', onError)
+			video.removeEventListener('stalled', onError)
 		}
 	}
 
