@@ -10,6 +10,8 @@ import {
 	DefaultFontStyle,
 	Editor,
 	GeoShapeGeoStyle,
+	TLAsset,
+	TLImageShapeCrop,
 	TLShapePartial,
 	TLTextShape,
 	degreesToRadians,
@@ -46,6 +48,20 @@ const frameContent = (
 		<TL.arrow start={{ x: 50, y: 50 }} end={{ x: 50, y: 20 }} />
 	</Fragment>
 )
+const manAsset = (
+	<TL.asset.image
+		w={100}
+		h={200}
+		src="/man.png"
+		name="man"
+		isAnimated={false}
+		mimeType="image/png"
+	/>
+)
+const manCrop: TLImageShapeCrop = {
+	topLeft: { x: 0.25, y: 0.05 },
+	bottomRight: { x: 0.75, y: 0.3 },
+}
 
 const snapshots: Snapshots = {
 	'Text rendering': {
@@ -191,10 +207,36 @@ const snapshots: Snapshots = {
 			])
 		),
 	},
+	Images: {
+		Uncropped: {
+			'no asset': <TL.image w={100} h={200} />,
+			asset: <TL.image w={100} h={200} assetId={manAsset} />,
+			flipX: <TL.image w={100} h={200} assetId={manAsset} flipX />,
+			flipY: <TL.image w={100} h={200} assetId={manAsset} flipY />,
+			flipXY: <TL.image w={100} h={200} assetId={manAsset} flipX flipY />,
+			rotated: <TL.image w={100} h={200} assetId={manAsset} rotation={degreesToRadians(45)} />,
+		},
+		Cropped: {
+			'no asset': <TL.image w={100} h={100} crop={manCrop} />,
+			asset: <TL.image w={100} h={100} assetId={manAsset} crop={manCrop} />,
+			flipX: <TL.image w={100} h={100} assetId={manAsset} flipX crop={manCrop} />,
+			flipY: <TL.image w={100} h={100} assetId={manAsset} flipY crop={manCrop} />,
+			flipXY: <TL.image w={100} h={100} assetId={manAsset} flipX flipY crop={manCrop} />,
+			rotated: (
+				<TL.image
+					w={100}
+					h={100}
+					assetId={manAsset}
+					rotation={degreesToRadians(45)}
+					crop={manCrop}
+				/>
+			),
+		},
+	},
 }
 
 interface SnapshotWithoutJsx {
-	[row: string]: { [testCase: string]: TLShapePartial[] }
+	[row: string]: { [testCase: string]: { shapes: TLShapePartial[]; assets: TLAsset[] } }
 }
 
 test.describe('Export snapshots', () => {
@@ -203,13 +245,16 @@ test.describe('Export snapshots', () => {
 	test.beforeEach(setup)
 
 	for (const [name, snapshotWithJsx] of snapshotsToTest) {
-		nextNanoId = 0
-		const snapshot: SnapshotWithoutJsx = mapObjectMapValues(snapshotWithJsx, (key, row) =>
-			mapObjectMapValues(row, (key, testCase) => shapesFromJsx(testCase).shapes)
-		)
-
 		for (const colorScheme of ['light', 'dark'] as const) {
 			test(`${name} (${colorScheme})`, async ({ page, api }) => {
+				nextNanoId = 0
+				const snapshot: SnapshotWithoutJsx = mapObjectMapValues(snapshotWithJsx, (key, row) =>
+					mapObjectMapValues(row, (key, testCase) => {
+						const { shapes, assets } = shapesFromJsx(testCase)
+						return { shapes, assets }
+					})
+				)
+
 				await page.evaluate(
 					({
 						colorScheme,
@@ -250,7 +295,7 @@ test.describe('Export snapshots', () => {
 
 							let x = 0
 							let bottom = y
-							for (const [testCaseName, shapes] of Object.entries(testCases)) {
+							for (const [testCaseName, { shapes, assets }] of Object.entries(testCases)) {
 								const testCaseTitleId = tldrawApi.createShapeId()
 								editor.createShape<TLTextShape>({
 									id: testCaseTitleId,
@@ -261,9 +306,8 @@ test.describe('Export snapshots', () => {
 								})
 								const testCastTitleBounds = editor.getShapePageBounds(testCaseTitleId)!
 
-								for (const shape of shapes) {
-									editor.createShape(shape)
-								}
+								editor.createAssets(assets)
+								editor.createShapes(shapes)
 								const topLevelShapeIds = shapes
 									.filter((shape) => !shape.parentId)
 									.map((shape) => shape.id)
@@ -290,18 +334,6 @@ test.describe('Export snapshots', () => {
 				await snapshotTest(page, api)
 			})
 		}
-		// test(`Exports with ${name} in dark mode`, async ({ page, api }) => {
-		// 	await page.evaluate((shapes) => {
-		// 		editor.user.updateUserPreferences({ colorScheme: 'dark' })
-		// 		editor
-		// 			.updateInstanceState({ exportBackground: false })
-		// 			.selectAll()
-		// 			.deleteShapes(editor.getSelectedShapeIds())
-		// 			.createShapes(shapes)
-		// 	}, shapes as any)
-
-		// 	await snapshotTest(page, api)
-		// })
 	}
 
 	async function snapshotTest(page: Page, api: ApiFixture) {
