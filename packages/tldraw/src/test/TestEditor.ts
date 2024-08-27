@@ -691,7 +691,8 @@ export class TestEditor extends Editor {
 	createShapesFromJsx(
 		shapesJsx: React.JSX.Element | React.JSX.Element[]
 	): Record<string, TLShapeId> {
-		const { shapes, ids } = shapesFromJsx(shapesJsx)
+		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+		this.createAssets(assets)
 		this.createShapes(shapes)
 		return ids
 	}
