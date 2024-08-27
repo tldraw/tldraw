@@ -47,14 +47,14 @@
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
-		},
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid)/)"
-		]
+		}
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.14.188",
 		"lodash": "^4.17.21"
+	},
+	"dependencies": {
+		"@tldraw/utils": "workspace:*"
 	},
 	"typedoc": {
 		"readmeFile": "none",

@@ -1,3 +1,9 @@
+/*!
+ * MIT License: https://github.com/alexgorbatchev/crc/blob/master/LICENSE
+ * Copyright: 2014 Alex Gorbatchev
+ * Code: crc32, https://github.com/alexgorbatchev/crc/blob/master/src/calculators/crc32.ts
+ */
+
 type BufferInput = string | ArrayBuffer | Buffer
 
 interface CRCCalculator<T = BufferInput | Uint8Array> {
@@ -43,11 +49,6 @@ if (typeof Int32Array !== 'undefined') {
 	TABLE = new Int32Array(TABLE)
 }
 
-/*!
- * MIT License: https://github.com/alexgorbatchev/crc/blob/master/LICENSE
- * Copyright: 2014 Alex Gorbatchev
- * Code: crc32, https://github.com/alexgorbatchev/crc/blob/master/src/calculators/crc32.ts
- */
 const crc: CRCCalculator<Uint8Array> = (current, previous) => {
 	let crc = previous === 0 ? 0 : ~~previous! ^ -1
 
