@@ -5,7 +5,7 @@ export async function onCreateAssetFromUrl({
 	url,
 }: TLExternalAssetContent & { type: 'url' }): Promise<TLAsset> {
 	try {
-		// First, try to get the data from vscode
+		// First, try to get the data from the extension manager process, using node's fetch
 		const meta = await rpc('vscode:bookmark', { url })
 
 		return {
@@ -43,10 +43,10 @@ export async function onCreateAssetFromUrl({
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
-			if (meta.image.startsWith('/')) {
+			if (!meta.image.startsWith('http')) {
 				meta.image = new URL(meta.image, url).href
 			}
-			if (meta.favicon.startsWith('/')) {
+			if (!meta.favicon.startsWith('http')) {
 				meta.favicon = new URL(meta.favicon, url).href
 			}
 		} catch (error) {

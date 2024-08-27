@@ -20,11 +20,11 @@ import { getSvgAsImage } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
-export interface TldrawImageProps extends Partial<TLSvgOptions> {
+export interface TldrawImageProps extends TLSvgOptions {
 	/**
 	 * The snapshot to display.
 	 */
-	snapshot: TLEditorSnapshot | TLStoreSnapshot
+	snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot
 
 	/**
 	 * The image format to use. Defaults to 'svg'.
@@ -44,6 +44,10 @@ export interface TldrawImageProps extends Partial<TLSvgOptions> {
 	 * Additional binding utils to use.
 	 */
 	bindingUtils?: readonly TLAnyBindingUtilConstructor[]
+	/**
+	 * The license key.
+	 */
+	licenseKey?: string
 }
 
 /**
@@ -89,6 +93,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		darkMode,
 		preserveAspectRatio,
 		format = 'svg',
+		licenseKey,
 	} = props
 
 	useLayoutEffect(() => {
@@ -108,6 +113,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 			bindingUtils: bindingUtilsWithDefaults,
 			tools: [],
 			getContainer: () => tempElm,
+			licenseKey,
 		})
 
 		if (pageId) editor.setCurrentPage(pageId)
@@ -169,6 +175,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		preserveAspectRatio,
 		preloadingComplete,
 		preloadingError,
+		licenseKey,
 	])
 
 	if (preloadingError) {

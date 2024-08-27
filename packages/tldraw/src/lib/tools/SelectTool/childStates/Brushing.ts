@@ -2,18 +2,16 @@ import {
 	Box,
 	Mat,
 	StateNode,
-	TLCancelEvent,
-	TLEventHandlers,
+	TLCancelEventInfo,
 	TLFrameShape,
 	TLGroupShape,
-	TLInterruptEvent,
-	TLKeyboardEvent,
+	TLKeyboardEventInfo,
 	TLPageId,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
+	TLTickEventInfo,
 	Vec,
-	moveCameraWhenCloseToEdge,
 	pointInPolygon,
 	polygonsIntersect,
 } from '@tldraw/editor'
@@ -30,7 +28,7 @@ export class Brushing extends StateNode {
 	// The shape that the brush started on
 	initialStartShape: TLShape | null = null
 
-	override onEnter = (info: TLPointerEventInfo & { target: 'canvas' }) => {
+	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
 		const { altKey, currentPagePoint } = this.editor.inputs
 
 		this.isWrapMode = this.editor.user.getIsWrapMode()
@@ -57,33 +55,34 @@ export class Brushing extends StateNode {
 		this.hitTestShapes()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
 	}
 
-	override onTick = () => {
-		moveCameraWhenCloseToEdge(this.editor)
+	override onTick({ elapsed }: TLTickEventInfo) {
+		const { editor } = this
+		editor.edgeScrollManager.updateEdgeScrolling(elapsed)
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.hitTestShapes()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel?: TLCancelEvent | undefined = (info) => {
+	override onCancel(info: TLCancelEventInfo) {
 		this.editor.setSelectedShapes(this.initialSelectedShapeIds)
 		this.parent.transition('idle', info)
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown(info: TLKeyboardEventInfo) {
 		if (this.editor.inputs.altKey) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
@@ -91,7 +90,7 @@ export class Brushing extends StateNode {
 		}
 	}
 
-	override onKeyUp?: TLKeyboardEvent | undefined = () => {
+	override onKeyUp() {
 		this.hitTestShapes()
 	}
 
@@ -180,7 +179,7 @@ export class Brushing extends StateNode {
 		}
 	}
 
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.editor.updateInstanceState({ brush: null })
 	}
 

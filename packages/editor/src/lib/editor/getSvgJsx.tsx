@@ -13,7 +13,7 @@ import { TLSvgOptions } from './types/misc-types'
 export async function getSvgJsx(
 	editor: Editor,
 	shapes: TLShapeId[] | TLShape[],
-	opts = {} as Partial<TLSvgOptions>
+	opts: TLSvgOptions = {}
 ) {
 	const ids =
 		typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : (shapes as TLShape[]).map((s) => s.id)

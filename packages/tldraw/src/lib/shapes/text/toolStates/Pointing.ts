@@ -1,6 +1,6 @@
 import {
 	StateNode,
-	TLEventHandlers,
+	TLPointerEventInfo,
 	TLShapeId,
 	TLTextShape,
 	Vec,
@@ -15,68 +15,98 @@ export class Pointing extends StateNode {
 
 	markId = ''
 
-	override onExit = () => {
+	enterTime = 0
+	override onEnter(): void {
+		this.enterTime = Date.now()
+	}
+
+	override onExit() {
 		this.editor.setHintingShapes([])
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.editor.inputs.isDragging) {
-			const {
-				inputs: { originPagePoint },
-			} = this.editor
+	override onPointerMove(info: TLPointerEventInfo) {
+		// Create a fixed width shape if the user wants to do that.
 
+		// Don't create a fixed width shape unless the the drag is a little larger,
+		// otherwise you get a vertical column of single characters if you accidentally
+		// drag a bit unintentionally.
+
+		// If the user hasn't been pointing for more than 150ms, don't create a fixed width shape
+		if (Date.now() - this.enterTime < 150) return
+
+		const { editor } = this
+		const { isPointing } = editor.inputs
+
+		if (!isPointing) return
+
+		const { originPagePoint, currentPagePoint } = editor.inputs
+
+		const currentDragDist = Math.abs(originPagePoint.x - currentPagePoint.x)
+
+		const baseMinDragDistForFixedWidth = Math.sqrt(
+			editor.getInstanceState().isCoarsePointer
+				? editor.options.coarseDragDistanceSquared
+				: editor.options.dragDistanceSquared
+		)
+
+		// Ten times the base drag distance for fixed width
+		const minSquaredDragDist = (baseMinDragDistForFixedWidth * 6) / editor.getZoomLevel()
+
+		if (currentDragDist > minSquaredDragDist) {
 			const id = createShapeId()
+			this.markId = editor.markHistoryStoppingPoint(`creating_text:${id}`)
 
-			this.markId = `creating:${id}`
-			this.editor.mark(this.markId)
+			// create the initial shape with the width that we've dragged
+			const shape = this.createTextShape(id, originPagePoint, false, currentDragDist)
 
-			const shape = this.createTextShape(id, originPagePoint, false)
 			if (!shape) {
 				this.cancel()
 				return
 			}
 
 			// Now save the fresh reference
-			this.shape = this.editor.getShape(shape)
+			this.shape = editor.getShape(shape)
 
-			this.editor.select(id)
+			editor.select(id)
 
-			this.editor.setCurrentTool('select.resizing', {
+			editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'right',
 				isCreating: true,
-				creationCursorOffset: { x: 18, y: 1 },
+				creatingMarkId: this.markId,
+				// Make sure the cursor offset takes into account how far we've already dragged
+				creationCursorOffset: { x: currentDragDist, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
-					this.editor.setEditingShape(shape.id)
-					this.editor.setCurrentTool('select.editing_shape')
+					editor.setEditingShape(shape.id)
+					editor.setCurrentTool('select.editing_shape')
 				},
 			})
 		}
 	}
 
-	override onPointerUp = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onCancel = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
 	private complete() {
-		this.editor.mark('creating text shape')
+		this.editor.markHistoryStoppingPoint('creating text shape')
 		const id = createShapeId()
-		const { currentPagePoint } = this.editor.inputs
-		const shape = this.createTextShape(id, currentPagePoint, true)
+		const { originPagePoint } = this.editor.inputs
+		const shape = this.createTextShape(id, originPagePoint, true, 20)
 		if (!shape) return
 
 		this.editor.select(id)
@@ -90,7 +120,7 @@ export class Pointing extends StateNode {
 		this.editor.bailToMark(this.markId)
 	}
 
-	private createTextShape(id: TLShapeId, point: Vec, autoSize: boolean) {
+	private createTextShape(id: TLShapeId, point: Vec, autoSize: boolean, width: number) {
 		this.editor.createShape<TLTextShape>({
 			id,
 			type: 'text',
@@ -99,7 +129,7 @@ export class Pointing extends StateNode {
 			props: {
 				text: '',
 				autoSize,
-				w: 20,
+				w: width,
 				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 			},
 		})

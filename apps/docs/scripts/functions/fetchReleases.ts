@@ -51,6 +51,10 @@ export async function fetchReleases() {
 
 					let m = ''
 
+					if (!release.tag_name.endsWith('.0')) {
+						return
+					}
+
 					m += `---\n`
 					m += `title: ${release.tag_name}\n`
 					m += `description: Examples\n`
@@ -102,10 +106,15 @@ export async function fetchReleases() {
 			const changelogIndexMarkdown = changelogIndex
 				.sort((a, b) => b.tagName.localeCompare(a.tagName))
 				.map(({ body, tagName }, i) => {
-					if (i >= 10) {
-						return `### [${tagName}](/releases/${tagName})`
+					if (i === 0) {
+						return (
+							[`## Current release: [${tagName}](/releases/${tagName})`, body].join('\n\n') +
+							`
+						
+## Previous releases`
+						)
 					} else {
-						return [`### [${tagName}](/releases/${tagName})`, body].join('\n\n')
+						return `- [${tagName}](/releases/${tagName})`
 					}
 				})
 				.join('\n\n')

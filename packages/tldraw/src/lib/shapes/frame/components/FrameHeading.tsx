@@ -36,6 +36,7 @@ export const FrameHeading = function FrameHeading({
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent) => {
 			const event = getPointerInfo(e)
+			e.preventDefault()
 
 			// If we're editing the frame label, we shouldn't hijack the pointer event
 			if (editor.getEditingShapeId() === id) return
@@ -47,7 +48,6 @@ export const FrameHeading = function FrameHeading({
 				shape: editor.getShape(id)!,
 				...event,
 			})
-			e.preventDefault()
 		},
 		[editor, id]
 	)

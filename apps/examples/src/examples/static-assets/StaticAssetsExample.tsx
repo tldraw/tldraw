@@ -22,5 +22,5 @@ export default function StaticAssetsExample() {
 
 /**
 These assets are stored in the /public folder of this Vite project, but this could be any URL.
-By default, the Tldraw component will pull in assets from the @tldraw/assets package on Unpkg.
+By default, the Tldraw component will pull in assets from tldraw's asset CDN.
 */

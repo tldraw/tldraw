@@ -1,5 +1,6 @@
 import { modulate } from '@tldraw/utils'
 import { useEditor } from '../../hooks/useEditor'
+import { useSafeId } from '../../hooks/useSafeId'
 
 /** @public */
 export interface TLGridProps {
@@ -11,6 +12,7 @@ export interface TLGridProps {
 
 /** @public @react */
 export function DefaultGrid({ x, y, z, size }: TLGridProps) {
+	const id = `grid_${useSafeId()}`
 	const editor = useEditor()
 	const { gridSteps } = editor.options
 	return (
@@ -26,8 +28,8 @@ export function DefaultGrid({ x, y, z, size }: TLGridProps) {
 
 					return (
 						<pattern
-							key={`grid-pattern-${i}`}
-							id={`grid-${step}`}
+							key={i}
+							id={`${id}_${step}`}
 							width={s}
 							height={s}
 							patternUnits="userSpaceOnUse"
@@ -38,7 +40,7 @@ export function DefaultGrid({ x, y, z, size }: TLGridProps) {
 				})}
 			</defs>
 			{gridSteps.map(({ step }, i) => (
-				<rect key={`grid-rect-${i}`} width="100%" height="100%" fill={`url(#grid-${step})`} />
+				<rect key={i} width="100%" height="100%" fill={`url(#${id}_${step})`} />
 			))}
 		</svg>
 	)

@@ -1,5 +1,6 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import fs from 'fs'
+import mime from 'mime'
 import path from 'path'
 import { makeEnv } from './lib/makeEnv'
 
@@ -20,10 +21,12 @@ const R2 = new S3Client({
 
 async function uploadFile(key: string, fullPath: string) {
 	const fileStream = fs.createReadStream(fullPath)
+	const contentType = mime.getType(fullPath) ?? 'application/octet-stream'
 	const uploadParams = {
 		Bucket: R2_BUCKET,
 		Key: key,
 		Body: fileStream,
+		ContentType: contentType,
 	}
 	await R2.send(new PutObjectCommand(uploadParams))
 }

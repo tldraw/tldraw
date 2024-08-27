@@ -10,7 +10,9 @@ export interface Example {
 	category: Category
 	priority: number
 	componentFile: string
-	loadComponent: () => Promise<ComponentType>
+	keywords: string[]
+	multiplayer: boolean
+	loadComponent(): Promise<ComponentType<{ roomId?: string }>>
 }
 
 type Category =
@@ -32,11 +34,11 @@ const getExamplesForCategory = (category: Category) =>
 
 const categories: Record<Category, string> = {
 	basic: 'Getting started',
+	collaboration: 'Sync',
 	ui: 'UI & theming',
 	'shapes/tools': 'Shapes & tools',
 	'data/assets': 'Data & assets',
 	'editor-api': 'Editor API',
-	collaboration: 'Collaboration',
 	'use-cases': 'Use cases',
 }
 

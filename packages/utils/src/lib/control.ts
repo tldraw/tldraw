@@ -41,7 +41,7 @@ export const assert: (value: unknown, message?: string) => asserts value = omitF
 
 /** @internal */
 export const assertExists = omitFromStackTrace(<T>(value: T, message?: string): NonNullable<T> => {
-	// note that value == null is equivilent to value === null || value === undefined
+	// note that value == null is equivalent to value === null || value === undefined
 	if (value == null) {
 		throw new Error(message ?? 'value must be defined')
 	}
@@ -50,8 +50,8 @@ export const assertExists = omitFromStackTrace(<T>(value: T, message?: string): 
 
 /** @internal */
 export function promiseWithResolve<T>(): Promise<T> & {
-	resolve: (value: T) => void
-	reject: (reason?: any) => void
+	resolve(value: T): void
+	reject(reason?: any): void
 } {
 	let resolve: (value: T) => void
 	let reject: (reason?: any) => void

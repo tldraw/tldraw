@@ -25,11 +25,9 @@
 		"infinite"
 	],
 	"workspaces": [
-		"docs",
 		"apps/*",
 		"packages/*",
 		"apps/vscode/*",
-		"e2e",
 		"config",
 		"scripts"
 	],
@@ -37,9 +35,9 @@
 		"clean": "scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
-		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw'",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/{bemo-worker,images.tldraw.xyz}'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
-		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker}' --filter='packages/tldraw'",
+		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker,images.tldraw.xyz}' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/huppy'",
 		"build": "lazy build",
@@ -52,8 +50,7 @@
 		"lint": "lazy lint",
 		"format": "prettier --write --cache '**/*.{yml,yaml,json,md,mdx,html,css,js,jsx,ts,tsx,cjs,mjs}'",
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
-		"check-scripts": "tsx scripts/check-scripts.ts",
-		"check-tsconfigs": "tsx scripts/check-tsconfigs.ts",
+		"check-packages": "tsx scripts/check-packages.ts",
 		"update-pr-template": "tsx scripts/update-pr-template.ts",
 		"api-check": "lazy api-check",
 		"test-ci": "lazy test-ci",
@@ -97,7 +94,7 @@
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"license-report": "^6.5.0",
-		"lint-staged": ">=10",
+		"lint-staged": "^15.2.7",
 		"prettier": "^3.0.3",
 		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
@@ -120,6 +117,8 @@
 		"@sentry/cli": "^2.25.0",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",
+		"esbuild": "^0.21.5",
+		"mime": "^4.0.3",
 		"purgecss": "^5.0.0",
 		"svgo": "^3.0.2"
 	}

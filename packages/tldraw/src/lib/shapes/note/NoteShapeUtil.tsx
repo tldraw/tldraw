@@ -9,12 +9,13 @@ import {
 	SvgExportContext,
 	TLHandle,
 	TLNoteShape,
-	TLOnEditEndHandler,
+	TLNoteShapeProps,
 	TLShape,
 	TLShapeId,
 	Vec,
 	WeakCache,
 	getDefaultColorTheme,
+	lerp,
 	noteShapeMigrations,
 	noteShapeProps,
 	rng,
@@ -36,8 +37,9 @@ import {
 } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 
-import { useDefaultColorTheme } from '../../..'
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
+
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,
 	NOTE_CENTER_OFFSET,
@@ -51,9 +53,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override props = noteShapeProps
 	static override migrations = noteShapeMigrations
 
-	override canEdit = () => true
-	override hideResizeHandles = () => true
-	override hideSelectionBoundsFg = () => false
+	override canEdit() {
+		return true
+	}
+	override hideResizeHandles() {
+		return true
+	}
+	override hideSelectionBoundsFg() {
+		return false
+	}
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -160,6 +168,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		]
 	}
 
+	override getText(shape: TLNoteShape) {
+		return shape.props.text
+	}
+
 	component(shape: TLNoteShape) {
 		const {
 			id,
@@ -241,7 +253,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = getBoundsForSVG(shape)
@@ -269,11 +280,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	override onBeforeCreate = (next: TLNoteShape) => {
+	override onBeforeCreate(next: TLNoteShape) {
 		return getNoteSizeAdjustments(this.editor, next)
 	}
 
-	override onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
+	override onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape) {
 		if (
 			prev.props.text === next.props.text &&
 			prev.props.font === next.props.font &&
@@ -285,7 +296,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return getNoteSizeAdjustments(this.editor, next)
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
+	override onEditEnd(shape: TLNoteShape) {
 		const {
 			id,
 			type,
@@ -302,6 +313,16 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					},
 				},
 			])
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLNoteShape,
+		endShape: TLNoteShape,
+		t: number
+	): TLNoteShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }
@@ -437,7 +458,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 				const newNote = getNoteShapeForAdjacentPosition(editor, shape, adjacentCenter, pageRotation)
 
 				if (newNote) {
-					editor.mark('editing adjacent shape')
+					editor.markHistoryStoppingPoint('editing adjacent shape')
 					startEditingShapeWithLabel(editor, newNote, true /* selectAll */)
 				}
 			}

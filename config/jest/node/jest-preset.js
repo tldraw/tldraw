@@ -1,3 +1,5 @@
+const svgTransformPath = require.resolve('config/svgTransform.js')
+
 module.exports = {
 	roots: ['<rootDir>/src'],
 	transform: {
@@ -20,6 +22,7 @@ module.exports = {
 				},
 			},
 		],
+		'^.+\\.svg$': svgTransformPath,
 	},
 	testRegex: '.+\\.(test|spec)\\.(jsx?|tsx?)$',
 	moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
@@ -31,6 +34,5 @@ module.exports = {
 		'<rootDir>/.tsbuild-dev',
 		'<rootDir>/.tsbuild-pub',
 	],
-	transformIgnorePatterns: ['node_modules/(?!(nanoid)/)'],
 	collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx}'],
 }

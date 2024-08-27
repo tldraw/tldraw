@@ -3,6 +3,7 @@ title: Inline behavior
 component: ./InlineBehavior.tsx
 category: ui
 priority: 3
+keywords: [focus, blur, multiple]
 ---
 
 tldraw can be used as an inline block within a larger document editor.

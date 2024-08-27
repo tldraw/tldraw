@@ -3,6 +3,7 @@ title: Using custom styles
 component: ./ShapeWithCustomStylesExample.tsx
 category: shapes/tools
 priority: 2
+keywords: [style panel, rating]
 ---
 
 Using the custom styles API with your custom shapes.

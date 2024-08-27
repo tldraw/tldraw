@@ -112,12 +112,12 @@ TldrawTextLabel.measureMethod = 'text'
 export interface TextAreaProps {
 	isEditing: boolean
 	text: string
-	handleFocus: () => void
-	handleBlur: () => void
-	handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
-	handleChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-	handleInputPointerDown: (e: React.PointerEvent<HTMLTextAreaElement>) => void
-	handleDoubleClick: (e: any) => any
+	handleFocus(): void
+	handleBlur(): void
+	handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>): void
+	handleChange(e: React.ChangeEvent<HTMLTextAreaElement>): void
+	handleInputPointerDown(e: React.PointerEvent<HTMLTextAreaElement>): void
+	handleDoubleClick(e: any): any
 }
 
 /**

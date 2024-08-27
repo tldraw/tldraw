@@ -1,4 +1,5 @@
 import {
+	Expand,
 	IndexKey,
 	JsonValue,
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
@@ -18,7 +19,7 @@ export type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (
 
 /** @public */
 export interface Validatable<T> {
-	validate: (value: unknown) => T
+	validate(value: unknown): T
 	/**
 	 * This is a performance optimizing version of validate that can use a previous
 	 * version of the value to avoid revalidating every part of the new value if
@@ -28,7 +29,7 @@ export interface Validatable<T> {
 	 * should return the previous value.
 	 * @returns
 	 */
-	validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T
+	validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T
 }
 
 function formatPath(path: ReadonlyArray<number | string>): string | null {
@@ -383,7 +384,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 /** @public */
 export type UnionValidatorConfig<Key extends string, Config> = {
 	readonly [Variant in keyof Config]: Validatable<any> & {
-		validate: (input: any) => { readonly [K in Key]: Variant }
+		validate(input: any): { readonly [K in Key]: Variant }
 	}
 }
 /** @public */
@@ -696,7 +697,11 @@ export type ExtractOptionalKeys<T extends object> = {
 export function object<Shape extends object>(config: {
 	readonly [K in keyof Shape]: Validatable<Shape[K]>
 }): ObjectValidator<
-	{ [P in ExtractRequiredKeys<Shape>]: Shape[P] } & { [P in ExtractOptionalKeys<Shape>]?: Shape[P] }
+	Expand<
+		{ [P in ExtractRequiredKeys<Shape>]: Shape[P] } & {
+			[P in ExtractOptionalKeys<Shape>]?: Shape[P]
+		}
+	>
 > {
 	return new ObjectValidator(config) as any
 }
@@ -838,7 +843,7 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
 	return new UnionValidator(
 		key,
 		config,
-		(unknownValue, unknownVariant) => {
+		(_unknownValue, unknownVariant) => {
 			throw new ValidationError(
 				`Expected one of ${Object.keys(config)
 					.map((key) => JSON.stringify(key))
@@ -997,6 +1002,22 @@ export const srcUrl = string.check((value) => {
 	const url = parseUrl(value)
 
 	if (!validSrcProtocols.has(url.protocol.toLowerCase())) {
+		throw new ValidationError(
+			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
+		)
+	}
+})
+
+/**
+ * Validates an http(s) url
+ *
+ * @public
+ */
+export const httpUrl = string.check((value) => {
+	if (value === '') return
+	const url = parseUrl(value)
+
+	if (!url.protocol.toLowerCase().match(/^https?:$/)) {
 		throw new ValidationError(
 			`Expected a valid url, got ${JSON.stringify(value)} (invalid protocol)`
 		)

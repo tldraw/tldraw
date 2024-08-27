@@ -87,18 +87,9 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 						handleUiEvent('create-new-project', { source })
 						const shouldOverride = await shouldClearDocument(addDialog)
 						if (!shouldOverride) return
-
 						transact(() => {
-							const isFocused = editor.getInstanceState().isFocused
-
-							const bounds = editor.getViewportScreenBounds().clone()
-
-							editor.store.clear()
-							editor.store.ensureStoreIsUsable()
-							editor.history.clear()
-							// Put the old bounds back in place
-							editor.updateViewportScreenBounds(bounds)
-							editor.updateInstanceState({ isFocused })
+							editor.loadSnapshot({ store: {}, schema: editor.store.schema.serialize() })
+							editor.clearHistory()
 						})
 					},
 				}

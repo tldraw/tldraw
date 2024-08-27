@@ -8,13 +8,14 @@ import json5 from 'json5'
 import { nicelog } from '../../../scripts/lib/nicelog'
 
 import { T } from '@tldraw/validate'
+import { csp } from '../src/utils/csp'
 import { getMultiplayerServerURL } from '../vite.config'
 
 const commonSecurityHeaders = {
 	'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
 	'X-Content-Type-Options': 'nosniff',
 	'Referrer-Policy': 'no-referrer-when-downgrade',
-	// 'Content-Security-Policy': `default-src 'unsafe-inline' data: blob: ws: *`,
+	'Content-Security-Policy-Report-Only': csp,
 }
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.

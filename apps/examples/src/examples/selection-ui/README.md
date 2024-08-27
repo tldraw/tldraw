@@ -2,6 +2,7 @@
 title: Selection UI
 component: ./SelectionUiExample.tsx
 category: shapes/tools
+keywords: [duplication controls, handles]
 ---
 
 ---

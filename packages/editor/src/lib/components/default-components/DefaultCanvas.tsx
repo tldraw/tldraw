@@ -1,4 +1,5 @@
-import { react, useQuickReactor, useValue } from '@tldraw/state'
+import { react } from '@tldraw/state'
+import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
@@ -19,7 +20,6 @@ import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
-import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -33,7 +33,7 @@ export interface TLCanvasComponentProps {
 export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	const editor = useEditor()
 
-	const { Background, SvgDefs } = useEditorComponents()
+	const { Background, SvgDefs, ShapeIndicators } = useEditorComponents()
 
 	const rCanvas = useRef<HTMLDivElement>(null)
 	const rHtmlLayer = useRef<HTMLDivElement>(null)
@@ -125,51 +125,60 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 	)
 
 	return (
-		<div
-			ref={rCanvas}
-			draggable={false}
-			data-iseditinganything={isEditingAnything}
-			data-isselectinganything={isSelectingAnything}
-			className={classNames('tl-canvas', className)}
-			data-testid="canvas"
-			{...events}
-		>
-			<svg className="tl-svg-context">
-				<defs>
-					{shapeSvgDefs}
-					<CursorDef />
-					<CollaboratorHintDef />
-					{SvgDefs && <SvgDefs />}
-				</defs>
-			</svg>
-			{Background && (
-				<div className="tl-background__wrapper">
-					<Background />
+		<>
+			<div
+				ref={rCanvas}
+				draggable={false}
+				data-iseditinganything={isEditingAnything}
+				data-isselectinganything={isSelectingAnything}
+				className={classNames('tl-canvas', className)}
+				data-testid="canvas"
+				{...events}
+			>
+				<svg className="tl-svg-context">
+					<defs>
+						{shapeSvgDefs}
+						<CursorDef />
+						<CollaboratorHintDef />
+						{SvgDefs && <SvgDefs />}
+					</defs>
+				</svg>
+				{Background && (
+					<div className="tl-background__wrapper">
+						<Background />
+					</div>
+				)}
+				<GridWrapper />
+				<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+					<OnTheCanvasWrapper />
+					<SelectionBackgroundWrapper />
+					{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 				</div>
-			)}
-			<GridWrapper />
-			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
-				<OnTheCanvasWrapper />
-				<SelectionBackgroundWrapper />
-				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
-			</div>
-			<div className="tl-overlays">
-				<div ref={rHtmlLayer2} className="tl-html-layer">
-					{debugGeometry ? <GeometryDebuggingView /> : null}
-					<HandlesWrapper />
-					<BrushWrapper />
-					<ScribbleWrapper />
-					<ZoomBrushWrapper />
-					<ShapeIndicators />
-					<HintedShapeIndicator />
-					<SnapIndicatorWrapper />
-					<SelectionForegroundWrapper />
-					<LiveCollaborators />
+				<div className="tl-overlays">
+					<div ref={rHtmlLayer2} className="tl-html-layer">
+						{debugGeometry ? <GeometryDebuggingView /> : null}
+						<HandlesWrapper />
+						<BrushWrapper />
+						<ScribbleWrapper />
+						<ZoomBrushWrapper />
+						{ShapeIndicators && <ShapeIndicators />}
+						<HintedShapeIndicator />
+						<SnapIndicatorWrapper />
+						<SelectionForegroundWrapper />
+						<LiveCollaborators />
+					</div>
 				</div>
+				<MovingCameraHitTestBlocker />
 			</div>
-			<MovingCameraHitTestBlocker />
-		</div>
+			<InFrontOfTheCanvasWrapper />
+		</>
 	)
+}
+
+function InFrontOfTheCanvasWrapper() {
+	const { InFrontOfTheCanvas } = useEditorComponents()
+	if (!InFrontOfTheCanvas) return null
+	return <InFrontOfTheCanvas />
 }
 
 function GridWrapper() {
@@ -192,18 +201,9 @@ function ScribbleWrapper() {
 
 	if (!(Scribble && scribbles.length)) return null
 
-	return (
-		<>
-			{scribbles.map((scribble) => (
-				<Scribble
-					key={scribble.id}
-					className="tl-user-scribble"
-					scribble={scribble}
-					zoom={zoomLevel}
-				/>
-			))}
-		</>
-	)
+	return scribbles.map((scribble) => (
+		<Scribble key={scribble.id} className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
+	))
 }
 
 function BrushWrapper() {
@@ -234,13 +234,9 @@ function SnapIndicatorWrapper() {
 
 	if (!(SnapIndicator && lines.length > 0)) return null
 
-	return (
-		<>
-			{lines.map((line) => (
-				<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
-			))}
-		</>
-	)
+	return lines.map((line) => (
+		<SnapIndicator key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
+	))
 }
 
 function HandlesWrapper() {
@@ -370,25 +366,12 @@ function ShapesWithSVGs() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	const dprMultiple = useValue(
-		'dpr multiple',
-		() =>
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
-		[editor]
-	)
-
-	return (
-		<>
-			{renderingShapes.map((result) => (
-				<Fragment key={result.id + '_fragment'}>
-					<Shape {...result} dprMultiple={dprMultiple} />
-					<DebugSvgCopy id={result.id} />
-				</Fragment>
-			))}
-		</>
-	)
+	return renderingShapes.map((result) => (
+		<Fragment key={result.id + '_fragment'}>
+			<Shape {...result} />
+			<DebugSvgCopy id={result.id} />
+		</Fragment>
+	))
 }
 function ReflowIfNeeded() {
 	const editor = useEditor()
@@ -420,85 +403,12 @@ function ShapesToDisplay() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	const dprMultiple = useValue(
-		'dpr multiple',
-		() =>
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
-		[editor]
-	)
-
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
+				<Shape key={result.id + '_shape'} {...result} />
 			))}
 			{editor.environment.isSafari && <ReflowIfNeeded />}
-		</>
-	)
-}
-
-function ShapeIndicators() {
-	const editor = useEditor()
-	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
-	const rPreviousSelectedShapeIds = useRef<Set<TLShapeId>>(new Set())
-	const idsToDisplay = useValue(
-		'should display selected ids',
-		() => {
-			// todo: move to tldraw selected ids wrappe
-			const prev = rPreviousSelectedShapeIds.current
-			const next = new Set<TLShapeId>()
-			if (
-				editor.isInAny(
-					'select.idle',
-					'select.brushing',
-					'select.scribble_brushing',
-					'select.editing_shape',
-					'select.pointing_shape',
-					'select.pointing_selection',
-					'select.pointing_handle'
-				) &&
-				!editor.getInstanceState().isChangingStyle
-			) {
-				const selected = editor.getSelectedShapeIds()
-				for (const id of selected) {
-					next.add(id)
-				}
-				if (editor.isInAny('select.idle', 'select.editing_shape')) {
-					const instanceState = editor.getInstanceState()
-					if (instanceState.isHoveringCanvas && !instanceState.isCoarsePointer) {
-						const hovered = editor.getHoveredShapeId()
-						if (hovered) next.add(hovered)
-					}
-				}
-			}
-
-			if (prev.size !== next.size) {
-				rPreviousSelectedShapeIds.current = next
-				return next
-			}
-
-			for (const id of next) {
-				if (!prev.has(id)) {
-					rPreviousSelectedShapeIds.current = next
-					return next
-				}
-			}
-
-			return prev
-		},
-		[editor]
-	)
-
-	const { ShapeIndicator } = useEditorComponents()
-	if (!ShapeIndicator) return null
-
-	return (
-		<>
-			{renderingShapes.map(({ id }) => (
-				<ShapeIndicator key={id + '_indicator'} shapeId={id} hidden={!idsToDisplay.has(id)} />
-			))}
 		</>
 	)
 }
@@ -512,13 +422,9 @@ function HintedShapeIndicator() {
 	if (!ids.length) return null
 	if (!ShapeIndicator) return null
 
-	return (
-		<>
-			{ids.map((id) => (
-				<ShapeIndicator className="tl-user-indicator__hint" shapeId={id} key={id + '_hinting'} />
-			))}
-		</>
-	)
+	return ids.map((id) => (
+		<ShapeIndicator className="tl-user-indicator__hint" shapeId={id} key={id + '_hinting'} />
+	))
 }
 
 function CursorDef() {

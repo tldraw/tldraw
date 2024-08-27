@@ -4,8 +4,8 @@ import {
 	TLDefaultSizeStyle,
 	TLDrawShape,
 	TLDrawShapeSegment,
-	TLEventHandlers,
 	TLHighlightShape,
+	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLShapePartial,
 	Vec,
@@ -51,7 +51,7 @@ export class Drawing extends StateNode {
 
 	markId = null as null | string
 
-	override onEnter = (info: TLPointerEventInfo) => {
+	override onEnter(info: TLPointerEventInfo) {
 		this.markId = null
 		this.info = info
 		this.canDraw = !this.editor.getIsMenuOpen()
@@ -61,7 +61,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		const { inputs } = this.editor
 
 		if (this.isPen && !inputs.isPen) {
@@ -101,7 +101,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown(info: TLKeyboardEventInfo) {
 		if (info.key === 'Shift') {
 			switch (this.segmentMode) {
 				case 'free': {
@@ -118,7 +118,7 @@ export class Drawing extends StateNode {
 		this.updateDrawingShape()
 	}
 
-	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		if (info.key === 'Shift') {
 			this.editor.snaps.clearIndicators()
 
@@ -140,7 +140,7 @@ export class Drawing extends StateNode {
 		this.updateDrawingShape()
 	}
 
-	override onExit? = () => {
+	override onExit() {
 		this.editor.snaps.clearIndicators()
 		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 	}
@@ -149,7 +149,7 @@ export class Drawing extends StateNode {
 		return this.shapeType !== 'highlight'
 	}
 
-	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle) {
+	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle, scale: number) {
 		if (!this.canClose()) return false
 
 		const strokeWidth = STROKE_SIZES[size]
@@ -159,8 +159,8 @@ export class Drawing extends StateNode {
 
 		return (
 			firstPoint !== lastPoint &&
-			this.currentLineLength > strokeWidth * 4 &&
-			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2)
+			this.currentLineLength > strokeWidth * 4 * scale &&
+			Vec.DistMin(firstPoint, lastPoint, strokeWidth * 2 * scale)
 		)
 	}
 
@@ -169,8 +169,7 @@ export class Drawing extends StateNode {
 			inputs: { originPagePoint, isPen },
 		} = this.editor
 
-		this.markId = 'draw start ' + uniqueId()
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('draw start')
 
 		// If the pressure is weird, then it's probably a stylus reporting as a mouse
 		// We treat pen/stylus inputs differently in the drawing tool, so we need to
@@ -245,7 +244,8 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
-						shape.props.size
+						shape.props.size,
+						shape.props.scale
 					)
 				}
 
@@ -296,7 +296,7 @@ export class Drawing extends StateNode {
 
 		const {
 			id,
-			props: { size },
+			props: { size, scale },
 		} = initialShape
 
 		const shape = this.editor.getShape<DrawableShape>(id)!
@@ -374,7 +374,8 @@ export class Drawing extends StateNode {
 					if (this.canClose()) {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							segments,
-							size
+							size,
+							scale
 						)
 					}
 
@@ -442,7 +443,8 @@ export class Drawing extends StateNode {
 					if (this.canClose()) {
 						;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 							finalSegments,
-							size
+							size,
+							scale
 						)
 					}
 
@@ -583,7 +585,8 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						segments,
-						size
+						size,
+						scale
 					)
 				}
 
@@ -630,7 +633,8 @@ export class Drawing extends StateNode {
 				if (this.canClose()) {
 					;(shapePartial as TLShapePartial<TLDrawShape>).props!.isClosed = this.getIsClosed(
 						newSegments,
-						size
+						size,
+						scale
 					)
 				}
 
@@ -642,6 +646,8 @@ export class Drawing extends StateNode {
 
 					const newShapeId = createShapeId()
 
+					const props = this.editor.getShape<DrawableShape>(id)!.props
+
 					this.editor.createShapes<DrawableShape>([
 						{
 							id: newShapeId,
@@ -650,6 +656,7 @@ export class Drawing extends StateNode {
 							y: toFixed(inputs.currentPagePoint.y),
 							props: {
 								isPen: this.isPenOrStylus,
+								scale: props.scale,
 								segments: [
 									{
 										type: 'free',
@@ -685,19 +692,19 @@ export class Drawing extends StateNode {
 		return Math.sqrt(length)
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt() {
 		if (this.editor.inputs.isDragging) {
 			return
 		}

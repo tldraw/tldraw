@@ -343,4 +343,6 @@ A diff describing the changes to a collection.
 
 ## License
 
-The source code in this repository (as well as our 2.0+ distributions and releases) are currently licensed under Apache-2.0. These licenses are subject to change in our upcoming 2.0 release. If you are planning to use tldraw in a commercial product, please reach out at [hello@tldraw.com](mailto://hello@tldraw.com).
+The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). This license does not permit commercial use.
+
+If you wish to use this project in commercial product, you need to purchase a commercial license. To obtain a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).

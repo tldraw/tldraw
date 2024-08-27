@@ -40,13 +40,7 @@ export async function shouldLeaveSharedProject(addDialog: TLUiDialogsContextType
 	return true
 }
 
-function ConfirmLeaveDialog({
-	onCancel,
-	onContinue,
-}: {
-	onCancel: () => void
-	onContinue: () => void
-}) {
+function ConfirmLeaveDialog({ onCancel, onContinue }: { onCancel(): void; onContinue(): void }) {
 	const msg = useTranslation()
 	const [dontShowAgain, setDontShowAgain] = useLocalStorageState('confirm-leave', false)
 

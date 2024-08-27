@@ -1,6 +1,6 @@
 import { GeoShapeGeoStyle, useEditor, useValue } from '@tldraw/editor'
 import { TLUiToolItem, useTools } from '../../hooks/useTools'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuToolItem } from '../primitives/menus/TldrawUiMenuToolItem'
 
 /** @public @react */
 export function DefaultToolbarContent() {
@@ -62,7 +62,7 @@ export interface ToolbarItemProps {
 export function ToolbarItem({ tool }: ToolbarItemProps) {
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools[tool])
-	return <TldrawUiMenuItem {...tools[tool]} isSelected={isSelected} />
+	return <TldrawUiMenuToolItem toolId={tool} isSelected={isSelected} />
 }
 
 /** @public @react */
@@ -102,8 +102,7 @@ export function NoteToolbarItem() {
 
 /** @public @react */
 export function AssetToolbarItem() {
-	const tools = useTools()
-	return <TldrawUiMenuItem {...tools['asset']} />
+	return <TldrawUiMenuToolItem toolId="asset" />
 }
 
 /** @public @react */

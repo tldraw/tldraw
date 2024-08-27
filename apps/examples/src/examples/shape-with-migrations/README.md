@@ -3,6 +3,7 @@ title: Shape with migrations
 component: ./ShapeWithMigrationsExample.tsx
 category: shapes/tools
 priority: 3
+keywords: [version, update]
 ---
 
 Migrate your shapes and their data between versions

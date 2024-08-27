@@ -1,11 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
 
 :root {
+	--background: white;
+	--text: hsl(0, 0%, 11%);
 	--gray-light: #f5f5f5;
 	--gray-dark: #e8e8e8;
 	--black-transparent-lighter: rgba(0, 0, 0, 0.07);
 	--black-transparent-light: rgba(0, 0, 0, 0.3);
 	--black-transparent-dark: rgba(0, 0, 0, 0.5);
+	--black-transparent-darker: rgba(0, 0, 0, 0.7);
+	--focus: hsl(214, 84%, 56%);
+	--whiteboard: hsl(210, 20%, 98%);
+	color-scheme: light;
 }
 
 html,
@@ -19,6 +25,8 @@ body {
 	height: 100%;
 	/* prevent two-finger swipe to go back */
 	overscroll-behavior-x: none;
+	background-color: var(--background);
+	color: var(--text);
 }
 @media screen and (max-width: 600px) {
 	html,
@@ -245,7 +253,7 @@ li.examples__sidebar__item {
 .example__sidebar__footer-link {
 	padding: 8px 8px;
 	border-radius: 6px;
-	background-color: hsl(214, 84%, 56%);
+	background-color: var(--focus);
 	display: flex;
 	flex: 1 1 auto;
 	text-align: center;
@@ -279,7 +287,7 @@ a.example__sidebar__header-link {
 }
 
 .example__sidebar__header__socials a {
-	color: black;
+	color: var(--text);
 	height: 32px;
 	width: 32px;
 	display: flex;
@@ -292,8 +300,8 @@ a.example__sidebar__header-link {
 	flex-shrink: 0;
 	width: 16px;
 	height: 16px;
-	color: black;
-	background-color: black;
+	color: var(--text);
+	background-color: var(--text);
 }
 
 /* --------------------- Scroll --------------------- */
@@ -321,7 +329,7 @@ a.example__sidebar__header-link {
 	min-height: 36px;
 	border: 2px solid transparent;
 	border-radius: 6px;
-	background-color: rgba(0, 0, 0, 0.25);
+	background-color: var(--black-transparent-light);
 }
 .scroll-light::-webkit-scrollbar-thumb:hover {
 	background-color: var(--black-transparent-light);
@@ -427,4 +435,66 @@ a.example__sidebar__header-link {
 
 .example__dialog__close {
 	all: unset;
+}
+
+:root:has(.tl-theme__dark) .MultiplayerExampleWrapper {
+	--background: black;
+	--text: hsl(0, 9%, 94%);
+	--gray-light: #333;
+	--gray-dark: #444;
+	--black-transparent-lighter: rgba(255, 255, 255, 0.15);
+	--black-transparent-light: rgba(255, 255, 255, 0.4);
+	--black-transparent-dark: rgba(255, 255, 255, 0.6);
+	--black-transparent-darker: rgba(255, 255, 255, 0.7);
+	--focus: hsl(217, 89%, 61%);
+	--whiteboard: hsl(240, 5%, 6.5%);
+	color-scheme: dark;
+}
+.MultiplayerExampleWrapper {
+	display: flex;
+	flex-direction: column;
+	container: example / size;
+	position: absolute;
+	inset: 0px;
+}
+.MultiplayerExampleWrapper-picker {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+	padding: 8px 16px;
+	gap: 16px;
+	background: var(--background);
+	border-bottom: 1px solid var(--gray-dark);
+	color: var(--text);
+	font-size: 14px;
+}
+.MultiplayerExampleWrapper-copy {
+	background: var(--black-transparent-lighter);
+	border: 1px solid var(--gray-dark);
+	border-radius: 4px;
+	padding: 4px 12px;
+	height: 24px;
+	cursor: pointer;
+	position: relative;
+	text-align: center;
+}
+.MultiplayerExampleWrapper-copy:has(.MultiplayerExampleWrapper-copied) {
+	color: transparent;
+}
+.MultiplayerExampleWrapper-copied {
+	color: var(--text);
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.MultiplayerExampleWrapper-copy:hover {
+	border: 1px solid var(--black-transparent-lighter);
+}
+.MultiplayerExampleWrapper-example {
+	position: relative;
+	flex: 1;
 }

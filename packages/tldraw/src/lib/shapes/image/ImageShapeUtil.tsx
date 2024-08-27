@@ -6,16 +6,21 @@ import {
 	Image,
 	MediaHelpers,
 	TLImageShape,
-	TLOnDoubleClickHandler,
+	TLImageShapeProps,
+	TLResizeInfo,
 	TLShapePartial,
 	Vec,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
+	lerp,
+	resizeBox,
 	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useEffect, useState } from 'react'
+
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useAsset } from '../shared/useAsset'
@@ -33,8 +38,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override props = imageShapeProps
 	static override migrations = imageShapeMigrations
 
-	override isAspectRatioLocked = () => true
-	override canCrop = () => true
+	override isAspectRatioLocked() {
+		return true
+	}
+	override canCrop() {
+		return true
+	}
 
 	override getDefaultProps(): TLImageShape['props'] {
 		return {
@@ -44,7 +53,49 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			playing: true,
 			url: '',
 			crop: null,
+			flipX: false,
+			flipY: false,
 		}
+	}
+
+	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
+		let resized: TLImageShape = resizeBox(shape, info)
+		const { flipX, flipY } = info.initialShape.props
+		const { scaleX, scaleY, mode } = info
+
+		resized = {
+			...resized,
+			props: {
+				...resized.props,
+				flipX: scaleX < 0 !== flipX,
+				flipY: scaleY < 0 !== flipY,
+			},
+		}
+		if (!shape.props.crop) return resized
+
+		const flipCropHorizontally =
+			// We used the flip horizontally feature
+			(mode === 'scale_shape' && scaleX === -1) ||
+			// We resized the shape past it's bounds, so it flipped
+			(mode === 'resize_bounds' && flipX !== resized.props.flipX)
+		const flipCropVertically =
+			// We used the flip vertically feature
+			(mode === 'scale_shape' && scaleY === -1) ||
+			// We resized the shape past it's bounds, so it flipped
+			(mode === 'resize_bounds' && flipY !== resized.props.flipY)
+
+		const { topLeft, bottomRight } = shape.props.crop
+		resized.props.crop = {
+			topLeft: {
+				x: flipCropHorizontally ? 1 - bottomRight.x : topLeft.x,
+				y: flipCropVertically ? 1 - bottomRight.y : topLeft.y,
+			},
+			bottomRight: {
+				x: flipCropHorizontally ? 1 - topLeft.x : bottomRight.x,
+				y: flipCropVertically ? 1 - topLeft.y : bottomRight.y,
+			},
+		}
+		return resized
 	}
 
 	isAnimated(shape: TLImageShape) {
@@ -62,30 +113,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const isCropping = this.editor.getCroppingShapeId() === shape.id
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
-		const [loadedSrc, setLoadedSrc] = useState('')
+		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.props.assetId, shape.props.w)
-
-		useEffect(() => {
-			// We preload the image because we might have different source urls for different
-			// zoom levels.
-			// Preloading the image ensures that the browser caches the image and doesn't
-			// cause visual flickering when the image is loaded.
-			if (url) {
-				let cancelled = false
-
-				const image = Image()
-				image.onload = () => {
-					if (cancelled) return
-					setLoadedSrc(url)
-				}
-				image.src = url
-
-				return () => {
-					cancelled = true
-				}
-			}
-		}, [url, shape])
+		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
@@ -104,7 +134,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 					ctx.drawImage(image, 0, 0)
 					setStaticFrameSrc(canvas.toDataURL())
-					setLoadedSrc(url)
+					setLoadedUrl(url)
 				}
 				image.crossOrigin = 'anonymous'
 				image.src = url
@@ -127,8 +157,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const containerStyle = getCroppedContainerStyle(shape)
 
-		// This is specifically `asset?.props.src` and not `url` because we're looking for broken assets.
-		if (!asset?.props.src) {
+		const nextSrc = url === loadedUrl ? null : url
+		const loadedSrc = !shape.props.playing || reduceMotion ? staticFrameSrc : loadedUrl
+
+		// This logic path is for when it's broken/missing asset.
+		if (!url && !asset?.props.src) {
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -137,11 +170,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						width: shape.props.w,
 						height: shape.props.h,
 						color: 'var(--color-text-3)',
-						backgroundColor: asset ? 'transparent' : 'var(--color-low)',
-						border: asset ? 'none' : '1px solid var(--color-low-border)',
+						backgroundColor: 'var(--color-low)',
+						border: '1px solid var(--color-low-border)',
 					}}
 				>
-					<div className="tl-image-container" style={containerStyle}>
+					<div
+						className={classNames('tl-image-container', asset && 'tl-image-container-loading')}
+						style={containerStyle}
+					>
 						{asset ? null : <BrokenAssetIcon />}
 					</div>
 					{'url' in shape.props && shape.props.url && (
@@ -151,22 +187,24 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			)
 		}
 
-		if (!loadedSrc) return null
+		// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
+		// have that set up.
+		const crossOrigin = this.isAnimated(shape) ? 'anonymous' : undefined
 
 		return (
 			<>
-				{showCropPreview && (
+				{showCropPreview && loadedSrc && (
 					<div style={containerStyle}>
 						<img
-							className="tl-image"
-							// We don't set crossOrigin for non-animated images because
-							// for Cloudflare we don't currenly have that set up.
-							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
-							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
+							className={classNames('tl-image', {
+								'tl-flip-x': shape.props.flipX && !shape.props.flipY,
+								'tl-flip-y': shape.props.flipY && !shape.props.flipX,
+								'tl-flip-xy': shape.props.flipY && shape.props.flipX,
+							})}
+							crossOrigin={crossOrigin}
+							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
-							style={{
-								opacity: 0.1,
-							}}
+							style={{ opacity: 0.1 }}
 							draggable={false}
 						/>
 					</div>
@@ -175,16 +213,42 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					id={shape.id}
 					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
 				>
-					<div className="tl-image-container" style={containerStyle}>
-						<img
-							className="tl-image"
-							// We don't set crossOrigin for non-animated images because
-							// for Cloudflare we don't currenly have that set up.
-							crossOrigin={this.isAnimated(shape) ? 'anonymous' : undefined}
-							src={!shape.props.playing || reduceMotion ? staticFrameSrc : loadedSrc}
-							referrerPolicy="strict-origin-when-cross-origin"
-							draggable={false}
-						/>
+					<div className={classNames('tl-image-container')} style={containerStyle}>
+						{/* We have two images: the currently loaded image, and the next image that
+						we're waiting to load. we keep the loaded image mounted while we're waiting
+						for the next one by storing the loaded URL in state. We use `key` props with
+						the src of the image so that when the next image is ready, the previous one will
+						be unmounted and the next will be shown with the browser having to remount a
+						fresh image and decoded it again from the cache. */}
+						{loadedSrc && (
+							<img
+								key={loadedSrc}
+								className={classNames('tl-image', {
+									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
+									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
+									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
+								})}
+								crossOrigin={crossOrigin}
+								src={loadedSrc}
+								referrerPolicy="strict-origin-when-cross-origin"
+								draggable={false}
+							/>
+						)}
+						{nextSrc && (
+							<img
+								key={nextSrc}
+								className={classNames('tl-image', 'tl-image-next', {
+									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
+									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
+									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
+								})}
+								crossOrigin={crossOrigin}
+								src={nextSrc}
+								referrerPolicy="strict-origin-when-cross-origin"
+								draggable={false}
+								onLoad={() => setLoadedUrl(nextSrc)}
+							/>
+						)}
 						{this.isAnimated(shape) && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}
@@ -211,7 +275,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		if (!asset) return null
 
 		let src = await this.editor.resolveAssetUrl(shape.props.assetId, {
-			shouldResolveToOriginalImage: true,
+			shouldResolveToOriginal: true,
 		})
 		if (!src) return null
 		if (
@@ -256,7 +320,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
-	override onDoubleClick = (shape: TLImageShape) => {
+	override onDoubleClick(shape: TLImageShape) {
 		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
 		if (!asset) return
@@ -276,7 +340,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		])
 	}
 
-	override onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape> = (shape) => {
+	override onDoubleClickEdge(shape: TLImageShape) {
 		const props = shape.props
 		if (!props) return
 
@@ -311,6 +375,35 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 
 		this.editor.updateShapes([partial])
+	}
+	override getInterpolatedProps(
+		startShape: TLImageShape,
+		endShape: TLImageShape,
+		t: number
+	): TLImageShapeProps {
+		function interpolateCrop(
+			startShape: TLImageShape,
+			endShape: TLImageShape
+		): TLImageShapeProps['crop'] {
+			if (startShape.props.crop === null && endShape.props.crop === null) return null
+
+			const startTL = startShape.props.crop?.topLeft || { x: 0, y: 0 }
+			const startBR = startShape.props.crop?.bottomRight || { x: 1, y: 1 }
+			const endTL = endShape.props.crop?.topLeft || { x: 0, y: 0 }
+			const endBR = endShape.props.crop?.bottomRight || { x: 1, y: 1 }
+
+			return {
+				topLeft: { x: lerp(startTL.x, endTL.x, t), y: lerp(startTL.y, endTL.y, t) },
+				bottomRight: { x: lerp(startBR.x, endBR.x, t), y: lerp(startBR.y, endBR.y, t) },
+			}
+		}
+
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			crop: interpolateCrop(startShape, endShape),
+		}
 	}
 }
 

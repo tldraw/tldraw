@@ -21,7 +21,6 @@ export default function LocalImagesExample() {
 					src: '/tldraw.png', // You could also use a base64 encoded string here
 					w: imageWidth,
 					h: imageHeight,
-					fileSize: -1,
 					mimeType: 'image/png',
 					isAnimated: false,
 				},
@@ -58,7 +57,7 @@ We need to first create an asset that holds the source image [2], and then
 create the Image shape itself [3].
 
 Because this is a Next.js app, we can use the `public` folder to store the 
-image locally, your framework may have a different way of serving statis
+image locally, your framework may have a different way of serving static
 assets. 
 
 If you want to allow users to upload the images please take a look at the 

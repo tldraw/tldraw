@@ -4,6 +4,7 @@
 
 ```ts
 
+import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
 import { JsonValue } from '@tldraw/utils';
 
@@ -56,6 +57,9 @@ export type ExtractRequiredKeys<T extends object> = {
 }[keyof T];
 
 // @public
+const httpUrl: Validator<string>;
+
+// @public
 const indexKey: Validator<IndexKey>;
 
 // @public
@@ -99,11 +103,11 @@ function numberUnion<Key extends string, Config extends UnionValidatorConfig<Key
 // @public
 function object<Shape extends object>(config: {
     readonly [K in keyof Shape]: Validatable<Shape[K]>;
-}): ObjectValidator<{
+}): ObjectValidator<Expand<{
     [P in ExtractRequiredKeys<Shape>]: Shape[P];
 } & {
     [P in ExtractOptionalKeys<Shape>]?: Shape[P];
-}>;
+}>>;
 
 // @public (undocumented)
 export class ObjectValidator<Shape extends object> extends Validator<Shape> {
@@ -182,6 +186,7 @@ declare namespace T {
         jsonValue,
         linkUrl,
         srcUrl,
+        httpUrl,
         indexKey
     }
 }
@@ -203,7 +208,7 @@ export class UnionValidator<Key extends string, Config extends UnionValidatorCon
 // @public (undocumented)
 export type UnionValidatorConfig<Key extends string, Config> = {
     readonly [Variant in keyof Config]: Validatable<any> & {
-        validate: (input: any) => {
+        validate(input: any): {
             readonly [K in Key]: Variant;
         };
     };
@@ -218,8 +223,8 @@ const unknownObject: Validator<Record<string, unknown>>;
 // @public (undocumented)
 interface Validatable<T> {
     // (undocumented)
-    validate: (value: unknown) => T;
-    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;
+    validate(value: unknown): T;
+    validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T;
 }
 
 // @public (undocumented)

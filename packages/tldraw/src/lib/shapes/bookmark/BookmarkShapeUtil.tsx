@@ -7,14 +7,17 @@ import {
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
-	TLOnBeforeUpdateHandler,
+	TLBookmarkShapeProps,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
 	debounce,
 	getHashForString,
+	lerp,
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
+import { useState } from 'react'
+import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { LINK_ICON } from '../shared/icons-editor'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
@@ -30,9 +33,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override props = bookmarkShapeProps
 	static override migrations = bookmarkShapeMigrations
 
-	override canResize = () => false
+	override canResize() {
+		return false
+	}
 
-	override hideSelectionBoundsFg = () => true
+	override hideSelectionBoundsFg() {
+		return true
+	}
+
+	override getText(shape: TLBookmarkShape) {
+		return shape.props.url
+	}
 
 	override getDefaultProps(): TLBookmarkShape['props'] {
 		return {
@@ -52,12 +63,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 		const address = getHumanReadableAddress(shape)
 
+		/* eslint-disable-next-line react-hooks/rules-of-hooks */
+		const [isFaviconValid, setIsFaviconValid] = useState(true)
+		const onFaviconError = () => setIsFaviconValid(false)
+
 		return (
 			<HTMLContainer>
 				<div
 					className="tl-bookmark__container"
 					style={{
 						boxShadow: getRotatedBoxShadow(pageRotation),
+						maxHeight: shape.props.h,
 					}}
 				>
 					{(!asset || asset.props.image) && (
@@ -80,7 +96,9 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 					)}
 					<div className="tl-bookmark__copy_container">
 						{asset?.props.title ? (
-							<h2 className="tl-bookmark__heading">{asset.props.title}</h2>
+							<h2 className="tl-bookmark__heading">
+								{convertCommonTitleHTMLEntities(asset.props.title)}
+							</h2>
 						) : null}
 						{asset?.props.description && asset?.props.image ? (
 							<p className="tl-bookmark__description">{asset.props.description}</p>
@@ -94,11 +112,12 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 							onPointerUp={stopEventPropagation}
 							onClick={stopEventPropagation}
 						>
-							{asset?.props.favicon ? (
+							{isFaviconValid && asset?.props.favicon ? (
 								<img
 									className="tl-bookmark__favicon"
 									src={asset?.props.favicon}
 									referrerPolicy="strict-origin-when-cross-origin"
+									onError={onFaviconError}
 									alt={`favicon of ${address}`}
 								/>
 							) : (
@@ -129,11 +148,11 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		)
 	}
 
-	override onBeforeCreate = (next: TLBookmarkShape) => {
+	override onBeforeCreate(next: TLBookmarkShape) {
 		return getBookmarkSize(this.editor, next)
 	}
 
-	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape> = (prev, shape) => {
+	override onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape) {
 		if (prev.props.url !== shape.props.url) {
 			if (!T.linkUrl.isValid(shape.props.url)) {
 				return { ...shape, props: { ...shape.props, url: prev.props.url } }
@@ -144,6 +163,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 		if (prev.props.assetId !== shape.props.assetId) {
 			return getBookmarkSize(this.editor, shape)
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLBookmarkShape,
+		endShape: TLBookmarkShape,
+		t: number
+	): TLBookmarkShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
 }
@@ -233,7 +263,7 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 		return
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		// Create the new asset
 		editor.createAssets([asset])
 

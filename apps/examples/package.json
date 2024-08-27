@@ -33,13 +33,15 @@
 		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
 	},
 	"dependencies": {
-		"@playwright/test": "^1.38.1",
+		"@playwright/test": "^1.46.1",
 		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@tiptap/core": "^2.2.4",
 		"@tiptap/pm": "^2.2.4",
 		"@tiptap/react": "^2.2.4",
 		"@tiptap/starter-kit": "^2.2.4",
 		"@tldraw/assets": "workspace:*",
+		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/sync": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"classnames": "^2.3.2",
 		"lazyrepo": "0.0.0-alpha.27",
@@ -48,13 +50,13 @@
 		"pdfjs-dist": "^4.0.379",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"react-router-dom": "^6.17.0",
+		"react-router-dom": "^6.24.1",
 		"tldraw": "workspace:*",
-		"vite": "^5.0.0"
+		"vite": "^5.4.2"
 	},
 	"devDependencies": {
 		"@types/lodash": "^4.14.188",
-		"@vitejs/plugin-react-swc": "^3.6.0",
+		"@vitejs/plugin-react-swc": "^3.7.0",
 		"dotenv": "^16.3.1",
 		"remark": "^15.0.1",
 		"remark-frontmatter": "^5.0.0",

@@ -1,9 +1,8 @@
 import { computed } from '@tldraw/state'
 import { TLHandle, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
-import { assertExists } from '@tldraw/utils'
+import { assertExists, uniqueId } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
-import { uniqueId } from '../../../utils/uniqueId'
 import { Editor } from '../../Editor'
 import { SnapData, SnapManager } from './SnapManager'
 
@@ -58,6 +57,12 @@ export class HandleSnaps {
 		const { editor } = this
 		return editor.store.createComputedCache('handle snap geometry', (shape: TLShape) => {
 			const snapGeometry = editor.getShapeUtil(shape).getHandleSnapGeometry(shape)
+			const getSelfSnapOutline = snapGeometry.getSelfSnapOutline
+				? snapGeometry.getSelfSnapOutline.bind(snapGeometry)
+				: defaultGetSelfSnapOutline
+			const getSelfSnapPoints = snapGeometry.getSelfSnapPoints
+				? snapGeometry.getSelfSnapPoints.bind(snapGeometry)
+				: defaultGetSelfSnapPoints
 
 			return {
 				outline:
@@ -66,8 +71,8 @@ export class HandleSnaps {
 						: snapGeometry.outline,
 
 				points: snapGeometry.points ?? [],
-				getSelfSnapOutline: snapGeometry.getSelfSnapOutline ?? defaultGetSelfSnapOutline,
-				getSelfSnapPoints: snapGeometry.getSelfSnapPoints ?? defaultGetSelfSnapPoints,
+				getSelfSnapOutline,
+				getSelfSnapPoints,
 			}
 		})
 	}

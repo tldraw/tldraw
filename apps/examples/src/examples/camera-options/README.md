@@ -1,7 +1,8 @@
 ---
 title: Camera options
 component: ./CameraOptionsExample.tsx
-category: basic
+category: editor-api
+keywords: [api, fixed, constraints, camera bounds, pan speed, zoom speed]
 ---
 
 You can set the camera's options and constraints.
