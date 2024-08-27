@@ -1,8 +1,7 @@
 import { atom } from '@tldraw/state'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
-import { getFromLocalStorage, setInLocalStorage, structuredClone } from '@tldraw/utils'
+import { getFromLocalStorage, setInLocalStorage, structuredClone, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { uniqueId } from '../utils/uniqueId'
 
 const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 
@@ -18,10 +17,11 @@ export interface TLUserPreferences {
 	color?: string | null
 	animationSpeed?: number | null
 	edgeScrollSpeed?: number | null
-	isDarkMode?: boolean | null
+	colorScheme?: 'light' | 'dark' | 'system'
 	isSnapMode?: boolean | null
 	isWrapMode?: boolean | null
 	isDynamicSizeMode?: boolean | null
+	isPasteAtCursorMode?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -40,12 +40,13 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	name: T.string.nullable().optional(),
 	locale: T.string.nullable().optional(),
 	color: T.string.nullable().optional(),
+	colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
 	animationSpeed: T.number.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),
-	isDarkMode: T.boolean.nullable().optional(),
 	isSnapMode: T.boolean.nullable().optional(),
 	isWrapMode: T.boolean.nullable().optional(),
 	isDynamicSizeMode: T.boolean.nullable().optional(),
+	isPasteAtCursorMode: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -55,6 +56,8 @@ const Versions = {
 	AddEdgeScrollSpeed: 4,
 	AddExcalidrawSelectMode: 5,
 	AddDynamicSizeMode: 6,
+	AllowSystemColorScheme: 7,
+	AddPasteAtCursor: 8,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -75,9 +78,20 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	if (data.version < Versions.AddExcalidrawSelectMode) {
 		data.user.isWrapMode = false
 	}
+	if (data.version < Versions.AllowSystemColorScheme) {
+		if (data.user.isDarkMode === true) {
+			data.user.colorScheme = 'dark'
+		} else if (data.user.isDarkMode === false) {
+			data.user.colorScheme = 'light'
+		}
+		delete data.user.isDarkMode
+	}
 
 	if (data.version < Versions.AddDynamicSizeMode) {
 		data.user.isDynamicSizeMode = false
+	}
+	if (data.version < Versions.AddPasteAtCursor) {
+		data.user.isPasteAtCursorMode = false
 	}
 
 	// finally
@@ -105,19 +119,12 @@ function getRandomColor() {
 }
 
 /** @internal */
-export function userPrefersDarkUI() {
-	if (typeof window === 'undefined') {
-		return false
-	}
-	return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false
-}
-
-/** @internal */
 export function userPrefersReducedMotion() {
-	if (typeof window === 'undefined') {
-		return false
+	if (typeof window !== 'undefined' && 'matchMedia' in window) {
+		return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
 	}
-	return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
+
+	return false
 }
 
 /** @public */
@@ -125,18 +132,20 @@ export const defaultUserPreferences = Object.freeze({
 	name: 'New User',
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
-	isDarkMode: false,
 	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
 	isWrapMode: false,
 	isDynamicSizeMode: false,
+	isPasteAtCursorMode: false,
+	colorScheme: 'system',
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */
 export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
+		color: getRandomColor(),
 	}
 }
 
@@ -226,7 +235,7 @@ export function getUserPreferences(): TLUserPreferences {
 	let prefs = globalUserPreferences.get()
 	if (!prefs) {
 		prefs = loadUserPreferences()
-		globalUserPreferences.set(prefs)
+		setUserPreferences(prefs)
 	}
 	return prefs
 }

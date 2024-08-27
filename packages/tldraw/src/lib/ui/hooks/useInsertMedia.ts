@@ -14,7 +14,7 @@ export function useInsertMedia() {
 		async function onchange(e: Event) {
 			const fileList = (e.target as HTMLInputElement).files
 			if (!fileList || fileList.length === 0) return
-			editor.mark('insert media')
+			editor.markHistoryStoppingPoint('insert media')
 			await editor.putExternalContent({
 				type: 'files',
 				files: Array.from(fileList),

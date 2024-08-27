@@ -19,8 +19,8 @@ export function debounce<T extends unknown[], U>(
 		| {
 				timeout: ReturnType<typeof setTimeout>
 				promise: Promise<U>
-				resolve: (value: U | PromiseLike<U>) => void
-				reject: (value: any) => void
+				resolve(value: U | PromiseLike<U>): void
+				reject(value: any): void
 				latestArgs: T
 		  } = undefined
 

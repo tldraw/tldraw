@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "A tiny little drawing app (editor).",
-	"version": "2.2.0",
+	"version": "2.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -46,6 +46,7 @@
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
+		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
@@ -56,8 +57,7 @@
 		"core-js": "^3.31.1",
 		"eventemitter3": "^4.0.7",
 		"idb": "^7.1.1",
-		"is-plain-object": "^5.0.0",
-		"nanoid": "4.0.2"
+		"is-plain-object": "^5.0.0"
 	},
 	"peerDependencies": {
 		"react": "^18",
@@ -86,9 +86,6 @@
 		},
 		"testPathIgnorePatterns": [
 			"^.+\\.*.css$"
-		],
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid)/)"
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1",

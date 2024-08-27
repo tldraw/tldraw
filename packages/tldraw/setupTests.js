@@ -38,7 +38,7 @@ Object.defineProperty(global.URL, 'createObjectURL', {
 const { version } = require('./package.json')
 
 window.fetch = async (input, init) => {
-	if (input === `https://unpkg.com/@tldraw/assets@${version}/translations/en.json`) {
+	if (input === `https://cdn.tldraw.com/${version}/translations/en.json`) {
 		const json = await import('@tldraw/assets/translations/main.json')
 		return {
 			ok: true,

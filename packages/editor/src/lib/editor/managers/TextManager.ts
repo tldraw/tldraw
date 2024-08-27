@@ -60,12 +60,7 @@ export class TextManager {
 	) {
 		const container = this.editor.getContainer()
 
-		// Remove any existing text measure element that
-		// is a descendant of this editor's container
-		container.querySelector('#tldraw_text_measure')?.remove()
-
 		const elm = document.createElement('div')
-		elm.id = `tldraw_text_measure`
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
 		elm.tabIndex = -1
@@ -85,7 +80,7 @@ export class TextManager {
 		this.reactRoot = createRoot(this.reactComponentElm)
 	}
 
-	measure = (
+	measure(
 		content: string,
 		opts: {
 			fontStyle: string
@@ -103,7 +98,7 @@ export class TextManager {
 			padding: string
 			disableOverflowWrapBreaking?: boolean
 		}
-	): BoxModel & { scrollWidth: number } => {
+	): BoxModel & { scrollWidth: number } {
 		if (this.measureMethod === 'text') {
 			return this.measureText(content, opts)
 		} else {
@@ -111,7 +106,7 @@ export class TextManager {
 		}
 	}
 
-	measureText = (
+	measureText(
 		textToMeasure: string,
 		opts: {
 			fontStyle: string
@@ -129,7 +124,7 @@ export class TextManager {
 			padding: string
 			disableOverflowWrapBreaking?: boolean
 		}
-	): BoxModel & { scrollWidth: number } => {
+	): BoxModel & { scrollWidth: number } {
 		// Duplicate our base element; we don't need to clone deep
 		const elm = this.baseElm?.cloneNode() as HTMLDivElement
 		this.baseElm.insertAdjacentElement('afterend', elm)
@@ -165,7 +160,7 @@ export class TextManager {
 		}
 	}
 
-	measureComponent = (
+	measureComponent(
 		content: string,
 		opts: {
 			fontStyle: string
@@ -184,7 +179,7 @@ export class TextManager {
 			disableOverflowWrapBreaking?: boolean
 		},
 		renderFn: (content: string) => ReactNode
-	): BoxModel & { scrollWidth: number } => {
+	): BoxModel & { scrollWidth: number } {
 		const elm = this.reactComponentElm
 		elm.setAttribute('dir', 'ltr')
 		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')

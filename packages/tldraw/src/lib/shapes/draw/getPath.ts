@@ -38,7 +38,18 @@ const solidSettings = (strokeWidth: number): StrokeOptions => {
 	return {
 		size: strokeWidth,
 		thinning: 0,
-		streamline: modulate(strokeWidth, [9, 16], [0.68, 0.74], true), // 0.62 + ((1 + strokeWidth) / 8) * 0.06,
+		streamline: modulate(strokeWidth, [9, 16], [0.64, 0.74], true), // 0.62 + ((1 + strokeWidth) / 8) * 0.06,
+		smoothing: 0.62,
+		simulatePressure: false,
+		easing: EASINGS.linear,
+	}
+}
+
+const solidRealPressureSettings = (strokeWidth: number): StrokeOptions => {
+	return {
+		size: strokeWidth,
+		thinning: 0,
+		streamline: 0.62,
 		smoothing: 0.62,
 		simulatePressure: false,
 		easing: EASINGS.linear,
@@ -69,16 +80,25 @@ export function getFreehandOptions(
 	forceComplete: boolean,
 	forceSolid: boolean
 ): StrokeOptions {
-	return {
-		...(forceSolid
-			? solidSettings(strokeWidth)
-			: shapeProps.dash === 'draw'
-				? shapeProps.isPen
-					? realPressureSettings(strokeWidth)
-					: simulatePressureSettings(strokeWidth)
-				: solidSettings(strokeWidth)),
-		last: shapeProps.isComplete || forceComplete,
+	const last = shapeProps.isComplete || forceComplete
+
+	if (forceSolid) {
+		if (shapeProps.isPen) {
+			return { ...solidRealPressureSettings(strokeWidth), last }
+		} else {
+			return { ...solidSettings(strokeWidth), last }
+		}
 	}
+
+	if (shapeProps.dash === 'draw') {
+		if (shapeProps.isPen) {
+			return { ...realPressureSettings(strokeWidth), last }
+		} else {
+			return { ...simulatePressureSettings(strokeWidth), last }
+		}
+	}
+
+	return { ...solidSettings(strokeWidth), last }
 }
 
 export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
@@ -99,11 +119,17 @@ export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
 	return points
 }
 
-export function getDrawShapeStrokeDashArray(shape: TLDrawShape, strokeWidth: number) {
+export function getDrawShapeStrokeDashArray(
+	shape: TLDrawShape,
+	strokeWidth: number,
+	zoomLevel: number
+) {
 	return {
 		draw: 'none',
 		solid: `none`,
-		dotted: `0.1 ${strokeWidth * 2}`,
+		// If we're zoomed way out (10%), then we need to make the dotted line go to 9 instead 0.1
+		// Chrome doesn't render anything otherwise.
+		dotted: `${zoomLevel < 0.2 ? 0 : 0.1} ${strokeWidth * 2}`,
 		dashed: `${strokeWidth * 2} ${strokeWidth * 2}`,
 	}[shape.props.dash]
 }

@@ -1,6 +1,6 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { useMemo } from 'react'
 import {
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -9,13 +9,10 @@ import {
 	TLComponents,
 	TLRecord,
 	Tldraw,
+	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-	useActions,
 } from 'tldraw'
-import { UrlStateSync } from '../components/MultiplayerEditor'
-import { StoreErrorScreen } from '../components/StoreErrorScreen'
-import { useLocalStore } from '../hooks/useLocalStore'
+import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
@@ -23,20 +20,11 @@ import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ExportMenu } from './ExportMenu'
 import { MultiplayerFileMenu } from './FileMenu'
-import { Links } from './Links'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
@@ -44,11 +32,10 @@ const components: TLComponents = {
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+					<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
@@ -68,18 +55,28 @@ interface SnapshotEditorProps {
 	records: TLRecord[]
 }
 
-export function SnapshotsEditor(props: SnapshotEditorProps) {
+export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
+	// make sure this runs before the editor is instantiated
+	useLegacyUrlParams()
+
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
-	const storeResult = useLocalStore(props.records, props.schema)
-	if (!storeResult?.ok) return <StoreErrorScreen error={new Error(storeResult?.error)} />
+
+	const snapshot = useMemo(
+		() => ({
+			schema,
+			store: Object.fromEntries(records.map((record) => [record.id, record])),
+		}),
+		[schema, records]
+	)
 
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
-				store={storeResult.value}
+				snapshot={snapshot}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
@@ -89,10 +86,9 @@ export function SnapshotsEditor(props: SnapshotEditorProps) {
 				}}
 				components={components}
 				renderDebugMenuItems={() => <DebugMenuItems />}
+				deepLinks
 				inferDarkMode
-			>
-				<UrlStateSync />
-			</Tldraw>
+			/>
 		</div>
 	)
 }

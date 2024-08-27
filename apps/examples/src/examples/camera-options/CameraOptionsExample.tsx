@@ -73,6 +73,7 @@ const PaddingDisplay = track(() => {
 				width: `calc(100% - ${px * 2}px)`,
 				height: `calc(100% - ${py * 2}px)`,
 				border: '1px dotted var(--color-text)',
+				pointerEvents: 'none',
 			}}
 		/>
 	)
@@ -144,7 +145,7 @@ const CameraOptionsControlPanel = track(() => {
 
 	useEffect(() => {
 		if (!editor) return
-		editor.batch(() => {
+		editor.run(() => {
 			editor.setCameraOptions(cameraOptions)
 			editor.setCamera(editor.getCamera(), {
 				immediate: true,

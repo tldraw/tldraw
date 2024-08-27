@@ -434,22 +434,26 @@ export function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcF
  * @param b - The second point
  * @param c - The third point
  *
- * @returns The center of the circle
+ * @returns The center of the circle or null if the points are collinear
  *
  * @public
  */
 export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike) {
 	const u = -2 * (a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y)
-	return new Vec(
+	const x =
 		((a.x * a.x + a.y * a.y) * (c.y - b.y) +
 			(b.x * b.x + b.y * b.y) * (a.y - c.y) +
 			(c.x * c.x + c.y * c.y) * (b.y - a.y)) /
-			u,
+		u
+	const y =
 		((a.x * a.x + a.y * a.y) * (b.x - c.x) +
 			(b.x * b.x + b.y * b.y) * (c.x - a.x) +
 			(c.x * c.x + c.y * c.y) * (a.x - b.x)) /
-			u
-	)
+		u
+	if (!Number.isFinite(x) || !Number.isFinite(y)) {
+		return null
+	}
+	return new Vec(x, y)
 }
 
 /** @public */

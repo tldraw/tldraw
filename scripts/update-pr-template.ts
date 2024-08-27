@@ -6,7 +6,7 @@ import { formatLabelOptionsForPRTemplate, getLabelNames } from './lib/labels'
 
 const prTemplatePath = join(REPO_ROOT, '.github', 'pull_request_template.md')
 
-const octo = new Octokit({})
+const octo = process.env.GH_TOKEN ? new Octokit({ auth: process.env.GH_TOKEN }) : new Octokit()
 
 async function updatePRTemplate(check: boolean) {
 	if (!existsSync(prTemplatePath)) {
@@ -15,16 +15,16 @@ async function updatePRTemplate(check: boolean) {
 	}
 
 	const prTemplate = readFileSync(prTemplatePath).toString()
-	const labelsPart = prTemplate.match(/(### Change Type(.|\s)*?\n)###/)?.[1]
+	const labelsPart = prTemplate.match(/(### Change type(.|\s)*?\n)###/)?.[1]
 	if (!labelsPart) {
 		console.error(
-			'❌ Could not find the labels section of the pull request template! It should start with "### Change Type"'
+			'❌ Could not find the labels section of the pull request template! It should start with "### Change type"'
 		)
 		process.exit(1)
 	}
 	const updated = prTemplate.replace(
 		labelsPart,
-		`### Change Type\n\n${formatLabelOptionsForPRTemplate()}\n\n`
+		`### Change type\n\n${formatLabelOptionsForPRTemplate()}\n\n`
 	)
 	if (check && updated !== prTemplate) {
 		console.error(

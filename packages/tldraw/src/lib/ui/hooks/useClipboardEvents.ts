@@ -1,14 +1,10 @@
 import {
 	Editor,
 	FileHelpers,
-	TLArrowShape,
-	TLBookmarkShape,
-	TLEmbedShape,
 	TLExternalContentSource,
-	TLGeoShape,
-	TLTextShape,
+	Vec,
 	VecLike,
-	isNonNull,
+	isDefined,
 	preventDefault,
 	stopEventPropagation,
 	uniq,
@@ -114,7 +110,7 @@ const handleText = (
 	} else if (isValidHttpURL(data)) {
 		pasteUrl(editor, data, point)
 	} else if (isSvgText(data)) {
-		editor.mark('paste')
+		editor.markHistoryStoppingPoint('paste')
 		editor.putExternalContent({
 			type: 'svg-text',
 			text: data,
@@ -122,7 +118,7 @@ const handleText = (
 			sources,
 		})
 	} else {
-		editor.mark('paste')
+		editor.markHistoryStoppingPoint('paste')
 		editor.putExternalContent({
 			type: 'text',
 			text: data,
@@ -295,6 +291,9 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 	// Just paste the files, nothing else
 	if (files.length) {
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
 		const fileBlobs = await Promise.all(files.map((t) => t.source!))
 		const urls = (fileBlobs.filter(Boolean) as (File | Blob)[]).map((blob) =>
 			URL.createObjectURL(blob)
@@ -323,7 +322,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 						thing.source.then((text) => {
 							// first, see if we can find tldraw content, which is JSON inside of an html comment
-							const tldrawHtmlComment = text.match(/<tldraw[^>]*>(.*)<\/tldraw>/)?.[1]
+							const tldrawHtmlComment = text.match(/<div data-tldraw[^>]*>(.*)<\/div>/)?.[1]
 
 							if (tldrawHtmlComment) {
 								try {
@@ -507,25 +506,13 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		// Extract the text from the clipboard
 		const textItems = content.shapes
 			.map((shape) => {
-				if (
-					editor.isShapeOfType<TLTextShape>(shape, 'text') ||
-					editor.isShapeOfType<TLGeoShape>(shape, 'geo') ||
-					editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
-				) {
-					return shape.props.text
-				}
-				if (
-					editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') ||
-					editor.isShapeOfType<TLEmbedShape>(shape, 'embed')
-				) {
-					return shape.props.url
-				}
-				return null
+				const util = editor.getShapeUtil(shape)
+				return util.getText(shape)
 			})
-			.filter(isNonNull)
+			.filter(isDefined)
 
 		if (navigator.clipboard?.write) {
-			const htmlBlob = new Blob([`<tldraw>${stringifiedClipboard}</tldraw>`], {
+			const htmlBlob = new Blob([`<div data-tldraw>${stringifiedClipboard}</div>`], {
 				type: 'text/html',
 			})
 
@@ -546,7 +533,7 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 				}),
 			])
 		} else if (navigator.clipboard.writeText) {
-			navigator.clipboard.writeText(`<tldraw>${stringifiedClipboard}</tldraw>`)
+			navigator.clipboard.writeText(`<div data-tldraw>${stringifiedClipboard}</div>`)
 		}
 	}
 }
@@ -669,14 +656,27 @@ export function useNativeClipboardEvents() {
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
 
+			// Where should the shapes go?
+			let point: Vec | undefined = undefined
+			let pasteAtCursor = false
+
+			// | Shiftkey | Paste at cursor mode | Paste at point? |
+			// |    N 		|         N            |       N 				 |
+			// |    Y 		|         N            |       Y 				 |
+			// |    N 		|         Y            |       Y 				 |
+			// |    Y 		|         Y            |       N 				 |
+			if (editor.inputs.shiftKey) pasteAtCursor = true
+			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
+			if (pasteAtCursor) point = editor.inputs.currentPagePoint
+
 			// First try to use the clipboard data on the event
 			if (e.clipboardData && !editor.inputs.shiftKey) {
-				handlePasteFromEventClipboardData(editor, e.clipboardData)
+				handlePasteFromEventClipboardData(editor, e.clipboardData, point)
 			} else {
 				// Or else use the clipboard API
 				navigator.clipboard.read().then((clipboardItems) => {
 					if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
-						handlePasteFromClipboardApi(editor, clipboardItems, editor.inputs.currentPagePoint)
+						handlePasteFromClipboardApi(editor, clipboardItems, point)
 					}
 				})
 			}

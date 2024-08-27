@@ -17,6 +17,7 @@
  */
 export interface TldrawOptions {
 	readonly maxShapesPerPage: number
+	readonly maxFilesAtOnce: number
 	readonly maxPages: number
 	readonly animationMediumMs: number
 	readonly followChaseViewportSnap: number
@@ -37,6 +38,8 @@ export interface TldrawOptions {
 	readonly collaboratorCheckIntervalMs: number
 	readonly cameraMovingTimeoutMs: number
 	readonly hitTestMargin: number
+	readonly edgeScrollDelay: number
+	readonly edgeScrollEaseDuration: number
 	readonly edgeScrollSpeed: number
 	readonly edgeScrollDistance: number
 	readonly coarsePointerWidth: number
@@ -47,11 +50,13 @@ export interface TldrawOptions {
 	readonly adjacentShapeMargin: number
 	readonly flattenImageBoundsExpand: number
 	readonly flattenImageBoundsPadding: number
+	readonly laserDelayMs: number
 }
 
 /** @public */
 export const defaultTldrawOptions = {
 	maxShapesPerPage: 4000,
+	maxFilesAtOnce: 100,
 	maxPages: 40,
 	animationMediumMs: 320,
 	followChaseViewportSnap: 2,
@@ -73,7 +78,9 @@ export const defaultTldrawOptions = {
 	collaboratorCheckIntervalMs: 1200,
 	cameraMovingTimeoutMs: 64,
 	hitTestMargin: 8,
-	edgeScrollSpeed: 20,
+	edgeScrollDelay: 200,
+	edgeScrollEaseDuration: 200,
+	edgeScrollSpeed: 25,
 	edgeScrollDistance: 8,
 	coarsePointerWidth: 12,
 	coarseHandleRadius: 20,
@@ -83,4 +90,5 @@ export const defaultTldrawOptions = {
 	adjacentShapeMargin: 10,
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
+	laserDelayMs: 1200,
 } as const satisfies TldrawOptions

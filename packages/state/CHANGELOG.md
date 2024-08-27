@@ -1,3 +1,54 @@
+# v2.4.0 (Mon Jul 22 2024)
+
+### Release Notes
+
+#### Split @tldraw/state into @tldraw/state and @tldraw/state-react ([#4170](https://github.com/tldraw/tldraw/pull/4170))
+
+- Fixed a bug with…
+
+#### [sdk] make EffectScheduler and useStateTracking public ([#4155](https://github.com/tldraw/tldraw/pull/4155))
+
+- Made `EffectScheduler` and `useStateTracking` public
+
+---
+
+#### 💄 Product Improvements
+
+- [3/5] Automatically enable multiplayer UI when using demo sync [#4119](https://github.com/tldraw/tldraw/pull/4119) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🛠️ API Changes
+
+- Split @tldraw/state into @tldraw/state and @tldraw/state-react [#4170](https://github.com/tldraw/tldraw/pull/4170) ([@ds300](https://github.com/ds300))
+- [sdk] make EffectScheduler and useStateTracking public [#4155](https://github.com/tldraw/tldraw/pull/4155) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v2.3.0 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### assets: make option to transform urls dynamically / LOD ([#3827](https://github.com/tldraw/tldraw/pull/3827))
+
+- Assets: make option to transform urls dynamically to provide different sized images on demand.
+
+---
+
+#### 📚 SDK Changes
+
+- image: follow-up fixes for LOD [#3934](https://github.com/tldraw/tldraw/pull/3934) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: make option to transform urls dynamically / LOD [#3827](https://github.com/tldraw/tldraw/pull/3827) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v2.2.0 (Tue Jun 11 2024)
 
 ### Release Notes

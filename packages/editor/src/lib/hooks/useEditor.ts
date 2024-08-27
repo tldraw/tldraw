@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { createContext } from 'react'
 import { Editor } from '../editor/Editor'
 
 /** @internal */
-export const EditorContext = React.createContext<Editor | null>(null)
+export const EditorContext = createContext<Editor | null>(null)
 
 /** @public */
 export function useEditor(): Editor {

@@ -39,6 +39,7 @@ import {
 	DefaultShapeIndicatorErrorFallback,
 	TLShapeIndicatorErrorFallbackComponent,
 } from '../components/default-components/DefaultShapeIndicatorErrorFallback'
+import { DefaultShapeIndicators } from '../components/default-components/DefaultShapeIndicators'
 import {
 	DefaultSnapIndicator,
 	TLSnapIndicatorProps,
@@ -54,6 +55,7 @@ export interface TLEditorComponents {
 	SvgDefs?: ComponentType | null
 	Brush?: ComponentType<TLBrushProps> | null
 	ZoomBrush?: ComponentType<TLBrushProps> | null
+	ShapeIndicators?: ComponentType | null
 	ShapeIndicator?: ComponentType<TLShapeIndicatorProps> | null
 	Cursor?: ComponentType<TLCursorProps> | null
 	Canvas?: ComponentType<TLCanvasComponentProps> | null
@@ -93,44 +95,42 @@ export function EditorComponentsProvider({
 	children,
 }: ComponentsContextProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
+	const value = useMemo(
+		(): Required<TLEditorComponents> => ({
+			Background: DefaultBackground,
+			SvgDefs: DefaultSvgDefs,
+			Brush: DefaultBrush,
+			ZoomBrush: DefaultBrush,
+			CollaboratorBrush: DefaultBrush,
+			Cursor: DefaultCursor,
+			CollaboratorCursor: DefaultCursor,
+			CollaboratorHint: DefaultCollaboratorHint,
+			CollaboratorShapeIndicator: DefaultShapeIndicator,
+			Grid: DefaultGrid,
+			Scribble: DefaultScribble,
+			SnapIndicator: DefaultSnapIndicator,
+			Handles: DefaultHandles,
+			Handle: DefaultHandle,
+			CollaboratorScribble: DefaultScribble,
+			ErrorFallback: DefaultErrorFallback,
+			ShapeErrorFallback: DefaultShapeErrorFallback,
+			ShapeIndicatorErrorFallback: DefaultShapeIndicatorErrorFallback,
+			Spinner: DefaultSpinner,
+			SelectionBackground: DefaultSelectionBackground,
+			SelectionForeground: DefaultSelectionForeground,
+			ShapeIndicators: DefaultShapeIndicators,
+			ShapeIndicator: DefaultShapeIndicator,
+			OnTheCanvas: null,
+			InFrontOfTheCanvas: null,
+			Canvas: DefaultCanvas,
+			TextLabel: DefaultTextLabel,
+			LoadingScreen: DefaultLoadingScreen,
+			..._overrides,
+		}),
+		[_overrides]
+	)
 	return (
-		<EditorComponentsContext.Provider
-			value={useMemo(
-				(): Required<TLEditorComponents> => ({
-					Background: DefaultBackground,
-					SvgDefs: DefaultSvgDefs,
-					Brush: DefaultBrush,
-					ZoomBrush: DefaultBrush,
-					CollaboratorBrush: DefaultBrush,
-					Cursor: DefaultCursor,
-					CollaboratorCursor: DefaultCursor,
-					CollaboratorHint: DefaultCollaboratorHint,
-					CollaboratorShapeIndicator: DefaultShapeIndicator,
-					Grid: DefaultGrid,
-					Scribble: DefaultScribble,
-					SnapIndicator: DefaultSnapIndicator,
-					Handles: DefaultHandles,
-					Handle: DefaultHandle,
-					CollaboratorScribble: DefaultScribble,
-					ErrorFallback: DefaultErrorFallback,
-					ShapeErrorFallback: DefaultShapeErrorFallback,
-					ShapeIndicatorErrorFallback: DefaultShapeIndicatorErrorFallback,
-					Spinner: DefaultSpinner,
-					SelectionBackground: DefaultSelectionBackground,
-					SelectionForeground: DefaultSelectionForeground,
-					ShapeIndicator: DefaultShapeIndicator,
-					OnTheCanvas: null,
-					InFrontOfTheCanvas: null,
-					Canvas: DefaultCanvas,
-					TextLabel: DefaultTextLabel,
-					LoadingScreen: DefaultLoadingScreen,
-					..._overrides,
-				}),
-				[_overrides]
-			)}
-		>
-			{children}
-		</EditorComponentsContext.Provider>
+		<EditorComponentsContext.Provider value={value}>{children}</EditorComponentsContext.Provider>
 	)
 }
 

@@ -1,4 +1,4 @@
-import { RotateCorner, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { RotateCorner, StateNode, TLPointerEventInfo } from '@tldraw/editor'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
@@ -17,24 +17,24 @@ export class PointingRotateHandle extends StateNode {
 		})
 	}
 
-	override onEnter = (info: PointingRotateHandleInfo) => {
+	override onEnter(info: PointingRotateHandleInfo) {
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.info = info
 		this.updateCursor()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		if (this.editor.inputs.isDragging) {
 			this.startRotating()
 		}
 	}
 
-	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+	override onLongPress() {
 		this.startRotating()
 	}
 
@@ -43,19 +43,19 @@ export class PointingRotateHandle extends StateNode {
 		this.parent.transition('rotating', this.info)
 	}
 
-	override onPointerUp = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 

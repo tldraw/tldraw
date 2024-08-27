@@ -1,3 +1,373 @@
+# v2.4.0 (Mon Jul 22 2024)
+
+### Release Notes
+
+#### focus: fix dbl-click to edit text, when shape is selected, in label geometry hit area ([#4237](https://github.com/tldraw/tldraw/pull/4237))
+
+- Text editing: fix dbl-click to edit text, when shape is selected, in label geometry hit area
+
+#### stickies: make ADJACENT_NOTE_MARGIN match adjacentShapeMargin (again) ([#4231](https://github.com/tldraw/tldraw/pull/4231))
+
+- Stickies: fix adjacent margin to match shape margin
+
+#### Interpolated line points ([#4188](https://github.com/tldraw/tldraw/pull/4188))
+
+- Fixed a bug with…
+
+#### Fix fontStyle assignment ([#4195](https://github.com/tldraw/tldraw/pull/4195))
+
+- Fixed a bug where font style wasn't correctly exported as SVG
+
+#### Allow custom tools to decide whether they can be lockable or not. ([#4208](https://github.com/tldraw/tldraw/pull/4208))
+
+- Allows custom tools to control whether they can be lockable or not. By default they are lockable. You can opt out by overriding `StateNode`'s `isLockable` field:
+```typescript
+export class MyCustomTool extends StateNode {
+
+   static override isLockable = false
+
+}
+```
+
+#### Export default menu panel. ([#4193](https://github.com/tldraw/tldraw/pull/4193))
+
+- Export the `DefaultMenuPanel`.
+
+#### Interpolate arrow props ([#4213](https://github.com/tldraw/tldraw/pull/4213))
+
+- Added interpolated props for arrow shapes
+
+#### Make asset.fileSize optional ([#4206](https://github.com/tldraw/tldraw/pull/4206))
+
+- Made the `fileSize` property of `TLImageAsset` and `TLVideoAsset` optional
+
+#### Improve page event tracking. ([#4202](https://github.com/tldraw/tldraw/pull/4202))
+
+- Add additional tracking of page related events like renaming, duplicating, moving.
+
+#### csp: followup fixes/dx/tweaks ([#4159](https://github.com/tldraw/tldraw/pull/4159))
+
+- Security: more CSP work on dotcom
+
+#### Relax the params ([#4190](https://github.com/tldraw/tldraw/pull/4190))
+
+- Allow passing partial `TLEditorSnapshot` to `TldrawImage` and `useTLStore`.
+
+#### Explicitly type shape props and defaults ([#4191](https://github.com/tldraw/tldraw/pull/4191))
+
+- Explicitly declare type types of default shapes etc. and shape props for better documentation
+
+#### Show checked theme in color scheme menu ([#4184](https://github.com/tldraw/tldraw/pull/4184))
+
+- Fixed a bug where the user's color scheme was not shown in the menu by default.
+
+#### Editor.run, locked shapes improvements ([#4042](https://github.com/tldraw/tldraw/pull/4042))
+
+- SDK: Adds `Editor.force()` to permit updating / deleting locked shapes 
+- Fixed a bug that would allow locked shapes to be updated programmatically
+- Fixed a bug that would allow locked group shapes to be ungrouped programmatically
+
+#### sdk: wires up tldraw to have licensing mechanisms ([#4021](https://github.com/tldraw/tldraw/pull/4021))
+
+- SDK: wires up tldraw to have licensing mechanisms.
+
+#### Use shape scale for geo shape min size ([#4140](https://github.com/tldraw/tldraw/pull/4140))
+
+- Fixed a bug with the minimum size on dynamically scaled text shapes
+
+#### [1/4] Blob storage in TLStore ([#4068](https://github.com/tldraw/tldraw/pull/4068))
+
+Introduce a new `assets` option for the store, describing how to save and retrieve asset blobs like images & videos from e.g. a user-content CDN. These are accessible through `editor.uploadAsset` and `editor.resolveAssetUrl`. This supplements the existing `registerExternalAssetHandler` API: `registerExternalAssetHandler` is for customising metadata extraction, and should call `editor.uploadAsset` to save assets. Existing `registerExternalAssetHandler` calls will still work, but if you're only using them to configure uploads and don't want to customise metadata extraction, consider switching to the new `assets` store prop.
+
+#### Remove duplicate code ([#4128](https://github.com/tldraw/tldraw/pull/4128))
+
+- Remove some duplicate code which should make some of the exports a bit smaller.
+
+#### Add offline icon back ([#4127](https://github.com/tldraw/tldraw/pull/4127))
+
+- Fixed a bug with…
+
+#### fix bookmark height ([#4118](https://github.com/tldraw/tldraw/pull/4118))
+
+- Fixed a bug with…
+
+#### Add a toast for file upload failures. ([#4114](https://github.com/tldraw/tldraw/pull/4114))
+
+- Show a toast when uploading an unsupported file type or a file that is too large (more than 10mb).
+
+#### Add a toast for missing clipboard permissions. ([#4117](https://github.com/tldraw/tldraw/pull/4117))
+
+- Show a toast when pasting failed due to missing clipboard permissions.
+
+#### Flip images ([#4113](https://github.com/tldraw/tldraw/pull/4113))
+
+- Adds the ability to flip images.
+
+#### Add "paste at cursor" option, which toggles how `cmd + v` and `cmd + shift + v` work ([#4088](https://github.com/tldraw/tldraw/pull/4088))
+
+- Allow users and sdk users to make pasting at the cursor a default instead of only being available with `⌘ + ⇧ + v`.
+
+#### Fix two issues with frame headers ([#4092](https://github.com/tldraw/tldraw/pull/4092))
+
+- Fixes two issues with editing frame names.
+
+#### Fix editor remounting when camera options change ([#4089](https://github.com/tldraw/tldraw/pull/4089))
+
+Fix an issue where changing `cameraOptions` via react would cause the entire editor to re-render
+
+#### Add component for `ShapeIndicators` ([#4083](https://github.com/tldraw/tldraw/pull/4083))
+
+- Added new `ShapeIndicators` component to `components` object.
+- Added new `TldrawShapeIndicators` component.
+
+#### put sync stuff in bemo worker ([#4060](https://github.com/tldraw/tldraw/pull/4060))
+
+- Fixed a bug with...
+
+#### asset: targeted fix for loading the initial url quicker, before debouncing ([#4058](https://github.com/tldraw/tldraw/pull/4058))
+
+- Assets: fix artificial delay in showing an image.
+
+#### Fix duplicate distance ([#4056](https://github.com/tldraw/tldraw/pull/4056))
+
+- Fixed a bug that caused the distance offset for duplicated shapes to not match other duplication distance offsets.
+
+#### Fix empty edit context menu ([#4037](https://github.com/tldraw/tldraw/pull/4037))
+
+- Fixes a bug where the context menu would display an empty edit menu.
+
+#### Improve filled draw shaped in dynamic size mode ([#3974](https://github.com/tldraw/tldraw/pull/3974))
+
+- Improve closing of draw shapes in dynamic size mode
+
+#### Don't select child of selected shape on right click ([#4034](https://github.com/tldraw/tldraw/pull/4034))
+
+- Add a brief release note for your PR here.
+
+#### Cleanup z-indices ([#4020](https://github.com/tldraw/tldraw/pull/4020))
+
+- Cleans up z-indexes and removes some unused CSS.
+
+#### Fix `<InFrontOfTheCanvas/>` ([#4024](https://github.com/tldraw/tldraw/pull/4024))
+
+- Fixed placement of the InFrontOfTheCanvas component.
+
+#### bookmarks: account for relative urls more robustly ([#4022](https://github.com/tldraw/tldraw/pull/4022))
+
+- Bookmark extractor: account for relative urls more robustly
+
+---
+
+#### 🐛 Bug Fix
+
+- asset: make useAsset @public [#4249](https://github.com/tldraw/tldraw/pull/4249) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Watermark II [#4196](https://github.com/tldraw/tldraw/pull/4196) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+- csp: followup fixes/dx/tweaks [#4159](https://github.com/tldraw/tldraw/pull/4159) ([@mimecuvalo](https://github.com/mimecuvalo))
+- followups to z-index and PR template [#4054](https://github.com/tldraw/tldraw/pull/4054) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🐛 Bug Fixes
+
+- focus: fix dbl-click to edit text, when shape is selected, in label geometry hit area [#4237](https://github.com/tldraw/tldraw/pull/4237) ([@mimecuvalo](https://github.com/mimecuvalo))
+- stickies: make ADJACENT_NOTE_MARGIN match adjacentShapeMargin (again) [#4231](https://github.com/tldraw/tldraw/pull/4231) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix snapshots prop [#4233](https://github.com/tldraw/tldraw/pull/4233) ([@SomeHats](https://github.com/SomeHats))
+- Fix fontStyle assignment [#4195](https://github.com/tldraw/tldraw/pull/4195) ([@ggrossetie](https://github.com/ggrossetie) [@steveruizok](https://github.com/steveruizok))
+- Fix color scheme default [#4185](https://github.com/tldraw/tldraw/pull/4185) ([@steveruizok](https://github.com/steveruizok))
+- Show checked theme in color scheme menu [#4184](https://github.com/tldraw/tldraw/pull/4184) ([@steveruizok](https://github.com/steveruizok))
+- Editor.run, locked shapes improvements [#4042](https://github.com/tldraw/tldraw/pull/4042) ([@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
+- Use shape scale for geo shape min size [#4140](https://github.com/tldraw/tldraw/pull/4140) ([@steveruizok](https://github.com/steveruizok))
+- Add offline icon back [#4127](https://github.com/tldraw/tldraw/pull/4127) ([@ds300](https://github.com/ds300))
+- fix bookmark height [#4118](https://github.com/tldraw/tldraw/pull/4118) ([@ds300](https://github.com/ds300))
+- Fix paste at point [#4104](https://github.com/tldraw/tldraw/pull/4104) ([@steveruizok](https://github.com/steveruizok))
+- Fix two issues with frame headers [#4092](https://github.com/tldraw/tldraw/pull/4092) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix editor remounting when camera options change [#4089](https://github.com/tldraw/tldraw/pull/4089) ([@SomeHats](https://github.com/SomeHats))
+- asset: targeted fix for loading the initial url quicker, before debouncing [#4058](https://github.com/tldraw/tldraw/pull/4058) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix duplicate distance [#4056](https://github.com/tldraw/tldraw/pull/4056) ([@steveruizok](https://github.com/steveruizok))
+- Fix empty edit context menu [#4037](https://github.com/tldraw/tldraw/pull/4037) ([@steveruizok](https://github.com/steveruizok))
+- Don't select child of selected shape on right click [#4034](https://github.com/tldraw/tldraw/pull/4034) ([@ds300](https://github.com/ds300))
+- Fix fog of war [#4031](https://github.com/tldraw/tldraw/pull/4031) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Cleanup z-indices [#4020](https://github.com/tldraw/tldraw/pull/4020) ([@steveruizok](https://github.com/steveruizok))
+- Fix `<InFrontOfTheCanvas/>` [#4024](https://github.com/tldraw/tldraw/pull/4024) ([@steveruizok](https://github.com/steveruizok))
+- local assets: make sure hard reset also clears out new asset db [#3979](https://github.com/tldraw/tldraw/pull/3979) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Product Improvements
+
+- pages: tweak page menu width, fix #1231 [#4246](https://github.com/tldraw/tldraw/pull/4246) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Allow custom tools to decide whether they can be lockable or not. [#4208](https://github.com/tldraw/tldraw/pull/4208) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Export default menu panel. [#4193](https://github.com/tldraw/tldraw/pull/4193) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Improve page event tracking. [#4202](https://github.com/tldraw/tldraw/pull/4202) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Relax the params [#4190](https://github.com/tldraw/tldraw/pull/4190) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [3/5] Automatically enable multiplayer UI when using demo sync [#4119](https://github.com/tldraw/tldraw/pull/4119) ([@SomeHats](https://github.com/SomeHats))
+- Remove duplicate code [#4128](https://github.com/tldraw/tldraw/pull/4128) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Add a toast for file upload failures. [#4114](https://github.com/tldraw/tldraw/pull/4114) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Add a toast for missing clipboard permissions. [#4117](https://github.com/tldraw/tldraw/pull/4117) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Flip images [#4113](https://github.com/tldraw/tldraw/pull/4113) ([@steveruizok](https://github.com/steveruizok))
+- Add component for `ShapeIndicators` [#4083](https://github.com/tldraw/tldraw/pull/4083) ([@steveruizok](https://github.com/steveruizok))
+- Improve filled draw shaped in dynamic size mode [#3974](https://github.com/tldraw/tldraw/pull/3974) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@steveruizok](https://github.com/steveruizok))
+- bookmarks: account for relative urls more robustly [#4022](https://github.com/tldraw/tldraw/pull/4022) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🎉 New Features
+
+- Interpolated line points [#4188](https://github.com/tldraw/tldraw/pull/4188) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@steveruizok](https://github.com/steveruizok))
+- Interpolate arrow props [#4213](https://github.com/tldraw/tldraw/pull/4213) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- sdk: wires up tldraw to have licensing mechanisms [#4021](https://github.com/tldraw/tldraw/pull/4021) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- Add "paste at cursor" option, which toggles how `cmd + v` and `cmd + shift + v` work [#4088](https://github.com/tldraw/tldraw/pull/4088) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- put sync stuff in bemo worker [#4060](https://github.com/tldraw/tldraw/pull/4060) ([@ds300](https://github.com/ds300))
+
+#### 🛠️ API Changes
+
+- Make asset.fileSize optional [#4206](https://github.com/tldraw/tldraw/pull/4206) ([@steveruizok](https://github.com/steveruizok))
+- Explicitly type shape props and defaults [#4191](https://github.com/tldraw/tldraw/pull/4191) ([@SomeHats](https://github.com/SomeHats))
+- [2/4] Rename sync hooks, add bookmarks to demo [#4094](https://github.com/tldraw/tldraw/pull/4094) ([@SomeHats](https://github.com/SomeHats))
+- [1/4] Blob storage in TLStore [#4068](https://github.com/tldraw/tldraw/pull/4068) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 8
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Guillaume Grossetie ([@ggrossetie](https://github.com/ggrossetie))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
+# v2.3.0 (Tue Jun 25 2024)
+
+### Release Notes
+
+#### editing: don't allow editing locked shapes when edit→edit mode. ([#4007](https://github.com/tldraw/tldraw/pull/4007))
+
+- Editing: don't allow editing locked shapes when edit→edit mode.
+
+#### clipboard: fix copy/paste bad typo, ugh ([#4008](https://github.com/tldraw/tldraw/pull/4008))
+
+- Clipboard: fix copy/paste for older versions of Firefox
+
+#### clipboard: fix copy/paste on Firefox ([#4003](https://github.com/tldraw/tldraw/pull/4003))
+
+- Clipboard: fix copy/paste in Firefox 127+
+
+#### Add fill fill style. ([#3966](https://github.com/tldraw/tldraw/pull/3966))
+
+- Secretly adds a fill-fill style (Alt-F)
+
+#### Fix solid style draw shape. ([#3963](https://github.com/tldraw/tldraw/pull/3963))
+
+- Fixes the appearance of solid-style heart shapes.
+
+#### Fix asset positions ([#3965](https://github.com/tldraw/tldraw/pull/3965))
+
+- Fixes the position of multiple assets when pasted / dropped onto the canvas.
+
+#### Fix draw shape indicators for pen-drawn solid shapes ([#3962](https://github.com/tldraw/tldraw/pull/3962))
+
+- Fixes a bug with the indicator for stylus-drawn draw shapes.
+
+#### assets: fix copy/paste with missing src ([#3959](https://github.com/tldraw/tldraw/pull/3959))
+
+- Assets: fix copy/paste for new asset resolver mechanic.
+
+#### [Experiment] Allow users to use system's appearance (dark / light) mode ([#3703](https://github.com/tldraw/tldraw/pull/3703))
+
+- Add a brief release note for your PR here.
+
+#### Improve edge scrolling ([#3950](https://github.com/tldraw/tldraw/pull/3950))
+
+- Add a delay and easing to edge scrolling.
+
+#### Move from unpkg to our own cdn. ([#3923](https://github.com/tldraw/tldraw/pull/3923))
+
+- Start using our own cdn instead of unpkg.
+
+#### bookmark: css tweaks ([#3955](https://github.com/tldraw/tldraw/pull/3955))
+
+- Bookmarks: padding tweaks
+
+#### Dynamic size mode + fill fill ([#3835](https://github.com/tldraw/tldraw/pull/3835))
+
+- Adds a dynamic size user preferences.
+- Removes double click to reset scale on text shapes.
+- Removes double click to reset autosize on text shapes.
+
+#### assets: preload fonts ([#3927](https://github.com/tldraw/tldraw/pull/3927))
+
+- Perf: improve font loading timing on dotcom.
+
+#### Make ArrowBindingUtil public ([#3913](https://github.com/tldraw/tldraw/pull/3913))
+
+- Add a brief release note for your PR here.
+
+#### Flatten shapes to image(s) ([#3933](https://github.com/tldraw/tldraw/pull/3933))
+
+- Add Flatten, a new menu item to flatten shapes into images
+
+#### assets: store in indexedDB, not as base64 ([#3836](https://github.com/tldraw/tldraw/pull/3836))
+
+- Assets: store as reference to blob in indexedDB instead of storing directly as base64 in the snapshot.
+
+#### images: avoid double request for animated images ([#3924](https://github.com/tldraw/tldraw/pull/3924))
+
+- Images: avoid double request for animated images.
+
+#### assets: make option to transform urls dynamically / LOD ([#3827](https://github.com/tldraw/tldraw/pull/3827))
+
+- Assets: make option to transform urls dynamically to provide different sized images on demand.
+
+---
+
+#### 📚 SDK Changes
+
+- editing: don't allow editing locked shapes when edit→edit mode. [#4007](https://github.com/tldraw/tldraw/pull/4007) ([@mimecuvalo](https://github.com/mimecuvalo))
+- better auto-generated docs for Tldraw and TldrawEditor [#4012](https://github.com/tldraw/tldraw/pull/4012) ([@SomeHats](https://github.com/SomeHats))
+- clipboard: fix copy/paste bad typo, ugh [#4008](https://github.com/tldraw/tldraw/pull/4008) ([@mimecuvalo](https://github.com/mimecuvalo))
+- clipboard: fix copy/paste on Firefox [#4003](https://github.com/tldraw/tldraw/pull/4003) ([@mimecuvalo](https://github.com/mimecuvalo))
+- theme: rename color scheme to theme [#3991](https://github.com/tldraw/tldraw/pull/3991) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix scale issue with new draw lines [#3971](https://github.com/tldraw/tldraw/pull/3971) ([@steveruizok](https://github.com/steveruizok))
+- lod: dont resize images that are culled [#3970](https://github.com/tldraw/tldraw/pull/3970) ([@mimecuvalo](https://github.com/mimecuvalo))
+- flattening: use correct id for asset [#3968](https://github.com/tldraw/tldraw/pull/3968) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Add fill fill style. [#3966](https://github.com/tldraw/tldraw/pull/3966) ([@steveruizok](https://github.com/steveruizok))
+- Fix solid style draw shape. [#3963](https://github.com/tldraw/tldraw/pull/3963) ([@steveruizok](https://github.com/steveruizok))
+- Fix asset positions [#3965](https://github.com/tldraw/tldraw/pull/3965) ([@steveruizok](https://github.com/steveruizok))
+- lod: fix up missing timeout from bad merge [#3964](https://github.com/tldraw/tldraw/pull/3964) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix draw shape indicators for pen-drawn solid shapes [#3962](https://github.com/tldraw/tldraw/pull/3962) ([@steveruizok](https://github.com/steveruizok))
+- assets: fix copy/paste with missing src [#3959](https://github.com/tldraw/tldraw/pull/3959) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [Experiment] Allow users to use system's appearance (dark / light) mode [#3703](https://github.com/tldraw/tldraw/pull/3703) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Improve edge scrolling [#3950](https://github.com/tldraw/tldraw/pull/3950) ([@steveruizok](https://github.com/steveruizok))
+- Move from unpkg to our own cdn. [#3923](https://github.com/tldraw/tldraw/pull/3923) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- bookmark: css tweaks [#3955](https://github.com/tldraw/tldraw/pull/3955) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: fix up videos with indexedDB [#3954](https://github.com/tldraw/tldraw/pull/3954) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Dynamic size mode + fill fill [#3835](https://github.com/tldraw/tldraw/pull/3835) ([@steveruizok](https://github.com/steveruizok) [@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Make ArrowBindingUtil public [#3913](https://github.com/tldraw/tldraw/pull/3913) ([@ds300](https://github.com/ds300))
+- Flatten shapes to image(s) [#3933](https://github.com/tldraw/tldraw/pull/3933) ([@steveruizok](https://github.com/steveruizok))
+- assets: store in indexedDB, not as base64 [#3836](https://github.com/tldraw/tldraw/pull/3836) ([@mimecuvalo](https://github.com/mimecuvalo))
+- image: follow-up fixes for LOD [#3934](https://github.com/tldraw/tldraw/pull/3934) ([@mimecuvalo](https://github.com/mimecuvalo))
+- images: avoid double request for animated images [#3924](https://github.com/tldraw/tldraw/pull/3924) ([@mimecuvalo](https://github.com/mimecuvalo))
+- assets: make option to transform urls dynamically / LOD [#3827](https://github.com/tldraw/tldraw/pull/3827) ([@mimecuvalo](https://github.com/mimecuvalo))
+- security: enforce use of our fetch function and its default referrerpolicy [#3884](https://github.com/tldraw/tldraw/pull/3884) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🖥️ tldraw.com Changes
+
+- assets: preload fonts [#3927](https://github.com/tldraw/tldraw/pull/3927) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+
+#### 📖 Documentation changes
+
+- Document inherited members in reference [#3956](https://github.com/tldraw/tldraw/pull/3956) ([@SomeHats](https://github.com/SomeHats))
+- Better generated docs for react components [#3930](https://github.com/tldraw/tldraw/pull/3930) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.2.0 (Tue Jun 11 2024)
 
 ### Release Notes
@@ -1135,7 +1505,7 @@ Fix textbox direction when it contains both RTL and LTR languages
 
 - Fix first `yarn dev` experience.
 
-#### Maintain bindings whilst translating arrows ([#2424](https://github.com/tldraw/tldraw/pull/2424))
+#### Maintain bindings while translating arrows ([#2424](https://github.com/tldraw/tldraw/pull/2424))
 
 - You can now move arrows without them becoming unattached the shapes they're pointing to
 
@@ -1176,7 +1546,7 @@ Fix textbox direction when it contains both RTL and LTR languages
 - arrows: add ability to change label placement [#2557](https://github.com/tldraw/tldraw/pull/2557) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
 - [improvement] better comma control for pointer [#2568](https://github.com/tldraw/tldraw/pull/2568) ([@steveruizok](https://github.com/steveruizok))
 - Allow snapping of shapes to the frame when dragging inside the frame. [#2520](https://github.com/tldraw/tldraw/pull/2520) ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Maintain bindings whilst translating arrows [#2424](https://github.com/tldraw/tldraw/pull/2424) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- Maintain bindings while translating arrows [#2424](https://github.com/tldraw/tldraw/pull/2424) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
 - [improvement] update dark mode [#2468](https://github.com/tldraw/tldraw/pull/2468) ([@steveruizok](https://github.com/steveruizok))
 - [improvement] account for coarse pointers / insets in edge scrolling [#2401](https://github.com/tldraw/tldraw/pull/2401) ([@steveruizok](https://github.com/steveruizok))
 

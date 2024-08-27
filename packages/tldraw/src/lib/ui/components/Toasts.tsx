@@ -83,13 +83,7 @@ function Toast({ toast }: { toast: TLUiToast }) {
 function _Toasts() {
 	const { toasts } = useToasts()
 
-	return (
-		<>
-			{toasts.map((toast) => (
-				<Toast key={toast.id} toast={toast} />
-			))}
-		</>
-	)
+	return toasts.map((toast) => <Toast key={toast.id} toast={toast} />)
 }
 
 export const Toasts = React.memo(_Toasts)

@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useEditor } from './useEditor'
 
@@ -15,7 +15,7 @@ export function usePresence(userId: string): TLInstancePresence | null {
 		() => {
 			return editor.getCollaborators().find((c) => c.userId === userId)
 		},
-		[editor]
+		[editor, userId]
 	)
 
 	return latestPresence ?? null

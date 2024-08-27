@@ -34,7 +34,7 @@ const TLDRAW_V1_VERSION = 15.5
 /** @internal */
 export function buildFromV1Document(editor: Editor, _document: unknown) {
 	let document = _document as TLV1Document
-	editor.batch(() => {
+	editor.run(() => {
 		document = migrate(document, TLDRAW_V1_VERSION)
 		// Cancel any interactions / states
 		editor.cancel().cancel().cancel().cancel()
@@ -68,7 +68,6 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 						props: {
 							w: coerceDimension(v1Asset.size[0]),
 							h: coerceDimension(v1Asset.size[1]),
-							fileSize: -1,
 							name: v1Asset.fileName ?? 'Untitled',
 							isAnimated: false,
 							mimeType: null,
@@ -92,7 +91,6 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 								props: {
 									w: coerceDimension(v1Asset.size[0]),
 									h: coerceDimension(v1Asset.size[1]),
-									fileSize: -1,
 									name: v1Asset.fileName ?? 'Untitled',
 									isAnimated: true,
 									mimeType: null,
@@ -594,7 +592,7 @@ export function buildFromV1Document(editor: Editor, _document: unknown) {
 		// Set the current page to the first page again
 		editor.setCurrentPage(firstPageId)
 
-		editor.history.clear()
+		editor.clearHistory()
 		editor.selectNone()
 
 		const bounds = editor.getCurrentPageBounds()

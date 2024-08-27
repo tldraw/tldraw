@@ -202,3 +202,10 @@ function retry(
 		attempt()
 	})
 }
+
+export async function publishProductionDocsAndExamplesAndBemo({
+	gitRef = 'HEAD',
+}: { gitRef?: string } = {}) {
+	await exec('git', ['push', 'origin', `${gitRef}:docs-production`, `--force`])
+	await exec('git', ['push', 'origin', `${gitRef}:bemo-production`, `--force`])
+}

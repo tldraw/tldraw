@@ -2,7 +2,7 @@
 
 ## How tldraw is versioned
 
-**We do not follow SemVer**.
+Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), the tldraw SDK does not follow [semantic versioning](https://semver.org/) in its release versions. Here's what we do instead:
 
 - Major version bumps are very rare and we reserve them for special changes that signify a paradigm shift of some kind.
 - Minor version bumps are released on a regular cadence. At the time of writing that cadence is monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible by providing warnings several releases in advance, and by providing tooling to help you migrate your code. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.

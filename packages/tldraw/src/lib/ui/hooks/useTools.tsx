@@ -16,7 +16,7 @@ export interface TLUiToolItem<
 	label: TranslationKey
 	shortcutsLabel?: TranslationKey
 	icon: IconType
-	onSelect: (source: TLUiEventSource) => void
+	onSelect(source: TLUiEventSource): void
 	kbd?: string
 	readonlyOk?: boolean
 	meta?: {
@@ -32,11 +32,11 @@ export const ToolsContext = React.createContext<null | TLUiToolsContextType>(nul
 
 /** @public */
 export interface TLUiToolsProviderProps {
-	overrides?: (
+	overrides?(
 		editor: Editor,
 		tools: TLUiToolsContextType,
-		helpers: { insertMedia: () => void }
-	) => TLUiToolsContextType
+		helpers: { insertMedia(): void }
+	): TLUiToolsContextType
 	children: React.ReactNode
 }
 
@@ -101,7 +101,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: id === 'rectangle' ? 'r' : id === 'ellipse' ? 'o' : undefined,
 				icon: ('geo-' + id) as TLUiIconType,
 				onSelect(source: TLUiEventSource) {
-					editor.batch(() => {
+					editor.run(() => {
 						editor.setStyleForNextShapes(GeoShapeGeoStyle, id)
 						editor.setCurrentTool('geo')
 						trackEvent('select-tool', { source, id: `geo-${id}` })

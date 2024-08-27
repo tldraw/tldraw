@@ -1,0 +1,109 @@
+main = "src/worker.ts"
+compatibility_date = "2024-06-20"
+upload_source_maps = true
+
+[dev]
+port = 8989
+ip = "0.0.0.0"
+
+# these migrations are append-only. you can't change them. if you do need to change something, do so
+# by creating new migrations
+[[migrations]]
+tag = "v1"               # Should be unique for each entry
+new_classes = ["BemoDO"]
+
+
+#################### Environment names ####################
+# dev should never actually get deployed anywhere
+[env.dev]
+name = "dev-bemo"
+
+# we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
+
+# staging is the same as a preview on main:
+[env.staging]
+name = "canary-bemo"
+routes = [{ pattern = "canary-demo.tldraw.xyz", custom_domain = true }]
+
+# production gets the proper name
+[env.production]
+name = "production-bemo"
+routes = [{ pattern = "demo.tldraw.xyz", custom_domain = true }]
+
+#################### Durable objects ####################
+# durable objects have the same configuration in all environments:
+
+[durable_objects]
+bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
+
+[env.dev.durable_objects]
+bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
+
+[env.preview.durable_objects]
+bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
+
+[env.staging.durable_objects]
+bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
+
+[env.production.durable_objects]
+bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
+
+#################### R2 bucket ####################
+# in dev, we write to the preview bucket and need a `preview_bucket_name`
+[[env.dev.r2_buckets]]
+binding = 'BEMO_BUCKET'
+bucket_name = 'sync-demo-preview'
+preview_bucket_name = 'sync-demo-preview'
+
+# in preview and staging we write to the preview bucket
+[[env.preview.r2_buckets]]
+binding = 'BEMO_BUCKET'
+bucket_name = 'sync-demo-preview'
+
+[[env.staging.r2_buckets]]
+binding = 'BEMO_BUCKET'
+bucket_name = 'sync-demo-preview'
+
+# in production, we write to the main bucket
+[[env.production.r2_buckets]]
+binding = "BEMO_BUCKET"
+bucket_name = "sync-demo"
+
+#################### Version metadata ####################
+[version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.dev.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.preview.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+
+#################### Analytics engine ####################
+# analytics engine has the same configuration in all environments:
+[[analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS"
+
+[[env.dev.analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS_DEV"
+
+[[env.preview.analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS_PREVIEW"
+
+[[env.staging.analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS_STAGING"
+
+[[env.production.analytics_engine_datasets]]
+binding = "BEMO_ANALYTICS"
+dataset = "BEMO_ANALYTICS"

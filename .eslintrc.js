@@ -33,6 +33,7 @@ module.exports = {
 		'@typescript-eslint/no-non-null-assertion': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
+		'@typescript-eslint/method-signature-style': ['error', 'method'],
 		'react/display-name': 'off',
 		'@next/next/no-img-element': 'off',
 		'react/prop-types': 'off',
@@ -57,6 +58,7 @@ module.exports = {
 		'local/no-export-star': 'error',
 		'local/no-internal-imports': 'error',
 		'local/tagged-components': 'error',
+		'local/prefer-class-methods': 'error',
 		'no-only-tests/no-only-tests': 'error',
 		'no-restricted-syntax': [
 			'error',
@@ -225,7 +227,7 @@ module.exports = {
 			},
 		},
 		{
-			files: ['apps/huppy/**/*', 'scripts/**/*'],
+			files: ['apps/huppy/**/*', 'scripts/**/*', 'apps/simple-server-example/**/*'],
 			rules: {
 				'no-console': 'off',
 			},

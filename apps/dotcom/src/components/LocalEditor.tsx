@@ -1,9 +1,8 @@
-import React, { useCallback } from 'react'
+import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { memo, useCallback } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -15,12 +14,10 @@ import {
 	TLComponents,
 	Tldraw,
 	TldrawTextLabel,
+	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	ViewSubmenu,
-	useActions,
 } from 'tldraw'
-import { resolveAsset } from '../utils/assetHandler'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
@@ -40,14 +37,6 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<LocalFileMenu />
@@ -60,12 +49,11 @@ const components: TLComponents = {
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
+					<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
+					<TldrawUiMenuActionItem actionId={OPEN_FILE_ACTION} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
@@ -86,14 +74,14 @@ const components: TLComponents = {
 			</div>
 		)
 	},
-	TextLabel: React.memo((props) => {
+	TextLabel: memo((props) => {
 		return <TldrawTextLabel {...props} useTextTriggerCharacter={useTextTriggerCharacter} />
 	}),
 }
 
 export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
-	const sharingUiOverrides = useSharing(SCRATCH_PERSISTENCE_KEY)
+	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
@@ -105,13 +93,13 @@ export function LocalEditor() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
-				assetOptions={{ onResolveAsset: resolveAsset(SCRATCH_PERSISTENCE_KEY) }}
 				inferDarkMode
 			>
 				<LocalMigration />

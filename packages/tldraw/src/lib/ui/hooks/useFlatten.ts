@@ -1,5 +1,4 @@
 import {
-	AssetRecordType,
 	Box,
 	Editor,
 	IndexKey,
@@ -120,8 +119,6 @@ export async function flattenShapesToImages(
 			const { asset, bounds, shapes } = group
 			if (!asset) continue
 
-			const assetId = AssetRecordType.createId()
-
 			const commonAncestorId = editor.findCommonAncestor(shapes) ?? editor.getCurrentPageId()
 			if (!commonAncestorId) continue
 
@@ -164,7 +161,7 @@ export async function flattenShapesToImages(
 			editor.deleteShapes(shapes)
 
 			// create the asset
-			editor.createAssets([{ ...asset, id: assetId }])
+			editor.createAssets([{ ...asset, id: asset.id }])
 
 			const shapeId = createShapeId()
 
@@ -178,7 +175,7 @@ export async function flattenShapesToImages(
 				y,
 				rotation: -rotation,
 				props: {
-					assetId,
+					assetId: asset.id,
 					w: bounds.w + padding * 2,
 					h: bounds.h + padding * 2,
 				},

@@ -1,4 +1,4 @@
-import { useQuickReactor, useStateTracking } from '@tldraw/state'
+import { useQuickReactor, useStateTracking } from '@tldraw/state-react'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { memo, useCallback, useRef } from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
@@ -26,7 +26,6 @@ export const Shape = memo(function Shape({
 	index,
 	backgroundIndex,
 	opacity,
-	dprMultiple,
 }: {
 	id: TLShapeId
 	shape: TLShape
@@ -34,7 +33,6 @@ export const Shape = memo(function Shape({
 	index: number
 	backgroundIndex: number
 	opacity: number
-	dprMultiple: number
 }) {
 	const editor = useEditor()
 
@@ -82,18 +80,14 @@ export const Shape = memo(function Shape({
 			}
 
 			// Width / Height
-			// We round the shape width and height up to the nearest multiple of dprMultiple
-			// to avoid the browser making miscalculations when applying the transform.
-			const widthRemainder = bounds.w % dprMultiple
-			const heightRemainder = bounds.h % dprMultiple
-			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
-			const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
+			const width = Math.max(bounds.width, 1)
+			const height = Math.max(bounds.height, 1)
 
 			if (width !== prev.width || height !== prev.height) {
-				setStyleProperty(containerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-				setStyleProperty(containerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
-				setStyleProperty(bgContainerRef.current, 'width', Math.max(width, dprMultiple) + 'px')
-				setStyleProperty(bgContainerRef.current, 'height', Math.max(height, dprMultiple) + 'px')
+				setStyleProperty(containerRef.current, 'width', width + 'px')
+				setStyleProperty(containerRef.current, 'height', height + 'px')
+				setStyleProperty(bgContainerRef.current, 'width', width + 'px')
+				setStyleProperty(bgContainerRef.current, 'height', height + 'px')
 				prev.width = width
 				prev.height = height
 			}

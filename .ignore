@@ -28,3 +28,5 @@ apps/docs/utils/vector-db
 apps/docs/content/releases/**/*
 apps/docs/content/reference/**/*
 packages/**/api
+
+**/.clasp.json

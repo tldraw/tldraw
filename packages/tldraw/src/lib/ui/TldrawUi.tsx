@@ -1,4 +1,4 @@
-import { useEditor, useEditorComponents, useValue } from '@tldraw/editor'
+import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -41,7 +41,7 @@ export interface TldrawUiProps extends TldrawUiContextProviderProps {
 	/**
 	 * Additional items to add to the debug menu (will be deprecated)
 	 */
-	renderDebugMenuItems?: () => React.ReactNode
+	renderDebugMenuItems?(): React.ReactNode
 
 	/** Asset URL override. */
 	assetUrls?: TLUiAssetUrlOverrides
@@ -71,7 +71,7 @@ interface TldrawUiContentProps {
 	hideUi?: boolean
 	shareZone?: ReactNode
 	topZone?: ReactNode
-	renderDebugMenuItems?: () => React.ReactNode
+	renderDebugMenuItems?(): React.ReactNode
 }
 
 const TldrawUiInner = React.memo(function TldrawUiInner({
@@ -87,20 +87,9 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 		<>
 			{children}
 			{hideUi ? null : <TldrawUiContent {...rest} />}
-			<InFrontOfTheCanvasWrapper />
 		</>
 	)
 })
-
-function InFrontOfTheCanvasWrapper() {
-	const { InFrontOfTheCanvas } = useEditorComponents()
-	if (!InFrontOfTheCanvas) return null
-	return (
-		<div className="tl-front">
-			<InFrontOfTheCanvas />
-		</div>
-	)
-}
 
 const TldrawUiContent = React.memo(function TldrawUI() {
 	const editor = useEditor()
@@ -120,6 +109,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		NavigationPanel,
 		HelperButtons,
 		DebugPanel,
+		CursorChatBubble,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -175,6 +165,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			<Dialogs />
 			<ToastViewport />
 			<FollowingIndicator />
+			{CursorChatBubble && <CursorChatBubble />}
 		</div>
 	)
 })

@@ -32,7 +32,6 @@ export function ExamplePage({
 	const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setFilterValue(e.target.value)
 	}
-
 	return (
 		<DialogContextProvider>
 			<div className="example">
@@ -89,9 +88,20 @@ export function ExamplePage({
 								<ul className="example__sidebar__category__items">
 									{examples
 										.find((category) => category.id === currentCategory)
-										?.value.filter((example) =>
-											example.title.toLowerCase().includes(filterValue.toLowerCase())
-										)
+										?.value.filter((example) => {
+											const excludedWords = ['a', 'the', '', ' ']
+											const terms = filterValue
+												.toLowerCase()
+												.split(' ')
+												.filter((term) => !excludedWords.includes(term))
+											if (!terms.length) return true
+											return (
+												terms.some((term) => example.title.toLowerCase().includes(term)) ||
+												example.keywords.some((keyword) =>
+													terms.some((term) => keyword.toLowerCase().includes(term))
+												)
+											)
+										})
 										.map((sidebarExample) => (
 											<ExampleSidebarListItem
 												key={sidebarExample.path}
@@ -149,14 +159,12 @@ function ExampleSidebarListItem({
 			</div>
 			{isActive && (
 				<div className="example__sidebar__item__buttons">
-					{example.details && (
-						<button
-							className="example__sidebar__item__button hoverable"
-							onClick={() => setExampleDialog(example)}
-						>
-							<InfoIcon />
-						</button>
-					)}
+					<button
+						className="example__sidebar__item__button hoverable"
+						onClick={() => setExampleDialog(example)}
+					>
+						<InfoIcon />
+					</button>
 					<Link
 						to={`${example.path}/full`}
 						className="example__sidebar__item__button hoverable"
@@ -204,6 +212,7 @@ function Dialogs() {
 			/>
 			<Dialog.Content className="example__dialog__content">
 				<h1>{example.title}</h1>
+				<Markdown sanitizedHtml={example.description} className="example__dialog__markdown" />
 				<Markdown sanitizedHtml={example.details} className="example__dialog__markdown" />
 				<div className="example__dialog__actions">
 					<a href={example.codeUrl}>
@@ -218,12 +227,13 @@ function Dialogs() {
 
 function SocialIcon({ icon }: { icon: string }) {
 	return (
-		<img
+		<div
 			className="example__sidebar__icon"
-			src={`/icons/${icon}.svg`}
 			style={{
 				mask: `url(/icons/${icon}.svg) center 100% / 100% no-repeat`,
 				WebkitMask: `url(/icons/${icon}.svg) center 100% / 100% no-repeat`,
+				width: 16,
+				height: 16,
 			}}
 		/>
 	)

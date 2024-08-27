@@ -29,11 +29,11 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 
 			if (selectedShapeIds.includes(outermostSelectableShape.id)) {
 				// Remove it from selected shapes
-				editor.mark('deselecting shape')
+				editor.markHistoryStoppingPoint('deselecting shape')
 				editor.deselect(outermostSelectableShape)
 			} else {
 				// Add it to selected shapes
-				editor.mark('shift selecting shape')
+				editor.markHistoryStoppingPoint('shift selecting shape')
 				editor.setSelectedShapes([...selectedShapeIds, outermostSelectableShape.id])
 			}
 		} else {
@@ -59,7 +59,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 			}
 
 			if (shapeToSelect && !selectedShapeIds.includes(shapeToSelect.id)) {
-				editor.mark('selecting shape')
+				editor.markHistoryStoppingPoint('selecting shape')
 				editor.select(shapeToSelect.id)
 			}
 		}
@@ -74,7 +74,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 			// nothing instead of their current selection.
 
 			if (selectedShapeIds.length > 0) {
-				editor.mark('selecting none')
+				editor.markHistoryStoppingPoint('selecting none')
 				editor.selectNone()
 			}
 

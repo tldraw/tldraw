@@ -77,15 +77,15 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 	migrations?: MigrationSequence[]
 	/** @public */
-	onValidationFailure?: (data: {
+	onValidationFailure?(data: {
 		error: unknown
 		store: Store<R>
 		record: R
 		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
 		recordBefore: R | null
-	}) => R
+	}): R
 	/** @internal */
-	createIntegrityChecker?: (store: Store<R, P>) => void
+	createIntegrityChecker?(store: Store<R, P>): void
 }
 
 /** @public */

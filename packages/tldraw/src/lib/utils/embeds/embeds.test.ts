@@ -1,3 +1,4 @@
+import { DEFAULT_EMBED_DEFINITIONS } from '../../defaultEmbedDefinitions'
 import { getEmbedInfo, matchEmbedUrl, matchUrl } from './embeds'
 
 interface MatchUrlTestMatchDef {
@@ -599,7 +600,7 @@ const MATCH_EMBED_TEST_URLS: (MatchEmbedTestMatchDef | MatchEmbedTestNoMatchDef)
 
 for (const testDef of MATCH_URL_TEST_URLS) {
 	test(`matchUrl("${testDef.url}")`, () => {
-		const result = matchUrl(testDef.url)
+		const result = matchUrl(DEFAULT_EMBED_DEFINITIONS, testDef.url)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)
@@ -610,7 +611,7 @@ for (const testDef of MATCH_URL_TEST_URLS) {
 	})
 
 	test(`getEmbedInfo("${testDef.url}")`, () => {
-		const result = getEmbedInfo(testDef.url)
+		const result = getEmbedInfo(DEFAULT_EMBED_DEFINITIONS, testDef.url)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)
@@ -623,7 +624,7 @@ for (const testDef of MATCH_URL_TEST_URLS) {
 
 for (const testDef of MATCH_EMBED_TEST_URLS) {
 	test(`matchEmbedUrl("${testDef.embedUrl}")`, () => {
-		const result = matchEmbedUrl(testDef.embedUrl)
+		const result = matchEmbedUrl(DEFAULT_EMBED_DEFINITIONS, testDef.embedUrl)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)
@@ -634,7 +635,7 @@ for (const testDef of MATCH_EMBED_TEST_URLS) {
 	})
 
 	test(`getEmbedInfo("${testDef.embedUrl}")`, () => {
-		const result = matchEmbedUrl(testDef.embedUrl)
+		const result = matchEmbedUrl(DEFAULT_EMBED_DEFINITIONS, testDef.embedUrl)
 		if (testDef.match) {
 			expect(result).toBeDefined()
 			expect(result?.definition.type).toBe(testDef.output.type)
