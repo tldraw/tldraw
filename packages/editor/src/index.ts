@@ -110,6 +110,7 @@ export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDe
 export {
 	type ITextLabel,
 	type TLTextLabel,
+	type TLTextTriggerHook,
 	type TextLabelProps,
 } from './lib/components/default-components/DefaultTextLabel'
 export {

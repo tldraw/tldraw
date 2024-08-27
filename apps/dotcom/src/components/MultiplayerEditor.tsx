@@ -5,7 +5,7 @@ import {
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback } from 'react'
+import { memo, useCallback } from 'react'
 import {
 	assertExists,
 	DefaultKeyboardShortcutsDialog,
@@ -19,6 +19,7 @@ import {
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
+	TldrawTextLabel,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
@@ -39,6 +40,7 @@ import { useSharing } from '../utils/sharing'
 import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
+import { useTextTriggerCharacter } from '../utils/useTextTriggerCharacter'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
@@ -110,6 +112,9 @@ const components: TLComponents = {
 			</div>
 		)
 	},
+	TextLabel: memo((props) => {
+		return <TldrawTextLabel {...props} useTextTriggerCharacter={useTextTriggerCharacter} />
+	}),
 }
 
 export function MultiplayerEditor({
