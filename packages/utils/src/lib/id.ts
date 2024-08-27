@@ -3,7 +3,7 @@
  * Modified code originally from <https://github.com/ai/nanoid>
  * Copyright 2017 Andrey Sitnik <andrey@sitnik.ru>
  *
- * `nanoid` is currently only distributed as an ES module. some tools (jest, playwright) don't
+ * `nanoid` is currently only distributed as an ES module. Some tools (jest, playwright) don't
  * properly support ESM-only code yet, and tldraw itself is distributed as both an ES module and a
  * CommonJS module. By including nanoid here, we can make sure it works well in every environment
  * where tldraw is used. We can also remove some unused features like custom alphabets.
