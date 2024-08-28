@@ -44,7 +44,7 @@ export function DefaultCommmandBar() {
 			close()
 			action.onSelect('command-bar')
 		},
-		[actions, close, selected]
+		[actions, close]
 	)
 
 	const handleKeyDown = useCallback(
