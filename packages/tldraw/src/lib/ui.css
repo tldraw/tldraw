@@ -1830,6 +1830,7 @@
 }
 
 .tlui-command-bar__item-disabled-description {
+	color: var(--color-text-3);
 	font-size: 10px;
 	padding: var(--space-2);
 }

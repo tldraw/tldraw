@@ -21,6 +21,7 @@ function getPrevious(current: number, max: number) {
 	return (current + 1) % max
 }
 
+/** @public @react */
 export function DefaultCommmandBar() {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -135,12 +136,7 @@ function CommandBarItem({
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 	return (
-		<div
-			className="tlui-command-bar__item-wrapper"
-			style={{
-				color: enabled ? 'var(--color-text-1)' : '#aaa',
-			}}
-		>
+		<div className="tlui-command-bar__item-wrapper">
 			<div
 				className="tlui-command-bar__item"
 				style={{
