@@ -51,6 +51,10 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return getEmbedInfo(this.embedDefinitions, url)
 	}
 
+	override getText(shape: TLEmbedShape) {
+		return shape.props.url
+	}
+
 	override hideSelectionBoundsFg(shape: TLEmbedShape) {
 		return !this.canResize(shape)
 	}
