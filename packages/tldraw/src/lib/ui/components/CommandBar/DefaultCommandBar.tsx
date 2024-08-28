@@ -37,12 +37,15 @@ export function DefaultCommmandBar() {
 		editor.deleteOpenMenu(COMMAND_BAR_ID)
 	}, [editor])
 
-	const onSelect = useCallback(() => {
-		const action = actions[selected]
-		if (!action || !action.enabled?.()) return
-		close()
-		action.onSelect('command-bar')
-	}, [actions, close, selected])
+	const onSelect = useCallback(
+		(index: number) => {
+			const action = actions[index]
+			if (!action || !action.enabled?.()) return
+			close()
+			action.onSelect('command-bar')
+		},
+		[actions, close, selected]
+	)
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
@@ -69,7 +72,7 @@ export function DefaultCommmandBar() {
 					break
 
 				case 'Enter': {
-					onSelect()
+					onSelect(selected)
 					break
 				}
 			}
@@ -115,7 +118,7 @@ function CommandBarItems({
 }: {
 	actions: TLUiActionItem<string, string>[]
 	selected: number
-	onSelect: () => void
+	onSelect: (index: number) => void
 }) {
 	return (
 		<div>
@@ -143,7 +146,7 @@ function CommandBarItem({
 	action: TLUiActionItem<string, string>
 	index: number
 	selected: number
-	onSelect: () => void
+	onSelect: (index: number) => void
 }) {
 	const msg = useTranslation()
 	const { label, kbd } = action
@@ -161,7 +164,7 @@ function CommandBarItem({
 					background: index === selected ? 'var(--color-hint)' : 'var(--color-background)',
 				}}
 			>
-				<TldrawUiButton type="menu" disabled={!enabled} onClick={onSelect}>
+				<TldrawUiButton type="menu" disabled={!enabled} onClick={() => onSelect(index)}>
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</TldrawUiButton>
