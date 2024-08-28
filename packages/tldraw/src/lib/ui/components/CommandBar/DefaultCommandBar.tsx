@@ -37,6 +37,13 @@ export function DefaultCommmandBar() {
 		editor.deleteOpenMenu(COMMAND_BAR_ID)
 	}, [editor])
 
+	const onSelect = useCallback(() => {
+		const action = actions[selected]
+		if (!action || !action.enabled?.()) return
+		close()
+		action.onSelect('command-bar')
+	}, [actions, close, selected])
+
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
 			switch (e.key) {
@@ -62,15 +69,12 @@ export function DefaultCommmandBar() {
 					break
 
 				case 'Enter': {
-					const action = actions[selected]
-					if (!action || !action.enabled?.()) return
-					close()
-					action.onSelect('command-bar')
+					onSelect()
 					break
 				}
 			}
 		},
-		[close, selected, numItems, actions]
+		[close, selected, numItems, onSelect]
 	)
 
 	if (!isOpen) return null
@@ -95,7 +99,9 @@ export function DefaultCommmandBar() {
 								if (value === '') setSelected(-1)
 							}}
 						/>
-						{actions.length !== 0 && <CommandBarItems actions={actions} selected={selected} />}
+						{actions.length !== 0 && (
+							<CommandBarItems actions={actions} selected={selected} onSelect={onSelect} />
+						)}
 					</div>
 				</div>
 			</div>
@@ -105,14 +111,24 @@ export function DefaultCommmandBar() {
 function CommandBarItems({
 	actions,
 	selected,
+	onSelect,
 }: {
 	actions: TLUiActionItem<string, string>[]
 	selected: number
+	onSelect: () => void
 }) {
 	return (
 		<div>
 			{actions.slice(0, MAX_ITEMS).map((action, index) => {
-				return <CommandBarItem key={action.id} action={action} index={index} selected={selected} />
+				return (
+					<CommandBarItem
+						key={action.id}
+						action={action}
+						index={index}
+						selected={selected}
+						onSelect={onSelect}
+					/>
+				)
 			})}
 		</div>
 	)
@@ -122,10 +138,12 @@ function CommandBarItem({
 	action,
 	index,
 	selected,
+	onSelect,
 }: {
 	action: TLUiActionItem<string, string>
 	index: number
 	selected: number
+	onSelect: () => void
 }) {
 	const msg = useTranslation()
 	const { label, kbd } = action
@@ -143,7 +161,7 @@ function CommandBarItem({
 					background: index === selected ? 'var(--color-hint)' : 'var(--color-background)',
 				}}
 			>
-				<TldrawUiButton type="menu" disabled={!enabled}>
+				<TldrawUiButton type="menu" disabled={!enabled} onClick={onSelect}>
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</TldrawUiButton>
