@@ -64,9 +64,6 @@
 		"testPathIgnorePatterns": [
 			"^.+\\.*.css$"
 		],
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid)/)"
-		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1",
 			"\\.(css|less|scss|sass)$": "identity-obj-proxy"

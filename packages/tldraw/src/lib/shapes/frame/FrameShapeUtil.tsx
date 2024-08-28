@@ -5,6 +5,7 @@ import {
 	SVGContainer,
 	SvgExportContext,
 	TLFrameShape,
+	TLFrameShapeProps,
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
@@ -13,11 +14,13 @@ import {
 	frameShapeProps,
 	getDefaultColorTheme,
 	last,
+	lerp,
 	resizeBox,
 	toDomPrecision,
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
+
 import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
@@ -143,6 +146,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			fontWeight: 'normal',
 			overflow: 'truncate-ellipsis' as const,
 			verticalTextAlign: 'middle' as const,
+			fill: theme.text,
 		}
 
 		const spans = this.editor.textMeasure.measureTextSpans(
@@ -231,5 +235,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
 		return resizeBox(shape, info)
+	}
+	override getInterpolatedProps(
+		startShape: TLFrameShape,
+		endShape: TLFrameShape,
+		t: number
+	): TLFrameShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+		}
 	}
 }

@@ -6,18 +6,21 @@ import {
 	Image,
 	MediaHelpers,
 	TLImageShape,
+	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
 	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
+	lerp,
 	resizeBox,
 	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
+
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useAsset } from '../shared/useAsset'
@@ -58,31 +61,39 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
 		const { flipX, flipY } = info.initialShape.props
+		const { scaleX, scaleY, mode } = info
 
 		resized = {
 			...resized,
 			props: {
 				...resized.props,
-				flipX: info.scaleX < 0 !== flipX,
-				flipY: info.scaleY < 0 !== flipY,
+				flipX: scaleX < 0 !== flipX,
+				flipY: scaleY < 0 !== flipY,
 			},
 		}
-		if (shape.props.crop && info.mode === 'scale_shape') {
-			const { topLeft, bottomRight } = shape.props.crop
-			// Vertical flip
-			if (info.scaleY === -1) {
-				resized.props.crop = {
-					topLeft: { x: topLeft.x, y: 1 - bottomRight.y },
-					bottomRight: { x: bottomRight.x, y: 1 - topLeft.y },
-				}
-			}
-			// Horizontal flip
-			if (info.scaleX === -1) {
-				resized.props.crop = {
-					topLeft: { x: 1 - bottomRight.x, y: topLeft.y },
-					bottomRight: { x: 1 - topLeft.x, y: bottomRight.y },
-				}
-			}
+		if (!shape.props.crop) return resized
+
+		const flipCropHorizontally =
+			// We used the flip horizontally feature
+			(mode === 'scale_shape' && scaleX === -1) ||
+			// We resized the shape past it's bounds, so it flipped
+			(mode === 'resize_bounds' && flipX !== resized.props.flipX)
+		const flipCropVertically =
+			// We used the flip vertically feature
+			(mode === 'scale_shape' && scaleY === -1) ||
+			// We resized the shape past it's bounds, so it flipped
+			(mode === 'resize_bounds' && flipY !== resized.props.flipY)
+
+		const { topLeft, bottomRight } = shape.props.crop
+		resized.props.crop = {
+			topLeft: {
+				x: flipCropHorizontally ? 1 - bottomRight.x : topLeft.x,
+				y: flipCropVertically ? 1 - bottomRight.y : topLeft.y,
+			},
+			bottomRight: {
+				x: flipCropHorizontally ? 1 - topLeft.x : bottomRight.x,
+				y: flipCropVertically ? 1 - topLeft.y : bottomRight.y,
+			},
 		}
 		return resized
 	}
@@ -186,10 +197,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					<div style={containerStyle}>
 						<img
 							className="tl-image"
+							style={{ ...getFlipStyle(shape), opacity: 0.1 }}
 							crossOrigin={crossOrigin}
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
-							style={{ opacity: 0.1 }}
 							draggable={false}
 						/>
 					</div>
@@ -200,7 +211,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				>
 					<div className={classNames('tl-image-container')} style={containerStyle}>
 						{/* We have two images: the currently loaded image, and the next image that
-						we're waiting to load. we keep the loaded image mounted whilst we're waiting
+						we're waiting to load. we keep the loaded image mounted while we're waiting
 						for the next one by storing the loaded URL in state. We use `key` props with
 						the src of the image so that when the next image is ready, the previous one will
 						be unmounted and the next will be shown with the browser having to remount a
@@ -208,11 +219,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						{loadedSrc && (
 							<img
 								key={loadedSrc}
-								className={classNames('tl-image', {
-									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
-									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
-									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
-								})}
+								className="tl-image"
+								style={getFlipStyle(shape)}
 								crossOrigin={crossOrigin}
 								src={loadedSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
@@ -222,11 +230,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						{nextSrc && (
 							<img
 								key={nextSrc}
-								className={classNames('tl-image', 'tl-image-next', {
-									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
-									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
-									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
-								})}
+								className="tl-image"
+								style={getFlipStyle(shape)}
 								crossOrigin={crossOrigin}
 								src={nextSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
@@ -276,7 +281,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const containerStyle = getCroppedContainerStyle(shape)
 		const crop = shape.props.crop
 		if (containerStyle.transform && crop) {
-			const { transform, width, height } = containerStyle
+			const { transform: cropTransform, width, height } = containerStyle
 			const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
 			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
 
@@ -288,6 +293,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			]
 
 			const cropClipId = `cropClipPath_${shape.id.replace(':', '_')}`
+
+			const flip = getFlipStyle(shape, { width, height })
+
 			return (
 				<>
 					<defs>
@@ -296,12 +304,28 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						</clipPath>
 					</defs>
 					<g clipPath={`url(#${cropClipId})`}>
-						<image href={src} width={width} height={height} style={{ transform }} />
+						<image
+							href={src}
+							width={width}
+							height={height}
+							style={
+								flip
+									? { ...flip, transform: `${cropTransform} ${flip.transform}` }
+									: { transform: cropTransform }
+							}
+						/>
 					</g>
 				</>
 			)
 		} else {
-			return <image href={src} width={shape.props.w} height={shape.props.h} />
+			return (
+				<image
+					href={src}
+					width={shape.props.w}
+					height={shape.props.h}
+					style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
+				/>
+			)
 		}
 	}
 
@@ -361,6 +385,35 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		this.editor.updateShapes([partial])
 	}
+	override getInterpolatedProps(
+		startShape: TLImageShape,
+		endShape: TLImageShape,
+		t: number
+	): TLImageShapeProps {
+		function interpolateCrop(
+			startShape: TLImageShape,
+			endShape: TLImageShape
+		): TLImageShapeProps['crop'] {
+			if (startShape.props.crop === null && endShape.props.crop === null) return null
+
+			const startTL = startShape.props.crop?.topLeft || { x: 0, y: 0 }
+			const startBR = startShape.props.crop?.bottomRight || { x: 1, y: 1 }
+			const endTL = endShape.props.crop?.topLeft || { x: 0, y: 0 }
+			const endBR = endShape.props.crop?.bottomRight || { x: 1, y: 1 }
+
+			return {
+				topLeft: { x: lerp(startTL.x, endTL.x, t), y: lerp(startTL.y, endTL.y, t) },
+				bottomRight: { x: lerp(startBR.x, endBR.x, t), y: lerp(startBR.y, endBR.y, t) },
+			}
+		}
+
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			crop: interpolateCrop(startShape, endShape),
+		}
+	}
 }
 
 /**
@@ -390,5 +443,21 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 		transform: `translate(${offsetX}px, ${offsetY}px)`,
 		width: w,
 		height: h,
+	}
+}
+
+function getFlipStyle(shape: TLImageShape, size?: { width: number; height: number }) {
+	const { flipX, flipY } = shape.props
+	if (!flipX && !flipY) return undefined
+
+	const scale = `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`
+	const translate = size
+		? `translate(${flipX ? size.width : 0}px, ${flipY ? size.height : 0}px)`
+		: ''
+
+	return {
+		transform: `${translate} ${scale}`,
+		// in SVG, flipping around the center doesn't work so we use explicit width/height
+		transformOrigin: size ? '0 0' : 'center center',
 	}
 }

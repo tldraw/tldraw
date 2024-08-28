@@ -4,18 +4,25 @@ import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
 	TLEmbedShape,
-	TLEmbedShapePermissions,
+	TLEmbedShapeProps,
 	TLResizeInfo,
 	embedShapeMigrations,
-	embedShapePermissionDefaults,
 	embedShapeProps,
+	lerp,
+	resizeBox,
 	toDomPrecision,
 	useIsEditing,
 	useValue,
 } from '@tldraw/editor'
-import { useMemo } from 'react'
-import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
-import { resizeBox } from '../shared/resizeBox'
+
+import {
+	DEFAULT_EMBED_DEFINITIONS,
+	EmbedDefinition,
+	TLEmbedDefinition,
+	TLEmbedShapePermissions,
+	embedShapePermissionDefaults,
+} from '../../defaultEmbedDefinitions'
+import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
@@ -30,6 +37,23 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
+	private embedDefinitions: readonly EmbedDefinition[] = DEFAULT_EMBED_DEFINITIONS
+
+	setEmbedDefinitions(definitions: TLEmbedDefinition[]) {
+		this.embedDefinitions = definitions
+	}
+
+	getEmbedDefinitions(): readonly TLEmbedDefinition[] {
+		return this.embedDefinitions
+	}
+
+	getEmbedDefinition(url: string): TLEmbedResult {
+		return getEmbedInfo(this.embedDefinitions, url)
+	}
+
+	override getText(shape: TLEmbedShape) {
+		return shape.props.url
+	}
 
 	override hideSelectionBoundsFg(shape: TLEmbedShape) {
 		return !this.canResize(shape)
@@ -38,7 +62,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return true
 	}
 	override canResize(shape: TLEmbedShape) {
-		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
+		return !!this.getEmbedDefinition(shape.props.url)?.definition?.doesResize
 	}
 	override canEditInReadOnly() {
 		return true
@@ -53,13 +77,13 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override isAspectRatioLocked(shape: TLEmbedShape) {
-		const embedInfo = getEmbedInfo(shape.props.url)
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		return embedInfo?.definition.isAspectRatioLocked ?? false
 	}
 
 	override onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>) {
 		const isAspectRatioLocked = this.isAspectRatioLocked(shape)
-		const embedInfo = getEmbedInfo(shape.props.url)
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		let minWidth = embedInfo?.definition.minWidth ?? 200
 		let minHeight = embedInfo?.definition.minHeight ?? 200
 		if (isAspectRatioLocked) {
@@ -81,7 +105,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override component(shape: TLEmbedShape) {
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
-		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])
+
+		const embedInfo = this.getEmbedDefinition(url)
 
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
@@ -159,7 +184,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override indicator(shape: TLEmbedShape) {
-		const embedInfo = useMemo(() => getEmbedInfo(shape.props.url), [shape.props.url])
+		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		return (
 			<rect
 				width={toDomPrecision(shape.props.w)}
@@ -168,6 +193,17 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 				ry={embedInfo?.definition.overrideOutlineRadius ?? 8}
 			/>
 		)
+	}
+	override getInterpolatedProps(
+		startShape: TLEmbedShape,
+		endShape: TLEmbedShape,
+		t: number
+	): TLEmbedShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+		}
 	}
 }
 

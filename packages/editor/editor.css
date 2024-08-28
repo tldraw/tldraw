@@ -583,6 +583,11 @@ input,
 	height: 100%;
 }
 
+.tl-video.tl-video-is-fullscreen {
+	object-fit: contain;
+	background-size: contain;
+}
+
 .tl-video-container,
 .tl-image-container,
 .tl-embed-container {
@@ -615,16 +620,6 @@ input,
 	background-color: var(--color-background);
 	padding: 2px 4px;
 	border-radius: var(--radius-1);
-}
-
-.tl-flip-x {
-	transform: scale(-1, 1);
-}
-.tl-flip-y {
-	transform: scale(1, -1);
-}
-.tl-flip-xy {
-	transform: scale(-1, -1);
 }
 
 /* --------------------- Nametag -------------------- */

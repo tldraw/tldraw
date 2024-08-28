@@ -5,6 +5,7 @@ import React, {
 	ReactNode,
 	memo,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -12,6 +13,7 @@ import React, {
 } from 'react'
 
 import classNames from 'classnames'
+import { TLDeepLinkOptions } from '..'
 import { version } from '../version'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
@@ -34,6 +36,7 @@ import {
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
+import { useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useZoomCss } from './hooks/useZoomCss'
@@ -172,6 +175,11 @@ export interface TldrawEditorBaseProps {
 	 * The license key.
 	 */
 	licenseKey?: string
+
+	/**
+	 * Options for syncing the editor's camera state with the URL.
+	 */
+	deepLinks?: true | TLDeepLinkOptions
 }
 
 /**
@@ -336,6 +344,8 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
+const noAutoFocus = () => document.location.search.includes('tldraw_preserve_focus') // || !document.hasFocus() // breaks in nextjs
+
 function TldrawEditorWithReadyStore({
 	onMount,
 	children,
@@ -350,6 +360,7 @@ function TldrawEditorWithReadyStore({
 	cameraOptions,
 	options,
 	licenseKey,
+	deepLinks: _deepLinks,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -362,28 +373,36 @@ function TldrawEditorWithReadyStore({
 
 	const [editor, setEditor] = useRefState<Editor | null>(null)
 
+	const canvasRef = useRef<HTMLDivElement | null>(null)
+
+	const deepLinks = useShallowObjectIdentity(_deepLinks === true ? {} : _deepLinks)
+
 	// props in this ref can be changed without causing the editor to be recreated.
 	const editorOptionsRef = useRef({
 		// for these, it's because they're only used when the editor first mounts:
-		autoFocus,
+		autoFocus: autoFocus && !noAutoFocus(),
 		inferDarkMode,
 		initialState,
 
 		// for these, it's because we keep them up to date in a separate effect:
 		cameraOptions,
+		deepLinks,
 	})
+
 	useLayoutEffect(() => {
 		editorOptionsRef.current = {
-			autoFocus,
+			autoFocus: autoFocus && !noAutoFocus(),
 			inferDarkMode,
 			initialState,
 			cameraOptions,
+			deepLinks,
 		}
-	}, [autoFocus, inferDarkMode, initialState, cameraOptions])
+	}, [autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks])
 
 	useLayoutEffect(
 		() => {
-			const { autoFocus, inferDarkMode, initialState, cameraOptions } = editorOptionsRef.current
+			const { autoFocus, inferDarkMode, initialState, cameraOptions, deepLinks } =
+				editorOptionsRef.current
 			const editor = new Editor({
 				store,
 				shapeUtils,
@@ -392,12 +411,27 @@ function TldrawEditorWithReadyStore({
 				getContainer: () => container,
 				user,
 				initialState,
+				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
 				inferDarkMode,
 				cameraOptions,
 				options,
 				licenseKey,
 			})
+
+			editor.updateViewportScreenBounds(canvasRef.current ?? container)
+
+			// Use the ref here because we only want to do this once when the editor is created.
+			// We don't want changes to the urlStateSync prop to trigger creating new editors.
+			if (deepLinks) {
+				if (!deepLinks?.getUrl) {
+					// load the state from window.location
+					editor.navigateToDeepLink(deepLinks)
+				} else {
+					// load the state from the provided URL
+					editor.navigateToDeepLink({ ...deepLinks, url: deepLinks.getUrl(editor) })
+				}
+			}
 
 			setEditor(editor)
 
@@ -408,6 +442,13 @@ function TldrawEditorWithReadyStore({
 		// if any of these change, we need to recreate the editor.
 		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor, licenseKey]
 	)
+
+	useLayoutEffect(() => {
+		if (!editor) return
+		if (deepLinks) {
+			return editor.registerDeepLinkListener(deepLinks)
+		}
+	}, [editor, deepLinks])
 
 	// keep the editor up to date with the latest camera options
 	useLayoutEffect(() => {
@@ -432,10 +473,42 @@ function TldrawEditorWithReadyStore({
 		() => editor?.getCrashingError() ?? null
 	)
 
+	// For our examples site, we want autoFocus to be true on the examples site, but not
+	// when embedded in our docs site. If present, the `tldraw_preserve_focus` search param
+	// overrides the `autoFocus` prop and prevents the editor from focusing immediately,
+	// however here we also add some logic to focus the editor when the user clicks
+	// on it and unfocus it when the user clicks away from it.
+	useEffect(
+		function handleFocusOnPointerDownForPreserveFocusMode() {
+			if (!editor) return
+
+			function handleFocusOnPointerDown() {
+				if (!editor) return
+				editor.focus()
+			}
+
+			function handleBlurOnPointerDown() {
+				if (!editor) return
+				editor.blur()
+			}
+
+			if (autoFocus && noAutoFocus()) {
+				editor.getContainer().addEventListener('pointerdown', handleFocusOnPointerDown)
+				document.body.addEventListener('pointerdown', handleBlurOnPointerDown)
+
+				return () => {
+					editor.getContainer()?.removeEventListener('pointerdown', handleFocusOnPointerDown)
+					document.body.removeEventListener('pointerdown', handleBlurOnPointerDown)
+				}
+			}
+		},
+		[editor, autoFocus]
+	)
+
 	const { Canvas } = useEditorComponents()
 
 	if (!editor) {
-		return null
+		return <div className="tl-canvas" ref={canvasRef} />
 	}
 
 	return (

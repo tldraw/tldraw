@@ -293,6 +293,7 @@ export const DEFAULT_TRANSLATION = {
 		"Sorry, we couldn't upload your project at the moment. Please try again or let us know if the problem persists.",
 	'share-menu.creating-project': 'Creating the new project…',
 	'share-menu.copied': 'Copied link',
+	'document-name-menu.copy-link': 'Copy link',
 	'status.offline': 'Offline',
 	'status.online': 'Online',
 	'people-menu.title': 'People',

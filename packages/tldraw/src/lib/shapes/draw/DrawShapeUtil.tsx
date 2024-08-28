@@ -7,6 +7,7 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLDrawShape,
+	TLDrawShapeProps,
 	TLDrawShapeSegment,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
@@ -14,6 +15,7 @@ import {
 	drawShapeMigrations,
 	drawShapeProps,
 	last,
+	lerp,
 	rng,
 	toFixed,
 } from '@tldraw/editor'
@@ -24,6 +26,7 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
+import { interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -171,6 +174,17 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
 		return ((STROKE_SIZES[shape.props.size] * multiplier) / 2) * shape.props.scale
+	}
+	override getInterpolatedProps(
+		startShape: TLDrawShape,
+		endShape: TLDrawShape,
+		t: number
+	): TLDrawShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
+		}
 	}
 }
 

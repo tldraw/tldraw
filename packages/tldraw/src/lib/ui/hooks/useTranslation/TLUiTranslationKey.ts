@@ -290,6 +290,7 @@ export type TLUiTranslationKey =
 	| 'share-menu.upload-failed'
 	| 'share-menu.creating-project'
 	| 'share-menu.copied'
+	| 'document-name-menu.copy-link'
 	| 'status.offline'
 	| 'status.online'
 	| 'people-menu.title'

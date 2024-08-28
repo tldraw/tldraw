@@ -17,6 +17,7 @@ import {
 	Stadium2d,
 	SvgExportContext,
 	TLGeoShape,
+	TLGeoShapeProps,
 	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
@@ -25,6 +26,7 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	lerp,
 	useValue,
 } from '@tldraw/editor'
 
@@ -101,7 +103,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		switch (shape.props.geo) {
 			case 'cloud': {
 				body = new Polygon2d({
-					points: cloudOutline(w, h, shape.id, shape.props.size),
+					points: cloudOutline(w, h, shape.id, shape.props.size, shape.props.scale),
 					isFilled,
 				})
 				break
@@ -506,7 +508,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				return <path d={geometry.getSvgPathData(true)} />
 			}
 			case 'cloud': {
-				return <path d={getCloudPath(w, h, id, size)} />
+				return <path d={getCloudPath(w, h, id, size, shape.props.scale)} />
 			}
 
 			default: {
@@ -829,6 +831,18 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		return
+	}
+	override getInterpolatedProps(
+		startShape: TLGeoShape,
+		endShape: TLGeoShape,
+		t: number
+	): TLGeoShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
+		}
 	}
 }
 

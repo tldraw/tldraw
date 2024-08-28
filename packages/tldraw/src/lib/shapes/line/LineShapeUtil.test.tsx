@@ -3,16 +3,15 @@ import {
 	TLGeoShape,
 	TLLineShape,
 	createShapeId,
+	mockUniqueId,
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { TL } from '../../../test/test-jsx'
 
-jest.mock('nanoid', () => {
-	let i = 0
-	return { nanoid: () => 'id' + i++ }
-})
+let nextId = 0
+mockUniqueId(() => 'id' + nextId++)
 
 let editor: TestEditor
 const id = createShapeId('line1')

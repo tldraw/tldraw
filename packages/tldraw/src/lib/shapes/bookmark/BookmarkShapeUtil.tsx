@@ -7,10 +7,12 @@ import {
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
+	TLBookmarkShapeProps,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
 	debounce,
 	getHashForString,
+	lerp,
 	stopEventPropagation,
 	toDomPrecision,
 } from '@tldraw/editor'
@@ -37,6 +39,10 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	override hideSelectionBoundsFg() {
 		return true
+	}
+
+	override getText(shape: TLBookmarkShape) {
+		return shape.props.url
 	}
 
 	override getDefaultProps(): TLBookmarkShape['props'] {
@@ -157,6 +163,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 		if (prev.props.assetId !== shape.props.assetId) {
 			return getBookmarkSize(this.editor, shape)
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLBookmarkShape,
+		endShape: TLBookmarkShape,
+		t: number
+	): TLBookmarkShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
 }

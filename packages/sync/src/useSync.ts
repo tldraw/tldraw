@@ -109,8 +109,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		)
 
 		const socket = new ClientWebSocketAdapter(async () => {
+			const uriString = typeof uri === 'string' ? uri : await uri()
+
 			// set sessionId as a query param on the uri
-			const withParams = new URL(uri)
+			const withParams = new URL(uriString)
 			if (withParams.searchParams.has('sessionId')) {
 				throw new Error(
 					'useSync. "sessionId" is a reserved query param name. Please use a different name'
@@ -139,14 +141,18 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		let didCancel = false
 
+		const collaborationStatusSignal = computed('collaboration status', () =>
+			socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
+		)
+
 		const store = createTLStore({
 			id: storeId,
 			schema,
 			assets,
 			onMount,
-			multiplayerStatus: computed('multiplayer status', () =>
-				socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-			),
+			collaboration: {
+				status: collaborationStatusSignal,
+			},
 		})
 
 		const client = new TLSyncClient({
@@ -232,9 +238,14 @@ export interface UseSyncOptions {
 	 *
 	 *   e.g. `wss://server.example.com/my-room` or `ws://localhost:5858/my-room`.
 	 *
-	 * Note that the protocol can also be `https` or `http` and it will upgrade to a websocket connection.
+	 * Note that the protocol can also be `https` or `http` and it will upgrade to a websocket
+	 * connection.
+	 *
+	 * Optionally, you can pass a function which will be called each time a connection is
+	 * established to get the URI. This is useful if you need to include e.g. a short-lived session
+	 * token for authentication.
 	 */
-	uri: string
+	uri: string | (() => string | Promise<string>)
 	/**
 	 * A signal that contains the user information needed for multiplayer features.
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
