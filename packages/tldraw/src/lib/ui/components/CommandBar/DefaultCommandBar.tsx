@@ -118,7 +118,7 @@ function CommandBarItems({
 }: {
 	actions: TLUiActionItem<string, string>[]
 	selected: number
-	onSelect: (index: number) => void
+	onSelect(index: number): void
 }) {
 	return (
 		<div>
@@ -146,7 +146,7 @@ function CommandBarItem({
 	action: TLUiActionItem<string, string>
 	index: number
 	selected: number
-	onSelect: (index: number) => void
+	onSelect(index: number): void
 }) {
 	const msg = useTranslation()
 	const { label, kbd } = action
