@@ -70,7 +70,6 @@ export function DefaultCommmandBar() {
 					e.preventDefault()
 					setSelected(getPrevious(selected, numItems))
 					break
-
 				case 'Enter': {
 					onSelect(selected)
 					break
@@ -121,7 +120,7 @@ function CommandBarItems({
 	onSelect(index: number): void
 }) {
 	return (
-		<div>
+		<>
 			{actions.slice(0, MAX_ITEMS).map((action, index) => {
 				return (
 					<CommandBarItem
@@ -133,7 +132,7 @@ function CommandBarItems({
 					/>
 				)
 			})}
-		</div>
+		</>
 	)
 }
 
