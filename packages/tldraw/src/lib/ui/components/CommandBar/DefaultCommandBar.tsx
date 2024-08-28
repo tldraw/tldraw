@@ -131,7 +131,7 @@ function CommandBarItem({
 	const { label, kbd } = action
 	const enabled = action.enabled?.()
 
-	const labelToUse = unwrapLabel(label, 'default')
+	const labelToUse = unwrapLabel(label, 'command-bar')
 
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 

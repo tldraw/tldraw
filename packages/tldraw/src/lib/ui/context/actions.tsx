@@ -299,6 +299,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.export-all-as-svg',
 					menu: 'action.export-all-as-svg.short',
 					['context-menu']: 'action.export-all-as-svg.short',
+					'command-bar': 'action.export-all-as-svg.long',
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -322,6 +323,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.export-all-as-png',
 					menu: 'action.export-all-as-png.short',
 					['context-menu']: 'action.export-all-as-png.short',
+					'command-bar': 'action.export-all-as-png.long',
 				},
 				readonlyOk: true,
 				onSelect(source) {
@@ -340,6 +342,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					default: 'action.export-all-as-json',
 					menu: 'action.export-all-as-json.short',
 					['context-menu']: 'action.export-all-as-json.short',
+					'command-bar': 'action.export-all-as-json.long',
 				},
 				readonlyOk: true,
 				onSelect(source) {

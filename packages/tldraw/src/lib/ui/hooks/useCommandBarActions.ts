@@ -12,7 +12,7 @@ export function useCommandBarActions(search: string) {
 			if (search === '') return false
 			// If we didn't want to show the disabled actions
 			// if (!action.enabled?.()) return false
-			const unwrapped = unwrapLabel(action.label, 'default')
+			const unwrapped = unwrapLabel(action.label, 'command-bar')
 			const value = msg(unwrapped as TLUiTranslationKey)
 			if (!value) return false
 			// Alternative to the search check above we can show all actions if we haven't started typing yet
