@@ -8,12 +8,15 @@ export function useCommandBarActions(search: string) {
 	const msg = useTranslation()
 	return Object.values(actions)
 		.filter((action) => {
+			// Don't show actions until we start searching
+			if (search === '') return false
 			// If we didn't want to show the disabled actions
 			// if (!action.enabled?.()) return false
 			const unwrapped = unwrapLabel(action.label, 'default')
 			const value = msg(unwrapped as TLUiTranslationKey)
 			if (!value) return false
-			if (search === '') return true
+			// Alternative to the search check above we can show all actions if we haven't started typing yet
+			// if (search === '') return true
 			return value.toLowerCase().includes(search.toLowerCase())
 		})
 		.sort((a, b) => {

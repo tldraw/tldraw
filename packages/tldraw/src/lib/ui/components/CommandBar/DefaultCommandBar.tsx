@@ -10,6 +10,16 @@ import { TldrawUiButtonLabel } from '../primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 
 export const COMMAND_BAR_ID = 'command bar'
+const MAX_ITEMS = 6
+
+function getNext(current: number, max: number) {
+	const next = current - 1
+	return next < 0 ? max - 1 : next
+}
+
+function getPrevious(current: number, max: number) {
+	return (current + 1) % max
+}
 
 export function DefaultCommmandBar() {
 	const editor = useEditor()
@@ -18,47 +28,48 @@ export function DefaultCommmandBar() {
 	const [selected, setSelected] = useState(-1)
 	const [search, setSearch] = useState('')
 	const actions = useCommandBarActions(search)
+	const numItems = Math.min(actions.length, MAX_ITEMS)
+
+	const close = useCallback(() => {
+		setSelected(-1)
+		setSearch('')
+		editor.deleteOpenMenu(COMMAND_BAR_ID)
+	}, [editor])
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
 			switch (e.key) {
 				case 'Escape':
-					editor.deleteOpenMenu(COMMAND_BAR_ID)
+					close()
 					break
 				case 'Tab':
 					if (e.shiftKey) {
 						e.preventDefault()
-						const next = selected - 1
-						setSelected(next < 0 ? actions.length - 1 : next)
+						setSelected(getNext(selected, numItems))
 					} else {
 						e.preventDefault()
-						setSelected((selected + 1) % actions.length)
+						setSelected(getPrevious(selected, numItems))
 					}
 					break
 				case 'ArrowUp':
-					{
-						e.preventDefault()
-						const next = selected - 1
-						setSelected(next < 0 ? actions.length - 1 : next)
-					}
+					e.preventDefault()
+					setSelected(getNext(selected, numItems))
 					break
 				case 'ArrowDown':
 					e.preventDefault()
-					setSelected((selected + 1) % actions.length)
+					setSelected(getPrevious(selected, numItems))
 					break
 
 				case 'Enter': {
 					const action = actions[selected]
 					if (!action || !action.enabled?.()) return
-					setSearch('')
-					setSelected(-1)
-					editor.deleteOpenMenu(COMMAND_BAR_ID)
+					close()
 					action.onSelect('command-bar')
 					break
 				}
 			}
 		},
-		[editor, actions, selected]
+		[close, selected, numItems, actions]
 	)
 
 	if (!isOpen) return null
@@ -99,7 +110,7 @@ function CommandBarItems({
 }) {
 	return (
 		<div>
-			{actions.slice(0, 6).map((action, index) => {
+			{actions.slice(0, MAX_ITEMS).map((action, index) => {
 				return <CommandBarItem key={action.id} action={action} index={index} selected={selected} />
 			})}
 		</div>
