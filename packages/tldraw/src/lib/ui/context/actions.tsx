@@ -1638,7 +1638,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'move-to-new-page',
-				label: 'context.pages.new-page',
+				label: {
+					default: 'context.pages.new-page',
+					'command-bar': 'command-bar.move-to-new-page',
+				},
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
 					const ids = editor.getSelectedShapeIds()
