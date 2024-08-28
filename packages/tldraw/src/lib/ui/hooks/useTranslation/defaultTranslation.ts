@@ -142,6 +142,7 @@ export const DEFAULT_TRANSLATION = {
 	'color-style.red': 'Red',
 	'color-style.violet': 'Violet',
 	'color-style.yellow': 'Yellow',
+	'command-bar.placeholder': 'Search...',
 	'fill-style.none': 'None',
 	'document.default-name': 'Untitled',
 	'fill-style.semi': 'Semi',

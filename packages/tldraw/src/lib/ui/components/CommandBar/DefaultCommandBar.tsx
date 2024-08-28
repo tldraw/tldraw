@@ -13,6 +13,7 @@ export const COMMAND_BAR_ID = 'command bar'
 
 export function DefaultCommmandBar() {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const [isOpen] = useMenuIsOpen(COMMAND_BAR_ID)
 	const [selected, setSelected] = useState(-1)
 	const [search, setSearch] = useState('')
@@ -71,7 +72,7 @@ export function DefaultCommmandBar() {
 							autoFocus
 							type="text"
 							value={search}
-							placeholder="Search..."
+							placeholder={msg('command-bar.placeholder')}
 							className="tlui-command-bar__input"
 							onChange={(e) => {
 								const value = e.target.value

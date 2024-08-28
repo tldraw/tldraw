@@ -141,6 +141,7 @@ export type TLUiTranslationKey =
 	| 'color-style.red'
 	| 'color-style.violet'
 	| 'color-style.yellow'
+	| 'command-bar.placeholder'
 	| 'fill-style.none'
 	| 'document.default-name'
 	| 'fill-style.semi'
