@@ -1368,6 +1368,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.24.5, @babel/runtime@npm:^7.25.0":
+  version: 7.25.4
+  resolution: "@babel/runtime@npm:7.25.4"
+  dependencies:
+    regenerator-runtime: "npm:^0.14.0"
+  checksum: 70d2a420c24a3289ea6c4addaf3a1c4186bc3d001c92445faa3cd7601d7d2fbdb32c63b3a26b9771e20ff2f511fa76b726bf256f823cdb95bc37b8eadbd02f70
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.22.15, @babel/template@npm:^7.23.9, @babel/template@npm:^7.3.3":
   version: 7.23.9
   resolution: "@babel/template@npm:7.23.9"
@@ -16753,6 +16762,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"memoize-resolver@npm:~1.0.0":
+  version: 1.0.0
+  resolution: "memoize-resolver@npm:1.0.0"
+  checksum: 9bb78c55c6c2f96aad82e653c509b55bfbb293801d8214694ad1bf898fdfc5506b2597d50ea18b0b9244657bf4fd44eb89473fdbe9919bb5baeca58f598af72f
+  languageName: node
+  linkType: hard
+
 "meow@npm:^13.0.0":
   version: 13.2.0
   resolution: "meow@npm:13.2.0"
@@ -20814,6 +20830,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rxjs-etc@npm:^10.6.2":
+  version: 10.6.2
+  resolution: "rxjs-etc@npm:10.6.2"
+  dependencies:
+    memoize-resolver: "npm:~1.0.0"
+  peerDependencies:
+    rxjs: ^6.0.0 || ^7.0.0
+  checksum: f572cf91c5fb198953bcce7ea0bf8044f9aae52d0da76cfb6c415a7b4769b94382a063bd31087383d8185dd788f951ae06f6ac7e324ca88e1b9f8c9c05e047a5
+  languageName: node
+  linkType: hard
+
+"rxjs-interop@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "rxjs-interop@npm:2.0.0"
+  checksum: ca4fe17f3f2b64802ac838a8b6aad3058c40771228403ee3764a5846a7433d5c1622e57277aa4f58fcde6f01f98d396e78418b8323a4a6bbc1da8c7732e657ca
+  languageName: node
+  linkType: hard
+
 "rxjs@npm:^6.5.3":
   version: 6.6.7
   resolution: "rxjs@npm:6.6.7"
@@ -21845,6 +21879,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"subscribable-things@npm:^2.1.36, subscribable-things@npm:^2.1.39":
+  version: 2.1.39
+  resolution: "subscribable-things@npm:2.1.39"
+  dependencies:
+    "@babel/runtime": "npm:^7.25.0"
+    rxjs-interop: "npm:^2.0.0"
+    tslib: "npm:^2.6.3"
+  checksum: b31f14742881ee6dccc7e365bf95ee291cf91af1d7d05c42d2b6a4a4a2f02a7b957357d8ab93d8ddafce26e0128fe41ddc1197f8509237dd8cff5ad14af469aa
+  languageName: node
+  linkType: hard
+
 "sucrase@npm:^3.32.0":
   version: 3.35.0
   resolution: "sucrase@npm:3.35.0"
@@ -22194,6 +22239,42 @@ __metadata:
   languageName: node
   linkType: hard
 
+"timing-object@npm:^3.1.78, timing-object@npm:^3.1.80":
+  version: 3.1.80
+  resolution: "timing-object@npm:3.1.80"
+  dependencies:
+    "@babel/runtime": "npm:^7.25.0"
+    tslib: "npm:^2.6.3"
+  checksum: 9ffab477c121130c7b102a91e389b616e0ffa35a02aed1a999440411e7d89de8f648f74a7955674b5bde8f75c6667261194677c9e9459605354bc3bfa361228c
+  languageName: node
+  linkType: hard
+
+"timing-provider@npm:^7.1.18":
+  version: 7.1.18
+  resolution: "timing-provider@npm:7.1.18"
+  dependencies:
+    "@babel/runtime": "npm:^7.25.0"
+    rxjs: "npm:^7.8.1"
+    rxjs-etc: "npm:^10.6.2"
+    subscribable-things: "npm:^2.1.39"
+    timing-object: "npm:^3.1.80"
+    tslib: "npm:^2.6.3"
+  checksum: d800d19365c124267ada32fcf59b21f8992f5934ff34ab1470c2e037f1900573514ff1fa35a31ab29e799f581dcd266b8ed9519789b69ad2a7fc52ae38390231
+  languageName: node
+  linkType: hard
+
+"timingsrc@npm:^1.4.19":
+  version: 1.4.19
+  resolution: "timingsrc@npm:1.4.19"
+  dependencies:
+    "@babel/runtime": "npm:^7.24.5"
+    subscribable-things: "npm:^2.1.36"
+    timing-object: "npm:^3.1.78"
+    tslib: "npm:^2.6.2"
+  checksum: a5b0e7503b72da24be375caa6a0a1b762bf8d361607dd525cc012bb6e024107bcf62add71bea6a055f7c113d44dbd31bd98bce7a727b811f8aa95902cb2bc22e
+  languageName: node
+  linkType: hard
+
 "tinycolor2@npm:^1.4.1":
   version: 1.6.0
   resolution: "tinycolor2@npm:1.6.0"
@@ -22264,6 +22345,9 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     lz-string: "npm:^1.4.4"
     resize-observer-polyfill: "npm:^1.5.1"
+    timing-object: "npm:^3.1.80"
+    timing-provider: "npm:^7.1.18"
+    timingsrc: "npm:^1.4.19"
   peerDependencies:
     react: ^18
     react-dom: ^18
@@ -22641,6 +22725,13 @@ __metadata:
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: bd26c22d36736513980091a1e356378e8b662ded04204453d353a7f34a4c21ed0afc59b5f90719d4ba756e581a162ecbf93118dc9c6be5acf70aa309188166ca
+  languageName: node
+  linkType: hard
+
+"tslib@npm:^2.6.3":
+  version: 2.7.0
+  resolution: "tslib@npm:2.7.0"
+  checksum: 9a5b47ddac65874fa011c20ff76db69f97cf90c78cff5934799ab8894a5342db2d17b4e7613a087046bc1d133d21547ddff87ac558abeec31ffa929c88b7fce6
   languageName: node
   linkType: hard
 

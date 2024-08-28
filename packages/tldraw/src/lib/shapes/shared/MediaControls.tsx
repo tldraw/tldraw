@@ -1,9 +1,12 @@
 import { TLAudioShape, TLVideoShape } from '@tldraw/editor'
-import { Children, ReactElement, cloneElement, useCallback, useRef, useState } from 'react'
+import { Children, ReactElement, cloneElement, useCallback, useEffect, useRef, useState } from 'react'
 import { TldrawUiButton } from '../../ui/components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../../ui/components/primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiSlider } from '../../ui/components/primitives/TldrawUiSlider'
 import { useTranslation } from '../../ui/hooks/useTranslation/useTranslation'
+import { ITimingObject, TimingObject } from 'timing-object';
+import { setTimingsrc } from 'timingsrc';
+import { TimingProvider } from './TimingProvider'
 
 type MediaElement = HTMLAudioElement | HTMLVideoElement
 
@@ -19,14 +22,40 @@ export function MediaControls({
 	isMutedInitially?: boolean
 }) {
 	const [isPlaying, setIsPlaying] = useState(false)
+	const [isTimingObjectReady, setIsTimingObjectReady] = useState(false)
 	const [isMuted, setIsMuted] = useState(!!isMutedInitially)
 	const [newSeekTime, setNewSeekTime] = useState<number | null>(null)
 	const [currentTime, setCurrentTime] = useState(0)
 	const msg = useTranslation()
 	const rMedia = useRef<MediaElement>(null!)
+	const timingObject = useRef<ITimingObject>();
 
-	const handleOnPlay = () => setIsPlaying(true)
-	const handleOnPause = () => setIsPlaying(false)
+	useEffect(() => {
+		if (!timingObject.current) {
+			timingObject.current = new TimingObject(new TimingProvider('ws://localhost:2276'))
+		}
+	
+		if (!rMedia.current || !timingObject.current) return
+
+		timingObject.current.addEventListener('readystatechange', () => {
+			if (!timingObject.current) return
+
+			console.log(timingObject.current.readyState)
+			if (timingObject.current.readyState === 'open') {
+				setTimingsrc(rMedia.current, timingObject.current);
+				setIsTimingObjectReady(true)
+			}
+		})
+	}, [])
+
+	const handleOnPlay = () => {
+		setIsPlaying(true)
+		isTimingObjectReady && timingObject.current?.update({ velocity: 1 });
+	}
+	const handleOnPause = () => {
+		setIsPlaying(false)
+		isTimingObjectReady && timingObject.current?.update({ velocity: 0 });
+	}
 	const handleSetCurrentTime = (e: React.SyntheticEvent<MediaElement>) => {
 		const media = e.currentTarget
 		if (!media) return
