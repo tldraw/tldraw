@@ -1,7 +1,7 @@
 import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { nanoid } from 'nanoid'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
@@ -19,7 +19,7 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 		return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })
 	}
 
-	const roomId = `v2_c_${nanoid()}`
+	const roomId = `v2_c_${uniqueId()}`
 
 	const persistedRoomSnapshot = {
 		parent_slug: data.parent_slug,

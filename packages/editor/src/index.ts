@@ -396,7 +396,6 @@ export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'
-export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
 
 /** @public */

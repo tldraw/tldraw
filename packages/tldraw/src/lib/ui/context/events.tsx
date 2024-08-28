@@ -37,6 +37,7 @@ export interface TLUiEventMap {
 	'rename-page': null
 	'move-to-page': null
 	'move-to-new-page': null
+	'rename-document': null
 	'group-shapes': null
 	'ungroup-shapes': null
 	'remove-frame': null
@@ -108,6 +109,8 @@ export interface TLUiEventMap {
 	'zoom-tool': null
 	'unlock-all': null
 	'flatten-to-image': null
+	'open-url': { url: string }
+	'copy-link': null
 }
 
 /** @public */
