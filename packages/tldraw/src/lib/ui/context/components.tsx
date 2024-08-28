@@ -4,6 +4,7 @@ import {
 	DefaultActionsMenu,
 	TLUiActionsMenuProps,
 } from '../components/ActionsMenu/DefaultActionsMenu'
+import { DefaultCommmandBar } from '../components/CommandBar/DefaultCommandBar'
 import {
 	DefaultContextMenu,
 	TLUiContextMenuProps,
@@ -57,6 +58,7 @@ export interface TLUiComponents {
 	TopPanel?: ComponentType | null
 	SharePanel?: ComponentType | null
 	CursorChatBubble?: ComponentType | null
+	CommandBar?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -98,6 +100,7 @@ export function TldrawUiComponentsProvider({
 					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
 					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
 					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
+					CommandBar: DefaultCommmandBar,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]

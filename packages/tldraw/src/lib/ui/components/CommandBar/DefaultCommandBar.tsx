@@ -11,7 +11,7 @@ import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 
 export const COMMAND_BAR_ID = 'command bar'
 
-export function CommmandBar() {
+export function DefaultCommmandBar() {
 	const editor = useEditor()
 	const [isOpen] = useMenuIsOpen(COMMAND_BAR_ID)
 	const [selected, setSelected] = useState(-1)

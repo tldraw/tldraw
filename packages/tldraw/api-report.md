@@ -2332,6 +2332,8 @@ export interface TLUiComponents {
     // (undocumented)
     ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null;
     // (undocumented)
+    CommandBar?: ComponentType | null;
+    // (undocumented)
     ContextMenu?: ComponentType<TLUiContextMenuProps> | null;
     // (undocumented)
     CursorChatBubble?: ComponentType | null;
