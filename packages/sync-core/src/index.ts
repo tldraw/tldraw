@@ -1,7 +1,9 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export { RoomSessionState, type RoomSession } from './lib/RoomSession'
+export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
-export { TLSocketRoom, type TLSyncLog } from './lib/TLSocketRoom'
+export { TLSocketRoom, type OmitVoid, type TLSyncLog } from './lib/TLSocketRoom'
 export {
 	TLCloseEventCode,
 	TLSyncClient,
@@ -37,3 +39,9 @@ export {
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

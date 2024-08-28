@@ -1,4 +1,3 @@
-import { EmbedDefinition } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec'
 import { TLContent } from './clipboard-types'
 
@@ -24,7 +23,7 @@ export type TLExternalContentSource =
 	  }
 
 /** @public */
-export type TLExternalContent = {
+export type TLExternalContent<EmbedDefinition> = {
 	sources?: TLExternalContentSource[]
 	point?: VecLike
 } & (

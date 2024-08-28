@@ -15,6 +15,7 @@ import {
 	useBreakpoint,
 	useEditor,
 	useTranslation,
+	useUiEvents,
 } from 'tldraw'
 
 interface NameState {
@@ -55,13 +56,14 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	isReadonly,
 }: {
 	state: NameState
-	setState: (update: SetStateAction<NameState>) => void
+	setState(update: SetStateAction<NameState>): void
 	isReadonly: boolean
 }) {
 	const inputRef = useRef<HTMLInputElement>(null)
 	const editor = useEditor()
 	const documentSettings = editor.getDocumentSettings()
 	const msg = useTranslation()
+	const trackEvent = useUiEvents()
 	const defaultDocumentName = msg('document.default-name')
 
 	useEffect(() => {
@@ -82,13 +84,14 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 				return
 			}
 
+			trackEvent('rename-document', { source: 'document-name' })
 			editor.updateDocumentSettings({ name: trimmed })
 		}
 
 		if (!state.isEditing) {
 			save()
 		}
-	}, [documentSettings.name, editor, state.isEditing, state.name, setState])
+	}, [documentSettings.name, editor, state.isEditing, state.name, setState, trackEvent])
 
 	useEffect(() => {
 		if (documentSettings.name) {

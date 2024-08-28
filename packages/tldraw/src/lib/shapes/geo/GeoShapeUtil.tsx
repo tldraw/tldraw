@@ -17,8 +17,8 @@ import {
 	Stadium2d,
 	SvgExportContext,
 	TLGeoShape,
-	TLOnEditEndHandler,
-	TLOnResizeHandler,
+	TLGeoShapeProps,
+	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	exhaustiveSwitchError,
@@ -26,6 +26,8 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	lerp,
+	useValue,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -64,7 +66,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
 
-	override canEdit = () => true
+	override canEdit() {
+		return true
+	}
 
 	override getDefaultProps(): TLGeoShape['props'] {
 		return {
@@ -99,7 +103,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		switch (shape.props.geo) {
 			case 'cloud': {
 				body = new Polygon2d({
-					points: cloudOutline(w, h, shape.id, shape.props.size),
+					points: cloudOutline(w, h, shape.id, shape.props.size, shape.props.scale),
 					isFilled,
 				})
 				break
@@ -403,7 +407,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLGeoShape> = (shape) => {
+	override getText(shape: TLGeoShape) {
+		return shape.props.text
+	}
+
+	override onEditEnd(shape: TLGeoShape) {
 		const {
 			id,
 			type,
@@ -426,15 +434,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 		const { fill, font, align, verticalAlign, size, text } = props
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
-		const isEditingAnything = this.editor.getEditingShapeId() !== null
+		const { editor } = this
+		const isSelected = shape.id === editor.getOnlySelectedShapeId()
+		const isEditingAnything = editor.getEditingShapeId() !== null
 		const showHtmlContainer = isEditingAnything || shape.props.text
+		const isForceSolid = useValue(
+			'force solid',
+			() => {
+				return editor.getZoomLevel() < 0.2
+			},
+			[editor]
+		)
 
 		return (
 			<>
 				<SVGContainer id={id}>
-					<GeoShapeBody shape={shape} shouldScale={true} />
+					<GeoShapeBody shape={shape} shouldScale={true} forceSolid={isForceSolid} />
 				</SVGContainer>
 				{showHtmlContainer && (
 					<HTMLContainer
@@ -492,7 +508,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				return <path d={geometry.getSvgPathData(true)} />
 			}
 			case 'cloud': {
-				return <path d={getCloudPath(w, h, id, size)} />
+				return <path d={getCloudPath(w, h, id, size, shape.props.scale)} />
 			}
 
 			default: {
@@ -562,7 +578,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		return (
 			<>
-				<GeoShapeBody shouldScale={false} shape={newShape} />
+				<GeoShapeBody shouldScale={false} shape={newShape} forceSolid={false} />
 				{textEl}
 			</>
 		)
@@ -572,10 +588,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return [getFillDefForCanvas()]
 	}
 
-	override onResize: TLOnResizeHandler<TLGeoShape> = (
-		shape,
-		{ handle, newPoint, scaleX, scaleY, initialShape }
-	) => {
+	override onResize(
+		shape: TLGeoShape,
+		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
+	) {
 		const unscaledInitialW = initialShape.props.w / initialShape.props.scale
 		const unscaledInitialH = initialShape.props.h / initialShape.props.scale
 		const unscaledGrowY = initialShape.props.growY / initialShape.props.scale
@@ -651,7 +667,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override onBeforeCreate = (shape: TLGeoShape) => {
+	override onBeforeCreate(shape: TLGeoShape) {
 		if (!shape.props.text) {
 			if (shape.props.growY) {
 				// No text / some growY, set growY to 0
@@ -693,7 +709,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override onBeforeUpdate = (prev: TLGeoShape, next: TLGeoShape) => {
+	override onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape) {
 		const prevText = prev.props.text
 		const nextText = next.props.text
 
@@ -790,7 +806,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// otherwise, no update needed
 	}
 
-	override onDoubleClick = (shape: TLGeoShape) => {
+	override onDoubleClick(shape: TLGeoShape) {
 		// Little easter egg: double-clicking a rectangle / checkbox while
 		// holding alt will toggle between check-box and rectangle
 		if (this.editor.inputs.altKey) {
@@ -815,6 +831,18 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		return
+	}
+	override getInterpolatedProps(
+		startShape: TLGeoShape,
+		endShape: TLGeoShape,
+		t: number
+	): TLGeoShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
+		}
 	}
 }
 

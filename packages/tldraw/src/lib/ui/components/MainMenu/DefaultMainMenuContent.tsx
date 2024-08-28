@@ -1,5 +1,4 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import { useActions } from '../../context/actions'
 import { useCanRedo, useCanUndo } from '../../hooks/menu-hooks'
 import { ColorSchemeMenu } from '../ColorSchemeMenu'
 import { KeyboardShortcutsMenuItem } from '../HelpMenu/DefaultHelpMenuContent'
@@ -34,8 +33,8 @@ import {
 	ZoomToFitMenuItem,
 	ZoomToSelectionMenuItem,
 } from '../menu-items'
+import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from '../primitives/menus/TldrawUiMenuGroup'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
 import { TldrawUiMenuSubmenu } from '../primitives/menus/TldrawUiMenuSubmenu'
 
 /** @public @react */
@@ -47,21 +46,18 @@ export function DefaultMainMenuContent() {
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
 			<PreferencesGroup />
-			<HelpGroup />
 		</>
 	)
 }
 
 /** @public @react */
 export function ExportFileContentSubMenu() {
-	const actions = useActions()
-
 	return (
 		<TldrawUiMenuSubmenu id="export-all-as" label="context-menu.export-all-as" size="small">
 			<TldrawUiMenuGroup id="export-all-as-group">
-				<TldrawUiMenuItem {...actions['export-all-as-svg']} />
-				<TldrawUiMenuItem {...actions['export-all-as-png']} />
-				<TldrawUiMenuItem {...actions['export-all-as-json']} />
+				<TldrawUiMenuActionItem actionId="export-all-as-svg" />
+				<TldrawUiMenuActionItem actionId="export-all-as-png" />
+				<TldrawUiMenuActionItem actionId="export-all-as-json" />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="export-all-as-bg">
 				<ToggleTransparentBgMenuItem />
@@ -123,25 +119,23 @@ export function LockGroup() {
 
 /** @public @react */
 export function UndoRedoGroup() {
-	const actions = useActions()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
 	return (
 		<TldrawUiMenuGroup id="undo-redo">
-			<TldrawUiMenuItem {...actions['undo']} disabled={!canUndo} />
-			<TldrawUiMenuItem {...actions['redo']} disabled={!canRedo} />
+			<TldrawUiMenuActionItem actionId="undo" disabled={!canUndo} />
+			<TldrawUiMenuActionItem actionId="redo" disabled={!canRedo} />
 		</TldrawUiMenuGroup>
 	)
 }
 
 /** @public @react */
 export function ViewSubmenu() {
-	const actions = useActions()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
-				<TldrawUiMenuItem {...actions['zoom-in']} />
-				<TldrawUiMenuItem {...actions['zoom-out']} />
+				<TldrawUiMenuActionItem actionId="zoom-in" />
+				<TldrawUiMenuActionItem actionId="zoom-out" />
 				<ZoomTo100MenuItem />
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
@@ -152,37 +146,10 @@ export function ViewSubmenu() {
 
 /** @public @react */
 export function ExtrasGroup() {
-	const actions = useActions()
 	return (
 		<TldrawUiMenuGroup id="extras">
-			<TldrawUiMenuItem {...actions['insert-embed']} />
-			<TldrawUiMenuItem {...actions['insert-media']} />
-		</TldrawUiMenuGroup>
-	)
-}
-
-/** @public @react */
-export function HelpGroup() {
-	function openUrl(url: string) {
-		window.open(url, '_blank')
-	}
-
-	return (
-		<TldrawUiMenuGroup id="help">
-			<TldrawUiMenuSubmenu id="help" label="menu.help">
-				<TldrawUiMenuGroup id="help-actions">
-					<KeyboardShortcutsMenuItem />
-					<TldrawUiMenuItem
-						id="about"
-						label="help-menu.docs"
-						icon="external-link"
-						readonlyOk
-						onSelect={() => {
-							openUrl('https://tldraw.dev')
-						}}
-					/>
-				</TldrawUiMenuGroup>
-			</TldrawUiMenuSubmenu>
+			<TldrawUiMenuActionItem actionId="insert-embed" />
+			<TldrawUiMenuActionItem actionId="insert-media" />
 		</TldrawUiMenuGroup>
 	)
 }
@@ -209,10 +176,9 @@ export function PreferencesGroup() {
 				<TldrawUiMenuGroup id="color-scheme">
 					<ColorSchemeMenu />
 				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="language">
-					<LanguageMenu />
-				</TldrawUiMenuGroup>
 			</TldrawUiMenuSubmenu>
+			<LanguageMenu />
+			<KeyboardShortcutsMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }

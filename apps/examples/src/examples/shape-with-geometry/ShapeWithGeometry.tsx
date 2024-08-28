@@ -6,7 +6,7 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseShape,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	Tldraw,
 	Vec,
 	resizeBox,
@@ -25,7 +25,9 @@ class HouseShapeUtil extends ShapeUtil<HouseShape> {
 	static override type = 'house' as const
 	static override props = houseShapeProps
 
-	override canResize = () => true
+	override canResize() {
+		return true
+	}
 	override getDefaultProps() {
 		return {
 			w: 100,
@@ -69,7 +71,7 @@ class HouseShapeUtil extends ShapeUtil<HouseShape> {
 		const doorPathData = 'M' + doorVertices[0] + 'L' + doorVertices.slice(1) + 'Z'
 		return <path d={housePathData + doorPathData} />
 	}
-	override onResize: TLOnResizeHandler<HouseShape> = (shape, info) => {
+	override onResize(shape: HouseShape, info: TLResizeInfo<HouseShape>) {
 		const resized = resizeBox(shape, info)
 		const next = structuredClone(info.initialShape)
 		next.x = resized.x

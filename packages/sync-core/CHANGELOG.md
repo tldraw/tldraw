@@ -1,3 +1,49 @@
+# v2.4.0 (Mon Jul 22 2024)
+
+### Release Notes
+
+#### Finesse sync api ([#4212](https://github.com/tldraw/tldraw/pull/4212))
+
+- Fixed a bug with…
+
+#### Example node + bun server ([#4173](https://github.com/tldraw/tldraw/pull/4173))
+
+- Fixed a bug with…
+
+#### [bemo] add analytics to bemo worker ([#4146](https://github.com/tldraw/tldraw/pull/4146))
+
+- Fixed a bug with…
+
+#### [bemo] allow custom shapes ([#4144](https://github.com/tldraw/tldraw/pull/4144))
+
+- Fixed a bug with…
+
+---
+
+#### 🐛 Bug Fix
+
+- Example node + bun server [#4173](https://github.com/tldraw/tldraw/pull/4173) ([@ds300](https://github.com/ds300))
+- publish bemo canaries [#4175](https://github.com/tldraw/tldraw/pull/4175) ([@SomeHats](https://github.com/SomeHats))
+- [5/5] Move bemo from dotcom to examples [#4135](https://github.com/tldraw/tldraw/pull/4135) ([@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300))
+- [4/5] sync -> sync-core, sync-react -> sync [#4123](https://github.com/tldraw/tldraw/pull/4123) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🎉 New Features
+
+- [bemo] add analytics to bemo worker [#4146](https://github.com/tldraw/tldraw/pull/4146) ([@ds300](https://github.com/ds300))
+- [bemo] allow custom shapes [#4144](https://github.com/tldraw/tldraw/pull/4144) ([@ds300](https://github.com/ds300))
+
+#### 🛠️ API Changes
+
+- Rename APIs for new sync demo [#4248](https://github.com/tldraw/tldraw/pull/4248) ([@SomeHats](https://github.com/SomeHats))
+- Finesse sync api [#4212](https://github.com/tldraw/tldraw/pull/4212) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # @tldraw/tlsync
 
 ## 2.0.0-alpha.11

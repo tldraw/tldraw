@@ -1,5 +1,6 @@
 import { TLPageId, useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
+import { useUiEvents } from '../../context/events'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
 
 /** @public */
@@ -16,18 +17,20 @@ export const PageItemInput = function PageItemInput({
 	isCurrentPage,
 }: PageItemInputProps) {
 	const editor = useEditor()
+	const trackEvent = useUiEvents()
 
 	const rInput = useRef<HTMLInputElement | null>(null)
 
 	const handleFocus = useCallback(() => {
-		editor.mark('rename page')
+		editor.markHistoryStoppingPoint('rename page')
 	}, [editor])
 
 	const handleChange = useCallback(
 		(value: string) => {
 			editor.renamePage(id, value || 'New Page')
+			trackEvent('rename-page', { source: 'page-menu' })
 		},
-		[editor, id]
+		[editor, id, trackEvent]
 	)
 
 	return (

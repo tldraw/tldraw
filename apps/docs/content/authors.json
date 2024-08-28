@@ -2,13 +2,39 @@
 	{
 		"id": "steveruizok",
 		"name": "Steve Ruiz",
+		"description": "",
 		"email": "steve@tldraw.com",
 		"twitter": "steveruizok",
 		"image": "steve_ruiz.jpg"
 	},
 	{
+		"id": "luwilson",
+		"name": "Lu Wilson",
+		"description": "",
+		"email": "lu@tldraw.com",
+		"twitter": "todepond",
+		"image": "lu_wilson.jpg"
+	},
+	{
+		"id": "tahahassan",
+		"name": "Taha Hassan",
+		"description": "",
+		"email": "taha@tldraw.com",
+		"twitter": "tldraw",
+		"image": "taha_hassan.jpg"
+	},
+	{
+		"id": "davidsheldrick",
+		"name": "David Sheldrick",
+		"description": "",
+		"email": "hello@tldraw.com",
+		"twitter": "tldraw",
+		"image": "david_sheldrick.jpg"
+	},
+	{
 		"id": "tldraw",
 		"name": "tldraw",
+		"description": "",
 		"email": "sales@tldraw.com",
 		"twitter": "tldraw",
 		"image": "tldraw.jpg"
@@ -16,6 +42,7 @@
 	{
 		"id": "api",
 		"name": "API",
+		"description": "",
 		"email": "sales@tldraw.com",
 		"twitter": "tldraw",
 		"image": "api.jpg"

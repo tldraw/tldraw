@@ -13,9 +13,7 @@ import {
 	TLBaseBinding,
 	TLBaseShape,
 	TLEditorComponents,
-	TLEventHandlers,
-	TLOnTranslateEndHandler,
-	TLOnTranslateStartHandler,
+	TLPointerEventInfo,
 	TLShapeId,
 	TLShapeUtilCanBindOpts,
 	TLUiComponents,
@@ -52,10 +50,18 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		// Allow pins to participate in other bindings, e.g. arrows
 		return true
 	}
-	override canEdit = () => false
-	override canResize = () => false
-	override hideRotateHandle = () => true
-	override isAspectRatioLocked = () => true
+	override canEdit() {
+		return false
+	}
+	override canResize() {
+		return false
+	}
+	override hideRotateHandle() {
+		return true
+	}
+	override isAspectRatioLocked() {
+		return true
+	}
 
 	override getGeometry() {
 		return new Rectangle2d({
@@ -88,12 +94,12 @@ class PinShapeUtil extends ShapeUtil<PinShape> {
 		return <rect width={32} height={32} x={offsetX} y={offsetY} />
 	}
 
-	override onTranslateStart: TLOnTranslateStartHandler<PinShape> = (shape) => {
+	override onTranslateStart(shape: PinShape) {
 		const bindings = this.editor.getBindingsFromShape(shape, 'pin')
 		this.editor.deleteBindings(bindings)
 	}
 
-	override onTranslateEnd: TLOnTranslateEndHandler<PinShape> = (initial, pin) => {
+	override onTranslateEnd(_initial: PinShape, pin: PinShape) {
 		const pageAnchor = this.editor.getShapePageTransform(pin).applyToPoint({ x: 0, y: 0 })
 
 		const targets = this.editor
@@ -268,14 +274,14 @@ class PinBindingUtil extends BindingUtil<PinBinding> {
 class PinTool extends StateNode {
 	static override id = 'pin'
 
-	override onEnter = () => {
+	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		const { currentPagePoint } = this.editor.inputs
 		const pinId = createShapeId()
-		this.editor.mark(`creating:${pinId}`)
+		this.editor.markHistoryStoppingPoint()
 		this.editor.createShape({
 			id: pinId,
 			type: 'pin',

@@ -9,11 +9,10 @@ import {
 	TLComponents,
 	TLRecord,
 	Tldraw,
+	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-	useActions,
 } from 'tldraw'
-import { UrlStateSync } from '../components/MultiplayerEditor'
+import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
 import { assetUrls } from '../utils/assetUrls'
 import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
@@ -33,11 +32,10 @@ const components: TLComponents = {
 		</DefaultMainMenu>
 	),
 	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
 				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
+					<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
 			</DefaultKeyboardShortcutsDialog>
@@ -58,11 +56,14 @@ interface SnapshotEditorProps {
 }
 
 export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
+	// make sure this runs before the editor is instantiated
+	useLegacyUrlParams()
+
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: true })
 
-	const snaphot = useMemo(
+	const snapshot = useMemo(
 		() => ({
 			schema,
 			store: Object.fromEntries(records.map((record) => [record.id, record])),
@@ -75,7 +76,7 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
-				snapshot={snaphot}
+				snapshot={snapshot}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
@@ -85,10 +86,9 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 				}}
 				components={components}
 				renderDebugMenuItems={() => <DebugMenuItems />}
+				deepLinks
 				inferDarkMode
-			>
-				<UrlStateSync />
-			</Tldraw>
+			/>
 		</div>
 	)
 }

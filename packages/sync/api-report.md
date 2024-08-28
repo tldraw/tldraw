@@ -7,9 +7,8 @@
 import { Editor } from 'tldraw';
 import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
-import { TLSchema } from 'tldraw';
+import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
-import { TLUserPreferences } from 'tldraw';
 
 // @public (undocumented)
 export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
@@ -18,42 +17,40 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
     status: 'synced-local';
 }>;
 
-// @public (undocumented)
-export function useMultiplayerDemo(options: UseMultiplayerDemoOptions): RemoteTLStoreWithStatus;
-
-// @public (undocumented)
-export interface UseMultiplayerDemoOptions {
-    // @internal (undocumented)
-    host?: string;
-    // (undocumented)
-    roomId: string;
-    // (undocumented)
-    schema?: TLSchema;
-    // (undocumented)
-    userPreferences?: Signal<TLUserPreferences>;
+// @public
+export interface TLSyncUserInfo {
+    color?: null | string;
+    id: string;
+    name?: null | string;
 }
 
-// @public (undocumented)
-export function useMultiplayerSync(opts: UseMultiplayerSyncOptions): RemoteTLStoreWithStatus;
+// @public
+export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
+
+// @public
+export function useSyncDemo(options: UseSyncDemoOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public (undocumented)
-export interface UseMultiplayerSyncOptions {
-    // (undocumented)
-    assets?: Partial<TLAssetStore>;
-    // (undocumented)
-    onEditorMount?: (editor: Editor) => void;
-    // (undocumented)
+export interface UseSyncDemoOptions {
+    // @internal (undocumented)
+    host?: string;
+    roomId: string;
+    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
+}
+
+// @public
+export interface UseSyncOptions {
+    assets: TLAssetStore;
+    // @internal (undocumented)
+    onMount?(editor: Editor): void;
+    // @internal
     roomId?: string;
-    // (undocumented)
-    schema?: TLSchema;
-    // (undocumented)
+    // @internal (undocumented)
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;
     }): void;
-    // (undocumented)
-    uri: string;
-    // (undocumented)
-    userPreferences?: Signal<TLUserPreferences>;
+    uri: (() => Promise<string> | string) | string;
+    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
 }
 
 

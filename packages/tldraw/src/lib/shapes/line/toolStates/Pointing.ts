@@ -1,8 +1,6 @@
 import {
 	Mat,
 	StateNode,
-	TLEventHandlers,
-	TLInterruptEvent,
 	TLLineShape,
 	TLShapeId,
 	Vec,
@@ -22,7 +20,7 @@ export class Pointing extends StateNode {
 
 	markId: string | undefined
 
-	override onEnter = (info: { shapeId?: TLShapeId }) => {
+	override onEnter(info: { shapeId?: TLShapeId }) {
 		const { inputs } = this.editor
 		const { currentPagePoint } = inputs
 
@@ -33,8 +31,7 @@ export class Pointing extends StateNode {
 
 		if (shape && inputs.shiftKey) {
 			// Extending a previous shape
-			this.markId = `creating:${shape.id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${shape.id}`)
 			this.shape = shape
 
 			const handles = this.editor.getShapeHandles(this.shape)
@@ -86,8 +83,7 @@ export class Pointing extends StateNode {
 		} else {
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${id}`)
 
 			this.editor.createShapes<TLLineShape>([
 				{
@@ -106,7 +102,7 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		if (!this.shape) return
 
 		if (this.editor.inputs.isDragging) {
@@ -119,6 +115,7 @@ export class Pointing extends StateNode {
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
+				creatingMarkId: this.markId,
 				// remove the offset that we added to the handle when we created it
 				handle: { ...lastHandle, x: lastHandle.x - 0.1, y: lastHandle.y - 0.1 },
 				onInteractionEnd: 'line',
@@ -126,19 +123,19 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.parent.transition('idle')
 		if (this.markId) this.editor.bailToMark(this.markId)
 		this.editor.snaps.clearIndicators()

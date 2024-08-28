@@ -1,7 +1,6 @@
 import {
 	StateNode,
-	TLInterruptEvent,
-	TLKeyboardEvent,
+	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLStateNodeConstructor,
 } from '@tldraw/editor'
@@ -13,27 +12,30 @@ import { ZoomBrushing } from './childStates/ZoomBrushing'
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'
-	static override children = (): TLStateNodeConstructor[] => [Idle, ZoomBrushing, Pointing]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, ZoomBrushing, Pointing]
+	}
+	static override isLockable = false
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
-	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
+	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		this.updateCursor()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.parent.setCurrentToolIdMask(undefined)
 		this.editor.updateInstanceState({ zoomBrush: null, cursor: { type: 'default', rotation: 0 } })
 		this.parent.setCurrentToolIdMask(undefined)
 	}
 
-	override onKeyDown: TLKeyboardEvent | undefined = () => {
+	override onKeyDown() {
 		this.updateCursor()
 	}
 
-	override onKeyUp: TLKeyboardEvent = (info) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		this.updateCursor()
 
 		if (info.code === 'KeyZ') {
@@ -41,7 +43,7 @@ export class ZoomTool extends StateNode {
 		}
 	}
 
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.complete()
 	}
 

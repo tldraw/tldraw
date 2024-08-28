@@ -28,8 +28,7 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
-		"itty-router": "^4.0.13",
-		"nanoid": "4.0.2",
+		"itty-router": "^5.0.17",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},
@@ -44,9 +43,6 @@
 		"preset": "config/jest/node",
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
-		},
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid|escape-string-regexp)/)"
-		]
+		}
 	}
 }

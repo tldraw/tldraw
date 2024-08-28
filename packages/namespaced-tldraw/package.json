@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "2.3.0",
+	"version": "2.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -63,9 +63,6 @@
 		},
 		"testPathIgnorePatterns": [
 			"^.+\\.*.css$"
-		],
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid)/)"
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1",

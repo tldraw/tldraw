@@ -21,7 +21,7 @@ import { useDefaultColorTheme } from './useDefaultColorTheme'
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {
 	return {
 		key: `${DefaultFontStyle.id}:${fontStyle}`,
-		getElement: async () => {
+		async getElement() {
 			const font = findFont(fontStyle)
 			if (!font) return null
 
@@ -52,7 +52,7 @@ function findFont(name: TLDefaultFontStyle): FontFace | null {
 export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {
 	return {
 		key: `${DefaultFontStyle.id}:${fill}`,
-		getElement: async () => {
+		async getElement() {
 			if (fill !== 'pattern') return null
 
 			return <HashPatternForExport />

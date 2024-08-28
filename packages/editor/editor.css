@@ -583,6 +583,11 @@ input,
 	height: 100%;
 }
 
+.tl-video.tl-video-is-fullscreen {
+	object-fit: contain;
+	background-size: contain;
+}
+
 .tl-video-container,
 .tl-image-container,
 .tl-embed-container {
@@ -596,6 +601,15 @@ input,
 	align-items: center;
 }
 
+.tl-image-container {
+	position: relative;
+	overflow: hidden;
+}
+.tl-image {
+	position: absolute;
+	inset: 0;
+}
+
 .tl-image__tg {
 	--scale: calc(min(2, var(--tl-scale)));
 	position: absolute;
@@ -606,16 +620,6 @@ input,
 	background-color: var(--color-background);
 	padding: 2px 4px;
 	border-radius: var(--radius-1);
-}
-
-.tl-flip-x {
-	transform: scale(-1, 1);
-}
-.tl-flip-y {
-	transform: scale(1, -1);
-}
-.tl-flip-xy {
-	transform: scale(-1, -1);
 }
 
 /* --------------------- Nametag -------------------- */

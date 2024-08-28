@@ -1,6 +1,16 @@
 import { load } from 'cheerio'
 
 export async function unfurl(url: string) {
+	// Let's see if this URL was an image to begin with.
+	if (url.match(/\.(a?png|jpe?g|gif|svg|webp|avif)$/i)) {
+		return {
+			title: undefined,
+			description: undefined,
+			image: url,
+			favicon: undefined,
+		}
+	}
+
 	const response = await fetch(url)
 	if (response.status >= 400) {
 		throw new Error(`Error fetching url: ${response.status}`)
@@ -8,6 +18,14 @@ export async function unfurl(url: string) {
 	const contentType = response.headers.get('content-type')
 	if (!contentType?.includes('text/html')) {
 		throw new Error(`Content-type not right: ${contentType}`)
+	}
+	if (contentType?.startsWith('image/')) {
+		return {
+			title: undefined,
+			description: undefined,
+			image: url,
+			favicon: undefined,
+		}
 	}
 
 	const content = await response.text()

@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "A tiny little drawing app (multiplayer sync).",
-	"version": "2.3.0",
+	"version": "2.4.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -41,6 +41,7 @@
 		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
+		"@types/uuid-readable": "^0.0.3",
 		"tldraw": "workspace:*",
 		"typescript": "^5.3.3",
 		"uuid-by-string": "^4.0.0",
@@ -67,7 +68,6 @@
 		"@tldraw/utils": "workspace:*",
 		"lodash.isequal": "^4.5.0",
 		"nanoevents": "^7.0.1",
-		"nanoid": "4.0.2",
 		"ws": "^8.16.0"
 	},
 	"peerDependencies": {

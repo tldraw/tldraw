@@ -2,6 +2,7 @@ import {
 	Arc2d,
 	Box,
 	Circle2d,
+	ComputedCache,
 	Edge2d,
 	Editor,
 	Geometry2d,
@@ -9,6 +10,7 @@ import {
 	TLArrowShape,
 	Vec,
 	VecLike,
+	WeakCache,
 	angleDistance,
 	clamp,
 	getPointOnCircle,
@@ -23,85 +25,92 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import { getArrowLength } from './ArrowShapeUtil'
 import { TLArrowInfo } from './arrow-types'
 import { getArrowInfo } from './shared'
 
-const labelSizeCache = new WeakMap<TLArrowShape, Vec>()
+const labelSizeCacheCache = new WeakCache<Editor, ComputedCache<Vec, TLArrowShape>>()
+
+function getLabelSizeCache(editor: Editor) {
+	return labelSizeCacheCache.get(editor, () => {
+		return editor.store.createComputedCache<Vec, TLArrowShape>('arrowLabelSize', (shape) => {
+			const info = getArrowInfo(editor, shape)!
+			let width = 0
+			let height = 0
+
+			const bodyGeom = info.isStraight
+				? new Edge2d({
+						start: Vec.From(info.start.point),
+						end: Vec.From(info.end.point),
+					})
+				: new Arc2d({
+						center: Vec.Cast(info.handleArc.center),
+						start: Vec.Cast(info.start.point),
+						end: Vec.Cast(info.end.point),
+						sweepFlag: info.bodyArc.sweepFlag,
+						largeArcFlag: info.bodyArc.largeArcFlag,
+					})
+
+			if (shape.props.text.trim()) {
+				const bodyBounds = bodyGeom.bounds
+
+				const fontSize = getArrowLabelFontSize(shape)
+
+				const { w, h } = editor.textMeasure.measureText(shape.props.text, {
+					...TEXT_PROPS,
+					fontFamily: FONT_FAMILIES[shape.props.font],
+					fontSize,
+					maxWidth: null,
+				})
+
+				width = w
+				height = h
+
+				if (bodyBounds.width > bodyBounds.height) {
+					width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
+
+					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
+						shape.props.text,
+						{
+							...TEXT_PROPS,
+							fontFamily: FONT_FAMILIES[shape.props.font],
+							fontSize,
+							maxWidth: width,
+						}
+					)
+
+					width = squishedWidth
+					height = squishedHeight
+				}
+
+				if (width > 16 * fontSize) {
+					width = 16 * fontSize
+
+					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
+						shape.props.text,
+						{
+							...TEXT_PROPS,
+							fontFamily: FONT_FAMILIES[shape.props.font],
+							fontSize,
+							maxWidth: width,
+						}
+					)
+
+					width = squishedWidth
+					height = squishedHeight
+				}
+			}
+
+			return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+		})
+	})
+}
 
 function getArrowLabelSize(editor: Editor, shape: TLArrowShape) {
-	const cachedSize = labelSizeCache.get(shape)
-	if (cachedSize) return cachedSize
-
-	const info = getArrowInfo(editor, shape)!
-	let width = 0
-	let height = 0
-
-	const bodyGeom = info.isStraight
-		? new Edge2d({
-				start: Vec.From(info.start.point),
-				end: Vec.From(info.end.point),
-			})
-		: new Arc2d({
-				center: Vec.Cast(info.handleArc.center),
-				start: Vec.Cast(info.start.point),
-				end: Vec.Cast(info.end.point),
-				sweepFlag: info.bodyArc.sweepFlag,
-				largeArcFlag: info.bodyArc.largeArcFlag,
-			})
-
-	if (shape.props.text.trim()) {
-		const bodyBounds = bodyGeom.bounds
-
-		const fontSize = getArrowLabelFontSize(shape)
-
-		const { w, h } = editor.textMeasure.measureText(shape.props.text, {
-			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize,
-			maxWidth: null,
-		})
-
-		width = w
-		height = h
-
-		if (bodyBounds.width > bodyBounds.height) {
-			width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
-
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize,
-					maxWidth: width,
-				}
-			)
-
-			width = squishedWidth
-			height = squishedHeight
-		}
-
-		if (width > 16 * fontSize) {
-			width = 16 * fontSize
-
-			const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize,
-					maxWidth: width,
-				}
-			)
-
-			width = squishedWidth
-			height = squishedHeight
-		}
+	if (shape.props.text.trim() === '') {
+		return new Vec(0, 0).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 	}
-
-	const size = new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
-	labelSizeCache.set(shape, size)
-	return size
+	return getLabelSizeCache(editor).get(shape.id) ?? new Vec(0, 0)
 }
 
 function getLabelToArrowPadding(shape: TLArrowShape) {
@@ -265,36 +274,31 @@ function getCurvedArrowLabelRange(
 	const end = angleDistance(startAngle, constrainedEndAngle, direction) / fullDistance
 	return { start, end, dbg }
 }
-
+interface ArrowheadInfo {
+	hasStartBinding: boolean
+	hasEndBinding: boolean
+	hasStartArrowhead: boolean
+	hasEndArrowhead: boolean
+}
 export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	let labelCenter
 	const debugGeom: Geometry2d[] = []
 	const info = getArrowInfo(editor, shape)!
 
-	const hasStartBinding = !!info.bindings.start
-	const hasEndBinding = !!info.bindings.end
-	const hasStartArrowhead = info.start.arrowhead !== 'none'
-	const hasEndArrowhead = info.end.arrowhead !== 'none'
+	const arrowheadInfo: ArrowheadInfo = {
+		hasStartBinding: !!info.bindings.start,
+		hasEndBinding: !!info.bindings.end,
+		hasStartArrowhead: info.start.arrowhead !== 'none',
+		hasEndArrowhead: info.end.arrowhead !== 'none',
+	}
 	if (info.isStraight) {
 		const range = getStraightArrowLabelRange(editor, shape, info)
-		let clampedPosition = clamp(
-			shape.props.labelPosition,
-			hasStartArrowhead || hasStartBinding ? range.start : 0,
-			hasEndArrowhead || hasEndBinding ? range.end : 1
-		)
-		// This makes the position snap in the middle.
-		clampedPosition = clampedPosition >= 0.48 && clampedPosition <= 0.52 ? 0.5 : clampedPosition
+		const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
 		labelCenter = Vec.Lrp(info.start.point, info.end.point, clampedPosition)
 	} else {
 		const range = getCurvedArrowLabelRange(editor, shape, info)
 		if (range.dbg) debugGeom.push(...range.dbg)
-		let clampedPosition = clamp(
-			shape.props.labelPosition,
-			hasStartArrowhead || hasStartBinding ? range.start : 0,
-			hasEndArrowhead || hasEndBinding ? range.end : 1
-		)
-		// This makes the position snap in the middle.
-		clampedPosition = clampedPosition >= 0.48 && clampedPosition <= 0.52 ? 0.5 : clampedPosition
+		const clampedPosition = getClampedPosition(editor, shape, range, arrowheadInfo)
 		const labelAngle = interpolateArcAngles(
 			Vec.Angle(info.bodyArc.center, info.start.point),
 			Vec.Angle(info.bodyArc.center, info.end.point),
@@ -307,6 +311,29 @@ export function getArrowLabelPosition(editor: Editor, shape: TLArrowShape) {
 	const labelSize = getArrowLabelSize(editor, shape)
 
 	return { box: Box.FromCenter(labelCenter, labelSize), debugGeom }
+}
+
+function getClampedPosition(
+	editor: Editor,
+	shape: TLArrowShape,
+	range: { start: number; end: number },
+	arrowheadInfo: ArrowheadInfo
+) {
+	const { hasEndArrowhead, hasEndBinding, hasStartBinding, hasStartArrowhead } = arrowheadInfo
+	const arrowLength = getArrowLength(editor, shape)
+	let clampedPosition = clamp(
+		shape.props.labelPosition,
+		hasStartArrowhead || hasStartBinding ? range.start : 0,
+		hasEndArrowhead || hasEndBinding ? range.end : 1
+	)
+	const snapDistance = Math.min(0.02, (500 / arrowLength) * 0.02)
+
+	clampedPosition =
+		clampedPosition >= 0.5 - snapDistance && clampedPosition <= 0.5 + snapDistance
+			? 0.5
+			: clampedPosition
+
+	return clampedPosition
 }
 
 function intersectArcPolygon(

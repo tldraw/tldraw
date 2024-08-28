@@ -9,6 +9,9 @@
 	"references": [
 		{
 			"path": "../state"
+		},
+		{
+			"path": "../utils"
 		}
 	]
 }

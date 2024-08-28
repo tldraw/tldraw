@@ -34,7 +34,7 @@ options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
 export interface AtomOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
-    isEqual?: (a: any, b: any) => boolean;
+    isEqual?(a: any, b: any): boolean;
 }
 
 // @internal (undocumented)
@@ -65,11 +65,14 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
 // @public
 export function computed<Value, Diff = unknown>(name: string, compute: (previousValue: typeof UNINITIALIZED | Value, lastComputedEpoch: number) => Value | WithDiff<Value, Diff>, options?: ComputedOptions<Value, Diff>): Computed<Value, Diff>;
 
-// @public (undocumented)
+// @public
+export function computed<This extends object, Value>(compute: () => Value, context: ClassMethodDecoratorContext<This, () => Value>): () => Value;
+
+// @public
 export function computed(target: any, key: string, descriptor: PropertyDescriptor): PropertyDescriptor;
 
-// @public (undocumented)
-export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
+// @public
+export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): ((target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor) & (<This>(compute: () => Value, context: ClassMethodDecoratorContext<This, () => Value>) => () => Value);
 
 // @public
 export type ComputeDiff<Value, Diff> = (previousValue: Value, currentValue: Value, lastComputedEpoch: number, currentEpoch: number) => Diff | RESET_VALUE;
@@ -78,7 +81,7 @@ export type ComputeDiff<Value, Diff> = (previousValue: Value, currentValue: Valu
 export interface ComputedOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
-    isEqual?: (a: any, b: any) => boolean;
+    isEqual?(a: any, b: any): boolean;
 }
 
 // @public

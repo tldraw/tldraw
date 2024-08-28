@@ -1,3 +1,5 @@
+import { registerTldrawLibraryVersion } from './lib/version'
+
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
 export { PerformanceTracker } from './lib/PerformanceTracker'
@@ -10,6 +12,7 @@ export {
 	partition,
 	rotateArray,
 } from './lib/array'
+export { bind } from './lib/bind'
 export { WeakCache } from './lib/cache'
 export {
 	Result,
@@ -25,6 +28,7 @@ export { annotateError, getErrorAnnotations, type ErrorAnnotations } from './lib
 export { FileHelpers } from './lib/file'
 export { noop, omitFromStackTrace } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
+export { mockUniqueId, restoreUniqueId, uniqueId } from './lib/id'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export {
@@ -48,7 +52,6 @@ export {
 	objectMapValues,
 } from './lib/object'
 export { measureAverageDuration, measureCbDuration, measureDuration } from './lib/perf'
-export { type IndexKey } from './lib/reordering/IndexKey'
 export {
 	ZERO_INDEX_KEY,
 	getIndexAbove,
@@ -60,7 +63,8 @@ export {
 	getIndicesBetween,
 	sortByIndex,
 	validateIndexKey,
-} from './lib/reordering/reordering'
+	type IndexKey,
+} from './lib/reordering'
 export { sortById } from './lib/sort'
 export {
 	clearLocalStorage,
@@ -75,6 +79,7 @@ export {
 export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export { Timers } from './lib/timers'
 export type { Expand, RecursivePartial, Required } from './lib/types'
+export { safeParseUrl } from './lib/url'
 export {
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
 	isDefined,
@@ -83,4 +88,11 @@ export {
 	isNonNullish,
 	structuredClone,
 } from './lib/value'
-export { warnDeprecatedGetter } from './lib/warnDeprecatedGetter'
+export { registerTldrawLibraryVersion } from './lib/version'
+export { warnDeprecatedGetter, warnOnce } from './lib/warn'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)
