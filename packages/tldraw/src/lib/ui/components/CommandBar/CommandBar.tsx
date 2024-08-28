@@ -1,6 +1,7 @@
 import { useEditor } from '@tldraw/editor'
 import { useCallback, useState } from 'react'
-import { unwrapLabel, useActions } from '../../context/actions'
+import { TLUiActionItem, unwrapLabel } from '../../context/actions'
+import { useCommandBarActions } from '../../hooks/useCommandBarActions'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -11,30 +12,11 @@ import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 export const COMMAND_BAR_ID = 'command bar'
 
 export function CommmandBar() {
-	const actions = useActions()
 	const editor = useEditor()
 	const [isOpen] = useMenuIsOpen(COMMAND_BAR_ID)
-	const msg = useTranslation()
 	const [selected, setSelected] = useState(-1)
 	const [search, setSearch] = useState('')
-	const filteredActions = Object.values(actions)
-		.filter((action) => {
-			// if (!action.enabled?.()) return false
-			const unwrapped = unwrapLabel(action.label, 'default')
-			const value = msg(unwrapped as TLUiTranslationKey)
-			if (!value) return false
-			if (search === '') return true
-			return value.toLowerCase().includes(search.toLowerCase())
-		})
-		.sort((a, b) => {
-			if (!a.enabled?.()) {
-				return 1
-			}
-			if (!b.enabled?.()) {
-				return -1
-			}
-			return 0
-		})
+	const actions = useCommandBarActions(search)
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
@@ -46,26 +28,26 @@ export function CommmandBar() {
 					if (e.shiftKey) {
 						e.preventDefault()
 						const next = selected - 1
-						setSelected(next < 0 ? filteredActions.length - 1 : next)
+						setSelected(next < 0 ? actions.length - 1 : next)
 					} else {
 						e.preventDefault()
-						setSelected((selected + 1) % filteredActions.length)
+						setSelected((selected + 1) % actions.length)
 					}
 					break
 				case 'ArrowUp':
 					{
 						e.preventDefault()
 						const next = selected - 1
-						setSelected(next < 0 ? filteredActions.length - 1 : next)
+						setSelected(next < 0 ? actions.length - 1 : next)
 					}
 					break
 				case 'ArrowDown':
 					e.preventDefault()
-					setSelected((selected + 1) % filteredActions.length)
+					setSelected((selected + 1) % actions.length)
 					break
 
 				case 'Enter': {
-					const action = filteredActions[selected]
+					const action = actions[selected]
 					if (!action || !action.enabled?.()) return
 					editor.deleteOpenMenu(COMMAND_BAR_ID)
 					action.onSelect('command-bar')
@@ -75,55 +57,22 @@ export function CommmandBar() {
 				}
 			}
 		},
-		[editor, filteredActions, selected]
+		[editor, actions, selected]
 	)
 
 	if (!isOpen) return null
 
 	return (
-		<div
-			style={{
-				position: 'absolute',
-				inset: 0,
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				zIndex: 'var(--layer-panels)',
-			}}
-		>
-			<div style={{ height: '300px' }}>
-				<div
-					style={{
-						pointerEvents: 'all',
-						boxShadow: 'var(--shadow-2)',
-						overflow: 'hidden',
-						borderRadius: 'var(--radius-3)',
-						background: 'var(--color-background)',
-					}}
-				>
-					<div
-						style={{
-							padding: '4px',
-							height: 'fit-content',
-							width: '300px',
-							display: 'flex',
-							flexDirection: 'column',
-							gap: '8px',
-						}}
-						onKeyDown={handleKeyDown}
-					>
+		<div className="tlui-command-bar__wrapper">
+			<div className="tlui-command-bar__inner">
+				<div className="tlui-command-bar__content">
+					<div className="tlui-command-bar__content-inner" onKeyDown={handleKeyDown}>
 						<input
 							autoFocus
 							type="text"
 							value={search}
 							placeholder="Search..."
-							style={{
-								width: '100%',
-								border: 'none',
-								padding: '8px',
-								background: 'var(--color-background)',
-								color: 'var(--color-text-1)',
-							}}
+							className="tlui-command-bar__input"
 							onChange={(e) => {
 								const value = e.target.value
 								setSearch(value)
@@ -133,56 +82,69 @@ export function CommmandBar() {
 								if (value === '') setSelected(-1)
 							}}
 						/>
-						{filteredActions.length !== 0 && (
-							<div>
-								{filteredActions.slice(0, 6).map((action, i) => {
-									const { id, label, kbd } = action
-									const enabled = action.enabled?.()
-
-									const labelToUse = unwrapLabel(label, 'default')
-
-									const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
-
-									return (
-										<div
-											key={id}
-											style={{
-												color: enabled ? 'var(--color-text-1)' : '#aaa',
-												overflow: 'visible',
-											}}
-										>
-											<div
-												style={{
-													background:
-														i === selected ? 'var(--color-hint)' : 'var(--color-background)',
-													borderRadius: 'var(--radius-2)',
-													display: 'flex',
-													alignItems: 'center',
-												}}
-											>
-												<TldrawUiButton type="menu" disabled={!enabled}>
-													<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-													{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
-												</TldrawUiButton>
-											</div>
-											{selected === i && !enabled && action.disabledDescription && (
-												<span
-													style={{
-														fontSize: '10px',
-														padding: '4px',
-													}}
-												>
-													{action.disabledDescription}
-												</span>
-											)}
-										</div>
-									)
-								})}
-							</div>
-						)}
+						{actions.length !== 0 && <CommandBarItems actions={actions} selected={selected} />}
 					</div>
 				</div>
 			</div>
+		</div>
+	)
+}
+function CommandBarItems({
+	actions,
+	selected,
+}: {
+	actions: TLUiActionItem<string, string>[]
+	selected: number
+}) {
+	return (
+		<div>
+			{actions.slice(0, 6).map((action, index) => {
+				return <CommandBarItem key={action.id} action={action} index={index} selected={selected} />
+			})}
+		</div>
+	)
+}
+
+function CommandBarItem({
+	action,
+	index,
+	selected,
+}: {
+	action: TLUiActionItem<string, string>
+	index: number
+	selected: number
+}) {
+	const msg = useTranslation()
+	const { label, kbd } = action
+	const enabled = action.enabled?.()
+
+	const labelToUse = unwrapLabel(label, 'default')
+
+	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
+
+	return (
+		<div
+			className="tlui-command-bar__item-wrapper"
+			style={{
+				color: enabled ? 'var(--color-text-1)' : '#aaa',
+			}}
+		>
+			<div
+				className="tlui-command-bar__item"
+				style={{
+					background: index === selected ? 'var(--color-hint)' : 'var(--color-background)',
+				}}
+			>
+				<TldrawUiButton type="menu" disabled={!enabled}>
+					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+				</TldrawUiButton>
+			</div>
+			{selected === index && !enabled && action.disabledDescription && (
+				<span className="tlui-command-bar__item-disabled-description">
+					{action.disabledDescription}
+				</span>
+			)}
 		</div>
 	)
 }

@@ -1779,3 +1779,57 @@
 		opacity: 1;
 	}
 }
+
+/* ------------------ Command bar ----------------- */
+.tlui-command-bar__wrapper {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: var(--layer-panels);
+}
+
+.tlui-command-bar__inner {
+	height: 300px;
+}
+
+.tlui-command-bar__content {
+	pointer-events: all;
+	box-shadow: var(--shadow-2);
+	overflow: hidden;
+	border-radius: var(--radius-3);
+	background: var(--color-background);
+}
+
+.tlui-command-bar__content-inner {
+	padding: var(--space-2);
+	height: fit-content;
+	width: 300px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+}
+
+.tlui-command-bar__input {
+	width: 100%;
+	border: none;
+	padding: var(--space-3);
+	background: var(--color-background);
+	color: var(--color-text-1);
+}
+
+.tlui-command-bar__item-wrapper {
+	overflow: visible;
+}
+
+.tlui-command-bar__item {
+	border-radius: var(--radius-2);
+	display: flex;
+	align-items: center;
+}
+
+.tlui-command-bar__item-disabled-description {
+	font-size: 10px;
+	padding: var(--space-2);
+}
