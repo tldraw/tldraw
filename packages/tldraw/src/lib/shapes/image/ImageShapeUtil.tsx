@@ -262,15 +262,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				{showCropPreview && loadedSrc && (
 					<div style={containerStyle}>
 						<img
-							className={classNames('tl-image', {
-								'tl-flip-x': shape.props.flipX && !shape.props.flipY,
-								'tl-flip-y': shape.props.flipY && !shape.props.flipX,
-								'tl-flip-xy': shape.props.flipY && shape.props.flipX,
-							})}
+							className="tl-image"
+							style={{ ...getFlipStyle(shape), opacity: 0.1 }}
 							crossOrigin={crossOrigin}
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
-							style={{ opacity: 0.1 }}
 							draggable={false}
 						/>
 					</div>
@@ -289,11 +285,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						{loadedSrc && (
 							<img
 								key={loadedSrc}
-								className={classNames('tl-image', {
-									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
-									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
-									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
-								})}
+								className="tl-image"
+								style={getFlipStyle(shape)}
 								crossOrigin={crossOrigin}
 								src={loadedSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
@@ -303,11 +296,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						{nextSrc && (
 							<img
 								key={nextSrc}
-								className={classNames('tl-image', 'tl-image-next', {
-									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
-									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
-									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
-								})}
+								className="tl-image"
+								style={getFlipStyle(shape)}
 								crossOrigin={crossOrigin}
 								src={nextSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
@@ -400,7 +390,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const containerStyle = getCroppedContainerStyle(shape)
 		const crop = shape.props.crop
 		if (containerStyle.transform && crop) {
-			const { transform, width, height } = containerStyle
+			const { transform: cropTransform, width, height } = containerStyle
 			const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
 			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
 
@@ -412,6 +402,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			]
 
 			const cropClipId = `cropClipPath_${shape.id.replace(':', '_')}`
+
+			const flip = getFlipStyle(shape, { width, height })
+
 			return (
 				<>
 					<defs>
@@ -420,7 +413,16 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						</clipPath>
 					</defs>
 					<g clipPath={`url(#${cropClipId})`}>
-						<image href={src} width={width} height={height} style={{ transform }} />
+						<image
+							href={src}
+							width={width}
+							height={height}
+							style={
+								flip
+									? { ...flip, transform: `${cropTransform} ${flip.transform}` }
+									: { transform: cropTransform }
+							}
+						/>
 					</g>
 					{textEl}
 				</>
@@ -428,7 +430,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		} else {
 			return (
 				<>
-					<image href={src} width={shape.props.w} height={shape.props.h} />
+					<image
+						href={src}
+						width={shape.props.w}
+						height={shape.props.h}
+						style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
+					/>
 					{textEl}
 				</>
 			)
@@ -549,5 +556,21 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 		transform: `translate(${offsetX}px, ${offsetY}px)`,
 		width: w,
 		height: h,
+	}
+}
+
+function getFlipStyle(shape: TLImageShape, size?: { width: number; height: number }) {
+	const { flipX, flipY } = shape.props
+	if (!flipX && !flipY) return undefined
+
+	const scale = `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`
+	const translate = size
+		? `translate(${flipX ? size.width : 0}px, ${flipY ? size.height : 0}px)`
+		: ''
+
+	return {
+		transform: `${translate} ${scale}`,
+		// in SVG, flipping around the center doesn't work so we use explicit width/height
+		transformOrigin: size ? '0 0' : 'center center',
 	}
 }
