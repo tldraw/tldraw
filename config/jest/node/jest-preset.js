@@ -34,6 +34,5 @@ module.exports = {
 		'<rootDir>/.tsbuild-dev',
 		'<rootDir>/.tsbuild-pub',
 	],
-	transformIgnorePatterns: ['node_modules/(?!(nanoid)/)'],
 	collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx}'],
 }

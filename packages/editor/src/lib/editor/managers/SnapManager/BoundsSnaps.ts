@@ -1,6 +1,6 @@
 import { computed } from '@tldraw/state'
 import { TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
-import { assertExists, dedupe } from '@tldraw/utils'
+import { assertExists, dedupe, uniqueId } from '@tldraw/utils'
 import {
 	Box,
 	SelectionCorner,
@@ -12,7 +12,6 @@ import {
 import { Mat } from '../../../primitives/Mat'
 import { Vec } from '../../../primitives/Vec'
 import { rangeIntersection, rangesOverlap } from '../../../primitives/utils'
-import { uniqueId } from '../../../utils/uniqueId'
 import { Editor } from '../../Editor'
 import {
 	GapsSnapIndicator,

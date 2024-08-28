@@ -12,15 +12,14 @@ import {
 	assert,
 	compact,
 	createShapeId,
+	mockUniqueId,
 	sortByIndex,
 } from '@tldraw/editor'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
 import { TestEditor } from './TestEditor'
 
-jest.mock('nanoid', () => {
-	let i = 0
-	return { nanoid: () => 'id' + i++ }
-})
+let nextNanoId = 0
+mockUniqueId(() => `${nextNanoId++}`)
 
 const ids = {
 	boxA: createShapeId('boxA'),

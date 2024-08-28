@@ -8,11 +8,13 @@ import { DefaultContextMenuContent } from './DefaultContextMenuContent'
 /** @public */
 export interface TLUiContextMenuProps {
 	children?: ReactNode
+	disabled?: boolean
 }
 
 /** @public @react */
 export const DefaultContextMenu = memo(function DefaultContextMenu({
 	children,
+	disabled = false,
 }: TLUiContextMenuProps) {
 	const editor = useEditor()
 
@@ -67,7 +69,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 	return (
 		<_ContextMenu.Root dir="ltr" onOpenChange={handleOpenChange} modal={false}>
-			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr">
+			<_ContextMenu.Trigger onContextMenu={undefined} dir="ltr" disabled={disabled}>
 				{Canvas ? <Canvas /> : null}
 			</_ContextMenu.Trigger>
 			{isOpen && (
