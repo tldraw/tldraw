@@ -24,7 +24,6 @@ import { TldrawUiIcon } from './primitives/TldrawUiIcon'
 import { TldrawUiInput } from './primitives/TldrawUiInput'
 
 export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogProps) {
-	console.log('embed dialog')
 	const editor = useEditor()
 	const msg = useTranslation()
 	const assetUrls = useAssetUrls()
