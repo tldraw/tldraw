@@ -49,10 +49,10 @@ export function CommmandBar() {
 				case 'Enter': {
 					const action = actions[selected]
 					if (!action || !action.enabled?.()) return
-					editor.deleteOpenMenu(COMMAND_BAR_ID)
-					action.onSelect('command-bar')
 					setSearch('')
 					setSelected(-1)
+					editor.deleteOpenMenu(COMMAND_BAR_ID)
+					action.onSelect('command-bar')
 					break
 				}
 			}
