@@ -1829,6 +1829,10 @@
 	align-items: center;
 }
 
+.tlui-command-bar__item-selected {
+	background: var(--color-hint);
+}
+
 .tlui-command-bar__item-disabled-description {
 	color: var(--color-text-3);
 	font-size: 10px;

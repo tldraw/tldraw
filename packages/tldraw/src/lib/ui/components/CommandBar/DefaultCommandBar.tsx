@@ -1,4 +1,5 @@
 import { useEditor } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useCallback, useState } from 'react'
 import { TLUiActionItem, unwrapLabel } from '../../context/actions'
 import { useCommandBarActions } from '../../hooks/useCommandBarActions'
@@ -154,21 +155,22 @@ function CommandBarItem({
 	const labelToUse = unwrapLabel(label, 'command-bar')
 
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
+	const isSelected = selected === index
+	const showDisabledDescription = isSelected && !enabled && action.disabledDescription
 
 	return (
 		<div className="tlui-command-bar__item-wrapper">
 			<div
-				className="tlui-command-bar__item"
-				style={{
-					background: index === selected ? 'var(--color-hint)' : 'var(--color-background)',
-				}}
+				className={classNames('tlui-command-bar__item', {
+					'tlui-command-bar__item-selected': isSelected,
+				})}
 			>
 				<TldrawUiButton type="menu" disabled={!enabled} onClick={() => onSelect(index)}>
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
 					{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
 				</TldrawUiButton>
 			</div>
-			{selected === index && !enabled && action.disabledDescription && (
+			{showDisabledDescription && (
 				<span className="tlui-command-bar__item-disabled-description">
 					{action.disabledDescription}
 				</span>
