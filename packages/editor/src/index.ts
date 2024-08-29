@@ -270,6 +270,7 @@ export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
 export {
 	LicenseManager,
+	isEditorUnlicensed,
 	type InvalidLicenseKeyResult,
 	type InvalidLicenseReason,
 	type LicenseFromKeyResult,

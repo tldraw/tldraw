@@ -1680,6 +1680,9 @@ export interface InvalidLicenseKeyResult {
 // @internal (undocumented)
 export type InvalidLicenseReason = 'has-key-development-mode' | 'invalid-license-key' | 'no-key-provided';
 
+// @internal (undocumented)
+export function isEditorUnlicensed(result: LicenseFromKeyResult): boolean;
+
 // @public
 export const isSafeFloat: (n: number) => boolean;
 
@@ -3612,6 +3615,8 @@ export { useValue }
 export interface ValidLicenseKeyResult {
     // (undocumented)
     expiryDate: Date;
+    // (undocumented)
+    hasFeatureTimerSync: boolean;
     // (undocumented)
     isAnnualLicense: boolean;
     // (undocumented)

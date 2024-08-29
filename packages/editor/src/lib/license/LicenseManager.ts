@@ -10,6 +10,7 @@ export const FLAGS = {
 	PERPETUAL_LICENSE: 0x2,
 	INTERNAL_LICENSE: 0x4,
 	WITH_WATERMARK: 0x8,
+	FEATURE_TIMER_SYNC: 0x10,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -58,6 +59,7 @@ export interface ValidLicenseKeyResult {
 	isPerpetualLicenseExpired: boolean
 	isInternalLicense: boolean
 	isLicensedWithWatermark: boolean
+	hasFeatureTimerSync: boolean
 }
 
 /** @internal */
@@ -102,6 +104,7 @@ export class LicenseManager {
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
+		if (typeof window === 'undefined') return false
 		if (testEnvironment === 'development') return true
 		if (testEnvironment === 'production') return false
 
@@ -205,6 +208,7 @@ export class LicenseManager {
 				isPerpetualLicenseExpired: isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate),
 				isInternalLicense: this.isFlagEnabled(licenseInfo.flags, FLAGS.INTERNAL_LICENSE),
 				isLicensedWithWatermark: this.isFlagEnabled(licenseInfo.flags, FLAGS.WITH_WATERMARK),
+				hasFeatureTimerSync: this.isFlagEnabled(licenseInfo.flags, FLAGS.FEATURE_TIMER_SYNC),
 			}
 			this.outputLicenseInfoIfNeeded(result)
 
@@ -217,6 +221,8 @@ export class LicenseManager {
 	}
 
 	private isDomainValid(licenseInfo: LicenseInfo) {
+		if (typeof window === 'undefined') return false
+
 		const currentHostname = window.location.hostname.toLowerCase()
 
 		return licenseInfo.hosts.some((host) => {
@@ -345,8 +351,10 @@ export class LicenseManager {
 	static className = 'tl-watermark_SEE-LICENSE'
 }
 
+/** @internal */
 export function isEditorUnlicensed(result: LicenseFromKeyResult) {
 	if (!result.isLicenseParseable) return true
+	// TODO server side, pass in request referrer domain
 	if (!result.isDomainValid && !result.isDevelopment) return true
 	if (result.isPerpetualLicenseExpired || result.isAnnualLicenseExpired) {
 		if (result.isInternalLicense) {

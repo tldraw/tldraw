@@ -120,8 +120,9 @@ export function MultiplayerEditor({
 	roomOpenMode: RoomOpenMode
 	roomSlug: string
 }) {
+	const licenseKey = getLicenseKey()
 	const handleUiEvent = useHandleUiEvents()
-	const offset = useGetServerOffset()
+	const offset = useGetServerOffset(licenseKey)
 	;(window as any).serverOffset = offset
 
 	const storeWithStatus = useSync({
@@ -157,7 +158,7 @@ export function MultiplayerEditor({
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
+				licenseKey={licenseKey}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}

@@ -430,6 +430,7 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isPerpetualLicenseExpired: false,
 		isLicenseParseable: true as const,
 		isLicensedWithWatermark: false,
+		hasFeatureTimerSync: false,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
 			id: 'id',

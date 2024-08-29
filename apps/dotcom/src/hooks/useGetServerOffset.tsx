@@ -2,13 +2,19 @@ import { GetServerTimeResponseBody } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
 
-export function useGetServerOffset() {
+export function useGetServerOffset(licenseKey: string) {
 	const [serverOffset, setServerOffset] = useState<number>(0)
 
 	useEffect(() => {
 		async function getServerTime() {
 			const t0 = Date.now()
-			const response = await fetch('/api/server-time')
+			const response = await fetch('/api/server-time', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ licenseKey }),
+			})
 			const t3 = Date.now()
 			if (!response.ok) return
 
@@ -21,7 +27,7 @@ export function useGetServerOffset() {
 			setServerOffset(serverOffset)
 		}
 		getServerTime()
-	}, [])
+	}, [licenseKey])
 
 	return serverOffset
 }
