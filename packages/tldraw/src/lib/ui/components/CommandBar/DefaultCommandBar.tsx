@@ -72,6 +72,7 @@ export function DefaultCommmandBar() {
 					setSelected(getPrevious(selected, numItems))
 					break
 				case 'Enter': {
+					e.preventDefault()
 					onSelect(selected)
 					break
 				}
