@@ -42,7 +42,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	chatMessage: string
 	isChatting: boolean
 	isPenMode: boolean
-	isGridMode: boolean
+	showGrid: boolean
+	snapToGridWhenShown: boolean
 	isFocused: boolean
 	devicePixelRatio: number
 	/**
@@ -96,7 +97,8 @@ export const shouldKeyBePreservedBetweenSessions = {
 	isChatting: false, // does not preserve because it's a temporary state
 	isPenMode: false, // does not preserve because it's a temporary state
 
-	isGridMode: true, // preserves because it's a user preference
+	showGrid: true, // preserves because it's a user preference
+	snapToGridWhenShown: true, // preserves because it's a user preference
 	isFocused: true, // preserves because obviously
 	devicePixelRatio: true, // preserves because it captures the user's screen state
 	isCoarsePointer: true, // preserves because it captures the user's screen state
@@ -148,7 +150,8 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			insets: T.arrayOf(T.boolean),
 			zoomBrush: boxModelValidator.nullable(),
 			isPenMode: T.boolean,
-			isGridMode: T.boolean,
+			showGrid: T.boolean,
+			snapToGridWhenShown: T.boolean,
 			chatMessage: T.string,
 			isChatting: T.boolean,
 			highlightedUserIds: T.arrayOf(T.string),
@@ -191,7 +194,8 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			insets: true,
 			zoomBrush: true,
 			isPenMode: true,
-			isGridMode: true,
+			showGrid: true,
+			snapToGridWhenShown: true,
 			chatMessage: true,
 			isChatting: true,
 			highlightedUserIds: true,
@@ -222,7 +226,8 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 			insets: [false, false, false, false],
 			zoomBrush: null,
-			isGridMode: false,
+			showGrid: false,
+			snapToGridWhenShown: true,
 			isPenMode: false,
 			chatMessage: '',
 			isChatting: false,
@@ -267,6 +272,7 @@ export const instanceVersions = createMigrationIds('com.tldraw.instance', {
 	AddInset: 23,
 	AddDuplicateProps: 24,
 	RemoveCanMoveCamera: 25,
+	RefactorGridSnapping: 26,
 } as const)
 
 // TODO: rewrite these to use mutation
@@ -518,6 +524,18 @@ export const instanceMigrations = createRecordMigrationSequence({
 			},
 			down: (instance) => {
 				return { ...instance, canMoveCamera: true }
+			},
+		},
+		{
+			id: instanceVersions.RefactorGridSnapping,
+			up: (record: any) => {
+				record.showGrid = record.isGridMode
+				;(record.snapToGridWhenShown = true), delete record.isGridMode
+			},
+			down: (record: any) => {
+				record.isGridMode = record.showGrid
+				delete record.showGrid
+				delete record.snapToGridWhenShown
 			},
 		},
 	],

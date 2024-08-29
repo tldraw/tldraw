@@ -436,7 +436,8 @@ export function moveShapesToPoint({
 		averagePagePoint,
 	} = snapshot
 
-	const isGridMode = editor.getInstanceState().isGridMode
+	const {showGrid, snapToGridWhenShown} = editor.getInstanceState()
+	const isGridMode = showGrid && snapToGridWhenShown
 
 	const gridSize = editor.getDocumentSettings().gridSize
 

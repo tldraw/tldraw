@@ -1284,7 +1284,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
-					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
+					editor.updateInstanceState({ showGrid: !editor.getInstanceState().showGrid })
 				},
 				checkbox: true,
 			},

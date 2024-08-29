@@ -185,12 +185,13 @@ function GridWrapper() {
 	const editor = useEditor()
 	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
 	const { x, y, z } = useValue('camera', () => editor.getCamera(), [editor])
-	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
+	const showGrid = useValue('showGrid', () => editor.getInstanceState().showGrid, [editor])
+	const gridType = useValue('gridType', () => editor.getCurrentPage().gridType, [editor])
 	const { Grid } = useEditorComponents()
 
-	if (!(Grid && isGridMode)) return null
+	if (!(Grid && showGrid)) return null
 
-	return <Grid x={x} y={y} z={z} size={gridSize} />
+	return <Grid x={x} y={y} z={z} size={gridSize} type={gridType} />
 }
 
 function ScribbleWrapper() {

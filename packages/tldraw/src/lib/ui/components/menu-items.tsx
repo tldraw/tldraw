@@ -526,8 +526,8 @@ export function ToggleToolLockItem() {
 /** @public @react */
 export function ToggleGridItem() {
 	const editor = useEditor()
-	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
-	return <TldrawUiMenuActionCheckboxItem actionId="toggle-grid" checked={isGridMode} />
+	const showGrid = useValue('showGrid', () => editor.getInstanceState().showGrid, [editor])
+	return <TldrawUiMenuActionCheckboxItem actionId="toggle-grid" checked={showGrid} />
 }
 
 /** @public @react */

@@ -10,12 +10,18 @@ import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 
 /**
+ * @public
+ */
+export type TLGridType = 'grid' | 'dot' | 'line' | 'iso'
+
+/**
  * TLPage
  *
  * @public
  */
 export interface TLPage extends BaseRecord<'page', TLPageId> {
 	name: string
+	gridType: TLGridType
 	index: IndexKey
 	meta: JsonObject
 }
@@ -33,6 +39,7 @@ export const pageValidator: T.Validator<TLPage> = T.model(
 		typeName: T.literal('page'),
 		id: pageIdValidator,
 		name: T.string,
+		gridType: T.literalEnum('grid', 'dot', 'line', 'iso'),
 		index: T.indexKey,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
@@ -41,6 +48,7 @@ export const pageValidator: T.Validator<TLPage> = T.model(
 /** @public */
 export const pageVersions = createMigrationIds('com.tldraw.page', {
 	AddMeta: 1,
+	AddGridType: 2,
 })
 
 /** @public */
@@ -54,6 +62,15 @@ export const pageMigrations = createRecordMigrationSequence({
 				record.meta = {}
 			},
 		},
+		{
+			id: pageVersions.AddGridType,
+			up: (record: any) => {
+				record.gridType = 'dot'
+			},
+			down: (record: any) => {
+				delete record.gridType
+			},
+		},
 	],
 })
 
@@ -63,6 +80,7 @@ export const PageRecordType = createRecordType<TLPage>('page', {
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	meta: {},
+	gridType: 'dot',
 }))
 
 /** @public */

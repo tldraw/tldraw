@@ -4,6 +4,7 @@ import {
 	CameraRecordType,
 	InstancePageStateRecordType,
 	TLINSTANCE_ID,
+	TLInstance,
 	TLPageId,
 	TLShapeId,
 	TLStore,
@@ -71,6 +72,7 @@ window?.addEventListener('beforeunload', () => {
 
 const Versions = {
 	Initial: 0,
+	RefactorGridSnapping: 1,
 } as const
 
 const CURRENT_SESSION_STATE_SNAPSHOT_VERSION = Math.max(...Object.values(Versions))
@@ -79,6 +81,13 @@ function migrate(snapshot: any) {
 	if (snapshot.version < Versions.Initial) {
 		// initial version
 		// noop
+	}
+	if (snapshot.version < Versions.RefactorGridSnapping) {
+		if (typeof snapshot.isGridMode === 'boolean') {
+			snapshot.showGrid = snapshot.isGridMode
+			snapshot.snapToGridWhenShown = true
+		}
+		delete snapshot.isGridMode
 	}
 	// add further migrations down here. see TLUserPreferences.ts for an example.
 
@@ -98,7 +107,8 @@ export interface TLSessionStateSnapshot {
 	exportBackground?: boolean
 	isDebugMode?: boolean
 	isToolLocked?: boolean
-	isGridMode?: boolean
+	showGrid?: boolean
+	snapToGridWhenShown?: boolean
 	pageStates?: Array<{
 		pageId: TLPageId
 		camera?: { x: number; y: number; z: number }
@@ -114,7 +124,8 @@ const sessionStateSnapshotValidator: T.Validator<TLSessionStateSnapshot> = T.obj
 	exportBackground: T.boolean.optional(),
 	isDebugMode: T.boolean.optional(),
 	isToolLocked: T.boolean.optional(),
-	isGridMode: T.boolean.optional(),
+	showGrid: T.boolean.optional(),
+	snapToGridWhenShown: T.boolean.optional(),
 	pageStates: T.arrayOf(
 		T.object({
 			pageId: pageIdValidator,
@@ -174,7 +185,8 @@ export function createSessionStateSnapshotSignal(
 			isFocusMode: instanceState.isFocusMode,
 			isDebugMode: instanceState.isDebugMode,
 			isToolLocked: instanceState.isToolLocked,
-			isGridMode: instanceState.isGridMode,
+			showGrid: instanceState.showGrid,
+			snapToGridWhenShown: instanceState.snapToGridWhenShown,
 			pageStates: allPageIds.map((id) => {
 				const ps = store.get(InstancePageStateRecordType.createId(id))
 				const camera = store.get(CameraRecordType.createId(id))
@@ -234,9 +246,10 @@ export function loadSessionStateSnapshotIntoStore(
 		isDebugMode: primary?.isDebugMode ?? secondary?.isDebugMode,
 		isFocusMode: primary?.isFocusMode ?? secondary?.isFocusMode,
 		isToolLocked: primary?.isToolLocked ?? secondary?.isToolLocked,
-		isGridMode: primary?.isGridMode ?? secondary?.isGridMode,
+		showGrid: primary?.showGrid ?? secondary?.showGrid,
+		snapToGridWhenShown: primary?.snapToGridWhenShown ?? secondary?.snapToGridWhenShown,
 		exportBackground: primary?.exportBackground ?? secondary?.exportBackground,
-	})
+	} satisfies Partial<TLInstance>)
 
 	store.atomic(() => {
 		for (const ps of res.pageStates ?? []) {
@@ -293,7 +306,8 @@ export function extractSessionStateFromLegacySnapshot(
 		isFocusMode: !!oldInstance.isFocusMode,
 		isDebugMode: !!oldInstance.isDebugMode,
 		isToolLocked: !!oldInstance.isToolLocked,
-		isGridMode: false,
+		showGrid: false,
+		snapToGridWhenShown: true,
 		pageStates: instanceRecords
 			.filter((r: any) => r.typeName === 'instance_page_state' && r.instanceId === oldInstance.id)
 			.map((ps: any) => {
