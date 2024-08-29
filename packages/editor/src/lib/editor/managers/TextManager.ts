@@ -1,4 +1,7 @@
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
+import { ReactNode } from 'react'
+import { flushSync } from 'react-dom'
+import { Root, createRoot } from 'react-dom/client'
 import { Editor } from '../Editor'
 
 const fixNewLines = /\r?\n|\r/g
@@ -36,11 +39,25 @@ export interface TLMeasureTextSpanOpts {
 
 const spaceCharacterRegex = /\s/
 
+/**
+ * @public
+ * This is an _experimental_ component that we are still exploring.
+ */
+export type MeasureMethod = 'text' | ((content: string) => ReactNode)
+
 /** @public */
 export class TextManager {
 	baseElm: HTMLDivElement
 
-	constructor(public editor: Editor) {
+	reactComponentElm: HTMLDivElement
+	reactRoot?: Root
+	reactComponentInitialized = false
+	measureMethod: MeasureMethod
+
+	constructor(
+		public editor: Editor,
+		measureMethod: MeasureMethod = 'text'
+	) {
 		const container = this.editor.getContainer()
 
 		const elm = document.createElement('div')
@@ -50,9 +67,43 @@ export class TextManager {
 		container.appendChild(elm)
 
 		this.baseElm = elm
-		editor.disposables.add(() => {
-			elm.remove()
-		})
+
+		const reactComponentElm = document.createElement('div')
+		reactComponentElm.id = `tldraw_text_measure_component`
+		reactComponentElm.classList.add('tl-text')
+		reactComponentElm.classList.add('tl-text-measure')
+		reactComponentElm.tabIndex = -1
+		container.appendChild(reactComponentElm)
+		this.reactComponentElm = reactComponentElm
+
+		this.measureMethod = measureMethod
+		this.reactRoot = createRoot(this.reactComponentElm)
+	}
+
+	measure(
+		content: string,
+		opts: {
+			fontStyle: string
+			fontWeight: string
+			fontFamily: string
+			fontSize: number
+			lineHeight: number
+			/**
+			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+			 * is null, the text will be measured without wrapping, but explicit line breaks and
+			 * space are preserved.
+			 */
+			maxWidth: null | number
+			minWidth?: null | number
+			padding: string
+			disableOverflowWrapBreaking?: boolean
+		}
+	): BoxModel & { scrollWidth: number } {
+		if (this.measureMethod === 'text') {
+			return this.measureText(content, opts)
+		} else {
+			return this.measureComponent(content, opts, this.measureMethod)
+		}
 	}
 
 	measureText(
@@ -99,6 +150,58 @@ export class TextManager {
 		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
 		elm.remove()
+
+		return {
+			x: 0,
+			y: 0,
+			w: rect.width,
+			h: rect.height,
+			scrollWidth,
+		}
+	}
+
+	measureComponent(
+		content: string,
+		opts: {
+			fontStyle: string
+			fontWeight: string
+			fontFamily: string
+			fontSize: number
+			lineHeight: number
+			/**
+			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+			 * is null, the text will be measured without wrapping, but explicit line breaks and
+			 * space are preserved.
+			 */
+			maxWidth: null | number
+			minWidth?: null | number
+			padding: string
+			disableOverflowWrapBreaking?: boolean
+		},
+		renderFn: (content: string) => ReactNode
+	): BoxModel & { scrollWidth: number } {
+		const elm = this.reactComponentElm
+		elm.setAttribute('dir', 'ltr')
+		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
+		elm.style.setProperty('font-family', opts.fontFamily)
+		elm.style.setProperty('font-style', opts.fontStyle)
+		elm.style.setProperty('font-weight', opts.fontWeight)
+		elm.style.setProperty('font-size', opts.fontSize + 'px')
+		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
+		elm.style.setProperty('min-width', opts.minWidth === null ? null : opts.minWidth + 'px')
+		elm.style.setProperty('padding', opts.padding)
+		elm.style.setProperty(
+			'overflow-wrap',
+			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
+		)
+
+		flushSync(() => {
+			this.reactRoot!.render(renderFn(content))
+		})
+
+		const rect = elm.getBoundingClientRect()
+		const scrollWidth = elm.scrollWidth
 
 		return {
 			x: 0,

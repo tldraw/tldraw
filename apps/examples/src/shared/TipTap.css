@@ -1,0 +1,18 @@
+/* N.B. This is just because our default fonts don't have bolding/italic versions. */
+
+.tiptap strong {
+	display: inline-block;
+	filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.5));
+	transform: scale(0.9) rotate(-3deg);
+	opacity: 0.8;
+}
+
+.tiptap em {
+	display: inline-block;
+	transform: skewX(-12deg);
+}
+
+.tiptap p,
+.tl-text-measure p {
+	margin: 0;
+}

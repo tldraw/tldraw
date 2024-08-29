@@ -32,6 +32,7 @@ import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
+import { Root } from 'react-dom/client';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { SetStateAction } from 'react';
@@ -56,7 +57,10 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultDashStyle } from '@tldraw/tlschema';
+import { TLDefaultFillStyle } from '@tldraw/tlschema';
+import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
+import { TLDefaultVerticalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
@@ -799,7 +803,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, measureMethod, options, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
@@ -1687,6 +1691,11 @@ export type InvalidLicenseReason = 'has-key-development-mode' | 'invalid-license
 // @public
 export const isSafeFloat: (n: number) => boolean;
 
+// @public (undocumented)
+export type ITextLabel<P> = React_2.NamedExoticComponent<P> & {
+    measureMethod?: MeasureMethod;
+};
+
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
 
@@ -1865,6 +1874,9 @@ export interface MatModel {
     // (undocumented)
     f: number;
 }
+
+// @public
+export type MeasureMethod = 'text' | ((content: string) => ReactNode);
 
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -2408,12 +2420,86 @@ export const TAB_ID: string;
 export type TestEnvironment = 'development' | 'production';
 
 // @public (undocumented)
+export interface TextLabelProps {
+    // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
+    bounds?: Box;
+    // (undocumented)
+    classNamePrefix?: string;
+    // (undocumented)
+    disableTab?: boolean;
+    // (undocumented)
+    fill?: TLDefaultFillStyle;
+    // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
+    fontSize: number;
+    // (undocumented)
+    id: TLShapeId;
+    // (undocumented)
+    isNote?: boolean;
+    // (undocumented)
+    isSelected: boolean;
+    // (undocumented)
+    labelColor: string;
+    // (undocumented)
+    lineHeight: number;
+    // (undocumented)
+    onKeyDown?(e: React_2.KeyboardEvent<HTMLTextAreaElement>): void;
+    // (undocumented)
+    padding?: number;
+    // (undocumented)
+    style?: React_2.CSSProperties;
+    // (undocumented)
+    text: string;
+    // (undocumented)
+    textHeight?: number;
+    // (undocumented)
+    textWidth?: number;
+    // (undocumented)
+    type: string;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
+    // (undocumented)
+    wrap?: boolean;
+}
+
+// @public (undocumented)
 export class TextManager {
-    constructor(editor: Editor);
+    constructor(editor: Editor, measureMethod?: MeasureMethod);
     // (undocumented)
     baseElm: HTMLDivElement;
     // (undocumented)
     editor: Editor;
+    // (undocumented)
+    measure(content: string, opts: {
+        maxWidth: null | number;
+        disableOverflowWrapBreaking?: boolean;
+        fontFamily: string;
+        fontSize: number;
+        fontStyle: string;
+        fontWeight: string;
+        lineHeight: number;
+        minWidth?: null | number;
+        padding: string;
+    }): BoxModel & {
+        scrollWidth: number;
+    };
+    // (undocumented)
+    measureComponent(content: string, opts: {
+        maxWidth: null | number;
+        disableOverflowWrapBreaking?: boolean;
+        fontFamily: string;
+        fontSize: number;
+        fontStyle: string;
+        fontWeight: string;
+        lineHeight: number;
+        minWidth?: null | number;
+        padding: string;
+    }, renderFn: (content: string) => ReactNode): BoxModel & {
+        scrollWidth: number;
+    };
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
         shouldTruncateToFirstLine?: boolean;
     }): {
@@ -2423,6 +2509,8 @@ export class TextManager {
             text: string;
         }[];
     };
+    // (undocumented)
+    measureMethod: MeasureMethod;
     // (undocumented)
     measureText(textToMeasure: string, opts: {
         maxWidth: null | number;
@@ -2441,6 +2529,12 @@ export class TextManager {
         box: BoxModel;
         text: string;
     }[];
+    // (undocumented)
+    reactComponentElm: HTMLDivElement;
+    // (undocumented)
+    reactComponentInitialized: boolean;
+    // (undocumented)
+    reactRoot?: Root;
 }
 
 // @public (undocumented)
@@ -2807,6 +2901,8 @@ export interface TLEditorComponents {
     // (undocumented)
     SvgDefs?: ComponentType | null;
     // (undocumented)
+    TextLabel?: null | TLTextLabel;
+    // (undocumented)
     ZoomBrush?: ComponentType<TLBrushProps> | null;
 }
 
@@ -2820,6 +2916,7 @@ export interface TLEditorOptions {
     initialState?: string;
     // (undocumented)
     licenseKey?: string;
+    measureMethod?: MeasureMethod;
     // (undocumented)
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
@@ -3426,6 +3523,9 @@ export interface TLSvgOptions {
     // (undocumented)
     scale?: number;
 }
+
+// @public
+export type TLTextLabel = ITextLabel<TextLabelProps>;
 
 // @public (undocumented)
 export type TLTickEvent = (info: TLTickEventInfo) => void;
