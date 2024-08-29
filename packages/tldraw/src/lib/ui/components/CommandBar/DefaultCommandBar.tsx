@@ -29,12 +29,13 @@ export function DefaultCommmandBar() {
 	const [isOpen] = useMenuIsOpen(COMMAND_BAR_ID)
 	const [selected, setSelected] = useState(-1)
 	const [search, setSearch] = useState('')
-	const [previousActions, setPreviousActions] = useState<string[]>([])
+	const [previousActionIds, setPreviousActionIds] = useState<string[]>([])
 	const [showPreviousActions, setShowPreviousActions] = useState(false)
 	let actions = useCommandBarActions(search)
 	const allActions = useActions()
+
 	if (showPreviousActions) {
-		actions = previousActions.map((id) => allActions[id])
+		actions = previousActionIds.map((id) => allActions[id])
 	}
 	const numItems = Math.min(actions.length, MAX_ITEMS)
 
@@ -46,7 +47,7 @@ export function DefaultCommmandBar() {
 	}, [editor])
 
 	const shouldShowPreviousActions =
-		!showPreviousActions && search === '' && previousActions.length > 0
+		!showPreviousActions && search === '' && previousActionIds.length > 0
 
 	const onSelect = useCallback(
 		(index: number) => {
@@ -54,10 +55,10 @@ export function DefaultCommmandBar() {
 			if (!action || !action.enabled?.()) return
 			close()
 			action.onSelect('command-bar')
-			const newActions = [action.id, ...previousActions.filter((a) => a !== action.id)]
-			setPreviousActions(newActions)
+			const newActions = [action.id, ...previousActionIds.filter((a) => a !== action.id)]
+			setPreviousActionIds(newActions)
 		},
-		[actions, close, previousActions]
+		[actions, close, previousActionIds]
 	)
 
 	const handleKeyDown = useCallback(
@@ -79,7 +80,7 @@ export function DefaultCommmandBar() {
 						e.preventDefault()
 						if (shouldShowPreviousActions) {
 							setShowPreviousActions(true)
-							setSelected(previousActions.length - 1)
+							setSelected(previousActionIds.length - 1)
 						} else {
 							setSelected(getPrevious(selected, numItems))
 						}
@@ -89,7 +90,7 @@ export function DefaultCommmandBar() {
 					e.preventDefault()
 					if (shouldShowPreviousActions) {
 						setShowPreviousActions(true)
-						setSelected(previousActions.length - 1)
+						setSelected(previousActionIds.length - 1)
 					} else {
 						setSelected(getNext(selected, numItems))
 					}
@@ -114,7 +115,19 @@ export function DefaultCommmandBar() {
 					break
 			}
 		},
-		[close, shouldShowPreviousActions, selected, numItems, previousActions.length, onSelect]
+		[close, shouldShowPreviousActions, selected, numItems, previousActionIds.length, onSelect]
+	)
+
+	const handleChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const value = e.target.value
+			setSearch(value)
+			if (selected === -1) {
+				setSelected(0)
+			}
+			if (value === '') setSelected(-1)
+		},
+		[selected]
 	)
 
 	if (!isOpen) return null
@@ -130,14 +143,7 @@ export function DefaultCommmandBar() {
 							value={search}
 							placeholder={msg('command-bar.placeholder')}
 							className="tlui-command-bar__input"
-							onChange={(e) => {
-								const value = e.target.value
-								setSearch(value)
-								if (selected === -1) {
-									setSelected(0)
-								}
-								if (value === '') setSelected(-1)
-							}}
+							onChange={handleChange}
 						/>
 						{actions.length !== 0 && (
 							<CommandBarItems actions={actions} selected={selected} onSelect={onSelect} />
