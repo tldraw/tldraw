@@ -1,7 +1,7 @@
 import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useCallback, useState } from 'react'
-import { TLUiActionItem, unwrapLabel } from '../../context/actions'
+import { TLUiActionItem, unwrapLabel, useActions } from '../../context/actions'
 import { useCommandBarActions } from '../../hooks/useCommandBarActions'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -29,14 +29,24 @@ export function DefaultCommmandBar() {
 	const [isOpen] = useMenuIsOpen(COMMAND_BAR_ID)
 	const [selected, setSelected] = useState(-1)
 	const [search, setSearch] = useState('')
-	const actions = useCommandBarActions(search)
+	const [previousActions, setPreviousActions] = useState<string[]>([])
+	const [showPreviousActions, setShowPreviousActions] = useState(false)
+	let actions = useCommandBarActions(search)
+	const allActions = useActions()
+	if (showPreviousActions) {
+		actions = previousActions.map((id) => allActions[id])
+	}
 	const numItems = Math.min(actions.length, MAX_ITEMS)
 
 	const close = useCallback(() => {
 		setSelected(-1)
 		setSearch('')
+		setShowPreviousActions(false)
 		editor.deleteOpenMenu(COMMAND_BAR_ID)
 	}, [editor])
+
+	const shouldShowPreviousActions =
+		!showPreviousActions && search === '' && previousActions.length > 0
 
 	const onSelect = useCallback(
 		(index: number) => {
@@ -44,8 +54,10 @@ export function DefaultCommmandBar() {
 			if (!action || !action.enabled?.()) return
 			close()
 			action.onSelect('command-bar')
+			const newActions = [action.id, ...previousActions.filter((a) => a !== action.id)]
+			setPreviousActions(newActions)
 		},
-		[actions, close]
+		[actions, close, previousActions]
 	)
 
 	const handleKeyDown = useCallback(
@@ -57,28 +69,52 @@ export function DefaultCommmandBar() {
 				case 'Tab':
 					if (e.shiftKey) {
 						e.preventDefault()
-						setSelected(getNext(selected, numItems))
+						if (shouldShowPreviousActions) {
+							setShowPreviousActions(true)
+							setSelected(0)
+						} else {
+							setSelected(getNext(selected, numItems))
+						}
 					} else {
 						e.preventDefault()
-						setSelected(getPrevious(selected, numItems))
+						if (shouldShowPreviousActions) {
+							setShowPreviousActions(true)
+							setSelected(previousActions.length - 1)
+						} else {
+							setSelected(getPrevious(selected, numItems))
+						}
 					}
 					break
 				case 'ArrowUp':
 					e.preventDefault()
-					setSelected(getNext(selected, numItems))
+					if (shouldShowPreviousActions) {
+						setShowPreviousActions(true)
+						setSelected(previousActions.length - 1)
+					} else {
+						setSelected(getNext(selected, numItems))
+					}
 					break
 				case 'ArrowDown':
 					e.preventDefault()
-					setSelected(getPrevious(selected, numItems))
+					if (shouldShowPreviousActions) {
+						setShowPreviousActions(true)
+						setSelected(0)
+					} else {
+						setSelected(getPrevious(selected, numItems))
+					}
 					break
 				case 'Enter': {
 					e.preventDefault()
 					onSelect(selected)
 					break
 				}
+				default:
+					setShowPreviousActions(false)
+					setSelected(0)
+					break
 			}
 		},
-		[close, selected, numItems, onSelect]
+		[close, shouldShowPreviousActions, selected, numItems, previousActions.length, onSelect]
 	)
 
 	if (!isOpen) return null
