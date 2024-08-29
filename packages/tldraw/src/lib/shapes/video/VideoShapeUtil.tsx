@@ -13,7 +13,7 @@ import classNames from 'classnames'
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { MediaControls } from '../shared/MediaControls'
+import { FULL_CONTROLS_WIDTH, MediaControls } from '../shared/MediaControls'
 import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -90,7 +90,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		}, [rVideo, prefersReducedMotion])
 
 		const zoom = editor.getZoomLevel()
-		const widthScaled = (shape.props.w * zoom) / 260
+		const widthScaled = (shape.props.w * zoom) / FULL_CONTROLS_WIDTH
 
 		return (
 			<>

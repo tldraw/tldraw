@@ -13,7 +13,7 @@ import {
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { MediaControls } from '../shared/MediaControls'
+import { FULL_CONTROLS_WIDTH, MediaControls } from '../shared/MediaControls'
 import { useAsset } from '../shared/useAsset'
 
 /** @public */
@@ -32,7 +32,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 
 	override getDefaultProps(): TLAudioShape['props'] {
 		return {
-			w: AUDIO_WIDTH,
+			w: FULL_CONTROLS_WIDTH,
 			h: AUDIO_HEIGHT,
 			assetId: null,
 			time: 0,
@@ -73,7 +73,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 		const coverArt = audioAsset?.props.coverArt
 		const title = audioAsset?.props.title
 		const zoom = editor.getZoomLevel()
-		const widthScaled = (shape.props.w * zoom) / AUDIO_WIDTH
+		const widthScaled = (shape.props.w * zoom) / FULL_CONTROLS_WIDTH
 		const heightScaled = (shape.props.h * zoom) / AUDIO_HEIGHT
 
 		return (
@@ -153,8 +153,6 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 	}
 }
 
-/** @internal */
-export const AUDIO_WIDTH = 260
 /** @internal */
 export const AUDIO_HEIGHT = 252
 const AUDIO_WITHOUT_COVER_ART_HEIGHT = 60

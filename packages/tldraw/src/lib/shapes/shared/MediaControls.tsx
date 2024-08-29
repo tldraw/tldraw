@@ -7,6 +7,9 @@ import { useTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 
 type MediaElement = HTMLAudioElement | HTMLVideoElement
 
+/** @internal */
+export const FULL_CONTROLS_WIDTH = 260
+
 export function MediaControls({
 	children,
 	shape,
