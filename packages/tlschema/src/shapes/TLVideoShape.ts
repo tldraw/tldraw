@@ -10,6 +10,7 @@ export interface TLVideoShapeProps {
 	w: number
 	h: number
 	time: number
+	lastStartTime: number
 	playing: boolean
 	url: string
 	assetId: TLAssetId | null
@@ -23,6 +24,7 @@ export const videoShapeProps: RecordProps<TLVideoShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	time: T.number,
+	lastStartTime: T.number,
 	playing: T.boolean,
 	url: T.linkUrl,
 	assetId: assetIdValidator.nullable(),
@@ -31,6 +33,7 @@ export const videoShapeProps: RecordProps<TLVideoShape> = {
 const Versions = createShapePropsMigrationIds('video', {
 	AddUrlProp: 1,
 	MakeUrlsValid: 2,
+	AddLastStartTime: 3,
 })
 
 export { Versions as videoShapeVersions }
@@ -54,6 +57,15 @@ export const videoShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (_props) => {
 				// noop
+			},
+		},
+		{
+			id: Versions.AddLastStartTime,
+			up: (props) => {
+				props.lastStartTime = 0
+			},
+			down: (_props) => {
+				delete _props.lastStartTime
 			},
 		},
 	],

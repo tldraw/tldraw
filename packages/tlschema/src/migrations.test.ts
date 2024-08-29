@@ -249,6 +249,20 @@ describe('Adding url props', () => {
 	}
 })
 
+describe('Adding lastStartTime', () => {
+	const { up } = getTestMigration(videoShapeVersions.AddLastStartTime)
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { lastStartTime: 0 } })
+	})
+})
+
+describe('Removing lastStartTime', () => {
+	const { down } = getTestMigration(videoShapeVersions.AddLastStartTime)
+	test('down works as expected', () => {
+		expect(down({ props: { lastStartTime: 0 } })).toEqual({ props: {} })
+	})
+})
+
 describe('Bookmark null asset id', () => {
 	const { up } = getTestMigration(bookmarkShapeVersions.NullAssetId)
 	test('up works as expected', () => {

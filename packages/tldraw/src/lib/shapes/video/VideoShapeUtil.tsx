@@ -35,6 +35,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			h: 100,
 			assetId: null,
 			time: 0,
+			lastStartTime: 0,
 			playing: true,
 			url: '',
 		}
@@ -47,6 +48,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const { Spinner } = useEditorComponents()
+		const { time, lastStartTime, playing } = shape.props
 
 		const rVideo = useRef<HTMLVideoElement>(null!)
 
@@ -61,24 +63,84 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			return () => document.removeEventListener('fullscreenchange', fullscreenChange)
 		})
 
-		const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
-			const video = e.currentTarget
-			if (!video) return
+		const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>(
+			(e) => {
+				const video = e.currentTarget
+				if (!video) return
+				const newTime = getCorrectedTime(lastStartTime, time, video.duration)
+				if (newTime !== video.currentTime) {
+					video.currentTime = newTime
+				}
 
-			setIsLoaded(true)
-		}, [])
+				if (!playing) {
+					video.pause()
+				}
 
-		// If the current time changes and we're not editing the video, update the video time
+				setIsLoaded(true)
+			},
+			[playing, time, lastStartTime]
+		)
+
+		// If the current time changes and we're not editing the video, update the video time.
 		useEffect(() => {
 			const video = rVideo.current
 			if (!video) return
+
+			const newTime = getCorrectedTime(lastStartTime, time, video.duration)
+			if (isLoaded && newTime !== video.currentTime) {
+				video.currentTime = newTime
+			}
+			if (isLoaded && playing !== !video.paused) {
+				playing ? video.play() : video.pause()
+			}
 
 			if (isEditing) {
 				if (document.activeElement !== video) {
 					video.focus()
 				}
 			}
-		}, [isEditing, isLoaded])
+		}, [isEditing, time, playing, lastStartTime, isLoaded])
+
+		const handlePlay = useCallback<ReactEventHandler<HTMLVideoElement>>(
+			(e) => {
+				const video = e.currentTarget
+				if (!video) return
+				if (playing) return
+
+				editor.updateShapes([
+					{
+						type: 'video',
+						id: shape.id,
+						props: {
+							playing: true,
+							lastStartTime: getCurrentServerTime(),
+							time: video.currentTime,
+						},
+					},
+				])
+			},
+			[shape.id, editor, playing]
+		)
+		const handlePause = useCallback<ReactEventHandler<HTMLVideoElement>>(
+			(e) => {
+				const video = e.currentTarget
+				if (!video) return
+				if (!playing) return
+
+				editor.updateShapes([
+					{
+						type: 'video',
+						id: shape.id,
+						props: {
+							playing: false,
+							lastStartTime: getCurrentServerTime(),
+							time: video.currentTime,
+						},
+					},
+				])
+			},
+			[shape.id, editor, playing]
+		)
 
 		useEffect(() => {
 			if (prefersReducedMotion) {
@@ -129,6 +191,8 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 										disableRemotePlayback
 										disablePictureInPicture
 										controls={isEditing && showControls}
+										onPlay={handlePlay}
+										onPause={handlePause}
 										onLoadedData={handleLoadedData}
 										hidden={!isLoaded}
 									>
@@ -167,4 +231,14 @@ function serializeVideo(id: string): string {
 		canvas.getContext('2d')!.drawImage(video, 0, 0)
 		return canvas.toDataURL('image/png')
 	} else throw new Error('Video with not found when attempting serialization.')
+}
+
+function getCurrentServerTime() {
+	const offset = (window as any).serverOffset ?? 0
+	return Date.now() + offset
+}
+
+function getCorrectedTime(lastStartTimeMs: number, timeSec: number, totalTime: number) {
+	// We % by totalTime because the video can loop.
+	return (((getCurrentServerTime() - lastStartTimeMs) / 1000) % totalTime) + timeSec
 }
