@@ -26,6 +26,7 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	useValue,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -426,9 +427,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 		const { fill, font, align, verticalAlign, size, text } = props
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
 		const isEditingAnything = this.editor.getEditingShapeId() !== null
+		const isOnlySelected = useValue(
+			'isGeoOnlySelected',
+			() => shape.id === this.editor.getOnlySelectedShapeId(),
+			[]
+		)
 		const showHtmlContainer = isEditingAnything || shape.props.text
 
 		return (
@@ -455,7 +460,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}
-							isSelected={isSelected}
+							isSelected={isOnlySelected}
 							labelColor={theme[props.labelColor].solid}
 							wrap
 						/>
