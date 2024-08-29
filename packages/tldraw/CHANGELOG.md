@@ -1,3 +1,15 @@
+# v2.4.6 (Thu Aug 29 2024)
+
+#### 🐛 Bug Fix
+
+- [patch hotfix] render perf thingy [#4434](https://github.com/tldraw/tldraw/pull/4434) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.4.4 (Mon Aug 05 2024)
 
 #### 🐛 Bug Fix
