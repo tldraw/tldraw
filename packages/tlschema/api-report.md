@@ -1478,6 +1478,8 @@ export interface TLVideoShapeProps {
     // (undocumented)
     h: number;
     // (undocumented)
+    lastStartTime: number;
+    // (undocumented)
     playing: boolean;
     // (undocumented)
     time: number;
