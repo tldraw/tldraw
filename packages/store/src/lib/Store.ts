@@ -478,7 +478,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
-		return this.atoms.get()[id]?.__unsafe__getWithoutCapture() as any
+		return this.atoms.__unsafe__getWithoutCapture()[id]?.__unsafe__getWithoutCapture() as any
 	}
 
 	/**
