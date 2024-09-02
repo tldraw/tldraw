@@ -75,6 +75,7 @@ export async function embedMedia(node: HTMLElement) {
 		}
 		return node
 	} else if (node instanceof HTMLInputElement) {
+		// if an input has a value, make sure it's serialized when we convert to svg
 		node.setAttribute('value', node.value)
 	} else if (node instanceof HTMLTextAreaElement) {
 		node.textContent = node.value

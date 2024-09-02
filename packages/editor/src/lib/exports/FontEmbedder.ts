@@ -1,15 +1,22 @@
-import { bind, compact } from '@tldraw/utils'
+import { assert, bind, compact } from '@tldraw/utils'
 import { Promise } from 'core-js'
 import { fetchCache, resourceToDataUrl } from './fetchCache'
 import { ParsedFontFace, parseCss, parseCssFontFaces, parseCssFontFamilyValue } from './parseCss'
 
 export class FontEmbedder {
-	private readonly fontFacesPromise = getCurrentDocumentFontFaces()
+	private fontFacesPromise: Promise<ParsedFontFace[]> | null = null
 	private readonly foundFontNames = new Set<string>()
 	private readonly fontFacesToEmbed = new Set<ParsedFontFace>()
 	private readonly pendingPromises: Promise<void>[] = []
 
+	startFindingCurrentDocumentFontFaces() {
+		assert(!this.fontFacesPromise, 'FontEmbedder already started')
+		this.fontFacesPromise = getCurrentDocumentFontFaces()
+	}
+
 	@bind onFontFamilyValue(fontFamilyValue: string) {
+		assert(this.fontFacesPromise, 'FontEmbedder not started')
+
 		const fonts = parseCssFontFamilyValue(fontFamilyValue)
 		for (const font of fonts) {
 			if (this.foundFontNames.has(font)) return

@@ -35,6 +35,8 @@ function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
 
 	useLayoutEffect(() => {
 		const style = document.createElement('style')
+		// tests can use #self in their CSS to refer uniquely to this shape so we can test how well
+		// CSS in <head> is applied to the shape when exporting.
 		style.textContent = shape.props.css.replace(/#self/g, `#${id}`)
 		document.head.appendChild(style)
 		return () => {

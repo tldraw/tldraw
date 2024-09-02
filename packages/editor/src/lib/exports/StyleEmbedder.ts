@@ -15,29 +15,32 @@ interface ElementStyleInfo {
 
 export class StyleEmbedder {
 	constructor(private readonly root: Element) {}
-	private readonly styles = new Map<HTMLElement, ElementStyleInfo>()
-	private readonly fonts = new FontEmbedder()
+	private readonly styles = new Map<Element, ElementStyleInfo>()
+	readonly fonts = new FontEmbedder()
 
-	readRoot(rootElement: HTMLElement) {
+	readRootElementStyles(rootElement: Element) {
 		// when reading a root, we always apply _all_ the styles, even if they match the defaults
-		this.readElement(rootElement, {
+		this.readElementStyles(rootElement, {
 			shouldRespectDefaults: false,
 			shouldSkipInheritedParentStyles: false,
 		})
 
-		const children = Array.from(rootElement.children) as HTMLElement[]
+		const children = Array.from(rootElement.children)
 		while (children.length) {
 			const child = children.pop()!
-			this.readElement(child, {
+			children.push(...child.children)
+
+			// when reading children, we don't apply styles that match the defaults for that
+			// element, or that would be inherited from the parent
+			this.readElementStyles(child, {
 				shouldRespectDefaults: true,
 				shouldSkipInheritedParentStyles: true,
 			})
-			children.push(...(Array.from(child.children) as HTMLElement[]))
 		}
 	}
 
-	readElement(
-		element: HTMLElement,
+	private readElementStyles(
+		element: Element,
 		{ shouldRespectDefaults = true, shouldSkipInheritedParentStyles = true }
 	) {
 		const defaultStyles = shouldRespectDefaults
@@ -45,16 +48,13 @@ export class StyleEmbedder {
 			: NO_STYLES
 
 		const parentStyles = shouldSkipInheritedParentStyles
-			? this.styles.get(element.parentElement as HTMLElement)?.self ?? NO_STYLES
+			? this.styles.get(element.parentElement as Element)?.self ?? NO_STYLES
 			: NO_STYLES
 
 		const info: ElementStyleInfo = {
-			self: element.computedStyleMap
-				? fromComputedStyleMap(element.computedStyleMap(), { defaultStyles, parentStyles })
-				: fromComputedStyle(window.getComputedStyle(element), { defaultStyles, parentStyles }),
-
-			before: this.getPseudoElementStyle(element, ':before'),
-			after: this.getPseudoElementStyle(element, ':after'),
+			self: styleFromElement(element, { defaultStyles, parentStyles }),
+			before: styleFromPseudoElement(element, '::before'),
+			after: styleFromPseudoElement(element, '::after'),
 		}
 		this.styles.set(element, info)
 	}
@@ -103,30 +103,24 @@ export class StyleEmbedder {
 				}
 			}
 
+			const style = elementStyle(element)
 			for (const [property, value] of Object.entries(info.self)) {
 				if (!value) continue
-				;(element as HTMLElement).style.setProperty(property, value)
+				style.setProperty(property, value)
 			}
 
-			if (element.style.fontKerning === 'auto') {
-				element.style.fontKerning = 'normal'
+			// in HTML, font-kerning: auto is equivalent to font-kerning: normal. But in SVG, it's
+			// none. We set it to normal here to match the HTML behavior, as otherwise this can
+			// cause rendering differences.
+			if (style.fontKerning === 'auto') {
+				style.fontKerning = 'normal'
 			}
 		}
 
 		return css
 	}
 
-	getPseudoElementStyle(element: Element, pseudo: string) {
-		const style = window.getComputedStyle(element, pseudo)
-		const content = style.getPropertyValue('content')
-		if (content === '' || content === 'none') {
-			return undefined
-		}
-
-		return fromComputedStyle(style, { defaultStyles: NO_STYLES, parentStyles: NO_STYLES })
-	}
-
-	dispose() {
+	[Symbol.dispose]() {
 		destroyDefaultStyleFrame()
 	}
 }
@@ -136,7 +130,34 @@ interface ReadStyleOpts {
 	parentStyles: ReadonlyStyles
 }
 
-function fromComputedStyleMap(
+function elementStyle(element: Element) {
+	return (element as HTMLElement | SVGElement).style
+}
+
+function styleFromElement(element: Element, { defaultStyles, parentStyles }: ReadStyleOpts) {
+	// `computedStyleMap` produces a more accurate representation of the styles, but it's not
+	// supported in firefox at the time of writing. So we fall back to `getComputedStyle` if it's
+	// not available.
+	if (element.computedStyleMap) {
+		return styleFromComputedStyleMap(element.computedStyleMap(), { defaultStyles, parentStyles })
+	}
+	return styleFromComputedStyle(window.getComputedStyle(element), { defaultStyles, parentStyles })
+}
+
+function styleFromPseudoElement(element: Element, pseudo: string) {
+	// the equivalent of `computedStyleMap` for pseudo-elements isn't even fully specced out yet, so
+	// for those we have to use `getComputedStyle` in all browsers.
+	const style = window.getComputedStyle(element, pseudo)
+
+	const content = style.getPropertyValue('content')
+	if (content === '' || content === 'none') {
+		return undefined
+	}
+
+	return styleFromComputedStyle(style, { defaultStyles: NO_STYLES, parentStyles: NO_STYLES })
+}
+
+function styleFromComputedStyleMap(
 	style: StylePropertyMapReadOnly,
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
@@ -155,7 +176,7 @@ function fromComputedStyleMap(
 	return styles
 }
 
-function fromComputedStyle(
+function styleFromComputedStyle(
 	style: CSSStyleDeclaration,
 	{ defaultStyles, parentStyles }: ReadStyleOpts
 ) {
@@ -181,6 +202,8 @@ function formatCss(style: ReadonlyStyles) {
 	return cssText
 }
 
+// when we're figuring out the default values for a tag, we need read them from a separate document
+// so they're not affected by the current document's styles
 let defaultStyleFrame:
 	| { iframe: HTMLIFrameElement; foreignObject: SVGForeignObjectElement; document: Document }
 	| undefined
@@ -216,8 +239,8 @@ function getDefaultStylesForTagName(tagName: string) {
 		const element = document.createElement(tagName)
 		foreignObject.appendChild(element)
 		existing = element.computedStyleMap
-			? fromComputedStyleMap(element.computedStyleMap(), defaultStyleReadOptions)
-			: fromComputedStyle(window.getComputedStyle(element), defaultStyleReadOptions)
+			? styleFromComputedStyleMap(element.computedStyleMap(), defaultStyleReadOptions)
+			: styleFromComputedStyle(window.getComputedStyle(element), defaultStyleReadOptions)
 		foreignObject.removeChild(element)
 		defaultStylesByTagName[tagName] = existing
 	}

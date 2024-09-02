@@ -1,4 +1,4 @@
-import { parseCss, parseCssFontFamilyValue } from './parseCss'
+import { parseCss, parseCssFontFamilyValue, parseCssValueUrls } from './parseCss'
 
 test('parseCss', () => {
 	expect(parseCss(``, 'https://example.com')).toMatchInlineSnapshot(`
@@ -150,5 +150,218 @@ test('parseCssFontFamilyValue', () => {
 		  "lucida console",
 		  "sans-serif",
 		}
+	`)
+})
+
+test('parseCssValueUrls', () => {
+	expect(parseCssValueUrls(`url(http://example.com/image.png)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image.png)",
+		    "url": "http://example.com/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url('http://example.com/image.png')`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url('http://example.com/image.png')",
+		    "url": "http://example.com/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url("http://example.com/image.png")`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url("http://example.com/image.png")",
+		    "url": "http://example.com/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url( http://example.com/image.png )   `)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url( http://example.com/image.png )",
+		    "url": "http://example.com/image.png ",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url( http://example.com/white space.png )`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url( http://example.com/white space.png )",
+		    "url": "http://example.com/white space.png ",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url( 'http://example.com/white space.png' )`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url( 'http://example.com/white space.png' )",
+		    "url": "http://example.com/white space.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url( "http://example.com/white space.png" )`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url( "http://example.com/white space.png" )",
+		    "url": "http://example.com/white space.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(../images/image.png)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(../images/image.png)",
+		    "url": "../images/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url('../images/image.png')`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url('../images/image.png')",
+		    "url": "../images/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url("../images/image.png")`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url("../images/image.png")",
+		    "url": "../images/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/image.png?size=large)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image.png?size=large)",
+		    "url": "http://example.com/image.png?size=large",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/image.png#section1)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image.png#section1)",
+		    "url": "http://example.com/image.png#section1",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/image.png?size=large#section1)`))
+		.toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image.png?size=large#section1)",
+		    "url": "http://example.com/image.png?size=large#section1",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/image.png`)).toMatchInlineSnapshot(`[]`)
+	expect(parseCssValueUrls(`noturl(http://example.com/image.png)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image.png)",
+		    "url": "http://example.com/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url()`)).toMatchInlineSnapshot(`[]`)
+	expect(
+		parseCssValueUrls(`url(http://example.com/image1.png), url("http://example.com/image2.png");`)
+	).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image1.png)",
+		    "url": "http://example.com/image1.png",
+		  },
+		  {
+		    "original": "url("http://example.com/image2.png")",
+		    "url": "http://example.com/image2.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`#ffffff url(http://example.com/image.png) no-repeat;`))
+		.toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image.png)",
+		    "url": "http://example.com/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/im@ge.png)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/im@ge.png)",
+		    "url": "http://example.com/im@ge.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/im%20age.png)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/im%20age.png)",
+		    "url": "http://example.com/im%20age.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(   'http://example.com/image.png'   )`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(   'http://example.com/image.png'   )",
+		    "url": "http://example.com/image.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/image\\ space.png)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image\\ space.png)",
+		    "url": "http://example.com/image\\ space.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA)`))
+		.toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA)",
+		    "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`#ffffff;`)).toMatchInlineSnapshot(`[]`)
+	expect(
+		parseCssValueUrls(`url(http://example.com/image1.png) noturl(http://example.com/image2.png);`)
+	).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image1.png)",
+		    "url": "http://example.com/image1.png",
+		  },
+		  {
+		    "original": "url(http://example.com/image2.png)",
+		    "url": "http://example.com/image2.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/im@ge$.png)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/im@ge$.png)",
+		    "url": "http://example.com/im@ge$.png",
+		  },
+		]
+	`)
+	expect(parseCssValueUrls(`url(http://example.com/image(name).png)`)).toMatchInlineSnapshot(`
+		[
+		  {
+		    "original": "url(http://example.com/image(name)",
+		    "url": "http://example.com/image(name",
+		  },
+		]
 	`)
 })

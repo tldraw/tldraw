@@ -1,5 +1,12 @@
-import { TLAssetId, TLShapeId, useEditor, useSvgExportContext, useValue } from '@tldraw/editor'
-import { useLayoutEffect, useRef, useState } from 'react'
+import {
+	TLAssetId,
+	TLShapeId,
+	useDelaySvgExport,
+	useEditor,
+	useSvgExportContext,
+	useValue,
+} from '@tldraw/editor'
+import { useEffect, useRef, useState } from 'react'
 
 /**
  * This is a handy helper hook that resolves an asset to a URL for a given shape. It takes care of fetching the asset.
@@ -17,8 +24,9 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 	const culledShapes = editor.getCulledShapes()
 	const isCulled = culledShapes.has(shapeId)
 	const didAlreadyResolve = useRef(false)
+	const isReady = useDelaySvgExport()
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		if (url) didAlreadyResolve.current = true
 	}, [url])
 
@@ -30,11 +38,11 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 		shapeScale,
 	])
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		if (url) didAlreadyResolve.current = true
 	}, [url])
 
-	useLayoutEffect(() => {
+	useEffect(() => {
 		if (!isExport && isCulled) return
 
 		if (assetId && !asset?.props.src) {
@@ -43,6 +51,7 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 			if (preview) {
 				setUrl(preview)
 				setIsPlaceholder(true)
+				isReady()
 				return
 			}
 		}
@@ -58,23 +67,17 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 			if (!isCancelled) {
 				setUrl(resolvedUrl)
 				setIsPlaceholder(false)
+				isReady()
 			}
 		}
 
 		// If we already resolved the URL, debounce fetching potentially multiple image variations.
-		if (didAlreadyResolve.current) {
-			const timer = editor.timers.setTimeout(resolve, 500)
-			return () => {
-				clearTimeout(timer)
-				isCancelled = true
-			}
-		} else {
-			resolve()
-			return () => {
-				isCancelled = true
-			}
+		const timer = editor.timers.setTimeout(resolve, didAlreadyResolve ? 500 : 0)
+		return () => {
+			clearTimeout(timer)
+			isCancelled = true
 		}
-	}, [assetId, asset?.props.src, isCulled, screenScale, editor, isExport])
+	}, [assetId, asset?.props.src, isCulled, screenScale, editor, isExport, isReady])
 
 	return { asset, url, isPlaceholder }
 }
