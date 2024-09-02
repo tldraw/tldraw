@@ -38,22 +38,28 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 	>('idle')
 
 	const handleThumbsDown = useCallback(async () => {
-		if (state === 'loading') return
-		if (state === 'thumbs-down') {
-			setState('idle')
-			return
-		}
-		setState('thumbs-down')
-	}, [pathname, sessionId, state])
+		setState((s) => {
+			if (s === 'loading') {
+				return s
+			} else if (s === 'thumbs-down') {
+				return 'idle'
+			} else {
+				return 'thumbs-down'
+			}
+		})
+	}, [])
 
 	const handleThumbsUp = useCallback(() => {
-		if (state === 'loading') return
-		if (state === 'thumbs-up') {
-			setState('idle')
-			return
-		}
-		setState('thumbs-up')
-	}, [pathname, sessionId, state])
+		setState((s) => {
+			if (s === 'loading') {
+				return s
+			} else if (s === 'thumbs-up') {
+				return 'idle'
+			} else {
+				return 'thumbs-up'
+			}
+		})
+	}, [])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
