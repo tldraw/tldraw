@@ -2,7 +2,7 @@ name: Publish Canary Packages
 
 on:
   push:
-    branches: [main, alex/default-to-svg]
+    branches: [main]
 
 jobs:
   deploy:
