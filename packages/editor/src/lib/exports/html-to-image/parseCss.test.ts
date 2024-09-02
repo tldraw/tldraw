@@ -1,4 +1,4 @@
-import { parseCss, parseCssFontFamilyValue } from './embedCss'
+import { parseCss, parseCssFontFamilyValue } from './parseCss'
 
 test('parseCss', () => {
 	expect(parseCss(``, 'https://example.com')).toMatchInlineSnapshot(`

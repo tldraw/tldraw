@@ -5,14 +5,15 @@ import { createRoot } from 'react-dom/client'
 import { Editor } from '../editor/Editor'
 import { TLSvgOptions } from '../editor/types/misc-types'
 import { getSvgJsx } from './getSvgJsx'
-import { decorateAndEmbed } from './html-to-image/decorateAndEmbed'
-import { FontEmbedder } from './html-to-image/embedCss'
+import { StyleEmbedder } from './html-to-image/StyleEmbedder'
+import { embedMedia } from './html-to-image/embedMedia'
 
 export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: TLSvgOptions = {}) {
 	const result = await getSvgJsx(editor, shapeIds, opts)
 	if (!result) return undefined
 
 	const container = editor.getContainer()
+	// container.querySelectorAll('.tldraw-svg-export').forEach((el) => el.remove())
 	const renderTarget = document.createElement('div')
 	renderTarget.className = 'tldraw-svg-export'
 	renderTarget.inert = true
@@ -23,7 +24,6 @@ export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: T
 		left: '0px',
 		width: result.width + 'px',
 		height: result.height + 'px',
-		zIndex: '110000000',
 		pointerEvents: 'none',
 		opacity: 0,
 	})
@@ -34,6 +34,8 @@ export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: T
 		flushSync(() => {
 			root.render(result.jsx)
 		})
+
+		await waitForPromisesToResolve(result.waitForPromises)
 
 		const svg = renderTarget.firstElementChild
 		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
@@ -47,21 +49,34 @@ export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: T
 }
 
 async function applyChangesToForeignObjects(svg: SVGSVGElement) {
-	const foreignObjectChildren = svg.querySelectorAll('foreignObject.tl-shape-foreign-object > *')
+	const foreignObjectChildren = [
+		...svg.querySelectorAll('foreignObject.tl-shape-foreign-object > *'),
+	]
 	if (!foreignObjectChildren.length) return
 
-	const fontEmbedder = new FontEmbedder()
+	const styleEmbedder = new StyleEmbedder(svg)
 
-	await Promise.all(
-		Array.from(foreignObjectChildren, (child) =>
-			decorateAndEmbed(child as HTMLElement, { onFoundUsedFont: fontEmbedder.onFoundUsedFont })
-		)
-	)
+	await Promise.all(foreignObjectChildren.map((el) => embedMedia(el as HTMLElement)))
+	for (const el of foreignObjectChildren) {
+		styleEmbedder.read(el as HTMLElement)
+	}
 
-	const fontCss = await fontEmbedder.createCss()
-	if (fontCss) {
+	await styleEmbedder.fetchResources()
+	const css = await styleEmbedder.embedStyles()
+
+	if (css) {
 		const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-		style.textContent = fontCss
+		style.textContent = css
 		svg.prepend(style)
+	}
+}
+
+async function waitForPromisesToResolve(promises: Promise<void>[]) {
+	let lastLength = null
+	while (lastLength !== promises.length) {
+		lastLength = promises.length
+		await Promise.all(promises)
+		// eslint-disable-next-line no-restricted-globals
+		await new Promise((r) => setTimeout(r, 0))
 	}
 }

@@ -1,14 +1,9 @@
 import { MediaHelpers } from '@tldraw/utils'
-import { clonePseudoElements } from './clonePseudos'
-import {
-	embedCssValueUrlsIfNeeded,
-	parseCssFontFamilyValue,
-	shouldIncludeCssProperty,
-} from './embedCss'
 import { resourceToDataUrl } from './fetchCache'
 
 interface ForeignObjectEmbedOpts {
 	onFoundUsedFont(fontFamily: string): void
+	defaultStyles: Record<string, string>
 }
 
 function copyAttrs(source: Element, target: Element) {
@@ -67,7 +62,7 @@ async function getVideoReplacement(video: HTMLVideoElement) {
 	return createImage(null, video)
 }
 
-async function replaceNodeAndEmbedContentIfNeeded(node: HTMLElement) {
+export async function embedMedia(node: HTMLElement) {
 	if (node instanceof HTMLCanvasElement) {
 		return replace(node, await getCanvasReplacement(node))
 	} else if (node instanceof HTMLVideoElement) {
@@ -84,54 +79,11 @@ async function replaceNodeAndEmbedContentIfNeeded(node: HTMLElement) {
 			// this is fine
 		}
 		return node
-	}
-
-	// no support for iframes
-	return node
-}
-
-function applyInputValue(node: HTMLElement) {
-	if (node instanceof HTMLInputElement) {
+	} else if (node instanceof HTMLInputElement) {
 		node.setAttribute('value', node.value)
 	} else if (node instanceof HTMLTextAreaElement) {
 		node.textContent = node.value
 	}
-}
 
-async function applyCss(node: HTMLElement, opts: ForeignObjectEmbedOpts) {
-	const source = window.getComputedStyle(node)
-	const target = node.style
-
-	if (!target) return
-	for (const property of source) {
-		if (!shouldIncludeCssProperty(property)) continue
-		let value = source.getPropertyValue(property)
-
-		const replaced = embedCssValueUrlsIfNeeded(value)
-		if (replaced) value = await replaced
-
-		target.setProperty(property, value, source.getPropertyPriority(property))
-	}
-
-	if (node.style.fontFamily) {
-		const parsed = parseCssFontFamilyValue(node.style.fontFamily)
-		for (const font of parsed) {
-			opts.onFoundUsedFont(font)
-		}
-	}
-
-	if (node.style.fontKerning === 'auto') {
-		node.style.fontKerning = 'normal'
-	}
-
-	await clonePseudoElements(node)
-}
-
-export async function decorateAndEmbed(node: HTMLElement, opts: ForeignObjectEmbedOpts) {
-	node = await replaceNodeAndEmbedContentIfNeeded(node)
-	await Promise.all(
-		Array.from(node.children, (child) => decorateAndEmbed(child as HTMLElement, opts))
-	)
-	applyInputValue(node)
-	await applyCss(node, opts)
+	await Promise.all(Array.from(node.children, (child) => embedMedia(child as HTMLElement)))
 }

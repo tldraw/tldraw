@@ -194,6 +194,7 @@ export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/res
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export {
+	useDelaySvgExport,
 	useSvgExportContext,
 	type SvgExportContext,
 	type SvgExportDef,

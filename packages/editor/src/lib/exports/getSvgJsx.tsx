@@ -5,7 +5,8 @@ import {
 	TLShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
-import { ComponentType, Fragment, ReactElement } from 'react'
+import { promiseWithResolve } from '@tldraw/utils'
+import { ComponentType, Fragment, ReactElement, useEffect } from 'react'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import { Editor } from '../editor/Editor'
@@ -79,6 +80,9 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOpt
 
 	const defChildren: ReactElement[] = []
 
+	const initialEffectPromise = promiseWithResolve<void>()
+	const waitForPromises: Promise<void>[] = [initialEffectPromise]
+
 	const exportDefPromisesById = new Map<string, Promise<void>>()
 	const exportContext: SvgExportContext = {
 		isDarkMode,
@@ -92,9 +96,10 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOpt
 			})()
 			exportDefPromisesById.set(def.key, promise)
 		},
+		waitUntil: (promise) => {
+			waitForPromises.push(promise)
+		},
 	}
-
-	let didUseForeignObjectFallbacks = false
 
 	const unorderedShapeElements = (
 		await Promise.all(
@@ -171,7 +176,6 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOpt
 				} else {
 					// If the shape doesn't have a custom svg export, we'll use its normal HTML
 					// renderer in a foreignObject.
-					didUseForeignObjectFallbacks = true
 					elements.push({
 						zIndex: index,
 						element: (
@@ -232,13 +236,22 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOpt
 				data-color-mode={isDarkMode ? 'dark' : 'light'}
 				className={`tl-container tl-theme__force-sRGB ${isDarkMode ? 'tl-theme__dark' : 'tl-theme__light'}`}
 			>
+				<ResolveInitialEffect onEffect={() => initialEffectPromise.resolve()} />
 				<defs>{defChildren}</defs>
 				{unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex).map(({ element }) => element)}
 			</svg>
 		</SvgExportContextProvider>
 	)
 
-	return { jsx: svg, width: w, height: h, didUseForeignObjectFallbacks }
+	return { jsx: svg, width: w, height: h, waitForPromises }
+}
+
+function ResolveInitialEffect({ onEffect }: { onEffect(): void }) {
+	useEffect(() => {
+		onEffect()
+	})
+
+	return null
 }
 
 function ForeignObjectShape({
