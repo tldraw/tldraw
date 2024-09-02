@@ -41,6 +41,7 @@ export type AssetUrls = {
 		'clipboard-copied': string
 		'clipboard-copy': string
 		color: string
+		corners: string
 		'cross-2': string
 		'cross-circle': string
 		'dash-dashed': string

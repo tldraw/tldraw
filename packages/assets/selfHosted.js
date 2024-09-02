@@ -49,6 +49,7 @@ export function getAssetUrls(opts) {
 			'clipboard-copied': iconsIcon0MergedSvg + '#clipboard-copied',
 			'clipboard-copy': iconsIcon0MergedSvg + '#clipboard-copy',
 			color: iconsIcon0MergedSvg + '#color',
+			corners: iconsIcon0MergedSvg + '#corners',
 			'cross-2': iconsIcon0MergedSvg + '#cross-2',
 			'cross-circle': iconsIcon0MergedSvg + '#cross-circle',
 			'dash-dashed': iconsIcon0MergedSvg + '#dash-dashed',

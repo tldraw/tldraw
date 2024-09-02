@@ -33,6 +33,7 @@ export type TLUiIconType =
 	| 'clipboard-copied'
 	| 'clipboard-copy'
 	| 'color'
+	| 'corners'
 	| 'cross-2'
 	| 'cross-circle'
 	| 'dash-dashed'
@@ -180,6 +181,7 @@ export const iconTypes = [
 	'clipboard-copied',
 	'clipboard-copy',
 	'color',
+	'corners',
 	'cross-2',
 	'cross-circle',
 	'dash-dashed',

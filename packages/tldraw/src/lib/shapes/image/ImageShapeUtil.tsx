@@ -274,7 +274,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				)}
 				<HTMLContainer
 					id={shape.id}
-					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+					style={{
+						overflow: 'hidden',
+						width: shape.props.w,
+						height: shape.props.h,
+						borderRadius: shape.props.crop?.isCircle ? '50%' : undefined,
+					}}
 				>
 					<div className={classNames('tl-image-container')} style={containerStyle}>
 						{/* We have two images: the currently loaded image, and the next image that
