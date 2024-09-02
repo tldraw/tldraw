@@ -31,7 +31,7 @@ if (args.length === 0) {
 	throw new Error('Usage: publish-prerelease.ts <releaseTag>')
 }
 const releaseTag = args[0]
-if (releaseTag !== 'canary' && releaseTag !== 'latest') {
-	throw new Error('releaseTag must be "canary" or "latest"')
+if (releaseTag !== 'canary' && releaseTag !== 'internal') {
+	throw new Error('releaseTag must be "canary" or "internal"')
 }
 main(releaseTag)
