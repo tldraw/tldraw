@@ -27,8 +27,10 @@ export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings
 	return (
 		<div className="relative shrink overflow-y-auto">
 			<div className="sticky top-0">
-				<h4 className="block bg-white text-black uppercase text-xs font-semibold">On this page</h4>
-				<div className="h-2 w-full bg-gradient-to-b from-white" />
+				<h4 className="block bg-white dark:bg-zinc-950 text-black dark:text-white uppercase text-xs font-semibold">
+					On this page
+				</h4>
+				<div className="h-2 w-full bg-gradient-to-b from-white dark:from-zinc-950" />
 			</div>
 			<ul className="flex flex-col gap-2 text-sm break-words">
 				{headings.map(({ title, level, slug }, index) => (
@@ -36,7 +38,9 @@ export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings
 						<Link
 							href={`#${slug}`}
 							className={cn(
-								slug === activeSlug ? 'text-black font-semibold' : 'hover:text-zinc-800'
+								slug === activeSlug
+									? 'text-black dark:text-white font-semibold'
+									: 'hover:text-zinc-800 dark:hover:text-zinc-100'
 							)}
 						>
 							{title}
@@ -44,7 +48,7 @@ export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings
 					</li>
 				))}
 			</ul>
-			<div className="sticky bottom-0 h-12 w-full bg-gradient-to-t from-white via-white" />
+			<div className="sticky bottom-0 h-12 w-full bg-gradient-to-t from-white dark:from-zinc-950 via-white dark:via-zinc-950" />
 		</div>
 	)
 }

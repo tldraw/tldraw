@@ -81,11 +81,17 @@ import {
 	sortById,
 	sortByIndex,
 	structuredClone,
+	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { TLEditorSnapshot, getSnapshot, loadSnapshot } from '../config/TLEditorSnapshot'
+import {
+	TLEditorSnapshot,
+	TLLoadSnapshotOptions,
+	getSnapshot,
+	loadSnapshot,
+} from '../config/TLEditorSnapshot'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { TLAnyBindingUtilConstructor, checkBindings } from '../config/defaultBindings'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
@@ -120,7 +126,6 @@ import {
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
-import { uniqueId } from '../utils/uniqueId'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
 import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
@@ -155,7 +160,7 @@ import {
 	RequiredKeys,
 	TLCameraMoveOptions,
 	TLCameraOptions,
-	TLSvgOptions,
+	TLImageExportOptions,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -1759,6 +1764,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @internal
+	 */
+	getShapesPageBounds(shapeIds: TLShapeId[]): Box | null {
+		const bounds = compact(shapeIds.map((id) => this.getShapePageBounds(id)))
+		if (bounds.length === 0) return null
+		return Box.Common(bounds)
+	}
+
+	/**
 	 * The current page bounds of all the selected shapes. If the
 	 * selection is rotated, then these bounds are the axis-aligned
 	 * box that the rotated bounds would fit inside of.
@@ -1768,24 +1782,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getSelectionPageBounds(): Box | null {
-		const selectedShapeIds = this.getCurrentPageState().selectedShapeIds
-		if (selectedShapeIds.length === 0) return null
-
-		return Box.Common(compact(selectedShapeIds.map((id) => this.getShapePageBounds(id))))
+		return this.getShapesPageBounds(this.getSelectedShapeIds())
 	}
 
 	/**
-	 * The rotation of the selection bounding box in the current page space.
-	 *
-	 * @readonly
-	 * @public
+	 * @internal
 	 */
-	@computed getSelectionRotation(): number {
-		const selectedShapeIds = this.getSelectedShapeIds()
+	getShapesSharedRotation(shapeIds: TLShapeId[]) {
 		let foundFirst = false // annoying but we can't use an i===0 check because we need to skip over undefineds
 		let rotation = 0
-		for (let i = 0, n = selectedShapeIds.length; i < n; i++) {
-			const pageTransform = this.getShapePageTransform(selectedShapeIds[i])
+		for (let i = 0, n = shapeIds.length; i < n; i++) {
+			const pageTransform = this.getShapePageTransform(shapeIds[i])
 			if (!pageTransform) continue
 			if (foundFirst) {
 				if (pageTransform.rotation() !== rotation) {
@@ -1803,33 +1810,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The bounds of the selection bounding box in the current page space.
+	 * The rotation of the selection bounding box in the current page space.
 	 *
 	 * @readonly
 	 * @public
 	 */
-	@computed getSelectionRotatedPageBounds(): Box | undefined {
-		const selectedShapeIds = this.getSelectedShapeIds()
+	@computed getSelectionRotation(): number {
+		return this.getShapesSharedRotation(this.getSelectedShapeIds())
+	}
 
-		if (selectedShapeIds.length === 0) {
+	/**
+	 * @internal
+	 */
+	getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined {
+		if (shapeIds.length === 0) {
 			return undefined
 		}
 
-		const selectionRotation = this.getSelectionRotation()
+		const selectionRotation = this.getShapesSharedRotation(shapeIds)
 		if (selectionRotation === 0) {
-			return this.getSelectionPageBounds()!
+			return this.getShapesPageBounds(shapeIds) ?? undefined
 		}
 
-		if (selectedShapeIds.length === 1) {
-			const bounds = this.getShapeGeometry(selectedShapeIds[0]).bounds.clone()
-			const pageTransform = this.getShapePageTransform(selectedShapeIds[0])!
+		if (shapeIds.length === 1) {
+			const bounds = this.getShapeGeometry(shapeIds[0]).bounds.clone()
+			const pageTransform = this.getShapePageTransform(shapeIds[0])!
 			bounds.point = pageTransform.applyToPoint(bounds.point)
 			return bounds
 		}
 
 		// need to 'un-rotate' all the outlines of the existing nodes so we can fit them inside a box
 		const boxFromRotatedVertices = Box.FromPoints(
-			this.getSelectedShapeIds()
+			shapeIds
 				.flatMap((id) => {
 					const pageTransform = this.getShapePageTransform(id)
 					if (!pageTransform) return []
@@ -1840,6 +1852,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
 		return boxFromRotatedVertices
+	}
+
+	/**
+	 * The bounds of the selection bounding box in the current page space.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed getSelectionRotatedPageBounds(): Box | undefined {
+		return this.getShapesRotatedPageBounds(this.getSelectedShapeIds())
 	}
 
 	/**
@@ -5570,7 +5592,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Rotate shapes by a delta in radians.
-	 * Note: Currently, this assumes that the shapes are your currently selected shapes.
 	 *
 	 * @example
 	 * ```ts
@@ -5589,7 +5610,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (ids.length <= 0) return this
 
-		const snapshot = getRotationSnapshot({ editor: this })
+		const snapshot = getRotationSnapshot({ editor: this, ids })
 		if (!snapshot) return this
 		applyRotationToSnapshotShapes({ delta, snapshot, editor: this, stage: 'one-off' })
 
@@ -8484,7 +8505,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
+	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
 		const result = await getSvgJsx(this, shapes, opts)
 		if (!result) return undefined
 
@@ -8511,7 +8532,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvgString(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
+	async getSvgString(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
 		const result = await this.getSvgElement(shapes, opts)
 		if (!result) return undefined
 
@@ -8524,7 +8545,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
-	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
+	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
 		const result = await this.getSvgElement(shapes, opts)
 		if (!result) return undefined
 		return result.svg
@@ -8767,8 +8788,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param snapshot - the snapshot to load
 	 * @returns
 	 */
-	loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot) {
-		loadSnapshot(this.store, snapshot)
+	loadSnapshot(
+		snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot,
+		opts?: TLLoadSnapshotOptions
+	) {
+		loadSnapshot(this.store, snapshot, opts)
 		return this
 	}
 

@@ -38,10 +38,11 @@ export const SearchButton: React.FC<{
 		<div className={cn('group', className)}>
 			<button
 				className={cn(
-					'flex items-center text-black focus:outline-none',
+					'flex items-center text-black dark:text-white focus:outline-none',
 					layout === 'desktop' &&
-						'w-full h-10 justify-between bg-zinc-50 px-4 cursor-text hover:bg-zinc-100 rounded-lg focus:ring-2 focus:ring-blue-500',
-					layout === 'mobile' && 'w-8 h-8 justify-center rounded focus:bg-zinc-100'
+						'w-full h-10 justify-between bg-zinc-50 dark:bg-zinc-900 px-4 cursor-text hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg focus:ring-2 focus:ring-blue-500',
+					layout === 'mobile' &&
+						'w-8 h-8 justify-center rounded focus:bg-zinc-100 dark:focus:bg-zinc-800'
 				)}
 				onClick={() => setOpen((open) => !open)}
 			>
@@ -54,14 +55,19 @@ export const SearchButton: React.FC<{
 							<MagnifyingGlassIconLarge className={cn('h-6', layout === 'desktop' && 'hidden')} />
 						</>
 					)}
-					<span className={cn('capitalize text-sm text-zinc-400', layout === 'mobile' && 'hidden')}>
+					<span
+						className={cn(
+							'capitalize text-sm text-zinc-400 dark:text-zinc-600',
+							layout === 'mobile' && 'hidden'
+						)}
+					>
 						Search {type}...
 					</span>
 				</div>
 				<span className={cn('text-xs', layout === 'mobile' && 'hidden')}>⌘K</span>
 			</button>
 			<Command.Dialog key="hi" open={open} onOpenChange={setOpen} className="relative z-20">
-				<div className="fixed w-screen h-screen left-0 top-14 sm:top-[6.5rem] md:top-0 bg-white/90 pointer-events-none">
+				<div className="fixed w-screen h-screen left-0 top-14 sm:top-[6.5rem] md:top-0 bg-white/90 dark:bg-zinc-950/90 pointer-events-none">
 					<div className="w-full max-w-3xl mx-auto px-5 lg:px-12 pt-[4.5rem]">
 						<Search type={type} />
 					</div>

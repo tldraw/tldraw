@@ -22,8 +22,11 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
-// @public (undocumented)
-export function bind<T extends Function>(_target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void;
+// @public
+export function bind<T extends (...args: any[]) => any>(target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
+
+// @public
+export function bind<This extends object, T extends (...args: any[]) => any>(originalMethod: T, context: ClassMethodDecoratorContext<This, T>): void;
 
 // @internal
 export function clearLocalStorage(): void;
@@ -254,6 +257,9 @@ export class MediaHelpers {
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
+// @internal (undocumented)
+export function mockUniqueId(fn: (size?: number) => string): void;
+
 // @public
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
@@ -346,10 +352,16 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
+export function registerTldrawLibraryVersion(name?: string, version?: string, modules?: string): void;
+
+// @internal (undocumented)
 type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
     [P in K]-?: T[P];
 }>;
 export { Required_2 as Required }
+
+// @internal (undocumented)
+export function restoreUniqueId(): void;
 
 // @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
@@ -410,6 +422,9 @@ export class Timers {
 }
 
 export { uniq }
+
+// @public
+export function uniqueId(size?: number): string;
 
 // @internal (undocumented)
 export function validateIndexKey(index: string): asserts index is IndexKey;

@@ -1,8 +1,8 @@
 import { CreateRoomRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
+import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { nanoid } from 'nanoid'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
@@ -19,7 +19,7 @@ export async function createRoom(request: IRequest, env: Environment): Promise<R
 	}
 
 	// Create a new slug for the room
-	const slug = nanoid()
+	const slug = uniqueId()
 
 	// Create the new snapshot
 	const snapshot: RoomSnapshot = {
@@ -36,7 +36,7 @@ export async function createRoom(request: IRequest, env: Environment): Promise<R
 	await env.ROOMS.put(getR2KeyForRoom(slug), JSON.stringify(snapshot))
 
 	// Create a readonly slug and store it
-	const readonlySlug = nanoid()
+	const readonlySlug = uniqueId()
 	await env.SLUG_TO_READONLY_SLUG.put(slug, readonlySlug)
 	await env.READONLY_SLUG_TO_SLUG.put(readonlySlug, slug)
 

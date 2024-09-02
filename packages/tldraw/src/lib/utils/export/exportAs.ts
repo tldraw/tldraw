@@ -1,4 +1,4 @@
-import { Editor, TLFrameShape, TLShapeId, TLSvgOptions } from '@tldraw/editor'
+import { Editor, TLFrameShape, TLImageExportOptions, TLShapeId } from '@tldraw/editor'
 import { exportToBlob } from './export'
 
 /** @public */
@@ -20,7 +20,7 @@ export async function exportAs(
 	ids: TLShapeId[],
 	format: TLExportType = 'png',
 	name: string | undefined,
-	opts: TLSvgOptions = {}
+	opts: TLImageExportOptions = {}
 ) {
 	// If we don't get name then use a predefined one
 	if (!name) {

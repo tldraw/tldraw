@@ -8,12 +8,12 @@ import {
 import { Fragment, ReactElement } from 'react'
 import { Editor } from './Editor'
 import { SvgExportContext, SvgExportContextProvider, SvgExportDef } from './types/SvgExportContext'
-import { TLSvgOptions } from './types/misc-types'
+import { TLImageExportOptions } from './types/misc-types'
 
 export async function getSvgJsx(
 	editor: Editor,
 	shapes: TLShapeId[] | TLShape[],
-	opts: TLSvgOptions = {}
+	opts: TLImageExportOptions = {}
 ) {
 	const ids =
 		typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : (shapes as TLShape[]).map((s) => s.id)

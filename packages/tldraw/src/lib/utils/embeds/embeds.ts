@@ -1,3 +1,4 @@
+import { safeParseUrl } from '@tldraw/editor'
 import { TLEmbedDefinition } from '../../defaultEmbedDefinitions'
 
 // https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
@@ -13,7 +14,9 @@ function escapeStringRegexp(string: string) {
 
 /** @public */
 export function matchEmbedUrl(definitions: readonly TLEmbedDefinition[], url: string) {
-	const host = new URL(url).host.replace('www.', '')
+	const parsed = safeParseUrl(url)
+	if (!parsed) return
+	const host = parsed.host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
 			const originalUrl = localEmbedDef.fromEmbedUrl(url)
@@ -44,7 +47,9 @@ const checkHostnames = (hostnames: readonly string[], targetHostname: string) =>
 
 /** @public */
 export function matchUrl(definitions: readonly TLEmbedDefinition[], url: string) {
-	const host = new URL(url).host.replace('www.', '')
+	const parsed = safeParseUrl(url)
+	if (!parsed) return
+	const host = parsed.host.replace('www.', '')
 	for (const localEmbedDef of definitions) {
 		if (checkHostnames(localEmbedDef.hostnames, host)) {
 			const embedUrl = localEmbedDef.toEmbedUrl(url)
@@ -70,20 +75,6 @@ export type TLEmbedResult =
 	| undefined
 
 /**
- * Tests whether an URL supports embedding and returns the result.
- *
- * @param inputUrl - The URL to match
- * @public
- */
-export function getEmbedInfoUnsafely(
-	definitions: readonly TLEmbedDefinition[],
-	inputUrl: string
-): TLEmbedResult {
-	const result = matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
-	return result
-}
-
-/**
  * Tests whether an URL supports embedding and returns the result. If we encounter an error, we
  * return undefined.
  *
@@ -95,11 +86,8 @@ export function getEmbedInfo(
 	inputUrl: string
 ): TLEmbedResult {
 	try {
-		return getEmbedInfoUnsafely(definitions, inputUrl)
-	} catch (e) {
-		// Don't throw here! We'll throw it from the embed shape's shape util
-		console.error(e)
+		return matchUrl(definitions, inputUrl) ?? matchEmbedUrl(definitions, inputUrl)
+	} catch (_e) {
+		return undefined
 	}
-
-	return undefined
 }

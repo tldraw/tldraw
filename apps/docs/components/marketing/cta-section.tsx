@@ -30,17 +30,25 @@ export const CTASection = () => {
 					Loved by <span className="text-black font-semibold">5000+</span> developers and users.
 				</div>
 			</div> */}
-			<div className="flex flex-col items-center justify-center gap-4">
+			<div className="flex flex-col items-center justify-center gap-4 -mt-4">
 				<div className="flex flex-row items-center justify-center gap-4">
 					<Button href="/quick-start" caption="Read the docs" type="black" />
-					<Button href="https://tldraw.com" caption="Try the app" type="black" />
+					<Button
+						href="https://tldraw.com"
+						caption="Try the app"
+						type="tertiary"
+						icon="play"
+						newTab
+					/>
 				</div>
-				<a
+				{/* <Link
 					href="https://forms.gle/PmS4wNzngnbD3fb89"
 					className="font-semibold text-blue-500 hover:text-blue-600"
+					target="_blank"
+					rel="noopener noreferrer"
 				>
 					Ask about a commercial license
-				</a>
+				</Link> */}
 			</div>
 		</Section>
 	)

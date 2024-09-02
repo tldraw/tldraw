@@ -22,7 +22,7 @@ export const DetailsSection = () => {
 						<div key={index}>
 							<div className="flex items-center gap-2 mb-4 justify-center sm:justify-start ">
 								<Icon className="size-5 text-blue-500" />
-								<h3 className="text-black font-black text-xl">{heading}</h3>
+								<h3 className="text-black dark:text-white font-black text-xl">{heading}</h3>
 							</div>
 							<p className="text-center sm:max-w-md sm:text-start">{description}</p>
 						</div>
