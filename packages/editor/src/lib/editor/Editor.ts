@@ -221,6 +221,8 @@ export interface TLEditorOptions {
 	cameraOptions?: Partial<TLCameraOptions>
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
+	isPageHidden?(shape: TLPage, editor: Editor): boolean
 }
 
 /**
@@ -255,8 +257,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
+		isPageHidden,
+		isShapeHidden,
 	}: TLEditorOptions) {
 		super()
+
+		this._isPageHidden = isPageHidden
+		this._isShapeHidden = isShapeHidden
 
 		this.options = { ...defaultTldrawOptions, ...options }
 		this.store = store
@@ -728,6 +735,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.performanceTracker = new PerformanceTracker()
+	}
+
+	private readonly _isShapeHidden?: (shape: TLShape, editor: Editor) => boolean
+	isShapeHidden(shapeOrId: TLShape | TLShapeId) {
+		if (!this._isShapeHidden) return false
+		const shape = this.getShape(shapeOrId)
+		if (!shape) return false
+		return this._isShapeHidden(shape, this) ?? false
+	}
+	private readonly _isPageHidden?: (shape: TLPage, editor: Editor) => boolean
+	isPageHidden(pageOrId: TLPage) {
+		if (!this._isPageHidden) return false
+		const page = this.getPage(pageOrId)
+		if (!page) return false
+		return this._isPageHidden(page, this) ?? false
 	}
 
 	readonly options: TldrawOptions
@@ -3383,6 +3405,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const latestPresence = allPresenceRecords
 				.filter((c) => c.userId === id)
 				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)[0]
+			if (this._isShapeHidden && latestPresence.selectedShapeIds.length) {
+				return {
+					...latestPresence,
+					selectedShapeIds: latestPresence.selectedShapeIds.filter((id) => !this.isShapeHidden(id)),
+				}
+			}
 			return latestPresence
 		})
 	}
@@ -3605,6 +3633,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
+			if (this._isShapeHidden?.(shape, this)) return
 
 			opacity *= shape.opacity
 			let isShapeErasing = false
@@ -3741,7 +3770,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getPages(): TLPage[] {
-		return this._getAllPagesQuery().get().sort(sortByIndex)
+		return this._getAllPagesQuery()
+			.get()
+			.filter((p) => !this.isPageHidden(p))
+			.sort(sortByIndex)
 	}
 
 	/**
@@ -3803,7 +3835,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getCurrentPageShapeIds() {
-		return this._currentPageShapeIds.get()
+		const shapeIds = this._currentPageShapeIds.get()
+		if (this._isShapeHidden) {
+			return new Set([...shapeIds].filter((id) => !this._isShapeHidden!(this.getShape(id)!, this)))
+		}
+		return shapeIds
 	}
 
 	/**
@@ -3830,7 +3866,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getPageShapeIds(page: TLPageId | TLPage): Set<TLShapeId> {
 		const pageId = typeof page === 'string' ? page : page.id
 		const result = this.store.query.exec('shape', { parentId: { eq: pageId } })
-		return this.getShapeAndDescendantIds(result.map((s) => s.id))
+		const shapeIds = this.getShapeAndDescendantIds(result.map((s) => s.id))
+		if (this._isShapeHidden) {
+			return new Set([...shapeIds].filter((id) => !this._isShapeHidden!(this.getShape(id)!, this)))
+		}
+		return shapeIds
 	}
 
 	/**
@@ -5269,8 +5309,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSortedChildIdsForParent(parent: TLParentId | TLPage | TLShape): TLShapeId[] {
 		const parentId = typeof parent === 'string' ? parent : parent.id
-		const ids = this._parentIdsToChildIds.get()[parentId]
+		let ids = this._parentIdsToChildIds.get()[parentId]
 		if (!ids) return EMPTY_ARRAY
+		if (this._isShapeHidden) {
+			ids = ids.filter((id) => !this._isShapeHidden!(this.getShape(id)!, this))
+		}
 		return ids
 	}
 
