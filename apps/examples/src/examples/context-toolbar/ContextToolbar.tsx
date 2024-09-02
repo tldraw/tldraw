@@ -40,7 +40,7 @@ const ContextToolbarComponent = track(() => {
 				left: Math.max(16, pageCoordinates.x),
 				pointerEvents: 'all',
 				// [3]
-				width: selectionRotatedPageBounds.width,
+				width: selectionRotatedPageBounds.width * editor.getZoomLevel(),
 			}}
 			// [4]
 			onPointerDown={(e) => e.stopPropagation()}
