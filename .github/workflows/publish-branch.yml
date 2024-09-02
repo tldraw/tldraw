@@ -20,7 +20,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Remove the update-snapshots label
+      - name: Remove the publish-packages label
         uses: actions-ecosystem/action-remove-labels@v1
         with:
           labels: publish-packages
