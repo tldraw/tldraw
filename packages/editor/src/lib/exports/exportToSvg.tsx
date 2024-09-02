@@ -32,7 +32,6 @@ export async function exportToSvg(
 	})
 	container.appendChild(renderTarget)
 	const root = createRoot(renderTarget)
-
 	try {
 		flushSync(() => {
 			root.render(result.jsx)

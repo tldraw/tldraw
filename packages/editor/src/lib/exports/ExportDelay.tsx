@@ -17,9 +17,7 @@ export class ExportDelay {
 			lastLength = this.promisesToWaitFor.length
 			await Promise.all(this.promisesToWaitFor)
 
-			// wait for a cycle of the event loop to allow any of those promises to add more if
-			// needed.
-
+			// wait for a cycle of the event loop to allow any of those promises to add more if needed.
 			// eslint-disable-next-line no-restricted-globals
 			await new Promise((r) => setTimeout(r, 0))
 		}
