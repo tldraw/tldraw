@@ -84,6 +84,8 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 		[state, sessionId, pathname, setDidSubmit]
 	)
 
+	// todo, improve this so that thumbs ups and thumbs downs are also captured
+
 	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null
 
 	return (
