@@ -16,13 +16,13 @@ import {
 	SvgExportContextProvider,
 	SvgExportDef,
 } from '../editor/types/SvgExportContext'
-import { TLSvgOptions } from '../editor/types/misc-types'
+import { TLImageExportOptions } from '../editor/types/misc-types'
 import { useEditor } from '../hooks/useEditor'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
 import { ExportDelay } from './ExportDelay'
 
-export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOptions = {}) {
+export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
 	if (!window.document) throw Error('No document')
 
 	const {

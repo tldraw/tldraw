@@ -3,12 +3,16 @@ import { assert } from '@tldraw/utils'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { Editor } from '../editor/Editor'
-import { TLSvgOptions } from '../editor/types/misc-types'
+import { TLImageExportOptions } from '../editor/types/misc-types'
 import { getSvgJsx } from './getSvgJsx'
 import { StyleEmbedder } from './html-to-image/StyleEmbedder'
 import { embedMedia } from './html-to-image/embedMedia'
 
-export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: TLSvgOptions = {}) {
+export async function exportToSvg(
+	editor: Editor,
+	shapeIds: TLShapeId[],
+	opts: TLImageExportOptions = {}
+) {
 	const result = await getSvgJsx(editor, shapeIds, opts)
 	if (!result) return undefined
 

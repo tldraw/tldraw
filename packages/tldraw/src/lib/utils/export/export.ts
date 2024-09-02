@@ -3,8 +3,8 @@ import {
 	FileHelpers,
 	Image,
 	PngHelpers,
+	TLImageExportOptions,
 	TLShapeId,
-	TLSvgOptions,
 	debugFlags,
 	exhaustiveSwitchError,
 } from '@tldraw/editor'
@@ -101,7 +101,7 @@ export async function getSvgAsImage(
 	}
 }
 
-async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLSvgOptions) {
+async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions) {
 	const svg = await editor.getSvgString(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
 		scale: 1,
 		background: editor.getInstanceState().exportBackground,
@@ -117,7 +117,7 @@ export async function exportToString(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: 'svg' | 'json',
-	opts: TLSvgOptions = {}
+	opts: TLImageExportOptions = {}
 ) {
 	switch (format) {
 		case 'svg': {
@@ -151,7 +151,7 @@ export async function exportToBlob({
 	editor: Editor
 	ids: TLShapeId[]
 	format: TLExportType
-	opts?: TLSvgOptions
+	opts?: TLImageExportOptions
 }): Promise<Blob> {
 	switch (format) {
 		case 'svg':
@@ -193,7 +193,7 @@ export function exportToBlobPromise(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLExportType,
-	opts: TLSvgOptions = {}
+	opts: TLImageExportOptions = {}
 ): { blobPromise: Promise<Blob>; mimeType: string } {
 	return {
 		blobPromise: exportToBlob({ editor, ids, format, opts }),

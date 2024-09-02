@@ -1,4 +1,4 @@
-import { Editor, TLShapeId, TLSvgOptions, exhaustiveSwitchError } from '@tldraw/editor'
+import { Editor, TLImageExportOptions, TLShapeId, exhaustiveSwitchError } from '@tldraw/editor'
 import { exportToBlobPromise, exportToString } from './export'
 
 /** @public */
@@ -18,7 +18,7 @@ export function copyAs(
 	editor: Editor,
 	ids: TLShapeId[],
 	format: TLCopyType = 'svg',
-	opts: TLSvgOptions = {}
+	opts: TLImageExportOptions = {}
 ): Promise<void> {
 	// Note:  it's important that this function itself isn't async and doesn't really use promises -
 	// we need to create the relevant `ClipboardItem`s and call window.navigator.clipboard.write
