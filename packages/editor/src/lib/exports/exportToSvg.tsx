@@ -4,9 +4,9 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { Editor } from '../editor/Editor'
 import { TLImageExportOptions } from '../editor/types/misc-types'
+import { StyleEmbedder } from './StyleEmbedder'
+import { embedMedia } from './embedMedia'
 import { getSvgJsx } from './getSvgJsx'
-import { StyleEmbedder } from './html-to-image/StyleEmbedder'
-import { embedMedia } from './html-to-image/embedMedia'
 
 export async function exportToSvg(
 	editor: Editor,
