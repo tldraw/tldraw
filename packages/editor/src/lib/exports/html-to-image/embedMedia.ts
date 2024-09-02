@@ -1,11 +1,6 @@
 import { MediaHelpers } from '@tldraw/utils'
 import { resourceToDataUrl } from './fetchCache'
 
-interface ForeignObjectEmbedOpts {
-	onFoundUsedFont(fontFamily: string): void
-	defaultStyles: Record<string, string>
-}
-
 function copyAttrs(source: Element, target: Element) {
 	const attrs = Array.from(source.attributes)
 	attrs.forEach((attr) => {

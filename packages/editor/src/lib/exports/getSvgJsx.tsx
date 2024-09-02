@@ -20,6 +20,7 @@ import { TLSvgOptions } from '../editor/types/misc-types'
 import { useEditor } from '../hooks/useEditor'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
+import { ExportDelay } from './ExportDelay'
 
 export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOptions = {}) {
 	if (!window.document) throw Error('No document')
@@ -81,7 +82,7 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOpt
 	const defChildren: ReactElement[] = []
 
 	const initialEffectPromise = promiseWithResolve<void>()
-	const waitForPromises: Promise<void>[] = [initialEffectPromise]
+	const exportDelay = new ExportDelay()
 
 	const exportDefPromisesById = new Map<string, Promise<void>>()
 	const exportContext: SvgExportContext = {
@@ -97,7 +98,7 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOpt
 			exportDefPromisesById.set(def.key, promise)
 		},
 		waitUntil: (promise) => {
-			waitForPromises.push(promise)
+			exportDelay.waitUntil(promise)
 		},
 	}
 
@@ -243,7 +244,7 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLSvgOpt
 		</SvgExportContextProvider>
 	)
 
-	return { jsx: svg, width: w, height: h, waitForPromises }
+	return { jsx: svg, width: w, height: h, exportDelay }
 }
 
 function ResolveInitialEffect({ onEffect }: { onEffect(): void }) {

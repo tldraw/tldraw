@@ -1,7 +1,7 @@
 import { bind, compact } from '@tldraw/utils'
 import { Promise } from 'core-js'
 import { fetchCache, resourceToDataUrl } from './fetchCache'
-import { ParsedFontFace, parseCss, parseCssFontFaces } from './parseCss'
+import { ParsedFontFace, parseCss, parseCssFontFaces, parseCssFontFamilyValue } from './parseCss'
 
 export class FontEmbedder {
 	private readonly fontFacesPromise = getCurrentDocumentFontFaces()
@@ -9,25 +9,28 @@ export class FontEmbedder {
 	private readonly fontFacesToEmbed = new Set<ParsedFontFace>()
 	private readonly pendingPromises: Promise<void>[] = []
 
-	@bind onFoundUsedFont(font: string) {
-		if (this.foundFontNames.has(font)) return
-		this.foundFontNames.add(font)
+	@bind onFontFamilyValue(fontFamilyValue: string) {
+		const fonts = parseCssFontFamilyValue(fontFamilyValue)
+		for (const font of fonts) {
+			if (this.foundFontNames.has(font)) return
+			this.foundFontNames.add(font)
 
-		this.pendingPromises.push(
-			this.fontFacesPromise.then((fontFaces) => {
-				const relevantFontFaces = fontFaces.filter((fontFace) => fontFace.fontFamilies.has(font))
-				for (const fontFace of relevantFontFaces) {
-					if (this.fontFacesToEmbed.has(fontFace)) continue
+			this.pendingPromises.push(
+				this.fontFacesPromise.then((fontFaces) => {
+					const relevantFontFaces = fontFaces.filter((fontFace) => fontFace.fontFamilies.has(font))
+					for (const fontFace of relevantFontFaces) {
+						if (this.fontFacesToEmbed.has(fontFace)) continue
 
-					this.fontFacesToEmbed.add(fontFace)
-					for (const url of fontFace.urls) {
-						if (!url.resolved || url.embedded) continue
-						// kick off fetching this font
-						url.embedded = resourceToDataUrl(url.resolved)
+						this.fontFacesToEmbed.add(fontFace)
+						for (const url of fontFace.urls) {
+							if (!url.resolved || url.embedded) continue
+							// kick off fetching this font
+							url.embedded = resourceToDataUrl(url.resolved)
+						}
 					}
-				}
-			})
-		)
+				})
+			)
+		}
 	}
 
 	async createCss() {

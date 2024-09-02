@@ -2391,6 +2391,8 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly isDarkMode: boolean;
+    // (undocumented)
+    waitUntil(promise: Promise<void>): void;
 }
 
 // @public (undocumented)
@@ -3516,6 +3518,9 @@ export { useComputed }
 
 // @public (undocumented)
 export function useContainer(): HTMLElement;
+
+// @public
+export function useDelaySvgExport(): () => void;
 
 // @public (undocumented)
 export function useEditor(): Editor;

@@ -70,6 +70,9 @@ export function shouldIncludeCssProperty(property: string) {
 	if (property.startsWith('animation')) return false
 	if (property.startsWith('transition')) return false
 	if (property === 'cursor') return false
+	if (property === 'pointer-events') return false
+	if (property === 'user-select') return false
+	if (property === 'touch-action') return false
 	return true
 }
 
@@ -85,4 +88,48 @@ export function parseCssValueUrls(value: string) {
 		original: m[0],
 		url: m[1] || m[2] || m[3],
 	}))
+}
+
+const inheritedProperties = new Set([
+	'border-collapse',
+	'border-spacing',
+	'caption-side',
+	'color',
+	'cursor',
+	'direction',
+	'empty-cells',
+	'font-family',
+	'font-size',
+	'font-style',
+	'font-variant',
+	'font-weight',
+	'font-size-adjust',
+	'font-stretch',
+	'font',
+	'letter-spacing',
+	'line-height',
+	'list-style-image',
+	'list-style-position',
+	'list-style-type',
+	'list-style',
+	'orphans',
+	'quotes',
+	'tab-size',
+	'text-align',
+	'text-align-last',
+	'text-decoration-color',
+	'text-indent',
+	'text-justify',
+	'text-shadow',
+	'text-transform',
+	'visibility',
+	'white-space',
+	'widows',
+	'word-break',
+	'word-spacing',
+	'word-wrap',
+])
+
+export function isPropertyInherited(property: string) {
+	return inheritedProperties.has(property)
 }

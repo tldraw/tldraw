@@ -15,7 +15,9 @@ import {
 	lerp,
 	stopEventPropagation,
 	toDomPrecision,
+	useSvgExportContext,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useState } from 'react'
 import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -59,6 +61,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 		) as TLBookmarkAsset
 
+		const isSafariExport = !!useSvgExportContext() && this.editor.environment.isSafari
+
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		const address = getHumanReadableAddress(shape)
@@ -70,9 +74,12 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		return (
 			<HTMLContainer>
 				<div
-					className="tl-bookmark__container"
+					className={classNames(
+						'tl-bookmark__container',
+						isSafariExport && 'tl-bookmark__container--safariExport'
+					)}
 					style={{
-						boxShadow: getRotatedBoxShadow(pageRotation),
+						boxShadow: isSafariExport ? undefined : getRotatedBoxShadow(pageRotation),
 						maxHeight: shape.props.h,
 					}}
 				>

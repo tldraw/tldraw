@@ -64,27 +64,30 @@ export default function DataGridExample() {
 				shapeUtils={[AgGridShapeUtil]}
 				onMount={(editor) => {
 					const agGridShapeId = createShapeId('ag-grid')
-					editor.deleteShapes([agGridShapeId])
 
-					editor.createShape<AgGridShape>({
-						id: agGridShapeId,
-						type: 'ag-grid',
-						props: {
-							w: 400,
-							h: 300,
-							rowData: [
-								{ make: 'Tesla', model: 'Model Y', price: 64950, electric: true },
-								{ make: 'Ford', model: 'F-Series', price: 33850, electric: false },
-								{ make: 'Toyota', model: 'Corolla', price: 29600, electric: false },
-							],
-							columnDefs: [
-								{ field: 'make', filter: true, floatingFilter: true, flex: 1 },
-								{ field: 'model', flex: 1 },
-								{ field: 'price', filter: true, floatingFilter: true, flex: 1 },
-								{ field: 'electric', flex: 1 },
-							],
-						},
-					})
+					if (!editor.getShape(agGridShapeId)) {
+						editor.createShape<AgGridShape>({
+							id: agGridShapeId,
+							type: 'ag-grid',
+							props: {
+								w: 400,
+								h: 300,
+								rowData: [
+									{ make: 'Tesla', model: 'Model Y', price: 64950, electric: true },
+									{ make: 'Ford', model: 'F-Series', price: 33850, electric: false },
+									{ make: 'Toyota', model: 'Corolla', price: 29600, electric: false },
+								],
+								columnDefs: [
+									{ field: 'make', filter: true, floatingFilter: true, flex: 1 },
+									{ field: 'model', flex: 1 },
+									{ field: 'price', filter: true, floatingFilter: true, flex: 1 },
+									{ field: 'electric', flex: 1 },
+								],
+							},
+						})
+						editor.select(agGridShapeId)
+						editor.zoomToSelection()
+					}
 				}}
 			/>
 		</div>

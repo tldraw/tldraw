@@ -13,7 +13,6 @@ export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: T
 	if (!result) return undefined
 
 	const container = editor.getContainer()
-	// container.querySelectorAll('.tldraw-svg-export').forEach((el) => el.remove())
 	const renderTarget = document.createElement('div')
 	renderTarget.className = 'tldraw-svg-export'
 	renderTarget.inert = true
@@ -35,7 +34,7 @@ export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: T
 			root.render(result.jsx)
 		})
 
-		await waitForPromisesToResolve(result.waitForPromises)
+		await result.exportDelay.resolve()
 
 		const svg = renderTarget.firstElementChild
 		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
@@ -43,8 +42,13 @@ export async function exportToSvg(editor: Editor, shapeIds: TLShapeId[], opts: T
 
 		return { svg, width: result.width, height: result.height }
 	} finally {
-		root.unmount()
-		container.removeChild(renderTarget)
+		// eslint-disable-next-line no-restricted-globals
+		setTimeout(() => {
+			// we wait for a cycle of the event loop to allow the svg to be cloned etc. before
+			// unmounting
+			root.unmount()
+			container.removeChild(renderTarget)
+		}, 0)
 	}
 }
 
@@ -58,7 +62,7 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 
 	await Promise.all(foreignObjectChildren.map((el) => embedMedia(el as HTMLElement)))
 	for (const el of foreignObjectChildren) {
-		styleEmbedder.read(el as HTMLElement)
+		styleEmbedder.readRoot(el as HTMLElement)
 	}
 
 	await styleEmbedder.fetchResources()
@@ -68,15 +72,5 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 		const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
 		style.textContent = css
 		svg.prepend(style)
-	}
-}
-
-async function waitForPromisesToResolve(promises: Promise<void>[]) {
-	let lastLength = null
-	while (lastLength !== promises.length) {
-		lastLength = promises.length
-		await Promise.all(promises)
-		// eslint-disable-next-line no-restricted-globals
-		await new Promise((r) => setTimeout(r, 0))
 	}
 }

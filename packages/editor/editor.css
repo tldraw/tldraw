@@ -925,6 +925,10 @@ input,
 	overflow: hidden;
 }
 
+.tl-bookmark__container--safariExport {
+	border: 1px solid var(--color-divider);
+}
+
 .tl-bookmark__image_container {
 	flex: 1 1 100%;
 	overflow: hidden;
