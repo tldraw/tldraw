@@ -1083,6 +1083,8 @@ export interface TLImageShapeProps {
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     w: number;
+    // (undocumented)
+    zoom: number;
 }
 
 // @public

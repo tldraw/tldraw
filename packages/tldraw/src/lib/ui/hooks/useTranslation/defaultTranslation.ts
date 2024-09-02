@@ -243,6 +243,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.embed': 'Embed',
 	'tool.text': 'Text',
 	'tool.pointer-down': 'Pointer down',
+	'tool.image-zoom': 'Zoom',
 	'menu.title': 'Menu',
 	'menu.theme': 'Theme',
 	'menu.copy-as': 'Copy as',

@@ -91,9 +91,11 @@ export type AssetUrls = {
 		'geo-x-box': string
 		github: string
 		group: string
+		height: string
 		'horizontal-align-end': string
 		'horizontal-align-middle': string
 		'horizontal-align-start': string
+		image: string
 		'info-circle': string
 		leading: string
 		link: string
@@ -150,6 +152,7 @@ export type AssetUrls = {
 		'vertical-align-middle': string
 		'vertical-align-start': string
 		'warning-triangle': string
+		width: string
 		'zoom-in': string
 		'zoom-out': string
 	}

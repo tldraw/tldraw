@@ -83,6 +83,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			text: '',
 			align: 'middle',
 			verticalAlign: 'middle',
+			zoom: 1,
 		}
 	}
 
@@ -525,6 +526,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
 			crop: interpolateCrop(startShape, endShape),
+			zoom: lerp(startShape.props.zoom, endShape.props.zoom, t),
 		}
 	}
 }
@@ -560,10 +562,10 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 }
 
 function getFlipStyle(shape: TLImageShape, size?: { width: number; height: number }) {
-	const { flipX, flipY } = shape.props
-	if (!flipX && !flipY) return undefined
+	const { flipX, flipY, zoom } = shape.props
+	if (!flipX && !flipY && zoom === 1) return undefined
 
-	const scale = `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`
+	const scale = `scale(${flipX ? -1 * zoom : zoom}, ${flipY ? -1 * zoom : zoom})`
 	const translate = size
 		? `translate(${flipX ? size.width : 0}px, ${flipY ? size.height : 0}px)`
 		: ''
