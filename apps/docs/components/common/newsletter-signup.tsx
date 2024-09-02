@@ -11,7 +11,10 @@ import { FC, FormEventHandler, useCallback, useState } from 'react'
 // when debugging is true, the form will always show (even if the user has submitted)
 const DEBUGGING = false
 
-export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'large' }) => {
+export const NewsletterSignup: FC<{ bg?: boolean; size?: 'small' | 'large' }> = ({
+	bg = true,
+	size = 'large',
+}) => {
 	// If the user has submitted their email, we don't show the form anymore
 	const [didSubmit, setDidSubmit] = useLocalStorageState('dev_did_submit_newsletter', false)
 
@@ -49,7 +52,7 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 	return (
 		<div
 			className={cn(
-				'bg-zinc-50 dark:bg-zinc-900',
+				bg ? 'bg-zinc-50 dark:bg-zinc-900' : 'bg-transparent',
 				size === 'small'
 					? 'mt-12 rounded-lg text-xs xl:-ml-4 p-4 pb-1'
 					: 'rounded-xl p-8 sm:p-12 text-center'

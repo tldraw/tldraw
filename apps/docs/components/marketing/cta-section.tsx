@@ -6,7 +6,7 @@ export const CTASection = () => {
 	return (
 		<Section className="pb-24 md:pb-32 lg:pb-40">
 			<SectionHeading
-				subheading="Get Started"
+				subheading="ring ring, to action"
 				heading="Get started today"
 				description="Follow our quick start guide and build something today with the tldraw SDK."
 			/>

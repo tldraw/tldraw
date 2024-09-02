@@ -7,7 +7,7 @@ export const InstallationSection = () => {
 	return (
 		<Section>
 			<SectionHeading
-				subheading="Features"
+				subheading="show me some code"
 				heading="Installation"
 				description="Install the tldraw package, import the styles, and render the component in your React app."
 			/>

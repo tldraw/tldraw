@@ -22,7 +22,7 @@ export const ThemeSwitch = () => {
 	}, [])
 
 	const setThemeAndPersist = () => {
-		const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
+		const nextTheme = theme === 'light' ? 'dark' : 'light'
 		persistTheme(nextTheme)
 		setTheme(nextTheme)
 	}
