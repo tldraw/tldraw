@@ -325,7 +325,16 @@ export function registerDefaultExternalContentHandlers(
 					editor.createAssets([asset])
 				}
 
-				editor.updateShape({ id: shapeIdToReplace, props: { assetId: asset.id } } as TLShapePartial)
+				editor.updateShape({
+					id: shapeIdToReplace,
+					props: {
+						assetId: asset.id,
+						crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+						zoom: 1,
+						w: (asset as TLImageAsset).props.w,
+						h: (asset as TLImageAsset).props.h,
+					},
+				} as TLShapePartial)
 			})
 		} else {
 			createShapesForAssets(editor, assets, pagePoint)
