@@ -78,9 +78,6 @@ export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
-export { Timer, type TimerProps } from './lib/shapes/timer/Timer'
-export { TimerShapeTool } from './lib/shapes/timer/TimerShapeTool'
-export { TimerShapeUtil } from './lib/shapes/timer/TimerShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
 export { type StyleValuesForUi } from './lib/styles'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
@@ -194,6 +191,7 @@ export {
 	type TLUiStylePanelContentProps,
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export { Timer, type TimerProps } from './lib/ui/components/Timer/Timer'
 export {
 	DefaultToolbar,
 	type DefaultToolbarProps,

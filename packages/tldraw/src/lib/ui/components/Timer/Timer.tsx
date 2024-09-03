@@ -6,6 +6,9 @@ import {
 	exhaustiveSwitchError,
 } from '@tldraw/editor'
 import { useCallback, useState } from 'react'
+import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
+import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { useTimer } from './useTimer'
 
 function formatTime(time: number) {
@@ -126,25 +129,39 @@ export function Timer({ props, editor, store }: TimerProps) {
 			style={{
 				pointerEvents: 'all',
 				display: 'flex',
-				borderRadius: '3px',
-				border: '1px solid black',
-				padding: '5px',
-				gap: '5px',
 				alignItems: 'stretch',
+				backgroundColor: 'var(--color-background)',
+				boxShadow: 'var(--shadow-2)',
+				borderRadius: 'var(--radius-3',
 			}}
 		>
 			{isExpanded && (
 				<>
-					<button onPointerDown={(e) => e.stopPropagation()} onClick={() => setIsExpanded(false)}>
-						X
-					</button>
-					<button
+					<TldrawUiButton
+						type="icon"
+						onPointerDown={(e) => e.stopPropagation()}
+						onClick={() => setIsExpanded(false)}
+					>
+						<TldrawUiButtonIcon icon="cross-2" />
+					</TldrawUiButton>
+					<TldrawUiButton
+						type="icon"
 						onPointerDown={(e) => e.stopPropagation()}
 						onClick={() => stopTimer(props, store)}
 					>
-						Stop
-					</button>
+						<TldrawUiButtonIcon icon="geo-rectangle" />
+					</TldrawUiButton>
 				</>
+			)}
+
+			{isExpanded && (
+				<TldrawUiButton
+					type="icon"
+					onPointerDown={(e) => e.stopPropagation()}
+					onClick={increaseTime}
+				>
+					<TldrawUiIcon icon="minus" />
+				</TldrawUiButton>
 			)}
 			<div
 				style={{
@@ -191,16 +208,31 @@ export function Timer({ props, editor, store }: TimerProps) {
 			</div>
 			{isExpanded && (
 				<>
-					<button onPointerDown={(e) => e.stopPropagation()} onClick={increaseTime}>
-						+
-					</button>
+					<TldrawUiButton
+						type="icon"
+						onPointerDown={(e) => e.stopPropagation()}
+						onClick={increaseTime}
+					>
+						<TldrawUiIcon icon="plus" />
+					</TldrawUiButton>
 					{showPlay && (
-						<button onPointerDown={(e) => e.stopPropagation()} onClick={() => startTimer(store)}>
-							Play
-						</button>
+						<TldrawUiButton
+							type="icon"
+							onPointerDown={(e) => e.stopPropagation()}
+							onClick={() => startTimer(store)}
+						>
+							<div
+								style={{
+									transform: 'rotate(90deg)',
+								}}
+							>
+								<TldrawUiIcon icon="geo-triangle" />
+							</div>
+						</TldrawUiButton>
 					)}
 					{!showPlay && (
-						<button
+						<TldrawUiButton
+							type="icon"
 							onPointerDown={(e) => e.stopPropagation()}
 							onClick={() => {
 								if (props.state.state === 'completed') {
@@ -210,8 +242,8 @@ export function Timer({ props, editor, store }: TimerProps) {
 								}
 							}}
 						>
-							{props.state.state === 'completed' ? 'Reset' : 'Pause'}
-						</button>
+							<TldrawUiButtonIcon icon="geo-arrow-up" />
+						</TldrawUiButton>
 					)}
 				</>
 			)}
