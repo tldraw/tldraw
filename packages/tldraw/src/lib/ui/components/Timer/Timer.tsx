@@ -4,6 +4,8 @@ import {
 	TLTimerShapeProps,
 	TLTimerState,
 	exhaustiveSwitchError,
+	track,
+	useEditor,
 } from '@tldraw/editor'
 import { useCallback, useState } from 'react'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -23,26 +25,43 @@ function formatTime(time: number) {
 	return `${minutesString}:${secondsString}`
 }
 
-function startTimer(store: TimerProps['store']) {
-	store({
-		state: { state: 'running', lastStartTime: getCurrentServerTime() },
-	})
+function updateTimer(props: Partial<TLTimerShapeProps>, editor: Editor) {
+	editor.updateDocumentSettings({ meta: { timer: props } })
 }
 
-function stopTimer(props: TLTimerShapeProps, store: TimerProps['store']) {
-	store({
-		remainingTime: props.initialTime,
-		state: { state: 'stopped' },
-	})
+function startTimer(props: TLTimerShapeProps, editor: Editor) {
+	updateTimer(
+		{
+			initialTime: props.initialTime,
+			remainingTime: props.remainingTime,
+			state: { state: 'running', lastStartTime: getCurrentServerTime() },
+		},
+		editor
+	)
 }
 
-function pauseTimer(props: TLTimerShapeProps, store: TimerProps['store']) {
+function stopTimer(props: TLTimerShapeProps, editor: Editor) {
+	updateTimer(
+		{
+			initialTime: props.initialTime,
+			remainingTime: props.initialTime,
+			state: { state: 'stopped' },
+		},
+		editor
+	)
+}
+
+function pauseTimer(props: TLTimerShapeProps, editor: Editor) {
 	if (props.state.state !== 'running') return
 	const elapsed = getElapsedTime(props)
-	store({
-		remainingTime: Math.max(0, props.remainingTime - elapsed),
-		state: { state: 'paused' },
-	})
+	updateTimer(
+		{
+			initialTime: props.initialTime,
+			remainingTime: Math.max(0, props.remainingTime - elapsed),
+			state: { state: 'paused' },
+		},
+		editor
+	)
 }
 function getElapsedTime(props: TLTimerShapeProps) {
 	if (props.state.state !== 'running') return 0
@@ -90,20 +109,29 @@ function getTimeRemaining(props: TLTimerShapeProps) {
 export interface TimerProps {
 	props: TLTimerShapeProps
 	editor: Editor
-	store(timer: Partial<TLTimerShapeProps>): void
 }
 
 /** @public @react */
-export function Timer({ props, editor, store }: TimerProps) {
+export const Timer = track(function Timer({ props }: { props: TLTimerShapeProps }) {
+	const editor = useEditor()
 	const remainingTime = getTimeRemaining(props)
 	const darkMode = editor.user.getIsDarkMode()
 	const [isExpanded, setIsExpanded] = useState(true)
+
 	const state = props.state
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const _counter = useTimer(props.state.state)
 	if (remainingTime <= 0) {
 		editor.timers.setTimeout(() => {
-			store({ state: { state: 'completed' } })
+			editor.updateDocumentSettings({
+				meta: {
+					timer: {
+						initialTime: props.initialTime,
+						remainingTime: props.remainingTime,
+						state: { state: 'completed' },
+					},
+				},
+			})
 		}, 0)
 	}
 	const increaseTime = useCallback(() => {
@@ -111,11 +139,15 @@ export function Timer({ props, editor, store }: TimerProps) {
 			props.initialTime < 5 * 60 * 1000
 				? props.initialTime + 30 * 1000
 				: props.initialTime + 60 * 1000
-		store({
-			initialTime: newTime,
-			remainingTime: newTime,
+		editor.updateDocumentSettings({
+			meta: {
+				timer: {
+					initialTime: newTime,
+					remainingTime: newTime,
+				},
+			},
 		})
-	}, [props.initialTime, store])
+	}, [props.initialTime, editor])
 
 	const showPlay = (state.state === 'stopped' || state.state === 'paused') && remainingTime > 0
 	const remainingSeconds = Math.ceil(remainingTime / 1000)
@@ -127,6 +159,7 @@ export function Timer({ props, editor, store }: TimerProps) {
 	return (
 		<div
 			style={{
+				margin: '5px',
 				pointerEvents: 'all',
 				display: 'flex',
 				alignItems: 'stretch',
@@ -147,7 +180,7 @@ export function Timer({ props, editor, store }: TimerProps) {
 					<TldrawUiButton
 						type="icon"
 						onPointerDown={(e) => e.stopPropagation()}
-						onClick={() => stopTimer(props, store)}
+						onClick={() => stopTimer(props, editor)}
 					>
 						<TldrawUiButtonIcon icon="geo-rectangle" />
 					</TldrawUiButton>
@@ -219,7 +252,7 @@ export function Timer({ props, editor, store }: TimerProps) {
 						<TldrawUiButton
 							type="icon"
 							onPointerDown={(e) => e.stopPropagation()}
-							onClick={() => startTimer(store)}
+							onClick={() => startTimer(props, editor)}
 						>
 							<div
 								style={{
@@ -236,9 +269,9 @@ export function Timer({ props, editor, store }: TimerProps) {
 							onPointerDown={(e) => e.stopPropagation()}
 							onClick={() => {
 								if (props.state.state === 'completed') {
-									stopTimer(props, store)
+									stopTimer(props, editor)
 								} else {
-									pauseTimer(props, store)
+									pauseTimer(props, editor)
 								}
 							}}
 						>
@@ -249,4 +282,4 @@ export function Timer({ props, editor, store }: TimerProps) {
 			)}
 		</div>
 	)
-}
+})

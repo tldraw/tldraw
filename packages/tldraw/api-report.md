@@ -1916,7 +1916,9 @@ export interface ThemeStylePickerSetProps {
 }
 
 // @public (undocumented)
-export function Timer({ props, editor, store }: TimerProps): JSX_2.Element;
+export const Timer: NamedExoticComponent<    {
+props: TLTimerShapeProps;
+}>;
 
 // @public (undocumented)
 export interface TimerProps {
@@ -1924,8 +1926,6 @@ export interface TimerProps {
     editor: Editor;
     // (undocumented)
     props: TLTimerShapeProps;
-    // (undocumented)
-    store(timer: Partial<TLTimerShapeProps>): void;
 }
 
 // @public (undocumented)

@@ -8,20 +8,15 @@ import { useSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import {
 	assertExists,
-	atom,
-	DefaultHelperButtons,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	DefaultQuickActions,
-	DefaultQuickActionsContent,
 	Editor,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PeopleMenu,
 	PreferencesGroup,
-	Timer,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
@@ -29,8 +24,6 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	TLTimerShapeProps,
-	track,
 	useActions,
 	useEditor,
 	useTranslation,
@@ -49,70 +42,14 @@ import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
 import { MultiplayerFileMenu } from './FileMenu'
+import { HelperButtons } from './HelperButtons'
 import { Links } from './Links'
+import { QuickActions } from './QuickActions'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
-
-const showTimer = atom('timer', false)
-
-const HelperButtons = track(function HelperButtons() {
-	const editor = useEditor()
-	const props = editor.getDocumentSettings().meta
-	const store = useCallback(
-		(newProps: TLTimerShapeProps) => {
-			editor.updateDocumentSettings({
-				meta: { ...props, ...newProps },
-			})
-		},
-		[editor, props]
-	)
-	if (!props || !props.initialTime) return
-
-	return (
-		<>
-			{showTimer.get() && (
-				<div
-					style={{
-						margin: '5px',
-					}}
-				>
-					<Timer props={props as any} editor={editor} store={store} />
-				</div>
-			)}
-			<DefaultHelperButtons />
-		</>
-	)
-})
-
-const QuickActions = track(function QuickActions() {
-	return (
-		<DefaultQuickActions>
-			<DefaultQuickActionsContent />
-			<div
-				style={{
-					backgroundColor: showTimer.get() ? '#ddd' : '',
-				}}
-			>
-				<div
-					style={{
-						margin: '0 5px',
-						height: '100%',
-						display: 'flex',
-						alignItems: 'center',
-						pointerEvents: 'all',
-					}}
-					onClick={() => {
-						showTimer.set(!showTimer.get())
-					}}
-				>
-					<div>🕝</div>
-				</div>
-			</div>
-		</DefaultQuickActions>
-	)
-})
+import { setTimer } from './Timer'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -210,18 +147,7 @@ export function MultiplayerEditor({
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			let meta = editor.getDocumentSettings().meta
-			if (!meta.initialTime) {
-				meta = {
-					...meta,
-					initialTime: 30 * 1000,
-					remainingTime: 30 * 1000,
-					state: { state: 'stopped' },
-				}
-				editor.updateDocumentSettings({
-					meta,
-				})
-			}
+			setTimer(editor)
 
 			if (!isReadonly) {
 				;(window as any).app = editor

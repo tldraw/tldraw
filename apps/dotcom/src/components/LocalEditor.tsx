@@ -26,10 +26,13 @@ import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { LocalFileMenu } from './FileMenu'
+import { HelperButtons } from './HelperButtons'
 import { Links } from './Links'
+import { QuickActions } from './QuickActions'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
+import { setTimer } from './Timer'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -72,6 +75,8 @@ const components: TLComponents = {
 			</div>
 		)
 	},
+	QuickActions,
+	HelperButtons,
 }
 
 export function LocalEditor() {
@@ -80,6 +85,7 @@ export function LocalEditor() {
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
+		setTimer(editor)
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
