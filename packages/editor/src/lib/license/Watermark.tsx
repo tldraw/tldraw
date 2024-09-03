@@ -4,7 +4,7 @@ import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { featureFlags } from '../utils/debug-flags'
 import { stopEventPropagation } from '../utils/dom'
-import { LicenseManager } from './LicenseManager'
+import { LicenseManager, WATERMARK_LOCAL_SRC } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
 
 /** @internal */
@@ -31,14 +31,13 @@ export const Watermark = React.memo(function Watermark({
 	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
 
 	const [src, setSrc] = useState<string | null>(null)
-	const shouldUseLocal = forceLocal || licenseManager.isDevelopment
 	useEffect(() => {
 		if (!showWatermark) return
 
 		let isCancelled = false
 
 		;(async () => {
-			const src = await licenseManager.getWatermarkUrl(shouldUseLocal)
+			const src = forceLocal ? WATERMARK_LOCAL_SRC : await licenseManager.getWatermarkUrl()
 			if (isCancelled) return
 			setSrc(src)
 		})()
@@ -46,7 +45,7 @@ export const Watermark = React.memo(function Watermark({
 		return () => {
 			isCancelled = true
 		}
-	}, [shouldUseLocal, showWatermark, licenseManager])
+	}, [showWatermark, licenseManager, forceLocal])
 
 	if (!showWatermark || !src) return null
 

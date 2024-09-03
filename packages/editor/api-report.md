@@ -1710,7 +1710,7 @@ export class LicenseManager {
     // (undocumented)
     getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult>;
     // (undocumented)
-    getWatermarkUrl(forceLocal: boolean): Promise<string>;
+    getWatermarkUrl(): Promise<string>;
     // (undocumented)
     isCryptoAvailable: boolean;
     // (undocumented)
