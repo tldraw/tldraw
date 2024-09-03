@@ -97,7 +97,7 @@ export class LicenseManager {
 		this.watermarkUrlPromise = Promise.resolve('')
 
 		if (!featureFlags.enableLicensing.get()) {
-			// If we're not using licensing, treat it as licensed and resolve an empty string for the watermark (not that it'll be requested)
+			// If we're not using licensing, treat it as licensed
 			this.state.set('licensed')
 		} else {
 			this.getLicenseFromKey(licenseKey).then(async (result) => {
@@ -106,6 +106,11 @@ export class LicenseManager {
 				if (!isUnlicensed && !(result as ValidLicenseKeyResult).isLicensedWithWatermark) {
 					this.watermarkUrlPromise = Promise.resolve('')
 				} else {
+					// Before we even update our state, we should request the remote watermark.
+					// This guarantees that the component doesn't need to actually load in order
+					// to trigger the request. By the time the watermark component is mounted, the
+					// request should be on its way.
+
 					this.watermarkUrlPromise = Promise.race([
 						// try and load the remote watermark, if it fails, fallback to the local one
 						(async () => {
