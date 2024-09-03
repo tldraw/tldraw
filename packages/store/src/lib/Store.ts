@@ -9,8 +9,8 @@ import {
 	objectMapKeys,
 	objectMapValues,
 	throttleToNextFrame,
+	uniqueId,
 } from '@tldraw/utils'
-import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { RecordScope } from './RecordType'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
@@ -192,7 +192,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}) {
 		const { initialData, schema, id } = config
 
-		this.id = id ?? nanoid()
+		this.id = id ?? uniqueId()
 		this.schema = schema
 		this.props = config.props
 
@@ -478,7 +478,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
-		return this.atoms.get()[id]?.__unsafe__getWithoutCapture() as any
+		return this.atoms.__unsafe__getWithoutCapture()[id]?.__unsafe__getWithoutCapture() as any
 	}
 
 	/**

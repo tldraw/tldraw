@@ -206,6 +206,7 @@ export function TldrawUiMenuItem<
 					data-value={id}
 					onClick={() => onSelect('toolbar')}
 					title={titleStr}
+					disabled={disabled}
 					onTouchStart={(e) => {
 						preventDefault(e)
 						onSelect('toolbar')
@@ -228,6 +229,7 @@ export function TldrawUiMenuItem<
 						}}
 						data-testid={`tools.more.${id}`}
 						title={titleStr}
+						disabled={disabled}
 						role="radio"
 						aria-checked={isSelected ? 'true' : 'false'}
 						data-value={id}

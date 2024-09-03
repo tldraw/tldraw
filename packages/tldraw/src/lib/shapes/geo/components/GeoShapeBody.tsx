@@ -34,14 +34,14 @@ export function GeoShapeBody({
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const { id, props } = shape
-	const { w, color, fill, dash, growY, size } = props
+	const { w, color, fill, dash, growY, size, scale } = props
 	const strokeWidth = STROKE_SIZES[size] * scaleToUse
 	const h = props.h + growY
 
 	switch (props.geo) {
 		case 'cloud': {
 			if (dash === 'solid') {
-				const d = getCloudPath(w, h, id, size)
+				const d = getCloudPath(w, h, id, size, scale)
 				return (
 					<>
 						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
@@ -49,7 +49,7 @@ export function GeoShapeBody({
 					</>
 				)
 			} else if (dash === 'draw') {
-				const d = inkyCloudSvgPath(w, h, id, size)
+				const d = inkyCloudSvgPath(w, h, id, size, scale)
 				return (
 					<>
 						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
@@ -57,8 +57,8 @@ export function GeoShapeBody({
 					</>
 				)
 			} else {
-				const d = getCloudPath(w, h, id, size)
-				const arcs = getCloudArcs(w, h, id, size)
+				const d = getCloudPath(w, h, id, size, scale)
+				const arcs = getCloudArcs(w, h, id, size, scale)
 
 				return (
 					<>

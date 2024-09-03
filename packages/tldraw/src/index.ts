@@ -1,5 +1,6 @@
 /// <reference types="react" />
 
+import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -24,6 +25,15 @@ export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackgroun
 export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { TldrawShapeIndicators } from './lib/canvas/TldrawShapeIndicators'
 export { defaultBindingUtils } from './lib/defaultBindingUtils'
+export {
+	DEFAULT_EMBED_DEFINITIONS,
+	embedShapePermissionDefaults,
+	type CustomEmbedDefinition,
+	type DefaultEmbedDefinitionType,
+	type EmbedDefinition,
+	type TLEmbedDefinition,
+	type TLEmbedShapePermissions,
+} from './lib/defaultEmbedDefinitions'
 export {
 	centerSelectionAroundPoint,
 	getMediaAssetInfoPartial as createMediaAssetInfoSkeleton,
@@ -487,3 +497,9 @@ export {
 	type TldrawFile,
 	type TldrawFileParseError,
 } from './lib/utils/tldr/file'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

@@ -9,7 +9,7 @@ export const BlogAuthors: React.FC<{ article: Article }> = ({ article }) => {
 
 	return (
 		<div className="shrink-0 mb-12">
-			<h4 className="block bg-white text-black uppercase text-xs font-semibold">
+			<h4 className="block bg-white dark:bg-zinc-950 text-black dark:text-white uppercase text-xs font-semibold">
 				{authors.length > 1 ? 'Authors' : 'Author'}
 			</h4>
 			<ul className="mt-4 space-y-3">
@@ -24,12 +24,12 @@ export const BlogAuthors: React.FC<{ article: Article }> = ({ article }) => {
 							/>
 						</div>
 						<div>
-							<h4 className="text-black text-sm leading-none -mb-1">{name}</h4>
+							<h4 className="text-black dark:text-white text-sm leading-none -mb-1">{name}</h4>
 							<Link
 								href={`https://twitter.com/${twitter}`}
 								target="_blank"
 								rel="noreferrer noopener"
-								className="text-xs leading-none text-blue-500"
+								className="text-xs leading-none text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
 							>
 								@{twitter}
 							</Link>

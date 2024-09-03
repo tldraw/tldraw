@@ -49,7 +49,7 @@ export interface UseSyncOptions {
     trackAnalyticsEvent?(name: string, data: {
         [key: string]: any;
     }): void;
-    uri: string;
+    uri: (() => Promise<string> | string) | string;
     userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
 }
 

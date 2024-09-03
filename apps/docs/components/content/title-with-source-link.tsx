@@ -36,7 +36,7 @@ export const TitleWithSourceLink: React.FC<{
 					from{' '}
 					<Link
 						href={inherited.link}
-						className="text-blue-500 hover:text-blue-600 inline-flex items-center"
+						className="text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center"
 					>
 						<span>{inherited.name}</span>
 						<ArrowRightIcon className="h-3 -rotate-45" />

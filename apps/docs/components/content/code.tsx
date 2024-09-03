@@ -1,14 +1,14 @@
 'use client'
 
 import { cn } from '@/utils/cn'
-import { ArrowRightIcon } from '@heroicons/react/20/solid'
+import { LinkIcon } from '@heroicons/react/20/solid'
 import { getOwnProperty } from '@tldraw/utils'
 import {
+	ReactElement,
+	ReactNode,
 	cloneElement,
 	createContext,
 	isValidElement,
-	ReactElement,
-	ReactNode,
 	useContext,
 	useMemo,
 } from 'react'
@@ -36,8 +36,8 @@ const blurredLineClassName = 'opacity-50 !text-white'
 function CodeLink({ children, href }: { children: ReactNode; href: string }) {
 	return (
 		<A href={href} className="group-[.not-prose]:hover:underline">
+			<LinkIcon className="h-3.5 mb-1 mr-0.5 inline-block" />
 			{children}
-			<ArrowRightIcon className="h-3 -rotate-45 inline-block mb-0.5" />
 		</A>
 	)
 }

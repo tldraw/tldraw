@@ -11,7 +11,7 @@ export const CodeFiles: React.FC<{
 	return (
 		<TabGroup
 			className={cn(
-				'group relative not-prose bg-zinc-100 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1 my-6 flex flex-col',
+				'group relative not-prose bg-zinc-100 dark:bg-zinc-800 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1 my-6 flex flex-col',
 				'[td_&]:m-0 [td_&]:mb-2 [td_&]:p-0 [td_&]:bg-transparent [td_&]:rounded-none',
 				className
 			)}

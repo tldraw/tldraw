@@ -6,9 +6,9 @@ import {
 	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
 	TLEditorSnapshot,
+	TLImageExportOptions,
 	TLPageId,
 	TLStoreSnapshot,
-	TLSvgOptions,
 	useShallowArrayIdentity,
 	useTLStore,
 } from '@tldraw/editor'
@@ -20,7 +20,7 @@ import { getSvgAsImage } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
-export interface TldrawImageProps extends TLSvgOptions {
+export interface TldrawImageProps extends TLImageExportOptions {
 	/**
 	 * The snapshot to display.
 	 */

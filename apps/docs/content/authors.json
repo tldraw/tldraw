@@ -24,6 +24,14 @@
 		"image": "taha_hassan.jpg"
 	},
 	{
+		"id": "davidsheldrick",
+		"name": "David Sheldrick",
+		"description": "",
+		"email": "hello@tldraw.com",
+		"twitter": "tldraw",
+		"image": "david_sheldrick.jpg"
+	},
+	{
 		"id": "tldraw",
 		"name": "tldraw",
 		"description": "",

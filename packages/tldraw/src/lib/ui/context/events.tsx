@@ -37,6 +37,7 @@ export interface TLUiEventMap {
 	'rename-page': null
 	'move-to-page': null
 	'move-to-new-page': null
+	'rename-document': null
 	'group-shapes': null
 	'ungroup-shapes': null
 	'remove-frame': null
@@ -108,6 +109,8 @@ export interface TLUiEventMap {
 	'zoom-tool': null
 	'unlock-all': null
 	'flatten-to-image': null
+	'open-url': { url: string }
+	'copy-link': null
 }
 
 /** @public */
@@ -121,11 +124,11 @@ export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> 
 	data: TLUiEventData<TLUiEventMap[T]>
 ) => void
 
-/** @internal */
-const defaultEventHandler: TLUiEventHandler = () => void null
-
 /** @public */
 export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
+
+/** @internal */
+const defaultEventHandler: TLUiEventContextType = () => void null
 
 /** @internal */
 export const EventsContext = React.createContext<TLUiEventContextType | null>(null)
@@ -146,7 +149,7 @@ export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 }
 
 /** @public */
-export function useUiEvents() {
+export function useUiEvents(): TLUiEventContextType {
 	const eventHandler = React.useContext(EventsContext)
 	return eventHandler ?? defaultEventHandler
 }

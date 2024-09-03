@@ -1,6 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
-import { Tldraw, exportAs, useActions, useEditor } from 'tldraw'
+import { Tldraw, createShapeId, exportAs, useActions, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { EndToEndApi } from './EndToEndApi'
 ;(window as any).__tldraw_ui_event = { id: 'NOTHING_YET' }
@@ -38,6 +38,7 @@ function SneakyExportButton() {
 			exportAsSvg: () => actions['export-as-svg'].onSelect('unknown'),
 			exportAsFormat: (format) =>
 				exportAs(editor, editor.selectAll().getSelectedShapeIds(), format, 'test'),
+			createShapeId: () => createShapeId(),
 		}
 		;(window as any).tldrawApi = api
 	}, [actions, editor])

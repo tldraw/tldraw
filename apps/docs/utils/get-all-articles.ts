@@ -1,4 +1,5 @@
 import { getDb } from './ContentDatabase'
+import { replaceMarkdownLinks } from './replace-md-links'
 
 export const getAllArticles = async () => {
 	const db = await getDb()
@@ -14,7 +15,7 @@ export const getAllArticles = async () => {
 			const headings = await db.getArticleHeadings(article.id)
 			return {
 				...article,
-				joinedHeadings: headings.map(({ title }) => title).join(' | '),
+				joinedHeadings: headings.map(({ title }) => replaceMarkdownLinks(title)).join(' | '),
 			}
 		})
 	)
