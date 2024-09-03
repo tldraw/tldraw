@@ -1,4 +1,5 @@
 import { MediaHelpers } from '@tldraw/utils'
+import { getRenderedChildren } from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
 
 function copyAttrs(source: Element, target: Element) {
@@ -81,5 +82,7 @@ export async function embedMedia(node: HTMLElement) {
 		node.textContent = node.value
 	}
 
-	await Promise.all(Array.from(node.children, (child) => embedMedia(child as HTMLElement)))
+	await Promise.all(
+		Array.from(getRenderedChildren(node), (child) => embedMedia(child as HTMLElement))
+	)
 }

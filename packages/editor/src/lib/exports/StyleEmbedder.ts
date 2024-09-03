@@ -1,5 +1,11 @@
 import { assertExists, objectMapValues, uniqueId } from '@tldraw/utils'
 import { FontEmbedder } from './FontEmbedder'
+import {
+	elementStyle,
+	getComputedStyle,
+	getRenderedChildNodes,
+	getRenderedChildren,
+} from './domUtils'
 import { resourceToDataUrl } from './fetchCache'
 import { isPropertyInherited, parseCssValueUrls, shouldIncludeCssProperty } from './parseCss'
 
@@ -25,10 +31,10 @@ export class StyleEmbedder {
 			shouldSkipInheritedParentStyles: false,
 		})
 
-		const children = Array.from(rootElement.children)
+		const children = Array.from(getRenderedChildren(rootElement))
 		while (children.length) {
 			const child = children.pop()!
-			children.push(...child.children)
+			children.push(...getRenderedChildren(child))
 
 			// when reading children, we don't apply styles that match the defaults for that
 			// element, or that would be inherited from the parent
@@ -87,8 +93,64 @@ export class StyleEmbedder {
 		return Promise.all(promises)
 	}
 
-	async embedStyles(): Promise<string> {
-		let css = await this.fonts.createCss()
+	// custom elements are tricky. if we serialize the dom as-is, the custom elements wont have
+	// their shadow-dom contents serialized. after we've read all the styles, we need to unwrap the
+	// contents of each custom elements shadow dom directly into the parent element itself.
+	unwrapCustomElements() {
+		const visited = new Set<Node>()
+
+		const visit = (element: Element, clonedParent: Element | null) => {
+			if (visited.has(element)) return
+			visited.add(element)
+
+			const shadowRoot = element.shadowRoot
+
+			// if (shadowRoot || clonedParent) debugger
+
+			if (shadowRoot) {
+				const clonedCustomEl = document.createElement('div')
+				this.styles.set(clonedCustomEl, this.styles.get(element)!)
+
+				clonedCustomEl.setAttribute('data-tl-custom-element', element.tagName)
+				;(clonedParent ?? element.parentElement!).appendChild(clonedCustomEl)
+
+				for (const child of shadowRoot.childNodes) {
+					if (child instanceof Element) {
+						visit(child, clonedCustomEl)
+					} else {
+						clonedCustomEl.appendChild(child.cloneNode(true))
+					}
+				}
+
+				element.remove()
+			} else if (clonedParent) {
+				if (element.tagName.toLowerCase() === 'style') {
+					// we don't clone style tags at that would break the style scoping. instead we rely on the computed styles we've already read
+					return
+				}
+
+				const clonedEl = element.cloneNode(false) as Element
+				this.styles.set(clonedEl, this.styles.get(element)!)
+
+				clonedParent.appendChild(clonedEl)
+
+				for (const child of getRenderedChildNodes(element)) {
+					if (child instanceof Element) {
+						visit(child, clonedEl)
+					} else {
+						clonedEl.appendChild(child.cloneNode(true))
+					}
+				}
+			}
+		}
+
+		for (const element of this.styles.keys()) {
+			visit(element, null)
+		}
+	}
+
+	embedStyles(): string {
+		let css = ''
 
 		for (const [element, info] of this.styles) {
 			if (info.after || info.before) {
@@ -120,6 +182,10 @@ export class StyleEmbedder {
 		return css
 	}
 
+	async getFontFaceCss() {
+		return await this.fonts.createCss()
+	}
+
 	dispose() {
 		destroyDefaultStyleFrame()
 	}
@@ -130,10 +196,6 @@ interface ReadStyleOpts {
 	parentStyles: ReadonlyStyles
 }
 
-function elementStyle(element: Element) {
-	return (element as HTMLElement | SVGElement).style
-}
-
 function styleFromElement(element: Element, { defaultStyles, parentStyles }: ReadStyleOpts) {
 	// `computedStyleMap` produces a more accurate representation of the styles, but it's not
 	// supported in firefox at the time of writing. So we fall back to `getComputedStyle` if it's
@@ -141,13 +203,13 @@ function styleFromElement(element: Element, { defaultStyles, parentStyles }: Rea
 	if (element.computedStyleMap) {
 		return styleFromComputedStyleMap(element.computedStyleMap(), { defaultStyles, parentStyles })
 	}
-	return styleFromComputedStyle(window.getComputedStyle(element), { defaultStyles, parentStyles })
+	return styleFromComputedStyle(getComputedStyle(element), { defaultStyles, parentStyles })
 }
 
 function styleFromPseudoElement(element: Element, pseudo: string) {
 	// the equivalent of `computedStyleMap` for pseudo-elements isn't even fully specced out yet, so
 	// for those we have to use `getComputedStyle` in all browsers.
-	const style = window.getComputedStyle(element, pseudo)
+	const style = getComputedStyle(element, pseudo)
 
 	const content = style.getPropertyValue('content')
 	if (content === '' || content === 'none') {
@@ -240,7 +302,7 @@ function getDefaultStylesForTagName(tagName: string) {
 		foreignObject.appendChild(element)
 		existing = element.computedStyleMap
 			? styleFromComputedStyleMap(element.computedStyleMap(), defaultStyleReadOptions)
-			: styleFromComputedStyle(window.getComputedStyle(element), defaultStyleReadOptions)
+			: styleFromComputedStyle(getComputedStyle(element), defaultStyleReadOptions)
 		foreignObject.removeChild(element)
 		defaultStylesByTagName[tagName] = existing
 	}

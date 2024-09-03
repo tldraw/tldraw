@@ -429,6 +429,41 @@ const snapshots: Snapshots = {
 					`}
 				/>
 			),
+			'custom elements': (
+				<TL.html
+					w={200}
+					h={200}
+					html={`
+						Hello!
+						<custom-element>
+							<ul slot="list">
+								<li class="selected">Apples</li>
+								<li>Pears</li>
+								<li>Bananas</li>
+							</ul>
+
+							<p slot="choice" data-name="Apples">
+								A common, sweet, crunchy fruit, usually green or yellow in color.
+							</p>
+							<p data-name="Pears">
+								A fairly common, sweet, usually green fruit, usually softer than Apples.
+							</p>
+							<p data-name="Bananas">A long, curved, yellow fruit, with a fairly gentle flavor.</p>
+						</custom-element>
+					`}
+					css={`
+						#self {
+							background-color: lightcoral;
+						}
+						#self custom-element {
+							background-color: plum;
+						}
+						#self .selected {
+							font-size: 20px;
+						}
+					`}
+				/>
+			),
 		},
 		Embeds: {
 			Video: <TL.html w={300} h={169} html='<video src="/bonk.webm" width="300" height="169" />' />,

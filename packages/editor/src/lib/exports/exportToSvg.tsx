@@ -102,16 +102,24 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 
 		// fetch any resources that we need to embed in the CSS, like background images.
 		await styleEmbedder.fetchResources()
+		const fontCss = await styleEmbedder.getFontFaceCss()
 
-		// apply the computed styles (with their embedded resources) directly to the elements with their
-		// `style` attribute. Anything that can't be done this way (pseudo-elements and @font-face
-		// declarations) will be returned as a string of CSS.
-		const css = await styleEmbedder.embedStyles()
+		// custom elements that make use of the shadow dom won't be serialized correctly by default:
+		// the contents of the shadow dom will be ignored. once we've read the styles from the
+		// document, we go through and replace any custom elements with plain `<div>`s. as we do so,
+		// we traverse the shadow dom and clone it into the new plain div. any scoped stylesheets
+		// are removed, as we've already read all the computed styles above.
+		styleEmbedder.unwrapCustomElements()
+
+		// apply the computed styles (with their embedded resources) directly to the elements with
+		// their `style` attribute. Anything that can't be done this way (pseudo-elements) will be
+		// returned as a string of CSS.
+		const pseudoCss = styleEmbedder.embedStyles()
 
 		// add the CSS to the SVG
-		if (css) {
+		if (fontCss || pseudoCss) {
 			const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-			style.textContent = css
+			style.textContent = `${fontCss}\n${pseudoCss}`
 			svg.prepend(style)
 		}
 	} finally {

@@ -48,6 +48,49 @@ function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
 }
 
 export default function EndToEnd() {
+	useLayoutEffect(() => {
+		if (customElements.get('custom-element')) return
+
+		const template = document.createElement('template')
+		template.innerHTML = `
+			<style>
+				article {
+					margin: 1em;
+					display: flex;
+					flex-direction: column;
+					gap: 1em;
+				}
+				.list {
+					background-color: lightskyblue;
+					padding: 1em;
+				}
+				.choice {
+					background-color: lightgreen;
+					padding: 1em;
+				}
+			</style>
+			<article>
+				<div class="list">
+					list: <slot name="list"></slot>
+				</div>
+				<div class="choice">
+					choice: <slot name="choice"></slot>
+				</div>
+			</article>
+		`
+		customElements.define(
+			'custom-element',
+			class extends HTMLElement {
+				constructor() {
+					super()
+					const templateContent = template.content
+					const shadowRoot = this.attachShadow({ mode: 'open' })
+					shadowRoot.appendChild(templateContent.cloneNode(true))
+				}
+			}
+		)
+	}, [])
+
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
