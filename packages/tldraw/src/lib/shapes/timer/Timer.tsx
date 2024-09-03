@@ -117,7 +117,10 @@ export function Timer({ props, editor, store }: TimerProps) {
 	const showPlay = (state.state === 'stopped' || state.state === 'paused') && remainingTime > 0
 	const remainingSeconds = Math.ceil(remainingTime / 1000)
 	const initialSeconds = Math.ceil(props.initialTime / 1000)
-	const width = state.state === 'running' ? `${(remainingSeconds / initialSeconds) * 100}%` : '100%'
+	const width =
+		state.state === 'running' || state.state === 'paused'
+			? `${(remainingSeconds / initialSeconds) * 100}%`
+			: '100%'
 	return (
 		<div
 			style={{
@@ -172,7 +175,7 @@ export function Timer({ props, editor, store }: TimerProps) {
 						left: 0,
 						backgroundColor: getBackgroundColor(props.state.state, darkMode),
 						border:
-							props.state.state === 'running'
+							props.state.state === 'running' || props.state.state === 'paused'
 								? `1px solid ${DefaultColorThemePalette.lightMode.red.solid}`
 								: 'none',
 						width: `calc(${width} + 3px)`,

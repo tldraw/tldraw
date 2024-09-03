@@ -8,7 +8,6 @@ import {
 	TLUiComponents,
 	Timer,
 	Tldraw,
-	TldrawUiMenuItem,
 	atom,
 	track,
 	useEditor,
@@ -56,14 +55,20 @@ const QuickActions = track(function QuickActions() {
 					backgroundColor: showTimer.get() ? '#ddd' : '',
 				}}
 			>
-				<TldrawUiMenuItem
-					id="code"
-					icon="code"
-					isSelected={showTimer.get()}
-					onSelect={() => {
+				<div
+					style={{
+						margin: '0 5px',
+						height: '100%',
+						display: 'flex',
+						alignItems: 'center',
+						pointerEvents: 'all',
+					}}
+					onClick={() => {
 						showTimer.set(!showTimer.get())
 					}}
-				/>
+				>
+					<div>🕝</div>
+				</div>
 			</div>
 		</DefaultQuickActions>
 	)
