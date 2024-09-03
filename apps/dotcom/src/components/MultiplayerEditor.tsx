@@ -1,12 +1,18 @@
-import { ROOM_OPEN_MODE, RoomOpenModeToPath, type RoomOpenMode } from '@tldraw/dotcom-shared'
+import {
+	getLicenseKey,
+	ROOM_OPEN_MODE,
+	RoomOpenModeToPath,
+	type RoomOpenMode,
+} from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback } from 'react'
 import {
+	assertExists,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	EditSubmenu,
 	Editor,
+	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PeopleMenu,
@@ -18,13 +24,11 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	ViewSubmenu,
-	assertExists,
-	debugEnableLicensing,
 	useActions,
 	useEditor,
 	useTranslation,
 	useValue,
+	ViewSubmenu,
 } from 'tldraw'
 import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
 import { assetUrls } from '../utils/assetUrls'
@@ -42,8 +46,6 @@ import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
-
-debugEnableLicensing()
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -155,7 +157,7 @@ export function MultiplayerEditor({
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// licenseKey={getLicenseKey()}
+				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				onMount={handleMount}

@@ -1,3 +1,4 @@
+import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import {
 	DefaultDebugMenu,
@@ -15,7 +16,6 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 	ViewSubmenu,
-	debugEnableLicensing,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -30,8 +30,6 @@ import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
-
-debugEnableLicensing()
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -90,7 +88,7 @@ export function LocalEditor() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				// licenseKey={getLicenseKey()}
+				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				persistenceKey={SCRATCH_PERSISTENCE_KEY}
 				onMount={handleMount}
