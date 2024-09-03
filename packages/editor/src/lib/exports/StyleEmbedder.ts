@@ -120,7 +120,7 @@ export class StyleEmbedder {
 		return css
 	}
 
-	[Symbol.dispose]() {
+	dispose() {
 		destroyDefaultStyleFrame()
 	}
 }

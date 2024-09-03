@@ -83,34 +83,38 @@ async function applyChangesToForeignObjects(svg: SVGSVGElement) {
 	if (!foreignObjectChildren.length) return
 
 	// StyleEmbedder embeds any CSS - including resources like fonts and images.
-	using styleEmbedder = new StyleEmbedder(svg)
+	const styleEmbedder = new StyleEmbedder(svg)
 
-	// begin traversing stylesheets to find @font-face declarations we might need to embed
-	styleEmbedder.fonts.startFindingCurrentDocumentFontFaces()
+	try {
+		// begin traversing stylesheets to find @font-face declarations we might need to embed
+		styleEmbedder.fonts.startFindingCurrentDocumentFontFaces()
 
-	// embed any media elements in the foreignObject children. images will get converted to data
-	// urls, and things like videos will be converted to images.
-	await Promise.all(foreignObjectChildren.map((el) => embedMedia(el as HTMLElement)))
+		// embed any media elements in the foreignObject children. images will get converted to data
+		// urls, and things like videos will be converted to images.
+		await Promise.all(foreignObjectChildren.map((el) => embedMedia(el as HTMLElement)))
 
-	// read the computed styles of every element (+ it's children & pseudo-elements) in the
-	// document. we do this in a single pass before we start embedding any CSS stuff to avoid
-	// constantly forcing the browser to recompute styles & layout.
-	for (const el of foreignObjectChildren) {
-		styleEmbedder.readRootElementStyles(el as HTMLElement)
-	}
+		// read the computed styles of every element (+ it's children & pseudo-elements) in the
+		// document. we do this in a single pass before we start embedding any CSS stuff to avoid
+		// constantly forcing the browser to recompute styles & layout.
+		for (const el of foreignObjectChildren) {
+			styleEmbedder.readRootElementStyles(el as HTMLElement)
+		}
 
-	// fetch any resources that we need to embed in the CSS, like background images.
-	await styleEmbedder.fetchResources()
+		// fetch any resources that we need to embed in the CSS, like background images.
+		await styleEmbedder.fetchResources()
 
-	// apply the computed styles (with their embedded resources) directly to the elements with their
-	// `style` attribute. Anything that can't be done this way (pseudo-elements and @font-face
-	// declarations) will be returned as a string of CSS.
-	const css = await styleEmbedder.embedStyles()
+		// apply the computed styles (with their embedded resources) directly to the elements with their
+		// `style` attribute. Anything that can't be done this way (pseudo-elements and @font-face
+		// declarations) will be returned as a string of CSS.
+		const css = await styleEmbedder.embedStyles()
 
-	// add the CSS to the SVG
-	if (css) {
-		const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-		style.textContent = css
-		svg.prepend(style)
+		// add the CSS to the SVG
+		if (css) {
+			const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
+			style.textContent = css
+			svg.prepend(style)
+		}
+	} finally {
+		styleEmbedder.dispose()
 	}
 }
