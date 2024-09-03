@@ -206,12 +206,13 @@ export const ImageToolbar = track(function ImageToolbar() {
 	const shape = selectedShape as TLImageShape
 	const crop = shape.props.crop
 	const shapeAspectRatio = shape.props.w / shape.props.h
+	const isOriginalCrop = !crop || isEqual(crop, defaultCrop)
 
 	return (
 		<div
 			className="tl-image__toolbar"
 			style={{
-				top: Math.floor(Math.max(16, currentCoordinates.y - 48)),
+				top: Math.floor(Math.max(16, currentCoordinates.y - 64)),
 				left: Math.floor(Math.max(16, currentCoordinates.x)),
 				width: Math.floor(selectionRotatedPageBounds.width * editor.getZoomLevel()),
 			}}
@@ -241,11 +242,12 @@ export const ImageToolbar = track(function ImageToolbar() {
 									aspectRatio === 'circle' && crop
 										? crop.isCircle
 										: aspectRatio === 'original'
-											? !crop || isEqual(crop, defaultCrop)
+											? isOriginalCrop
 											: aspectRatio === 'square'
 												? !crop?.isCircle &&
 													approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.1)
-												: approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
+												: !isOriginalCrop &&
+													approximately(shapeAspectRatio, ASPECT_RATIO_TO_VALUE[aspectRatio], 0.01)
 								}
 								title={msg(`tool.aspect-ratio.${aspectRatio}`)}
 							>

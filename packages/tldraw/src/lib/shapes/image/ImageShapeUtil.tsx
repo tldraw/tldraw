@@ -26,6 +26,7 @@ import {
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 
+import { getOriginalUncroppedSize } from '../../tools/SelectTool/childStates/Crop/children/crop_helpers'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
@@ -415,7 +416,16 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				<>
 					<defs>
 						<clipPath id={cropClipId}>
-							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+							{crop.isCircle ? (
+								<ellipse
+									cx={croppedWidth / 2}
+									cy={croppedHeight / 2}
+									rx={croppedWidth / 2}
+									ry={croppedHeight / 2}
+								/>
+							) : (
+								<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+							)}
 						</clipPath>
 					</defs>
 					<g clipPath={`url(#${cropClipId})`}>
@@ -423,11 +433,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							href={src}
 							width={width}
 							height={height}
-							style={
-								flip
-									? { ...flip, transform: `${cropTransform} ${flip.transform}` }
-									: { transform: cropTransform }
-							}
+							style={flip ? { ...flip } : { transform: cropTransform }}
 						/>
 					</g>
 					{textEl}
@@ -554,8 +560,7 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 		}
 	}
 
-	const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
-	const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
+	const { w, h } = getOriginalUncroppedSize(crop, shape)
 
 	const offsetX = -topLeft.x * w
 	const offsetY = -topLeft.y * h
@@ -567,12 +572,31 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 }
 
 function getFlipStyle(shape: TLImageShape, size?: { width: number; height: number }) {
-	const { flipX, flipY, zoom } = shape.props
+	const { flipX, flipY, zoom, crop } = shape.props
 	if (!flipX && !flipY && zoom === 1) return undefined
+
+	let cropOffsetX
+	let cropOffsetY
+	if (crop) {
+		// We have to do all this extra math because of the whole transform origin around 0,0
+		// instead of center in SVG-land, ugh.
+		const { w, h } = getOriginalUncroppedSize(crop, shape)
+		const xCropSize = crop.bottomRight.x - crop.topLeft.x
+		const yCropSize = crop.bottomRight.y - crop.topLeft.y
+		const min = 0.5 * (shape.props.zoom - 1)
+		const max = min * -1
+		const xMinWithCrop = min + (1 - xCropSize)
+		const yMinWithCrop = min + (1 - yCropSize)
+		const xPositionScaled = 1 - (crop.topLeft.x - xMinWithCrop) / (max - xMinWithCrop)
+		const yPositionScaled = 1 - (crop.topLeft.y - yMinWithCrop) / (max - yMinWithCrop)
+		cropOffsetX = xPositionScaled * (w * zoom - shape.props.w)
+		cropOffsetY = yPositionScaled * (h * zoom - shape.props.h)
+	}
 
 	const scale = `scale(${flipX ? -1 * zoom : zoom}, ${flipY ? -1 * zoom : zoom})`
 	const translate = size
-		? `translate(${flipX ? size.width : 0}px, ${flipY ? size.height : 0}px)`
+		? `translate(${(flipX ? size.width * zoom : 0) - (cropOffsetX ? cropOffsetX : 0)}px,
+		             ${(flipY ? size.height * zoom : 0) - (cropOffsetY ? cropOffsetY : 0)}px)`
 		: ''
 
 	return {
