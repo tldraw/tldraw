@@ -1,7 +1,14 @@
 import { atom } from '@tldraw/state'
+import { fetch } from '@tldraw/utils'
 import { publishDates } from '../../version'
+import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { featureFlags } from '../utils/debug-flags'
 import { importPublicKey, str2ab } from '../utils/licensing'
+import { watermarkDesktopSvg } from '../watermarks'
+
+/** @internal */
+export const WATERMARK_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-desktop.svg`
+export const WATERMARK_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
 
 const GRACE_PERIOD_DAYS = 5
 
@@ -89,9 +96,10 @@ export class LicenseManager {
 		if (!featureFlags.enableLicensing.get()) {
 			this.state.set('licensed')
 		} else {
-			this.getLicenseFromKey(licenseKey).then((result) => {
+			this.getLicenseFromKey(licenseKey).then(async (result) => {
 				const isUnlicensed = isEditorUnlicensed(result)
 				if (isUnlicensed) {
+					await this.getWatermarkUrl(this.isDevelopment)
 					this.state.set('unlicensed')
 				} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
 					this.state.set('licensed-with-watermark')
@@ -100,6 +108,39 @@ export class LicenseManager {
 				}
 			})
 		}
+	}
+
+	private watermarkUrlPromise: Promise<string> | null = null
+	async getWatermarkUrl(forceLocal: boolean): Promise<string> {
+		if (forceLocal) {
+			return WATERMARK_LOCAL_SRC
+		}
+
+		if (!this.watermarkUrlPromise) {
+			this.watermarkUrlPromise = Promise.race([
+				// try and load the remote watermark, if it fails, fallback to the local one
+				(async () => {
+					try {
+						const response = await fetch(WATERMARK_REMOTE_SRC)
+						if (!response.ok) return WATERMARK_LOCAL_SRC
+						const blob = await response.blob()
+						return URL.createObjectURL(blob)
+					} catch {
+						return WATERMARK_LOCAL_SRC
+					}
+				})(),
+
+				// but if that's taking a long time (>3s) just show the local one anyway
+				new Promise<string>((resolve) => {
+					// eslint-disable-next-line no-restricted-globals
+					setTimeout(() => {
+						resolve(WATERMARK_LOCAL_SRC)
+					}, 3_000)
+				}),
+			])
+		}
+
+		return this.watermarkUrlPromise
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
