@@ -336,14 +336,16 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const canPlay = asset.props.src && this.isAnimated(shape)
 
-		if (!canPlay) return
+		if (!canPlay && !shape.props.playing) return
 
+		// It could only have been disabled if prefers reduced motion was enabled previously.
+		// Otherwise, stay in play mode.
 		this.editor.updateShapes([
 			{
 				type: 'image',
 				id: shape.id,
 				props: {
-					playing: !shape.props.playing,
+					playing: true,
 				},
 			},
 		])
