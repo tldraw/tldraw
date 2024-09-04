@@ -10,9 +10,24 @@ function useIdentity<T>(value: T, isEqual: (a: T, b: T) => boolean): T {
 	return value
 }
 
+const areNullableArraysShallowEqual = (
+	a: readonly any[] | null | undefined,
+	b: readonly any[] | null | undefined
+) => {
+	a ??= null
+	b ??= null
+	if (a === b) {
+		return true
+	}
+	if (!a || !b) {
+		return false
+	}
+	return areArraysShallowEqual(a, b)
+}
+
 /** @internal */
-export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[] {
-	return useIdentity(arr, areArraysShallowEqual)
+export function useShallowArrayIdentity<T extends readonly any[] | null | undefined>(arr: T): T {
+	return useIdentity(arr, areNullableArraysShallowEqual)
 }
 
 const areNullableObjectsShallowEqual = (
