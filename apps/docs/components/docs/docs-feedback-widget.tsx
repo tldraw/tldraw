@@ -5,7 +5,7 @@ import { useLocalStorageState } from '@/utils/storage'
 import { Field, Label, Textarea } from '@headlessui/react'
 import { ArrowLongRightIcon, CheckCircleIcon, HandThumbDownIcon } from '@heroicons/react/20/solid'
 import { HandThumbUpIcon } from '@heroicons/react/24/solid'
-import { track } from '@vercel/analytics'
+import { sleep } from '@tldraw/utils'
 import { usePathname } from 'next/navigation'
 import { FormEventHandler, useCallback, useState } from 'react'
 
@@ -17,9 +17,8 @@ async function submitFeedback(
 	_feedback: 1 | -1 | 0,
 	_note: string
 ) {
-	const feedback: { value: number; message?: string } = { value: _feedback }
-	if (_note !== '') feedback.message = _note
-	track('Feedback', feedback)
+	// todo
+	await sleep(2000)
 	return
 }
 

@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { fetch } from '@tldraw/utils'
+import { fetch, sleep } from '@tldraw/utils'
 import React, { useEffect, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
@@ -35,12 +35,7 @@ async function getWatermarkUrl(forceLocal: boolean): Promise<string> {
 			})(),
 
 			// but if that's taking a long time (>3s) just show the local one anyway
-			new Promise<string>((resolve) => {
-				// eslint-disable-next-line no-restricted-globals
-				setTimeout(() => {
-					resolve(WATERMARK_LOCAL_SRC)
-				}, 3_000)
-			}),
+			sleep(3_000).then(() => WATERMARK_LOCAL_SRC),
 		])
 	}
 

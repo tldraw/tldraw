@@ -1,5 +1,6 @@
 import { connect } from '@/scripts/functions/connect'
 import { Article, ArticleHeading, ArticleHeadings } from '@/types/content-types'
+import { sleep } from '@tldraw/utils'
 import { config } from 'dotenv'
 import OpenAI from 'openai'
 import path from 'path'
@@ -139,7 +140,7 @@ export class ContentVectorDatabase {
 		}
 
 		// Sleep for 50ms or so to avoid rate limiting
-		await new Promise((r) => setTimeout(r, 35))
+		await sleep(35)
 
 		return
 	}
