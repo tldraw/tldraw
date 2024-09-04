@@ -1,16 +1,21 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Box,
 	FileHelpers,
+	Group2d,
 	HTMLContainer,
 	Image,
 	MediaHelpers,
+	Rectangle2d,
+	SvgExportContext,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
 	fetch,
+	getDefaultColorTheme,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
@@ -23,7 +28,17 @@ import { useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
+import { TextLabel } from '../shared/TextLabel'
+import {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	LABEL_PADDING,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { useAsset } from '../shared/useAsset'
+import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -44,6 +59,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override canCrop() {
 		return true
 	}
+	override canEdit() {
+		return true
+	}
 
 	override getDefaultProps(): TLImageShape['props'] {
 		return {
@@ -55,7 +73,53 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			crop: null,
 			flipX: false,
 			flipY: false,
+
+			// Text properties
+			color: 'black',
+			labelColor: 'black',
+			fill: 'none',
+			size: 'm',
+			font: 'draw',
+			text: '',
+			align: 'middle',
+			verticalAlign: 'middle',
 		}
+	}
+
+	override getText(shape: TLImageShape) {
+		return shape.props.text
+	}
+
+	override getGeometry(shape: TLImageShape) {
+		const children = [
+			new Rectangle2d({
+				width: shape.props.w,
+				height: shape.props.h,
+				isFilled: true,
+			}),
+		]
+
+		if (shape.props.text) {
+			const textDimensions = this.editor.textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: LABEL_FONT_SIZES[shape.props.size],
+				maxWidth: shape.props.w - LABEL_PADDING * 2,
+			})
+
+			children.push(
+				new Rectangle2d({
+					x: 0,
+					y: shape.props.h + LABEL_PADDING,
+					width: shape.props.w,
+					height: textDimensions.h,
+					isFilled: true,
+					isLabel: true,
+				})
+			)
+		}
+
+		return new Group2d({ children })
 	}
 
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
@@ -116,6 +180,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const theme = useDefaultColorTheme()
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
@@ -190,6 +255,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
 		// have that set up.
 		const crossOrigin = this.isAnimated(shape) ? 'anonymous' : undefined
+		const { fill, font, align, verticalAlign, size, text, color: labelColor } = shape.props
 
 		return (
 			<>
@@ -247,6 +313,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
 					)}
 				</HTMLContainer>
+
+				<TextLabel
+					id={shape.id}
+					type={shape.type}
+					font={font}
+					fontSize={LABEL_FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					padding={LABEL_PADDING}
+					fill={fill}
+					align={align}
+					verticalAlign={verticalAlign}
+					text={text}
+					isSelected={isSelected}
+					labelColor={theme[labelColor].solid}
+					wrap
+				/>
 			</>
 		)
 	}
@@ -257,14 +339,15 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override async toSvg(shape: TLImageShape) {
-		if (!shape.props.assetId) return null
+	override async toSvg(shape: TLImageShape, ctx: SvgExportContext) {
+		const props = shape.props
+		if (!props.assetId) return null
 
-		const asset = this.editor.getAsset(shape.props.assetId)
+		const asset = this.editor.getAsset(props.assetId)
 
 		if (!asset) return null
 
-		let src = await this.editor.resolveAssetUrl(shape.props.assetId, {
+		let src = await this.editor.resolveAssetUrl(props.assetId, {
 			shouldResolveToOriginal: true,
 		})
 		if (!src) return null
@@ -276,6 +359,32 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		) {
 			// If it's a remote image, we need to fetch it and convert it to a data URI
 			src = (await getDataURIFromURL(src)) || ''
+		}
+
+		let textEl
+		if (props.text) {
+			ctx.addExportDef(getFontDefForExport(props.font))
+			const theme = getDefaultColorTheme(ctx)
+
+			const textDimensions = this.editor.textMeasure.measureText(props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[props.font],
+				fontSize: LABEL_FONT_SIZES[props.size],
+				maxWidth: props.w - LABEL_PADDING * 2,
+			})
+			const bounds = new Box(0, props.h + LABEL_PADDING, props.w, textDimensions.h)
+			textEl = (
+				<SvgTextLabel
+					fontSize={LABEL_FONT_SIZES[props.size]}
+					font={props.font}
+					align={props.align}
+					verticalAlign={props.verticalAlign}
+					text={props.text}
+					labelColor={theme[props.labelColor].solid}
+					bounds={bounds}
+					padding={LABEL_PADDING}
+				/>
+			)
 		}
 
 		const containerStyle = getCroppedContainerStyle(shape)
@@ -315,16 +424,20 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							}
 						/>
 					</g>
+					{textEl}
 				</>
 			)
 		} else {
 			return (
-				<image
-					href={src}
-					width={shape.props.w}
-					height={shape.props.h}
-					style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
-				/>
+				<>
+					<image
+						href={src}
+						width={shape.props.w}
+						height={shape.props.h}
+						style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
+					/>
+					{textEl}
+				</>
 			)
 		}
 	}

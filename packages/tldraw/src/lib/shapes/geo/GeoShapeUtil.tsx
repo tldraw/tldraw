@@ -75,18 +75,20 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			w: 100,
 			h: 100,
 			geo: 'rectangle',
+			dash: 'draw',
+			growY: 0,
+			url: '',
+			scale: 1,
+
+			// Text properties
 			color: 'black',
 			labelColor: 'black',
 			fill: 'none',
-			dash: 'draw',
 			size: 'm',
 			font: 'draw',
 			text: '',
 			align: 'middle',
 			verticalAlign: 'middle',
-			growY: 0,
-			url: '',
-			scale: 1,
 		}
 	}
 

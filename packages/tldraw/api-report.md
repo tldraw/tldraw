@@ -1306,11 +1306,17 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop(): boolean;
     // (undocumented)
+    canEdit(): boolean;
+    // (undocumented)
     component(shape: TLImageShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
     // (undocumented)
+    getGeometry(shape: TLImageShape): Group2d;
+    // (undocumented)
     getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
+    // (undocumented)
+    getText(shape: TLImageShape): string;
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
@@ -1328,7 +1334,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
-    toSvg(shape: TLImageShape): Promise<JSX_2.Element | null>;
+    toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX_2.Element | null>;
     // (undocumented)
     static type: "image";
 }
@@ -3775,6 +3781,10 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     getDefaultProps(): TLVideoShape['props'];
     // (undocumented)
+    getGeometry(shape: TLVideoShape): Group2d;
+    // (undocumented)
+    getText(shape: TLVideoShape): string;
+    // (undocumented)
     indicator(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
     isAspectRatioLocked(): boolean;
@@ -3783,7 +3793,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static props: RecordProps<TLVideoShape>;
     // (undocumented)
-    toSvg(shape: TLVideoShape): JSX_2.Element;
+    toSvg(shape: TLVideoShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
     static type: "video";
 }

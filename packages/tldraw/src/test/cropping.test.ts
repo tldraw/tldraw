@@ -183,26 +183,6 @@ describe('When in the select.idle state', () => {
 		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
 	})
 
-	it('when only an image is selected pressing enter should transition to select.crop', () => {
-		// two shapes
-		editor
-			.expectToBeIn('select.idle')
-			.select(ids.imageA, ids.imageB)
-			.keyDown('Enter')
-			.keyUp('Enter')
-			.expectToBeIn('select.idle')
-
-		// one image
-		editor
-			.expectToBeIn('select.idle')
-			.select(ids.imageB)
-			.keyDown('Enter')
-			.keyUp('Enter')
-			.expectToBeIn('select.crop.idle')
-
-		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
-	})
-
 	it('when only an image is selected control-pointing a selection handle should transition to select.crop.pointing_crop_handle', () => {
 		// two shapes / edge
 		editor
