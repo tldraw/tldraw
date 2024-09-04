@@ -54,11 +54,11 @@ export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
 			{
 				initialTime: newTime,
 				remainingTime: newTime,
-				state: props.state,
+				state: state.state === 'completed' ? { state: 'stopped' } : state,
 			},
 			editor
 		)
-	}, [props.initialTime, editor, props.state])
+	}, [props.initialTime, state, editor])
 
 	return (
 		<TimerButton
@@ -66,13 +66,13 @@ export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
 			onClick={decreaseTime}
 			disabled={state.state === 'running' || props.initialTime < TEN_SECONDS}
 			title="timer.decrease-time"
-			small
 		/>
 	)
 }
 
 export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const state = props.state
 
 	const increaseTime = useCallback(() => {
 		let newTime: number
@@ -87,12 +87,12 @@ export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 			{
 				initialTime: newTime,
 				remainingTime: newTime,
-				state: props.state,
+
+				state: state.state === 'completed' ? { state: 'stopped' } : state,
 			},
 			editor
 		)
-	}, [props.initialTime, editor, props.state])
-	const state = props.state
+	}, [props.initialTime, state, editor])
 
 	return (
 		<TimerButton
@@ -100,7 +100,6 @@ export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 			onClick={increaseTime}
 			disabled={state.state === 'running'}
 			title="timer.increase-time"
-			small
 		/>
 	)
 }
@@ -144,13 +143,11 @@ function TimerButton({
 	disabled = false,
 	icon,
 	onClick,
-	small = false,
 	title,
 }: {
 	disabled?: boolean
 	icon: string
 	onClick(): void
-	small?: boolean
 	title: TLUiTranslationKey
 }) {
 	const msg = useTranslation()
@@ -162,7 +159,7 @@ function TimerButton({
 			onClick={onClick}
 			title={msg(title)}
 		>
-			<TldrawUiIcon icon={icon} small={small} />
+			<TldrawUiIcon icon={icon} small={true} />
 		</TldrawUiButton>
 	)
 }
