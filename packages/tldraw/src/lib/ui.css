@@ -1825,6 +1825,10 @@
 	padding: 0 4px;
 }
 
+.tlui-timer__quick-actions-wrapper {
+	position: relative;
+}
+
 .tlui-timer__quick-actions-wrapper-active {
 	background-color: var(--color-hint);
 }
@@ -1835,4 +1839,14 @@
 	display: flex;
 	align-items: center;
 	pointer-events: all;
+}
+
+.tlui-timer__quick-actions-icon-notification {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background-color: var(--color-selected);
+	position: absolute;
+	right: 0;
+	top: 10px;
 }
