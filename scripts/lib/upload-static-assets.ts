@@ -28,6 +28,8 @@ async function uploadFile(key: string, fullPath: string) {
 		Key: key,
 		Body: fileStream,
 		ContentType: contentType,
+		// these assets will never change, so we can cache them forever:
+		CacheControl: 'public, max-age=31536000, immutable',
 	}
 	process.stdout.write(`  • ${key}`)
 	await R2.send(new PutObjectCommand(uploadParams))
