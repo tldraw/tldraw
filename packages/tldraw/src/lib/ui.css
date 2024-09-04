@@ -1792,3 +1792,28 @@
 	border-radius: var(--radius-3);
 	overflow: hidden;
 }
+
+.tlui-timer__time-wrapper {
+	display: flex;
+	align-items: center;
+	width: 60px;
+	overflow: hidden;
+	background: #eee;
+	height: 100%;
+	position: relative;
+	justify-content: center;
+}
+
+.tlui-timer__time-color-background {
+	border-radius: 3px;
+	margin: -2px;
+	z-index: 0;
+	height: calc(100% + 4px);
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.tlui-timer__time-text {
+	z-index: 1;
+}

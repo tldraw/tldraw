@@ -73,16 +73,7 @@ export function Time({
 			: '100%'
 	return (
 		<div
-			style={{
-				display: 'flex',
-				alignItems: 'center',
-				width: '60px',
-				overflow: 'hidden',
-				background: '#eee',
-				height: '100%',
-				position: 'relative',
-				justifyContent: 'center',
-			}}
+			className="tlui-timer__time-wrapper"
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={() => {
 				if (!isExpanded) {
@@ -91,14 +82,8 @@ export function Time({
 			}}
 		>
 			<div
+				className="tlui-timer__time-color-background"
 				style={{
-					borderRadius: '3px',
-					margin: '-2px',
-					zIndex: 0,
-					height: 'calc(100%' + ' + 4px)',
-					position: 'absolute',
-					top: 0,
-					left: 0,
 					backgroundColor: getBackgroundColor(props.state.state, darkMode),
 					border:
 						props.state.state === 'running' || props.state.state === 'paused'
@@ -107,13 +92,7 @@ export function Time({
 					width: `calc(${width} + 3px)`,
 				}}
 			/>
-			<div
-				style={{
-					zIndex: 1,
-				}}
-			>
-				{formatTime(remainingTime)}
-			</div>
+			<div className="tlui-timer__time-text">{formatTime(remainingTime)}</div>
 		</div>
 	)
 }
