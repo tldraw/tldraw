@@ -1,5 +1,6 @@
-import { Editor, track, useEditor } from '@tldraw/editor'
+import { Editor, track } from '@tldraw/editor'
 import { useState } from 'react'
+import { useTimer } from '../../hooks/useTimer'
 import { Time } from './Time'
 import {
 	CollapseButton,
@@ -32,8 +33,7 @@ export interface TimerProps {
 
 /** @public @react */
 export const Timer = track(function Timer() {
-	const editor = useEditor()
-	const timerProps = editor.getDocumentSettings().meta.timer as any as TLTimerProps
+	const { timerProps } = useTimer()
 	const [isExpanded, setIsExpanded] = useState(true)
 	if (!timerProps || timerProps.initialTime === undefined) return null
 	return (

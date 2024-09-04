@@ -3798,6 +3798,7 @@ export function useShowCollaborationUi(): boolean;
 export function useTimer(): {
     getCurrentServerTime: () => number;
     getElapsedTime: (props: TLTimerProps) => number;
+    timerProps: TLTimerProps | undefined;
 };
 
 // @public (undocumented)

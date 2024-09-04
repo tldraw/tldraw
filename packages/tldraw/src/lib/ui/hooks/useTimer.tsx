@@ -1,4 +1,4 @@
-import { Editor } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 import { TLTimerProps } from '../components/Timer/Timer'
 
@@ -27,6 +27,8 @@ function useServerOffset() {
 
 /** @public @react */
 export function useTimer() {
+	const editor = useEditor()
+	const timerProps = editor.getDocumentSettings().meta.timer as any as TLTimerProps | undefined
 	const serverOffset = useServerOffset()
 	const getCurrentServerTime = useCallback(() => {
 		return Date.now() + serverOffset
@@ -43,6 +45,7 @@ export function useTimer() {
 	return {
 		getCurrentServerTime,
 		getElapsedTime,
+		timerProps,
 	}
 }
 
