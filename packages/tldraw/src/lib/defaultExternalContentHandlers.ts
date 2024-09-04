@@ -275,7 +275,7 @@ export function registerDefaultExternalContentHandlers(
 					severity: 'error',
 				})
 
-				console.warn(`${file.name} not loaded - Extension not allowed.`)
+				console.warn(`${file.name} not loaded - Mime type not allowed ${file.type}.`)
 				continue
 			}
 
