@@ -1,4 +1,4 @@
-import { Editor, track } from '@tldraw/editor'
+import { Editor, track, useEditor } from '@tldraw/editor'
 import { useState } from 'react'
 import { Time } from './Time'
 import {
@@ -30,14 +30,17 @@ export interface TimerProps {
 }
 
 /** @public @react */
-export const Timer = track(function Timer({ props }: { props: TLTimerProps }) {
+export const Timer = track(function Timer() {
+	const editor = useEditor()
+	const timerProps = editor.getDocumentSettings().meta.timer as any as TLTimerProps
 	const [isExpanded, setIsExpanded] = useState(true)
+	if (!timerProps || timerProps.initialTime === undefined) return null
 	return (
 		<div className="tlui-timer__wrapper">
 			{isExpanded ? (
-				<ExpandedTimerView props={props} onCollapse={() => setIsExpanded(false)} />
+				<ExpandedTimerView props={timerProps} onCollapse={() => setIsExpanded(false)} />
 			) : (
-				<Time props={props} onClick={() => setIsExpanded(true)} />
+				<Time props={timerProps} onClick={() => setIsExpanded(true)} />
 			)}
 		</div>
 	)

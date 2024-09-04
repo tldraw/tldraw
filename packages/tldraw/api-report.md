@@ -1926,9 +1926,7 @@ export interface ThemeStylePickerSetProps {
 }
 
 // @public (undocumented)
-export const Timer: NamedExoticComponent<    {
-props: TLTimerProps;
-}>;
+export const Timer: NamedExoticComponent<unknown>;
 
 // @public (undocumented)
 export interface TimerProps {
