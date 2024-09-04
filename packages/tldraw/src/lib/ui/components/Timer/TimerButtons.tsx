@@ -88,7 +88,6 @@ export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 			{
 				initialTime: newTime,
 				remainingTime: newTime,
-
 				state: state.state === 'completed' ? { state: 'stopped' } : state,
 			},
 			editor
