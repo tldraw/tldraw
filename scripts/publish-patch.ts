@@ -13,8 +13,8 @@ import {
 	publishProductionDocsAndExamplesAndBemo,
 	setAllVersions,
 } from './lib/publishing'
+import { uploadStaticAssets } from './lib/upload-static-assets'
 import { getAllWorkspacePackages } from './lib/workspace'
-import { uploadStaticAssets } from './upload-static-assets'
 
 async function main() {
 	const huppyToken = process.env.HUPPY_TOKEN

@@ -2,7 +2,7 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import fs from 'fs'
 import mime from 'mime'
 import path from 'path'
-import { makeEnv } from './lib/makeEnv'
+import { makeEnv } from './makeEnv'
 
 const env = makeEnv(['R2_ACCESS_KEY_ID', 'R2_ACCESS_KEY_SECRET'])
 

@@ -1,6 +1,6 @@
 import { exec } from './lib/exec'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
-import { uploadStaticAssets } from './upload-static-assets'
+import { uploadStaticAssets } from './lib/upload-static-assets'
 
 async function main(releaseTag: string) {
 	const sha = (await exec('git', ['rev-parse', 'HEAD'])).trim().slice(0, 12)
