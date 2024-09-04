@@ -14,40 +14,6 @@ function updateTimer(props: Partial<TLTimerShapeProps>, editor: Editor) {
 	editor.updateDocumentSettings({ meta: { timer: props } })
 }
 
-function startTimer(props: TLTimerShapeProps, editor: Editor) {
-	updateTimer(
-		{
-			initialTime: props.initialTime,
-			remainingTime: props.state.state === 'completed' ? props.initialTime : props.remainingTime,
-			state: { state: 'running', lastStartTime: getCurrentServerTime() },
-		},
-		editor
-	)
-}
-
-function stopTimer(props: TLTimerShapeProps, editor: Editor) {
-	updateTimer(
-		{
-			initialTime: props.initialTime,
-			remainingTime: props.initialTime,
-			state: { state: 'stopped' },
-		},
-		editor
-	)
-}
-
-function pauseTimer(props: TLTimerShapeProps, editor: Editor) {
-	if (props.state.state !== 'running') return
-	const elapsed = getElapsedTime(props)
-	updateTimer(
-		{
-			initialTime: props.initialTime,
-			remainingTime: Math.max(0, props.remainingTime - elapsed),
-			state: { state: 'paused' },
-		},
-		editor
-	)
-}
 export function getElapsedTime(props: TLTimerShapeProps) {
 	if (props.state.state !== 'running') return 0
 	return getCurrentServerTime() - props.state.lastStartTime
@@ -73,7 +39,18 @@ export function CollapseButton({ onClick }: { onClick(): void }) {
 
 export function ResetButton({ props }: { props: TLTimerShapeProps }) {
 	const editor = useEditor()
-	return <TimerButton icon="undo" onClick={() => stopTimer(props, editor)} title="Reset" />
+	const handleClick = useCallback(() => {
+		updateTimer(
+			{
+				initialTime: props.initialTime,
+				remainingTime: props.initialTime,
+				state: { state: 'stopped' },
+			},
+			editor
+		)
+	}, [editor, props.initialTime])
+
+	return <TimerButton icon="undo" onClick={handleClick} title="Reset" />
 }
 
 export function DecreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
@@ -146,12 +123,35 @@ export function IncreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
 
 export function PlayButton({ props }: { props: TLTimerShapeProps }) {
 	const editor = useEditor()
-	return <TimerButton icon="play" onClick={() => startTimer(props, editor)} title="Start" />
+	const handleClick = useCallback(() => {
+		updateTimer(
+			{
+				initialTime: props.initialTime,
+				remainingTime: props.state.state === 'completed' ? props.initialTime : props.remainingTime,
+				state: { state: 'running', lastStartTime: getCurrentServerTime() },
+			},
+			editor
+		)
+	}, [editor, props])
+	return <TimerButton icon="play" onClick={handleClick} title="Start" />
 }
 
 export function PauseButton({ props }: { props: TLTimerShapeProps }) {
 	const editor = useEditor()
-	return <TimerButton icon="pause" onClick={() => pauseTimer(props, editor)} title="Pause" />
+	const handleClick = useCallback(() => {
+		if (props.state.state !== 'running') return
+		const elapsed = getElapsedTime(props)
+		updateTimer(
+			{
+				initialTime: props.initialTime,
+				remainingTime: Math.max(0, props.remainingTime - elapsed),
+				state: { state: 'paused' },
+			},
+			editor
+		)
+	}, [editor, props])
+
+	return <TimerButton icon="pause" onClick={handleClick} title="Pause" />
 }
 
 function TimerButton({

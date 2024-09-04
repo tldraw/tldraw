@@ -32,7 +32,7 @@ import { QuickActions } from './QuickActions'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
-import { setTimer } from './Timer'
+import { initializeTimer } from './Timer'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -85,7 +85,7 @@ export function LocalEditor() {
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback((editor: Editor) => {
-		setTimer(editor)
+		initializeTimer(editor)
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
