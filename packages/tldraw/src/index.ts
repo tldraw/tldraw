@@ -427,7 +427,7 @@ export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
 	ServerOffsetProvider,
-	useInitializeTimer,
+	initializeTimer,
 	useTimer,
 	type ServerOffsetProviderProps,
 } from './lib/ui/hooks/useTimer'

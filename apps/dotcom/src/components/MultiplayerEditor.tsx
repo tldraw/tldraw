@@ -15,6 +15,7 @@ import {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	initializeTimer,
 	PeopleMenu,
 	PreferencesGroup,
 	ServerOffsetProvider,
@@ -27,7 +28,6 @@ import {
 	TldrawUiMenuItem,
 	useActions,
 	useEditor,
-	useInitializeTimer,
 	useTranslation,
 	useValue,
 	ViewSubmenu,
@@ -130,7 +130,6 @@ export function MultiplayerEditor({
 	useLegacyUrlParams()
 
 	const handleUiEvent = useHandleUiEvents()
-	const initializeTimer = useInitializeTimer()
 	const offset = useGetServerOffset()
 
 	const storeWithStatus = useSync({
@@ -158,7 +157,7 @@ export function MultiplayerEditor({
 			})
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 		},
-		[isReadonly, initializeTimer]
+		[isReadonly]
 	)
 
 	if (storeWithStatus.error) {

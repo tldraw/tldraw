@@ -17,7 +17,7 @@ import {
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 	ViewSubmenu,
-	useInitializeTimer,
+	initializeTimer,
 	useTimer,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
@@ -85,17 +85,13 @@ export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
-	const initializeTimer = useInitializeTimer()
 
-	const handleMount = useCallback(
-		(editor: Editor) => {
-			initializeTimer(editor)
-			;(window as any).app = editor
-			;(window as any).editor = editor
-			editor.registerExternalAssetHandler('url', createAssetFromUrl)
-		},
-		[initializeTimer]
-	)
+	const handleMount = useCallback((editor: Editor) => {
+		initializeTimer(editor)
+		;(window as any).app = editor
+		;(window as any).editor = editor
+		editor.registerExternalAssetHandler('url', createAssetFromUrl)
+	}, [])
 
 	return (
 		<div className="tldraw__editor">

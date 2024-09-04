@@ -46,23 +46,20 @@ export function useTimer() {
 	}
 }
 
-/** @public @react */
-export function useInitializeTimer() {
-	const initializeTimer = useCallback((editor: Editor) => {
-		let meta = editor.getDocumentSettings().meta as any
-		if (!meta.timer || meta.timer.initialTime === undefined) {
-			meta = {
-				...meta,
-				timer: {
-					initialTime: 30 * 1000,
-					remainingTime: 30 * 1000,
-					state: { state: 'stopped' },
-				},
-			}
-			editor.updateDocumentSettings({
-				meta,
-			})
+/** @public */
+export function initializeTimer(editor: Editor) {
+	let meta = editor.getDocumentSettings().meta as any
+	if (!meta.timer || meta.timer.initialTime === undefined) {
+		meta = {
+			...meta,
+			timer: {
+				initialTime: 30 * 1000,
+				remainingTime: 30 * 1000,
+				state: { state: 'stopped' },
+			},
 		}
-	}, [])
-	return initializeTimer
+		editor.updateDocumentSettings({
+			meta,
+		})
+	}
 }

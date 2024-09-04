@@ -1334,6 +1334,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 }
 
 // @public (undocumented)
+export function initializeTimer(editor: Editor): void;
+
+// @public (undocumented)
 export function KeyboardShortcutsMenuItem(): JSX_2.Element | null;
 
 // @internal (undocumented)
@@ -3753,9 +3756,6 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
-
-// @public (undocumented)
-export function useInitializeTimer(): (editor: Editor) => void;
 
 // @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;
