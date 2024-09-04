@@ -2070,7 +2070,7 @@ export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerPro
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
+export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, mediaMimeTypes, children, }: TldrawUiContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface TldrawUiContextProviderProps {
@@ -2078,6 +2078,7 @@ export interface TldrawUiContextProviderProps {
     children?: ReactNode;
     components?: TLUiComponents;
     forceMobile?: boolean;
+    mediaMimeTypes?: string[];
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
