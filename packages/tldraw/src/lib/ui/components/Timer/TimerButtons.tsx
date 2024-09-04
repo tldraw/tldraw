@@ -4,6 +4,12 @@ import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 
+const FIVE_SECONDS = 5 * 1000
+const TEN_SECONDS = 10 * 1000
+const THIRTY_SECONDS = 30 * 1000
+const ONE_MINUTE = 60 * 1000
+const FIVE_MINUTES = 5 * ONE_MINUTE
+
 function updateTimer(props: Partial<TLTimerShapeProps>, editor: Editor) {
 	editor.updateDocumentSettings({ meta: { timer: props } })
 }
@@ -85,12 +91,14 @@ export function DecreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
 
 	const state = props.state
 	const decreaseTime = useCallback(() => {
-		const newTime = Math.max(
-			0,
-			props.initialTime < 5 * 60 * 1000
-				? props.initialTime - 30 * 1000
-				: props.initialTime - 60 * 1000
-		)
+		let newTime: number
+		if (props.initialTime <= THIRTY_SECONDS) {
+			newTime = props.initialTime - FIVE_SECONDS
+		} else if (props.initialTime <= FIVE_MINUTES) {
+			newTime = props.initialTime - THIRTY_SECONDS
+		} else {
+			newTime = props.initialTime - ONE_MINUTE
+		}
 		updateTimer(
 			{
 				initialTime: newTime,
@@ -103,7 +111,7 @@ export function DecreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
 
 	return (
 		<TldrawUiButton
-			disabled={state.state === 'running'}
+			disabled={state.state === 'running' || props.initialTime < TEN_SECONDS}
 			type="icon"
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={decreaseTime}
@@ -118,10 +126,14 @@ export function IncreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
 	const editor = useEditor()
 
 	const increaseTime = useCallback(() => {
-		const newTime =
-			props.initialTime < 5 * 60 * 1000
-				? props.initialTime + 30 * 1000
-				: props.initialTime + 60 * 1000
+		let newTime: number
+		if (props.initialTime < THIRTY_SECONDS) {
+			newTime = props.initialTime + FIVE_SECONDS
+		} else if (props.initialTime < FIVE_MINUTES) {
+			newTime = props.initialTime + THIRTY_SECONDS
+		} else {
+			newTime = props.initialTime + ONE_MINUTE
+		}
 		updateTimer(
 			{
 				initialTime: newTime,
