@@ -12,8 +12,8 @@ const THIRTY_SECONDS = 30 * 1000
 const ONE_MINUTE = 60 * 1000
 const FIVE_MINUTES = 5 * ONE_MINUTE
 
-function updateTimer(props: Partial<TLTimerProps>, editor: Editor) {
-	editor.updateDocumentSettings({ meta: { timer: props } })
+function updateTimer(props: TLTimerProps, editor: Editor) {
+	editor.updateDocumentSettings({ meta: { timer: props as any } })
 }
 
 export function CollapseButton({ onClick }: { onClick(): void }) {
