@@ -2,7 +2,6 @@ import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import fs from 'fs'
 import mime from 'mime'
 import path from 'path'
-import { exec } from './exec'
 import { makeEnv } from './makeEnv'
 
 const env = makeEnv(['R2_ACCESS_KEY_ID', 'R2_ACCESS_KEY_SECRET'])
@@ -53,8 +52,6 @@ async function uploadDirectory(prefix: string, directoryPath: string) {
 
 export async function uploadStaticAssets(version: string) {
 	try {
-		await exec('yarn', ['refresh-assets'], { env: { ALLOW_REFRESH_ASSETS_CHANGES: '1' } })
-
 		const entries = fs.readdirSync(ASSETS_FOLDER, { withFileTypes: true })
 
 		console.log('Uploading static assets to CDN...')
