@@ -1779,3 +1779,16 @@
 		opacity: 1;
 	}
 }
+
+/* ------------------- Timer ------------------- */
+.tlui-timer__wrapper {
+	margin: 5px;
+	pointerevents: all;
+	display: flex;
+	height: 40px;
+	alignitems: stretch;
+	background-color: var(--color-background);
+	box-shadow: var(--shadow-2);
+	border-radius: var(--radius-3);
+	overflow: hidden;
+}

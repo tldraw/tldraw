@@ -6,7 +6,7 @@ export const HelperButtons = track(function HelperButtons() {
 	const timer = editor.getDocumentSettings().meta.timer as any
 	return (
 		<>
-			{showTimer.get() && timer && timer.initialTime && <Timer props={timer} />}
+			{showTimer.get() && timer && timer.initialTime !== undefined && <Timer props={timer} />}
 			<DefaultHelperButtons />
 		</>
 	)
