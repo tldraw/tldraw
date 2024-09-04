@@ -21,6 +21,7 @@ export interface TLTimerProps {
 		| { state: 'completed' }
 }
 
+/** @internal */
 export type TLTimerState = TLTimerProps['state']['state']
 
 /** @public */
