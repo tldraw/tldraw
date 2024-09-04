@@ -7967,6 +7967,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ag-charts-types@npm:10.1.0":
+  version: 10.1.0
+  resolution: "ag-charts-types@npm:10.1.0"
+  checksum: 75b4f0447e8ab5a52095b5822a1c926863a8d63125af14e15e40e36aa077ec962a4ccabc11e78fe8a6b912cae5f188f9fce1bc243e775c85d6c27b8760884d04
+  languageName: node
+  linkType: hard
+
+"ag-grid-community@npm:32.1.0, ag-grid-community@npm:^32.1.0":
+  version: 32.1.0
+  resolution: "ag-grid-community@npm:32.1.0"
+  dependencies:
+    ag-charts-types: "npm:10.1.0"
+  checksum: ee7c434dd69533283f887c1056d1be339350a4cc87cb2affee820d974f4549ef2b2cdbc98350affc7f833987b74db05d715dadaf722d95b6831f52f227d4a690
+  languageName: node
+  linkType: hard
+
+"ag-grid-react@npm:^32.1.0":
+  version: 32.1.0
+  resolution: "ag-grid-react@npm:32.1.0"
+  dependencies:
+    ag-grid-community: "npm:32.1.0"
+    prop-types: "npm:^15.8.1"
+  peerDependencies:
+    react: ^16.3.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.3.0 || ^17.0.0 || ^18.0.0
+  checksum: 7209cb7b55388c86a7fb546534eb0c6d3a9c3013398fc15c3d5485d0e5c73cbd0a9257e62bec4f0740dbeebabacdc182bd13cb18c8bcc37ba570702b2dbed518
+  languageName: node
+  linkType: hard
+
 "agent-base@npm:6, agent-base@npm:^6.0.2":
   version: 6.0.2
   resolution: "agent-base@npm:6.0.2"
@@ -11967,6 +11996,8 @@ __metadata:
     "@types/lodash": "npm:^4.14.188"
     "@vercel/analytics": "npm:^1.1.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
+    ag-grid-community: "npm:^32.1.0"
+    ag-grid-react: "npm:^32.1.0"
     classnames: "npm:^2.3.2"
     dotenv: "npm:^16.3.1"
     lazyrepo: "npm:0.0.0-alpha.27"
