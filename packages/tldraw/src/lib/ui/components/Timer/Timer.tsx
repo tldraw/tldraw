@@ -1,4 +1,4 @@
-import { Editor, exhaustiveSwitchError, track } from '@tldraw/editor'
+import { Editor, track } from '@tldraw/editor'
 import { useState } from 'react'
 import { Time } from './Time'
 import {
@@ -8,7 +8,6 @@ import {
 	PauseButton,
 	PlayButton,
 	ResetButton,
-	getElapsedTime,
 } from './TimerButtons'
 
 /** @public */
@@ -28,21 +27,6 @@ export type TLTimerState = TLTimerProps['state']['state']
 export interface TimerProps {
 	props: TLTimerProps
 	editor: Editor
-}
-
-export function getTimeRemaining(props: TLTimerProps) {
-	switch (props.state.state) {
-		case 'running':
-			return props.remainingTime - getElapsedTime(props)
-		case 'stopped':
-			return props.initialTime
-		case 'paused':
-			return props.remainingTime
-		case 'completed':
-			return 0
-		default:
-			exhaustiveSwitchError(props.state)
-	}
 }
 
 /** @public @react */

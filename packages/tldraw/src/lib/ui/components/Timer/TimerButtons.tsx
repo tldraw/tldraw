@@ -1,5 +1,6 @@
 import { Editor, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { useTimer } from '../../hooks/useTimer'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
@@ -13,16 +14,6 @@ const FIVE_MINUTES = 5 * ONE_MINUTE
 
 function updateTimer(props: Partial<TLTimerProps>, editor: Editor) {
 	editor.updateDocumentSettings({ meta: { timer: props } })
-}
-
-export function getElapsedTime(props: TLTimerProps) {
-	if (props.state.state !== 'running') return 0
-	return getCurrentServerTime() - props.state.lastStartTime
-}
-
-function getCurrentServerTime() {
-	const offset = (window as any).serverOffset ?? 0
-	return Date.now() + offset
 }
 
 export function CollapseButton({ onClick }: { onClick(): void }) {
@@ -124,6 +115,7 @@ export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 
 export function PlayButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const { getCurrentServerTime } = useTimer()
 	const handleClick = useCallback(() => {
 		updateTimer(
 			{
@@ -133,12 +125,13 @@ export function PlayButton({ props }: { props: TLTimerProps }) {
 			},
 			editor
 		)
-	}, [editor, props])
+	}, [editor, props, getCurrentServerTime])
 	return <TimerButton icon="play" onClick={handleClick} title="Start" />
 }
 
 export function PauseButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const { getElapsedTime } = useTimer()
 	const handleClick = useCallback(() => {
 		if (props.state.state !== 'running') return
 		const elapsed = getElapsedTime(props)
@@ -150,7 +143,7 @@ export function PauseButton({ props }: { props: TLTimerProps }) {
 			},
 			editor
 		)
-	}, [editor, props])
+	}, [editor, props, getElapsedTime])
 
 	return <TimerButton icon="pause" onClick={handleClick} title="Pause" />
 }

@@ -1,0 +1,68 @@
+import { Editor } from '@tldraw/editor'
+import React, { useCallback } from 'react'
+import { TLTimerProps } from '../components/Timer/Timer'
+
+/** @public */
+export interface ServerOffsetProviderProps {
+	children: React.ReactNode
+	offset?: number
+}
+
+/** @public */
+export const ServerOffsetContext = React.createContext<number>(0)
+
+/** @public @react */
+export function ServerOffsetProvider({ children, offset = 0 }: ServerOffsetProviderProps) {
+	return <ServerOffsetContext.Provider value={offset}>{children}</ServerOffsetContext.Provider>
+}
+
+function useServerOffset() {
+	const ctx = React.useContext(ServerOffsetContext)
+	if (ctx === undefined) {
+		throw new Error('useServerOffset must be used within a ServerOffsetProvider')
+	}
+
+	return ctx
+}
+
+/** @public @react */
+export function useTimer() {
+	const serverOffset = useServerOffset()
+	const getCurrentServerTime = useCallback(() => {
+		return Date.now() + serverOffset
+	}, [serverOffset])
+
+	const getElapsedTime = useCallback(
+		(props: TLTimerProps) => {
+			if (props.state.state !== 'running') return 0
+			return getCurrentServerTime() - props.state.lastStartTime
+		},
+		[getCurrentServerTime]
+	)
+
+	return {
+		getCurrentServerTime,
+		getElapsedTime,
+	}
+}
+
+/** @public @react */
+export function useInitializeTimer() {
+	const initializeTimer = useCallback((editor: Editor) => {
+		let meta = editor.getDocumentSettings().meta as any
+		if (!meta.timer || meta.timer.initialTime === undefined) {
+			meta = {
+				...meta,
+				timer: {
+					initialTime: 30 * 1000,
+					remainingTime: 30 * 1000,
+					state: { state: 'stopped' },
+				},
+			}
+			editor.updateDocumentSettings({
+				meta,
+			})
+		}
+	}, [])
+	return initializeTimer
+}

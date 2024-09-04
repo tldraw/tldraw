@@ -1724,6 +1724,17 @@ export function serializeTldrawJson(editor: Editor): Promise<string>;
 // @public (undocumented)
 export function serializeTldrawJsonBlob(editor: Editor): Promise<Blob>;
 
+// @public (undocumented)
+export function ServerOffsetProvider({ children, offset }: ServerOffsetProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface ServerOffsetProviderProps {
+    // (undocumented)
+    children: React_3.ReactNode;
+    // (undocumented)
+    offset?: number;
+}
+
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
@@ -3746,6 +3757,9 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public (undocumented)
+export function useInitializeTimer(): (editor: Editor) => void;
+
+// @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;
 
 // @public (undocumented)
@@ -3781,6 +3795,12 @@ export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): nu
 
 // @public (undocumented)
 export function useShowCollaborationUi(): boolean;
+
+// @public (undocumented)
+export function useTimer(): {
+    getCurrentServerTime: () => number;
+    getElapsedTime: (props: TLTimerProps) => number;
+};
 
 // @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;

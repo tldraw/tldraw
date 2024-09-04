@@ -11,11 +11,14 @@ import {
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PreferencesGroup,
+	ServerOffsetProvider,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
 	ViewSubmenu,
+	useInitializeTimer,
+	useTimer,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -32,7 +35,6 @@ import { QuickActions } from './QuickActions'
 import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
-import { initializeTimer } from './Timer'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -83,30 +85,44 @@ export function LocalEditor() {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
+	const initializeTimer = useInitializeTimer()
 
-	const handleMount = useCallback((editor: Editor) => {
-		initializeTimer(editor)
-		;(window as any).app = editor
-		;(window as any).editor = editor
-		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
+	const handleMount = useCallback(
+		(editor: Editor) => {
+			initializeTimer(editor)
+			;(window as any).app = editor
+			;(window as any).editor = editor
+			editor.registerExternalAssetHandler('url', createAssetFromUrl)
+		},
+		[initializeTimer]
+	)
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				licenseKey={getLicenseKey()}
-				assetUrls={assetUrls}
-				persistenceKey={SCRATCH_PERSISTENCE_KEY}
-				onMount={handleMount}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
-				onUiEvent={handleUiEvent}
-				components={components}
-				inferDarkMode
-			>
-				<LocalMigration />
-				<SneakyOnDropOverride isMultiplayer={false} />
-				<ThemeUpdater />
-			</Tldraw>
+			<ServerOffsetProvider offset={0}>
+				<Test />
+				<Tldraw
+					licenseKey={getLicenseKey()}
+					assetUrls={assetUrls}
+					persistenceKey={SCRATCH_PERSISTENCE_KEY}
+					onMount={handleMount}
+					overrides={[sharingUiOverrides, fileSystemUiOverrides]}
+					onUiEvent={handleUiEvent}
+					components={components}
+					inferDarkMode
+				>
+					<LocalMigration />
+					<SneakyOnDropOverride isMultiplayer={false} />
+					<ThemeUpdater />
+				</Tldraw>
+			</ServerOffsetProvider>
 		</div>
 	)
+}
+
+function Test() {
+	const { getCurrentServerTime, getElapsedTime } = useTimer()
+	console.log(getCurrentServerTime, getElapsedTime)
+
+	return null
 }

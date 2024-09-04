@@ -5,8 +5,9 @@ import {
 	useIsDarkMode,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { TLTimerProps, TLTimerState, getTimeRemaining } from './Timer'
-import { useTimer } from './useTimer'
+import { useTimer } from '../../hooks/useTimer'
+import { TLTimerProps, TLTimerState } from './Timer'
+import { useTimerCounter } from './useTimerCounter'
 
 function getBackgroundColor(state: TLTimerState, darkMode: boolean) {
 	const scheme = darkMode ? DefaultColorThemePalette.darkMode : DefaultColorThemePalette.lightMode
@@ -53,12 +54,28 @@ function formatTime(time: number) {
 	return `${minutesString}:${secondsString}`
 }
 
+export function useGetTimeRemaining(props: TLTimerProps) {
+	const { getElapsedTime } = useTimer()
+	switch (props.state.state) {
+		case 'running':
+			return props.remainingTime - getElapsedTime(props)
+		case 'stopped':
+			return props.initialTime
+		case 'paused':
+			return props.remainingTime
+		case 'completed':
+			return 0
+		default:
+			exhaustiveSwitchError(props.state)
+	}
+}
+
 export function Time({ props, onClick }: { props: TLTimerProps; onClick?(): void }) {
 	const editor = useEditor()
 	const darkMode = useIsDarkMode()
+	const remainingTime = useGetTimeRemaining(props)
 	const state = props.state.state
-	const remainingTime = getTimeRemaining(props)
-	const _counter = useTimer(props.state.state)
+	const _counter = useTimerCounter(props.state.state)
 	if (remainingTime <= 0) {
 		editor.timers.setTimeout(() => {
 			editor.updateDocumentSettings({

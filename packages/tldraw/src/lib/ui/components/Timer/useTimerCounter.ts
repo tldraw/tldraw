@@ -5,7 +5,7 @@ import { TLTimerState } from './Timer'
 const UPDATES_PER_SECOND = 10
 const TIMEOUT = 1000 / UPDATES_PER_SECOND
 
-export function useTimer(state: TLTimerState) {
+export function useTimerCounter(state: TLTimerState) {
 	const editor = useEditor()
 	const [time, setTime] = useState(0)
 	const timeoutRef = useRef<number | null>(null)
