@@ -20,12 +20,7 @@ function updateTimer(props: TLTimerProps, editor: Editor) {
 export function CollapseButton({ onClick }: { onClick(): void }) {
 	const msg = useTranslation()
 	return (
-		<TldrawUiButton
-			type="icon"
-			onPointerDown={(e) => e.stopPropagation()}
-			onClick={onClick}
-			title={msg('timer.collapse')}
-		>
+		<TldrawUiButton type="icon" onClick={onClick} title={msg('timer.collapse')}>
 			<TldrawUiButtonIcon icon="chevron-left" />
 		</TldrawUiButton>
 	)
