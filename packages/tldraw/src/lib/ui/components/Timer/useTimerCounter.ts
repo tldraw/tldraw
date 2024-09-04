@@ -11,7 +11,7 @@ export function useTimerCounter(state: TLTimerState) {
 	const timeoutRef = useRef<number | null>(null)
 	if (state === 'running') {
 		timeoutRef.current = editor.timers.setTimeout(() => {
-			return setTime(time + 1)
+			setTime(time + 1)
 		}, TIMEOUT)
 	} else if (state === 'paused' || state === 'stopped') {
 		clearTimeout(timeoutRef.current as any)

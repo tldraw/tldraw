@@ -76,6 +76,7 @@ export function Time({ props, onClick }: { props: TLTimerProps; onClick?(): void
 	const state = props.state.state
 	const _counter = useTimerCounter(props.state.state)
 	if (remainingTime <= 0) {
+		// Might be a better way to do this
 		editor.timers.setTimeout(() => {
 			editor.updateDocumentSettings({
 				meta: {
