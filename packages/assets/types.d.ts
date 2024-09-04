@@ -102,6 +102,8 @@ export type AssetUrls = {
 		minus: string
 		mixed: string
 		pack: string
+		pause: string
+		play: string
 		plus: string
 		'question-mark-circle': string
 		'question-mark': string

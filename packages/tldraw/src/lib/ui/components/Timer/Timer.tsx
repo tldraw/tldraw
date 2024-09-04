@@ -5,9 +5,9 @@ import {
 	CollapseButton,
 	DecreaseTimeButton,
 	IncreaseTimeButton,
+	PauseButton,
 	PlayButton,
-	ResetPauseButton,
-	StopButton,
+	ResetButton,
 	getElapsedTime,
 } from './TimerButtons'
 
@@ -55,10 +55,8 @@ function ExpandedTimerView({
 	props: TLTimerShapeProps
 	onCollapse(): void
 }) {
-	const remainingTime = getTimeRemaining(props)
-
-	const state = props.state
-	const showPlay = (state.state === 'stopped' || state.state === 'paused') && remainingTime > 0
+	const state = props.state.state
+	const showPlay = ['stopped', 'paused', 'completed'].includes(state)
 
 	return (
 		<>
@@ -66,8 +64,8 @@ function ExpandedTimerView({
 			<DecreaseTimeButton props={props} />
 			<Time props={props} />
 			<IncreaseTimeButton props={props} />
-			<StopButton props={props} />
-			{showPlay ? <PlayButton props={props} /> : <ResetPauseButton props={props} />}
+			<ResetButton props={props} />
+			{showPlay ? <PlayButton props={props} /> : <PauseButton props={props} />}
 		</>
 	)
 }

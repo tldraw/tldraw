@@ -19,9 +19,25 @@ function getBackgroundColor(state: TLTimerState, darkMode: boolean) {
 		case 'paused':
 			return scheme.orange.semi
 		case 'stopped':
-			return scheme.background
+			return undefined
 		case 'completed':
 			return scheme.green.semi
+		default:
+			exhaustiveSwitchError(state)
+	}
+}
+
+function getBorderColor(state: TLTimerState, darkMode: boolean) {
+	const scheme = darkMode ? DefaultColorThemePalette.darkMode : DefaultColorThemePalette.lightMode
+
+	switch (state) {
+		case 'running':
+			return scheme.red.solid
+		case 'paused':
+			return scheme.orange.solid
+		case 'stopped':
+		case 'completed':
+			return undefined
 		default:
 			exhaustiveSwitchError(state)
 	}
@@ -42,7 +58,7 @@ function formatTime(time: number) {
 export function Time({ props, onClick }: { props: TLTimerShapeProps; onClick?(): void }) {
 	const editor = useEditor()
 	const darkMode = useIsDarkMode()
-	const state = props.state
+	const state = props.state.state
 	const remainingTime = getTimeRemaining(props)
 	const _counter = useTimer(props.state.state)
 	if (remainingTime <= 0) {
@@ -51,7 +67,7 @@ export function Time({ props, onClick }: { props: TLTimerShapeProps; onClick?():
 				meta: {
 					timer: {
 						initialTime: props.initialTime,
-						remainingTime: props.remainingTime,
+						remainingTime: 0,
 						state: { state: 'completed' },
 					},
 				},
@@ -60,14 +76,13 @@ export function Time({ props, onClick }: { props: TLTimerShapeProps; onClick?():
 	}
 	const remainingSeconds = Math.ceil(remainingTime / 1000)
 	const initialSeconds = Math.ceil(props.initialTime / 1000)
-	const width =
-		state.state === 'running' || state.state === 'paused'
-			? `${(remainingSeconds / initialSeconds) * 100}%`
-			: '100%'
+	const active = state === 'running' || state === 'paused'
+	const width = active ? `${(remainingSeconds / initialSeconds) * 100}%` : '100%'
 	return (
 		<div
 			className={classNames('tlui-timer__time-wrapper', {
 				'tlui-timer__time-wrapper-clickable': onClick,
+				'tlui-timer__time-wrapper-active': active && !onClick,
 			})}
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={() => {
@@ -78,10 +93,7 @@ export function Time({ props, onClick }: { props: TLTimerShapeProps; onClick?():
 				className="tlui-timer__time-color-background"
 				style={{
 					backgroundColor: getBackgroundColor(props.state.state, darkMode),
-					borderRight:
-						props.state.state === 'running' || props.state.state === 'paused'
-							? `1px solid ${DefaultColorThemePalette.lightMode.red.solid}`
-							: 'none',
+					borderRight: active ? `1px solid ${getBorderColor(props.state.state, darkMode)}` : 'none',
 					width,
 				}}
 			/>

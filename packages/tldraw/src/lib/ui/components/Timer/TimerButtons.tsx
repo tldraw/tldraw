@@ -18,7 +18,7 @@ function startTimer(props: TLTimerShapeProps, editor: Editor) {
 	updateTimer(
 		{
 			initialTime: props.initialTime,
-			remainingTime: props.remainingTime,
+			remainingTime: props.state.state === 'completed' ? props.initialTime : props.remainingTime,
 			state: { state: 'running', lastStartTime: getCurrentServerTime() },
 		},
 		editor
@@ -71,19 +71,9 @@ export function CollapseButton({ onClick }: { onClick(): void }) {
 	)
 }
 
-export function StopButton({ props }: { props: TLTimerShapeProps }) {
+export function ResetButton({ props }: { props: TLTimerShapeProps }) {
 	const editor = useEditor()
-
-	return (
-		<TldrawUiButton
-			type="icon"
-			onPointerDown={(e) => e.stopPropagation()}
-			onClick={() => stopTimer(props, editor)}
-			title="Stop"
-		>
-			<TldrawUiButtonIcon icon="geo-rectangle" />
-		</TldrawUiButton>
-	)
+	return <TimerButton icon="undo" onClick={() => stopTimer(props, editor)} title="Reset" />
 }
 
 export function DecreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
@@ -110,15 +100,13 @@ export function DecreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
 	}, [props.initialTime, editor, props.state])
 
 	return (
-		<TldrawUiButton
-			disabled={state.state === 'running' || props.initialTime < TEN_SECONDS}
-			type="icon"
-			onPointerDown={(e) => e.stopPropagation()}
+		<TimerButton
+			icon="minus"
 			onClick={decreaseTime}
+			disabled={state.state === 'running' || props.initialTime < TEN_SECONDS}
 			title="Decrease time"
-		>
-			<TldrawUiIcon icon="minus" />
-		</TldrawUiButton>
+			small
+		/>
 	)
 }
 
@@ -146,55 +134,48 @@ export function IncreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
 	const state = props.state
 
 	return (
-		<TldrawUiButton
-			disabled={state.state === 'running'}
-			type="icon"
-			onPointerDown={(e) => e.stopPropagation()}
+		<TimerButton
+			icon="plus"
 			onClick={increaseTime}
+			disabled={state.state === 'running'}
 			title="Increase time"
-		>
-			<TldrawUiIcon icon="plus" />
-		</TldrawUiButton>
+			small
+		/>
 	)
 }
 
 export function PlayButton({ props }: { props: TLTimerShapeProps }) {
 	const editor = useEditor()
-
-	return (
-		<TldrawUiButton
-			type="icon"
-			onPointerDown={(e) => e.stopPropagation()}
-			onClick={() => startTimer(props, editor)}
-			title="Start"
-		>
-			<div
-				style={{
-					transform: 'rotate(90deg)',
-				}}
-			>
-				<TldrawUiIcon icon="geo-triangle" />
-			</div>
-		</TldrawUiButton>
-	)
+	return <TimerButton icon="play" onClick={() => startTimer(props, editor)} title="Start" />
 }
 
-export function ResetPauseButton({ props }: { props: TLTimerShapeProps }) {
+export function PauseButton({ props }: { props: TLTimerShapeProps }) {
 	const editor = useEditor()
+	return <TimerButton icon="pause" onClick={() => pauseTimer(props, editor)} title="Pause" />
+}
+
+function TimerButton({
+	disabled = false,
+	icon,
+	onClick,
+	small = false,
+	title,
+}: {
+	disabled?: boolean
+	icon: string
+	onClick(): void
+	small?: boolean
+	title: string
+}) {
 	return (
 		<TldrawUiButton
 			type="icon"
+			disabled={disabled}
 			onPointerDown={(e) => e.stopPropagation()}
-			onClick={() => {
-				if (props.state.state === 'completed') {
-					stopTimer(props, editor)
-				} else {
-					pauseTimer(props, editor)
-				}
-			}}
-			title={props.state.state === 'completed' ? 'Reset' : 'Pause'}
+			onClick={onClick}
+			title={title}
 		>
-			{props.state.state === 'completed' ? 'Reset' : 'Pause'}
+			<TldrawUiIcon icon={icon} small={small} />
 		</TldrawUiButton>
 	)
 }

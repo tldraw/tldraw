@@ -173,6 +173,8 @@ export function getAssetUrlsByImport(opts) {
 			minus: iconsIcon0MergedSvg2 + '#minus',
 			mixed: iconsIcon0MergedSvg2 + '#mixed',
 			pack: iconsIcon0MergedSvg2 + '#pack',
+			pause: iconsIcon0MergedSvg2 + '#pause',
+			play: iconsIcon0MergedSvg2 + '#play',
 			plus: iconsIcon0MergedSvg2 + '#plus',
 			'question-mark-circle': iconsIcon0MergedSvg2 + '#question-mark-circle',
 			'question-mark': iconsIcon0MergedSvg2 + '#question-mark',

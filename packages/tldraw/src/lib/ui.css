@@ -1783,9 +1783,8 @@
 /* ------------------- Timer ------------------- */
 .tlui-timer__wrapper {
 	display: flex;
-	margin: var(--space-2);
-	background-color: var(--color-background);
-	box-shadow: var(--shadow-2);
+	margin: var(--space-2) var(--space-3);
+	background-color: var(--color-low);
 	border-radius: var(--radius-3);
 	overflow: hidden;
 }
@@ -1798,9 +1797,12 @@
 	position: relative;
 	justify-content: center;
 	pointer-events: all;
-	background-color: var(--color-muted-2);
 	width: 80px;
 	height: 40px;
+}
+
+.tlui-timer__time-wrapper-active {
+	background-color: var(--color-muted-2);
 }
 
 .tlui-timer__time-wrapper-clickable {

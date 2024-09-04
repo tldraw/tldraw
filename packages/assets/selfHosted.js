@@ -110,6 +110,8 @@ export function getAssetUrls(opts) {
 			minus: iconsIcon0MergedSvg + '#minus',
 			mixed: iconsIcon0MergedSvg + '#mixed',
 			pack: iconsIcon0MergedSvg + '#pack',
+			pause: iconsIcon0MergedSvg + '#pause',
+			play: iconsIcon0MergedSvg + '#play',
 			plus: iconsIcon0MergedSvg + '#plus',
 			'question-mark-circle': iconsIcon0MergedSvg + '#question-mark-circle',
 			'question-mark': iconsIcon0MergedSvg + '#question-mark',
