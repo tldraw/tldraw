@@ -1,6 +1,7 @@
 import { Editor, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTimer } from '../../hooks/useTimer'
+import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
@@ -17,12 +18,13 @@ function updateTimer(props: TLTimerProps, editor: Editor) {
 }
 
 export function CollapseButton({ onClick }: { onClick(): void }) {
+	const msg = useTranslation()
 	return (
 		<TldrawUiButton
 			type="icon"
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={onClick}
-			title="Collapse"
+			title={msg('timer.collapse')}
 		>
 			<TldrawUiButtonIcon icon="chevron-left" />
 		</TldrawUiButton>
@@ -31,6 +33,7 @@ export function CollapseButton({ onClick }: { onClick(): void }) {
 
 export function ResetButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const handleClick = useCallback(() => {
 		updateTimer(
 			{
@@ -42,11 +45,12 @@ export function ResetButton({ props }: { props: TLTimerProps }) {
 		)
 	}, [editor, props.initialTime])
 
-	return <TimerButton icon="undo" onClick={handleClick} title="Reset" />
+	return <TimerButton icon="undo" onClick={handleClick} title={msg('timer.reset')} />
 }
 
 export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const msg = useTranslation()
 
 	const state = props.state
 	const decreaseTime = useCallback(() => {
@@ -73,7 +77,7 @@ export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
 			icon="minus"
 			onClick={decreaseTime}
 			disabled={state.state === 'running' || props.initialTime < TEN_SECONDS}
-			title="Decrease time"
+			title={msg('timer.decrease-time')}
 			small
 		/>
 	)
@@ -81,6 +85,7 @@ export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
 
 export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const msg = useTranslation()
 
 	const increaseTime = useCallback(() => {
 		let newTime: number
@@ -107,7 +112,7 @@ export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 			icon="plus"
 			onClick={increaseTime}
 			disabled={state.state === 'running'}
-			title="Increase time"
+			title={msg('timer.increase-time')}
 			small
 		/>
 	)
@@ -115,6 +120,7 @@ export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 
 export function PlayButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const { getCurrentServerTime } = useTimer()
 	const handleClick = useCallback(() => {
 		updateTimer(
@@ -126,11 +132,12 @@ export function PlayButton({ props }: { props: TLTimerProps }) {
 			editor
 		)
 	}, [editor, props, getCurrentServerTime])
-	return <TimerButton icon="play" onClick={handleClick} title="Start" />
+	return <TimerButton icon="play" onClick={handleClick} title={msg('timer.start')} />
 }
 
 export function PauseButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const { getElapsedTime } = useTimer()
 	const handleClick = useCallback(() => {
 		if (props.state.state !== 'running') return
@@ -145,7 +152,7 @@ export function PauseButton({ props }: { props: TLTimerProps }) {
 		)
 	}, [editor, props, getElapsedTime])
 
-	return <TimerButton icon="pause" onClick={handleClick} title="Pause" />
+	return <TimerButton icon="pause" onClick={handleClick} title={msg('timer.pause')} />
 }
 
 function TimerButton({
