@@ -44,7 +44,6 @@ function getBorderColor(state: TLTimerState, darkMode: boolean) {
 
 function formatTime(time: number) {
 	const seconds = Math.ceil(time / 1000)
-	// format time with leading zeros if needed
 	const minutesString = Math.floor(seconds / 60)
 		.toString()
 		.padStart(2, '0')
@@ -54,7 +53,7 @@ function formatTime(time: number) {
 	return `${minutesString}:${secondsString}`
 }
 
-export function useGetTimeRemaining(props: TLTimerProps) {
+export function useGetRemainingTime(props: TLTimerProps) {
 	const { getElapsedTime } = useTimer()
 	switch (props.state.state) {
 		case 'running':
@@ -73,7 +72,7 @@ export function useGetTimeRemaining(props: TLTimerProps) {
 export function Time({ props, onClick }: { props: TLTimerProps; onClick?(): void }) {
 	const editor = useEditor()
 	const darkMode = useIsDarkMode()
-	const remainingTime = useGetTimeRemaining(props)
+	const remainingTime = useGetRemainingTime(props)
 	const state = props.state.state
 	const _counter = useTimerCounter(props.state.state)
 	if (remainingTime <= 0) {
