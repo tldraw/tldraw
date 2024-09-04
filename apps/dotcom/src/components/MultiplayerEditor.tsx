@@ -49,7 +49,7 @@ import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { StoreErrorScreen } from './StoreErrorScreen'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
-import { setTimer } from './Timer'
+import { initializeTimer } from './Timer'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -147,7 +147,7 @@ export function MultiplayerEditor({
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
-			setTimer(editor)
+			initializeTimer(editor)
 
 			if (!isReadonly) {
 				;(window as any).app = editor

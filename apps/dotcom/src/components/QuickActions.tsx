@@ -5,19 +5,9 @@ export const QuickActions = track(function QuickActions() {
 	return (
 		<DefaultQuickActions>
 			<DefaultQuickActionsContent />
-			<div
-				style={{
-					backgroundColor: showTimer.get() ? '#ddd' : '',
-				}}
-			>
+			<div className={showTimer.get() ? 'tlui-timer__quick-actions-wrapper-active' : undefined}>
 				<div
-					style={{
-						margin: '0 5px',
-						height: '100%',
-						display: 'flex',
-						alignItems: 'center',
-						pointerEvents: 'all',
-					}}
+					className="tlui-timer__quick-actions-icon-wrapper"
 					onClick={() => {
 						showTimer.set(!showTimer.get())
 					}}

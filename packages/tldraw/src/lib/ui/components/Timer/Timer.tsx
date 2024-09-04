@@ -35,8 +35,6 @@ export function getTimeRemaining(props: TLTimerShapeProps) {
 /** @public @react */
 export const Timer = track(function Timer({ props }: { props: TLTimerShapeProps }) {
 	const [isExpanded, setIsExpanded] = useState(true)
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-
 	return (
 		<div className="tlui-timer__wrapper">
 			{isExpanded ? (

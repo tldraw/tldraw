@@ -1824,3 +1824,15 @@
 	font-size: 18px;
 	padding: 0 4px;
 }
+
+.tlui-timer__quick-actions-wrapper-active {
+	background-color: var(--color-hint);
+}
+
+.tlui-timer__quick-actions-icon-wrapper {
+	margin: 0 var(--space-2);
+	height: 100%;
+	display: flex;
+	align-items: center;
+	pointer-events: all;
+}

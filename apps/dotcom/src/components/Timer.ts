@@ -2,7 +2,7 @@ import { Editor, atom } from 'tldraw'
 
 export const showTimer = atom('timer', false)
 
-export function setTimer(editor: Editor) {
+export function initializeTimer(editor: Editor) {
 	let meta = editor.getDocumentSettings().meta as any
 	if (!meta.timer || meta.timer.initialTime === undefined) {
 		meta = {
