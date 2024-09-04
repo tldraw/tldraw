@@ -23,7 +23,7 @@ import { TLStoreBaseOptions } from './config/createTLStore'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
-import { Editor } from './editor/Editor'
+import { Editor, TLEditorOptions } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -181,6 +181,16 @@ export interface TldrawEditorBaseProps {
 	 * Options for syncing the editor's camera state with the URL.
 	 */
 	deepLinks?: true | TLDeepLinkOptions
+
+	/**
+	 * Predicate for whether or not to show a shape
+	 */
+	isShapeHidden?: TLEditorOptions['isShapeHidden']
+
+	/**
+	 * Predicate for whether or not to show a page
+	 */
+	isPageHidden?: TLEditorOptions['isPageHidden']
 }
 
 /**
@@ -362,6 +372,8 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
+	isPageHidden,
+	isShapeHidden,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -418,6 +430,8 @@ function TldrawEditorWithReadyStore({
 				cameraOptions,
 				options,
 				licenseKey,
+				isShapeHidden,
+				isPageHidden,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
