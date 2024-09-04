@@ -23,6 +23,7 @@ export function CollapseButton({ onClick }: { onClick(): void }) {
 
 export function ResetButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
+	const disabled = props.state.state === 'stopped'
 	const handleClick = useCallback(() => {
 		updateTimer(
 			{
@@ -34,7 +35,7 @@ export function ResetButton({ props }: { props: TLTimerProps }) {
 		)
 	}, [editor, props.initialTime])
 
-	return <TimerButton icon="undo" onClick={handleClick} title="timer.reset" />
+	return <TimerButton disabled={disabled} icon="undo" onClick={handleClick} title="timer.reset" />
 }
 
 export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
