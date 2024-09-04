@@ -38,6 +38,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 
 	const {
 		scale = 1,
+		// should we include the background in the export? or is it transparent?
 		background = false,
 		padding = editor.options.defaultSvgPadding,
 		preserveAspectRatio,
@@ -173,7 +174,7 @@ function SvgExport({
 
 			const unorderedShapeElementPromises = renderingShapes.map(
 				async ({ id, opacity, index, backgroundIndex }) => {
-					// Don't render the frame if we're only exporting a single frame
+					// Don't render the frame if we're only exporting a single frame and it's children
 					if (id === singleFrameShapeId) return []
 
 					const shape = editor.getShape(id)!

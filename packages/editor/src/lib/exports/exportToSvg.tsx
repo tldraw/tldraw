@@ -25,6 +25,7 @@ export async function exportToSvg(
 	const container = editor.getContainer()
 	const renderTarget = document.createElement('div')
 	renderTarget.className = 'tldraw-svg-export'
+	// we hide the element visually, but we don't want it to be focusable or interactive in any way either
 	renderTarget.inert = true
 	renderTarget.tabIndex = -1
 	Object.assign(renderTarget.style, {
@@ -36,6 +37,7 @@ export async function exportToSvg(
 		pointerEvents: 'none',
 		opacity: 0,
 	})
+	// we have to add the element to the document as otherwise styles won't be computed correctly.
 	container.appendChild(renderTarget)
 
 	// create a react root...
@@ -46,8 +48,8 @@ export async function exportToSvg(
 			root.render(result.jsx)
 		})
 
-		// Some operation take a while - for example, waiting for an asset to load in. We give shape
-		// authors a way to delay snap-shotting the export until they're ready.
+		// Some operations take a while - for example, waiting for an asset to load in. We give
+		// shape authors a way to delay snap-shotting the export until they're ready.
 		await result.exportDelay.resolve()
 
 		// Extract the rendered SVG element from the react root

@@ -3,6 +3,22 @@ import { Promise } from 'core-js'
 import { fetchCache, resourceToDataUrl } from './fetchCache'
 import { ParsedFontFace, parseCss, parseCssFontFaces, parseCssFontFamilyValue } from './parseCss'
 
+/**
+ * Because SVGs cannot refer to external CSS/font resources, any web fonts used in the SVG must be
+ * embedded as data URLs in inlined @font-face declarations. This class is responsible for
+ * collecting used font faces and creating a CSS string with embedded fonts that can be used in the
+ * SVG.
+ *
+ * It works in three steps:
+ * 1. `startFindingCurrentDocumentFontFaces` - this traverses the current document, finding all the
+ *    stylesheets in use (including those imported via `@import` rules etc) and extracting the
+ *    @font-face declarations from them.
+ * 2. `onFontFamilyValue` - as `StyleEmbedder` traverses the SVG, it will call this method with the
+ *    value of the `font-family` property for each element. We parse out the font names in use, and
+ *    mark them as needing to be embedded.
+ * 3. `createCss` - once all the font families have been collected, this method will return a CSS
+ *    string with embedded fonts.
+ */
 export class FontEmbedder {
 	private fontFacesPromise: Promise<ParsedFontFace[]> | null = null
 	private readonly foundFontNames = new Set<string>()

@@ -1,5 +1,13 @@
 import { bind } from '@tldraw/utils'
 
+/**
+ * Export delay is a helper class that allows you to wait for a set of promises to resolve before
+ * proceeding with an export. Over time, promises can be added by calling `waitUntil`.
+ *
+ * When `resolve` is called, we'll wait for all the promises already added (and any new ones added
+ * in the mean time) to resolve before proceeding. The class is designed to be used once: after
+ * `resolve` has been called and finished, new promises cannot be added.
+ */
 export class ExportDelay {
 	private isResolved = false
 	private readonly promisesToWaitFor: Promise<void>[] = []
@@ -7,7 +15,6 @@ export class ExportDelay {
 	constructor(private readonly maxDelayTimeMs: number) {}
 
 	@bind waitUntil(promise: Promise<void>): void {
-		// console.log('waitUntil', new Error().stack)
 		if (this.isResolved) {
 			throw new Error(
 				'Cannot `waitUntil` - the export has already been resolved. Make sure to call `waitUntil` as soon as possible during an export - ie within the first react effect after rendering.'

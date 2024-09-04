@@ -105,8 +105,6 @@ export class StyleEmbedder {
 
 			const shadowRoot = element.shadowRoot
 
-			// if (shadowRoot || clonedParent) debugger
-
 			if (shadowRoot) {
 				const clonedCustomEl = document.createElement('div')
 				this.styles.set(clonedCustomEl, this.styles.get(element)!)
@@ -125,7 +123,8 @@ export class StyleEmbedder {
 				element.remove()
 			} else if (clonedParent) {
 				if (element.tagName.toLowerCase() === 'style') {
-					// we don't clone style tags at that would break the style scoping. instead we rely on the computed styles we've already read
+					// we don't clone style tags at that would break the style scoping. instead we
+					// rely on the computed styles we've already read
 					return
 				}
 
@@ -273,7 +272,6 @@ const defaultStylesByTagName: Record<string, ReadonlyStyles> = {}
 function getDefaultStyleFrame() {
 	if (!defaultStyleFrame) {
 		const frame = document.createElement('iframe')
-		frame.inert = true
 		frame.style.display = 'none'
 		document.body.appendChild(frame)
 		const frameDocument = assertExists(frame.contentDocument, 'frame must have a document')

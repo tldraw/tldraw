@@ -1,5 +1,7 @@
 import { FileHelpers, assert, fetch } from '@tldraw/utils'
 
+// TODO(alex): currently, this cache will grow unbounded. we should come up with a better strategy
+// for clearing items from the cache over time.
 export function fetchCache<T>(cb: (response: Response) => Promise<T>, init?: RequestInit) {
 	const cache = new Map<string, Promise<T | null>>()
 

@@ -1,8 +1,13 @@
 export function getRenderedChildNodes(node: Element): Iterable<Node> {
 	if (node.shadowRoot) {
+		// if this is a custom element with a shadow root, then it's the shadow root's children that
+		// are visible in the DOM. This is only accessible if they created the shadow root with
+		// `mode: 'open'` though.
 		return node.shadowRoot.childNodes
 	}
 	if (isShadowSlotElement(node)) {
+		// if this is a `<slot>` within a shadow root, we should render the nodes that are being
+		// templated into the slot instead of the slot children itself.
 		const assignedNodes = node.assignedNodes()
 		if (assignedNodes?.length) {
 			return assignedNodes

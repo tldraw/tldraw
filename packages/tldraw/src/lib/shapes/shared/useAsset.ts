@@ -72,7 +72,7 @@ export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: n
 		}
 
 		// If we already resolved the URL, debounce fetching potentially multiple image variations.
-		const timer = editor.timers.setTimeout(resolve, didAlreadyResolve ? 500 : 0)
+		const timer = editor.timers.setTimeout(resolve, didAlreadyResolve.current ? 500 : 0)
 		return () => {
 			clearTimeout(timer)
 			isCancelled = true
