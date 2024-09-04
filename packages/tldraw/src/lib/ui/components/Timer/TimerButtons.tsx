@@ -1,9 +1,9 @@
 import { Editor, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useTimer } from '../../hooks/useTimer'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TLTimerProps } from './Timer'
 
@@ -18,17 +18,11 @@ function updateTimer(props: TLTimerProps, editor: Editor) {
 }
 
 export function CollapseButton({ onClick }: { onClick(): void }) {
-	const msg = useTranslation()
-	return (
-		<TldrawUiButton type="icon" onClick={onClick} title={msg('timer.collapse')}>
-			<TldrawUiButtonIcon icon="chevron-left" />
-		</TldrawUiButton>
-	)
+	return <TimerButton icon="chevron-left" onClick={onClick} title="timer.collapse" />
 }
 
 export function ResetButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
-	const msg = useTranslation()
 	const handleClick = useCallback(() => {
 		updateTimer(
 			{
@@ -40,12 +34,11 @@ export function ResetButton({ props }: { props: TLTimerProps }) {
 		)
 	}, [editor, props.initialTime])
 
-	return <TimerButton icon="undo" onClick={handleClick} title={msg('timer.reset')} />
+	return <TimerButton icon="undo" onClick={handleClick} title="timer.reset" />
 }
 
 export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
-	const msg = useTranslation()
 
 	const state = props.state
 	const decreaseTime = useCallback(() => {
@@ -72,7 +65,7 @@ export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
 			icon="minus"
 			onClick={decreaseTime}
 			disabled={state.state === 'running' || props.initialTime < TEN_SECONDS}
-			title={msg('timer.decrease-time')}
+			title="timer.decrease-time"
 			small
 		/>
 	)
@@ -80,7 +73,6 @@ export function DecreaseTimeButton({ props }: { props: TLTimerProps }) {
 
 export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
-	const msg = useTranslation()
 
 	const increaseTime = useCallback(() => {
 		let newTime: number
@@ -107,7 +99,7 @@ export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 			icon="plus"
 			onClick={increaseTime}
 			disabled={state.state === 'running'}
-			title={msg('timer.increase-time')}
+			title="timer.increase-time"
 			small
 		/>
 	)
@@ -115,7 +107,6 @@ export function IncreaseTimeButton({ props }: { props: TLTimerProps }) {
 
 export function PlayButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
-	const msg = useTranslation()
 	const { getCurrentServerTime } = useTimer()
 	const handleClick = useCallback(() => {
 		updateTimer(
@@ -127,12 +118,11 @@ export function PlayButton({ props }: { props: TLTimerProps }) {
 			editor
 		)
 	}, [editor, props, getCurrentServerTime])
-	return <TimerButton icon="play" onClick={handleClick} title={msg('timer.start')} />
+	return <TimerButton icon="play" onClick={handleClick} title="timer.start" />
 }
 
 export function PauseButton({ props }: { props: TLTimerProps }) {
 	const editor = useEditor()
-	const msg = useTranslation()
 	const { getElapsedTime } = useTimer()
 	const handleClick = useCallback(() => {
 		if (props.state.state !== 'running') return
@@ -147,7 +137,7 @@ export function PauseButton({ props }: { props: TLTimerProps }) {
 		)
 	}, [editor, props, getElapsedTime])
 
-	return <TimerButton icon="pause" onClick={handleClick} title={msg('timer.pause')} />
+	return <TimerButton icon="pause" onClick={handleClick} title="timer.pause" />
 }
 
 function TimerButton({
@@ -161,15 +151,16 @@ function TimerButton({
 	icon: string
 	onClick(): void
 	small?: boolean
-	title: string
+	title: TLUiTranslationKey
 }) {
+	const msg = useTranslation()
 	return (
 		<TldrawUiButton
 			type="icon"
 			disabled={disabled}
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={onClick}
-			title={title}
+			title={msg(title)}
 		>
 			<TldrawUiIcon icon={icon} small={small} />
 		</TldrawUiButton>
