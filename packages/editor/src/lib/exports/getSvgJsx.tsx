@@ -5,11 +5,21 @@ import {
 	TLShapeId,
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
-import { promiseWithResolve } from '@tldraw/utils'
-import { ComponentType, Fragment, ReactElement, useEffect } from 'react'
+import { hasOwnProperty, promiseWithResolve } from '@tldraw/utils'
+import {
+	ComponentType,
+	Fragment,
+	ReactElement,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
+import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
-import { Editor } from '../editor/Editor'
+import { Editor, TLRenderingShape } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import {
 	SvgExportContext,
@@ -18,22 +28,22 @@ import {
 } from '../editor/types/SvgExportContext'
 import { TLImageExportOptions } from '../editor/types/misc-types'
 import { useEditor } from '../hooks/useEditor'
+import { useEvent } from '../hooks/useEvent'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
 import { ExportDelay } from './ExportDelay'
 
-export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
+export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
 	if (!window.document) throw Error('No document')
 
 	const {
 		scale = 1,
 		background = false,
 		padding = editor.options.defaultSvgPadding,
-		preserveAspectRatio = false,
+		preserveAspectRatio,
 	} = opts
 
 	const isDarkMode = opts.darkMode ?? editor.user.getIsDarkMode()
-	const theme = getDefaultColorTheme({ isDarkMode })
 
 	// ---Figure out which shapes we need to include
 	const shapeIdsToInclude = editor.getShapeAndDescendantIds(ids)
@@ -79,151 +89,223 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageE
 		// not implemented
 	}
 
-	const defChildren: ReactElement[] = []
+	const exportDelay = new ExportDelay(editor.options.maxExportDelayMs)
 
 	const initialEffectPromise = promiseWithResolve<void>()
-	const exportDelay = new ExportDelay()
+	exportDelay.waitUntil(initialEffectPromise)
 
-	const exportDefPromisesById = new Map<string, Promise<void>>()
-	const exportContext: SvgExportContext = {
-		isDarkMode,
-		addExportDef: (def: SvgExportDef) => {
-			if (exportDefPromisesById.has(def.key)) return
-			const promise = (async () => {
+	const svg = (
+		<SvgExport
+			editor={editor}
+			preserveAspectRatio={preserveAspectRatio}
+			scale={scale}
+			bbox={bbox}
+			background={background}
+			singleFrameShapeId={singleFrameShapeId}
+			isDarkMode={isDarkMode}
+			renderingShapes={renderingShapes}
+			onMount={initialEffectPromise.resolve}
+			waitUntil={exportDelay.waitUntil}
+		>
+			{}
+		</SvgExport>
+	)
+
+	return { jsx: svg, width: w, height: h, exportDelay }
+}
+
+function SvgExport({
+	editor,
+	preserveAspectRatio,
+	scale,
+	bbox,
+	background,
+	singleFrameShapeId,
+	isDarkMode,
+	renderingShapes,
+	onMount,
+	waitUntil,
+}: {
+	editor: Editor
+	preserveAspectRatio?: string
+	scale: number
+	bbox: Box
+	background: boolean
+	singleFrameShapeId: TLShapeId | null
+	isDarkMode: boolean
+	renderingShapes: TLRenderingShape[]
+	onMount(): void
+	waitUntil(promise: Promise<void>): void
+}) {
+	const theme = getDefaultColorTheme({ isDarkMode })
+
+	const [defsById, setDefsById] = useState<Record<string, ReactElement>>({})
+	const addExportDef = useEvent((def: SvgExportDef) => {
+		if (hasOwnProperty(defsById, def.key)) return
+		waitUntil(
+			(async () => {
 				const element = await def.getElement()
 				if (!element) return
 
-				defChildren.push(<Fragment key={defChildren.length}>{element}</Fragment>)
+				flushSync(() => setDefsById((defsById) => ({ ...defsById, [def.key]: element })))
 			})()
-			exportDefPromisesById.set(def.key, promise)
-		},
-		waitUntil: (promise) => {
-			exportDelay.waitUntil(promise)
-		},
-	}
+		)
+	})
 
-	const unorderedShapeElements = (
-		await Promise.all(
-			renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
-				// Don't render the frame if we're only exporting a single frame
-				if (id === singleFrameShapeId) return []
+	const exportContext = useMemo(
+		(): SvgExportContext => ({
+			isDarkMode,
+			waitUntil,
+			addExportDef,
+		}),
+		[isDarkMode, waitUntil, addExportDef]
+	)
 
-				const shape = editor.getShape(id)!
+	const [shapeElements, setShapeElements] = useState<ReactElement[] | null>(null)
+	const didRenderRef = useRef(false)
+	useLayoutEffect(() => {
+		if (didRenderRef.current) {
+			throw new Error('SvgExport should only render once - do not use with react strict mode')
+		}
+		didRenderRef.current = true
+		;(async () => {
+			const shapeDefs: Record<string, ReactElement> = {}
 
-				if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) return []
+			const unorderedShapeElementPromises = renderingShapes.map(
+				async ({ id, opacity, index, backgroundIndex }) => {
+					// Don't render the frame if we're only exporting a single frame
+					if (id === singleFrameShapeId) return []
 
-				const elements = []
-				const util = editor.getShapeUtil(shape)
+					const shape = editor.getShape(id)!
 
-				if (util.toSvg || util.toBackgroundSvg) {
-					// If the shape has any sort of custom svg export, let's use that.
-					const toSvgResult = await util.toSvg?.(shape, exportContext)
-					const toBackgroundSvgResult = await util.toBackgroundSvg?.(shape, exportContext)
+					if (editor.isShapeOfType<TLGroupShape>(shape, 'group')) return []
 
-					const pageTransform = editor.getShapePageTransform(shape)
-					let pageTransformString = pageTransform!.toCssString()
-					if ('scale' in shape.props) {
-						if (shape.props.scale !== 1) {
-							pageTransformString = `${pageTransformString} scale(${shape.props.scale}, ${shape.props.scale})`
+					const elements = []
+					const util = editor.getShapeUtil(shape)
+
+					if (util.toSvg || util.toBackgroundSvg) {
+						// If the shape has any sort of custom svg export, let's use that.
+						const [toSvgResult, toBackgroundSvgResult] = await Promise.all([
+							util.toSvg?.(shape, exportContext),
+							util.toBackgroundSvg?.(shape, exportContext),
+						])
+
+						const pageTransform = editor.getShapePageTransform(shape)
+						let pageTransformString = pageTransform!.toCssString()
+						if ('scale' in shape.props) {
+							if (shape.props.scale !== 1) {
+								pageTransformString = `${pageTransformString} scale(${shape.props.scale}, ${shape.props.scale})`
+							}
 						}
-					}
 
-					// Create svg mask if shape has a frame as parent
-					const pageMask = editor.getShapeMask(shape.id)
-					const shapeMask = pageMask
-						? Mat.From(Mat.Inverse(pageTransform)).applyToPoints(pageMask)
-						: null
-					const shapeMaskId = `mask_${shape.id.replace(':', '_')}`
-					if (shapeMask) {
-						// Create a clip path and add it to defs
-						defChildren.push(
-							<clipPath key={defChildren.length} id={shapeMaskId}>
-								{/* Create a polyline mask that does the clipping */}
-								<path d={`M${shapeMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`} />
-							</clipPath>
-						)
-					}
+						// Create svg mask if shape has a frame as parent
+						const pageMask = editor.getShapeMask(shape.id)
+						const shapeMask = pageMask
+							? Mat.From(Mat.Inverse(pageTransform)).applyToPoints(pageMask)
+							: null
+						const shapeMaskId = `mask_${shape.id.replace(':', '_')}`
+						if (shapeMask) {
+							// Create a clip path and add it to defs
+							shapeDefs[shapeMaskId] = (
+								<clipPath id={shapeMaskId}>
+									{/* Create a polyline mask that does the clipping */}
+									<path d={`M${shapeMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`} />
+								</clipPath>
+							)
+						}
 
-					if (toSvgResult) {
+						if (toSvgResult) {
+							elements.push({
+								zIndex: index,
+								element: (
+									<g
+										key={`fg_${shape.id}`}
+										transform={pageTransformString}
+										opacity={opacity}
+										clipPath={pageMask ? `url(#${shapeMaskId})` : undefined}
+									>
+										{toSvgResult}
+									</g>
+								),
+							})
+						}
+						if (toBackgroundSvgResult) {
+							elements.push({
+								zIndex: backgroundIndex,
+								element: (
+									<g
+										key={`bg_${shape.id}`}
+										transform={pageTransformString}
+										opacity={opacity}
+										clipPath={pageMask ? `url(#${shapeMaskId})` : undefined}
+									>
+										{toBackgroundSvgResult}
+									</g>
+								),
+							})
+						}
+					} else {
+						// If the shape doesn't have a custom svg export, we'll use its normal HTML
+						// renderer in a foreignObject.
 						elements.push({
 							zIndex: index,
 							element: (
-								<g
-									key={shape.id}
-									transform={pageTransformString}
-									opacity={opacity}
-									clipPath={pageMask ? `url(#${shapeMaskId})` : undefined}
-								>
-									{toSvgResult}
-								</g>
-							),
-						})
-					}
-					if (toBackgroundSvgResult) {
-						elements.push({
-							zIndex: backgroundIndex,
-							element: (
-								<g
-									key={shape.id}
-									transform={pageTransformString}
-									opacity={opacity}
-									clipPath={pageMask ? `url(#${shapeMaskId})` : undefined}
-								>
-									{toBackgroundSvgResult}
-								</g>
-							),
-						})
-					}
-				} else {
-					// If the shape doesn't have a custom svg export, we'll use its normal HTML
-					// renderer in a foreignObject.
-					elements.push({
-						zIndex: index,
-						element: (
-							<ForeignObjectShape
-								key={shape.id}
-								shape={shape}
-								util={util}
-								component={InnerShape}
-								className="tl-shape"
-								bbox={bbox}
-								opacity={opacity}
-							/>
-						),
-					})
-
-					if (util.backgroundComponent) {
-						elements.push({
-							zIndex: backgroundIndex,
-							element: (
 								<ForeignObjectShape
-									key={shape.id}
+									key={`fg_${shape.id}`}
 									shape={shape}
 									util={util}
-									component={InnerShapeBackground}
-									className="tl-shape tl-shape-background"
+									component={InnerShape}
+									className="tl-shape"
 									bbox={bbox}
 									opacity={opacity}
 								/>
 							),
 						})
+
+						if (util.backgroundComponent) {
+							elements.push({
+								zIndex: backgroundIndex,
+								element: (
+									<ForeignObjectShape
+										key={`bg_${shape.id}`}
+										shape={shape}
+										util={util}
+										component={InnerShapeBackground}
+										className="tl-shape tl-shape-background"
+										bbox={bbox}
+										opacity={opacity}
+									/>
+								),
+							})
+						}
 					}
+
+					return elements
 				}
+			)
 
-				return elements
+			const unorderedShapeElements = (await Promise.all(unorderedShapeElementPromises)).flat()
+			flushSync(() => {
+				setShapeElements(
+					unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex).map(({ element }) => element)
+				)
+				setDefsById((defsById) => ({ ...defsById, ...shapeDefs }))
 			})
-		)
-	).flat()
+		})()
+	}, [bbox, editor, exportContext, renderingShapes, singleFrameShapeId])
 
-	await Promise.all(exportDefPromisesById.values())
+	useEffect(() => {
+		if (shapeElements === null) return
+		onMount()
+	}, [onMount, shapeElements])
 
-	const svg = (
+	return (
 		<SvgExportContextProvider editor={editor} context={exportContext}>
 			<svg
-				preserveAspectRatio={preserveAspectRatio ? preserveAspectRatio : undefined}
+				preserveAspectRatio={preserveAspectRatio}
 				direction="ltr"
-				width={w}
-				height={h}
+				width={bbox.width * scale}
+				height={bbox.height * scale}
 				viewBox={`${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`}
 				strokeLinecap="round"
 				strokeLinejoin="round"
@@ -237,22 +319,15 @@ export async function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageE
 				data-color-mode={isDarkMode ? 'dark' : 'light'}
 				className={`tl-container tl-theme__force-sRGB ${isDarkMode ? 'tl-theme__dark' : 'tl-theme__light'}`}
 			>
-				<ResolveInitialEffect onEffect={() => initialEffectPromise.resolve()} />
-				<defs>{defChildren}</defs>
-				{unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex).map(({ element }) => element)}
+				<defs>
+					{Object.entries(defsById).map(([key, def]) => (
+						<Fragment key={key}>{def}</Fragment>
+					))}
+				</defs>
+				{shapeElements}
 			</svg>
 		</SvgExportContextProvider>
 	)
-
-	return { jsx: svg, width: w, height: h, exportDelay }
-}
-
-function ResolveInitialEffect({ onEffect }: { onEffect(): void }) {
-	useEffect(() => {
-		onEffect()
-	})
-
-	return null
 }
 
 function ForeignObjectShape({

@@ -16,7 +16,7 @@ export async function exportToSvg(
 	// when rendering to SVG, we start by creating a JSX representation of the SVG that we can
 	// render with react. Hopefully elements will have a `toSvg` method that renders them to SVG,
 	// but if they don't we'll render their normal HTML content into an svg <foreignObject> element.
-	const result = await getSvgJsx(editor, shapeIds, opts)
+	const result = getSvgJsx(editor, shapeIds, opts)
 	if (!result) return undefined
 
 	// we need to render that SVG into a real DOM element that's actually laid out in the document.

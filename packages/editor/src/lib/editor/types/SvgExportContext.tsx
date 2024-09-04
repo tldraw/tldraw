@@ -18,6 +18,14 @@ export interface SvgExportContext {
 	 */
 	addExportDef(def: SvgExportDef): void
 
+	/**
+	 * Cause the SVG export to be delayed until the returned promise is resolved. This is useful if
+	 * e.g. your shape loads data dynamically, and you need to prevent the export from happening
+	 * until after the data is loaded.
+	 *
+	 * See also the {@link useDelaySvgExport} hook, which may be a more convenient way to use this
+	 * method depending on your use-case.
+	 */
 	waitUntil(promise: Promise<void>): void
 
 	/**
@@ -44,18 +52,29 @@ export function SvgExportContextProvider({
 }
 
 /**
- * Returns the read-only parts of {@link SvgExportContext}.
+ * Returns the current SVG export context. Returns null if the component isn't being rendered for an
+ * SVG export.
+ *
  * @public
  */
 export function useSvgExportContext() {
-	const ctx = useContext(Context)
-	if (!ctx) return null
-	return { isDarkMode: ctx.isDarkMode }
+	return useContext(Context)
 }
 
 /**
- * Delay an SVG export until the returned function is called. Useful for waiting for async
- * operations and effects to complete before exporting.
+ * Delay an SVG export until the returned function is called. This is useful if e.g. your shape
+ * loads data dynamically, and you need to prevent the export from happening until after the data is
+ * loaded.
+ *
+ * If used outside of an SVG export, this hook has no effect.
+ *
+ * @example
+ * ```tsx
+ * const readyForExport = useDelaySvgExport()
+ *
+ * return <MyDynamicComponent onDataLoaded={() => readyForExport()} />
+ * ```
+ *
  * @public
  */
 export function useDelaySvgExport() {

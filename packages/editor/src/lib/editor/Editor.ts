@@ -232,6 +232,16 @@ export interface TLEditorRunOptions extends TLHistoryBatchOptions {
 }
 
 /** @public */
+export interface TLRenderingShape {
+	id: TLShapeId
+	shape: TLShape
+	util: ShapeUtil
+	index: number
+	backgroundIndex: number
+	opacity: number
+}
+
+/** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	constructor({
 		store,
@@ -3574,7 +3584,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// is based on other state, and for computing order for SVG export,
 		// which should work even when things are for example off-screen.
 		useEditorState: boolean
-	) {
+	): TLRenderingShape[] {
 		// Here we get the shape as well as any of its children, as well as their
 		// opacities. If the shape is being erased, and none of its ancestors are
 		// being erased, then we reduce the opacity of the shape and all of its
@@ -3585,14 +3595,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// allows the DOM nodes to be reused even when they become children
 		// of other nodes.
 
-		const renderingShapes: {
-			id: TLShapeId
-			shape: TLShape
-			util: ShapeUtil
-			index: number
-			backgroundIndex: number
-			opacity: number
-		}[] = []
+		const renderingShapes: TLRenderingShape[] = []
 
 		let nextIndex = this.options.maxShapesPerPage * 2
 		let nextBackgroundIndex = this.options.maxShapesPerPage

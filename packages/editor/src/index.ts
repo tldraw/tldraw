@@ -146,6 +146,7 @@ export {
 	Editor,
 	type TLEditorOptions,
 	type TLEditorRunOptions,
+	type TLRenderingShape,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
 export {
