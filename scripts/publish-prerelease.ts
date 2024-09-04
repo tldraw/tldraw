@@ -5,23 +5,16 @@ import { uploadStaticAssets } from './lib/upload-static-assets'
 async function main(releaseTag: string) {
 	const sha = (await exec('git', ['rev-parse', 'HEAD'])).trim().slice(0, 12)
 
-	async function setCanaryVersions() {
-		const latestVersion = await getLatestVersion()
+	const latestVersion = await getLatestVersion()
 
-		const nextVersion = latestVersion.prerelease.length
-			? // if the package is in prerelease mode, we want to release a canary for the current version rather than bumping
-				latestVersion
-			: latestVersion?.inc('minor')
+	const nextVersion = latestVersion.prerelease.length
+		? // if the package is in prerelease mode, we want to release a canary for the current version rather than bumping
+			latestVersion
+		: latestVersion?.inc('minor')
 
-		const versionString = `${nextVersion.major}.${nextVersion.minor}.${nextVersion.patch}-${releaseTag}.${sha}`
+	const versionString = `${nextVersion.major}.${nextVersion.minor}.${nextVersion.patch}-${releaseTag}.${sha}`
 
-		await setAllVersions(versionString)
-		return versionString
-	}
-
-	// module was called directly
-
-	const versionString = await setCanaryVersions()
+	await setAllVersions(versionString)
 	await uploadStaticAssets(versionString)
 	await publish(releaseTag)
 }
