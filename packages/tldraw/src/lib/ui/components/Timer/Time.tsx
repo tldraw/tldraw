@@ -1,13 +1,11 @@
 import {
 	DefaultColorThemePalette,
-	TLTimerShapeProps,
-	TLTimerState,
 	exhaustiveSwitchError,
 	useEditor,
 	useIsDarkMode,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { getTimeRemaining } from './Timer'
+import { TLTimerProps, TLTimerState, getTimeRemaining } from './Timer'
 import { useTimer } from './useTimer'
 
 function getBackgroundColor(state: TLTimerState, darkMode: boolean) {
@@ -55,7 +53,7 @@ function formatTime(time: number) {
 	return `${minutesString}:${secondsString}`
 }
 
-export function Time({ props, onClick }: { props: TLTimerShapeProps; onClick?(): void }) {
+export function Time({ props, onClick }: { props: TLTimerProps; onClick?(): void }) {
 	const editor = useEditor()
 	const darkMode = useIsDarkMode()
 	const state = props.state.state

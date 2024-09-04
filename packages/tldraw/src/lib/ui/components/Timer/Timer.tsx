@@ -1,4 +1,4 @@
-import { Editor, TLTimerShapeProps, exhaustiveSwitchError, track } from '@tldraw/editor'
+import { Editor, exhaustiveSwitchError, track } from '@tldraw/editor'
 import { useState } from 'react'
 import { Time } from './Time'
 import {
@@ -12,12 +12,25 @@ import {
 } from './TimerButtons'
 
 /** @public */
+export interface TLTimerProps {
+	initialTime: number
+	remainingTime: number
+	state:
+		| { state: 'running'; lastStartTime: number }
+		| { state: 'stopped' }
+		| { state: 'paused' }
+		| { state: 'completed' }
+}
+
+export type TLTimerState = TLTimerProps['state']['state']
+
+/** @public */
 export interface TimerProps {
-	props: TLTimerShapeProps
+	props: TLTimerProps
 	editor: Editor
 }
 
-export function getTimeRemaining(props: TLTimerShapeProps) {
+export function getTimeRemaining(props: TLTimerProps) {
 	switch (props.state.state) {
 		case 'running':
 			return props.remainingTime - getElapsedTime(props)
@@ -33,7 +46,7 @@ export function getTimeRemaining(props: TLTimerShapeProps) {
 }
 
 /** @public @react */
-export const Timer = track(function Timer({ props }: { props: TLTimerShapeProps }) {
+export const Timer = track(function Timer({ props }: { props: TLTimerProps }) {
 	const [isExpanded, setIsExpanded] = useState(true)
 	return (
 		<div className="tlui-timer__wrapper">
@@ -46,13 +59,7 @@ export const Timer = track(function Timer({ props }: { props: TLTimerShapeProps 
 	)
 })
 
-function ExpandedTimerView({
-	props,
-	onCollapse,
-}: {
-	props: TLTimerShapeProps
-	onCollapse(): void
-}) {
+function ExpandedTimerView({ props, onCollapse }: { props: TLTimerProps; onCollapse(): void }) {
 	const state = props.state.state
 	const showPlay = ['stopped', 'paused', 'completed'].includes(state)
 

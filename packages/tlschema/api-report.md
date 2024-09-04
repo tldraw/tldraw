@@ -250,10 +250,6 @@ export const defaultShapeSchemas: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLTextShape>;
     };
-    timer: {
-        migrations: TLPropsMigrations;
-        props: RecordProps<TLTimerShape>;
-    };
     video: {
         migrations: TLPropsMigrations;
         props: RecordProps<TLVideoShape>;
@@ -582,12 +578,6 @@ export const textShapeMigrations: TLPropsMigrations;
 // @public (undocumented)
 export const textShapeProps: RecordProps<TLTextShape>;
 
-// @public (undocumented)
-export const timerShapeMigrations: TLPropsMigrations;
-
-// @public (undocumented)
-export const timerShapeProps: RecordProps<TLTimerShape>;
-
 // @public
 export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
@@ -870,7 +860,7 @@ export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
 export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLTimerShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public (undocumented)
 export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
@@ -1425,31 +1415,6 @@ export interface TLTextShapeProps {
     // (undocumented)
     w: number;
 }
-
-// @public (undocumented)
-export type TLTimerShape = TLBaseShape<'timer', TLTimerShapeProps>;
-
-// @public (undocumented)
-export interface TLTimerShapeProps {
-    // (undocumented)
-    initialTime: number;
-    // (undocumented)
-    remainingTime: number;
-    // (undocumented)
-    state: {
-        lastStartTime: number;
-        state: 'running';
-    } | {
-        state: 'completed';
-    } | {
-        state: 'paused';
-    } | {
-        state: 'stopped';
-    };
-}
-
-// @public (undocumented)
-export type TLTimerState = TLTimerShapeProps['state']['state'];
 
 // @public
 export type TLUnknownBinding = TLBaseBinding<string, object>;

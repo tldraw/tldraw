@@ -109,7 +109,6 @@ import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
-import { TLTimerShapeProps } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
@@ -1917,7 +1916,7 @@ export interface ThemeStylePickerSetProps {
 
 // @public (undocumented)
 export const Timer: NamedExoticComponent<    {
-props: TLTimerShapeProps;
+props: TLTimerProps;
 }>;
 
 // @public (undocumented)
@@ -1925,7 +1924,7 @@ export interface TimerProps {
     // (undocumented)
     editor: Editor;
     // (undocumented)
-    props: TLTimerShapeProps;
+    props: TLTimerProps;
 }
 
 // @public (undocumented)
@@ -2230,6 +2229,25 @@ export interface TLExternalContentProps {
     acceptedVideoMimeTypes?: readonly string[];
     maxAssetSize?: number;
     maxImageDimension?: number;
+}
+
+// @public (undocumented)
+export interface TLTimerProps {
+    // (undocumented)
+    initialTime: number;
+    // (undocumented)
+    remainingTime: number;
+    // (undocumented)
+    state: {
+        lastStartTime: number;
+        state: 'running';
+    } | {
+        state: 'completed';
+    } | {
+        state: 'paused';
+    } | {
+        state: 'stopped';
+    };
 }
 
 // @public (undocumented)

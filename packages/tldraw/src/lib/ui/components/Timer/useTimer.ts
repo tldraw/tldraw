@@ -1,5 +1,6 @@
-import { TLTimerState, useEditor } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
+import { TLTimerState } from './Timer'
 
 const UPDATES_PER_SECOND = 10
 const TIMEOUT = 1000 / UPDATES_PER_SECOND

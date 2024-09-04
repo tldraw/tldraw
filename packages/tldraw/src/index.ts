@@ -192,6 +192,7 @@ export {
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export { Timer, type TimerProps } from './lib/ui/components/Timer/Timer'
+export type { TLTimerProps } from './lib/ui/components/Timer/Timer'
 export {
 	DefaultToolbar,
 	type DefaultToolbarProps,
