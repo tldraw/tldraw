@@ -160,8 +160,8 @@ export function Tldraw(props: TldrawProps) {
 				<InsideOfEditorAndUiContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
-					acceptedImageMimeTypes={acceptedImageMimeTypes}
-					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
+					acceptedImageMimeTypes={_imageMimeTypes}
+					acceptedVideoMimeTypes={_videoMimeTypes}
 					onMount={onMount}
 					embeds={embeds}
 				/>
