@@ -18,7 +18,6 @@ import {
 	TldrawUiMenuGroup,
 	ViewSubmenu,
 	initializeTimer,
-	useTimer,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -96,7 +95,6 @@ export function LocalEditor() {
 	return (
 		<div className="tldraw__editor">
 			<ServerOffsetProvider offset={0}>
-				<Test />
 				<Tldraw
 					licenseKey={getLicenseKey()}
 					assetUrls={assetUrls}
@@ -114,11 +112,4 @@ export function LocalEditor() {
 			</ServerOffsetProvider>
 		</div>
 	)
-}
-
-function Test() {
-	const { getCurrentServerTime, getElapsedTime } = useTimer()
-	console.log(getCurrentServerTime, getElapsedTime)
-
-	return null
 }
