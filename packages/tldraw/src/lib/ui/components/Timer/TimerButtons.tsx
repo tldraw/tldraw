@@ -54,7 +54,12 @@ function getCurrentServerTime() {
 
 export function CollapseButton({ onClick }: { onClick(): void }) {
 	return (
-		<TldrawUiButton type="icon" onPointerDown={(e) => e.stopPropagation()} onClick={onClick}>
+		<TldrawUiButton
+			type="icon"
+			onPointerDown={(e) => e.stopPropagation()}
+			onClick={onClick}
+			title="Collapse"
+		>
 			<TldrawUiButtonIcon icon="chevron-left" />
 		</TldrawUiButton>
 	)
@@ -68,6 +73,7 @@ export function StopButton({ props }: { props: TLTimerShapeProps }) {
 			type="icon"
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={() => stopTimer(props, editor)}
+			title="Stop"
 		>
 			<TldrawUiButtonIcon icon="geo-rectangle" />
 		</TldrawUiButton>
@@ -101,6 +107,7 @@ export function DecreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
 			type="icon"
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={decreaseTime}
+			title="Decrease time"
 		>
 			<TldrawUiIcon icon="minus" />
 		</TldrawUiButton>
@@ -132,6 +139,7 @@ export function IncreaseTimeButton({ props }: { props: TLTimerShapeProps }) {
 			type="icon"
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={increaseTime}
+			title="Increase time"
 		>
 			<TldrawUiIcon icon="plus" />
 		</TldrawUiButton>
@@ -146,6 +154,7 @@ export function PlayButton({ props }: { props: TLTimerShapeProps }) {
 			type="icon"
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={() => startTimer(props, editor)}
+			title="Start"
 		>
 			<div
 				style={{
@@ -171,6 +180,7 @@ export function ResetPauseButton({ props }: { props: TLTimerShapeProps }) {
 					pauseTimer(props, editor)
 				}
 			}}
+			title={props.state.state === 'completed' ? 'Reset' : 'Pause'}
 		>
 			{props.state.state === 'completed' ? 'Reset' : 'Pause'}
 		</TldrawUiButton>

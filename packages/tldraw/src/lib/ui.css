@@ -1782,11 +1782,8 @@
 
 /* ------------------- Timer ------------------- */
 .tlui-timer__wrapper {
-	margin: 5px;
-	pointerevents: all;
 	display: flex;
-	height: 40px;
-	alignitems: stretch;
+	margin: var(--space-2);
 	background-color: var(--color-background);
 	box-shadow: var(--shadow-2);
 	border-radius: var(--radius-3);
@@ -1796,24 +1793,32 @@
 .tlui-timer__time-wrapper {
 	display: flex;
 	align-items: center;
-	width: 60px;
 	overflow: hidden;
-	background: #eee;
 	height: 100%;
 	position: relative;
 	justify-content: center;
+	pointer-events: all;
+	background-color: var(--color-muted-2);
+	width: 80px;
+	height: 40px;
+}
+
+.tlui-timer__time-wrapper-clickable {
+	cursor: pointer;
+	pointer-events: all;
 }
 
 .tlui-timer__time-color-background {
-	border-radius: 3px;
-	margin: -2px;
 	z-index: 0;
-	height: calc(100% + 4px);
+	height: 100%;
 	position: absolute;
 	top: 0;
 	left: 0;
 }
 
 .tlui-timer__time-text {
+	color: var(--color-text-1);
 	z-index: 1;
+	font-size: 18px;
+	padding: 0 4px;
 }

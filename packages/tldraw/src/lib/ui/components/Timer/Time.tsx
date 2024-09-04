@@ -6,6 +6,7 @@ import {
 	useEditor,
 	useIsDarkMode,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { getTimeRemaining } from './Timer'
 import { useTimer } from './useTimer'
 
@@ -38,15 +39,7 @@ function formatTime(time: number) {
 	return `${minutesString}:${secondsString}`
 }
 
-export function Time({
-	props,
-	isExpanded,
-	setIsExpanded,
-}: {
-	props: TLTimerShapeProps
-	isExpanded: boolean
-	setIsExpanded(b: boolean): void
-}) {
+export function Time({ props, onClick }: { props: TLTimerShapeProps; onClick?(): void }) {
 	const editor = useEditor()
 	const darkMode = useIsDarkMode()
 	const state = props.state
@@ -73,23 +66,23 @@ export function Time({
 			: '100%'
 	return (
 		<div
-			className="tlui-timer__time-wrapper"
+			className={classNames('tlui-timer__time-wrapper', {
+				'tlui-timer__time-wrapper-clickable': onClick,
+			})}
 			onPointerDown={(e) => e.stopPropagation()}
 			onClick={() => {
-				if (!isExpanded) {
-					setIsExpanded(true)
-				}
+				onClick?.()
 			}}
 		>
 			<div
 				className="tlui-timer__time-color-background"
 				style={{
 					backgroundColor: getBackgroundColor(props.state.state, darkMode),
-					border:
+					borderRight:
 						props.state.state === 'running' || props.state.state === 'paused'
 							? `1px solid ${DefaultColorThemePalette.lightMode.red.solid}`
 							: 'none',
-					width: `calc(${width} + 3px)`,
+					width,
 				}}
 			/>
 			<div className="tlui-timer__time-text">{formatTime(remainingTime)}</div>
