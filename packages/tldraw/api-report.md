@@ -1582,7 +1582,7 @@ export interface OverflowingToolbarProps {
 }
 
 // @public (undocumented)
-export const PageItemInput: ({ name, id, isCurrentPage, }: PageItemInputProps) => JSX_2.Element;
+export const PageItemInput: ({ name, id, isCurrentPage, onCancel, }: PageItemInputProps) => JSX_2.Element;
 
 // @public (undocumented)
 export interface PageItemInputProps {
@@ -1592,6 +1592,8 @@ export interface PageItemInputProps {
     isCurrentPage: boolean;
     // (undocumented)
     name: string;
+    // (undocumented)
+    onCancel(): void;
 }
 
 // @public (undocumented)
@@ -2165,7 +2167,7 @@ export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps)
 export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, disableEscapeKeyDown, }: TLUiPopoverContentProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
@@ -2960,6 +2962,8 @@ export interface TLUiPopoverContentProps {
     alignOffset?: number;
     // (undocumented)
     children: React_3.ReactNode;
+    // (undocumented)
+    disableEscapeKeyDown?: boolean;
     // (undocumented)
     side: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
