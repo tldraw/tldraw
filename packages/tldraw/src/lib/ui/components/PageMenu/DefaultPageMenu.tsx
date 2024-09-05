@@ -295,7 +295,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 				side="bottom"
 				align="start"
 				sideOffset={6}
-				disableEscapeKeyDown={true}
+				disableEscapeKeyDown={isEditing}
 			>
 				<div className="tlui-page-menu__wrapper">
 					<div className="tlui-page-menu__header">
