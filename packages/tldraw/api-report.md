@@ -2162,7 +2162,7 @@ export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps)
 export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, onEscapeKeyDown, }: TLUiPopoverContentProps): JSX_2.Element;
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, disableEscapeKeyDown, }: TLUiPopoverContentProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
@@ -2948,7 +2948,7 @@ export interface TLUiPopoverContentProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
-    onEscapeKeyDown?(event: KeyboardEvent): void;
+    disableEscapeKeyDown?: boolean;
     // (undocumented)
     side: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
