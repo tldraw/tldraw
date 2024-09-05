@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FileHelpers,
 	Image,
 	PngHelpers,
 	TLImageExportOptions,
@@ -32,7 +33,10 @@ export async function getSvgAsImage(
 	clampedHeight = Math.floor(clampedHeight)
 	const effectiveScale = clampedWidth / width
 
-	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
+	// usually we would use `URL.createObjectURL` here, but chrome has a bug where `blob:` URLs of
+	// SVGs that use <foreignObject> mark the canvas as tainted, where data: ones do not.
+	// https://issues.chromium.org/issues/41054640
+	const svgUrl = await FileHelpers.blobToDataUrl(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
 		const image = Image()

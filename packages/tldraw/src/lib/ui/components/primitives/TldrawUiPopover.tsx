@@ -46,6 +46,7 @@ export interface TLUiPopoverContentProps {
 	align?: 'start' | 'center' | 'end'
 	alignOffset?: number
 	sideOffset?: number
+	disableEscapeKeyDown?: boolean
 }
 
 /** @public @react */
@@ -55,6 +56,7 @@ export function TldrawUiPopoverContent({
 	align = 'center',
 	sideOffset = 8,
 	alignOffset = 0,
+	disableEscapeKeyDown = false,
 }: TLUiPopoverContentProps) {
 	const container = useContainer()
 	return (
@@ -66,6 +68,7 @@ export function TldrawUiPopoverContent({
 				align={align}
 				alignOffset={alignOffset}
 				dir="ltr"
+				onEscapeKeyDown={(e) => disableEscapeKeyDown && e.preventDefault()}
 			>
 				{children}
 				{/* <StyledArrow /> */}
