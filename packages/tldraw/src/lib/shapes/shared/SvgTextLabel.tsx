@@ -48,7 +48,7 @@ export function SvgTextLabel({
 		lineHeight: TEXT_PROPS.lineHeight,
 		fontStyle: 'normal',
 		fontWeight: 'normal',
-		truncate: false as const,
+		overflow: 'wrap' as const,
 		offsetX: 0,
 		offsetY: 0,
 		fill: labelColor,

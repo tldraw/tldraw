@@ -1,15 +1,16 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	FileHelpers,
 	HTMLContainer,
 	Image,
 	MediaHelpers,
-	SvgExportContext,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
 	Vec,
+	fetch,
 	imageShapeMigrations,
 	imageShapeProps,
 	lerp,
@@ -24,6 +25,12 @@ import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
+
+async function getDataURIFromURL(url: string): Promise<string> {
+	const response = await fetch(url)
+	const blob = await response.blob()
+	return FileHelpers.blobToDataUrl(blob)
+}
 
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -250,7 +257,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override async toSvg(shape: TLImageShape, ctx: SvgExportContext) {
+	override async toSvg(shape: TLImageShape) {
 		if (!shape.props.assetId) return null
 
 		const asset = this.editor.getAsset(shape.props.assetId)
@@ -260,8 +267,16 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		let src = await this.editor.resolveAssetUrl(shape.props.assetId, {
 			shouldResolveToOriginal: true,
 		})
-		src = await ctx.toDataUrl(src)
 		if (!src) return null
+		if (
+			src.startsWith('blob:') ||
+			src.startsWith('http') ||
+			src.startsWith('/') ||
+			src.startsWith('./')
+		) {
+			// If it's a remote image, we need to fetch it and convert it to a data URI
+			src = (await getDataURIFromURL(src)) || ''
+		}
 
 		const containerStyle = getCroppedContainerStyle(shape)
 		const crop = shape.props.crop
