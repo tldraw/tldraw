@@ -146,7 +146,7 @@ export const DEFAULT_TRANSLATION = {
 	'color-style.violet': 'Violet',
 	'color-style.yellow': 'Yellow',
 	'command-bar.move-to-new-page': 'Move to new page',
-	'command-bar.placeholder': 'Search...',
+	'command-bar.placeholder': 'Search…',
 	'fill-style.none': 'None',
 	'document.default-name': 'Untitled',
 	'fill-style.semi': 'Semi',
