@@ -18,7 +18,7 @@ function updateTimer(props: TLTimerProps, editor: Editor) {
 }
 
 export function CollapseButton({ onClick }: { onClick(): void }) {
-	return <TimerButton icon="chevron-left" onClick={onClick} title="timer.collapse" />
+	return <TimerButton icon="chevrons-sw" onClick={onClick} title="timer.collapse" />
 }
 
 export function ResetButton({ props }: { props: TLTimerProps }) {
