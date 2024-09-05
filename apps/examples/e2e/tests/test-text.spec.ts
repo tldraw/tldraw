@@ -19,7 +19,7 @@ const measureTextOptions = {
 const measureTextSpansOptions = {
 	width: 100,
 	height: 1000,
-	truncate: 'wrap' as const,
+	overflow: 'wrap' as const,
 	padding: 0,
 	fontSize: 24,
 	fontWeight: 'normal',
