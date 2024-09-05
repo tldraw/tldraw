@@ -44,7 +44,7 @@ jobs:
 
       - name: Extract published version
         id: extract_version
-        run: echo "::set-output name=version::$(node -e 'console.log(require("./packages/tldraw/package.json").version)')"
+        run: echo "version=$(node -e 'console.log(require("./packages/tldraw/package.json").version)')" >> $GITHUB_OUTPUT
 
       - name: Tell user released version
         uses: actions-ecosystem/action-create-comment@v1
