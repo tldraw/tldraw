@@ -47,13 +47,21 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 						body,
 						headers,
 						bucket: this.env.BEMO_BUCKET,
-						objectName: `asset-uploads/${objectName}`,
+						objectName: `bookmark-assets/${objectName}`,
 					})
 					if (!response.ok) throw new Error('Failed to upload image')
 
 					const requestUrl = new URL(request.url)
-					return `${requestUrl.origin}/uploads/${objectName}`
+					return `${requestUrl.origin}/bookmarks/assets/${objectName}`
 				},
+			})
+		})
+		.get('/bookmarks/assets/:objectName', (request) => {
+			return handleUserAssetGet({
+				request,
+				bucket: this.env.BEMO_BUCKET,
+				objectName: `bookmark-assets/${request.params.objectName}`,
+				context: this.ctx,
 			})
 		})
 		.get('/connect/:slug', (request) => {
