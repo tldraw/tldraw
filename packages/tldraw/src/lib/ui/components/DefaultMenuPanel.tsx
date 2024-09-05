@@ -1,4 +1,3 @@
-import { useEditor, useValue } from '@tldraw/editor'
 import { memo } from 'react'
 import { useBreakpoint } from '../context/breakpoints'
 import { useTldrawUiComponents } from '../context/components'
@@ -7,20 +6,15 @@ import { useTldrawUiComponents } from '../context/components'
 export const DefaultMenuPanel = memo(function MenuPanel() {
 	const breakpoint = useBreakpoint()
 
-	const { MainMenu, QuickActions, ActionsMenu, PageMenu } = useTldrawUiComponents()
+	const { MainMenu, QuickActions, ActionsMenu, DocumentName } = useTldrawUiComponents()
 
-	const editor = useEditor()
-	const isSinglePageMode = useValue('isSinglePageMode', () => editor.options.maxPages <= 1, [
-		editor,
-	])
-
-	if (!MainMenu && !PageMenu && breakpoint < 6) return null
+	if (!MainMenu && !DocumentName && breakpoint < 6) return null
 
 	return (
 		<div className="tlui-menu-zone">
 			<div className="tlui-buttons__horizontal">
 				{MainMenu && <MainMenu />}
-				{PageMenu && !isSinglePageMode && <PageMenu />}
+				{DocumentName && <DocumentName />}
 				{breakpoint < 6 ? null : (
 					<>
 						{QuickActions && <QuickActions />}

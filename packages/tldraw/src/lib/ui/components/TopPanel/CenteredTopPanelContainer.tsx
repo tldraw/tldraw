@@ -27,7 +27,7 @@ export function CenteredTopPanelContainer({
 		const element = ref.current
 		if (!element) return
 
-		const layoutTop = element.parentElement!.parentElement!
+		const layoutTop = element.closest('.tlui-layout__top')! as HTMLElement
 		const leftPanel = layoutTop.querySelector('.tlui-layout__top__left')! as HTMLElement
 		const rightPanel = layoutTop.querySelector('.tlui-layout__top__right')! as HTMLElement
 
@@ -67,7 +67,7 @@ export function CenteredTopPanelContainer({
 		const element = ref.current
 		if (!element) return
 
-		const layoutTop = element.parentElement!.parentElement!
+		const layoutTop = element.closest('.tlui-layout__top')! as HTMLElement
 		const leftPanel = layoutTop.querySelector('.tlui-layout__top__left')! as HTMLElement
 		const rightPanel = layoutTop.querySelector('.tlui-layout__top__right')! as HTMLElement
 

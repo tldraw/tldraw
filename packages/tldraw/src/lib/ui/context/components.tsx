@@ -46,6 +46,7 @@ export interface TLUiComponents {
 	Minimap?: ComponentType | null
 	StylePanel?: ComponentType<TLUiStylePanelProps> | null
 	PageMenu?: ComponentType | null
+	DocumentName?: ComponentType | null
 	NavigationPanel?: ComponentType | null
 	Toolbar?: ComponentType | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
@@ -87,6 +88,7 @@ export function TldrawUiComponentsProvider({
 					Minimap: DefaultMinimap,
 					StylePanel: DefaultStylePanel,
 					PageMenu: DefaultPageMenu,
+					DocumentName: null,
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
@@ -97,7 +99,7 @@ export function TldrawUiComponentsProvider({
 					MenuPanel: DefaultMenuPanel,
 					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
 					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
-					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
+					TopPanel: DefaultTopPanel,
 					..._overrides,
 				}),
 				[_overrides, showCollaborationUi]
