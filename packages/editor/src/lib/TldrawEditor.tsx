@@ -186,11 +186,6 @@ export interface TldrawEditorBaseProps {
 	 * Predicate for whether or not to show a shape
 	 */
 	isShapeHidden?: TLEditorOptions['isShapeHidden']
-
-	/**
-	 * Predicate for whether or not to show a page
-	 */
-	isPageHidden?: TLEditorOptions['isPageHidden']
 }
 
 /**
@@ -372,7 +367,6 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
-	isPageHidden,
 	isShapeHidden,
 }: Required<
 	TldrawEditorProps & {
@@ -431,7 +425,6 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				isShapeHidden,
-				isPageHidden,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -455,7 +448,18 @@ function TldrawEditorWithReadyStore({
 			}
 		},
 		// if any of these change, we need to recreate the editor.
-		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor, licenseKey]
+		[
+			bindingUtils,
+			container,
+			options,
+			shapeUtils,
+			store,
+			tools,
+			user,
+			setEditor,
+			licenseKey,
+			isShapeHidden,
+		]
 	)
 
 	useLayoutEffect(() => {

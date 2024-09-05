@@ -802,7 +802,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isPageHidden, isShapeHidden, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
@@ -1111,8 +1111,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
-    // (undocumented)
-    isPageHidden(pageOrId: TLPage): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
@@ -2651,7 +2649,6 @@ export interface TldrawEditorBaseProps {
     deepLinks?: TLDeepLinkOptions | true;
     inferDarkMode?: boolean;
     initialState?: string;
-    isPageHidden?: TLEditorOptions['isPageHidden'];
     isShapeHidden?: TLEditorOptions['isShapeHidden'];
     licenseKey?: string;
     onMount?: TLOnMountHandler;
@@ -2821,8 +2818,6 @@ export interface TLEditorOptions {
     getContainer(): HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
-    // (undocumented)
-    isPageHidden?(shape: TLPage, editor: Editor): boolean;
     // (undocumented)
     isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
