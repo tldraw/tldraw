@@ -115,7 +115,11 @@ export class LicenseManager {
 						// try and load the remote watermark, if it fails, fallback to the local one
 						(async () => {
 							try {
-								const response = await fetch(WATERMARK_REMOTE_SRC)
+								const response = await fetch(WATERMARK_REMOTE_SRC, {
+									headers: {
+										'Cache-Control': 'no-cache, no-store',
+									},
+								})
 								if (!response.ok) return WATERMARK_LOCAL_SRC // or throw error?
 								const blob = await response.blob()
 								return URL.createObjectURL(blob)
