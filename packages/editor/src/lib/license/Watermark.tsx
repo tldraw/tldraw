@@ -9,17 +9,7 @@ import { useLicenseContext } from './LicenseProvider'
 
 /** @internal */
 export const Watermark = memo(function Watermark() {
-	const editor = useEditor()
-
 	const licenseManager = useLicenseContext()
-	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
-	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
-	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 760, [
-		editor,
-	])
-
-	const events = useCanvasEvents()
-
 	const [srcs, setSrcs] = useState<string[] | null>(null)
 
 	useQuickReactor(
@@ -38,29 +28,43 @@ export const Watermark = memo(function Watermark() {
 
 	if (!srcs) return null
 
-	const maskCss = `url('${srcs[isMobile ? 1 : 0]}') center 100% / 100% no-repeat`
-
 	return (
 		<>
 			<LicenseStyles />
-			<div
-				className={LicenseManager.className}
-				data-debug={isDebugMode}
-				data-menu={isMenuOpen}
-				data-mobile={isMobile}
-				draggable={false}
-				{...events}
-			>
-				<a
-					href="https://tldraw.dev"
-					target="_blank"
-					rel="noreferrer"
-					draggable={false}
-					onPointerDown={stopEventPropagation}
-					style={{ mask: maskCss, WebkitMask: maskCss }}
-				/>
-			</div>
+			<WatermarkInner srcs={srcs} />
 		</>
+	)
+})
+
+const WatermarkInner = memo(function WatermarkInner({ srcs }: { srcs: string[] }) {
+	const editor = useEditor()
+	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
+	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
+	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 760, [
+		editor,
+	])
+	const events = useCanvasEvents()
+
+	const maskCss = `url('${srcs[isMobile ? 1 : 0]}') center 100% / 100% no-repeat`
+
+	return (
+		<div
+			className={LicenseManager.className}
+			data-debug={isDebugMode}
+			data-menu={isMenuOpen}
+			data-mobile={isMobile}
+			draggable={false}
+			{...events}
+		>
+			<a
+				href="https://tldraw.dev"
+				target="_blank"
+				rel="noreferrer"
+				draggable={false}
+				onPointerDown={stopEventPropagation}
+				style={{ mask: maskCss, WebkitMask: maskCss }}
+			/>
+		</div>
 	)
 })
 
