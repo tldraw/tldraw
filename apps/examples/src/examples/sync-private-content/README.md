@@ -1,5 +1,5 @@
 ---
-title: Private multiplayer content
+title: ... with private content
 component: ./SyncPrivateContentExample.tsx
 category: collaboration
 priority: 4
@@ -9,4 +9,5 @@ multiplayer: true
 
 ---
 
-fixme
+Showing a simple example of how to show and hide private content in a multiplayer session based on a simple
+data ownership model.
