@@ -1653,9 +1653,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setSelectedShapes(shapes: TLShapeId[] | TLShape[]): this {
 		return this.run(
 			() => {
-				const ids = shapes
-					.map((shape) => (typeof shape === 'string' ? shape : shape.id))
-					.filter((id) => !this.isShapeHidden(id))
+				const ids = shapes.map((shape) => (typeof shape === 'string' ? shape : shape.id))
 				const { selectedShapeIds: prevSelectedShapeIds } = this.getCurrentPageState()
 				const prevSet = new Set(prevSelectedShapeIds)
 
