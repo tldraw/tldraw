@@ -433,15 +433,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
-				if (this._isShapeHidden) {
-					for (const pageState of this.getPageStates()) {
-						const filtered = pageState.selectedShapeIds.filter((id) => !this.isShapeHidden(id))
-						if (filtered.length !== pageState.selectedShapeIds.length) {
-							this.store.put([{ ...pageState, selectedShapeIds: filtered }])
-						}
-					}
-				}
-
 				this.emit('update')
 			})
 		)

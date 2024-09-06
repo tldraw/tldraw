@@ -1,5 +1,5 @@
 import { useSyncDemo } from '@tldraw/sync'
-import { TLComponents, Tldraw, atom, track, useEditor } from 'tldraw'
+import { TLComponents, Tldraw, atom, react, track, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const isPrivateDrawingMode = atom('isPrivateDrawingMode', false)
@@ -84,6 +84,14 @@ export default function SyncDemoExample({ roomId }: { roomId: string }) {
 								private: isPrivateDrawingMode.get(),
 								ownerId: editor.user.getId(),
 							},
+						}
+					})
+
+					return react('clean up selection', () => {
+						const selectedShapes = editor.getSelectedShapes()
+						const filteredSelectedShapes = selectedShapes.filter((s) => !editor.isShapeHidden(s))
+						if (filteredSelectedShapes.length !== selectedShapes.length) {
+							editor.select(...filteredSelectedShapes)
 						}
 					})
 				}}
