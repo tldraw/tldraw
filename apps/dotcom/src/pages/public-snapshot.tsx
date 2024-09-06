@@ -1,5 +1,6 @@
 import { SerializedSchema, TLRecord, fetch } from 'tldraw'
 import '../../styles/globals.css'
+import { CanonicalUrl } from '../components/Head/CanonicalUrl'
 import { IFrameProtector, ROOM_CONTEXT } from '../components/IFrameProtector'
 import { SnapshotsEditor } from '../components/SnapshotsEditor'
 import { defineLoader } from '../utils/defineLoader'
@@ -25,6 +26,7 @@ export function Component() {
 	const { roomId, records, schema } = result
 	return (
 		<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
+			<CanonicalUrl />
 			<SnapshotsEditor records={records} schema={schema} />
 		</IFrameProtector>
 	)
