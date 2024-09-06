@@ -169,7 +169,7 @@ export class TestEditor extends Editor {
 		return this.getShape<T>(lastShape)!
 	}
 
-	elm: HTMLDivElement
+	elm: HTMLElement
 	readonly bounds: {
 		x: number
 		y: number

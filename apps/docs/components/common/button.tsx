@@ -20,6 +20,7 @@ export const Button: React.FC<{
 	size?: 'xs' | 'sm' | 'base' | 'lg'
 	type?: 'primary' | 'secondary' | 'tertiary' | 'black'
 	darkRingOffset?: boolean
+	loading?: boolean
 }> = ({
 	href,
 	newTab,
@@ -32,6 +33,7 @@ export const Button: React.FC<{
 	size = 'base',
 	type = 'primary',
 	darkRingOffset,
+	loading,
 }) => {
 	const { pending } = useFormStatus()
 	const iconSizes = { xs: 'h-3', sm: 'h-3.5', base: 'h-4', lg: 'h-5' }
@@ -72,6 +74,18 @@ export const Button: React.FC<{
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
 				<span>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
+				{loading && (
+					<div
+						className={cn(
+							'absolute inset-0 flex items-center justify-center',
+							type === 'primary' && 'bg-blue-500',
+							type === 'black' && 'bg-black',
+							type === 'secondary' && 'bg-zinc-100'
+						)}
+					>
+						<Loader className="w-5" />
+					</div>
+				)}
 			</button>
 		)
 	if (submit)
@@ -81,7 +95,7 @@ export const Button: React.FC<{
 				{icon && <Icon icon={icon} className={cn(iconSizes[size])} />}
 				<span>{caption}</span>
 				{arrow === 'right' && <ArrowLongRightIcon className={cn(iconSizes[size])} />}
-				{pending && (
+				{(pending || loading) && (
 					<div
 						className={cn(
 							'absolute inset-0 flex items-center justify-center',

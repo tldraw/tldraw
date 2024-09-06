@@ -85,8 +85,6 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import { flushSync } from 'react-dom'
-import { createRoot } from 'react-dom/client'
 import {
 	TLEditorSnapshot,
 	TLLoadSnapshotOptions,
@@ -106,6 +104,7 @@ import {
 	STYLUS_ERASER_BUTTON,
 	ZOOM_TO_FIT_PADDING,
 } from '../constants'
+import { exportToSvg } from '../exports/exportToSvg'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
@@ -132,7 +131,6 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { getSvgJsx } from './getSvgJsx'
 import { ClickManager } from './managers/ClickManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
@@ -161,7 +159,7 @@ import {
 	RequiredKeys,
 	TLCameraMoveOptions,
 	TLCameraOptions,
-	TLSvgOptions,
+	TLImageExportOptions,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -235,6 +233,16 @@ export interface TLEditorRunOptions extends TLHistoryBatchOptions {
 }
 
 /** @public */
+export interface TLRenderingShape {
+	id: TLShapeId
+	shape: TLShape
+	util: ShapeUtil
+	index: number
+	backgroundIndex: number
+	opacity: number
+}
+
+/** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	constructor({
 		store,
@@ -271,7 +279,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
-		this.getContainer = getContainer ?? (() => document.body)
+		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
 		this._tickManager = new TickManager(this)
@@ -3577,7 +3585,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// is based on other state, and for computing order for SVG export,
 		// which should work even when things are for example off-screen.
 		useEditorState: boolean
-	) {
+	): TLRenderingShape[] {
 		// Here we get the shape as well as any of its children, as well as their
 		// opacities. If the shape is being erased, and none of its ancestors are
 		// being erased, then we reduce the opacity of the shape and all of its
@@ -3588,14 +3596,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// allows the DOM nodes to be reused even when they become children
 		// of other nodes.
 
-		const renderingShapes: {
-			id: TLShapeId
-			shape: TLShape
-			util: ShapeUtil
-			index: number
-			backgroundIndex: number
-			opacity: number
-		}[] = []
+		const renderingShapes: TLRenderingShape[] = []
 
 		let nextIndex = this.options.maxShapesPerPage * 2
 		let nextBackgroundIndex = this.options.maxShapesPerPage
@@ -8508,21 +8509,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
-		const result = await getSvgJsx(this, shapes, opts)
-		if (!result) return undefined
+	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
+		const ids =
+			typeof shapes[0] === 'string'
+				? (shapes as TLShapeId[])
+				: (shapes as TLShape[]).map((s) => s.id)
 
-		const fragment = document.createDocumentFragment()
-		const root = createRoot(fragment)
-		flushSync(() => {
-			root.render(result.jsx)
-		})
+		if (ids.length === 0) return undefined
 
-		const svg = fragment.firstElementChild
-		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
-
-		root.unmount()
-		return { svg, width: result.width, height: result.height }
+		return exportToSvg(this, ids, opts)
 	}
 
 	/**
@@ -8535,7 +8530,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvgString(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
+	async getSvgString(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
 		const result = await this.getSvgElement(shapes, opts)
 		if (!result) return undefined
 
@@ -8548,7 +8543,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
-	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLSvgOptions = {}) {
+	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
 		const result = await this.getSvgElement(shapes, opts)
 		if (!result) return undefined
 		return result.svg

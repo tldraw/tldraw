@@ -146,6 +146,7 @@ export {
 	Editor,
 	type TLEditorOptions,
 	type TLEditorRunOptions,
+	type TLRenderingShape,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
 export {
@@ -194,6 +195,7 @@ export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/res
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export {
+	useDelaySvgExport,
 	useSvgExportContext,
 	type SvgExportContext,
 	type SvgExportDef,
@@ -251,6 +253,8 @@ export {
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
+	type TLImageExportOptions,
+	// eslint-disable-next-line deprecation/deprecation
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
