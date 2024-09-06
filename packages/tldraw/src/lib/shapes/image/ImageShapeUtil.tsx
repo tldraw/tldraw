@@ -160,6 +160,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				x: flipCropHorizontally ? 1 - topLeft.x : bottomRight.x,
 				y: flipCropVertically ? 1 - topLeft.y : bottomRight.y,
 			},
+			isCircle: shape.props.crop.isCircle,
 		}
 		return resized
 	}
