@@ -75,6 +75,11 @@ export type TestEnvironment = 'development' | 'production'
 
 /** @internal */
 export class LicenseManager {
+	private watermarkUrlPromise = Promise.resolve([
+		WATERMARK_DESKTOP_LOCAL_SRC,
+		WATERMARK_MOBILE_LOCAL_SRC,
+	])
+
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ'
 	public isDevelopment: boolean
@@ -85,8 +90,6 @@ export class LicenseManager {
 		'pending'
 	)
 	public verbose = false // todo: turn this back to true
-	private watermarkUrlPromise: Promise<string[]>
-	private didRequestWatermark = false
 
 	constructor(
 		licenseKey: string | undefined,
@@ -97,11 +100,6 @@ export class LicenseManager {
 		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
-		this.watermarkUrlPromise = Promise.resolve([
-			WATERMARK_DESKTOP_LOCAL_SRC,
-			WATERMARK_MOBILE_LOCAL_SRC,
-		])
-
 		if (!featureFlags.enableLicensing.get()) {
 			// If we're not using licensing, treat it as licensed
 			this.state.set('licensed')
