@@ -477,18 +477,17 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												/>
 											</div>
 										)}
-										{pageThumbnails[page.id] && (
-											<div
-												style={{
-													height: '72px',
-													backgroundPosition: 'center center',
-													backgroundSize: 'contain',
-													backgroundRepeat: 'no-repeat',
-													backgroundImage: `url(${pageThumbnails[page.id]})`,
-													flex: '1 0 120px',
-												}}
-											/>
-										)}
+										<div
+											style={{
+												height: '72px',
+												backgroundPosition: 'center center',
+												backgroundSize: 'contain',
+												backgroundRepeat: 'no-repeat',
+												backgroundImage:
+													pageThumbnails[page.id] && `url(${pageThumbnails[page.id]})`,
+												flex: '1 0 120px',
+											}}
+										/>
 									</div>
 								)
 							})}
