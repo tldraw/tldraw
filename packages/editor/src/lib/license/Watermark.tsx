@@ -1,69 +1,115 @@
-import { useValue } from '@tldraw/state-react'
-import React, { useEffect, useState } from 'react'
+import { useQuickReactor, useValue } from '@tldraw/state-react'
+import React, { useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { featureFlags } from '../utils/debug-flags'
 import { stopEventPropagation } from '../utils/dom'
-import { LicenseManager, WATERMARK_LOCAL_SRC } from './LicenseManager'
+import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
 
 /** @internal */
-export const Watermark = React.memo(function Watermark({
-	forceLocal = false,
-}: {
-	forceLocal?: boolean
-}) {
+export const Watermark = React.memo(function Watermark() {
 	const events = useCanvasEvents()
 
 	const editor = useEditor()
 	const licenseManager = useLicenseContext()
 
-	const showWatermark = useValue(
-		'show watermark',
-		() =>
-			featureFlags.enableLicensing.get() &&
-			editor.getViewportScreenBounds().width > 760 &&
-			['licensed-with-watermark', 'unlicensed'].includes(licenseManager.state.get()),
-		[editor, licenseManager]
-	)
-
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
+	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 760, [
+		editor,
+	])
 
 	const [src, setSrc] = useState<string | null>(null)
-	useEffect(() => {
-		if (!showWatermark) return
 
-		let isCancelled = false
+	useQuickReactor(
+		'set watermark src',
+		async () => {
+			const showWatermark =
+				featureFlags.enableLicensing.get() &&
+				['licensed-with-watermark', 'unlicensed'].includes(licenseManager.state.get())
 
-		;(async () => {
-			const src = forceLocal ? WATERMARK_LOCAL_SRC : await licenseManager.getWatermarkUrl()
-			if (isCancelled) return
-			setSrc(src)
-		})()
+			let src: string | null = null
+			if (showWatermark) src = await licenseManager.getWatermarkUrl()
+			setSrc((prev) => (prev === src ? prev : src))
+		},
+		[licenseManager]
+	)
 
-		return () => {
-			isCancelled = true
-		}
-	}, [showWatermark, licenseManager, forceLocal])
-
-	if (!showWatermark || !src) return null
+	if (!src) return null
 
 	const className = LicenseManager.className
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
 
+	if (isMobile) {
+		return (
+			<>
+				<style>{`${LICENSE_NOTE}
+
+.${className} {
+	position: absolute;
+	bottom: 25%;
+	right: -5px;
+	z-index: 2147483647 !important;
+	transform-origin: top right;
+	transform: rotateZ(90deg);
+	pointer-events: ${isMenuOpen ? 'none' : 'all'};
+	background-color: color-mix(in srgb, var(--color-background) 50%, transparent);
+	padding: 0px 2px;
+	border-bottom-left-radius: 6px;
+	border-bottom-right-radius: 6px;
+}
+
+.${className} > a {
+	font-size: 8px;
+	font-weight: 600;
+	pointer-events: none;
+	padding: 1px 3px;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+	cursor: inherit;
+	color: var(--color-text);
+	border: 1px solid var(--color-text);	
+	opacity: .28;
+	line-height: 1;
+}
+
+@media (hover: hover) {
+	.${className}:hover {
+		color: currentColor;
+		transition: color 0.2s ease-in-out;
+		transition-delay: 0.32s;
+	}
+	.${className}:hover > a {
+		animation: delayed_link 0.2s forwards ease-in-out;
+		animation-delay: 0.32s;
+	}
+}
+
+@keyframes delayed_link {
+	0% {
+		cursor: inherit;
+		opacity: .38;
+		pointer-events: none;
+	}
+	100% {
+		cursor: pointer;
+		opacity: 1;
+		pointer-events: all;
+	}
+}
+`}</style>
+				<div className={className}>
+					<a href="https://tldraw.dev/">made with tldraw</a>
+				</div>
+			</>
+		)
+	}
+
 	return (
 		<>
 			<style>
-				{`
-/* ------------------- SEE LICENSE -------------------
-The tldraw watermark is part of tldraw's license. It is shown for unlicensed
-or "licensed-with-watermark" users. By using this library, you agree to
-keep the watermark's behavior, keeping it visible, unobscured, and
-available to user-interaction.
-
-To remove the watermark, please purchase a license at tldraw.dev.
-*/
+				{`${LICENSE_NOTE}
 
 .${className} {
 	position: absolute;
@@ -133,3 +179,12 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		</>
 	)
 })
+
+const LICENSE_NOTE = `/* ------------------- SEE LICENSE -------------------
+The tldraw watermark is part of tldraw's license. It is shown for unlicensed
+or "licensed-with-watermark" users. By using this library, you agree to
+keep the watermark's behavior, keeping it visible, unobscured, and
+available to user-interaction.
+
+To remove the watermark, please purchase a license at tldraw.dev.
+*/`
