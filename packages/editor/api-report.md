@@ -2965,6 +2965,7 @@ export type TLExternalContent<EmbedDefinition> = {
 } | {
     files: File[];
     ignoreParent: boolean;
+    shapeIdToReplace?: TLShapeId;
     type: 'files';
 } | {
     text: string;

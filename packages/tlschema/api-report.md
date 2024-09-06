@@ -1046,6 +1046,8 @@ export interface TLImageShapeCrop {
     // (undocumented)
     bottomRight: VecModel;
     // (undocumented)
+    isCircle?: boolean;
+    // (undocumented)
     topLeft: VecModel;
 }
 
@@ -1083,6 +1085,8 @@ export interface TLImageShapeProps {
     verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     w: number;
+    // (undocumented)
+    zoom: number;
 }
 
 // @public

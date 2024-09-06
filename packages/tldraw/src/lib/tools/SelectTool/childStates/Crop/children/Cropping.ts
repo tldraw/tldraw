@@ -12,6 +12,7 @@ import {
 import { kickoutOccludedShapes } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 import { MIN_CROP_SIZE } from '../crop-constants'
+import { getOriginalUncroppedSize } from './crop_helpers'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
 
@@ -92,11 +93,11 @@ export class Cropping extends StateNode {
 		const newPoint = new Vec(shape.x, shape.y)
 		const pointDelta = new Vec(0, 0)
 
-		// original (uncropped) width and height of shape
-		const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * props.w
-		const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * props.h
+		const { w, h } = getOriginalUncroppedSize(crop, shape)
 
 		let hasCropChanged = false
+		const topLeftLimit = -0.5 * (shape.props.zoom - 1)
+		const bottomRightLimit = 0.5 * (shape.props.zoom + 1)
 
 		// Set y dimension
 		switch (this.info.handle) {
@@ -113,8 +114,8 @@ export class Cropping extends StateNode {
 					newCrop.topLeft.y = newCrop.bottomRight.y - MIN_CROP_SIZE / h
 					pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 				} else {
-					if (newCrop.topLeft.y <= 0) {
-						newCrop.topLeft.y = 0
+					if (newCrop.topLeft.y <= topLeftLimit) {
+						newCrop.topLeft.y = topLeftLimit
 						pointDelta.y = (newCrop.topLeft.y - crop.topLeft.y) * h
 					} else {
 						pointDelta.y = change.y
@@ -128,7 +129,7 @@ export class Cropping extends StateNode {
 				if (h < MIN_CROP_SIZE) break
 				hasCropChanged = true
 				// bottom
-				newCrop.bottomRight.y = Math.min(1, newCrop.bottomRight.y + change.y / h)
+				newCrop.bottomRight.y = Math.min(bottomRightLimit, newCrop.bottomRight.y + change.y / h)
 				const heightAfterCrop = h * (newCrop.bottomRight.y - newCrop.topLeft.y)
 
 				if (heightAfterCrop < MIN_CROP_SIZE) {
@@ -153,8 +154,8 @@ export class Cropping extends StateNode {
 					newCrop.topLeft.x = newCrop.bottomRight.x - MIN_CROP_SIZE / w
 					pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
 				} else {
-					if (newCrop.topLeft.x <= 0) {
-						newCrop.topLeft.x = 0
+					if (newCrop.topLeft.x <= topLeftLimit) {
+						newCrop.topLeft.x = topLeftLimit
 						pointDelta.x = (newCrop.topLeft.x - crop.topLeft.x) * w
 					} else {
 						pointDelta.x = change.x
@@ -168,7 +169,7 @@ export class Cropping extends StateNode {
 				if (w < MIN_CROP_SIZE) break
 				hasCropChanged = true
 				// right
-				newCrop.bottomRight.x = Math.min(1, newCrop.bottomRight.x + change.x / w)
+				newCrop.bottomRight.x = Math.min(bottomRightLimit, newCrop.bottomRight.x + change.x / w)
 				const widthAfterCrop = w * (newCrop.bottomRight.x - newCrop.topLeft.x)
 
 				if (widthAfterCrop < MIN_CROP_SIZE) {

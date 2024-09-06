@@ -6,6 +6,7 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
 /** @public */
 export interface TLUiSliderProps {
+	min?: number
 	steps: number
 	value: number | null
 	label: string
@@ -16,7 +17,7 @@ export interface TLUiSliderProps {
 
 /** @public @react */
 export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
-	const { title, steps, value, label, onValueChange } = props
+	const { title, min, steps, value, label, onValueChange } = props
 	const editor = useEditor()
 	const msg = useTranslation()
 
@@ -43,7 +44,7 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 				className="tlui-slider"
 				area-label="Opacity"
 				dir="ltr"
-				min={0}
+				min={min ?? 0}
 				max={steps}
 				step={1}
 				value={value ? [value] : undefined}

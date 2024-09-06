@@ -59,6 +59,7 @@
 		"classnames": "^2.3.2",
 		"hotkeys-js": "^3.11.2",
 		"idb": "^7.1.1",
+		"lodash.isequal": "^4.5.0",
 		"lz-string": "^1.4.4"
 	},
 	"peerDependencies": {

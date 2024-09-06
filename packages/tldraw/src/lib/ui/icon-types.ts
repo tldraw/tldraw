@@ -33,6 +33,7 @@ export type TLUiIconType =
 	| 'clipboard-copied'
 	| 'clipboard-copy'
 	| 'color'
+	| 'corners'
 	| 'cross-2'
 	| 'cross-circle'
 	| 'dash-dashed'
@@ -83,9 +84,11 @@ export type TLUiIconType =
 	| 'geo-x-box'
 	| 'github'
 	| 'group'
+	| 'height'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
 	| 'horizontal-align-start'
+	| 'image'
 	| 'info-circle'
 	| 'leading'
 	| 'link'
@@ -142,6 +145,7 @@ export type TLUiIconType =
 	| 'vertical-align-middle'
 	| 'vertical-align-start'
 	| 'warning-triangle'
+	| 'width'
 	| 'zoom-in'
 	| 'zoom-out'
 
@@ -177,6 +181,7 @@ export const iconTypes = [
 	'clipboard-copied',
 	'clipboard-copy',
 	'color',
+	'corners',
 	'cross-2',
 	'cross-circle',
 	'dash-dashed',
@@ -227,9 +232,11 @@ export const iconTypes = [
 	'geo-x-box',
 	'github',
 	'group',
+	'height',
 	'horizontal-align-end',
 	'horizontal-align-middle',
 	'horizontal-align-start',
+	'image',
 	'info-circle',
 	'leading',
 	'link',
@@ -286,6 +293,7 @@ export const iconTypes = [
 	'vertical-align-middle',
 	'vertical-align-start',
 	'warning-triangle',
+	'width',
 	'zoom-in',
 	'zoom-out',
 ] as const

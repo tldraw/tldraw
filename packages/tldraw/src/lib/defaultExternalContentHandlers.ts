@@ -223,7 +223,7 @@ export function registerDefaultExternalContentHandlers(
 	)
 
 	// files
-	editor.registerExternalContentHandler('files', async ({ point, files }) => {
+	editor.registerExternalContentHandler('files', async ({ point, files, shapeIdToReplace }) => {
 		if (files.length > editor.options.maxFilesAtOnce) {
 			throw Error('Too many files')
 		}
@@ -317,7 +317,28 @@ export function registerDefaultExternalContentHandlers(
 			})
 		)
 
-		createShapesForAssets(editor, assets, pagePoint)
+		if (shapeIdToReplace) {
+			editor.run(() => {
+				assert(assets.length === 1, `Should only be one file when replacing.`)
+				const asset = assets[0]
+				if (!editor.getAsset(asset.id)) {
+					editor.createAssets([asset])
+				}
+
+				editor.updateShape({
+					id: shapeIdToReplace,
+					props: {
+						assetId: asset.id,
+						crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 } },
+						zoom: 1,
+						w: (asset as TLImageAsset).props.w,
+						h: (asset as TLImageAsset).props.h,
+					},
+				} as TLShapePartial)
+			})
+		} else {
+			createShapesForAssets(editor, assets, pagePoint)
+		}
 	})
 
 	// text

@@ -17,6 +17,7 @@ import {
 } from '@tldraw/editor'
 import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
+import { TldrawInFrontOfTheCanvas } from './canvas/TldrawInFrontOfTheCanvas'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
@@ -99,6 +100,7 @@ export function Tldraw(props: TldrawProps) {
 			SelectionForeground: TldrawSelectionForeground,
 			SelectionBackground: TldrawSelectionBackground,
 			Handles: TldrawHandles,
+			InFrontOfTheCanvas: TldrawInFrontOfTheCanvas,
 			..._components,
 		}),
 		[_components]
