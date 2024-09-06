@@ -48,30 +48,36 @@ export const Watermark = React.memo(function Watermark() {
 
 .${className} {
 	position: absolute;
-	bottom: 25%;
-	right: -5px;
+	bottom: 8px;
+	right: 0px;
+	width: 12px;
+	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	z-index: 2147483647 !important;
-	transform-origin: top right;
-	transform: rotateZ(90deg);
 	pointer-events: ${isMenuOpen ? 'none' : 'all'};
 	background-color: color-mix(in srgb, var(--color-background) 50%, transparent);
-	padding: 0px 2px;
-	border-bottom-left-radius: 6px;
-	border-bottom-right-radius: 6px;
+	border-radius: 4px;
+}
+
+.${className}[data-debug='true'] {
+	bottom: 46px;
 }
 
 .${className} > a {
+	position: relative;
+	display: block;
+	transform: rotateZ(90deg);
 	font-size: 8px;
 	font-weight: 600;
 	pointer-events: none;
-	padding: 1px 3px;
-	border-bottom-left-radius: 5px;
-	border-bottom-right-radius: 5px;
+	padding: 2px;
 	cursor: inherit;
 	color: var(--color-text);
-	border: 1px solid var(--color-text);	
 	opacity: .28;
 	line-height: 1;
+	text-decoration: none;
 }
 
 @media (hover: hover) {
@@ -99,8 +105,8 @@ export const Watermark = React.memo(function Watermark() {
 	}
 }
 `}</style>
-				<div className={className}>
-					<a href="https://tldraw.dev/">made with tldraw</a>
+				<div className={className} data-debug={isDebugMode} draggable={false} {...events}>
+					<a href="https://tldraw.dev/">tldraw</a>
 				</div>
 			</>
 		)
