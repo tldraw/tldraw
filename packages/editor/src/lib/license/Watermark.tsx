@@ -118,6 +118,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	}
 	
 	.${className}[data-mobile='true'] {
+		border-radius: 4px 0px 0px 4px;
 		right: 0px;
 		width: 8px;
 		height: 48px;
