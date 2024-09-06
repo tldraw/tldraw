@@ -15,7 +15,7 @@ const commonSecurityHeaders = {
 	'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
 	'X-Content-Type-Options': 'nosniff',
 	'Referrer-Policy': 'no-referrer-when-downgrade',
-	'Content-Security-Policy-Report-Only': csp,
+	'Content-Security-Policy': csp,
 }
 
 // We load the list of routes that should be forwarded to our SPA's index.html here.
