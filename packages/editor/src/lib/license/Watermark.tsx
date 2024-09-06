@@ -40,7 +40,7 @@ const WatermarkInner = memo(function WatermarkInner({ srcs }: { srcs: string[] }
 	const editor = useEditor()
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
-	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 760, [
+	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
 		editor,
 	])
 	const events = useCanvasEvents()
