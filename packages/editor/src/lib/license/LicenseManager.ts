@@ -4,11 +4,14 @@ import { publishDates } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { featureFlags } from '../utils/debug-flags'
 import { importPublicKey, str2ab } from '../utils/licensing'
-import { watermarkDesktopSvg } from '../watermarks'
+import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 
 /** @internal */
-export const WATERMARK_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-desktop.svg`
-export const WATERMARK_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
+const WATERMARK_DESKTOP_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-desktop.svg`
+const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
+
+const WATERMARK_MOBILE_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-mobile.svg`
+const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkMobileSvg)}`
 
 const GRACE_PERIOD_DAYS = 5
 
@@ -82,7 +85,7 @@ export class LicenseManager {
 		'pending'
 	)
 	public verbose = false // todo: turn this back to true
-	private watermarkUrlPromise: Promise<string>
+	private watermarkUrlPromise: Promise<string[]>
 	private didRequestWatermark = false
 
 	constructor(
@@ -94,7 +97,10 @@ export class LicenseManager {
 		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
-		this.watermarkUrlPromise = Promise.resolve('')
+		this.watermarkUrlPromise = Promise.resolve([
+			WATERMARK_DESKTOP_LOCAL_SRC,
+			WATERMARK_MOBILE_LOCAL_SRC,
+		])
 
 		if (!featureFlags.enableLicensing.get()) {
 			// If we're not using licensing, treat it as licensed
@@ -103,33 +109,60 @@ export class LicenseManager {
 			this.getLicenseFromKey(licenseKey).then(async (result) => {
 				const isUnlicensed = isEditorUnlicensed(result)
 
-				if (!isUnlicensed && !(result as ValidLicenseKeyResult).isLicensedWithWatermark) {
-					this.watermarkUrlPromise = Promise.resolve('')
+				if (this.isDevelopment) {
+					// Use local watermark in development mode
 				} else {
-					// Before we even update our state, we should request the remote watermark.
-					// This guarantees that the component doesn't need to actually load in order
-					// to trigger the request. By the time the watermark component is mounted, the
-					// request should be on its way.
+					// In production...
 
-					this.watermarkUrlPromise = Promise.race([
-						// try and load the remote watermark, if it fails, fallback to the local one
-						(async () => {
-							try {
-								const response = await fetch(WATERMARK_REMOTE_SRC)
-								if (!response.ok) return WATERMARK_LOCAL_SRC // or throw error?
-								const blob = await response.blob()
-								return URL.createObjectURL(blob)
-							} catch {
-								return WATERMARK_LOCAL_SRC
-							}
-						})(),
+					if (!isUnlicensed && !(result as ValidLicenseKeyResult).isLicensedWithWatermark) {
+						// noop, we don't need to request the watermark
+					} else {
+						// Before we even update our state, we should request the remote watermark.
+						// This guarantees that the component doesn't need to actually load in order
+						// to trigger the request. By the time the watermark component is mounted, the
+						// request should be on its way.
 
-						// but if that's taking a long time (>3s) just show the local one anyway
-						new Promise<string>((resolve) => {
-							// eslint-disable-next-line no-restricted-globals
-							setTimeout(() => resolve(WATERMARK_LOCAL_SRC), 3000)
-						}),
-					])
+						this.watermarkUrlPromise = Promise.race([
+							// try and load the remote watermark, if it fails, fallback to the local one
+							(async (): Promise<string[]> => {
+								const urls = [WATERMARK_DESKTOP_LOCAL_SRC, WATERMARK_MOBILE_LOCAL_SRC]
+								try {
+									{
+										const response = await fetch(WATERMARK_DESKTOP_REMOTE_SRC)
+										if (response.ok) {
+											const blob = await response.blob()
+											urls[0] = URL.createObjectURL(blob)
+										}
+									}
+
+									{
+										const response = await fetch(WATERMARK_MOBILE_REMOTE_SRC)
+										if (response.ok) {
+											const blob = await response.blob()
+											urls[1] = URL.createObjectURL(blob)
+										}
+									}
+								} catch {
+									// noop, urls are already local
+									if (this.verbose) {
+										// eslint-disable-next-line no-console
+										console.log('Could not request remote watermark, using local one.')
+									}
+								}
+
+								return urls
+							})(),
+
+							// but if that's taking a long time (>3s) just show the local one anyway
+							new Promise<string[]>((resolve) => {
+								// eslint-disable-next-line no-restricted-globals
+								setTimeout(
+									() => resolve([WATERMARK_DESKTOP_LOCAL_SRC, WATERMARK_MOBILE_LOCAL_SRC]),
+									3000
+								)
+							}),
+						])
+					}
 				}
 
 				if (isUnlicensed) {
@@ -143,7 +176,7 @@ export class LicenseManager {
 		}
 	}
 
-	async getWatermarkUrl(): Promise<string> {
+	async getWatermarkUrl(): Promise<string[]> {
 		return this.watermarkUrlPromise
 	}
 
