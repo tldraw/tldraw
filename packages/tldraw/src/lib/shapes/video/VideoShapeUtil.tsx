@@ -15,6 +15,7 @@ import classNames from 'classnames'
 import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { FULL_CONTROLS_WIDTH, MediaControls } from '../shared/MediaControls'
 import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
@@ -44,7 +45,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 	component(shape: TLVideoShape) {
 		const { editor } = this
-		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
 		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
@@ -91,6 +91,9 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 			}
 		}, [rVideo, prefersReducedMotion])
 
+		const zoom = editor.getZoomLevel()
+		const widthScaled = (shape.props.w * zoom) / FULL_CONTROLS_WIDTH
+
 		return (
 			<>
 				<HTMLContainer
@@ -109,33 +112,38 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 								<Spinner />
 							) : url ? (
 								<>
-									<video
-										ref={rVideo}
-										style={
-											isEditing
-												? { pointerEvents: 'all' }
-												: !isLoaded
-													? { display: 'none' }
-													: undefined
-										}
-										className={classNames('tl-video', `tl-video-shape-${shape.id.split(':')[1]}`, {
-											'tl-video-is-fullscreen': isFullscreen,
-										})}
-										width="100%"
-										height="100%"
-										draggable={false}
-										playsInline
-										autoPlay
-										muted
-										loop
-										disableRemotePlayback
-										disablePictureInPicture
-										controls={isEditing && showControls}
-										onLoadedData={handleLoadedData}
-										hidden={!isLoaded}
-									>
-										<source src={url} />
-									</video>
+									<MediaControls isMutedInitially shape={shape} widthScaled={widthScaled}>
+										<video
+											ref={rVideo}
+											style={
+												isEditing
+													? { pointerEvents: 'all' }
+													: !isLoaded
+														? { display: 'none' }
+														: undefined
+											}
+											className={classNames(
+												'tl-video',
+												`tl-video-shape-${shape.id.split(':')[1]}`,
+												{
+													'tl-video-is-fullscreen': isFullscreen,
+												}
+											)}
+											width="100%"
+											height="100%"
+											draggable={false}
+											playsInline
+											autoPlay
+											muted
+											loop
+											disableRemotePlayback
+											disablePictureInPicture
+											onLoadedData={handleLoadedData}
+											hidden={!isLoaded}
+										>
+											<source src={url} />
+										</video>
+									</MediaControls>
 									{!isLoaded && Spinner && <Spinner />}
 								</>
 							) : null}

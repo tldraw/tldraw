@@ -22,8 +22,9 @@ import {
 	getHashForString,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
-import { AUDIO_HEIGHT, AUDIO_WIDTH } from './shapes/audio/AudioShapeUtil'
+import { AUDIO_HEIGHT } from './shapes/audio/AudioShapeUtil'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
+import { FULL_CONTROLS_WIDTH } from './shapes/shared/MediaControls'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
@@ -517,7 +518,7 @@ export async function getMediaAssetInfoPartial(
 	}
 
 	const size = isAudioType
-		? { w: AUDIO_WIDTH, h: AUDIO_HEIGHT }
+		? { w: FULL_CONTROLS_WIDTH, h: AUDIO_HEIGHT }
 		: isImageType
 			? await MediaHelpers.getImageSize(file)
 			: await MediaHelpers.getVideoSize(file)
