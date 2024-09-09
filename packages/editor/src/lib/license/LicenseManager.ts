@@ -4,14 +4,6 @@ import { publishDates } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { featureFlags } from '../utils/debug-flags'
 import { importPublicKey, str2ab } from '../utils/licensing'
-import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
-
-/** @internal */
-const WATERMARK_DESKTOP_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-desktop.svg`
-const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
-
-const WATERMARK_MOBILE_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-mobile.svg`
-const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkMobileSvg)}`
 
 const GRACE_PERIOD_DAYS = 5
 
@@ -32,6 +24,8 @@ export const PROPERTIES = {
 const NUMBER_OF_KNOWN_PROPERTIES = Object.keys(PROPERTIES).length
 
 const LICENSE_EMAIL = 'sales@tldraw.com'
+
+const WATERMARK_TRACK_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-track.svg`
 
 /** @internal */
 export interface LicenseInfo {
@@ -75,11 +69,6 @@ export type TestEnvironment = 'development' | 'production'
 
 /** @internal */
 export class LicenseManager {
-	private watermarkUrlPromise = Promise.resolve([
-		WATERMARK_DESKTOP_LOCAL_SRC,
-		WATERMARK_MOBILE_LOCAL_SRC,
-	])
-
 	private publicKey =
 		'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEHJh0uUfxHtCGyerXmmatE368Hd9rI6LH9oPDQihnaCryRFWEVeOvf9U/SPbyxX74LFyJs5tYeAHq5Nc0Ax25LQ'
 	public isDevelopment: boolean
@@ -89,7 +78,7 @@ export class LicenseManager {
 		'license state',
 		'pending'
 	)
-	public verbose = false // todo: turn this back to true
+	public verbose = true
 
 	constructor(
 		licenseKey: string | undefined,
@@ -100,67 +89,16 @@ export class LicenseManager {
 		this.isDevelopment = this.getIsDevelopment(testEnvironment)
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
+
 		if (!featureFlags.enableLicensing.get()) {
 			// If we're not using licensing, treat it as licensed
 			this.state.set('licensed')
 		} else {
-			this.getLicenseFromKey(licenseKey).then(async (result) => {
+			this.getLicenseFromKey(licenseKey).then((result) => {
 				const isUnlicensed = isEditorUnlicensed(result)
 
-				if (this.isDevelopment) {
-					// Use local watermark in development mode
-				} else {
-					// In production...
-
-					if (!isUnlicensed && !(result as ValidLicenseKeyResult).isLicensedWithWatermark) {
-						// noop, we don't need to request the watermark
-					} else {
-						// Before we even update our state, we should request the remote watermark.
-						// This guarantees that the component doesn't need to actually load in order
-						// to trigger the request. By the time the watermark component is mounted, the
-						// request should be on its way.
-
-						this.watermarkUrlPromise = Promise.race([
-							// try and load the remote watermark, if it fails, fallback to the local one
-							(async (): Promise<string[]> => {
-								const urls = [WATERMARK_DESKTOP_LOCAL_SRC, WATERMARK_MOBILE_LOCAL_SRC]
-								try {
-									{
-										const response = await fetch(WATERMARK_DESKTOP_REMOTE_SRC)
-										if (response.ok) {
-											const blob = await response.blob()
-											urls[0] = URL.createObjectURL(blob)
-										}
-									}
-
-									{
-										const response = await fetch(WATERMARK_MOBILE_REMOTE_SRC)
-										if (response.ok) {
-											const blob = await response.blob()
-											urls[1] = URL.createObjectURL(blob)
-										}
-									}
-								} catch {
-									// noop, urls are already local
-									if (this.verbose) {
-										// eslint-disable-next-line no-console
-										console.log('Could not request remote watermark, using local one.')
-									}
-								}
-
-								return urls
-							})(),
-
-							// but if that's taking a long time (>3s) just show the local one anyway
-							new Promise<string[]>((resolve) => {
-								// eslint-disable-next-line no-restricted-globals
-								setTimeout(
-									() => resolve([WATERMARK_DESKTOP_LOCAL_SRC, WATERMARK_MOBILE_LOCAL_SRC]),
-									3000
-								)
-							}),
-						])
-					}
+				if (!this.isDevelopment && isUnlicensed) {
+					fetch(WATERMARK_TRACK_SRC)
 				}
 
 				if (isUnlicensed) {
@@ -172,10 +110,6 @@ export class LicenseManager {
 				}
 			})
 		}
-	}
-
-	async getWatermarkUrl(): Promise<string[]> {
-		return this.watermarkUrlPromise
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {

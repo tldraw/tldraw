@@ -1697,8 +1697,6 @@ export class LicenseManager {
     // (undocumented)
     getLicenseFromKey(licenseKey?: string): Promise<LicenseFromKeyResult>;
     // (undocumented)
-    getWatermarkUrl(): Promise<string[]>;
-    // (undocumented)
     isCryptoAvailable: boolean;
     // (undocumented)
     isDevelopment: boolean;

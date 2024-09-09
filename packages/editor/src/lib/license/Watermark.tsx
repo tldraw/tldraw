@@ -4,13 +4,21 @@ import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { featureFlags } from '../utils/debug-flags'
 import { stopEventPropagation } from '../utils/dom'
+import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
+
+const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
+const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkMobileSvg)}`
 
 /** @internal */
 export const Watermark = memo(function Watermark() {
 	const licenseManager = useLicenseContext()
-	const [srcs, setSrcs] = useState<string[] | null>(null)
+	const editor = useEditor()
+	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
+		editor,
+	])
+	const [src, setSrc] = useState<string | null>(null)
 
 	useQuickReactor(
 		'set watermark src',
@@ -19,24 +27,24 @@ export const Watermark = memo(function Watermark() {
 				featureFlags.enableLicensing.get() &&
 				['licensed-with-watermark', 'unlicensed'].includes(licenseManager.state.get())
 
-			let src: string[] | null = null
-			if (showWatermark) src = await licenseManager.getWatermarkUrl()
-			setSrcs((prev) => (prev === src ? prev : src))
+			if (showWatermark) {
+				setSrc(isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC)
+			}
 		},
-		[licenseManager]
+		[licenseManager, isMobile]
 	)
 
-	if (!srcs) return null
+	if (!src) return null
 
 	return (
 		<>
 			<LicenseStyles />
-			<WatermarkInner srcs={srcs} />
+			<WatermarkInner src={src} />
 		</>
 	)
 })
 
-const WatermarkInner = memo(function WatermarkInner({ srcs }: { srcs: string[] }) {
+const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	const editor = useEditor()
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
@@ -45,7 +53,7 @@ const WatermarkInner = memo(function WatermarkInner({ srcs }: { srcs: string[] }
 	])
 	const events = useCanvasEvents()
 
-	const maskCss = `url('${srcs[isMobile ? 1 : 0]}') center 100% / 100% no-repeat`
+	const maskCss = `url('${src}') center 100% / 100% no-repeat`
 
 	return (
 		<div
