@@ -85,7 +85,7 @@ test.describe('Style selection behaviour', () => {
 			},
 			{ name: 'tools.more.frame', styles: ['style.opacity'] },
 			{
-				name: 'tools.text',
+				name: isMobile ? 'tools.more.text' : 'tools.text',
 				styles: ['style.size', 'style.color', 'style.opacity', 'style.font', 'style.align'],
 			},
 			{ name: 'tools.eraser', styles: [] },
@@ -96,7 +96,7 @@ test.describe('Style selection behaviour', () => {
 				// mobile styles button is disabled for the eraser tool
 				if (tool.name === 'tools.eraser' && isMobile) return
 
-				if (tool.name === 'tools.more.frame') await toolbar.moreToolsButton.click()
+				if (tool.name.startsWith('tools.more')) await toolbar.moreToolsButton.click()
 
 				await page.getByTestId(tool.name).click()
 
