@@ -1,6 +1,6 @@
 import { DocsCategoryMenu } from '@/components/docs/docs-category-menu'
 import { DocsSidebarMenu } from '@/components/docs/docs-sidebar-menu'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { Bars3Icon } from '@heroicons/react/16/solid'
 import { XMarkIcon } from '@heroicons/react/20/solid'
@@ -14,7 +14,6 @@ export async function DocsMobileSidebar({
 	categoryId?: string
 	articleId?: string
 }) {
-	const db = await getDb()
 	const sidebar = await db.getSidebarContentList({ sectionId, categoryId, articleId })
 	const skipFirstLevel = ['reference', 'examples'].includes(sectionId ?? '')
 	// @ts-ignore

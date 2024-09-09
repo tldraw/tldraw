@@ -2,11 +2,10 @@ import { Breadcrumbs } from '@/components/common/breadcrumbs'
 import { Button } from '@/components/common/button'
 import { PageTitle } from '@/components/common/page-title'
 import { Article } from '@/types/content-types'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 import { cn } from '@/utils/cn'
 
 export async function DocsHeader({ article }: { article: Article }) {
-	const db = await getDb()
 	const section = await db.getSection(article.sectionId)
 	const category = await db.getCategory(article.categoryId)
 	return (

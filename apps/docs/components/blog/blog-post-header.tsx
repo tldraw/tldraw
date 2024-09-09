@@ -3,11 +3,10 @@ import { PageTitle } from '@/components/common/page-title'
 import { ShareButton } from '@/components/common/share-button'
 import { Image } from '@/components/content/image'
 import { Article } from '@/types/content-types'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 import { format } from 'date-fns'
 
 export async function BlogPostHeader({ article }: { article: Article }) {
-	const db = await getDb()
 	const category = await db.getCategory(article.categoryId)
 	const section = await db.getSection(article.sectionId)
 

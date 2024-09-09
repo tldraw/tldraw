@@ -1,8 +1,10 @@
-import { Article, ArticleHeadings, GeneratedContent } from '@/types/content-types'
+import { Article, ArticleHeading, GeneratedContent } from '@/types/content-types'
 import console from 'console'
 import GithubSlugger from 'github-slugger'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
+
+let headingId = 1
 
 export async function addContentToDb(
 	db: Database<sqlite3.Database, sqlite3.Statement>,
@@ -17,7 +19,7 @@ export async function addContentToDb(
 	)
 
 	const headingsInsert = await db.prepare(
-		`INSERT INTO headings (idx, articleId, level, title, slug, isCode, path) VALUES (?, ?, ?, ?, ?, ?, ?)`
+		`INSERT INTO headings (id, idx, articleId, level, title, slug, path, content, parentHeadingId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 
 	const articleInsert = await db.prepare(
@@ -118,45 +120,46 @@ export async function addContentToDb(
 		await Promise.all(
 			getHeadingLinks(article.content ?? '').map((heading, i) =>
 				headingsInsert.run(
+					heading.id,
 					i,
 					article.id,
 					heading.level,
 					heading.title,
 					heading.slug,
-					heading.isCode,
-					`${article.path}#${heading.slug}`
+					heading.slug ? `${article.path}#${heading.slug}` : article.path,
+					heading.content,
+					heading.parentHeadingId
 				)
 			)
 		)
 	}
 }
 
-export async function addFTS(db: Database<sqlite3.Database, sqlite3.Statement>) {
-	await db.run(`DROP TABLE IF EXISTS ftsArticles`)
-	await db.run(
-		`CREATE VIRTUAL TABLE ftsArticles USING fts5(title, content, description, keywords, id, sectionId, categoryId, tokenize="trigram")`
-	)
-	await db.run(
-		`INSERT INTO ftsArticles SELECT title, content, description, keywords, id, sectionId, categoryId FROM articles;`
-	)
-
-	await db.run(`DROP TABLE IF EXISTS ftsHeadings`)
-	await db.run(
-		`CREATE VIRTUAL TABLE ftsHeadings USING fts5(title, slug, id, articleId, tokenize="trigram")`
-	)
-	await db.run(`INSERT INTO ftsHeadings SELECT title, slug, id, articleId FROM headings;`)
-}
-
 const slugs = new GithubSlugger()
 
-const MATCH_HEADINGS = /(?:^|\n)(#{1,6})\s+(.+?)(?=\n|$)/g
-
 function getHeadingLinks(content: string) {
+	const MATCH_HEADINGS = /(?:^|\n)(#{1,6})\s+(.+?)(?=\n|$)/g
+
 	let match
-	const headings: ArticleHeadings = []
+	const headings: ArticleHeading[] = [
+		{
+			id: headingId++,
+			level: 0,
+			title: '',
+			slug: '',
+			content: '',
+			parentHeadingId: null,
+		},
+	]
 	const visited = new Set<string>()
 
+	let lastMatchIdx = 0
 	while ((match = MATCH_HEADINGS.exec(content)) !== null) {
+		// get the content between the last match and this match
+		const contentBetween = content.slice(lastMatchIdx, match.index)
+		headings[headings.length - 1].content = contentBetween
+		lastMatchIdx = match.index
+
 		const rawTitle = match[2]
 		// extract the title from the markdown link
 		const title = rawTitle.replace(/\[([^\]]+)\]\(.*\)/, '$1')
@@ -165,12 +168,24 @@ function getHeadingLinks(content: string) {
 		visited.add(title)
 		slugs.reset()
 
+		const level = match[1].length
+
+		// find the parent heading
+		const parentHeadingId = headings.findLast((heading) => heading.level < level)!.id
+
 		headings.push({
+			id: headingId++,
 			level: match[1].length,
 			title: title.replaceAll('`', ''),
 			slug: slugs.slug(title, true),
-			isCode: title.startsWith('`'),
+			content: '',
+			parentHeadingId,
 		})
 	}
+
+	// get the content after the last match
+	const contentAfter = content.slice(lastMatchIdx)
+	headings[headings.length - 1].content = contentAfter
+
 	return headings
 }

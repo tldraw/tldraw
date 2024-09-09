@@ -4,10 +4,9 @@ import { BackToTopButton } from '@/components/common/back-to-top-button'
 import { ShareButton } from '@/components/common/share-button'
 import { HeadingsMenu } from '@/components/navigation/headings-menu'
 import { Article } from '@/types/content-types'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 
 export async function BlogTableOfContents({ article }: { article: Article }) {
-	const db = await getDb()
 	const headings = await db.getArticleHeadings(article.id)
 
 	return (

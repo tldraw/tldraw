@@ -1,10 +1,9 @@
 import { Article } from '@/types/content-types'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
 export async function DocsFooter({ article }: { article: Article }) {
-	const db = await getDb()
 	const links = await db.getArticleLinks(article)
 
 	return (
