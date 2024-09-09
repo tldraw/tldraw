@@ -21,6 +21,7 @@ export interface TLUiInputProps {
 	onValueChange?(value: string): void
 	onCancel?(value: string): void
 	onBlur?(value: string): void
+	onKeyUp?(e: React.KeyboardEvent<HTMLInputElement>): void
 	onFocus?(): void
 	className?: string
 	/**
@@ -52,6 +53,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			onCancel,
 			onFocus,
 			onBlur,
+			onKeyUp,
 			shouldManuallyMaintainScrollPositionWhenFocused = false,
 			children,
 			value,
@@ -110,8 +112,9 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 						break
 					}
 				}
+				onKeyUp?.(e)
 			},
-			[onComplete, onCancel]
+			[onKeyUp, onComplete, onCancel]
 		)
 
 		const handleBlur = React.useCallback(

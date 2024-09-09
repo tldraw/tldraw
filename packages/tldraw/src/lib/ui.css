@@ -1797,7 +1797,6 @@
 	position: relative;
 	justify-content: center;
 	pointer-events: all;
-	width: 80px;
 	height: 40px;
 }
 
@@ -1819,10 +1818,15 @@
 }
 
 .tlui-timer__time-text {
+	background: none;
+	border: none;
 	color: var(--color-text-1);
 	z-index: 1;
 	font-size: 18px;
-	padding: 0 4px;
+	width: 30px;
+	text-align: center;
+	padding: 0;
+	display: block;
 }
 
 .tlui-timer__quick-actions-wrapper {

@@ -34,6 +34,7 @@ const TimerAction = track(function TimerAction() {
 		switch (timerProps.state.state) {
 			case 'running':
 			case 'paused':
+			case 'stopped':
 				if (showedToast) {
 					setShowedToast(false)
 				}

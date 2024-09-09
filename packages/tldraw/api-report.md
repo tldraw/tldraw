@@ -2858,6 +2858,8 @@ export interface TLUiInputProps {
     // (undocumented)
     onFocus?(): void;
     // (undocumented)
+    onKeyUp?(e: React_2.KeyboardEvent<HTMLInputElement>): void;
+    // (undocumented)
     onValueChange?(value: string): void;
     // (undocumented)
     placeholder?: string;

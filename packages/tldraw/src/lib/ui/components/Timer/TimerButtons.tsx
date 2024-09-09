@@ -5,15 +5,17 @@ import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKe
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
-import { TLTimerProps } from './Timer'
+import {
+	FIVE_MINUTES,
+	FIVE_SECONDS,
+	ONE_MINUTE,
+	TEN_SECONDS,
+	THIRTY_SECONDS,
+	TLTimerProps,
+} from './Timer'
 
-const FIVE_SECONDS = 5 * 1000
-const TEN_SECONDS = 10 * 1000
-const THIRTY_SECONDS = 30 * 1000
-const ONE_MINUTE = 60 * 1000
-const FIVE_MINUTES = 5 * ONE_MINUTE
-
-function updateTimer(props: TLTimerProps, editor: Editor) {
+/** @internal */
+export function updateTimer(props: TLTimerProps, editor: Editor) {
 	editor.updateDocumentSettings({ meta: { timer: props as any } })
 }
 

@@ -5,8 +5,10 @@ import {
 	useIsDarkMode,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useTimer } from '../../hooks/useTimer'
-import { TLTimerProps, TLTimerState } from './Timer'
+import { useCallback } from 'react'
+import { ONE_MINUTE, ONE_SECOND, TLTimerProps, TLTimerState } from './Timer'
+import { updateTimer } from './TimerButtons'
+import { useGetRemainingTime } from './useGetRemainingTime'
 import { useTimerCounter } from './useTimerCounter'
 
 function getBackgroundColor(state: TLTimerState, darkMode: boolean) {
@@ -43,30 +45,7 @@ function getBorderColor(state: TLTimerState, darkMode: boolean) {
 }
 
 function formatTime(time: number) {
-	const seconds = Math.ceil(time / 1000)
-	const minutesString = Math.floor(seconds / 60)
-		.toString()
-		.padStart(2, '0')
-	const secondsString = Math.floor(seconds % 60)
-		.toString()
-		.padStart(2, '0')
-	return `${minutesString}:${secondsString}`
-}
-
-export function useGetRemainingTime(props: TLTimerProps) {
-	const { getElapsedTime } = useTimer()
-	switch (props.state.state) {
-		case 'running':
-			return props.remainingTime - getElapsedTime(props)
-		case 'stopped':
-			return props.initialTime
-		case 'paused':
-			return props.remainingTime
-		case 'completed':
-			return 0
-		default:
-			exhaustiveSwitchError(props.state)
-	}
+	return time.toString().padStart(2, '0')
 }
 
 export function Time({ props, onClick }: { props: TLTimerProps; onClick?(): void }) {
@@ -93,6 +72,42 @@ export function Time({ props, onClick }: { props: TLTimerProps; onClick?(): void
 	const initialSeconds = Math.ceil(props.initialTime / 1000)
 	const active = state === 'running' || state === 'paused'
 	const width = active ? `${(remainingSeconds / initialSeconds) * 100}%` : '100%'
+
+	const handleKeyUp = useCallback(
+		(e: React.KeyboardEvent<HTMLInputElement>, diff: number) => {
+			if (active) return
+			let change: number | undefined = undefined
+			if (e.key === 'ArrowUp') {
+				change = diff
+				e.preventDefault()
+				e.stopPropagation()
+			} else if (e.key === 'ArrowDown') {
+				change = -diff
+				e.preventDefault()
+				e.stopPropagation()
+			}
+
+			if (!change) return
+			const newTime = Math.max(ONE_SECOND, props.initialTime + change)
+			updateTimer(
+				{
+					...props,
+					initialTime: newTime,
+					remainingTime: newTime,
+					state: newTime === 0 ? { state: 'completed' } : props.state,
+				},
+				editor
+			)
+		},
+		[active, editor, props]
+	)
+	const handleMinuteChange = (e: React.KeyboardEvent<HTMLInputElement>) =>
+		handleKeyUp(e, ONE_MINUTE)
+	const handleSecondChange = (e: React.KeyboardEvent<HTMLInputElement>) =>
+		handleKeyUp(e, ONE_SECOND)
+
+	const minutesText = formatTime(Math.floor(remainingSeconds / 60))
+	const secondsText = formatTime(remainingSeconds % 60)
 	return (
 		<div
 			className={classNames('tlui-timer__time-wrapper', {
@@ -112,7 +127,33 @@ export function Time({ props, onClick }: { props: TLTimerProps; onClick?(): void
 					width,
 				}}
 			/>
-			<div className="tlui-timer__time-text">{formatTime(remainingTime)}</div>
+			{active || onClick ? (
+				<div className="tlui-timer__time-text">{minutesText}</div>
+			) : (
+				<input
+					onChange={(e) => {
+						console.log(e)
+					}}
+					value={minutesText}
+					// disabled={active}
+					className="tlui-timer__time-text"
+					onKeyUp={handleMinuteChange}
+				/>
+			)}
+			<div className="tlui-timer__time-text">:</div>
+			{active || onClick ? (
+				<div className="tlui-timer__time-text">{secondsText}</div>
+			) : (
+				<input
+					disabled={active}
+					className="tlui-timer__time-text"
+					value={secondsText}
+					onChange={(e) => {
+						console.log(e.target.value)
+					}}
+					onKeyUp={handleSecondChange}
+				/>
+			)}
 		</div>
 	)
 }

@@ -49,6 +49,8 @@ export function useTimer() {
 	}
 }
 
+const DEFAULT_TIMER_DURATION = 5 * 60 * 1000
+
 /** @public */
 export function initializeTimer(editor: Editor) {
 	let meta = editor.getDocumentSettings().meta as any
@@ -56,8 +58,8 @@ export function initializeTimer(editor: Editor) {
 		meta = {
 			...meta,
 			timer: {
-				initialTime: 30 * 1000,
-				remainingTime: 30 * 1000,
+				initialTime: DEFAULT_TIMER_DURATION,
+				remainingTime: DEFAULT_TIMER_DURATION,
 				state: { state: 'stopped' },
 			},
 		}
