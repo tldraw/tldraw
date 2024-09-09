@@ -389,6 +389,9 @@ export function setInLocalStorage(key: string, value: string): void;
 // @internal
 export function setInSessionStorage(key: string, value: string): void;
 
+// @internal (undocumented)
+export function sleep(ms: number): Promise<void>;
+
 // @public (undocumented)
 export function sortById<T extends {
     id: any;

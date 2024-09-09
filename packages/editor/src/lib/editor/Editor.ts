@@ -7947,7 +7947,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const objectUrl = URL.createObjectURL(file)
 		this.temporaryAssetPreview.set(assetId, objectUrl)
 
-		this.timers.setTimeout(
+		// eslint-disable-next-line no-restricted-globals -- we always want to revoke the asset and object URL
+		setTimeout(
 			() => {
 				this.temporaryAssetPreview.delete(assetId)
 				URL.revokeObjectURL(objectUrl)
