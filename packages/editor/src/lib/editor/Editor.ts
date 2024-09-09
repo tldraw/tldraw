@@ -260,7 +260,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}: TLEditorOptions) {
 		super()
 
-		this._isShapeHidden = isShapeHidden
+		this._isShapeHiddenPredicate = isShapeHidden
 
 		this.options = { ...defaultTldrawOptions, ...options }
 		this.store = store
@@ -734,15 +734,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.performanceTracker = new PerformanceTracker()
 	}
 
-	private readonly _isShapeHidden?: (shape: TLShape, editor: Editor) => boolean
-	isShapeHidden(shapeOrId: TLShape | TLShapeId) {
-		if (!this._isShapeHidden) return false
-
-		const hiddenParent = this.findShapeAncestor(shapeOrId, (p) => this.isShapeHidden(p))
-		if (hiddenParent) return true
-		const shape = this.getShape(shapeOrId)
-		if (!shape) return false
-		return this._isShapeHidden(shape, this) ?? false
+	private readonly _isShapeHiddenPredicate?: (shape: TLShape, editor: Editor) => boolean
+	@computed
+	private getIsShapeHiddenCache() {
+		if (!this._isShapeHiddenPredicate) return null
+		return this.store.createComputedCache<boolean, TLShape>('isShapeHidden', (shape: TLShape) => {
+			const hiddenParent = this.findShapeAncestor(shape, (p) => this.isShapeHidden(p))
+			if (hiddenParent) return true
+			return this._isShapeHiddenPredicate!(shape, this) ?? false
+		})
+	}
+	isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean {
+		if (!this._isShapeHiddenPredicate) return false
+		return !!this.getIsShapeHiddenCache!()!.get(
+			typeof shapeOrId === 'string' ? shapeOrId : shapeOrId.id
+		)
 	}
 
 	readonly options: TldrawOptions
@@ -7964,7 +7970,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setTemporaryAssetPreview('someid', file)
+	 * editor.setTemporaryAssetPreview('someId', file)
 	 * ```
 	 *
 	 * @param assetId - The asset's id.
@@ -7998,7 +8004,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.getTemporaryAssetPreview('someid')
+	 * editor.getTemporaryAssetPreview('someId')
 	 * ```
 	 *
 	 * @param assetId - The asset's id.
