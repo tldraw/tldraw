@@ -1,7 +1,7 @@
 import { getDb } from './ContentDatabase'
 import { replaceMarkdownLinks } from './replace-md-links'
 
-export const getAllArticles = async () => {
+export async function getAllArticles() {
 	const db = await getDb()
 
 	const articles = await db.db.all(

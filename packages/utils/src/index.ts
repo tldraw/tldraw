@@ -20,6 +20,7 @@ export {
 	assertExists,
 	exhaustiveSwitchError,
 	promiseWithResolve,
+	sleep,
 	type ErrorResult,
 	type OkResult,
 } from './lib/control'

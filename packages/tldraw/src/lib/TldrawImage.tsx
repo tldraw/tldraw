@@ -15,6 +15,7 @@ import {
 import { memo, useLayoutEffect, useMemo, useState } from 'react'
 import { defaultBindingUtils } from './defaultBindingUtils'
 import { defaultShapeUtils } from './defaultShapeUtils'
+import { TLUiAssetUrlOverrides } from './ui/assetUrls'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { getSvgAsImage } from './utils/export/export'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
@@ -48,6 +49,10 @@ export interface TldrawImageProps extends TLImageExportOptions {
 	 * The license key.
 	 */
 	licenseKey?: string
+	/**
+	 * Asset URL overrides.
+	 */
+	assetUrls?: TLUiAssetUrlOverrides
 }
 
 /**
@@ -81,7 +86,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 	)
 	const store = useTLStore({ snapshot: props.snapshot, shapeUtils: shapeUtilsWithDefaults })
 
-	const assets = useDefaultEditorAssetsWithOverrides()
+	const assets = useDefaultEditorAssetsWithOverrides(props.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
 	const {

@@ -7,7 +7,7 @@ import { XMarkIcon } from '@heroicons/react/16/solid'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
 import { useFormState } from 'react-dom'
 
-export const RequestForm = () => {
+export function RequestForm() {
 	const formState = { error: '', success: false }
 	const [state, action] = useFormState(submitLicenseForm, formState)
 

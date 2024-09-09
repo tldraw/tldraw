@@ -18,7 +18,7 @@ const icons = {
 
 export type IconName = keyof typeof icons
 
-export const Icon: React.FC<{ icon: IconName; className: string }> = ({ icon, className }) => {
+export function Icon({ icon, className }: { icon: IconName; className: string }) {
 	const IconComponent = icons[icon]
 	return <IconComponent className={className} />
 }

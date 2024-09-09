@@ -2027,6 +2027,7 @@ export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
 // @public (undocumented)
 export interface TldrawImageProps extends TLImageExportOptions {
+    assetUrls?: TLUiAssetUrlOverrides;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
     licenseKey?: string;

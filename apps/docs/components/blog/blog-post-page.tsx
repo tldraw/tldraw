@@ -6,9 +6,7 @@ import { Content } from '@/components/content'
 import { Article } from '@/types/content-types'
 import { NewsletterSignup } from '../common/newsletter-signup'
 
-export const BlogPostPage: React.FC<{
-	article: Article
-}> = ({ article }) => {
+export function BlogPostPage({ article }: { article: Article }) {
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-16 isolate">
 			<BlogSidebar>

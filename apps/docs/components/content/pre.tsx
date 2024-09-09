@@ -3,17 +3,15 @@
 import { cn } from '@/utils/cn'
 import { DetailedHTMLProps, HTMLAttributes } from 'react'
 
-export const Pre = (props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTMLPreElement>) => {
+export function Pre(props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTMLPreElement>) {
 	// const container = useRef<HTMLPreElement>(null)
 	// const [copied, setCopied] = useState<boolean>(false)
-
 	// const copy = () => {
 	// 	const code: string = container.current?.innerText ?? ''
 	// 	navigator.clipboard.writeText(code)
 	// 	setCopied(true)
 	// 	setTimeout(() => setCopied(false), 1500)
 	// }
-
 	return (
 		<div
 			className={cn(
@@ -31,12 +29,12 @@ export const Pre = (props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTM
 				{props.children}
 			</pre>
 			{/* <Button
-				onClick={copy}
-				caption={copied ? 'Copied' : 'Copy'}
-				icon={copied ? 'check' : 'paperclip'}
-				size="xs"
-				className="absolute -top-2 right-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-100"
-			/> */}
+                onClick={copy}
+                caption={copied ? 'Copied' : 'Copy'}
+                icon={copied ? 'check' : 'paperclip'}
+                size="xs"
+                className="absolute -top-2 right-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-100"
+            /> */}
 		</div>
 	)
 }

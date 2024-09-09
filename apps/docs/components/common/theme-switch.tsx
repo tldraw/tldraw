@@ -11,7 +11,7 @@ const themes = [
 	{ id: 'system', name: 'System Preference', icon: Cog6ToothIcon },
 ]
 
-export const ThemeSwitch = () => {
+export function ThemeSwitch() {
 	const { theme: initialTheme, setTheme: persistTheme } = useTheme()
 	const [theme, setTheme] = useState<string>()
 	const Icon = themes.find((t) => t.id === theme)?.icon ?? SunIcon
