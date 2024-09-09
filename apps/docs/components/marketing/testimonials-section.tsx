@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
 
-export const TestimonialsSection = () => {
+export function TestimonialsSection() {
 	return (
 		<Section>
 			<SectionHeading

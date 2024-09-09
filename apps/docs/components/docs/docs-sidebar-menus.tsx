@@ -6,7 +6,7 @@ import { UIEventHandler, useEffect, useRef } from 'react'
 
 let scrollPosition = 0
 
-export const DocsSidebarMenus = ({ menus }: { menus: any }) => {
+export function DocsSidebarMenus({ menus }: { menus: any }) {
 	const container = useRef<HTMLDivElement>(null)
 	const pathname = usePathname()
 

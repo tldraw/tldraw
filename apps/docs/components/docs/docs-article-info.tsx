@@ -6,7 +6,7 @@ import Link from 'next/link'
 
 const githubContentRoot = 'https://github.com/tldraw/tldraw/blob/main/apps/docs/content/'
 
-export const DocsArticleInfo: React.FC<{ article: Article }> = ({ article }) => {
+export function DocsArticleInfo({ article }: { article: Article }) {
 	return (
 		<div className="shrink-0 text-xs flex flex-col gap-1">
 			{article.date && <p>Last edited on {format(new Date(article.date), 'MMM dd, yyyy')}</p>}
