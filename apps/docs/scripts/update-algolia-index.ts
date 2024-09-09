@@ -1,5 +1,3 @@
-/// <reference types="remark-mdx" />
-
 import { db } from '@/utils/ContentDatabase'
 import { nicelog } from '@/utils/nicelog'
 import { replaceMarkdownLinks } from '@/utils/replace-md-links'
@@ -7,10 +5,39 @@ import { assert, compact } from '@tldraw/utils'
 import algoliasearch from 'algoliasearch'
 import { config } from 'dotenv'
 import { Nodes, Root } from 'mdast'
+import { MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx'
 import { remark } from 'remark'
 import remarkMdx from 'remark-mdx'
 
 config()
+
+// Add nodes to mdast content.
+declare module 'mdast' {
+	interface BlockContentMap {
+		/**
+		 * MDX JSX element node, occurring in flow (block).
+		 */
+		mdxJsxFlowElement: MdxJsxFlowElement
+	}
+
+	interface PhrasingContentMap {
+		/**
+		 * MDX JSX element node, occurring in text (phrasing).
+		 */
+		mdxJsxTextElement: MdxJsxTextElement
+	}
+
+	interface RootContentMap {
+		/**
+		 * MDX JSX element node, occurring in flow (block).
+		 */
+		mdxJsxFlowElement: MdxJsxFlowElement
+		/**
+		 * MDX JSX element node, occurring in text (phrasing).
+		 */
+		mdxJsxTextElement: MdxJsxTextElement
+	}
+}
 
 const sectionPriority = {
 	'getting-started': 0,

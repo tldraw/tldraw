@@ -5946,6 +5946,7 @@ __metadata:
     gray-matter: "npm:^4.0.3"
     highlight.js: "npm:^11.10.0"
     linkinator: "npm:^6.0.4"
+    mdast-util-mdx: "npm:^3.0.0"
     next: "npm:^14.0.4"
     next-mdx-remote: "npm:^5.0.0"
     next-themes: "npm:^0.3.0"

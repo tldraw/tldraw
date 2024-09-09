@@ -60,6 +60,7 @@
 		"google-auth-library": "^9.13.0",
 		"gray-matter": "^4.0.3",
 		"highlight.js": "^11.10.0",
+		"mdast-util-mdx": "^3.0.0",
 		"next": "^14.0.4",
 		"next-mdx-remote": "^5.0.0",
 		"next-themes": "^0.3.0",
