@@ -1,6 +1,6 @@
 'use server'
 
-export const submitNewsletterSignup = async (email: string) => {
+export async function submitNewsletterSignup(email: string) {
 	const res = await fetch('https://api.sendgrid.com/v3/marketing/contacts', {
 		method: 'PUT',
 		headers: {

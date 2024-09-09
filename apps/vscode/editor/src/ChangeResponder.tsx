@@ -11,7 +11,7 @@ import type { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { vscode } from './utils/vscode'
 
-export const ChangeResponder = () => {
+export function ChangeResponder() {
 	const editor = useEditor()
 	const { addToast, clearToasts, msg } = useDefaultHelpers()
 

@@ -1,5 +1,5 @@
 import { assert } from '@tldraw/utils'
-import { GetServerSideProps } from 'next'
+import { GetServerSidePropsContext } from 'next'
 import { useEffect, useState } from 'react'
 import { getAppOctokit } from '../src/octokit'
 
@@ -20,7 +20,7 @@ interface Props {
 	cursor: string | null
 }
 
-export const getServerSideProps: GetServerSideProps<Props> = async (context) => {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
 	assert(process.env.NODE_ENV !== 'production')
 
 	const gh = getAppOctokit()

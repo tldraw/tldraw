@@ -1,10 +1,14 @@
 import { cn } from '@/utils/cn'
 
-export const Section: React.FC<{ id?: string; children: React.ReactNode; className?: string }> = ({
+export function Section({
 	id,
 	children,
 	className,
-}) => {
+}: {
+	id?: string
+	children: React.ReactNode
+	className?: string
+}) {
 	return (
 		<section
 			id={id}

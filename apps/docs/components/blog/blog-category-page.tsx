@@ -7,12 +7,17 @@ import { Article, Section } from '@/types/content-types'
 import { NewsletterSignup } from '../common/newsletter-signup'
 import { SearchButton } from '../search/button'
 
-export const BlogCategoryPage: React.FC<{
+export function BlogCategoryPage({
+	title,
+	description,
+	section,
+	articles,
+}: {
 	title: string
 	description: string | null
 	section: Section
 	articles: Article[]
-}> = ({ title, description, section, articles }) => {
+}) {
 	return (
 		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-16 isolate">
 			<BlogSidebar>

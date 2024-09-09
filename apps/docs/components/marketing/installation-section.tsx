@@ -3,7 +3,7 @@ import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { Button } from '../common/button'
 
-export const InstallationSection = () => {
+export function InstallationSection() {
 	return (
 		<Section>
 			<SectionHeading

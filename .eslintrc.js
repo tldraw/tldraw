@@ -72,6 +72,11 @@ module.exports = {
 				selector: 'Identifier[name=sessionStorage]',
 				message: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
 			},
+			{
+				selector:
+					'ExportNamedDeclaration > VariableDeclaration[kind=const] > VariableDeclarator[init.type=ArrowFunctionExpression]',
+				message: 'Use a function declaration instead of an arrow function here.',
+			},
 		],
 		'no-restricted-globals': [
 			'error',

@@ -3,11 +3,15 @@ import { cn } from '@/utils/cn'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
-export const Breadcrumbs: React.FC<{
+export async function Breadcrumbs({
+	section,
+	category,
+	className,
+}: {
 	section?: Section
 	category?: Category
 	className?: string
-}> = async ({ section, category, className }) => {
+}) {
 	const items = [section, category].filter(Boolean) as (Section | Category)[]
 
 	return (

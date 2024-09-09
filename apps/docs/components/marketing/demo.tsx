@@ -10,7 +10,7 @@ import SmBc from '../../public/images/ui-placeholder/sm-bc.jpg'
 import SmTl from '../../public/images/ui-placeholder/sm-tl.jpg'
 import { Button } from '../common/button'
 
-export const Demo = () => {
+export function Demo() {
 	const [showCanvas, setShowCanvas] = useState<boolean>(false)
 
 	return (
