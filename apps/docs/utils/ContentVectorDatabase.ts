@@ -139,7 +139,7 @@ export class ContentVectorDatabase {
 			})
 		}
 
-		// Sleep for 50ms or so to avoid rate limiting
+		// Sleep to avoid rate limiting
 		await sleep(35)
 
 		return
