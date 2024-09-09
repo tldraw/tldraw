@@ -124,8 +124,8 @@ function SneakyLocalSaveWarning() {
 	useEffect(() => {
 		const hasConfirmedLocalSave = getFromLocalStorage('local save warning dismissed 1')
 
-		console.log(editor.store.allRecords().length)
 		if (hasConfirmedLocalSave) return
+
 		if (editor.store.allRecords().length > 500) {
 			// tell the user to save to the cloud or to desktop
 
