@@ -1,10 +1,11 @@
+import { Article } from '@/types/content-types'
 import { getAuthor } from '@/utils/get-author'
 import { format } from 'date-fns'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export function BlogPostPreview({ article }: { article: any }) {
-	const authors = article.authorId.split(',').map((id: string) => getAuthor(id.trim()))
+export function BlogPostPreview({ article }: { article: Article }) {
+	const authors = article.authorId.split(',').map((id: string) => getAuthor(id.trim())!)
 
 	return (
 		<Link
