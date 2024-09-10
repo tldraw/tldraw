@@ -1,8 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import React, { lazy, Suspense, useState } from 'react'
-import { sleep } from 'tldraw'
+import { lazy, Suspense, useState } from 'react'
 import LgBc from '../../public/images/ui-placeholder/lg-bc.jpg'
 import LgBl from '../../public/images/ui-placeholder/lg-bl.jpg'
 import LgTl from '../../public/images/ui-placeholder/lg-tl.jpg'
@@ -15,10 +14,8 @@ export function Demo() {
 	const [showCanvas, setShowCanvas] = useState<boolean>(false)
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 
-	const onClick = async (e: React.MouseEvent) => {
+	const onClick = () => {
 		setIsLoading(true)
-		e.stopPropagation()
-		await sleep(0)
 		setShowCanvas(true)
 	}
 
