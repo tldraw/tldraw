@@ -810,6 +810,20 @@
 	color: var(--color-text-1);
 	user-select: all;
 	-webkit-user-select: text;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+.tlui-dialog__body a {
+	color: var(--color-selected);
+}
+
+.tlui-dialog__body ul,
+.tlui-dialog__body ol {
+	padding-left: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
 }
 
 .tlui-dialog__footer {
