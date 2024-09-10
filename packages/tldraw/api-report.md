@@ -1320,8 +1320,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onDoubleClick(shape: TLImageShape): void;
-    // (undocumented)
     onDoubleClickEdge(shape: TLImageShape): void;
     // (undocumented)
     onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>): TLImageShape;
