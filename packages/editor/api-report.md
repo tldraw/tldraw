@@ -1704,6 +1704,8 @@ export class LicenseManager {
     isTest: boolean;
     // (undocumented)
     state: Atom<"licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
+    // (undocumented)
+    verbose: boolean;
 }
 
 // @public (undocumented)

@@ -1005,7 +1005,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	mark(markId?: string): this {
 		if (typeof markId === 'string') {
 			console.warn(
-				'[tldraw] `editor.history.mark("myMarkId")` is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint()` instead.'
+				`[tldraw] \`editor.history.mark("${markId}")\` is deprecated. Please use \`const myMarkId = editor.markHistoryStoppingPoint()\` instead.`
 			)
 		} else {
 			console.warn(
