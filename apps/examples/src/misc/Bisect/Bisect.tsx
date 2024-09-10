@@ -107,7 +107,7 @@ export default function Bisect() {
 										>
 											(preview)
 										</a>
-										<div style={{ marginLeft: '6px', display: 'flex', gap: '6px' }}>
+										<div className="biscect__good-bad-wrapper">
 											<Button
 												text="✅"
 												title="Mark as good"
