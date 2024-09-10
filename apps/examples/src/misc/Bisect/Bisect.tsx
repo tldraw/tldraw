@@ -9,7 +9,7 @@ export default function Bisect() {
 	const [showAll, setShowAll] = useState(false)
 	const [openPreview, setOpenPreview] = useState(false)
 
-	const resetBisect = () => {
+	const stopBisect = () => {
 		setGoodPrIndex(null)
 		setBadPrIndex(null)
 		setBisectStarted(false)
@@ -31,7 +31,7 @@ export default function Bisect() {
 			{!bisectStarted && <Button onClick={() => setBisectStarted(true)} text={'Start bisect'} />}
 			{bisectStarted && (
 				<div className="bisect__button-wrapper">
-					<Button onClick={resetBisect} text={'Stop bisect'} />
+					<Button onClick={stopBisect} text={'Stop bisect'} />
 					{!done && (
 						<>
 							<label htmlFor="show-all">
