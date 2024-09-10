@@ -19,10 +19,10 @@ export default function Bisect() {
 	const done = bothMarked && diff <= 1
 
 	useEffect(() => {
-		if (openPreview && currentIndex !== null) {
+		if (!done && openPreview && currentIndex !== null) {
 			window.open(`https://pr-${prNumbers[currentIndex]}-preview-deploy.tldraw.com/`, '_blank')
 		}
-	}, [currentIndex, openPreview])
+	}, [done, currentIndex, openPreview])
 
 	return (
 		<div className="bisect__wrapper">
