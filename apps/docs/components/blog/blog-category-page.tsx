@@ -1,21 +1,18 @@
 import { BlogMobileSidebar } from '@/components/blog/blog-mobile-sidebar'
 import { BlogPostPreview } from '@/components/blog/blog-post-preview'
 import { BlogSidebar } from '@/components/blog/blog-sidebar'
-import { Breadcrumbs } from '@/components/common/breadcrumbs'
 import { PageTitle } from '@/components/common/page-title'
-import { Article, Section } from '@/types/content-types'
+import { Article } from '@/types/content-types'
 import { NewsletterSignup } from '../common/newsletter-signup'
 import { SearchButton } from '../search/button'
 
 export function BlogCategoryPage({
 	title,
 	description,
-	section,
 	articles,
 }: {
 	title: string
 	description: string | null
-	section: Section
 	articles: Article[]
 }) {
 	return (
@@ -29,7 +26,6 @@ export function BlogCategoryPage({
 			</div>
 			<main className="relative w-full px-5 py-24 shrink md:overflow-x-hidden md:pr-0 lg:pl-12 md:pt-0">
 				<section className="pb-6 mb-6 border-b md:mb-8 md:pb-8 border-zinc-100 dark:border-zinc-800">
-					<Breadcrumbs section={section} className="mb-2" />
 					<PageTitle>{title}</PageTitle>
 					{description && (
 						<p className="max-w-2xl mt-4 text-lg text-zinc-800 dark:text-zinc-200">{description}</p>
