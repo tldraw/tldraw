@@ -73,7 +73,7 @@ export default function Bisect() {
 							text += '(❌)'
 						}
 					}
-					const bold = color !== 'black'
+					const emphasize = color !== 'black'
 
 					const enableButtons =
 						bisecStarted &&
@@ -86,7 +86,8 @@ export default function Bisect() {
 								<a
 									style={{
 										color,
-										fontWeight: bold ? 'bold' : 'normal',
+										fontWeight: emphasize ? 'bold' : 'normal',
+										fontSize: emphasize ? '1.2em' : '1em',
 									}}
 									target="_blank"
 									href={`https://github.com/tldraw/tldraw/pull/${prNumber}`}
@@ -99,7 +100,7 @@ export default function Bisect() {
 										<a
 											style={{
 												color,
-												fontWeight: bold ? 'bold' : 'normal',
+												fontWeight: emphasize ? 'bold' : 'normal',
 											}}
 											target="_blank"
 											href={`https://pr-${prNumber}-preview-deploy.tldraw.com/`}
@@ -107,18 +108,20 @@ export default function Bisect() {
 										>
 											(preview)
 										</a>
-										<div className="biscect__good-bad-wrapper">
+										<div className="bisect__good-bad-wrapper">
 											<Button
 												text="✅"
 												title="Mark as good"
 												onClick={() => setGoodPrIndex(index)}
 												type="emoji"
+												emphasize={emphasize}
 											/>
 											<Button
 												text="❌"
 												title="Mark as bad"
 												onClick={() => setBadPrIndex(index)}
 												type="emoji"
+												emphasize={emphasize}
 											/>
 										</div>
 									</>
@@ -134,11 +137,13 @@ export default function Bisect() {
 }
 
 function Button({
+	emphasize = false,
 	text,
 	title,
 	type = 'regular',
 	onClick,
 }: {
+	emphasize?: boolean
 	text: string
 	title?: string
 	type?: 'regular' | 'emoji'
@@ -153,6 +158,7 @@ function Button({
 				color: regular ? 'white' : 'black',
 				padding: regular ? '10px' : 0,
 				borderRadius: regular ? '5px' : 0,
+				fontSize: emphasize ? '1.2em' : undefined,
 			}}
 			title={title}
 			onClick={onClick}
