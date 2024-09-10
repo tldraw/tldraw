@@ -2,7 +2,8 @@ import { execSync } from 'child_process'
 import { join } from 'path'
 import { REPO_ROOT, writeCodeFile } from './lib/file'
 
-const gitLogOutput = execSync('git log --oneline --max-count=100').toString()
+const NUMBER_OF_COMMITS = 100
+const gitLogOutput = execSync(`git log --oneline --max-count=${NUMBER_OF_COMMITS}`).toString()
 const prRegex = /#(\d+)/g
 
 const prNumbers: number[] = []
