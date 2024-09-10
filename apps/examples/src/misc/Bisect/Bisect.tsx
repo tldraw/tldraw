@@ -31,21 +31,30 @@ export default function Bisect() {
 			{bisecStarted && (
 				<div className="bisect__button-wrapper">
 					<Button onClick={resetBisect} text={'Stop bisect'} />
-					<Button
-						onClick={() => setShowAll(!showAll)}
-						text={showAll ? 'Hide buttons' : 'Show all buttons'}
-					/>
+					{!done && (
+						<>
+							<label htmlFor="show-all">
+								<input
+									id="show-all"
+									type="checkbox"
+									checked={showAll}
+									onChange={(e) => setShowAll(e.target.checked)}
+								/>
+								Show all buttons
+							</label>
+							<label htmlFor="open-preview">
+								<input
+									id="open-preview"
+									type="checkbox"
+									checked={openPreview}
+									onChange={(e) => setOpenPreview(e.target.checked)}
+								/>
+								Automatically open preview links
+							</label>
+						</>
+					)}
 				</div>
 			)}
-			<label htmlFor="open-preview">
-				<input
-					id="open-preview"
-					type="checkbox"
-					checked={openPreview}
-					onChange={(e) => setOpenPreview(e.target.checked)}
-				/>
-				Automatically open preview links
-			</label>
 			<ul>
 				{prNumbers.map((prNumber: number, index: number) => {
 					const isCurrent = index === currentIndex
@@ -86,33 +95,33 @@ export default function Bisect() {
 									{text}
 								</a>
 								{enableButtons && !done && (
-									<a
-										style={{
-											color,
-											fontWeight: bold ? 'bold' : 'normal',
-										}}
-										target="_blank"
-										href={`https://pr-${prNumber}-preview-deploy.tldraw.com/`}
-										rel="noreferrer"
-									>
-										(preview)
-									</a>
-								)}
-								{!done && enableButtons && (
-									<div style={{ marginLeft: '6px', display: 'flex', gap: '6px' }}>
-										<Button
-											text="✅"
-											title="Mark as good"
-											onClick={() => setGoodPrIndex(index)}
-											type="emoji"
-										/>
-										<Button
-											text="❌"
-											title="Mark as bad"
-											onClick={() => setBadPrIndex(index)}
-											type="emoji"
-										/>
-									</div>
+									<>
+										<a
+											style={{
+												color,
+												fontWeight: bold ? 'bold' : 'normal',
+											}}
+											target="_blank"
+											href={`https://pr-${prNumber}-preview-deploy.tldraw.com/`}
+											rel="noreferrer"
+										>
+											(preview)
+										</a>
+										<div style={{ marginLeft: '6px', display: 'flex', gap: '6px' }}>
+											<Button
+												text="✅"
+												title="Mark as good"
+												onClick={() => setGoodPrIndex(index)}
+												type="emoji"
+											/>
+											<Button
+												text="❌"
+												title="Mark as bad"
+												onClick={() => setBadPrIndex(index)}
+												type="emoji"
+											/>
+										</div>
+									</>
 								)}
 								{foundPr && <span>{'⬅️ 👀'}</span>}
 							</div>
