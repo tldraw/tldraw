@@ -56,6 +56,7 @@ async function migrateLegacyAssetDbIfNeeded(persistenceKey: string) {
 			}
 		},
 	})
+	if (!oldAssetDb.objectStoreNames.contains('assets')) return
 
 	const oldTx = oldAssetDb.transaction(['assets'], 'readonly')
 	const oldAssetStore = oldTx.objectStore('assets')

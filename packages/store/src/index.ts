@@ -31,7 +31,7 @@ export type {
 	StoreValidators,
 } from './lib/Store'
 export { StoreQueries, type RSIndex, type RSIndexDiff, type RSIndexMap } from './lib/StoreQueries'
-export { StoreSchema } from './lib/StoreSchema'
+export { StoreSchema, type StoreValidationFailure } from './lib/StoreSchema'
 export type {
 	SerializedSchema,
 	SerializedSchemaV1,

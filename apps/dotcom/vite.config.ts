@@ -6,7 +6,7 @@ config({
 	path: './.env.local',
 })
 
-export const getMultiplayerServerURL = () => {
+export function getMultiplayerServerURL() {
 	return process.env.MULTIPLAYER_SERVER?.replace(/^ws/, 'http')
 }
 

@@ -301,13 +301,15 @@ export class Idle extends StateNode {
 					if (change) {
 						this.editor.updateShapes([change])
 						return
-					} else if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
-						// crop on double click
-						this.editor.markHistoryStoppingPoint('select and crop')
-						this.editor.select(info.shape?.id)
-						this.parent.transition('crop', info)
-						return
 					}
+				}
+
+				if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
+					// crop image etc on double click
+					this.editor.markHistoryStoppingPoint('select and crop')
+					this.editor.select(info.shape?.id)
+					this.parent.transition('crop', info)
+					return
 				}
 
 				// If the shape can edit, then begin editing

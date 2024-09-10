@@ -51,6 +51,7 @@ export interface TldrawOptions {
 	readonly flattenImageBoundsExpand: number
 	readonly flattenImageBoundsPadding: number
 	readonly laserDelayMs: number
+	readonly maxExportDelayMs: number
 }
 
 /** @public */
@@ -91,4 +92,5 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
+	maxExportDelayMs: 5000,
 } as const satisfies TldrawOptions

@@ -1,4 +1,4 @@
-name: (Re)Publish public packages manually
+name: (Re)Publish SDK packages manually
 # This only attempts to publish the public packages to npm.
 # It does not bump the version, it does not update the changelogs, it does not create a github release.
 

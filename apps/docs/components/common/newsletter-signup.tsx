@@ -6,12 +6,12 @@ import { cn } from '@/utils/cn'
 import { useLocalStorageState } from '@/utils/storage'
 import { Field, Input, Label } from '@headlessui/react'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
-import { FC, FormEventHandler, useCallback, useState } from 'react'
+import { FormEventHandler, useCallback, useState } from 'react'
 
 // when debugging is true, the form will always show (even if the user has submitted)
 const DEBUGGING = false
 
-export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'large' }) => {
+export function NewsletterSignup({ size = 'large' }: { size?: 'small' | 'large' }) {
 	// If the user has submitted their email, we don't show the form anymore
 	const [didSubmit, setDidSubmit] = useLocalStorageState('dev_did_submit_newsletter', false)
 

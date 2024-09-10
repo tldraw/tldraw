@@ -1,5 +1,12 @@
 import * as Popover from '@radix-ui/react-popover'
-import { track, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
+import {
+	preventDefault,
+	track,
+	useContainer,
+	useEditor,
+	usePeerIds,
+	useValue,
+} from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -54,6 +61,7 @@ export const PeopleMenu = track(function PeopleMenu({ children }: PeopleMenuProp
 					side="bottom"
 					sideOffset={2}
 					alignOffset={-5}
+					onEscapeKeyDown={preventDefault}
 				>
 					<div className="tlui-people-menu__wrapper">
 						<div className="tlui-people-menu__section">
