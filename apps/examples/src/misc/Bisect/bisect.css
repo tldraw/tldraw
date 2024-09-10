@@ -1,0 +1,29 @@
+a {
+	text-decoration: none;
+	font-family: monospace;
+}
+
+.bisect__wrapper {
+	display: flex;
+	gap: 10px;
+	flex-direction: column;
+	padding: 10px;
+	font-size: 16px;
+}
+
+.bisect__button-wrapper {
+	display: flex;
+	gap: 5px;
+}
+
+.bisect__item {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.bisect__button {
+	border: none;
+	cursor: pointer;
+	width: fit-content;
+}
