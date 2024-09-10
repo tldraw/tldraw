@@ -490,7 +490,7 @@ function getNewPublishDates(packageVersion: string) {
 	return publishDates
 }
 
-async function copyVersionToDotCom() {
+async function createVersionFiles() {
 	const packageJson = await readJsonIfExists(join(REPO_ROOT, 'packages', 'tldraw', 'package.json'))
 	const packageVersion = packageJson.version
 	const publishDates = getNewPublishDates(packageVersion)
@@ -501,6 +501,12 @@ async function copyVersionToDotCom() {
 		patch: '${publishDates.patch}',
 	}`
 
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		join(REPO_ROOT, 'apps', 'docs', 'version.ts'),
+		file
+	)
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
@@ -644,7 +650,7 @@ async function main() {
 	await writeImportBasedAssetDeclarationFile('', 'imports.js')
 	await writeImportBasedAssetDeclarationFile('?url', 'imports.vite.js')
 	await writeSelfHostedAssetDeclarationFile()
-	await copyVersionToDotCom()
+	await createVersionFiles()
 	nicelog('Done!')
 }
 
