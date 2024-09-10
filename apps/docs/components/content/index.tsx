@@ -61,7 +61,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 				}}
 				options={{
 					mdxOptions: {
-						remarkPlugins: [remarkGfm, {}],
+						remarkPlugins: [remarkGfm],
 						rehypePlugins: [
 							[rehypeHighlight as any, {}],
 							[rehypeAutolinkHeadings, {}],

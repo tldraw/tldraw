@@ -89,9 +89,6 @@ export async function connect(opts: { reset?: boolean; mode: 'readonly' | 'readw
 			title TEXT NOT NULL,
 			slug TEXT NOT NULL,
 			path TEXT NOT NULL,
-			content TEXT NOT NULL,
-			parentHeadingId INTEGER,
-			FOREIGN KEY (parentHeadingId) REFERENCES headings(id),
 			FOREIGN KEY (articleId) REFERENCES articles(id)
 		)`)
 	}

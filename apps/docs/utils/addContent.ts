@@ -1,10 +1,8 @@
-import { Article, ArticleHeading, GeneratedContent } from '@/types/content-types'
+import { Article, GeneratedContent } from '@/types/content-types'
 import console from 'console'
-import GithubSlugger from 'github-slugger'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
-
-let headingId = 1
+import { parseHeadings } from './parse-markdown'
 
 export async function addContentToDb(
 	db: Database<sqlite3.Database, sqlite3.Statement>,
@@ -19,7 +17,7 @@ export async function addContentToDb(
 	)
 
 	const headingsInsert = await db.prepare(
-		`INSERT INTO headings (id, idx, articleId, level, title, slug, path, content, parentHeadingId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		`INSERT INTO headings (idx, articleId, level, title, slug, path) VALUES (?, ?, ?, ?, ?, ?)`
 	)
 
 	const articleInsert = await db.prepare(
@@ -118,74 +116,16 @@ export async function addContentToDb(
 		await db.run(`DELETE FROM headings WHERE articleId = ?`, article.id)
 
 		await Promise.all(
-			getHeadingLinks(article.content ?? '').map((heading, i) =>
+			parseHeadings(article.content ?? '').headings.map((heading, i) =>
 				headingsInsert.run(
-					heading.id,
 					i,
 					article.id,
 					heading.level,
 					heading.title,
 					heading.slug,
-					heading.slug ? `${article.path}#${heading.slug}` : article.path,
-					heading.content,
-					heading.parentHeadingId
+					heading.slug ? `${article.path}#${heading.slug}` : article.path
 				)
 			)
 		)
 	}
-}
-
-const slugs = new GithubSlugger()
-
-function getHeadingLinks(content: string) {
-	const MATCH_HEADINGS = /(?:^|\n)(#{1,6})\s+(.+?)(?=\n|$)/g
-
-	let match
-	const headings: ArticleHeading[] = [
-		{
-			id: headingId++,
-			level: 0,
-			title: '',
-			slug: '',
-			content: '',
-			parentHeadingId: null,
-		},
-	]
-	const visited = new Set<string>()
-
-	let lastMatchIdx = 0
-	while ((match = MATCH_HEADINGS.exec(content)) !== null) {
-		// get the content between the last match and this match
-		const contentBetween = content.slice(lastMatchIdx, match.index)
-		headings[headings.length - 1].content = contentBetween
-		lastMatchIdx = match.index
-
-		const rawTitle = match[2]
-		// extract the title from the markdown link
-		const title = rawTitle.replace(/\[([^\]]+)\]\(.*\)/, '$1')
-
-		if (visited.has(title)) continue
-		visited.add(title)
-		slugs.reset()
-
-		const level = match[1].length
-
-		// find the parent heading
-		const parentHeadingId = headings.findLast((heading) => heading.level < level)!.id
-
-		headings.push({
-			id: headingId++,
-			level: match[1].length,
-			title: title.replaceAll('`', ''),
-			slug: slugs.slug(title, true),
-			content: '',
-			parentHeadingId,
-		})
-	}
-
-	// get the content after the last match
-	const contentAfter = content.slice(lastMatchIdx)
-	headings[headings.length - 1].content = contentAfter
-
-	return headings
 }

@@ -73,7 +73,7 @@ export function SearchButton({
 			<Command.Dialog key="hi" open={open} onOpenChange={setOpen} className="relative z-20">
 				<div className="fixed w-screen h-screen left-0 top-14 sm:top-[6.5rem] md:top-0 bg-white/90 dark:bg-zinc-950/90 pointer-events-none">
 					<div className="w-full max-w-3xl mx-auto px-5 lg:px-12 pt-[4.5rem]">
-						<Search type={type} />
+						<Search type={type} onClose={() => setOpen(false)} />
 					</div>
 				</div>
 			</Command.Dialog>

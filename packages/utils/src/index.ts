@@ -45,6 +45,7 @@ export {
 	areObjectsShallowEqual,
 	filterEntries,
 	getOwnProperty,
+	groupBy,
 	hasOwnProperty,
 	mapObjectMapValues,
 	objectMapEntries,

@@ -162,6 +162,9 @@ export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, 
 export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
+export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelector: (value: V) => K): Record<K, V[]>;
+
+// @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal

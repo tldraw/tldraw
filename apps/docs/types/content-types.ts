@@ -138,12 +138,9 @@ export enum APIGroup {
 /* ---------------- Article Headings ---------------- */
 
 export interface ArticleHeading {
-	id: number
 	level: number
 	title: string
 	slug: string
-	content: string
-	parentHeadingId: number | null
 }
 
 /* ------------------ Article Links ----------------- */

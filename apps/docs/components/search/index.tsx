@@ -1,5 +1,6 @@
 'use client'
 
+import { SearchIndexName, getSearchIndexName } from '@/utils/algolia'
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import algoliasearch from 'algoliasearch/lite'
 import { Command } from 'cmdk'
@@ -12,9 +13,9 @@ const searchClient = algoliasearch(
 	process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY!
 )
 
-export function Search({ type }: { type: 'blog' | 'docs' }) {
+export function Search({ type, onClose }: { type: SearchIndexName; onClose(): void }) {
 	return (
-		<InstantSearch indexName={type} searchClient={searchClient}>
+		<InstantSearch indexName={getSearchIndexName(type)} searchClient={searchClient}>
 			<Command
 				shouldFilter={false}
 				className="pointer-events-auto bg-zinc-50 dark:bg-zinc-900 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500"
@@ -26,7 +27,7 @@ export function Search({ type }: { type: 'blog' | 'docs' }) {
 					</div>
 					<span className="hidden md:block text-xs shrink-0">ESC</span>
 				</div>
-				<Hits />
+				<Hits onClose={onClose} />
 			</Command>
 		</InstantSearch>
 	)

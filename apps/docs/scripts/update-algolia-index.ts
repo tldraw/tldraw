@@ -1,129 +1,248 @@
 import { db } from '@/utils/ContentDatabase'
+import {
+	SearchEntry,
+	SearchEntryWithIndex,
+	SearchIndexName,
+	getSearchIndexName,
+} from '@/utils/algolia'
 import { nicelog } from '@/utils/nicelog'
-import { replaceMarkdownLinks } from '@/utils/replace-md-links'
-import { assert, compact } from '@tldraw/utils'
+import { markdownToPlainText, parseHeadings } from '@/utils/parse-markdown'
+import { assertExists, groupBy, objectMapEntries } from '@tldraw/utils'
 import algoliasearch from 'algoliasearch'
+import console from 'console'
 import { config } from 'dotenv'
-import { Nodes, Root } from 'mdast'
-import { MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx'
-import { remark } from 'remark'
-import remarkMdx from 'remark-mdx'
 
 config()
 
-// Add nodes to mdast content.
-declare module 'mdast' {
-	interface BlockContentMap {
-		/**
-		 * MDX JSX element node, occurring in flow (block).
-		 */
-		mdxJsxFlowElement: MdxJsxFlowElement
-	}
+// set each section with a search config. higher priority means it will be more likely to appear in
+// search results.
+const sectionConfig: Record<string, SearchConfig | null> = {
+	'getting-started': {
+		index: 'docs',
+		priority: 10,
+		splitHeadings: false,
+	},
+	docs: {
+		index: 'docs',
+		priority: 10,
+		splitHeadings: true,
+	},
+	examples: {
+		index: 'docs',
+		priority: 8,
+		splitHeadings: false,
+	},
+	reference: {
+		index: 'docs',
+		priority: 7,
+		splitHeadings: true,
+		excludeHeadingLevels: [2],
+		formatHeading(article, heading) {
+			return `${article.title}.${heading}`
+		},
+	},
 
-	interface PhrasingContentMap {
-		/**
-		 * MDX JSX element node, occurring in text (phrasing).
-		 */
-		mdxJsxTextElement: MdxJsxTextElement
-	}
-
-	interface RootContentMap {
-		/**
-		 * MDX JSX element node, occurring in flow (block).
-		 */
-		mdxJsxFlowElement: MdxJsxFlowElement
-		/**
-		 * MDX JSX element node, occurring in text (phrasing).
-		 */
-		mdxJsxTextElement: MdxJsxTextElement
-	}
+	releases: {
+		index: 'docs',
+		priority: 6,
+		splitHeadings: false,
+	},
+	community: {
+		index: 'docs',
+		priority: 4,
+		splitHeadings: true,
+	},
+	legal: null,
+	blog: {
+		index: 'blog',
+		priority: 10,
+		splitHeadings: false,
+	},
 }
 
-const sectionPriority = {
-	'getting-started': 0,
-	docs: 1,
-	examples: 2,
-	reference: 3,
-	releases: 4,
-	community: 5,
+interface SearchConfig {
+	index: SearchIndexName
+	priority: number
+	splitHeadings: boolean
+	excludeHeadingLevels?: number[]
+	formatHeading?(article: Article, heading: string): string
 }
 
-async function getAllArticles() {
-	const articles = await (
-		await db.getDb()
-	).all(
-		`SELECT title, description, path, id, sectionId, sectionIndex AS articleIndex,
-		(SELECT title FROM sections WHERE sections.id = articles.sectionId) AS section,
-		(SELECT title FROM categories WHERE categories.id = articles.categoryId) AS category 
+interface Article {
+	title: string
+	description: string | null
+	path: string | null
+	id: string
+	sectionId: string
+	articleIndex: number
+	content: string
+	sectionTitle: string
+	categoryTitle: string
+	keywords: string[]
+}
+
+async function getAllArticles(): Promise<Article[]> {
+	const sqlite = await db.getDb()
+	const articles = await sqlite.all(
+		`SELECT title, description, path, id, sectionId, sectionIndex AS articleIndex, content, keywords,
+		(SELECT title FROM sections WHERE sections.id = articles.sectionId) AS sectionTitle,
+		(SELECT title FROM categories WHERE categories.id = articles.categoryId) AS categoryTitle
 		FROM articles`
 	)
-	const articlesWithHeadings = await Promise.all(
-		articles.map(async (article) => {
-			const headings = await db.getArticleHeadings(article.id)
-			return {
-				...article,
-				joinedHeadings: headings.map(({ title }) => replaceMarkdownLinks(title)).join(' | '),
-			}
-		})
-	)
 
-	return {
-		docs: articlesWithHeadings.filter((article) => article.sectionId !== 'blog'),
-		blog: articlesWithHeadings.filter((article) => article.sectionId === 'blog'),
+	return articles.map((article) => ({
+		...article,
+		keywords: article.keywords.split(',').map((keyword: string) => keyword.trim()),
+	}))
+}
+
+function getConfig(article: Article) {
+	const config = sectionConfig[article.sectionId]
+	if (config === undefined) {
+		throw new Error(`No search config found for section ${article.sectionId} (${article.path})`)
+	}
+	return config
+}
+
+function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
+	const config = getConfig(article)
+	if (!config) return []
+
+	if (config.splitHeadings) {
+		const { headings, initialContentText } = parseHeadings(article.content)
+		return [
+			{
+				path: assertExists(article.path),
+				title: article.title,
+				keywords: article.keywords,
+				description: article.description,
+				content: initialContentText,
+
+				section: article.sectionTitle,
+				sectionPriority: config.priority,
+
+				article: article.title,
+				articleIndex: article.articleIndex,
+
+				heading: null,
+				headingHash: null,
+				headingIndex: 0,
+
+				index: config.index,
+			},
+			...headings
+				.filter((heading) => !config.excludeHeadingLevels?.includes(heading.level))
+				.map((heading, i) => ({
+					path: assertExists(article.path),
+					title: config.formatHeading
+						? config.formatHeading(article, heading.title)
+						: `${article.title} • ${heading.title}`,
+					description: '',
+					keywords: [],
+					content: heading.contentText,
+
+					section: article.sectionTitle,
+					sectionPriority: config.priority,
+
+					article: article.title,
+					articleIndex: article.articleIndex,
+
+					heading: heading.title,
+					headingHash: heading.slug,
+					headingIndex: i + 1,
+
+					index: config.index,
+				})),
+		]
+	} else {
+		return [
+			{
+				path: assertExists(article.path),
+				title: article.title,
+				keywords: article.keywords,
+				description: article.description,
+				content: markdownToPlainText(article.content),
+
+				section: article.sectionTitle,
+				sectionPriority: config.priority,
+
+				article: article.title,
+				articleIndex: article.articleIndex,
+
+				heading: null,
+				headingHash: null,
+				headingIndex: 0,
+
+				index: config.index,
+			},
+		]
 	}
 }
 
 async function updateAlgoliaIndex() {
+	nicelog('Converting articles to search entries...')
 	try {
-		const page = await db.getPageContent('/reference/validate/UnionValidator')
-		assert(page?.type === 'article')
+		console.time('✔️ Get articles')
+		const articles = await getAllArticles()
+		console.timeEnd('✔️ Get articles')
 
-		const file = await remark()
-			.use(remarkMdx)
-			.use(() => (tree: Root) => {
-				function visit(node: Nodes): Nodes | Nodes[] | null {
-					console.group(node.type)
-					try {
-						if ('children' in node) {
-							node.children = compact(node.children.map(visit)).flat() as any
-						}
+		console.time('✔️ Format search entries')
+		const entries: SearchEntryWithIndex[] = []
+		for (const article of articles) {
+			entries.push(...(await getSearchEntriesForArticle(article)))
+		}
+		console.timeEnd('✔️ Format search entries')
+		nicelog('')
 
-						if (node.type === 'code') return null
-						if (node.type === 'mdxJsxFlowElement') return node.children
-
-						return node
-					} finally {
-						console.groupEnd()
-					}
-				}
-
-				visit(tree)
-			})
-			.process(page.article.content ?? '')
-
-		console.log(file.toString())
-		return
-		const { docs, blog } = await getAllArticles()
-		console.log(JSON.stringify(docs, null, 2))
-		return
+		if (!process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || !process.env.ALGOLIA_API_KEY) {
+			if ((process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development') === 'development') {
+				nicelog(
+					'❌ Skipping Algolia indexing in development because NEXT_PUBLIC_ALGOLIA_APP_ID and ALGOLIA_API_KEY are not set.'
+				)
+				return
+			}
+			throw new Error('NEXT_PUBLIC_ALGOLIA_APP_ID and ALGOLIA_API_KEY must be set')
+		}
 
 		const client = algoliasearch(
 			process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!,
 			process.env.ALGOLIA_API_KEY!
 		)
 
-		nicelog(`Indexing ${docs.length} docs articles...`)
-		const docsIndex = client.initIndex('docs')
-		await docsIndex.replaceAllObjects(
-			// @ts-ignore
-			docs.map((article) => ({ ...article, sectionPriority: sectionPriority[article.sectionId] })),
-			{ autoGenerateObjectIDIfNotExist: true }
-		)
-		nicelog('Done.')
+		const byIndex = groupBy(entries, (entry) => entry.index) as Record<
+			SearchIndexName,
+			SearchEntryWithIndex[]
+		>
 
-		nicelog(`Indexing ${blog.length} blog posts...`)
-		const blogIndex = client.initIndex('blog')
-		await blogIndex.replaceAllObjects(blog, { autoGenerateObjectIDIfNotExist: true })
+		for (const [_indexName, entries] of objectMapEntries(byIndex)) {
+			const indexName = getSearchIndexName(_indexName)
+			nicelog(`Indexing ${entries.length} entries into ${indexName}...`)
+			console.time('✔️ Index complete')
+
+			const index = client.initIndex(indexName)
+			await index.replaceAllObjects(
+				entries.map(({ index: _, ...entry }): SearchEntry => entry),
+				{ autoGenerateObjectIDIfNotExist: true }
+			)
+			await index.setSettings({
+				searchableAttributes: ['title', 'description', 'keywords', 'content'],
+				ranking: [
+					// 'desc(sectionPriority)',
+					'typo',
+					'geo',
+					'words',
+					'filters',
+					'proximity',
+					'attribute',
+					'exact',
+					'custom',
+				],
+				customRanking: ['desc(priority)', 'asc(articleIndex)', 'asc(headingIndex)'],
+			})
+			console.timeEnd('✔️ Index complete')
+			nicelog('')
+		}
+
 		nicelog('Done.')
 	} catch (error) {
 		nicelog(error)
