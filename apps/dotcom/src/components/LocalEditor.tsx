@@ -126,7 +126,7 @@ function SneakyLocalSaveWarning() {
 
 		if (hasConfirmedLocalSave) return
 
-		if (editor.store.allRecords().length > 500) {
+		if (editor.store.allRecords().length > 128) {
 			// tell the user to save to the cloud or to desktop
 
 			addDialog({
