@@ -41,6 +41,16 @@ export interface ParsedHeading {
 	isInherited: boolean
 }
 
+/**
+ * Walk the MDX AST of `content` and extract headings & their (plain text) content as we go.
+ *
+ * This returns an array of heading objects containing the heading info, and the text below it
+ * (before the next heading). It also returns the initial content text before the first heading.
+ *
+ * Heading extraction should be reliable, but content extraction is pretty best-effort. It's useful
+ * for a search index (which is what we use it for!), but might not be a perfect representation of
+ * everything on the page.
+ */
 export function parseHeadings(content: string): {
 	headings: ParsedHeading[]
 	initialContentText: string
@@ -170,6 +180,13 @@ export function parseHeadings(content: string): {
 	}
 }
 
+/**
+ * Walk the MDX AST of `content` and extract plain text content. Code blocks, tables of contents,
+ * and some other block-level markdown elements are skipped.
+ *
+ * This is best-effort: the content is useful for a search index (which is what we use it for!), but
+ * might not be a perfect representation of everything on the page.
+ */
 export function markdownToPlainText(content: string): string {
 	let text = ''
 
@@ -211,15 +228,13 @@ export function markdownToPlainText(content: string): string {
 
 						if (
 							// Remove table of contents
-							(name === 'details' &&
-								attributes.some(
-									(attr) =>
-										'name' in attr &&
-										attr.name === 'className' &&
-										attr.value === 'article__table-of-contents'
-								)) ||
-							// Remove ApiHeading
-							name === 'ApiHeading'
+							name === 'details' &&
+							attributes.some(
+								(attr) =>
+									'name' in attr &&
+									attr.name === 'className' &&
+									attr.value === 'article__table-of-contents'
+							)
 						) {
 							break
 						}
