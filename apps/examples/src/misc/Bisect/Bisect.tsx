@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-
 import './bisect.css'
 import { prNumbers } from './pr-numbers'
+
 export default function Bisect() {
 	const [bisectStarted, setBisectStarted] = useState(false)
 	const [goodPrIndex, setGoodPrIndex] = useState<number | null>(null)
