@@ -254,6 +254,7 @@ async function updateAlgoliaIndex() {
 		nicelog('Done.')
 	} catch (error) {
 		nicelog(error)
+		process.exit(1)
 	}
 }
 
