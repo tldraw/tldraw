@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+
 import './bisect.css'
 import { prNumbers } from './pr-numbers'
 export default function Bisect() {
-	const [bisecStarted, setBisectStarted] = useState(false)
+	const [bisectStarted, setBisectStarted] = useState(false)
 	const [goodPrIndex, setGoodPrIndex] = useState<number | null>(null)
 	const [badPrIndex, setBadPrIndex] = useState<number | null>(null)
 	const [showAll, setShowAll] = useState(false)
@@ -27,8 +28,8 @@ export default function Bisect() {
 	return (
 		<div className="bisect__wrapper">
 			<p>Use the preview links to test the target behaviour then mark the PR accordingly.</p>
-			{!bisecStarted && <Button onClick={() => setBisectStarted(true)} text={'Start bisect'} />}
-			{bisecStarted && (
+			{!bisectStarted && <Button onClick={() => setBisectStarted(true)} text={'Start bisect'} />}
+			{bisectStarted && (
 				<div className="bisect__button-wrapper">
 					<Button onClick={resetBisect} text={'Stop bisect'} />
 					{!done && (
@@ -62,7 +63,7 @@ export default function Bisect() {
 					const isBad = index === badPrIndex
 					let color = 'black'
 					let text = prNumber.toString()
-					if (bisecStarted) {
+					if (bisectStarted) {
 						if (isCurrent) {
 							color = '#4465E9'
 						} else if (isGood) {
@@ -76,7 +77,7 @@ export default function Bisect() {
 					const emphasize = color !== 'black'
 
 					const enableButtons =
-						bisecStarted &&
+						bisectStarted &&
 						((bothMarked && isCurrent) || (!bothMarked && !isGood && !isBad) || showAll)
 					const foundPr = done && index === badPrIndex
 

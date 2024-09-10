@@ -11,7 +11,6 @@ import {
 import { ExamplePage } from './ExamplePage'
 import { ExampleWrapper } from './ExampleWrapper'
 import { examples } from './examples'
-import Bisect from './misc/Bisect/Bisect'
 import Develop from './misc/develop'
 import EndToEnd from './misc/end-to-end'
 
@@ -55,7 +54,10 @@ const router = createBrowserRouter([
 	},
 	{
 		path: 'bisect',
-		lazy: async () => ({ element: (await import('./misc/Bisect/Bisect')).default }),
+		lazy: async () => {
+			const Bisect = (await import('./misc/Bisect/Bisect')).default
+			return { element: <Bisect /> }
+		},
 	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [
