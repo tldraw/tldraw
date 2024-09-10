@@ -3,10 +3,7 @@
 import { cn } from '@/utils/cn'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
-export const Aside: React.FC<{ className?: string; children: React.ReactNode }> = ({
-	className,
-	children,
-}) => {
+export function Aside({ className, children }: { className?: string; children: React.ReactNode }) {
 	const { scrollY } = useScroll()
 	const offset = useTransform(scrollY, [0, 80], [80, 0])
 

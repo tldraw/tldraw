@@ -59,6 +59,7 @@ packages/assets/embed-icons
 packages/assets/fonts
 packages/assets/icons
 packages/assets/translations
+packages/assets/watermarks
 apps/examples/www/embed-icons
 apps/examples/www/fonts
 apps/examples/www/icons

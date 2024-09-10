@@ -5,7 +5,7 @@ import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { cn } from '@/utils/cn'
 
-export const DocsHeader: React.FC<{ article: Article }> = async ({ article }) => {
+export async function DocsHeader({ article }: { article: Article }) {
 	const db = await getDb()
 	const section = await db.getSection(article.sectionId)
 	const category = await db.getCategory(article.categoryId)

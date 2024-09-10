@@ -10,12 +10,11 @@ import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPres
  * Creates a derivation that represents the current presence state of the current user.
  * @public
  */
-export const createPresenceStateDerivation =
-	(
-		$user: Signal<{ id: string; color: string; name: string }>,
-		instanceId?: TLInstancePresence['id']
-	) =>
-	(store: TLStore): Signal<TLInstancePresence | null> => {
+export function createPresenceStateDerivation(
+	$user: Signal<{ id: string; color: string; name: string }>,
+	instanceId?: TLInstancePresence['id']
+) {
+	return (store: TLStore): Signal<TLInstancePresence | null> => {
 		return computed('instancePresence', () => {
 			const instance = store.get(TLINSTANCE_ID)
 			const pageState = store.get(InstancePageStateRecordType.createId(instance?.currentPageId))
@@ -54,3 +53,4 @@ export const createPresenceStateDerivation =
 			})
 		})
 	}
+}

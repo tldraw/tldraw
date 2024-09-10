@@ -72,6 +72,11 @@ module.exports = {
 				selector: 'Identifier[name=sessionStorage]',
 				message: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
 			},
+			{
+				selector:
+					'ExportNamedDeclaration > VariableDeclaration[kind=const] > VariableDeclarator[init.type=ArrowFunctionExpression]',
+				message: 'Use a function declaration instead of an arrow function here.',
+			},
 		],
 		'no-restricted-globals': [
 			'error',
@@ -199,15 +204,16 @@ module.exports = {
 			},
 		},
 		{
-			files: ['e2e/**/*'],
-			rules: {
-				'@typescript-eslint/no-empty-function': 'off',
-			},
-		},
-		{
 			files: 'scripts/**/*',
 			rules: {
 				'import/no-extraneous-dependencies': 'off',
+			},
+		},
+		{
+			files: ['apps/examples/**/*'],
+			rules: {
+				'no-restricted-syntax': 'off',
+				'local/no-at-internal': 'error',
 			},
 		},
 		{
@@ -217,13 +223,7 @@ module.exports = {
 				'no-restricted-globals': 'off',
 				'react/jsx-key': 'off',
 				'react/no-string-refs': 'off',
-			},
-		},
-		{
-			files: ['apps/examples/**/*'],
-			rules: {
-				'no-restricted-syntax': 'off',
-				'local/no-at-internal': 'error',
+				'local/no-at-internal': 'off',
 			},
 		},
 		{

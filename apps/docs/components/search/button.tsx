@@ -11,11 +11,15 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Search } from '.'
 
-export const SearchButton: React.FC<{
+export function SearchButton({
+	type,
+	layout,
+	className,
+}: {
 	type: 'docs' | 'blog'
 	layout: 'mobile' | 'desktop'
 	className?: string
-}> = ({ type, layout, className }) => {
+}) {
 	const [open, setOpen] = useState(false)
 	const pathname = usePathname()
 

@@ -3,7 +3,7 @@ import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { CheckBadgeIcon } from '@heroicons/react/20/solid'
 
-export const PricingSection = () => {
+export function PricingSection() {
 	return (
 		<div className="bg-zinc-50 dark:bg-zinc-900 mt-16 sm:mt-24 md:mt-32 lg:mt-40">
 			<Section id="pricing" className="pb-24 md:pb-32 lg:pb-40">

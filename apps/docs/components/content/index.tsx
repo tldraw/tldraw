@@ -20,7 +20,7 @@ import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
 
-export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type }) => {
+export function Content({ mdx, type }: { mdx: string; type?: string }) {
 	return (
 		<section
 			className={cn(

@@ -3,7 +3,7 @@
 import { SearchButton } from '@/components/search/button'
 import { motion, useScroll, useTransform } from 'framer-motion'
 
-export const DocsSearchBar = () => {
+export function DocsSearchBar() {
 	const { scrollY } = useScroll()
 	const width = useTransform(scrollY, [0, 32], ['100%', '60%'])
 	const offset = useTransform(scrollY, [0, 32], ['15rem', '0rem'])

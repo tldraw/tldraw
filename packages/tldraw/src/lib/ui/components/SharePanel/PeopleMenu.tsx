@@ -54,6 +54,7 @@ export const PeopleMenu = track(function PeopleMenu({ children }: PeopleMenuProp
 					side="bottom"
 					sideOffset={2}
 					alignOffset={-5}
+					onEscapeKeyDown={(e) => e.preventDefault()}
 				>
 					<div className="tlui-people-menu__wrapper">
 						<div className="tlui-people-menu__section">

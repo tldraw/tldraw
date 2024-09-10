@@ -5,7 +5,7 @@ import {
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
 } from './lib/publishing'
-import { uploadStaticAssets } from './upload-static-assets'
+import { uploadStaticAssets } from './lib/upload-static-assets'
 
 // This expects the package.json files to be in the correct state.
 // You might want to run this locally after a failed publish attempt on CI.

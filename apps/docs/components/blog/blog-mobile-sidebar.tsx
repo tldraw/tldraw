@@ -4,7 +4,7 @@ import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { Bars3Icon } from '@heroicons/react/16/solid'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 
-export const BlogMobileSidebar: React.FC = async () => {
+export async function BlogMobileSidebar() {
 	const db = await getDb()
 	const categories = await db.getCategoriesForSection('blog')
 	return (

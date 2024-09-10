@@ -5,7 +5,7 @@ import { cn } from '@/utils/cn'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings }) => {
+export function HeadingsMenu({ headings }: { headings: ArticleHeadings }) {
 	const [activeSlug, setActiveSlug] = useState('')
 
 	useEffect(() => {
