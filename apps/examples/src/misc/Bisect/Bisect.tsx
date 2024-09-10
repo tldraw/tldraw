@@ -67,7 +67,8 @@ export default function Bisect() {
 					const bold = color !== 'black'
 
 					const enableButtons =
-						bisecStarted && ((bothMarked && isCurrent) || !bothMarked || showAll)
+						bisecStarted &&
+						((bothMarked && isCurrent) || (!bothMarked && !isGood && !isBad) || showAll)
 					const foundPr = done && index === badPrIndex
 
 					return (
