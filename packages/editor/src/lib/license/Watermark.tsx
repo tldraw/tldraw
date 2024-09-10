@@ -98,7 +98,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		align-items: center;
 		justify-content: center;
 		z-index: 2147483647 !important;
-		background-color: var(--color-background);
+		background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
 		opacity: .5;
 		border-radius: 5px;
 		pointer-events: all;
@@ -138,10 +138,6 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	}
 	
 	@media (hover: hover) {
-		.${className} {
-			background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
-		}
-
 		.${className}[data-mobile='true'] > a {
 			opacity: .62;
 			pointer-events: none;
