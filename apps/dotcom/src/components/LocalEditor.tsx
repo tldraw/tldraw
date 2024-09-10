@@ -117,12 +117,14 @@ export function LocalEditor() {
 	)
 }
 
+const LOCAL_SAVE_WARNING_DISMISSED_KEY = 'local save warning dismissed 1'
+
 function SneakyLocalSaveWarning() {
 	const editor = useEditor()
 	const { addDialog } = useDialogs()
 
 	useEffect(() => {
-		const hasConfirmedLocalSave = getFromLocalStorage('local save warning dismissed 1')
+		const hasConfirmedLocalSave = getFromLocalStorage(LOCAL_SAVE_WARNING_DISMISSED_KEY)
 
 		if (hasConfirmedLocalSave) return
 
@@ -169,7 +171,7 @@ function SneakyLocalSaveWarning() {
 					</>
 				),
 				onClose() {
-					setInLocalStorage('local save warning dismissed', 'true')
+					setInLocalStorage(LOCAL_SAVE_WARNING_DISMISSED_KEY, 'true')
 				},
 			})
 		}
