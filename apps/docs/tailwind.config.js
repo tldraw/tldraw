@@ -6,7 +6,7 @@ module.exports = {
 		extend: {
 			fontFamily: {
 				sans: ['var(--font-geist-sans)'],
-				mono: ['var(--font-geist-mono)'],
+				mono: ['"Noto Sans Mono", monospace'],
 				hand: ['var(--font-shantell-sans)'],
 			},
 		},
