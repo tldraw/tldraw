@@ -14,7 +14,7 @@ export async function DocsHeader({ article }: { article: Article }) {
 			className={cn(
 				article.sectionId === 'reference'
 					? ''
-					: 'pb-6 mb-6 md:mb-12 md:pb-12 border-b border-zinc-100 dark:border-zinc-800'
+					: 'pb-6 mb-6 md:mb-8 md:pb-8 border-b border-zinc-100 dark:border-zinc-800'
 			)}
 		>
 			<Breadcrumbs section={section} category={category} className="mb-2" />
