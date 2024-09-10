@@ -136,9 +136,13 @@ export function parseHeadings(content: string): {
 
 						if (
 							name === 'TitleWithSourceLink' &&
-							attributes.some(
-								(attr) => 'name' in attr && attr.name === 'inherited' && attr.value !== null
-							)
+							attributes.some((attr) => {
+								return (
+									'name' in attr &&
+									attr.name === 'inherited' &&
+									(attr.value as any).value !== 'null'
+								)
+							})
 						) {
 							visitChildren(node, { ...state, isInherited: true })
 							break

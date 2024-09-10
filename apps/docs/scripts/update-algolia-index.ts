@@ -131,7 +131,15 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 				index: config.index,
 			},
 			...headings
-				.filter((heading) => !config.excludeHeadingLevels?.includes(heading.level))
+
+				.filter((heading) => {
+					return (
+						// excluded headers from config:
+						!config.excludeHeadingLevels?.includes(heading.level) &&
+						// exclude inherited members
+						!heading.isInherited
+					)
+				})
 				.map((heading, i) => ({
 					path: assertExists(article.path),
 					title: config.formatHeading
