@@ -1,8 +1,12 @@
 'use client'
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
 import { useEffect, useRef, useState } from 'react'
-import { Editor, Tldraw } from 'tldraw'
+import { Editor, Tldraw, TldrawOptions } from 'tldraw'
 import './demo.css'
+
+const options: Partial<TldrawOptions> = {
+	maxPages: 1,
+}
 
 const assetUrls = getAssetUrlsByMetaUrl()
 export default function DemoTldraw() {
@@ -35,7 +39,13 @@ export default function DemoTldraw() {
 					editor?.focus({ focusContainer: false })
 				}}
 			>
-				<Tldraw initialState="draw" assetUrls={assetUrls} onMount={setEditor} autoFocus />
+				<Tldraw
+					initialState="draw"
+					assetUrls={assetUrls}
+					onMount={setEditor}
+					autoFocus
+					options={options}
+				/>
 			</div>
 		</>
 	)
