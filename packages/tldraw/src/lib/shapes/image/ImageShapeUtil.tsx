@@ -158,7 +158,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const containerStyle = getCroppedContainerStyle(shape)
 
 		const nextSrc = url === loadedUrl ? null : url
-		const loadedSrc = !shape.props.playing || reduceMotion ? staticFrameSrc : loadedUrl
+		const loadedSrc = reduceMotion ? staticFrameSrc : loadedUrl
 
 		// This logic path is for when it's broken/missing asset.
 		if (!url && !asset?.props.src) {
@@ -238,9 +238,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 								draggable={false}
 								onLoad={() => setLoadedUrl(nextSrc)}
 							/>
-						)}
-						{this.isAnimated(shape) && !shape.props.playing && (
-							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
 					{shape.props.url && (
@@ -327,28 +324,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				/>
 			)
 		}
-	}
-
-	override onDoubleClick(shape: TLImageShape) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
-
-		if (!asset) return
-
-		const canPlay = asset.props.src && this.isAnimated(shape)
-
-		if (!canPlay && !shape.props.playing) return
-
-		// It could only have been disabled if prefers reduced motion was enabled previously.
-		// Otherwise, stay in play mode.
-		this.editor.updateShapes([
-			{
-				type: 'image',
-				id: shape.id,
-				props: {
-					playing: true,
-				},
-			},
-		])
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
