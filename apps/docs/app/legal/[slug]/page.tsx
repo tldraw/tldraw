@@ -23,8 +23,8 @@ export default async function Page({ params }: { params: { slug: string | string
 	if (!content || content.type !== 'article' || content.article.sectionId !== 'legal') notFound()
 
 	return (
-		<main className="w-full max-w-3xl mx-auto px-5 md:pr-0 lg:pl-12 xl:pr-12 py-24 md:pt-16">
-			<div className="pb-6 mb-6 md:mb-12 md:pb-12 border-b border-zinc-100 dark:border-zinc-800">
+		<main className="w-full max-w-3xl px-5 py-24 mx-auto md:pr-0 lg:pl-12 xl:pr-12 md:pt-8">
+			<div className="pb-6 mb-6 border-b md:mb-12 md:pb-12 border-zinc-100 dark:border-zinc-800">
 				<PageTitle className="text-center">{content.article.title}</PageTitle>
 			</div>
 			<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
