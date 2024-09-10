@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn'
 
-export const TldrawIcon: React.FC<{ className: string }> = ({ className }) => {
+export function TldrawIcon({ className }: { className: string }) {
 	return (
 		<svg
 			width="14"

@@ -1,10 +1,14 @@
 import { cn } from '@/utils/cn'
 
-export const Card: React.FC<{
+export function Card({
+	children,
+	className,
+	darker,
+}: {
 	children: React.ReactNode
 	className?: string
 	darker?: boolean
-}> = ({ children, className, darker }) => {
+}) {
 	return (
 		<div
 			className={cn(

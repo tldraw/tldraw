@@ -61,7 +61,7 @@ const socialLinks = [
 	},
 ]
 
-export const Header = () => {
+export function Header() {
 	const pathname = usePathname()
 	const { scrollY } = useScroll()
 	const navOpacity = useTransform(scrollY, [0, 32], [1, 0])

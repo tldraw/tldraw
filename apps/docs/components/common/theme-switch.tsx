@@ -1,17 +1,17 @@
 'use client'
 
 import { cn } from '@/utils/cn'
-import { Cog6ToothIcon, MoonIcon, SunIcon } from '@heroicons/react/20/solid'
+import { MoonIcon, SunIcon } from '@heroicons/react/20/solid'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
 const themes = [
 	{ id: 'light', name: 'Light Mode', icon: SunIcon },
 	{ id: 'dark', name: 'Dark Mode', icon: MoonIcon },
-	{ id: 'system', name: 'System Preference', icon: Cog6ToothIcon },
+	// { id: 'system', name: 'System Preference', icon: Cog6ToothIcon },
 ]
 
-export const ThemeSwitch = () => {
+export function ThemeSwitch() {
 	const { theme: initialTheme, setTheme: persistTheme } = useTheme()
 	const [theme, setTheme] = useState<string>()
 	const Icon = themes.find((t) => t.id === theme)?.icon ?? SunIcon
@@ -22,7 +22,7 @@ export const ThemeSwitch = () => {
 	}, [])
 
 	const setThemeAndPersist = () => {
-		const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
+		const nextTheme = theme === 'light' ? 'dark' : 'light'
 		persistTheme(nextTheme)
 		setTheme(nextTheme)
 	}

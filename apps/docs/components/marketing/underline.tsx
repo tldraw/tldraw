@@ -3,7 +3,7 @@
 import { cn } from '@/utils/cn'
 import { motion } from 'framer-motion'
 
-export const Underline: React.FC<{ className?: string }> = ({ className }) => {
+export function Underline({ className }: { className?: string }) {
 	return (
 		<svg
 			viewBox="0 0 407 24"

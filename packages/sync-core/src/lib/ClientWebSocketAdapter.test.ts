@@ -1,4 +1,4 @@
-import { TLRecord } from 'tldraw'
+import { TLRecord, sleep } from 'tldraw'
 import { ClientWebSocketAdapter, INACTIVE_MIN_DELAY } from './ClientWebSocketAdapter'
 // NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
 import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
@@ -13,7 +13,7 @@ async function waitFor(predicate: () => boolean) {
 		try {
 			jest.runAllTimers()
 			jest.useRealTimers()
-			await new Promise((resolve) => setTimeout(resolve, 10))
+			await sleep(10)
 		} finally {
 			jest.useFakeTimers()
 		}

@@ -5,7 +5,7 @@ import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 import { cn } from '@/utils/cn'
 
-export const DocsHeader: React.FC<{ article: Article }> = async ({ article }) => {
+export async function DocsHeader({ article }: { article: Article }) {
 	const db = await getDb()
 	const section = await db.getSection(article.sectionId)
 	const category = await db.getCategory(article.categoryId)
@@ -14,7 +14,7 @@ export const DocsHeader: React.FC<{ article: Article }> = async ({ article }) =>
 			className={cn(
 				article.sectionId === 'reference'
 					? ''
-					: 'pb-6 mb-6 md:mb-12 md:pb-12 border-b border-zinc-100 dark:border-zinc-800'
+					: 'pb-6 mb-6 md:mb-8 md:pb-8 border-b border-zinc-100 dark:border-zinc-800'
 			)}
 		>
 			<Breadcrumbs section={section} category={category} className="mb-2" />

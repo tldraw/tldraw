@@ -2,10 +2,13 @@ import { getPageContent } from '@/utils/get-page-content'
 import { CodeFiles } from '../content/code-files'
 import { ExamplePlaceholder } from './example-placeholder'
 
-export const Example: React.FC<{ path: string; showPlaceholder?: boolean }> = async ({
+export async function Example({
 	path,
 	showPlaceholder,
-}) => {
+}: {
+	path: string
+	showPlaceholder?: boolean
+}) {
 	const content = await getPageContent(path)
 	if (!content || content.type !== 'article') return null
 	const server = 'https://examples.tldraw.com'

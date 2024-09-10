@@ -5,10 +5,13 @@ import {
 	InformationCircleIcon,
 } from '@heroicons/react/20/solid'
 
-export const Callout: React.FC<{
+export function Callout({
+	type = 'info',
+	children,
+}: {
 	type?: 'info' | 'warning' | 'critical'
 	children: React.ReactNode
-}> = ({ type = 'info', children }) => {
+}) {
 	return (
 		<div
 			className={cn(

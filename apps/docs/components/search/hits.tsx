@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { Fragment } from 'react'
 import { Highlight, useHits } from 'react-instantsearch'
 
-export const Hits = () => {
+export function Hits() {
 	const { items } = useHits()
 	const router = useRouter()
 	let section = ''

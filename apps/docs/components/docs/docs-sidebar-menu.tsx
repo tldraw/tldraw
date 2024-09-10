@@ -7,7 +7,10 @@ import { ChevronRightIcon } from '@heroicons/react/16/solid'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export const DocsSidebarMenu: React.FC<{
+export function DocsSidebarMenu({
+	title,
+	elements,
+}: {
 	title: string
 	elements: {
 		type: string
@@ -16,7 +19,7 @@ export const DocsSidebarMenu: React.FC<{
 		url: string
 		groupId: string | null
 	}[]
-}> = ({ title, elements }) => {
+}) {
 	const pathname = usePathname()
 	const groups = elements.some((e) => e.groupId) ? Object.values(APIGroup) : null
 

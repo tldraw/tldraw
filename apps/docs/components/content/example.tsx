@@ -2,7 +2,7 @@ import { CodeFiles } from '@/components/content/code-files'
 import { Embed } from '@/components/content/embed'
 import { Article } from '@/types/content-types'
 
-export const Example: React.FC<{ article: Article }> = ({ article }) => {
+export function Example({ article }: { article: Article }) {
 	const server = 'https://examples.tldraw.com'
 	const additionalFiles = JSON.parse(article.componentCodeFiles ?? '')
 	const files = [

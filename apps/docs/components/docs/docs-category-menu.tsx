@@ -28,7 +28,7 @@ const categoryLinks = [
 	},
 ]
 
-export const DocsCategoryMenu = () => {
+export function DocsCategoryMenu() {
 	const pathname = usePathname()
 	return (
 		<ul className="shrink-0 flex flex-col gap-3">

@@ -104,9 +104,9 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					}
 					case 'Escape': {
 						e.currentTarget.value = rInitialValue.current
+						onCancel?.(e.currentTarget.value)
 						e.currentTarget.blur()
 						stopEventPropagation(e)
-						onCancel?.(e.currentTarget.value)
 						break
 					}
 				}

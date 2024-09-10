@@ -3,10 +3,6 @@ import { Editor, TLGeoShape } from 'tldraw'
 import { getAllShapeTypes, setup } from '../shared-e2e'
 import test from './fixtures/fixtures'
 
-export function sleep(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 declare const editor: Editor
 
 test.describe('smoke tests', () => {

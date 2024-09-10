@@ -73,15 +73,13 @@ test.describe('Keyboard Shortcuts', () => {
 			['3', 'draw'],
 			['4', 'eraser'],
 			['5', 'arrow'],
-			['6', 'text'],
 		]
 
 		if (isMobile) {
-			// on mobile, the last item (first from the dropdown) is 7
-			positionalToolKbds.push(['7', 'geo-rectangle'])
+			// on mobile, the last item (first from the dropdown) is 6
+			positionalToolKbds.push(['6', 'geo-rectangle'])
 		} else {
-			// on desktop, the last item (first from the dropdown) is 9. 8 is the image tool which
-			// we skip here because it opens a browser dialog
+			// on desktop, the last item (first from the dropdown) is 9
 			positionalToolKbds.push(['9', 'geo-rectangle'])
 		}
 		for (const [key, tool] of positionalToolKbds) {
