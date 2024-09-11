@@ -1,4 +1,5 @@
 'use client'
+import { cn } from '@/utils/cn'
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
 import { useEffect, useRef, useState } from 'react'
 import { Editor, Tldraw, TldrawOptions } from 'tldraw'
@@ -9,9 +10,10 @@ const options: Partial<TldrawOptions> = {
 }
 
 const assetUrls = getAssetUrlsByMetaUrl()
-export default function DemoTldraw() {
+export default function DemoTldraw({ hidden }: { hidden?: boolean }) {
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const wrapper = useRef<HTMLDivElement | null>(null)
+
 	useEffect(() => {
 		if (!editor) return
 		editor.focus({ focusContainer: false })
@@ -34,7 +36,7 @@ export default function DemoTldraw() {
 		<>
 			<div
 				ref={wrapper}
-				className="z-10 h-full"
+				className={cn('z-10 h-full', hidden ? 'hidden' : '')}
 				onFocus={() => {
 					editor?.focus({ focusContainer: false })
 				}}
