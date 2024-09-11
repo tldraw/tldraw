@@ -1807,6 +1807,7 @@
 .tlui-timer__time-wrapper-clickable {
 	cursor: pointer;
 	pointer-events: all;
+	padding: 10px;
 }
 
 .tlui-timer__time-color-background {
