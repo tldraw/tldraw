@@ -1,7 +1,7 @@
 import { Editor, track } from '@tldraw/editor'
 import { useState } from 'react'
 import { useTimer } from '../../hooks/useTimer'
-import { Time } from './Time'
+import { TimeDisplay } from './TimeDisplay'
 import {
 	CollapseButton,
 	DecreaseTimeButton,
@@ -48,7 +48,7 @@ export const Timer = track(function Timer() {
 			{isExpanded ? (
 				<ExpandedTimerView props={timerProps} onCollapse={() => setIsExpanded(false)} />
 			) : (
-				<Time props={timerProps} onClick={() => setIsExpanded(true)} />
+				<TimeDisplay props={timerProps} onClick={() => setIsExpanded(true)} />
 			)}
 		</div>
 	)
@@ -62,7 +62,7 @@ function ExpandedTimerView({ props, onCollapse }: { props: TLTimerProps; onColla
 		<>
 			<CollapseButton onClick={onCollapse} />
 			<DecreaseTimeButton props={props} />
-			<Time props={props} />
+			<TimeDisplay props={props} />
 			<IncreaseTimeButton props={props} />
 			<ResetButton props={props} />
 			{showPlay ? <PlayButton props={props} /> : <PauseButton props={props} />}

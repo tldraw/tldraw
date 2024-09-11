@@ -9,7 +9,7 @@ import {
 	getMinutesAndSeconds,
 } from './timerHelpers'
 
-export function TimeInput({
+export function TimeInputs({
 	active,
 	remainingTime,
 	props,
@@ -90,7 +90,7 @@ export function TimeInput({
 					width,
 				}}
 			/>
-			<MinutesInput
+			<TimeInput
 				remainingTime={minutesRemaining}
 				inputTime={inputMintues}
 				onKeyUp={handleMinuteChange}
@@ -103,7 +103,7 @@ export function TimeInput({
 				canEdit={canEdit}
 			/>
 			<div className="tlui-timer__time-separator">:</div>
-			<MinutesInput
+			<TimeInput
 				remainingTime={secondsRemaining}
 				inputTime={inputSeconds}
 				onKeyUp={handleSecondChange}
@@ -119,7 +119,7 @@ export function TimeInput({
 	)
 }
 
-function MinutesInput({
+function TimeInput({
 	canEdit,
 	remainingTime,
 	inputTime,

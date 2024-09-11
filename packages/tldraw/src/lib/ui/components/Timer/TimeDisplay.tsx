@@ -1,11 +1,11 @@
 import { track, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
-import { TimeInput } from './TimeInput'
+import { TimeInputs } from './TimeInputs'
 import { TLTimerProps } from './Timer'
 import { useGetRemainingTime } from './useGetRemainingTime'
 import { useTimerCounter } from './useTimerCounter'
 
-export const Time = track(function Time({
+export const TimeDisplay = track(function TimeDisplay({
 	props,
 	onClick,
 }: {
@@ -46,7 +46,7 @@ export const Time = track(function Time({
 				onClick?.()
 			}}
 		>
-			<TimeInput active={active} remainingTime={remainingTime} props={props} />
+			<TimeInputs active={active} remainingTime={remainingTime} props={props} />
 		</div>
 	)
 })
