@@ -14,9 +14,11 @@ const DEBUGGING = false
 export function NewsletterSignup({
 	bg = true,
 	size = 'large',
+	hideAfterSubmit = true,
 }: {
 	bg?: boolean
 	size?: 'small' | 'large'
+	hideAfterSubmit?: boolean
 }) {
 	// If the user has submitted their email, we don't show the form anymore
 	const [didSubmit, setDidSubmit] = useLocalStorageState('dev_did_submit_newsletter', false)
@@ -50,7 +52,9 @@ export function NewsletterSignup({
 
 	// If the user has already submitted the form, we don't show it anymore,
 	// unless we're both in development mode AND the debug flag is enabled.
-	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null
+	if (hideAfterSubmit && didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) {
+		return null
+	}
 
 	return (
 		<div

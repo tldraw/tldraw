@@ -23,7 +23,7 @@ export default function Page() {
 				<CTASection />
 			</div>
 			<div className="pb-24">
-				<NewsletterSignup bg={false} />
+				<NewsletterSignup bg={false} hideAfterSubmit={false} />
 			</div>
 		</>
 	)
