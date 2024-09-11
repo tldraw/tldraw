@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import './bisect.css'
 import { prNumbers } from './pr-numbers'
 
 export default function Bisect() {
@@ -85,6 +84,7 @@ export default function Bisect() {
 						<li key={prNumber}>
 							<div className="bisect__item">
 								<a
+									className="mono"
 									style={{
 										color,
 										fontWeight: emphasize ? 'bold' : 'normal',
@@ -99,6 +99,7 @@ export default function Bisect() {
 								{enableButtons && !done && (
 									<>
 										<a
+											className="mono"
 											style={{
 												color,
 												fontWeight: emphasize ? 'bold' : 'normal',

@@ -52,13 +52,6 @@ const router = createBrowserRouter([
 		path: 'end-to-end',
 		lazy: async () => ({ element: <EndToEnd /> }),
 	},
-	{
-		path: 'bisect',
-		lazy: async () => {
-			const Bisect = (await import('./misc/Bisect/Bisect')).default
-			return { element: <Bisect /> }
-		},
-	},
 	...examples.flatMap((exampleArray) =>
 		exampleArray.value.flatMap((example) => [
 			{

@@ -15,7 +15,7 @@ gitLogOutput.split('\n').forEach((line) => {
 	}
 })
 
-const bisectPath = join(REPO_ROOT, 'apps', 'examples', 'src', 'misc', 'Bisect', 'pr-numbers.ts')
+const bisectPath = join(REPO_ROOT, 'apps', 'dev-tools', 'src', 'Bisect', 'pr-numbers.ts')
 
 const code = `
 	/** @public */
