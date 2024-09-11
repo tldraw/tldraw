@@ -18,7 +18,7 @@ export function Hits({ onClose }: { onClose(): void }) {
 	return (
 		<Command.List className="max-h-[32rem] overflow-y-auto p-4 pt-0 border-t border-zinc-100 dark:border-zinc-800">
 			<Command.Empty className="text-center py-8 text-zinc-400 dark:text-zinc-600">
-				Nothing found...
+				Nothing found…
 			</Command.Empty>
 			{items.map((hit) => {
 				const showChapter = hit.section !== section

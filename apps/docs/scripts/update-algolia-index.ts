@@ -148,7 +148,7 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 					path: assertExists(article.path),
 					title: config.formatHeading
 						? config.formatHeading(article, heading.title)
-						: `${article.title} • ${heading.title}`,
+						: `${heading.title} • ${article.title}`,
 					description: '',
 					keywords: [],
 					content: heading.contentText,
@@ -242,6 +242,7 @@ async function updateAlgoliaIndex() {
 			)
 			await index.setSettings({
 				searchableAttributes: ['title', 'description', 'keywords', 'content'],
+				camelCaseAttributes: ['title', 'description', 'keywords', 'content'],
 				// these are only applied _after_ keyword search is complete. if two entries have
 				// the same keyword search score, this will be used to tiebreak them.
 				customRanking: [
