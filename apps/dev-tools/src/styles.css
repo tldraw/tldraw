@@ -68,6 +68,19 @@ a {
 	width: fit-content;
 }
 
+.bisect__button-regular {
+	background-color: #3182ed;
+	color: white;
+	padding: 10px;
+	border-radius: 6px;
+}
+
+.bisect__button-regular-emoji {
+	backgroundcolor: transparent;
+	color: black;
+	padding: 0;
+}
+
 .bisect__good-bad-wrapper {
 	margin-left: 6px;
 	display: flex;

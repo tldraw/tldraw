@@ -11,15 +11,10 @@ export function BisectButton({
 	type?: 'regular' | 'emoji'
 	onClick(): void
 }) {
-	const regular = type === 'regular'
 	return (
 		<button
-			className="bisect__button"
+			className={`bisect__button bisect__button-${type}`}
 			style={{
-				backgroundColor: regular ? '#3182ED' : 'transparent',
-				color: regular ? 'white' : 'black',
-				padding: regular ? '10px' : 0,
-				borderRadius: regular ? '5px' : 0,
 				fontSize: emphasize ? '1.2em' : undefined,
 			}}
 			title={title}
