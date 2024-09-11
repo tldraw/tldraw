@@ -12,14 +12,21 @@ import { ChevronDownIcon } from '@heroicons/react/16/solid'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
-export const NavigationLink: React.FC<{
+export function NavigationLink({
+	caption,
+	icon,
+	href,
+	children,
+	active,
+	closeOnClick = true,
+}: {
 	caption: string
 	icon?: any
 	href?: string
 	children?: { caption: string; href: string }[]
 	active: boolean
 	closeOnClick?: boolean
-}> = ({ caption, icon, href, children, active, closeOnClick = true }) => {
+}) {
 	const Icon = icon
 
 	if (children)

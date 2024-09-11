@@ -111,13 +111,15 @@ export function useDocumentEvents() {
 					// should we allow escape to do its normal thing.
 
 					if (editor.getEditingShape() || editor.getSelectedShapeIds().length > 0) {
-						e.preventDefault()
+						preventDefault(e)
 					}
 
 					// Don't do anything if we open menus open
 					if (editor.getOpenMenus().length > 0) return
 
-					if (!editor.inputs.keys.has('Escape')) {
+					if (editor.inputs.keys.has('Escape')) {
+						// noop
+					} else {
 						editor.inputs.keys.add('Escape')
 
 						editor.cancel()
@@ -126,7 +128,7 @@ export function useDocumentEvents() {
 						// will break additional shortcuts. We need to
 						// refocus the container in order to keep these
 						// shortcuts working.
-						editor.focus()
+						container.focus()
 					}
 					return
 				}

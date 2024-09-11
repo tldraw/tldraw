@@ -1,7 +1,7 @@
 /** @public */
-export const safeParseUrl = (url: string) => {
+export const safeParseUrl = (url: string, baseUrl?: string | URL) => {
 	try {
-		return new URL(url)
+		return new URL(url, baseUrl)
 	} catch (err) {
 		return
 	}

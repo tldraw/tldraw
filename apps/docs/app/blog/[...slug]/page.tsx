@@ -34,13 +34,11 @@ export default async function Page({ params }: { params: { slug: string | string
 	if (content.type === 'category' && content.category.sectionId === 'blog') {
 		const { category } = content
 		const db = await getDb()
-		const section = await db.getSection(content.category.sectionId)
 		const articles = await db.getCategoryArticles(category.sectionId, category.id)
 		return (
 			<BlogCategoryPage
 				title={category.title}
 				description={category.description}
-				section={section}
 				articles={articles}
 			/>
 		)
