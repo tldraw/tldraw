@@ -1929,7 +1929,7 @@ export interface ThemeStylePickerSetProps {
 }
 
 // @public (undocumented)
-export const Timer: NamedExoticComponent<unknown>;
+export function Timer(): JSX_2.Element | null;
 
 // @public (undocumented)
 export interface TimerProps {

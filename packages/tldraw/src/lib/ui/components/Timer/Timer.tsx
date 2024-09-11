@@ -1,4 +1,4 @@
-import { Editor, track } from '@tldraw/editor'
+import { Editor } from '@tldraw/editor'
 import { useState } from 'react'
 import { useTimer } from '../../hooks/useTimer'
 import { TimeDisplay } from './TimeDisplay'
@@ -39,7 +39,7 @@ export interface TimerProps {
 }
 
 /** @public @react */
-export const Timer = track(function Timer() {
+export function Timer() {
 	const { timerProps } = useTimer()
 	const [isExpanded, setIsExpanded] = useState(true)
 	if (!timerProps || timerProps.initialTime === undefined) return null
@@ -52,7 +52,7 @@ export const Timer = track(function Timer() {
 			)}
 		</div>
 	)
-})
+}
 
 function ExpandedTimerView({ props, onCollapse }: { props: TLTimerProps; onCollapse(): void }) {
 	const state = props.state.state
