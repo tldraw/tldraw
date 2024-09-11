@@ -24,7 +24,7 @@ export function Demo() {
 			<Image
 				src={LgTl}
 				alt="Tldraw UI"
-				className="absolute top-0 left-0 w-[345px] h-auto hidden sm:block"
+				className="absolute top-0 left-0 w-[220px] h-auto hidden sm:block"
 			/>
 			<Image
 				src={LgBl}
