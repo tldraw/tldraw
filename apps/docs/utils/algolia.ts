@@ -26,6 +26,12 @@ export interface SearchEntryWithIndex extends SearchEntry {
 
 export type SearchIndexName = 'docs' | 'blog'
 
+const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development'
+const tldrawEnv =
+	vercelEnv === 'preview' && process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF === 'main'
+		? 'staging'
+		: vercelEnv
+
 export function getSearchIndexName(name: SearchIndexName) {
-	return `${name}-${process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development'}`
+	return `${name}-${tldrawEnv}`
 }
