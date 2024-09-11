@@ -1762,6 +1762,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			})
 		}
+		actionItems.map((a) => (a.onSelect = a.onSelect.bind(a)))
 
 		const actions = makeActions(actionItems)
 
