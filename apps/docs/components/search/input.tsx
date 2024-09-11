@@ -4,7 +4,7 @@ import { Command } from 'cmdk'
 import { useEffect, useState } from 'react'
 import { useSearchBox } from 'react-instantsearch'
 
-export const SearchInput = () => {
+export function SearchInput() {
 	const { refine } = useSearchBox()
 	const [search, setSearch] = useState('')
 

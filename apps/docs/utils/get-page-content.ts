@@ -1,14 +1,14 @@
 import { Article, Category, Section } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 
-export const getPageContent = async (
+export async function getPageContent(
 	path: string
 ): Promise<
 	| { type: 'section'; section: Section }
 	| { type: 'category'; category: Category }
 	| { type: 'article'; article: Article }
 	| undefined
-> => {
+> {
 	const db = await getDb()
 
 	const section = await db.db.get(`SELECT * FROM sections WHERE sections.path = ?`, path)

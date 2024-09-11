@@ -22,8 +22,11 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
-// @public (undocumented)
-export function bind<T extends Function>(_target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T> | void;
+// @public
+export function bind<T extends (...args: any[]) => any>(target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
+
+// @public
+export function bind<This extends object, T extends (...args: any[]) => any>(originalMethod: T, context: ClassMethodDecoratorContext<This, T>): void;
 
 // @internal
 export function clearLocalStorage(): void;
@@ -231,6 +234,8 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
+    // (undocumented)
+    static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
     static getVideoSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -376,13 +381,16 @@ export function rng(seed?: string): () => number;
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public (undocumented)
-export const safeParseUrl: (url: string) => undefined | URL;
+export const safeParseUrl: (url: string, baseUrl?: string | URL) => undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
 
 // @internal
 export function setInSessionStorage(key: string, value: string): void;
+
+// @internal (undocumented)
+export function sleep(ms: number): Promise<void>;
 
 // @public (undocumented)
 export function sortById<T extends {

@@ -83,6 +83,7 @@ import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLHighlightShapeProps } from '@tldraw/editor';
 import { TLImageAsset } from '@tldraw/editor';
+import { TLImageExportOptions } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLImageShapeProps } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
@@ -107,7 +108,6 @@ import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
-import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -272,6 +272,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
     // (undocumented)
+    getText(shape: TLBookmarkShape): string;
+    // (undocumented)
     hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX_2.Element;
@@ -392,7 +394,7 @@ export function ConvertToBookmarkMenuItem(): JSX_2.Element | null;
 export function ConvertToEmbedMenuItem(): JSX_2.Element | null;
 
 // @public
-export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: TLSvgOptions): Promise<void>;
+export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: TLImageExportOptions): Promise<void>;
 
 // @public (undocumented)
 export function CopyAsMenuGroup(): JSX_2.Element;
@@ -890,6 +892,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
     // (undocumented)
+    getText(shape: TLEmbedShape): string;
+    // (undocumented)
     hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
     // (undocumented)
     indicator(shape: TLEmbedShape): JSX_2.Element;
@@ -954,7 +958,7 @@ export interface ExampleDialogProps {
 }
 
 // @public
-export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: TLSvgOptions): Promise<void>;
+export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: TLImageExportOptions): Promise<void>;
 
 // @public (undocumented)
 export function ExportFileContentSubMenu(): JSX_2.Element;
@@ -964,7 +968,7 @@ export function exportToBlob({ editor, ids, format, opts, }: {
     editor: Editor;
     format: TLExportType;
     ids: TLShapeId[];
-    opts?: TLSvgOptions;
+    opts?: TLImageExportOptions;
 }): Promise<Blob>;
 
 // @public (undocumented)
@@ -1316,8 +1320,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onDoubleClick(shape: TLImageShape): void;
-    // (undocumented)
     onDoubleClickEdge(shape: TLImageShape): void;
     // (undocumented)
     onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>): TLImageShape;
@@ -1578,7 +1580,7 @@ export interface OverflowingToolbarProps {
 }
 
 // @public (undocumented)
-export const PageItemInput: ({ name, id, isCurrentPage, }: PageItemInputProps) => JSX_2.Element;
+export const PageItemInput: ({ name, id, isCurrentPage, onCancel, }: PageItemInputProps) => JSX_2.Element;
 
 // @public (undocumented)
 export interface PageItemInputProps {
@@ -1588,6 +1590,8 @@ export interface PageItemInputProps {
     isCurrentPage: boolean;
     // (undocumented)
     name: string;
+    // (undocumented)
+    onCancel(): void;
 }
 
 // @public (undocumented)
@@ -2020,7 +2024,8 @@ export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | nul
 export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
 // @public (undocumented)
-export interface TldrawImageProps extends TLSvgOptions {
+export interface TldrawImageProps extends TLImageExportOptions {
+    assetUrls?: TLUiAssetUrlOverrides;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
     licenseKey?: string;
@@ -2066,7 +2071,7 @@ export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerPro
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
+export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, mediaMimeTypes, children, }: TldrawUiContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface TldrawUiContextProviderProps {
@@ -2074,6 +2079,7 @@ export interface TldrawUiContextProviderProps {
     children?: ReactNode;
     components?: TLUiComponents;
     forceMobile?: boolean;
+    mediaMimeTypes?: string[];
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
@@ -2160,7 +2166,7 @@ export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps)
 export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, disableEscapeKeyDown, }: TLUiPopoverContentProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
@@ -2383,6 +2389,8 @@ export interface TLUiComponentsProviderProps {
 export interface TLUiContextMenuProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    disabled?: boolean;
 }
 
 // @public (undocumented)
@@ -2959,6 +2967,8 @@ export interface TLUiPopoverContentProps {
     alignOffset?: number;
     // (undocumented)
     children: React_3.ReactNode;
+    // (undocumented)
+    disableEscapeKeyDown?: boolean;
     // (undocumented)
     side: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
@@ -3782,7 +3792,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static props: RecordProps<TLVideoShape>;
     // (undocumented)
-    toSvg(shape: TLVideoShape): JSX_2.Element;
+    toSvg(shape: TLVideoShape): Promise<JSX_2.Element | null>;
     // (undocumented)
     static type: "video";
 }

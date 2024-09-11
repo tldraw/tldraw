@@ -1,4 +1,5 @@
 /* eslint-disable prefer-rest-params */
+import { assert } from '@tldraw/utils'
 import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
@@ -39,7 +40,7 @@ export type UNINITIALIZED = typeof UNINITIALIZED
  * @param value - The value to check.
  * @public
  */
-export const isUninitialized = (value: any): value is UNINITIALIZED => {
+export function isUninitialized(value: any): value is UNINITIALIZED {
 	return value === UNINITIALIZED
 }
 
@@ -286,7 +287,7 @@ class __UNSAFE__Computed<Value, Diff = unknown> implements Computed<Value, Diff>
 export const _Computed = singleton('Computed', () => __UNSAFE__Computed)
 export type _Computed = InstanceType<typeof __UNSAFE__Computed>
 
-function computedMethodAnnotation(
+function computedMethodLegacyDecorator(
 	options: ComputedOptions<any, any> = {},
 	_target: any,
 	key: string,
@@ -314,21 +315,7 @@ function computedMethodAnnotation(
 	return descriptor
 }
 
-function computedAnnotation(
-	options: ComputedOptions<any, any> = {},
-	_target: any,
-	key: string,
-	descriptor: PropertyDescriptor
-) {
-	if (descriptor.get) {
-		logComputedGetterWarning()
-		return computedGetterAnnotation(options, _target, key, descriptor)
-	} else {
-		return computedMethodAnnotation(options, _target, key, descriptor)
-	}
-}
-
-function computedGetterAnnotation(
+function computedGetterLegacyDecorator(
 	options: ComputedOptions<any, any> = {},
 	_target: any,
 	key: string,
@@ -353,6 +340,52 @@ function computedGetterAnnotation(
 	}
 
 	return descriptor
+}
+
+function computedMethodTc39Decorator<This extends object, Value>(
+	options: ComputedOptions<Value, any>,
+	compute: () => Value,
+	context: ClassMethodDecoratorContext<This, () => Value>
+) {
+	assert(context.kind === 'method', '@computed can only be used on methods')
+	const derivationKey = Symbol.for('__@tldraw/state__computed__' + String(context.name))
+
+	const fn = function (this: any) {
+		let d = this[derivationKey] as Computed<any> | undefined
+
+		if (!d) {
+			d = new _Computed(String(context.name), compute.bind(this) as any, options)
+			Object.defineProperty(this, derivationKey, {
+				enumerable: false,
+				configurable: false,
+				writable: false,
+				value: d,
+			})
+		}
+		return d.get()
+	}
+	fn[isComputedMethodKey] = true
+	return fn
+}
+
+function computedDecorator(
+	options: ComputedOptions<any, any> = {},
+	args:
+		| [target: any, key: string, descriptor: PropertyDescriptor]
+		| [originalMethod: () => any, context: ClassMethodDecoratorContext]
+) {
+	if (args.length === 2) {
+		const [originalMethod, context] = args
+		return computedMethodTc39Decorator(options, originalMethod, context)
+	} else {
+		const [_target, key, descriptor] = args
+		if (descriptor.get) {
+			logComputedGetterWarning()
+			return computedGetterLegacyDecorator(options, _target, key, descriptor)
+		} else {
+			return computedMethodLegacyDecorator(options, _target, key, descriptor)
+		}
+	}
 }
 
 const isComputedMethodKey = '@@__isComputedMethod__@@'
@@ -454,27 +487,44 @@ export function computed<Value, Diff = unknown>(
 	) => Value | WithDiff<Value, Diff>,
 	options?: ComputedOptions<Value, Diff>
 ): Computed<Value, Diff>
-
-/** @public */
+/**
+ * `@computed` decorator (TC39 decorators).
+ * @public
+ */
+export function computed<This extends object, Value>(
+	compute: () => Value,
+	context: ClassMethodDecoratorContext<This, () => Value>
+): () => Value
+/**
+ * `@computed` decorator (legacy typescript decorator syntax).
+ *
+ * @public */
 export function computed(
 	target: any,
 	key: string,
 	descriptor: PropertyDescriptor
 ): PropertyDescriptor
-/** @public */
+/**
+ * `@computed` decorator with options.
+ * @public
+ */
 export function computed<Value, Diff = unknown>(
 	options?: ComputedOptions<Value, Diff>
-): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor
+): ((target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor) &
+	(<This>(
+		compute: () => Value,
+		context: ClassMethodDecoratorContext<This, () => Value>
+	) => () => Value)
+
 /** @public */
 export function computed() {
 	if (arguments.length === 1) {
 		const options = arguments[0]
-		return (target: any, key: string, descriptor: PropertyDescriptor) =>
-			computedAnnotation(options, target, key, descriptor)
+		return (...args: any) => computedDecorator(options, args)
 	} else if (typeof arguments[0] === 'string') {
 		return new _Computed(arguments[0], arguments[1], arguments[2])
 	} else {
-		return computedAnnotation(undefined, arguments[0], arguments[1], arguments[2])
+		return computedDecorator(undefined, arguments as any)
 	}
 }
 

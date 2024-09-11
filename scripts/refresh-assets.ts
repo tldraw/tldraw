@@ -43,7 +43,6 @@ const mergedIconHeader =
 const mergedIconFooter = '</svg>'
 
 // 1. ICONS
-
 async function copyIcons() {
 	// Get a list of all icons
 	const icons = readdirSync(join(ASSETS_FOLDER_PATH, 'icons', 'icon')).filter((icon) =>
@@ -139,7 +138,6 @@ async function copyIcons() {
 }
 
 // 2. EMBED-ICONS
-
 async function copyEmbedIcons() {
 	const folderName = 'embed-icons'
 	const extension = '.png'
@@ -172,7 +170,6 @@ async function copyEmbedIcons() {
 }
 
 // 3. FONTS
-
 async function copyFonts() {
 	const folderName = 'fonts'
 	const extension = '.woff2'
@@ -209,8 +206,7 @@ async function copyFonts() {
 	}
 }
 
-// 3. TRANSLATIONS
-
+// 4. TRANSLATIONS
 async function copyTranslations() {
 	const folderName = 'translations'
 	const extension = '.json'
@@ -306,7 +302,7 @@ async function copyTranslations() {
 	}
 }
 
-// 4. WATERMARKS
+// 5. WATERMARKS
 async function copyWatermarks() {
 	const folderName = 'watermarks'
 	const extension = '.svg'
@@ -323,22 +319,29 @@ async function copyWatermarks() {
 		return { fileName: watermark, data: svg.data }
 	})
 
+	const assetsDestinationPath = join(REPO_ROOT, 'packages', 'assets', folderName)
+	if (existsSync(assetsDestinationPath)) {
+		rmSync(assetsDestinationPath, { recursive: true })
+	}
+	mkdirSync(assetsDestinationPath)
+
 	const file = new CodeFile()
 	for (const { fileName, data } of optimizedItems) {
 		const varName = file.formatName(fileName)
 		file.append(`export const ${varName} = ${JSON.stringify(data)};`)
+		await writeStringFile(join(assetsDestinationPath, fileName), data)
 	}
 
-	const destinationFolderPath = join(REPO_ROOT, 'packages', 'editor', 'src', 'lib', 'watermarks.ts')
+	const codeDestinationPath = join(REPO_ROOT, 'packages', 'editor', 'src', 'lib', 'watermarks.ts')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
-		destinationFolderPath,
+		codeDestinationPath,
 		file.toString()
 	)
 }
 
-// 5. ASSET DECLARATION FILES
+// 6. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
 	const codeFilePath = join(REPO_ROOT, 'packages', 'assets', 'urls.js')
 	const codeFile = new CodeFile(`

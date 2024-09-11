@@ -3,7 +3,7 @@ import { getDb } from '@/utils/ContentDatabase'
 import { ArrowLongLeftIcon, ArrowLongRightIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
-export const DocsFooter: React.FC<{ article: Article }> = async ({ article }) => {
+export async function DocsFooter({ article }: { article: Article }) {
 	const db = await getDb()
 	const links = await db.getArticleLinks(article)
 

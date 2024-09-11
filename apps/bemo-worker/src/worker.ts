@@ -3,7 +3,7 @@
 
 import {
 	handleApiRequest,
-	handleUnfurlRequest,
+	handleExtractBookmarkMetadataRequest,
 	handleUserAssetGet,
 	handleUserAssetUpload,
 	notFound,
@@ -29,13 +29,41 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		})
 		.post('/uploads/:objectName', async (request) => {
 			return handleUserAssetUpload({
-				request,
+				headers: request.headers,
+				body: request.body,
 				bucket: this.env.BEMO_BUCKET,
 				objectName: `asset-uploads/${request.params.objectName}`,
+			})
+		})
+		.get('/bookmarks/unfurl', (request) => {
+			// legacy route: extract metadata without saving image
+			return handleExtractBookmarkMetadataRequest({ request })
+		})
+		.post('/bookmarks/unfurl', (request) => {
+			return handleExtractBookmarkMetadataRequest({
+				request,
+				uploadImage: async (headers, body, objectName) => {
+					const response = await handleUserAssetUpload({
+						body,
+						headers,
+						bucket: this.env.BEMO_BUCKET,
+						objectName: `bookmark-assets/${objectName}`,
+					})
+					if (!response.ok) throw new Error('Failed to upload image')
+
+					const requestUrl = new URL(request.url)
+					return `${requestUrl.origin}/bookmarks/assets/${objectName}`
+				},
+			})
+		})
+		.get('/bookmarks/assets/:objectName', (request) => {
+			return handleUserAssetGet({
+				request,
+				bucket: this.env.BEMO_BUCKET,
+				objectName: `bookmark-assets/${request.params.objectName}`,
 				context: this.ctx,
 			})
 		})
-		.get('/bookmarks/unfurl', handleUnfurlRequest)
 		.get('/connect/:slug', (request) => {
 			const slug = request.params.slug
 			if (!slug) return new Response('Not found', { status: 404 })

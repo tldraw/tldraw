@@ -2,12 +2,16 @@ import { cn } from '@/utils/cn'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import hljs from 'highlight.js/lib/common'
 
-export const CodeFiles: React.FC<{
+export function CodeFiles({
+	files,
+	hideTabs,
+	className,
+}: {
 	files: { name: string; content: any }[]
 	hideCopyButton?: boolean
 	hideTabs?: boolean
 	className?: string
-}> = ({ files, hideTabs, className }) => {
+}) {
 	return (
 		<TabGroup
 			className={cn(

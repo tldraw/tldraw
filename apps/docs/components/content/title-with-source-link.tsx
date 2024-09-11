@@ -3,17 +3,23 @@ import { ArrowRightIcon } from '@heroicons/react/16/solid'
 import { CodeBracketIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
-const Tag: React.FC<{ children: React.ReactNode; tag: string }> = ({ children }) => {
+function Tag({ children }: { children: React.ReactNode; tag: string }) {
 	return <span className="border border-zinc-800 rounded-full px-1.5 text-xs">{children}</span>
 }
 
-export const TitleWithSourceLink: React.FC<{
+export function TitleWithSourceLink({
+	children,
+	source,
+	tags,
+	inherited,
+	large,
+}: {
 	children: React.ReactNode
 	source?: string | null
 	large?: boolean
 	tags?: string[]
 	inherited?: { name: string; link: string }
-}> = ({ children, source, tags, inherited, large }) => {
+}) {
 	return (
 		<>
 			<div className="flex items-end gap-2 prose-headings:mb-0">

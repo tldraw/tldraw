@@ -6,7 +6,7 @@ import { HeadingsMenu } from '@/components/navigation/headings-menu'
 import { Article } from '@/types/content-types'
 import { getDb } from '@/utils/ContentDatabase'
 
-export const BlogTableOfContents: React.FC<{ article: Article }> = async ({ article }) => {
+export async function BlogTableOfContents({ article }: { article: Article }) {
 	const db = await getDb()
 	const headings = await db.getArticleHeadings(article.id)
 

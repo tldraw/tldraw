@@ -1,176 +1,176 @@
-import { useValue } from '@tldraw/state-react'
-import { fetch } from '@tldraw/utils'
-import React, { useEffect, useState } from 'react'
+import { useQuickReactor, useValue } from '@tldraw/state-react'
+import { memo, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
-import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { featureFlags } from '../utils/debug-flags'
 import { stopEventPropagation } from '../utils/dom'
-import { watermarkDesktopSvg } from '../watermarks'
+import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
 
-/** @internal */
-export const WATERMARK_REMOTE_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-desktop.svg`
-export const WATERMARK_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
-
-let watermarkUrlPromise: Promise<string> | null = null
-async function getWatermarkUrl(forceLocal: boolean): Promise<string> {
-	if (forceLocal) {
-		return WATERMARK_LOCAL_SRC
-	}
-
-	if (!watermarkUrlPromise) {
-		watermarkUrlPromise = Promise.race([
-			// try and load the remote watermark, if it fails, fallback to the local one
-			(async () => {
-				try {
-					const response = await fetch(WATERMARK_REMOTE_SRC)
-					if (!response.ok) return WATERMARK_LOCAL_SRC
-					const blob = await response.blob()
-					return URL.createObjectURL(blob)
-				} catch {
-					return WATERMARK_LOCAL_SRC
-				}
-			})(),
-
-			// but if that's taking a long time (>3s) just show the local one anyway
-			new Promise<string>((resolve) => {
-				// eslint-disable-next-line no-restricted-globals
-				setTimeout(() => {
-					resolve(WATERMARK_LOCAL_SRC)
-				}, 3_000)
-			}),
-		])
-	}
-
-	return watermarkUrlPromise
-}
+const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
+const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkMobileSvg)}`
 
 /** @internal */
-export const Watermark = React.memo(function Watermark({
-	forceLocal = false,
-}: {
-	forceLocal?: boolean
-}) {
-	const events = useCanvasEvents()
-
-	const editor = useEditor()
+export const Watermark = memo(function Watermark() {
 	const licenseManager = useLicenseContext()
+	const editor = useEditor()
+	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
+		editor,
+	])
+	const [src, setSrc] = useState<string | null>(null)
 
-	const showWatermark = useValue(
-		'show watermark',
-		() =>
-			featureFlags.enableLicensing.get() &&
-			editor.getViewportScreenBounds().width > 760 &&
-			['licensed-with-watermark', 'unlicensed'].includes(licenseManager.state.get()),
-		[editor, licenseManager]
+	useQuickReactor(
+		'set watermark src',
+		async () => {
+			const showWatermark =
+				featureFlags.enableLicensing.get() &&
+				['licensed-with-watermark', 'unlicensed'].includes(licenseManager.state.get())
+
+			if (showWatermark) {
+				setSrc(isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC)
+			}
+		},
+		[licenseManager, isMobile]
 	)
 
-	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
-	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
-
-	const [src, setSrc] = useState<string | null>(null)
-	const shouldUseLocal = forceLocal || licenseManager.isDevelopment
-	useEffect(() => {
-		if (!showWatermark) return
-
-		let isCancelled = false
-
-		;(async () => {
-			const src = await getWatermarkUrl(shouldUseLocal)
-			if (isCancelled) return
-			setSrc(src)
-		})()
-
-		return () => {
-			isCancelled = true
-		}
-	}, [shouldUseLocal, showWatermark])
-
-	if (!showWatermark || !src) return null
-
-	const className = LicenseManager.className
-	const maskCss = `url('${src}') center 100% / 100% no-repeat`
+	if (!src) return null
 
 	return (
 		<>
-			<style>
-				{`
-/* ------------------- SEE LICENSE -------------------
+			<LicenseStyles />
+			<WatermarkInner src={src} />
+		</>
+	)
+})
+
+const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
+	const editor = useEditor()
+	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
+	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
+	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
+		editor,
+	])
+	const events = useCanvasEvents()
+
+	const maskCss = `url('${src}') center 100% / 100% no-repeat`
+
+	return (
+		<div
+			className={LicenseManager.className}
+			data-debug={isDebugMode}
+			data-menu={isMenuOpen}
+			data-mobile={isMobile}
+			draggable={false}
+			{...events}
+		>
+			<a
+				href="https://tldraw.dev"
+				target="_blank"
+				rel="noreferrer"
+				draggable={false}
+				onPointerDown={stopEventPropagation}
+				style={{ mask: maskCss, WebkitMask: maskCss }}
+			/>
+		</div>
+	)
+})
+
+const LicenseStyles = memo(function LicenseStyles() {
+	const className = LicenseManager.className
+
+	const CSS = `/* ------------------- SEE LICENSE -------------------
 The tldraw watermark is part of tldraw's license. It is shown for unlicensed
 or "licensed-with-watermark" users. By using this library, you agree to
-keep the watermark's behavior, keeping it visible, unobscured, and
+preserve the watermark's behavior, keeping it visible, unobscured, and
 available to user-interaction.
 
 To remove the watermark, please purchase a license at tldraw.dev.
 */
 
-.${className} {
-	position: absolute;
-	bottom: var(--space-2);
-	right: var(--space-2);
-	width: 96px;
-	height: 32px;
-	z-index: 2147483647 !important;
-	pointer-events: ${isMenuOpen ? 'none' : 'all'};
-	background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
-	border-radius: 5px;
-	padding: 2px;
-	box-sizing: content-box;
-}
-
-.${className}[data-debug='true'] {
-	bottom: 46px;
-}
-
-.${className} > a {
-	position: absolute;
-	width: 96px;
-	height: 32px;
-	pointer-events: none;
-	cursor: inherit;
-	color: var(--color-text);
-	background-color: currentColor;
-	opacity: .28;
-}
-
-@media (hover: hover) {
-	.${className}:hover {
-		background-color: var(--color-background);
-		transition: background-color 0.2s ease-in-out;
-		transition-delay: 0.32s;
+	.${className} {
+		position: absolute;
+		bottom: var(--space-2);
+		right: var(--space-2);
+		width: 96px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 2147483647 !important;
+		background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
+		opacity: .5;
+		border-radius: 5px;
+		pointer-events: all;
+		padding: 2px;
+		box-sizing: content-box;
 	}
-	.${className}:hover > a {
-		animation: delayed_link 0.2s forwards ease-in-out;
-		animation-delay: 0.32s;
-	}
-}
-
-@keyframes delayed_link {
-	0% {
+	
+	.${className} > a {
+		position: absolute;
+		width: 96px;
+		height: 32px;
+		pointer-events: all;
 		cursor: inherit;
-		opacity: .38;
+		color: var(--color-text);
+		background-color: currentColor;
+	}
+
+	
+	.${className}[data-menu='true'] {
 		pointer-events: none;
 	}
-	100% {
-		cursor: pointer;
-		opacity: 1;
-		pointer-events: all;
+
+	.${className}[data-debug='true'] {
+		bottom: 46px;
 	}
-}
-`}
-			</style>
-			<div className={className} data-debug={isDebugMode} draggable={false} {...events}>
-				<a
-					href="https://tldraw.dev"
-					target="_blank"
-					rel="noreferrer"
-					draggable={false}
-					onPointerDown={stopEventPropagation}
-					style={{ mask: maskCss, WebkitMask: maskCss }}
-				/>
-			</div>
-		</>
-	)
+	
+	.${className}[data-mobile='true'] {
+		border-radius: 4px 0px 0px 4px;
+		right: -2px;
+		width: 8px;
+		height: 48px;
+	}
+
+	.${className}[data-mobile='true'] > a {
+		width: 8px;
+		height: 32px;
+	}
+	
+	@media (hover: hover) {
+		.${className}[data-mobile='true'] > a {
+			opacity: .62;
+			pointer-events: none;
+		}
+
+		.${className} > a {
+			opacity: .28;
+			pointer-events: none;
+		}
+
+		.${className}:hover {
+			background-color: var(--color-background);
+			transition: background-color 0.2s ease-in-out;
+			transition-delay: 0.32s;
+		}
+		.${className}:hover > a {
+			animation: delayed_link 0.2s forwards ease-in-out;
+			animation-delay: 0.32s;
+		}
+	}
+	
+	@keyframes delayed_link {
+		0% {
+			cursor: inherit;
+			opacity: .38;
+			pointer-events: none;
+		}
+		100% {
+			cursor: pointer;
+			opacity: 1;
+			pointer-events: all;
+		}
+	}`
+
+	return <style>{CSS}</style>
 })

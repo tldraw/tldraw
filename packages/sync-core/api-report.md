@@ -83,7 +83,7 @@ export class DocumentState<R extends UnknownRecord> {
 }
 
 // @internal
-export const getNetworkDiff: <R extends UnknownRecord>(diff: RecordsDiff<R>) => NetworkDiff<R> | null;
+export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): NetworkDiff<R> | null;
 
 // @internal (undocumented)
 export function getTlsyncProtocolVersion(): number;

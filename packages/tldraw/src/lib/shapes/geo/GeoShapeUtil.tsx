@@ -436,7 +436,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { fill, font, align, verticalAlign, size, text } = props
 		const theme = useDefaultColorTheme()
 		const { editor } = this
-		const isSelected = shape.id === editor.getOnlySelectedShapeId()
+		const isOnlySelected = useValue(
+			'isGeoOnlySelected',
+			() => shape.id === editor.getOnlySelectedShapeId(),
+			[]
+		)
 		const isEditingAnything = editor.getEditingShapeId() !== null
 		const showHtmlContainer = isEditingAnything || shape.props.text
 		const isForceSolid = useValue(
@@ -471,7 +475,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}
-							isSelected={isSelected}
+							isSelected={isOnlySelected}
 							labelColor={theme[props.labelColor].solid}
 							wrap
 						/>

@@ -19,11 +19,6 @@ export default async function Page() {
 	const articles = categoriesWithArticles.map(({ value: { articles } }) => articles).flat()
 
 	return (
-		<BlogCategoryPage
-			title="All Posts"
-			description={section.description}
-			section={section}
-			articles={articles}
-		/>
+		<BlogCategoryPage title="All Posts" description={section.description} articles={articles} />
 	)
 }

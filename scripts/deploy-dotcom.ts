@@ -65,6 +65,11 @@ const discord = new Discord({
 const { previewId, sha } = getDeployInfo()
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
 
+if (previewId) {
+	env.ASSET_UPLOAD = `https://${previewId}-tldraw-assets.tldraw.workers.dev`
+	env.MULTIPLAYER_SERVER = `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
+}
+
 async function main() {
 	assert(
 		env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'production' || env.TLDRAW_ENV === 'preview',
@@ -146,13 +151,9 @@ async function prepareDotcomApp() {
 	await exec('yarn', ['build-app'], {
 		env: {
 			NEXT_PUBLIC_TLDRAW_RELEASE_INFO: `${env.RELEASE_COMMIT_HASH} ${new Date().toISOString()}`,
-			ASSET_UPLOAD: previewId
-				? `https://${previewId}-tldraw-assets.tldraw.workers.dev`
-				: env.ASSET_UPLOAD,
+			ASSET_UPLOAD: env.ASSET_UPLOAD,
 			IMAGE_WORKER: env.IMAGE_WORKER,
-			MULTIPLAYER_SERVER: previewId
-				? `https://${previewId}-tldraw-multiplayer.tldraw.workers.dev`
-				: env.MULTIPLAYER_SERVER,
+			MULTIPLAYER_SERVER: env.MULTIPLAYER_SERVER,
 			NEXT_PUBLIC_CONTROL_SERVER: 'https://control.tldraw.com',
 			NEXT_PUBLIC_GC_API_KEY: env.GC_MAPS_API_KEY,
 			SENTRY_AUTH_TOKEN: env.SENTRY_AUTH_TOKEN,
@@ -206,6 +207,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			SENTRY_DSN: env.WORKER_SENTRY_DSN,
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			APP_ORIGIN: env.APP_ORIGIN,
+			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			WORKER_NAME: workerId,
 		},
 		sentry: {

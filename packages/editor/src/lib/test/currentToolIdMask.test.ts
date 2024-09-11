@@ -1,3 +1,4 @@
+import { describe } from 'node:test'
 import { createTLStore } from '../config/createTLStore'
 import { Editor } from '../editor/Editor'
 import { StateNode } from '../editor/tools/StateNode'

@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn'
 
-export const Embed = (props: any) => {
+export function Embed(props: any) {
 	return (
 		<div>
 			<div className="bg-zinc-100 dark:bg-zinc-700 py-1 md:rounded-2xl -mx-5 md:-mx-1 md:px-1">

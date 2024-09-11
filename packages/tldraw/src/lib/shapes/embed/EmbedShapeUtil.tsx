@@ -12,6 +12,7 @@ import {
 	resizeBox,
 	toDomPrecision,
 	useIsEditing,
+	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 
@@ -49,6 +50,10 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	getEmbedDefinition(url: string): TLEmbedResult {
 		return getEmbedInfo(this.embedDefinitions, url)
+	}
+
+	override getText(shape: TLEmbedShape) {
+		return shape.props.url
 	}
 
 	override hideSelectionBoundsFg(shape: TLEmbedShape) {
@@ -99,6 +104,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override component(shape: TLEmbedShape) {
+		const svgExport = useSvgExportContext()
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 
@@ -122,6 +128,25 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		)
 
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
+
+		if (svgExport) {
+			// for SVG exports, we show a blank embed
+			return (
+				<HTMLContainer className="tl-embed-container" id={shape.id}>
+					<div
+						className="tl-embed"
+						style={{
+							border: 0,
+							boxShadow: getRotatedBoxShadow(pageRotation),
+							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
+							background: embedInfo?.definition.backgroundColor ?? 'var(--color-background)',
+							width: w,
+							height: h,
+						}}
+					/>
+				</HTMLContainer>
+			)
+		}
 
 		const isInteractive = isEditing || isHoveringWhileEditingSameShape
 

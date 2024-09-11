@@ -111,6 +111,7 @@ export async function getApiMarkdown(
 	}
 
 	await addFrontmatter(model, result, item, categoryName, j)
+	await addDeprecationNotice(result, item)
 
 	if (toc.markdown.length) {
 		result.markdown += `<details className="article__table-of-contents">\n\t<summary>Table of contents</summary>\n`
@@ -248,6 +249,7 @@ async function addMarkdownForMember(
 ) {
 	if (item.displayName.startsWith('_')) return
 	addMemberNameAndMeta(result, model, item, { isComponentProp, inheritedFrom })
+	await addDeprecationNotice(result, item)
 	await addDocComment(model, result, item)
 }
 
@@ -470,6 +472,17 @@ async function addDocComment(model: TldrawApiModel, result: Result, member: ApiI
 		}
 	} else {
 		model.nonBlockingError(member, `Unknown member kind: ${member.kind}`)
+	}
+}
+
+async function addDeprecationNotice(result: Result, member: ApiItem) {
+	if (member instanceof ApiDocumentedItem && member.tsdocComment?.deprecatedBlock?.content) {
+		result.markdown += `<Callout type="warning">\n\n**Deprecated:**`
+		result.markdown += await MarkdownWriter.docNodeToMarkdown(
+			member,
+			member.tsdocComment.deprecatedBlock.content
+		)
+		result.markdown += `\n\n</Callout>\n\n`
 	}
 }
 

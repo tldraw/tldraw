@@ -12,7 +12,7 @@ const searchClient = algoliasearch(
 	process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY!
 )
 
-export const Search: React.FC<{ type: 'blog' | 'docs' }> = ({ type }) => {
+export function Search({ type }: { type: 'blog' | 'docs' }) {
 	return (
 		<InstantSearch indexName={type} searchClient={searchClient}>
 			<Command

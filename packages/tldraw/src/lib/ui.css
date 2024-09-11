@@ -211,6 +211,10 @@
 	margin-right: -2px;
 }
 
+.tlui-button__tool:focus-visible:not(:hover) {
+	border-radius: var(--radius-4);
+}
+
 .tlui-button__tool:nth-of-type(1) {
 	margin-left: 0px;
 }
@@ -245,7 +249,7 @@
 
 .tlui-layout__mobile .tlui-button__tool {
 	height: 48px;
-	width: 44px;
+	width: 43px;
 }
 
 .tlui-layout__mobile .tlui-button__tool > .tlui-icon {
@@ -806,6 +810,20 @@
 	color: var(--color-text-1);
 	user-select: all;
 	-webkit-user-select: text;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+.tlui-dialog__body a {
+	color: var(--color-selected);
+}
+
+.tlui-dialog__body ul,
+.tlui-dialog__body ol {
+	padding-left: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
 }
 
 .tlui-dialog__footer {

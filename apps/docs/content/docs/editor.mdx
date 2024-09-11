@@ -520,9 +520,31 @@ define a number of different callbacks describing how the binding should behave.
 [BindingUtil](?) reference or a [complete example of a
 binding](/examples/shapes/tools/sticker-bindings) for details.
 
-If the strucutre of your binding needs to change over time, you can provide
+If the structure of your binding needs to change over time, you can provide
 [migrations](/docs/persistence#Shape-props-migrations) describing how old stored bindings can be
 brought up to date.
+
+## Image exports
+
+You can export the contents of the canvas to an image with [`exportToBlob`](?).
+
+Image exports draw your shapes as an SVG, then convert the SVG to another format (like a PNG) if needed. Use [`Editor#getSvgElement`](?) or [`Editor#getSvgString`](?) if you want to work with the SVG directly.
+
+### Exporting custom shapes
+
+By default, custom shape exports use the [`ShapeUtil#component`](?) method that's used to render your shape normally. We embed the result in a [`<foreignObject>`](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/foreignObject) element. This works well for most shapes, but isn't perfect (see [below](#Export-limitations)). For more control over exports, you can implement [`ShapeUtil#toSvg`](?) to properly convert your shape to an SVG.
+
+Use the [`useSvgExportContext`](?) hook to check if your shape is being rendered for an SVG export. If you need to load data or assets asynchronously, use the [`useDelaySvgExport`](?) hook to delay the export until you're ready.
+
+SVGs can't refer to any external assets like images, fonts, or CSS. Everything needs to be included inline in the SVG, with images and fonts converted to data URLs. `<foreignObject>` exports that use the `component` methods try to handle this automatically, but if you implement `toSvg` you'll need to do it yourself. You can use [`SvgExportContext#addExportDef`](?) to add definitions to the SVG that can be shared by multiple shapes.
+
+### Export limitations
+
+Hand-authored `toSvg` are typically very reliable and have good compatibility with other SVG tools. However, most SVG editors (and even some viewers) don't support the `<foreignObject>` element, so the default `component` based exports don't work as well outside of the browser. If you want to make sure that your exports look the same in all viewers, either implement `toSvg` or convert directly to a PNG or other raster format.
+
+Even within browsers though, `<foreignObject>`s and the method we use to create them aren't always 100% reliable. Chromium based browsers tend to work well, but Firefox occasionally has layout issues, and Safari has rendering quirks with effects like box shadows. It's sometimes useful to apply different styles during exports in certain browsers.
+
+We can only embed external assets such as images and font files if they're either hosted on the same origin as tldraw, or have [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers set. If external assets are missing from your export, check your browser's network tab to see if these are being requested and if anything is going wrong with them.
 
 # Common things to do with the editor
 

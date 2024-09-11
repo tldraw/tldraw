@@ -74,16 +74,19 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 }
 
 /** @public */
+export interface StoreValidationFailure<R extends UnknownRecord> {
+	error: unknown
+	store: Store<R>
+	record: R
+	phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
+	recordBefore: R | null
+}
+
+/** @public */
 export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 	migrations?: MigrationSequence[]
 	/** @public */
-	onValidationFailure?(data: {
-		error: unknown
-		store: Store<R>
-		record: R
-		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
-		recordBefore: R | null
-	}): R
+	onValidationFailure?(data: StoreValidationFailure<R>): R
 	/** @internal */
 	createIntegrityChecker?(store: Store<R, P>): void
 }

@@ -38,6 +38,7 @@ export interface Environment {
 	SENTRY_CSP_REPORT_URI: string | undefined
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
+	ASSET_UPLOAD_ORIGIN: string | undefined
 }
 
 export type DBLoadResult =

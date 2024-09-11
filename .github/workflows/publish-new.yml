@@ -1,4 +1,4 @@
-name: Publish new packages from main
+name: Publish new SDK release from main (minor version bump)
 # This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
 
 # Prevent more than one non-canary npm publishing job from running at the same time

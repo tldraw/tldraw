@@ -1,4 +1,4 @@
-import { BuildOptions, build } from 'esbuild'
+import { build } from 'esbuild'
 import { copyFileSync, existsSync } from 'fs'
 import glob from 'glob'
 import kleur from 'kleur'
@@ -77,28 +77,6 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 	)
 }
 
-function getCommonEsbuildOptions(info: LibraryInfo) {
-	const define: Record<string, string> = {}
-	if (process.env.TLDRAW_BEMO_URL) {
-		define['process.env.TLDRAW_BEMO_URL'] = JSON.stringify(process.env.TLDRAW_BEMO_URL)
-	}
-
-	// we use `globalThis` instead of `process.env` because although it'll get compiled away in
-	// library code, we use the un-compiled versions in our own apps and not every environment
-	// supports process.env.
-	define['globalThis.TLDRAW_LIBRARY_NAME'] = JSON.stringify(info.name)
-	define['globalThis.TLDRAW_LIBRARY_VERSION'] = JSON.stringify(info.version)
-	define['globalThis.TLDRAW_LIBRARY_MODULES'] = JSON.stringify(info.moduleSystem)
-	define['globalThis.TLDRAW_LIBRARY_IS_BUILD'] = JSON.stringify(true)
-
-	return {
-		bundle: false,
-		platform: 'neutral',
-		sourcemap: true,
-		define,
-	} satisfies BuildOptions
-}
-
 /** This uses esbuild to build the esm version of the package */
 async function buildLibrary({
 	sourceFiles,
@@ -113,12 +91,29 @@ async function buildLibrary({
 	const outdir = path.join(sourcePackageDir, dirName)
 	rimraf.sync(outdir)
 
+	const define: Record<string, string> = {}
+	if (process.env.TLDRAW_BEMO_URL) {
+		define['process.env.TLDRAW_BEMO_URL'] = JSON.stringify(process.env.TLDRAW_BEMO_URL)
+	}
+
+	// we use `globalThis` instead of `process.env` because although it'll get compiled away in
+	// library code, we use the un-compiled versions in our own apps and not every environment
+	// supports process.env.
+	define['globalThis.TLDRAW_LIBRARY_NAME'] = JSON.stringify(info.name)
+	define['globalThis.TLDRAW_LIBRARY_VERSION'] = JSON.stringify(info.version)
+	define['globalThis.TLDRAW_LIBRARY_MODULES'] = JSON.stringify(info.moduleSystem)
+	define['globalThis.TLDRAW_LIBRARY_IS_BUILD'] = JSON.stringify(true)
+
 	const res = await build({
 		entryPoints: sourceFiles,
 		outdir,
 		format: info.moduleSystem,
 		outExtension: info.moduleSystem === 'esm' ? { '.js': '.mjs' } : undefined,
-		...getCommonEsbuildOptions(info),
+		bundle: false,
+		platform: 'neutral',
+		sourcemap: true,
+		target: 'es2022',
+		define,
 	})
 
 	if (info.moduleSystem === 'esm') {

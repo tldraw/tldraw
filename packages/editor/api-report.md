@@ -480,7 +480,7 @@ export { computed }
 // @internal (undocumented)
 export function ContainerProvider({ container, children, }: {
     children: React.ReactNode;
-    container: HTMLDivElement;
+    container: HTMLElement;
 }): JSX_2.Element;
 
 // @public (undocumented)
@@ -711,6 +711,7 @@ export const defaultTldrawOptions: {
     readonly hitTestMargin: 8;
     readonly laserDelayMs: 1200;
     readonly longPressDurationMs: 500;
+    readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
     readonly maxPages: 40;
     readonly maxPointsPerDrawShape: 500;
@@ -994,14 +995,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
-    getRenderingShapes(): {
-        backgroundIndex: number;
-        id: TLShapeId;
-        index: number;
-        opacity: number;
-        shape: TLShape;
-        util: ShapeUtil<TLUnknownShape>;
-    }[];
+    getRenderingShapes(): TLRenderingShape[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -1058,27 +1052,20 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // @deprecated (undocumented)
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<SVGSVGElement | undefined>;
-    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<{
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<SVGSVGElement | undefined>;
+    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
         width: number;
     } | undefined>;
-    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<{
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
         height: number;
         svg: string;
         width: number;
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
     // @internal (undocumented)
-    getUnorderedRenderingShapes(useEditorState: boolean): {
-        backgroundIndex: number;
-        id: TLShapeId;
-        index: number;
-        opacity: number;
-        shape: TLShape;
-        util: ShapeUtil;
-    }[];
+    getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
@@ -1717,6 +1704,8 @@ export class LicenseManager {
     isTest: boolean;
     // (undocumented)
     state: Atom<"licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
+    // (undocumented)
+    verbose: boolean;
 }
 
 // @public (undocumented)
@@ -2391,6 +2380,7 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly isDarkMode: boolean;
+    waitUntil(promise: Promise<void>): void;
 }
 
 // @public (undocumented)
@@ -2739,6 +2729,8 @@ export interface TldrawOptions {
     // (undocumented)
     readonly longPressDurationMs: number;
     // (undocumented)
+    readonly maxExportDelayMs: number;
+    // (undocumented)
     readonly maxFilesAtOnce: number;
     // (undocumented)
     readonly maxPages: number;
@@ -3061,6 +3053,22 @@ export interface TLHistoryMark {
 }
 
 // @public (undocumented)
+export interface TLImageExportOptions {
+    // (undocumented)
+    background?: boolean;
+    // (undocumented)
+    bounds?: Box;
+    // (undocumented)
+    darkMode?: boolean;
+    // (undocumented)
+    padding?: number;
+    // (undocumented)
+    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    // (undocumented)
+    scale?: number;
+}
+
+// @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
 
 // @public (undocumented)
@@ -3168,6 +3176,22 @@ export type TLPointerEventTarget = {
     shape?: undefined;
     target: 'canvas';
 };
+
+// @public (undocumented)
+export interface TLRenderingShape {
+    // (undocumented)
+    backgroundIndex: number;
+    // (undocumented)
+    id: TLShapeId;
+    // (undocumented)
+    index: number;
+    // (undocumented)
+    opacity: number;
+    // (undocumented)
+    shape: TLShape;
+    // (undocumented)
+    util: ShapeUtil;
+}
 
 // @public (undocumented)
 export type TLResizeHandle = SelectionCorner | SelectionEdge;
@@ -3411,21 +3435,8 @@ export type TLStoreWithStatus = {
     readonly store: TLStore;
 };
 
-// @public (undocumented)
-export interface TLSvgOptions {
-    // (undocumented)
-    background?: boolean;
-    // (undocumented)
-    bounds?: Box;
-    // (undocumented)
-    darkMode?: boolean;
-    // (undocumented)
-    padding?: number;
-    // (undocumented)
-    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
-    // (undocumented)
-    scale?: number;
-}
+// @public @deprecated (undocumented)
+export type TLSvgOptions = TLImageExportOptions;
 
 // @public (undocumented)
 export type TLTickEvent = (info: TLTickEventInfo) => void;
@@ -3515,7 +3526,10 @@ export function uniq<T>(array: {
 export { useComputed }
 
 // @public (undocumented)
-export function useContainer(): HTMLDivElement;
+export function useContainer(): HTMLElement;
+
+// @public
+export function useDelaySvgExport(): () => void;
 
 // @public (undocumented)
 export function useEditor(): Editor;
@@ -3615,7 +3629,7 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 };
 
 // @internal (undocumented)
-export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
+export function useShallowArrayIdentity<T extends null | readonly any[] | undefined>(arr: T): T;
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
@@ -3623,9 +3637,7 @@ export function useShallowObjectIdentity<T extends null | object | undefined>(ob
 export { useStateTracking }
 
 // @public
-export function useSvgExportContext(): {
-    isDarkMode: boolean;
-} | null;
+export function useSvgExportContext(): null | SvgExportContext;
 
 // @public (undocumented)
 export function useTldrawUser(opts: {

@@ -369,7 +369,7 @@ function ShapesWithSVGs() {
 	return renderingShapes.map((result) => (
 		<Fragment key={result.id + '_fragment'}>
 			<Shape {...result} />
-			<DebugSvgCopy id={result.id} />
+			<DebugSvgCopy id={result.id} mode="iframe" />
 		</Fragment>
 	))
 }
@@ -450,7 +450,7 @@ function CollaboratorHintDef() {
 	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }
 
-function DebugSvgCopy({ id }: { id: TLShapeId }) {
+function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 	const editor = useEditor()
 
 	const [image, setImage] = useState<{ src: string; bounds: Box } | null>(null)
@@ -497,6 +497,25 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 
 	if (!isInRoot || !image) return null
 
+	if (mode === 'iframe') {
+		return (
+			<iframe
+				src={image.src}
+				width={image.bounds.width}
+				height={image.bounds.height}
+				referrerPolicy="no-referrer"
+				style={{
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					border: 'none',
+					transform: `translate(${image.bounds.x}px, ${image.bounds.maxY + 12}px)`,
+					outline: '1px solid black',
+					maxWidth: 'none',
+				}}
+			/>
+		)
+	}
 	return (
 		<img
 			src={image.src}

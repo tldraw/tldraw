@@ -1,4 +1,4 @@
-name: Trigger production build
+name: Trigger dotcom release
 
 on:
   push:

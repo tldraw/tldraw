@@ -1,15 +1,10 @@
 import {
 	Editor,
 	FileHelpers,
-	TLArrowShape,
-	TLBookmarkShape,
-	TLEmbedShape,
 	TLExternalContentSource,
-	TLGeoShape,
-	TLTextShape,
 	Vec,
 	VecLike,
-	isNonNull,
+	isDefined,
 	preventDefault,
 	stopEventPropagation,
 	uniq,
@@ -511,22 +506,10 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		// Extract the text from the clipboard
 		const textItems = content.shapes
 			.map((shape) => {
-				if (
-					editor.isShapeOfType<TLTextShape>(shape, 'text') ||
-					editor.isShapeOfType<TLGeoShape>(shape, 'geo') ||
-					editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
-				) {
-					return shape.props.text
-				}
-				if (
-					editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') ||
-					editor.isShapeOfType<TLEmbedShape>(shape, 'embed')
-				) {
-					return shape.props.url
-				}
-				return null
+				const util = editor.getShapeUtil(shape)
+				return util.getText(shape)
 			})
-			.filter(isNonNull)
+			.filter(isDefined)
 
 		if (navigator.clipboard?.write) {
 			const htmlBlob = new Blob([`<div data-tldraw>${stringifiedClipboard}</div>`], {

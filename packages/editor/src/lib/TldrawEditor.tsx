@@ -9,6 +9,7 @@ import React, {
 	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 	useSyncExternalStore,
 } from 'react'
 
@@ -214,7 +215,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	user: _user,
 	...rest
 }: TldrawEditorProps) {
-	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
+	const [container, setContainer] = useState<HTMLElement | null>()
 	const user = useMemo(() => _user ?? createTLUser(), [_user])
 
 	const ErrorFallback =

@@ -64,7 +64,7 @@ export function WrappedTldrawEditor() {
 	)
 }
 
-export const TldrawWrapper = () => {
+export function TldrawWrapper() {
 	const [tldrawInnerProps, setTldrawInnerProps] = useState<TLDrawInnerProps | null>(null)
 
 	useEffect(() => {

@@ -1,6 +1,4 @@
-import { FC } from 'react'
-
-export const Loader: FC<{ className?: string }> = ({ className }) => {
+export function Loader({ className }: { className?: string }) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

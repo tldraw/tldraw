@@ -14,7 +14,6 @@
 		"incremental": true,
 		"jsx": "react-jsx",
 		"lib": ["dom", "DOM.Iterable", "esnext"],
-		"experimentalDecorators": true,
 		"module": "esnext",
 		"target": "esnext",
 		"moduleResolution": "node",
