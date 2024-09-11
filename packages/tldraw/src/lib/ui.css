@@ -1823,10 +1823,14 @@
 	color: var(--color-text-1);
 	z-index: 1;
 	font-size: 18px;
-	width: 30px;
+	width: 25px;
 	text-align: center;
 	padding: 0;
 	display: block;
+}
+
+.tlui-timer__time-separator {
+	z-index: 1;
 }
 
 .tlui-timer__quick-actions-wrapper {
