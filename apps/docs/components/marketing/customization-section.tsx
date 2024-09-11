@@ -12,7 +12,7 @@ import {
 import Link from 'next/link'
 import { ArrowUp } from './arrow-up'
 
-export const CustomizationSection = async () => {
+export async function CustomizationSection() {
 	return (
 		<Section>
 			<SectionHeading

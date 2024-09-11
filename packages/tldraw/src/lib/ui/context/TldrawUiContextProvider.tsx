@@ -1,6 +1,7 @@
 import { RecursivePartial } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
+import { MimeTypeContext } from '../hooks/useInsertMedia'
 import { ToolsProvider } from '../hooks/useTools'
 import { TranslationProvider } from '../hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from '../overrides'
@@ -43,6 +44,11 @@ export interface TldrawUiContextProviderProps {
 	 * The component's children.
 	 */
 	children?: ReactNode
+
+	/**
+	 * Supported mime types for media files.
+	 */
+	mediaMimeTypes?: string[]
 }
 
 /** @public @react */
@@ -52,24 +58,27 @@ export function TldrawUiContextProvider({
 	assetUrls,
 	onUiEvent,
 	forceMobile,
+	mediaMimeTypes,
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
-		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
-			<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
-				<UiEventsProvider onEvent={onUiEvent}>
-					<ToastsProvider>
-						<DialogsProvider>
-							<BreakPointProvider forceMobile={forceMobile}>
-								<TldrawUiComponentsProvider overrides={components}>
-									<InternalProviders overrides={overrides}>{children}</InternalProviders>
-								</TldrawUiComponentsProvider>
-							</BreakPointProvider>
-						</DialogsProvider>
-					</ToastsProvider>
-				</UiEventsProvider>
-			</TranslationProvider>
-		</AssetUrlsProvider>
+		<MimeTypeContext.Provider value={mediaMimeTypes}>
+			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
+				<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
+					<UiEventsProvider onEvent={onUiEvent}>
+						<ToastsProvider>
+							<DialogsProvider>
+								<BreakPointProvider forceMobile={forceMobile}>
+									<TldrawUiComponentsProvider overrides={components}>
+										<InternalProviders overrides={overrides}>{children}</InternalProviders>
+									</TldrawUiComponentsProvider>
+								</BreakPointProvider>
+							</DialogsProvider>
+						</ToastsProvider>
+					</UiEventsProvider>
+				</TranslationProvider>
+			</AssetUrlsProvider>
+		</MimeTypeContext.Provider>
 	)
 }
 

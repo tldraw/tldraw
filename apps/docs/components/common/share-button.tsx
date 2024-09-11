@@ -2,13 +2,17 @@
 
 import { cn } from '@/utils/cn'
 import { CheckIcon, ShareIcon } from '@heroicons/react/20/solid'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
-export const ShareButton: React.FC<{
+export function ShareButton({
+	url,
+	size = 'small',
+	className,
+}: {
 	url: string
 	size?: 'small' | 'base'
 	className?: string
-}> = ({ url, size = 'small', className }) => {
+}) {
 	const [copied, setCopied] = useState<boolean>(false)
 
 	return (

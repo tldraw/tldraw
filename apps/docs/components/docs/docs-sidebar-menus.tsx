@@ -6,7 +6,7 @@ import { UIEventHandler, useEffect, useRef } from 'react'
 
 let scrollPosition = 0
 
-export const DocsSidebarMenus = ({ menus }: { menus: any }) => {
+export function DocsSidebarMenus({ menus }: { menus: any }) {
 	const container = useRef<HTMLDivElement>(null)
 	const pathname = usePathname()
 
@@ -26,15 +26,15 @@ export const DocsSidebarMenus = ({ menus }: { menus: any }) => {
 	}
 
 	return (
-		<div ref={container} onScroll={onScroll} className="relative grow overflow-y-auto pr-12">
-			<div className="sticky top-0 h-12 -mb-12 w-full bg-gradient-to-b from-white dark:from-zinc-950" />
+		<div ref={container} onScroll={onScroll} className="relative pr-12 overflow-y-auto grow">
+			<div className="sticky top-0 w-full h-12 -mb-12 pointer-events-none bg-gradient-to-b from-white dark:from-zinc-950" />
 			<div>
 				{menus.map((menu: any, index: number) => (
 					// @ts-ignore
 					<DocsSidebarMenu key={index} title={menu.title} elements={menu.children} />
 				))}
 			</div>
-			<div className="sticky bottom-0 h-12 w-full bg-gradient-to-t from-white dark:from-zinc-950" />
+			<div className="sticky bottom-0 w-full h-12 pointer-events-none bg-gradient-to-t from-white dark:from-zinc-950" />
 		</div>
 	)
 }

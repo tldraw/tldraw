@@ -7,7 +7,7 @@ import {
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
 
-export const DetailsSection = () => {
+export function DetailsSection() {
 	return (
 		<Section>
 			<SectionHeading

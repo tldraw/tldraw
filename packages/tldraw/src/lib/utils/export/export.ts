@@ -1,11 +1,13 @@
 import {
 	Editor,
+	FileHelpers,
 	Image,
 	PngHelpers,
 	TLImageExportOptions,
 	TLShapeId,
 	debugFlags,
 	exhaustiveSwitchError,
+	sleep,
 } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 import { TLExportType } from './exportAs'
@@ -32,7 +34,10 @@ export async function getSvgAsImage(
 	clampedHeight = Math.floor(clampedHeight)
 	const effectiveScale = clampedWidth / width
 
-	const svgUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }))
+	// usually we would use `URL.createObjectURL` here, but chrome has a bug where `blob:` URLs of
+	// SVGs that use <foreignObject> mark the canvas as tainted, where data: ones do not.
+	// https://issues.chromium.org/issues/41054640
+	const svgUrl = await FileHelpers.blobToDataUrl(new Blob([svgString], { type: 'image/svg+xml' }))
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
 		const image = Image()
@@ -44,7 +49,7 @@ export async function getSvgAsImage(
 			// there doesn't seem to be any better solution for now :( see
 			// https://bugs.webkit.org/show_bug.cgi?id=219770
 			if (editor.environment.isSafari) {
-				await new Promise((resolve) => editor.timers.setTimeout(resolve, 250))
+				await sleep(250)
 			}
 
 			const canvas = document.createElement('canvas') as HTMLCanvasElement

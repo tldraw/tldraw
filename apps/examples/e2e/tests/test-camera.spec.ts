@@ -1,5 +1,5 @@
 import { CDPSession, Page, expect } from '@playwright/test'
-import { Editor } from 'tldraw'
+import { Editor, sleep } from 'tldraw'
 import { setup } from '../shared-e2e'
 import test from './fixtures/fixtures'
 
@@ -77,10 +77,6 @@ const scrollZoom = async ({
 		zoomDirection === 'out' ? currentZoomLevel * 1.1 ** steps : currentZoomLevel / 1.1 ** steps
 
 	return expectedZoomLevel
-}
-
-export function sleep(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 test.describe('camera', () => {
