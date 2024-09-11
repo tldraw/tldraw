@@ -37,3 +37,10 @@ export function getBorderColor(state: TLTimerState, darkMode: boolean) {
 			exhaustiveSwitchError(state)
 	}
 }
+
+export function getMinutesAndSeconds(time: number) {
+	const allSeconds = Math.floor(time / 1000)
+	const minutes = Math.floor(allSeconds / 60)
+	const seconds = allSeconds % 60
+	return { allSeconds, seconds, minutes }
+}

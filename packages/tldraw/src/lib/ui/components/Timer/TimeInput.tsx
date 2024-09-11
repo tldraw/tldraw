@@ -2,7 +2,12 @@ import { useEditor, useIsDarkMode } from '@tldraw/editor'
 import { useCallback, useEffect, useState } from 'react'
 import { ONE_MINUTE, ONE_SECOND, TLTimerProps } from './Timer'
 import { updateTimer } from './TimerButtons'
-import { formatTime, getBackgroundColor, getBorderColor } from './timerHelpers'
+import {
+	formatTime,
+	getBackgroundColor,
+	getBorderColor,
+	getMinutesAndSeconds,
+} from './timerHelpers'
 
 export function TimeInput({
 	active,
@@ -16,15 +21,13 @@ export function TimeInput({
 	onClick?(): void
 }) {
 	const editor = useEditor()
-
-	const [inputTime, setInputTime] = useState(remainingTime)
-	const [minutesFocused, setMinutesFocused] = useState(false)
-	const [secondsFocused, setSecondsFocus] = useState(false)
 	const darkMode = useIsDarkMode()
+	const [inputTime, setInputTime] = useState(remainingTime)
 
 	useEffect(() => {
 		setInputTime(remainingTime)
 	}, [remainingTime])
+
 	const handleInputBlur = useCallback(() => {
 		const newTime = Math.max(ONE_SECOND, inputTime)
 		setInputTime(newTime)
@@ -60,29 +63,23 @@ export function TimeInput({
 		},
 		[active, handleInputBlur]
 	)
+
 	const handleMinuteChange = (e: React.KeyboardEvent<HTMLInputElement>) =>
 		handleKeyUp(e, ONE_MINUTE)
 	const handleSecondChange = (e: React.KeyboardEvent<HTMLInputElement>) =>
 		handleKeyUp(e, ONE_SECOND)
 
-	const remainingSeconds = Math.ceil(remainingTime / 1000)
-	const initialSeconds = Math.ceil(props.initialTime / 1000)
-	const width = active ? `${(remainingSeconds / initialSeconds) * 100}%` : '100%'
-	const minutesRunning = formatTime(Math.floor(remainingSeconds / 60))
-	const allInputSeconds = inputTime / 1000
-	const inputMintues = Math.floor(allInputSeconds / 60)
-	const secondsRunning = formatTime(remainingSeconds % 60)
-	const inputSeconds = Math.floor(allInputSeconds % 60)
+	const {
+		allSeconds: allSecondsRemaining,
+		seconds: secondsRemaining,
+		minutes: minutesRemaining,
+	} = getMinutesAndSeconds(remainingTime)
 
-	let minutesString = minutesRunning
-	if (minutesFocused) {
-		minutesString = inputMintues.toString()
-	}
-	let secondsString = secondsRunning
-	if (secondsFocused) {
-		secondsString = inputSeconds.toString()
-	}
+	const { seconds: inputSeconds, minutes: inputMintues } = getMinutesAndSeconds(inputTime)
 
+	const { allSeconds: allInitialSeconds } = getMinutesAndSeconds(props.initialTime)
+	const width = active ? `${(allSecondsRemaining / allInitialSeconds) * 100}%` : '100%'
+	const canEdit = !active && !onClick
 	return (
 		<>
 			<div
@@ -94,77 +91,69 @@ export function TimeInput({
 				}}
 			/>
 			<MinutesInput
-				inputString={minutesString}
+				remainingTime={minutesRemaining}
+				inputTime={inputMintues}
 				onKeyUp={handleMinuteChange}
 				onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 					const newValue = parseInt(e.target.value)
 					const setTo = (isNaN(newValue) ? 0 : newValue * ONE_MINUTE) + inputSeconds * ONE_SECOND
 					setInputTime(Math.max(ONE_SECOND, setTo))
 				}}
-				onBlur={() => {
-					setMinutesFocused(false)
-					handleInputBlur()
-				}}
-				onFocus={() => setMinutesFocused(true)}
-				running={minutesRunning}
-				setFocused={setMinutesFocused}
-				notEditable={active || onClick !== undefined}
+				onBlur={() => handleInputBlur()}
+				canEdit={canEdit}
 			/>
 			<div className="tlui-timer__time-separator">:</div>
 			<MinutesInput
-				inputString={secondsString}
+				remainingTime={secondsRemaining}
+				inputTime={inputSeconds}
 				onKeyUp={handleSecondChange}
 				onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 					const newValue = parseInt(e.target.value)
 					const setTo = inputMintues * ONE_MINUTE + (isNaN(newValue) ? 0 : newValue * ONE_SECOND)
 					setInputTime(Math.max(ONE_SECOND, setTo))
 				}}
-				onBlur={() => {
-					setSecondsFocus(false)
-					handleInputBlur()
-				}}
-				onFocus={() => setSecondsFocus(true)}
-				running={secondsRunning}
-				setFocused={setSecondsFocus}
-				notEditable={active || onClick !== undefined}
+				onBlur={() => handleInputBlur()}
+				canEdit={canEdit}
 			/>
 		</>
 	)
 }
 
 function MinutesInput({
-	running,
-	inputString,
+	canEdit,
+	remainingTime,
+	inputTime,
 	onKeyUp,
 	onChange,
 	onBlur,
-	onFocus,
-	notEditable,
 }: {
-	inputString: string
-	running: string
+	canEdit: boolean
+	remainingTime: number
+	inputTime: number
 	onKeyUp(e: React.KeyboardEvent<HTMLInputElement>): void
 	onChange(e: React.ChangeEvent<HTMLInputElement>): void
 	onBlur(): void
-	onFocus(): void
-	setFocused(focused: boolean): void
-	notEditable: boolean
 }) {
+	const [focused, setFocused] = useState(false)
+	const value = focused ? inputTime.toString() : formatTime(remainingTime)
 	return (
 		<>
-			{notEditable ? (
-				<div className="tlui-timer__time-text">{running}</div>
-			) : (
+			{canEdit ? (
 				<input
 					inputMode="numeric"
 					maxLength={2}
-					onBlur={onBlur}
-					onFocus={onFocus}
+					onBlur={() => {
+						setFocused(false)
+						onBlur()
+					}}
+					onFocus={() => setFocused(true)}
 					onChange={onChange}
-					value={inputString}
+					value={value}
 					className="tlui-timer__time-text"
 					onKeyUp={onKeyUp}
 				/>
+			) : (
+				<div className="tlui-timer__time-text">{value}</div>
 			)}
 		</>
 	)
