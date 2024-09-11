@@ -1,4 +1,8 @@
 {
-	"files": [],
-	"references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["src", "./vite.config.ts", "**/*.json"],
+	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*"],
+	"compilerOptions": {
+		"outDir": "./.tsbuild"
+	}
 }
