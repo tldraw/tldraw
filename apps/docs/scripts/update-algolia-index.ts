@@ -24,7 +24,7 @@ const sectionConfig: Record<string, SearchConfig | null> = {
 	},
 	docs: {
 		index: 'docs',
-		priority: 10,
+		priority: 9,
 		splitHeadings: true,
 	},
 	examples: {
@@ -112,6 +112,9 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 		const { headings, initialContentText } = parseHeadings(article.content)
 		return [
 			{
+				objectID: article.id,
+				index: config.index,
+
 				path: assertExists(article.path),
 				title: article.title,
 				keywords: article.keywords,
@@ -128,19 +131,20 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 				headingHash: null,
 				headingIndex: 0,
 
-				index: config.index,
+				rankAdjust: 0,
 			},
 			...headings
 
 				.filter((heading) => {
 					return (
 						// excluded headers from config:
-						!config.excludeHeadingLevels?.includes(heading.level) &&
-						// exclude inherited members
-						!heading.isInherited
+						!config.excludeHeadingLevels?.includes(heading.level)
 					)
 				})
 				.map((heading, i) => ({
+					objectID: `${article.id}#${i}`,
+					index: config.index,
+
 					path: assertExists(article.path),
 					title: config.formatHeading
 						? config.formatHeading(article, heading.title)
@@ -159,12 +163,16 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 					headingHash: heading.slug,
 					headingIndex: i + 1,
 
-					index: config.index,
+					// all things being equal, inherited entries should rank lower than non-inherited entries
+					rankAdjust: heading.isInherited ? -1 : 0,
 				})),
 		]
 	} else {
 		return [
 			{
+				objectID: article.id,
+				index: config.index,
+
 				path: assertExists(article.path),
 				title: article.title,
 				keywords: article.keywords,
@@ -181,7 +189,7 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 				headingHash: null,
 				headingIndex: 0,
 
-				index: config.index,
+				rankAdjust: 0,
 			},
 		]
 	}
@@ -234,19 +242,46 @@ async function updateAlgoliaIndex() {
 			)
 			await index.setSettings({
 				searchableAttributes: ['title', 'description', 'keywords', 'content'],
-				ranking: [
-					// 'desc(sectionPriority)',
-					'typo',
-					'geo',
-					'words',
-					'filters',
-					'proximity',
-					'attribute',
-					'exact',
-					'custom',
+				// these are only applied _after_ keyword search is complete. if two entries have
+				// the same keyword search score, this will be used to tiebreak them.
+				customRanking: [
+					// rankAdjust makes certain entries appear higher or lower in search results.
+					// e.g. inherited members get pushed to the bottom
+					'desc(rankAdjust)',
+					// sort by section priority so high-signal content (like our guides) appear
+					// higher than lower-signal content like API references
+					'desc(sectionPriority)',
+					// otherwise just keep things in the order they appear
+					'asc(articleIndex)',
+					'asc(headingIndex)',
 				],
-				customRanking: ['desc(priority)', 'asc(articleIndex)', 'asc(headingIndex)'],
 			})
+
+			const resultsToShowForEmptySearch = entries
+				.sort((a, b) => {
+					if (a.sectionPriority !== b.sectionPriority) return b.sectionPriority - a.sectionPriority
+					if (a.articleIndex !== b.articleIndex) return a.articleIndex - b.articleIndex
+					return a.headingIndex - b.headingIndex
+				})
+				.filter((entry) => !entry.heading)
+				.slice(0, 20)
+
+			await index.replaceAllRules([
+				{
+					objectID: 'EmptySearch',
+					enabled: true,
+					condition: {
+						pattern: '',
+						anchoring: 'is',
+					},
+					consequence: {
+						promote: resultsToShowForEmptySearch.map((entry, i) => ({
+							objectID: entry.objectID,
+							position: i,
+						})),
+					},
+				},
+			])
 			console.timeEnd('✔️ Index complete')
 			nicelog('')
 		}

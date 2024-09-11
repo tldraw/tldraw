@@ -1,4 +1,6 @@
 export interface SearchEntry {
+	objectID: string
+
 	path: string
 	title: string
 	keywords: string[]
@@ -14,6 +16,8 @@ export interface SearchEntry {
 	heading: string | null
 	headingHash: string | null
 	headingIndex: number
+
+	rankAdjust: number
 }
 
 export interface SearchEntryWithIndex extends SearchEntry {
