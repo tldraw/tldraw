@@ -7,6 +7,7 @@ export function CTASection() {
 		<Section className="pb-24 md:pb-32 lg:pb-40">
 			<SectionHeading
 				heading="Get started today"
+				subheading="to action"
 				description="Follow our quick start guide and build something today with the tldraw SDK."
 			/>
 			{/* <div className="flex items-center justify-center gap-3 mb-12 -mt-6">

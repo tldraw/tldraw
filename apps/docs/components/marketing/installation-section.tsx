@@ -7,6 +7,7 @@ export function InstallationSection() {
 	return (
 		<Section>
 			<SectionHeading
+				subheading="show me code"
 				heading="Installation"
 				description="Install the tldraw package, import the styles, and render the component in your React app."
 			/>
