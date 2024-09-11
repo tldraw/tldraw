@@ -35,7 +35,7 @@ export function Hits({ onClose }: { onClose(): void }) {
 				const showChapter = hit.section !== section
 				section = hit.section
 
-				const href = hit.headingHash ? `${hit.path}#${hit.headingHash}` : hit.path
+				const href = hit.headingSlug ? `${hit.path}#${hit.headingSlug}` : hit.path
 
 				return (
 					<Fragment key={hit.objectID}>
@@ -52,6 +52,8 @@ export function Hits({ onClose }: { onClose(): void }) {
 									hit={hit}
 									className="text-black dark:text-white group-data-[selected=true]:text-white"
 								/>
+								{/* <FocusedHighlight hit={hit} attribute="description" />
+								<FocusedHighlight hit={hit} attribute="content" /> */}
 								<Highlight attribute="description" hit={hit} className="line-clamp-1 text-sm" />
 								<Highlight attribute="content" hit={hit} className="line-clamp-1 text-sm" />
 							</Link>
@@ -62,3 +64,36 @@ export function Hits({ onClose }: { onClose(): void }) {
 		</Command.List>
 	)
 }
+
+// function FocusedHighlight({
+// 	hit,
+// 	attribute,
+// }: {
+// 	hit: Hit<SearchEntry>
+// 	attribute: keyof SearchEntry
+// }) {
+// 	const property = getPropertyByPath(hit._highlightResult, attribute as string) || []
+// 	const properties = Array.isArray(property) ? property : [property]
+
+// 	const parts = properties.map((singleValue) =>
+// 		getHighlightedParts(unescape(singleValue.value || ''))
+// 	)
+// 	console.log(parts)
+// 	return <></>
+// }
+
+// function getHighlights(
+// 	hit: Hit<SearchEntry>,
+// 	attribute: keyof SearchEntry,
+// 	maxUnhighlightedPrefix: number
+// ): { didMatch: boolean; parts: { value: string; isHighlighted: boolean }[] } {
+// 	const property = getPropertyByPath(hit._highlightResult, attribute as string)
+
+// 	const parts = getHighlightedParts(unescape(property.value || ''))
+
+// 	if (parts.length === 0) {
+// 		return []
+// 	}
+
+// 	return parts
+// }

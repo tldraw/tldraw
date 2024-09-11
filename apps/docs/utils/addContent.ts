@@ -2,7 +2,7 @@ import { Article, GeneratedContent } from '@/types/content-types'
 import console from 'console'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
-import { parseHeadings } from './parse-markdown'
+import { parseMarkdown } from './parse-markdown'
 
 export async function addContentToDb(
 	db: Database<sqlite3.Database, sqlite3.Statement>,
@@ -116,7 +116,7 @@ export async function addContentToDb(
 		await db.run(`DELETE FROM headings WHERE articleId = ?`, article.id)
 
 		await Promise.all(
-			parseHeadings(article.content ?? '').headings.map((heading, i) =>
+			parseMarkdown(article.content ?? '', article.path ?? article.id).headings.map((heading, i) =>
 				headingsInsert.run(
 					i,
 					article.id,

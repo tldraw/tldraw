@@ -6,7 +6,7 @@ import {
 	getSearchIndexName,
 } from '@/utils/algolia'
 import { nicelog } from '@/utils/nicelog'
-import { markdownToPlainText, parseHeadings } from '@/utils/parse-markdown'
+import { parseMarkdown } from '@/utils/parse-markdown'
 import { assertExists, groupBy, objectMapEntries } from '@tldraw/utils'
 import algoliasearch from 'algoliasearch'
 import console from 'console'
@@ -108,8 +108,12 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 	const config = getConfig(article)
 	if (!config) return []
 
+	const { headings, initialContentText, allContentText } = parseMarkdown(
+		article.content,
+		article.path!
+	)
+
 	if (config.splitHeadings) {
-		const { headings, initialContentText } = parseHeadings(article.content)
 		return [
 			{
 				objectID: article.id,
@@ -117,6 +121,8 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 
 				path: assertExists(article.path),
 				title: article.title,
+				titleHeadingFirst: article.title,
+
 				keywords: article.keywords,
 				description: article.description,
 				content: initialContentText,
@@ -128,7 +134,7 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 				articleIndex: article.articleIndex,
 
 				heading: null,
-				headingHash: null,
+				headingSlug: null,
 				headingIndex: 0,
 
 				rankAdjust: 0,
@@ -148,7 +154,8 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 					path: assertExists(article.path),
 					title: config.formatHeading
 						? config.formatHeading(article, heading.title)
-						: `${heading.title} • ${article.title}`,
+						: `${article.title} • ${heading.title}`,
+					titleHeadingFirst: `${heading.title} • ${article.title}`,
 					description: '',
 					keywords: [],
 					content: heading.contentText,
@@ -160,7 +167,7 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 					articleIndex: article.articleIndex,
 
 					heading: heading.title,
-					headingHash: heading.slug,
+					headingSlug: heading.slug,
 					headingIndex: i + 1,
 
 					// all things being equal, inherited entries should rank lower than non-inherited entries
@@ -175,9 +182,10 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 
 				path: assertExists(article.path),
 				title: article.title,
+				titleHeadingFirst: article.title,
 				keywords: article.keywords,
 				description: article.description,
-				content: markdownToPlainText(article.content),
+				content: allContentText,
 
 				section: article.sectionTitle,
 				sectionPriority: config.priority,
@@ -186,7 +194,7 @@ function getSearchEntriesForArticle(article: Article): SearchEntryWithIndex[] {
 				articleIndex: article.articleIndex,
 
 				heading: null,
-				headingHash: null,
+				headingSlug: null,
 				headingIndex: 0,
 
 				rankAdjust: 0,
@@ -208,7 +216,18 @@ async function updateAlgoliaIndex() {
 			entries.push(...(await getSearchEntriesForArticle(article)))
 		}
 		console.timeEnd('✔️ Format search entries')
-		nicelog('')
+
+		console.time(`✔️ Check ${entries.length} entries for duplicates`)
+		const byObjectId = groupBy(entries, (entry) => entry.objectID)
+		const duplicateIds = Object.entries(byObjectId).filter(([_, entries]) => entries.length > 1)
+		if (duplicateIds.length) {
+			throw new Error(
+				`Duplicate object IDs found: ${duplicateIds
+					.map(([id, entries]) => `${id} (${entries.map((e) => e.title).join(', ')})`)
+					.join(', ')}`
+			)
+		}
+		console.timeEnd(`✔️ Check ${entries.length} entries for duplicates`)
 
 		if (!process.env.NEXT_PUBLIC_ALGOLIA_APP_ID || !process.env.ALGOLIA_API_KEY) {
 			if ((process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development') === 'development') {
@@ -229,11 +248,9 @@ async function updateAlgoliaIndex() {
 			SearchIndexName,
 			SearchEntryWithIndex[]
 		>
-
 		for (const [_indexName, entries] of objectMapEntries(byIndex)) {
 			const indexName = getSearchIndexName(_indexName)
-			nicelog(`Indexing ${entries.length} entries into ${indexName}...`)
-			console.time('✔️ Index complete')
+			console.time(`✔️ Index ${entries.length} entries into ${indexName}`)
 
 			const index = client.initIndex(indexName)
 			await index.replaceAllObjects(
@@ -241,8 +258,8 @@ async function updateAlgoliaIndex() {
 				{ autoGenerateObjectIDIfNotExist: true }
 			)
 			await index.setSettings({
-				searchableAttributes: ['title', 'description', 'keywords', 'content'],
-				camelCaseAttributes: ['title', 'description', 'keywords', 'content'],
+				searchableAttributes: ['titleHeadingFirst', 'title', 'description', 'keywords', 'content'],
+				camelCaseAttributes: ['titleHeadingFirst', 'title', 'description', 'keywords', 'content'],
 				// these are only applied _after_ keyword search is complete. if two entries have
 				// the same keyword search score, this will be used to tiebreak them.
 				customRanking: [
@@ -283,10 +300,10 @@ async function updateAlgoliaIndex() {
 					},
 				},
 			])
-			console.timeEnd('✔️ Index complete')
-			nicelog('')
+			console.timeEnd(`✔️ Index ${entries.length} entries into ${indexName}`)
 		}
 
+		nicelog('')
 		nicelog('Done.')
 	} catch (error) {
 		nicelog(error)

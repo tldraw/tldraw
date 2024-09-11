@@ -4,6 +4,9 @@ import { Nodes, Root } from 'mdast'
 import { MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx'
 import { remark } from 'remark'
 import remarkMdx from 'remark-mdx'
+import { TABLE_OF_CONTENTS_CLASSNAME } from './config'
+
+const BREAK = '\n\n'
 
 // Add nodes to mdast content.
 declare module 'mdast' {
@@ -51,10 +54,16 @@ export interface ParsedHeading {
  * for a search index (which is what we use it for!), but might not be a perfect representation of
  * everything on the page.
  */
-export function parseHeadings(content: string): {
+export function parseMarkdown(
+	content: string,
+	debugContext: string
+): {
 	headings: ParsedHeading[]
+	allContentText: string
 	initialContentText: string
 } {
+	// the headings found so far. we start with a dummy heading at the beginning to hold the initial
+	// content text, but we'll remove it at the end.
 	const headings: Omit<ParsedHeading, 'slug'>[] = [
 		{
 			level: 0,
@@ -64,109 +73,143 @@ export function parseHeadings(content: string): {
 		},
 	]
 
+	// all the text we've seen so far, including headings
+	let allContentText = ''
+
+	interface State {
+		isInHeading: boolean
+		isInherited: boolean
+	}
+
+	function visitChildren(node: Nodes, state: State) {
+		if ('children' in node) {
+			for (const child of node.children) {
+				visit(child, state)
+			}
+		}
+	}
+
+	function currentHeading() {
+		const currentHeading = headings[headings.length - 1]
+		return currentHeading
+	}
+
+	function addText(text: string, state: State) {
+		if (state.isInHeading) {
+			currentHeading().title += text
+		} else {
+			currentHeading().contentText += text
+		}
+		allContentText += text
+	}
+
+	// add a paragraph break if needed:
+	function breakText(state: State) {
+		assert(!state.isInHeading)
+		if (!currentHeading().contentText.endsWith(BREAK)) {
+			currentHeading().contentText += BREAK
+		}
+		if (!allContentText.endsWith(BREAK)) {
+			allContentText += BREAK
+		}
+	}
+
+	function visit(node: Nodes, state: State) {
+		switch (node.type) {
+			case 'heading': {
+				const { depth } = node
+
+				allContentText += BREAK
+				headings.push({
+					level: depth,
+					title: '',
+					contentText: '',
+					isInherited: state.isInherited,
+				})
+
+				visitChildren(node, { ...state, isInHeading: true })
+
+				break
+			}
+
+			case 'text':
+			case 'inlineCode':
+				addText(node.value, state)
+				break
+
+			case 'blockquote':
+			case 'paragraph':
+				breakText(state)
+				visitChildren(node, state)
+				break
+
+			case 'code':
+				// skip these entirely
+				break
+
+			case 'mdxJsxFlowElement':
+			case 'mdxJsxTextElement': {
+				const { name, attributes } = node
+
+				if (node.type === 'mdxJsxFlowElement') {
+					breakText(state)
+				}
+
+				if (
+					// Remove table of contents
+					(name === 'details' &&
+						attributes.some(
+							(attr) =>
+								'name' in attr &&
+								attr.name === 'className' &&
+								attr.value === TABLE_OF_CONTENTS_CLASSNAME
+						)) ||
+					// Remove ApiHeading
+					name === 'ApiHeading'
+				) {
+					break
+				}
+
+				if (name === 'ApiMemberTitle') {
+					// each ApiMemberTitle, which is used for the title of everything in the API
+					// reference docs, should have an `inherited` attribute:
+					const inheritedAttr = attributes.find(
+						(attr) => attr.type === 'mdxJsxAttribute' && attr.name === 'inherited'
+					)
+					if (!inheritedAttr) {
+						throw new Error(`ApiMemberTitle missing inherited attribute (in ${debugContext})`)
+					}
+
+					if (
+						!inheritedAttr.value ||
+						typeof inheritedAttr.value !== 'object' ||
+						inheritedAttr.type !== 'mdxJsxAttribute'
+					) {
+						throw new Error(
+							`Unknown format for ApiMemberTitle inherited attribute (in ${debugContext})`
+						)
+					}
+
+					// if it doesn't have the value `null`, then it's inherited. otherwise, we can
+					// visit its children normally.
+					if (inheritedAttr.value.value !== 'null') {
+						visitChildren(node, { ...state, isInherited: true })
+						break
+					}
+				}
+
+				visitChildren(node, state)
+				break
+			}
+
+			default:
+				visitChildren(node, state)
+		}
+	}
+
 	remark()
 		.use(remarkMdx)
 		.use(() => (tree: Root) => {
-			interface State {
-				isInHeading: boolean
-				isInherited: boolean
-			}
-
-			function visitChildren(node: Nodes, state: State) {
-				if ('children' in node) {
-					for (const child of node.children) {
-						visit(child, state)
-					}
-				}
-			}
-
-			function heading() {
-				const currentHeading = headings[headings.length - 1]
-				return currentHeading
-			}
-
-			function visit(node: Nodes, state: State) {
-				switch (node.type) {
-					case 'heading': {
-						const { depth } = node
-
-						headings.push({
-							level: depth,
-							title: '',
-							contentText: '',
-							isInherited: state.isInherited,
-						})
-
-						visitChildren(node, { ...state, isInHeading: true })
-
-						break
-					}
-
-					case 'text':
-					case 'inlineCode':
-						if (state.isInHeading) {
-							heading().title += node.value
-						} else {
-							heading().contentText += node.value
-						}
-
-						break
-
-					case 'blockquote':
-					case 'paragraph':
-						assert(!state.isInHeading)
-						if (!heading().contentText.endsWith('\n')) {
-							heading().contentText += '\n'
-						}
-						visitChildren(node, state)
-						break
-
-					case 'code':
-						// skip these entirely
-						break
-
-					case 'mdxJsxFlowElement':
-					case 'mdxJsxTextElement': {
-						const { name, attributes } = node
-
-						if (
-							// Remove table of contents
-							(name === 'details' &&
-								attributes.some(
-									(attr) =>
-										'name' in attr &&
-										attr.name === 'className' &&
-										attr.value === 'article__table-of-contents'
-								)) ||
-							// Remove ApiHeading
-							name === 'ApiHeading'
-						) {
-							break
-						}
-
-						if (
-							name === 'TitleWithSourceLink' &&
-							attributes.some((attr) => {
-								return (
-									'name' in attr &&
-									attr.name === 'inherited' &&
-									(attr.value as any).value !== 'null'
-								)
-							})
-						) {
-							visitChildren(node, { ...state, isInherited: true })
-							break
-						}
-
-						visitChildren(node, state)
-						break
-					}
-
-					default:
-						visitChildren(node, state)
-				}
-			}
-
 			visit(tree, { isInHeading: false, isInherited: false })
 		})
 		.processSync(content)
@@ -176,81 +219,7 @@ export function parseHeadings(content: string): {
 
 	return {
 		initialContentText: initial.contentText,
+		allContentText,
 		headings: headings.map((heading) => ({ ...heading, slug: slugs.slug(heading.title, true) })),
 	}
-}
-
-/**
- * Walk the MDX AST of `content` and extract plain text content. Code blocks, tables of contents,
- * and some other block-level markdown elements are skipped.
- *
- * This is best-effort: the content is useful for a search index (which is what we use it for!), but
- * might not be a perfect representation of everything on the page.
- */
-export function markdownToPlainText(content: string): string {
-	let text = ''
-
-	remark()
-		.use(remarkMdx)
-		.use(() => (tree: Root) => {
-			function visitChildren(node: Nodes) {
-				if ('children' in node) {
-					for (const child of node.children) {
-						visit(child)
-					}
-				}
-			}
-
-			function visit(node: Nodes) {
-				switch (node.type) {
-					case 'text':
-					case 'inlineCode':
-						text += node.value
-
-						break
-
-					case 'blockquote':
-					case 'heading':
-					case 'paragraph':
-						if (!text.endsWith('\n')) {
-							text += '\n'
-						}
-						visitChildren(node)
-						break
-
-					case 'code':
-						// skip these entirely
-						break
-
-					case 'mdxJsxFlowElement':
-					case 'mdxJsxTextElement': {
-						const { name, attributes } = node
-
-						if (
-							// Remove table of contents
-							name === 'details' &&
-							attributes.some(
-								(attr) =>
-									'name' in attr &&
-									attr.name === 'className' &&
-									attr.value === 'article__table-of-contents'
-							)
-						) {
-							break
-						}
-
-						visitChildren(node)
-						break
-					}
-
-					default:
-						visitChildren(node)
-				}
-			}
-
-			visit(tree)
-		})
-		.processSync(content)
-
-	return text
 }

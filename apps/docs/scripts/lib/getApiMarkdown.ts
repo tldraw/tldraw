@@ -1,5 +1,6 @@
 import { APIGroup } from '@/types/content-types'
 import { TldrawApiModel } from '@/utils/TldrawApiModel'
+import { TABLE_OF_CONTENTS_CLASSNAME } from '@/utils/config'
 import {
 	ApiClass,
 	ApiConstructSignature,
@@ -114,7 +115,7 @@ export async function getApiMarkdown(
 	await addDeprecationNotice(result, item)
 
 	if (toc.markdown.length) {
-		result.markdown += `<details className="article__table-of-contents">\n\t<summary>Table of contents</summary>\n`
+		result.markdown += `<details className="${TABLE_OF_CONTENTS_CLASSNAME}">\n\t<summary>Table of contents</summary>\n`
 		addMarkdown(result, toc.markdown)
 		result.markdown += `</details>\n\n`
 	}
@@ -338,11 +339,11 @@ function addMemberNameAndMeta(
 
 	const tags = getTags(model, item, { isComponentProp, includeKind: false })
 	result.markdown += [
-		`<TitleWithSourceLink tags={${JSON.stringify(tags)}} inherited={${JSON.stringify(inherited)}}>`,
+		`<ApiMemberTitle tags={${JSON.stringify(tags)}} inherited={${JSON.stringify(inherited)}}>`,
 		'',
 		heading,
 		'',
-		'</TitleWithSourceLink>',
+		'</ApiMemberTitle>',
 		'',
 	].join('\n')
 }
