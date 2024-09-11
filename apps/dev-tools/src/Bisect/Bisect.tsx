@@ -29,10 +29,7 @@ export default function Bisect() {
 	return (
 		<div className="bisect__wrapper">
 			<p>Use the preview links to test the target behaviour then mark the PR accordingly.</p>
-			{!bisectStarted && (
-				<BisectButton onClick={() => setBisectStarted(true)} text={'Start bisect'} />
-			)}
-			{bisectStarted && (
+			{bisectStarted ? (
 				<div className="bisect__button-wrapper">
 					<BisectButton onClick={stopBisect} text={'Stop bisect'} />
 					{!done && (
@@ -58,6 +55,8 @@ export default function Bisect() {
 						</>
 					)}
 				</div>
+			) : (
+				<BisectButton onClick={() => setBisectStarted(true)} text={'Start bisect'} />
 			)}
 			<ul>
 				{prNumbers.map((prNumber: number, index: number) => {
