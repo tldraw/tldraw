@@ -65,7 +65,7 @@ export function SearchButton({
 							layout === 'mobile' && 'hidden'
 						)}
 					>
-						Search {type}...
+						Search {type}…
 					</span>
 				</div>
 				<span className={cn('text-xs', layout === 'mobile' && 'hidden')}>⌘K</span>

@@ -2,12 +2,14 @@ import { SearchEntry } from '@/utils/algolia'
 import { Command } from 'cmdk'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Fragment } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { Highlight, useHits } from 'react-instantsearch'
 
 export function Hits({ onClose }: { onClose(): void }) {
-	const { items } = useHits<SearchEntry>()
+	const { items, results } = useHits<SearchEntry>()
+	const query = results?.query
 	const router = useRouter()
+	const listRef = useRef<HTMLDivElement>(null)
 	let section = ''
 
 	const onSelect = (path: string) => {
@@ -15,8 +17,17 @@ export function Hits({ onClose }: { onClose(): void }) {
 		onClose()
 	}
 
+	useEffect(() => {
+		if (listRef.current) {
+			listRef.current.scrollTop = 0
+		}
+	}, [query])
+
 	return (
-		<Command.List className="max-h-[32rem] overflow-y-auto p-4 pt-0 border-t border-zinc-100 dark:border-zinc-800">
+		<Command.List
+			ref={listRef}
+			className="max-h-[32rem] overflow-y-auto p-4 pt-0 border-t border-zinc-100 dark:border-zinc-800"
+		>
 			<Command.Empty className="text-center py-8 text-zinc-400 dark:text-zinc-600">
 				Nothing found…
 			</Command.Empty>
