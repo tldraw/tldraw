@@ -72,7 +72,7 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 										dark: 'github-dark-default',
 										light: 'github-light-default',
 									},
-									defaultColor: 'dark',
+									defaultColor: false,
 								},
 							],
 						],

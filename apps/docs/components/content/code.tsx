@@ -34,7 +34,10 @@ const blurredLineClassName = '[&_*]:!opacity-60 [&_*]:!text-white'
 
 function CodeLink({ children, href }: { children: ReactNode; href: string }) {
 	return (
-		<A href={href} className="group-[.not-prose]:underline group-[.not-prose]:hover:no-underline">
+		<A
+			href={href}
+			className="group-[.not-prose]:underline group-[.not-prose]:hover:no-underline decoration-[#667e8b]"
+		>
 			{children}
 		</A>
 	)
