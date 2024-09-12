@@ -60,7 +60,7 @@ export default function Autocomplete({
 							)}
 						>
 							<SearchInput value={value} />
-							{value && <Results items={items} />}
+							<Results items={items} />
 						</div>
 					</div>
 				</SearchDialog>
