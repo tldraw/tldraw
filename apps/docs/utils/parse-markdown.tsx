@@ -133,7 +133,6 @@ export function parseMarkdown(
 			}
 
 			case 'text':
-			case 'inlineCode':
 				addText(node.value, state)
 				break
 
@@ -144,6 +143,7 @@ export function parseMarkdown(
 				break
 
 			case 'code':
+			case 'inlineCode':
 				// skip these entirely
 				break
 
