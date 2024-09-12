@@ -111,7 +111,7 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 - Transparently set up communication between multiple sync clients via WebSockets.
 - Provide hooks for persisting the document state when it changes.
 
-<Callout icon="💡">
+<Callout type="info">
 	You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app.
 	If there's more than one, users won't see each other and will overwrite others' changes. We use
 	[Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on
@@ -223,7 +223,7 @@ clients on different versions won't be able to collaborate without errors.
 
 ### Deployment concerns
 
-<Callout icon="⚠️">
+<Callout type="warning">
 	You must make sure that the tldraw version in your client matches the version on the server. We
 	don't guarantee server backwards compatibility forever, and very occasionally we might release a
 	version where the backend cannot meaningfully support older clients, in which case tldraw will

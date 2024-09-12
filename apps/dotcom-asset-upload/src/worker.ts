@@ -27,10 +27,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		})
 		.post('/uploads/:objectName', async (request) => {
 			return handleUserAssetUpload({
-				request,
+				headers: request.headers,
+				body: request.body,
 				bucket: this.env.UPLOADS,
 				objectName: request.params.objectName,
-				context: this.ctx,
 			})
 		})
 		.all('*', notFound)

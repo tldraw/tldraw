@@ -1,12 +1,15 @@
-import { getPageContent } from '@/utils/get-page-content'
+import { db } from '@/utils/ContentDatabase'
 import { CodeFiles } from '../content/code-files'
 import { ExamplePlaceholder } from './example-placeholder'
 
-export const Example: React.FC<{ path: string; showPlaceholder?: boolean }> = async ({
+export async function Example({
 	path,
 	showPlaceholder,
-}) => {
-	const content = await getPageContent(path)
+}: {
+	path: string
+	showPlaceholder?: boolean
+}) {
+	const content = await db.getPageContent(path)
 	if (!content || content.type !== 'article') return null
 	const server = 'https://examples.tldraw.com'
 	const additionalFiles = JSON.parse(content.article.componentCodeFiles ?? '')

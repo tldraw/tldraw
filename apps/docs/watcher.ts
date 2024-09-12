@@ -1,7 +1,7 @@
 import fs from 'fs'
 
 import { WebSocketServer } from 'ws'
-import { refreshContent } from './scripts/functions/refreshContent'
+import { refreshContent } from './scripts/lib/refreshContent'
 import { debounce } from './utils/debounce'
 import { nicelog } from './utils/nicelog'
 

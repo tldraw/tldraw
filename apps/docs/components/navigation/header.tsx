@@ -5,7 +5,7 @@ import { Logo } from '@/components/common/logo'
 import { NavigationLink } from '@/components/navigation/link'
 import { MobileMenu } from '@/components/navigation/mobile-menu'
 import { SocialLink } from '@/components/navigation/social-link'
-import { SearchButton } from '@/components/search/button'
+import { SearchButton } from '@/components/search/SearchButton'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -61,7 +61,7 @@ const socialLinks = [
 	},
 ]
 
-export const Header = () => {
+export function Header() {
 	const pathname = usePathname()
 	const { scrollY } = useScroll()
 	const navOpacity = useTransform(scrollY, [0, 32], [1, 0])

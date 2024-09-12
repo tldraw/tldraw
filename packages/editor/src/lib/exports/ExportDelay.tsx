@@ -1,4 +1,4 @@
-import { bind } from '@tldraw/utils'
+import { bind, sleep } from '@tldraw/utils'
 
 /**
  * Export delay is a helper class that allows you to wait for a set of promises to resolve before
@@ -32,16 +32,12 @@ export class ExportDelay {
 			await Promise.allSettled(this.promisesToWaitFor)
 
 			// wait for a cycle of the event loop to allow any of those promises to add more if needed.
-			// eslint-disable-next-line no-restricted-globals
-			await new Promise((r) => setTimeout(r, 0))
+			await sleep(0)
 		}
 	}
 
 	async resolve() {
-		const timeoutPromise = new Promise<'timeout'>((r) =>
-			// eslint-disable-next-line no-restricted-globals
-			setTimeout(() => r('timeout'), this.maxDelayTimeMs)
-		)
+		const timeoutPromise = sleep(this.maxDelayTimeMs).then(() => 'timeout' as const)
 		const resolvePromise = this.resolvePromises().then(() => 'resolved' as const)
 
 		const result = await Promise.race([timeoutPromise, resolvePromise])

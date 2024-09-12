@@ -1005,7 +1005,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	mark(markId?: string): this {
 		if (typeof markId === 'string') {
 			console.warn(
-				'[tldraw] `editor.history.mark("myMarkId")` is deprecated. Please use `const myMarkId = editor.markHistoryStoppingPoint()` instead.'
+				`[tldraw] \`editor.history.mark("${markId}")\` is deprecated. Please use \`const myMarkId = editor.markHistoryStoppingPoint()\` instead.`
 			)
 		} else {
 			console.warn(
@@ -7947,7 +7947,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const objectUrl = URL.createObjectURL(file)
 		this.temporaryAssetPreview.set(assetId, objectUrl)
 
-		this.timers.setTimeout(
+		// eslint-disable-next-line no-restricted-globals -- we always want to revoke the asset and object URL
+		setTimeout(
 			() => {
 				this.temporaryAssetPreview.delete(assetId)
 				URL.revokeObjectURL(objectUrl)

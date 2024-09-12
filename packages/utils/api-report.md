@@ -162,6 +162,9 @@ export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, 
 export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
+export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelector: (value: V) => K): Record<K, V[]>;
+
+// @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
@@ -388,6 +391,9 @@ export function setInLocalStorage(key: string, value: string): void;
 
 // @internal
 export function setInSessionStorage(key: string, value: string): void;
+
+// @internal (undocumented)
+export function sleep(ms: number): Promise<void>;
 
 // @public (undocumented)
 export function sortById<T extends {

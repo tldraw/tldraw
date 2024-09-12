@@ -1,13 +1,11 @@
 import { BlogCategoryPage } from '@/components/blog/blog-category-page'
-import { getDb } from '@/utils/ContentDatabase'
-import { getPageContent } from '@/utils/get-page-content'
+import { db } from '@/utils/ContentDatabase'
 import { notFound } from 'next/navigation'
 
 export default async function Page() {
-	const content = await getPageContent('/blog')
+	const content = await db.getPageContent('/blog')
 	if (!content || content.type !== 'section') notFound()
 	const { section } = content
-	const db = await getDb()
 	const categories = await db.getCategoriesForSection('blog')
 	const categoriesWithArticles = await Promise.allSettled(
 		categories.map(async (category) => {
@@ -19,11 +17,6 @@ export default async function Page() {
 	const articles = categoriesWithArticles.map(({ value: { articles } }) => articles).flat()
 
 	return (
-		<BlogCategoryPage
-			title="All Posts"
-			description={section.description}
-			section={section}
-			articles={articles}
-		/>
+		<BlogCategoryPage title="All Posts" description={section.description} articles={articles} />
 	)
 }

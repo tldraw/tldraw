@@ -10,7 +10,7 @@ import { ParametersTableDescription } from '@/components/content/parameters-tabl
 import { ParametersTableName } from '@/components/content/parameters-table-name'
 import { ParametersTableRow } from '@/components/content/parameters-table-row'
 import { Pre } from '@/components/content/pre'
-import { TitleWithSourceLink } from '@/components/content/title-with-source-link'
+import { ApiMemberTitle } from '@/components/content/title-with-source-link'
 import { Video } from '@/components/content/video'
 import { YouTube } from '@/components/content/youtube'
 import { cn } from '@/utils/cn'
@@ -20,7 +20,7 @@ import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
 
-export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type }) => {
+export function Content({ mdx, type }: { mdx: string; type?: string }) {
 	return (
 		<section
 			className={cn(
@@ -54,14 +54,14 @@ export const Content: React.FC<{ mdx: string; type?: string }> = ({ mdx, type })
 					ParametersTableDescription,
 					ParametersTableName,
 					ParametersTableRow,
-					TitleWithSourceLink,
+					ApiMemberTitle,
 					blockquote: Blockquote,
 					Video,
 					YouTube,
 				}}
 				options={{
 					mdxOptions: {
-						remarkPlugins: [remarkGfm, {}],
+						remarkPlugins: [remarkGfm],
 						rehypePlugins: [
 							[rehypeHighlight as any, {}],
 							[rehypeAutolinkHeadings, {}],

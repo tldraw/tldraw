@@ -9,7 +9,7 @@ import FeaturesShapes from '@/public/images/features/shapes.png'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export const FeaturesSection = () => {
+export function FeaturesSection() {
 	return (
 		<Section id="features">
 			<SectionHeading

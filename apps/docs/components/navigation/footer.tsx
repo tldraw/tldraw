@@ -7,7 +7,7 @@ const menus = [
 		items: [
 			{ caption: 'Overview', href: '/' },
 			{ caption: 'Playground', href: 'https://tldraw.com' },
-			{ caption: 'Pricing', href: '/pricing' },
+			{ caption: 'Pricing', href: '/#pricing' },
 			{ caption: 'Terms of Use', href: '/terms' },
 		],
 	},
@@ -38,7 +38,7 @@ const menus = [
 	},
 ]
 
-export const Footer = () => {
+export function Footer() {
 	return (
 		<footer className="bg-zinc-50 dark:bg-zinc-900 py-12 md:py-16">
 			<div className="w-full max-w-screen-xl mx-auto px-5 flex flex-col sm:flex-row sm:justify-between gap-12">

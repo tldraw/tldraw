@@ -109,12 +109,13 @@ export const shouldKeyBePreservedBetweenSessions = {
 } as const satisfies { [K in keyof TLInstance]: boolean }
 
 /** @internal */
-export const pluckPreservingValues = (val?: TLInstance | null): null | Partial<TLInstance> =>
-	val
+export function pluckPreservingValues(val?: TLInstance | null): null | Partial<TLInstance> {
+	return val
 		? (filterEntries(val, (key) => {
 				return shouldKeyBePreservedBetweenSessions[key as keyof TLInstance]
 			}) as Partial<TLInstance>)
 		: null
+}
 
 /** @public */
 export type TLInstanceId = RecordId<TLInstance>

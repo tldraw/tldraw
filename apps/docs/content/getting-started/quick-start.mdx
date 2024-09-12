@@ -20,7 +20,7 @@ npm install tldraw
 
 Next, in you React project, import the `Tldraw` component and tldraw's CSS styles. Then render the `Tldraw` component inside a full screen container:
 
-```javascript
+```tsx
 import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
@@ -43,7 +43,7 @@ Let's add local persistence by passing a `persistenceKey` prop to the `Tldraw` c
 
 <FocusLines lines={[4]}>
 
-```javascript
+```tsx
 export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
@@ -71,7 +71,7 @@ Next, import the `useSyncDemo` hook from the `@tldraw/sync` package. Call it in 
 
 <FocusLines lines={[2,6,10]}>
 
-```javascript
+```tsx
 import { Tldraw } from 'tldraw'
 import { useSyncDemo } from '@tldraw/sync'
 import './index.css'
@@ -99,31 +99,31 @@ One of the best parts of tldraw is its [editor](/docs/editor)'s runtime JavaScri
 
 For simplicity's sake, let's roll back our persistence and sync code. We can then use the `Tldraw` component's `onMount` callback to get access to the [Editor](?) instance. We'll use the editor to create a new shape on the canvas, select it, then slowly zoom to it.
 
-```jsx
+```tsx
 import { Tldraw } from 'tldraw'
 import './index.css'
 
 export default function App() {
+	const handleMount = (editor) => {
+		editor.createShape({
+			type: 'text',
+			x: 200,
+			y: 200,
+			props: {
+				text: 'Hello world!',
+			},
+		})
+
+		editor.selectAll()
+
+		editor.zoomToSelection({
+			animation: { duration: 5000 },
+		})
+	}
+
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw
-				onMount={(editor) => {
-					editor.createShape({
-						type: 'text',
-						x: 200,
-						y: 200,
-						props: {
-							text: 'Hello world!',
-						},
-					})
-
-					editor.selectAll()
-
-					editor.zoomToSelection({
-						animation: { duration: 5000 },
-					})
-				}}
-			/>
+			<Tldraw onMount={handleMount} />
 		</div>
 	)
 }

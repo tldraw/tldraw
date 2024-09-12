@@ -23,7 +23,7 @@ async function submitFeedback(
 	return
 }
 
-export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className }) => {
+export function DocsFeedbackWidget({ className }: { className?: string }) {
 	const pathname = usePathname()
 
 	const [didSubmit, setDidSubmit] = useLocalStorageState(pathname + '-feedback-submitted', false)
@@ -85,7 +85,6 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 	)
 
 	// todo, improve this so that thumbs ups and thumbs downs are also captured
-
 	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null
 
 	return (

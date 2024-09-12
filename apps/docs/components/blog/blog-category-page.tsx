@@ -1,33 +1,34 @@
 import { BlogMobileSidebar } from '@/components/blog/blog-mobile-sidebar'
 import { BlogPostPreview } from '@/components/blog/blog-post-preview'
 import { BlogSidebar } from '@/components/blog/blog-sidebar'
-import { Breadcrumbs } from '@/components/common/breadcrumbs'
 import { PageTitle } from '@/components/common/page-title'
-import { Article, Section } from '@/types/content-types'
+import { Article } from '@/types/content-types'
 import { NewsletterSignup } from '../common/newsletter-signup'
-import { SearchButton } from '../search/button'
+import { SearchButton } from '../search/SearchButton'
 
-export const BlogCategoryPage: React.FC<{
+export function BlogCategoryPage({
+	title,
+	description,
+	articles,
+}: {
 	title: string
 	description: string | null
-	section: Section
 	articles: Article[]
-}> = ({ title, description, section, articles }) => {
+}) {
 	return (
-		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-16 isolate">
+		<div className="w-full max-w-screen-xl mx-auto md:px-5 md:flex md:pt-8 isolate">
 			<BlogSidebar>
 				<NewsletterSignup size="small" />
 			</BlogSidebar>
-			<div className="fixed w-full h-12 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between px-5 bg-white dark:bg-zinc-950 backdrop-blur md:hidden z-10">
+			<div className="fixed z-10 flex items-center justify-between w-full h-12 px-5 bg-white border-b border-zinc-100 dark:border-zinc-800 dark:bg-zinc-950 backdrop-blur md:hidden">
 				<BlogMobileSidebar />
-				<SearchButton type="blog" layout="mobile" className="hidden sm:block -mr-2" />
+				<SearchButton type="blog" layout="mobile" className="hidden -mr-2 sm:block" />
 			</div>
-			<main className="relative shrink w-full md:overflow-x-hidden px-5 md:pr-0 lg:pl-12 py-24 md:pt-0">
-				<section className="pb-6 mb-6 md:mb-12 md:pb-12 border-b border-zinc-100 dark:border-zinc-800">
-					<Breadcrumbs section={section} className="mb-2" />
+			<main className="relative w-full px-5 py-24 shrink md:overflow-x-hidden md:pr-0 lg:pl-12 md:pt-0">
+				<section className="pb-6 mb-6 border-b md:mb-8 md:pb-8 border-zinc-100 dark:border-zinc-800">
 					<PageTitle>{title}</PageTitle>
 					{description && (
-						<p className="mt-4 text-zinc-800 dark:text-zinc-200 text-lg max-w-2xl">{description}</p>
+						<p className="max-w-2xl mt-4 text-lg text-zinc-800 dark:text-zinc-200">{description}</p>
 					)}
 				</section>
 				<section className="space-y-12">
@@ -37,7 +38,7 @@ export const BlogCategoryPage: React.FC<{
 							<BlogPostPreview key={index} article={article} />
 						))}
 				</section>
-				<section className="mt-16 py-16 border-t border-zinc-100 dark:border-zinc-800">
+				<section className="py-16 mt-16 border-t border-zinc-100 dark:border-zinc-800">
 					<NewsletterSignup />
 				</section>
 			</main>

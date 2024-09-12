@@ -1,8 +1,6 @@
 import { cn } from '@/utils/cn'
 
-export const ArrowUp: React.FC<{
-	className?: string
-}> = ({ className }) => {
+export function ArrowUp({ className }: { className?: string }) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

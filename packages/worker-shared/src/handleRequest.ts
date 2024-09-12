@@ -71,3 +71,14 @@ export function parseRequestQuery<Params>(request: IRequest, validator: T.Valida
 		throw err
 	}
 }
+
+export async function parseRequestBody<Body>(request: IRequest, validator: T.Validator<Body>) {
+	try {
+		return validator.validate(await request.json())
+	} catch (err) {
+		if (err instanceof T.ValidationError) {
+			throw new StatusError(400, `Body: ${err.message}`)
+		}
+		throw err
+	}
+}

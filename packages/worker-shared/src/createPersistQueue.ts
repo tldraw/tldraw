@@ -1,3 +1,5 @@
+import { sleep } from '@tldraw/utils'
+
 // Save the room to supabase
 export function createPersistQueue(persist: () => Promise<void>, timeout: number) {
 	let persistAgain = false
@@ -15,7 +17,7 @@ export function createPersistQueue(persist: () => Promise<void>, timeout: number
 					do {
 						if (persistAgain) {
 							if (timeout > 0) {
-								await new Promise((resolve) => setTimeout(resolve, timeout))
+								await sleep(timeout)
 							}
 							persistAgain = false
 						}

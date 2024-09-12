@@ -8,20 +8,7 @@ import { MouseEventHandler } from 'react'
 import { useFormStatus } from 'react-dom'
 import { Loader } from './loader'
 
-export const Button: React.FC<{
-	href?: string
-	newTab?: boolean
-	onClick?: MouseEventHandler<HTMLButtonElement>
-	submit?: boolean
-	caption: string
-	icon?: IconName
-	arrow?: 'left' | 'right'
-	className?: string
-	size?: 'xs' | 'sm' | 'base' | 'lg'
-	type?: 'primary' | 'secondary' | 'tertiary' | 'black'
-	darkRingOffset?: boolean
-	loading?: boolean
-}> = ({
+export function Button({
 	href,
 	newTab,
 	onClick,
@@ -34,7 +21,20 @@ export const Button: React.FC<{
 	type = 'primary',
 	darkRingOffset,
 	loading,
-}) => {
+}: {
+	href?: string
+	newTab?: boolean
+	onClick?: MouseEventHandler<HTMLButtonElement>
+	submit?: boolean
+	caption: string
+	icon?: IconName
+	arrow?: 'left' | 'right'
+	className?: string
+	size?: 'xs' | 'sm' | 'base' | 'lg'
+	type?: 'primary' | 'secondary' | 'tertiary' | 'black'
+	darkRingOffset?: boolean
+	loading?: boolean
+}) {
 	const { pending } = useFormStatus()
 	const iconSizes = { xs: 'h-3', sm: 'h-3.5', base: 'h-4', lg: 'h-5' }
 	className = cn(
