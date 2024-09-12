@@ -192,6 +192,7 @@ function getArticleData({
 		categoryIndex: order ?? priority,
 		sectionId: sectionId,
 		author: [author],
+		authorId: author,
 		categoryId,
 		status,
 		title,

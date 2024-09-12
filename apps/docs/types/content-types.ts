@@ -100,6 +100,8 @@ export interface Article extends ContentPage {
 	sectionIndex: number
 	/** The article's author details (optional). */
 	author: Author['id'][]
+	/** The article's author username (optional). */
+	authorId: string
 	/** The article's hero image (optional). */
 	hero: string | null
 	/** The article's status (draft, published, hidden, etc) */
