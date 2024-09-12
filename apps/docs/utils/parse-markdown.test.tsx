@@ -102,9 +102,9 @@ boolean
 		)
 	).toMatchInlineSnapshot(`
 		{
-		  "allContentText": "Whether two numbers numbers a and b are approximately equal. Parameters: a (The first point.), b (The second point.), precision. ",
+		  "allContentText": "Whether two numbers numbers a and b are approximately equal. Parameters: a (The first point), b (The second point), precision. ",
 		  "headings": [],
-		  "initialContentText": "Whether two numbers numbers a and b are approximately equal. Parameters: a (The first point.), b (The second point.), precision. ",
+		  "initialContentText": "Whether two numbers numbers a and b are approximately equal. Parameters: a (The first point), b (The second point), precision. ",
 		}
 	`)
 })

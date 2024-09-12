@@ -270,5 +270,7 @@ function postprocessText(text: string) {
 			.replace(/,\s*\./g, '.')
 			// blank Returns:
 			.replace(/Returns:$/, '')
+			// weird punctuation:
+			.replace(/\.\),/g, '),')
 	)
 }
