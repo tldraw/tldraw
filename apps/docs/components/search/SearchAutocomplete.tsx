@@ -4,9 +4,10 @@ import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
 import Link from 'next/link'
-import { Fragment, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
+import { assertExists } from 'tldraw'
 import { ContentHighlight } from './ContentHighlight'
 
 interface AutocompleteProps {
@@ -60,7 +61,7 @@ export default function Autocomplete({
 							)}
 						>
 							<SearchInput value={value} />
-							<Results items={items} />
+							<Results items={useMemo(() => reorderItems(items), [items])} />
 						</div>
 					</div>
 				</SearchDialog>
@@ -135,6 +136,55 @@ function Results({ items }: { items: Hit<SearchEntry>[] }) {
 			{items.length !== 0 && renderedItems}
 		</div>
 	)
+}
+
+/**
+ * We add section headings to the search results to make it easier to scan, but when results are
+ * interspersed we end up with little groups of one or two, or we swap back and forth between
+ * headings. It looks weird. We don't want to apply an absolute sort by section, but this function
+ * tries to tweak the ordering in a small way to bring items together in cohesive sections.
+ */
+function reorderItems(items: Hit<SearchEntry>[]) {
+	const MIN_GOOD_GROUP_SIZE = 3
+	const MAX_HOIST_DISTANCE = 3
+
+	const sections: { name: string; items: Hit<SearchEntry>[] }[] = []
+	const currentSection = () => assertExists(sections[sections.length - 1])
+
+	// initially, just group by section:
+	for (const item of items) {
+		if (sections.length === 0 || currentSection().name !== item.section) {
+			sections.push({ name: item.section, items: [item] })
+		} else {
+			currentSection().items.push(item)
+		}
+	}
+
+	// next, let's look at the sections and see if we can hoist/merge similar small sections:
+	for (let i = 0; i < sections.length; i++) {
+		const currentSection = sections[i]
+		// skip sections already of good size:
+		if (currentSection.items.length >= MIN_GOOD_GROUP_SIZE) continue
+
+		// so we have a small section. let's back track past MAX_HOIST_DISTANCE items and see if we
+		// can merge this section into an existing one:
+		for (let j = i - 1, distance = 0; j >= 0 && distance <= MAX_HOIST_DISTANCE; j--) {
+			const prevSection = sections[j]
+			if (prevSection.name === currentSection.name) {
+				// we've found a matching section, let's merge!
+				prevSection.items.push(...currentSection.items)
+				sections.splice(i, 1)
+				i--
+				break
+			}
+
+			// this is a different section, skip over it:
+			distance += prevSection.items.length
+		}
+	}
+
+	// finally, flatten the sections back into a single list:
+	return sections.flatMap((section) => section.items)
 }
 
 function SearchDialog({
