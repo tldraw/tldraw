@@ -7,6 +7,6 @@ export default defineConfig({
 	plugins: [react()],
 	root: path.join(__dirname, 'src'),
 	server: {
-		port: 5420,
+		port: 4000,
 	},
 })
