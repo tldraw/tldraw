@@ -107,7 +107,7 @@ function Results({ items }: { items: Hit<SearchEntry>[] }) {
 						'dark:data-[active-item=true]:bg-blue-500 data-[active-item=true]:text-blue-200',
 						'[&_mark]:bg-transparent [&_mark]:font-bold [&_mark]:text-white'
 					)}
-					value={hit.content}
+					value={href}
 				>
 					<Link href={href}>
 						<Highlight
