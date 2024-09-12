@@ -1,6 +1,16 @@
 import { cn } from '@/utils/cn'
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
-import hljs from 'highlight.js/lib/common'
+
+import { createHighlighterCoreSync, createJavaScriptRegexEngine, hastToHtml } from 'shiki/core'
+import css from 'shiki/dist/langs/css.mjs'
+import ts from 'shiki/dist/langs/typescript.mjs'
+import theme from 'shiki/dist/themes/github-dark.mjs'
+
+const shiki = createHighlighterCoreSync({
+	themes: [theme],
+	langs: [ts, css],
+	engine: createJavaScriptRegexEngine(),
+})
 
 export function CodeFiles({
 	files,
@@ -29,7 +39,7 @@ export function CodeFiles({
 				{files.map(({ name }, index) => (
 					<Tab
 						key={index}
-						className="h-8 data-[selected]:text-white border-b border-transparent data-[selected]:border-white -mb-px focus:outline-none"
+						className="h-10 data-[selected]:text-white border-b border-transparent data-[selected]:border-white -mb-px focus:outline-none"
 					>
 						{name}
 					</Tab>
@@ -42,17 +52,17 @@ export function CodeFiles({
 				)}
 			>
 				{files.map(({ content, name }, index) => {
-					const language = name.endsWith('.css') ? 'css' : 'ts'
+					const lang = name.endsWith('.css') ? 'css' : 'ts'
+					const ast = shiki.codeToHast(content, { lang, theme })
+					const codeElem = (ast.children[0] as any).children[0]
 					return (
 						<TabPanel key={index}>
-							<pre className="max-h-96 overflow-y-auto">
-								<code
-									className={`hljs language-${language}`}
-									dangerouslySetInnerHTML={{
-										__html: hljs.highlight(content, { language }).value,
-									}}
-								/>
-							</pre>
+							<pre
+								className="overflow-y-auto max-h-96"
+								dangerouslySetInnerHTML={{
+									__html: hastToHtml(codeElem),
+								}}
+							></pre>
 						</TabPanel>
 					)
 				})}

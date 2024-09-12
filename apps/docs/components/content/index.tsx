@@ -14,9 +14,9 @@ import { ApiMemberTitle } from '@/components/content/title-with-source-link'
 import { Video } from '@/components/content/video'
 import { YouTube } from '@/components/content/youtube'
 import { cn } from '@/utils/cn'
+import shikiRehype from '@shikijs/rehype'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypeHighlight from 'rehype-highlight'
 import rehypeSlug from 'rehype-slug-custom-id'
 import remarkGfm from 'remark-gfm'
 
@@ -63,9 +63,18 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					mdxOptions: {
 						remarkPlugins: [remarkGfm],
 						rehypePlugins: [
-							[rehypeHighlight as any, {}],
 							[rehypeAutolinkHeadings, {}],
 							[rehypeSlug, { enableCustomId: true, maintainCase: true, removeAccents: true }],
+							[
+								shikiRehype as any,
+								{
+									themes: {
+										dark: 'github-dark-default',
+										light: 'github-light-default',
+									},
+									defaultColor: 'dark',
+								},
+							],
 						],
 						format: 'mdx',
 					},
