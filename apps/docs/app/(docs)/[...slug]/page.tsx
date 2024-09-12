@@ -7,6 +7,7 @@ import { DocsSidebar } from '@/components/docs/docs-sidebar'
 import { DocsTableOfContents } from '@/components/docs/docs-table-of-contents'
 import { SearchButton } from '@/components/search/SearchButton'
 import { db } from '@/utils/ContentDatabase'
+import { parseMarkdown } from '@/utils/parse-markdown'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -19,7 +20,13 @@ export async function generateMetadata({
 	const content = await db.getPageContent(`/${path.join('/')}`)
 	if (!content || content.type !== 'article') notFound()
 	const metadata: Metadata = { title: content.article.title }
-	if (content.article.description) metadata.description = content.article.description
+	if (content.article.description) {
+		metadata.description = content.article.description
+	} else {
+		const parsed = parseMarkdown(content.article.content ?? '', content.article.id)
+		const initialContentText = parsed.initialContentText.trim()
+		if (initialContentText) metadata.description = initialContentText
+	}
 	return metadata
 }
 

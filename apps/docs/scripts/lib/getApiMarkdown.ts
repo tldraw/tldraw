@@ -261,16 +261,6 @@ async function addFrontmatter(
 	categoryName: string,
 	order: number
 ) {
-	let description = ''
-	if (member instanceof ApiDocumentedItem && member.tsdocComment) {
-		const comment = await MarkdownWriter.docNodeToMarkdown(
-			member,
-			member.tsdocComment.summarySection
-		)
-		// only up to the first newline
-		description = comment.trim().split('\n')[0].replace(/:/g, '')
-	}
-
 	let kw = ''
 
 	if (result.keywords.length) {
@@ -284,7 +274,6 @@ async function addFrontmatter(
 	const frontmatter: Record<string, string> = {
 		title: member.displayName,
 		status: 'published',
-		description,
 		category: categoryName,
 		group: model.isComponent(member) ? APIGroup.Component : member.kind,
 		date,
