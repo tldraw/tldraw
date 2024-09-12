@@ -4,7 +4,7 @@ test('approximately', () => {
 	expect(
 		parseMarkdown(
 			`
-Whether two numbers numbers a and b are approximately equal.
+Whether two [numbers](/link) numbers a and b are approximately equal.
 
 
 <CodeLinks links={{}}>
