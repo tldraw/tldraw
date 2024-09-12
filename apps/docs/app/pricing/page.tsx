@@ -16,7 +16,7 @@ export default function PricingPage() {
 					<a className="text-blue-500" href="https://github.com/tldraw/tldraw/blob/main/LICENSE.md">
 						read our license
 					</a>{' '}
-					or get in touch at sales@tldraw.com .
+					or get in touch at sales@tldraw.com.
 				</p>
 			</div>
 			<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 max-w-2xl">
