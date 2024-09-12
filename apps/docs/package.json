@@ -51,7 +51,7 @@
 		"@microsoft/api-extractor-model": "^7.26.4",
 		"@microsoft/tsdoc": "patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch",
 		"@radix-ui/react-accordion": "^1.1.2",
-		"@radix-ui/react-dialog": "^1.1.1",
+		"@radix-ui/react-dialog": "^1.0.5",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
