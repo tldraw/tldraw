@@ -1,12 +1,10 @@
 'use client'
 
-import { SearchIndexName, getSearchIndexName } from '@/utils/algolia'
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import { SearchEntry, SearchIndexName, getSearchIndexName } from '@/utils/algolia'
 import algoliasearch from 'algoliasearch/lite'
-import { Command } from 'cmdk'
-import { InstantSearch } from 'react-instantsearch'
-import { Hits } from './hits'
-import { SearchInput } from './input'
+import { useRouter } from 'next/navigation'
+import { InstantSearch, useHits, useSearchBox } from 'react-instantsearch'
+import SearchAutocomplete from './SearchAutocomplete'
 
 const searchClient = algoliasearch(
 	process.env.NEXT_PUBLIC_ALGOLIA_APP_ID!,
@@ -16,19 +14,27 @@ const searchClient = algoliasearch(
 export function Search({ type, onClose }: { type: SearchIndexName; onClose(): void }) {
 	return (
 		<InstantSearch indexName={getSearchIndexName(type)} searchClient={searchClient}>
-			<Command
-				shouldFilter={false}
-				className="pointer-events-auto bg-zinc-50 dark:bg-zinc-900 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500"
-			>
-				<div className="w-full h-10 flex items-center px-4">
-					<div className="flex h-full grow items-center gap-3">
-						<MagnifyingGlassIcon className="h-4 shrink-0" />
-						<SearchInput />
-					</div>
-					<span className="hidden md:block text-xs shrink-0">ESC</span>
-				</div>
-				<Hits onClose={onClose} />
-			</Command>
+			<InstantSearchInner onClose={onClose} />
 		</InstantSearch>
+	)
+}
+
+function InstantSearchInner({ onClose }: { onClose(): void }) {
+	const { items } = useHits<SearchEntry>()
+	const { refine } = useSearchBox()
+	const router = useRouter()
+
+	const handleChange = (path: string) => {
+		router.push(path)
+		onClose()
+	}
+
+	return (
+		<SearchAutocomplete
+			items={items}
+			onInputChange={(query: string) => refine(query)}
+			onChange={handleChange}
+			onClose={onClose}
+		/>
 	)
 }

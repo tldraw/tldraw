@@ -4,7 +4,7 @@ import { BlogSidebar } from '@/components/blog/blog-sidebar'
 import { PageTitle } from '@/components/common/page-title'
 import { Article } from '@/types/content-types'
 import { NewsletterSignup } from '../common/newsletter-signup'
-import { SearchButton } from '../search/button'
+import { SearchButton } from '../search/SearchButton'
 
 export function BlogCategoryPage({
 	title,
