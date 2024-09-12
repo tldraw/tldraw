@@ -93,6 +93,20 @@ export type TldrawFileParseError =
 	| { type: 'migrationFailed'; reason: MigrationFailureReason }
 	| { type: 'invalidRecords'; cause: unknown }
 
+function parseAndRemoveOldRecordTypes(json: string) {
+	const document = JSON.parse(json)
+	const recordTypesToRemove = ['user', 'user_presence', 'user_document']
+	if (document.records) {
+		document.records = document.records.filter((record: any) => {
+			if (record && recordTypesToRemove.includes(record.typeName)) {
+				return false
+			}
+			return true
+		})
+	}
+	return document
+}
+
 /** @public */
 export function parseTldrawJsonFile({
 	json,
@@ -105,7 +119,8 @@ export function parseTldrawJsonFile({
 	// a tldraw file
 	let data
 	try {
-		data = tldrawFileValidator.validate(JSON.parse(json))
+		const document = parseAndRemoveOldRecordTypes(json)
+		data = tldrawFileValidator.validate(document)
 	} catch (e) {
 		// could be a v1 file!
 		try {
