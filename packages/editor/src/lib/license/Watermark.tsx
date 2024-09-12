@@ -99,6 +99,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		justify-content: center;
 		z-index: 2147483647 !important;
 		background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
+		opacity: .5;
 		border-radius: 5px;
 		pointer-events: all;
 		padding: 2px;
@@ -113,7 +114,6 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		cursor: inherit;
 		color: var(--color-text);
 		background-color: currentColor;
-		opacity: .28;
 	}
 
 	
@@ -127,7 +127,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	
 	.${className}[data-mobile='true'] {
 		border-radius: 4px 0px 0px 4px;
-		right: 0px;
+		right: -2px;
 		width: 8px;
 		height: 48px;
 	}
@@ -138,7 +138,13 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	}
 	
 	@media (hover: hover) {
+		.${className}[data-mobile='true'] > a {
+			opacity: .62;
+			pointer-events: none;
+		}
+
 		.${className} > a {
+			opacity: .28;
 			pointer-events: none;
 		}
 

@@ -85,7 +85,7 @@ test.describe('Style selection behaviour', () => {
 			},
 			{ name: 'tools.more.frame', styles: ['style.opacity'] },
 			{
-				name: isMobile ? 'tools.more.text' : 'tools.text',
+				name: 'tools.text',
 				styles: ['style.size', 'style.color', 'style.opacity', 'style.font', 'style.align'],
 			},
 			{ name: 'tools.eraser', styles: [] },
