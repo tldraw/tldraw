@@ -30,6 +30,14 @@ export async function generateMetadata({
 	return metadata
 }
 
+const nonDocsPaths = ['/blog/', '/legal/']
+export async function generateStaticParams() {
+	const paths = await db.getAllPaths()
+	return paths
+		.filter((path) => !nonDocsPaths.some((nonDocsPath) => path.startsWith(nonDocsPath)))
+		.map((path) => ({ slug: path.slice(1).split('/') }))
+}
+
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/${path.join('/')}`)
