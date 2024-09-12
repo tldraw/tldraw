@@ -224,7 +224,7 @@ export const DefaultColorThemePalette: {
 			},
 		},
 		white: {
-			solid: '#f5f5f5',
+			solid: '#FFFFFF',
 			fill: '#FFFFFF',
 			semi: '#f5f5f5',
 			pattern: '#f9f9f9',
