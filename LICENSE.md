@@ -2,7 +2,7 @@
 
 This License from tldraw, Inc. (“tldraw”) governs your use of the accompanying Software. By using the Software, you accept the terms of this License. The tldraw software is copyrighted by tldraw Inc.
 
-As described in this License, you are permitted to use the software in both commercial and non-commercial projects so long as tldraw's branded image link (the "Watermark") is displayed unaltered at all times. The details of this License are described below. If you wish to remove this watermark, please contact sales@tldraw.com to purchase a Business License.
+As described in this License, you are permitted to use the software in both commercial and non-commercial projects so long as tldraw's branded image link (the "Watermark") is displayed unaltered at all times. The details of this License are described below. If you wish to remove this watermark, please visit https://tldraw.dev/#pricing to purchase a Business License.
 
 ## Permissions
 

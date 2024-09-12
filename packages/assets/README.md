@@ -14,7 +14,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
-You can use tldraw in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark. To remove the watermark, purchase a [business license](https://staging.tldraw.dev/#pricing). For more information, visit [tldraw.dev](https://tldraw.dev).
+You can use tldraw in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark. To remove the watermark, purchase a [business license](https://tldraw.dev/#pricing). For more information, visit [tldraw.dev](https://tldraw.dev).
 
 ## Trademarks
 
