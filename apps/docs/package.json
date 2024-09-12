@@ -52,6 +52,7 @@
 		"@microsoft/tsdoc": "patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch",
 		"@radix-ui/react-accordion": "^1.1.2",
 		"@radix-ui/react-dialog": "^1.1.1",
+		"@tldraw/assets": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"algoliasearch": "^4.24.0",
@@ -82,7 +83,8 @@
 		"rimraf": "^4.4.0",
 		"sqlite": "^5.0.1",
 		"sqlite3": "^5.1.6",
-		"tailwind-merge": "^2.3.0"
+		"tailwind-merge": "^2.3.0",
+		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
 		"@tailwindcss/typography": "^0.5.13",
