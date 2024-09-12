@@ -141,10 +141,7 @@ export interface ArticleHeading {
 	level: number
 	title: string
 	slug: string
-	isCode: boolean
 }
-
-export type ArticleHeadings = ArticleHeading[]
 
 /* ------------------ Article Links ----------------- */
 

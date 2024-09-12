@@ -1,11 +1,10 @@
 import { BlogCategoryMenu } from '@/components/blog/blog-category-menu'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react'
 import { Bars3Icon } from '@heroicons/react/16/solid'
 import { XMarkIcon } from '@heroicons/react/20/solid'
 
 export async function BlogMobileSidebar() {
-	const db = await getDb()
 	const categories = await db.getCategoriesForSection('blog')
 	return (
 		<Popover className="group/popover h-full grow">

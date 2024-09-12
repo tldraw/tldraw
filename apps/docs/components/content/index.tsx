@@ -10,7 +10,7 @@ import { ParametersTableDescription } from '@/components/content/parameters-tabl
 import { ParametersTableName } from '@/components/content/parameters-table-name'
 import { ParametersTableRow } from '@/components/content/parameters-table-row'
 import { Pre } from '@/components/content/pre'
-import { TitleWithSourceLink } from '@/components/content/title-with-source-link'
+import { ApiMemberTitle } from '@/components/content/title-with-source-link'
 import { Video } from '@/components/content/video'
 import { YouTube } from '@/components/content/youtube'
 import { cn } from '@/utils/cn'
@@ -54,14 +54,14 @@ export function Content({ mdx, type }: { mdx: string; type?: string }) {
 					ParametersTableDescription,
 					ParametersTableName,
 					ParametersTableRow,
-					TitleWithSourceLink,
+					ApiMemberTitle,
 					blockquote: Blockquote,
 					Video,
 					YouTube,
 				}}
 				options={{
 					mdxOptions: {
-						remarkPlugins: [remarkGfm, {}],
+						remarkPlugins: [remarkGfm],
 						rehypePlugins: [
 							[rehypeHighlight as any, {}],
 							[rehypeAutolinkHeadings, {}],
