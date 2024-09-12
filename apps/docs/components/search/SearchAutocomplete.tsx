@@ -1,6 +1,8 @@
+import { TldrawIcon } from '@/components/common/icon/tldraw'
 import { SearchEntry } from '@/utils/algolia'
 import { Combobox, ComboboxItem, ComboboxProvider, VisuallyHidden } from '@ariakit/react'
-import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import { MagnifyingGlassIcon, MegaphoneIcon, TagIcon } from '@heroicons/react/20/solid'
+import { AcademicCapIcon, CommandLineIcon, PlayIcon } from '@heroicons/react/24/solid'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
 import Link from 'next/link'
@@ -69,6 +71,29 @@ export default function Autocomplete({
 	)
 }
 
+function SearchDialog({
+	children,
+	onOpenChange,
+}: {
+	children: React.ReactNode
+	onOpenChange(open: boolean): void
+}) {
+	return (
+		<Dialog.Root open onOpenChange={onOpenChange}>
+			<Dialog.Portal>
+				<Dialog.Overlay />
+				<Dialog.Content className="fixed inset-0 z-20" style={{ pointerEvents: 'none' }}>
+					<VisuallyHidden>
+						<Dialog.Title></Dialog.Title>
+						<Dialog.Description></Dialog.Description>
+					</VisuallyHidden>
+					{children}
+				</Dialog.Content>
+			</Dialog.Portal>
+		</Dialog.Root>
+	)
+}
+
 function SearchInput({ value }: { value: string }) {
 	return (
 		<div className="w-full h-10 flex items-center px-4">
@@ -87,28 +112,36 @@ function SearchInput({ value }: { value: string }) {
 }
 
 function Results({ items }: { items: Hit<SearchEntry>[] }) {
-	let section = ''
 	const renderedItems = items.map((hit) => {
-		const showChapter = hit.section !== section
-		section = hit.section
-
 		const href = hit.headingSlug ? `${hit.path}#${hit.headingSlug}` : hit.path
+
+		let Icon
+		if (hit.section === 'Blog') {
+			Icon = hit.path.startsWith('/blog/product')
+				? TldrawIcon
+				: hit.path.startsWith('/blog/release-notes')
+					? TagIcon
+					: MegaphoneIcon
+		} else {
+			Icon = ['Get Started', 'Learn tldraw', 'Community'].includes(hit.section)
+				? AcademicCapIcon
+				: hit.section === 'API Reference'
+					? CommandLineIcon
+					: PlayIcon
+		}
 
 		return (
 			<Fragment key={hit.objectID}>
-				{showChapter && (
-					<div className="text-black dark:text-white font-semibold mt-6 mb-4">{section}</div>
-				)}
-
 				<ComboboxItem
 					className={twJoin(
-						'block px-4 pt-2.5 pb-3 bg-zinc-100 dark:bg-zinc-800 mt-2',
-						'rounded-md cursor-pointer data-[active-item=true]:bg-blue-500',
+						'block flex items-center px-3 pt-2.5 pb-3 bg-zinc-100 dark:bg-zinc-800',
+						'mt-2 rounded-md cursor-pointer data-[active-item=true]:bg-blue-500',
 						'dark:data-[active-item=true]:bg-blue-500 data-[active-item=true]:text-blue-200',
 						'[&_mark]:bg-transparent [&_mark]:font-bold [&_mark]:text-white'
 					)}
 					value={href}
 				>
+					<Icon className="flex h-8 w-8 mr-4 flex-none rounded-md" />
 					<Link href={href}>
 						<Highlight
 							attribute="title"
@@ -134,28 +167,5 @@ function Results({ items }: { items: Hit<SearchEntry>[] }) {
 			)}
 			{items.length !== 0 && renderedItems}
 		</div>
-	)
-}
-
-function SearchDialog({
-	children,
-	onOpenChange,
-}: {
-	children: React.ReactNode
-	onOpenChange(open: boolean): void
-}) {
-	return (
-		<Dialog.Root open onOpenChange={onOpenChange}>
-			<Dialog.Portal>
-				<Dialog.Overlay />
-				<Dialog.Content className="fixed inset-0 z-20" style={{ pointerEvents: 'none' }}>
-					<VisuallyHidden>
-						<Dialog.Title></Dialog.Title>
-						<Dialog.Description></Dialog.Description>
-					</VisuallyHidden>
-					{children}
-				</Dialog.Content>
-			</Dialog.Portal>
-		</Dialog.Root>
 	)
 }
