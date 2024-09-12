@@ -1,7 +1,6 @@
 'use client'
 
 import { cn } from '@/utils/cn'
-import { LinkIcon } from '@heroicons/react/20/solid'
 import { assert, getOwnProperty } from '@tldraw/utils'
 import React, {
 	Fragment,
@@ -31,12 +30,11 @@ export function FocusLines({ children, lines }: { children: ReactNode; lines: nu
 	return <FocusLinesContext.Provider value={lines}>{children}</FocusLinesContext.Provider>
 }
 
-const blurredLineClassName = 'opacity-60 !text-white'
+const blurredLineClassName = '[&_*]:!opacity-60 [&_*]:!text-white'
 
 function CodeLink({ children, href }: { children: ReactNode; href: string }) {
 	return (
-		<A href={href} className="group-[.not-prose]:hover:underline">
-			<LinkIcon className="h-3.5 mb-1 mr-0.5 inline-block" />
+		<A href={href} className="group-[.not-prose]:underline group-[.not-prose]:hover:no-underline">
 			{children}
 		</A>
 	)
@@ -69,6 +67,8 @@ function tokenize(code: string): string[] {
 	return tokens
 }
 
+// this is for inline code blocks (e.g. `code`)
+// these don't get highlighted, so the children is just a string
 function InlineCodeElem({ children, ...props }: React.ComponentProps<'code'>) {
 	const code = children as string
 	assert(typeof code === 'string', 'InlineCodeElem children must be a string')
@@ -97,6 +97,9 @@ function InlineCodeElem({ children, ...props }: React.ComponentProps<'code'>) {
 	)
 }
 
+// This is code that has been highlighted by shikijs
+// Children is an array of spans, each representing a line and containing an array of spans which are tokens
+// There is sometimes whitespace between the lines
 function HighlightedCodeElem({ children, ...props }: React.ComponentProps<'code'>) {
 	const codeLinks = useContext(CodeLinksContext)
 	const focusLines = useContext(FocusLinesContext)
@@ -105,27 +108,21 @@ function HighlightedCodeElem({ children, ...props }: React.ComponentProps<'code'
 	return (
 		<code {...props}>
 			{React.Children.map(children, (line) => {
-				// handle whitespace
+				// ignore whitespace
 				if (!line || !isValidElement(line)) return line
+
 				assert(line.type === 'span', 'Invalid code child (not a span)')
 				assert(line.props.className === 'line', 'Invalid code child (not a line)')
+
+				// apply line lowlights
 				lineNumber++
 				if (focusLines && !focusLines?.includes(lineNumber)) {
-					line = React.cloneElement(line as ReactElement, {
+					line = React.cloneElement(line, {
 						...line.props,
 						className: cn(line.props?.className, blurredLineClassName),
-						children: React.Children.map(line.props.children, (child) => {
-							// remove inline styles from shikijs
-							if (isValidElement(child) && child.type === 'span' && child.props) {
-								return React.cloneElement(child, {
-									...child.props,
-									style: undefined,
-								} as any)
-							}
-							return child
-						}),
 					})
 				}
+				// inject links where needed
 				if (codeLinks) {
 					line = React.cloneElement(line as ReactElement, {
 						...line.props,

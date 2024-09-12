@@ -6,6 +6,8 @@ import css from 'shiki/dist/langs/css.mjs'
 import ts from 'shiki/dist/langs/typescript.mjs'
 import theme from 'shiki/dist/themes/github-dark.mjs'
 
+// The normal shiki import is async, which we can't use here easily because of SSR complications.
+// So here we create a synchronous version of the highlighter.
 const shiki = createHighlighterCoreSync({
 	themes: [theme],
 	langs: [ts, css],
