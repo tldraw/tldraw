@@ -58,9 +58,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). This license does not permit commercial use.
-
-If you wish to use this project in commercial product, you need to purchase a commercial license. To obtain a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). To learn more, visit [tldraw.dev](https://tldraw.dev).
 
 ## Trademarks
 

@@ -59,7 +59,9 @@ Open the example project at `localhost:5420`.
 
 ## License
 
-The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use. To purchase a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+
+You can use tldraw in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark. To remove the watermark, purchase a [business license](https://staging.tldraw.dev/#pricing). For more information, visit [tldraw.dev](https://tldraw.dev).
 
 ## Trademarks
 
@@ -71,7 +73,7 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, check out our [Substack](https://tldraw.substack.com/).
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
 
 ## Contribution
 
