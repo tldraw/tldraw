@@ -7,11 +7,15 @@ export function PricingSection() {
 	return (
 		<div className="bg-zinc-50 dark:bg-zinc-900 mt-16 sm:mt-24 md:mt-32 lg:mt-40">
 			<Section id="pricing" className="pb-24 md:pb-32 lg:pb-40">
-				<SectionHeading
-					subheading="Pricing"
-					heading="Free with Watermark or Buy a License"
-					description="You can use the tldraw SDK for free in commercial or non-commercial projects so long as the 'Made with tldraw' image link is present. If you would like to remove the link, you can purchase a business license."
-				/>
+				<SectionHeading subheading="License and Pricing" heading="Free with Watermark" />
+				<div className="flex justify-center mb-8">
+					<img src={'/watermark-desktop.svg'} className="h-20" />
+				</div>
+				<p className="text-center max-w-xl text-balance mb-12 mx-auto px-5 md:px-0">
+					You can use the tldraw SDK for free in commercial or non-commercial projects so long as
+					the {`"`}Made with tldraw{`"`} watermark is present. To remove the watermark, you can
+					purchase a business license.
+				</p>
 				<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 max-w-2xl">
 					<div className="relative w-full h-full bg-zinc-900 md:rounded-xl shadow p-5 md:p-8 overflow-hidden text-zinc-300">
 						<div className="flex items-center gap-1 mb-4 -mt-1">

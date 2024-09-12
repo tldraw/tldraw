@@ -10,14 +10,13 @@ export default function PricingPage() {
 			</div>
 			<div className="mx-auto max-w-xl pb-10">
 				<p>
-					{`You can use the tldraw SDK for free in commercial or non-commercial projects so long as the
-				"Made with tldraw" image link is present. If you would like to remove the link, you can
-				purchase a business license.`}{' '}
-					For more information,{' '}
+					You can use the tldraw SDK for free in commercial or non-commercial projects so long as
+					the {'"'}Made with tldraw{'"'} image link is present. If you would like to remove the
+					link, you can purchase a business license. For more information,{' '}
 					<a className="text-blue-500" href="https://github.com/tldraw/tldraw/blob/main/LICENSE.md">
 						read our license
-					</a>
-					.
+					</a>{' '}
+					or get in touch at sales@tldraw.com .
 				</p>
 			</div>
 			<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 max-w-2xl">

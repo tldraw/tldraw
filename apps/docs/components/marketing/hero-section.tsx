@@ -11,13 +11,13 @@ export function HeroSection() {
 					for React developers
 				</h1>
 				{/* <Underline
-                className={cn(
-                    'pointer-events-none text-blue-500 absolute',
-                    'w-64 left-2 top-[4.1rem]',
-                    'sm:w-80 sm:left-auto sm:right-2 sm:top-8',
-                    'md:w-[26rem] md:right-4 md:top-11'
-                )}
-            /> */}
+					className={cn(
+						'pointer-events-none text-blue-500 absolute',
+						'w-64 right-2 top-8',
+						'sm:w-80 sm:left-auto sm:right-2 sm:top-9',
+						'md:w-[26rem] md:right-4 md:top-12'
+					)}
+				/> */}
 			</div>
 			{/* <div className="mt-5 sm:mt-8 flex items-center gap-3">
                 <ul className="flex">
@@ -40,11 +40,12 @@ export function HeroSection() {
                     developers and users.
                 </div>
             </div> */}
-			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg max-w-xl">
-				Whether you need a drop in whiteboard or an engine for your web canvas, the{' '}
-				<b>tldraw SDK</b> provides the components, APIs, and services to get you there.
+			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg max-w-lg md:max-w-xl">
+				Use the <b>tldraw SDK</b> to add a collaborative whiteboard to your product <i>or</i> use
+				its components, runtime APIs, services to build your own canvas-based experiences on the
+				web.
 			</p>
-			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl">
+			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
 				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
 				<Button
 					href="https://github.com/tldraw/tldraw"
