@@ -133,6 +133,7 @@ export function parseMarkdown(
 			}
 
 			case 'text':
+			case 'inlineCode':
 				addText(node.value, state)
 				break
 
@@ -143,7 +144,6 @@ export function parseMarkdown(
 				break
 
 			case 'code':
-			case 'inlineCode':
 				// skip these entirely
 				break
 
@@ -157,15 +157,13 @@ export function parseMarkdown(
 
 				if (
 					// Remove table of contents
-					(name === 'details' &&
-						attributes.some(
-							(attr) =>
-								'name' in attr &&
-								attr.name === 'className' &&
-								attr.value === TABLE_OF_CONTENTS_CLASSNAME
-						)) ||
-					// Remove ApiHeading
-					name === 'ApiHeading'
+					name === 'details' &&
+					attributes.some(
+						(attr) =>
+							'name' in attr &&
+							attr.name === 'className' &&
+							attr.value === TABLE_OF_CONTENTS_CLASSNAME
+					)
 				) {
 					break
 				}
@@ -198,7 +196,30 @@ export function parseMarkdown(
 					}
 				}
 
+				if (name === 'ParametersTableDescription') {
+					addText('(', state)
+				}
+
 				visitChildren(node, state)
+
+				if (name === 'ApiHeading') {
+					addText(':', state)
+					breakText(state)
+				}
+
+				if (name === 'ParametersTableDescription') {
+					addText(')', state)
+				}
+
+				if (name === 'ParametersTableRow') {
+					addText(',', state)
+				}
+
+				if (name === 'ParametersTable') {
+					breakText(state)
+					addText('.', state)
+				}
+
 				break
 			}
 
@@ -218,8 +239,36 @@ export function parseMarkdown(
 	const slugs = new GithubSlugger()
 
 	return {
-		initialContentText: initial.contentText,
-		allContentText,
-		headings: headings.map((heading) => ({ ...heading, slug: slugs.slug(heading.title, true) })),
+		initialContentText: postprocessText(initial.contentText),
+		allContentText: postprocessText(allContentText),
+		headings: headings.map((heading) => ({
+			...heading,
+			slug: slugs.slug(heading.title, true),
+			contentText: postprocessText(heading.contentText),
+		})),
 	}
+}
+
+function postprocessText(text: string) {
+	return (
+		text
+			// remove trailing/leading whitespace in each line:
+			.replace(/^\s+/gm, '')
+			.replace(/\s+$/gm, '')
+			// remove empty lines:
+			.replace(/^\s*$/gm, '')
+			// place on a single line:
+			.replace(/\s+/g, ' ')
+			// empty brackets:
+			.replace(/\( \)/g, '')
+			// bracket spacing:
+			.replace(/\( /g, '(')
+			.replace(/ \)/g, ')')
+			// comma leading space:
+			.replace(/\s+,/g, ',')
+			// comma + period:
+			.replace(/,\s*\./g, '.')
+			// blank Returns:
+			.replace(/Returns:$/, '')
+	)
 }

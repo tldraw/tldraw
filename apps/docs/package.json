@@ -40,7 +40,9 @@
 		"update-algolia-index": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/update-algolia-index.ts",
 		"clean": "rm -rf node_modules .yarn",
 		"format": "yarn run -T prettier --write .",
-		"watch-content": "tsx ./watcher.ts"
+		"watch-content": "tsx ./watcher.ts",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest"
 	},
 	"dependencies": {
 		"@ariakit/react": "^0.4.11",
@@ -107,5 +109,15 @@
 		"typescript": "^5.3.3",
 		"vectra": "^0.4.4",
 		"ws": "^8.16.0"
+	},
+	"jest": {
+		"preset": "config/jest/node",
+		"roots": [
+			"<rootDir>"
+		],
+		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
+		"transformIgnorePatterns": [
+			"node_modules/(?!(.*)/)"
+		]
 	}
 }
