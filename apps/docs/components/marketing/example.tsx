@@ -27,7 +27,7 @@ export async function Example({
 						<ExamplePlaceholder>
 							<iframe
 								className="iframe"
-								src={`${server}/${content.article.id}/full`}
+								src={`${server}/${content.article.id}/full?tldraw_preserve_focus=true`}
 								width="100%"
 								height={376}
 							/>

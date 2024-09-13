@@ -7,7 +7,7 @@
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "SEE LICENSE IN LICENSE.md",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"

@@ -8,7 +8,7 @@
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "SEE LICENSE IN LICENSE.md",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -36,7 +36,7 @@
 		"check-links": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/check-broken-links.ts",
 		"create-api-markdown": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/create-api-markdown.ts",
 		"refresh-content": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/refresh-content.ts",
-		"refresh-everything": "yarn fetch-api-source && yarn fetch-releases && yarn create-api-markdown && yarn refresh-content && yarn format && yarn update-algolia-index",
+		"refresh-everything": "yarn fetch-api-source && yarn fetch-releases && yarn create-api-markdown && yarn refresh-content && yarn format",
 		"update-algolia-index": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/update-algolia-index.ts",
 		"clean": "rm -rf node_modules .yarn",
 		"format": "yarn run -T prettier --write .",

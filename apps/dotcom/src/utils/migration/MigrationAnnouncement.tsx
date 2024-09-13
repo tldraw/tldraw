@@ -61,7 +61,7 @@ export function MigrationAnnouncement({
 						" We've re-written the app to be faster, more stable, and maybe even more fun. For more on what's new, "
 					}
 					<a
-						href="https://tldraw.substack.com/p/tiny-little-seed-round"
+						href="https://tldraw.dev/blog/announcements/tiny-little-seed-round"
 						target="_blank"
 						rel="noreferrer"
 						style={{ textDecoration: 'underline' }}

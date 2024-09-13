@@ -19,7 +19,7 @@ const mainLinks = [
 		children: [
 			{ caption: 'Features', href: '/#features' },
 			{ caption: 'Pricing', href: '/#pricing' },
-			{ caption: 'FAQ', href: '/#faq' },
+			// { caption: 'FAQ', href: '/#faq' },
 		],
 	},
 	{
