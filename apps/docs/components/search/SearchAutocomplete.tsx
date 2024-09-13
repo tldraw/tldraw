@@ -150,8 +150,8 @@ function SearchDialog({
 				<Dialog.Overlay />
 				<Dialog.Content className="fixed inset-0 z-20" style={{ pointerEvents: 'none' }}>
 					<VisuallyHidden>
-						<Dialog.Title></Dialog.Title>
-						<Dialog.Description></Dialog.Description>
+						<Dialog.Title>Search</Dialog.Title>
+						<Dialog.Description>Search dialog</Dialog.Description>
 					</VisuallyHidden>
 					{children}
 				</Dialog.Content>
