@@ -284,7 +284,9 @@ async function main() {
 				const imagePath = path.join(__dirname, '..', 'public', 'images', 'blog', imageName)
 				const buffer = await res.arrayBuffer()
 				return await fs.promises.writeFile(imagePath, Buffer.from(buffer))
-			} catch (error) {}
+			} catch (error) {
+				// noop
+			}
 		})
 	)
 }
