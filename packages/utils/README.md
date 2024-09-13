@@ -8,7 +8,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-This project is licensed under the MIT License.
+This project is provided under the MIT License.
 
 ## Trademarks
 
