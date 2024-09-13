@@ -297,7 +297,6 @@ export async function parseAndLoadDocument(
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
 	transact(() => {
-		console.log('result', parseFileResult.value.getStoreSnapshot())
 		editor.loadSnapshot(parseFileResult.value.getStoreSnapshot())
 		editor.clearHistory()
 
