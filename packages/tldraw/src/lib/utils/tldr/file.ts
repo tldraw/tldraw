@@ -136,11 +136,9 @@ export function parseTldrawJsonFile({
 				return Result.err({ type: 'invalidRecords', cause: e })
 			}
 		}
-		case 'v1File': {
-			return Result.err({ type: 'v1File', data: result.data })
-		}
+		case 'v1File':
 		case 'notATldrawFile':
-			return Result.err({ type: 'notATldrawFile', cause: result.cause })
+			return Result.err(result)
 	}
 }
 
