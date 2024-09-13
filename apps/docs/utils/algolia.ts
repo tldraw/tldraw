@@ -48,5 +48,6 @@ const tldrawEnv =
 		: vercelEnv
 
 export function getSearchIndexName(name: SearchIndexName) {
+	if (tldrawEnv === 'production') return name
 	return `${name}-${tldrawEnv}`
 }
