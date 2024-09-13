@@ -13,8 +13,6 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 - Minor version bumps are released on a regular cadence - approximately monthly. **They may contain breaking changes**. We aim to make breaking changes as minimally disruptive as possible, but tldraw is actively evolving as we add new features. We recommend updating tldraw at a similar pace to our release cadence, and be sure to check the release notes.
 - Patch version bumps are for bugfixes and hotfixes that can't wait for the next cadence release.
 
-
-
 {/* START AUTO-GENERATED CHANGELOG */}
 
 ## Current release: [v2.4.0](/releases/v2.4.0)
@@ -59,6 +57,7 @@ editor.run(
 ```
 
 ##### Assets
+
 As part of our work on sync, we have a new system for handling large assets like images and videos. You can provide a [`TLAssetStore`](https://tldraw.dev/reference/tlschema/TLAssetStore) to control how assets are uploaded and retrieved.
 
 In your own shapes & tools, these options are available through the new [`Editor.uploadAsset`](https://tldraw.dev/reference/editor/Editor#uploadAsset) and [`Editor.resolveAssetURL`](https://staging.tldraw.dev/reference/editor/Editor#resolveAssetUrl) methods.
@@ -66,6 +65,7 @@ In your own shapes & tools, these options are available through the new [`Editor
 ---
 
 #### Breaking changes
+
 - `editor.history.ignore(cb)` has been replaced with `editor.run(cb, {history: ‘ignore’})`
 - `editor.batch` is deprecated, replaced with `editor.run`
 - If you’re importing from `@tldraw/state` directly, the `track` function and all hooks (e.g. `useValue`) have moved to `@tldraw/state-react`.
@@ -79,9 +79,10 @@ In your own shapes & tools, these options are available through the new [`Editor
 - We now show a toast when uploading an unsupported file type or a file that is too large. ([#4114](https://github.com/tldraw/tldraw/pull/4114))
 - We now show a toast when pasting failed due to missing clipboard permissions. ([#4117](https://github.com/tldraw/tldraw/pull/4117))
 - You can use the new `ShapeIndicators` component to add custom logic about when to display indicators. ([#4083](https://github.com/tldraw/tldraw/pull/4083))
-- A shape’s opacity will now also animate. ([#4242]([https://github.com/tldraw/tldraw/pull/](https://github.com/tldraw/tldraw/pull/4042)4242))
+- A shape’s opacity will now also animate. ([#4242](<[https://github.com/tldraw/tldraw/pull/](https://github.com/tldraw/tldraw/pull/4042)4242>))
 
 #### API changes
+
 - The `@tldraw/state` library is now split into `@tldraw/state` and `@tldraw/state-react`. ([#4170](https://github.com/tldraw/tldraw/pull/4170))
 - We now export the `DefaultMenuPanel`. ([#4193](https://github.com/tldraw/tldraw/pull/4193))
 - The `fileSize` property of `TLImageAsset` and `TLVideoAsset` is now optional. ([#4206](https://github.com/tldraw/tldraw/pull/4206))
@@ -93,6 +94,7 @@ In your own shapes & tools, these options are available through the new [`Editor
 - Add `Editor.run`, replacing `Editor.batch` ([#4042](https://github.com/tldraw/tldraw/pull/4042))
 
 #### Bug fixes
+
 - The font style is now correctly exported as SVG. ([#4195](https://github.com/tldraw/tldraw/pull/4195))
 - The `force` flag is now taken into account for additional camera methods. ([#4214](https://github.com/tldraw/tldraw/pull/4214))
 - The user's color scheme is shown in the menu by default. ([#4184](https://github.com/tldraw/tldraw/pull/4184))
@@ -123,7 +125,7 @@ In your own shapes & tools, these options are available through the new [`Editor
 - Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
 - Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
-						
+
 ## Previous releases
 
 - [v2.3.0](/releases/v2.3.0)
@@ -135,5 +137,3 @@ In your own shapes & tools, these options are available through the new [`Editor
 - [v2.0.0](/releases/v2.0.0)
 
 {/* END AUTO-GENERATED CHANGELOG */}
-
-
