@@ -67,11 +67,10 @@ function parseFile(json: any) {
 		} else if (isV1File(data)) {
 			return { type: 'v1File' as const, data }
 		}
+		return { type: 'notATldrawFile' as const, cause: null }
 	} catch (e) {
 		return { type: 'notATldrawFile' as const, cause: e }
 	}
-
-	return { type: 'notATldrawFile' as const, cause: null }
 }
 
 /** @public */
