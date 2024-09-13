@@ -1,7 +1,7 @@
 import { Aside } from '@/components/common/aside'
 import { DocsCategoryMenu } from '@/components/docs/docs-category-menu'
 import { DocsSidebarMenus } from '@/components/docs/docs-sidebar-menus'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 
 export async function DocsSidebar({
 	sectionId,
@@ -12,7 +12,6 @@ export async function DocsSidebar({
 	categoryId?: string
 	articleId?: string
 }) {
-	const db = await getDb()
 	const sidebar = await db.getSidebarContentList({ sectionId, categoryId, articleId })
 	const skipFirstLevel = ['reference', 'examples'].includes(sectionId ?? '')
 	// @ts-ignore

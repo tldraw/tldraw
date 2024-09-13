@@ -8400,7 +8400,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 
 				// Get a new asset for the file
-				const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
+				const newAsset = await this.getAssetForExternalContent({
+					type: 'file',
+					file,
+					assetId: asset.id,
+				})
 
 				if (!newAsset) {
 					// If we don't have a new asset, delete the old asset.

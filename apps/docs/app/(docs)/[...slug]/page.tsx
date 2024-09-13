@@ -6,8 +6,9 @@ import { DocsHeader } from '@/components/docs/docs-header'
 import { DocsMobileSidebar } from '@/components/docs/docs-mobile-sidebar'
 import { DocsSidebar } from '@/components/docs/docs-sidebar'
 import { DocsTableOfContents } from '@/components/docs/docs-table-of-contents'
-import { SearchButton } from '@/components/search/button'
-import { getPageContent } from '@/utils/get-page-content'
+import { SearchButton } from '@/components/search/SearchButton'
+import { db } from '@/utils/ContentDatabase'
+import { parseMarkdown } from '@/utils/parse-markdown'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -17,16 +18,30 @@ export async function generateMetadata({
 	params: { slug: string | string[] }
 }): Promise<Metadata> {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
-	const content = await getPageContent(`/${path.join('/')}`)
+	const content = await db.getPageContent(`/${path.join('/')}`)
 	if (!content || content.type !== 'article') notFound()
 	const metadata: Metadata = { title: content.article.title }
-	if (content.article.description) metadata.description = content.article.description
+	if (content.article.description) {
+		metadata.description = content.article.description
+	} else {
+		const parsed = parseMarkdown(content.article.content ?? '', content.article.id)
+		const initialContentText = parsed.initialContentText.trim()
+		if (initialContentText) metadata.description = initialContentText
+	}
 	return metadata
+}
+
+const nonDocsPaths = ['/blog/', '/legal/']
+export async function generateStaticParams() {
+	const paths = await db.getAllPaths()
+	return paths
+		.filter((path) => !nonDocsPaths.some((nonDocsPath) => path.startsWith(nonDocsPath)))
+		.map((path) => ({ slug: path.slice(1).split('/') }))
 }
 
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
-	const content = await getPageContent(`/${path.join('/')}`)
+	const content = await db.getPageContent(`/${path.join('/')}`)
 	if (!content || content.type !== 'article') notFound()
 
 	return (

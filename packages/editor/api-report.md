@@ -2940,6 +2940,7 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExternalAssetContent = {
+    assetId?: TLAssetId;
     file: File;
     type: 'file';
 } | {
