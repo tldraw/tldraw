@@ -5603,7 +5603,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param shapes - The shapes (or shape ids) of the shapes to move.
 	 * @param delta - The delta in radians to apply to the selection rotation.
 	 */
-	rotateShapesBy(shapes: TLShapeId[] | TLShape[], delta: number): this {
+	rotateShapesBy(
+		shapes: TLShapeId[] | TLShape[],
+		delta: number,
+		opts?: { center?: VecLike }
+	): this {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
@@ -5613,7 +5617,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const snapshot = getRotationSnapshot({ editor: this, ids })
 		if (!snapshot) return this
-		applyRotationToSnapshotShapes({ delta, snapshot, editor: this, stage: 'one-off' })
+		applyRotationToSnapshotShapes({
+			delta,
+			snapshot,
+			editor: this,
+			stage: 'one-off',
+			centerOverride: opts?.center,
+		})
 
 		return this
 	}
