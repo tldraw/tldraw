@@ -1102,6 +1102,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         isPinching: boolean;
         isPointing: boolean;
+        isSpacebarPanning: boolean;
     };
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
