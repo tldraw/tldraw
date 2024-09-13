@@ -52,6 +52,7 @@ it('When holding spacebar, it updates cursor and does not send events to the sta
 it('When holding spacebar, pressing the arrow keys moves over by one viewport', () => {
 	editor.keyDown(' ')
 	editor.expectCameraToBe(0, 0, 1)
+	editor.user.updateUserPreferences({ animationSpeed: 0 })
 	expect(editor.getViewportPageBounds()).toEqual({ x: -0, y: -0, w: 1080, h: 720 })
 	editor.keyDown('ArrowRight')
 	editor.keyUp('ArrowRight')
