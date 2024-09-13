@@ -10,7 +10,7 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 /** @internal */
 export const featureFlags: Record<string, DebugFlag<boolean>> = {
 	enableLicensing: createFeatureFlag('enableLicensing', {
-		defaults: { all: true, production: false },
+		defaults: { all: true, production: true },
 	}),
 }
 

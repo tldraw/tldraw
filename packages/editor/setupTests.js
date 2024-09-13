@@ -16,3 +16,13 @@ document.fonts = {
 
 global.TextEncoder = require('util').TextEncoder
 global.TextDecoder = require('util').TextDecoder
+
+// Extract verson from package.json
+const { version } = require('./package.json')
+
+window.fetch = async (input, init) => {
+	return {
+		ok: true,
+		json: async () => [],
+	}
+}
