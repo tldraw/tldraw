@@ -43,7 +43,7 @@ export default async function Page({ params }: { params: { slug: string | string
 				/>
 				<SearchButton type="docs" layout="mobile" className="hidden -mr-2 sm:block" />
 			</div>
-			<main className="relative w-full max-w-3xl px-5 pt-24 shrink md:pr-0 lg:pl-12 xl:pr-12 md:pt-0">
+			<main className="relative w-full max-w-3xl px-5 pt-24 shrink md:pr-0 lg:pl-12 xl:pr-12 md:pt-0 min-w-[1px]">
 				<DocsHeader article={content.article} />
 				<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
 				{content.article.sectionId === 'examples' && <Example article={content.article} />}

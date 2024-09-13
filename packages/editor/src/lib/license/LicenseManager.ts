@@ -300,10 +300,11 @@ export class LicenseManager {
 	}
 
 	private outputNoLicenseKeyProvided() {
-		this.outputMessages([
-			'No tldraw license key provided!',
-			`Please reach out to ${LICENSE_EMAIL} if you would like to license tldraw or if you'd like a trial.`,
-		])
+		// Noop, we don't need to show this message.
+		// this.outputMessages([
+		// 	'No tldraw license key provided!',
+		// 	`Please reach out to ${LICENSE_EMAIL} if you would like to license tldraw or if you'd like a trial.`,
+		// ])
 	}
 
 	private outputInvalidLicenseKey(msg: string) {
