@@ -113,7 +113,6 @@ export function parseTldrawJsonFile({
 				// junk data in the migration
 				return Result.err({ type: 'invalidRecords', cause: e })
 			}
-
 			// if the migration failed, we can't open the file
 			if (migrationResult.type === 'error') {
 				return Result.err({ type: 'migrationFailed', reason: migrationResult.reason })
