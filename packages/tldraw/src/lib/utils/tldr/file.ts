@@ -93,20 +93,6 @@ export type TldrawFileParseError =
 	| { type: 'migrationFailed'; reason: MigrationFailureReason }
 	| { type: 'invalidRecords'; cause: unknown }
 
-function parseAndRemoveOldRecordTypes(json: string) {
-	const document = JSON.parse(json)
-	const recordTypesToRemove = ['user', 'user_presence', 'user_document']
-	if (document.records) {
-		document.records = document.records.filter((record: any) => {
-			if (record && recordTypesToRemove.includes(record.typeName)) {
-				return false
-			}
-			return true
-		})
-	}
-	return document
-}
-
 /** @public */
 export function parseTldrawJsonFile({
 	json,
@@ -119,8 +105,7 @@ export function parseTldrawJsonFile({
 	// a tldraw file
 	let data
 	try {
-		const document = parseAndRemoveOldRecordTypes(json)
-		data = tldrawFileValidator.validate(document)
+		data = tldrawFileValidator.validate(JSON.parse(json))
 	} catch (e) {
 		// could be a v1 file!
 		try {
@@ -148,9 +133,10 @@ export function parseTldrawJsonFile({
 	// records. lets create a store with the records and migrate it to the
 	// latest version
 	let migrationResult: MigrationResult<SerializedStore<TLRecord>>
+	let storeSnapshot: SerializedStore<TLRecord>
 	try {
 		const records = pruneUnusedAssets(data.records as TLRecord[])
-		const storeSnapshot = Object.fromEntries(records.map((r) => [r.id, r]))
+		storeSnapshot = Object.fromEntries(records.map((r) => [r.id, r]))
 		migrationResult = schema.migrateStoreSnapshot({ store: storeSnapshot, schema: data.schema })
 	} catch (e) {
 		// junk data in the migration
@@ -167,7 +153,7 @@ export function parseTldrawJsonFile({
 	try {
 		return Result.ok(
 			createTLStore({
-				initialData: migrationResult.value,
+				snapshot: { store: storeSnapshot, schema: data.schema },
 				schema,
 			})
 		)
