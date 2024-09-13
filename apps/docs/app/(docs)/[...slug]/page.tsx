@@ -50,7 +50,7 @@ export default async function Page({ params }: { params: { slug: string | string
 						<DocsHeader article={content.article} />
 						<Content mdx={content.article.content ?? ''} type={content.article.sectionId} />
 						<Example article={content.article} />
-						<div className="w-full max-w-sm">
+						<div className="mx-auto w-full max-w-sm">
 							<DocsFeedbackWidget className="mb-12" />
 						</div>
 						<DocsFooter article={content.article} />
