@@ -35,6 +35,7 @@ export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json
 export {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORTED_MEDIA_TYPE_LIST,
+	DEFAULT_SUPPORT_AUDIO_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	MediaHelpers,
 } from './lib/media/media'

@@ -51,6 +51,7 @@
 	},
 	"dependencies": {
 		"fractional-indexing-jittered": "^0.9.1",
+		"jsmediatags-web": "patch:jsmediatags-web@npm%3A0.0.4#~/.yarn/patches/jsmediatags-web-npm-0.0.4-e0f5d2ada2.patch",
 		"lodash.throttle": "^4.1.1",
 		"lodash.uniq": "^4.5.0"
 	},

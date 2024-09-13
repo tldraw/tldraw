@@ -8,6 +8,7 @@ export {
 	type TLStoreSchema,
 	type TLStoreSnapshot,
 } from './TLStore'
+export { type TLAudioAsset } from './assets/TLAudioAsset'
 export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
@@ -132,6 +133,12 @@ export {
 	type TLArrowShapeArrowheadStyle,
 	type TLArrowShapeProps,
 } from './shapes/TLArrowShape'
+export {
+	audioShapeMigrations,
+	audioShapeProps,
+	type TLAudioShape,
+	type TLAudioShapeProps,
+} from './shapes/TLAudioShape'
 export {
 	createShapeValidator,
 	parentIdValidator,

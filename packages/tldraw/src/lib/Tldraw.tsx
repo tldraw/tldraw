@@ -1,5 +1,6 @@
 import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_AUDIO_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
 	ErrorScreen,
@@ -81,6 +82,7 @@ export function Tldraw(props: TldrawProps) {
 		maxAssetSize,
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
+		acceptedAudioMimeTypes,
 		onMount,
 		components = {},
 		shapeUtils = [],
@@ -128,10 +130,13 @@ export function Tldraw(props: TldrawProps) {
 	const _videoMimeTypes = useShallowArrayIdentity(
 		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	)
+	const _audioMimeTypes = useShallowArrayIdentity(
+		acceptedAudioMimeTypes ?? DEFAULT_SUPPORT_AUDIO_TYPES
+	)
 
 	const mediaMimeTypes = useMemo(
-		() => [..._imageMimeTypes, ..._videoMimeTypes],
-		[_imageMimeTypes, _videoMimeTypes]
+		() => [..._imageMimeTypes, ..._videoMimeTypes, ..._audioMimeTypes],
+		[_imageMimeTypes, _videoMimeTypes, _audioMimeTypes]
 	)
 
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
@@ -162,6 +167,7 @@ export function Tldraw(props: TldrawProps) {
 					maxAssetSize={maxAssetSize}
 					acceptedImageMimeTypes={_imageMimeTypes}
 					acceptedVideoMimeTypes={_videoMimeTypes}
+					acceptedAudioMimeTypes={_audioMimeTypes}
 					onMount={onMount}
 					embeds={embeds}
 				/>
@@ -177,6 +183,7 @@ function InsideOfEditorAndUiContext({
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
+	acceptedAudioMimeTypes = DEFAULT_SUPPORT_AUDIO_TYPES,
 	onMount,
 	embeds,
 }: TLExternalContentProps & {
@@ -204,6 +211,7 @@ function InsideOfEditorAndUiContext({
 				maxAssetSize,
 				acceptedImageMimeTypes,
 				acceptedVideoMimeTypes,
+				acceptedAudioMimeTypes,
 			},
 			{
 				toasts,
