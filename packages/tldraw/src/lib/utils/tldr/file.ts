@@ -3,13 +3,9 @@ import {
 	FileHelpers,
 	MigrationFailureReason,
 	MigrationResult,
-	RecordId,
 	Result,
 	SerializedSchema,
-	SerializedSchemaV1,
-	SerializedSchemaV2,
 	SerializedStore,
-	T,
 	TLAssetId,
 	TLRecord,
 	TLSchema,
@@ -41,38 +37,6 @@ export interface TldrawFile {
 	records: UnknownRecord[]
 }
 
-const schemaV1 = T.object<SerializedSchemaV1>({
-	schemaVersion: T.literal(1),
-	storeVersion: T.positiveInteger,
-	recordVersions: T.dict(
-		T.string,
-		T.object({
-			version: T.positiveInteger,
-			subTypeVersions: T.dict(T.string, T.positiveInteger).optional(),
-			subTypeKey: T.string.optional(),
-		})
-	),
-})
-
-const schemaV2 = T.object<SerializedSchemaV2>({
-	schemaVersion: T.literal(2),
-	sequences: T.dict(T.string, T.positiveInteger),
-})
-
-const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
-	tldrawFileFormatVersion: T.nonZeroInteger,
-	schema: T.numberUnion('schemaVersion', {
-		1: schemaV1,
-		2: schemaV2,
-	}),
-	records: T.arrayOf(
-		T.object({
-			id: T.string as any as T.Validator<RecordId<any>>,
-			typeName: T.string,
-		}).allowUnknownProperties()
-	),
-})
-
 /** @public */
 export function isV1File(data: any) {
 	try {
@@ -86,26 +50,37 @@ export function isV1File(data: any) {
 }
 
 /** @public */
+function isV2File(data: any): data is TldrawFile {
+	return (
+		data.tldrawFileFormatVersion !== undefined &&
+		data.schema !== undefined &&
+		data.records !== undefined
+	)
+}
+
+function parseFile(json: any) {
+	let data
+	try {
+		data = JSON.parse(json)
+		if (isV2File(data)) {
+			return { type: 'v2File' as const, data }
+		} else if (isV1File(data)) {
+			return { type: 'v1File' as const, data }
+		}
+	} catch (e) {
+		return { type: 'notATldrawFile' as const, cause: e }
+	}
+
+	return { type: 'notATldrawFile' as const, cause: null }
+}
+
+/** @public */
 export type TldrawFileParseError =
 	| { type: 'v1File'; data: any }
 	| { type: 'notATldrawFile'; cause: unknown }
 	| { type: 'fileFormatVersionTooNew'; version: number }
 	| { type: 'migrationFailed'; reason: MigrationFailureReason }
 	| { type: 'invalidRecords'; cause: unknown }
-
-function parseAndRemoveOldRecordTypes(json: string) {
-	const document = JSON.parse(json)
-	const recordTypesToRemove = ['user', 'user_presence', 'user_document']
-	if (document.records) {
-		document.records = document.records.filter((record: any) => {
-			if (record && recordTypesToRemove.includes(record.typeName)) {
-				return false
-			}
-			return true
-		})
-	}
-	return document
-}
 
 /** @public */
 export function parseTldrawJsonFile({
@@ -115,67 +90,58 @@ export function parseTldrawJsonFile({
 	schema: TLSchema
 	json: string
 }): Result<TLStore, TldrawFileParseError> {
-	// first off, we parse .json file and check it matches the general shape of
-	// a tldraw file
-	let data
-	try {
-		const document = parseAndRemoveOldRecordTypes(json)
-		data = tldrawFileValidator.validate(document)
-	} catch (e) {
-		// could be a v1 file!
-		try {
-			data = JSON.parse(json)
-			if (isV1File(data)) {
-				return Result.err({ type: 'v1File', data })
+	const result = parseFile(json)
+	switch (result.type) {
+		case 'v2File': {
+			const { data } = result
+			// if the file format version isn't supported, we can't open it - it's
+			// probably from a newer version of tldraw
+			if (data.tldrawFileFormatVersion > LATEST_TLDRAW_FILE_FORMAT_VERSION) {
+				return Result.err({
+					type: 'fileFormatVersionTooNew',
+					version: data.tldrawFileFormatVersion,
+				})
 			}
-		} catch (e) {
-			// noop
+			let migrationResult: MigrationResult<SerializedStore<TLRecord>>
+			// even if the file version is up to date, it might contain old-format
+			// records. lets create a store with the records and migrate it to the
+			// latest version
+			try {
+				const records = pruneUnusedAssets(data.records as TLRecord[])
+				const storeSnapshot = Object.fromEntries(records.map((r) => [r.id, r]))
+				migrationResult = schema.migrateStoreSnapshot({ store: storeSnapshot, schema: data.schema })
+			} catch (e) {
+				// junk data in the migration
+				return Result.err({ type: 'invalidRecords', cause: e })
+			}
+
+			// if the migration failed, we can't open the file
+			if (migrationResult.type === 'error') {
+				return Result.err({ type: 'migrationFailed', reason: migrationResult.reason })
+			}
+
+			// at this stage, the store should have records at the latest versions, so
+			// we should be able to validate them. if any of the records at this stage
+			// are invalid, we don't open the file
+			try {
+				return Result.ok(
+					createTLStore({
+						initialData: migrationResult.value,
+						schema,
+					})
+				)
+			} catch (e) {
+				// junk data in the records (they're not validated yet!) could cause the
+				// migrations to crash. We treat any throw from a migration as an
+				// invalid record
+				return Result.err({ type: 'invalidRecords', cause: e })
+			}
 		}
-
-		return Result.err({ type: 'notATldrawFile', cause: e })
-	}
-
-	// if the file format version isn't supported, we can't open it - it's
-	// probably from a newer version of tldraw
-	if (data.tldrawFileFormatVersion > LATEST_TLDRAW_FILE_FORMAT_VERSION) {
-		return Result.err({
-			type: 'fileFormatVersionTooNew',
-			version: data.tldrawFileFormatVersion,
-		})
-	}
-
-	// even if the file version is up to date, it might contain old-format
-	// records. lets create a store with the records and migrate it to the
-	// latest version
-	let migrationResult: MigrationResult<SerializedStore<TLRecord>>
-	try {
-		const records = pruneUnusedAssets(data.records as TLRecord[])
-		const storeSnapshot = Object.fromEntries(records.map((r) => [r.id, r]))
-		migrationResult = schema.migrateStoreSnapshot({ store: storeSnapshot, schema: data.schema })
-	} catch (e) {
-		// junk data in the migration
-		return Result.err({ type: 'invalidRecords', cause: e })
-	}
-	// if the migration failed, we can't open the file
-	if (migrationResult.type === 'error') {
-		return Result.err({ type: 'migrationFailed', reason: migrationResult.reason })
-	}
-
-	// at this stage, the store should have records at the latest versions, so
-	// we should be able to validate them. if any of the records at this stage
-	// are invalid, we don't open the file
-	try {
-		return Result.ok(
-			createTLStore({
-				initialData: migrationResult.value,
-				schema,
-			})
-		)
-	} catch (e) {
-		// junk data in the records (they're not validated yet!) could cause the
-		// migrations to crash. We treat any throw from a migration as an
-		// invalid record
-		return Result.err({ type: 'invalidRecords', cause: e })
+		case 'v1File': {
+			return Result.err({ type: 'v1File', data: result.data })
+		}
+		case 'notATldrawFile':
+			return Result.err({ type: 'notATldrawFile', cause: result.cause })
 	}
 }
 
