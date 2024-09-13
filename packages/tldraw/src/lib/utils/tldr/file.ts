@@ -14,7 +14,6 @@ import {
 	TLRecord,
 	TLSchema,
 	TLStore,
-	TLStoreSnapshot,
 	UnknownRecord,
 	createTLStore,
 	exhaustiveSwitchError,
@@ -154,7 +153,7 @@ export function parseTldrawJsonFile({
 	try {
 		return Result.ok(
 			createTLStore({
-				snapshot: { store: storeSnapshot, schema: data.schema } as TLStoreSnapshot,
+				snapshot: { store: storeSnapshot, schema: data.schema },
 				schema,
 			})
 		)
