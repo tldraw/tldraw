@@ -273,10 +273,8 @@ const videos = [
 ]
 
 async function main() {
-	console.log('requesting images...')
 	await Promise.allSettled(
 		videos.map(async (url) => {
-			console.log('Requesting image', url)
 			let imageName = url.split('138967589/').pop()
 			if (!imageName) throw Error('Image name not found')
 			imageName = imageName.replace('/', '_')
@@ -284,16 +282,11 @@ async function main() {
 			try {
 				const res = await fetch(url)
 				const imagePath = path.join(__dirname, '..', 'public', 'images', 'blog', imageName)
-				console.log('Writing image', imagePath)
 				const buffer = await res.arrayBuffer()
 				return await fs.promises.writeFile(imagePath, Buffer.from(buffer))
-			} catch (error) {
-				console.log('Could not download image', url)
-			}
+			} catch (error) {}
 		})
 	)
-
-	console.log('done!')
 }
 
 main()
