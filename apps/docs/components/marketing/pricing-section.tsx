@@ -13,12 +13,11 @@ export function PricingSection() {
 				</div>
 				<p className="text-center max-w-xl text-balance mb-12 mx-auto px-5 md:px-0">
 					You can use the tldraw SDK for free in your project—even in a commercial project—as long
-					as the {`"`}Made with tldraw{`"`} watermark is present. To use the tldraw SDK without our
-					watermark, you can requist a Business License. For more information,{' '}
+					as the {`"`}Made with tldraw{`"`} watermark is present. See{' '}
 					<a className="text-blue-500" href="https://github.com/tldraw/tldraw/blob/main/LICENSE.md">
-						read our license
-					</a>
-					.
+						our license
+					</a>{' '}
+					to learn more.
 				</p>
 				<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 max-w-2xl">
 					<div className="relative w-full h-full bg-zinc-900 md:rounded-xl shadow p-5 md:p-8 overflow-hidden text-zinc-300">
