@@ -8,7 +8,7 @@ const menus = [
 			{ caption: 'Overview', href: '/' },
 			{ caption: 'Playground', href: 'https://tldraw.com' },
 			{ caption: 'Pricing', href: '/#pricing' },
-			{ caption: 'Terms of Use', href: '/terms' },
+			// { caption: 'Terms of Use', href: '/legal/terms' },
 		],
 	},
 	{

@@ -36,8 +36,7 @@
 		"check-links": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/check-broken-links.ts",
 		"create-api-markdown": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/create-api-markdown.ts",
 		"refresh-content": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/refresh-content.ts",
-		"refresh-embeddings": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/refresh-embeddings.ts",
-		"refresh-everything": "yarn fetch-api-source && yarn fetch-releases && yarn create-api-markdown && yarn refresh-content && yarn refresh-embeddings && yarn format",
+		"refresh-everything": "yarn fetch-api-source && yarn fetch-releases && yarn create-api-markdown && yarn refresh-content && yarn format",
 		"clean": "rm -rf node_modules .yarn",
 		"format": "yarn run -T prettier --write .",
 		"watch-content": "tsx ./watcher.ts"
