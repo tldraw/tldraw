@@ -1,3 +1,20 @@
+# v3.0.1 (Sat Sep 14 2024)
+
+#### 🐛 Bug Fix
+
+- Fix search on docs (#4513) [#4514](https://github.com/tldraw/tldraw/pull/4514) ([@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+- hotfix remove bad article (#4511) [#4512](https://github.com/tldraw/tldraw/pull/4512) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`, `@tldraw/state-react`, `@tldraw/state`, `@tldraw/store`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate`
+  - 3.0.1 [#4523](https://github.com/tldraw/tldraw/pull/4523) ([@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 3
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.0.0 (Fri Sep 13 2024)
 
 ### Release Notes

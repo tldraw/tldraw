@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/state-react",
 	"description": "A tiny little drawing app (react bindings for state).",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
