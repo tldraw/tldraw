@@ -2,7 +2,6 @@ import { atom } from '@tldraw/state'
 import { fetch } from '@tldraw/utils'
 import { publishDates } from '../../version'
 import { getDefaultCdnBaseUrl } from '../utils/assets'
-import { featureFlags } from '../utils/debug-flags'
 import { importPublicKey, str2ab } from '../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 5
@@ -90,26 +89,21 @@ export class LicenseManager {
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
-		if (!featureFlags.enableLicensing.get()) {
-			// If we're not using licensing, treat it as licensed
-			this.state.set('licensed')
-		} else {
-			this.getLicenseFromKey(licenseKey).then((result) => {
-				const isUnlicensed = isEditorUnlicensed(result)
+		this.getLicenseFromKey(licenseKey).then((result) => {
+			const isUnlicensed = isEditorUnlicensed(result)
 
-				if (!this.isDevelopment && isUnlicensed) {
-					fetch(WATERMARK_TRACK_SRC)
-				}
+			if (!this.isDevelopment && isUnlicensed) {
+				fetch(WATERMARK_TRACK_SRC)
+			}
 
-				if (isUnlicensed) {
-					this.state.set('unlicensed')
-				} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
-					this.state.set('licensed-with-watermark')
-				} else {
-					this.state.set('licensed')
-				}
-			})
-		}
+			if (isUnlicensed) {
+				this.state.set('unlicensed')
+			} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
+				this.state.set('licensed-with-watermark')
+			} else {
+				this.state.set('licensed')
+			}
+		})
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
