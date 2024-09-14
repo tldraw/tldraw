@@ -8400,7 +8400,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 
 				// Get a new asset for the file
-				const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
+				const newAsset = await this.getAssetForExternalContent({
+					type: 'file',
+					file,
+					assetId: asset.id,
+				})
 
 				if (!newAsset) {
 					// If we don't have a new asset, delete the old asset.
@@ -8589,6 +8593,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isEditing: false,
 		/** Whether the user is panning. */
 		isPanning: false,
+		/** Whether the user is spacebar panning. */
+		isSpacebarPanning: false,
 		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec(),
 	}
@@ -9193,6 +9199,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (this.inputs.isPanning) {
 					this.inputs.isPanning = false
+					this.inputs.isSpacebarPanning = false
 					this.setCursor({ type: this._prevCursor, rotation: 0 })
 				}
 			}
@@ -9515,6 +9522,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (inputs.isPanning) {
 							if (!inputs.keys.has('Space')) {
 								inputs.isPanning = false
+								inputs.isSpacebarPanning = false
 							}
 							const slideDirection = this.inputs.pointerVelocity
 							const slideSpeed = Math.min(2, slideDirection.len())
@@ -9566,8 +9574,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 
 							this.inputs.isPanning = true
+							this.inputs.isSpacebarPanning = true
 							clearTimeout(this._longPressTimeout)
 							this.setCursor({ type: this.inputs.isPointing ? 'grabbing' : 'grab', rotation: 0 })
+						}
+
+						if (this.inputs.isSpacebarPanning) {
+							let offset: Vec | undefined
+							switch (info.code) {
+								case 'ArrowUp': {
+									offset = new Vec(0, -1)
+									break
+								}
+								case 'ArrowRight': {
+									offset = new Vec(1, 0)
+									break
+								}
+								case 'ArrowDown': {
+									offset = new Vec(0, 1)
+									break
+								}
+								case 'ArrowLeft': {
+									offset = new Vec(-1, 0)
+									break
+								}
+							}
+
+							if (offset) {
+								const bounds = this.getViewportPageBounds()
+								const next = bounds.clone().translate(offset.mulV({ x: bounds.w, y: bounds.h }))
+								this._animateToViewport(next, { animation: { duration: 320 } })
+							}
 						}
 
 						break
@@ -9583,6 +9620,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							} else {
 								// otherwise, stop panning
 								this.inputs.isPanning = false
+								this.inputs.isSpacebarPanning = false
 								this.setCursor({ type: this._prevCursor, rotation: 0 })
 							}
 						}

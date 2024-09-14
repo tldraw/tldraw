@@ -2,10 +2,14 @@ export function Video({
 	src,
 	thumbnail,
 	caption,
+	lazy = false,
+	autoplay = false,
 }: {
 	src: string
 	thumbnail?: string
 	caption?: string
+	autoplay?: boolean
+	lazy?: boolean
 }) {
 	return (
 		<span className="block mb-5">
@@ -14,8 +18,9 @@ export function Video({
 					className="w-full md:rounded-xl overflow-hidden !my-0 shadow"
 					src={src}
 					poster={thumbnail}
-					controlsList="nodownload"
 					controls
+					preload={lazy ? 'metadata' : 'auto'}
+					autoPlay={autoplay}
 				/>
 			</span>
 			{caption && <span className="block text-xs text-zinc-500 mt-3 text-center">{caption}</span>}

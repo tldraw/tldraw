@@ -71,6 +71,7 @@ describe('upgradeSchema', () => {
 		      "com.tldraw.shape.note": 4,
 		      "com.tldraw.shape.text": 1,
 		      "com.tldraw.shape.video": 1,
+		      "com.tldraw.store": 4,
 		    },
 		  },
 		}

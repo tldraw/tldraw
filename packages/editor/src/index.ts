@@ -4,7 +4,6 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-import { featureFlags } from './lib/utils/debug-flags'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
@@ -402,12 +401,12 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'
 export { openWindow } from './lib/utils/window-open'
 
-/** @public */
+/**
+ * @deprecated Licensing is now enabled in the tldraw SDK.
+ * @public */
 export function debugEnableLicensing() {
-	featureFlags.enableLicensing.set(true)
-	return () => {
-		featureFlags.enableLicensing.set(false)
-	}
+	// noop
+	return
 }
 
 registerTldrawLibraryVersion(

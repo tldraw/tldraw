@@ -6,7 +6,7 @@
 
 `tlstore` is used by [tldraw](https://www.tldraw.com) to store its data.
 
-It is designed to be used with `tlstate` (@tldraw/tlstate).
+It is designed to be used with @tldraw/tlstate.
 
 # Usage
 
@@ -341,8 +341,22 @@ A diff describing the changes to a record.
 
 A diff describing the changes to a collection.
 
+## Contribution
+
+Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+
 ## License
 
-The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md). This license does not permit commercial use.
+This project is licensed under the MIT License.
 
-If you wish to use this project in commercial product, you need to purchase a commercial license. To obtain a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+## Trademarks
+
+Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
+
+## Contact
+
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
+
+## Community
+
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).

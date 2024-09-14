@@ -563,8 +563,8 @@ export class CubicSpline2d extends Geometry2d {
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
-// @public (undocumented)
-export function debugEnableLicensing(): () => void;
+// @public @deprecated (undocumented)
+export function debugEnableLicensing(): void;
 
 // @internal (undocumented)
 export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
@@ -1102,6 +1102,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         isPinching: boolean;
         isPointing: boolean;
+        isSpacebarPanning: boolean;
     };
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
@@ -2939,6 +2940,7 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExternalAssetContent = {
+    assetId?: TLAssetId;
     file: File;
     type: 'file';
 } | {

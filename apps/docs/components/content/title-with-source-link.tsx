@@ -7,7 +7,7 @@ function Tag({ children }: { children: React.ReactNode; tag: string }) {
 	return <span className="border border-zinc-800 rounded-full px-1.5 text-xs">{children}</span>
 }
 
-export function TitleWithSourceLink({
+export function ApiMemberTitle({
 	children,
 	source,
 	tags,
