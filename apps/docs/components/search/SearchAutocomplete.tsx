@@ -102,19 +102,18 @@ function Results({ items }: { items: Hit<SearchEntry>[] }) {
 
 				<ComboboxItem
 					className={twJoin(
-						'block px-4 pt-2.5 pb-3 bg-zinc-100 dark:bg-zinc-800 mt-2',
+						'px-4 pt-2.5 pb-3 bg-zinc-100 dark:bg-zinc-800 mt-2',
 						'rounded-md cursor-pointer data-[active-item=true]:bg-blue-500',
 						'dark:data-[active-item=true]:bg-blue-500 data-[active-item=true]:text-blue-200',
-						'[&_mark]:bg-transparent [&_mark]:font-bold [&_mark]:text-white'
+						'[&_mark]:bg-transparent [&_mark]:font-bold',
+						'[&_mark]:text-black [&_mark]:data-[active-item=true]:text-white',
+						'dark:[&_mark]:text-white',
+						'[&_.ais-Highlight-nonHighlighted]:data-[active-item=true]:text-white'
 					)}
 					value={href}
 				>
 					<Link href={href}>
-						<Highlight
-							attribute="title"
-							hit={hit}
-							className="text-black dark:text-white block-data-[active-item=true]:text-white"
-						/>
+						<Highlight attribute="title" hit={hit} />
 						<ContentHighlight hit={hit} />
 					</Link>
 				</ComboboxItem>
@@ -150,8 +149,8 @@ function SearchDialog({
 				<Dialog.Overlay />
 				<Dialog.Content className="fixed inset-0 z-20" style={{ pointerEvents: 'none' }}>
 					<VisuallyHidden>
-						<Dialog.Title></Dialog.Title>
-						<Dialog.Description></Dialog.Description>
+						<Dialog.Title>Search</Dialog.Title>
+						<Dialog.Description>Search dialog</Dialog.Description>
 					</VisuallyHidden>
 					{children}
 				</Dialog.Content>

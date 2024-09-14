@@ -273,6 +273,8 @@ async function updateAlgoliaIndex() {
 					'asc(articleIndex)',
 					'asc(headingIndex)',
 				],
+				distinct: 4,
+				attributeForDistinct: 'section',
 			})
 
 			const resultsToShowForEmptySearch = entries
