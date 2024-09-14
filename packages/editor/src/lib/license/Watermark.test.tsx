@@ -1,5 +1,4 @@
 import { act, render, waitFor } from '@testing-library/react'
-import { featureFlags } from '../utils/debug-flags'
 import { LicenseManager } from './LicenseManager'
 import { Watermark } from './Watermark'
 
@@ -37,16 +36,7 @@ describe('Watermark', () => {
 		}))
 	})
 
-	it('Does not display the watermark when the feature flag is off', async () => {
-		featureFlags.enableLicensing.set(false)
-		// need to wrap in act to avoid warning
-		const result = await act(renderComponent)
-
-		expect(result.container.firstChild).toBeNull()
-	})
-
 	it('Displays the watermark when the editor is unlicensed', async () => {
-		featureFlags.enableLicensing.set(true)
 		const result = await act(renderComponent)
 
 		// Don't wanna put a data-testid here - makes it too easy to querySelect on.
@@ -58,8 +48,6 @@ describe('Watermark', () => {
 	})
 
 	it('Displays the watermark when the editor is licensed with watermark', async () => {
-		featureFlags.enableLicensing.set(true)
-
 		mockLicenseState = 'licensed-with-watermark'
 		const result = await act(renderComponent)
 
@@ -73,8 +61,6 @@ describe('Watermark', () => {
 
 	it('Does not display the watermark when the editor is licensed', async () => {
 		mockLicenseState = 'licensed'
-
-		featureFlags.enableLicensing.set(true)
 		const result = await renderComponent()
 		expect(result.container.firstChild).toBeNull()
 	})
