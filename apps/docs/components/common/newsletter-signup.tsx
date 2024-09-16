@@ -11,7 +11,15 @@ import { FormEventHandler, useCallback, useState } from 'react'
 // when debugging is true, the form will always show (even if the user has submitted)
 const DEBUGGING = false
 
-export function NewsletterSignup({ size = 'large' }: { size?: 'small' | 'large' }) {
+export function NewsletterSignup({
+	bg = true,
+	size = 'large',
+	hideAfterSubmit = true,
+}: {
+	bg?: boolean
+	size?: 'small' | 'large'
+	hideAfterSubmit?: boolean
+}) {
 	// If the user has submitted their email, we don't show the form anymore
 	const [didSubmit, setDidSubmit] = useLocalStorageState('dev_did_submit_newsletter', false)
 
@@ -44,12 +52,14 @@ export function NewsletterSignup({ size = 'large' }: { size?: 'small' | 'large' 
 
 	// If the user has already submitted the form, we don't show it anymore,
 	// unless we're both in development mode AND the debug flag is enabled.
-	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null
+	if (hideAfterSubmit && didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) {
+		return null
+	}
 
 	return (
 		<div
 			className={cn(
-				'bg-zinc-50 dark:bg-zinc-900',
+				bg ? 'bg-zinc-50 dark:bg-zinc-900' : 'bg-transparent',
 				size === 'small'
 					? 'mt-12 rounded-lg text-xs xl:-ml-4 p-4 pb-1'
 					: 'rounded-xl p-8 sm:p-12 text-center'

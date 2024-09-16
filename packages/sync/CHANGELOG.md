@@ -1,3 +1,63 @@
+# v3.0.0 (Fri Sep 13 2024)
+
+### Release Notes
+
+#### Detect multiple installed versions of tldraw packages ([#4398](https://github.com/tldraw/tldraw/pull/4398))
+
+- We detect when there are multiple versions of tldraw installed and let you know, as this can cause bugs in your application
+
+#### Rename `StoreOptions.multiplayerStatus` ([#4349](https://github.com/tldraw/tldraw/pull/4349))
+
+- Renames `StoreOptions.multiplayerStatus` to `StoreOptions.collaboration.status`.
+
+#### images: show ghost preview image whilst uploading ([#3988](https://github.com/tldraw/tldraw/pull/3988))
+
+- Media: add image and video upload indicators.
+
+#### remove onEditorMount prop ([#4320](https://github.com/tldraw/tldraw/pull/4320))
+
+- **Breaking:** the `onEditorMount` option to `createTLStore` is now called `onMount`
+
+#### Move from function properties to methods ([#4288](https://github.com/tldraw/tldraw/pull/4288))
+
+- Adds eslint rules for enforcing the use of methods instead of function properties and fixes / disables all the resulting errors.
+
+#### Sync docs rework ([#4267](https://github.com/tldraw/tldraw/pull/4267))
+
+- Update sync.mdx
+
+---
+
+#### 🐛 Bug Fix
+
+- [SORRY, PLEASE MERGE] 3.0 megabus [#4494](https://github.com/tldraw/tldraw/pull/4494) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+- Store bookmark images on our own asset server [#4460](https://github.com/tldraw/tldraw/pull/4460) ([@SomeHats](https://github.com/SomeHats))
+- Sync docs rework [#4267](https://github.com/tldraw/tldraw/pull/4267) ([@ds300](https://github.com/ds300) [@adamwiggins](https://github.com/adamwiggins))
+
+#### 💄 Product Improvements
+
+- inline nanoid [#4410](https://github.com/tldraw/tldraw/pull/4410) ([@SomeHats](https://github.com/SomeHats))
+- images: show ghost preview image whilst uploading [#3988](https://github.com/tldraw/tldraw/pull/3988) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- Detect multiple installed versions of tldraw packages [#4398](https://github.com/tldraw/tldraw/pull/4398) ([@SomeHats](https://github.com/SomeHats))
+- allow loading the sync URI dynamically [#4379](https://github.com/tldraw/tldraw/pull/4379) ([@SomeHats](https://github.com/SomeHats))
+- Rename `StoreOptions.multiplayerStatus` [#4349](https://github.com/tldraw/tldraw/pull/4349) ([@steveruizok](https://github.com/steveruizok))
+- remove onEditorMount prop [#4320](https://github.com/tldraw/tldraw/pull/4320) ([@SomeHats](https://github.com/SomeHats))
+- Move from function properties to methods [#4288](https://github.com/tldraw/tldraw/pull/4288) ([@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 6
+
+- Adam Wiggins ([@adamwiggins](https://github.com/adamwiggins))
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.4.0 (Mon Jul 22 2024)
 
 ### Release Notes

@@ -133,9 +133,10 @@ export function parseTldrawJsonFile({
 	// records. lets create a store with the records and migrate it to the
 	// latest version
 	let migrationResult: MigrationResult<SerializedStore<TLRecord>>
+	let storeSnapshot: SerializedStore<TLRecord>
 	try {
 		const records = pruneUnusedAssets(data.records as TLRecord[])
-		const storeSnapshot = Object.fromEntries(records.map((r) => [r.id, r]))
+		storeSnapshot = Object.fromEntries(records.map((r) => [r.id, r]))
 		migrationResult = schema.migrateStoreSnapshot({ store: storeSnapshot, schema: data.schema })
 	} catch (e) {
 		// junk data in the migration
@@ -152,7 +153,7 @@ export function parseTldrawJsonFile({
 	try {
 		return Result.ok(
 			createTLStore({
-				initialData: migrationResult.value,
+				snapshot: { store: storeSnapshot, schema: data.schema },
 				schema,
 			})
 		)

@@ -1,3 +1,65 @@
+# v3.0.0 (Fri Sep 13 2024)
+
+### Release Notes
+
+#### Detect multiple installed versions of tldraw packages ([#4398](https://github.com/tldraw/tldraw/pull/4398))
+
+- We detect when there are multiple versions of tldraw installed and let you know, as this can cause bugs in your application
+
+#### [api] Widen snapshots pit of success ([#4392](https://github.com/tldraw/tldraw/pull/4392))
+
+- Improved loadSnapshot to preserve page state like camera position and current page if no session snapshot is provided.
+
+#### Custom embeds API ([#4326](https://github.com/tldraw/tldraw/pull/4326))
+
+Adds the ability to customize the embeds that are supported. You can now customize or reorder the existing embeds, as well as add completely new ones.
+
+#### Rename `StoreOptions.multiplayerStatus` ([#4349](https://github.com/tldraw/tldraw/pull/4349))
+
+- Renames `StoreOptions.multiplayerStatus` to `StoreOptions.collaboration.status`.
+
+#### remove onEditorMount prop ([#4320](https://github.com/tldraw/tldraw/pull/4320))
+
+- **Breaking:** the `onEditorMount` option to `createTLStore` is now called `onMount`
+
+#### Move from function properties to methods ([#4288](https://github.com/tldraw/tldraw/pull/4288))
+
+- Adds eslint rules for enforcing the use of methods instead of function properties and fixes / disables all the resulting errors.
+
+---
+
+#### 🐛 Bug Fix
+
+- [SORRY, PLEASE MERGE] 3.0 megabus [#4494](https://github.com/tldraw/tldraw/pull/4494) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+- consistent function style [#4468](https://github.com/tldraw/tldraw/pull/4468) ([@SomeHats](https://github.com/SomeHats))
+- Update READMEs. [#4377](https://github.com/tldraw/tldraw/pull/4377) ([@steveruizok](https://github.com/steveruizok))
+- Fix some broken links in the docs [#4340](https://github.com/tldraw/tldraw/pull/4340) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- inline nanoid [#4410](https://github.com/tldraw/tldraw/pull/4410) ([@SomeHats](https://github.com/SomeHats))
+- [api] Widen snapshots pit of success [#4392](https://github.com/tldraw/tldraw/pull/4392) ([@ds300](https://github.com/ds300))
+
+#### 🎉 New Features
+
+- Custom embeds API [#4326](https://github.com/tldraw/tldraw/pull/4326) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ API Changes
+
+- Detect multiple installed versions of tldraw packages [#4398](https://github.com/tldraw/tldraw/pull/4398) ([@SomeHats](https://github.com/SomeHats))
+- Rename `StoreOptions.multiplayerStatus` [#4349](https://github.com/tldraw/tldraw/pull/4349) ([@steveruizok](https://github.com/steveruizok))
+- remove onEditorMount prop [#4320](https://github.com/tldraw/tldraw/pull/4320) ([@SomeHats](https://github.com/SomeHats))
+- Move from function properties to methods [#4288](https://github.com/tldraw/tldraw/pull/4288) ([@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.4.0 (Mon Jul 22 2024)
 
 ### Release Notes
