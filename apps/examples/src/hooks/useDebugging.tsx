@@ -34,11 +34,12 @@ export function useDebuggingTools(): TLUiOverrides {
 				onSelect: () => {
 					const oneShape = editor.getOnlySelectedShape()
 					if (!oneShape) return
-					const alreadyTracked = trackedShapes.get().includes(oneShape.id)
+					const tracked = trackedShapes.get()
+					const alreadyTracked = tracked.includes(oneShape.id)
 					if (alreadyTracked) {
-						trackedShapes.set(trackedShapes.get().filter((id) => id !== oneShape.id))
+						trackedShapes.set(tracked.filter((id) => id !== oneShape.id))
 					} else {
-						trackedShapes.set([...trackedShapes.get(), oneShape.id])
+						trackedShapes.set([...tracked, oneShape.id])
 					}
 				},
 				label: 'Track changes',
