@@ -20,6 +20,7 @@ export const imageShapeProps: RecordProps<TLImageShape> = {
 ```
 
 We also use the validation functions for API requests. For example, to check that the query is valid:
+
 ```tsx
 const queryValidator = T.object({
 	w: T.string.optional(),
