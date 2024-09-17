@@ -6,7 +6,7 @@
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev",
 		"start": "wrangler dev",
-		"check-bundle-size": "yarn run -T tsx ..q/scripts/check-worker-bundle.ts --entry src/index.ts --size-limit-bytes 35000",
+		"check-bundle-size": "yarn run -T tsx ../scripts/check-worker-bundle.ts --entry src/index.ts --size-limit-bytes 35000",
 		"lint": "yarn run -T tsx ../scripts/lint.ts"
 	},
 	"dependencies": {

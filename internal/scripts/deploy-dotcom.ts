@@ -14,19 +14,20 @@ import {
 } from './lib/deploy'
 import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
+import { REPO_ROOT } from './lib/file'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
-const worker = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dotcom/sync-worker'))
+const worker = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/sync-worker'))
 const healthWorker = path.relative(
 	process.cwd(),
-	path.resolve(__dirname, '../internal/health-worker')
+	path.resolve(REPO_ROOT, './internal/health-worker')
 )
 const assetUpload = path.relative(
 	process.cwd(),
-	path.resolve(__dirname, '../apps/dotcom/asset-upload-worker')
+	path.resolve(REPO_ROOT, './apps/dotcom/asset-upload-worker')
 )
-const dotcom = path.relative(process.cwd(), path.resolve(__dirname, '../apps/dotcom/client'))
+const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
