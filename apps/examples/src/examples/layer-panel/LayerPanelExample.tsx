@@ -1,124 +1,32 @@
-import { capitalize } from 'lodash'
-import { useState } from 'react'
-import { TLComponents, TLParentId, TLShape, Tldraw, track, useEditor } from 'tldraw'
+import { TLComponents, TLEditorSnapshot, Tldraw, useEditor, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { ShapeList } from './ShapeList'
 import './layer-panel.css'
+import snapshot from './snapshot.json'
 
-function getShapeName(shape: TLShape) {
-	const { name, title, text } = shape.props as any
-	return name || title || text || (shape.meta.name as string) || capitalize(shape.type + ' shape')
-}
-
-const selected = '#E8F4FE'
-const childSelected = '#F3F9FE'
-
-const ShapeTree = track(function ({
-	rootId,
-	depth,
-	parentIsHidden,
-	parentIsSelected,
-}: {
-	rootId: TLParentId
-	depth: number
-	parentIsHidden?: boolean
-	parentIsSelected?: boolean
-}) {
-	const editor = useEditor()
-	const root = editor.getShape(rootId)
-	const children = editor.getSortedChildIdsForParent(rootId)
-
-	const isHidden = root && editor.isShapeHidden(root)
-	const isSelected = editor.getSelectedShapeIds().includes(rootId as any)
-
-	const [isEditing, setIsEditing] = useState(false)
-
-	return (
-		<>
-			{!!root && (
-				<div
-					className="shape-item"
-					onDoubleClick={() => {
-						setIsEditing(true)
-					}}
-					onClick={() => {
-						if (editor.inputs.ctrlKey || editor.inputs.shiftKey) {
-							if (isSelected) {
-								editor.deselect(root)
-							} else {
-								editor.select(...editor.getSelectedShapes(), root)
-							}
-						} else {
-							editor.select(root)
-						}
-					}}
-					style={{
-						paddingLeft: depth * 10,
-						background: isSelected
-							? selected
-							: parentIsSelected
-								? childSelected
-								: depth > 1
-									? '#00000006'
-									: undefined,
-					}}
-				>
-					{isEditing ? (
-						<input
-							autoFocus
-							className="shape-name-input"
-							defaultValue={getShapeName(root)}
-							onBlur={() => setIsEditing(false)}
-							onChange={(ev) => {
-								editor.updateShape({ ...root, meta: { ...root.meta, name: ev.target.value } })
-							}}
-							// finish editing on enter
-							onKeyDown={(ev) => {
-								if (ev.key === 'Enter' || ev.key === 'Escape') {
-									ev.currentTarget.blur()
-								}
-							}}
-						/>
-					) : (
-						<div>{getShapeName(root)}</div>
-					)}
-					<button
-						className="shape-visibility-toggle"
-						style={parentIsHidden ? { opacity: 0.5 } : {}}
-						onClick={(ev) => {
-							editor.updateShape({ ...root, meta: { ...root.meta, hidden: !root.meta.hidden } })
-							ev.stopPropagation()
-						}}
-					>
-						{root.meta.hidden ? '🙈' : '👁️'}
-					</button>
-				</div>
-			)}
-			{!!children?.length && (
-				<div className="shape-tree">
-					{children.map((childId) => (
-						<ShapeTree
-							key={childId}
-							rootId={childId}
-							depth={depth + 1}
-							parentIsHidden={isHidden || parentIsHidden}
-							parentIsSelected={isSelected || parentIsSelected}
-						/>
-					))}
-				</div>
-			)}
-		</>
-	)
-})
+// There's a guide a the bottom of this file!
 
 const components: TLComponents = {
-	InFrontOfTheCanvas: track(() => {
+	// [1]
+	InFrontOfTheCanvas: () => {
+		const editor = useEditor()
+		const shapeIds = useValue(
+			'shapeIds',
+			() => editor.getSortedChildIdsForParent(editor.getCurrentPageId()),
+			[editor]
+		)
 		return (
 			<div className="layer-panel">
 				<div className="layer-panel-title">Shapes</div>
-				<ShapeTree rootId={useEditor().getCurrentPageId()} depth={0} />
+
+				<ShapeList
+					// [2]
+					shapeIds={shapeIds}
+					depth={0}
+				/>
 			</div>
 		)
-	}),
+	},
 }
 
 export default function LayerPanelExample() {
@@ -127,8 +35,20 @@ export default function LayerPanelExample() {
 			<Tldraw
 				persistenceKey="layer-panel-example"
 				components={components}
+				// [3]
 				isShapeHidden={(s) => !!s.meta.hidden}
+				// this is just to provide some initial content, so visitors can see the layer panel in action
+				snapshot={snapshot as any as TLEditorSnapshot}
 			/>
 		</div>
 	)
 }
+
+/**
+ * Guide:
+ *
+ * 1. Here we override the `InFrontOfTheCanvas` component with a custom component that renders a simple layer panel.
+ * 2. We pass the root ids of the current page to the recursive ShapeList component. (see ShapeList.tsx)
+ * 3. This is a function that determines whether a shape is hidden. We use this to hide shapes that have the `hidden` meta property set to true.
+ *
+ */

@@ -5,8 +5,8 @@ category: ui
 keywords: []
 ---
 
-Showing and hiding layers in a canvas.
+Implementing a minimal layers panel for tldraw.
 
 ---
 
-If for some reason you need to move the canvas around, that should still work.
+This example adds a simple layers panel to show shapes, groups, and frames in a tree view. It also allows showing/hiding shapes and selecting shapes.
