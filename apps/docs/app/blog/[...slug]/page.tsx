@@ -25,6 +25,13 @@ export async function generateMetadata({
 	return {}
 }
 
+export async function generateStaticParams() {
+	const paths = await db.getAllPaths()
+	return paths
+		.filter((path) => path.startsWith('/blog/'))
+		.map((path) => ({ slug: path.slice('/blog/'.length).split('/') }))
+}
+
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
 	const content = await db.getPageContent(`/blog/${path.join('/')}`)
