@@ -35,7 +35,6 @@ export interface TextLabelProps {
 	textWidth?: number
 	textHeight?: number
 	padding?: number
-	addId?: boolean
 }
 
 /** @public @react */

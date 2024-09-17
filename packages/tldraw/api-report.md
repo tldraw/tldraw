@@ -1769,8 +1769,6 @@ export const TextLabel: React_3.NamedExoticComponent<TextLabelProps>;
 // @public (undocumented)
 export interface TextLabelProps {
     // (undocumented)
-    addId?: boolean;
-    // (undocumented)
     align: TLDefaultHorizontalAlignStyle;
     // (undocumented)
     bounds?: Box;
