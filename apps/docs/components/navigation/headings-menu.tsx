@@ -1,11 +1,11 @@
 'use client'
 
-import { ArticleHeadings } from '@/types/content-types'
+import { ArticleHeading } from '@/types/content-types'
 import { cn } from '@/utils/cn'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-export function HeadingsMenu({ headings }: { headings: ArticleHeadings }) {
+export function HeadingsMenu({ headings }: { headings: ArticleHeading[] }) {
 	const [activeSlug, setActiveSlug] = useState('')
 
 	useEffect(() => {
@@ -25,7 +25,7 @@ export function HeadingsMenu({ headings }: { headings: ArticleHeadings }) {
 	if (headings.length === 0) return null
 
 	return (
-		<div className="relative overflow-y-auto shrink">
+		<div className="relative overflow-y-auto shrink mb-12">
 			<div className="sticky top-0">
 				<h4 className="block text-xs font-semibold text-black uppercase bg-white dark:bg-zinc-950 dark:text-white">
 					On this page
@@ -48,7 +48,6 @@ export function HeadingsMenu({ headings }: { headings: ArticleHeadings }) {
 					</li>
 				))}
 			</ul>
-			<div className="sticky bottom-0 w-full h-12 pointer-events-none bg-gradient-to-t from-white dark:from-zinc-950 via-white dark:via-zinc-950" />
 		</div>
 	)
 }

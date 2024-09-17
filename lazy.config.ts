@@ -8,6 +8,7 @@ const config = {
 			'<rootDir>/lazy.config.ts',
 			'<rootDir>/config/**/*',
 			'<rootDir>/scripts/**/*',
+			'package.json',
 		],
 		exclude: [
 			'<allWorkspaceDirs>/coverage/**/*',

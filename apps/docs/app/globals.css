@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+	scroll-padding-top: 72px;
+}
+
 @layer base {
 	.prose h2 a,
 	.prose h3 a,

@@ -215,7 +215,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	user: _user,
 	...rest
 }: TldrawEditorProps) {
-	const [container, setContainer] = useState<HTMLElement | null>()
+	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLUser(), [_user])
 
 	const ErrorFallback =

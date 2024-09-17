@@ -1,13 +1,13 @@
 {
 	"name": "@tldraw/state",
 	"description": "A tiny little drawing app (state).",
-	"version": "2.4.0",
+	"version": "3.0.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "SEE LICENSE IN LICENSE.md",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"

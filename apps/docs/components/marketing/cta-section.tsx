@@ -41,14 +41,6 @@ export function CTASection() {
 						newTab
 					/>
 				</div>
-				{/* <Link
-                href="https://forms.gle/PmS4wNzngnbD3fb89"
-                className="font-semibold text-blue-500 hover:text-blue-600"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                Ask about a commercial license
-            </Link> */}
 			</div>
 		</Section>
 	)

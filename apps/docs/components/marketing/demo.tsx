@@ -63,7 +63,7 @@ export function Demo() {
 	)
 
 	return (
-		<div className="w-full py-16">
+		<div className="w-full">
 			<div className="w-full bg-blue-500 py-1 md:rounded-2xl md:px-1 mt-1 h-96 sm:h-[40rem] max-h-[80vh]">
 				<div className="relative w-full h-full overflow-hidden bg-white shadow md:rounded-xl">
 					{!showCanvas && skeletonTldraw}
