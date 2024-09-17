@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/vscode-editor",
 	"description": "An an editor for the tldraw vscode extension.",
-	"version": "2.0.0-alpha.0",
+	"version": "0.0.0",
 	"private": true,
 	"author": {
 		"name": "tldraw Inc.",
@@ -29,7 +29,7 @@
 		"build": "yarn run -T tsx scripts/build.ts",
 		"dev": "yarn run -T tsx scripts/dev.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
-		"lint": "yarn run -T tsx ../../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@tldraw/assets": "workspace:*",
