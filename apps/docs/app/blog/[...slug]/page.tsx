@@ -29,7 +29,7 @@ export async function generateStaticParams() {
 	const paths = await db.getAllPaths()
 	return paths
 		.filter((path) => path.startsWith('/blog/'))
-		.map((path) => ({ slug: path.slice(1).split('/') }))
+		.map((path) => ({ slug: path.slice('/blog/'.length).split('/') }))
 }
 
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
