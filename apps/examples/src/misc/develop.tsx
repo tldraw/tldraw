@@ -1,20 +1,70 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { Tldraw } from 'tldraw'
+import {
+	DefaultContextMenu,
+	DefaultContextMenuContent,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuActionCheckboxItem,
+	TldrawUiMenuActionItem,
+	TldrawUiMenuGroup,
+	track,
+	useEditor,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
+import { trackedShapes, useDebuggingTools as useDebugging } from '../hooks/useDebugging'
 import { usePerformance } from '../hooks/usePerformance'
+
+const ContextMenu = track(() => {
+	const editor = useEditor()
+	const oneShape = editor.getOnlySelectedShape()
+	const tracked = trackedShapes.get()
+	return (
+		<DefaultContextMenu>
+			<DefaultContextMenuContent />
+			<TldrawUiMenuGroup id="debugging">
+				<TldrawUiMenuActionItem actionId="log-shapes" />
+				{oneShape && (
+					<TldrawUiMenuActionCheckboxItem
+						checked={tracked.includes(oneShape.id)}
+						actionId="track-changes"
+					/>
+				)}
+			</TldrawUiMenuGroup>
+		</DefaultContextMenu>
+	)
+})
+
+const components: TLComponents = {
+	ContextMenu,
+}
 
 export default function Develop() {
 	const performanceOverrides = usePerformance()
+	const debuggingOverrides = useDebugging()
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				licenseKey={getLicenseKey()}
-				overrides={[performanceOverrides]}
+				overrides={[performanceOverrides, debuggingOverrides]}
 				persistenceKey="example"
 				onMount={(editor) => {
 					;(window as any).app = editor
 					;(window as any).editor = editor
+					const dispose = editor.store.sideEffects.registerAfterChangeHandler(
+						'shape',
+						(_prev, next) => {
+							const tracked = trackedShapes.get()
+							if (tracked.includes(next.id)) {
+								// eslint-disable-next-line no-console
+								console.log(next)
+							}
+						}
+					)
+					return () => {
+						dispose()
+					}
 				}}
+				components={components}
 			/>
 		</div>
 	)
