@@ -1,12 +1,153 @@
 import { useState } from 'react'
-import { exportToBlob, Tldraw, TLUiComponents, useEditor } from 'tldraw'
+import { Box, exportToBlob, Tldraw, TLImageExportOptions, TLUiComponents, useEditor } from 'tldraw'
 import 'tldraw/tldraw.css'
+
+type BoxArrType = [
+	X: number | undefined,
+	Y: number | undefined,
+	W: number | undefined,
+	H: number | undefined,
+]
+
+const Control = ({
+	name,
+	type,
+	labelWidth = '80px',
+	inputWidth,
+	value,
+	checked,
+	onChange,
+}: {
+	name: string
+	type?: React.HTMLInputTypeAttribute
+	labelWidth?: string | number
+	inputWidth?: string | number
+	value?: string | number | readonly string[]
+	checked?: boolean
+	onChange?: React.ChangeEventHandler<HTMLInputElement>
+}) => {
+	return (
+		<div>
+			<label htmlFor={`opt-${name}`} style={{ width: labelWidth, display: 'inline-block' }}>
+				{name}
+			</label>
+			<input
+				id={`opt-${name}`}
+				name={name}
+				type={type}
+				style={{ width: inputWidth }}
+				value={value ?? ''}
+				checked={!!checked}
+				onChange={onChange}
+			/>
+		</div>
+	)
+}
+function ExportSettings({
+	opts,
+	setOpts,
+	boxArr,
+	setBoxArr,
+}: {
+	opts: TLImageExportOptions
+	setOpts: React.Dispatch<React.SetStateAction<TLImageExportOptions>>
+	boxArr: BoxArrType
+	setBoxArr: React.Dispatch<React.SetStateAction<BoxArrType>>
+}) {
+	return (
+		<div
+			style={{
+				pointerEvents: 'all',
+				display: 'flex',
+				flexDirection: 'column',
+				gap: '0.25rem',
+				border: '1px solid black',
+				borderRadius: '5px',
+				padding: '5px',
+				position: 'absolute',
+				right: 0,
+				width: '200px',
+			}}
+		>
+			<p>Export settings</p>
+			<Control
+				type="checkbox"
+				name="background"
+				checked={opts.background}
+				onChange={(e) => {
+					setOpts({ ...opts, background: e.target.checked })
+				}}
+			/>
+			<Control
+				type="checkbox"
+				name="darkmode"
+				checked={opts.darkMode}
+				onChange={(e) => {
+					setOpts({ ...opts, darkMode: e.target.checked })
+				}}
+			/>
+			<Control
+				type="number"
+				name="padding"
+				inputWidth={'8ch'}
+				value={opts.padding}
+				onChange={(e) => {
+					setOpts({ ...opts, padding: Number(e.target.value) })
+				}}
+			/>
+			<Control
+				type="number"
+				name="scale"
+				inputWidth={'8ch'}
+				value={opts.scale}
+				onChange={(e) => {
+					setOpts({ ...opts, scale: Number(e.target.value) })
+				}}
+			/>
+			<p>Box</p>
+			<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+				{['X', 'Y', 'W', 'H'].map((e, i) => (
+					<Control
+						type="number"
+						name={e}
+						key={i}
+						inputWidth={'8ch'}
+						labelWidth={'20px'}
+						value={boxArr[i]}
+						onChange={(event) => {
+							const newBoxArr = [...boxArr] as BoxArrType
+							newBoxArr[i] = Number(event.target.value)
+							setBoxArr(newBoxArr)
+						}}
+					/>
+				))}
+			</div>
+		</div>
+	)
+}
 
 function ExportCanvasButton() {
 	const editor = useEditor()
+	const [opts, setOpts] = useState<TLImageExportOptions>({ background: false })
+	const [boxArr, setBoxArr] = useState<BoxArrType>([undefined, undefined, undefined, undefined])
 	const [isOpen, setIsOpen] = useState(false)
 	return (
-		<>
+		<div style={{ display: 'flex', alignItems: 'flex-start' }}>
+			<div>
+				<button
+					style={{ pointerEvents: 'all' }}
+					onClick={() => {
+						setIsOpen(!isOpen)
+					}}
+				>
+					{isOpen ? 'Close' : 'Open'} Export Settings
+				</button>
+				{isOpen && (
+					<div style={{ position: 'relative' }}>
+						<ExportSettings opts={opts} setOpts={setOpts} boxArr={boxArr} setBoxArr={setBoxArr} />
+					</div>
+				)}
+			</div>
 			<button
 				style={{ pointerEvents: 'all', fontSize: 18, backgroundColor: 'thistle' }}
 				onClick={async () => {
@@ -16,7 +157,10 @@ function ExportCanvasButton() {
 						editor,
 						ids: [...shapeIds],
 						format: 'png',
-						opts: { background: false },
+						opts: {
+							...opts,
+							bounds: boxArr.every((value) => value === undefined) ? undefined : new Box(...boxArr),
+						},
 					})
 
 					const link = document.createElement('a')
@@ -27,20 +171,7 @@ function ExportCanvasButton() {
 			>
 				Export canvas as image
 			</button>
-			<button
-				onClick={() => {
-					setIsOpen(!isOpen)
-				}}
-			>
-				{isOpen ? 'close' : 'open'} export settings
-			</button>
-			{isOpen && (
-				<div>
-					<label htmlFor="background">background</label>
-					<input type="checkbox" id="background" />
-				</div>
-			)}
-		</>
+		</div>
 	)
 }
 const components: TLUiComponents = {

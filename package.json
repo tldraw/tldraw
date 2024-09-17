@@ -40,7 +40,7 @@
 		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker,images.tldraw.xyz}' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/huppy'",
-		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/examples'",
+		"dev-examples": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/examples'",
 		"build": "lazy build",
 		"build-app": "lazy run build --filter 'apps/dotcom'",
 		"build-docs": "lazy run build --filter 'apps/docs'",
