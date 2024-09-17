@@ -29,7 +29,7 @@ afterEach(() => {
 })
 
 describe('TextLabel', () => {
-	it('adds id attribute for TextShapeUtil', async () => {
+	it('sets id to shapeId for TextLabel in TextShapeUtil', async () => {
 		const id = createShapeId()
 
 		await act(async () => {
@@ -48,7 +48,7 @@ describe('TextLabel', () => {
 		expect(elements.length).toBe(1)
 	})
 
-	it('does not add id attribute for GeoShapeUtil', async () => {
+	it('sets id to {shapeId}-label for TextLabel in GeoShapeUtil', async () => {
 		const id = createShapeId()
 
 		await act(async () => {
@@ -63,8 +63,10 @@ describe('TextLabel', () => {
 
 		const escapedId = escapeId(id)
 
-		const elements = document.querySelectorAll(`#${escapedId}`)
-		// TextLabel is rendered inside the geo shape, so if it had an id, there would be multiple elements selected
-		expect(elements.length).toBe(1)
+		const shapeIdElements = document.querySelectorAll(`#${escapedId}`)
+		expect(shapeIdElements.length).toBe(1)
+
+		const shapeIdLabelElements = document.querySelectorAll(`#${escapedId}-label`)
+		expect(shapeIdLabelElements.length).toBe(1)
 	})
 })
