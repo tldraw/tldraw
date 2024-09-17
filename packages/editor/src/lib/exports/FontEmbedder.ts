@@ -1,5 +1,4 @@
 import { assert, bind, compact } from '@tldraw/utils'
-import { Promise } from 'core-js'
 import { fetchCache, resourceToDataUrl } from './fetchCache'
 import { ParsedFontFace, parseCss, parseCssFontFaces, parseCssFontFamilyValue } from './parseCss'
 
