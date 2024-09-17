@@ -1,7 +1,7 @@
 {
 	"name": "dotcom",
 	"description": "The production app for tldraw.",
-	"version": "2.0.0-alpha.11",
+	"version": "0.0.0",
 	"private": true,
 	"author": {
 		"name": "tldraw GB Ltd.",
