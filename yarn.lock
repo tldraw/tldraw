@@ -6359,8 +6359,8 @@ __metadata:
   dependencies:
     tldraw: "workspace:*"
   peerDependencies:
-    react: ^18
-    react-dom: ^18
+    react: ^18.2.0
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6419,8 +6419,8 @@ __metadata:
     react-test-renderer: "npm:^18.2.0"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:
-    react: ^18
-    react-dom: ^18
+    react: ^18.2.0
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6436,8 +6436,8 @@ __metadata:
     "@types/glob": "npm:^8.1.0"
     "@types/jest": "npm:^29.5.12"
     "@types/node": "npm:~20.11"
-    "@types/react": "npm:^18.2.47"
-    "@types/react-dom": "npm:^18.2.18"
+    "@types/react": "npm:^18.2.0"
+    "@types/react-dom": "npm:^18.2.0"
     "@typescript-eslint/eslint-plugin": "npm:^5.57.0"
     "@typescript-eslint/parser": "npm:^5.57.0"
     "@yarnpkg/types": "npm:^4.0.0"
@@ -6543,12 +6543,12 @@ __metadata:
     "@tldraw/state": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
-    "@types/react": "npm:^18.2.47"
+    "@types/react": "npm:^18.2.0"
     "@types/react-test-renderer": "npm:^18.0.0"
     lodash: "npm:^4.17.21"
     react-test-renderer: "npm:^18.2.0"
   peerDependencies:
-    react: ^18
+    react: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6574,7 +6574,7 @@ __metadata:
     lodash.isequal: "npm:^4.5.0"
     raf: "npm:^3.4.1"
   peerDependencies:
-    react: ^18
+    react: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6595,8 +6595,8 @@ __metadata:
     uuid-readable: "npm:^0.0.2"
     ws: "npm:^8.16.0"
   peerDependencies:
-    react: ^18
-    react-dom: ^18
+    react: ^18.2.0
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6616,8 +6616,8 @@ __metadata:
     uuid-readable: "npm:^0.0.2"
     ws: "npm:^8.16.0"
   peerDependencies:
-    react: ^18
-    react-dom: ^18
+    react: ^18.2.0
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6629,8 +6629,8 @@ __metadata:
     lazyrepo: "npm:0.0.0-alpha.27"
     tldraw: "workspace:*"
   peerDependencies:
-    react: ^18
-    react-dom: ^18
+    react: ^18.2.0
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6645,7 +6645,7 @@ __metadata:
     kleur: "npm:^4.1.5"
     lazyrepo: "npm:0.0.0-alpha.27"
   peerDependencies:
-    react: ^18
+    react: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -6680,8 +6680,8 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@types/fs-extra": "npm:^11.0.1"
     "@types/node": "npm:~20.11"
-    "@types/react": "npm:^18.2.47"
-    "@types/react-dom": "npm:^18.2.18"
+    "@types/react": "npm:^18.2.0"
+    "@types/react-dom": "npm:^18.2.0"
     "@types/react-router-dom": "npm:^5.1.8"
     concurrently: "npm:^8.2.2"
     create-serve: "npm:1.0.1"
@@ -7389,12 +7389,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.2.18":
-  version: 18.2.18
-  resolution: "@types/react-dom@npm:18.2.18"
+"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.2.0":
+  version: 18.3.0
+  resolution: "@types/react-dom@npm:18.3.0"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 4ef7725b4cebd4a32e049097ddfdfd855a178e63ead97ab6d3084872e7d6c1acd71aa923488123cd1015f0e0b11489d2b44f674a1df8fe82d7827eabbec6dbf1
+  checksum: 6ff53f5a7b7fba952a68e114d3b542ebdc1e87a794234785ebab0bcd9bde7fb4885f21ebaf93d26dc0a1b5b93287f42cad68b78ae04dddf6b20da7aceff0beaf
   languageName: node
   linkType: hard
 
@@ -7428,14 +7428,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.2.47":
-  version: 18.2.47
-  resolution: "@types/react@npm:18.2.47"
+"@types/react@npm:*, @types/react@npm:^18.2.0":
+  version: 18.3.7
+  resolution: "@types/react@npm:18.3.7"
   dependencies:
     "@types/prop-types": "npm:*"
-    "@types/scheduler": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 0a98c2ef8303909f78c973ac9731cb671f3a0b96bc5213b538d1a50cbaae6e51b6befd64845a9cb95af8528767315d5bd99a85608eb716c020393c7d33a9b477
+  checksum: 30cfbe33c82e8033df5f70a4f54068f4344a691cff3f2b3901dd678e89ce5477dc8faada4a45d333ea570e1992ca8fda5b096d9deddfafb8c373acababc40c70
   languageName: node
   linkType: hard
 
@@ -7452,13 +7451,6 @@ __metadata:
   version: 0.12.5
   resolution: "@types/retry@npm:0.12.5"
   checksum: 3fb6bf91835ca0eb2987567d6977585235a7567f8aeb38b34a8bb7bbee57ac050ed6f04b9998cda29701b8c893f5dfe315869bc54ac17e536c9235637fe351a2
-  languageName: node
-  linkType: hard
-
-"@types/scheduler@npm:*":
-  version: 0.16.8
-  resolution: "@types/scheduler@npm:0.16.8"
-  checksum: 6c091b096daa490093bf30dd7947cd28e5b2cd612ec93448432b33f724b162587fed9309a0acc104d97b69b1d49a0f3fc755a62282054d62975d53d7fd13472d
   languageName: node
   linkType: hard
 
@@ -11126,7 +11118,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/qrcode": "npm:^1.5.0"
-    "@types/react": "npm:^18.2.47"
+    "@types/react": "npm:^18.2.0"
     "@typescript-eslint/utils": "npm:^5.59.0"
     "@vercel/analytics": "npm:^1.1.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
@@ -22382,8 +22374,8 @@ __metadata:
     vsce: "npm:^2.15.0"
     webpack: "npm:^5.0.0"
   peerDependencies:
-    react: ^18
-    react-dom: ^18
+    react: ^18.2.0
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -22418,8 +22410,8 @@ __metadata:
     lz-string: "npm:^1.4.4"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:
-    react: ^18
-    react-dom: ^18
+    react: ^18.2.0
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
