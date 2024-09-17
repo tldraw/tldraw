@@ -1,3 +1,17 @@
+# v3.0.3 (Tue Sep 17 2024)
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - Alex/3.0.3 [#4541](https://github.com/tldraw/tldraw/pull/4541) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
 # v3.0.2 (Mon Sep 16 2024)
 
 
