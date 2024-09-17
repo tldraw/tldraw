@@ -106,6 +106,7 @@
 		"postinstall-postinstall": "^2.1.0",
 		"prettier": "^3.0.3",
 		"prettier-plugin-organize-imports": "^3.2.3",
+		"sharp": "^0.33.5",
 		"tailwindcss": "^3.4.4",
 		"tsx": "^4.0.0",
 		"typescript": "^5.3.3",
