@@ -8,7 +8,7 @@ For a production-ready example specific to Cloudflare, see /templates/sync-cloud
 
 ## License
 
-This project is provided under the MIT license. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+This project is provided under the MIT license found [here](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/LICENSE.md).. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 

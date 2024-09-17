@@ -1,1 +1,1 @@
-See [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md)
+See [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).

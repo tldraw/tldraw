@@ -1,12 +1,6 @@
-# Project overview
+# Dev tools
 
-This project is a Next.js application which contains the **tldraw.com** application.
-
-See our:
-
-- [License](https://github.com/tldraw/tldraw/blob/main/apps/dotcom/LICENSE.md)
-- [Terms of service](https://github.com/tldraw/tldraw/blob/main/apps/dotcom/TERMS_OF_SERVICE.md)
-- [Privacy policy](https://github.com/tldraw/tldraw/blob/main/apps/dotcom/PRIVACY_POLICY.md)
+This is an internal set of tools that helps the tldraw development team.
 
 ## Contribution
 
@@ -14,7 +8,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-The code in this folder is Copyright (c) 2024-present tldraw Inc. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 

@@ -35,7 +35,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License found [here](https://github.com/tldraw/tldraw/blob/main/packages/utils/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 
