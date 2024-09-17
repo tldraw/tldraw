@@ -2,7 +2,7 @@ import { TLShapeId, TLUiActionItem, TLUiOverrides, atom } from 'tldraw'
 
 export const trackedShapes = atom('tracked shapes', [] as TLShapeId[])
 
-export function useDebuggingTools(): TLUiOverrides {
+export function useDebugging(): TLUiOverrides {
 	return {
 		actions(editor, actions) {
 			actions['log-shapes'] = {

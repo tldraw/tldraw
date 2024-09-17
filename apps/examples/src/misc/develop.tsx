@@ -11,7 +11,7 @@ import {
 	useEditor,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { trackedShapes, useDebuggingTools as useDebugging } from '../hooks/useDebugging'
+import { trackedShapes, useDebugging } from '../hooks/useDebugging'
 import { usePerformance } from '../hooks/usePerformance'
 
 const ContextMenu = track(() => {
