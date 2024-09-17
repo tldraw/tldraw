@@ -17,19 +17,22 @@ import { usePerformance } from '../hooks/usePerformance'
 const ContextMenu = track(() => {
 	const editor = useEditor()
 	const oneShape = editor.getOnlySelectedShape()
+	const selectedShapes = editor.getSelectedShapes()
 	const tracked = trackedShapes.get()
 	return (
 		<DefaultContextMenu>
 			<DefaultContextMenuContent />
-			<TldrawUiMenuGroup id="debugging">
-				<TldrawUiMenuActionItem actionId="log-shapes" />
-				{oneShape && (
-					<TldrawUiMenuActionCheckboxItem
-						checked={tracked.includes(oneShape.id)}
-						actionId="track-changes"
-					/>
-				)}
-			</TldrawUiMenuGroup>
+			{selectedShapes.length > 0 && (
+				<TldrawUiMenuGroup id="debugging">
+					<TldrawUiMenuActionItem actionId="log-shapes" />
+					{oneShape && (
+						<TldrawUiMenuActionCheckboxItem
+							checked={tracked.includes(oneShape.id)}
+							actionId="track-changes"
+						/>
+					)}
+				</TldrawUiMenuGroup>
+			)}
 		</DefaultContextMenu>
 	)
 })
