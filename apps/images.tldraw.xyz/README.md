@@ -1,6 +1,6 @@
 # Images
 
-Helpers for images on tldraw.com.
+Helpers for images on tldraw.com. Specifically, it's currently used to dynamically resize and optimize images on-the-fly via Cloudflare's image transform serivce.
 
 ## License
 

@@ -1,4 +1,4 @@
-# @tldraw/vscode
+# VS Code extension
 
 This folder contains the source for the tldraw VS Code extension.
 

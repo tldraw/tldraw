@@ -1,6 +1,33 @@
-## @tldraw/tlvalidate
+## @tldraw/validate
 
 Validation functions used by tldraw.
+
+These are especially useful when used in conjunction with our shapes to validate their [schemas](https://github.com/tldraw/tldraw/tree/main/packages/tlschema).
+
+For example, for [TLImageShape](https://github.com/tldraw/tldraw/blob/main/packages/tlschema/src/shapes/TLImageShape.ts) we have the following to help make sure the properties on a shape are consistent:
+
+```tsx
+export const imageShapeProps: RecordProps<TLImageShape> = {
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	playing: T.boolean,
+	url: T.linkUrl,
+	assetId: assetIdValidator.nullable(),
+	crop: ImageShapeCrop.nullable(),
+	flipX: T.boolean,
+	flipY: T.boolean,
+}
+```
+
+We also use the validation functions for API requests. For example, to check that the query is valid:
+```tsx
+const queryValidator = T.object({
+	w: T.string.optional(),
+	q: T.string.optional(),
+})
+
+queryValidator.validate(request.query)
+```
 
 ## Contribution
 

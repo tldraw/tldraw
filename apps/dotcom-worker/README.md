@@ -1,4 +1,6 @@
-# @tldraw/tlsync-worker
+# @tldraw/dotcom-worker
+
+The dotcom-worker is used for room management on tldraw.com (e.g. creating & joining rooms, readonly rooms, snapshots).
 
 ## Enable database persistence for local dev
 

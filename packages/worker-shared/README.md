@@ -1,6 +1,6 @@
 # @tldraw/worker-shared
 
-Shared helpers for the tldraw.com worker.
+Shared helpers for the tldraw.com workers (e.g. bemo-worker, dotcom-worker, and more).
 
 ## License
 

@@ -1,6 +1,8 @@
 # @tldraw/state
 
-A signals library for tldraw.
+A signals library for tldraw. See also the [React bindings](https://github.com/tldraw/tldraw/tree/main/packages/state-react) for this library.
+
+To learn more about this check out the [Signia library](https://signia.tldraw.dev/docs/using-signals) which provides the foundational concepts.
 
 ## Contribution
 
@@ -8,7 +10,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-This project is provided under the MIT license.
+This project is provided under the MIT license found [here](https://github.com/tldraw/tldraw/blob/main/packages/state/LICENSE.md).
 
 ## Trademarks
 

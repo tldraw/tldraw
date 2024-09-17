@@ -1,6 +1,6 @@
 # Huppy
 
-The huppy-bot app.
+The huppy-bot app. Huppy-bot is a suite of scripts that helps the tldraw development team automate some processes.
 
 ## Development
 
