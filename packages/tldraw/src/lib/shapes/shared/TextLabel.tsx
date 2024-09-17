@@ -14,7 +14,8 @@ import { useEditableText } from './useEditableText'
 
 /** @public */
 export interface TextLabelProps {
-	id: TLShapeId
+	id: string
+	shapeId: TLShapeId
 	type: string
 	font: TLDefaultFontStyle
 	fontSize: number
@@ -40,6 +41,7 @@ export interface TextLabelProps {
 /** @public @react */
 export const TextLabel = React.memo(function TextLabel({
 	id,
+	shapeId,
 	type,
 	text,
 	labelColor,
@@ -56,10 +58,9 @@ export const TextLabel = React.memo(function TextLabel({
 	style,
 	textWidth,
 	textHeight,
-	addId = false,
 }: TextLabelProps) {
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
-		id,
+		shapeId,
 		type,
 		text
 	)
@@ -83,7 +84,7 @@ export const TextLabel = React.memo(function TextLabel({
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
-			id={addId ? id : undefined}
+			id={id}
 			className={`${cssPrefix}-label tl-text-wrapper`}
 			data-font={font}
 			data-align={align}

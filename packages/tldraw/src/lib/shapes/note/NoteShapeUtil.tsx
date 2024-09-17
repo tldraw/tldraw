@@ -214,7 +214,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					}}
 				>
 					<TextLabel
-						id={id}
+						id={id + '-label'}
+						shapeId={id}
 						type={type}
 						font={font}
 						fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}

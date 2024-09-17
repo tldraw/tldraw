@@ -465,7 +465,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						}}
 					>
 						<TextLabel
-							id={id}
+							id={id + '-label'}
+							shapeId={id}
 							type={type}
 							font={font}
 							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}

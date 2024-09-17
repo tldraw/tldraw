@@ -1783,7 +1783,7 @@ export interface TextLabelProps {
     // (undocumented)
     fontSize: number;
     // (undocumented)
-    id: TLShapeId;
+    id: string;
     // (undocumented)
     isNote?: boolean;
     // (undocumented)
@@ -1796,6 +1796,8 @@ export interface TextLabelProps {
     onKeyDown?(e: React_3.KeyboardEvent<HTMLTextAreaElement>): void;
     // (undocumented)
     padding?: number;
+    // (undocumented)
+    shapeId: TLShapeId;
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)

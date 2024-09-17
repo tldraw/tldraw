@@ -617,7 +617,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				</SVGContainer>
 				{showArrowLabel && (
 					<TextLabel
-						id={shape.id}
+						id={shape.id + '-label'}
+						shapeId={shape.id}
 						classNamePrefix="tl-arrow"
 						type="arrow"
 						font={shape.props.font}
