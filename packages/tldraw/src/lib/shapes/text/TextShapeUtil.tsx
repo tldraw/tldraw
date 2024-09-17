@@ -106,6 +106,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				}}
 				wrap
 				onKeyDown={handleKeyDown}
+				addId={true}
 			/>
 		)
 	}

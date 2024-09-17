@@ -34,6 +34,7 @@ export interface TextLabelProps {
 	textWidth?: number
 	textHeight?: number
 	padding?: number
+	addId?: boolean
 }
 
 /** @public @react */
@@ -55,6 +56,7 @@ export const TextLabel = React.memo(function TextLabel({
 	style,
 	textWidth,
 	textHeight,
+	addId = false,
 }: TextLabelProps) {
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		id,
@@ -81,6 +83,7 @@ export const TextLabel = React.memo(function TextLabel({
 	const cssPrefix = classNamePrefix || 'tl-text'
 	return (
 		<div
+			id={addId ? id : undefined}
 			className={`${cssPrefix}-label tl-text-wrapper`}
 			data-font={font}
 			data-align={align}
