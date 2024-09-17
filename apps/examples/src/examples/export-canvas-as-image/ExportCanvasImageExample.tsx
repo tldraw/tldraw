@@ -20,8 +20,8 @@ const Control = ({
 }: {
 	name: string
 	type?: React.HTMLInputTypeAttribute
-	labelWidth?: string | number
-	inputWidth?: string | number
+	labelWidth?: React.CSSProperties['width']
+	inputWidth?: React.CSSProperties['width']
 	value?: string | number | readonly string[]
 	checked?: boolean
 	onChange?: React.ChangeEventHandler<HTMLInputElement>
