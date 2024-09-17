@@ -2,8 +2,17 @@ import { Button } from '@/components/common/button'
 import { PageTitle } from '@/components/common/page-title'
 import { Article } from '@/types/content-types'
 import { cn } from '@/utils/cn'
+import { version } from '@/version'
 
 export async function DocsHeader({ article }: { article: Article }) {
+	let sourceUrlWithVersionTag
+	if (article.sectionId === 'reference' && article.sourceUrl) {
+		sourceUrlWithVersionTag = article.sourceUrl.replace(
+			'/tldraw/tldraw/blob/main',
+			'/tldraw/tldraw/blob/v' + version
+		)
+	}
+
 	return (
 		<section
 			className={cn(
@@ -14,9 +23,9 @@ export async function DocsHeader({ article }: { article: Article }) {
 		>
 			<div className="flex flex-wrap justify-between gap-x-8 gap-y-3">
 				<PageTitle>{article.title}</PageTitle>
-				{article.sectionId === 'reference' && article.sourceUrl && (
+				{sourceUrlWithVersionTag && (
 					<Button
-						href={article.sourceUrl}
+						href={sourceUrlWithVersionTag}
 						newTab
 						caption="See source code"
 						icon="github"

@@ -59,7 +59,9 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 	if (schema.schemaVersion === 2) return Result.ok(schema as SerializedSchemaV2)
 	const result: SerializedSchemaV2 = {
 		schemaVersion: 2,
-		sequences: {},
+		sequences: {
+			'com.tldraw.store': schema.storeVersion,
+		},
 	}
 
 	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {

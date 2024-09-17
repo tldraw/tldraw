@@ -51,9 +51,11 @@ We reserve the right to access, read, preserve, and disclose any information tha
 
 We may transfer the personal information of users from the European Economic Area or United Kingdom to the United States. When doing so, we rely on adequacy decisions, data transfer agreements, or other legally compliant mechanisms for such transfers, including standard contractual clauses. You can ask for a copy of these standard contractual clauses by contacting us as set out below.
 
-## 5. Secury
+## 5. Security
 
-We use commercially reasonable physical, managerial, and technical safeguards to preserve the integrity and security of your personal information. In addition, we rely on the technical safeguards provided by the third party service providers we use to host, store, and process your personal information. We cannot, however, ensure or warrant that your personal information on the Services may not be accessed, disclosed, altered, or destroyed by breach of any of our physical, managerial, or technical safeguards. 6. YOUR RIGHTS.
+We use commercially reasonable physical, managerial, and technical safeguards to preserve the integrity and security of your personal information. In addition, we rely on the technical safeguards provided by the third party service providers we use to host, store, and process your personal information. We cannot, however, ensure or warrant that your personal information on the Services may not be accessed, disclosed, altered, or destroyed by breach of any of our physical, managerial, or technical safeguards.
+
+## 6. Your rights
 
 ### 6.1. Rights of users in the EEA and UK
 
@@ -93,16 +95,24 @@ If you wish to exercise any of the rights set out above and we are the controlle
 
 ### 6.4. Supervisory authorities
 
-We welcome and appreciate the chance to address any concerns you may have about the Policy and our collection and use of your personal information. To the extent you feel like we have not addressed your concerns, and depending on your jurisdiction, you may have the right to make a complaint at any time to your data protection supervisory authority. For end users in the EEA, you can find contact information for each country’s supervisory authority [here](https://www.edpb.europa.eu/about-edpb/about-edpb/members_en). For end users in the UK, you can find contact information for the Information Commissioner’s Office (ICO) on the ICO’s website [here](https://ico.org.uk/). 7. RETENTION OF INFORMATION. Subject to your right to request deletion of your personal information in accordance with Section 6, we will retain your personal information as long as needed for your use of the Services, our compliance with legal obligations, and to protect our or other’s interests.
+We welcome and appreciate the chance to address any concerns you may have about the Policy and our collection and use of your personal information. To the extent you feel like we have not addressed your concerns, and depending on your jurisdiction, you may have the right to make a complaint at any time to your data protection supervisory authority. For end users in the EEA, you can find contact information for each country’s supervisory authority [here](https://www.edpb.europa.eu/about-edpb/about-edpb/members_en). For end users in the UK, you can find contact information for the Information Commissioner’s Office (ICO) on the ICO’s website [here](https://ico.org.uk/).
+
+## 7. Retention of information
+
+Subject to your right to request deletion of your personal information in accordance with Section 6, we will retain your personal information as long as needed for your use of the Services, our compliance with legal obligations, and to protect our or other’s interests.
 
 ## 8. How we respond to do not track signals
 
-We do not track you or collect your personal information across third party websites or online services. Thus, we do not receive Do-Not-Track signals, or other similar signals. To the extent that we do receive any such signals, we will not comply with them as it is not an aspect of the functionality of the Services. 9. AGE OF USERS. Children under the age of 13 are not permitted to use, access or register for the Services in any way. We do not knowingly collect or solicit information from anyone under the age of 13. If we learn that we have collected personal information from a child under the age of 13, we will delete that information as quickly as possible.
+We do not track you or collect your personal information across third party websites or online services. Thus, we do not receive Do-Not-Track signals, or other similar signals. To the extent that we do receive any such signals, we will not comply with them as it is not an aspect of the functionality of the Services.
 
-10. Changes to policy
+## 9. Age of users
+
+Children under the age of 13 are not permitted to use, access or register for the Services in any way. We do not knowingly collect or solicit information from anyone under the age of 13. If we learn that we have collected personal information from a child under the age of 13, we will delete that information as quickly as possible.
+
+## 10. Changes to policy
 
 We’re constantly trying to improve the Services, so we may need to change this Policy from time to time as well. The date of the last modification will be posted at the beginning of this Policy. It is your responsibility to check from time to time for updates. By continuing to access or use the Services, you are indicating that you agree to be bound by the modified Policy.
 
-11. Contact us
+## 11. Contact us
 
 If you have any questions or concerns regarding this Policy, please send us a detailed message to our data protection officer at steve+data@tldraw.com, and we will try to resolve your concerns. In addition, please contact hello@tldraw.com for all other inquiries.

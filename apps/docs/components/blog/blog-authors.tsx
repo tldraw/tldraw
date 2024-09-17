@@ -4,7 +4,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export function BlogAuthors({ article }: { article: Article }) {
-	// @ts-ignore
 	const authors = article.authorId.split(',').map((id: string) => getAuthor(id.trim()))
 
 	return (
