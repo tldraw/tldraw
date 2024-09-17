@@ -1,7 +1,0 @@
-main = "src/worker.ts"
-compatibility_date = "2024-06-20"
-name = "image-optimizer"
-route = { pattern = "images.tldraw.xyz", custom_domain = true }
-
-[dev]
-port = 8786

@@ -1,7 +1,0 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-yarn install --immutable
-npx lazy run build-api
-git add packages/*/api-report.md
-npx lint-staged

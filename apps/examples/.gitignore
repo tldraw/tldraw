@@ -1,3 +1,0 @@
-.vercel
-# We don't need these because we only check linux snapshots in CI
-e2e/tests/*-snapshots/*darwin.png

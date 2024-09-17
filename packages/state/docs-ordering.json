@@ -1,5 +1,0 @@
-[
-	["functions", ["atom-1", "computed-1", "react", "reactor-1", "transact", "transaction"]],
-	["classes"],
-	["interfaces", ["Signal"]]
-]
