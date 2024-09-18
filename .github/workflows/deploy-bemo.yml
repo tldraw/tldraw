@@ -43,7 +43,7 @@ jobs:
         run: yarn build-types
 
       - name: Deploy
-        run: yarn tsx scripts/deploy-bemo.ts
+        run: yarn tsx internal/scripts/deploy-bemo.ts
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}

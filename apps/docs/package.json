@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/docs",
 	"description": "A docs site for tldraw.",
-	"version": "2.0.0-next",
+	"version": "0.0.0",
 	"private": true,
 	"author": {
 		"name": "tldraw Inc.",
@@ -28,7 +28,7 @@
 	"scripts": {
 		"dev": "concurrently \"NODE_ENV=development next dev --port=3001\" \"tsx ./watcher.ts\" --kill-others",
 		"next-dev": "next dev",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"build": "yarn refresh-everything && next build && yarn check-links",
 		"start": "yarn refresh-everything && next start",
 		"fetch-api-source": "yarn run -T tsx --tsconfig ./tsconfig.content.json ./scripts/fetch-api-source.ts",
@@ -114,7 +114,7 @@
 		"ws": "^8.16.0"
 	},
 	"jest": {
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"roots": [
 			"<rootDir>"
 		],

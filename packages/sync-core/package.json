@@ -33,11 +33,11 @@
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts",
-		"build": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
-		"postpack": "../../scripts/postpack.sh",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
@@ -49,7 +49,7 @@
 	},
 	"jest": {
 		"resolver": "<rootDir>/jestResolver.js",
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
