@@ -1,6 +1,6 @@
-import { screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import { BaseBoxShapeUtil, Editor } from '@tldraw/editor'
-import { act, useState } from 'react'
+import { useState } from 'react'
 import { renderTldrawComponent } from '../test/testutils/renderTldrawComponent'
 import { Tldraw } from './Tldraw'
 
