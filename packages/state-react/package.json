@@ -47,18 +47,19 @@
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
-		}
+		},
+		"testEnvironment": "jsdom"
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
+		"@testing-library/jest-dom": "^5.16.5",
+		"@testing-library/react": "^15.0.6",
 		"@types/lodash": "^4.14.188",
 		"@types/react": "^18.2.0",
-		"@types/react-test-renderer": "^18.2.0",
-		"lodash": "^4.17.21",
-		"react-test-renderer": "^18.2.0"
+		"lodash": "^4.17.21"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0"
