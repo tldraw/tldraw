@@ -13,6 +13,7 @@ import {
 import 'tldraw/tldraw.css'
 import { trackedShapes, useDebugging } from '../hooks/useDebugging'
 import { usePerformance } from '../hooks/usePerformance'
+import { getDiff } from './diff'
 
 const ContextMenu = track(() => {
 	const editor = useEditor()
@@ -55,11 +56,11 @@ export default function Develop() {
 					;(window as any).editor = editor
 					const dispose = editor.store.sideEffects.registerAfterChangeHandler(
 						'shape',
-						(_prev, next) => {
+						(prev, next) => {
 							const tracked = trackedShapes.get()
 							if (tracked.includes(next.id)) {
 								// eslint-disable-next-line no-console
-								console.log(next)
+								console.table(getDiff(prev, next))
 							}
 						}
 					)
