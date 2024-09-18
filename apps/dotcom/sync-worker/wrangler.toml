@@ -33,10 +33,12 @@ name = "dev-tldraw-multiplayer"
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
+workers_dev = true
 
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
+workers_dev = true
 
 #################### Routing ####################
 # no custom routes for previews and development
