@@ -183,7 +183,11 @@ export interface TldrawEditorBaseProps {
 	deepLinks?: true | TLDeepLinkOptions
 
 	/**
-	 * Predicate for whether or not to show a shape
+	 * Predicate for whether or not a shape should be hidden.
+	 *
+	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
+	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
+	 * remain in the store and participate in all other operations.
 	 */
 	isShapeHidden?: TLEditorOptions['isShapeHidden']
 }

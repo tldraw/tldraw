@@ -221,6 +221,11 @@ export interface TLEditorOptions {
 	cameraOptions?: Partial<TLCameraOptions>
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
+	/**
+	 * A predicate that should return true if the given shape should be hidden.
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
 	isShapeHidden?(shape: TLShape, editor: Editor): boolean
 }
 
