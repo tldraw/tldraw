@@ -17,3 +17,7 @@
 .toggle-panel button {
 	cursor: pointer;
 }
+
+.toggle-panel.pointer {
+	cursor: pointer;
+}

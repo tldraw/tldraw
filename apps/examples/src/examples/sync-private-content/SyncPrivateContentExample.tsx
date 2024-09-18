@@ -12,6 +12,8 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { VisibilityOff, VisibilityOn } from '../../icons/icons'
+import { Toggle } from './Toggle'
 import './style.css'
 
 // There's a guide at the bottom of this file!
@@ -40,41 +42,40 @@ const components: TLComponents = {
 
 		return (
 			<>
-				<div className="toggle-panel">
-					{isInSelectTool && myPrivateSelectedShapes.length > 0 ? (
-						<>
-							<div>
-								Make {myPrivateSelectedShapes.length} selected shape
-								{myPrivateSelectedShapes.length > 1 ? 's' : ''} public?{' '}
-							</div>
-							<button
-								onClick={() => {
-									editor.markHistoryStoppingPoint()
-									const allAffectedShapes = [
-										...editor.getShapeAndDescendantIds(myPrivateSelectedShapes.map((s) => s.id)),
-									].map((id) => editor.getShape(id)!)
-									editor.updateShapes(
-										allAffectedShapes.map((shape) => ({
-											...shape,
-											meta: { ...shape.meta, private: false },
-										}))
-									)
-								}}
-							>
-								Yes
-							</button>
-						</>
-					) : (
-						<>
-							<div>Private Drawing Mode</div>
-							<input
-								type="checkbox"
-								checked={isPrivateDrawingMode}
-								onChange={(e) => isPrivateDrawingMode$.set(e.target.checked)}
-							/>
-						</>
-					)}
-				</div>
+				{isInSelectTool && myPrivateSelectedShapes.length > 0 ? (
+					<div className="toggle-panel">
+						<div>
+							Make {myPrivateSelectedShapes.length} selected shape
+							{myPrivateSelectedShapes.length > 1 ? 's' : ''} public?{' '}
+						</div>
+						<button
+							onClick={() => {
+								editor.markHistoryStoppingPoint()
+								// [7]
+								const allAffectedShapes = [
+									...editor.getShapeAndDescendantIds(myPrivateSelectedShapes.map((s) => s.id)),
+								].map((id) => editor.getShape(id)!)
+								editor.updateShapes(
+									allAffectedShapes.map((shape) => ({
+										...shape,
+										meta: { ...shape.meta, private: false },
+									}))
+								)
+							}}
+						>
+							Yes
+						</button>
+					</div>
+				) : (
+					<div
+						className="toggle-panel pointer"
+						onClick={() => isPrivateDrawingMode$.update((v) => !v)}
+					>
+						{isPrivateDrawingMode ? <VisibilityOff fill="#444" /> : <VisibilityOn fill="#444" />}
+						<div>Private mode</div>
+						<Toggle isChecked={isPrivateDrawingMode} />
+					</div>
+				)}
 			</>
 		)
 	},
@@ -141,4 +142,5 @@ export default function SyncPrivateContentExample({ roomId }: { roomId: string }
  * 4. We override the `isShapeHidden` function to hide shapes that are private and not owned by the current user.
  * 5. We register a side effect that adds the 'private' and 'ownerId' meta fields to each shape created. We set the 'private' field to the current value of the private drawing mode atom.
  * 6. We register a side effect that cleans up the selection by removing any hidden shapes from the selection. This re-runs whenever the selection or the hidden state of a selected shape changes.
+ * 7. Child shapes (e.g inside groups and frames) do not inherit the 'private' meta property from their parent. So when making a shape public, we decide to also make all descendant shapes public since this is most likely what the user intended.
  */

@@ -1,7 +1,7 @@
 import { capitalize } from 'lodash'
 import { useState } from 'react'
 import { Editor, TLShapeId, useEditor, useValue } from 'tldraw'
-import { VisibilityOff, VisibilityOn } from './icons'
+import { VisibilityOff, VisibilityOn } from '../../icons/icons'
 
 const selectedBg = '#E8F4FE'
 const childSelectedBg = '#F3F9FE'
