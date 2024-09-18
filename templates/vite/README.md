@@ -17,7 +17,7 @@ Open `http://localhost:5173/` in your browser to see the app.
 
 ## License
 
-This project is provided under the MIT license. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+This project is provided under the MIT license found [here](https://github.com/tldraw/vite-template/blob/main/LICENSE). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 

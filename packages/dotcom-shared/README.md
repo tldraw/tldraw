@@ -1,8 +1,6 @@
-# @tldraw/state-react
+# @tldraw/dotcom-shared
 
-React bindings for tldraw's signals library. See also the [signals library](https://github.com/tldraw/tldraw/tree/main/packages/state).
-
-To learn more about this check out the [Signia library's React bindings](https://signia.tldraw.dev/docs/react-bindings) which explains the bindings and also talks about the foundational concepts.
+This is a small packaged used by [apps/dotcom](https://github.com/tldraw/tldraw/tree/main/apps/dotcom) and by [apps/dotcom-worker](https://github.com/tldraw/tldraw/tree/main/apps/dotcom-worker) to share constants across our different apps.
 
 ## Contribution
 
@@ -10,7 +8,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-This project is provided under the MIT license found [here](https://github.com/tldraw/tldraw/blob/main/packages/state-react/LICENSE.md).
+The code in this folder is Copyright (c) 2024-present tldraw Inc. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 
