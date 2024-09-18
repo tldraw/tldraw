@@ -140,6 +140,8 @@ test.describe('Keyboard Shortcuts', () => {
 	})
 
 	test('Zoom to 100', async () => {
+		// Let's zoom in first, so that we are not at 100%
+		await page.keyboard.press('Control+=')
 		await page.keyboard.press('Shift+0')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'reset-zoom',
@@ -341,6 +343,14 @@ test.describe('Actions on shapes', () => {
 		})
 
 		/* ---------------------- Misc ---------------------- */
+
+		// Make some shapes which we will lock
+		await page.keyboard.press('r')
+		await page.mouse.click(100, 100)
+		await page.keyboard.press('r')
+		await page.mouse.click(250, 250)
+		await page.keyboard.press('v')
+		await page.keyboard.press('Control+a')
 
 		// toggle lock
 		await page.keyboard.press('Shift+l')
