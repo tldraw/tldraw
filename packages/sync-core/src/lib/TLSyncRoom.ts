@@ -19,6 +19,7 @@ import {
 	isNativeStructuredClone,
 	objectMapEntries,
 	objectMapKeys,
+	structuredClone,
 } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { createNanoEvents } from 'nanoevents'
@@ -534,7 +535,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param message - The message to broadcast.
 	 * @param sourceSessionId - The session to exclude.
 	 */
-	broadcastPatch({ diff, sourceSessionId }: { diff: NetworkDiff<R>; sourceSessionId: string }) {
+	broadcastPatch({ diff, sourceSessionId }: { diff: NetworkDiff<R>; sourceSessionId?: string }) {
 		this.sessions.forEach((session) => {
 			if (session.state !== RoomSessionState.Connected) return
 			if (sourceSessionId === session.sessionId) return
@@ -811,16 +812,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	private handlePushRequest(
-		session: RoomSession<R, SessionMeta>,
+		session: RoomSession<R, SessionMeta> | null,
 		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>
 	) {
 		// We must be connected to handle push requests
-		if (session.state !== RoomSessionState.Connected) {
+		if (session && session.state !== RoomSessionState.Connected) {
 			return
 		}
 
 		// update the last interaction time
-		session.lastInteractionTime = Date.now()
+		if (session) {
+			session.lastInteractionTime = Date.now()
+		}
 
 		// increment the clock for this push
 		this.clock++
@@ -841,7 +844,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 			const fail = (reason: TLIncompatibilityReason): Result<void, void> => {
 				rollback()
-				this.rejectSession(session, reason)
+				if (session) {
+					this.rejectSession(session, reason)
+				}
 				if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
 					this.log?.error?.('failed to apply push', reason, message)
 				}
@@ -849,7 +854,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 
 			const addDocument = (changes: ActualChanges, id: string, _state: R): Result<void, void> => {
-				const res = this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
+				const res = session
+					? this.schema.migratePersistedRecord(_state, session.serializedSchema, 'up')
+					: { type: 'success' as const, value: _state }
 				if (res.type === 'error') {
 					return fail(
 						res.reason === MigrationFailureReason.TargetVersionTooOld // target version is our version
@@ -895,11 +902,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (!doc) return Result.ok(undefined)
 				// If the client's version of the record is older than ours,
 				// we apply the patch to the downgraded version of the record
-				const downgraded = this.schema.migratePersistedRecord(
-					doc.state,
-					session.serializedSchema,
-					'down'
-				)
+				const downgraded = session
+					? this.schema.migratePersistedRecord(doc.state, session.serializedSchema, 'down')
+					: { type: 'success' as const, value: doc.state }
 				if (downgraded.type === 'error') {
 					return fail(TLIncompatibilityReason.ClientTooOld)
 				}
@@ -919,11 +924,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					// apply the patch to the downgraded version
 					const patched = applyObjectDiff(downgraded.value, patch)
 					// then upgrade the patched version and use that as the new state
-					const upgraded = this.schema.migratePersistedRecord(
-						patched,
-						session.serializedSchema,
-						'up'
-					)
+					const upgraded = session
+						? this.schema.migratePersistedRecord(patched, session.serializedSchema, 'up')
+						: { type: 'success' as const, value: patched }
 					// If the client's version is too old, we'll hit an error
 					if (upgraded.type === 'error') {
 						return fail(TLIncompatibilityReason.ClientTooOld)
@@ -944,6 +947,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const { clientClock } = message
 
 			if ('presence' in message && message.presence) {
+				if (!session) throw new Error('session is required for presence pushes')
 				// The push request was for the presence scope.
 				const id = session.presenceId
 				const [type, val] = message.presence
@@ -1024,47 +1028,56 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// COMMIT
 				// Applying the client's changes had the exact same effect on the server as
 				// they had on the client, so the client should keep the diff
-				this.sendMessage(session.sessionId, {
-					type: 'push_result',
-					serverClock: this.clock,
-					clientClock,
-					action: 'commit',
-				})
+				if (session) {
+					this.sendMessage(session.sessionId, {
+						type: 'push_result',
+						serverClock: this.clock,
+						clientClock,
+						action: 'commit',
+					})
+				}
 			} else if (!docChanges.diff) {
 				// DISCARD
 				// Applying the client's changes had no effect, so the client should drop the diff
-				this.sendMessage(session.sessionId, {
-					type: 'push_result',
-					serverClock: this.clock,
-					clientClock,
-					action: 'discard',
-				})
+				if (session) {
+					this.sendMessage(session.sessionId, {
+						type: 'push_result',
+						serverClock: this.clock,
+						clientClock,
+						action: 'discard',
+					})
+				}
 			} else {
 				// REBASE
 				// Applying the client's changes had a different non-empty effect on the server,
 				// so the client should rebase with our gold-standard / authoritative diff.
 				// First we need to migrate the diff to the client's version
-				const migrateResult = this.migrateDiffForSession(session.serializedSchema, docChanges.diff)
-				if (!migrateResult.ok) {
-					return fail(
-						migrateResult.error === MigrationFailureReason.TargetVersionTooNew
-							? TLIncompatibilityReason.ServerTooOld
-							: TLIncompatibilityReason.ClientTooOld
+				if (session) {
+					const migrateResult = this.migrateDiffForSession(
+						session.serializedSchema,
+						docChanges.diff
 					)
+					if (!migrateResult.ok) {
+						return fail(
+							migrateResult.error === MigrationFailureReason.TargetVersionTooNew
+								? TLIncompatibilityReason.ServerTooOld
+								: TLIncompatibilityReason.ClientTooOld
+						)
+					}
+					// If the migration worked, send the rebased diff to the client
+					this.sendMessage(session.sessionId, {
+						type: 'push_result',
+						serverClock: this.clock,
+						clientClock,
+						action: { rebaseWithDiff: migrateResult.value },
+					})
 				}
-				// If the migration worked, send the rebased diff to the client
-				this.sendMessage(session.sessionId, {
-					type: 'push_result',
-					serverClock: this.clock,
-					clientClock,
-					action: { rebaseWithDiff: migrateResult.value },
-				})
 			}
 
 			// If there are merged changes, broadcast them to all other clients
 			if (docChanges.diff || presenceChanges.diff) {
 				this.broadcastPatch({
-					sourceSessionId: session.sessionId,
+					sourceSessionId: session?.sessionId,
 					diff: {
 						...docChanges.diff,
 						...presenceChanges.diff,
@@ -1087,5 +1100,86 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	handleClose(sessionId: string) {
 		this.cancelSession(sessionId)
+	}
+
+	async updateStore(updater: (store: RoomStoreMethods) => void | Promise<void>) {
+		const context = new StoreUpdateContext(
+			Object.fromEntries(this.getSnapshot().documents.map((d) => [d.state.id, d.state]))
+		)
+		await updater(context)
+		context.close()
+		const diff = context.toDiff()
+		if (Object.keys(diff).length === 0) {
+			return
+		}
+		this.clock++
+		this.handlePushRequest(null, { type: 'push', diff, clientClock: 0 })
+	}
+}
+
+/**
+ * @public
+ */
+export interface RoomStoreMethods {
+	put(record: UnknownRecord): void
+	delete(recordOrId: UnknownRecord | string): void
+	get(id: string): UnknownRecord
+	getAll(): UnknownRecord[]
+}
+
+class StoreUpdateContext implements RoomStoreMethods {
+	constructor(private readonly snapshot: Record<string, UnknownRecord>) {}
+	private readonly updates = {
+		puts: {} as Record<string, UnknownRecord>,
+		deletes: new Set<string>(),
+	}
+	put(record: UnknownRecord): void {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		this.updates.puts[record.id] = structuredClone(record)
+		if (this.updates.deletes.has(record.id)) {
+			this.updates.deletes.delete(record.id)
+		}
+	}
+	delete(recordOrId: UnknownRecord | string): void {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const id = typeof recordOrId === 'string' ? recordOrId : recordOrId.id
+		delete this.updates.puts[id]
+		if (this.snapshot[id]) {
+			this.updates.deletes.add(id)
+		}
+	}
+	get(id: string): UnknownRecord {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		if (hasOwnProperty(this.updates.puts, id)) {
+			return this.updates.puts[id]
+		}
+		return structuredClone(this.snapshot[id])
+	}
+
+	getAll(): UnknownRecord[] {
+		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
+		const result = Object.values(this.updates.puts)
+		for (const [id, record] of Object.entries(this.snapshot)) {
+			if (!this.updates.deletes.has(id) && !hasOwnProperty(this.updates.puts, id)) {
+				result.push(record)
+			}
+		}
+		return structuredClone(result)
+	}
+
+	toDiff(): NetworkDiff<any> {
+		const diff: NetworkDiff<UnknownRecord> = {}
+		for (const [id, record] of Object.entries(this.updates.puts)) {
+			diff[id] = [RecordOpType.Put, record]
+		}
+		for (const id of this.updates.deletes) {
+			diff[id] = [RecordOpType.Remove]
+		}
+		return diff
+	}
+
+	private _isClosed = false
+	close() {
+		this._isClosed = true
 	}
 }

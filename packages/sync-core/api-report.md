@@ -201,6 +201,18 @@ export interface RoomSnapshot {
     tombstones?: Record<string, number>;
 }
 
+// @public (undocumented)
+export interface RoomStoreMethods {
+    // (undocumented)
+    delete(recordOrId: string | UnknownRecord): void;
+    // (undocumented)
+    get(id: string): UnknownRecord;
+    // (undocumented)
+    getAll(): UnknownRecord[];
+    // (undocumented)
+    put(record: UnknownRecord): void;
+}
+
 // @internal (undocumented)
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
 
@@ -445,7 +457,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     });
     broadcastPatch({ diff, sourceSessionId }: {
         diff: NetworkDiff<R>;
-        sourceSessionId: string;
+        sourceSessionId?: string;
     }): this;
     // (undocumented)
     clock: number;
@@ -489,6 +501,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     }, unknown>;
     // (undocumented)
     tombstoneHistoryStartsAtClock: number;
+    // (undocumented)
+    updateStore(updater: (store: RoomStoreMethods) => Promise<void> | void): Promise<void>;
 }
 
 // @internal (undocumented)
