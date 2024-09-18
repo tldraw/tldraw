@@ -17,10 +17,10 @@
 	"scripts": {
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"jest": {
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"testEnvironment": "jsdom"
 	}
 }
