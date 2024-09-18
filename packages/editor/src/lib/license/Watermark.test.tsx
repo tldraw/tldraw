@@ -1,5 +1,4 @@
-import { render, waitFor } from '@testing-library/react'
-import { act } from 'react'
+import { act, render, waitFor } from '@testing-library/react'
 import { LicenseManager } from './LicenseManager'
 import { Watermark } from './Watermark'
 
