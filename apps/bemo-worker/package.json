@@ -11,12 +11,12 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"dev": "yarn run -T tsx ../../scripts/workers/dev.ts",
+		"dev": "yarn run -T tsx ../../internal/scripts/workers/dev.ts",
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
-		"check-bundle-size": "yarn run -T tsx ../../scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 350000",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"check-bundle-size": "yarn run -T tsx ../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 350000",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tldraw/dotcom-shared": "workspace:*",
@@ -38,7 +38,7 @@
 		"wrangler": "3.62.0"
 	},
 	"jest": {
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
 		}

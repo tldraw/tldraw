@@ -1,7 +1,7 @@
 {
 	"name": "examples.tldraw.com",
 	"description": "A tiny little drawing app (examples).",
-	"version": "2.0.0-beta.2",
+	"version": "0.0.0",
 	"private": true,
 	"author": {
 		"name": "tldraw Inc.",
@@ -28,7 +28,7 @@
 	"scripts": {
 		"dev": "vite --host",
 		"build": "vite build",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts",
 		"e2e": "playwright test -c ./e2e/playwright.config.ts",
 		"e2e-ui": "playwright test --ui -c ./e2e/playwright.config.ts"
 	},
