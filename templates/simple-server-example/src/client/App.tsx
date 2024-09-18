@@ -29,6 +29,8 @@ function App() {
 				// loading states & enable multiplayer UX like cursors & a presence menu
 				store={store}
 				onMount={(editor) => {
+					// @ts-expect-error
+					window.editor = editor
 					// when the editor is ready, we need to register out bookmark unfurling service
 					editor.registerExternalAssetHandler('url', unfurlBookmarkUrl)
 				}}
