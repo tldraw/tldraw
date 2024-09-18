@@ -7,15 +7,5 @@
 		"emitDeclarationOnly": false,
 		"types": ["bun", "node"]
 	},
-	"references": [
-		{
-			"path": "../../packages/sync"
-		},
-		{
-			"path": "../../packages/sync-core"
-		},
-		{
-			"path": "../../packages/tldraw"
-		}
-	]
+	"references": []
 }
