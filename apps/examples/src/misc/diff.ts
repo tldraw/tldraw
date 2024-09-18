@@ -15,7 +15,7 @@ export function getDiff(prev: any, next: any, prefix = '', diff: any = {}) {
 			if (typeof prevValue === 'object' && typeof nextValue === 'object') {
 				getDiff(prevValue, nextValue, keyPath, diff)
 			} else {
-				diff[keyPath] = { prev: prev[key], next: next[key] }
+				diff[keyPath] = { [`prev:${prev.id}`]: prev[key], [`next:${next.id}`]: next[key] }
 			}
 		}
 	}
