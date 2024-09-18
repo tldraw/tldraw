@@ -70,7 +70,7 @@ export interface TLUiActionItem<
 	checkbox?: boolean
 	onSelect(source: TLUiEventSource): Promise<void> | void
 	enabled(): boolean
-	disabledDescription?: string
+	disabledDescription?: TransationKey
 }
 
 /** @public */
@@ -191,6 +191,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && editLinkEnabled
 				},
+				disabledDescription: 'action.edit-link-disabled-description',
 			},
 			{
 				id: 'insert-embed',
@@ -229,6 +230,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return editor.getCanUndo()
 				},
+				disabledDescription: 'action.undo-disabled-description',
 			},
 			{
 				id: 'redo',
@@ -243,6 +245,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return editor.getCanRedo()
 				},
+				disabledDescription: 'action.redo-disabled-description',
 			},
 			{
 				id: 'export-as-svg',
@@ -262,6 +265,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = getSelectedOrPageShapeIds(editor)
 					return !!ids && pageHasShapes
 				},
+				disabledDescription: 'action.export-as-disabled-description',
 			},
 			{
 				id: 'export-as-png',
@@ -281,6 +285,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = getSelectedOrPageShapeIds(editor)!
 					return !!ids && pageHasShapes
 				},
+				disabledDescription: 'action.export-as-disabled-description',
 			},
 			{
 				id: 'export-as-json',
@@ -301,6 +306,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = getSelectedOrPageShapeIds(editor)!
 					return !!ids && pageHasShapes
 				},
+				disabledDescription: 'action.export-as-disabled-description',
 			},
 			{
 				id: 'export-all-as-svg',
@@ -325,6 +331,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = editor.getCurrentPageShapeIds()
 					return !!ids
 				},
+				disabledDescription: 'action.export-as-disabled-description',
 			},
 			{
 				id: 'export-all-as-png',
@@ -345,6 +352,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = editor.getCurrentPageShapeIds()
 					return ids.size > 0
 				},
+				disabledDescription: 'action.export-as-disabled-description',
 			},
 			{
 				id: 'export-all-as-json',
@@ -365,6 +373,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = editor.getCurrentPageShapeIds()
 					return ids.size > 0
 				},
+				disabledDescription: 'action.export-as-disabled-description',
 			},
 			{
 				id: 'copy-as-svg',
@@ -385,6 +394,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = getSelectedOrPageShapeIds(editor)
 					return !!ids
 				},
+				disabledDescription: 'action.copy-as-disabled-description',
 			},
 			{
 				id: 'copy-as-png',
@@ -404,6 +414,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = getSelectedOrPageShapeIds(editor)
 					return !!ids
 				},
+				disabledDescription: 'action.copy-as-disabled-description',
 			},
 			{
 				id: 'copy-as-json',
@@ -423,6 +434,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = getSelectedOrPageShapeIds(editor)
 					return !!ids
 				},
+				disabledDescription: 'action.copy-as-disabled-description',
 			},
 			{
 				id: 'toggle-auto-size',
@@ -549,6 +561,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						canApplySelectionAction() && !mustGoBackToSelectToolFirst() && convertToBookmarkEnabled
 					)
 				},
+				disabledDescription: 'action.convert-to-bookmark-disabled-description',
 			},
 			{
 				id: 'convert-to-embed',
@@ -608,6 +621,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						canApplySelectionAction() && !mustGoBackToSelectToolFirst() && convertToEmbedEnabled
 					)
 				},
+				disabledDescription: 'action.convert-to-embed-disabled-description',
 			},
 			{
 				id: 'duplicate',
@@ -661,6 +675,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						!!(oneSelected && isInSelectState)
 					)
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'ungroup',
@@ -677,6 +692,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && allowUngroup
 				},
+				disabledDescription: 'action.ungroup-disabled-description',
 			},
 			{
 				id: 'group',
@@ -703,6 +719,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						!!(allowGroup && twoSelected && isInSelectState)
 					)
 				},
+				disabledDescription: 'action.group-disabled-description',
 			},
 			{
 				id: 'remove-frame',
@@ -727,6 +744,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && removeFrameEnabled
 				},
+				disabledDescription: 'action.remove-frame-disabled-description',
 			},
 			{
 				id: 'fit-frame-to-content',
@@ -744,6 +762,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && fitFrameToContentEnabled
 				},
+				disabledDescription: 'action.fit-frame-to-content-disabled-description',
 			},
 			{
 				id: 'align-left',
@@ -762,7 +781,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && alignEnabled
 				},
-				disabledDescription: 'You need to have at least two shapes selected',
+				disabledDescription: 'action.align-disabled-description',
 			},
 			{
 				id: 'align-center-horizontal',
@@ -784,6 +803,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && alignEnabled
 				},
+				disabledDescription: 'action.align-disabled-description',
 			},
 			{
 				id: 'align-right',
@@ -802,6 +822,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && alignEnabled
 				},
+				disabledDescription: 'action.align-disabled-description',
 			},
 			{
 				id: 'align-center-vertical',
@@ -823,6 +844,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && alignEnabled
 				},
+				disabledDescription: 'action.align-disabled-description',
 			},
 			{
 				id: 'align-top',
@@ -841,6 +863,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && alignEnabled
 				},
+				disabledDescription: 'action.align-disabled-description',
 			},
 			{
 				id: 'align-bottom',
@@ -859,6 +882,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && alignEnabled
 				},
+				disabledDescription: 'action.align-disabled-description',
 			},
 			{
 				id: 'distribute-horizontal',
@@ -880,6 +904,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && distributeEnabled
 				},
+				disabledDescription: 'action.distribute-disabled-description',
 			},
 			{
 				id: 'distribute-vertical',
@@ -901,6 +926,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && distributeEnabled
 				},
+				disabledDescription: 'action.distribute-disabled-description',
 			},
 			{
 				id: 'stretch-horizontal',
@@ -921,6 +947,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && alignEnabled
 				},
+				disabledDescription: 'action.align-disabled-description',
 			},
 			{
 				id: 'stretch-vertical',
@@ -941,6 +968,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && alignEnabled
 				},
+				disabledDescription: 'action.align-disabled-description',
 			},
 			{
 				id: 'flip-horizontal',
@@ -1121,6 +1149,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && !!oneSelected
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'copy',
@@ -1135,6 +1164,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && !!oneSelected
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'paste',
@@ -1162,6 +1192,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return showMenuPaste
 				},
+				disabledDescription: 'action.paste-disabled-description',
 			},
 			{
 				id: 'select-all',
@@ -1180,6 +1211,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return !mustGoBackToSelectToolFirst() && pageHasShapes
 				},
+				disabledDescription: 'action.no-shapes-on-page',
 			},
 			{
 				id: 'select-none',
@@ -1195,6 +1227,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && !!oneSelected
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'delete',
@@ -1215,6 +1248,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						!!(oneSelected && isInSelectState)
 					)
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'rotate-cw',
@@ -1234,6 +1268,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && rotateEnabled
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'rotate-ccw',
@@ -1253,6 +1288,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return canApplySelectionAction() && !mustGoBackToSelectToolFirst() && rotateEnabled
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'zoom-in',
@@ -1333,6 +1369,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.getCurrentPageShapeIds().size > 0
 					)
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'toggle-snap-mode',
@@ -1513,6 +1550,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return unlockAllEnabled
 				},
+				disabledDescription: 'action.no-shapes-on-page',
 			},
 			{
 				id: 'toggle-focus-mode',
@@ -1587,6 +1625,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return pageHasShapes
 				},
+				disabledDescription: 'action.no-shapes-on-page',
 			},
 			{
 				id: 'exit-pen-mode',
@@ -1601,6 +1640,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return editor.getInstanceState().isPenMode
 				},
+				disabledDescription: 'action.exit-pen-mode-disabled-description',
 			},
 			{
 				id: 'stop-following',
@@ -1615,6 +1655,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return isFollowingUser
 				},
+				disabledDescription: 'action.stop-following-disabled-description',
 			},
 			{
 				id: 'back-to-content',
@@ -1649,6 +1690,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return !!oneSelected
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'move-to-new-page',
@@ -1670,6 +1712,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				enabled() {
 					return !!(oneSelected && editor.options.maxPages > 1)
 				},
+				disabledDescription: 'action.no-shapes-selected',
 			},
 			{
 				id: 'select-white-color',
@@ -1734,6 +1777,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const ids = editor.getSelectedShapeIds()
 					return ids.length > 0 && flattenToImagesEnabled
 				},
+				disabledDescription: 'action.flatten-to-image-disabled-description',
 			},
 		]
 

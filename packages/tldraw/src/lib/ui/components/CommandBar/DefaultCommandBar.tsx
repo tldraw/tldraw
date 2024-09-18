@@ -215,7 +215,7 @@ function CommandBarItem({
 			</div>
 			{showDisabledDescription && (
 				<span className="tlui-command-bar__item-disabled-description">
-					{action.disabledDescription}
+					{msg(action.disabledDescription)}
 				</span>
 			)}
 		</div>
