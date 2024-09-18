@@ -50,6 +50,14 @@ const router = createRouter<Environment>()
 
 export default class Worker extends WorkerEntrypoint<Environment> {
 	override async fetch(request: Request): Promise<Response> {
+		// if we get a request that starts with /api/, strip it before handling.
+		const url = new URL(request.url)
+		const pathname = url.pathname.replace(/^\/api\//, '/')
+		if (pathname !== url.pathname) {
+			url.pathname = pathname
+			request = new Request(url.toString(), request)
+		}
+
 		return await handleApiRequest({
 			router,
 			request,
