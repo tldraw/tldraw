@@ -694,6 +694,36 @@ editor.run(
 )
 ```
 
+### Hiding shapes
+
+You can pass a `isShapeHidden` predicate when configuring tldraw. This predicate will be called for each shape to determine if it should be hidden.
+
+Hidden shapes will still be present in the store, but
+
+- They will not be shown on the canvas
+- They will not be included in hit test results via `editor.getShapeAtPoint` and `editor.getShapesAtPoint`
+
+Otherwise, they will behave as normal. If you need to restrict certain interactions with hidden shapes, e.g. preventing the user from having a hidden shape selected, you need to handle that in your own code.
+
+e.g.
+
+```tsx
+<Tldraw
+	isShapeHidden={(shape) => shape.meta.hidden}
+	onMount={(editor) => {
+		return react('clean up selection', () => {
+			const selectedShapeIds = editor.getSelectedShapeIds()
+			const filteredSelectedShapeIds = selectedShapeIds.filter((id) => !editor.isShapeHidden(id))
+			if (selectedShapeIds.length !== filteredSelectedShapeIds.length) {
+				editor.setSelectedShapes(filteredSelectedShapeIds)
+			}
+		})
+	}}
+/>
+```
+
+For example usages, see the [collaboration private content example](/examples/collaboration/sync-private-content) and the [layer panel example](/examples/ui/layer-panel).
+
 ---
 
 See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to use tldraw's Editor API to control the editor.
