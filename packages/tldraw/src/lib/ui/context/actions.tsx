@@ -18,6 +18,7 @@ import {
 	createShapeId,
 	openWindow,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { kickoutOccludedShapes } from '../../tools/SelectTool/selectHelpers'
@@ -154,6 +155,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 	const isFollowingUser = useIsFollowingUser()
 	const [backToContentEnabled] = useShowBackToContent()
+	const undoEnabled = useValue('undo enabled', () => editor.getCanUndo(), [editor])
+	const redoEnabled = useValue('redo enabled', () => editor.getCanRedo(), [editor])
 
 	const getEmbedDefinition = useGetEmbedDefinition()
 
@@ -228,7 +231,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.undo()
 				},
 				enabled() {
-					return editor.getCanUndo()
+					return undoEnabled
 				},
 				disabledDescription: 'action.undo-disabled-description',
 			},
@@ -243,7 +246,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.redo()
 				},
 				enabled() {
-					return editor.getCanRedo()
+					return redoEnabled
 				},
 				disabledDescription: 'action.redo-disabled-description',
 			},
