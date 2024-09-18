@@ -1,5 +1,6 @@
 main = "src/worker.ts"
 compatibility_date = "2024-06-19"
+workers_dev = true
 
 [dev]
 port = 8787
@@ -28,14 +29,37 @@ binding = "MEASURE"
 name = "dev-tldraw-multiplayer"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
+[env.preview]
+workers_dev = true
 
 # staging is the same as a preview on main:
 [env.staging]
 name = "main-tldraw-multiplayer"
+workers_dev = true               # todo: remove this once clients are updated
 
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
+workers_dev = true          # todo: remove this once clients are updated
+
+#################### Routing ####################
+# no custom routes for previews and development
+
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/api/*"
+
+[[env.staging.routes]]
+custom_domain = true
+pattern = "staging-sync.tldraw.xyz"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/api/*"
+
+[[env.production.routes]]
+custom_domain = true
+pattern = "sync.tldraw.xyz"
 
 #################### Routing ####################
 # no custom routes for previews and development
