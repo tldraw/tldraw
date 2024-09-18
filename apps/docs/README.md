@@ -128,6 +128,8 @@ The auto-generated docs content is created using [tsdoc](https://tsdoc.org/) and
 
 ## Developing the docs
 
+You'll need to install Git LFS to get our blog post images (which can be large). See instructions [here](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).
+
 When developing the docs, any change to the `content` folder will cause the page to refresh. This is a little shitty but it mostly works.
 
 ## Contribution

@@ -28,7 +28,7 @@ jobs:
 
       - name: Publish
         id: publish_step
-        run: yarn tsx ./scripts/publish-manual.ts
+        run: yarn tsx ./internal/scripts/publish-manual.ts
         env:
           GH_TOKEN: ${{ github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

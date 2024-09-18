@@ -125,7 +125,7 @@
 		"get-info": "vsce show tldraw-org.tldraw-vscode --json > extension.json",
 		"package": "yarn build && tsx scripts/package.ts",
 		"publish": "tsx scripts/publish.ts",
-		"lint": "yarn run -T tsx ../../../scripts/lint.ts",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn"
 	},
 	"devDependencies": {

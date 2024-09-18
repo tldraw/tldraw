@@ -174,7 +174,7 @@ module.exports = {
 		},
 		// This overrides the default config for the given matching paths.
 		{
-			files: ['apps/dotcom/**/*'],
+			files: ['apps/dotcom/client/**/*'],
 			rules: {
 				'no-restricted-globals': [
 					'error',
@@ -200,11 +200,16 @@ module.exports = {
 						property: 'Image',
 						message: 'Use the Image from @tldraw/util instead.',
 					},
+					{
+						object: 'crypto',
+						property: 'randomUUID',
+						message: 'Please use the makeUUID util instead.',
+					},
 				],
 			},
 		},
 		{
-			files: 'scripts/**/*',
+			files: 'internal/scripts/**/*',
 			rules: {
 				'import/no-extraneous-dependencies': 'off',
 			},
@@ -227,22 +232,9 @@ module.exports = {
 			},
 		},
 		{
-			files: ['apps/huppy/**/*', 'scripts/**/*', 'apps/simple-server-example/**/*'],
+			files: ['internal/**/*', 'templates/simple-server-example/**/*'],
 			rules: {
 				'no-console': 'off',
-			},
-		},
-		{
-			files: ['apps/dotcom/**/*'],
-			rules: {
-				'no-restricted-properties': [
-					2,
-					{
-						object: 'crypto',
-						property: 'randomUUID',
-						message: 'Please use the makeUUID util instead.',
-					},
-				],
 			},
 		},
 	],
