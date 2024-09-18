@@ -1,4 +1,6 @@
-# @tldraw/tlsync-worker
+# @tldraw/dotcom-worker
+
+The dotcom-worker is used for room management on tldraw.com (e.g. creating & joining rooms, readonly rooms, snapshots).
 
 ## Enable database persistence for local dev
 
@@ -13,7 +15,7 @@ SUPABASE_KEY=<key>
 
 ## License
 
-The code in this repository is not licensed. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+The code in this folder is Copyright (c) 2024-present tldraw Inc. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 

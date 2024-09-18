@@ -20,7 +20,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-The code in this repository is not licensed.
+The code in this folder is Copyright (c) 2024-present tldraw Inc.
 
 The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 

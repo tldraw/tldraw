@@ -68,7 +68,7 @@ After you've added your migration, make sure to add a test for it in `src/migrat
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License found [here](https://github.com/tldraw/tldraw/blob/main/packages/tlschema/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 
