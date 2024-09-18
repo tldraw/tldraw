@@ -42,6 +42,14 @@ const components: TLComponents = {
 	ContextMenu,
 }
 
+function afterChangeHandler(prev: any, next: any) {
+	const tracked = trackedShapes.get()
+	if (tracked.includes(next.id)) {
+		// eslint-disable-next-line no-console
+		console.table(getDiff(prev, next))
+	}
+}
+
 export default function Develop() {
 	const performanceOverrides = usePerformance()
 	const debuggingOverrides = useDebugging()
@@ -56,13 +64,7 @@ export default function Develop() {
 					;(window as any).editor = editor
 					const dispose = editor.store.sideEffects.registerAfterChangeHandler(
 						'shape',
-						(prev, next) => {
-							const tracked = trackedShapes.get()
-							if (tracked.includes(next.id)) {
-								// eslint-disable-next-line no-console
-								console.table(getDiff(prev, next))
-							}
-						}
+						afterChangeHandler
 					)
 					return () => {
 						dispose()
