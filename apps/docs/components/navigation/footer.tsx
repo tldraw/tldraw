@@ -35,7 +35,7 @@ const menus = [
 		items: [
 			{ caption: 'Trademarks', href: '/legal/trademarks' },
 			{ caption: 'CLA', href: '/legal/cla' },
-			{ caption: 'License', href: '/legal/license' },
+			{ caption: 'License', href: '/legal/tldraw-license' },
 		],
 	},
 ]
