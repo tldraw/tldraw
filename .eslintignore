@@ -31,7 +31,7 @@ apps/vscode/extension/editor/tldraw-assets.json
 apps/docs/postcss.config.js
 apps/docs/tailwind.config.js
 
-apps/dotcom/public/sw.js
+apps/dotcom/client/public/sw.js
 
 patchedJestJsDom.js
 

@@ -90,7 +90,7 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 	return (
 		<div
 			className={cn(
-				'-ml-4 px-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg shrink-0 mt-12 text-xs h-auto',
+				'-ml-4 px-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg shrink-0 text-xs h-auto',
 				className
 			)}
 		>

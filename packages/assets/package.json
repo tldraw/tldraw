@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/assets",
 	"description": "A tiny little drawing app (assets).",
-	"version": "2.4.0",
+	"version": "3.0.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -43,7 +43,7 @@
 	],
 	"scripts": {
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
@@ -54,7 +54,7 @@
 		"typescript": "^5.3.3"
 	},
 	"jest": {
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"setupFiles": [
 			"raf/polyfill"
 		],

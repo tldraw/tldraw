@@ -23,7 +23,11 @@ export function Pre(props: DetailedHTMLProps<HTMLAttributes<HTMLPreElement>, HTM
 				// ref={container}
 				className={cn(
 					'bg-zinc-900 text-sm text-white shadow md:rounded-xl overflow-x-auto px-5 md:px-4 py-4 font-medium',
-					'[td_&]:bg-zinc-200 dark:[td_&]:bg-zinc-800 [td_&]:shadow-none [td_&]:rounded-lg [td_&]:p-0 [td_&]:px-1.5'
+					'[td_&]:bg-zinc-200 dark:[td_&]:bg-zinc-800 [td_&]:shadow-none [td_&]:rounded-lg [td_&]:p-0 [td_&]:px-1.5',
+					// this rule enables inverted dark/light mode inside of table cells
+					'[&_span]:text-[--shiki-dark]',
+					'[td_&_span]:!text-[--shiki-light]',
+					'dark:[td_&_span]:!text-[--shiki-dark]'
 				)}
 			>
 				{props.children}

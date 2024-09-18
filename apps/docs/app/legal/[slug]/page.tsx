@@ -1,6 +1,6 @@
 import { PageTitle } from '@/components/common/page-title'
 import { Content } from '@/components/content'
-import { getPageContent } from '@/utils/get-page-content'
+import { db } from '@/utils/ContentDatabase'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
@@ -10,16 +10,23 @@ export async function generateMetadata({
 	params: { slug: string }
 }): Promise<Metadata> {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
-	const content = await getPageContent(`/legal/${path.join('/')}`)
+	const content = await db.getPageContent(`/legal/${path.join('/')}`)
 	if (!content || content.type !== 'article' || content.article.sectionId !== 'legal') notFound()
 	const metadata: Metadata = { title: content.article.title }
 	if (content.article.description) metadata.description = content.article.description
 	return metadata
 }
 
+export async function generateStaticParams() {
+	const paths = await db.getAllPaths()
+	return paths
+		.filter((path) => path.startsWith('/legal/'))
+		.map((path) => ({ slug: path.slice('/legal/'.length) }))
+}
+
 export default async function Page({ params }: { params: { slug: string | string[] } }) {
 	const path = typeof params.slug === 'string' ? [params.slug] : params.slug
-	const content = await getPageContent(`/legal/${path.join('/')}`)
+	const content = await db.getPageContent(`/legal/${path.join('/')}`)
 	if (!content || content.type !== 'article' || content.article.sectionId !== 'legal') notFound()
 
 	return (

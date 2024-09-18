@@ -123,7 +123,7 @@ export function RequestForm() {
 						</p>
 					)}
 				</div>
-				<Button submit caption="Request commercial license" arrow="right" darkRingOffset />
+				<Button submit caption="Request business license" arrow="right" darkRingOffset />
 			</div>
 		</form>
 	)

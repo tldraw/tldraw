@@ -1,3 +1,4 @@
+import { TLAssetId } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec'
 import { TLContent } from './clipboard-types'
 
@@ -52,4 +53,6 @@ export type TLExternalContent<EmbedDefinition> = {
 )
 
 /** @public */
-export type TLExternalAssetContent = { type: 'file'; file: File } | { type: 'url'; url: string }
+export type TLExternalAssetContent =
+	| { type: 'file'; file: File; assetId?: TLAssetId }
+	| { type: 'url'; url: string }

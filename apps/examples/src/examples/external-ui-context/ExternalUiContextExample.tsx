@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from 'react'
-import { Editor, Tldraw, useValue } from 'tldraw'
+import { Editor, GeoShapeGeoStyle, Tldraw, useValue } from 'tldraw'
 import 'tldraw/tldraw.css'
 import './external-ui.css'
 
@@ -52,6 +52,20 @@ const ExternalToolbar = () => {
 					onClick={() => editor.setCurrentTool('draw')}
 				>
 					Pencil
+				</button>
+				<button
+					className="external-button"
+					data-isactive={
+						currentToolId === 'geo' && editor?.getStyleForNextShape(GeoShapeGeoStyle) === 'oval'
+					}
+					onClick={() => {
+						editor.run(() => {
+							editor.setStyleForNextShapes(GeoShapeGeoStyle, 'oval')
+							editor.setCurrentTool('geo')
+						})
+					}}
+				>
+					Oval
 				</button>
 			</div>
 		</div>

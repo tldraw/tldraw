@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "A tiny little drawing app (editor).",
-	"version": "2.4.0",
+	"version": "3.0.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -35,14 +35,14 @@
 	"scripts": {
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
-		"benchmark": "yarn run -T tsx ./scripts/benchmark.ts",
+		"benchmark": "yarn run -T tsx ./internal/scripts/benchmark.ts",
 		"test-coverage": "lazy inherit",
-		"build": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
-		"postpack": "../../scripts/postpack.sh",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
@@ -79,7 +79,7 @@
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"jest": {
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"fakeTimers": {
 			"enableGlobally": true
@@ -97,7 +97,7 @@
 			"<rootDir>/setupTests.js"
 		],
 		"setupFilesAfterEnv": [
-			"../../config/setupJest.ts"
+			"../../internal/config/setupJest.ts"
 		]
 	}
 }

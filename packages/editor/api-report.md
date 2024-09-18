@@ -95,7 +95,8 @@ import { whyAmIRunning } from '@tldraw/state';
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
-export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
+export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, centerOverride, }: {
+    centerOverride?: VecLike;
     delta: number;
     editor: Editor;
     snapshot: TLRotationSnapshot;
@@ -563,8 +564,8 @@ export class CubicSpline2d extends Geometry2d {
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
-// @public (undocumented)
-export function debugEnableLicensing(): () => void;
+// @public @deprecated (undocumented)
+export function debugEnableLicensing(): void;
 
 // @internal (undocumented)
 export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
@@ -1102,6 +1103,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         isPinching: boolean;
         isPointing: boolean;
+        isSpacebarPanning: boolean;
     };
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
@@ -1162,7 +1164,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         shouldResolveToOriginal?: boolean;
     }): Promise<null | string>;
     readonly root: StateNode;
-    rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
+    rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number, opts?: {
+        center?: VecLike;
+    }): this;
     run(fn: () => void, opts?: TLEditorRunOptions): this;
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
@@ -2939,6 +2943,7 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExternalAssetContent = {
+    assetId?: TLAssetId;
     file: File;
     type: 'file';
 } | {

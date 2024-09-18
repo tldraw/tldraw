@@ -2,7 +2,6 @@ import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { memo, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
-import { featureFlags } from '../utils/debug-flags'
 import { stopEventPropagation } from '../utils/dom'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
@@ -23,9 +22,9 @@ export const Watermark = memo(function Watermark() {
 	useQuickReactor(
 		'set watermark src',
 		async () => {
-			const showWatermark =
-				featureFlags.enableLicensing.get() &&
-				['licensed-with-watermark', 'unlicensed'].includes(licenseManager.state.get())
+			const showWatermark = ['licensed-with-watermark', 'unlicensed'].includes(
+				licenseManager.state.get()
+			)
 
 			if (showWatermark) {
 				setSrc(isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC)
