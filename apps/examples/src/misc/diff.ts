@@ -7,6 +7,9 @@ function format(prefix: string, key: string) {
 
 export function getDiff(prev: any, next: any, prefix = '', diff: any = {}) {
 	const allKeys = new Set([...Object.keys(prev), ...Object.keys(next)])
+	if (prefix === '') {
+		diff['id'] = { prev: prev.id }
+	}
 	for (const key of allKeys) {
 		const prevValue = prev[key]
 		const nextValue = next[key]
@@ -15,7 +18,7 @@ export function getDiff(prev: any, next: any, prefix = '', diff: any = {}) {
 			if (typeof prevValue === 'object' && typeof nextValue === 'object') {
 				getDiff(prevValue, nextValue, keyPath, diff)
 			} else {
-				diff[keyPath] = { [`prev:${prev.id}`]: prev[key], [`next:${next.id}`]: next[key] }
+				diff[keyPath] = { prev: prev[key], next: next[key] }
 			}
 		}
 	}
