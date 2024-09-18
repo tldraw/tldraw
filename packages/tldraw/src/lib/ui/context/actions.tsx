@@ -332,7 +332,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 				enabled() {
 					const ids = editor.getCurrentPageShapeIds()
-					return !!ids
+					return ids.size > 0
 				},
 				disabledDescription: 'action.export-as-disabled-description',
 			},
