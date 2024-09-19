@@ -1,6 +1,6 @@
-# @tldraw/examples
+# Examples
 
-Development environment and examples for the tldraw SDK.
+Development environment and examples for the tldraw SDK. A live version of the examples is found on [examples.tldraw.com](https://examples.tldraw.com)
 
 ## Distributions
 
@@ -12,7 +12,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-This project is provided under the MIT license. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+This project is provided under the MIT license found [here](https://github.com/tldraw/tldraw/blob/main/apps/examples/LICENSE.md).
 
 ## Trademarks
 

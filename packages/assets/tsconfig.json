@@ -1,5 +1,5 @@
 {
-	"extends": "../../config/tsconfig.base.json",
+	"extends": "../../internal/config/tsconfig.base.json",
 	"include": [
 		"urls.js",
 		"imports.js",

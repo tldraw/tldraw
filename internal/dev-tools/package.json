@@ -1,0 +1,28 @@
+{
+	"name": "dev-tools",
+	"private": true,
+	"description": "tldraw dev tools",
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -b && vite build",
+		"lint": "yarn run -T tsx ../scripts/lint.ts",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
+	},
+	"devDependencies": {
+		"@eslint/js": "^8.37.0",
+		"@vitejs/plugin-react": "^4.3.1",
+		"eslint": "^8.37.0",
+		"eslint-plugin-react-hooks": "^4.6.0",
+		"eslint-plugin-react-refresh": "^0.4.9",
+		"globals": "^15.9.0",
+		"typescript": "^5.3.3",
+		"typescript-eslint": "^8.0.1",
+		"vite": "^5.4.2"
+	}
+}
