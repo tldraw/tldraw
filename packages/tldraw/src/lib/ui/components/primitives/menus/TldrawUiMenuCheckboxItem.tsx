@@ -21,7 +21,7 @@ export interface TLUiMenuCheckboxItemProps<
 	title?: string
 	label?: TranslationKey | { [key: string]: TranslationKey }
 	readonlyOk?: boolean
-	onSelect: (source: TLUiEventSource) => Promise<void> | void
+	onSelect(source: TLUiEventSource): Promise<void> | void
 	toggle?: boolean
 	checked?: boolean
 	disabled?: boolean

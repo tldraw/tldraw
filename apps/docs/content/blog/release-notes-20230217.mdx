@@ -1,0 +1,69 @@
+---
+title: Release Notes – February 17th 2023
+category: release-notes
+description: Links to any location, smooth scribbling, and some missing pixels.
+hero: /images/blog/3dc3b50a-a73f-49cb-af32-87d666b530e7_720x406.gif
+date: 2/17/2023
+status: published
+author:
+  - luwilson
+---
+
+We’re back with another Friday release! It’s the calm before the storm right now, as we’re getting closer to open-sourcing our [state management library](https://twitter.com/tldraw/status/1617931796968263680). In the meantime, we’ve been pushing out more features and fixes for the tldraw beta. Try out the changes for yourself at [beta.tldraw.com](https://beta.tldraw.com).
+
+> Want to test out our multiplayer? [Join the party room!](https://beta.tldraw.com/r/its_friday?page=page%3A2yW9EcUyos6_TITii8PTa&viewport=5388%2C-1498%2C606%2C644)
+
+Please let us know what you think about this week’s release! If you have any feedback, join our [Discord](https://discord.gg/rhsyWMUJxd) or make an issue on the [public repo](https://github.com/tldraw/tldraw-beta).
+
+## What’s new
+
+You can now link to a **chosen location** of a multiplayer project.
+
+![](/images/blog/d859a858-4d3c-4954-974a-5d301d94aa8b_720x406.gif)
+
+To try this out, first make a multiplayer project by clicking the **Share** button. Then move the camera to the location you want to link to.
+
+![](/images/blog/0c40c58f-9c28-44b6-9372-963f5a1c60b8_720x406.gif)
+
+Now copy the page’s URL from your address bar. Share the link with others to let them join at your chosen location.
+
+> You could also attach the link to a shape. Right-click on a shape and click the **Edit link** button to give it a try.
+
+![](/images/blog/23130466-65fe-46f7-b06c-4f6216398701_720x406.gif)
+
+## Improvements
+
+We improved the appearance of the **eraser tool**. Its trail now tapers off more smoothly, and it works better on screens with high refresh-rates.
+
+![](/images/blog/00878987-de28-4059-92da-1e5230ece6e6_720x406.gif)
+
+> This change also affects **scribble-selecting**. Hold down the alt or option key while using the select tool to select any shapes that you scribble over.
+
+![](/images/blog/098dbe27-40be-4ab8-8145-a241c0d36e49_720x406.gif)
+
+You shouldn’t ever see this, but we also adjusted our error screen’s appearance so that it fades the background behind it.
+
+![](/images/blog/e89c34b3-9f5a-4194-b52e-ab63da837238_720x406.gif)
+
+## Fixes
+
+- X Box shapes now fill correctly.
+  ![](/images/blog/1ebb3bfe-289d-4702-9460-c64e1673fea5_720x406.gif)
+- Fixed the tldraw logo missing a row of pixels.
+  ![](/images/blog/2ea5ecef-0128-4f39-9a7b-67a4445ebd29_2518x1392.png)
+- Fixed a bug that prevented menus from opening while editing text shapes.
+- Fixed some incorrect tooltips throughout the app.
+- Removed unused actions from the keyboard shortcuts dialog.
+- Copying an image from a multiplayer to a local project will now download it for local use.
+- Added a warning for rare cases where browser storage cannot be accessed.
+- Fixed mouse wheel camera controls not working after using some menu actions.
+- Your first click on an empty project now doesn’t register as an action that be undone.
+- Fixed shapes getting placed in the wrong position when pasting from the menu.
+- Mobile: We now disable the style panel button when the eraser tool is active.
+- Safari: Fixed a bug where pasting with the context menu would start editing the pasted shape’s link.
+- iPad: Fixed an issue where tools would not reliably activate when touched.
+- Android: Fixed a bug where you couldn't copy and paste some shapes.
+
+---
+
+See you next week!

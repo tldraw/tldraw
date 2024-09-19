@@ -1,4 +1,4 @@
-import { throttleToNextFrame as _throttleToNextFrame } from '@tldraw/utils'
+import { throttleToNextFrame as _throttleToNextFrame, bind } from '@tldraw/utils'
 import { Vec } from '../../primitives/Vec'
 import { Editor } from '../Editor'
 
@@ -23,14 +23,15 @@ export class TickManager {
 	isPaused = true
 	now = 0
 
-	start = () => {
+	start() {
 		this.isPaused = false
 		this.cancelRaf?.()
 		this.cancelRaf = throttleToNextFrame(this.tick)
 		this.now = Date.now()
 	}
 
-	tick = () => {
+	@bind
+	tick() {
 		if (this.isPaused) {
 			return
 		}
@@ -46,7 +47,8 @@ export class TickManager {
 	}
 
 	// Clear the listener
-	dispose = () => {
+	@bind
+	dispose() {
 		this.isPaused = true
 
 		this.cancelRaf?.()
@@ -54,7 +56,7 @@ export class TickManager {
 
 	private prevPoint = new Vec()
 
-	private updatePointerVelocity = (elapsed: number) => {
+	updatePointerVelocity(elapsed: number) {
 		const {
 			prevPoint,
 			editor: {

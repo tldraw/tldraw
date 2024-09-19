@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
@@ -12,7 +12,8 @@ export function useDocumentEvents() {
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
 	useEffect(() => {
-		if (typeof matchMedia === undefined) return
+		if (typeof window === 'undefined' || !('matchMedia' in window)) return
+
 		// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio#monitoring_screen_resolution_or_zoom_level_changes
 		let remove: (() => void) | null = null
 		const updatePixelRatio = () => {
@@ -110,13 +111,15 @@ export function useDocumentEvents() {
 					// should we allow escape to do its normal thing.
 
 					if (editor.getEditingShape() || editor.getSelectedShapeIds().length > 0) {
-						e.preventDefault()
+						preventDefault(e)
 					}
 
 					// Don't do anything if we open menus open
 					if (editor.getOpenMenus().length > 0) return
 
-					if (!editor.inputs.keys.has('Escape')) {
+					if (editor.inputs.keys.has('Escape')) {
+						// noop
+					} else {
 						editor.inputs.keys.add('Escape')
 
 						editor.cancel()
@@ -125,7 +128,7 @@ export function useDocumentEvents() {
 						// will break additional shortcuts. We need to
 						// refocus the container in order to keep these
 						// shortcuts working.
-						editor.focus()
+						container.focus()
 					}
 					return
 				}

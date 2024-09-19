@@ -28,7 +28,7 @@ export interface TextLabelProps {
 	bounds?: Box
 	isNote?: boolean
 	isSelected: boolean
-	onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
+	onKeyDown?(e: React.KeyboardEvent<HTMLTextAreaElement>): void
 	classNamePrefix?: string
 	style?: React.CSSProperties
 	textWidth?: number

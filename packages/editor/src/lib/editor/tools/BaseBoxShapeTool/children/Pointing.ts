@@ -1,23 +1,21 @@
-import { createShapeId } from '@tldraw/tlschema'
+import { TLShape, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Vec } from '../../../../primitives/Vec'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
-import { TLEventHandlers } from '../../../types/event-types'
+import { TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	markId = ''
-
 	wasFocusedOnEnter = false
 
-	override onEnter = () => {
+	override onEnter() {
 		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
@@ -25,9 +23,7 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-
-			this.editor.mark(this.markId)
+			const creatingMarkId = this.editor.markHistoryStoppingPoint(`creating_box:${id}`)
 
 			this.editor
 				.createShapes<TLBaseBoxShape>([
@@ -43,31 +39,39 @@ export class Pointing extends StateNode {
 					},
 				])
 				.select(id)
-			this.editor.setCurrentTool('select.resizing', {
-				...info,
-				target: 'selection',
-				handle: 'bottom_right',
-				isCreating: true,
-				creationCursorOffset: { x: 1, y: 1 },
-				onInteractionEnd: this.parent.id,
-				onCreate: (this.parent as BaseBoxShapeTool).onCreate,
-			})
+
+			const parent = this.parent as BaseBoxShapeTool
+			this.editor.setCurrentTool(
+				'select.resizing',
+				{
+					...info,
+					target: 'selection',
+					handle: 'bottom_right',
+					isCreating: true,
+					creatingMarkId,
+					creationCursorOffset: { x: 1, y: 1 },
+					onInteractionEnd: this.parent.id,
+					onCreate: parent.onCreate
+						? (shape: TLShape | null) => parent.onCreate?.(shape)
+						: undefined,
+				} /** satisfies ResizingInfo, defined in main tldraw package 😧 */
+			)
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
@@ -78,16 +82,13 @@ export class Pointing extends StateNode {
 			return
 		}
 
-		this.editor.mark(this.markId)
-
 		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBaseBoxShape['type']
 
 		const id = createShapeId()
 
-		this.editor.mark(this.markId)
+		this.editor.markHistoryStoppingPoint(`creating_box:${id}`)
 
-		// todo: add scale here when dynamic size is enabled
-
+		// todo: add scale here when dynamic size is enabled (is this still needed?)
 		this.editor.createShapes<TLBaseBoxShape>([
 			{
 				id,

@@ -1,15 +1,38 @@
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RecordPropsType } from '../recordsWithProps'
-import { DefaultColorStyle } from '../styles/TLColorStyle'
-import { DefaultFontStyle } from '../styles/TLFontStyle'
-import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
-import { DefaultSizeStyle } from '../styles/TLSizeStyle'
-import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
+import { RecordProps } from '../recordsWithProps'
+import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
+import {
+	DefaultHorizontalAlignStyle,
+	TLDefaultHorizontalAlignStyle,
+} from '../styles/TLHorizontalAlignStyle'
+import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
+import {
+	DefaultVerticalAlignStyle,
+	TLDefaultVerticalAlignStyle,
+} from '../styles/TLVerticalAlignStyle'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const noteShapeProps = {
+export interface TLNoteShapeProps {
+	color: TLDefaultColorStyle
+	size: TLDefaultSizeStyle
+	font: TLDefaultFontStyle
+	fontSizeAdjustment: number
+	align: TLDefaultHorizontalAlignStyle
+	verticalAlign: TLDefaultVerticalAlignStyle
+	growY: number
+	url: string
+	text: string
+	scale: number
+}
+
+/** @public */
+export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
+
+/** @public */
+export const noteShapeProps: RecordProps<TLNoteShape> = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
@@ -21,12 +44,6 @@ export const noteShapeProps = {
 	text: T.string,
 	scale: T.nonZeroNumber,
 }
-
-/** @public */
-export type TLNoteShapeProps = RecordPropsType<typeof noteShapeProps>
-
-/** @public */
-export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
 const Versions = createShapePropsMigrationIds('note', {
 	AddUrlProp: 1,

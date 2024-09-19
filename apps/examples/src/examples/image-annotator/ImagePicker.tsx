@@ -7,7 +7,7 @@ import expandingBrain from './assets/expanding-brain.png'
 export function ImagePicker({
 	onChooseImage,
 }: {
-	onChooseImage: (image: { src: string; width: number; height: number; type: string }) => void
+	onChooseImage(image: { src: string; width: number; height: number; type: string }): void
 }) {
 	const [isLoading, setIsLoading] = useState(false)
 	function onClickChooseImage() {

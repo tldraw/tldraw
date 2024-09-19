@@ -10,12 +10,42 @@ function useIdentity<T>(value: T, isEqual: (a: T, b: T) => boolean): T {
 	return value
 }
 
-/** @internal */
-export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[] {
-	return useIdentity(arr, areArraysShallowEqual)
+const areNullableArraysShallowEqual = (
+	a: readonly any[] | null | undefined,
+	b: readonly any[] | null | undefined
+) => {
+	a ??= null
+	b ??= null
+	if (a === b) {
+		return true
+	}
+	if (!a || !b) {
+		return false
+	}
+	return areArraysShallowEqual(a, b)
 }
 
 /** @internal */
-export function useShallowObjectIdentity<T extends object>(arr: T): T {
-	return useIdentity(arr, areObjectsShallowEqual)
+export function useShallowArrayIdentity<T extends readonly any[] | null | undefined>(arr: T): T {
+	return useIdentity(arr, areNullableArraysShallowEqual)
+}
+
+const areNullableObjectsShallowEqual = (
+	a: object | null | undefined,
+	b: object | null | undefined
+) => {
+	a ??= null
+	b ??= null
+	if (a === b) {
+		return true
+	}
+	if (!a || !b) {
+		return false
+	}
+	return areObjectsShallowEqual(a, b)
+}
+
+/** @internal */
+export function useShallowObjectIdentity<T extends object | null | undefined>(obj: T): T {
+	return useIdentity(obj, areNullableObjectsShallowEqual)
 }

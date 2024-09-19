@@ -50,7 +50,7 @@ export interface SchemaPropsInfo {
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
 
 /** @public */
-export const defaultShapeSchemas: { [T in TLDefaultShape['type']]: SchemaPropsInfo } = {
+export const defaultShapeSchemas = {
 	arrow: { migrations: arrowShapeMigrations, props: arrowShapeProps },
 	bookmark: { migrations: bookmarkShapeMigrations, props: bookmarkShapeProps },
 	draw: { migrations: drawShapeMigrations, props: drawShapeProps },
@@ -64,12 +64,12 @@ export const defaultShapeSchemas: { [T in TLDefaultShape['type']]: SchemaPropsIn
 	note: { migrations: noteShapeMigrations, props: noteShapeProps },
 	text: { migrations: textShapeMigrations, props: textShapeProps },
 	video: { migrations: videoShapeMigrations, props: videoShapeProps },
-}
+} satisfies { [T in TLDefaultShape['type']]: SchemaPropsInfo }
 
 /** @public */
-export const defaultBindingSchemas: { [T in TLDefaultBinding['type']]: SchemaPropsInfo } = {
+export const defaultBindingSchemas = {
 	arrow: { migrations: arrowBindingMigrations, props: arrowBindingProps },
-}
+} satisfies { [T in TLDefaultBinding['type']]: SchemaPropsInfo }
 
 /**
  * Create a TLSchema with custom shapes. Custom shapes cannot override default shapes.

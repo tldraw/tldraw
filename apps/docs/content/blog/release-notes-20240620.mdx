@@ -1,0 +1,87 @@
+---
+title: Release Notes – June 20th 2024
+category: release-notes
+description: New dynamic size mode, heart shapes, flattening, level of detail for images, revamped edge scrolling, and more.
+hero: /images/blog/a576d61b-4572-40cd-963d-e0fa8f20e194_720x406.gif
+date: 6/21/2024
+status: published
+author:
+  - steveruizok
+  - luwilson
+---
+
+Welcome to the June 20th update for tldraw. Over the past few weeks, we’ve quietly rolled out a number of new features, improvements and fixes. Try them out now on [tldraw.com][10], or read on for the full details.
+
+## What’s new
+
+We added a new **dynamic size** mode that adjusts the scale of your shapes to match your current zoom level. When this mode is enabled, you can create smaller-scale shapes by zooming in, or bigger scale shapes by zooming out.
+
+![Dynamic size](/images/blog/9733359a-b98b-4f47-ace4-223bbd3d91a4_720x406.gif)
+
+> You can try out the new mode at **Menu > Preferences > Dynamic Size**.
+
+Big news for lovers: we added a **heart shape**.
+
+![Heart shape](/images/blog/2a2d4549-3341-40b7-866a-580f5d3e6826_720x406.gif)
+
+You can now **flatten** multiple shapes together. This is especially useful for grouping your handwriting together. To flatten shapes, right-click a selection and press Flatten.
+
+![Flatten multiple shapes](/images/blog/aeb99e93-a012-4c6f-bc46-a6f5fb64909a_720x406.gif)
+
+You can now create a **new shared project** without overwriting your existing one, using a new button at **Menu > File > New shared project**.
+
+![Create new shared project](/images/blog/2bf3e9cb-e332-4a1f-89fb-3f3b8ea1e981_960x540.gif)
+
+## One neat trick
+
+_This update includes a brand new easter egg._
+
+You can now give your shapes a **completely** **solid fill** by pressing Option/Alt + F. Finally you can draw what you want!
+
+![Solid shape fill](/images/blog/ad413c49-ce06-4818-a056-011dd2040a36_720x406.gif)
+
+_Back to the release notes…_
+
+## Improvements
+
+We've added a **level of detail** system for images. On shared tldraw rooms, we now optimize images by loading smaller versions of the model when resized or zoomed out. If you have many high-resolution images on your canvas, you'll notice a significant performance boost.
+
+We now support up to **4,000 shapes** on a page at a time, up from the previous limit of 2000 shapes per shape.
+
+**Edge scrolling** is improved with a short delay (to avoid accidental edge scrolls) and a delightful curve gradual acceleration in speed.
+
+![Improved edge scrolling](/images/blog/d6dd0e65-7190-4e74-b74f-e82d1f9e0ab5_720x405.gif)
+
+You can now select **system theme** from **Menu > Preferences > Color scheme** to automatically set your dark mode.
+
+![Color theme](/images/blog/301f0cdb-512d-46de-bbcf-cb2314fdc8cb_1286x736.png)
+
+**Zoom to fit** is now a bit tighter than it used to be. You can use Shift + 1 or select it from the zoom menu.
+
+We’ve improved the **undo/redo behaviour when cropping** an image. Now, when you’ve finished cropping an image, undo will return the image to its un-cropped state in one step, without needing to undo each individual change.
+
+The **share menu** will now open automatically after navigating to [tldraw.com/new](https://tldraw.com/new), making it easier to share your multiplayer room with others.
+
+## Fixes
+
+- Prevented wobbling while following a user's viewport.
+- Prevented duplicating shapes when at the maximum shape limit.
+- Fixed images exports for cropped images.
+- Fixed some text rendering inconsistencies in Google Chrome.
+- Fixed older files that included an arrow not opening correctly.
+- Fixed duplicate and trash buttons being enabled when not in select tool.
+- Fixed coarse pointer detection.
+- Fixed an issue where users were stuck in panning mode after using the middle mouse button.
+- Fixed spacebar panning not entering the panning state when the mouse button was down.
+- Fixed duplicate tools showing in the toolbar at small breakpoints.
+- Fixed spline icons not appearing.
+- Fixed canceling the current tool when pressing escape while editing the document name.
+- Fixed RTL layout for SVG exports.
+- Fixed edge scrolling at uncommon browser zoom levels.
+- Fixed images rendering in the wrong place when multiple are loading at once.
+- Fixed document name being editable in readonly mode.
+- Fixed redos being lost when the selection changes.
+
+---
+
+Ok, that’s all for this release! Plenty of features are landing in the developer SDK for tldraw as well, be sure to check our recent change logs at [tldraw.dev](https://tldraw.dev/). As always, try out these changes on [tldraw.com](https://tldraw.com/) and let us know what you think. You can find us on [Twitter/X](https://twitter.com/tldraw), [Mastodon](https://mas.to/@tldraw), [Discord](https://t.co/FbWiDYFD3O), and [LinkedIn](https://www.linkedin.com/company/tldraw/)!

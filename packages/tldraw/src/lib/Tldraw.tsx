@@ -2,7 +2,6 @@ import {
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultSpinner,
-	Editor,
 	ErrorScreen,
 	LoadingScreen,
 	TLEditorComponents,
@@ -12,26 +11,27 @@ import {
 	TldrawEditorStoreProps,
 	useEditor,
 	useEditorComponents,
-	useEvent,
+	useOnMount,
 	useShallowArrayIdentity,
 	useShallowObjectIdentity,
 } from '@tldraw/editor'
-import { useLayoutEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { TldrawShapeIndicators } from './canvas/TldrawShapeIndicators'
 import { defaultBindingUtils } from './defaultBindingUtils'
+import { TLEmbedDefinition } from './defaultEmbedDefinitions'
 import {
 	TLExternalContentProps,
-	defaultResolveAsset,
 	registerDefaultExternalContentHandlers,
 } from './defaultExternalContentHandlers'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { TLUiComponents, useTldrawUiComponents } from './ui/context/components'
 import { useToasts } from './ui/context/toasts'
@@ -39,7 +39,26 @@ import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
-/** @public */
+/**
+ * Override the default react components used by the editor and UI. Set components to null to
+ * disable them entirely.
+ *
+ * @example
+ * ```tsx
+ * import {Tldraw, TLComponents} from 'tldraw'
+ *
+ * const components: TLComponents = {
+ *    Scribble: MyCustomScribble,
+ * }
+ *
+ * export function MyApp() {
+ *   return <Tldraw components={components} />
+ * }
+ * ```
+ *
+ *
+ * @public
+ */
 export interface TLComponents extends TLEditorComponents, TLUiComponents {}
 
 /** @public */
@@ -48,6 +67,7 @@ export interface TldrawBaseProps
 		TldrawEditorBaseProps,
 		TLExternalContentProps {
 	components?: TLComponents
+	embeds?: TLEmbedDefinition[]
 }
 
 /** @public */
@@ -66,6 +86,7 @@ export function Tldraw(props: TldrawProps) {
 		shapeUtils = [],
 		bindingUtils = [],
 		tools = [],
+		embeds,
 		...rest
 	} = props
 
@@ -101,12 +122,19 @@ export function Tldraw(props: TldrawProps) {
 		[_tools]
 	)
 
-	const persistenceKey = 'persistenceKey' in rest ? rest.persistenceKey : undefined
-	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-	const assetOptions = useMemo(
-		() => ({ onResolveAsset: defaultResolveAsset(persistenceKey), ...rest.assetOptions }),
-		[persistenceKey, rest.assetOptions]
+	const _imageMimeTypes = useShallowArrayIdentity(
+		acceptedImageMimeTypes ?? DEFAULT_SUPPORTED_IMAGE_TYPES
 	)
+	const _videoMimeTypes = useShallowArrayIdentity(
+		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
+	)
+
+	const mediaMimeTypes = useMemo(
+		() => [..._imageMimeTypes, ..._videoMimeTypes],
+		[_imageMimeTypes, _videoMimeTypes]
+	)
+
+	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
@@ -127,16 +155,15 @@ export function Tldraw(props: TldrawProps) {
 			shapeUtils={shapeUtilsWithDefaults}
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
-			assetOptions={assetOptions}
 		>
-			<TldrawUi {...rest} components={componentsWithDefault}>
+			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
 				<InsideOfEditorAndUiContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
-					acceptedImageMimeTypes={acceptedImageMimeTypes}
-					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
-					persistenceKey={persistenceKey}
+					acceptedImageMimeTypes={_imageMimeTypes}
+					acceptedVideoMimeTypes={_videoMimeTypes}
 					onMount={onMount}
+					embeds={embeds}
 				/>
 				{children}
 			</TldrawUi>
@@ -146,21 +173,28 @@ export function Tldraw(props: TldrawProps) {
 
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor and TldrawUi.
 function InsideOfEditorAndUiContext({
-	maxImageDimension = 1000,
+	maxImageDimension = 5000,
 	maxAssetSize = 10 * 1024 * 1024, // 10mb
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-	persistenceKey,
-}: TLExternalContentProps & { onMount?: TLOnMountHandler; persistenceKey?: string }) {
+	embeds,
+}: TLExternalContentProps & {
+	onMount?: TLOnMountHandler
+	embeds?: TLEmbedDefinition[]
+}) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
 
-	const onMountEvent = useEvent((editor: Editor) => {
+	useOnMount(() => {
+		const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
+		if (embedUtil && embeds) {
+			embedUtil.setEmbedDefinitions(embeds)
+		}
 		const unsubs: (void | (() => void) | undefined)[] = []
 
-		unsubs.push(...registerDefaultSideEffects(editor))
+		unsubs.push(registerDefaultSideEffects(editor))
 
 		// for content handling, first we register the default handlers...
 		registerDefaultExternalContentHandlers(
@@ -174,21 +208,19 @@ function InsideOfEditorAndUiContext({
 			{
 				toasts,
 				msg,
-			},
-			persistenceKey
+			}
 		)
 
-		// ...then we run the onMount prop, which may override the above
+		// ...then we call the store's on mount which may override them...
+		unsubs.push(editor.store.props.onMount(editor))
+
+		// ...then we run the user's onMount prop, which may override things again.
 		unsubs.push(onMount?.(editor))
 
 		return () => {
 			unsubs.forEach((fn) => fn?.())
 		}
 	})
-
-	useLayoutEffect(() => {
-		if (editor) return onMountEvent?.(editor)
-	}, [editor, onMountEvent])
 
 	const { Canvas } = useEditorComponents()
 	const { ContextMenu } = useTldrawUiComponents()

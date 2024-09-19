@@ -33,6 +33,7 @@ module.exports = {
 		'@typescript-eslint/no-non-null-assertion': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/ban-ts-comment': 'off',
+		'@typescript-eslint/method-signature-style': ['error', 'method'],
 		'react/display-name': 'off',
 		'@next/next/no-img-element': 'off',
 		'react/prop-types': 'off',
@@ -57,6 +58,7 @@ module.exports = {
 		'local/no-export-star': 'error',
 		'local/no-internal-imports': 'error',
 		'local/tagged-components': 'error',
+		'local/prefer-class-methods': 'error',
 		'no-only-tests/no-only-tests': 'error',
 		'no-restricted-syntax': [
 			'error',
@@ -69,6 +71,11 @@ module.exports = {
 			{
 				selector: 'Identifier[name=sessionStorage]',
 				message: 'Use the getFromSessionStorage/setInSessionStorage helpers instead',
+			},
+			{
+				selector:
+					'ExportNamedDeclaration > VariableDeclaration[kind=const] > VariableDeclarator[init.type=ArrowFunctionExpression]',
+				message: 'Use a function declaration instead of an arrow function here.',
 			},
 		],
 		'no-restricted-globals': [
@@ -167,7 +174,7 @@ module.exports = {
 		},
 		// This overrides the default config for the given matching paths.
 		{
-			files: ['apps/dotcom/**/*'],
+			files: ['apps/dotcom/client/**/*'],
 			rules: {
 				'no-restricted-globals': [
 					'error',
@@ -193,28 +200,18 @@ module.exports = {
 						property: 'Image',
 						message: 'Use the Image from @tldraw/util instead.',
 					},
+					{
+						object: 'crypto',
+						property: 'randomUUID',
+						message: 'Please use the makeUUID util instead.',
+					},
 				],
 			},
 		},
 		{
-			files: ['e2e/**/*'],
-			rules: {
-				'@typescript-eslint/no-empty-function': 'off',
-			},
-		},
-		{
-			files: 'scripts/**/*',
+			files: 'internal/scripts/**/*',
 			rules: {
 				'import/no-extraneous-dependencies': 'off',
-			},
-		},
-		{
-			files: ['*.test.ts', '*.test.tsx', '*.spec.ts'],
-			rules: {
-				'no-restricted-properties': 'off',
-				'no-restricted-globals': 'off',
-				'react/jsx-key': 'off',
-				'react/no-string-refs': 'off',
 			},
 		},
 		{
@@ -225,22 +222,19 @@ module.exports = {
 			},
 		},
 		{
-			files: ['apps/huppy/**/*', 'scripts/**/*'],
+			files: ['*.test.ts', '*.test.tsx', '*.spec.ts'],
 			rules: {
-				'no-console': 'off',
+				'no-restricted-properties': 'off',
+				'no-restricted-globals': 'off',
+				'react/jsx-key': 'off',
+				'react/no-string-refs': 'off',
+				'local/no-at-internal': 'off',
 			},
 		},
 		{
-			files: ['apps/dotcom/**/*'],
+			files: ['internal/**/*', 'templates/simple-server-example/**/*'],
 			rules: {
-				'no-restricted-properties': [
-					2,
-					{
-						object: 'crypto',
-						property: 'randomUUID',
-						message: 'Please use the makeUUID util instead.',
-					},
-				],
+				'no-console': 'off',
 			},
 		},
 	],

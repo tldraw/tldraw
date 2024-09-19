@@ -1,0 +1,24 @@
+name = "tldraw-worker"
+main = "worker/worker.ts"
+compatibility_date = "2024-07-01"
+
+[dev]
+port = 5172
+ip = "0.0.0.0"
+
+# Set up the durable object used for each tldraw room
+[durable_objects]
+bindings = [
+    { name = "TLDRAW_DURABLE_OBJECT", class_name = "TldrawDurableObject" },
+]
+
+# Durable objects require migrations to create/modify/delete them
+[[migrations]]
+tag = "v1"
+new_classes = ["TldrawDurableObject"]
+
+# We store rooms and asset uploads in an R2 bucket
+[[r2_buckets]]
+binding = 'TLDRAW_BUCKET'
+bucket_name = 'tldraw-content'
+preview_bucket_name = 'tldraw-content-preview'

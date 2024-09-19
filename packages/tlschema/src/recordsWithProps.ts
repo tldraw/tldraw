@@ -27,6 +27,7 @@ export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
 export interface TLPropsMigration {
 	readonly id: MigrationId
 	readonly dependsOn?: MigrationId[]
+	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	readonly up: (props: any) => any
 	/**
 	 * If a down migration was deployed more than a couple of months ago it should be safe to retire it.

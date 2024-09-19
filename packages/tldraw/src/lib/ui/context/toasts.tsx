@@ -22,14 +22,14 @@ export interface TLUiToast {
 export interface TLUiToastAction {
 	type: 'primary' | 'danger' | 'normal'
 	label: string
-	onClick: () => void
+	onClick(): void
 }
 
 /** @public */
 export interface TLUiToastsContextType {
-	addToast: (toast: Omit<TLUiToast, 'id'> & { id?: string }) => string
-	removeToast: (id: TLUiToast['id']) => string
-	clearToasts: () => void
+	addToast(toast: Omit<TLUiToast, 'id'> & { id?: string }): string
+	removeToast(id: TLUiToast['id']): string
+	clearToasts(): void
 	toasts: TLUiToast[]
 }
 
@@ -38,7 +38,7 @@ export const ToastsContext = createContext<TLUiToastsContextType | null>(null)
 
 /** @internal */
 export interface ToastsProviderProps {
-	overrides?: (editor: Editor) => TLUiToastsContextType
+	overrides?(editor: Editor): TLUiToastsContextType
 	children: ReactNode
 }
 

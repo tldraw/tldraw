@@ -6,6 +6,9 @@ import { Pointing } from './toolStates/Pointing'
 export class TextShapeTool extends StateNode {
 	static override id = 'text'
 	static override initial = 'idle'
-	static override children = (): TLStateNodeConstructor[] => [Idle, Pointing]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Pointing]
+	}
+	static override isLockable = false
 	override shapeType = 'text'
 }

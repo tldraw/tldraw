@@ -6,27 +6,28 @@ on:
   push:
     branches:
       - main
+      - bemo-production
 
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
-  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+  TLDRAW_ENV: ${{ (github.ref == 'refs/heads/bemo-production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
 defaults:
   run:
     shell: bash
 
 jobs:
   deploy:
-    name: Deploy bemo to ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
+    name: Deploy bemo to ${{ (github.ref == 'refs/heads/bemo-production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
     timeout-minutes: 15
     runs-on: ubuntu-latest-16-cores-open
-    environment: ${{ github.ref == 'refs/heads/production' && 'bemo-production' || 'bemo-canary' }}
-    concurrency: bemo-${{ github.ref == 'refs/heads/production' && 'production' || github.ref }}
+    environment: ${{ github.ref == 'refs/heads/bemo-production' && 'bemo-production' || 'bemo-canary' }}
+    concurrency: bemo-${{ github.ref == 'refs/heads/bemo-production' && 'bemo-production' || github.ref }}
 
     steps:
       - name: Notify initial start
         uses: MineBartekSA/discord-webhook@v2
-        if: github.ref == 'refs/heads/production'
+        if: github.ref == 'refs/heads/bemo-production'
         with:
           webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
           content: 'Preparing ${{ env.TLDRAW_ENV }} bemo deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
@@ -42,7 +43,7 @@ jobs:
         run: yarn build-types
 
       - name: Deploy
-        run: yarn tsx scripts/deploy-bemo.ts
+        run: yarn tsx internal/scripts/deploy-bemo.ts
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}

@@ -2,25 +2,23 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import {
-	getUrlMetadata,
 	handleApiRequest,
+	handleExtractBookmarkMetadataRequest,
 	handleUserAssetGet,
 	handleUserAssetUpload,
 	notFound,
-	parseRequestQuery,
-	urlMetadataQueryValidator,
 } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { Router, createCors } from 'itty-router'
+import { Router, cors } from 'itty-router'
 import { Environment } from './types'
 
 export { BemoDO } from './BemoDO'
 
-const cors = createCors({ origins: ['*'] })
+const { preflight, corsify } = cors({ origin: '*' })
 
 export default class Worker extends WorkerEntrypoint<Environment> {
 	private readonly router = Router()
-		.all('*', cors.preflight)
+		.all('*', preflight)
 		.get('/uploads/:objectName', (request) => {
 			return handleUserAssetGet({
 				request,
@@ -31,15 +29,40 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		})
 		.post('/uploads/:objectName', async (request) => {
 			return handleUserAssetUpload({
-				request,
+				headers: request.headers,
+				body: request.body,
 				bucket: this.env.BEMO_BUCKET,
 				objectName: `asset-uploads/${request.params.objectName}`,
-				context: this.ctx,
 			})
 		})
-		.get('/bookmarks/unfurl', async (request) => {
-			const query = parseRequestQuery(request, urlMetadataQueryValidator)
-			return Response.json(await getUrlMetadata(query))
+		.get('/bookmarks/unfurl', (request) => {
+			// legacy route: extract metadata without saving image
+			return handleExtractBookmarkMetadataRequest({ request })
+		})
+		.post('/bookmarks/unfurl', (request) => {
+			return handleExtractBookmarkMetadataRequest({
+				request,
+				uploadImage: async (headers, body, objectName) => {
+					const response = await handleUserAssetUpload({
+						body,
+						headers,
+						bucket: this.env.BEMO_BUCKET,
+						objectName: `bookmark-assets/${objectName}`,
+					})
+					if (!response.ok) throw new Error('Failed to upload image')
+
+					const requestUrl = new URL(request.url)
+					return `${requestUrl.origin}/bookmarks/assets/${objectName}`
+				},
+			})
+		})
+		.get('/bookmarks/assets/:objectName', (request) => {
+			return handleUserAssetGet({
+				request,
+				bucket: this.env.BEMO_BUCKET,
+				objectName: `bookmark-assets/${request.params.objectName}`,
+				context: this.ctx,
+			})
 		})
 		.get('/connect/:slug', (request) => {
 			const slug = request.params.slug
@@ -57,7 +80,7 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			request,
 			env: this.env,
 			ctx: this.ctx,
-			after: cors.corsify,
+			after: corsify,
 		})
 	}
 }

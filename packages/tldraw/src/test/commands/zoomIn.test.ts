@@ -26,7 +26,7 @@ it('zooms by increments', () => {
 it('is ignored by undo/redo', () => {
 	const cameraOptions = editor.getCameraOptions()
 
-	editor.mark()
+	editor.markHistoryStoppingPoint()
 	editor.zoomIn()
 	editor.undo()
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[4])

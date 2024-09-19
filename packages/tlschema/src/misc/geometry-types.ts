@@ -22,14 +22,14 @@ export interface VecModel {
 }
 
 /** @public */
-export const vecModelValidator: T.Validator<VecModel> = T.object({
+export const vecModelValidator: T.ObjectValidator<VecModel> = T.object({
 	x: T.number,
 	y: T.number,
 	z: T.number.optional(),
 })
 
 /** @public */
-export const boxModelValidator: T.Validator<BoxModel> = T.object({
+export const boxModelValidator: T.ObjectValidator<BoxModel> = T.object({
 	x: T.number,
 	y: T.number,
 	w: T.number,

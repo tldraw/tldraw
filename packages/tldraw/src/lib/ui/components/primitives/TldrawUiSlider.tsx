@@ -4,17 +4,17 @@ import { memo, useCallback } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
-/** @internal */
+/** @public */
 export interface TLUiSliderProps {
 	steps: number
 	value: number | null
 	label: string
 	title: string
-	onValueChange: (value: number) => void
+	onValueChange(value: number): void
 	'data-testid'?: string
 }
 
-/** @internal */
+/** @public @react */
 export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 	const { title, steps, value, label, onValueChange } = props
 	const editor = useEditor()
@@ -28,7 +28,7 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 	)
 
 	const handlePointerDown = useCallback(() => {
-		editor.mark('click slider')
+		editor.markHistoryStoppingPoint('click slider')
 	}, [editor])
 
 	const handlePointerUp = useCallback(() => {

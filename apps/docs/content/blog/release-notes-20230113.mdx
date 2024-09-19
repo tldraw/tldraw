@@ -1,0 +1,88 @@
+---
+title: Release Notes – January 13th 2023
+category: release-notes
+description: A new font, snap mode, better text shapes and shape hyperlinks.
+hero: /images/blog/457eb7f6-3908-4145-8bbd-799708aef24a_720x406.gif
+date: 1/13/2023
+status: published
+author:
+  - steveruizok
+---
+
+Here are all the changes from this week’s release. Try them out now at [beta.tldraw.com](http://beta.tldraw.com/).
+
+## What’s New
+
+- New font! [Shantell Sans](https://shantell-sans.arrowtype.com/) by ArrowType.
+- Choose between four font families! (they’re back)
+- Added an “always snap” mode.
+- Hyperlinks for images, videos, notes, and geo shapes.
+- Choose a transparent background when exporting images.
+- Added justify alignment for text.
+- New design for menu area.
+  ![](/images/blog/5af07fca-b73a-49d7-9410-a3496daf003c_720x406.gif)
+- Added ungrouping and rotating to the action menu.
+  ![](/images/blog/d6684a4f-0a5a-45c2-a623-e0a5a225a64d_720x406.gif)
+- You can now press the enter key to select the contents of a selected group.
+- [Felt](https://felt.com/) links are now embeddable.
+- Editing a shape with a label now ensures that the label is on screen.
+
+## Improvements
+
+- Big improvements to general performance, especially on mobile Safari.
+- Bookmark URLs now strip their protocol to be more human-readable.
+- Improved padding on note shapes with lots of text.
+- The sticky note tool now shows the correct options on the style panel.
+- The default sticky note color is now yellow.
+- Shapes stay selected after pinching to zoom or pan.
+- Text in SVG exports now matches the canvas much more accurately. Not exactly, yet.
+- Smarter resizing of shapes with labels.
+- Highlighted text is now readable and consistent across all platforms.
+- Improved handling of keyboard shortcuts while editing text.
+- Improved consistency of dotted and dashed styles between different shapes.
+- A line’s bounding box now appears around its edges, instead of its inner path.
+- Embed shapes continue running even when not visible on the canvas.
+- You can now resize YouTube embeds.
+- Shortened YouTube URLs are now accepted.
+- Embed shapes with a minimum size now resize correctly.
+- Embed shapes with a locked aspect ratio now resize correctly.
+- Arrows now connect correctly to groups and frames.
+- When you select different geometry shapes, the style panel now correctly shows ‘mixed’.
+- The visual for a group’s bounding box now tightly surrounds it.
+- Many icons were improved and tweaked, now loaded as images.
+  ![](/images/blog/a7e27a3d-f684-4603-ad6d-c5caf7a14440_720x406.gif)
+- Improved event handling when menus are open.
+- Improved performance of minimap.
+- Improved performance when interacting with large numbers of shapes.
+- Improved performance of freehand shapes.
+- Added rotation handle to sticky note on mobile.
+- Disabled edge-resizing on mobile. It’s now easier to drag shapes without accidentally resize them.
+- Copying shapes as SVG or JSON now works in Firefox.
+- Removed Export / Copy as JPEG.
+- Exported frames now have the correct color and label.
+- Improved the eraser tool: clicking with the tool will now erase all shapes under the cursor.
+
+## Fixes
+
+- Fixed rare de-sync issues in multiplayer projects.
+- Fixed an issue where deleting another user’s shape would cause them to deselect other shapes.
+- Fixed some cases where visual indicators were not being removed.
+- Fixed and updated translations for Chinese - Simplified.
+- Fixed background color on print.
+- Fixed sticky note background color on export.
+- Fixed clipped arrows in SVG exports.
+- Fixed expensive cursor updates.
+- Fixed expensive undo / redo state changes.
+- Fixed hyperlink buttons not working on mobile Safari.
+- Fixed sticky notes drifting when being scaled with other shapes.
+- **Fixed some small freehand shapes exploding.**
+- Fixed a bug when drawing a line with only one point.
+- Fixed text resizing when props change, while in a group, during undo / redo.
+- Fixed display of straight arrows with labels.
+- Fixed label on the "Bring Forward" button.
+- Fixed empty labels being too wide.
+- Fixed sticky note position when cloning.
+- Fixed logic for disabling the redo button.
+- Fixed undo / redo when changing color in the style panel.
+- Fixed cursor while using the hand tool.
+- Fixed the erase tool not erasing everything under the cursor.

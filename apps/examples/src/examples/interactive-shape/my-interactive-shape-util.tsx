@@ -56,6 +56,8 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 					}
 					// [b] This is where we stop event propagation
 					onPointerDown={(e) => e.stopPropagation()}
+					onTouchStart={(e) => e.stopPropagation()}
+					onTouchEnd={(e) => e.stopPropagation()}
 				/>
 				<input
 					type="text"
@@ -71,6 +73,16 @@ export class myInteractiveShape extends BaseBoxShapeUtil<IMyInteractiveShape> {
 					}
 					// [c]
 					onPointerDown={(e) => {
+						if (!shape.props.checked) {
+							e.stopPropagation()
+						}
+					}}
+					onTouchStart={(e) => {
+						if (!shape.props.checked) {
+							e.stopPropagation()
+						}
+					}}
+					onTouchEnd={(e) => {
 						if (!shape.props.checked) {
 							e.stopPropagation()
 						}

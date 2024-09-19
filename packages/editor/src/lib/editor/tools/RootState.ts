@@ -1,12 +1,14 @@
-import { TLEventHandlers } from '../types/event-types'
+import { TLKeyboardEventInfo } from '../types/event-types'
 import { StateNode } from './StateNode'
 
 export class RootState extends StateNode {
 	static override id = 'root'
 	static override initial = ''
-	static override children = () => []
+	static override children() {
+		return []
+	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown(info: TLKeyboardEventInfo) {
 		// todo: move this logic up to the tldraw library, as the "zoom" tool only exists there
 		switch (info.code) {
 			case 'KeyZ': {

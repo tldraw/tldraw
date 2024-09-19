@@ -48,7 +48,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	/**
 	 * This is whether the primary input mechanism includes a pointing device of limited accuracy,
 	 * such as a finger on a touchscreen.
-	 * See: https://developer.mozilla.org/en-US/docs/Web/CSS/\@media/pointer
 	 */
 	isCoarsePointer: boolean
 	/**
@@ -110,12 +109,13 @@ export const shouldKeyBePreservedBetweenSessions = {
 } as const satisfies { [K in keyof TLInstance]: boolean }
 
 /** @internal */
-export const pluckPreservingValues = (val?: TLInstance | null): null | Partial<TLInstance> =>
-	val
+export function pluckPreservingValues(val?: TLInstance | null): null | Partial<TLInstance> {
+	return val
 		? (filterEntries(val, (key) => {
 				return shouldKeyBePreservedBetweenSessions[key as keyof TLInstance]
 			}) as Partial<TLInstance>)
 		: null
+}
 
 /** @public */
 export type TLInstanceId = RecordId<TLInstance>

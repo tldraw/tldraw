@@ -10,12 +10,12 @@ class StickerTool extends StateNode {
 	static override id = 'sticker'
 
 	// [a]
-	override onEnter = () => {
+	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
 	// [b]
-	override onPointerDown = () => {
+	override onPointerDown() {
 		const { currentPagePoint } = this.editor.inputs
 		this.editor.createShape({
 			type: 'text',

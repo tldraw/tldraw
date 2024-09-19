@@ -6,6 +6,8 @@ import { Pointing } from './toolStates/Pointing'
 export class GeoShapeTool extends StateNode {
 	static override id = 'geo'
 	static override initial = 'idle'
-	static override children = (): TLStateNodeConstructor[] => [Idle, Pointing]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Pointing]
+	}
 	override shapeType = 'geo'
 }

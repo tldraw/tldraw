@@ -8,6 +8,7 @@ export class PerformanceTracker {
 	private started = false
 	private frame: number | null = null
 
+	// eslint-disable-next-line local/prefer-class-methods
 	recordFrame = () => {
 		this.frames++
 		if (!this.started) return

@@ -1,0 +1,72 @@
+{
+	"name": "@tldraw/state-react",
+	"description": "A tiny little drawing app (react bindings for state).",
+	"version": "3.0.0",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"/* NOTE */": "These `main` and `types` fields are rewritten by the build script. They are not the actual values we publish",
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
+	"files": [],
+	"scripts": {
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"test-coverage": "lazy inherit",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
+		"pack-tarball": "yarn pack",
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
+	},
+	"jest": {
+		"preset": "../../internal/config/jest/node/jest-preset.js",
+		"setupFiles": [
+			"raf/polyfill"
+		],
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		}
+	},
+	"dependencies": {
+		"@tldraw/state": "workspace:*",
+		"@tldraw/utils": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/lodash": "^4.14.188",
+		"@types/react": "^18.2.47",
+		"@types/react-test-renderer": "^18.0.0",
+		"lodash": "^4.17.21",
+		"react-test-renderer": "^18.2.0"
+	},
+	"peerDependencies": {
+		"react": "^18"
+	},
+	"typedoc": {
+		"readmeFile": "none",
+		"entryPoint": "./src/index.ts",
+		"displayName": "@tldraw/state",
+		"tsconfig": "./tsconfig.json"
+	}
+}

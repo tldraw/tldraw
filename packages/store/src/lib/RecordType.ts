@@ -1,5 +1,4 @@
-import { objectMapEntries, structuredClone } from '@tldraw/utils'
-import { nanoid } from 'nanoid'
+import { objectMapEntries, structuredClone, uniqueId } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 
@@ -41,6 +40,7 @@ export class RecordType<
 		 */
 		public readonly typeName: R['typeName'],
 		config: {
+			// eslint-disable-next-line @typescript-eslint/method-signature-style
 			readonly createDefaultProperties: () => Exclude<
 				Omit<R, 'id' | 'typeName'>,
 				RequiredProperties
@@ -108,7 +108,7 @@ export class RecordType<
 	 * @public
 	 */
 	createId(customUniquePart?: string): IdOf<R> {
-		return (this.typeName + ':' + (customUniquePart ?? nanoid())) as IdOf<R>
+		return (this.typeName + ':' + (customUniquePart ?? uniqueId())) as IdOf<R>
 	}
 
 	/**
@@ -154,7 +154,7 @@ export class RecordType<
 	 * @param record - The record to check.
 	 * @returns Whether the record is an instance of this record type.
 	 */
-	isInstance = (record?: UnknownRecord): record is R => {
+	isInstance(record?: UnknownRecord): record is R {
 		return record?.typeName === this.typeName
 	}
 

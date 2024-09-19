@@ -1,18 +1,9 @@
 import { Migration, MigrationId } from '@tldraw/store'
-import { structuredClone } from '@tldraw/utils'
+import { mockUniqueId, structuredClone } from '@tldraw/utils'
 import { createTLSchema } from '../createTLSchema'
 
 let nextNanoId = 0
-jest.mock('nanoid', () => {
-	const nanoid = () => {
-		nextNanoId++
-		return `nanoid_${nextNanoId}`
-	}
-	return {
-		nanoid,
-		default: nanoid,
-	}
-})
+mockUniqueId(() => `nanoid_${++nextNanoId}`)
 
 export const testSchema = createTLSchema()
 

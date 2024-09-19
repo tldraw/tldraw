@@ -5,7 +5,7 @@ import { Group2d } from '../../../primitives/geometry/Group2d'
 import { Polygon2d } from '../../../primitives/geometry/Polygon2d'
 import { Polyline2d } from '../../../primitives/geometry/Polyline2d'
 import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
-import { ShapeUtil, TLOnChildrenChangeHandler } from '../ShapeUtil'
+import { ShapeUtil } from '../ShapeUtil'
 import { DashedOutlineBox } from './DashedOutlineBox'
 
 /** @public */
@@ -14,9 +14,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations
 
-	override hideSelectionBoundsFg = () => true
+	override hideSelectionBoundsFg() {
+		return true
+	}
 
-	override canBind = () => false
+	override canBind() {
+		return false
+	}
 
 	getDefaultProps(): TLGroupShape['props'] {
 		return {}
@@ -86,7 +90,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return <DashedOutlineBox className="" bounds={bounds} />
 	}
 
-	override onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape> = (group) => {
+	override onChildrenChange(group: TLGroupShape) {
 		const children = this.editor.getSortedChildIdsForParent(group.id)
 		if (children.length === 0) {
 			if (this.editor.getCurrentPageState().focusedGroupId === group.id) {

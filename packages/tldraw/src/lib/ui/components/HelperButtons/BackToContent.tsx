@@ -1,7 +1,7 @@
 import { useEditor, useQuickReactor } from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { useActions } from '../../context/actions'
-import { TldrawUiMenuItem } from '../primitives/menus/TldrawUiMenuItem'
+import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
 
 export function BackToContent() {
 	const editor = useEditor()
@@ -32,8 +32,8 @@ export function BackToContent() {
 	if (!showBackToContent) return null
 
 	return (
-		<TldrawUiMenuItem
-			{...actions['back-to-content']}
+		<TldrawUiMenuActionItem
+			actionId="back-to-content"
 			onSelect={() => {
 				actions['back-to-content'].onSelect('helper-buttons')
 				setShowBackToContent(false)

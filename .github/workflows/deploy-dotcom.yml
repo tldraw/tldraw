@@ -42,7 +42,7 @@ jobs:
         run: yarn build-types
 
       - name: Deploy
-        run: yarn tsx scripts/deploy-dotcom.ts
+        run: yarn tsx internal/scripts/deploy-dotcom.ts
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
@@ -69,5 +69,6 @@ jobs:
           SENTRY_CSP_REPORT_URI: ${{ secrets.SENTRY_CSP_REPORT_URI }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SUPABASE_LITE_ANON_KEY: ${{ secrets.SUPABASE_LITE_ANON_KEY }}
+          TLDRAW_LICENSE: ${{ secrets.TLDRAW_LICENSE }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}

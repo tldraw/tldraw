@@ -44,7 +44,7 @@ coverage
 **/*.js.map
 apps/webdriver/www/index.js
 apps/webdriver/www/index.css
-apps/dotcom-worker/.dev.vars
+apps/dotcom/*-worker/.dev.vars
 nohup.out
 
 packages/*/package
@@ -72,4 +72,3 @@ packages/*/api
 apps/examples/www/index.css
 apps/examples/www/index.js
 .tsbuild
-packages/dotcom-worker/.dev.vars

@@ -1,75 +1,114 @@
 ---
 title: Collaboration
 status: published
-author: ds300
-date: 3/22/2023
-order: 8
+author: alex
+date: 7/24/2024
+order: 6
+keywords:
+  - data
+  - sync
+  - persistence
+  - database
+  - multiplayer
+  - collaboration
+  - server
+  - websockets
 ---
 
-We've designed the tldraw SDK to work with any collaboration backend. Depending on which backend you choose, you will need an interface that pipes changes coming from the editor to the backend and then merge changes from the backend back to the editor.
+The tldraw SDK includes deep support for real-time collaboration. The easiest way to add collaboration to your project is with our [tldraw sync](#tldraw-sync) library. Or you can use our low-level data APIs to integrate [other backends](#Using-other-collaboration-backends).
 
-The best way to get started is by adapting one of our examples.
+<div className="article__image" style={{ border: 'none' }}>
+	<img
+		alt="Multiplayer example using tldraw sync"
+		src="/images/multiplayer.gif"
+		style={{
+			// learn this one weird trick for transparent animated gifs. doctors hate her!!!
+			mask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
+			WebkitMask: 'url(/images/multiplayer_mask.png) luminance center 100% / 100% no-repeat',
+		}}
+	/>
+</div>
 
-### Yjs sync example
+## tldraw sync
 
-We created a [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) to illustrate a way of using the [yjs](https://yjs.dev) library with the tldraw SDK. If you need a "drop in solution" for prototyping multiplayer experiences with tldraw, start here.
+[tldraw sync](/docs/sync) is our library for fast multi-user collaboration. It's purpose-built for the tldraw canvas and it's what we use to power collaboration on our flagship app tldraw.com.
 
-### Sockets example
+You can read our full article on [tldraw sync](/docs/sync).
 
-We have a [sockets example](https://github.com/tldraw/tldraw-sockets-example) that uses [PartyKit](https://www.partykit.io/) as a backend. Unlike the yjs example, this example does not use any special data structures to handle conflicts. It should be a good starting point if you needed to write your own conflict-resolution logic.
+### tldraw sync demo
 
-### Our own sync engine
+To make it easier to get started with collaboration in tldraw, we've included a "demo" hook in the sync library that connects to a hosted backend. You can see a working example at [this CodeSandbox](https://codesandbox.io/p/sandbox/tldraw-sync-demo-d9vq5g?file=%2Fsrc%2FApp.tsx%3A9%2C50).
 
-We developed our own sync engine for use on tldraw.com based on a push/pull/rebase-style algorithm. It powers our "shared projects", such as [this one](https://tldraw.com/r). The engine's source code can be found [here](https://github.com/tldraw/tldraw/tree/main/packages/sync). It was designed to be hosted on Cloudflare workers with [DurableObjects](https://developers.cloudflare.com/durable-objects/).
+Let's say you have an app running locally that looks like this:
 
-We don't suggest using this code directly. However, like our other examples, it may serve as a good reference for your own sync engine.
+```tsx
+import { Tldraw } from 'tldraw'
 
-## Store data
-
-For information about how to synchronize the store with other processes, i.e. how to get data out and put data in, including from remote sources, see the [Persistence](/docs/persistence) page.
-
-## User presence
-
-Tldraw has support for displaying the 'presence' of other users. Presence information consists of:
-
-- The user's pointer position
-- The user's set of selected shapes
-- The user's viewport bounds (the part of the canvas they are currently viewing)
-- The user's name, id, and a color to represent them
-
-This information will usually come from two sources:
-
-- The tldraw editor state (e.g. pointer position, selected shapes)
-- The data layer of whichever app tldraw has been embedded in (e.g. user name, user id)
-
-Tldraw is agnostic about how this data is shared among users. However, in order for tldraw to use the presence data it needs to be put into the editor's store as `instance_presence` records.
-
-We provide a helper for constructing a reactive signal for an `instance_presence` record locally, which can then be sent to other clients somehow. It is called [createPresenceStateDerivation](?).
-
-```ts
-import { createPresenceStateDerivation, react, atom } from 'tldraw'
-
-// First you need to create a Signal containing the basic user details: id, name, and color
-const user = atom<{ id: string; color: string; name: string }>('user', {
-	id: myUser.id,
-	color: myUser.color,
-	name: myUser.name,
-})
-
-// if you don't have your own user data backend, you can use our localStorage-only user preferences store
-// import { getUserPreferences, computed } from 'tldraw'
-// const user = computed('user', getUserPreferences)
-
-// Then, with access to your store instance, you can create a presence signal
-const userPresence = createPresenceStateDerivation(user)(store)
-
-// Then you can listen for changes to the presence signal and send them to other clients
-const unsub = react('update presence', () => {
-	const presence = userPresence.get()
-	broadcastPresence(presence)
-})
+function MyApp() {
+	return <Tldraw />
+}
 ```
 
-The other clients would then call `store.put([presence])` to add the presence information to their store.
+To make this app collaborative, first install the `@tldraw/sync` library:
 
-Any such `instance_presence` records tldraw finds in the store that have a different user `id` than the editor's configured user id will cause the presence information to be rendered on the canvas.
+```bash
+npm install @tldraw/sync
+```
+
+Back in your code, import the `useSyncDemo` hook from the `@tldraw/sync` library. In the `MyApp` component, call the `useSyncDemo` hook with a room ID. Pass the [`store`](/docs/persistence#The-store-prop) returned by `useSyncDemo` to the tldraw component's `store` prop.
+
+```tsx
+import { Tldraw } from 'tldraw'
+import { useSyncDemo } from '@tldraw/sync'
+
+function MyApp() {
+	const store = useSyncDemo({ roomId: 'my-unique-room-id' })
+	return <Tldraw store={store} />
+}
+```
+
+In your browser, open an incognito window and visit your project's URL. You can also use a different browser or different device. The key is the room ID: any apps connecting to the same room ID will enter into a shared collaboration session.
+
+### Limitations of the demo
+
+The sync demo is great for prototyping but you should not use it in production. Data on the demo server only lasts for up to 24 hours, and anyone using the same room id will be able to edit the same room's project.
+
+### Using tldraw sync in production
+
+To use tldraw sync in production, you will need to self-host the tldraw sync server. To learn more, see our article on [tldraw sync](/docs/sync).
+
+> We don't offer a hosted solution for tldraw sync in production, but if you're interested in that please let us know at hello@tldraw.com.
+
+## Using other collaboration backends
+
+While tldraw sync is our recommended and best-supported backend for tldraw, we designed the tldraw SDK to work with any data solution.
+
+As a reference, our [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) shows an integration between tldraw and the [Yjs](https://yjs.dev) CRDT library.
+
+Whichever backend you choose, adding collaboration to tldraw will involve synchronizing data, sharing user presence, and handling user assets.
+
+### Synchronizing data
+
+For more information about how to synchronize the tldraw editor's store with other processes (i.e. how to get data out and put data in, including from remote sources) see the [Persistence](/docs/persistence) page.
+
+### User presence
+
+The tldraw SDK has support for displaying the 'presence' of other users. Presence information consists of the user id, name, and color, as well as their canvas context, such as their current page, pointer position, selection, viewport.
+
+A user's presence is stored as `instance_presence` ([TLInstancePresence](?))records in the editor's store, however the data itself may be derived from other sources.
+
+We provide a helper, [createPresenceStateDerivation](?), for constructing a reactive signal for an `instance_presence` record locally, which can then be sent to other clients somehow.
+
+To the editor, any `instance_presence` records that belong to other users (i.e. those with a different user id than the editor's configured user id) are considered "collaborators". The editor has two methods, `getCollaborators` and `getCollaboratorsOnCurrentPage`, which return reactive signals about the current collaborators.
+
+See the [yjs-example](https://github.com/tldraw/tldraw-yjs-example/blob/45dfe7589ae44e4aaf9bb7359d0372f3a88bd597/src/useYjsStore.ts) for an example of how these records may be created, shared, and updated.
+
+### Collaboration UI
+
+The `tldraw` library includes several components specifically designed for collaboration.
+You can remove, replace, or customize these using the editor's `components` prop. See [TLComponents](?) for more info.
+
+- Collaborator cursors: [`TLComponents#CollaboratorCursor`](?)
+- Cursor chat: [`TLComponents#CursorChatBubble`](?)
+- Offline indicator: [`TLComponents#TopPanel`](?)
+- Collaborator list: [`TLComponents#SharePanel`](?)

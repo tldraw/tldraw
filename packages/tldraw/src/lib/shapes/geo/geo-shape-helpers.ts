@@ -375,7 +375,8 @@ export function getCloudArcs(
 	width: number,
 	height: number,
 	seed: string,
-	size: TLDefaultSizeStyle
+	size: TLDefaultSizeStyle,
+	scale: number
 ) {
 	const getRandom = rng(seed)
 	const pillCircumference = getOvalPerimeter(width, height)
@@ -408,13 +409,13 @@ export function getCloudArcs(
 	for (let i = 0; i < Math.floor(numBumps / 2); i++) {
 		wiggledPoints[i] = Vec.AddXY(
 			wiggledPoints[i],
-			getRandom() * maxWiggleX,
-			getRandom() * maxWiggleY
+			getRandom() * maxWiggleX * scale,
+			getRandom() * maxWiggleY * scale
 		)
 		wiggledPoints[numBumps - i - 1] = Vec.AddXY(
 			wiggledPoints[numBumps - i - 1],
-			getRandom() * maxWiggleX,
-			getRandom() * maxWiggleY
+			getRandom() * maxWiggleX * scale,
+			getRandom() * maxWiggleY * scale
 		)
 	}
 
@@ -450,6 +451,7 @@ export function getCloudArcs(
 		}
 
 		const center = centerOfCircleFromThreePoints(leftWigglePoint, rightWigglePoint, arcPoint)
+
 		const radius = Vec.Dist(
 			center ? center : Vec.Average([leftWigglePoint, rightWigglePoint]),
 			leftWigglePoint
@@ -481,11 +483,12 @@ export function cloudOutline(
 	width: number,
 	height: number,
 	seed: string,
-	size: TLDefaultSizeStyle
+	size: TLDefaultSizeStyle,
+	scale: number
 ) {
 	const path: Vec[] = []
 
-	const arcs = getCloudArcs(width, height, seed, size)
+	const arcs = getCloudArcs(width, height, seed, size, scale)
 
 	for (const { center, radius, leftPoint, rightPoint } of arcs) {
 		path.push(...getPointsOnArc(leftPoint, rightPoint, center, radius, 10))
@@ -498,7 +501,8 @@ export function getCloudPath(
 	width: number,
 	height: number,
 	seed: string,
-	size: TLDefaultSizeStyle
+	size: TLDefaultSizeStyle,
+	scale: number
 ) {
 	// const points = cloudOutline(width, height, seed, size)
 	// {
@@ -509,7 +513,7 @@ export function getCloudPath(
 	// 	return path
 	// }
 
-	const arcs = getCloudArcs(width, height, seed, size)
+	const arcs = getCloudArcs(width, height, seed, size, scale)
 	let path = `M${arcs[0].leftPoint.toFixed()}`
 
 	// now draw arcs for each circle, starting where it intersects the previous circle, and ending where it intersects the next circle
@@ -539,16 +543,17 @@ export function inkyCloudSvgPath(
 	width: number,
 	height: number,
 	seed: string,
-	size: TLDefaultSizeStyle
+	size: TLDefaultSizeStyle,
+	scale: number
 ) {
 	const getRandom = rng(seed)
-	const mutMultiplier = DRAW_OFFSETS[size]
-	const arcs = getCloudArcs(width, height, seed, size)
+	const mutMultiplier = DRAW_OFFSETS[size] * scale
+	const arcs = getCloudArcs(width, height, seed, size, scale)
 	const avgArcLengthSquared =
 		arcs.reduce((sum, arc) => sum + Vec.Dist2(arc.leftPoint, arc.rightPoint), 0) / arcs.length
 	const shouldMutatePoints = avgArcLengthSquared > (mutMultiplier * 15) ** 2
 	const mutPoint = shouldMutatePoints
-		? (p: Vec) => p.addXY(getRandom() * mutMultiplier * 2, getRandom() * mutMultiplier * 2)
+		? (p: Vec) => Vec.AddXY(p, getRandom() * mutMultiplier * 2, getRandom() * mutMultiplier * 2)
 		: (p: Vec) => p
 	let pathA = `M${arcs[0].leftPoint.toFixed()}`
 	let leftMutPoint = mutPoint(arcs[0].leftPoint)
@@ -570,7 +575,7 @@ export function inkyCloudSvgPath(
 		const mutCenter = centerOfCircleFromThreePoints(leftMutPoint, rightMutPoint, mutArcPoint)
 
 		// handle situations where the points are colinear (this happens when the cloud is very small)
-		if (!Number.isFinite(mutCenter.x) || !Number.isFinite(mutCenter.y)) {
+		if (!mutCenter) {
 			// draw a line to rightMutPoint instead
 			pathB += ` L${rightMutPoint.toFixed()}`
 			leftMutPoint = rightMutPoint

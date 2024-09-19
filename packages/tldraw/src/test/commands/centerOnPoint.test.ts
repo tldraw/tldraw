@@ -21,7 +21,7 @@ it('centers on the point with animation', () => {
 })
 
 it('is not undoable', () => {
-	editor.mark()
+	editor.markHistoryStoppingPoint()
 	editor.centerOnPoint({ x: 400, y: 400 })
 	editor.undo()
 	expect(editor.getViewportPageCenter()).toMatchObject({ x: 400, y: 400 })

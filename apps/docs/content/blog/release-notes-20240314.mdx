@@ -1,0 +1,85 @@
+---
+title: Release Notes – March 14th 2024
+category: release-notes
+description: Project titles, whole page exports, and much snappier snapping.
+hero: /images/blog/f65a1b34-549e-4e1f-b819-dfabd30503fc_960x540.gif
+date: 3/14/2024
+status: published
+author: luwilson
+---
+
+Hey! Welcome back to another tldraw release.
+
+If you [didn’t notice](https://twitter.com/tldraw/status/1763272673444913432), we pushed out version 2.0 of the [tldraw SDK](https://tldraw.dev/). We’ll have more info on that _another day_. But for now, let’s look all the new features and fixes that it brings to [tldraw.com](https://tldraw.com).
+
+## What’s new
+
+Shared projects now have a **title** at the the top of the page. Edit the title by double clicking it.
+
+![Shared project title](/images/blog/4aadbd42-d8df-4271-9933-fae11056229d_960x540.gif)
+
+We added a new **Export** menu for exporting the entire page — not just your current selection.
+
+![New export menu](/images/blog/8be07996-f34a-4454-8c21-de83928832b5_1578x980.png)
+
+With this release, we also completely rebuilt how **snapping** works for lines. Lines can now snap to the corners and centers of shapes.
+
+![New line snapping](/images/blog/8b822923-5fb3-40cb-beb1-17946cf4c283_960x540.gif)
+
+And now the **middle handles** of lines can snap too.
+
+![Snapping for middle handles](/images/blog/ceb86688-2bf2-4452-aaaa-c8fb820d6351_1360x764.gif)
+
+Lines can also snap to themselves.
+
+![Line snapping](/images/blog/0c364c9b-ece5-43a9-8f8a-d4243d09959c_1088x616.gif)
+
+> By the way, you can enable snapping by holding command/control while dragging, or turning on **Always snap** in the Preferences menu.
+
+## Improvements
+
+You now get some visual feedback when you copy shapes on top of themselves. Your selection box **blinks** to let you know that the paste worked.
+
+![Feedback for copying shapes](/images/blog/a3c4bbaa-5161-471c-a052-d81e3a4377e1_960x540.gif)
+
+You now default to the **Hand tool** in read-only mode, making it easier to pan around straight away.
+
+![Default hand tool](/images/blog/b5292d3f-a274-426f-834f-d518db0f6ce3_960x540.gif)
+
+And we shortened the **invite links** for shared projects.
+
+![Short invite links](/images/blog/af5e7dd7-7b5b-44f7-99d3-00eeb74f6347_2087x583.png)
+
+We also shipped some substantial performance improvements with this release. Let us know if you spot an improvement.
+
+And, as always, we updated our translations — this time for Croatian, Slovenian, Hungarian, and Korean.
+
+## Fixes
+
+- Dialogs now fit into small landscape screens.
+- We now show a toast if an image or video upload fails.
+- We added a broken state for failed image and video uploads.
+- We improved the error messages in dialogs.
+- Fixed a crash caused by failed video uploads.
+- Fixed opacity changes not getting added to undo history.
+- Fixed shape geometry changes not getting added to undo history.
+- Fixed opacity slider appearing for the Laser and Hand tool.
+- Fixed the opacity slider getting squished.
+- Fixed zoom not working properly when reduced motion is turned on.
+- Fixed a bug with text rendering incorrectly on sticky note shapes.
+- Fixed a bug with the grid not appearing.
+- Fixed some missing translations.
+- Fixed dialog title styles being wrong.
+- Fixed frames not preserving the ordering of shapes.
+- Fixed keyboard shortcut focus getting lost.
+- Fixed transparency toggle being the wrong way round.
+- Fixed auto-complete, auto-capitalize, and auto-correct tags on text inputs.
+- Fixed a bug where videos were rendered as the wrong size.
+- Fixed the rotation of cropping handles being wrong when inside a rotated frame.
+- Firefox: Fixed the keyboard shortcuts menu not scrolling.
+
+---
+
+As always, try out the changes on [tldraw.com](https://tldraw.com) and let us know what you think. Find us on [twitter](https://twitter.com/tldraw), [mastodon](https://mas.to/@tldraw), and [discord](https://t.co/FbWiDYFD3O).
+
+![Huppy](/images/blog/f97ed368-4f96-4c63-bccb-2a092e78ca31_960x540.gif)

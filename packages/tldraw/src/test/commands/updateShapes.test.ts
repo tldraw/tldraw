@@ -81,7 +81,7 @@ it('Uses typescript generics', () => {
 })
 
 it('updates shapes', () => {
-	editor.mark('update shapes')
+	editor.markHistoryStoppingPoint('update shapes')
 	editor.updateShapes([
 		{
 			id: ids.box1,

@@ -1,4 +1,4 @@
-import { BoxModel, TLAsset } from '@tldraw/tlschema'
+import { BoxModel } from '@tldraw/tlschema'
 import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
@@ -8,7 +8,7 @@ export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, 
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 /** @public */
-export interface TLSvgOptions {
+export interface TLImageExportOptions {
 	bounds?: Box
 	scale?: number
 	background?: boolean
@@ -17,22 +17,28 @@ export interface TLSvgOptions {
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
 }
 
+/**
+ * @public
+ * @deprecated use {@link TLImageExportOptions} instead
+ */
+export type TLSvgOptions = TLImageExportOptions
+
 /** @public */
-export type TLCameraMoveOptions = Partial<{
+export interface TLCameraMoveOptions {
 	/** Whether to move the camera immediately, rather than on the next tick. */
-	immediate: boolean
+	immediate?: boolean
 	/** Whether to force the camera to move, even if the user's camera options have locked the camera. */
-	force: boolean
+	force?: boolean
 	/** Whether to reset the camera to its default position and zoom. */
-	reset: boolean
+	reset?: boolean
 	/** An (optional) animation to use. */
-	animation: Partial<{
+	animation?: {
 		/** The time the animation should take to arrive at the specified camera coordinates. */
-		duration: number
+		duration?: number
 		/** An easing function to apply to the animation's progress from start to end. */
-		easing: (t: number) => number
-	}>
-}>
+		easing?(t: number): number
+	}
+}
 
 /** @public */
 export interface TLCameraOptions {
@@ -53,23 +59,6 @@ export interface TLCameraOptions {
 	wheelBehavior: 'zoom' | 'pan' | 'none'
 	/** The camera constraints. */
 	constraints?: TLCameraConstraints
-}
-
-/** @public */
-export interface AssetContextProps {
-	screenScale: number
-	steppedScreenScale: number
-	dpr: number
-	networkEffectiveType: string | null
-	shouldResolveToOriginalImage?: boolean
-}
-
-/** @public */
-export interface TLAssetOptions {
-	onResolveAsset: (
-		asset: TLAsset | null | undefined,
-		ctx: AssetContextProps
-	) => Promise<string | null>
 }
 
 /** @public */

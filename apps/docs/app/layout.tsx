@@ -1,48 +1,31 @@
+import { Footer } from '@/components/navigation/footer'
+import { Header } from '@/components/navigation/header'
+import { cn } from '@/utils/cn'
 import { Analytics } from '@vercel/analytics/react'
+import { GeistSans } from 'geist/font/sans'
 import { Metadata, Viewport } from 'next'
-import AutoRefresh from '../components/AutoRefresh'
-import '../styles/globals.css'
-import '../styles/hljs.css'
-import '../styles/parameters-table.css'
-import { Providers } from './providers'
-
-const TITLE = 'tldraw SDK'
-const DESCRIPTION =
-	'Infinite canvas SDK from tldraw. Build whiteboards, design tools, and canvas experiences for the web.'
-const TWITTER_HANDLE = '@tldraw'
-const TWITTER_CARD = 'social-twitter.png'
-const FACEBOOK_CARD = 'social-og.png'
-const THEME_COLOR = '#FFFFFF'
+import { ThemeProvider } from 'next-themes'
+import localFont from 'next/font/local'
+import './github-dark.css'
+import './github-light.css'
+import './globals.css'
 
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: TITLE,
-		template: `%s • ${TITLE}`,
+		default: 'The infinite canvas SDK • tldraw',
+		template: `%s • tldraw`,
 	},
-	description: DESCRIPTION,
-	openGraph: {
-		title: TITLE,
-		description: DESCRIPTION,
-		siteName: TITLE,
-		type: 'website',
-		url: 'https://tldraw.dev',
-		images: FACEBOOK_CARD,
-	},
+	description:
+		'Infinite canvas SDK from tldraw. Build whiteboards, design tools, and canvas experiences for the web.',
 	twitter: {
-		creator: TWITTER_HANDLE,
-		description: DESCRIPTION,
-		card: 'summary_large_image',
-		images: TWITTER_CARD,
+		creator: '@tldraw',
 	},
-	applicationName: TITLE,
+	applicationName: 'tldraw SDK',
 	appleWebApp: {
 		capable: true,
-		title: TITLE,
+		title: 'tldraw SDK',
 		statusBarStyle: 'black',
-	},
-	formatDetection: {
-		telephone: false,
 	},
 	icons: [
 		{ rel: 'shortcut icon', url: '/favicon.svg' },
@@ -60,20 +43,30 @@ export const viewport: Viewport = {
 	maximumScale: 1,
 	width: 'device-width',
 	height: 'device-height',
-	themeColor: THEME_COLOR,
+	themeColor: '#ffffff',
 }
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+const ShantellSans = localFont({
+	src: './shantell-sans.woff2',
+	weight: '400',
+	display: 'swap',
+	variable: '--font-shantell-sans',
+})
+
+export default async function Layout({ children }: { children: React.ReactNode }) {
 	return (
-		<AutoRefresh>
-			<html suppressHydrationWarning>
-				<body>
-					<Providers>
-						{children}
-						<Analytics />
-					</Providers>
-				</body>
-			</html>
-		</AutoRefresh>
+		<html
+			lang="en"
+			className={cn(GeistSans.variable, ShantellSans.variable, 'font-sans antialiased')}
+		>
+			<body className="pt-14 md:pt-[4.5rem] overflow-x-hidden bg-white text-zinc-600 dark:bg-zinc-950 dark:text-zinc-400">
+				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+					<Header />
+					{children}
+					<Footer />
+					<Analytics />
+				</ThemeProvider>
+			</body>
+		</html>
 	)
 }

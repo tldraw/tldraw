@@ -38,7 +38,7 @@ export default function AfterCreateUpdateShapeExample() {
 				onMount={(editor) => {
 					// we can run our `ensureOnlyOneRedShape` function after any shape is created or
 					// changed. this means we can enforce our "only one red shape at a time" rule,
-					// whilst making sure that the shape most recently set to red is the one that
+					// while making sure that the shape most recently set to red is the one that
 					// stays red.
 					editor.sideEffects.registerAfterCreateHandler('shape', (shape) => {
 						ensureOnlyOneRedShape(editor, shape.id)

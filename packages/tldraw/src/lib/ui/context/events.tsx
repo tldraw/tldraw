@@ -29,8 +29,15 @@ export interface TLUiEventMap {
 	undo: null
 	redo: null
 	'change-language': { locale: string }
+	'change-page': null
+	'delete-page': null
+	'duplicate-page': null
+	'move-page': null
 	'new-page': null
+	'rename-page': null
 	'move-to-page': null
+	'move-to-new-page': null
+	'rename-document': null
 	'group-shapes': null
 	'ungroup-shapes': null
 	'remove-frame': null
@@ -94,11 +101,16 @@ export interface TLUiEventMap {
 	'toggle-edge-scrolling': null
 	'color-scheme': { value: string }
 	'exit-pen-mode': null
+	'start-following': null
 	'stop-following': null
+	'set-color': null
+	'change-user-name': null
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
 	'flatten-to-image': null
+	'open-url': { url: string }
+	'copy-link': null
 }
 
 /** @public */
@@ -112,11 +124,11 @@ export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> 
 	data: TLUiEventData<TLUiEventMap[T]>
 ) => void
 
-/** @internal */
-const defaultEventHandler: TLUiEventHandler = () => void null
-
 /** @public */
 export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
+
+/** @internal */
+const defaultEventHandler: TLUiEventContextType = () => void null
 
 /** @internal */
 export const EventsContext = React.createContext<TLUiEventContextType | null>(null)
@@ -137,7 +149,7 @@ export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 }
 
 /** @public */
-export function useUiEvents() {
+export function useUiEvents(): TLUiEventContextType {
 	const eventHandler = React.useContext(EventsContext)
 	return eventHandler ?? defaultEventHandler
 }

@@ -1,7 +1,13 @@
-import { Group2d, TLGeoShape, Vec, canonicalizeRotation, useEditor } from '@tldraw/editor'
+import {
+	Group2d,
+	TLGeoShape,
+	Vec,
+	canonicalizeRotation,
+	getPerfectDashProps,
+	useEditor,
+} from '@tldraw/editor'
 import { ShapeFill } from '../../shared/ShapeFill'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
-import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { useDefaultColorTheme } from '../../shared/useDefaultColorTheme'
 import {
 	getCloudArcs,
@@ -15,19 +21,27 @@ import {
 } from '../geo-shape-helpers'
 import { getLines } from '../getLines'
 
-export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; shouldScale: boolean }) {
+export function GeoShapeBody({
+	shape,
+	shouldScale,
+	forceSolid,
+}: {
+	shape: TLGeoShape
+	shouldScale: boolean
+	forceSolid: boolean
+}) {
 	const scaleToUse = shouldScale ? shape.props.scale : 1
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const { id, props } = shape
-	const { w, color, fill, dash, growY, size } = props
+	const { w, color, fill, dash, growY, size, scale } = props
 	const strokeWidth = STROKE_SIZES[size] * scaleToUse
 	const h = props.h + growY
 
 	switch (props.geo) {
 		case 'cloud': {
 			if (dash === 'solid') {
-				const d = getCloudPath(w, h, id, size)
+				const d = getCloudPath(w, h, id, size, scale)
 				return (
 					<>
 						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
@@ -35,7 +49,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 					</>
 				)
 			} else if (dash === 'draw') {
-				const d = inkyCloudSvgPath(w, h, id, size)
+				const d = inkyCloudSvgPath(w, h, id, size, scale)
 				return (
 					<>
 						<ShapeFill theme={theme} d={d} color={color} fill={fill} scale={scaleToUse} />
@@ -43,8 +57,8 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 					</>
 				)
 			} else {
-				const d = getCloudPath(w, h, id, size)
-				const arcs = getCloudArcs(w, h, id, size)
+				const d = getCloudPath(w, h, id, size, scale)
+				const arcs = getCloudArcs(w, h, id, size, scale)
 
 				return (
 					<>
@@ -71,6 +85,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 										style: dash,
 										start: 'outset',
 										end: 'outset',
+										forceSolid,
 									}
 								)
 
@@ -109,6 +124,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 						style: dash,
 						snap: 4,
 						closed: true,
+						forceSolid,
 					}
 				)
 
@@ -158,6 +174,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 						start: 'outset',
 						end: 'outset',
 						closed: true,
+						forceSolid,
 					}
 				)
 
@@ -201,6 +218,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 									start: 'outset',
 									end: 'outset',
 									closed: true,
+									forceSolid,
 								}
 							)
 							return (
@@ -277,6 +295,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 										style: dash,
 										start: 'outset',
 										end: 'outset',
+										forceSolid,
 									}
 								)
 
@@ -304,6 +323,7 @@ export function GeoShapeBody({ shape, shouldScale }: { shape: TLGeoShape; should
 											start: 'skip',
 											end: 'skip',
 											snap: dash === 'dotted' ? 4 : undefined,
+											forceSolid,
 										}
 									)
 

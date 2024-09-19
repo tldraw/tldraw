@@ -6,7 +6,9 @@ import { Pointing } from './toolStates/Pointing'
 export class ArrowShapeTool extends StateNode {
 	static override id = 'arrow'
 	static override initial = 'idle'
-	static override children = (): TLStateNodeConstructor[] => [Idle, Pointing]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Pointing]
+	}
 
 	override shapeType = 'arrow'
 }

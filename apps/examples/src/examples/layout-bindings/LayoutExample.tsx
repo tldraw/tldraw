@@ -12,7 +12,6 @@ import {
 	T,
 	TLBaseBinding,
 	TLBaseShape,
-	TLOnTranslateHandler,
 	Tldraw,
 	Vec,
 	clamp,
@@ -49,10 +48,18 @@ class ContainerShapeUtil extends ShapeUtil<ContainerShape> {
 	}) {
 		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === 'layout'
 	}
-	override canEdit = () => false
-	override canResize = () => false
-	override hideRotateHandle = () => true
-	override isAspectRatioLocked = () => true
+	override canEdit() {
+		return false
+	}
+	override canResize() {
+		return false
+	}
+	override hideRotateHandle() {
+		return true
+	}
+	override isAspectRatioLocked() {
+		return true
+	}
 
 	override getGeometry(shape: ContainerShape) {
 		return new Rectangle2d({
@@ -106,10 +113,18 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 	}) {
 		return fromShapeType === 'container' && toShapeType === 'element' && bindingType === 'layout'
 	}
-	override canEdit = () => false
-	override canResize = () => false
-	override hideRotateHandle = () => true
-	override isAspectRatioLocked = () => true
+	override canEdit() {
+		return false
+	}
+	override canResize() {
+		return false
+	}
+	override hideRotateHandle() {
+		return true
+	}
+	override isAspectRatioLocked() {
+		return true
+	}
 
 	override getGeometry() {
 		return new Rectangle2d({
@@ -127,7 +142,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		return <rect width={100} height={100} />
 	}
 
-	private getTargetContainer = (shape: ElementShape, pageAnchor: Vec) => {
+	private getTargetContainer(shape: ElementShape, pageAnchor: Vec) {
 		// Find the container shape that the element is being dropped on
 		return this.editor.getShapeAtPoint(pageAnchor, {
 			hitInside: true,
@@ -136,11 +151,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		}) as ContainerShape | undefined
 	}
 
-	private getBindingIndexForPosition = (
-		shape: ElementShape,
-		container: ContainerShape,
-		pageAnchor: Vec
-	) => {
+	getBindingIndexForPosition(shape: ElementShape, container: ContainerShape, pageAnchor: Vec) {
 		// All the layout bindings from the container
 		const allBindings = this.editor
 			.getBindingsFromShape<LayoutBinding>(container, 'layout')
@@ -173,7 +184,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		return index
 	}
 
-	override onTranslateStart = (shape: ElementShape) => {
+	override onTranslateStart(shape: ElementShape) {
 		// Update all the layout bindings for this shape to be placeholders
 		this.editor.updateBindings(
 			this.editor.getBindingsToShape<LayoutBinding>(shape, 'layout').map((binding) => ({
@@ -183,10 +194,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		)
 	}
 
-	override onTranslate: TLOnTranslateHandler<ElementShape> | undefined = (
-		_,
-		shape: ElementShape
-	) => {
+	override onTranslate(_: ElementShape, shape: ElementShape) {
 		// Find the center of the element shape
 		const pageAnchor = this.editor.getShapePageTransform(shape).applyToPoint({ x: 50, y: 50 })
 
@@ -234,7 +242,7 @@ class ElementShapeUtil extends ShapeUtil<ElementShape> {
 		}
 	}
 
-	override onTranslateEnd = (_: ElementShape, shape: ElementShape) => {
+	override onTranslateEnd(_: ElementShape, shape: ElementShape) {
 		// Find the center of the element shape
 		const pageAnchor = this.editor.getShapePageTransform(shape).applyToPoint({ x: 50, y: 50 })
 

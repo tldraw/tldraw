@@ -1,3 +1,4 @@
+import { AnalyticsEngineDataset } from '@cloudflare/workers-types'
 import { BemoDO } from './BemoDO'
 
 export interface Environment {
@@ -11,4 +12,6 @@ export interface Environment {
 	SENTRY_DSN: string | undefined
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
+
+	BEMO_ANALYTICS?: AnalyticsEngineDataset
 }

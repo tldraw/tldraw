@@ -1,29 +1,15 @@
+import { mockUniqueId } from '@tldraw/editor'
 import { readdirSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
 import { TestEditor } from '../../../test/TestEditor'
 import { buildFromV1Document } from './buildFromV1Document'
 
-jest.mock('nanoid', () => {
-	let nextNanoId = 0
-
-	const nanoid = () => {
-		nextNanoId++
-		return `${nextNanoId}`
-	}
-
-	return {
-		nanoid,
-		default: nanoid,
-		__reset: () => {
-			nextNanoId = 0
-		},
-	}
-})
+let nextNanoId = 0
+mockUniqueId(() => `${++nextNanoId}`)
 
 beforeEach(() => {
-	// eslint-disable-next-line
-	require('nanoid').__reset()
+	nextNanoId = 0
 })
 
 describe('buildFromV1Document test fixtures', () => {

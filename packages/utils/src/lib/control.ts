@@ -50,8 +50,8 @@ export const assertExists = omitFromStackTrace(<T>(value: T, message?: string): 
 
 /** @internal */
 export function promiseWithResolve<T>(): Promise<T> & {
-	resolve: (value: T) => void
-	reject: (reason?: any) => void
+	resolve(value: T): void
+	reject(reason?: any): void
 } {
 	let resolve: (value: T) => void
 	let reject: (reason?: any) => void
@@ -63,4 +63,10 @@ export function promiseWithResolve<T>(): Promise<T> & {
 		resolve: resolve!,
 		reject: reject!,
 	})
+}
+
+/** @internal */
+export function sleep(ms: number): Promise<void> {
+	// eslint-disable-next-line no-restricted-globals
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }

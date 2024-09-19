@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers } from 'tldraw'
+import { StateNode } from 'tldraw'
 
 // There's a guide at the bottom of this file!
 
@@ -6,18 +6,18 @@ export class ScreenshotPointing extends StateNode {
 	static override id = 'pointing'
 
 	// [1]
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove() {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('dragging')
 		}
 	}
 
 	// [2]
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.complete()
 	}
 

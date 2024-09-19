@@ -1,0 +1,111 @@
+td .hljs {
+	display: block;
+	overflow-x: auto;
+	padding: 0.5em;
+}
+
+html:not(.dark) td .hljs {
+	color: #24292e;
+	background: #ffffff;
+}
+
+html:not(.dark) td .hljs-comment,
+html:not(.dark) td .hljs-punctuation {
+	color: #6a737d;
+}
+
+html:not(.dark) td .hljs-attr,
+html:not(.dark) td .hljs-attribute,
+html:not(.dark) td .hljs-meta,
+html:not(.dark) td .hljs-selector-attr,
+html:not(.dark) td .hljs-selector-class,
+html:not(.dark) td .hljs-selector-id {
+	color: #005cc5;
+}
+
+html:not(.dark) td .hljs-variable,
+html:not(.dark) td .hljs-literal,
+html:not(.dark) td .hljs-number,
+html:not(.dark) td .hljs-doctag {
+	color: #e36209;
+}
+
+html:not(.dark) td .hljs-params {
+	color: #24292e;
+}
+
+html:not(.dark) td .hljs-function {
+	color: #6f42c1;
+}
+
+html:not(.dark) td .hljs-class,
+html:not(.dark) td .hljs-title.class_,
+html:not(.dark) td .hljs-tag,
+html:not(.dark) td .hljs-title,
+html:not(.dark) td .hljs-title_,
+html:not(.dark) td .hljs-built_in {
+	color: #22863a;
+}
+
+html:not(.dark) td .hljs-keyword,
+html:not(.dark) td .hljs-type,
+html:not(.dark) td .hljs-builtin-name,
+html:not(.dark) td .hljs-meta-keyword,
+html:not(.dark) td .hljs-template-tag,
+html:not(.dark) td .hljs-template-variable {
+	color: #d73a49;
+}
+
+html:not(.dark) td .hljs-string,
+html:not(.dark) td .hljs-undefined {
+	color: #032f62;
+}
+
+html:not(.dark) td .hljs-regexp {
+	color: #032f62;
+}
+
+html:not(.dark) td .hljs-symbol {
+	color: #005cc5;
+}
+
+html:not(.dark) td .hljs-bullet {
+	color: #e36209;
+}
+
+html:not(.dark) td .hljs-section {
+	color: #005cc5;
+	font-weight: bold;
+}
+
+html:not(.dark) td .hljs-quote,
+html:not(.dark) td .hljs-name,
+html:not(.dark) td .hljs-selector-tag,
+html:not(.dark) td .hljs-selector-pseudo {
+	color: #22863a;
+}
+
+html:not(.dark) td .hljs-emphasis {
+	color: #e36209;
+	font-style: italic;
+}
+
+html:not(.dark) td .hljs-strong {
+	color: #e36209;
+	font-weight: bold;
+}
+
+html:not(.dark) td .hljs-deletion {
+	color: #b31d28;
+	background-color: #ffeef0;
+}
+
+html:not(.dark) td .hljs-addition {
+	color: #22863a;
+	background-color: #f0fff4;
+}
+
+html:not(.dark) td .hljs-link {
+	color: #032f62;
+	font-style: underline;
+}

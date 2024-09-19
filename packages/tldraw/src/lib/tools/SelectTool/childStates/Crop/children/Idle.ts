@@ -1,11 +1,18 @@
-import { StateNode, TLEventHandlers, TLExitEventHandler, TLGroupShape, Vec } from '@tldraw/editor'
+import {
+	StateNode,
+	TLClickEventInfo,
+	TLGroupShape,
+	TLKeyboardEventInfo,
+	TLPointerEventInfo,
+	Vec,
+} from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onEnter = () => {
+	override onEnter() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 
 		const onlySelectedShape = this.editor.getOnlySelectedShape()
@@ -15,16 +22,16 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onExit: TLExitEventHandler = () => {
+	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.editor.setCroppingShape(null)
 		this.editor.setCurrentTool('select.idle', {})
 	}
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		if (this.editor.getIsMenuOpen()) return
 
 		if (info.ctrlKey) {
@@ -104,7 +111,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+	override onDoubleClick(info: TLClickEventInfo) {
 		// Without this, the double click's "settle" would trigger the reset
 		// after the user double clicked the edge to begin cropping
 		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
@@ -128,15 +135,15 @@ export class Idle extends StateNode {
 		this.editor.root.handleEvent(info)
 	}
 
-	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {
+	override onKeyDown() {
 		this.nudgeCroppingImage(false)
 	}
 
-	override onKeyRepeat: TLEventHandlers['onKeyRepeat'] = () => {
+	override onKeyRepeat() {
 		this.nudgeCroppingImage(true)
 	}
 
-	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp(info: TLKeyboardEventInfo) {
 		switch (info.code) {
 			case 'Enter': {
 				this.editor.setCroppingShape(null)
@@ -182,7 +189,7 @@ export class Idle extends StateNode {
 			if (!ephemeral) {
 				// We don't want to create new marks if the user
 				// is just holding down the arrow keys
-				this.editor.mark('translate crop')
+				this.editor.markHistoryStoppingPoint('translate crop')
 			}
 
 			this.editor.updateShapes<ShapeWithCrop>([partial])

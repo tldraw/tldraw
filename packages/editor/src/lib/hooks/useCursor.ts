@@ -1,4 +1,4 @@
-import { useQuickReactor } from '@tldraw/state'
+import { useQuickReactor } from '@tldraw/state-react'
 import { TLCursorType } from '@tldraw/tlschema'
 import { PI, radiansToDegrees } from '../primitives/utils'
 import { useContainer } from './useContainer'

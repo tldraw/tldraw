@@ -1,4 +1,4 @@
-import { useComputed, useValue } from '@tldraw/state'
+import { useComputed, useValue } from '@tldraw/state-react'
 import { uniq } from '../utils/uniq'
 import { useEditor } from './useEditor'
 

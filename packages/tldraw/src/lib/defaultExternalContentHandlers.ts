@@ -1,32 +1,31 @@
 import {
 	AssetRecordType,
 	Editor,
-	FileHelpers,
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkShape,
 	TLEmbedShape,
+	TLImageAsset,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
+	TLVideoAsset,
 	Vec,
 	VecLike,
-	WeakCache,
 	assert,
-	compact,
 	createShapeId,
 	fetch,
 	getHashForBuffer,
 	getHashForString,
 } from '@tldraw/editor'
-import { getAssetFromIndexedDb, storeAssetInIndexedDb } from './AssetBlobStore'
+import { EmbedDefinition } from './defaultEmbedDefinitions'
+import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { containBoxSize } from './utils/assets/assets'
-import { getEmbedInfo } from './utils/embeds/embeds'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
 
 /** @public */
@@ -53,6 +52,7 @@ export interface TLExternalContentProps {
 	acceptedVideoMimeTypes?: readonly string[]
 }
 
+/** @public */
 export function registerDefaultExternalContentHandlers(
 	editor: Editor,
 	{
@@ -61,68 +61,46 @@ export function registerDefaultExternalContentHandlers(
 		acceptedImageMimeTypes,
 		acceptedVideoMimeTypes,
 	}: Required<TLExternalContentProps>,
-	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> },
-	persistenceKey?: string
+	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
-	editor.registerExternalAssetHandler('file', async ({ file: _file }) => {
-		const name = _file.name
-		let file: Blob = _file
+	editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
+		if (!isImageType && !isVideoType) {
+			toasts.addToast({
+				title: msg('assets.files.type-not-allowed'),
+				severity: 'error',
+			})
+		}
 		assert(isImageType || isVideoType, `File type not allowed: ${file.type}`)
+
+		if (file.size > maxAssetSize) {
+			toasts.addToast({
+				title: msg('assets.files.size-too-big'),
+				severity: 'error',
+			})
+		}
 		assert(
 			file.size <= maxAssetSize,
 			`File size too big: ${(file.size / 1024).toFixed()}kb > ${(maxAssetSize / 1024).toFixed()}kb`
 		)
 
-		if (file.type === 'video/quicktime') {
-			// hack to make .mov videos work
-			file = new Blob([file], { type: 'video/mp4' })
-		}
-
-		let size = isImageType
-			? await MediaHelpers.getImageSize(file)
-			: await MediaHelpers.getVideoSize(file)
-
-		const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
-
-		const hash = await getHashForBuffer(await file.arrayBuffer())
+		const hash = getHashForBuffer(await file.arrayBuffer())
+		assetId = assetId ?? AssetRecordType.createId(hash)
+		const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 
 		if (isFinite(maxImageDimension)) {
+			const size = { w: assetInfo.props.w, h: assetInfo.props.h }
 			const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
 			if (size !== resizedSize && MediaHelpers.isStaticImageType(file.type)) {
-				size = resizedSize
+				assetInfo.props.w = resizedSize.w
+				assetInfo.props.h = resizedSize.h
 			}
 		}
 
-		const assetId: TLAssetId = AssetRecordType.createId(hash)
-		const assetInfo = {
-			id: assetId,
-			type: isImageType ? 'image' : 'video',
-			typeName: 'asset',
-			props: {
-				name,
-				src: '',
-				w: size.w,
-				h: size.h,
-				fileSize: file.size,
-				mimeType: file.type,
-				isAnimated,
-			},
-		} as TLAsset
-
-		if (persistenceKey) {
-			assetInfo.props.src = assetId
-			await storeAssetInIndexedDb({
-				persistenceKey,
-				assetId,
-				blob: file,
-			})
-		} else {
-			assetInfo.props.src = await FileHelpers.blobToDataUrl(file)
-		}
+		assetInfo.props.src = await editor.uploadAsset(assetInfo, file)
 
 		return AssetRecordType.create(assetInfo)
 	})
@@ -215,34 +193,41 @@ export function registerDefaultExternalContentHandlers(
 	})
 
 	// embeds
-	editor.registerExternalContentHandler('embed', ({ point, url, embed }) => {
-		const position =
-			point ??
-			(editor.inputs.shiftKey
-				? editor.inputs.currentPagePoint
-				: editor.getViewportPageBounds().center)
+	editor.registerExternalContentHandler<'embed', EmbedDefinition>(
+		'embed',
+		({ point, url, embed }) => {
+			const position =
+				point ??
+				(editor.inputs.shiftKey
+					? editor.inputs.currentPagePoint
+					: editor.getViewportPageBounds().center)
 
-		const { width, height } = embed
+			const { width, height } = embed
 
-		const id = createShapeId()
+			const id = createShapeId()
 
-		const shapePartial: TLShapePartial<TLEmbedShape> = {
-			id,
-			type: 'embed',
-			x: position.x - (width || 450) / 2,
-			y: position.y - (height || 450) / 2,
-			props: {
-				w: width,
-				h: height,
-				url,
-			},
+			const shapePartial: TLShapePartial<TLEmbedShape> = {
+				id,
+				type: 'embed',
+				x: position.x - (width || 450) / 2,
+				y: position.y - (height || 450) / 2,
+				props: {
+					w: width,
+					h: height,
+					url,
+				},
+			}
+
+			editor.createShapes([shapePartial]).select(id)
 		}
-
-		editor.createShapes([shapePartial]).select(id)
-	})
+	)
 
 	// files
 	editor.registerExternalContentHandler('files', async ({ point, files }) => {
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
+
 		const position =
 			point ??
 			(editor.inputs.shiftKey
@@ -250,53 +235,89 @@ export function registerDefaultExternalContentHandlers(
 				: editor.getViewportPageBounds().center)
 
 		const pagePoint = new Vec(position.x, position.y)
-
 		const assets: TLAsset[] = []
+		const assetsToUpdate: {
+			asset: TLAsset
+			file: File
+			temporaryAssetPreview?: string
+		}[] = []
+		for (const file of files) {
+			if (file.size > maxAssetSize) {
+				toasts.addToast({
+					title: msg('assets.files.size-too-big'),
+					severity: 'error',
+				})
 
-		await Promise.all(
-			files.map(async (file, i) => {
-				if (file.size > maxAssetSize) {
-					console.warn(
-						`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
-							maxAssetSize / 1024
-						).toFixed()}kb`
-					)
-					return null
-				}
+				console.warn(
+					`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
+						maxAssetSize / 1024
+					).toFixed()}kb`
+				)
+				continue
+			}
 
-				// Use mime type instead of file ext, this is because
-				// window.navigator.clipboard does not preserve file names
-				// of copied files.
-				if (!file.type) {
-					throw new Error('No mime type')
-				}
+			// Use mime type instead of file ext, this is because
+			// window.navigator.clipboard does not preserve file names
+			// of copied files.
+			if (!file.type) {
+				toasts.addToast({
+					title: msg('assets.files.upload-failed'),
+					severity: 'error',
+				})
+				console.error('No mime type')
+				continue
+			}
 
-				// We can only accept certain extensions (either images or a videos)
-				if (!acceptedImageMimeTypes.concat(acceptedVideoMimeTypes).includes(file.type)) {
-					console.warn(`${file.name} not loaded - Extension not allowed.`)
-					return null
-				}
+			// We can only accept certain extensions (either images or a videos)
+			if (!acceptedImageMimeTypes.concat(acceptedVideoMimeTypes).includes(file.type)) {
+				toasts.addToast({
+					title: msg('assets.files.type-not-allowed'),
+					severity: 'error',
+				})
 
+				console.warn(`${file.name} not loaded - Mime type not allowed ${file.type}.`)
+				continue
+			}
+
+			const isImageType = acceptedImageMimeTypes.includes(file.type)
+			const isVideoType = acceptedVideoMimeTypes.includes(file.type)
+			const hash = getHashForBuffer(await file.arrayBuffer())
+			const assetId: TLAssetId = AssetRecordType.createId(hash)
+			const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
+			let temporaryAssetPreview
+			if (isImageType) {
+				temporaryAssetPreview = editor.createTemporaryAssetPreview(assetId, file)
+			}
+			assets.push(assetInfo)
+			assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
+		}
+
+		Promise.allSettled(
+			assetsToUpdate.map(async (assetAndFile) => {
 				try {
-					const asset = await editor.getAssetForExternalContent({ type: 'file', file })
+					const newAsset = await editor.getAssetForExternalContent({
+						type: 'file',
+						file: assetAndFile.file,
+					})
 
-					if (!asset) {
+					if (!newAsset) {
 						throw Error('Could not create an asset')
 					}
 
-					assets[i] = asset
+					// Save the new asset under the old asset's id
+					editor.updateAssets([{ ...newAsset, id: assetAndFile.asset.id }])
 				} catch (error) {
 					toasts.addToast({
 						title: msg('assets.files.upload-failed'),
 						severity: 'error',
 					})
 					console.error(error)
-					return null
+					return
 				}
 			})
 		)
 
-		createShapesForAssets(editor, compact(assets), pagePoint)
+		createShapesForAssets(editor, assets, pagePoint)
 	})
 
 	// text
@@ -396,7 +417,8 @@ export function registerDefaultExternalContentHandlers(
 	// url
 	editor.registerExternalContentHandler('url', async ({ point, url }) => {
 		// try to paste as an embed first
-		const embedInfo = getEmbedInfo(url)
+		const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
+		const embedInfo = embedUtil?.getEmbedDefinition(url)
 
 		if (embedInfo) {
 			return editor.putExternalContent({
@@ -434,7 +456,7 @@ export function registerDefaultExternalContentHandlers(
 			}
 		}
 
-		editor.batch(() => {
+		editor.run(() => {
 			if (shouldAlsoCreateAsset) {
 				editor.createAssets([asset])
 			}
@@ -452,6 +474,57 @@ export function registerDefaultExternalContentHandlers(
 	})
 }
 
+/** @public */
+export async function getMediaAssetInfoPartial(
+	file: File,
+	assetId: TLAssetId,
+	isImageType: boolean,
+	isVideoType: boolean
+) {
+	let fileType = file.type
+
+	if (file.type === 'video/quicktime') {
+		// hack to make .mov videos work
+		fileType = 'video/mp4'
+	}
+
+	const size = isImageType
+		? await MediaHelpers.getImageSize(file)
+		: await MediaHelpers.getVideoSize(file)
+
+	const isAnimated = (await MediaHelpers.isAnimated(file)) || isVideoType
+
+	const assetInfo = {
+		id: assetId,
+		type: isImageType ? 'image' : 'video',
+		typeName: 'asset',
+		props: {
+			name: file.name,
+			src: '',
+			w: size.w,
+			h: size.h,
+			fileSize: file.size,
+			mimeType: fileType,
+			isAnimated,
+		},
+		meta: {},
+	} as TLAsset
+
+	return assetInfo as TLImageAsset | TLVideoAsset
+}
+
+/**
+ * A helper function for an external content handler. It creates bookmarks,
+ * images or video shapes corresponding to the type of assets provided.
+ *
+ * @param editor - The editor instance
+ *
+ * @param assets - An array of asset Ids
+ *
+ * @param position - the position at which to create the shapes
+ *
+ * @public
+ */
 export async function createShapesForAssets(
 	editor: Editor,
 	assets: TLAsset[],
@@ -465,22 +538,6 @@ export async function createShapesForAssets(
 	for (let i = 0; i < assets.length; i++) {
 		const asset = assets[i]
 		switch (asset.type) {
-			case 'bookmark': {
-				partials.push({
-					id: createShapeId(),
-					type: 'bookmark',
-					x: currentPoint.x,
-					y: currentPoint.y,
-					opacity: 1,
-					props: {
-						assetId: asset.id,
-						url: asset.props.src,
-					},
-				})
-
-				currentPoint.x += 300 // BOOKMARK_WIDTH
-				break
-			}
 			case 'image': {
 				partials.push({
 					id: createShapeId(),
@@ -517,7 +574,7 @@ export async function createShapesForAssets(
 		}
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		// Create any assets
 		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
 		if (assetsToCreate.length) {
@@ -534,7 +591,17 @@ export async function createShapesForAssets(
 	return partials.map((p) => p.id)
 }
 
-function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
+/**
+ * Repositions selected shapes do that the center of the group is
+ * at the provided position
+ *
+ * @param editor - The editor instance
+ *
+ * @param position - the point to center the shapes around
+ *
+ * @public
+ */
+export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	// Re-position shapes so that the center of the group is at the provided point
 	const viewportPageBounds = editor.getViewportPageBounds()
 	let selectionPageBounds = editor.getSelectionPageBounds()
@@ -580,43 +647,10 @@ export function createEmptyBookmarkShape(
 		},
 	}
 
-	editor.batch(() => {
+	editor.run(() => {
 		editor.createShapes([partial]).select(partial.id)
 		centerSelectionAroundPoint(editor, position)
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
-}
-
-const objectURLCache = new WeakCache<TLAsset, ReturnType<typeof getLocalAssetObjectURL>>()
-export const defaultResolveAsset =
-	(persistenceKey?: string) => async (asset: TLAsset | null | undefined) => {
-		if (!asset || !asset.props.src) return null
-
-		// Retrieve a local image from the DB.
-		if (persistenceKey && asset.props.src.startsWith('asset:')) {
-			return await objectURLCache.get(
-				asset,
-				async () => await getLocalAssetObjectURL(persistenceKey, asset.id)
-			)
-		}
-
-		// We don't deal with videos at the moment.
-		if (asset.type === 'video') return asset.props.src
-
-		// Assert it's an image to make TS happy.
-		if (asset.type !== 'image') return null
-
-		return asset.props.src
-	}
-
-async function getLocalAssetObjectURL(persistenceKey: string, assetId: TLAssetId) {
-	const blob = await getAssetFromIndexedDb({
-		assetId: assetId,
-		persistenceKey,
-	})
-	if (blob) {
-		return URL.createObjectURL(blob)
-	}
-	return null
 }

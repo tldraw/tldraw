@@ -1,16 +1,13 @@
-import { EMBED_DEFINITIONS, LANGUAGES, RecursivePartial } from '@tldraw/editor'
-import {
-	TLEditorAssetUrls,
-	defaultEditorAssetUrls,
-	getDefaultCdnBaseUrl,
-} from '../utils/static-assets/assetUrls'
+import { LANGUAGES, RecursivePartial, getDefaultCdnBaseUrl } from '@tldraw/editor'
+import { DEFAULT_EMBED_DEFINITIONS } from '../defaultEmbedDefinitions'
+import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-assets/assetUrls'
 import { TLUiIconType, iconTypes } from './icon-types'
 
 /** @public */
 export type TLUiAssetUrls = TLEditorAssetUrls & {
 	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
-	embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>
+	embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>
 }
 
 /** @public */
@@ -19,7 +16,7 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>
 export let defaultUiAssetUrls: TLUiAssetUrls = {
 	...defaultEditorAssetUrls,
 	icons: Object.fromEntries(
-		iconTypes.map((name) => [name, `${getDefaultCdnBaseUrl()}/icons/icon/${name}.svg`])
+		iconTypes.map((name) => [name, `${getDefaultCdnBaseUrl()}/icons/icon/0_merged.svg#${name}`])
 	) as Record<TLUiIconType, string>,
 	translations: Object.fromEntries(
 		LANGUAGES.map((lang) => [
@@ -28,11 +25,11 @@ export let defaultUiAssetUrls: TLUiAssetUrls = {
 		])
 	) as Record<(typeof LANGUAGES)[number]['locale'], string>,
 	embedIcons: Object.fromEntries(
-		EMBED_DEFINITIONS.map((def) => [
+		DEFAULT_EMBED_DEFINITIONS.map((def) => [
 			def.type,
 			`${getDefaultCdnBaseUrl()}/embed-icons/${def.type}.png`,
 		])
-	) as Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>,
+	) as Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>,
 }
 
 /** @internal */

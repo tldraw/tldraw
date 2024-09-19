@@ -8,9 +8,7 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags: Record<string, DebugFlag<boolean>> = {
-	// canMoveArrowLabel: createFeatureFlag('canMoveArrowLabel'),
-}
+export const featureFlags: Record<string, DebugFlag<boolean>> = {}
 
 /** @internal */
 export const pointerCaptureTrackingObject = createDebugValue(
@@ -59,7 +57,7 @@ export const debugFlags = {
 
 declare global {
 	interface Window {
-		tldrawLog: (message: any) => void
+		tldrawLog(message: any): void
 	}
 }
 
@@ -106,14 +104,17 @@ function createDebugValue<T>(
 	})
 }
 
-// function createFeatureFlag(
+// function createFeatureFlag<T>(
 // 	name: string,
-// 	defaults: Defaults<boolean> = { all: true, production: false }
+// 	{
+// 		defaults,
+// 		shouldStoreForSession = true,
+// 	}: { defaults: DebugFlagDefaults<T>; shouldStoreForSession?: boolean }
 // ) {
 // 	return createDebugValueBase({
 // 		name,
 // 		defaults,
-// 		shouldStoreForSession: true,
+// 		shouldStoreForSession,
 // 	})
 // }
 

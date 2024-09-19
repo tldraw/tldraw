@@ -7,10 +7,13 @@ import { Idle } from '../draw/toolStates/Idle'
 export class HighlightShapeTool extends StateNode {
 	static override id = 'highlight'
 	static override initial = 'idle'
-	static override children = (): TLStateNodeConstructor[] => [Idle, Drawing]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Drawing]
+	}
+	static override isLockable = false
 	override shapeType = 'highlight'
 
-	override onExit = () => {
+	override onExit() {
 		const drawingState = this.children!['drawing'] as Drawing
 		drawingState.initialShape = undefined
 	}

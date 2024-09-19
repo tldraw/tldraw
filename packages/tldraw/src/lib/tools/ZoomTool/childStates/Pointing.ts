@@ -1,25 +1,25 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
-	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
+	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		this.info = info
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove() {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('zoom_brushing', this.info)
 		}
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 

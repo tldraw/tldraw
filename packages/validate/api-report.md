@@ -212,7 +212,7 @@ export class UnionValidator<Key extends string, Config extends UnionValidatorCon
 // @public (undocumented)
 export type UnionValidatorConfig<Key extends string, Config> = {
     readonly [Variant in keyof Config]: Validatable<any> & {
-        validate: (input: any) => {
+        validate(input: any): {
             readonly [K in Key]: Variant;
         };
     };
@@ -227,8 +227,8 @@ const unknownObject: Validator<Record<string, unknown>>;
 // @public (undocumented)
 interface Validatable<T> {
     // (undocumented)
-    validate: (value: unknown) => T;
-    validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T;
+    validate(value: unknown): T;
+    validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T;
 }
 
 // @public (undocumented)

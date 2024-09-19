@@ -1,4 +1,4 @@
-import { EASINGS, StateNode, TLClickEvent, TLStateNodeConstructor } from '@tldraw/editor'
+import { EASINGS, StateNode, TLClickEventInfo, TLStateNodeConstructor } from '@tldraw/editor'
 import { Dragging } from './childStates/Dragging'
 import { Idle } from './childStates/Idle'
 import { Pointing } from './childStates/Pointing'
@@ -7,9 +7,11 @@ import { Pointing } from './childStates/Pointing'
 export class HandTool extends StateNode {
 	static override id = 'hand'
 	static override initial = 'idle'
-	static override children = (): TLStateNodeConstructor[] => [Idle, Pointing, Dragging]
+	static override children(): TLStateNodeConstructor[] {
+		return [Idle, Pointing, Dragging]
+	}
 
-	override onDoubleClick: TLClickEvent = (info) => {
+	override onDoubleClick(info: TLClickEventInfo) {
 		if (info.phase === 'settle') {
 			const { currentScreenPoint } = this.editor.inputs
 			this.editor.zoomIn(currentScreenPoint, {
@@ -18,7 +20,7 @@ export class HandTool extends StateNode {
 		}
 	}
 
-	override onTripleClick: TLClickEvent = (info) => {
+	override onTripleClick(info: TLClickEventInfo) {
 		if (info.phase === 'settle') {
 			const { currentScreenPoint } = this.editor.inputs
 			this.editor.zoomOut(currentScreenPoint, {
@@ -27,7 +29,7 @@ export class HandTool extends StateNode {
 		}
 	}
 
-	override onQuadrupleClick: TLClickEvent = (info) => {
+	override onQuadrupleClick(info: TLClickEventInfo) {
 		if (info.phase === 'settle') {
 			const zoomLevel = this.editor.getZoomLevel()
 			const {

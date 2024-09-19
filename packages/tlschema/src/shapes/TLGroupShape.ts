@@ -3,7 +3,8 @@ import { RecordProps } from '../recordsWithProps'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLGroupShapeProps = { [key in never]: undefined }
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface TLGroupShapeProps {}
 
 /** @public */
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>

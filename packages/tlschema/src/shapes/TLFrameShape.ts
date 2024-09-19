@@ -1,20 +1,24 @@
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationSequence } from '../records/TLShape'
-import { RecordPropsType } from '../recordsWithProps'
+import { RecordProps } from '../recordsWithProps'
 import { TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const frameShapeProps = {
+export interface TLFrameShapeProps {
+	w: number
+	h: number
+	name: string
+}
+
+/** @public */
+export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
+
+/** @public */
+export const frameShapeProps: RecordProps<TLFrameShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	name: T.string,
 }
-
-/** @public */
-export type TLFrameShapeProps = RecordPropsType<typeof frameShapeProps>
-
-/** @public */
-export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
 /** @public */
 export const frameShapeMigrations = createShapePropsMigrationSequence({

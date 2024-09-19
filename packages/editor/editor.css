@@ -123,6 +123,7 @@
 	height: 100%;
 	width: 100%;
 	overflow: clip;
+	color: var(--color-text);
 }
 
 .tl-theme__light {
@@ -583,6 +584,11 @@ input,
 	height: 100%;
 }
 
+.tl-video.tl-video-is-fullscreen {
+	object-fit: contain;
+	background-size: contain;
+}
+
 .tl-video-container,
 .tl-image-container,
 .tl-embed-container {
@@ -596,6 +602,15 @@ input,
 	align-items: center;
 }
 
+.tl-image-container {
+	position: relative;
+	overflow: hidden;
+}
+.tl-image {
+	position: absolute;
+	inset: 0;
+}
+
 .tl-image__tg {
 	--scale: calc(min(2, var(--tl-scale)));
 	position: absolute;
@@ -606,16 +621,6 @@ input,
 	background-color: var(--color-background);
 	padding: 2px 4px;
 	border-radius: var(--radius-1);
-}
-
-.tl-flip-x {
-	transform: scale(-1, 1);
-}
-.tl-flip-y {
-	transform: scale(1, -1);
-}
-.tl-flip-xy {
-	transform: scale(-1, -1);
 }
 
 /* --------------------- Nametag -------------------- */
@@ -920,6 +925,10 @@ input,
 	overflow: hidden;
 }
 
+.tl-bookmark__container--safariExport {
+	border: 1px solid var(--color-divider);
+}
+
 .tl-bookmark__image_container {
 	flex: 1 1 100%;
 	overflow: hidden;
@@ -978,6 +987,7 @@ input,
 	max-height: calc((16px * 1.5) * 2);
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
+	line-clamp: 2;
 	text-overflow: ellipsis;
 	display: -webkit-box;
 }
@@ -989,6 +999,7 @@ input,
 	max-height: calc((12px * 1.5) * 3);
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 3;
+	line-clamp: 3;
 	text-overflow: ellipsis;
 	display: -webkit-box;
 	color: var(--color-text-2);

@@ -316,7 +316,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 
 	const p = point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : undefined)
 
-	editor.mark('paste')
+	editor.markHistoryStoppingPoint('paste')
 
 	editor.putContentOntoCurrentPage(tldrawContent, {
 		point: p,

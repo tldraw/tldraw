@@ -20,7 +20,7 @@ it('does not zoom to bounds when camera is frozen', () => {
 })
 
 it('is ignored by undo/redo', () => {
-	editor.mark()
+	editor.markHistoryStoppingPoint()
 	editor.zoomToFit()
 	const camera = editor.getCamera()
 	editor.undo()

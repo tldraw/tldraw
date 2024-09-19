@@ -48,7 +48,7 @@ export interface TLCursor {
 }
 
 /** @public */
-export const cursorValidator: T.Validator<TLCursor> = T.object<TLCursor>({
+export const cursorValidator: T.ObjectValidator<TLCursor> = T.object<TLCursor>({
 	type: cursorTypeValidator,
 	rotation: T.number,
 })

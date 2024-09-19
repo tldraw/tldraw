@@ -1,20 +1,37 @@
-import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/sync'
+import { AnalyticsEngineDataset } from '@cloudflare/workers-types'
+import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { throttle } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createPersistQueue, createSentry, parseRequestQuery } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
+import { makePermissiveSchema } from './makePermissiveSchema'
 import { Environment } from './types'
 
 const connectRequestQuery = T.object({
-	sessionKey: T.string,
+	sessionId: T.string,
 	storeId: T.string.optional(),
 })
+
+interface AnalyticsEvent {
+	type: 'connect' | 'send_message' | 'receive_message'
+	origin: string
+	sessionId: string
+	slug: string
+}
 
 export class BemoDO extends DurableObject<Environment> {
 	r2: R2Bucket
 	_slug: string | null = null
+
+	analytics?: AnalyticsEngineDataset
+
+	writeEvent({ type, origin, sessionId, slug }: AnalyticsEvent) {
+		this.analytics?.writeDataPoint({
+			blobs: [type, origin, slug, sessionId],
+		})
+	}
 
 	constructor(
 		public state: DurableObjectState,
@@ -22,6 +39,7 @@ export class BemoDO extends DurableObject<Environment> {
 	) {
 		super(state, env)
 		this.r2 = env.BEMO_BUCKET
+		this.analytics = env.BEMO_ANALYTICS
 
 		state.blockConcurrencyWhile(async () => {
 			this._slug = ((await this.state.storage.get('slug')) ?? null) as string | null
@@ -49,7 +67,7 @@ export class BemoDO extends DurableObject<Environment> {
 
 	override async fetch(request: Request): Promise<Response> {
 		try {
-			return await this.router.handle(request)
+			return await this.router.fetch(request)
 		} catch (error) {
 			this.reportError(error, request)
 			return new Response('Something went wrong', {
@@ -61,11 +79,13 @@ export class BemoDO extends DurableObject<Environment> {
 
 	async handleConnect(req: IRequest) {
 		// extract query params from request, should include instanceId
-		const { sessionKey } = parseRequestQuery(req, connectRequestQuery)
+		const { sessionId } = parseRequestQuery(req, connectRequestQuery)
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
+
+		const origin = req.headers.get('origin') ?? 'unknown'
 
 		try {
 			const room = await this.getRoom()
@@ -80,7 +100,17 @@ export class BemoDO extends DurableObject<Environment> {
 			}
 
 			// all good
-			room.handleSocketConnect(sessionKey, serverWebSocket)
+			room.handleSocketConnect({
+				sessionId,
+				socket: serverWebSocket,
+				meta: { origin },
+			})
+			this.writeEvent({
+				type: 'connect',
+				origin,
+				sessionId,
+				slug: this.getSlug(),
+			})
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
@@ -92,7 +122,7 @@ export class BemoDO extends DurableObject<Environment> {
 	}
 
 	// For TLSyncRoom
-	_room: Promise<TLSocketRoom<TLRecord, void>> | null = null
+	_room: Promise<TLSocketRoom<TLRecord, { origin: string }>> | null = null
 
 	getSlug() {
 		if (!this._slug) {
@@ -105,8 +135,25 @@ export class BemoDO extends DurableObject<Environment> {
 		const slug = this.getSlug()
 		if (!this._room) {
 			this._room = this.loadFromDatabase(slug).then((result) => {
-				return new TLSocketRoom<TLRecord, void>({
+				return new TLSocketRoom<TLRecord, { origin: string }>({
+					schema: makePermissiveSchema(),
 					initialSnapshot: result.type === 'room_found' ? result.snapshot : undefined,
+					onAfterReceiveMessage: ({ sessionId, meta }) => {
+						this.writeEvent({
+							type: 'receive_message',
+							origin: meta.origin,
+							sessionId,
+							slug,
+						})
+					},
+					onBeforeSendMessage: ({ sessionId, meta }) => {
+						this.writeEvent({
+							type: 'send_message',
+							origin: meta.origin,
+							sessionId,
+							slug,
+						})
+					},
 					onSessionRemoved: async (room, args) => {
 						if (args.numSessionsRemaining > 0) return
 						if (!this._room) return

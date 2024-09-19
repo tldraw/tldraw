@@ -8,9 +8,11 @@ import {
 	DefaultContextMenu,
 	TLUiContextMenuProps,
 } from '../components/ContextMenu/DefaultContextMenu'
+import { CursorChatBubble } from '../components/CursorChatBubble'
 import { DefaultDebugMenu } from '../components/DebugMenu/DefaultDebugMenu'
 import { DefaultDebugPanel } from '../components/DefaultDebugPanel'
-import { DefaultHelpMenu, TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
+import { DefaultMenuPanel } from '../components/DefaultMenuPanel'
+import { TLUiHelpMenuProps } from '../components/HelpMenu/DefaultHelpMenu'
 import {
 	DefaultHelperButtons,
 	TLUiHelperButtonsProps,
@@ -20,7 +22,6 @@ import {
 	TLUiKeyboardShortcutsDialogProps,
 } from '../components/KeyboardShortcutsDialog/DefaultKeyboardShortcutsDialog'
 import { DefaultMainMenu, TLUiMainMenuProps } from '../components/MainMenu/DefaultMainMenu'
-import { DefaultMenuPanel } from '../components/MenuPanel'
 import { DefaultMinimap } from '../components/Minimap/DefaultMinimap'
 import { DefaultNavigationPanel } from '../components/NavigationPanel/DefaultNavigationPanel'
 import { DefaultPageMenu } from '../components/PageMenu/DefaultPageMenu'
@@ -28,9 +29,12 @@ import {
 	DefaultQuickActions,
 	TLUiQuickActionsProps,
 } from '../components/QuickActions/DefaultQuickActions'
+import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
+import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
+import { useShowCollaborationUi } from '../hooks/useIsMultiplayer'
 
 /** @public */
 export interface TLUiComponents {
@@ -52,6 +56,7 @@ export interface TLUiComponents {
 	MenuPanel?: ComponentType | null
 	TopPanel?: ComponentType | null
 	SharePanel?: ComponentType | null
+	CursorChatBubble?: ComponentType | null
 }
 
 const TldrawUiComponentsContext = createContext<TLUiComponents | null>(null)
@@ -68,6 +73,7 @@ export function TldrawUiComponentsProvider({
 	children,
 }: TLUiComponentsProviderProps) {
 	const _overrides = useShallowObjectIdentity(overrides)
+	const showCollaborationUi = useShowCollaborationUi()
 
 	return (
 		<TldrawUiComponentsContext.Provider
@@ -75,7 +81,7 @@ export function TldrawUiComponentsProvider({
 				() => ({
 					ContextMenu: DefaultContextMenu,
 					ActionsMenu: DefaultActionsMenu,
-					HelpMenu: DefaultHelpMenu,
+					HelpMenu: null,
 					ZoomMenu: DefaultZoomMenu,
 					MainMenu: DefaultMainMenu,
 					Minimap: DefaultMinimap,
@@ -89,9 +95,12 @@ export function TldrawUiComponentsProvider({
 					DebugPanel: DefaultDebugPanel,
 					DebugMenu: DefaultDebugMenu,
 					MenuPanel: DefaultMenuPanel,
+					SharePanel: showCollaborationUi ? DefaultSharePanel : null,
+					CursorChatBubble: showCollaborationUi ? CursorChatBubble : null,
+					TopPanel: showCollaborationUi ? DefaultTopPanel : null,
 					..._overrides,
 				}),
-				[_overrides]
+				[_overrides, showCollaborationUi]
 			)}
 		>
 			{children}

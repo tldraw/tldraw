@@ -1,0 +1,37 @@
+---
+title: Release Notes – January 20th 2023
+category: release-notes
+description: Vimeo and Spotify embeds, better text, and bug fixes.
+hero: /images/blog/b17f1e5d-f748-46ca-bd94-53770f5a8286_720x406.gif
+date: 1/20/2023
+status: published
+author:
+  - steveruizok
+---
+
+## What’s New
+
+- Added Support for **Vimeo and Spotify embeds**. Paste a link to a Vimeo video or Spotify album or artist onto the canvas to create the embed.
+- Added support for **diacritics** in text shapes and labels.
+  ![](/images/blog/7d57a4ef-46ab-4a1b-855b-1e070db2be71_720x406.gif)
+- Added **Toggle Autosize** to the menu for text shapes. Select Toggle Autosize to turn a fixed width text shape back into an auto-sizing text shape.
+  ![](/images/blog/fd734570-76cc-4459-b627-92401b6fde5d_720x406.gif)
+
+## Improvements
+
+- Various under the hood improvements to how we load and update projects.
+
+## Fixes
+
+- Fixed an issue that could cause clients to de-sync in multiplayer.
+- Fixed a bug that could cause the minimap to adjust incorrectly when shapes were masked by their parent frame shapes.
+- Fixed text measurement for text shapes and labels.
+- Fixed text measurement on Firefox.
+- Fixed rotation and resizing interactions on Android and Firefox.
+- Fixed a bug that could cause the app to get stuck in spacebar panning mode when opening the emoji picker on MacOS. (Did you know you could hold spacebar to enter a special panning mode?)
+- Fixed whitespace in text shapes and labels.
+- Fixed the tap-to-create-a-shape interaction on mobile.
+- Fixed keyboard shortcuts in tooltips.
+- Fixed click events not registering at the top of the screen.
+- Fixed a bug that could prevent some [beta.tldraw.com](http://beta.tldraw.com) links from embedding in tldraw. (Did you know you can paste tldraw links into tldraw in order to embed them there?)
+- Fixed a rare crash that could occur when resizing shapes.

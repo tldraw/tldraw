@@ -541,7 +541,6 @@ describe('snapshots', () => {
 				props: {
 					w: 1200,
 					h: 800,
-					fileSize: -1,
 					name: '',
 					isAnimated: false,
 					mimeType: 'png',

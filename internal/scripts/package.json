@@ -1,0 +1,67 @@
+{
+	"name": "@tldraw/scripts",
+	"description": "build scripts",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"devDependencies": {
+		"@actions/github": "^6.0.0",
+		"@auto-it/core": "^11.1.1",
+		"@aws-sdk/client-s3": "^3.440.0",
+		"@aws-sdk/lib-storage": "^3.440.0",
+		"@types/is-ci": "^3.0.0",
+		"@types/node": "~20.11",
+		"@typescript-eslint/utils": "^5.59.0",
+		"ast-types": "^0.14.2",
+		"cross-fetch": "^3.1.5",
+		"esbuild": "^0.21.5",
+		"eslint": "^8.37.0",
+		"glob": "^8.0.3",
+		"gray-matter": "^4.0.3",
+		"is-ci": "^3.0.1",
+		"kleur": "^4.1.5",
+		"lazyrepo": "0.0.0-alpha.27",
+		"prettier": "^3.0.3",
+		"recast": "^0.22.0",
+		"rimraf": "^4.4.0",
+		"semver": "^7.3.8",
+		"svgo": "^3.0.2",
+		"typescript": "^5.3.3"
+	},
+	"scripts": {
+		"lint": "yarn run -T tsx lint.ts"
+	},
+	"dependencies": {
+		"@octokit/rest": "^20.0.2",
+		"@types/minimist": "^1.2.5",
+		"@types/proper-lockfile": "^4.1.4",
+		"@types/tmp": "^0.2.6",
+		"ignore": "^5.2.4",
+		"minimist": "^1.2.8",
+		"proper-lockfile": "^4.1.2",
+		"tar": "^7.0.1",
+		"tmp": "^0.2.3",
+		"toml": "^3.0.0"
+	}
+}

@@ -1,15 +1,10 @@
 import {
 	Editor,
 	FileHelpers,
-	TLArrowShape,
-	TLBookmarkShape,
-	TLEmbedShape,
 	TLExternalContentSource,
-	TLGeoShape,
-	TLTextShape,
 	Vec,
 	VecLike,
-	isNonNull,
+	isDefined,
 	preventDefault,
 	stopEventPropagation,
 	uniq,
@@ -115,7 +110,7 @@ const handleText = (
 	} else if (isValidHttpURL(data)) {
 		pasteUrl(editor, data, point)
 	} else if (isSvgText(data)) {
-		editor.mark('paste')
+		editor.markHistoryStoppingPoint('paste')
 		editor.putExternalContent({
 			type: 'svg-text',
 			text: data,
@@ -123,7 +118,7 @@ const handleText = (
 			sources,
 		})
 	} else {
-		editor.mark('paste')
+		editor.markHistoryStoppingPoint('paste')
 		editor.putExternalContent({
 			type: 'text',
 			text: data,
@@ -296,6 +291,9 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 	// Just paste the files, nothing else
 	if (files.length) {
+		if (files.length > editor.options.maxFilesAtOnce) {
+			throw Error('Too many files')
+		}
 		const fileBlobs = await Promise.all(files.map((t) => t.source!))
 		const urls = (fileBlobs.filter(Boolean) as (File | Blob)[]).map((blob) =>
 			URL.createObjectURL(blob)
@@ -508,22 +506,10 @@ const handleNativeOrMenuCopy = async (editor: Editor) => {
 		// Extract the text from the clipboard
 		const textItems = content.shapes
 			.map((shape) => {
-				if (
-					editor.isShapeOfType<TLTextShape>(shape, 'text') ||
-					editor.isShapeOfType<TLGeoShape>(shape, 'geo') ||
-					editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
-				) {
-					return shape.props.text
-				}
-				if (
-					editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') ||
-					editor.isShapeOfType<TLEmbedShape>(shape, 'embed')
-				) {
-					return shape.props.url
-				}
-				return null
+				const util = editor.getShapeUtil(shape)
+				return util.getText(shape)
 			})
-			.filter(isNonNull)
+			.filter(isDefined)
 
 		if (navigator.clipboard?.write) {
 			const htmlBlob = new Blob([`<div data-tldraw>${stringifiedClipboard}</div>`], {

@@ -21,8 +21,12 @@ const SLOT_SIZE = 100
 class MyCounterShapeUtil extends ShapeUtil<MyCounterShape> {
 	static override type = 'my-counter-shape' as const
 
-	override canResize = () => false
-	override hideResizeHandles = () => true
+	override canResize() {
+		return false
+	}
+	override hideResizeHandles() {
+		return true
+	}
 
 	getDefaultProps(): MyCounterShape['props'] {
 		return {}
@@ -65,11 +69,15 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 		})
 	}
 
-	override canResize = () => false
-	override hideResizeHandles = () => true
+	override canResize() {
+		return false
+	}
+	override hideResizeHandles() {
+		return true
+	}
 
 	// [a]
-	override canDropShapes = (shape: MyGridShape, shapes: TLShape[]) => {
+	override canDropShapes(_shape: MyGridShape, shapes: TLShape[]) {
 		if (shapes.every((s) => s.type === 'my-counter-shape')) {
 			return true
 		}
@@ -77,14 +85,14 @@ class MyGridShapeUtil extends ShapeUtil<MyGridShape> {
 	}
 
 	// [b]
-	override onDragShapesOver = (shape: MyGridShape, shapes: TLShape[]) => {
+	override onDragShapesOver(shape: MyGridShape, shapes: TLShape[]) {
 		if (!shapes.every((child) => child.parentId === shape.id)) {
 			this.editor.reparentShapes(shapes, shape.id)
 		}
 	}
 
 	// [c]
-	override onDragShapesOut = (shape: MyGridShape, shapes: TLShape[]) => {
+	override onDragShapesOut(_shape: MyGridShape, shapes: TLShape[]) {
 		this.editor.reparentShapes(shapes, this.editor.getCurrentPageId())
 	}
 

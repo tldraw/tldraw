@@ -3,7 +3,7 @@ title: Tools
 status: published
 author: steveruizok
 date: 3/22/2023
-order: 5
+order: 3
 keywords:
   - custom
   - tools
@@ -19,7 +19,7 @@ In tldraw, a **tool** is what we call any top-level state in our state chart. Fo
 	title="The first level of states in the start chart are known as tools."
 />
 
-For more detailed information about the state chart, and how it works, go to the [Editor page](editor). Or read below for more information about tools, and how to make your own.
+For more detailed information about the state chart, and how it works, go to the [Editor page](/docs/editor). Or read below for more information about tools, and how to make your own.
 
 ## Types of tool
 
@@ -69,7 +69,9 @@ class MyPointingState extends StateNode {
 class MyTool extends StateNode {
 	static override id = 'my-tool'
 	static override initial = 'my-idle-state'
-	static override children = [MyIdleState, MyPointingState]
+	static override children() {
+		return [MyIdleState, MyPointingState]
+	}
 }
 ```
 
@@ -85,7 +87,7 @@ Beginning at the root, each node will first handle the event and then pass the e
 class MyIdleState extends StateNode {
 	static override id = 'my-idle-state'
 
-	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	onPointerDown(info: TLPointerEventInfo) {
 		console.log('world')
 	}
 }
@@ -93,9 +95,11 @@ class MyIdleState extends StateNode {
 class MyTool extends StateNode {
 	static override id = 'my-tool'
 	static override initial = 'my-idle-state'
-	static override children = [MyIdleState]
+	static override children() {
+		return [MyIdleState]
+	}
 
-	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	onPointerDown(info: TLPointerEventInfo) {
 		console.log('hello')
 	}
 }
@@ -109,7 +113,7 @@ Using the example above, if a `pointer_down` event is passed to the editor while
 class MyIdleState extends StateNode {
 	static override id = 'my-idle-state'
 
-	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	onPointerDown(info: TLPointerEventInfo) {
 		console.log("this won't run")
 	}
 }
@@ -119,7 +123,7 @@ class MyTool extends StateNode {
 	static override initial = 'my-idle-state'
 	static override children = [MyIdleState]
 
-	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	onPointerDown(info: TLPointerEventInfo) {
 		editor.setCurrentTool('select')
 	}
 }

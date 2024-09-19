@@ -1,3 +1,4 @@
+import { describe } from 'node:test'
 import { createTLStore } from '../config/createTLStore'
 import { Editor } from '../editor/Editor'
 import { StateNode } from '../editor/tools/StateNode'
@@ -15,7 +16,7 @@ class B extends StateNode {
 class C extends StateNode {
 	static override id = 'C'
 
-	override onEnter = () => {
+	override onEnter() {
 		this.setCurrentToolIdMask('A')
 	}
 }

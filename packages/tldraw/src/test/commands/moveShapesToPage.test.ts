@@ -59,28 +59,28 @@ describe('Editor.moveShapesToPage', () => {
 	})
 
 	it('Adds undo items', () => {
-		editor.history.clear()
-		expect(editor.history.getNumUndos()).toBe(0)
+		editor.getHistory().clear()
+		expect(editor.getHistory().getNumUndos()).toBe(0)
 		editor.moveShapesToPage([ids.box1], ids.page2)
-		expect(editor.history.getNumUndos()).toBe(1)
+		expect(editor.getHistory().getNumUndos()).toBe(1)
 	})
 
 	it('Does nothing on an empty ids array', () => {
-		editor.history.clear()
+		editor.getHistory().clear()
 		editor.moveShapesToPage([], ids.page2)
-		expect(editor.history.getNumUndos()).toBe(0)
+		expect(editor.getHistory().getNumUndos()).toBe(0)
 	})
 
 	it('Does nothing if the new page is not found or is deleted', () => {
-		editor.history.clear()
+		editor.getHistory().clear()
 		editor.moveShapesToPage([ids.box1], PageRecordType.createId('missing'))
-		expect(editor.history.getNumUndos()).toBe(0)
+		expect(editor.getHistory().getNumUndos()).toBe(0)
 	})
 
 	it('Does not move shapes to the current page', () => {
-		editor.history.clear()
+		editor.getHistory().clear()
 		editor.moveShapesToPage([ids.box1], ids.page1)
-		expect(editor.history.getNumUndos()).toBe(0)
+		expect(editor.getHistory().getNumUndos()).toBe(0)
 	})
 
 	it('Restores on undo / redo', () => {
@@ -91,7 +91,7 @@ describe('Editor.moveShapesToPage', () => {
 			ids.ellipse1,
 		])
 
-		editor.mark('move shapes to page')
+		editor.markHistoryStoppingPoint('move shapes to page')
 		editor.moveShapesToPage([ids.box2], ids.page2)
 
 		expect(editor.getCurrentPageId()).toBe(ids.page2)

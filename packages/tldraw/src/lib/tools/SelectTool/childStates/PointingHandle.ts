@@ -2,7 +2,6 @@ import {
 	Editor,
 	StateNode,
 	TLArrowShape,
-	TLEventHandlers,
 	TLHandle,
 	TLNoteShape,
 	TLPointerEventInfo,
@@ -21,7 +20,7 @@ export class PointingHandle extends StateNode {
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
 
-	override onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
+	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
 
 		const { shape } = info
@@ -36,12 +35,12 @@ export class PointingHandle extends StateNode {
 		this.editor.setCursor({ type: 'grabbing', rotation: 0 })
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setHintingShapes([])
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		const { shape, handle } = this.info
 
 		if (this.editor.isShapeOfType<TLNoteShape>(shape, 'note')) {
@@ -56,14 +55,14 @@ export class PointingHandle extends StateNode {
 		this.parent.transition('idle', this.info)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		const { editor } = this
 		if (editor.inputs.isDragging) {
 			this.startDraggingHandle()
 		}
 	}
 
-	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+	override onLongPress() {
 		this.startDraggingHandle()
 	}
 
@@ -103,15 +102,15 @@ export class PointingHandle extends StateNode {
 		this.parent.transition('dragging_handle', this.info)
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
@@ -125,6 +124,7 @@ function getNoteForPit(editor: Editor, shape: TLNoteShape, handle: TLHandle, for
 	const pagePoint = pageTransform.point()
 	const pageRotation = pageTransform.rotation()
 	const pits = getNoteAdjacentPositions(
+		editor,
 		pagePoint,
 		pageRotation,
 		shape.props.growY,

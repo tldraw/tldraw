@@ -22,6 +22,12 @@ export const assert: (value: unknown, message?: string) => asserts value;
 // @internal (undocumented)
 export const assertExists: <T>(value: T, message?: string | undefined) => NonNullable<T>;
 
+// @public
+export function bind<T extends (...args: any[]) => any>(target: object, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
+
+// @public
+export function bind<This extends object, T extends (...args: any[]) => any>(originalMethod: T, context: ClassMethodDecoratorContext<This, T>): void;
+
 // @internal
 export function clearLocalStorage(): void;
 
@@ -129,31 +135,34 @@ export function getHashForObject(obj: any): string;
 export function getHashForString(string: string): string;
 
 // @public
-export function getIndexAbove(below?: IndexKey | undefined): IndexKey;
+export function getIndexAbove(below?: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndexBelow(above?: IndexKey | undefined): IndexKey;
+export function getIndexBelow(above?: IndexKey | null | undefined): IndexKey;
 
 // @public
-export function getIndexBetween(below: IndexKey | undefined, above: IndexKey | undefined): IndexKey;
+export function getIndexBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined): IndexKey;
 
 // @public
 export function getIndices(n: number, start?: IndexKey): IndexKey[];
 
 // @public
-export function getIndicesAbove(below: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesAbove(below: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBelow(above: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesBelow(above: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @public
-export function getIndicesBetween(below: IndexKey | undefined, above: IndexKey | undefined, n: number): IndexKey[];
+export function getIndicesBetween(below: IndexKey | null | undefined, above: IndexKey | null | undefined, n: number): IndexKey[];
 
 // @internal (undocumented)
 export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
 
 // @internal (undocumented)
 export function getOwnProperty(obj: object, key: string): unknown;
+
+// @internal (undocumented)
+export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelector: (value: V) => K): Record<K, V[]>;
 
 // @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
@@ -164,7 +173,7 @@ export { Image_2 as Image }
 
 // @public
 export type IndexKey = string & {
-    __orderKey: true;
+    __brand: 'indexKey';
 };
 
 // @public
@@ -228,6 +237,8 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
+    // (undocumented)
+    static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
     static getVideoSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -250,6 +261,9 @@ export class MediaHelpers {
 
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
+
+// @internal (undocumented)
+export function mockUniqueId(fn: (size?: number) => string): void;
 
 // @public
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
@@ -333,8 +347,8 @@ export class PngHelpers {
 
 // @internal (undocumented)
 export function promiseWithResolve<T>(): Promise<T> & {
-    reject: (reason?: any) => void;
-    resolve: (value: T) => void;
+    reject(reason?: any): void;
+    resolve(value: T): void;
 };
 
 // @public (undocumented)
@@ -343,10 +357,16 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
+export function registerTldrawLibraryVersion(name?: string, version?: string, modules?: string): void;
+
+// @internal (undocumented)
 type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & {
     [P in K]-?: T[P];
 }>;
 export { Required_2 as Required }
+
+// @internal (undocumented)
+export function restoreUniqueId(): void;
 
 // @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
@@ -363,11 +383,17 @@ export function rng(seed?: string): () => number;
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
+// @public (undocumented)
+export const safeParseUrl: (url: string, baseUrl?: string | URL) => undefined | URL;
+
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
 
 // @internal
 export function setInSessionStorage(key: string, value: string): void;
+
+// @internal (undocumented)
+export function sleep(ms: number): Promise<void>;
 
 // @public (undocumented)
 export function sortById<T extends {
@@ -405,11 +431,17 @@ export class Timers {
 
 export { uniq }
 
+// @public
+export function uniqueId(size?: number): string;
+
 // @internal (undocumented)
-export function validateIndexKey(key: string): asserts key is IndexKey;
+export function validateIndexKey(index: string): asserts index is IndexKey;
 
 // @internal (undocumented)
 export function warnDeprecatedGetter(name: string): void;
+
+// @internal (undocumented)
+export function warnOnce(message: string): void;
 
 // @public
 export class WeakCache<K extends object, V> {

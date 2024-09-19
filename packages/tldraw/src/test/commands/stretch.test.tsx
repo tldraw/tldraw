@@ -89,7 +89,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('does, undoes and redoes command', () => {
-		editor.mark('stretch')
+		editor.markHistoryStoppingPoint('stretch')
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
 		jest.advanceTimersByTime(1000)
 

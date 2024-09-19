@@ -17,7 +17,7 @@ export interface Pdf {
 
 const pageSpacing = 32
 
-export function PdfPicker({ onOpenPdf }: { onOpenPdf: (pdf: Pdf) => void }) {
+export function PdfPicker({ onOpenPdf }: { onOpenPdf(pdf: Pdf): void }) {
 	const [isLoading, setIsLoading] = useState(false)
 
 	async function loadPdf(name: string, source: ArrayBuffer): Promise<Pdf> {

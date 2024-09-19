@@ -869,7 +869,7 @@ describe('When undoing and redoing...', () => {
 			ids['G']
 		)
 
-		editor.mark('before sending to back')
+		editor.markHistoryStoppingPoint('before sending to back')
 		editor.sendBackward([ids['F'], ids['G']])
 
 		expectShapesInOrder(

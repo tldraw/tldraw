@@ -26,7 +26,7 @@ export interface TLScribble {
 }
 
 /** @public */
-export const scribbleValidator: T.Validator<TLScribble> = T.object({
+export const scribbleValidator: T.ObjectValidator<TLScribble> = T.object({
 	id: T.string,
 	points: T.arrayOf(vecModelValidator),
 	size: T.positiveNumber,

@@ -1,8 +1,6 @@
 import {
 	Editor,
 	StateNode,
-	TLEventHandlers,
-	TLInterruptEvent,
 	TLNoteShape,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -27,15 +25,14 @@ export class Pointing extends StateNode {
 
 	shape = {} as TLNoteShape
 
-	override onEnter = () => {
+	override onEnter() {
 		const { editor } = this
 
 		this.wasFocusedOnEnter = !editor.getIsMenuOpen()
 
 		if (this.wasFocusedOnEnter) {
 			const id = createShapeId()
-			this.markId = `creating:${id}`
-			editor.mark(this.markId)
+			this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
 
 			// Check for note pits; if the pointer is close to one, place the note centered on the pit
 			const center = this.editor.inputs.originPagePoint.clone()
@@ -51,7 +48,7 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			if (!this.wasFocusedOnEnter) {
 				const id = createShapeId()
@@ -73,6 +70,7 @@ export class Pointing extends StateNode {
 				shape: this.shape,
 				onInteractionEnd: 'note',
 				isCreating: true,
+				creatingMarkId: this.markId,
 				onCreate: () => {
 					this.editor.setEditingShape(this.shape.id)
 					this.editor.setCurrentTool('select.editing_shape')
@@ -81,19 +79,19 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 

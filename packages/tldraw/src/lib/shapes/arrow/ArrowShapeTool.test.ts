@@ -497,12 +497,12 @@ describe('reparenting issue', () => {
 		const arrow1BoundIndex = editor.getShape(arrow1Id)!.index
 		const arrow2BoundIndex = editor.getShape(arrow2Id)!.index
 		expect(arrow1BoundIndex).toBe('a1V')
-		expect(arrow2BoundIndex).toBe('a1G')
+		expect(arrow2BoundIndex).toBe('a1F')
 
 		// nudge everything around and make sure we all stay in the right order
 		editor.selectAll().nudgeShapes(editor.getSelectedShapeIds(), { x: -1, y: 0 })
 		expect(editor.getShape(arrow1Id)!.index).toBe('a1V')
-		expect(editor.getShape(arrow2Id)!.index).toBe('a1G')
+		expect(editor.getShape(arrow2Id)!.index).toBe('a1F')
 	})
 })
 

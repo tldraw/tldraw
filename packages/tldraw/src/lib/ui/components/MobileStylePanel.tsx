@@ -17,6 +17,7 @@ import {
 	TldrawUiPopoverTrigger,
 } from './primitives/TldrawUiPopover'
 
+/** @public @react */
 export function MobileStylePanel() {
 	const editor = useEditor()
 	const msg = useTranslation()

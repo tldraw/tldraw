@@ -41,7 +41,7 @@ export interface TldrawUiProps extends TldrawUiContextProviderProps {
 	/**
 	 * Additional items to add to the debug menu (will be deprecated)
 	 */
-	renderDebugMenuItems?: () => React.ReactNode
+	renderDebugMenuItems?(): React.ReactNode
 
 	/** Asset URL override. */
 	assetUrls?: TLUiAssetUrlOverrides
@@ -71,7 +71,7 @@ interface TldrawUiContentProps {
 	hideUi?: boolean
 	shareZone?: ReactNode
 	topZone?: ReactNode
-	renderDebugMenuItems?: () => React.ReactNode
+	renderDebugMenuItems?(): React.ReactNode
 }
 
 const TldrawUiInner = React.memo(function TldrawUiInner({
@@ -109,6 +109,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		NavigationPanel,
 		HelperButtons,
 		DebugPanel,
+		CursorChatBubble,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -164,6 +165,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			<Dialogs />
 			<ToastViewport />
 			<FollowingIndicator />
+			{CursorChatBubble && <CursorChatBubble />}
 		</div>
 	)
 })

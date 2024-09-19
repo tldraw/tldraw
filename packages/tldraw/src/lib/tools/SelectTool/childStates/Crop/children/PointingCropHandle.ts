@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type TLPointingCropHandleInfo = TLPointerEventInfo & {
@@ -12,7 +12,7 @@ export class PointingCropHandle extends StateNode {
 
 	private info = {} as TLPointingCropHandleInfo
 
-	override onEnter = (info: TLPointingCropHandleInfo) => {
+	override onEnter(info: TLPointingCropHandleInfo) {
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		const selectedShape = this.editor.getSelectedShapes()[0]
@@ -23,18 +23,18 @@ export class PointingCropHandle extends StateNode {
 		this.editor.setCroppingShape(selectedShape.id)
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.parent.setCurrentToolIdMask(undefined)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove() {
 		if (this.editor.inputs.isDragging) {
 			this.startCropping()
 		}
 	}
 
-	override onLongPress: TLEventHandlers['onLongPress'] = () => {
+	override onLongPress() {
 		this.startCropping()
 	}
 
@@ -46,7 +46,7 @@ export class PointingCropHandle extends StateNode {
 		})
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
@@ -55,15 +55,15 @@ export class PointingCropHandle extends StateNode {
 		}
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.cancel()
 	}
 
-	override onInterrupt = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 

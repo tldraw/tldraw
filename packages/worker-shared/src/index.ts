@@ -1,9 +1,9 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
+export { handleExtractBookmarkMetadataRequest } from './bookmarks'
 export { createPersistQueue } from './createPersistQueue'
 export { notFound } from './errors'
-export { getUrlMetadata, urlMetadataQueryValidator } from './getUrlMetadata'
 export {
 	createRouter,
 	handleApiRequest,

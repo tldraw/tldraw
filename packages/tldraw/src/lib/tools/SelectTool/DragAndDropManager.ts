@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, Vec, compact } from '@tldraw/editor'
+import { Editor, TLShape, TLShapeId, Vec, bind, compact } from '@tldraw/editor'
 import { getOccludedChildren } from './selectHelpers'
 
 const INITIAL_POINTER_LAG_DURATION = 20
@@ -40,7 +40,7 @@ export class DragAndDropManager {
 
 	private setDragTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
 		this.droppingNodeTimer = this.editor.timers.setTimeout(() => {
-			this.editor.batch(() => {
+			this.editor.run(() => {
 				this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
 			})
 			this.droppingNodeTimer = null
@@ -137,7 +137,8 @@ export class DragAndDropManager {
 		this.first = true
 	}
 
-	dispose = () => {
+	@bind
+	dispose() {
 		this.clear()
 	}
 }

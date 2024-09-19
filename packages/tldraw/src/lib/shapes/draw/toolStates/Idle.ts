@@ -1,17 +1,17 @@
-import { StateNode, TLEventHandlers } from '@tldraw/editor'
+import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown(info: TLPointerEventInfo) {
 		this.parent.transition('drawing', info)
 	}
 
-	override onEnter = () => {
+	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
-	override onCancel = () => {
+	override onCancel() {
 		this.editor.setCurrentTool('select')
 	}
 }

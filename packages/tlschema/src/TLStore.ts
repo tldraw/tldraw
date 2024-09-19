@@ -1,11 +1,13 @@
+import { Signal } from '@tldraw/state'
 import {
 	SerializedStore,
 	Store,
 	StoreSchema,
-	StoreSchemaOptions,
 	StoreSnapshot,
+	StoreValidationFailure,
 } from '@tldraw/store'
 import { IndexKey, annotateError, structuredClone } from '@tldraw/utils'
+import { TLAsset } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
 import { TLINSTANCE_ID } from './records/TLInstance'
@@ -45,18 +47,73 @@ export type TLSerializedStore = SerializedStore<TLRecord>
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>
 
 /** @public */
+export interface TLAssetContext {
+	screenScale: number
+	steppedScreenScale: number
+	dpr: number
+	networkEffectiveType: string | null
+	shouldResolveToOriginal: boolean
+}
+
+/**
+ * A `TLAssetStore` sits alongside the main {@link TLStore} and is responsible for storing and
+ * retrieving large assets such as images. Generally, this should be part of a wider sync system:
+ *
+ * - By default, the store is in-memory only, so `TLAssetStore` converts images to data URLs
+ * - When using
+ *   {@link @tldraw/editor#TldrawEditorWithoutStoreProps.persistenceKey | `persistenceKey`}, the
+ *   store is synced to the browser's local IndexedDB, so `TLAssetStore` stores images there too
+ * - When using a multiplayer sync server, you would implement `TLAssetStore` to upload images to
+ *   e.g. an S3 bucket.
+ *
+ * @public
+ */
+export interface TLAssetStore {
+	/**
+	 * Upload an asset to your storage, returning a URL that can be used to refer to the asset
+	 * long-term.
+	 *
+	 * @param asset - Information & metadata about the asset being uploaded
+	 * @param file - The `File` to be uploaded
+	 * @returns A promise that resolves to the URL of the uploaded asset
+	 */
+	upload(asset: TLAsset, file: File): Promise<string>
+	/**
+	 * Resolve an asset to a URL. This is used when rendering the asset in the editor. By default,
+	 * this will just use `asset.props.src`, the URL returned by `upload()`. This can be used to
+	 * rewrite that URL to add access credentials, or optimized the asset for how it's currently
+	 * being displayed using the {@link TLAssetContext | information provided}.
+	 *
+	 * @param asset - the asset being resolved
+	 * @param ctx - information about the current environment and where the asset is being used
+	 * @returns The URL of the resolved asset, or `null` if the asset is not available
+	 */
+	resolve?(asset: TLAsset, ctx: TLAssetContext): Promise<string | null> | string | null
+}
+
+/** @public */
 export interface TLStoreProps {
 	defaultName: string
+	assets: Required<TLAssetStore>
+	/**
+	 * Called an {@link @tldraw/editor#Editor} connected to this store is mounted.
+	 */
+	onMount(editor: unknown): void | (() => void)
+	collaboration?: {
+		status: Signal<'online' | 'offline'> | null
+	}
 }
 
 /** @public */
 export type TLStore = Store<TLRecord, TLStoreProps>
 
 /** @public */
-export const onValidationFailure: StoreSchemaOptions<
-	TLRecord,
-	TLStoreProps
->['onValidationFailure'] = ({ error, phase, record, recordBefore }): TLRecord => {
+export function onValidationFailure({
+	error,
+	phase,
+	record,
+	recordBefore,
+}: StoreValidationFailure<TLRecord>): TLRecord {
 	const isExistingValidationIssue =
 		// if we're initializing the store for the first time, we should
 		// allow invalid records so people can load old buggy data:
@@ -91,8 +148,9 @@ function getDefaultPages() {
 }
 
 /** @internal */
-export function createIntegrityChecker(store: TLStore): () => void {
+export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): () => void {
 	const $pageIds = store.query.ids('page')
+	const $pageStates = store.query.records('instance_page_state')
 
 	const ensureStoreIsUsable = (): void => {
 		// make sure we have exactly one document
@@ -137,7 +195,8 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		const missingCameraIds = new Set<TLCameraId>()
 		for (const id of pageIds) {
 			const pageStateId = InstancePageStateRecordType.createId(id)
-			if (!store.has(pageStateId)) {
+			const pageState = store.get(pageStateId)
+			if (!pageState) {
 				missingPageStateIds.add(pageStateId)
 			}
 			const cameraId = CameraRecordType.createId(id)
@@ -156,8 +215,44 @@ export function createIntegrityChecker(store: TLStore): () => void {
 				)
 			)
 		}
+
 		if (missingCameraIds.size > 0) {
 			store.put([...missingCameraIds].map((id) => CameraRecordType.create({ id })))
+		}
+
+		const pageStates = $pageStates.get()
+		for (const pageState of pageStates) {
+			if (!pageIds.has(pageState.pageId)) {
+				store.remove([pageState.id])
+				continue
+			}
+			if (pageState.croppingShapeId && !store.has(pageState.croppingShapeId)) {
+				store.put([{ ...pageState, croppingShapeId: null }])
+				return ensureStoreIsUsable()
+			}
+			if (pageState.focusedGroupId && !store.has(pageState.focusedGroupId)) {
+				store.put([{ ...pageState, focusedGroupId: null }])
+				return ensureStoreIsUsable()
+			}
+			if (pageState.hoveredShapeId && !store.has(pageState.hoveredShapeId)) {
+				store.put([{ ...pageState, hoveredShapeId: null }])
+				return ensureStoreIsUsable()
+			}
+			const filteredSelectedIds = pageState.selectedShapeIds.filter((id) => store.has(id))
+			if (filteredSelectedIds.length !== pageState.selectedShapeIds.length) {
+				store.put([{ ...pageState, selectedShapeIds: filteredSelectedIds }])
+				return ensureStoreIsUsable()
+			}
+			const filteredHintingIds = pageState.hintingShapeIds.filter((id) => store.has(id))
+			if (filteredHintingIds.length !== pageState.hintingShapeIds.length) {
+				store.put([{ ...pageState, hintingShapeIds: filteredHintingIds }])
+				return ensureStoreIsUsable()
+			}
+			const filteredErasingIds = pageState.erasingShapeIds.filter((id) => store.has(id))
+			if (filteredErasingIds.length !== pageState.erasingShapeIds.length) {
+				store.put([{ ...pageState, erasingShapeIds: filteredErasingIds }])
+				return ensureStoreIsUsable()
+			}
 		}
 	}
 

@@ -22,7 +22,7 @@ export interface TLUiButtonPickerProps<T extends string> {
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
 	theme: TLDefaultColorTheme
-	onValueChange: (style: StyleProp<T>, value: T) => void
+	onValueChange(style: StyleProp<T>, value: T): void
 }
 
 /** @public */
@@ -69,14 +69,14 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
-			editor.mark('point picker item')
+			editor.markHistoryStoppingPoint('point picker item')
 			onValueChange(style, id as T)
 		}
 
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
-			editor.mark('point picker item')
+			editor.markHistoryStoppingPoint('point picker item')
 			onValueChange(style, id as T)
 
 			rPointing.current = true

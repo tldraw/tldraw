@@ -5,8 +5,8 @@ import {
 	TLAnyShapeUtilConstructor,
 	TLBaseShape,
 	TLHandle,
+	TLHandleDragInfo,
 	TLLineShape,
-	TLOnHandleDragHandler,
 	TLShapeId,
 	Vec,
 	VecModel,
@@ -224,7 +224,7 @@ describe('custom handle snapping', () => {
 				},
 			]
 		}
-		override onHandleDrag: TLOnHandleDragHandler<TestShape> = (shape, { handle }) => {
+		override onHandleDrag(shape: TestShape, { handle }: TLHandleDragInfo<TestShape>) {
 			return { ...shape, props: { ...shape.props, ownHandle: { x: handle.x, y: handle.y } } }
 		}
 	}

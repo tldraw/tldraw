@@ -1,7 +1,6 @@
 import {
 	RotateCorner,
 	StateNode,
-	TLEventHandlers,
 	TLPointerEventInfo,
 	TLRotationSnapshot,
 	applyRotationToSnapshotShapes,
@@ -24,17 +23,17 @@ export class Rotating extends StateNode {
 
 	markId = ''
 
-	override onEnter = (
-		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }
-	) => {
+	override onEnter(info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }) {
 		// Store the event information
 		this.info = info
 		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 
-		this.markId = 'rotate start'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.markHistoryStoppingPoint('rotate start')
 
-		const snapshot = getRotationSnapshot({ editor: this.editor })
+		const snapshot = getRotationSnapshot({
+			editor: this.editor,
+			ids: this.editor.getSelectedShapeIds(),
+		})
 		if (!snapshot) return this.parent.transition('idle', this.info)
 		this.snapshot = snapshot
 
@@ -53,44 +52,44 @@ export class Rotating extends StateNode {
 		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
 		})
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.parent.setCurrentToolIdMask(undefined)
 
 		this.snapshot = {} as TLRotationSnapshot
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.update()
 	}
 
-	override onKeyDown = () => {
+	override onKeyDown() {
 		this.update()
 	}
 
-	override onKeyUp = () => {
+	override onKeyUp() {
 		this.update()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onCancel = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
 	// ---
 
-	private update = () => {
+	private update() {
 		const newSelectionRotation = this._getRotationFromPointerPosition({
 			snapToNearestDegree: false,
 		})
@@ -105,11 +104,11 @@ export class Rotating extends StateNode {
 		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
 		})
 	}
 
-	private cancel = () => {
+	private cancel() {
 		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
@@ -118,7 +117,7 @@ export class Rotating extends StateNode {
 		}
 	}
 
-	private complete = () => {
+	private complete() {
 		applyRotationToSnapshotShapes({
 			editor: this.editor,
 			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: true }),
@@ -142,9 +141,9 @@ export class Rotating extends StateNode {
 		const {
 			inputs: { shiftKey, currentPagePoint },
 		} = this.editor
-		const { initialCursorAngle, initialSelectionRotation } = this.snapshot
+		const { initialCursorAngle, initialShapesRotation } = this.snapshot
 
-		if (!selectionBounds) return initialSelectionRotation
+		if (!selectionBounds) return initialShapesRotation
 
 		const selectionPageCenter = selectionBounds.center
 			.clone()
@@ -152,7 +151,7 @@ export class Rotating extends StateNode {
 
 		// The delta is the difference between the current angle and the initial angle
 		const preSnapRotationDelta = selectionPageCenter.angle(currentPagePoint) - initialCursorAngle
-		let newSelectionRotation = initialSelectionRotation + preSnapRotationDelta
+		let newSelectionRotation = initialShapesRotation + preSnapRotationDelta
 
 		if (shiftKey) {
 			newSelectionRotation = snapAngle(newSelectionRotation, 24)
@@ -168,6 +167,6 @@ export class Rotating extends StateNode {
 			}
 		}
 
-		return newSelectionRotation - initialSelectionRotation
+		return newSelectionRotation - initialShapesRotation
 	}
 }

@@ -1,4 +1,4 @@
-import { useValue } from '@tldraw/state'
+import { useValue } from '@tldraw/state-react'
 import { useEditor } from '../../../hooks/useEditor'
 import { Box } from '../../../primitives/Box'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'

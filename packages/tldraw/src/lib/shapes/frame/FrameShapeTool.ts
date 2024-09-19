@@ -6,7 +6,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 	static override initial = 'idle'
 	override shapeType = 'frame'
 
-	override onCreate = (shape: TLShape | null): void => {
+	override onCreate(shape: TLShape | null): void {
 		if (!shape) return
 
 		const bounds = this.editor.getShapePageBounds(shape)!

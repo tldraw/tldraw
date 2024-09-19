@@ -3,6 +3,8 @@
 exports[`Matches a snapshot: Basic SVG 1`] = `
 <wrapper>
   <svg
+    class="tl-container tl-theme__force-sRGB tl-theme__light"
+    data-color-mode="light"
     direction="ltr"
     height="564"
     stroke-linecap="round"
@@ -79,7 +81,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
         fill="rgb(249, 250, 251)"
         font-family="'tldraw_draw', sans-serif"
         font-size="22"
-        font-style="'tldraw_draw', sans-serif"
+        font-style="normal"
         font-weight="normal"
         stroke="rgb(249, 250, 251)"
         stroke-width="2"
@@ -99,7 +101,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
         fill="#1d1d1d"
         font-family="'tldraw_draw', sans-serif"
         font-size="22"
-        font-style="'tldraw_draw', sans-serif"
+        font-style="normal"
         font-weight="normal"
       >
         <tspan

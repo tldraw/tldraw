@@ -19,7 +19,7 @@ export type ValidatorUsingKnownGoodVersionFn<In, Out = In> = (
 
 /** @public */
 export interface Validatable<T> {
-	validate: (value: unknown) => T
+	validate(value: unknown): T
 	/**
 	 * This is a performance optimizing version of validate that can use a previous
 	 * version of the value to avoid revalidating every part of the new value if
@@ -29,7 +29,7 @@ export interface Validatable<T> {
 	 * should return the previous value.
 	 * @returns
 	 */
-	validateUsingKnownGoodVersion?: (knownGoodValue: T, newValue: unknown) => T
+	validateUsingKnownGoodVersion?(knownGoodValue: T, newValue: unknown): T
 }
 
 function formatPath(path: ReadonlyArray<number | string>): string | null {
@@ -384,7 +384,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 /** @public */
 export type UnionValidatorConfig<Key extends string, Config> = {
 	readonly [Variant in keyof Config]: Validatable<any> & {
-		validate: (input: any) => { readonly [K in Key]: Variant }
+		validate(input: any): { readonly [K in Key]: Variant }
 	}
 }
 /** @public */
@@ -843,7 +843,7 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
 	return new UnionValidator(
 		key,
 		config,
-		(unknownValue, unknownVariant) => {
+		(_unknownValue, unknownVariant) => {
 			throw new ValidationError(
 				`Expected one of ${Object.keys(config)
 					.map((key) => JSON.stringify(key))

@@ -18,6 +18,7 @@ export async function renderTldrawComponent(
 	{ waitForPatterns }: { waitForPatterns: boolean }
 ) {
 	const result = render(element)
+	await result.findAllByTestId('canvas')
 	if (waitForPatterns) await result.findByTestId('ready-pattern-fill-defs')
 	return result
 }

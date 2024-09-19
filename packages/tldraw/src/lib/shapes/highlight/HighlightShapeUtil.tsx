@@ -7,20 +7,24 @@ import {
 	ShapeUtil,
 	TLDrawShapeSegment,
 	TLHighlightShape,
-	TLOnResizeHandler,
+	TLHighlightShapeProps,
+	TLResizeInfo,
 	VecLike,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
+	lerp,
 	rng,
 	useValue,
 } from '@tldraw/editor'
+
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { FONT_SIZES } from '../shared/default-shape-constants'
 import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
+import { interpolateSegments } from '../shared/interpolate-props'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
@@ -33,9 +37,15 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	static override props = highlightShapeProps
 	static override migrations = highlightShapeMigrations
 
-	override hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
-	override hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)
-	override hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
+	override hideResizeHandles(shape: TLHighlightShape) {
+		return getIsDot(shape)
+	}
+	override hideRotateHandle(shape: TLHighlightShape) {
+		return getIsDot(shape)
+	}
+	override hideSelectionBoundsFg(shape: TLHighlightShape) {
+		return getIsDot(shape)
+	}
 
 	override getDefaultProps(): TLHighlightShape['props'] {
 		return {
@@ -149,7 +159,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		)
 	}
 
-	override onResize: TLOnResizeHandler<TLHighlightShape> = (shape, info) => {
+	override onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>) {
 		const { scaleX, scaleY } = info
 
 		const newSegments: TLDrawShapeSegment[] = []
@@ -171,6 +181,18 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			props: {
 				segments: newSegments,
 			},
+		}
+	}
+	override getInterpolatedProps(
+		startShape: TLHighlightShape,
+		endShape: TLHighlightShape,
+		t: number
+	): TLHighlightShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			...endShape.props,
+			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import { Box, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { Box, StateNode, TLPointerEventInfo } from '@tldraw/editor'
 
 export class ZoomBrushing extends StateNode {
 	static override id = 'zoom_brushing'
@@ -7,24 +7,24 @@ export class ZoomBrushing extends StateNode {
 
 	zoomBrush = new Box()
 
-	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
+	override onEnter(info: TLPointerEventInfo & { onInteractionEnd: string }) {
 		this.info = info
 		this.update()
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.updateInstanceState({ zoomBrush: null })
 	}
 
-	override onPointerMove = () => {
+	override onPointerMove() {
 		this.update()
 	}
 
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 

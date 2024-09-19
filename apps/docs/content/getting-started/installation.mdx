@@ -6,19 +6,13 @@ date: 3/22/2023
 order: 1
 ---
 
-## Installation
-
-First, install the `tldraw` package:
+To use the tldraw SDK, first install the `tldraw` package:
 
 ```bash
 npm i tldraw
 ```
 
-> The tldraw SDK [does not follow semantic versioning](/releases-versioning).
-
-## Usage
-
-You can use the [Tldraw](?) component inside of any React component.
+Now import and use the [Tldraw](?) component inside of any React component.
 
 ```tsx
 import { Tldraw } from 'tldraw'
@@ -71,24 +65,14 @@ If you're using the [Tldraw](?) component in a full-screen app, you probably als
 
 This may not be critical to [Tldraw](?) performing correctly, however some features (such as safe area positioning) will only work correctly if these viewport options are set.
 
-## Server Rendering
+## License
 
-The [Tldraw](?) component can't be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you need to import it dynamically.
+tldraw requires a license for commercial use (see [License terms](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) for more details). Contact [sales@tldraw.com](mailto:sales@tldraw.com) to obtain a license for your company.
 
-```tsx
-const Tldraw = dynamic(async () => (await import('tldraw')).Tldraw, { ssr: false })
-```
-
-### Using a bundler
-
-If you're using a bundler like webpack or rollup, you can import the assets directly from the `assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
+If you have a license, use the `licenseKey` prop in the [Tldraw](?) component to register the key and disable the "Made with tldraw" link.
 
 ```tsx
-import { getAssetUrlsByMetaUrl } from 'assets/urls'
-
-const assetUrls = getAssetUrlsByMetaUrl()
-
-<Tldraw assetUrls={assetUrls} />
+<Tldraw licenseKey={YOUR_LICENSE_KEY} />
 ```
 
 ## Usage in Frameworks
@@ -98,6 +82,26 @@ Visit our [framework examples repository](https://github.com/tldraw/examples) to
 ## Static Assets
 
 In order to use the [Tldraw](?) component, the app must be able to find certain assets. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. We offer a few different ways of making these assets available to your app.
+
+### Using a bundler
+
+If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Your bundler should be able to copy across the assets with your bundle, and insert the correct URLs in their place.
+
+There are three options:
+
+- `import {getAssetUrlsByImport} from '@tldraw/assets/imports`: import asset files using import statements. You'll need to configure your bundler to treat imports of .svg, .png, .json, and .woff2 files as external assets.
+- `import {getAssetUrlsByImport} from '@tldraw/assets/imports.vite`: import asset files, appending `?url` to the asset path. This works correctly with [vite](https://vitejs.dev/guide/assets#explicit-url-imports) without any extra configuration needed.
+- `import {getAssetUrlsByMeta} from '@tldraw/assets/urls`: get asset urls using `new URL(path, import.meta.url)`. This is a standards-based approach that works natively in most modern browsers & bundlers.
+
+Call the function, and pass the resulting `assetUrls` into the `Tldraw` component:
+
+```tsx
+import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
+
+const assetUrls = getAssetUrlsByMetaUrl()
+
+<Tldraw assetUrls={assetUrls} />
+```
 
 ### Using a public CDN
 
@@ -185,3 +189,7 @@ const components: TLComponents = {
 
 <Tldraw components={components}/>
 ```
+
+## Versioning
+
+The tldraw SDK does not follow semantic versioning. To learn more, read about how we do [release versioning](/releases-versioning).

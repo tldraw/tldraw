@@ -1,4 +1,4 @@
-name: Publish new packages from main
+name: Publish new SDK release from main (minor version bump)
 # This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
 
 # Prevent more than one non-canary npm publishing job from running at the same time
@@ -61,9 +61,9 @@ jobs:
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           if [[ "${{ inputs.bump_type }}" == "override" ]]; then
-            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.version_override }}
+            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.version_override }}
           else
-            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.bump_type }}
+            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.bump_type }}
           fi
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -71,6 +71,7 @@ jobs:
           HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          TLDRAW_BEMO_URL: https://demo.tldraw.xyz
 
   publish_templates:
     name: Publishes code templates to separate repositories
@@ -78,4 +79,5 @@ jobs:
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+      CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
     needs: [deploy]

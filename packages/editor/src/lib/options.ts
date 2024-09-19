@@ -17,6 +17,7 @@
  */
 export interface TldrawOptions {
 	readonly maxShapesPerPage: number
+	readonly maxFilesAtOnce: number
 	readonly maxPages: number
 	readonly animationMediumMs: number
 	readonly followChaseViewportSnap: number
@@ -49,11 +50,14 @@ export interface TldrawOptions {
 	readonly adjacentShapeMargin: number
 	readonly flattenImageBoundsExpand: number
 	readonly flattenImageBoundsPadding: number
+	readonly laserDelayMs: number
+	readonly maxExportDelayMs: number
 }
 
 /** @public */
 export const defaultTldrawOptions = {
 	maxShapesPerPage: 4000,
+	maxFilesAtOnce: 100,
 	maxPages: 40,
 	animationMediumMs: 320,
 	followChaseViewportSnap: 2,
@@ -87,4 +91,6 @@ export const defaultTldrawOptions = {
 	adjacentShapeMargin: 10,
 	flattenImageBoundsExpand: 64,
 	flattenImageBoundsPadding: 16,
+	laserDelayMs: 1200,
+	maxExportDelayMs: 5000,
 } as const satisfies TldrawOptions

@@ -1,8 +1,15 @@
-import { EMBED_DEFINITIONS, EmbedDefinition, track, useEditor } from '@tldraw/editor'
+import { track, useEditor } from '@tldraw/editor'
 import { useRef, useState } from 'react'
-import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds/embeds'
+import {
+	TLEmbedDefinition,
+	isCustomEmbedDefinition,
+	isDefaultEmbedDefinitionType,
+} from '../../defaultEmbedDefinitions'
+import { TLEmbedResult } from '../../utils/embeds/embeds'
 import { useAssetUrls } from '../context/asset-urls'
 import { TLUiDialogProps } from '../context/dialogs'
+import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
+import { useGetEmbedDefinitions } from '../hooks/useGetEmbedDefinitions'
 import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
@@ -22,7 +29,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 	const assetUrls = useAssetUrls()
 
 	// The embed definition for the user's selected embed (set by the user clicking on an embed in stage 1)
-	const [embedDefinition, setEmbedDefinition] = useState<null | EmbedDefinition>(null)
+	const [embedDefinition, setEmbedDefinition] = useState<null | TLEmbedDefinition>(null)
 
 	// The URL that the user has typed into (in stage 2)
 	const [url, setUrl] = useState<string>('')
@@ -33,6 +40,9 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 	// Should we show the "invalid URL" error message?
 	const [showError, setShowError] = useState(false)
 	const rShowErrorTimeout = useRef<any>(-1)
+
+	const definitions = useGetEmbedDefinitions()
+	const getEmbedDefinition = useGetEmbedDefinition()
 
 	return (
 		<>
@@ -59,7 +69,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								// Set the embed info to either the embed info for the URL (if
 								// that embed info can be found and of a type that matches the
 								// user's selected definition type)
-								const embedInfo = getEmbedInfo(value)
+								const embedInfo = getEmbedDefinition(url)
 								setEmbedInfoForUrl(
 									embedInfo && embedInfo.definition.type === embedDefinition.type ? embedInfo : null
 								)
@@ -134,14 +144,21 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 			) : (
 				<>
 					<TldrawUiDialogBody className="tlui-embed-dialog__list">
-						{EMBED_DEFINITIONS.map((def) => {
+						{definitions.map((def) => {
+							const url = isDefaultEmbedDefinitionType(def.type)
+								? assetUrls.embedIcons[def.type]
+								: isCustomEmbedDefinition(def)
+									? def.icon
+									: undefined
 							return (
 								<TldrawUiButton type="menu" key={def.type} onClick={() => setEmbedDefinition(def)}>
 									<TldrawUiButtonLabel>{untranslated(def.title)}</TldrawUiButtonLabel>
-									<div
-										className="tlui-embed-dialog__item__image"
-										style={{ backgroundImage: `url(${assetUrls.embedIcons[def.type]})` }}
-									/>
+									{url && (
+										<div
+											className="tlui-embed-dialog__item__image"
+											style={{ backgroundImage: `url(${url})` }}
+										/>
+									)}
 								</TldrawUiButton>
 							)
 						})}

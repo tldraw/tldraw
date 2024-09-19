@@ -10,17 +10,6 @@ interface ToggleToolLockedButtonProps {
 	activeToolId?: string
 }
 
-const NOT_LOCKABLE_TOOLS = [
-	'select',
-	'hand',
-	'draw',
-	'eraser',
-	'text',
-	'zoom',
-	'laser',
-	'highlight',
-]
-
 export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonProps) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
@@ -29,8 +18,9 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 	const isToolLocked = useValue('is tool locked', () => editor.getInstanceState().isToolLocked, [
 		editor,
 	])
+	const tool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
-	if (!activeToolId || NOT_LOCKABLE_TOOLS.includes(activeToolId)) return null
+	if (!activeToolId || !tool.isLockable) return null
 
 	return (
 		<TldrawUiButton

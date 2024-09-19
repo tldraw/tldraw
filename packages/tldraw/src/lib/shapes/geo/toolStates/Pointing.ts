@@ -1,8 +1,8 @@
 import {
 	GeoShapeGeoStyle,
 	StateNode,
-	TLEventHandlers,
 	TLGeoShape,
+	TLPointerEventInfo,
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
@@ -10,21 +10,17 @@ import {
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	markId = ''
-
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp() {
 		this.complete()
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
-
-			this.editor.mark(this.markId)
+			const creatingMarkId = this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 
 			this.editor
 				.createShapes<TLGeoShape>([
@@ -47,21 +43,22 @@ export class Pointing extends StateNode {
 					target: 'selection',
 					handle: 'bottom_right',
 					isCreating: true,
+					creatingMarkId,
 					creationCursorOffset: { x: 1, y: 1 },
 					onInteractionEnd: 'geo',
 				})
 		}
 	}
 
-	override onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel() {
 		this.cancel()
 	}
 
-	override onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete() {
 		this.complete()
 	}
 
-	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt() {
 		this.cancel()
 	}
 
@@ -70,9 +67,7 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.markId = `creating:${id}`
-
-		this.editor.mark(this.markId)
+		this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
 
 		const scale = this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
 

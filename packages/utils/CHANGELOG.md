@@ -1,3 +1,100 @@
+# v3.0.0 (Fri Sep 13 2024)
+
+### Release Notes
+
+#### Add sleep fn ([#4454](https://github.com/tldraw/tldraw/pull/4454))
+
+(internal-only change)
+
+#### add default <foreignObject> based export for shapes ([#4403](https://github.com/tldraw/tldraw/pull/4403))
+
+Custom shapes (and our own bookmark shapes) now render in image exports by default.
+
+#### Detect multiple installed versions of tldraw packages ([#4398](https://github.com/tldraw/tldraw/pull/4398))
+
+- We detect when there are multiple versions of tldraw installed and let you know, as this can cause bugs in your application
+
+#### Custom embeds API ([#4326](https://github.com/tldraw/tldraw/pull/4326))
+
+Adds the ability to customize the embeds that are supported. You can now customize or reorder the existing embeds, as well as add completely new ones.
+
+#### Hotfix for index keys validation ([#4361](https://github.com/tldraw/tldraw/pull/4361))
+
+- Fixed a bug with the index key validation logic
+
+#### fractional indexing: rm the 0 check for indicies, outdated with jitter code ([#4332](https://github.com/tldraw/tldraw/pull/4332))
+
+- Fix a bug with fractional indexing validation with the new jitter library.
+
+#### shape ordering: upgrade fractional indexing to use jitter, avoid conflicts ([#4312](https://github.com/tldraw/tldraw/pull/4312))
+
+- Shape ordering: upgrade fractional indexing to use jitter, avoid conflicts
+
+#### Move from function properties to methods ([#4288](https://github.com/tldraw/tldraw/pull/4288))
+
+- Adds eslint rules for enforcing the use of methods instead of function properties and fixes / disables all the resulting errors.
+
+#### Sync docs, further refinements ([#4263](https://github.com/tldraw/tldraw/pull/4263))
+
+
+
+---
+
+#### 🐛 Bug Fix
+
+- [SORRY, PLEASE MERGE] 3.0 megabus [#4494](https://github.com/tldraw/tldraw/pull/4494) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+- Better docs search [#4485](https://github.com/tldraw/tldraw/pull/4485) ([@SomeHats](https://github.com/SomeHats) [@mimecuvalo](https://github.com/mimecuvalo))
+- Add sleep fn [#4454](https://github.com/tldraw/tldraw/pull/4454) ([@SomeHats](https://github.com/SomeHats))
+- chore: license cleanup [#4416](https://github.com/tldraw/tldraw/pull/4416) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Update READMEs. [#4377](https://github.com/tldraw/tldraw/pull/4377) ([@steveruizok](https://github.com/steveruizok))
+- Sync docs, further refinements [#4263](https://github.com/tldraw/tldraw/pull/4263) ([@adamwiggins](https://github.com/adamwiggins) [@SomeHats](https://github.com/SomeHats))
+
+#### 🐛 Bug Fixes
+
+- Hotfix for index keys validation [#4361](https://github.com/tldraw/tldraw/pull/4361) ([@ds300](https://github.com/ds300))
+- fractional indexing: rm the 0 check for indicies, outdated with jitter code [#4332](https://github.com/tldraw/tldraw/pull/4332) ([@mimecuvalo](https://github.com/mimecuvalo))
+- shape ordering: upgrade fractional indexing to use jitter, avoid conflicts [#4312](https://github.com/tldraw/tldraw/pull/4312) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Product Improvements
+
+- add default <foreignObject> based export for shapes [#4403](https://github.com/tldraw/tldraw/pull/4403) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- inline nanoid [#4410](https://github.com/tldraw/tldraw/pull/4410) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🎉 New Features
+
+- Custom embeds API [#4326](https://github.com/tldraw/tldraw/pull/4326) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🛠️ API Changes
+
+- support tc39 decorators [#4412](https://github.com/tldraw/tldraw/pull/4412) ([@SomeHats](https://github.com/SomeHats))
+- Detect multiple installed versions of tldraw packages [#4398](https://github.com/tldraw/tldraw/pull/4398) ([@SomeHats](https://github.com/SomeHats))
+- Move from function properties to methods [#4288](https://github.com/tldraw/tldraw/pull/4288) ([@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 7
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- Adam Wiggins ([@adamwiggins](https://github.com/adamwiggins))
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.4.0 (Mon Jul 22 2024)
+
+#### 🏠 Internal
+
+- Initial bemo worker setup [#4017](https://github.com/tldraw/tldraw/pull/4017) ([@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.3.0 (Tue Jun 25 2024)
 
 #### 📚 SDK Changes

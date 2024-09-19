@@ -3,7 +3,7 @@ title: Persistence
 status: published
 author: steveruizok
 date: 3/22/2023
-order: 6
+order: 4
 keywords:
   - data
   - sync
@@ -13,7 +13,9 @@ keywords:
   - localstorage
 ---
 
-Persistence in tldraw means storing information about the editor's state to a database and then restoring it later. There are a few options that developers have for getting data into tldraw and out again.
+In tldraw, persistence means storing information about the editor's state to a database and then restoring it later.
+
+The simplest implementation is the browser's local storage. But this also provides the hooks for a sync engine, which can send realtime incremenal updates the canvas to your backend server, allowing multiple people to collaborate on the canvas.
 
 ## The `"persistenceKey"` prop
 
@@ -405,18 +407,6 @@ const migrations = createShapePropsMigrationSequence({
 ### Local persistence
 
 Tldraw ships with a local-only sync engine based on `IndexedDb` and `BroadcastChannel` called [`TLLocalSyncClient`](https://github.com/tldraw/tldraw/blob/main/packages/editor/src/lib/utils/sync/TLLocalSyncClient.ts).
-
-### Tldraw.com sync engine
-
-[tldraw.com/r](https://tldraw.com/r) currently uses a simple custom sync engine based on a push/pull/rebase-style algorithm.
-It can be found [here](https://github.com/tldraw/tldraw/tree/main/packages/sync).
-It was optimized for Cloudflare workers with [DurableObjects](https://developers.cloudflare.com/durable-objects/)
-
-We don't suggest using our code directly yet, but it may serve as a good reference for your own sync engine.
-
-### Yjs sync example
-
-We created a [tldraw-yjs example](https://github.com/tldraw/tldraw-yjs-example) to illustrate a way of using yjs with the tldraw SDK.
 
 ### Shape props migrations example
 

@@ -4,7 +4,7 @@ import { TestEditor } from '../../../test/TestEditor'
 let editor: TestEditor
 
 beforeEach(() => {
-	editor = new TestEditor()
+	editor = new TestEditor({ options: { adjacentShapeMargin: 20 } })
 	// We don't want the camera to move when the shape gets created off screen
 	editor.updateViewportScreenBounds(new Box(0, 0, 2000, 2000))
 })

@@ -4,9 +4,6 @@
 
 ```ts
 
-import { FunctionComponent } from 'react';
-import { default as React_2 } from 'react';
-
 // @internal
 export class ArraySet<T> {
     add(elem: T): boolean;
@@ -37,7 +34,7 @@ options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
 export interface AtomOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
-    isEqual?: (a: any, b: any) => boolean;
+    isEqual?(a: any, b: any): boolean;
 }
 
 // @internal (undocumented)
@@ -68,11 +65,14 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
 // @public
 export function computed<Value, Diff = unknown>(name: string, compute: (previousValue: typeof UNINITIALIZED | Value, lastComputedEpoch: number) => Value | WithDiff<Value, Diff>, options?: ComputedOptions<Value, Diff>): Computed<Value, Diff>;
 
-// @public (undocumented)
+// @public
+export function computed<This extends object, Value>(compute: () => Value, context: ClassMethodDecoratorContext<This, () => Value>): () => Value;
+
+// @public
 export function computed(target: any, key: string, descriptor: PropertyDescriptor): PropertyDescriptor;
 
-// @public (undocumented)
-export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
+// @public
+export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): ((target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor) & (<This>(compute: () => Value, context: ClassMethodDecoratorContext<This, () => Value>) => () => Value);
 
 // @public
 export type ComputeDiff<Value, Diff> = (previousValue: Value, currentValue: Value, lastComputedEpoch: number, currentEpoch: number) => Diff | RESET_VALUE;
@@ -81,7 +81,7 @@ export type ComputeDiff<Value, Diff> = (previousValue: Value, currentValue: Valu
 export interface ComputedOptions<Value, Diff> {
     computeDiff?: ComputeDiff<Value, Diff>;
     historyLength?: number;
-    isEqual?: (a: any, b: any) => boolean;
+    isEqual?(a: any, b: any): boolean;
 }
 
 // @public
@@ -128,7 +128,7 @@ export function isAtom(value: unknown): value is Atom<unknown>;
 export function isSignal(value: any): value is Signal<any>;
 
 // @public
-export const isUninitialized: (value: any) => value is typeof UNINITIALIZED;
+export function isUninitialized(value: any): value is UNINITIALIZED;
 
 // @public
 export function react(name: string, fn: (lastReactedEpoch: number) => any, options?: EffectSchedulerOptions): () => void;
@@ -163,9 +163,6 @@ export interface Signal<Value, Diff = unknown> {
 }
 
 // @public
-export function track<T extends FunctionComponent<any>>(baseComponent: T): T extends React_2.MemoExoticComponent<any> ? T : React_2.MemoExoticComponent<T>;
-
-// @public
 export function transact<T>(fn: () => T): T;
 
 // @public
@@ -179,33 +176,6 @@ export type UNINITIALIZED = typeof UNINITIALIZED;
 
 // @public
 export function unsafe__withoutCapture<T>(fn: () => T): T;
-
-// @public
-export function useAtom<Value, Diff = unknown>(
-name: string,
-valueOrInitialiser: (() => Value) | Value,
-options?: AtomOptions<Value, Diff>): Atom<Value, Diff>;
-
-// @public
-export function useComputed<Value>(name: string, compute: () => Value, deps: any[]): Computed<Value>;
-
-// @public (undocumented)
-export function useComputed<Value, Diff = unknown>(name: string, compute: () => Value, opts: ComputedOptions<Value, Diff>, deps: any[]): Computed<Value>;
-
-// @public (undocumented)
-export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
-
-// @public (undocumented)
-export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
-
-// @internal (undocumented)
-export function useStateTracking<T>(name: string, render: () => T): T;
-
-// @public
-export function useValue<Value>(value: Signal<Value>): Value;
-
-// @public (undocumented)
-export function useValue<Value>(name: string, fn: () => Value, deps: unknown[]): Value;
 
 // @public
 export function whyAmIRunning(): void;

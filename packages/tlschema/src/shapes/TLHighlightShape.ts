@@ -1,13 +1,26 @@
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
-import { RecordPropsType } from '../recordsWithProps'
-import { DefaultColorStyle } from '../styles/TLColorStyle'
-import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { RecordProps } from '../recordsWithProps'
+import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultSizeStyle, TLDefaultSizeStyle } from '../styles/TLSizeStyle'
 import { TLBaseShape } from './TLBaseShape'
-import { DrawShapeSegment } from './TLDrawShape'
+import { DrawShapeSegment, TLDrawShapeSegment } from './TLDrawShape'
 
 /** @public */
-export const highlightShapeProps = {
+export interface TLHighlightShapeProps {
+	color: TLDefaultColorStyle
+	size: TLDefaultSizeStyle
+	segments: TLDrawShapeSegment[]
+	isComplete: boolean
+	isPen: boolean
+	scale: number
+}
+
+/** @public */
+export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
+
+/** @public */
+export const highlightShapeProps: RecordProps<TLHighlightShape> = {
 	color: DefaultColorStyle,
 	size: DefaultSizeStyle,
 	segments: T.arrayOf(DrawShapeSegment),
@@ -21,12 +34,6 @@ const Versions = createShapePropsMigrationIds('highlight', {
 })
 
 export { Versions as highlightShapeVersions }
-
-/** @public */
-export type TLHighlightShapeProps = RecordPropsType<typeof highlightShapeProps>
-
-/** @public */
-export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
 /** @public */
 export const highlightShapeMigrations = createShapePropsMigrationSequence({

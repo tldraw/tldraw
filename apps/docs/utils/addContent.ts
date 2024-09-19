@@ -1,7 +1,8 @@
-import { Article, ArticleHeadings, GeneratedContent } from '@/types/content-types'
-import GithubSlugger from 'github-slugger'
+import { Article, GeneratedContent } from '@/types/content-types'
+import console from 'console'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
+import { parseMarkdown } from './parse-markdown'
 
 export async function addContentToDb(
 	db: Database<sqlite3.Database, sqlite3.Statement>,
@@ -16,7 +17,7 @@ export async function addContentToDb(
 	)
 
 	const headingsInsert = await db.prepare(
-		`INSERT INTO headings (idx, articleId, level, title, slug, isCode, path) VALUES (?, ?, ?, ?, ?, ?, ?)`
+		`INSERT INTO headings (idx, articleId, level, title, slug, path) VALUES (?, ?, ?, ?, ?, ?)`
 	)
 
 	const articleInsert = await db.prepare(
@@ -89,7 +90,11 @@ export async function addContentToDb(
 				article.groupId,
 				article.categoryId,
 				article.sectionId,
-				article.author,
+				article.author
+					? typeof article.author === 'string'
+						? article.author
+						: article.author.join(', ')
+					: null,
 				article.title,
 				article.description,
 				article.hero,
@@ -111,54 +116,16 @@ export async function addContentToDb(
 		await db.run(`DELETE FROM headings WHERE articleId = ?`, article.id)
 
 		await Promise.all(
-			getHeadingLinks(article.content ?? '').map((heading, i) =>
+			parseMarkdown(article.content ?? '', article.path ?? article.id).headings.map((heading, i) =>
 				headingsInsert.run(
 					i,
 					article.id,
 					heading.level,
 					heading.title,
 					heading.slug,
-					heading.isCode,
-					`${article.path}#${heading.slug}`
+					heading.slug ? `${article.path}#${heading.slug}` : article.path
 				)
 			)
 		)
 	}
-}
-
-export async function addFTS(db: Database<sqlite3.Database, sqlite3.Statement>) {
-	await db.run(`DROP TABLE IF EXISTS ftsArticles`)
-	await db.run(
-		`CREATE VIRTUAL TABLE ftsArticles USING fts5(title, content, description, keywords, id, sectionId, categoryId, tokenize="trigram")`
-	)
-	await db.run(
-		`INSERT INTO ftsArticles SELECT title, content, description, keywords, id, sectionId, categoryId FROM articles;`
-	)
-
-	await db.run(`DROP TABLE IF EXISTS ftsHeadings`)
-	await db.run(
-		`CREATE VIRTUAL TABLE ftsHeadings USING fts5(title, slug, id, articleId, tokenize="trigram")`
-	)
-	await db.run(`INSERT INTO ftsHeadings SELECT title, slug, id, articleId FROM headings;`)
-}
-
-const slugs = new GithubSlugger()
-
-const MATCH_HEADINGS = /(?:^|\n)(#{1,6})\s+(.+?)(?=\n|$)/g
-function getHeadingLinks(content: string) {
-	let match
-	const headings: ArticleHeadings = []
-	const visited = new Set<string>()
-	while ((match = MATCH_HEADINGS.exec(content)) !== null) {
-		if (visited.has(match[2])) continue
-		visited.add(match[2])
-		slugs.reset()
-		headings.push({
-			level: match[1].length,
-			title: match[2].replaceAll('`', ''),
-			slug: slugs.slug(match[2], true),
-			isCode: match[2].startsWith('`'),
-		})
-	}
-	return headings
 }

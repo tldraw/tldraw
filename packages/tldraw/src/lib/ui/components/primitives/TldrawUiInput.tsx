@@ -17,11 +17,11 @@ export interface TLUiInputProps {
 	children?: React.ReactNode
 	defaultValue?: string
 	placeholder?: string
-	onComplete?: (value: string) => void
-	onValueChange?: (value: string) => void
-	onCancel?: (value: string) => void
-	onBlur?: (value: string) => void
-	onFocus?: () => void
+	onComplete?(value: string): void
+	onValueChange?(value: string): void
+	onCancel?(value: string): void
+	onBlur?(value: string): void
+	onFocus?(): void
 	className?: string
 	/**
 	 * Usually on iOS when you focus an input, the browser will adjust the viewport to bring the input
@@ -104,9 +104,9 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					}
 					case 'Escape': {
 						e.currentTarget.value = rInitialValue.current
+						onCancel?.(e.currentTarget.value)
 						e.currentTarget.blur()
 						stopEventPropagation(e)
-						onCancel?.(e.currentTarget.value)
 						break
 					}
 				}

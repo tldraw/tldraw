@@ -30,13 +30,13 @@ import 'tldraw/tldraw.css'
 const focusedEditorContext = createContext(
 	{} as {
 		focusedEditor: Editor | null
-		setFocusedEditor: (id: Editor | null) => void
+		setFocusedEditor(id: Editor | null): void
 	}
 )
 
 // [2]
 function blurEditor(editor: Editor) {
-	editor.blur()
+	editor.blur({ blurContainer: false })
 	editor.selectNone()
 	editor.setCurrentTool('hand')
 }
@@ -81,7 +81,7 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 				if (focusedEditor && focusedEditor !== editor) {
 					blurEditor(focusedEditor)
 				}
-				editor.focus()
+				editor.focus({ focusContainer: false })
 				setFocusedEditor(editor)
 			}}
 		>

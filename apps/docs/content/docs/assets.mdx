@@ -3,7 +3,7 @@ title: Assets
 status: published
 author: steveruizok
 date: 6/9/2023
-order: 3
+order: 5
 keywords:
   - image
   - video
@@ -13,14 +13,30 @@ keywords:
   - files
 ---
 
-Assets are dynamic records that store data about a shared asset. For example, our image and video shapes refer to assets rather than embedding their source files directly. This is essential because, by default, these asset sources are stored in base64 data.
+Assets are dynamic records that store data about a shared asset. For example, our image and video
+shapes refer to assets rather than embedding their source files directly. Asset storage and
+retrieval is controlled by [`TLAssetStore`](?). Different [`TLStore`](?) setups require different asset setups:
 
-You can use assets for any shared piece of information, however they're best used for images, videos, and files.
+- By default, the store is in-memory only, so [`inlineBase64AssetStore`](?) converts images to data
+  URLs.
+- When using the [`persistenceKey` prop](/docs/persistence#The-persistenceKey-prop), the store is
+  synced to the browser's local
+  [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), so we store images
+  there too.
+- When using a [multiplayer sync server](/docs/sync), you would implement TLAssetStore to upload
+  images to e.g. an S3 bucket.
 
 ## Examples
 
 While we're working on docs for this part of the project, please refer to the examples below:
 
-- [Using images hosted](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/examples/hosted-images/HostedImagesExample.tsx)
-- [Customizing the default asset options](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/examples/asset-props/AssetPropsExample.tsx)
-- [Handling pasted / dropped external content](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/examples/external-content-sources/ExternalContentSourcesExample.tsx)
+- [Using images
+  hosted](/examples/data/assets/hosted-images)
+- [Customizing the default asset
+  options](/examples/data/assets/asset-props)
+- [Handling pasted / dropped external
+  content](/examples/data/assets/external-content-sources)
+- [A simple asset store that uploads content to a remote
+  server](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx)
+- [A more complex asset store that optimizes images when retrieving
+  them](https://github.com/tldraw/tldraw/blob/main/packages/sync/src/useSyncDemo.ts#L87)

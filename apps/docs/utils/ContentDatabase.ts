@@ -1,10 +1,10 @@
-import { connect } from '@/scripts/functions/connect'
+import { connect } from '@/scripts/lib/connect'
 import { assert } from '@tldraw/utils'
 import { Database } from 'sqlite'
 import sqlite3 from 'sqlite3'
 import {
 	Article,
-	ArticleHeadings,
+	ArticleHeading,
 	ArticleLinks,
 	Category,
 	Section,
@@ -15,31 +15,61 @@ import {
 } from '../types/content-types'
 
 export class ContentDatabase {
-	constructor(public db: Database<sqlite3.Database, sqlite3.Statement>) {}
+	private dbPromise: Promise<Database<sqlite3.Database, sqlite3.Statement>> | null = null
 
-	async getArticle(articleId: string): Promise<Article> {
-		const article = await this.db.get<Article>(
-			`SELECT *, NULL as content FROM articles WHERE articles.id = ?`,
-			articleId
-		)
-		assert(article, `Could not find a article with articleId ${articleId}`)
-		return article
+	async getDb() {
+		if (!this.dbPromise) {
+			this.dbPromise = connect({ mode: 'readonly' })
+		}
+
+		return this.dbPromise
+	}
+
+	async getAllPaths(): Promise<string[]> {
+		const db = await this.getDb()
+		const articles = await db.all(`SELECT path FROM articles`)
+		return articles.map((article) => article.path)
+	}
+
+	async getPageContent(
+		path: string
+	): Promise<
+		| { type: 'section'; section: Section }
+		| { type: 'category'; category: Category }
+		| { type: 'article'; article: Article }
+		| undefined
+	> {
+		const db = await this.getDb()
+		const section = await db.get(`SELECT * FROM sections WHERE sections.path = ?`, path)
+		if (section) return { type: 'section', section } as const
+
+		const category = await db.get(`SELECT * FROM categories WHERE categories.path = ?`, path)
+		if (category) return { type: 'category', category } as const
+
+		const article = await db.get(`SELECT * FROM articles WHERE articles.path = ?`, path)
+		if (article) return { type: 'article', article } as const
+
+		return undefined
 	}
 
 	async getSection(sectionId: string, opts = {} as { optional?: boolean }) {
-		const section = await this.db.get('SELECT * FROM sections WHERE id = ?', sectionId)
+		const db = await this.getDb()
+		const section = await db.get('SELECT * FROM sections WHERE id = ?', sectionId)
 		if (!opts.optional) assert(section, `Could not find a section with sectionId ${sectionId}`)
 		return section
 	}
 
-	async getCategory(categoryId: string, opts = {} as { optional?: boolean }) {
-		const category = await this.db.get('SELECT * FROM categories WHERE id = ?', categoryId)
+	async getCategory(categoryId: string, opts = {} as { optional?: boolean }): Promise<Category> {
+		const db = await this.getDb()
+		const category = await db.get('SELECT * FROM categories WHERE id = ?', categoryId)
 		if (!opts.optional) assert(category, `Could not find a category with categoryId ${categoryId}`)
 		return category
 	}
 
-	async getArticleHeadings(articleId: string): Promise<ArticleHeadings> {
-		const headings = await this.db.all<ArticleHeadings>(
+	async getArticleHeadings(articleId: string): Promise<ArticleHeading[]> {
+		const db = await this.getDb()
+
+		const headings = await db.all<ArticleHeading[]>(
 			`SELECT * FROM headings WHERE headings.articleId = ? ORDER BY idx ASC`,
 			articleId
 		)
@@ -48,7 +78,8 @@ export class ContentDatabase {
 	}
 
 	async getCategoriesForSection(sectionId: string, opts = {} as { optional?: boolean }) {
-		const categories = await this.db.all<Category[]>(
+		const db = await this.getDb()
+		const categories = await db.all<Category[]>(
 			'SELECT * FROM categories WHERE sectionId = ?',
 			sectionId
 		)
@@ -57,8 +88,9 @@ export class ContentDatabase {
 	}
 
 	async getCategoryArticles(sectionId: string, categoryId: string) {
-		const articles = await this.db.all<Article[]>(
-			'SELECT id, title, sectionId, categoryId, path FROM articles WHERE sectionId = ? AND categoryId = ?',
+		const db = await this.getDb()
+		const articles = await db.all<Article[]>(
+			'SELECT id, title, description, sectionId, categoryId, authorId, hero, date, path FROM articles WHERE sectionId = ? AND categoryId = ?',
 			sectionId,
 			categoryId
 		)
@@ -66,73 +98,76 @@ export class ContentDatabase {
 		return articles
 	}
 
-	async getCategoryArticlesCount(sectionId: string, categoryId: string) {
-		const res = await this.db.get<{ count: number }>(
-			'SELECT COUNT(*) AS count FROM articles WHERE sectionId = ? AND categoryId = ?',
-			sectionId,
-			categoryId
-		)
-
-		assert(res, `Could not find count of articles for category with categoryId ${categoryId}`)
-		return res.count
-	}
-
 	async getArticleLinks(article: Article): Promise<ArticleLinks> {
+		const db = await this.getDb()
+
 		// and the article with the same section but next sectionIndex
 		const { sectionIndex } = article
 
 		// the prev is the article with the same section but one less sectionIndex
-		let prev = await this.db.get<Article>(
-			`SELECT id, title, categoryId, sectionId, path FROM articles WHERE articles.sectionId = ? AND articles.sectionIndex = ?`,
+		let prev = await db.get<Article>(
+			`SELECT id, title, categoryId, sectionId, path FROM articles
+			   WHERE articles.sectionId = ?
+				   AND ((articles.groupId = ? AND ? IS NOT NULL) OR (articles.groupId IS NULL AND ? is NULL))
+					 AND articles.sectionIndex < ? 
+			   ORDER BY articles.sectionIndex DESC LIMIT 1`,
 			article.sectionId,
-			sectionIndex - 1
+			article.groupId,
+			article.groupId,
+			article.groupId,
+			sectionIndex
 		)
 
 		// If there's no next, then get the LAST article from the prev section
 		if (!prev) {
-			const { idx } = await this.db.get(
+			const { idx } = await db.get(
 				`SELECT idx FROM sections WHERE sections.id = ?`,
 				article.sectionId
 			)
 
-			const prevSection = await this.db.get(
-				`SELECT id FROM sections WHERE sections.idx = ?`,
-				idx - 1
-			)
+			const prevSection = await db.get(`SELECT id FROM sections WHERE sections.idx = ?`, idx - 1)
 			if (prevSection) {
 				const { id: prevSectionId } = prevSection
 				// get the article with the section id and the highest section index
-				prev = await this.db.get<Article>(
+				prev = await db.get<Article>(
 					// here we only need certian info for the link
-					`SELECT id, title, categoryId, sectionId, path FROM articles WHERE articles.sectionId = ? ORDER BY articles.sectionIndex DESC LIMIT 1`,
+					`SELECT id, title, categoryId, sectionId, path FROM articles
+					   WHERE articles.sectionId = ?
+					   ORDER BY articles.sectionIndex DESC LIMIT 1`,
 					prevSectionId
 				)
 			}
 		}
 
 		// the next is the article with the same section but next sectionIndex
-		let next = await this.db.get<Article>(
-			`SELECT id, title, categoryId, sectionId, path FROM articles WHERE articles.sectionId = ? AND articles.sectionIndex = ?`,
+		let next = await db.get<Article>(
+			`SELECT id, title, categoryId, sectionId, path FROM articles
+			   WHERE articles.sectionId = ?
+				   AND ((articles.groupId = ? AND ? IS NOT NULL) OR (articles.groupId IS NULL AND ? is NULL))
+					 AND articles.sectionIndex > ?
+			   ORDER BY articles.sectionIndex ASC LIMIT 1`,
 			article.sectionId,
-			sectionIndex + 1
+			article.groupId,
+			article.groupId,
+			article.groupId,
+			sectionIndex
 		)
 
 		// If there's no next, then get the FIRST article from the next section
 		if (!next) {
-			const { idx } = await this.db.get(
+			const { idx } = await db.get(
 				`SELECT idx FROM sections WHERE sections.id = ?`,
 				article.sectionId
 			)
 
-			const nextSection = await this.db.get(
-				`SELECT id FROM sections WHERE sections.idx = ?`,
-				idx + 1
-			)
+			const nextSection = await db.get(`SELECT id FROM sections WHERE sections.idx = ?`, idx + 1)
 
 			if (nextSection) {
 				const { id: nextSectionId } = nextSection
-				next = await this.db.get<Article>(
-					`SELECT id, title, categoryId, sectionId, path FROM articles WHERE articles.sectionId = ? ORDER BY articles.sectionIndex ASC LIMIT 1`,
+				next = await db.get<Article>(
+					`SELECT id, title, categoryId, sectionId, path FROM articles
+					 	 WHERE articles.sectionId = ?
+						 ORDER BY articles.sectionIndex ASC LIMIT 1`,
 					nextSectionId
 				)
 			}
@@ -167,10 +202,11 @@ export class ContentDatabase {
 			// Use the previously cached sidebar links
 			links = cachedLinks
 		} else {
+			const db = await this.getDb()
 			// Generate sidebar links and cache them
 			links = []
 
-			const sections = await this.db.all<Section[]>('SELECT * FROM sections ORDER BY idx ASC')
+			const sections = await db.all<Section[]>('SELECT * FROM sections ORDER BY idx ASC')
 
 			for (const section of sections) {
 				if (!section.path) continue
@@ -210,7 +246,7 @@ export class ContentDatabase {
 				// ... we place it at the top level of the sidebar
 				// ... so let's simplify its URL to reflect that
 
-				const categoriesForSection = await this.db.all<Category[]>(
+				const categoriesForSection = await db.all<Category[]>(
 					`SELECT * FROM categories WHERE categories.sectionId = ? ORDER BY sectionIndex ASC`,
 					section.id
 				)
@@ -218,7 +254,7 @@ export class ContentDatabase {
 				const ucg: SidebarContentLink[] = []
 
 				for (const category of categoriesForSection) {
-					const articlesForCategory = await this.db.all<Article[]>(
+					const articlesForCategory = await db.all<Article[]>(
 						`SELECT * FROM articles WHERE articles.categoryId = ? ORDER BY categoryIndex ASC`,
 						category.id
 					)
@@ -293,13 +329,4 @@ export class ContentDatabase {
 	}
 }
 
-let contentDatabase: ContentDatabase | null = null
-
-export async function getDb() {
-	if (!contentDatabase) {
-		const db = await connect({ mode: 'readonly' })
-		contentDatabase = new ContentDatabase(db)
-	}
-
-	return contentDatabase
-}
+export const db = new ContentDatabase()

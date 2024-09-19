@@ -2,9 +2,9 @@
 
 exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
 {
-  "binding:15": {
-    "fromId": "shape:13",
-    "id": "binding:15",
+  "binding:19": {
+    "fromId": "shape:17",
+    "id": "binding:19",
     "meta": {},
     "props": {
       "isExact": false,
@@ -15,13 +15,13 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
       },
       "terminal": "start",
     },
-    "toId": "shape:11",
+    "toId": "shape:15",
     "type": "arrow",
     "typeName": "binding",
   },
-  "binding:17": {
-    "fromId": "shape:13",
-    "id": "binding:17",
+  "binding:21": {
+    "fromId": "shape:17",
+    "id": "binding:21",
     "meta": {},
     "props": {
       "isExact": false,
@@ -32,7 +32,7 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
       },
       "terminal": "end",
     },
-    "toId": "shape:9",
+    "toId": "shape:13",
     "type": "arrow",
     "typeName": "binding",
   },
@@ -50,8 +50,38 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
     "name": "Page 1",
     "typeName": "page",
   },
-  "shape:11": {
-    "id": "shape:11",
+  "shape:13": {
+    "id": "shape:13",
+    "index": "a1",
+    "isLocked": false,
+    "meta": {},
+    "opacity": 1,
+    "parentId": "page:page",
+    "props": {
+      "align": "middle",
+      "color": "red",
+      "dash": "draw",
+      "fill": "solid",
+      "font": "draw",
+      "geo": "rectangle",
+      "growY": 0,
+      "h": 177.03,
+      "labelColor": "red",
+      "scale": 1,
+      "size": "m",
+      "text": "",
+      "url": "",
+      "verticalAlign": "middle",
+      "w": 136.64,
+    },
+    "rotation": 0,
+    "type": "geo",
+    "typeName": "shape",
+    "x": 1388.92,
+    "y": 820.52,
+  },
+  "shape:15": {
+    "id": "shape:15",
     "index": "a2",
     "isLocked": false,
     "meta": {},
@@ -80,8 +110,8 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
     "x": 1616.09,
     "y": 584.28,
   },
-  "shape:13": {
-    "id": "shape:13",
+  "shape:17": {
+    "id": "shape:17",
     "index": "a3",
     "isLocked": false,
     "meta": {},
@@ -115,8 +145,61 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
     "x": 1541.56,
     "y": 698.67,
   },
-  "shape:9": {
-    "id": "shape:9",
+}
+`;
+
+exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
+{
+  "binding:18": {
+    "fromId": "shape:16",
+    "id": "binding:18",
+    "meta": {},
+    "props": {
+      "isExact": true,
+      "isPrecise": true,
+      "normalizedAnchor": {
+        "x": 0.6250000000000002,
+        "y": 0.5700000000000003,
+      },
+      "terminal": "start",
+    },
+    "toId": "shape:14",
+    "type": "arrow",
+    "typeName": "binding",
+  },
+  "binding:20": {
+    "fromId": "shape:16",
+    "id": "binding:20",
+    "meta": {},
+    "props": {
+      "isExact": true,
+      "isPrecise": true,
+      "normalizedAnchor": {
+        "x": 0.5,
+        "y": 0.5,
+      },
+      "terminal": "end",
+    },
+    "toId": "shape:12",
+    "type": "arrow",
+    "typeName": "binding",
+  },
+  "document:document": {
+    "gridSize": 10,
+    "id": "document:document",
+    "meta": {},
+    "name": "",
+    "typeName": "document",
+  },
+  "page:page": {
+    "id": "page:page",
+    "index": "a1",
+    "meta": {},
+    "name": "Page 1",
+    "typeName": "page",
+  },
+  "shape:12": {
+    "id": "shape:12",
     "index": "a1",
     "isLocked": false,
     "meta": {},
@@ -142,64 +225,11 @@ exports[`buildFromV1Document test fixtures arrow-binding.tldr 1`] = `
     "rotation": 0,
     "type": "geo",
     "typeName": "shape",
-    "x": 1388.92,
-    "y": 820.52,
+    "x": 1418.93,
+    "y": 779.31,
   },
-}
-`;
-
-exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
-{
-  "binding:14": {
-    "fromId": "shape:12",
-    "id": "binding:14",
-    "meta": {},
-    "props": {
-      "isExact": true,
-      "isPrecise": true,
-      "normalizedAnchor": {
-        "x": 0.6250000000000002,
-        "y": 0.5700000000000003,
-      },
-      "terminal": "start",
-    },
-    "toId": "shape:10",
-    "type": "arrow",
-    "typeName": "binding",
-  },
-  "binding:16": {
-    "fromId": "shape:12",
-    "id": "binding:16",
-    "meta": {},
-    "props": {
-      "isExact": true,
-      "isPrecise": true,
-      "normalizedAnchor": {
-        "x": 0.5,
-        "y": 0.5,
-      },
-      "terminal": "end",
-    },
-    "toId": "shape:8",
-    "type": "arrow",
-    "typeName": "binding",
-  },
-  "document:document": {
-    "gridSize": 10,
-    "id": "document:document",
-    "meta": {},
-    "name": "",
-    "typeName": "document",
-  },
-  "page:page": {
-    "id": "page:page",
-    "index": "a1",
-    "meta": {},
-    "name": "Page 1",
-    "typeName": "page",
-  },
-  "shape:10": {
-    "id": "shape:10",
+  "shape:14": {
+    "id": "shape:14",
     "index": "a2",
     "isLocked": false,
     "meta": {},
@@ -228,8 +258,8 @@ exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
     "x": 1616.09,
     "y": 584.28,
   },
-  "shape:12": {
-    "id": "shape:12",
+  "shape:16": {
+    "id": "shape:16",
     "index": "a3",
     "isLocked": false,
     "meta": {},
@@ -263,8 +293,44 @@ exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
     "x": 1510.86,
     "y": 661.97,
   },
-  "shape:8": {
-    "id": "shape:8",
+}
+`;
+
+exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
+{
+  "binding:18": {
+    "fromId": "shape:16",
+    "id": "binding:18",
+    "meta": {},
+    "props": {
+      "isExact": false,
+      "isPrecise": true,
+      "normalizedAnchor": {
+        "x": 0.385,
+        "y": 0.425,
+      },
+      "terminal": "end",
+    },
+    "toId": "shape:12",
+    "type": "arrow",
+    "typeName": "binding",
+  },
+  "document:document": {
+    "gridSize": 10,
+    "id": "document:document",
+    "meta": {},
+    "name": "",
+    "typeName": "document",
+  },
+  "page:page": {
+    "id": "page:page",
+    "index": "a1",
+    "meta": {},
+    "name": "Page 1",
+    "typeName": "page",
+  },
+  "shape:12": {
+    "id": "shape:12",
     "index": "a1",
     "isLocked": false,
     "meta": {},
@@ -290,47 +356,11 @@ exports[`buildFromV1Document test fixtures exact-arrow-binding.tldr 1`] = `
     "rotation": 0,
     "type": "geo",
     "typeName": "shape",
-    "x": 1418.93,
-    "y": 779.31,
+    "x": 1391.66,
+    "y": 769.92,
   },
-}
-`;
-
-exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
-{
-  "binding:14": {
-    "fromId": "shape:12",
-    "id": "binding:14",
-    "meta": {},
-    "props": {
-      "isExact": false,
-      "isPrecise": true,
-      "normalizedAnchor": {
-        "x": 0.385,
-        "y": 0.425,
-      },
-      "terminal": "end",
-    },
-    "toId": "shape:8",
-    "type": "arrow",
-    "typeName": "binding",
-  },
-  "document:document": {
-    "gridSize": 10,
-    "id": "document:document",
-    "meta": {},
-    "name": "",
-    "typeName": "document",
-  },
-  "page:page": {
-    "id": "page:page",
-    "index": "a1",
-    "meta": {},
-    "name": "Page 1",
-    "typeName": "page",
-  },
-  "shape:10": {
-    "id": "shape:10",
+  "shape:14": {
+    "id": "shape:14",
     "index": "a2",
     "isLocked": false,
     "meta": {},
@@ -359,8 +389,8 @@ exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
     "x": 1362.24,
     "y": 784.23,
   },
-  "shape:12": {
-    "id": "shape:12",
+  "shape:16": {
+    "id": "shape:16",
     "index": "a1V",
     "isLocked": false,
     "meta": {},
@@ -393,36 +423,6 @@ exports[`buildFromV1Document test fixtures incorrect-arrow-binding.tldr 1`] = `
     "typeName": "shape",
     "x": 1544.3,
     "y": 817.34,
-  },
-  "shape:8": {
-    "id": "shape:8",
-    "index": "a1",
-    "isLocked": false,
-    "meta": {},
-    "opacity": 1,
-    "parentId": "page:page",
-    "props": {
-      "align": "middle",
-      "color": "red",
-      "dash": "draw",
-      "fill": "solid",
-      "font": "draw",
-      "geo": "rectangle",
-      "growY": 0,
-      "h": 177.03,
-      "labelColor": "red",
-      "scale": 1,
-      "size": "m",
-      "text": "",
-      "url": "",
-      "verticalAlign": "middle",
-      "w": 136.64,
-    },
-    "rotation": 0,
-    "type": "geo",
-    "typeName": "shape",
-    "x": 1391.66,
-    "y": 769.92,
   },
 }
 `;

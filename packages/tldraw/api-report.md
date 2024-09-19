@@ -6,7 +6,6 @@
 
 /// <reference types="react" />
 
-import { ArrayOfValidator } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
 import { BindingOnChangeOptions } from '@tldraw/editor';
@@ -18,11 +17,7 @@ import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
-import { DictValidator } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
-import { EMBED_DEFINITIONS } from '@tldraw/editor';
-import { EmbedDefinition } from '@tldraw/editor';
-import { EnumStyleProp } from '@tldraw/editor';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -30,7 +25,6 @@ import { IndexKey } from '@tldraw/editor';
 import { JsonObject } from '@tldraw/editor';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
 import { LANGUAGES } from '@tldraw/editor';
-import { MemoExoticComponent } from 'react';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { MigrationSequence } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -51,19 +45,20 @@ import { SharedStyle } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
 import { StyleProp } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
-import { T } from '@tldraw/editor';
 import { TLAnyBindingUtilConstructor } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowBinding } from '@tldraw/editor';
 import { TLArrowBindingProps } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/editor';
+import { TLArrowShapeProps } from '@tldraw/editor';
+import { TLAsset } from '@tldraw/editor';
 import { TLAssetId } from '@tldraw/editor';
 import { TLBookmarkShape } from '@tldraw/editor';
-import { TLClickEvent } from '@tldraw/editor';
+import { TLBookmarkShapeProps } from '@tldraw/editor';
+import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
-import { TLDefaultDashStyle } from '@tldraw/editor';
 import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
@@ -72,31 +67,35 @@ import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
+import { TLDrawShapeProps } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEditorComponents } from '@tldraw/editor';
 import { TLEditorSnapshot } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
+import { TLEmbedShapeProps } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
+import { TLFrameShapeProps } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
+import { TLGeoShapeProps } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
+import { TLHandleDragInfo } from '@tldraw/editor';
 import { TLHandlesProps } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
+import { TLHighlightShapeProps } from '@tldraw/editor';
+import { TLImageAsset } from '@tldraw/editor';
+import { TLImageExportOptions } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
-import { TLInterruptEvent } from '@tldraw/editor';
-import { TLKeyboardEvent } from '@tldraw/editor';
+import { TLImageShapeProps } from '@tldraw/editor';
+import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
+import { TLLineShapePoint } from '@tldraw/editor';
 import { TLNoteShape } from '@tldraw/editor';
-import { TLOnBeforeUpdateHandler } from '@tldraw/editor';
-import { TLOnDoubleClickHandler } from '@tldraw/editor';
-import { TLOnEditEndHandler } from '@tldraw/editor';
-import { TLOnHandleDragHandler } from '@tldraw/editor';
-import { TLOnResizeHandler } from '@tldraw/editor';
-import { TLOnTranslateHandler } from '@tldraw/editor';
-import { TLOnTranslateStartHandler } from '@tldraw/editor';
+import { TLNoteShapeProps } from '@tldraw/editor';
 import { TLPageId } from '@tldraw/editor';
 import { TLParentId } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/editor';
+import { TLResizeInfo } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
@@ -106,15 +105,13 @@ import { TLShapeId } from '@tldraw/editor';
 import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanBindOpts } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
-import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
-import { TLSvgOptions } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
-import { Validator } from '@tldraw/editor';
 import { Vec } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 import { VecModel } from '@tldraw/editor';
@@ -124,7 +121,7 @@ export interface ActionsProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
     // (undocumented)
-    overrides?: (editor: Editor, actions: TLUiActionsContextType, helpers: undefined) => TLUiActionsContextType;
+    overrides?(editor: Editor, actions: TLUiActionsContextType, helpers: undefined): TLUiActionsContextType;
 }
 
 // @public (undocumented)
@@ -173,7 +170,7 @@ export function ArrowRightToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class ArrowShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -185,13 +182,13 @@ export class ArrowShapeTool extends StateNode {
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
-    canBeLaidOut: TLShapeUtilFlag<TLArrowShape>;
+    canBeLaidOut(shape: TLArrowShape): boolean;
     // (undocumented)
     canBind({ toShapeType }: TLShapeUtilCanBindOpts<TLArrowShape>): boolean;
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
-    canSnap: () => boolean;
+    canSnap(): boolean;
     // (undocumented)
     component(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
@@ -203,46 +200,46 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
     // (undocumented)
-    hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
+    getInterpolatedProps(startShape: TLArrowShape, endShape: TLArrowShape, progress: number): TLArrowShapeProps;
     // (undocumented)
-    hideRotateHandle: TLShapeUtilFlag<TLArrowShape>;
+    getText(shape: TLArrowShape): string;
     // (undocumented)
-    hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape>;
+    hideResizeHandles(): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape>;
+    hideRotateHandle(): boolean;
+    // (undocumented)
+    hideSelectionBoundsBg(): boolean;
+    // (undocumented)
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLArrowShape): JSX_2.Element | null;
     // (undocumented)
     static migrations: MigrationSequence;
     // (undocumented)
-    onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
+    onDoubleClickHandle(shape: TLArrowShape, handle: TLHandle): TLShapePartial<TLArrowShape> | void;
     // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLArrowShape>;
+    onEditEnd(shape: TLArrowShape): void;
     // (undocumented)
-    onHandleDrag: TLOnHandleDragHandler<TLArrowShape>;
+    onHandleDrag(shape: TLArrowShape, { handle, isPrecise }: TLHandleDragInfo<TLArrowShape>): {
+        id: TLShapeId;
+        meta?: Partial<JsonObject> | undefined;
+        props?: Partial<TLArrowShapeProps> | undefined;
+        type: "arrow";
+    } & Partial<Omit<TLArrowShape, "id" | "meta" | "props" | "type">>;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLArrowShape>;
-    // (undocumented)
-    onTranslate?: TLOnTranslateHandler<TLArrowShape>;
-    // (undocumented)
-    onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
-    // (undocumented)
-    static props: {
-        arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-        arrowheadStart: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-        bend: Validator<number>;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        end: Validator<VecModel>;
-        fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        labelPosition: Validator<number>;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        start: Validator<VecModel>;
-        text: Validator<string>;
+    onResize(shape: TLArrowShape, info: TLResizeInfo<TLArrowShape>): {
+        props: {
+            bend: number;
+            end: VecModel;
+            start: VecModel;
+        };
     };
+    // (undocumented)
+    onTranslate(initialShape: TLArrowShape, shape: TLArrowShape): void;
+    // (undocumented)
+    onTranslateStart(shape: TLArrowShape): void;
+    // (undocumented)
+    static props: RecordProps<TLArrowShape>;
     // (undocumented)
     toSvg(shape: TLArrowShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -267,19 +264,23 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
 // @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
-    canResize: () => boolean;
+    canResize(): boolean;
     // (undocumented)
     component(shape: TLBookmarkShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
+    getInterpolatedProps(startShape: TLBookmarkShape, endShape: TLBookmarkShape, t: number): TLBookmarkShapeProps;
+    // (undocumented)
+    getText(shape: TLBookmarkShape): string;
+    // (undocumented)
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeCreate: (next: TLBookmarkShape) => {
+    onBeforeCreate(next: TLBookmarkShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -299,14 +300,27 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         y: number;
     };
     // (undocumented)
-    onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
+    onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape): {
+        id: TLShapeId;
+        index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
+            assetId: null | TLAssetId;
+            h: number;
+            url: string;
+            w: number;
+        };
+        rotation: number;
+        type: "bookmark";
+        typeName: "shape";
+        x: number;
+        y: number;
+    } | undefined;
     // (undocumented)
-    static props: {
-        assetId: T.Validator<null | TLAssetId>;
-        h: T.Validator<number>;
-        url: T.Validator<string>;
-        w: T.Validator<number>;
-    };
+    static props: RecordProps<TLBookmarkShape>;
     // (undocumented)
     static type: "bookmark";
 }
@@ -334,6 +348,28 @@ export interface BreakPointProviderProps {
 export function buildFromV1Document(editor: Editor, _document: unknown): void;
 
 // @public (undocumented)
+export function CenteredTopPanelContainer({ maxWidth, ignoreRightWidth, stylePanelWidth, marginBetweenZones, squeezeAmount, children, }: CenteredTopPanelContainerProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface CenteredTopPanelContainerProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    ignoreRightWidth?: number;
+    // (undocumented)
+    marginBetweenZones?: number;
+    // (undocumented)
+    maxWidth?: number;
+    // (undocumented)
+    squeezeAmount?: number;
+    // (undocumented)
+    stylePanelWidth?: number;
+}
+
+// @public
+export function centerSelectionAroundPoint(editor: Editor, position: VecLike): void;
+
+// @public (undocumented)
 export function CheckBoxToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -358,7 +394,7 @@ export function ConvertToBookmarkMenuItem(): JSX_2.Element | null;
 export function ConvertToEmbedMenuItem(): JSX_2.Element | null;
 
 // @public
-export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: TLSvgOptions): Promise<void>;
+export function copyAs(editor: Editor, ids: TLShapeId[], format?: TLCopyType, opts?: TLImageExportOptions): Promise<void>;
 
 // @public (undocumented)
 export function CopyAsMenuGroup(): JSX_2.Element;
@@ -367,10 +403,226 @@ export function CopyAsMenuGroup(): JSX_2.Element;
 export function CopyMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function createMediaAssetInfoSkeleton(file: File, assetId: TLAssetId, isImageType: boolean, isVideoType: boolean): Promise<TLImageAsset | TLVideoAsset>;
+
+// @public
+export function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<TLShapeId[]>;
+
+// @public (undocumented)
+export function CursorChatItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export interface CustomEmbedDefinition extends EmbedDefinition {
+    // (undocumented)
+    readonly icon: string;
+}
+
+// @public (undocumented)
 export function CutMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function DebugFlags(): JSX_2.Element | null;
+
+// @public (undocumented)
+export const DEFAULT_EMBED_DEFINITIONS: readonly [{
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com", "localhost:3000"];
+    readonly minHeight: 300;
+    readonly minWidth: 300;
+    readonly overridePermissions: {
+        readonly 'allow-top-navigation': true;
+    };
+    readonly title: "tldraw";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "tldraw";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["figma.com"];
+    readonly title: "Figma";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "figma";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["google.*"];
+    readonly overridePermissions: {
+        readonly 'allow-presentation': true;
+    };
+    readonly title: "Google Maps";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "google_maps";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["val.town"];
+    readonly minHeight: 100;
+    readonly minWidth: 260;
+    readonly title: "Val Town";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "val_town";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["codesandbox.io"];
+    readonly minHeight: 300;
+    readonly minWidth: 300;
+    readonly title: "CodeSandbox";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "codesandbox";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 400;
+    readonly hostnames: readonly ["codepen.io"];
+    readonly minHeight: 300;
+    readonly minWidth: 300;
+    readonly title: "Codepen";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "codepen";
+    readonly width: 520;
+}, {
+    readonly doesResize: false;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 400;
+    readonly hostnames: readonly ["scratch.mit.edu"];
+    readonly title: "Scratch";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "scratch";
+    readonly width: 520;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 450;
+    readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
+    readonly isAspectRatioLocked: true;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+        readonly 'allow-presentation': true;
+    };
+    readonly title: "YouTube";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "youtube";
+    readonly width: 800;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["calendar.google.*"];
+    readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
+    readonly minHeight: 360;
+    readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
+    readonly title: "Google Calendar";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "google_calendar";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["docs.google.*"];
+    readonly minHeight: 360;
+    readonly minWidth: 460;
+    readonly overridePermissions: {
+        readonly 'allow-popups-to-escape-sandbox': true;
+    };
+    readonly title: "Google Slides";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "google_slides";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["gist.github.com"];
+    readonly title: "GitHub Gist";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "github_gist";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["replit.com"];
+    readonly title: "Replit";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "replit";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["felt.com"];
+    readonly title: "Felt";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "felt";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["open.spotify.com"];
+    readonly minHeight: 500;
+    readonly overrideOutlineRadius: 12;
+    readonly title: "Spotify";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "spotify";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 360;
+    readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
+    readonly isAspectRatioLocked: true;
+    readonly title: "Vimeo";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "vimeo";
+    readonly width: 640;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["excalidraw.com"];
+    readonly isAspectRatioLocked: true;
+    readonly title: "Excalidraw";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "excalidraw";
+    readonly width: 720;
+}, {
+    readonly backgroundColor: "#fff";
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 500;
+    readonly hostnames: readonly ["observablehq.com"];
+    readonly isAspectRatioLocked: false;
+    readonly title: "Observable";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "observable";
+    readonly width: 720;
+}, {
+    readonly doesResize: true;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    readonly height: 450;
+    readonly hostnames: readonly ["desmos.com"];
+    readonly title: "Desmos";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly type: "desmos";
+    readonly width: 700;
+}];
 
 // @public (undocumented)
 export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
@@ -379,7 +631,7 @@ export const DefaultActionsMenu: NamedExoticComponent<TLUiActionsMenuProps>;
 export function DefaultActionsMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
-export const defaultBindingUtils: TLAnyBindingUtilConstructor[];
+export const defaultBindingUtils: readonly [typeof ArrowBindingUtil];
 
 // @public (undocumented)
 const DefaultContextMenu: NamedExoticComponent<TLUiContextMenuProps>;
@@ -397,6 +649,9 @@ export function DefaultDebugMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
 export let defaultEditorAssetUrls: TLEditorAssetUrls;
+
+// @public (undocumented)
+export type DefaultEmbedDefinitionType = (typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'];
 
 // @public (undocumented)
 export function DefaultHelperButtons({ children }: TLUiHelperButtonsProps): JSX_2.Element;
@@ -423,6 +678,9 @@ export const DefaultMainMenu: NamedExoticComponent<TLUiMainMenuProps>;
 export function DefaultMainMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
+export const DefaultMenuPanel: NamedExoticComponent<object>;
+
+// @public (undocumented)
 export function DefaultMinimap(): JSX_2.Element;
 
 // @public (undocumented)
@@ -438,10 +696,13 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool)[];
+export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
 
 // @public (undocumented)
-export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
+export const defaultShapeUtils: readonly [typeof TextShapeUtil, typeof BookmarkShapeUtil, typeof DrawShapeUtil, typeof GeoShapeUtil, typeof NoteShapeUtil, typeof LineShapeUtil, typeof FrameShapeUtil, typeof ArrowShapeUtil, typeof HighlightShapeUtil, typeof EmbedShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
+
+// @public (undocumented)
+export function DefaultSharePanel(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultStylePanel: NamedExoticComponent<TLUiStylePanelProps>;
@@ -462,7 +723,10 @@ export interface DefaultToolbarProps {
 }
 
 // @public (undocumented)
-export const defaultTools: (typeof EraserTool | typeof HandTool | typeof ZoomTool)[];
+export const defaultTools: readonly [typeof EraserTool, typeof HandTool, typeof LaserTool, typeof ZoomTool, typeof SelectTool];
+
+// @public (undocumented)
+export function DefaultTopPanel(): JSX_2.Element;
 
 // @public (undocumented)
 export const DefaultZoomMenu: NamedExoticComponent<TLUiZoomMenuProps>;
@@ -488,13 +752,15 @@ export function downsizeImage(blob: Blob, width: number, height: number, opts?: 
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onExit: () => void;
+    static isLockable: boolean;
+    // (undocumented)
+    onExit(): void;
     // (undocumented)
     shapeType: string;
 }
@@ -512,29 +778,25 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getGeometry(shape: TLDrawShape): Circle2d | Polyline2d;
     // (undocumented)
-    hideResizeHandles: (shape: TLDrawShape) => boolean;
+    getInterpolatedProps(startShape: TLDrawShape, endShape: TLDrawShape, t: number): TLDrawShapeProps;
     // (undocumented)
-    hideRotateHandle: (shape: TLDrawShape) => boolean;
+    hideResizeHandles(shape: TLDrawShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: (shape: TLDrawShape) => boolean;
+    hideRotateHandle(shape: TLDrawShape): boolean;
+    // (undocumented)
+    hideSelectionBoundsFg(shape: TLDrawShape): boolean;
     // (undocumented)
     indicator(shape: TLDrawShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLDrawShape>;
-    // (undocumented)
-    static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
-        isClosed: Validator<boolean>;
-        isComplete: Validator<boolean>;
-        isPen: Validator<boolean>;
-        scale: Validator<number>;
-        segments: ArrayOfValidator<TLDrawShapeSegment>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+    onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>): {
+        props: {
+            segments: TLDrawShapeSegment[];
+        };
     };
+    // (undocumented)
+    static props: RecordProps<TLDrawShape>;
     // (undocumented)
     toSvg(shape: TLDrawShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -551,39 +813,100 @@ export function DuplicateMenuItem(): JSX_2.Element | null;
 export function EditLinkMenuItem(): JSX_2.Element | null;
 
 // @public (undocumented)
+export function EditMenuSubmenu(): JSX_2.Element | null;
+
+// @public (undocumented)
 export function EditSubmenu(): JSX_2.Element;
 
 // @public (undocumented)
 export function EllipseToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export interface EmbedDefinition {
+    // (undocumented)
+    readonly backgroundColor?: string;
+    // (undocumented)
+    readonly doesResize: boolean;
+    // (undocumented)
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+    // (undocumented)
+    readonly height: number;
+    // (undocumented)
+    readonly hostnames: readonly string[];
+    // (undocumented)
+    readonly instructionLink?: string;
+    // (undocumented)
+    readonly isAspectRatioLocked?: boolean;
+    // (undocumented)
+    readonly minHeight?: number;
+    // (undocumented)
+    readonly minWidth?: number;
+    // (undocumented)
+    readonly overrideOutlineRadius?: number;
+    // (undocumented)
+    readonly overridePermissions?: TLEmbedShapePermissions;
+    // (undocumented)
+    readonly title: string;
+    // (undocumented)
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    // (undocumented)
+    readonly type: string;
+    // (undocumented)
+    readonly width: number;
+}
+
+// @public
+export const embedShapePermissionDefaults: {
+    readonly 'allow-downloads-without-user-activation': false;
+    readonly 'allow-downloads': false;
+    readonly 'allow-forms': true;
+    readonly 'allow-modals': false;
+    readonly 'allow-orientation-lock': false;
+    readonly 'allow-pointer-lock': false;
+    readonly 'allow-popups-to-escape-sandbox': false;
+    readonly 'allow-popups': true;
+    readonly 'allow-presentation': false;
+    readonly 'allow-same-origin': true;
+    readonly 'allow-scripts': true;
+    readonly 'allow-storage-access-by-user-activation': false;
+    readonly 'allow-top-navigation-by-user-activation': false;
+    readonly 'allow-top-navigation': false;
+};
+
+// @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
-    canEdit: TLShapeUtilFlag<TLEmbedShape>;
+    canEdit(): boolean;
     // (undocumented)
-    canEditInReadOnly: () => boolean;
+    canEditInReadOnly(): boolean;
     // (undocumented)
-    canResize: (shape: TLEmbedShape) => boolean;
+    canResize(shape: TLEmbedShape): boolean;
     // (undocumented)
     component(shape: TLEmbedShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
-    hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape>;
+    getEmbedDefinition(url: string): TLEmbedResult;
+    // (undocumented)
+    getEmbedDefinitions(): readonly TLEmbedDefinition[];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLEmbedShape, endShape: TLEmbedShape, t: number): TLEmbedShapeProps;
+    // (undocumented)
+    getText(shape: TLEmbedShape): string;
+    // (undocumented)
+    hideSelectionBoundsFg(shape: TLEmbedShape): boolean;
     // (undocumented)
     indicator(shape: TLEmbedShape): JSX_2.Element;
     // (undocumented)
-    isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape>;
+    isAspectRatioLocked(shape: TLEmbedShape): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLEmbedShape>;
+    onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): TLEmbedShape;
     // (undocumented)
-    static props: {
-        h: Validator<number>;
-        url: Validator<string>;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLEmbedShape>;
+    // (undocumented)
+    setEmbedDefinitions(definitions: TLEmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
 }
@@ -591,13 +914,15 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 // @public (undocumented)
 export class EraserTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onEnter: () => void;
+    static isLockable: boolean;
+    // (undocumented)
+    onEnter(): void;
 }
 
 // @public (undocumented)
@@ -625,15 +950,15 @@ export interface ExampleDialogProps {
     // (undocumented)
     displayDontShowAgain?: boolean;
     // (undocumented)
-    onCancel: () => void;
+    onCancel(): void;
     // (undocumented)
-    onContinue: () => void;
+    onContinue(): void;
     // (undocumented)
     title?: string;
 }
 
 // @public
-export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: TLSvgOptions): Promise<void>;
+export function exportAs(editor: Editor, ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined, opts?: TLImageExportOptions): Promise<void>;
 
 // @public (undocumented)
 export function ExportFileContentSubMenu(): JSX_2.Element;
@@ -643,7 +968,7 @@ export function exportToBlob({ editor, ids, format, opts, }: {
     editor: Editor;
     format: TLExportType;
     ids: TLShapeId[];
-    opts?: TLSvgOptions;
+    opts?: TLImageExportOptions;
 }): Promise<Blob>;
 
 // @public (undocumented)
@@ -670,7 +995,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onCreate: (shape: null | TLShape) => void;
+    onCreate(shape: null | TLShape): void;
     // (undocumented)
     shapeType: string;
 }
@@ -678,11 +1003,11 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
-    canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
+    canDropShapes(shape: TLFrameShape, _shapes: TLShape[]): boolean;
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
+    canReceiveNewChildrenOfType(shape: TLShape, _type: TLShape['type']): boolean;
     // (undocumented)
     component(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
@@ -690,21 +1015,21 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     getGeometry(shape: TLFrameShape): Geometry2d;
     // (undocumented)
+    getInterpolatedProps(startShape: TLFrameShape, endShape: TLFrameShape, t: number): TLFrameShapeProps;
+    // (undocumented)
+    getText(shape: TLFrameShape): string | undefined;
+    // (undocumented)
     indicator(shape: TLFrameShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
+    onDragShapesOut(_shape: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
-    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => void;
+    onDragShapesOver(frame: TLFrameShape, shapes: TLShape[]): void;
     // (undocumented)
-    onResize: TLOnResizeHandler<any>;
+    onResize(shape: any, info: TLResizeInfo<any>): any;
     // (undocumented)
-    static props: {
-        h: Validator<number>;
-        name: Validator<string>;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLFrameShape>;
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
@@ -719,7 +1044,7 @@ export function FrameToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class GeoShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -731,7 +1056,7 @@ export class GeoShapeTool extends StateNode {
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
     component(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -743,11 +1068,15 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLGeoShape): HandleSnapGeometry;
     // (undocumented)
+    getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
+    // (undocumented)
+    getText(shape: TLGeoShape): string;
+    // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeCreate: (shape: TLGeoShape) => {
+    onBeforeCreate(shape: TLGeoShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -778,7 +1107,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onBeforeUpdate: (prev: TLGeoShape, next: TLGeoShape) => {
+    onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -809,7 +1138,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onDoubleClick: (shape: TLGeoShape) => {
+    onDoubleClick(shape: TLGeoShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -841,27 +1170,19 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLGeoShape>;
+    onEditEnd(shape: TLGeoShape): void;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLGeoShape>;
-    // (undocumented)
-    static props: {
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        fill: EnumStyleProp<"fill" | "none" | "pattern" | "semi" | "solid">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "cloud" | "diamond" | "ellipse" | "heart" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
-        growY: Validator<number>;
-        h: Validator<number>;
-        labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        url: Validator<string>;
-        verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
-        w: Validator<number>;
+    onResize(shape: TLGeoShape, { handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>): {
+        props: {
+            growY: number;
+            h: number;
+            w: number;
+        };
+        x: number;
+        y: number;
     };
+    // (undocumented)
+    static props: RecordProps<TLGeoShape>;
     // (undocumented)
     toSvg(shape: TLGeoShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -880,33 +1201,11 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
     start: Vec;
 };
 
-// @public (undocumented)
-export function getAssetFromIndexedDb({ persistenceKey, assetId, }: {
-    assetId: string;
-    persistenceKey: string;
-}): Promise<Blob | undefined>;
-
-// @public (undocumented)
-export function getDefaultCdnBaseUrl(): string;
-
 // @public
-export function getEmbedInfo(inputUrl: string): TLEmbedResult;
+export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
-
-// @public (undocumented)
-export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
-    closed: boolean;
-    end: 'none' | 'outset' | 'skip';
-    lengthRatio: number;
-    snap: number;
-    start: 'none' | 'outset' | 'skip';
-    style: TLDefaultDashStyle;
-}>): {
-    strokeDasharray: string;
-    strokeDashoffset: string;
-};
 
 // @public (undocumented)
 export function getSvgAsImage(editor: Editor, svgString: string, options: {
@@ -926,17 +1225,17 @@ export function GroupOrUngroupMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class HandTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onDoubleClick: TLClickEvent;
+    onDoubleClick(info: TLClickEventInfo): void;
     // (undocumented)
-    onQuadrupleClick: TLClickEvent;
+    onQuadrupleClick(info: TLClickEventInfo): void;
     // (undocumented)
-    onTripleClick: TLClickEvent;
+    onTripleClick(info: TLClickEventInfo): void;
 }
 
 // @public (undocumented)
@@ -948,13 +1247,15 @@ export function HexagonToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class HighlightShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onExit: () => void;
+    static isLockable: boolean;
+    // (undocumented)
+    onExit(): void;
     // (undocumented)
     shapeType: string;
 }
@@ -970,26 +1271,25 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
-    hideResizeHandles: (shape: TLHighlightShape) => boolean;
+    getInterpolatedProps(startShape: TLHighlightShape, endShape: TLHighlightShape, t: number): TLHighlightShapeProps;
     // (undocumented)
-    hideRotateHandle: (shape: TLHighlightShape) => boolean;
+    hideResizeHandles(shape: TLHighlightShape): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: (shape: TLHighlightShape) => boolean;
+    hideRotateHandle(shape: TLHighlightShape): boolean;
+    // (undocumented)
+    hideSelectionBoundsFg(shape: TLHighlightShape): boolean;
     // (undocumented)
     indicator(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLHighlightShape>;
-    // (undocumented)
-    static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        isComplete: Validator<boolean>;
-        isPen: Validator<boolean>;
-        scale: Validator<number>;
-        segments: ArrayOfValidator<TLDrawShapeSegment>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+    onResize(shape: TLHighlightShape, info: TLResizeInfo<TLHighlightShape>): {
+        props: {
+            segments: TLDrawShapeSegment[];
+        };
     };
+    // (undocumented)
+    static props: RecordProps<TLHighlightShape>;
     // (undocumented)
     toBackgroundSvg(shape: TLHighlightShape): JSX_2.Element;
     // (undocumented)
@@ -1004,39 +1304,27 @@ export function HighlightToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
-    canCrop: () => boolean;
+    canCrop(): boolean;
     // (undocumented)
-    component(shape: TLImageShape): JSX_2.Element | null;
+    component(shape: TLImageShape): JSX_2.Element;
     // (undocumented)
     getDefaultProps(): TLImageShape['props'];
+    // (undocumented)
+    getInterpolatedProps(startShape: TLImageShape, endShape: TLImageShape, t: number): TLImageShapeProps;
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
     isAnimated(shape: TLImageShape): boolean;
     // (undocumented)
-    isAspectRatioLocked: () => boolean;
+    isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onDoubleClick: (shape: TLImageShape) => void;
+    onDoubleClickEdge(shape: TLImageShape): void;
     // (undocumented)
-    onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
+    onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>): TLImageShape;
     // (undocumented)
-    onResize: TLOnResizeHandler<any>;
-    // (undocumented)
-    static props: {
-        assetId: Validator<TLAssetId | null>;
-        crop: Validator<    {
-        bottomRight: VecModel;
-        topLeft: VecModel;
-        } | null>;
-        flipX: Validator<boolean>;
-        flipY: Validator<boolean>;
-        h: Validator<number>;
-        playing: Validator<boolean>;
-        url: Validator<string>;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLImageShape>;
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<JSX_2.Element | null>;
     // (undocumented)
@@ -1058,13 +1346,15 @@ export function LanguageMenu(): JSX_2.Element;
 // @public (undocumented)
 export class LaserTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onEnter: () => void;
+    static isLockable: boolean;
+    // (undocumented)
+    onEnter(): void;
 }
 
 // @public (undocumented)
@@ -1073,7 +1363,7 @@ export function LaserToolbarItem(): JSX_2.Element;
 // @public (undocumented)
 export class LineShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1095,35 +1385,63 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandleSnapGeometry(shape: TLLineShape): HandleSnapGeometry;
     // (undocumented)
-    hideResizeHandles: () => boolean;
+    getInterpolatedProps(startShape: TLLineShape, endShape: TLLineShape, t: number): TLLineShape['props'];
     // (undocumented)
-    hideRotateHandle: () => boolean;
+    hideResizeHandles(): boolean;
     // (undocumented)
-    hideSelectionBoundsBg: () => boolean;
+    hideRotateHandle(): boolean;
     // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
+    hideSelectionBoundsBg(): boolean;
+    // (undocumented)
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onHandleDrag: TLOnHandleDragHandler<TLLineShape>;
-    // (undocumented)
-    onResize: TLOnResizeHandler<TLLineShape>;
-    // (undocumented)
-    static props: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-        points: DictValidator<string, {
-        id: string;
+    onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>): {
+        id: TLShapeId;
         index: IndexKey;
+        isLocked: boolean;
+        meta: JsonObject;
+        opacity: number;
+        parentId: TLParentId;
+        props: {
+            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
+            dash: "dashed" | "dotted" | "draw" | "solid";
+            points: {
+                [x: string]: {
+                    id: string;
+                    index: IndexKey;
+                    x: number;
+                    y: number;
+                } | TLLineShapePoint;
+            };
+            scale: number;
+            size: "l" | "m" | "s" | "xl";
+            spline: "cubic" | "line";
+        };
+        rotation: number;
+        type: "line";
+        typeName: "shape";
         x: number;
         y: number;
-        }>;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        spline: EnumStyleProp<"cubic" | "line">;
+    } | undefined;
+    // (undocumented)
+    onResize(shape: TLLineShape, info: TLResizeInfo<TLLineShape>): {
+        props: {
+            points: {
+                [x: string]: {
+                    id: string;
+                    index: IndexKey;
+                    x: number;
+                    y: number;
+                };
+            };
+        };
     };
+    // (undocumented)
+    static props: RecordProps<TLLineShape>;
     // (undocumented)
     toSvg(shape: TLLineShape): JSX_2.Element;
     // (undocumented)
@@ -1137,12 +1455,15 @@ export function LineToolbarItem(): JSX_2.Element;
 export function MiscMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
+export function MobileStylePanel(): JSX_2.Element | null;
+
+// @public (undocumented)
 export function MoveToPageMenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export class NoteShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1154,7 +1475,7 @@ export class NoteShapeTool extends StateNode {
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
     component(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
@@ -1164,15 +1485,19 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getHandles(shape: TLNoteShape): TLHandle[];
     // (undocumented)
-    hideResizeHandles: () => boolean;
+    getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
+    getText(shape: TLNoteShape): string;
+    // (undocumented)
+    hideResizeHandles(): boolean;
+    // (undocumented)
+    hideSelectionBoundsFg(): boolean;
     // (undocumented)
     indicator(shape: TLNoteShape): JSX_2.Element;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeCreate: (next: TLNoteShape) => {
+    onBeforeCreate(next: TLNoteShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -1198,7 +1523,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onBeforeUpdate: (prev: TLNoteShape, next: TLNoteShape) => {
+    onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -1224,20 +1549,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLNoteShape>;
+    onEditEnd(shape: TLNoteShape): void;
     // (undocumented)
-    static props: {
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        fontSizeAdjustment: Validator<number>;
-        growY: Validator<number>;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        url: Validator<string>;
-        verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
-    };
+    static props: RecordProps<TLNoteShape>;
     // (undocumented)
     toSvg(shape: TLNoteShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -1257,7 +1571,16 @@ export function OpacitySlider(): JSX_2.Element | null;
 export function OvalToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
-export const PageItemInput: ({ name, id, isCurrentPage, }: PageItemInputProps) => JSX_2.Element;
+export function OverflowingToolbar({ children }: OverflowingToolbarProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface OverflowingToolbarProps {
+    // (undocumented)
+    children: React.ReactNode;
+}
+
+// @public (undocumented)
+export const PageItemInput: ({ name, id, isCurrentPage, onCancel, }: PageItemInputProps) => JSX_2.Element;
 
 // @public (undocumented)
 export interface PageItemInputProps {
@@ -1267,10 +1590,12 @@ export interface PageItemInputProps {
     isCurrentPage: boolean;
     // (undocumented)
     name: string;
+    // (undocumented)
+    onCancel(): void;
 }
 
 // @public (undocumented)
-export const PageItemSubmenu: MemoExoticComponent<({ index, listSize, item, onRename, }: PageItemSubmenuProps) => JSX_2.Element>;
+export const PageItemSubmenu: NamedExoticComponent<PageItemSubmenuProps>;
 
 // @public (undocumented)
 export interface PageItemSubmenuProps {
@@ -1284,7 +1609,7 @@ export interface PageItemSubmenuProps {
     // (undocumented)
     listSize: number;
     // (undocumented)
-    onRename?: () => void;
+    onRename?(): void;
 }
 
 // @internal (undocumented)
@@ -1298,6 +1623,15 @@ export function parseTldrawJsonFile({ json, schema, }: {
 
 // @public (undocumented)
 export function PasteMenuItem(): JSX_2.Element;
+
+// @public (undocumented)
+export const PeopleMenu: NamedExoticComponent<PeopleMenuProps>;
+
+// @public (undocumented)
+export interface PeopleMenuProps {
+    // (undocumented)
+    children?: ReactNode;
+}
 
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {
@@ -1331,6 +1665,15 @@ export function PrintItem(): JSX_2.Element;
 // @public (undocumented)
 export function RectangleToolbarItem(): JSX_2.Element;
 
+// @public (undocumented)
+export function registerDefaultExternalContentHandlers(editor: Editor, { maxImageDimension, maxAssetSize, acceptedImageMimeTypes, acceptedVideoMimeTypes, }: Required<TLExternalContentProps>, { toasts, msg }: {
+    msg: ReturnType<typeof useTranslation>;
+    toasts: TLUiToastsContextType;
+}): void;
+
+// @public (undocumented)
+export function registerDefaultSideEffects(editor: Editor): () => void;
+
 // @public
 export function removeFrame(editor: Editor, ids: TLShapeId[]): void;
 
@@ -1355,15 +1698,19 @@ export function SelectAllMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class SelectTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
+    // (undocumented)
+    cleanUpDuplicateProps(): void;
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onEnter: () => void;
+    static isLockable: boolean;
     // (undocumented)
-    onExit: () => void;
+    onEnter(): void;
+    // (undocumented)
+    onExit(): void;
     // (undocumented)
     reactor: (() => void) | undefined;
 }
@@ -1394,13 +1741,6 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
-
-// @public (undocumented)
-export function storeAssetInIndexedDb({ persistenceKey, assetId, blob, }: {
-    assetId: string;
-    blob: Blob;
-    persistenceKey: string;
-}): Promise<void>;
 
 // @public (undocumented)
 export interface StylePickerSetProps {
@@ -1451,7 +1791,7 @@ export interface TextLabelProps {
     // (undocumented)
     lineHeight: number;
     // (undocumented)
-    onKeyDown?: (e: React_3.KeyboardEvent<HTMLTextAreaElement>) => void;
+    onKeyDown?(e: React_3.KeyboardEvent<HTMLTextAreaElement>): void;
     // (undocumented)
     padding?: number;
     // (undocumented)
@@ -1473,11 +1813,13 @@ export interface TextLabelProps {
 // @public (undocumented)
 export class TextShapeTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
     static initial: string;
+    // (undocumented)
+    static isLockable: boolean;
     // (undocumented)
     shapeType: string;
 }
@@ -1485,7 +1827,7 @@ export class TextShapeTool extends StateNode {
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
     component(shape: TLTextShape): JSX_2.Element;
     // (undocumented)
@@ -1498,13 +1840,15 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         width: number;
     };
     // (undocumented)
+    getText(shape: TLTextShape): string;
+    // (undocumented)
     indicator(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)
-    isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>;
+    isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    onBeforeUpdate: (prev: TLTextShape, next: TLTextShape) => {
+    onBeforeUpdate(prev: TLTextShape, next: TLTextShape): {
         id: TLShapeId;
         index: IndexKey;
         isLocked: boolean;
@@ -1528,20 +1872,28 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         y: number;
     } | undefined;
     // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLTextShape>;
+    onEditEnd(shape: TLTextShape): void;
     // (undocumented)
-    onResize: TLOnResizeHandler<TLTextShape>;
-    // (undocumented)
-    static props: {
-        autoSize: Validator<boolean>;
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        scale: Validator<number>;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        text: Validator<string>;
-        textAlign: EnumStyleProp<"end" | "middle" | "start">;
-        w: Validator<number>;
+    onResize(shape: TLTextShape, info: TLResizeInfo<TLTextShape>): {
+        id: TLShapeId;
+        props: {
+            autoSize: boolean;
+            w: number;
+        };
+        type: "text";
+        x: number;
+        y: number;
+    } | {
+        id: TLShapeId;
+        props: {
+            scale: number;
+        };
+        type: "text";
+        x: number;
+        y: number;
     };
+    // (undocumented)
+    static props: RecordProps<TLTextShape>;
     // (undocumented)
     toSvg(shape: TLTextShape, ctx: SvgExportContext): JSX_2.Element;
     // (undocumented)
@@ -1616,7 +1968,7 @@ export interface TLArrowPoint {
     point: VecLike;
 }
 
-// @public (undocumented)
+// @public
 export interface TLComponents extends TLEditorComponents, TLUiComponents {
 }
 
@@ -1633,6 +1985,8 @@ export const TLDRAW_FILE_EXTENSION: ".tldr";
 export interface TldrawBaseProps extends TldrawUiProps, TldrawEditorBaseProps, TLExternalContentProps {
     // (undocumented)
     components?: TLComponents;
+    // (undocumented)
+    embeds?: TLEmbedDefinition[];
 }
 
 // @public (undocumented)
@@ -1670,12 +2024,14 @@ export function TldrawHandles({ children }: TLHandlesProps): JSX_2.Element | nul
 export const TldrawImage: NamedExoticComponent<TldrawImageProps>;
 
 // @public (undocumented)
-export interface TldrawImageProps extends TLSvgOptions {
+export interface TldrawImageProps extends TLImageExportOptions {
+    assetUrls?: TLUiAssetUrlOverrides;
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     format?: 'png' | 'svg';
+    licenseKey?: string;
     pageId?: TLPageId;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
-    snapshot: TLEditorSnapshot | TLStoreSnapshot;
+    snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot;
 }
 
 // @public (undocumented)
@@ -1688,7 +2044,7 @@ export function TldrawScribble({ scribble, zoom, color, opacity, className }: TL
 export const TldrawSelectionBackground: ({ bounds, rotation }: TLSelectionBackgroundProps) => JSX_2.Element | null;
 
 // @public (undocumented)
-export const TldrawSelectionForeground: MemoExoticComponent<({ bounds, rotation, }: TLSelectionForegroundProps) => JSX_2.Element | null>;
+export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegroundProps>;
 
 // @public (undocumented)
 export function TldrawShapeIndicators(): JSX_2.Element | null;
@@ -1715,7 +2071,7 @@ export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerPro
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, children, }: TldrawUiContextProviderProps): JSX_2.Element;
+export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, mediaMimeTypes, children, }: TldrawUiContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface TldrawUiContextProviderProps {
@@ -1723,6 +2079,7 @@ export interface TldrawUiContextProviderProps {
     children?: ReactNode;
     components?: TLUiComponents;
     forceMobile?: boolean;
+    mediaMimeTypes?: string[];
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
@@ -1779,6 +2136,12 @@ export const TldrawUiInput: React_2.ForwardRefExoticComponent<TLUiInputProps & R
 export function TldrawUiKbd({ children, visibleOnMobileLayout }: TLUiKbdProps): JSX_2.Element | null;
 
 // @public (undocumented)
+export function TldrawUiMenuActionCheckboxItem({ actionId, ...rest }: TLUiMenuActionCheckboxItemProps): JSX_2.Element | null;
+
+// @public (undocumented)
+export function TldrawUiMenuActionItem({ actionId, ...rest }: TLUiMenuActionItemProps): JSX_2.Element | null;
+
+// @public (undocumented)
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX_2.Element | null;
 
 // @public (undocumented)
@@ -1797,10 +2160,13 @@ export function TldrawUiMenuItem<TranslationKey extends string = string, IconTyp
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
+export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX_2.Element | null;
+
+// @public (undocumented)
 export function TldrawUiPopover({ id, children, onOpenChange, open }: TLUiPopoverProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, }: TLUiPopoverContentProps): JSX_2.Element;
+export function TldrawUiPopoverContent({ side, children, align, sideOffset, alignOffset, disableEscapeKeyDown, }: TLUiPopoverContentProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
@@ -1811,10 +2177,10 @@ export interface TldrawUiProps extends TldrawUiContextProviderProps {
     children?: ReactNode;
     components?: TLUiComponents;
     hideUi?: boolean;
-    renderDebugMenuItems?: () => React_3.ReactNode;
+    renderDebugMenuItems?(): React_3.ReactNode;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
 
 // @public (undocumented)
@@ -1829,11 +2195,19 @@ export interface TLEditorAssetUrls {
 }
 
 // @public (undocumented)
+export type TLEmbedDefinition = CustomEmbedDefinition | EmbedDefinition;
+
+// @public (undocumented)
 export type TLEmbedResult = {
-    definition: EmbedDefinition;
+    definition: TLEmbedDefinition;
     embedUrl: string;
     url: string;
 } | undefined;
+
+// @public (undocumented)
+export type TLEmbedShapePermissions = {
+    [K in keyof typeof embedShapePermissionDefaults]?: boolean;
+};
 
 // @public (undocumented)
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
@@ -1883,7 +2257,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
         [key: string]: TransationKey;
     } | TransationKey;
     // (undocumented)
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    onSelect(source: TLUiEventSource): Promise<void> | void;
     // (undocumented)
     readonlyOk?: boolean;
 }
@@ -1902,7 +2276,7 @@ export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>;
 
 // @public (undocumented)
 export type TLUiAssetUrls = TLEditorAssetUrls & {
-    embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>;
+    embedIcons: Record<(typeof DEFAULT_EMBED_DEFINITIONS)[number]['type'], string>;
     icons: Record<Exclude<string, TLUiIconType> | TLUiIconType, string>;
     translations: Record<(typeof LANGUAGES)[number]['locale'], string>;
 };
@@ -1934,7 +2308,7 @@ export interface TLUiButtonPickerProps<T extends string> {
     // (undocumented)
     items: StyleValuesForUi<T>;
     // (undocumented)
-    onValueChange: (style: StyleProp<T>, value: T) => void;
+    onValueChange(style: StyleProp<T>, value: T): void;
     // (undocumented)
     style: StyleProp<T>;
     // (undocumented)
@@ -1961,6 +2335,8 @@ export interface TLUiComponents {
     ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null;
     // (undocumented)
     ContextMenu?: ComponentType<TLUiContextMenuProps> | null;
+    // (undocumented)
+    CursorChatBubble?: ComponentType | null;
     // (undocumented)
     DebugMenu?: ComponentType | null;
     // (undocumented)
@@ -2007,6 +2383,8 @@ export interface TLUiComponentsProviderProps {
 export interface TLUiContextMenuProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    disabled?: boolean;
 }
 
 // @public (undocumented)
@@ -2022,7 +2400,7 @@ export interface TLUiDialog {
     // (undocumented)
     id: string;
     // (undocumented)
-    onClose?: () => void;
+    onClose?(): void;
 }
 
 // @public (undocumented)
@@ -2054,23 +2432,23 @@ export interface TLUiDialogHeaderProps {
 // @public (undocumented)
 export interface TLUiDialogProps {
     // (undocumented)
-    onClose: () => void;
+    onClose(): void;
 }
 
 // @public (undocumented)
 export interface TLUiDialogsContextType {
     // (undocumented)
-    addDialog: (dialog: Omit<TLUiDialog, 'id'> & {
+    addDialog(dialog: Omit<TLUiDialog, 'id'> & {
         id?: string;
-    }) => string;
+    }): string;
     // (undocumented)
-    clearDialogs: () => void;
+    clearDialogs(): void;
     // (undocumented)
     dialogs: TLUiDialog[];
     // (undocumented)
-    removeDialog: (id: string) => string;
+    removeDialog(id: string): string;
     // (undocumented)
-    updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
+    updateDialog(id: string, newDialogData: Partial<TLUiDialog>): string;
 }
 
 // @public (undocumented)
@@ -2090,7 +2468,7 @@ export interface TLUiDropdownMenuCheckboxItemProps {
     // (undocumented)
     disabled?: boolean;
     // (undocumented)
-    onSelect?: (e: Event) => void;
+    onSelect?(e: Event): void;
     // (undocumented)
     title: string;
 }
@@ -2187,6 +2565,10 @@ export interface TLUiEventMap {
         locale: string;
     };
     // (undocumented)
+    'change-page': null;
+    // (undocumented)
+    'change-user-name': null;
+    // (undocumented)
     'close-menu': {
         id: string;
     };
@@ -2203,13 +2585,19 @@ export interface TLUiEventMap {
         format: 'json' | 'png' | 'svg';
     };
     // (undocumented)
+    'copy-link': null;
+    // (undocumented)
     'create-new-project': null;
+    // (undocumented)
+    'delete-page': null;
     // (undocumented)
     'delete-shapes': null;
     // (undocumented)
     'distribute-shapes': {
         operation: 'horizontal' | 'vertical';
     };
+    // (undocumented)
+    'duplicate-page': null;
     // (undocumented)
     'duplicate-shapes': null;
     // (undocumented)
@@ -2239,6 +2627,10 @@ export interface TLUiEventMap {
     // (undocumented)
     'insert-media': null;
     // (undocumented)
+    'move-page': null;
+    // (undocumented)
+    'move-to-new-page': null;
+    // (undocumented)
     'move-to-page': null;
     // (undocumented)
     'new-page': null;
@@ -2253,9 +2645,17 @@ export interface TLUiEventMap {
         id: string;
     };
     // (undocumented)
+    'open-url': {
+        url: string;
+    };
+    // (undocumented)
     'pack-shapes': null;
     // (undocumented)
     'remove-frame': null;
+    // (undocumented)
+    'rename-document': null;
+    // (undocumented)
+    'rename-page': null;
     // (undocumented)
     'reorder-shapes': {
         operation: 'backward' | 'forward' | 'toBack' | 'toFront';
@@ -2277,6 +2677,8 @@ export interface TLUiEventMap {
         id: string;
     };
     // (undocumented)
+    'set-color': null;
+    // (undocumented)
     'set-style': {
         id: string;
         value: number | string;
@@ -2285,6 +2687,8 @@ export interface TLUiEventMap {
     'stack-shapes': {
         operation: 'horizontal' | 'vertical';
     };
+    // (undocumented)
+    'start-following': null;
     // (undocumented)
     'stop-following': null;
     // (undocumented)
@@ -2381,7 +2785,7 @@ export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
 }
 
 // @public (undocumented)
-export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bring-forward' | 'bring-to-front' | 'broken' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'color' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-fill' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-heart' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'leading' | 'link' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'send-backward' | 'send-to-back' | 'share-1' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'undo' | 'ungroup' | 'unlock' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
+export type TLUiIconType = 'align-bottom' | 'align-center-horizontal' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'blob' | 'bring-forward' | 'bring-to-front' | 'broken' | 'check-circle' | 'check' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'color' | 'cross-2' | 'cross-circle' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'disconnected' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'fill-fill' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-cloud' | 'geo-diamond' | 'geo-ellipse' | 'geo-heart' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'horizontal-align-end' | 'horizontal-align-middle' | 'horizontal-align-start' | 'info-circle' | 'leading' | 'link' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'send-backward' | 'send-to-back' | 'share-1' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'status-offline' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-left' | 'text-align-right' | 'toggle-off' | 'toggle-on' | 'tool-arrow' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-screenshot' | 'tool-text' | 'trash' | 'twitter' | 'undo' | 'ungroup' | 'unlock' | 'vertical-align-end' | 'vertical-align-middle' | 'vertical-align-start' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
 
 // @public (undocumented)
 export interface TLUiInputProps {
@@ -2404,15 +2808,15 @@ export interface TLUiInputProps {
     // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
-    onBlur?: (value: string) => void;
+    onBlur?(value: string): void;
     // (undocumented)
-    onCancel?: (value: string) => void;
+    onCancel?(value: string): void;
     // (undocumented)
-    onComplete?: (value: string) => void;
+    onComplete?(value: string): void;
     // (undocumented)
-    onFocus?: () => void;
+    onFocus?(): void;
     // (undocumented)
-    onValueChange?: (value: string) => void;
+    onValueChange?(value: string): void;
     // (undocumented)
     placeholder?: string;
     shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
@@ -2440,6 +2844,16 @@ export interface TLUiMainMenuProps {
 }
 
 // @public (undocumented)
+export type TLUiMenuActionCheckboxItemProps = {
+    actionId?: string;
+} & Pick<TLUiMenuCheckboxItemProps, 'checked' | 'disabled' | 'toggle'>;
+
+// @public (undocumented)
+export type TLUiMenuActionItemProps = {
+    actionId?: string;
+} & Partial<Pick<TLUiMenuItemProps, 'disabled' | 'isSelected' | 'noClose' | 'onSelect'>>;
+
+// @public (undocumented)
 export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = string, IconType extends string = string> {
     // (undocumented)
     checked?: boolean;
@@ -2456,7 +2870,7 @@ export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = strin
         [key: string]: TranslationKey;
     } | TranslationKey;
     // (undocumented)
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    onSelect(source: TLUiEventSource): Promise<void> | void;
     // (undocumented)
     readonlyOk?: boolean;
     // (undocumented)
@@ -2498,7 +2912,7 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
         [key: string]: TranslationKey;
     } | TranslationKey;
     noClose?: boolean;
-    onSelect: (source: TLUiEventSource) => Promise<void> | void;
+    onSelect(source: TLUiEventSource): Promise<void> | void;
     readonlyOk?: boolean;
     spinner?: boolean;
 }
@@ -2520,16 +2934,24 @@ export interface TLUiMenuSubmenuProps<Translation extends string = string> {
 }
 
 // @public (undocumented)
+export type TLUiMenuToolItemProps = {
+    toolId?: string;
+} & Pick<TLUiMenuItemProps, 'disabled' | 'isSelected'>;
+
+// @public (undocumented)
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>;
 
 // @public (undocumented)
-export type TLUiOverrides = Partial<{
-    actions: (editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers) => TLUiActionsContextType;
-    tools: (editor: Editor, tools: TLUiToolsContextType, helpers: {
-        insertMedia: () => void;
-    } & TLUiOverrideHelpers) => TLUiToolsContextType;
-    translations: TLUiTranslationProviderProps['overrides'];
-}>;
+export interface TLUiOverrides {
+    // (undocumented)
+    actions?(editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers): TLUiActionsContextType;
+    // (undocumented)
+    tools?(editor: Editor, tools: TLUiToolsContextType, helpers: {
+        insertMedia(): void;
+    } & TLUiOverrideHelpers): TLUiToolsContextType;
+    // (undocumented)
+    translations?: TLUiTranslationProviderProps['overrides'];
+}
 
 // @public (undocumented)
 export interface TLUiPopoverContentProps {
@@ -2539,6 +2961,8 @@ export interface TLUiPopoverContentProps {
     alignOffset?: number;
     // (undocumented)
     children: React_3.ReactNode;
+    // (undocumented)
+    disableEscapeKeyDown?: boolean;
     // (undocumented)
     side: 'bottom' | 'left' | 'right' | 'top';
     // (undocumented)
@@ -2552,7 +2976,7 @@ export interface TLUiPopoverProps {
     // (undocumented)
     id: string;
     // (undocumented)
-    onOpenChange?: (isOpen: boolean) => void;
+    onOpenChange?(isOpen: boolean): void;
     // (undocumented)
     open?: boolean;
 }
@@ -2569,14 +2993,14 @@ export interface TLUiQuickActionsProps {
     children?: ReactNode;
 }
 
-// @internal (undocumented)
+// @public (undocumented)
 export interface TLUiSliderProps {
     // (undocumented)
     'data-testid'?: string;
     // (undocumented)
     label: string;
     // (undocumented)
-    onValueChange: (value: number) => void;
+    onValueChange(value: number): void;
     // (undocumented)
     steps: number;
     // (undocumented)
@@ -2624,7 +3048,7 @@ export interface TLUiToastAction {
     // (undocumented)
     label: string;
     // (undocumented)
-    onClick: () => void;
+    onClick(): void;
     // (undocumented)
     type: 'danger' | 'normal' | 'primary';
 }
@@ -2632,13 +3056,13 @@ export interface TLUiToastAction {
 // @public (undocumented)
 export interface TLUiToastsContextType {
     // (undocumented)
-    addToast: (toast: Omit<TLUiToast, 'id'> & {
+    addToast(toast: Omit<TLUiToast, 'id'> & {
         id?: string;
-    }) => string;
+    }): string;
     // (undocumented)
-    clearToasts: () => void;
+    clearToasts(): void;
     // (undocumented)
-    removeToast: (id: TLUiToast['id']) => string;
+    removeToast(id: TLUiToast['id']): string;
     // (undocumented)
     toasts: TLUiToast[];
 }
@@ -2658,7 +3082,7 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
         [key: string]: any;
     };
     // (undocumented)
-    onSelect: (source: TLUiEventSource) => void;
+    onSelect(source: TLUiEventSource): void;
     // (undocumented)
     readonlyOk?: boolean;
     // (undocumented)
@@ -2673,9 +3097,9 @@ export interface TLUiToolsProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
     // (undocumented)
-    overrides?: (editor: Editor, tools: TLUiToolsContextType, helpers: {
-        insertMedia: () => void;
-    }) => TLUiToolsContextType;
+    overrides?(editor: Editor, tools: TLUiToolsContextType, helpers: {
+        insertMedia(): void;
+    }): TLUiToolsContextType;
 }
 
 // @public (undocumented)
@@ -2694,7 +3118,7 @@ export interface TLUiTranslation {
 export type TLUiTranslationContextType = TLUiTranslation;
 
 // @public (undocumented)
-export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-all-as-json.short' | 'action.export-all-as-json' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-json.short' | 'action.export-as-json' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flatten-to-image' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project-on-tldraw' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.pack' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-dynamic-size-mode.menu' | 'action.toggle-dynamic-size-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-lock' | 'action.toggle-paste-at-cursor.menu' | 'action.toggle-paste-at-cursor' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.edit' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'debug-panel.more' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'edit-pages-dialog.move-down' | 'edit-pages-dialog.move-up' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.fill' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.github' | 'help-menu.keyboard-shortcuts' | 'help-menu.title' | 'help-menu.twitter' | 'home-project-dialog.description' | 'home-project-dialog.ok' | 'home-project-dialog.title' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.language' | 'menu.preferences' | 'menu.theme' | 'menu.title' | 'menu.view' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'rename-project-dialog.cancel' | 'rename-project-dialog.rename' | 'rename-project-dialog.title' | 'share-menu.copied' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.creating-project' | 'share-menu.default-project-name' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.readonly-link' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'status.online' | 'style-panel.align' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'theme.dark' | 'theme.light' | 'theme.system' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'tool-panel.drawing' | 'tool-panel.more' | 'tool-panel.shapes' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.asset' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.frame' | 'tool.hand' | 'tool.hexagon' | 'tool.highlight' | 'tool.laser' | 'tool.line' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.rectangle' | 'tool.rhombus' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
+export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-horizontal.short' | 'action.align-center-horizontal' | 'action.align-center-vertical.short' | 'action.align-center-vertical' | 'action.align-left' | 'action.align-right' | 'action.align-top' | 'action.back-to-content' | 'action.bring-forward' | 'action.bring-to-front' | 'action.convert-to-bookmark' | 'action.convert-to-embed' | 'action.copy-as-json.short' | 'action.copy-as-json' | 'action.copy-as-png.short' | 'action.copy-as-png' | 'action.copy-as-svg.short' | 'action.copy-as-svg' | 'action.copy' | 'action.cut' | 'action.delete' | 'action.distribute-horizontal.short' | 'action.distribute-horizontal' | 'action.distribute-vertical.short' | 'action.distribute-vertical' | 'action.duplicate' | 'action.edit-link' | 'action.exit-pen-mode' | 'action.export-all-as-json.short' | 'action.export-all-as-json' | 'action.export-all-as-png.short' | 'action.export-all-as-png' | 'action.export-all-as-svg.short' | 'action.export-all-as-svg' | 'action.export-as-json.short' | 'action.export-as-json' | 'action.export-as-png.short' | 'action.export-as-png' | 'action.export-as-svg.short' | 'action.export-as-svg' | 'action.fit-frame-to-content' | 'action.flatten-to-image' | 'action.flip-horizontal.short' | 'action.flip-horizontal' | 'action.flip-vertical.short' | 'action.flip-vertical' | 'action.fork-project-on-tldraw' | 'action.fork-project' | 'action.group' | 'action.insert-embed' | 'action.insert-media' | 'action.leave-shared-project' | 'action.new-project' | 'action.new-shared-project' | 'action.open-cursor-chat' | 'action.open-embed-link' | 'action.open-file' | 'action.pack' | 'action.paste-error-description' | 'action.paste-error-title' | 'action.paste' | 'action.print' | 'action.redo' | 'action.remove-frame' | 'action.rename' | 'action.rotate-ccw' | 'action.rotate-cw' | 'action.save-copy' | 'action.select-all' | 'action.select-none' | 'action.send-backward' | 'action.send-to-back' | 'action.share-project' | 'action.stack-horizontal.short' | 'action.stack-horizontal' | 'action.stack-vertical.short' | 'action.stack-vertical' | 'action.stop-following' | 'action.stretch-horizontal.short' | 'action.stretch-horizontal' | 'action.stretch-vertical.short' | 'action.stretch-vertical' | 'action.toggle-auto-size' | 'action.toggle-dark-mode.menu' | 'action.toggle-dark-mode' | 'action.toggle-debug-mode.menu' | 'action.toggle-debug-mode' | 'action.toggle-dynamic-size-mode.menu' | 'action.toggle-dynamic-size-mode' | 'action.toggle-edge-scrolling.menu' | 'action.toggle-edge-scrolling' | 'action.toggle-focus-mode.menu' | 'action.toggle-focus-mode' | 'action.toggle-grid.menu' | 'action.toggle-grid' | 'action.toggle-lock' | 'action.toggle-paste-at-cursor.menu' | 'action.toggle-paste-at-cursor' | 'action.toggle-reduce-motion.menu' | 'action.toggle-reduce-motion' | 'action.toggle-snap-mode.menu' | 'action.toggle-snap-mode' | 'action.toggle-tool-lock.menu' | 'action.toggle-tool-lock' | 'action.toggle-transparent.context-menu' | 'action.toggle-transparent.menu' | 'action.toggle-transparent' | 'action.toggle-wrap-mode.menu' | 'action.toggle-wrap-mode' | 'action.undo' | 'action.ungroup' | 'action.unlock-all' | 'action.zoom-in' | 'action.zoom-out' | 'action.zoom-to-100' | 'action.zoom-to-fit' | 'action.zoom-to-selection' | 'actions-menu.title' | 'align-style.end' | 'align-style.justify' | 'align-style.middle' | 'align-style.start' | 'arrowheadEnd-style.arrow' | 'arrowheadEnd-style.bar' | 'arrowheadEnd-style.diamond' | 'arrowheadEnd-style.dot' | 'arrowheadEnd-style.inverted' | 'arrowheadEnd-style.none' | 'arrowheadEnd-style.pipe' | 'arrowheadEnd-style.square' | 'arrowheadEnd-style.triangle' | 'arrowheadStart-style.arrow' | 'arrowheadStart-style.bar' | 'arrowheadStart-style.diamond' | 'arrowheadStart-style.dot' | 'arrowheadStart-style.inverted' | 'arrowheadStart-style.none' | 'arrowheadStart-style.pipe' | 'arrowheadStart-style.square' | 'arrowheadStart-style.triangle' | 'assets.files.size-too-big' | 'assets.files.type-not-allowed' | 'assets.files.upload-failed' | 'assets.url.failed' | 'color-style.black' | 'color-style.blue' | 'color-style.green' | 'color-style.grey' | 'color-style.light-blue' | 'color-style.light-green' | 'color-style.light-red' | 'color-style.light-violet' | 'color-style.orange' | 'color-style.red' | 'color-style.violet' | 'color-style.white' | 'color-style.yellow' | 'context-menu.arrange' | 'context-menu.copy-as' | 'context-menu.edit' | 'context-menu.export-all-as' | 'context-menu.export-as' | 'context-menu.move-to-page' | 'context-menu.reorder' | 'context.pages.new-page' | 'cursor-chat.type-to-chat' | 'dash-style.dashed' | 'dash-style.dotted' | 'dash-style.draw' | 'dash-style.solid' | 'debug-panel.more' | 'document-name-menu.copy-link' | 'document.default-name' | 'edit-link-dialog.cancel' | 'edit-link-dialog.clear' | 'edit-link-dialog.detail' | 'edit-link-dialog.invalid-url' | 'edit-link-dialog.save' | 'edit-link-dialog.title' | 'edit-link-dialog.url' | 'edit-pages-dialog.move-down' | 'edit-pages-dialog.move-up' | 'embed-dialog.back' | 'embed-dialog.cancel' | 'embed-dialog.create' | 'embed-dialog.instruction' | 'embed-dialog.invalid-url' | 'embed-dialog.title' | 'embed-dialog.url' | 'file-system.confirm-clear.cancel' | 'file-system.confirm-clear.continue' | 'file-system.confirm-clear.description' | 'file-system.confirm-clear.dont-show-again' | 'file-system.confirm-clear.title' | 'file-system.confirm-open.cancel' | 'file-system.confirm-open.description' | 'file-system.confirm-open.dont-show-again' | 'file-system.confirm-open.open' | 'file-system.confirm-open.title' | 'file-system.file-open-error.file-format-version-too-new' | 'file-system.file-open-error.generic-corrupted-file' | 'file-system.file-open-error.not-a-tldraw-file' | 'file-system.file-open-error.title' | 'file-system.shared-document-file-open-error.description' | 'file-system.shared-document-file-open-error.title' | 'fill-style.fill' | 'fill-style.none' | 'fill-style.pattern' | 'fill-style.semi' | 'fill-style.solid' | 'focus-mode.toggle-focus-mode' | 'font-style.draw' | 'font-style.mono' | 'font-style.sans' | 'font-style.serif' | 'geo-style.arrow-down' | 'geo-style.arrow-left' | 'geo-style.arrow-right' | 'geo-style.arrow-up' | 'geo-style.check-box' | 'geo-style.cloud' | 'geo-style.diamond' | 'geo-style.ellipse' | 'geo-style.hexagon' | 'geo-style.octagon' | 'geo-style.oval' | 'geo-style.pentagon' | 'geo-style.rectangle' | 'geo-style.rhombus-2' | 'geo-style.rhombus' | 'geo-style.star' | 'geo-style.trapezoid' | 'geo-style.triangle' | 'geo-style.x-box' | 'help-menu.about' | 'help-menu.discord' | 'help-menu.docs' | 'help-menu.github' | 'help-menu.keyboard-shortcuts' | 'help-menu.privacy' | 'help-menu.terms' | 'help-menu.title' | 'help-menu.twitter' | 'home-project-dialog.description' | 'home-project-dialog.ok' | 'home-project-dialog.title' | 'menu.copy-as' | 'menu.edit' | 'menu.export-as' | 'menu.file' | 'menu.help' | 'menu.language' | 'menu.preferences' | 'menu.theme' | 'menu.title' | 'menu.view' | 'navigation-zone.toggle-minimap' | 'navigation-zone.zoom' | 'opacity-style.0.1' | 'opacity-style.0.25' | 'opacity-style.0.5' | 'opacity-style.0.75' | 'opacity-style.1' | 'page-menu.create-new-page' | 'page-menu.edit-done' | 'page-menu.edit-start' | 'page-menu.go-to-page' | 'page-menu.max-page-count-reached' | 'page-menu.new-page-initial-name' | 'page-menu.submenu.delete' | 'page-menu.submenu.duplicate-page' | 'page-menu.submenu.move-down' | 'page-menu.submenu.move-up' | 'page-menu.submenu.rename' | 'page-menu.submenu.title' | 'page-menu.title' | 'people-menu.change-color' | 'people-menu.change-name' | 'people-menu.follow' | 'people-menu.following' | 'people-menu.invite' | 'people-menu.leading' | 'people-menu.title' | 'people-menu.user' | 'rename-project-dialog.cancel' | 'rename-project-dialog.rename' | 'rename-project-dialog.title' | 'share-menu.copied' | 'share-menu.copy-link-note' | 'share-menu.copy-link' | 'share-menu.copy-readonly-link-note' | 'share-menu.copy-readonly-link' | 'share-menu.create-snapshot-link' | 'share-menu.creating-project' | 'share-menu.default-project-name' | 'share-menu.fork-note' | 'share-menu.offline-note' | 'share-menu.project-too-large' | 'share-menu.readonly-link' | 'share-menu.save-note' | 'share-menu.share-project' | 'share-menu.snapshot-link-note' | 'share-menu.title' | 'share-menu.upload-failed' | 'sharing.confirm-leave.cancel' | 'sharing.confirm-leave.description' | 'sharing.confirm-leave.dont-show-again' | 'sharing.confirm-leave.leave' | 'sharing.confirm-leave.title' | 'shortcuts-dialog.collaboration' | 'shortcuts-dialog.edit' | 'shortcuts-dialog.file' | 'shortcuts-dialog.preferences' | 'shortcuts-dialog.title' | 'shortcuts-dialog.tools' | 'shortcuts-dialog.transform' | 'shortcuts-dialog.view' | 'size-style.l' | 'size-style.m' | 'size-style.s' | 'size-style.xl' | 'spline-style.cubic' | 'spline-style.line' | 'status.offline' | 'status.online' | 'style-panel.align' | 'style-panel.arrowhead-end' | 'style-panel.arrowhead-start' | 'style-panel.arrowheads' | 'style-panel.color' | 'style-panel.dash' | 'style-panel.fill' | 'style-panel.font' | 'style-panel.geo' | 'style-panel.mixed' | 'style-panel.opacity' | 'style-panel.position' | 'style-panel.size' | 'style-panel.spline' | 'style-panel.title' | 'style-panel.vertical-align' | 'theme.dark' | 'theme.light' | 'theme.system' | 'toast.close' | 'toast.error.copy-fail.desc' | 'toast.error.copy-fail.title' | 'toast.error.export-fail.desc' | 'toast.error.export-fail.title' | 'tool-panel.drawing' | 'tool-panel.more' | 'tool-panel.shapes' | 'tool.arrow-down' | 'tool.arrow-left' | 'tool.arrow-right' | 'tool.arrow-up' | 'tool.arrow' | 'tool.asset' | 'tool.check-box' | 'tool.cloud' | 'tool.diamond' | 'tool.draw' | 'tool.ellipse' | 'tool.embed' | 'tool.eraser' | 'tool.frame' | 'tool.hand' | 'tool.hexagon' | 'tool.highlight' | 'tool.laser' | 'tool.line' | 'tool.note' | 'tool.octagon' | 'tool.oval' | 'tool.pentagon' | 'tool.pointer-down' | 'tool.rectangle' | 'tool.rhombus' | 'tool.select' | 'tool.star' | 'tool.text' | 'tool.trapezoid' | 'tool.triangle' | 'tool.x-box' | 'verticalAlign-style.end' | 'verticalAlign-style.middle' | 'verticalAlign-style.start' | 'vscode.file-open.backup-failed' | 'vscode.file-open.backup-saved' | 'vscode.file-open.backup' | 'vscode.file-open.desc' | 'vscode.file-open.dont-show-again' | 'vscode.file-open.open';
 
 // @public (undocumented)
 export interface TLUiTranslationProviderProps {
@@ -3227,6 +3651,9 @@ export function useCanRedo(): boolean;
 export function useCanUndo(): boolean;
 
 // @public (undocumented)
+export function useCollaborationStatus(): "offline" | "online" | null;
+
+// @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
@@ -3325,6 +3752,9 @@ export function useReadonly(): boolean;
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
 
 // @public (undocumented)
+export function useShowCollaborationUi(): boolean;
+
+// @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;
 
 // @public (undocumented)
@@ -3342,7 +3772,7 @@ export function useUiEvents(): TLUiEventContextType;
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
-    canEdit: () => boolean;
+    canEdit(): boolean;
     // (undocumented)
     component(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
@@ -3350,20 +3780,13 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     indicator(shape: TLVideoShape): JSX_2.Element;
     // (undocumented)
-    isAspectRatioLocked: () => boolean;
+    isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
-    static props: {
-        assetId: Validator<TLAssetId | null>;
-        h: Validator<number>;
-        playing: Validator<boolean>;
-        time: Validator<number>;
-        url: Validator<string>;
-        w: Validator<number>;
-    };
+    static props: RecordProps<TLVideoShape>;
     // (undocumented)
-    toSvg(shape: TLVideoShape): JSX_2.Element;
+    toSvg(shape: TLVideoShape): Promise<JSX_2.Element | null>;
     // (undocumented)
     static type: "video";
 }
@@ -3386,7 +3809,7 @@ export function ZoomToFitMenuItem(): JSX_2.Element;
 // @public (undocumented)
 export class ZoomTool extends StateNode {
     // (undocumented)
-    static children: () => TLStateNodeConstructor[];
+    static children(): TLStateNodeConstructor[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -3396,17 +3819,19 @@ export class ZoomTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
-    onEnter: (info: TLPointerEventInfo & {
+    static isLockable: boolean;
+    // (undocumented)
+    onEnter(info: TLPointerEventInfo & {
         onInteractionEnd: string;
-    }) => void;
+    }): void;
     // (undocumented)
-    onExit: () => void;
+    onExit(): void;
     // (undocumented)
-    onInterrupt: TLInterruptEvent;
+    onInterrupt(): void;
     // (undocumented)
-    onKeyDown: TLKeyboardEvent | undefined;
+    onKeyDown(): void;
     // (undocumented)
-    onKeyUp: TLKeyboardEvent;
+    onKeyUp(info: TLKeyboardEventInfo): void;
 }
 
 // @public (undocumented)

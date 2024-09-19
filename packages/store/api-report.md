@@ -58,7 +58,7 @@ export function createMigrationSequence({ sequence, sequenceId, retroactive, }: 
 
 // @internal (undocumented)
 export function createRecordMigrationSequence(opts: {
-    filter?: (record: UnknownRecord) => boolean;
+    filter?(record: UnknownRecord): boolean;
     recordType: string;
     retroactive?: boolean;
     sequence: Omit<Extract<Migration, {
@@ -263,7 +263,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     // (undocumented)
     readonly ephemeralKeySet: ReadonlySet<string>;
     isId(id?: string): id is IdOf<R>;
-    isInstance: (record?: UnknownRecord) => record is R;
+    isInstance(record?: UnknownRecord): record is R;
     parseId(id: IdOf<R>): string;
     // (undocumented)
     readonly scope: RecordScope;
@@ -337,7 +337,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     });
     // @internal (undocumented)
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
-    allRecords: () => R[];
+    allRecords(): R[];
     // (undocumented)
     applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys, }?: {
         ignoreEphemeralKeys?: boolean;
@@ -345,9 +345,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     }): void;
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean): T;
-    clear: () => void;
-    createComputedCache: <Result, Record extends R = R>(name: string, derive: (record: Record) => Result | undefined, isEqual?: ((a: Record, b: Record) => boolean) | undefined) => ComputedCache<Result, Record>;
-    createSelectedComputedCache: <Selection, Result, Record extends R = R>(name: string, selector: (record: Record) => Selection | undefined, derive: (input: Selection) => Result | undefined) => ComputedCache<Result, Record>;
+    clear(): void;
+    createComputedCache<Result, Record extends R = R>(name: string, derive: (record: Record) => Result | undefined, isEqual?: (a: Record, b: Record) => boolean): ComputedCache<Result, Record>;
+    createSelectedComputedCache<Selection, Result, Record extends R = R>(name: string, selector: (record: Record) => Selection | undefined, derive: (input: Selection) => Result | undefined): ComputedCache<Result, Record>;
     // (undocumented)
     dispose(): void;
     // @internal (undocumented)
@@ -360,39 +360,39 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     } | null;
     // (undocumented)
     _flushHistory(): void;
-    get: <K extends IdOf<R>>(id: K) => RecordFromId<K> | undefined;
+    get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
     // @deprecated (undocumented)
     getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
-    has: <K extends IdOf<R>>(id: K) => boolean;
+    has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
     readonly id: string;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
-    listen: (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => () => void;
+    listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>): () => void;
     // @deprecated (undocumented)
     loadSnapshot(snapshot: StoreSnapshot<R>): void;
     loadStoreSnapshot(snapshot: StoreSnapshot<R>): void;
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
-    mergeRemoteChanges: (fn: () => void) => void;
+    mergeRemoteChanges(fn: () => void): void;
     migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R>;
     // (undocumented)
     readonly props: Props;
-    put: (records: R[], phaseOverride?: 'initialize') => void;
+    put(records: R[], phaseOverride?: 'initialize'): void;
     readonly query: StoreQueries<R>;
-    remove: (ids: IdOf<R>[]) => void;
+    remove(ids: IdOf<R>[]): void;
     // (undocumented)
     readonly schema: StoreSchema<R, Props>;
     // (undocumented)
     readonly scopedTypes: {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
-    serialize: (scope?: 'all' | RecordScope) => SerializedStore<R>;
+    serialize(scope?: 'all' | RecordScope): SerializedStore<R>;
     // (undocumented)
     readonly sideEffects: StoreSideEffects<R>;
-    unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecordFromId<K> | undefined;
-    update: <K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) => void;
+    unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
+    update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
 }
@@ -532,17 +532,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 // @public (undocumented)
 export interface StoreSchemaOptions<R extends UnknownRecord, P> {
     // @internal (undocumented)
-    createIntegrityChecker?: (store: Store<R, P>) => void;
+    createIntegrityChecker?(store: Store<R, P>): void;
     // (undocumented)
     migrations?: MigrationSequence[];
     // (undocumented)
-    onValidationFailure?: (data: {
-        error: unknown;
-        phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
-        record: R;
-        recordBefore: null | R;
-        store: Store<R>;
-    }) => R;
+    onValidationFailure?(data: StoreValidationFailure<R>): R;
 }
 
 // @public
@@ -607,11 +601,25 @@ export interface StoreSnapshot<R extends UnknownRecord> {
 }
 
 // @public (undocumented)
+export interface StoreValidationFailure<R extends UnknownRecord> {
+    // (undocumented)
+    error: unknown;
+    // (undocumented)
+    phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
+    // (undocumented)
+    record: R;
+    // (undocumented)
+    recordBefore: null | R;
+    // (undocumented)
+    store: Store<R>;
+}
+
+// @public (undocumented)
 export interface StoreValidator<R extends UnknownRecord> {
     // (undocumented)
-    validate: (record: unknown) => R;
+    validate(record: unknown): R;
     // (undocumented)
-    validateUsingKnownGoodVersion?: (knownGoodVersion: R, record: unknown) => R;
+    validateUsingKnownGoodVersion?(knownGoodVersion: R, record: unknown): R;
 }
 
 // @public (undocumented)

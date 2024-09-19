@@ -1,8 +1,7 @@
 ---
 title: Editor focus
 component: ./EditorFocusExample.tsx
-category: basic
-priority: 7
+category: editor-api
 keywords: [instance, state, keyboard shortcuts]
 ---
 

@@ -9,6 +9,7 @@ import {
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
+import { useUiEvents } from '../../context/events'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -28,6 +29,7 @@ import { onMovePage } from './edit-pages-shared'
 /** @public @react */
 export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const editor = useEditor()
+	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
@@ -216,13 +218,13 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 			if (mut.status === 'dragging') {
 				const { id, index } = mut.pointing!
-				onMovePage(editor, id as TLPageId, index, mut.dragIndex)
+				onMovePage(editor, id as TLPageId, index, mut.dragIndex, trackEvent)
 			}
 
 			releasePointerCapture(e.currentTarget, e)
 			mut.status = 'idle'
 		},
-		[editor]
+		[editor, trackEvent]
 	)
 
 	const handleKeyDown = useCallback(
@@ -250,14 +252,31 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const handleCreatePageClick = useCallback(() => {
 		if (isReadonlyMode) return
 
-		editor.batch(() => {
-			editor.mark('creating page')
+		editor.run(() => {
+			editor.markHistoryStoppingPoint('creating page')
 			const newPageId = PageRecordType.createId()
 			editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
 			editor.setCurrentPage(newPageId)
 			setIsEditing(true)
 		})
-	}, [editor, msg, isReadonlyMode])
+		trackEvent('new-page', { source: 'page-menu' })
+	}, [editor, msg, isReadonlyMode, trackEvent])
+
+	const changePage = useCallback(
+		(id: TLPageId) => {
+			editor.setCurrentPage(id)
+			trackEvent('change-page', { source: 'page-menu' })
+		},
+		[editor, trackEvent]
+	)
+
+	const renamePage = useCallback(
+		(id: TLPageId, name: string) => {
+			editor.renamePage(id, name)
+			trackEvent('rename-page', { source: 'page-menu' })
+		},
+		[editor, trackEvent]
+	)
 
 	return (
 		<TldrawUiPopover id="pages" onOpenChange={onOpenChange} open={isOpen}>
@@ -272,7 +291,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					<TldrawUiButtonIcon icon="chevron-down" small />
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={6}>
+			<TldrawUiPopoverContent
+				side="bottom"
+				align="start"
+				sideOffset={6}
+				disableEscapeKeyDown={isEditing}
+			>
 				<div className="tlui-page-menu__wrapper">
 					<div className="tlui-page-menu__header">
 						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
@@ -348,7 +372,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 											onClick={() => {
 												const name = window.prompt('Rename page', page.name)
 												if (name && name !== page.name) {
-													editor.renamePage(page.id, name)
+													renamePage(page.id, name)
 												}
 											}}
 											onDoubleClick={toggleEditing}
@@ -365,6 +389,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												id={page.id}
 												name={page.name}
 												isCurrentPage={page.id === currentPage.id}
+												onCancel={() => {
+													setIsEditing(false)
+													editor.clearOpenMenus()
+												}}
 											/>
 										</div>
 									)}
@@ -379,7 +407,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 									<TldrawUiButton
 										type="normal"
 										className="tlui-page-menu__item__button"
-										onClick={() => editor.setCurrentPage(page.id)}
+										onClick={() => changePage(page.id)}
 										onDoubleClick={toggleEditing}
 										title={msg('page-menu.go-to-page')}
 									>
@@ -396,13 +424,13 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 													if (editor.environment.isIos) {
 														const name = window.prompt('Rename page', page.name)
 														if (name && name !== page.name) {
-															editor.renamePage(page.id, name)
+															renamePage(page.id, name)
 														}
 													} else {
-														editor.batch(() => {
-															setIsEditing(true)
-															editor.setCurrentPage(page.id)
-														})
+														setIsEditing(true)
+														if (currentPageId !== page.id) {
+															changePage(page.id)
+														}
 													}
 												}}
 											/>

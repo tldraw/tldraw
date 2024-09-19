@@ -90,7 +90,7 @@ export function createTextJsxFromSpans(
 		<text
 			fontSize={opts.fontSize}
 			fontFamily={opts.fontFamily}
-			fontStyle={opts.fontFamily}
+			fontStyle={opts.fontStyle}
 			fontWeight={opts.fontWeight}
 			dominantBaseline="mathematical"
 			alignmentBaseline="mathematical"

@@ -1,37 +1,17 @@
-export { ClientWebSocketAdapter } from './lib/ClientWebSocketAdapter'
-export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
-export { TLSocketRoom } from './lib/TLSocketRoom'
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/sync-core'
+
 export {
-	TLCloseEventCode,
-	TLSyncClient,
-	type TLPersistentClientSocket,
-	type TLPersistentClientSocketStatus,
-} from './lib/TLSyncClient'
-export { TLSyncRoom, type RoomSnapshot, type TLRoomSocket } from './lib/TLSyncRoom'
-export { chunk } from './lib/chunk'
-export {
-	RecordOpType,
-	ValueOpType,
-	applyObjectDiff,
-	diffRecord,
-	getNetworkDiff,
-	type AppendOp,
-	type DeleteOp,
-	type NetworkDiff,
-	type ObjectDiff,
-	type PatchOp,
-	type PutOp,
-	type RecordOp,
-	type ValueOp,
-} from './lib/diff'
-export {
-	TLIncompatibilityReason,
-	getTlsyncProtocolVersion,
-	type TLConnectRequest,
-	type TLPingRequest,
-	type TLPushRequest,
-	type TLSocketClientSentEvent,
-	type TLSocketServerSentEvent,
-} from './lib/protocol'
-export { schema } from './lib/schema'
-export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
+	useSync,
+	type RemoteTLStoreWithStatus,
+	type TLSyncUserInfo,
+	type UseSyncOptions,
+} from './useSync'
+export { useSyncDemo, type UseSyncDemoOptions } from './useSyncDemo'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

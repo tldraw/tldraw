@@ -62,7 +62,22 @@ declare global {
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
+		const bounds = {
+			x: 0,
+			y: 0,
+			top: 0,
+			left: 0,
+			width: 1080,
+			height: 720,
+			bottom: 720,
+			right: 1080,
+		}
+		// make the app full screen for the sake of the insets property
+		jest.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
+		jest.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
+
 		elm.tabIndex = 0
+		elm.getBoundingClientRect = () => bounds as DOMRect
 
 		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
 		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
@@ -79,10 +94,10 @@ export class TestEditor extends Editor {
 			getContainer: () => elm,
 			initialState: 'select',
 		})
+		this.elm = elm
+		this.bounds = bounds
 
 		// Pretty hacky way to mock the screen bounds
-		this.elm = elm
-		this.elm.getBoundingClientRect = () => this.bounds as DOMRect
 		document.body.appendChild(this.elm)
 
 		this.textMeasure.measureText = (
@@ -131,6 +146,10 @@ export class TestEditor extends Editor {
 		})
 	}
 
+	getHistory() {
+		return this.history
+	}
+
 	private _lastCreatedShapes: TLShape[] = []
 
 	/**
@@ -150,8 +169,17 @@ export class TestEditor extends Editor {
 		return this.getShape<T>(lastShape)!
 	}
 
-	elm: HTMLDivElement
-	bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
+	elm: HTMLElement
+	readonly bounds: {
+		x: number
+		y: number
+		top: number
+		left: number
+		width: number
+		height: number
+		bottom: number
+		right: number
+	}
 
 	/**
 	 * The center of the viewport in the current page space.
@@ -178,7 +206,7 @@ export class TestEditor extends Editor {
 
 	clipboard = null as TLContent | null
 
-	copy = (ids = this.getSelectedShapeIds()) => {
+	copy(ids = this.getSelectedShapeIds()) {
 		if (ids.length > 0) {
 			const content = this.getContentFromCurrentPage(ids)
 			if (content) {
@@ -188,7 +216,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	cut = (ids = this.getSelectedShapeIds()) => {
+	cut(ids = this.getSelectedShapeIds()) {
 		if (ids.length > 0) {
 			const content = this.getContentFromCurrentPage(ids)
 			if (content) {
@@ -199,11 +227,11 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	paste = (point?: VecLike) => {
+	paste(point?: VecLike) {
 		if (this.clipboard !== null) {
 			const p = this.inputs.shiftKey ? this.inputs.currentPagePoint : point
 
-			this.mark('pasting')
+			this.markHistoryStoppingPoint('pasting')
 			this.putContentOntoCurrentPage(this.clipboard, {
 				point: p,
 				select: true,
@@ -235,7 +263,7 @@ export class TestEditor extends Editor {
 		return PageRecordType.createId(id)
 	}
 
-	expectToBeIn = (path: string) => {
+	expectToBeIn(path: string) {
 		expect(this.getPath()).toBe(path)
 		return this
 	}
@@ -252,9 +280,9 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	expectShapeToMatch = <T extends TLShape = TLShape>(
+	expectShapeToMatch<T extends TLShape = TLShape>(
 		...model: RequiredKeys<Partial<TLShapePartial<T>>, 'id'>[]
-	) => {
+	) {
 		model.forEach((model) => {
 			const shape = this.getShape(model.id!)!
 			const next = { ...shape, ...model }
@@ -263,16 +291,13 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	expectPageBoundsToBe = <T extends TLShape = TLShape>(id: IdOf<T>, bounds: Partial<BoxModel>) => {
+	expectPageBoundsToBe<T extends TLShape = TLShape>(id: IdOf<T>, bounds: Partial<BoxModel>) {
 		const observedBounds = this.getShapePageBounds(id)!
 		expect(observedBounds).toCloselyMatchObject(bounds)
 		return this
 	}
 
-	expectScreenBoundsToBe = <T extends TLShape = TLShape>(
-		id: IdOf<T>,
-		bounds: Partial<BoxModel>
-	) => {
+	expectScreenBoundsToBe<T extends TLShape = TLShape>(id: IdOf<T>, bounds: Partial<BoxModel>) {
 		const pageBounds = this.getShapePageBounds(id)!
 		const screenPoint = this.pageToScreen(pageBounds.point)
 		const observedBounds = pageBounds.clone()
@@ -284,7 +309,7 @@ export class TestEditor extends Editor {
 
 	/* --------------------- Inputs --------------------- */
 
-	protected getInfo = <T extends TLEventInfo>(info: string | T): T => {
+	protected getInfo<T extends TLEventInfo>(info: string | T): T {
 		return typeof info === 'string'
 			? ({
 					target: 'shape',
@@ -293,12 +318,12 @@ export class TestEditor extends Editor {
 			: info
 	}
 
-	protected getPointerEventInfo = (
+	protected getPointerEventInfo(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		options?: Partial<TLPointerEventInfo> | TLShapeId,
 		modifiers?: EventModifiers
-	): TLPointerEventInfo => {
+	) {
 		if (typeof options === 'string') {
 			options = { target: 'shape', shape: this.getShape(options) }
 		} else if (options === undefined) {
@@ -319,11 +344,11 @@ export class TestEditor extends Editor {
 		} as TLPointerEventInfo
 	}
 
-	protected getKeyboardEventInfo = (
+	protected getKeyboardEventInfo(
 		key: string,
 		name: TLKeyboardEventInfo['name'],
 		options = {} as Partial<Exclude<TLKeyboardEventInfo, 'point'>>
-	): TLKeyboardEventInfo => {
+	): TLKeyboardEventInfo {
 		return {
 			shiftKey: key === 'Shift',
 			ctrlKey: key === 'Control' || key === 'Meta',
@@ -357,19 +382,19 @@ export class TestEditor extends Editor {
 	Some of our updates are not synchronous any longer. For example, drawing happens on tick instead of on pointer move.
 	You can use this helper to force the tick, which will then process all the updates.
 	*/
-	forceTick = (count = 1) => {
+	forceTick(count = 1) {
 		for (let i = 0; i < count; i++) {
 			this.emit('tick', 16)
 		}
 		return this
 	}
 
-	pointerMove = (
+	pointerMove(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
-	) => {
+	) {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_move',
@@ -377,12 +402,12 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	pointerDown = (
+	pointerDown(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
-	) => {
+	) {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_down',
@@ -390,12 +415,12 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	pointerUp = (
+	pointerUp(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
-	) => {
+	) {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_up',
@@ -403,23 +428,23 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	click = (
+	click(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
-	) => {
+	) {
 		this.pointerDown(x, y, options, modifiers)
 		this.pointerUp(x, y, options, modifiers)
 		return this
 	}
 
-	rightClick = (
+	rightClick(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
-	) => {
+	) {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_down',
@@ -433,12 +458,12 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	doubleClick = (
+	doubleClick(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		options?: PointerEventInit,
 		modifiers?: EventModifiers
-	) => {
+	) {
 		this.pointerDown(x, y, options, modifiers)
 		this.pointerUp(x, y, options, modifiers)
 		this.dispatch({
@@ -456,17 +481,17 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	keyDown = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
+	keyDown(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_down', options) }).forceTick()
 		return this
 	}
 
-	keyRepeat = (key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) => {
+	keyRepeat(key: string, options = {} as Partial<Exclude<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({ ...this.getKeyboardEventInfo(key, 'key_repeat', options) }).forceTick()
 		return this
 	}
 
-	keyUp = (key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) => {
+	keyUp(key: string, options = {} as Partial<Omit<TLKeyboardEventInfo, 'key'>>) {
 		this.dispatch({
 			...this.getKeyboardEventInfo(key, 'key_up', {
 				shiftKey: this.inputs.shiftKey && key !== 'Shift',
@@ -478,7 +503,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	wheel = (dx: number, dy: number, options = {} as Partial<Omit<TLWheelEventInfo, 'delta'>>) => {
+	wheel(dx: number, dy: number, options = {} as Partial<Omit<TLWheelEventInfo, 'delta'>>) {
 		this.dispatch({
 			type: 'wheel',
 			name: 'wheel',
@@ -502,7 +527,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	pinchStart = (
+	pinchStart(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		z: number,
@@ -510,7 +535,7 @@ export class TestEditor extends Editor {
 		dy: number,
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
-	) => {
+	) {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_start',
@@ -524,7 +549,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	pinchTo = (
+	pinchTo(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		z: number,
@@ -532,7 +557,7 @@ export class TestEditor extends Editor {
 		dy: number,
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
-	) => {
+	) {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_start',
@@ -546,7 +571,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	pinchEnd = (
+	pinchEnd(
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
 		z: number,
@@ -554,7 +579,7 @@ export class TestEditor extends Editor {
 		dy: number,
 		dz: number,
 		options = {} as Partial<Omit<TLPinchEventInfo, 'point' | 'delta' | 'offset'>>
-	) => {
+	) {
 		this.dispatch({
 			type: 'pinch',
 			name: 'pinch_end',
@@ -666,7 +691,8 @@ export class TestEditor extends Editor {
 	createShapesFromJsx(
 		shapesJsx: React.JSX.Element | React.JSX.Element[]
 	): Record<string, TLShapeId> {
-		const { shapes, ids } = shapesFromJsx(shapesJsx)
+		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+		this.createAssets(assets)
 		this.createShapes(shapes)
 		return ids
 	}

@@ -1,0 +1,71 @@
+---
+title: tldraw raised another $2M
+category: announcements
+description: Today we announce the close of an insiders' extension round led by Amplify, Lux, and Tom Preston-Werner.
+hero: /images/blog/3a7fa643-080f-4d67-88b1-eed02a413be3_2614x1688.png
+date: 11/22/2023
+status: published
+author: steveruizok
+---
+
+Good news for all friends of [tldraw](https://www.tldraw.com/): we’ve raised another two million dollars of venture capital from [Amplify Partners](https://www.amplifypartners.com/), [Lux Capital](https://www.luxcapital.com/), and [Preston-Werner Ventures](https://prestonwernerventures.com/). This was an insiders’ extension, raised exclusively from participants in tldraw’s [$2.7m seed](https://tldraw.dev/blog/announcements/tiny-little-seed-round).
+
+![Tldraw whiteboard](/images/blog/3a7fa643-080f-4d67-88b1-eed02a413be3_2614x1688.png)
+
+You have have [seen some tweets](https://x.com/tldraw/status/1724892287304646868?s=20) this week showing off our experimental project, [Make Real](https://www.producthunt.com/posts/make-real). Believe it or not we closed this round of funding a _week before_ going viral. Not sure how to feel about that—but hype is hype!
+
+![Make real](/images/blog/0bea6869-07e4-45f5-8533-847434ce3001_3064x1902.png)
+
+### What is tldraw?
+
+tldraw is an infinite canvas component for the web.
+
+The [tldraw component](https://tldraw.dev/)’s canvas is made out of regular website stuff. Anything you can put on a website, you can put on our canvas—including buttons, inputs, videos, or even entire other websites. It comes complete with all the features you’d expect from an infinite canvas but is designed to be extended, programmatically controlled, and easily integrated with existing sync services.
+
+The component is [available for use today](https://www.npmjs.com/package/@tldraw/tldraw). It’s sitting just shy of a 2.0 release later this month, so expect another announcement soon. You can learn more at [tldraw.dev](https://tldraw.dev/).
+
+## A very good demo
+
+You also can try our flagship demo at [tldraw.com](https://www.tldraw.com).
+
+![Tldraw demo](/images/blog/517271cd-b047-4b26-91ad-5077c6678d07_3824x2474.png)
+
+It’s more than just a demo: you can create offline diagrams and drawings, save and load files, export images, and even share your project with friends for instant multiplayer sessions with cursor chat, viewport following, and live updates, all powered by our own real-time sync engine.
+
+Zero login, zero friction, all free.
+
+## The missing primitive for Figma-likes
+
+Unless you’re building Figma, you probably don’t want to build Figma.
+
+…but you might want to build something a lot _like_ Figma—something that lets users interact with things on an open canvas. Even better if those things are the same React components that you already know how to make. And you probably want it to be collaborative, too. Users love this stuff! Get it right and they’ll love your stuff too!
+
+![Tldraw canvas](/images/blog/c2d3f9bc-3c6f-4331-b3c1-ee8611b6b262_722x406.gif)
+
+Bad news though: collaborative canvases are very hard to make. Building a good one means solving extraordinary technical problems in synchronization, performance, and interactivity, as well as nailing a long list of nuanced features and interactions that users just expect to work the same as they do in apps like Miro and Figma. Get it wrong and users will actually notice.
+
+Enter [tldraw](https://tldraw.dev/).
+
+We’ve built the canvas, designed the interactions, found the edge cases, and polished things to a mirror shine. Our cursors rotate. Our cursor shadows _counter_ rotate. It works in your browser. It works on your phone. It uses the pressure from your Apple pencil to vary the thickness of lines using our own digital ink algorithm. If you swipe on an iPad with two fingers we prevent the micro-variations in distance between your fingers from causing expensive rendering updates as you pan. It’s ready for multiplayer and _fast_.
+
+And you can _build_ on it, too. We provide primitives and helpers for crafting custom tools and custom shapes, as well as ways to customize the user interface with new menu items, tools, icons and translations (tldraw is translated into 33 languages). It has a runtime JavaScript API that you can use to drive the app programmatically or through a custom user interface. The canvas is somehow a React app and _good_.
+
+![Definite canvas](/images/blog/0f6e2d4e-377d-4db7-bd68-be475d220b40_3500x2132.png 'Definite’s canvas powered by tldraw')
+
+There hasn’t been anything like this before: a collaborative canvas whose purpose is to be _your_ canvas, delivering the same level of quality that would usually be pure competitive advantage, jealously guarded.
+
+We’re thrilled to be opening up an entirely new category of applications that can be developed by solo developers, small teams, and startups; as well as giving large teams the opportunity to skip two years of at-risk design engineering and instead build the features that actually matter to their users on top of a product that thousands of people already enjoy.
+
+## And then there’s the whole AI thing
+
+And then there’s the whole [AI thing](https://makereal.tldraw.com/).
+
+---
+
+In closing, thank you again to our investors: [Amplify Partners](https://www.amplifypartners.com/), [Lux Capital](https://www.luxcapital.com/), [Sabrina Hahn](https://www.sabrinahahn.com/), [Tom Preston-Werner](https://twitter.com/mojombo), [Guillermo Rauch](https://twitter.com/rauchg), [Liu Jiang](https://www.linkedin.com/in/liujiang1), [NP-Hard Ventures](https://nphard.vc/), [Soleio](https://twitter.com/soleio), [Badrul Farooqi](https://twitter.com/farooqib), [Michael Stoppelman](https://www.linkedin.com/in/michaelstoppelman), [Adam Wiggins](https://twitter.com/_adamwiggins_), [Brian Lovin](https://twitter.com/brian_lovin), [David Khourshid](https://twitter.com/DavidKPiano), [Cristóbal Valenzuela](https://twitter.com/c_valenzuelab), [Johannes Schickling](https://twitter.com/schickling), [Brian Shultz](https://twitter.com/brianlshultz), [Shin Kim](https://twitter.com/_shinkim), [Jeff Weinstein](https://twitter.com/jeff_weinstein) and [Chase Davis](https://twitter.com/Chase_Davis_).
+
+And a huge thank you to our team: [David Sheldrick](https://twitter.com/djsheldrick), [Lu Wilson](https://twitter.com/TodePond), [Mitja Bezenšek](https://twitter.com/MitjaBezensek), [Alex Dytrych](https://twitter.com/somehats) and Taha Hassan. Writing this is [Steve Ruiz](https://twitter.com/steveruizok), thanks me. We have a new lovely office in London (Thursdays are for visitors) and of course we’re hiring.
+
+---
+
+To learn more, you can [follow us on Twitter/X](https://www.twitter.com/tldraw) or [Mastodon](https://mas.to/@tldraw), join our [Discord server](https://discord.gg/Up7bFHPstc) or reach out at [hello@tldraw.com](mailto:hello@tldraw.com). And if you’re a developer, come check out the [GitHub repo](https://github.com/tldraw/tldraw). See you next time!

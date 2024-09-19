@@ -17,8 +17,8 @@ import {
 	Stadium2d,
 	SvgExportContext,
 	TLGeoShape,
-	TLOnEditEndHandler,
-	TLOnResizeHandler,
+	TLGeoShapeProps,
+	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	Vec,
 	exhaustiveSwitchError,
@@ -26,6 +26,8 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
+	lerp,
+	useValue,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -64,7 +66,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override props = geoShapeProps
 	static override migrations = geoShapeMigrations
 
-	override canEdit = () => true
+	override canEdit() {
+		return true
+	}
 
 	override getDefaultProps(): TLGeoShape['props'] {
 		return {
@@ -92,7 +96,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cx = w / 2
 		const cy = h / 2
 
-		const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
 		const isFilled = shape.props.fill !== 'none' // || shape.props.text.trim().length > 0
 
 		let body: Geometry2d
@@ -100,7 +103,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		switch (shape.props.geo) {
 			case 'cloud': {
 				body = new Polygon2d({
-					points: cloudOutline(w, h, shape.id, shape.props.size),
+					points: cloudOutline(w, h, shape.id, shape.props.size, shape.props.scale),
 					isFilled,
 				})
 				break
@@ -318,20 +321,28 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		const labelSize = getLabelSize(this.editor, shape)
-		const minWidth = Math.min(100, w / 2)
-		const minHeight = Math.min(
-			LABEL_FONT_SIZES[shape.props.size] * shape.props.scale * TEXT_PROPS.lineHeight +
-				LABEL_PADDING * 2,
-			h / 2
+		const unscaledlabelSize = getUnscaledLabelSize(this.editor, shape)
+		// unscaled w and h
+		const unscaledW = w / shape.props.scale
+		const unscaledH = h / shape.props.scale
+		const unscaledminWidth = Math.min(100, unscaledW / 2)
+		const unscaledMinHeight = Math.min(
+			LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2,
+			unscaledH / 2
 		)
 
-		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(minWidth, Math.max(1, w - 8))))
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(minHeight, Math.max(1, w - 8))))
+		const unscaledLabelWidth = Math.min(
+			unscaledW,
+			Math.max(unscaledlabelSize.w, Math.min(unscaledminWidth, Math.max(1, unscaledW - 8)))
+		)
+		const unscaledLabelHeight = Math.min(
+			unscaledH,
+			Math.max(unscaledlabelSize.h, Math.min(unscaledMinHeight, Math.max(1, unscaledH - 8)))
+		)
 
 		// not sure if bug
 
-		const lines = getLines(shape.props, strokeWidth)
+		const lines = getLines(shape.props, STROKE_SIZES[shape.props.size] * shape.props.scale)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
 
 		// todo: use centroid for label position
@@ -344,16 +355,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						shape.props.align === 'start'
 							? 0
 							: shape.props.align === 'end'
-								? w - labelWidth
-								: (w - labelWidth) / 2,
+								? (unscaledW - unscaledLabelWidth) * shape.props.scale
+								: ((unscaledW - unscaledLabelWidth) / 2) * shape.props.scale,
 					y:
 						shape.props.verticalAlign === 'start'
 							? 0
 							: shape.props.verticalAlign === 'end'
-								? h - labelHeight
-								: (h - labelHeight) / 2,
-					width: labelWidth,
-					height: labelHeight,
+								? (unscaledH - unscaledLabelHeight) * shape.props.scale
+								: ((unscaledH - unscaledLabelHeight) / 2) * shape.props.scale,
+					width: unscaledLabelWidth * shape.props.scale,
+					height: unscaledLabelHeight * shape.props.scale,
 					isFilled: true,
 					isLabel: true,
 				}),
@@ -396,7 +407,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override onEditEnd: TLOnEditEndHandler<TLGeoShape> = (shape) => {
+	override getText(shape: TLGeoShape) {
+		return shape.props.text
+	}
+
+	override onEditEnd(shape: TLGeoShape) {
 		const {
 			id,
 			type,
@@ -419,15 +434,27 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 		const { fill, font, align, verticalAlign, size, text } = props
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const theme = useDefaultColorTheme()
-		const isEditingAnything = this.editor.getEditingShapeId() !== null
+		const { editor } = this
+		const isOnlySelected = useValue(
+			'isGeoOnlySelected',
+			() => shape.id === editor.getOnlySelectedShapeId(),
+			[]
+		)
+		const isEditingAnything = editor.getEditingShapeId() !== null
 		const showHtmlContainer = isEditingAnything || shape.props.text
+		const isForceSolid = useValue(
+			'force solid',
+			() => {
+				return editor.getZoomLevel() < 0.2
+			},
+			[editor]
+		)
 
 		return (
 			<>
 				<SVGContainer id={id}>
-					<GeoShapeBody shape={shape} shouldScale={true} />
+					<GeoShapeBody shape={shape} shouldScale={true} forceSolid={isForceSolid} />
 				</SVGContainer>
 				{showHtmlContainer && (
 					<HTMLContainer
@@ -443,12 +470,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							font={font}
 							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
 							lineHeight={TEXT_PROPS.lineHeight}
-							padding={16 * shape.props.scale}
+							padding={LABEL_PADDING * shape.props.scale}
 							fill={fill}
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}
-							isSelected={isSelected}
+							isSelected={isOnlySelected}
 							labelColor={theme[props.labelColor].solid}
 							wrap
 						/>
@@ -485,7 +512,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				return <path d={geometry.getSvgPathData(true)} />
 			}
 			case 'cloud': {
-				return <path d={getCloudPath(w, h, id, size)} />
+				return <path d={getCloudPath(w, h, id, size, shape.props.scale)} />
 			}
 
 			default: {
@@ -555,7 +582,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		return (
 			<>
-				<GeoShapeBody shouldScale={false} shape={newShape} />
+				<GeoShapeBody shouldScale={false} shape={newShape} forceSolid={false} />
 				{textEl}
 			</>
 		)
@@ -565,53 +592,56 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return [getFillDefForCanvas()]
 	}
 
-	override onResize: TLOnResizeHandler<TLGeoShape> = (
-		shape,
-		{ handle, newPoint, scaleX, scaleY, initialShape }
-	) => {
+	override onResize(
+		shape: TLGeoShape,
+		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
+	) {
+		const unscaledInitialW = initialShape.props.w / initialShape.props.scale
+		const unscaledInitialH = initialShape.props.h / initialShape.props.scale
+		const unscaledGrowY = initialShape.props.growY / initialShape.props.scale
 		// use the w/h from props here instead of the initialBounds here,
 		// since cloud shapes calculated bounds can differ from the props w/h.
-		let w = initialShape.props.w * scaleX
-		let h = (initialShape.props.h + initialShape.props.growY) * scaleY
+		let unscaledW = unscaledInitialW * scaleX
+		let unscaledH = (unscaledInitialH + unscaledGrowY) * scaleY
 		let overShrinkX = 0
 		let overShrinkY = 0
 
+		const min = MIN_SIZE_WITH_LABEL
+
 		if (shape.props.text.trim()) {
-			let newW = Math.max(Math.abs(w), MIN_SIZE_WITH_LABEL)
-			let newH = Math.max(Math.abs(h), MIN_SIZE_WITH_LABEL)
+			let newW = Math.max(Math.abs(unscaledW), min)
+			let newH = Math.max(Math.abs(unscaledH), min)
 
-			if (newW < MIN_SIZE_WITH_LABEL && newH === MIN_SIZE_WITH_LABEL) {
-				newW = MIN_SIZE_WITH_LABEL
-			}
+			if (newW < min && newH === min) newW = min
+			if (newW === min && newH < min) newH = min
 
-			if (newW === MIN_SIZE_WITH_LABEL && newH < MIN_SIZE_WITH_LABEL) {
-				newH = MIN_SIZE_WITH_LABEL
-			}
-
-			const labelSize = getLabelSize(this.editor, {
+			const unscaledLabelSize = getUnscaledLabelSize(this.editor, {
 				...shape,
 				props: {
 					...shape.props,
-					w: newW,
-					h: newH,
+					w: newW * shape.props.scale,
+					h: newH * shape.props.scale,
 				},
 			})
 
-			const nextW = Math.max(Math.abs(w), labelSize.w) * Math.sign(w)
-			const nextH = Math.max(Math.abs(h), labelSize.h) * Math.sign(h)
-			overShrinkX = Math.abs(nextW) - Math.abs(w)
-			overShrinkY = Math.abs(nextH) - Math.abs(h)
+			const nextW = Math.max(Math.abs(unscaledW), unscaledLabelSize.w) * Math.sign(unscaledW)
+			const nextH = Math.max(Math.abs(unscaledH), unscaledLabelSize.h) * Math.sign(unscaledH)
+			overShrinkX = Math.abs(nextW) - Math.abs(unscaledW)
+			overShrinkY = Math.abs(nextH) - Math.abs(unscaledH)
 
-			w = nextW
-			h = nextH
+			unscaledW = nextW
+			unscaledH = nextH
 		}
+
+		const scaledW = unscaledW * shape.props.scale
+		const scaledH = unscaledH * shape.props.scale
 
 		const offset = new Vec(0, 0)
 
 		// x offsets
 
 		if (scaleX < 0) {
-			offset.x += w
+			offset.x += scaledW
 		}
 
 		if (handle === 'left' || handle === 'top_left' || handle === 'bottom_left') {
@@ -621,7 +651,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// y offsets
 
 		if (scaleY < 0) {
-			offset.y += h
+			offset.y += scaledH
 		}
 
 		if (handle === 'top' || handle === 'top_left' || handle === 'top_right') {
@@ -634,14 +664,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			x,
 			y,
 			props: {
-				w: Math.max(Math.abs(w), 1),
-				h: Math.max(Math.abs(h), 1),
+				w: Math.max(Math.abs(scaledW), 1),
+				h: Math.max(Math.abs(scaledH), 1),
 				growY: 0,
 			},
 		}
 	}
 
-	override onBeforeCreate = (shape: TLGeoShape) => {
+	override onBeforeCreate(shape: TLGeoShape) {
 		if (!shape.props.text) {
 			if (shape.props.growY) {
 				// No text / some growY, set growY to 0
@@ -658,13 +688,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		const prevHeight = shape.props.h
-		const nextHeight = getLabelSize(this.editor, shape).h
+		const unscaledPrevHeight = shape.props.h / shape.props.scale
+		const unscaledNextHeight = getUnscaledLabelSize(this.editor, shape).h
 
 		let growY: number | null = null
 
-		if (nextHeight > prevHeight) {
-			growY = nextHeight - prevHeight
+		if (unscaledNextHeight > unscaledPrevHeight) {
+			growY = unscaledNextHeight - unscaledPrevHeight
 		} else {
 			if (shape.props.growY) {
 				growY = 0
@@ -676,16 +706,18 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				...shape,
 				props: {
 					...shape.props,
-					growY,
+					// scale the growY
+					growY: growY * shape.props.scale,
 				},
 			}
 		}
 	}
 
-	override onBeforeUpdate = (prev: TLGeoShape, next: TLGeoShape) => {
+	override onBeforeUpdate(prev: TLGeoShape, next: TLGeoShape) {
 		const prevText = prev.props.text
 		const nextText = next.props.text
 
+		// No change to text, font, or size, no need to update update
 		if (
 			prevText === nextText &&
 			prev.props.font === next.props.font &&
@@ -694,6 +726,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			return
 		}
 
+		// If we got rid of the text, cancel out any growY from the prev text
 		if (prevText && !nextText) {
 			return {
 				...next,
@@ -704,23 +737,27 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		const prevWidth = prev.props.w
-		const prevHeight = prev.props.h
-		const nextSize = getLabelSize(this.editor, next)
-		const nextWidth = nextSize.w
-		const nextHeight = nextSize.h
+		// Get the prev width and height in unscaled values
+		const unscaledPrevWidth = prev.props.w / prev.props.scale
+		const unscaledPrevHeight = prev.props.h / prev.props.scale
+		const unscaledPrevGrowY = prev.props.growY / prev.props.scale
+
+		// Get the next width and height in unscaled values
+		const unscaledNextLabelSize = getUnscaledLabelSize(this.editor, next)
 
 		// When entering the first character in a label (not pasting in multiple characters...)
 		if (!prevText && nextText && nextText.length === 1) {
-			let w = Math.max(prevWidth, nextWidth)
-			let h = Math.max(prevHeight, nextHeight)
+			let unscaledW = Math.max(unscaledPrevWidth, unscaledNextLabelSize.w)
+			let unscaledH = Math.max(unscaledPrevHeight, unscaledNextLabelSize.h)
+
+			const min = MIN_SIZE_WITH_LABEL
 
 			// If both the width and height were less than the minimum size, make the shape square
-			if (prev.props.w < MIN_SIZE_WITH_LABEL && prev.props.h < MIN_SIZE_WITH_LABEL) {
-				w = Math.max(w, MIN_SIZE_WITH_LABEL)
-				h = Math.max(h, MIN_SIZE_WITH_LABEL)
-				w = Math.max(w, h)
-				h = Math.max(w, h)
+			if (unscaledPrevWidth < min && unscaledPrevHeight < min) {
+				unscaledW = Math.max(unscaledW, min)
+				unscaledH = Math.max(unscaledH, min)
+				unscaledW = Math.max(unscaledW, unscaledH)
+				unscaledH = Math.max(unscaledW, unscaledH)
 			}
 
 			// Don't set a growY—at least, not until we've implemented a growX property
@@ -728,8 +765,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				...next,
 				props: {
 					...next.props,
-					w,
-					h,
+					// Scale the results
+					w: unscaledW * next.props.scale,
+					h: unscaledH * next.props.scale,
 					growY: 0,
 				},
 			}
@@ -737,37 +775,42 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		let growY: number | null = null
 
-		if (nextHeight > prevHeight) {
-			growY = nextHeight - prevHeight
+		if (unscaledNextLabelSize.h > unscaledPrevHeight) {
+			growY = unscaledNextLabelSize.h - unscaledPrevHeight
 		} else {
-			if (prev.props.growY) {
+			if (unscaledPrevGrowY) {
 				growY = 0
 			}
 		}
 
 		if (growY !== null) {
+			const unscaledNextWidth = next.props.w / next.props.scale
 			return {
 				...next,
 				props: {
 					...next.props,
-					growY,
-					w: Math.max(next.props.w, nextWidth),
+					// Scale the results
+					growY: growY * next.props.scale,
+					w: Math.max(unscaledNextWidth, unscaledNextLabelSize.w) * next.props.scale,
 				},
 			}
 		}
 
-		if (nextWidth > prev.props.w) {
+		if (unscaledNextLabelSize.w > unscaledPrevWidth) {
 			return {
 				...next,
 				props: {
 					...next.props,
-					w: nextWidth,
+					// Scale the results
+					w: unscaledNextLabelSize.w * next.props.scale,
 				},
 			}
 		}
+
+		// otherwise, no update needed
 	}
 
-	override onDoubleClick = (shape: TLGeoShape) => {
+	override onDoubleClick(shape: TLGeoShape) {
 		// Little easter egg: double-clicking a rectangle / checkbox while
 		// holding alt will toggle between check-box and rectangle
 		if (this.editor.inputs.altKey) {
@@ -793,10 +836,22 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		return
 	}
+	override getInterpolatedProps(
+		startShape: TLGeoShape,
+		endShape: TLGeoShape,
+		t: number
+	): TLGeoShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			w: lerp(startShape.props.w, endShape.props.w, t),
+			h: lerp(startShape.props.h, endShape.props.h, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
+		}
+	}
 }
 
-function getLabelSize(editor: Editor, shape: TLGeoShape) {
-	const text = shape.props.text
+function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
+	const { text, font, size, w } = shape.props
 
 	if (!text) {
 		return { w: 0, h: 0 }
@@ -804,8 +859,8 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 
 	const minSize = editor.textMeasure.measureText('w', {
 		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,
+		fontFamily: FONT_FAMILIES[font],
+		fontSize: LABEL_FONT_SIZES[size],
 		maxWidth: 100, // ?
 	})
 
@@ -817,23 +872,23 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 		xl: 10,
 	}
 
-	const size = editor.textMeasure.measureText(text, {
+	const textSize = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[shape.props.font],
-		fontSize: LABEL_FONT_SIZES[shape.props.size] * shape.props.scale,
+		fontFamily: FONT_FAMILIES[font],
+		fontSize: LABEL_FONT_SIZES[size],
 		minWidth: minSize.w,
 		maxWidth: Math.max(
 			// Guard because a DOM nodes can't be less 0
 			0,
 			// A 'w' width that we're setting as the min-width
-			Math.ceil(minSize.w + sizes[shape.props.size]),
+			Math.ceil(minSize.w + sizes[size]),
 			// The actual text size
-			Math.ceil(shape.props.w - LABEL_PADDING * 2)
+			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 		),
 	})
 
 	return {
-		w: size.w + LABEL_PADDING * 2,
-		h: size.h + LABEL_PADDING * 2,
+		w: textSize.w + LABEL_PADDING * 2,
+		h: textSize.h + LABEL_PADDING * 2,
 	}
 }

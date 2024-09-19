@@ -7,13 +7,15 @@ import {
 	ShapeUtil,
 	SvgExportContext,
 	TLDrawShape,
+	TLDrawShapeProps,
 	TLDrawShapeSegment,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
 	last,
+	lerp,
 	rng,
 	toFixed,
 } from '@tldraw/editor'
@@ -24,6 +26,7 @@ import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyle
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { svgInk } from '../shared/freehand/svgInk'
+import { interpolateSegments } from '../shared/interpolate-props'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -33,9 +36,15 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override props = drawShapeProps
 	static override migrations = drawShapeMigrations
 
-	override hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
-	override hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)
-	override hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
+	override hideResizeHandles(shape: TLDrawShape) {
+		return getIsDot(shape)
+	}
+	override hideRotateHandle(shape: TLDrawShape) {
+		return getIsDot(shape)
+	}
+	override hideSelectionBoundsFg(shape: TLDrawShape) {
+		return getIsDot(shape)
+	}
 
 	override getDefaultProps(): TLDrawShape['props'] {
 		return {
@@ -137,7 +146,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return [getFillDefForCanvas()]
 	}
 
-	override onResize: TLOnResizeHandler<TLDrawShape> = (shape, info) => {
+	override onResize(shape: TLDrawShape, info: TLResizeInfo<TLDrawShape>) {
 		const { scaleX, scaleY } = info
 
 		const newSegments: TLDrawShapeSegment[] = []
@@ -165,6 +174,17 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
 		return ((STROKE_SIZES[shape.props.size] * multiplier) / 2) * shape.props.scale
+	}
+	override getInterpolatedProps(
+		startShape: TLDrawShape,
+		endShape: TLDrawShape,
+		t: number
+	): TLDrawShapeProps {
+		return {
+			...(t > 0.5 ? endShape.props : startShape.props),
+			segments: interpolateSegments(startShape.props.segments, endShape.props.segments, t),
+			scale: lerp(startShape.props.scale, endShape.props.scale, t),
+		}
 	}
 }
 
@@ -245,7 +265,7 @@ function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: num
 				fill={isDot ? theme[shape.props.color].solid : 'none'}
 				stroke={theme[shape.props.color].solid}
 				strokeWidth={sw}
-				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw)}
+				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, zoomLevel)}
 				strokeDashoffset="0"
 			/>
 		</>

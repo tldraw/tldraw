@@ -1,4 +1,4 @@
-import { PageRecordType, TLStore } from '@tldraw/tlschema'
+import { PageRecordType, TLStore, createShapeId } from '@tldraw/tlschema'
 import { IndexKey } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
@@ -76,6 +76,7 @@ describe('getSnapshot', () => {
 const page2Id = PageRecordType.createId('page2')
 function addPage2(snapshot: TLEditorSnapshot) {
 	// sneakily add a page
+	snapshot = structuredClone(snapshot)
 	snapshot.document.store[page2Id] = PageRecordType.create({
 		id: page2Id,
 		name: 'my lovely page',
@@ -84,6 +85,7 @@ function addPage2(snapshot: TLEditorSnapshot) {
 
 	// and set the current page id
 	snapshot.session.currentPageId = page2Id
+	return snapshot
 }
 
 describe('loadSnapshot', () => {
@@ -91,9 +93,7 @@ describe('loadSnapshot', () => {
 		const store = createTLStore({})
 		const editor = createEditor(store)
 
-		const snapshot = getSnapshot(store)
-
-		addPage2(snapshot)
+		const snapshot = addPage2(getSnapshot(store))
 
 		loadSnapshot(store, snapshot)
 
@@ -110,13 +110,11 @@ describe('loadSnapshot', () => {
 		const store = createTLStore({})
 		const editor = createEditor(store)
 
-		const snapshot = getSnapshot(store)
+		const snapshot = addPage2(getSnapshot(store))
 
 		expect(editor.getViewportScreenBounds()).not.toEqual(new Box(0, 0, 100, 100))
 		editor.updateViewportScreenBounds(new Box(0, 0, 100, 100))
 		expect(editor.getViewportScreenBounds()).toEqual(new Box(0, 0, 100, 100))
-
-		addPage2(snapshot)
 
 		loadSnapshot(store, snapshot)
 
@@ -127,9 +125,7 @@ describe('loadSnapshot', () => {
 		const store = createTLStore({})
 		const editor = createEditor(store)
 
-		const snapshot = getSnapshot(store)
-
-		addPage2(snapshot)
+		const snapshot = addPage2(getSnapshot(store))
 
 		loadSnapshot(store, snapshot.document)
 
@@ -146,9 +142,7 @@ describe('loadSnapshot', () => {
 		const store = createTLStore({})
 		const editor = createEditor(store)
 
-		const snapshot = getSnapshot(store)
-
-		addPage2(snapshot)
+		const snapshot = addPage2(getSnapshot(store))
 
 		loadSnapshot(store, { document: snapshot.document })
 
@@ -165,9 +159,7 @@ describe('loadSnapshot', () => {
 		const store = createTLStore({})
 		const editor = createEditor(store)
 
-		const snapshot = getSnapshot(store)
-
-		addPage2(snapshot)
+		const snapshot = addPage2(getSnapshot(store))
 
 		loadSnapshot(store, snapshot.document)
 
@@ -181,5 +173,72 @@ describe('loadSnapshot', () => {
 
 		loadSnapshot(store, { session: snapshot.session })
 		expect(editor.getCurrentPageId()).toBe('page:page2')
+	})
+
+	it('preserves session stuff if no session snapshot is provided', () => {
+		const store = createTLStore({})
+		const editor = createEditor(store)
+
+		const snapshot = getSnapshot(store)
+
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+
+		editor.setCamera({ x: 1, y: 2, z: 3 })
+
+		loadSnapshot(store, snapshot.document)
+
+		expect(editor.getCamera()).toMatchObject({ x: 1, y: 2, z: 3 })
+
+		loadSnapshot(store, { document: snapshot.document })
+
+		expect(editor.getCamera()).toMatchObject({ x: 1, y: 2, z: 3 })
+
+		loadSnapshot(store, snapshot)
+
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+	})
+
+	it('preserves session stuff if only a partial session snapshot is provided', () => {
+		const store = createTLStore({})
+		const editor = createEditor(store)
+		const page1Id = editor.getCurrentPageId()
+
+		const page2Id = PageRecordType.createId('page2')
+		editor.createPage({ id: page2Id })
+		editor.setCurrentPage(PageRecordType.createId('page2'))
+
+		const snapshot = getSnapshot(store)
+
+		delete snapshot.session.pageStates
+
+		editor.setCurrentPage(page1Id)
+		editor.setCamera({ x: 1, y: 2, z: 3 })
+
+		loadSnapshot(store, snapshot)
+
+		// the page should have switched back to page2 with the default camera
+		expect(editor.getCurrentPageId()).toBe(page2Id)
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 })
+
+		// and because we updated the page1 camera after the snapshot was taken, it should still be the same
+		editor.setCurrentPage(page1Id)
+		expect(editor.getCamera()).toMatchObject({ x: 1, y: 2, z: 3 })
+	})
+
+	it('cleans up references to missing shapes from page state', () => {
+		const store = createTLStore({})
+		const editor = createEditor(store)
+
+		const shapeA = createShapeId('a')
+		editor.createShape({ type: 'group', id: shapeA })
+
+		const snapshot = getSnapshot(store)
+
+		const shapeB = createShapeId('b')
+		editor.createShape({ type: 'group', id: shapeB }).select(shapeB, shapeA)
+
+		loadSnapshot(store, snapshot.document)
+
+		expect(editor.getCurrentPageState().selectedShapeIds).toEqual([shapeA])
 	})
 })

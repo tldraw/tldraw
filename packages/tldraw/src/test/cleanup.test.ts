@@ -47,7 +47,7 @@ describe('restoring bound arrows', () => {
 	})
 
 	it('removes bound arrows on delete, restores them on undo but only when change was done by user', () => {
-		editor.mark('deleting')
+		editor.markHistoryStoppingPoint('deleting')
 		editor.deleteShapes([ids.box2])
 		expect(bindings().end).toBeUndefined()
 		editor.undo()
@@ -57,7 +57,7 @@ describe('restoring bound arrows', () => {
 	})
 
 	it('removes / restores multiple bindings', () => {
-		editor.mark('deleting')
+		editor.markHistoryStoppingPoint('deleting')
 		expect(bindings().start).toBeDefined()
 		expect(bindings().end).toBeDefined()
 
@@ -77,7 +77,7 @@ describe('restoring bound arrows', () => {
 
 describe('restoring bound arrows multiplayer', () => {
 	it('restores bound arrows after the shape was deleted by a different client', () => {
-		editor.mark('before creating box shape')
+		editor.markHistoryStoppingPoint('before creating box shape')
 		editor.createShapes([{ id: ids.box2, type: 'geo', x: 100, y: 0 }])
 
 		editor.setCurrentTool('arrow').pointerMove(0, 50).pointerDown().pointerMove(150, 50).pointerUp()

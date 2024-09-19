@@ -1,4 +1,4 @@
-import { StateNode, TLCancelEvent, TLInterruptEvent } from 'tldraw'
+import { StateNode } from 'tldraw'
 import { ScreenshotDragging } from './childStates/Dragging'
 import { ScreenshotIdle } from './childStates/Idle'
 import { ScreenshotPointing } from './childStates/Pointing'
@@ -9,23 +9,25 @@ export class ScreenshotTool extends StateNode {
 	// [1]
 	static override id = 'screenshot'
 	static override initial = 'idle'
-	static override children = () => [ScreenshotIdle, ScreenshotPointing, ScreenshotDragging]
+	static override children() {
+		return [ScreenshotIdle, ScreenshotPointing, ScreenshotDragging]
+	}
 
 	// [2]
-	override onEnter = () => {
+	override onEnter() {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
-	override onExit = () => {
+	override onExit() {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
 	// [3]
-	override onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt() {
 		this.complete()
 	}
 
-	override onCancel: TLCancelEvent = () => {
+	override onCancel() {
 		this.complete()
 	}
 

@@ -9,8 +9,8 @@ import {
 	objectMapKeys,
 	objectMapValues,
 	throttleToNextFrame,
+	uniqueId,
 } from '@tldraw/utils'
-import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { RecordScope } from './RecordType'
 import { RecordsDiff, squashRecordDiffs } from './RecordsDiff'
@@ -83,8 +83,8 @@ export interface StoreSnapshot<R extends UnknownRecord> {
 
 /** @public */
 export interface StoreValidator<R extends UnknownRecord> {
-	validate: (record: unknown) => R
-	validateUsingKnownGoodVersion?: (knownGoodVersion: R, record: unknown) => R
+	validate(record: unknown): R
+	validateUsingKnownGoodVersion?(knownGoodVersion: R, record: unknown): R
 }
 
 /** @public */
@@ -167,7 +167,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @internal
 	 */
-	private cancelHistoryReactor: () => void = () => {
+	private cancelHistoryReactor(): void {
 		/* noop */
 	}
 
@@ -192,7 +192,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}) {
 		const { initialData, schema, id } = config
 
-		this.id = id ?? nanoid()
+		this.id = id ?? uniqueId()
 		this.schema = schema
 		this.props = config.props
 
@@ -324,7 +324,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param records - The records to add.
 	 * @public
 	 */
-	put = (records: R[], phaseOverride?: 'initialize'): void => {
+	put(records: R[], phaseOverride?: 'initialize'): void {
 		this.atomic(() => {
 			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
 			const additions: Record<IdOf<UnknownRecord>, R> = {}
@@ -419,7 +419,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param ids - The ids of the records to remove.
 	 * @public
 	 */
-	remove = (ids: IdOf<R>[]): void => {
+	remove(ids: IdOf<R>[]): void {
 		this.atomic(() => {
 			const cancelled = new Set<IdOf<R>>()
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
@@ -467,7 +467,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
-	get = <K extends IdOf<R>>(id: K): RecordFromId<K> | undefined => {
+	get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
 		return this.atoms.get()[id]?.get() as any
 	}
 
@@ -477,8 +477,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
-	unsafeGetWithoutCapture = <K extends IdOf<R>>(id: K): RecordFromId<K> | undefined => {
-		return this.atoms.get()[id]?.__unsafe__getWithoutCapture() as any
+	unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined {
+		return this.atoms.__unsafe__getWithoutCapture()[id]?.__unsafe__getWithoutCapture() as any
 	}
 
 	/**
@@ -487,7 +487,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
 	 * @returns The record store snapshot as a JSON payload.
 	 */
-	serialize = (scope: RecordScope | 'all' = 'document'): SerializedStore<R> => {
+	serialize(scope: RecordScope | 'all' = 'document'): SerializedStore<R> {
 		const result = {} as SerializedStore<R>
 		for (const [id, atom] of objectMapEntries(this.atoms.get())) {
 			const record = atom.get()
@@ -599,7 +599,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @returns An array of all values in the store.
 	 * @public
 	 */
-	allRecords = (): R[] => {
+	allRecords(): R[] {
 		return objectMapValues(this.atoms.get()).map((atom) => atom.get())
 	}
 
@@ -608,7 +608,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @public
 	 */
-	clear = (): void => {
+	clear(): void {
 		this.remove(objectMapKeys(this.atoms.get()))
 	}
 
@@ -619,7 +619,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to update.
 	 * @param updater - A function that updates the record.
 	 */
-	update = <K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) => {
+	update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>) {
 		const atom = this.atoms.get()[id]
 		if (!atom) {
 			console.error(`Record ${id} not found. This is probably an error`)
@@ -635,7 +635,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param id - The id of the record to check.
 	 * @public
 	 */
-	has = <K extends IdOf<R>>(id: K): boolean => {
+	has<K extends IdOf<R>>(id: K): boolean {
 		return !!this.atoms.get()[id]
 	}
 
@@ -646,7 +646,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param filters - Filters to apply to the listener.
 	 * @returns A function to remove the listener.
 	 */
-	listen = (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => {
+	listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) {
 		// flush history so that this listener's history starts from exactly now
 		this._flushHistory()
 
@@ -681,7 +681,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param fn - A function that merges the external changes.
 	 * @public
 	 */
-	mergeRemoteChanges = (fn: () => void) => {
+	mergeRemoteChanges(fn: () => void) {
 		if (this.isMergingRemoteChanges) {
 			return fn()
 		}
@@ -762,11 +762,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
-	createComputedCache = <Result, Record extends R = R>(
+	createComputedCache<Result, Record extends R = R>(
 		name: string,
 		derive: (record: Record) => Result | undefined,
 		isEqual?: (a: Record, b: Record) => boolean
-	): ComputedCache<Result, Record> => {
+	): ComputedCache<Result, Record> {
 		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
 			get: (id: IdOf<Record>) => {
@@ -796,11 +796,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param derive - A function used to derive the value of the cache.
 	 * @public
 	 */
-	createSelectedComputedCache = <Selection, Result, Record extends R = R>(
+	createSelectedComputedCache<Selection, Result, Record extends R = R>(
 		name: string,
 		selector: (record: Record) => Selection | undefined,
 		derive: (input: Selection) => Result | undefined
-	): ComputedCache<Result, Record> => {
+	): ComputedCache<Result, Record> {
 		const cache = new WeakCache<Atom<any>, Computed<Result | undefined>>()
 		return {
 			get: (id: IdOf<Record>) => {

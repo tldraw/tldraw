@@ -1,4 +1,4 @@
-name: (Re)Publish public packages manually
+name: (Re)Publish SDK packages manually
 # This only attempts to publish the public packages to npm.
 # It does not bump the version, it does not update the changelogs, it does not create a github release.
 
@@ -28,12 +28,13 @@ jobs:
 
       - name: Publish
         id: publish_step
-        run: yarn tsx ./scripts/publish-manual.ts
+        run: yarn tsx ./internal/scripts/publish-manual.ts
         env:
           GH_TOKEN: ${{ github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          TLDRAW_BEMO_URL: https://demo.tldraw.xyz
 
   publish_templates:
     name: Publishes code templates to separate repositories
@@ -42,4 +43,5 @@ jobs:
     secrets:
       VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.VITE_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
       NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.NEXTJS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
+      CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY: ${{ secrets.CLOUDFLARE_WORKERS_TEMPLATE_REPO_SSH_DEPLOY_KEY }}
     needs: deploy

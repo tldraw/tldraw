@@ -22,7 +22,7 @@ export function ImageAnnotationEditor({
 	onDone,
 }: {
 	image: AnnotatorImage
-	onDone: (result: Blob) => void
+	onDone(result: Blob): void
 }) {
 	const [imageShapeId, setImageShapeId] = useState<TLShapeId | null>(null)
 	const [editor, setEditor] = useState(null as Editor | null)
@@ -48,7 +48,6 @@ export function ImageAnnotationEditor({
 				props: {
 					w: image.width,
 					h: image.height,
-					fileSize: -1,
 					mimeType: image.type,
 					src: image.src,
 					name: 'image',
@@ -115,7 +114,7 @@ export function ImageAnnotationEditor({
 		)
 
 		// Reset the history
-		editor.history.clear()
+		editor.clearHistory()
 		setImageShapeId(shapeId)
 
 		return () => {
@@ -219,7 +218,7 @@ function DoneButton({
 	onClick,
 }: {
 	imageShapeId: TLShapeId
-	onClick: (result: Blob) => void
+	onClick(result: Blob): void
 }) {
 	const editor = useEditor()
 	return (

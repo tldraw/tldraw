@@ -7,7 +7,7 @@ import {
 	ShapeUtil,
 	T,
 	TLBaseShape,
-	TLOnResizeHandler,
+	TLResizeInfo,
 	getPerfectDashProps,
 	resizeBox,
 	useValue,
@@ -29,8 +29,12 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		h: T.number,
 	}
 
-	override canBind = () => false
-	override hideRotateHandle = () => true
+	override canBind() {
+		return false
+	}
+	override hideRotateHandle() {
+		return true
+	}
 
 	getDefaultProps(): SlideShape['props'] {
 		return {
@@ -47,17 +51,20 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 		})
 	}
 
-	override onRotate = (initial: SlideShape) => initial
-	override onResize: TLOnResizeHandler<SlideShape> = (shape, info) => {
+	override onRotate(initial: SlideShape) {
+		return initial
+	}
+
+	override onResize(shape: SlideShape, info: TLResizeInfo<SlideShape>) {
 		return resizeBox(shape, info)
 	}
 
-	override onDoubleClick = (shape: SlideShape) => {
+	override onDoubleClick(shape: SlideShape) {
 		moveToSlide(this.editor, shape)
 		this.editor.selectNone()
 	}
 
-	override onDoubleClickEdge = (shape: SlideShape) => {
+	override onDoubleClickEdge(shape: SlideShape) {
 		moveToSlide(this.editor, shape)
 		this.editor.selectNone()
 	}
@@ -100,6 +107,7 @@ export class SlideShapeUtil extends ShapeUtil<SlideShape> {
 								{
 									style: 'dashed',
 									lengthRatio: 6,
+									forceSolid: zoomLevel < 0.2,
 								}
 							)
 

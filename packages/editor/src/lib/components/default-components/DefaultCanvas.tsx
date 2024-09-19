@@ -1,4 +1,5 @@
-import { react, useQuickReactor, useValue } from '@tldraw/state'
+import { react } from '@tldraw/state'
+import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
@@ -19,7 +20,6 @@ import { Vec } from '../../primitives/Vec'
 import { toDomPrecision } from '../../primitives/utils'
 import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
-import { nearestMultiple } from '../../utils/nearestMultiple'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
 import { Shape } from '../Shape'
@@ -366,19 +366,10 @@ function ShapesWithSVGs() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	const dprMultiple = useValue(
-		'dpr multiple',
-		() =>
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
-		[editor]
-	)
-
 	return renderingShapes.map((result) => (
 		<Fragment key={result.id + '_fragment'}>
-			<Shape {...result} dprMultiple={dprMultiple} />
-			<DebugSvgCopy id={result.id} />
+			<Shape {...result} />
+			<DebugSvgCopy id={result.id} mode="iframe" />
 		</Fragment>
 	))
 }
@@ -412,19 +403,10 @@ function ShapesToDisplay() {
 
 	const renderingShapes = useValue('rendering shapes', () => editor.getRenderingShapes(), [editor])
 
-	const dprMultiple = useValue(
-		'dpr multiple',
-		() =>
-			// dprMultiple is the smallest number we can multiply dpr by to get an integer
-			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
-			nearestMultiple(Math.floor(editor.getInstanceState().devicePixelRatio * 100) / 100),
-		[editor]
-	)
-
 	return (
 		<>
 			{renderingShapes.map((result) => (
-				<Shape key={result.id + '_shape'} {...result} dprMultiple={dprMultiple} />
+				<Shape key={result.id + '_shape'} {...result} />
 			))}
 			{editor.environment.isSafari && <ReflowIfNeeded />}
 		</>
@@ -468,7 +450,7 @@ function CollaboratorHintDef() {
 	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }
 
-function DebugSvgCopy({ id }: { id: TLShapeId }) {
+function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {
 	const editor = useEditor()
 
 	const [image, setImage] = useState<{ src: string; bounds: Box } | null>(null)
@@ -515,6 +497,25 @@ function DebugSvgCopy({ id }: { id: TLShapeId }) {
 
 	if (!isInRoot || !image) return null
 
+	if (mode === 'iframe') {
+		return (
+			<iframe
+				src={image.src}
+				width={image.bounds.width}
+				height={image.bounds.height}
+				referrerPolicy="no-referrer"
+				style={{
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					border: 'none',
+					transform: `translate(${image.bounds.x}px, ${image.bounds.maxY + 12}px)`,
+					outline: '1px solid black',
+					maxWidth: 'none',
+				}}
+			/>
+		)
+	}
 	return (
 		<img
 			src={image.src}
