@@ -72,9 +72,9 @@ function ShapeItem({
 							onBlur={() => setIsEditingName(false)}
 							onChange={(ev) => {
 								if (shape.type === 'frame') {
-									editor.updateShape({ ...shape, props: { ...shape.props, name: ev.target.value } })
+									editor.updateShape({ ...shape, props: { name: ev.target.value } })
 								} else {
-									editor.updateShape({ ...shape, meta: { ...shape.meta, name: ev.target.value } })
+									editor.updateShape({ ...shape, meta: { name: ev.target.value } })
 								}
 							}}
 							onKeyDown={(ev) => {
@@ -90,7 +90,7 @@ function ShapeItem({
 					<button
 						className="shape-visibility-toggle"
 						onClick={(ev) => {
-							editor.updateShape({ ...shape, meta: { ...shape.meta, hidden: !shape.meta.hidden } })
+							editor.updateShape({ ...shape, meta: { hidden: !shape.meta.hidden } })
 							ev.stopPropagation()
 						}}
 					>

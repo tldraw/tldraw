@@ -702,15 +702,21 @@ Hidden shapes will still be present in the store, but
 
 - They will not be shown on the canvas
 - They will not be included in hit test results via `editor.getShapeAtPoint` and `editor.getShapesAtPoint`
+- They will be excluded from the arrays returned by `editor.getRenderingShapes` and `editor.getCurrentPageRenderingShapesSorted`
+- They will not be exported in image exports or rendered when printing.
 
-Otherwise, they will behave as normal. If you need to restrict certain interactions with hidden shapes, e.g. preventing the user from having a hidden shape selected, you need to handle that in your own code.
+Otherwise, they will behave as normal.
 
-e.g.
+One place where this might be problematic for you, depending on what features you're using `isShapeHidden` to implement, is that hidden shapes will still be selectable, e.g. via the `select-all` action (`Cmd+A` or `Ctrl+A`).
+
+You can prevent that by cleaning up the selection in a signal reaction that is set up in the `onMount` callback:
 
 ```tsx
 <Tldraw
 	isShapeHidden={(shape) => shape.meta.hidden}
 	onMount={(editor) => {
+		// We don't prevent hidden shapes from being selected out of the box, because there are some situations where it's desirable.
+		// If you want to prevent hidden shapes from being selected, you can do so like this:
 		return react('clean up selection', () => {
 			const selectedShapeIds = editor.getSelectedShapeIds()
 			const filteredSelectedShapeIds = selectedShapeIds.filter((id) => !editor.isShapeHidden(id))

@@ -37,8 +37,8 @@ const components: TLComponents = {
 		)
 
 		// [3]
-		const isPrivateDrawingMode$ = React.useContext(PrivateModeContext)!
-		const isPrivateDrawingMode = useValue(isPrivateDrawingMode$)
+		const isPrivateMode$ = React.useContext(PrivateModeContext)!
+		const isPrivateMode = useValue(isPrivateMode$)
 
 		return (
 			<>
@@ -67,13 +67,10 @@ const components: TLComponents = {
 						</button>
 					</div>
 				) : (
-					<div
-						className="toggle-panel pointer"
-						onClick={() => isPrivateDrawingMode$.update((v) => !v)}
-					>
-						{isPrivateDrawingMode ? <VisibilityOff fill="#444" /> : <VisibilityOn fill="#444" />}
+					<div className="toggle-panel pointer" onClick={() => isPrivateMode$.update((v) => !v)}>
+						{isPrivateMode ? <VisibilityOff fill="#444" /> : <VisibilityOn fill="#444" />}
 						<div>Private mode</div>
-						<Toggle isChecked={isPrivateDrawingMode} />
+						<Toggle isChecked={isPrivateMode} />
 					</div>
 				)}
 			</>
@@ -82,7 +79,7 @@ const components: TLComponents = {
 }
 function App({ roomId }: { roomId: string }) {
 	const store = useSyncDemo({ roomId })
-	const isPrivateDrawingMode$ = React.useContext(PrivateModeContext)!
+	const isPrivateMode$ = React.useContext(PrivateModeContext)!
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
@@ -101,7 +98,7 @@ function App({ roomId }: { roomId: string }) {
 							...shape,
 							meta: {
 								...shape.meta,
-								private: isPrivateDrawingMode$.get(),
+								private: isPrivateMode$.get(),
 								ownerId: editor.user.getId(),
 							},
 						}
