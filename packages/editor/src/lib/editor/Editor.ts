@@ -5003,7 +5003,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		const culledShapes = this.getCulledShapes()
-		return this.getCurrentPageShapesSorted().filter(({ id }) => !culledShapes.has(id))
+		return this.getCurrentPageShapesSorted().filter(
+			({ id }) => !culledShapes.has(id) && !this.isShapeHidden(id)
+		)
 	}
 
 	/**
@@ -5371,6 +5373,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shape = currentPageShapesSorted[i]
 
 			if (
+				// ignore hidden shapes
+				this.isShapeHidden(shape) ||
 				// don't allow dropping on selected shapes
 				this.getSelectedShapeIds().includes(shape.id) ||
 				// only allow shapes that can receive children
@@ -7032,7 +7036,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 						const parent = currentPageShapesSorted[i]
 						if (
-							// parent.type === 'frame'
+							!this.isShapeHidden(parent) &&
 							this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
 							this.isPointInShape(
 								parent,

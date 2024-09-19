@@ -811,4 +811,16 @@ describe('isShapeHidden', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		expect(editor.isShapeHidden(editor.getShape(ids.box1)!)).toBe(true)
 	})
+
+	it('applies to getCurrentPageRenderingShapesSorted', () => {
+		expect(editor.getCurrentPageRenderingShapesSorted().length).toBe(3)
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		expect(editor.getCurrentPageRenderingShapesSorted().length).toBe(2)
+	})
+
+	it('does not apply to getCurrentPageShapesSorted', () => {
+		expect(editor.getCurrentPageShapesSorted().length).toBe(3)
+		editor.updateShape({ id: ids.box1, type: 'geo', meta: { hidden: true } })
+		expect(editor.getCurrentPageShapesSorted().length).toBe(3)
+	})
 })
