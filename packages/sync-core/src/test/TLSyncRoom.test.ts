@@ -14,7 +14,7 @@ import {
 	TLShapeId,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { IndexKey, ZERO_INDEX_KEY, sortById } from '@tldraw/utils'
+import { IndexKey, ZERO_INDEX_KEY, promiseWithResolve, sortById } from '@tldraw/utils'
 import {
 	MAX_TOMBSTONES,
 	RoomSnapshot,
@@ -435,5 +435,24 @@ describe('TLSyncRoom.updateStore', () => {
 				store.put(page)
 			})
 		).rejects.toMatchInlineSnapshot(`[Error: failed to apply changes: invalidRecord]`)
+	})
+
+	test('changes in multiple transaction are isolated from one another', async () => {
+		const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
+		const didDelete = promiseWithResolve()
+		const didPut = promiseWithResolve()
+		const doneA = room.updateStore(async (store) => {
+			store.put(page3)
+			didPut.resolve(null)
+			await didDelete
+			expect(store.get(page3.id)).toBeTruthy()
+		})
+		const doneB = room.updateStore(async (store) => {
+			await didPut
+			expect(store.get(page3.id)).toBeFalsy()
+			store.delete(page3.id)
+			didDelete.resolve(null)
+		})
+		await Promise.all([doneA, doneB])
 	})
 })
