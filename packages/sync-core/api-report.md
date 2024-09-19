@@ -367,6 +367,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
+    updateStore(updater: (store: RoomStoreMethods) => Promise<void> | void): Promise<void>;
 }
 
 // @internal (undocumented)
@@ -501,7 +502,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     }, unknown>;
     // (undocumented)
     tombstoneHistoryStartsAtClock: number;
-    // (undocumented)
     updateStore(updater: (store: RoomStoreMethods) => Promise<void> | void): Promise<void>;
 }
 

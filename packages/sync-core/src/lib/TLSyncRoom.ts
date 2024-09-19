@@ -846,6 +846,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				rollback()
 				if (session) {
 					this.rejectSession(session, reason)
+				} else {
+					throw new Error('failed to apply changes: ' + reason)
 				}
 				if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
 					this.log?.error?.('failed to apply push', reason, message)
@@ -1102,17 +1104,29 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.cancelSession(sessionId)
 	}
 
+	/**
+	 * Allow applying changes to the store in a transactional way.
+	 * @param updater - A function that will be called with a store object that can be used to make changes.
+	 * @returns A promise that resolves when the transaction is complete.
+	 */
 	async updateStore(updater: (store: RoomStoreMethods) => void | Promise<void>) {
+		if (this._isClosed) {
+			throw new Error('Cannot update store on a closed room')
+		}
 		const context = new StoreUpdateContext(
 			Object.fromEntries(this.getSnapshot().documents.map((d) => [d.state.id, d.state]))
 		)
-		await updater(context)
-		context.close()
+		try {
+			await updater(context)
+		} finally {
+			context.close()
+		}
+
 		const diff = context.toDiff()
 		if (Object.keys(diff).length === 0) {
 			return
 		}
-		this.clock++
+
 		this.handlePushRequest(null, { type: 'push', diff, clientClock: 0 })
 	}
 }
@@ -1135,7 +1149,11 @@ class StoreUpdateContext implements RoomStoreMethods {
 	}
 	put(record: UnknownRecord): void {
 		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
-		this.updates.puts[record.id] = structuredClone(record)
+		if (record.id in this.snapshot && isEqual(this.snapshot[record.id], record)) {
+			delete this.updates.puts[record.id]
+		} else {
+			this.updates.puts[record.id] = structuredClone(record)
+		}
 		if (this.updates.deletes.has(record.id)) {
 			this.updates.deletes.delete(record.id)
 		}

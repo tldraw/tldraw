@@ -2,7 +2,7 @@ import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
-import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
@@ -285,6 +285,32 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		// replace room with new one and kick out all the clients
 		this.room = newRoom
 		oldRoom.close()
+	}
+
+	/**
+	 * Allow applying changes to the store inside of a transaction.
+	 *
+	 * You can get values from the store by id with `store.get(id)`.
+	 * These values are safe to mutate, but to commit the changes you must call `store.set(...)` with the updated value.
+	 * You can get all values in the store with `store.getAll()`.
+	 * You can also delete values with `store.delete(id)`.
+	 *
+	 * @example
+	 * ```ts
+	 * room.updateStore(store => {
+	 *   const shape = store.get('shape:abc123')
+	 *   shape.meta.approved = true
+	 *   store.put(shape)
+	 * })
+	 * ```
+	 *
+	 * Changes to the store inside the callback are isolated from changes made by other clients until the transaction commits.
+	 *
+	 * @param updater - A function that will be called with a store object that can be used to make changes.
+	 * @returns A promise that resolves when the transaction is complete.
+	 */
+	async updateStore(updater: (store: RoomStoreMethods) => void | Promise<void>) {
+		return this.room.updateStore(updater)
 	}
 
 	/**
