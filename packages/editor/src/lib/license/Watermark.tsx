@@ -2,7 +2,8 @@ import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { memo, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
-import { stopEventPropagation } from '../utils/dom'
+import { preventDefault, stopEventPropagation } from '../utils/dom'
+import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
@@ -53,6 +54,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	const events = useCanvasEvents()
 
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
+	const url = 'https://tldraw.dev'
 
 	return (
 		<div
@@ -64,11 +66,15 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			{...events}
 		>
 			<a
-				href="https://tldraw.dev"
 				target="_blank"
+				href={url}
 				rel="noreferrer"
 				draggable={false}
-				onPointerDown={stopEventPropagation}
+				onPointerDown={(e) => {
+					stopEventPropagation(e)
+					preventDefault(e)
+				}}
+				onClick={() => runtime.openWindow(url, '_blank')}
 				style={{ mask: maskCss, WebkitMask: maskCss }}
 			/>
 		</div>
