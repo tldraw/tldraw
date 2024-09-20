@@ -5,25 +5,46 @@ import {
 	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
+	TLShapeId,
 	TLTextShape,
 } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 
+interface EditingShapeInfo {
+	shapeId?: TLShapeId
+	onInteractionEnd?: string
+}
+
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
 
+	private info = {} as EditingShapeInfo
 	hitShapeForPointerUp: TLShape | null = null
 
-	override onEnter() {
+	override onEnter(info: EditingShapeInfo) {
+		if (info.shapeId) {
+			// Sometimes we want to explicitly set the editing shape because if you do:
+			//   editor.setEditingShape(shape.id)
+			//   editor.setCurrentTool('select.editing_shape', {someInfo})
+			// The {someInfo} object will be ignored.
+			// That's because in `defaultSideEffects` whenever you setEditingShape it
+			// will automatically (almost too helpfully) transitions to
+			// the 'select.editing_shape' tool.
+			this.editor.setEditingShape(info.shapeId)
+		}
+
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
 		this.hitShapeForPointerUp = null
+		this.info = info
+		this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		updateHoveredShapeId(this.editor)
 		this.editor.select(editingShape)
 	}
 
 	override onExit() {
+		this.parent.setCurrentToolIdMask(undefined)
 		const { editingShapeId } = this.editor.getCurrentPageState()
 		if (!editingShapeId) return
 
@@ -37,6 +58,10 @@ export class EditingShape extends StateNode {
 
 		// Check for changes on editing end
 		util.onEditEnd?.(shape)
+
+		if (this.info.onInteractionEnd) {
+			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
+		}
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
