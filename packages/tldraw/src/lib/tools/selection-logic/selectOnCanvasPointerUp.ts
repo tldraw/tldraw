@@ -2,7 +2,8 @@ import { Editor, TLShape, isShapeId } from '@tldraw/editor'
 
 export function selectOnCanvasPointerUp(editor: Editor) {
 	const selectedShapeIds = editor.getSelectedShapeIds()
-	const { shiftKey, altKey, currentPagePoint } = editor.inputs
+	const { shiftKey, altKey, ctrlKey, currentPagePoint } = editor.inputs
+	const additiveSelectionKey = shiftKey || ctrlKey
 
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
 		hitInside: false,
@@ -24,7 +25,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 		const outermostSelectableShape = editor.getOutermostSelectableShape(hitShape)
 		// If the user is holding shift, they're either adding to or removing from
 		// their selection.
-		if (shiftKey && !altKey) {
+		if (additiveSelectionKey && !altKey) {
 			editor.cancelDoubleClick() // fuckin eh
 
 			if (selectedShapeIds.includes(outermostSelectableShape.id)) {
@@ -65,7 +66,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 		}
 	} else {
 		// We didn't hit anything...
-		if (shiftKey) {
+		if (additiveSelectionKey) {
 			// If we were holding shift, then it's a noop. We keep the
 			// current selection because we didn't add anything to it
 			return

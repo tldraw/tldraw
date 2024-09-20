@@ -9571,6 +9571,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
 				if (info.key === 'AltRight') info.key = 'AltLeft'
 				if (info.code === 'ControlRight') info.code = 'ControlLeft'
+				if (info.code === 'MetaRight') info.code = 'MetaLeft'
 
 				switch (info.name) {
 					case 'key_down': {

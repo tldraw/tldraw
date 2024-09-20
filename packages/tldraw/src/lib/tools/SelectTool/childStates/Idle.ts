@@ -63,8 +63,12 @@ export class Idle extends StateNode {
 				}
 			}
 
-			this.parent.transition('brushing', info)
-			return
+			// We go into brushing (unless they're holding the Meta key, which is conflated with the Ctrl key
+			// in our world).
+			if (!this.editor.inputs.keys.has('MetaLeft')) {
+				this.parent.transition('brushing', info)
+				return
+			}
 		}
 
 		switch (info.target) {

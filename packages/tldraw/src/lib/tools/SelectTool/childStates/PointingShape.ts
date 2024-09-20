@@ -15,7 +15,7 @@ export class PointingShape extends StateNode {
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const {
-			inputs: { currentPagePoint, shiftKey, altKey },
+			inputs: { currentPagePoint, shiftKey, altKey, ctrlKey },
 		} = this.editor
 
 		this.hitShape = info.shape
@@ -45,7 +45,8 @@ export class PointingShape extends StateNode {
 
 		this.didSelectOnEnter = true
 
-		if (shiftKey && !altKey) {
+		const additiveSelectionKey = shiftKey || ctrlKey
+		if (additiveSelectionKey && !altKey) {
 			this.editor.cancelDoubleClick()
 			if (!selectedShapeIds.includes(outermostSelectingShape.id)) {
 				this.editor.markHistoryStoppingPoint('shift selecting shape')
@@ -62,8 +63,10 @@ export class PointingShape extends StateNode {
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const zoomLevel = this.editor.getZoomLevel()
 		const {
-			inputs: { currentPagePoint, shiftKey },
+			inputs: { currentPagePoint, shiftKey, ctrlKey },
 		} = this.editor
+
+		const additiveSelectionKey = shiftKey || ctrlKey
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {
@@ -115,7 +118,7 @@ export class PointingShape extends StateNode {
 			// If the outermost shape is selected, then either select or deselect the SELECTING shape
 			if (selectedShapeIds.includes(outermostSelectableShape.id)) {
 				// same shape, so deselect it if shift is pressed, otherwise deselect all others
-				if (shiftKey) {
+				if (additiveSelectionKey) {
 					this.editor.markHistoryStoppingPoint('deselecting on pointer up')
 					this.editor.deselect(selectingShape)
 				} else {
@@ -173,7 +176,7 @@ export class PointingShape extends StateNode {
 						this.editor.select(selectingShape)
 					}
 				}
-			} else if (shiftKey) {
+			} else if (additiveSelectionKey) {
 				// Different shape, so we are drilling down into a group with shift key held.
 				// Deselect any ancestors and add the target shape to the selection
 				const ancestors = this.editor.getShapeAncestors(outermostSelectableShape)
