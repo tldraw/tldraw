@@ -206,7 +206,7 @@ export interface RoomStoreMethods {
     // (undocumented)
     delete(recordOrId: string | UnknownRecord): void;
     // (undocumented)
-    get(id: string): UnknownRecord;
+    get(id: string): null | UnknownRecord;
     // (undocumented)
     getAll(): UnknownRecord[];
     // (undocumented)

@@ -1137,7 +1137,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 export interface RoomStoreMethods {
 	put(record: UnknownRecord): void
 	delete(recordOrId: UnknownRecord | string): void
-	get(id: string): UnknownRecord
+	get(id: string): UnknownRecord | null
 	getAll(): UnknownRecord[]
 }
 
@@ -1154,9 +1154,7 @@ class StoreUpdateContext implements RoomStoreMethods {
 		} else {
 			this.updates.puts[record.id] = structuredClone(record)
 		}
-		if (this.updates.deletes.has(record.id)) {
-			this.updates.deletes.delete(record.id)
-		}
+		this.updates.deletes.delete(record.id)
 	}
 	delete(recordOrId: UnknownRecord | string): void {
 		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
@@ -1166,12 +1164,15 @@ class StoreUpdateContext implements RoomStoreMethods {
 			this.updates.deletes.add(id)
 		}
 	}
-	get(id: string): UnknownRecord {
+	get(id: string): UnknownRecord | null {
 		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
 		if (hasOwnProperty(this.updates.puts, id)) {
-			return this.updates.puts[id]
+			return structuredClone(this.updates.puts[id])
 		}
-		return structuredClone(this.snapshot[id])
+		if (this.updates.deletes.has(id)) {
+			return null
+		}
+		return structuredClone(this.snapshot[id] ?? null)
 	}
 
 	getAll(): UnknownRecord[] {

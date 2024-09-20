@@ -358,7 +358,7 @@ describe('TLSyncRoom.updateStore', () => {
 		expect(socketB.__lastMessage).toBeNull()
 
 		await room.updateStore((store) => {
-			const page = store.get('page:page_2')
+			const page = store.get('page:page_2')!
 			store.delete(page)
 			store.put(page)
 		})
@@ -454,5 +454,51 @@ describe('TLSyncRoom.updateStore', () => {
 			didDelete.resolve(null)
 		})
 		await Promise.all([doneA, doneB])
+	})
+
+	test('getting something that was deleted in the same transaction returns null', async () => {
+		await room.updateStore((store) => {
+			expect(store.get('page:page_2')).toBeTruthy()
+			store.delete('page:page_2')
+			expect(store.get('page:page_2')).toBe(null)
+		})
+	})
+
+	test('getting something that never existed in the first place returns null', async () => {
+		await room.updateStore((store) => {
+			expect(store.get('page:page_3')).toBe(null)
+		})
+	})
+
+	test('mutations to shapes gotten via .get are not committed unless you .put', async () => {
+		const page3 = PageRecordType.create({ name: 'page 3', index: 'a0' as IndexKey })
+		let page4 = PageRecordType.create({ name: 'page 4', index: 'a1' as IndexKey })
+		let page2
+		await room.updateStore((store) => {
+			page2 = store.get('page:page_2') as TLPage
+			page2.name = 'my lovely page 2'
+			store.put(page3)
+			page3.name = 'my lovely page 3'
+			store.put(page4)
+			page4 = store.get(page4.id) as TLPage
+			page4.name = 'my lovely page 4'
+		})
+
+		const getPageNames = () =>
+			room
+				.getSnapshot()
+				.documents.filter((r) => r.state.typeName === 'page')
+				.map((r) => (r.state as any).name)
+				.sort()
+
+		expect(getPageNames()).toEqual(['page 2', 'page 3', 'page 4'])
+
+		await room.updateStore((store) => {
+			store.put(page2!)
+			store.put(page3)
+			store.put(page4)
+		})
+
+		expect(getPageNames()).toEqual(['my lovely page 2', 'my lovely page 3', 'my lovely page 4'])
 	})
 })
