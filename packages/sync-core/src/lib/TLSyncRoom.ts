@@ -218,11 +218,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	readonly presenceType: RecordType<R, any>
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
+	private onDataChange?(): void
 
-	constructor(opts: { log?: TLSyncLog; schema: StoreSchema<R, any>; snapshot?: RoomSnapshot }) {
+	constructor(opts: {
+		log?: TLSyncLog
+		schema: StoreSchema<R, any>
+		snapshot?: RoomSnapshot
+		onDataChange?(): void
+	}) {
 		this.schema = opts.schema
 		let snapshot = opts.snapshot
 		this.log = opts.log
+		this.onDataChange = opts.onDataChange
 
 		assert(
 			isNativeStructuredClone,
@@ -341,6 +348,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		this.pruneTombstones()
 		this.documentClock = this.clock
+		if (didIncrementClock) {
+			opts.onDataChange?.()
+		}
 	}
 
 	// eslint-disable-next-line local/prefer-class-methods
@@ -828,6 +838,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// increment the clock for this push
 		this.clock++
 
+		const initialDocumentClock = this.documentClock
 		transaction((rollback) => {
 			// collect actual ops that resulted from the push
 			// these will be broadcast to other users
@@ -1093,6 +1104,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 			return
 		})
+
+		// if it threw the changes will have been rolled back and the document clock will not have been incremented
+		if (this.documentClock !== initialDocumentClock) {
+			this.onDataChange?.()
+		}
 	}
 
 	/**

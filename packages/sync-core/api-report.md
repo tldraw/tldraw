@@ -453,6 +453,7 @@ export interface TLSyncLog {
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
         log?: TLSyncLog;
+        onDataChange?(): void;
         schema: StoreSchema<R, any>;
         snapshot?: RoomSnapshot;
     });
