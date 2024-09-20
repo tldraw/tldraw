@@ -7,7 +7,7 @@
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "Apache-2.0",
+	"license": "MIT",
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
