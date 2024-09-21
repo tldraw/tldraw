@@ -86,15 +86,15 @@
 /* ------------------ Ui Overrides ------------------ */
 
 .tla-layout__signedout .tlui-menu-zone {
-	padding-left: 100px;
+	/* padding-left: 100px; */
 }
 
 .tla-layout__signedin .tlui-menu-zone {
-	padding-left: 36px;
+	/* padding-left: 36px; */
 }
 
 .tla-layout__signedin .tlui-focus-button {
-	left: 36px;
+	/* left: 36px; */
 }
 
 /* ----------------- Sign in button ----------------- */
@@ -229,6 +229,15 @@
 	font-weight: 800;
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-1);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tla-text_ui__medium {
+	font-size: 12px;
+	line-height: 1.3;
+	font-weight: 500;
+	font-family: var(--tla-font-ui);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -587,13 +596,14 @@ want centered content that docks to the top when the window is short
 /* ----------------- Sidebar button ----------------- */
 
 .tla-top-left-button {
-	background: none;
-	border: none;
-	position: absolute;
+	/* position: absolute;
 	top: 0px;
 	left: 0px;
 	width: 40px;
-	height: 40px;
+	height: 40px; */
+	position: relative;
+	background: none;
+	border: none;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -623,9 +633,9 @@ want centered content that docks to the top when the window is short
 	}
 }
 
-.tla-layout[data-sidebar='true'] .tla-top-left-button {
+/* .tla-layout[data-sidebar='true'] .tla-top-left-button {
 	left: 260px;
-}
+} */
 
 /* --------------------- Layout --------------------- */
 
@@ -647,6 +657,70 @@ want centered content that docks to the top when the window is short
 	background-color: var(--tla-color-canvas);
 }
 
+/* --------------------- Headers -------------------- */
+
+.tla-file-header {
+	height: 48px;
+	width: 100%;
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	grid-auto-flow: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0px 8px;
+}
+
+.tla-file-header > .tla-button {
+	height: 32px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--tla-color-contrast);
+}
+
+.tla-file-header__fileinfo {
+	text-align: center;
+	grid-column: 1 / span 3;
+	grid-row: 1;
+}
+
+.tla-file-header__title {
+	color: var(--tla-color-text-1);
+}
+
+.tla-file-header__folder {
+	color: var(--tla-color-text-3);
+}
+
+.tla-file-header__collapse {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.tla-file__content {
+	display: flex;
+	flex-direction: column;
+	gap: 0px;
+	min-height: 1px;
+	background-color: var(--tla-color-sidebar);
+}
+
+.tla-file__wrapper {
+	position: relative;
+	flex-grow: 2;
+	overflow: hidden;
+	border-top: 1px solid var(--tla-color-border);
+}
+
+.tla-file__wrapper-sidebar {
+	border-top-left-radius: 9px;
+	border-left: 1px solid var(--tla-color-border);
+}
+
+.tla-file__wrapper > .tldraw__editor {
+	width: 100%;
+	height: 100%;
+}
+
 /* --------------------- Sidebar -------------------- */
 
 .tla-sidebar {
@@ -658,9 +732,8 @@ want centered content that docks to the top when the window is short
 	height: 100%;
 	display: none;
 	flex: 0 0 auto;
-	padding: 0px 12px;
+	padding: 2px 12px 2px 12px;
 	background: var(--tla-color-sidebar);
-	border-right: 1px solid var(--tla-color-low);
 }
 
 .tla-sidebar__top,

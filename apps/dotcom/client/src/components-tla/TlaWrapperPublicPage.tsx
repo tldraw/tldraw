@@ -1,7 +1,6 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
-import { TlaIcon } from './TlaIcon'
 import { TlaSidebar } from './TlaSidebar'
 
 export function TlaWrapperPublicPage() {
@@ -21,7 +20,7 @@ export function TlaWrapperPublicPage() {
 			{auth ? (
 				<>
 					<TlaSidebar />
-					<button
+					{/* <button
 						className="tla-top-left-button"
 						onClick={() =>
 							navigate('/w', {
@@ -30,7 +29,7 @@ export function TlaWrapperPublicPage() {
 						}
 					>
 						<TlaIcon icon="home" />
-					</button>
+					</button> */}
 				</>
 			) : (
 				<button

@@ -2,8 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
-	DefaultHelpMenu,
-	DefaultHelpMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -11,7 +9,6 @@ import {
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	PeopleMenu,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
@@ -20,13 +17,13 @@ import {
 	ViewSubmenu,
 	atom,
 	useActions,
+	useBreakpoint,
 	useEditor,
 	useReactor,
-	useValue,
+	useTldrawUiComponents,
 } from 'tldraw'
 import { MultiplayerFileMenu } from '../components/FileMenu'
 import { Links } from '../components/Links'
-import { ShareMenu } from '../components/ShareMenu'
 import { SneakyOnDropOverride } from '../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../components/ThemeUpdater/ThemeUpdater'
 import { useApp } from '../hooks/useAppState'
@@ -39,7 +36,6 @@ import { TldrawApp } from '../utils/tla/TldrawApp'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
-import { TlaDocumentTopZone } from './TlaDocumentTopZone'
 
 const shittyOfflineAtom = atom('shitty offline atom', false)
 
@@ -47,14 +43,14 @@ const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	HelpMenu: () => (
-		<DefaultHelpMenu>
-			<TldrawUiMenuGroup id="help">
-				<DefaultHelpMenuContent />
-			</TldrawUiMenuGroup>
-			<Links />
-		</DefaultHelpMenu>
-	),
+	// HelpMenu: () => (
+	// 	<DefaultHelpMenu>
+	// 		<TldrawUiMenuGroup id="help">
+	// 			<DefaultHelpMenuContent />
+	// 		</TldrawUiMenuGroup>
+	// 		<Links />
+	// 	</DefaultHelpMenu>
+	// ),
 	MainMenu: () => (
 		<DefaultMainMenu>
 			<MultiplayerFileMenu />
@@ -66,6 +62,27 @@ const components: TLComponents = {
 			<Links />
 		</DefaultMainMenu>
 	),
+	MenuPanel: function MenuPanel() {
+		const breakpoint = useBreakpoint()
+
+		const { MainMenu, QuickActions, ActionsMenu, PageMenu } = useTldrawUiComponents()
+
+		if (!MainMenu && !PageMenu && breakpoint < 6) return null
+
+		return (
+			<div className="tlui-menu-zone">
+				<div className="tlui-buttons__horizontal">
+					{MainMenu && <MainMenu />}
+					{breakpoint < 6 ? null : (
+						<>
+							{QuickActions && <QuickActions />}
+							{ActionsMenu && <ActionsMenu />}
+						</>
+					)}
+				</div>
+			</div>
+		)
+	},
 	KeyboardShortcutsDialog: (props) => {
 		const actions = useActions()
 		return (
@@ -89,17 +106,18 @@ const components: TLComponents = {
 			</DefaultDebugMenu>
 		)
 	},
-	TopPanel: () => {
-		const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
-		return <TlaDocumentTopZone isOffline={isOffline} />
-	},
+	// TopPanel: () => {
+	// 	const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
+	// 	return <TlaDocumentTopZone isOffline={isOffline} />
+	// },
 	SharePanel: () => {
-		return (
-			<div className="tlui-share-zone" draggable={false}>
-				<PeopleMenu />
-				<ShareMenu />
-			</div>
-		)
+		return null
+		// return (
+		// 	<div className="tlui-share-zone" draggable={false}>
+		// 		<PeopleMenu />
+		// 		<ShareMenu />
+		// 	</div>
+		// )
 	},
 }
 

@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaEditor } from '../components-tla/TlaEditor'
+import { TlaFileHeader } from '../components-tla/TlaFileHeader'
 import { TlaWrapperCollapsableSidebar } from '../components-tla/TlaWrapperCollapsableSidebar'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/tla/schema/TldrawAppFile'
@@ -19,6 +20,7 @@ export function Component() {
 		[app, fileId]
 	)
 	if (!file) throw Error('File not found')
+	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 
 	// useEffect(() => {
 	// 	let cancelled = false
@@ -37,8 +39,11 @@ export function Component() {
 
 	return (
 		<TlaWrapperCollapsableSidebar>
-			<div className="tla-content">
-				<TlaEditor file={file} />
+			<div className="tla-content tla-file__content">
+				<TlaFileHeader />
+				<div className={`tla-file__wrapper ${isSidebarOpen ? `tla-file__wrapper-sidebar` : ''}`}>
+					<TlaEditor file={file} />
+				</div>
 			</div>
 		</TlaWrapperCollapsableSidebar>
 	)

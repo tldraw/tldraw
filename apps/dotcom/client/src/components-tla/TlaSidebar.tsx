@@ -190,15 +190,15 @@ function TlaSidebarWorkspaceLink() {
 	const flags = useFlags()
 
 	return (
-		<div className="tla-sidebar__workspace tla-hoverable">
+		<div className="tla-sidebar__workspace">
 			<div className="tla-icon_wrapper" data-size="m">
 				<TlaIcon icon={workspace.avatar} />
 			</div>
 			<div className="tla-sidebar__label tla-text_ui__title">{workspace.name}</div>
 			<button className="tla-sidebar__link-button" />
-			<button className="tla-sidebar__link-menu">
+			{/* <button className="tla-sidebar__link-menu">
 				<TlaIcon icon="dots-vertical-strong" />
-			</button>
+			</button> */}
 			{flags.tabs ? null : <TlaSidebarCreateFileButton />}
 		</div>
 	)
@@ -338,8 +338,9 @@ function TlaSidebarMainLink({ icon, label, href }: SideBarMainLink) {
 function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
 	return (
 		<div className="tla-sidebar__section">
-			<TlaSpacer height="20" />
-			<div className="tla-sidebar__section_title tla-text_ui__section">{title}</div>
+			{/* <TlaSpacer height="20" /> */}
+			<TlaSpacer height="8" />
+			<div className="tla-sidebar__section_title tla-text_ui__medium">{title}</div>
 			{files.map((file) => (
 				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
 			))}

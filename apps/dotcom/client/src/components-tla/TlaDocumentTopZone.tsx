@@ -44,7 +44,7 @@ const MARGIN_BETWEEN_ZONES = 12
 // the maximum amount the people menu will extend from the style panel
 const SQUEEZE_FACTOR = 52
 
-export const TlaDocumentTopZone = ({ isOffline }: { isOffline: boolean }) => {
+export function TlaDocumentTopZone({ isOffline }: { isOffline: boolean }) {
 	const isDocumentNameVisible = useBreakpoint() >= 4
 
 	return (
@@ -55,7 +55,7 @@ export const TlaDocumentTopZone = ({ isOffline }: { isOffline: boolean }) => {
 	)
 }
 
-export const DocumentNameInner = () => {
+export function DocumentNameInner() {
 	const actions = useActions()
 	const forkAction = actions[FORK_PROJECT_ACTION]
 	const saveFileAction = actions[SAVE_FILE_COPY_ACTION]
