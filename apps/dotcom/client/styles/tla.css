@@ -662,12 +662,11 @@ want centered content that docks to the top when the window is short
 .tla-file-header {
 	height: 48px;
 	width: 100%;
-	display: grid;
-	grid-template-columns: auto 1fr auto;
-	grid-auto-flow: column;
+	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: space-between;
 	padding: 0px 8px;
+	position: relative;
 }
 
 .tla-file-header > .tla-button {
@@ -678,9 +677,11 @@ want centered content that docks to the top when the window is short
 }
 
 .tla-file-header__fileinfo {
+	position: absolute;
+	top: calc(50% - 7px);
+	left: 0px;
+	width: 100%;
 	text-align: center;
-	grid-column: 1 / span 3;
-	grid-row: 1;
 }
 
 .tla-file-header__title {
