@@ -126,6 +126,24 @@ function Flags() {
 					/>
 				</Fragment>
 			))}
+			<TlaButton
+				onClick={() => {
+					const defaultUser = TldrawAppUserRecordType.createDefaultProperties()
+					const current = app.getSessionState()
+					if (!current.auth) throw Error('No auth')
+					const user = app.store.get(current.auth.userId)
+					if (!user) throw Error('No user')
+
+					app.store.put([
+						{
+							...user,
+							flags: defaultUser.flags,
+						},
+					])
+				}}
+			>
+				Reset defaults
+			</TlaButton>
 		</div>
 	)
 }

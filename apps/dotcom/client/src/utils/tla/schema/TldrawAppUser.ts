@@ -104,7 +104,7 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 			shared: false,
 			listView: false,
 			groups: false,
-			thumbnails: false,
+			thumbnails: true,
 			tabs: false,
 			draftsTab: false,
 			sharedTab: false,
