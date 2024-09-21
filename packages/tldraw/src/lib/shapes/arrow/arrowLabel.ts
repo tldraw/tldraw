@@ -56,6 +56,7 @@ function getLabelSizeCache(editor: Editor) {
 
 				const fontSize = getArrowLabelFontSize(shape)
 
+				// First we measure the text with no constraints
 				const { w, h } = editor.textMeasure.measureText(shape.props.text, {
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES[shape.props.font],
@@ -66,33 +67,25 @@ function getLabelSizeCache(editor: Editor) {
 				width = w
 				height = h
 
+				let shouldSquish = false
+
+				// If the text is wider than the body, we need to squish it
 				if (bodyBounds.width > bodyBounds.height) {
 					width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
-
-					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
-						shape.props.text,
-						{
-							...TEXT_PROPS,
-							fontFamily: FONT_FAMILIES[shape.props.font],
-							fontSize,
-							maxWidth: width,
-						}
-					)
-
-					width = squishedWidth
-					height = squishedHeight
+					shouldSquish = true
+				} else if (width > 16 * fontSize) {
+					width = 16 * fontSize
+					shouldSquish = true
 				}
 
-				if (width > 16 * fontSize) {
-					width = 16 * fontSize
-
+				if (shouldSquish) {
 					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
 						shape.props.text,
 						{
 							...TEXT_PROPS,
 							fontFamily: FONT_FAMILIES[shape.props.font],
 							fontSize,
-							maxWidth: width,
+							maxWidth: Math.ceil(width),
 						}
 					)
 
@@ -101,7 +94,10 @@ function getLabelSizeCache(editor: Editor) {
 				}
 			}
 
-			return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
+			// return new Vec(width, height)
+			return new Vec(Math.ceil(width), Math.ceil(height)).addScalar(
+				ARROW_LABEL_PADDING * 2 * shape.props.scale
+			)
 		})
 	})
 }
