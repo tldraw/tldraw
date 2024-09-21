@@ -43,7 +43,7 @@ export class TldrawApp {
 	store: Store<TldrawAppRecord>
 	client: LocalSyncClient<TldrawAppRecord>
 
-	dispose = () => {
+	dispose() {
 		this.client.close()
 	}
 
@@ -386,8 +386,8 @@ export class TldrawApp {
 
 	static async create(opts: {
 		persistenceKey: string
-		onLoad: (app: TldrawApp) => void
-		onLoadError: (err: unknown) => void
+		onLoad(app: TldrawApp): void
+		onLoadError(err: unknown): void
 	}) {
 		const { persistenceKey, onLoad, onLoadError } = opts
 
@@ -648,7 +648,7 @@ export class TldrawApp {
 
 	static SessionStateId = TldrawAppSessionStateRecordType.createId('0')
 
-	static getFileName = (file: TldrawAppFile) => {
+	static getFileName(file: TldrawAppFile) {
 		return file.name || new Date(file.createdAt).toLocaleString('en-gb')
 	}
 }
