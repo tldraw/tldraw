@@ -58,6 +58,6 @@
 		"@tldraw/validate": "workspace:*"
 	},
 	"peerDependencies": {
-		"react": "^18"
+		"react": "^18.2.0"
 	}
 }

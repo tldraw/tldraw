@@ -48,8 +48,8 @@
 		"tldraw": "workspace:*"
 	},
 	"peerDependencies": {
-		"react": "^18",
-		"react-dom": "^18"
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
 		"chokidar-cli": "^3.0.0",

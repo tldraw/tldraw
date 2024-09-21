@@ -7,6 +7,7 @@
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
 	},
+	"license": "MIT",
 	"main": "./src/server/server.ts",
 	"scripts": {
 		"dev-node": "concurrently -n server,client -c red,blue \"yarn dev-server-node\" \"yarn dev-client\"",

@@ -29,8 +29,6 @@ binding = "MEASURE"
 name = "dev-tldraw-multiplayer"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
-[env.preview]
-workers_dev = true
 
 # staging is the same as a preview on main:
 [env.staging]
