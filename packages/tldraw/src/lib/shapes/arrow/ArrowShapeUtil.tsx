@@ -607,8 +607,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const isEditing = this.editor.getEditingShapeId() === shape.id
 		const showArrowLabel = isEditing || shape.props.text
 
-		console.log(labelPosition.box.w)
-
 		return (
 			<>
 				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
