@@ -498,10 +498,12 @@ function TlaSidebarRecentFiles() {
 
 			return app
 				.getUserOwnFiles(auth.userId, auth.workspaceId)
+				.filter((file) => !file.isEmpty)
 				.sort((a, b) => b.createdAt - a.createdAt)
 		},
 		[app]
 	)
+
 	if (!results) throw Error('Could not get files')
 
 	// split the files into today, yesterday, this week, this month, and then by month

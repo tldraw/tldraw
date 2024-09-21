@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaEditor } from '../components-tla/TlaEditor'
+import { TlaErrorPage } from '../components-tla/TlaErrorPage'
 import { TlaFileHeader } from '../components-tla/TlaFileHeader'
 import { TlaWrapperCollapsableSidebar } from '../components-tla/TlaWrapperCollapsableSidebar'
 import { useApp } from '../hooks/useAppState'
@@ -19,7 +20,7 @@ export function Component() {
 		},
 		[app, fileId]
 	)
-	if (!file) throw Error('File not found')
+
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 
 	// useEffect(() => {
@@ -36,6 +37,14 @@ export function Component() {
 	// }, [app, fileId])
 
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
+
+	// const navigate = useNavigate()
+
+	if (!file) {
+		// throw Error(`oops ${fileId}`)
+		// navigate('/404')
+		return <TlaErrorPage error="file-not-found" />
+	}
 
 	return (
 		<TlaWrapperCollapsableSidebar>

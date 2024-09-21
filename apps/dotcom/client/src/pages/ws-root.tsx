@@ -15,6 +15,7 @@ export function Component() {
 		},
 		[app]
 	)
+
 	if (!file) throw Error('File not found')
 
 	return (

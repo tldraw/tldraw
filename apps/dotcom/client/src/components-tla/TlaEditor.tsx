@@ -15,7 +15,6 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	ViewSubmenu,
-	atom,
 	useActions,
 	useBreakpoint,
 	useEditor,
@@ -37,7 +36,7 @@ import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 
-const shittyOfflineAtom = atom('shitty offline atom', false)
+// const shittyOfflineAtom = atom('shitty offline atom', false)
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {

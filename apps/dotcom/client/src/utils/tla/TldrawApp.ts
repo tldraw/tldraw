@@ -322,6 +322,7 @@ export class TldrawApp {
 		const file = TldrawAppFileRecordType.create({
 			workspaceId,
 			owner: ownerId,
+			isEmpty: true,
 		})
 		this.store.put([file])
 		return file

@@ -294,9 +294,9 @@
 .tlui-buttons__horizontal > *:nth-last-child(1) {
 	margin-right: 0px;
 }
-.tlui-buttons__horizontal > *:only-child {
+/* .tlui-buttons__horizontal > *:only-child {
 	width: 56px;
-}
+} */
 
 /* Button Grid */
 

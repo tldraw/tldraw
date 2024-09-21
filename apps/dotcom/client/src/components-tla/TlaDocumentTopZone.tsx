@@ -229,8 +229,8 @@ const DocumentNameEditor = track(function DocumentNameEditor({
 	isReadonly,
 }: {
 	isEditing: boolean
-	onEditStart: () => void
-	onEditEnd: () => void
+	onEditStart(): void
+	onEditEnd(): void
 	isReadonly: boolean
 }) {
 	const app = useApp()

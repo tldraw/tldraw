@@ -19,6 +19,7 @@ export interface TldrawAppFile extends BaseRecord<'file', RecordId<TldrawAppFile
 	shared: boolean
 	createdAt: number
 	updatedAt: number
+	isEmpty: boolean
 }
 
 export type TldrawAppFileId = RecordId<TldrawAppFile>
@@ -36,6 +37,7 @@ export const tldrawAppFileValidator: T.Validator<TldrawAppFile> = T.model(
 		thumbnail: T.string,
 		createdAt: T.number,
 		updatedAt: T.number,
+		isEmpty: T.boolean,
 	})
 )
 
@@ -60,5 +62,6 @@ export const TldrawAppFileRecordType = createRecordType<TldrawAppFile>('file', {
 		thumbnail: '',
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
+		isEmpty: false,
 	})
 )

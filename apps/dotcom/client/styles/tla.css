@@ -709,6 +709,7 @@ want centered content that docks to the top when the window is short
 	flex-grow: 2;
 	overflow: hidden;
 	border-top: 1px solid var(--tla-color-border);
+	background-color: var(--tla-color-canvas);
 }
 
 .tla-file__wrapper-sidebar {
@@ -719,6 +720,36 @@ want centered content that docks to the top when the window is short
 .tla-file__wrapper > .tldraw__editor {
 	width: 100%;
 	height: 100%;
+}
+
+/* ---------------------- Error --------------------- */
+
+.tla-error__page {
+	position: relative;
+	display: flex;
+	padding: 48px 16px 16px 16px;
+	width: 100%;
+	max-width: 760px;
+	height: 100%;
+	margin: 0px auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-grow: 2;
+}
+
+.tla-error__container {
+	width: 100%;
+	max-width: 320px;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	pointer-events: all;
+	gap: 20px;
+}
+
+.tla-error__link {
+	color: var(--tla-color-primary);
 }
 
 /* --------------------- Sidebar -------------------- */
