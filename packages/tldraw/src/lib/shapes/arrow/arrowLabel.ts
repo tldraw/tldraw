@@ -85,7 +85,7 @@ function getLabelSizeCache(editor: Editor) {
 							...TEXT_PROPS,
 							fontFamily: FONT_FAMILIES[shape.props.font],
 							fontSize,
-							maxWidth: Math.ceil(width),
+							maxWidth: width,
 						}
 					)
 
@@ -94,10 +94,7 @@ function getLabelSizeCache(editor: Editor) {
 				}
 			}
 
-			// return new Vec(width, height)
-			return new Vec(Math.ceil(width), Math.ceil(height)).addScalar(
-				ARROW_LABEL_PADDING * 2 * shape.props.scale
-			)
+			return new Vec(width, height).addScalar(ARROW_LABEL_PADDING * 2 * shape.props.scale)
 		})
 	})
 }
