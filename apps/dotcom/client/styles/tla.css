@@ -598,9 +598,9 @@ want centered content that docks to the top when the window is short
 .tla-top-left-button {
 	/* position: absolute;
 	top: 0px;
-	left: 0px;
+	left: 0px; */
 	width: 40px;
-	height: 40px; */
+	height: 40px;
 	position: relative;
 	background: none;
 	border: none;
@@ -665,7 +665,7 @@ want centered content that docks to the top when the window is short
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 0px 8px;
+	padding: 0px 8px 0px 0px;
 	position: relative;
 }
 
@@ -815,12 +815,45 @@ want centered content that docks to the top when the window is short
 	}
 }
 
+.tla-sidebar__toggle {
+	position: relative;
+	background: none;
+	border: none;
+	cursor: pointer;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tla-sidebar__toggle::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	border-radius: 4px;
+	pointer-events: none;
+	z-index: 0;
+	visibility: hidden;
+	background-color: var(--tla-color-hover-1);
+}
+
+@media (hover: hover) {
+	.tla-sidebar__toggle:hover::after {
+		visibility: visible;
+	}
+}
+
 .tla-sidebar__create {
 	background: none;
 	border: none;
 	cursor: pointer;
 	position: absolute;
-	top: 0px;
+	top: 2px;
 	right: -4px;
 	z-index: 10;
 }

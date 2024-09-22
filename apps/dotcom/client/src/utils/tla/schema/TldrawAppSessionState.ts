@@ -28,6 +28,7 @@ export interface TldrawAppSessionState
 		[key: string]: TldrawAppViewState
 	}
 	theme: 'light' | 'dark'
+	createdAt: number
 }
 
 export type TldrawAppSessionStateId = RecordId<TldrawAppSessionState>
@@ -53,6 +54,7 @@ export const tldrawAppSessionStateValidator: T.Validator<TldrawAppSessionState> 
 			workspaceId: idValidator<TldrawAppWorkspaceId>('workspace'),
 		}).optional(),
 		theme: T.literalEnum('light', 'dark'),
+		createdAt: T.number,
 	})
 )
 
@@ -93,5 +95,6 @@ export const TldrawAppSessionStateRecordType = createRecordType<TldrawAppSession
 			},
 		},
 		theme: 'light',
+		createdAt: Date.now(),
 	})
 )

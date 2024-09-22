@@ -52,9 +52,9 @@ export function TlaSidebar() {
 
 	return (
 		<div className="tla-sidebar">
-			{/* <SidebarCreateButton /> */}
 			<div className="tla-sidebar__top">
 				<TlaSidebarWorkspaceLink />
+				<TlaSidebarCreateFileButton />
 			</div>
 			<div className="tla-sidebar__content">
 				{flags.links && (
@@ -187,7 +187,6 @@ function TlaSidebarCreateGroupButton() {
 function TlaSidebarWorkspaceLink() {
 	const workspace = useWorkspace()
 	if (!workspace) throw Error('Workspace not found')
-	const flags = useFlags()
 
 	return (
 		<div className="tla-sidebar__workspace">
@@ -199,7 +198,6 @@ function TlaSidebarWorkspaceLink() {
 			{/* <button className="tla-sidebar__link-menu">
 				<TlaIcon icon="dots-vertical-strong" />
 			</button> */}
-			{flags.tabs ? null : <TlaSidebarCreateFileButton />}
 		</div>
 	)
 }

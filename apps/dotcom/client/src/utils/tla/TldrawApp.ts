@@ -2,7 +2,7 @@ import { deleteDB } from 'idb'
 import { computed, Editor, Store } from 'tldraw'
 import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
-import { TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
+import { TldrawAppFileVisit, TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
 import { TldrawAppGroup, TldrawAppGroupId, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import { TldrawAppGroupMembershipRecordType } from './schema/TldrawAppGroupMembership'
 import {
@@ -57,7 +57,7 @@ export class TldrawApp {
 		this._currentEditor = editor
 	}
 
-	getSessionState() {
+	getSessionState(): TldrawAppSessionState {
 		return this.store.get(TldrawApp.SessionStateId)!
 	}
 
@@ -366,6 +366,44 @@ export class TldrawApp {
 		])
 	}
 
+	onFileEdit(
+		userId: TldrawAppUserId,
+		workspaceId: TldrawAppWorkspaceId,
+		fileId: TldrawAppFileId,
+		sessionDate: number
+	) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+
+		// Find the store's file visit for this user
+		const visit = this.store
+			.allRecords()
+			.find(
+				(r) => r.typeName === 'file-visit' && r.fileId === fileId && r.userId === userId
+			) as TldrawAppFileVisit
+
+		if (visit) {
+			if (visit.editedSessionDate === sessionDate) {
+				// The file was edited durin this session, exit here
+				return
+			} else {
+				// Update the file visit record with this session date
+				this.store.update(visit.id, (r) => ({
+					...r,
+					editedSessionDate: sessionDate,
+				}))
+			}
+		} else {
+			// Create the file visit record
+			TldrawAppFileVisitRecordType.create({
+				workspaceId,
+				userId,
+				fileId,
+				editedSessionDate: sessionDate,
+			})
+		}
+	}
+
 	onFileExit(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {
 		const user = this.store.get(userId)
 		if (!user) throw Error('no user')
@@ -586,11 +624,12 @@ export class TldrawApp {
 		const visit2 = TldrawAppFileVisitRecordType.create({
 			id: TldrawAppFileVisitRecordType.createId('1'),
 			workspaceId: workspace1.id,
-			userId: user1.id,
-			fileId: TldrawAppFileRecordType.createId('david0'),
+			userId: user2.id,
+			fileId: TldrawAppFileRecordType.createId('0'),
 			createdAt: Date.now() - day * 1.2,
 		})
 
+		// steve's session
 		const session1 = TldrawAppSessionStateRecordType.create({
 			id: TldrawApp.SessionStateId,
 			auth: {

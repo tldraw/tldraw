@@ -16,6 +16,7 @@ export interface TldrawAppFileVisit extends BaseRecord<'file-visit', RecordId<Tl
 	userId: TldrawAppUserId
 	fileId: TldrawAppFileId
 	createdAt: number
+	editedSessionDate: number | null
 }
 
 export type TldrawAppFileVisitId = RecordId<TldrawAppFileVisit>
@@ -30,6 +31,7 @@ export const tldrawAppFileVisitValidator: T.Validator<TldrawAppFileVisit> = T.mo
 		userId: idValidator<TldrawAppUserId>('user'),
 		fileId: idValidator<TldrawAppFileId>('file'),
 		createdAt: T.number,
+		editedSessionDate: T.number.nullable(),
 	})
 )
 
@@ -50,5 +52,6 @@ export const TldrawAppFileVisitRecordType = createRecordType<TldrawAppFileVisit>
 }).withDefaultProperties(
 	(): Omit<TldrawAppFileVisit, 'id' | 'typeName' | 'workspaceId' | 'userId' | 'fileId'> => ({
 		createdAt: Date.now(),
+		editedSessionDate: null,
 	})
 )

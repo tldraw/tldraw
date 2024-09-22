@@ -155,11 +155,24 @@ export function TlaEditor({
 			editor.timers.setTimeout(() => {
 				setReady(true)
 			}, 200)
-			if (onDocumentChange) {
-				editor.store.listen(() => onDocumentChange(), { scope: 'document', source: 'user' })
-			}
+
+			editor.store.listen(
+				() => {
+					// Update the user's edited session date for this file
+					const sessionState = app.getSessionState()
+					if (!sessionState.auth) throw Error('Auth not found')
+					const user = app.getUser(sessionState.auth.userId)
+					if (!user) throw Error('User not found')
+					app.onFileEdit(user.id, workspaceId, fileId, sessionState.createdAt)
+
+					if (onDocumentChange) {
+						onDocumentChange()
+					}
+				},
+				{ scope: 'document', source: 'user' }
+			)
 		},
-		[app, onDocumentChange]
+		[app, onDocumentChange, workspaceId, fileId]
 	)
 
 	useEffect(() => {
