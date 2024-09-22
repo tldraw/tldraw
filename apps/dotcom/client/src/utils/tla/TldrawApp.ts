@@ -2,7 +2,8 @@ import { deleteDB } from 'idb'
 import { computed, Editor, Store } from 'tldraw'
 import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
-import { TldrawAppFileVisit, TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
+import { TldrawAppFileEdit, TldrawAppFileEditRecordType } from './schema/TldrawAppFileEdit'
+import { TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
 import { TldrawAppGroup, TldrawAppGroupId, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import { TldrawAppGroupMembershipRecordType } from './schema/TldrawAppGroupMembership'
 import {
@@ -262,62 +263,64 @@ export class TldrawApp {
 		)
 	}
 
+	getUserFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
+		return this.store.allRecords().filter((r) => {
+			if (r.typeName !== 'file') return
+			if (r.owner !== userId || r.workspaceId !== workspaceId) return
+			return r
+		}) as TldrawAppFile[]
+	}
+
+	getUserFileEdits(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
+		return this.store.allRecords().filter((r) => {
+			if (r.typeName !== 'file-edit') return
+			if (r.userId !== userId || r.workspaceId !== workspaceId) return
+			return true
+		}) as TldrawAppFileEdit[]
+	}
+
 	getUserRecentFiles(
 		userId: TldrawAppUserId,
 		workspaceId: TldrawAppWorkspaceId,
 		sessionStart: number
 	) {
-		const files = this.store.allRecords().filter((r) => {
-			// Filter to the user's file visits
-			if (r.typeName !== 'file') return
-			if (r.owner !== userId || r.workspaceId !== workspaceId) return
-			return r
-		}) as TldrawAppFile[]
+		// For now, just the user's files; but generally we also want
+		// to get all files the user has access to, including shared files.
+		const fileRecords = this.getUserFiles(userId, workspaceId)
 
-		const result: { file: TldrawAppFile; date: number }[] = files.map((file) => ({
-			file,
-			date: file.createdAt,
-		}))
+		// Now look at which files the user has edited
+		const fileEditRecords = this.getUserFileEdits(userId, workspaceId)
 
-		// For each file, we want the most recent visit that occurred
-		// before the current session. The current session's visits
-		// are ignored.
+		// A map of file IDs to the most recent date we have for them
+		// the default date is the file's creation date; but we'll use the
+		// file edits to get the most recent edit that occurred before the
+		// current session started.
+		const filesToDates = Object.fromEntries(
+			fileRecords.map((file) => [
+				file.id,
+				{
+					file,
+					date: file.createdAt,
+				},
+			])
+		)
 
-		const fileVisits = new Map<TldrawAppFile, TldrawAppFileVisit>()
+		for (const fileEdit of fileEditRecords) {
+			// Skip file edits that happened in the current or later sessions
+			if (fileEdit.sessionStartedAt >= sessionStart) continue
 
-		const visits = this.store.allRecords().filter((r) => {
-			// Filter to the user's file visits
-			if (r.typeName !== 'file-visit') return
-			if (r.userId !== userId || r.workspaceId !== workspaceId) return
-			return true
-		}) as TldrawAppFileVisit[]
+			// Check the current time that we have for the file
+			const item = filesToDates[fileEdit.fileId]
+			if (!item) continue
 
-		visits.forEach((r) => {
-			// Skip file visits that occurred after the session start time
-			if (r.createdAt > sessionStart) return
-
-			// Skip visits to files that don't exist
-			const file = this.store.get(r.fileId)
-			if (!file) return
-
-			// If multiple visits exist for a file, pick the most recent one
-			if (fileVisits.has(file)) {
-				const oldVisit = fileVisits.get(file)!
-				if (r.createdAt < oldVisit.createdAt) {
-					return
-				}
-			}
-
-			fileVisits.set(file, r)
-		})
-
-		for (const item of result) {
-			if (fileVisits.has(item.file)) {
-				item.date = fileVisits.get(item.file)!.createdAt
+			// If this edit has a more recent file open time, replace the item's date
+			if (item.date < fileEdit.fileOpenedAt) {
+				item.date = fileEdit.fileOpenedAt
 			}
 		}
 
-		return result.sort((a, b) => b.date - a.date)
+		// Sort the file pairs by date
+		return Object.values(filesToDates).sort((a, b) => b.date - a.date)
 	}
 
 	getUserStarredFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
@@ -419,34 +422,30 @@ export class TldrawApp {
 		userId: TldrawAppUserId,
 		workspaceId: TldrawAppWorkspaceId,
 		fileId: TldrawAppFileId,
-		sessionDate: number
+		sessionStartedAt: number,
+		fileOpenedAt: number
 	) {
-		// Find the store's most recent file visit for this user
-		const visit = this.store
+		// Find the store's most recent file edit record for this user
+		const fileEdit = this.store
 			.allRecords()
-			.filter((r) => r.typeName === 'file-visit' && r.fileId === fileId && r.userId === userId)
-			.sort((a, b) => b.createdAt - a.createdAt)[0] as TldrawAppFileVisit | undefined
+			.filter((r) => r.typeName === 'file-edit' && r.fileId === fileId && r.userId === userId)
+			.sort((a, b) => b.createdAt - a.createdAt)[0] as TldrawAppFileEdit | undefined
 
-		if (visit) {
-			if (visit.editedSessionDate === sessionDate) {
-				// The file was edited durin this session, exit here
-				return
-			} else {
-				// Update the file visit record with this session date
-				this.store.update(visit.id, (r) => ({
-					...r,
-					editedSessionDate: sessionDate,
-				}))
-			}
-		} else {
-			// Create the file visit record
-			TldrawAppFileVisitRecordType.create({
+		// If the most recent file edit is part of this session or a later session, ignore it
+		if (fileEdit && fileEdit.createdAt >= fileOpenedAt) {
+			return
+		}
+
+		// Create the file edit record
+		this.store.put([
+			TldrawAppFileEditRecordType.create({
 				workspaceId,
 				userId,
 				fileId,
-				editedSessionDate: sessionDate,
-			})
-		}
+				sessionStartedAt,
+				fileOpenedAt,
+			}),
+		])
 	}
 
 	onFileExit(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {

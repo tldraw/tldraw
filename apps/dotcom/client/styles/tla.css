@@ -679,8 +679,8 @@ want centered content that docks to the top when the window is short
 .tla-file-header__fileinfo {
 	position: absolute;
 	top: calc(50% - 7px);
-	left: 0px;
-	width: 100%;
+	left: 40px;
+	right: 40px;
 	text-align: center;
 }
 
@@ -690,11 +690,6 @@ want centered content that docks to the top when the window is short
 
 .tla-file-header__folder {
 	color: var(--tla-color-text-3);
-}
-
-.tla-file-header__collapse {
-	grid-column: 1;
-	grid-row: 1;
 }
 
 .tla-file__content {
@@ -825,6 +820,7 @@ want centered content that docks to the top when the window is short
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	pointer-events: all;
 }
 
 .tla-sidebar__toggle::after {
@@ -854,7 +850,7 @@ want centered content that docks to the top when the window is short
 	cursor: pointer;
 	position: absolute;
 	top: 2px;
-	right: -4px;
+	right: 8px;
 	z-index: 10;
 }
 

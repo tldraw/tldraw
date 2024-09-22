@@ -1,5 +1,6 @@
 import { StoreSchema } from 'tldraw'
 import { TldrawAppFile, TldrawAppFileRecordType } from './schema/TldrawAppFile'
+import { TldrawAppFileEdit, TldrawAppFileEditRecordType } from './schema/TldrawAppFileEdit'
 import { TldrawAppFileVisit, TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
 import { TldrawAppGroup, TldrawAppGroupRecordType } from './schema/TldrawAppGroup'
 import {
@@ -35,6 +36,7 @@ export type TldrawAppRecord =
 	| TldrawAppFile
 	| TldrawAppStar
 	| TldrawAppFileVisit
+	| TldrawAppFileEdit
 	| TldrawAppGroupMembership
 	| TldrawAppWorkspaceMembership
 	| TldrawAppWorkspace
@@ -52,6 +54,7 @@ export const tldrawAppSchema = StoreSchema.create<TldrawAppRecord>({
 	file: TldrawAppFileRecordType,
 	star: TldrawAppStarRecordType,
 	'file-visit': TldrawAppFileVisitRecordType,
+	'file-edit': TldrawAppFileEditRecordType,
 	'workspace-visit': TldrawAppGroupMembershipRecordType,
 	'group-membership': TldrawAppGroupMembershipRecordType,
 	'workspace-membership': TldrawAppWorkspaceMembershipRecordType,

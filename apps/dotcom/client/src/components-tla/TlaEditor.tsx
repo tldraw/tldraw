@@ -156,6 +156,8 @@ export function TlaEditor({
 				setReady(true)
 			}, 200)
 
+			const fileStartTime = Date.now()
+
 			editor.store.listen(
 				() => {
 					// Update the user's edited session date for this file
@@ -164,7 +166,7 @@ export function TlaEditor({
 					const user = app.getUser(sessionState.auth.userId)
 					if (!user) throw Error('User not found')
 
-					app.onFileEdit(user.id, workspaceId, fileId, sessionState.createdAt)
+					app.onFileEdit(user.id, workspaceId, fileId, sessionState.createdAt, fileStartTime)
 
 					if (onDocumentChange) {
 						onDocumentChange()
