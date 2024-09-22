@@ -1,6 +1,7 @@
+import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
 import { useCallback } from 'react'
-import { Link, useMatch, useNavigate, useParams } from 'react-router-dom'
-import { useValue } from 'tldraw'
+import { Link, useLocation, useMatch, useNavigate, useParams } from 'react-router-dom'
+import { TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
 import { useFileCollaborators } from '../tla-hooks/useFileCollaborators'
 import { useFlags } from '../tla-hooks/useFlags'
@@ -84,6 +85,7 @@ function TlaSidebarCreateFileButton() {
 
 function TlaSidebarUserLink() {
 	const app = useApp()
+
 	const result = useValue(
 		'auth',
 		() => {
@@ -97,6 +99,9 @@ function TlaSidebarUserLink() {
 		},
 		[app]
 	)
+
+	const location = useLocation()
+
 	if (!result) throw Error('Could not get user')
 
 	return (
@@ -106,8 +111,16 @@ function TlaSidebarUserLink() {
 			</div>
 			<div className="tla-sidebar__label">{result.user.name}</div>
 			{/* <Link className="tla-sidebar__link-button" to={getUserUrl(result.auth.userId)} /> */}
-			<Link className="tla-sidebar__link-button" to={getUserUrl(result.auth.userId)} />
-			<Link className="tla-sidebar__link-menu" to={getDebugUrl(result.auth.workspaceId)}>
+			<Link
+				className="tla-sidebar__link-button"
+				to={getUserUrl(result.auth.userId)}
+				state={{ background: location }}
+			/>
+			<Link
+				className="tla-sidebar__link-menu"
+				to={getDebugUrl(result.auth.workspaceId)}
+				state={{ background: location }}
+			>
 				<TlaIcon icon="dots-vertical-strong" />
 			</Link>
 		</div>
@@ -145,7 +158,7 @@ function TlaSidebarUserLink() {
 // 	)
 // }
 
-/* ---------------------- Links --------------------- */
+/* ------------------- Main links ------------------- */
 
 const SIDEBAR_MAIN_LINKS = [
 	{
@@ -219,94 +232,7 @@ function TlaSidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	)
 }
 
-function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
-	const { workspaceId, id } = file
-	const { fileId } = useParams()
-	const isActive = fileId === getCleanId(id)
-	const flags = useFlags()
-	return (
-		<div className="tla-sidebar__link tla-hoverable" data-active={isActive}>
-			<div className="tla-sidebar__link-content">
-				<TlaSharedFileOwner fileId={file.id} />
-				<div className="tla-sidebar__label tla-text_ui__regular">{TldrawApp.getFileName(file)}</div>
-				{flags.groups && <TlaCollaborators fileId={file.id} />}
-			</div>
-			<Link to={getFileUrl(workspaceId, id)} className="tla-sidebar__link-button" />
-			<button className="tla-sidebar__link-menu">
-				<TlaIcon icon="dots-vertical-strong" />
-			</button>
-		</div>
-	)
-}
-
-function TlaSharedFileOwner({ fileId }: { fileId: TldrawAppFileId }) {
-	const app = useApp()
-
-	const owner = useValue(
-		'file owner',
-		() => {
-			const session = app.getSessionState()
-			if (!session.auth) throw Error('No auth')
-
-			const { userId } = session.auth
-
-			const file = app.store.get(fileId)
-			if (!file) throw Error('File not found')
-
-			if (file.owner === userId) return null
-
-			return app.store.get(file.owner)
-		},
-		[fileId]
-	)
-
-	if (!owner) return null
-
-	return (
-		<div className="tla-collaborators">
-			<TlaCollaborator key={owner.id} collaboratorId={owner.id} />
-		</div>
-	)
-}
-
-function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
-	const collaborators = useFileCollaborators(fileId)
-
-	if (collaborators.length === 0) return null
-
-	return (
-		<div className="tla-collaborators">
-			{collaborators.map((userId) => (
-				<TlaCollaborator key={userId} collaboratorId={userId} />
-			))}
-		</div>
-	)
-}
-
-function TlaCollaborator({
-	collaboratorId,
-}: {
-	collaboratorId: TldrawAppUserId | TldrawAppGroupId
-}) {
-	const app = useApp()
-	const collaborator = useValue(
-		'collaborator',
-		() => {
-			const collaborator = app.store.get(collaboratorId)
-			if (!collaborator) throw Error('no user')
-			return collaborator
-		},
-		[app, collaboratorId]
-	)
-	return (
-		<div
-			className="tla-collaborator tla-text_ui__tiny"
-			style={{ backgroundColor: collaborator.color }}
-		>
-			{collaborator.name[0]}
-		</div>
-	)
-}
+/* ---------------------- Tabs ---------------------- */
 
 function TlaSidebarTabs() {
 	const app = useApp()
@@ -490,19 +416,6 @@ function TlaSidebarStarredFiles() {
 	)
 }
 
-function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
-	return (
-		<div className="tla-sidebar__section">
-			{/* <TlaSpacer height="20" /> */}
-			<TlaSpacer height="8" />
-			<div className="tla-sidebar__section_title tla-text_ui__medium">{title}</div>
-			{files.map((file) => (
-				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
-			))}
-		</div>
-	)
-}
-
 function TlaSidebarRecentFiles() {
 	const app = useApp()
 	const results = useValue(
@@ -618,6 +531,19 @@ function TlaSidebarSharedFiles() {
 	)
 }
 
+function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
+	return (
+		<div className="tla-sidebar__section">
+			{/* <TlaSpacer height="20" /> */}
+			<TlaSpacer height="8" />
+			<div className="tla-sidebar__section_title tla-text_ui__medium">{title}</div>
+			{files.map((file) => (
+				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
+			))}
+		</div>
+	)
+}
+
 /* --------------------- Groups --------------------- */
 
 function TlaSidebarGroups() {
@@ -707,5 +633,136 @@ function TlaSidebarCreateGroupFileButton({ groupId }: { groupId: TldrawAppGroupI
 		>
 			<TlaIcon icon="edit" />
 		</button>
+	)
+}
+
+/* -------------------- File link ------------------- */
+
+function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
+	const { workspaceId, id } = file
+	const { fileId } = useParams()
+	const isActive = fileId === getCleanId(id)
+	const flags = useFlags()
+	return (
+		<div className="tla-sidebar__link tla-hoverable" data-active={isActive}>
+			<div className="tla-sidebar__link-content">
+				<TlaSharedFileOwner fileId={file.id} />
+				<div className="tla-sidebar__label tla-text_ui__regular">{TldrawApp.getFileName(file)}</div>
+				{flags.groups && <TlaCollaborators fileId={file.id} />}
+			</div>
+			<Link to={getFileUrl(workspaceId, id)} className="tla-sidebar__link-button" />
+			<TlaSidebarFileLinkMenu file={file} />
+		</div>
+	)
+}
+
+function TlaSharedFileOwner({ fileId }: { fileId: TldrawAppFileId }) {
+	const app = useApp()
+
+	const owner = useValue(
+		'file owner',
+		() => {
+			const session = app.getSessionState()
+			if (!session.auth) throw Error('No auth')
+
+			const { userId } = session.auth
+
+			const file = app.store.get(fileId)
+			if (!file) throw Error('File not found')
+
+			if (file.owner === userId) return null
+
+			return app.store.get(file.owner)
+		},
+		[fileId]
+	)
+
+	if (!owner) return null
+
+	return (
+		<div className="tla-collaborators">
+			<TlaCollaborator key={owner.id} collaboratorId={owner.id} />
+		</div>
+	)
+}
+
+function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
+	const collaborators = useFileCollaborators(fileId)
+
+	if (collaborators.length === 0) return null
+
+	return (
+		<div className="tla-collaborators">
+			{collaborators.map((userId) => (
+				<TlaCollaborator key={userId} collaboratorId={userId} />
+			))}
+		</div>
+	)
+}
+
+function TlaCollaborator({
+	collaboratorId,
+}: {
+	collaboratorId: TldrawAppUserId | TldrawAppGroupId
+}) {
+	const app = useApp()
+	const collaborator = useValue(
+		'collaborator',
+		() => {
+			const collaborator = app.store.get(collaboratorId)
+			if (!collaborator) throw Error('no user')
+			return collaborator
+		},
+		[app, collaboratorId]
+	)
+	return (
+		<div
+			className="tla-collaborator tla-text_ui__tiny"
+			style={{ backgroundColor: collaborator.color }}
+		>
+			{collaborator.name[0]}
+		</div>
+	)
+}
+
+/* ---------------------- Menu ---------------------- */
+
+function TlaSidebarFileLinkMenu({ file }: { file: TldrawAppFile }) {
+	return (
+		<DropdownPrimitive.Root dir="ltr">
+			<TldrawUiDropdownMenuTrigger>
+				<button className="tla-sidebar__link-menu">
+					<TlaIcon icon="dots-vertical-strong" />
+				</button>
+			</TldrawUiDropdownMenuTrigger>
+			<DropdownPrimitive.Content
+				className="tla-menu"
+				side="bottom"
+				align="start"
+				collisionPadding={4}
+				alignOffset={0}
+				sideOffset={0}
+			>
+				<div className="tla-menu__group">
+					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
+						Copy link
+					</DropdownPrimitive.DropdownMenuItem>
+					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
+						Rename
+					</DropdownPrimitive.DropdownMenuItem>
+					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
+						Duplicate
+					</DropdownPrimitive.DropdownMenuItem>
+					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
+						Star
+					</DropdownPrimitive.DropdownMenuItem>
+				</div>
+				<div className="tla-menu__group">
+					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
+						Delete
+					</DropdownPrimitive.DropdownMenuItem>
+				</div>
+			</DropdownPrimitive.Content>
+		</DropdownPrimitive.Root>
 	)
 }

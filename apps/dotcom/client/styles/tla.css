@@ -42,11 +42,11 @@
 	/* Shadows */
 	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
 	--tla-shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
-		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-panel);
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-contrast);
 	--tla-shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
-		inset 0px 0px 0px 1px var(--tla-color-panel);
+		inset 0px 0px 0px 1px var(--tla-color-contrast);
 	--tla-shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
-		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-panel);
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-contrast);
 }
 
 .tla-theme__dark {
@@ -85,15 +85,15 @@
 
 /* ------------------ Ui Overrides ------------------ */
 
-.tla-layout__signedout .tlui-menu-zone {
+.tla-layout__signedout .tla-menu-zone {
 	/* padding-left: 100px; */
 }
 
-.tla-layout__signedin .tlui-menu-zone {
+.tla-layout__signedin .tla-menu-zone {
 	/* padding-left: 36px; */
 }
 
-.tla-layout__signedin .tlui-focus-button {
+.tla-layout__signedin .tla-focus-button {
 	/* left: 36px; */
 }
 
@@ -298,6 +298,7 @@
 	border: 1px solid transparent;
 	padding: 0px 12px;
 	background: none;
+	outline: none;
 	color: var(--tla-color-text-1);
 	border-radius: var(--tla-radius-2);
 	cursor: pointer;
@@ -799,6 +800,7 @@ want centered content that docks to the top when the window is short
 	visibility: hidden;
 }
 
+.tla-hoverable .tla-sidebar__link-menu[data-state='open']::after,
 .tla-hoverable[data-active='true']::after {
 	background-color: var(--tla-color-hover-2);
 	visibility: visible;
@@ -1009,7 +1011,8 @@ want centered content that docks to the top when the window is short
 .tla-sidebar__link-menu {
 	background: none;
 	border: none;
-	position: relative;
+	position: absolute;
+	outline: none;
 	right: 0px;
 	width: 36px;
 	height: 36px;
@@ -1024,16 +1027,18 @@ want centered content that docks to the top when the window is short
 
 @media (hover: hover) {
 	.tla-sidebar__link-menu {
-		display: none;
+		visibility: hidden;
 	}
+
 	.tla-sidebar__link:hover {
 		padding-right: 0px;
 	}
 
 	.tla-sidebar__workspace:hover > .tla-sidebar__link-menu,
 	.tla-sidebar__user:hover > .tla-sidebar__link-menu,
+	.tla-sidebar__link .tla-sidebar__link-menu[data-state='open'],
 	.tla-sidebar__link:hover > .tla-sidebar__link-menu {
-		display: flex;
+		visibility: visible;
 	}
 
 	.tla-sidebar__link-menu:hover {
@@ -1560,5 +1565,124 @@ want centered content that docks to the top when the window is short
 	}
 	100% {
 		opacity: 0;
+	}
+}
+
+/* ---------------------- Menu ---------------------- */
+
+.tla-sidebar__link-menu-container {
+	background-color: var(--tla-color-sidebar);
+	box-shadow: var(--tla-shadow-2);
+	padding: 12px;
+	border-radius: 12px;
+	z-index: 10000;
+}
+
+.tla-menu:empty {
+	display: none;
+}
+
+.tla-menu {
+	z-index: 10000;
+	height: fit-content;
+	width: fit-content;
+	max-height: 80vh;
+	border-radius: 9px;
+	pointer-events: all;
+	touch-action: auto;
+	overflow-y: auto;
+	overscroll-behavior: none;
+	background-color: var(--tla-color-panel);
+	box-shadow: var(--tla-shadow-2);
+}
+
+.tla-menu::-webkit-scrollbar {
+	display: none;
+}
+
+.tla-menu__arrow {
+	position: relative;
+	top: -1px;
+	fill: var(--tla-color-panel);
+	stroke: var(--tla-color-contrast);
+	stroke-width: 1px;
+}
+
+.tla-menu__group {
+	width: 100%;
+}
+
+.tla-menu__group:empty {
+	display: none;
+}
+
+.tla-menu__group {
+	border-bottom: 1px solid var(--tla-color-low);
+}
+.tla-menu__group:nth-last-of-type(1) {
+	border-bottom: none;
+}
+
+.tla-menu__submenu__trigger[data-state='open']:not(:hover)::after {
+	border-radius: 2px;
+	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tla-color-overlay) 100%);
+}
+
+.tla-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
+	border-radius: 2px;
+	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tla-color-overlay) 100%);
+}
+
+/* Menu Sizes */
+
+.tla-menu[data-size='large'] > .tla-menu__group {
+	min-width: initial;
+}
+
+.tla-menu[data-size='medium'] > .tla-menu__group {
+	min-width: 144px;
+}
+
+.tla-menu[data-size='small'] > .tla-menu__group {
+	min-width: 96px;
+}
+
+.tla-menu[data-size='tiny'] > .tla-menu__group {
+	min-width: 0px;
+}
+
+.tla-button__menu {
+	position: relative;
+	justify-content: flex-start;
+	min-width: 96px;
+	margin: -4px 0px;
+}
+
+.tla-button__menu:nth-child(1) {
+	margin-top: 0px;
+}
+
+.tla-button__menu:nth-last-child(1) {
+	margin-bottom: 0px;
+}
+
+.tla-button__menu::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	border-radius: 4px;
+	background-color: var(--tla-color-hover-1);
+	z-index: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+@media (hover: hover) {
+	.tla-button__menu:hover::after {
+		visibility: visible;
 	}
 }
