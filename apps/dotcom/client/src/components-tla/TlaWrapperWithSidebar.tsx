@@ -8,7 +8,7 @@ export function TlaWrapperWithSidebar({ children }: { children: ReactNode }) {
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])
 	return (
 		<div
-			className={`tla tla-layout tla-layout__signedin ${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'}`}
+			className={`tla tla-layout tl-container tla-layout__signedin ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
 			data-sidebar={true}
 		>
 			<TlaSidebar />

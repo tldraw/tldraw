@@ -1011,9 +1011,9 @@ want centered content that docks to the top when the window is short
 .tla-sidebar__link-menu {
 	background: none;
 	border: none;
-	position: absolute;
+	position: relative;
 	outline: none;
-	right: 0px;
+	margin-right: -8px;
 	width: 36px;
 	height: 36px;
 	display: flex;
@@ -1022,23 +1022,20 @@ want centered content that docks to the top when the window is short
 	color: var(--tla-color-text-3);
 	flex: 0 0 auto;
 	z-index: 3;
+	padding-right: 0px;
 	cursor: pointer;
 }
 
 @media (hover: hover) {
 	.tla-sidebar__link-menu {
-		visibility: hidden;
-	}
-
-	.tla-sidebar__link:hover {
-		padding-right: 0px;
+		display: none;
 	}
 
 	.tla-sidebar__workspace:hover > .tla-sidebar__link-menu,
 	.tla-sidebar__user:hover > .tla-sidebar__link-menu,
 	.tla-sidebar__link .tla-sidebar__link-menu[data-state='open'],
 	.tla-sidebar__link:hover > .tla-sidebar__link-menu {
-		visibility: visible;
+		display: flex;
 	}
 
 	.tla-sidebar__link-menu:hover {

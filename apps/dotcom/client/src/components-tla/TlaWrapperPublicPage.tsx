@@ -12,7 +12,7 @@ export function TlaWrapperPublicPage() {
 	const navigate = useNavigate()
 	return (
 		<div
-			className={`tla tla-layout tla-layout__signedin ${auth ? 'tla-layout__signedin' : 'tla-layout__signedout'} ${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'}`}
+			className={`tla tla-layout tla-layout__signedin ${auth ? 'tla-layout__signedin' : 'tla-layout__signedout'} ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
 			data-sidebar={false}
 			// className={`tla tla-layout ${auth ? 'tla-layout__signedin' : 'tla-layout__signedout'} ${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'}`}
 			// data-sidebar={auth && isSidebarOpen}

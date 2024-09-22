@@ -12,7 +12,7 @@ export function TlaErrorPage({ error }: { error: TlaPageErrorType }) {
 
 	return (
 		<div
-			className={`${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'} tla tla-layout`}
+			className={`${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'} tla tla-layout tl-container`}
 			data-sidebar="false"
 		>
 			<TlaCloseButton onClose={() => navigate('/')} />

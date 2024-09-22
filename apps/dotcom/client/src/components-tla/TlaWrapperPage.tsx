@@ -17,7 +17,7 @@ export function TlaWrapperPage({ children }: { children: ReactNode }) {
 
 	return (
 		<div
-			className={`${theme === 'light' ? 'tla-theme__light' : 'tla-theme__dark'} tla tla-layout`}
+			className={`${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'} tla tla-layout tl-container`}
 			data-sidebar="false"
 		>
 			<TlaCloseButton onClose={handleCloseClick} />

@@ -1,7 +1,7 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
 import { useCallback } from 'react'
 import { Link, useLocation, useMatch, useNavigate, useParams } from 'react-router-dom'
-import { TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
+import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
 import { useFileCollaborators } from '../tla-hooks/useFileCollaborators'
 import { useFlags } from '../tla-hooks/useFlags'
@@ -729,37 +729,48 @@ function TlaCollaborator({
 
 function TlaSidebarFileLinkMenu({ file }: { file: TldrawAppFile }) {
 	return (
-		<DropdownPrimitive.Root dir="ltr">
+		<DropdownPrimitive.Root dir="ltr" modal={false}>
 			<TldrawUiDropdownMenuTrigger>
 				<button className="tla-sidebar__link-menu">
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
 			</TldrawUiDropdownMenuTrigger>
 			<DropdownPrimitive.Content
-				className="tla-menu"
+				className="tlui-menu tla-text_ui__medium"
+				data-size="small"
 				side="bottom"
 				align="start"
 				collisionPadding={4}
 				alignOffset={0}
 				sideOffset={0}
 			>
-				<div className="tla-menu__group">
-					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
-						Copy link
+				<div className="tlui-menu__group">
+					<DropdownPrimitive.DropdownMenuItem>
+						<TldrawUiButton type="menu">
+							<TldrawUiButtonLabel>Copy link</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</DropdownPrimitive.DropdownMenuItem>
-					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
-						Rename
+					<DropdownPrimitive.DropdownMenuItem>
+						<TldrawUiButton type="menu">
+							<TldrawUiButtonLabel>Rename</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</DropdownPrimitive.DropdownMenuItem>
-					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
-						Duplicate
+					<DropdownPrimitive.DropdownMenuItem>
+						<TldrawUiButton type="menu">
+							<TldrawUiButtonLabel>Duplicate</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</DropdownPrimitive.DropdownMenuItem>
-					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
-						Star
+					<DropdownPrimitive.DropdownMenuItem>
+						<TldrawUiButton type="menu">
+							<TldrawUiButtonLabel>Star</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</DropdownPrimitive.DropdownMenuItem>
 				</div>
-				<div className="tla-menu__group">
-					<DropdownPrimitive.DropdownMenuItem className="tla-button tla-button__menu tla-text_ui__medium">
-						Delete
+				<div className="tlui-menu__group">
+					<DropdownPrimitive.DropdownMenuItem>
+						<TldrawUiButton type="menu">
+							<TldrawUiButtonLabel>Delete</TldrawUiButtonLabel>
+						</TldrawUiButton>
 					</DropdownPrimitive.DropdownMenuItem>
 				</div>
 			</DropdownPrimitive.Content>
