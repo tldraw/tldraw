@@ -491,13 +491,10 @@ function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const { auth } = app.getSessionState()
+			const { auth, createdAt: sessionStart } = app.getSessionState()
 			if (!auth) return false
 
-			return app
-				.getUserOwnFiles(auth.userId, auth.workspaceId)
-				.filter((file) => !file.isEmpty)
-				.sort((a, b) => b.createdAt - a.createdAt)
+			return app.getUserRecentFiles(auth.userId, auth.workspaceId, sessionStart)
 		},
 		[app]
 	)
@@ -512,15 +509,17 @@ function TlaSidebarRecentFiles() {
 	const thisMonthFiles: TldrawAppFile[] = []
 	const olderFiles: TldrawAppFile[] = []
 
-	for (const file of results) {
-		const date = new Date(file.createdAt)
-		if (date > new Date(Date.now() - day * 1)) {
+	const now = Date.now()
+
+	for (const item of results) {
+		const { date, file } = item
+		if (date > now - day * 1) {
 			todayFiles.push(file)
-		} else if (date > new Date(Date.now() - day * 2)) {
+		} else if (date > now - day * 2) {
 			yesterdayFiles.push(file)
-		} else if (date > new Date(Date.now() - day * 7)) {
+		} else if (date > now - day * 7) {
 			thisWeekFiles.push(file)
-		} else if (date > new Date(Date.now() - day * 30)) {
+		} else if (date > now - day * 30) {
 			thisMonthFiles.push(file)
 		} else {
 			olderFiles.push(file)

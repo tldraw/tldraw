@@ -309,7 +309,7 @@ function RedirectAtWorkspaceRoot() {
 	>(
 		'workspace redirect',
 		() => {
-			const { auth } = app.getSessionState()
+			const { auth, createdAt } = app.getSessionState()
 			if (!auth) {
 				return {
 					type: 'error',
@@ -320,7 +320,7 @@ function RedirectAtWorkspaceRoot() {
 			const { userId, workspaceId } = auth
 
 			// First, try to bring back the most recently visited file
-			const recentFiles = app.getUserRecentFiles(userId, workspaceId)
+			const recentFiles = app.getUserRecentFiles(userId, workspaceId, createdAt)
 			if (recentFiles.length) {
 				return {
 					type: 'success',

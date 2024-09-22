@@ -38,6 +38,11 @@ export class TldrawApp {
 				}
 			}
 		})
+
+		this.setSessionState({
+			...this.getSessionState(),
+			createdAt: Date.now(),
+		})
 	}
 
 	store: Store<TldrawAppRecord>
@@ -257,19 +262,62 @@ export class TldrawApp {
 		)
 	}
 
-	getUserRecentFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
-		return Array.from(
-			new Set(
-				this.getAll('file-visit')
-					.filter((r) => r.userId === userId && r.workspaceId === workspaceId)
-					.map((s) => {
-						const file = this.get<TldrawAppFile>(s.fileId)
-						if (!file) return
-						return { visit: s, file: file }
-					})
-					.filter(Boolean) as { visit: TldrawAppRecord; file: TldrawAppFile }[]
-			)
-		)
+	getUserRecentFiles(
+		userId: TldrawAppUserId,
+		workspaceId: TldrawAppWorkspaceId,
+		sessionStart: number
+	) {
+		const files = this.store.allRecords().filter((r) => {
+			// Filter to the user's file visits
+			if (r.typeName !== 'file') return
+			if (r.owner !== userId || r.workspaceId !== workspaceId) return
+			return r
+		}) as TldrawAppFile[]
+
+		const result: { file: TldrawAppFile; date: number }[] = files.map((file) => ({
+			file,
+			date: file.createdAt,
+		}))
+
+		// For each file, we want the most recent visit that occurred
+		// before the current session. The current session's visits
+		// are ignored.
+
+		const fileVisits = new Map<TldrawAppFile, TldrawAppFileVisit>()
+
+		const visits = this.store.allRecords().filter((r) => {
+			// Filter to the user's file visits
+			if (r.typeName !== 'file-visit') return
+			if (r.userId !== userId || r.workspaceId !== workspaceId) return
+			return true
+		}) as TldrawAppFileVisit[]
+
+		visits.forEach((r) => {
+			// Skip file visits that occurred after the session start time
+			if (r.createdAt > sessionStart) return
+
+			// Skip visits to files that don't exist
+			const file = this.store.get(r.fileId)
+			if (!file) return
+
+			// If multiple visits exist for a file, pick the most recent one
+			if (fileVisits.has(file)) {
+				const oldVisit = fileVisits.get(file)!
+				if (r.createdAt < oldVisit.createdAt) {
+					return
+				}
+			}
+
+			fileVisits.set(file, r)
+		})
+
+		for (const item of result) {
+			if (fileVisits.has(item.file)) {
+				item.date = fileVisits.get(item.file)!.createdAt
+			}
+		}
+
+		return result.sort((a, b) => b.date - a.date)
 	}
 
 	getUserStarredFiles(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId) {
@@ -360,7 +408,8 @@ export class TldrawApp {
 				...user,
 				presence: {
 					...user.presence,
-					fileIds: [...user.presence.fileIds, fileId],
+					fileIds: [fileId],
+					// fileIds: [...user.presence.fileIds, fileId],
 				},
 			},
 		])
@@ -372,15 +421,11 @@ export class TldrawApp {
 		fileId: TldrawAppFileId,
 		sessionDate: number
 	) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-
-		// Find the store's file visit for this user
+		// Find the store's most recent file visit for this user
 		const visit = this.store
 			.allRecords()
-			.find(
-				(r) => r.typeName === 'file-visit' && r.fileId === fileId && r.userId === userId
-			) as TldrawAppFileVisit
+			.filter((r) => r.typeName === 'file-visit' && r.fileId === fileId && r.userId === userId)
+			.sort((a, b) => b.createdAt - a.createdAt)[0] as TldrawAppFileVisit | undefined
 
 		if (visit) {
 			if (visit.editedSessionDate === sessionDate) {
