@@ -103,8 +103,8 @@ export class LocalSyncClient<T extends UnknownRecord> {
 		}: {
 			persistenceKey: string
 			sessionId?: string
-			onLoad: (self: LocalSyncClient<T>) => void
-			onLoadError: (error: Error) => void
+			onLoad(self: LocalSyncClient<T>): void
+			onLoadError(error: Error): void
 		},
 		public readonly channel = new BC(`tldraw-tab-sync-${persistenceKey}`)
 	) {
@@ -276,7 +276,6 @@ export class LocalSyncClient<T extends UnknownRecord> {
 
 	private isPersisting = false
 	private didLastWriteError = false
-	// eslint-disable-next-line no-restricted-globals
 	private scheduledPersistTimeout: ReturnType<typeof setTimeout> | null = null
 
 	/**
@@ -288,7 +287,6 @@ export class LocalSyncClient<T extends UnknownRecord> {
 	private schedulePersist() {
 		this.debug('schedulePersist', this.scheduledPersistTimeout)
 		if (this.scheduledPersistTimeout) return
-		// eslint-disable-next-line no-restricted-globals
 		this.scheduledPersistTimeout = setTimeout(
 			() => {
 				this.scheduledPersistTimeout = null
@@ -476,7 +474,7 @@ async function pruneSessionState({
 	indexKey?: string
 	storePrefix?: string
 	persistenceKey: string
-	didCancel?: () => boolean
+	didCancel?(): boolean
 }) {
 	await withDb(
 		storePrefix + persistenceKey,
@@ -509,7 +507,7 @@ export async function loadDataFromStore<T extends UnknownRecord>({
 	storePrefix?: string
 	indexKey?: string
 	persistenceKey: string
-	didCancel?: () => boolean
+	didCancel?(): boolean
 }): Promise<undefined | LoadResult> {
 	const storeId = storePrefix + persistenceKey
 	if (!getAllIndexDbNames(indexKey).includes(storeId)) return undefined
@@ -550,7 +548,7 @@ export async function storeChangesInIndexedDb<T extends UnknownRecord>({
 	persistenceKey: string
 	schema: StoreSchema<T>
 	changes: RecordsDiff<UnknownRecord>
-	didCancel?: () => boolean
+	didCancel?(): boolean
 }) {
 	const storeId = storePrefix + persistenceKey
 	await withDb(
@@ -596,7 +594,7 @@ export async function storeSnapshotInIndexedDb<T extends UnknownRecord>({
 	persistenceKey: string
 	schema: StoreSchema<T>
 	snapshot: SerializedStore<T>
-	didCancel?: () => boolean
+	didCancel?(): boolean
 }) {
 	const storeId = storePrefix + persistenceKey
 

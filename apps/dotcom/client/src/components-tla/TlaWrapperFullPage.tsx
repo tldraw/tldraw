@@ -5,7 +5,7 @@ export function TlaWrapperFullPage({
 	onClose,
 	children,
 }: {
-	onClose?: () => void
+	onClose?(): void
 	children: ReactNode
 }) {
 	return (
