@@ -185,3 +185,7 @@ export {}
 // 		).toEqual(['/foo', '/foo/bar'])
 // 	})
 // })
+
+it('includes one test', () => {
+	expect(true).toBe(true)
+})
