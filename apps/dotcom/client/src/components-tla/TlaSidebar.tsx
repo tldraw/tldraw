@@ -1,7 +1,20 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
 import { useCallback } from 'react'
 import { Link, useLocation, useMatch, useNavigate, useParams } from 'react-router-dom'
-import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
+import {
+	DefaultMainMenu,
+	EditSubmenu,
+	ExportFileContentSubMenu,
+	ExtrasGroup,
+	PreferencesGroup,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDropdownMenuTrigger,
+	ViewSubmenu,
+	useValue,
+} from 'tldraw'
+import { MultiplayerFileMenu } from '../components/FileMenu'
+import { Links } from '../components/Links'
 import { useApp } from '../hooks/useAppState'
 import { useFileCollaborators } from '../tla-hooks/useFileCollaborators'
 import { useFlags } from '../tla-hooks/useFlags'
@@ -45,10 +58,26 @@ function TlaSidebarWorkspaceLink() {
 
 	return (
 		<div className="tla-sidebar__workspace">
-			<div className="tla-icon_wrapper" data-size="m">
-				<TlaIcon icon={workspace.avatar} />
-			</div>
-			<div className="tla-sidebar__label tla-text_ui__title">{workspace.name}</div>
+			<DefaultMainMenu
+				trigger={
+					<>
+						<div className="tla-icon_wrapper" data-size="m">
+							<TlaIcon icon={workspace.avatar} />
+						</div>
+						<div className="tla-sidebar__label tla-text_ui__title">
+							<TlaIcon icon="chevron-down" />
+						</div>
+					</>
+				}
+			>
+				<MultiplayerFileMenu />
+				<EditSubmenu />
+				<ViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
+				<PreferencesGroup />
+				<Links />
+			</DefaultMainMenu>
 			<button className="tla-sidebar__link-button" />
 			{/* <button className="tla-sidebar__link-menu">
 				<TlaIcon icon="dots-vertical-strong" />

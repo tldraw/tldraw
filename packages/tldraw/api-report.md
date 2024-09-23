@@ -2841,6 +2841,8 @@ export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 export interface TLUiMainMenuProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    trigger?: ReactNode;
 }
 
 // @public (undocumented)

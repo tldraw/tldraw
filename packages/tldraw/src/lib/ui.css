@@ -1173,8 +1173,8 @@
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: absolute;
-	left: 0px;
-	bottom: 0px;
+	left: 8px;
+	bottom: 8px;
 }
 
 .tlui-navigation-panel::before {
@@ -1183,11 +1183,13 @@
 	position: absolute;
 	z-index: -1;
 	inset: -2px -2px 0px 0px;
-	border-radius: 0;
+	/* border-radius: 0;
 	border-top: 2px solid var(--color-background);
 	border-right: 2px solid var(--color-background);
-	border-top-right-radius: var(--radius-4);
-	background-color: var(--color-low);
+	border-top-right-radius: var(--radius-4); */
+	background-color: var(--color-background); 
+	box-shadow: var(--shadow-2);
+	border-radius: var(--radius-3);
 }
 
 .tlui-navigation-panel__toggle .tlui-icon {

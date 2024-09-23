@@ -11,10 +11,14 @@ import { DefaultMainMenuContent } from './DefaultMainMenuContent'
 /** @public */
 export interface TLUiMainMenuProps {
 	children?: ReactNode
+	trigger?: ReactNode
 }
 
 /** @public @react */
-export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiMainMenuProps) {
+export const DefaultMainMenu = memo(function DefaultMainMenu({
+	children,
+	trigger,
+}: TLUiMainMenuProps) {
 	const container = useContainer()
 	const [isOpen, onOpenChange] = useMenuIsOpen('main menu')
 	const msg = useTranslation()
@@ -23,12 +27,18 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 	// override. If there's no menu content, then the user has set it to null,
 	// so skip rendering the menu.
 	const content = children ?? <DefaultMainMenuContent />
+	trigger = trigger ?? <TldrawUiButtonIcon icon="menu" small />
 
 	return (
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<_Dropdown.Trigger asChild dir="ltr">
-				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
-					<TldrawUiButtonIcon icon="menu" small />
+				<TldrawUiButton
+					type="icon"
+					data-testid="main-menu.button"
+					title={msg('menu.title')}
+					style={{ padding: 0 }}
+				>
+					{trigger}
 				</TldrawUiButton>
 			</_Dropdown.Trigger>
 			<_Dropdown.Portal container={container}>
