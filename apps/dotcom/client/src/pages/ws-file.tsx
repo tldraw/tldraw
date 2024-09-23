@@ -39,11 +39,7 @@ export function Component() {
 
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
 
-	// const navigate = useNavigate()
-
 	if (!file) {
-		// throw Error(`oops ${fileId}`)
-		// navigate('/404')
 		return <TlaErrorPage error="file-not-found" />
 	}
 

@@ -442,8 +442,7 @@ export class TldrawApp {
 				...user,
 				presence: {
 					...user.presence,
-					fileIds: [fileId],
-					// fileIds: [...user.presence.fileIds, fileId],
+					fileIds: [...user.presence.fileIds.filter((id) => id !== fileId), fileId],
 				},
 			},
 		])
