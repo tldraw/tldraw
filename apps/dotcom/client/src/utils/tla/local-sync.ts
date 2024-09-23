@@ -635,19 +635,26 @@ export function getAllIndexDbNames(indexKey = DB_NAME_INDEX_KEY): string[] {
 
 const ThumbnailTable = {
 	Thumbnails: 'thumbnails',
+	Hashes: 'hashes',
 } as const
 
 interface ThumbnailLoadResult {
 	thumbnail: string | null
+	hash: string | null
 }
 
 const THUMBNAIL_STORE_ID = 'TL_THUMBNAIL_STORE'
 
+const THUMBNAIL_STORE_VERSION = 5
+
 async function getThumbnailDb() {
-	return await openDB(THUMBNAIL_STORE_ID, 4, {
+	return await openDB(THUMBNAIL_STORE_ID, THUMBNAIL_STORE_VERSION, {
 		upgrade(database) {
 			if (!database.objectStoreNames.contains(ThumbnailTable.Thumbnails)) {
 				database.createObjectStore(ThumbnailTable.Thumbnails)
+			}
+			if (!database.objectStoreNames.contains(ThumbnailTable.Hashes)) {
+				database.createObjectStore(ThumbnailTable.Hashes)
 			}
 		},
 	})
@@ -663,10 +670,12 @@ export async function loadThumbnailFromStore({
 }): Promise<undefined | ThumbnailLoadResult> {
 	const db = await getThumbnailDb()
 	if (didCancel?.()) return undefined
-	const tx = db.transaction([ThumbnailTable.Thumbnails], 'readonly')
+	const tx = db.transaction([ThumbnailTable.Thumbnails, ThumbnailTable.Hashes], 'readonly')
 	const thumbnailStore = tx.objectStore(ThumbnailTable.Thumbnails)
+	const hashesStore = tx.objectStore(ThumbnailTable.Hashes)
 	const result = {
 		thumbnail: await thumbnailStore.get(fileId),
+		hash: await hashesStore.get(fileId),
 	} satisfies ThumbnailLoadResult
 	if (didCancel?.()) {
 		tx.abort()
@@ -679,18 +688,22 @@ export async function loadThumbnailFromStore({
 /** @internal */
 export async function storeThumbnailInIndexedDb({
 	fileId,
+	hash,
 	thumbnail,
 	didCancel,
 }: {
 	fileId: string
+	hash: string
 	thumbnail: string
 	didCancel?(): boolean
 }) {
 	const db = await getThumbnailDb()
 	if (didCancel?.()) return
-	const tx = db.transaction([ThumbnailTable.Thumbnails], 'readwrite')
+	const tx = db.transaction([ThumbnailTable.Thumbnails, ThumbnailTable.Hashes], 'readwrite')
 	const thumbnailStore = tx.objectStore(ThumbnailTable.Thumbnails)
 	await thumbnailStore.put(thumbnail, fileId)
+	const hashStore = tx.objectStore(ThumbnailTable.Hashes)
+	await hashStore.put(hash, fileId)
 	if (didCancel?.()) return tx.abort()
 	await tx.done
 }
