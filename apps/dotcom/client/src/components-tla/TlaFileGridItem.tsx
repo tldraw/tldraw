@@ -55,7 +55,7 @@ export function TlaFileGridItem({
 		[fileId, app]
 	)
 
-	const imageUrl = useServerThumbnail(fileId)
+	const { imageUrl, state } = useServerThumbnail(fileId)
 
 	return (
 		<div className="tla-page__grid_item">
@@ -63,10 +63,9 @@ export function TlaFileGridItem({
 				<div className="tla-page__grid_item_top">
 					<div
 						className="tla-page__grid_item_thumbnail"
-						style={{ backgroundImage: `url(${imageUrl})` }}
-					>
-						{imageUrl === null ? <TlaSpinner /> : null}
-					</div>
+						style={{ backgroundImage: `url(${imageUrl})`, opacity: state === 'loaded' ? 1 : 0.25 }}
+					/>
+					{state === 'loaded' || state === 'error' ? null : <TlaSpinner />}
 				</div>
 				<div className="tla-page__grid_item_bottom">
 					<div className="tla-page__grid_item-title-row">

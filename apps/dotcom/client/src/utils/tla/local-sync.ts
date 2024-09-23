@@ -630,3 +630,67 @@ export function getAllIndexDbNames(indexKey = DB_NAME_INDEX_KEY): string[] {
 	}
 	return result
 }
+
+/* ------------------- Thumbnails ------------------- */
+
+const ThumbnailTable = {
+	Thumbnails: 'thumbnails',
+} as const
+
+interface ThumbnailLoadResult {
+	thumbnail: string | null
+}
+
+const THUMBNAIL_STORE_ID = 'TL_THUMBNAIL_STORE'
+
+async function getThumbnailDb() {
+	return await openDB(THUMBNAIL_STORE_ID, 4, {
+		upgrade(database) {
+			if (!database.objectStoreNames.contains(ThumbnailTable.Thumbnails)) {
+				database.createObjectStore(ThumbnailTable.Thumbnails)
+			}
+		},
+	})
+}
+
+/** @internal */
+export async function loadThumbnailFromStore({
+	fileId,
+	didCancel,
+}: {
+	fileId: string
+	didCancel?(): boolean
+}): Promise<undefined | ThumbnailLoadResult> {
+	const db = await getThumbnailDb()
+	if (didCancel?.()) return undefined
+	const tx = db.transaction([ThumbnailTable.Thumbnails], 'readonly')
+	const thumbnailStore = tx.objectStore(ThumbnailTable.Thumbnails)
+	const result = {
+		thumbnail: await thumbnailStore.get(fileId),
+	} satisfies ThumbnailLoadResult
+	if (didCancel?.()) {
+		tx.abort()
+		return undefined
+	}
+	await tx.done
+	return result
+}
+
+/** @internal */
+export async function storeThumbnailInIndexedDb({
+	fileId,
+	thumbnail,
+	didCancel,
+}: {
+	fileId: string
+	thumbnail: string
+	didCancel?(): boolean
+}) {
+	const db = await getThumbnailDb()
+	if (didCancel?.()) return
+	const tx = db.transaction([ThumbnailTable.Thumbnails], 'readwrite')
+	const thumbnailStore = tx.objectStore(ThumbnailTable.Thumbnails)
+	await thumbnailStore.put(thumbnail, fileId)
+	if (didCancel?.()) return tx.abort()
+	await tx.done
+}
