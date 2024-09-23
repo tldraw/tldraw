@@ -445,7 +445,7 @@ async function withDb<T>(
 	indexKey: string
 ) {
 	addDbName(storeId, indexKey)
-	const db = await openDB<StoreName>(storeId, 3, {
+	const db = await openDB<StoreName>(storeId, 4, {
 		upgrade(database) {
 			if (!database.objectStoreNames.contains(Table.Records)) {
 				database.createObjectStore(Table.Records)
@@ -512,6 +512,7 @@ export async function loadDataFromStore<T extends UnknownRecord>({
 	const storeId = storePrefix + persistenceKey
 	if (!getAllIndexDbNames(indexKey).includes(storeId)) return undefined
 	await pruneSessionState({ persistenceKey, didCancel })
+
 	return await withDb(
 		storeId,
 		async (db) => {

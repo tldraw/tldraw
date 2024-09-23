@@ -46,6 +46,8 @@ export class TldrawScreenshotManager {
 			const screenshotBuffer = await page.screenshot()
 			const screenshot = screenshotBuffer.toString('base64')
 			page.close()
+
+			// Put the screenshot in the database
 			await db.run(
 				'REPLACE INTO screenshots (id, screenshot, hash) VALUES (?, ?, ?)',
 				id,
@@ -53,6 +55,9 @@ export class TldrawScreenshotManager {
 				hash
 			)
 			cb(screenshot)
+
+			// Now delete the snapshot from the database, we don't need it anymore
+			await db.run('DELETE FROM snapshots WHERE id = ?', id)
 
 			// eslint-disable-next-line
 			if (this.debug) console.log('done')
@@ -69,18 +74,21 @@ export class TldrawScreenshotManager {
 	}
 
 	async getScreenshot(id: string, snapshot: TLStoreSnapshot, hash: string) {
-		console.log('screenshot requested', id, snapshot, hash)
-
 		// eslint-disable-next-line
 		if (this.debug) console.log('Getting screenshot from db', id)
 		const { db } = this
 
-		const existingScreenshot = await this.getScreenshotFromDbByHash(hash)
+		const res = await db.get('SELECT * FROM screenshots WHERE hash = ?', hash)
+
+		// eslint-disable-next-line
+		if (this.debug) console.log('Screenshot from db using hash', hash, !!res?.screenshot)
+
+		const existingScreenshot = res?.screenshot
 
 		if (existingScreenshot) {
 			// eslint-disable-next-line
 			if (this.debug) console.log('Screenshot from db using hash', id)
-			return existingScreenshot.screenshot
+			return existingScreenshot
 		}
 
 		// Save the snapshot to the database
@@ -93,8 +101,6 @@ export class TldrawScreenshotManager {
 
 		// Get screenshot (by loading the page in the react app, then taking a screenshot of the page with playwright)
 		const screenshot = await new Promise((r) => this.addSnapshotToScreenshotQueue(id, hash, r))
-		// Now delete the item from the database, we don't need it anymore
-		await db.run('DELETE FROM snapshots WHERE id = ?', id)
 
 		// eslint-disable-next-line
 		if (this.debug) console.log('Screenshot from db', id)
@@ -116,15 +122,6 @@ export class TldrawScreenshotManager {
 
 		// eslint-disable-next-line
 		if (this.debug) console.log('Screenshot from db', id)
-		return res.screenshot
-	}
-
-	async getScreenshotFromDbByHash(hash: string) {
-		const { db } = this
-		const res = await db.get('SELECT * FROM screenshots WHERE hash = ?', hash)
-
-		// eslint-disable-next-line
-		if (this.debug) console.log('Screenshot from db using hash', hash)
 		return res.screenshot
 	}
 

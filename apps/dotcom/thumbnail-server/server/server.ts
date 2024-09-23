@@ -65,7 +65,6 @@ async function main() {
 			const { fileId } = req.body
 			if (!fileId) return res.status(400).json({ error: 'File id is required' })
 			const screenshot = await manager.getScreenshotFromDb(fileId)
-			console.log(screenshot)
 			if (!screenshot) return res.status(404).json({ error: 'Screenshot not found' })
 			res.json({ message: 'Screenshot', screenshot })
 		} catch (e) {
@@ -76,6 +75,7 @@ async function main() {
 	})
 
 	app.listen(5002, () => {
+		// eslint-disable-next-line no-console
 		console.log('Server is running on port 5002')
 	})
 }
