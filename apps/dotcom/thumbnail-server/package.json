@@ -15,7 +15,8 @@
 		"dev": "vite --host --port 5001",
 		"build": "vite build",
 		"start": "tsx ./server/server.ts",
-		"types": "npx supabase gen types typescript --project-id duxexqowwuntlpwwhtoy > database.types.ts"
+		"types": "npx supabase gen types typescript --project-id duxexqowwuntlpwwhtoy > database.types.ts",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "^2.44.4",
