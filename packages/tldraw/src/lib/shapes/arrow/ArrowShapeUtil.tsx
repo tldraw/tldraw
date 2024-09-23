@@ -933,7 +933,11 @@ const ArrowSvg = track(function ArrowSvg({
 
 	// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
 	// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
-	const maskId = (shape.id + '_clip_' + changeIndex).replace(':', '_')
+	const maskId = (
+		shape.id +
+		'_clip' +
+		(editor.environment.isSafari ? `_${changeIndex}` : '')
+	).replace(':', '_')
 
 	return (
 		<>
