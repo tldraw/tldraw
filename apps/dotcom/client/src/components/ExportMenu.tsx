@@ -1,24 +1,23 @@
 import * as Popover from '@radix-ui/react-popover'
-import React, { useState } from 'react'
+import React from 'react'
 import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	unwrapLabel,
 	useActions,
 	useContainer,
 	useEditor,
 	useTranslation,
 } from 'tldraw'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
-import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
+import { SHARE_PROJECT_ACTION } from '../utils/sharing'
 import { getSaveFileCopyAction } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { ShareButton } from './ShareButton'
+import { SnapshotLinkCopy } from './SnapshotLinkCopy'
 
 export const ExportMenu = React.memo(function ExportMenu() {
-	const { [SHARE_PROJECT_ACTION]: shareProject, [SHARE_SNAPSHOT_ACTION]: shareSnapshot } =
-		useActions()
+	const { [SHARE_PROJECT_ACTION]: shareProject } = useActions()
 	const container = useContainer()
 	const msg = useTranslation()
 	const handleUiEvent = useHandleUiEvents()
@@ -28,9 +27,6 @@ export const ExportMenu = React.memo(function ExportMenu() {
 		handleUiEvent,
 		msg('document.default-name')
 	)
-	const [didCopySnapshotLink, setDidCopySnapshotLink] = useState(false)
-	const [isUploadingSnapshot, setIsUploadingSnapshot] = useState(false)
-
 	const [isOpen, onOpenChange] = useShareMenuIsOpen()
 
 	return (
@@ -53,25 +49,7 @@ export const ExportMenu = React.memo(function ExportMenu() {
 								{msg('share-menu.fork-note')}
 							</p>
 						</TldrawUiMenuGroup>
-						<TldrawUiMenuGroup id="snapshot">
-							<TldrawUiMenuItem
-								id="copy-to-clipboard"
-								readonlyOk
-								icon={didCopySnapshotLink ? 'clipboard-copied' : 'clipboard-copy'}
-								label={unwrapLabel(shareSnapshot.label)}
-								onSelect={async () => {
-									setIsUploadingSnapshot(true)
-									await shareSnapshot.onSelect('share-menu')
-									setIsUploadingSnapshot(false)
-									setDidCopySnapshotLink(true)
-									setTimeout(() => setDidCopySnapshotLink(false), 1000)
-								}}
-								spinner={isUploadingSnapshot}
-							/>
-							<p className="tlui-menu__group tlui-share-zone__details">
-								{msg('share-menu.snapshot-link-note')}
-							</p>
-						</TldrawUiMenuGroup>
+						<SnapshotLinkCopy />
 						<TldrawUiMenuGroup id="save">
 							<TldrawUiMenuItem {...saveFileCopyAction} />
 							<p className="tlui-menu__group tlui-share-zone__details">
