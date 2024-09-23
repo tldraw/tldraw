@@ -202,15 +202,15 @@ export interface RoomSnapshot {
 }
 
 // @public (undocumented)
-export interface RoomStoreMethods {
+export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
     // (undocumented)
-    delete(recordOrId: string | UnknownRecord): void;
+    delete(recordOrId: R | string): void;
     // (undocumented)
-    get(id: string): null | UnknownRecord;
+    get(id: string): null | R;
     // (undocumented)
-    getAll(): UnknownRecord[];
+    getAll(): R[];
     // (undocumented)
-    put(record: UnknownRecord): void;
+    put(record: R): void;
 }
 
 // @internal (undocumented)
@@ -503,7 +503,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     }, unknown>;
     // (undocumented)
     tombstoneHistoryStartsAtClock: number;
-    updateStore(updater: (store: RoomStoreMethods) => Promise<void> | void): Promise<void>;
+    updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
 // @internal (undocumented)

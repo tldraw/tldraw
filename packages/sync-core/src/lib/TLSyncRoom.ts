@@ -1125,11 +1125,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param updater - A function that will be called with a store object that can be used to make changes.
 	 * @returns A promise that resolves when the transaction is complete.
 	 */
-	async updateStore(updater: (store: RoomStoreMethods) => void | Promise<void>) {
+	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
 		if (this._isClosed) {
 			throw new Error('Cannot update store on a closed room')
 		}
-		const context = new StoreUpdateContext(
+		const context = new StoreUpdateContext<R>(
 			Object.fromEntries(this.getSnapshot().documents.map((d) => [d.state.id, d.state]))
 		)
 		try {
@@ -1150,20 +1150,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 /**
  * @public
  */
-export interface RoomStoreMethods {
-	put(record: UnknownRecord): void
-	delete(recordOrId: UnknownRecord | string): void
-	get(id: string): UnknownRecord | null
-	getAll(): UnknownRecord[]
+export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
+	put(record: R): void
+	delete(recordOrId: R | string): void
+	get(id: string): R | null
+	getAll(): R[]
 }
 
-class StoreUpdateContext implements RoomStoreMethods {
+class StoreUpdateContext<R extends UnknownRecord> implements RoomStoreMethods<R> {
 	constructor(private readonly snapshot: Record<string, UnknownRecord>) {}
 	private readonly updates = {
 		puts: {} as Record<string, UnknownRecord>,
 		deletes: new Set<string>(),
 	}
-	put(record: UnknownRecord): void {
+	put(record: R): void {
 		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
 		if (record.id in this.snapshot && isEqual(this.snapshot[record.id], record)) {
 			delete this.updates.puts[record.id]
@@ -1172,7 +1172,7 @@ class StoreUpdateContext implements RoomStoreMethods {
 		}
 		this.updates.deletes.delete(record.id)
 	}
-	delete(recordOrId: UnknownRecord | string): void {
+	delete(recordOrId: R | string): void {
 		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
 		const id = typeof recordOrId === 'string' ? recordOrId : recordOrId.id
 		delete this.updates.puts[id]
@@ -1180,18 +1180,18 @@ class StoreUpdateContext implements RoomStoreMethods {
 			this.updates.deletes.add(id)
 		}
 	}
-	get(id: string): UnknownRecord | null {
+	get(id: string): R | null {
 		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
 		if (hasOwnProperty(this.updates.puts, id)) {
-			return structuredClone(this.updates.puts[id])
+			return structuredClone(this.updates.puts[id]) as R
 		}
 		if (this.updates.deletes.has(id)) {
 			return null
 		}
-		return structuredClone(this.snapshot[id] ?? null)
+		return structuredClone(this.snapshot[id] ?? null) as R
 	}
 
-	getAll(): UnknownRecord[] {
+	getAll(): R[] {
 		if (this._isClosed) throw new Error('StoreUpdateContext is closed')
 		const result = Object.values(this.updates.puts)
 		for (const [id, record] of Object.entries(this.snapshot)) {
@@ -1199,13 +1199,13 @@ class StoreUpdateContext implements RoomStoreMethods {
 				result.push(record)
 			}
 		}
-		return structuredClone(result)
+		return structuredClone(result) as R[]
 	}
 
 	toDiff(): NetworkDiff<any> {
-		const diff: NetworkDiff<UnknownRecord> = {}
+		const diff: NetworkDiff<R> = {}
 		for (const [id, record] of Object.entries(this.updates.puts)) {
-			diff[id] = [RecordOpType.Put, record]
+			diff[id] = [RecordOpType.Put, record as R]
 		}
 		for (const id of this.updates.deletes) {
 			diff[id] = [RecordOpType.Remove]
