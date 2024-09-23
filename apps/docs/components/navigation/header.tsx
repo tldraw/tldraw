@@ -24,7 +24,7 @@ const mainLinks = [
 	},
 	{
 		caption: 'Docs',
-		href: '/quick-start',
+		href: '/docs', // there's currently a redirect here to the first docs page, see next.config.js
 		active: (pathname: string) =>
 			[
 				'/quick-start',

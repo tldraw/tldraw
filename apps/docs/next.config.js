@@ -85,6 +85,27 @@ const nextConfig = {
 				destination: '/reference/:slug*',
 				permanent: true,
 			},
+			{
+				// For reverse compatibility with old links
+				source: '/examples',
+				destination: '/examples/basic/basic',
+				permanent: true,
+			},
+			{
+				source: '/examples',
+				destination: '/examples/basic/basic',
+				permanent: true,
+			},
+			{
+				source: '/reference',
+				destination: '/examples/basic/basic',
+				permanent: true,
+			},
+			{
+				source: '/docs',
+				destination: '/quick-start',
+				permanent: true,
+			},
 		]
 	},
 }
