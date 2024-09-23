@@ -2649,7 +2649,7 @@ export interface TldrawEditorBaseProps {
     deepLinks?: TLDeepLinkOptions | true;
     inferDarkMode?: boolean;
     initialState?: string;
-    isShapeHidden?: TLEditorOptions['isShapeHidden'];
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;

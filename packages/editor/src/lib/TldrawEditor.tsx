@@ -1,5 +1,5 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -23,7 +23,7 @@ import { TLStoreBaseOptions } from './config/createTLStore'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
-import { Editor, TLEditorOptions } from './editor/Editor'
+import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -189,7 +189,7 @@ export interface TldrawEditorBaseProps {
 	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
 	 * remain in the store and participate in all other operations.
 	 */
-	isShapeHidden?: TLEditorOptions['isShapeHidden']
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
 }
 
 /**
