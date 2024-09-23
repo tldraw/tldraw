@@ -56,7 +56,7 @@ export const router = createRoutesFromElements(
 				<Route index lazy={() => import('./pages/root')} />
 			</Route>
 			<Route element={<TlaWrapperPublicPage />}>
-				<Route path="/offline" lazy={() => import('./pages/root')} />
+				<Route path="/offline" lazy={() => import('./pages/ws-local')} />
 				<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
 				<Route path="/new" lazy={() => import('./pages/new')} />
 				<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />

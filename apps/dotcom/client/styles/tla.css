@@ -1575,111 +1575,42 @@ want centered content that docks to the top when the window is short
 	z-index: 10000;
 }
 
-.tla-menu:empty {
-	display: none;
+/* ------------------- Logged out ------------------- */
+
+.tla-logged-out {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	padding: 0px 16px;
 }
 
-.tla-menu {
-	z-index: 10000;
-	height: fit-content;
-	width: fit-content;
-	max-height: 80vh;
+.tla-logged-out__header {
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0px 10px;
+}
+
+.tla-logged-out__editor-wrapper {
+	position: relative;
+	flex-grow: 2;
+	border: 1px solid var(--tla-color-low);
 	border-radius: 9px;
-	pointer-events: all;
-	touch-action: auto;
-	overflow-y: auto;
-	overscroll-behavior: none;
-	background-color: var(--tla-color-panel);
-	box-shadow: var(--tla-shadow-2);
 }
 
-.tla-menu::-webkit-scrollbar {
-	display: none;
+.tla-logged-out__footer {
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
-.tla-menu__arrow {
-	position: relative;
-	top: -1px;
-	fill: var(--tla-color-panel);
-	stroke: var(--tla-color-contrast);
-	stroke-width: 1px;
+.tla-logged-out__signin-button {
+	height: 32px;
+	font-weight: 600;
 }
 
-.tla-menu__group {
-	width: 100%;
-}
-
-.tla-menu__group:empty {
-	display: none;
-}
-
-.tla-menu__group {
-	border-bottom: 1px solid var(--tla-color-low);
-}
-.tla-menu__group:nth-last-of-type(1) {
-	border-bottom: none;
-}
-
-.tla-menu__submenu__trigger[data-state='open']:not(:hover)::after {
-	border-radius: 2px;
-	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tla-color-overlay) 100%);
-}
-
-.tla-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
-	border-radius: 2px;
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tla-color-overlay) 100%);
-}
-
-/* Menu Sizes */
-
-.tla-menu[data-size='large'] > .tla-menu__group {
-	min-width: initial;
-}
-
-.tla-menu[data-size='medium'] > .tla-menu__group {
-	min-width: 144px;
-}
-
-.tla-menu[data-size='small'] > .tla-menu__group {
-	min-width: 96px;
-}
-
-.tla-menu[data-size='tiny'] > .tla-menu__group {
-	min-width: 0px;
-}
-
-.tla-button__menu {
-	position: relative;
-	justify-content: flex-start;
-	min-width: 96px;
-	margin: -4px 0px;
-}
-
-.tla-button__menu:nth-child(1) {
-	margin-top: 0px;
-}
-
-.tla-button__menu:nth-last-child(1) {
-	margin-bottom: 0px;
-}
-
-.tla-button__menu::after {
-	display: block;
-	content: '';
-	position: absolute;
-	top: 4px;
-	left: 4px;
-	right: 4px;
-	bottom: 4px;
-	border-radius: 4px;
-	background-color: var(--tla-color-hover-1);
-	z-index: 0;
-	pointer-events: none;
-	visibility: hidden;
-}
-
-@media (hover: hover) {
-	.tla-button__menu:hover::after {
-		visibility: visible;
-	}
+.tla-logged-out__footer a {
+	color: var(--tla-color-primary);
 }

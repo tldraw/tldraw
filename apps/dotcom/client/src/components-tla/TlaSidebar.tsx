@@ -651,7 +651,7 @@ function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 				{flags.groups && <TlaCollaborators fileId={file.id} />}
 			</div>
 			<Link to={getFileUrl(workspaceId, id)} className="tla-sidebar__link-button" />
-			<TlaSidebarFileLinkMenu file={file} />
+			<TlaSidebarFileLinkMenu fileId={file.id} />
 		</div>
 	)
 }
@@ -727,7 +727,29 @@ function TlaCollaborator({
 
 /* ---------------------- Menu ---------------------- */
 
-function TlaSidebarFileLinkMenu({ file }: { file: TldrawAppFile }) {
+function TlaSidebarFileLinkMenu(_props: { fileId: TldrawAppFile['id'] }) {
+	// const app = useApp()
+
+	const handleCopyLinkClick = useCallback(() => {
+		// copy file url
+	}, [])
+
+	const handleRenameLinkClick = useCallback(() => {
+		// open rename dialog
+	}, [])
+
+	const handleDuplicateLinkClick = useCallback(() => {
+		// duplicate file
+	}, [])
+
+	const handleStarLinkClick = useCallback(() => {
+		// toggle star file
+	}, [])
+
+	const handleDeleteLinkClick = useCallback(() => {
+		// toggle star file
+	}, [])
+
 	return (
 		<DropdownPrimitive.Root dir="ltr" modal={false}>
 			<TldrawUiDropdownMenuTrigger>
@@ -745,35 +767,25 @@ function TlaSidebarFileLinkMenu({ file }: { file: TldrawAppFile }) {
 				sideOffset={0}
 			>
 				<div className="tlui-menu__group">
-					<DropdownPrimitive.DropdownMenuItem>
-						<TldrawUiButton type="menu">
-							<TldrawUiButtonLabel>Copy link</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</DropdownPrimitive.DropdownMenuItem>
-					<DropdownPrimitive.DropdownMenuItem>
-						<TldrawUiButton type="menu">
-							<TldrawUiButtonLabel>Rename</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</DropdownPrimitive.DropdownMenuItem>
-					<DropdownPrimitive.DropdownMenuItem>
-						<TldrawUiButton type="menu">
-							<TldrawUiButtonLabel>Duplicate</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</DropdownPrimitive.DropdownMenuItem>
-					<DropdownPrimitive.DropdownMenuItem>
-						<TldrawUiButton type="menu">
-							<TldrawUiButtonLabel>Star</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</DropdownPrimitive.DropdownMenuItem>
+					<TlaMenuButton label="Copy link" onClick={handleCopyLinkClick} />
+					<TlaMenuButton label="Rename" onClick={handleRenameLinkClick} />
+					<TlaMenuButton label="Duplicate" onClick={handleDuplicateLinkClick} />
+					<TlaMenuButton label="Star" onClick={handleStarLinkClick} />
 				</div>
 				<div className="tlui-menu__group">
-					<DropdownPrimitive.DropdownMenuItem>
-						<TldrawUiButton type="menu">
-							<TldrawUiButtonLabel>Delete</TldrawUiButtonLabel>
-						</TldrawUiButton>
-					</DropdownPrimitive.DropdownMenuItem>
+					<TlaMenuButton label="Delete" onClick={handleDeleteLinkClick} />
 				</div>
 			</DropdownPrimitive.Content>
 		</DropdownPrimitive.Root>
+	)
+}
+
+function TlaMenuButton({ label, onClick }: { label: string; onClick(): void }) {
+	return (
+		<DropdownPrimitive.DropdownMenuItem asChild>
+			<TldrawUiButton type="menu" onClick={onClick}>
+				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+			</TldrawUiButton>
+		</DropdownPrimitive.DropdownMenuItem>
 	)
 }
