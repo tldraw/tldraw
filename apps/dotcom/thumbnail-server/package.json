@@ -25,19 +25,19 @@
 		"@types/sqlite3": "^3.1.11",
 		"@vitejs/plugin-react-swc": "^3.7.0",
 		"cors": "^2.8.5",
-		"dotenv": "^16.4.5",
+		"dotenv": "^16.3.1",
 		"express": "^4.19.2",
 		"playwright": "^1.45.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"react-router-dom": "^6.17.0",
+		"react-router-dom": "^6.24.1",
 		"sqlite": "^5.1.1",
 		"sqlite3": "^5.1.7",
 		"tldraw": "workspace:*",
-		"vite": "^5.3.3"
+		"vite": "^5.4.2"
 	},
 	"devDependencies": {
-		"@vitejs/plugin-react-swc": "^3.6.0",
+		"@vitejs/plugin-react-swc": "^3.7.0",
 		"eslint": "^8.37.0",
 		"eslint-config-next": "13.2.4",
 		"lazyrepo": "0.0.0-alpha.27"
