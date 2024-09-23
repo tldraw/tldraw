@@ -23,6 +23,7 @@ import {
 	fetch,
 	isShape,
 } from 'tldraw'
+import { writeToClipboard } from './clipboard'
 import { cloneAssetForShare } from './cloneAssetForShare'
 import { getParentOrigin, isInIframe } from './iFrame'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
@@ -165,18 +166,9 @@ export function useSharing(): TLUiOverrides {
 					label: 'share-menu.create-snapshot-link',
 					readonlyOk: true,
 					onSelect: async (source) => {
+						console.log('SHARE_SNAPSHOT_ACTION')
 						const result = getSnapshotLink(source, editor, handleUiEvent, addToast, msg, roomId)
-						if (navigator?.clipboard?.write) {
-							await navigator.clipboard.write([
-								new ClipboardItem({
-									'text/plain': result,
-								}),
-							])
-						} else if (navigator?.clipboard?.writeText) {
-							const link = await result
-							if (link === '') return
-							navigator.clipboard.writeText(await link.text())
-						}
+						writeToClipboard(result)
 						addToast({
 							title: msg('share-menu.copied'),
 							severity: 'success',
