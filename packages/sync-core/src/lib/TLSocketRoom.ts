@@ -283,7 +283,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * Allow applying changes to the store inside of a transaction.
 	 *
 	 * You can get values from the store by id with `store.get(id)`.
-	 * These values are safe to mutate, but to commit the changes you must call `store.set(...)` with the updated value.
+	 * These values are safe to mutate, but to commit the changes you must call `store.put(...)` with the updated value.
 	 * You can get all values in the store with `store.getAll()`.
 	 * You can also delete values with `store.delete(id)`.
 	 *
