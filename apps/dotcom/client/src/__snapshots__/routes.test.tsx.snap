@@ -1,0 +1,106 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`the_routes 1`] = `
+[
+  {
+    "reactRouterPattern": "/",
+    "vercelRouterPattern": "^//?$",
+  },
+  {
+    "reactRouterPattern": "/auth",
+    "vercelRouterPattern": "^/auth/?$",
+  },
+  {
+    "reactRouterPattern": "/new",
+    "vercelRouterPattern": "^/new/?$",
+  },
+  {
+    "reactRouterPattern": "/offline",
+    "vercelRouterPattern": "^/offline/?$",
+  },
+  {
+    "reactRouterPattern": "/r",
+    "vercelRouterPattern": "^/r/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:boardId/history",
+    "vercelRouterPattern": "^/r/[^/]*/history/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:boardId/history/:timestamp",
+    "vercelRouterPattern": "^/r/[^/]*/history/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:roomId",
+    "vercelRouterPattern": "^/r/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/ro/:roomId",
+    "vercelRouterPattern": "^/ro/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/s/:roomId",
+    "vercelRouterPattern": "^/s/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/t/:fileId",
+    "vercelRouterPattern": "^/t/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/ts-side",
+    "vercelRouterPattern": "^/ts-side/?$",
+  },
+  {
+    "reactRouterPattern": "/u",
+    "vercelRouterPattern": "^/u/?$",
+  },
+  {
+    "reactRouterPattern": "/u/:userId",
+    "vercelRouterPattern": "^/u/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/u/:userId/u/:userId/profile",
+    "vercelRouterPattern": "^/u/[^/]*/u/[^/]*/profile/?$",
+  },
+  {
+    "reactRouterPattern": "/v/:roomId",
+    "vercelRouterPattern": "^/v/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/w",
+    "vercelRouterPattern": "^/w/?$",
+  },
+  {
+    "reactRouterPattern": "/w/:workspaceId",
+    "vercelRouterPattern": "^/w/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/debug",
+    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/debug/?$",
+  },
+  {
+    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/drafts",
+    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/drafts/?$",
+  },
+  {
+    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/f/:fileId",
+    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/f/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/groups",
+    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/groups/?$",
+  },
+  {
+    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/settings",
+    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/settings/?$",
+  },
+  {
+    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/shared",
+    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/shared/?$",
+  },
+  {
+    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/stars",
+    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/stars/?$",
+  },
+]
+`;
