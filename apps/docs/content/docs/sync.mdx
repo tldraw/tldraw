@@ -50,7 +50,7 @@ Make sure you also read the section below about [deployment concerns](#deploymen
 
 The `@tldraw/sync-core` library can be used to integrate tldraw sync into any JavaScript server environment that supports WebSockets.
 
-We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
+We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
 
 ## What does a tldraw sync backend do?
 
@@ -99,7 +99,7 @@ function registerUrlHandler(editor: Editor) {
 }
 ```
 
-And [here's a full working example](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/client/App.tsx) of the client-side code.
+And [here's a full working example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx) of the client-side code.
 
 ### WebSocket server
 
@@ -118,7 +118,7 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 	tldraw.com.
 </Callout>
 
-Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/rooms.ts).
+Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
 
 ### Asset storage
 
