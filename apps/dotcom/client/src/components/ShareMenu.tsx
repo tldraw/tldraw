@@ -19,7 +19,7 @@ import {
 } from 'tldraw'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { createQRCodeImageDataString } from '../utils/qrcode'
-import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
+import { SHARE_PROJECT_ACTION } from '../utils/sharing'
 import { ShareButton } from './ShareButton'
 import { SnapshotLinkCopy } from './SnapshotLinkCopy'
 
@@ -113,8 +113,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	const msg = useTranslation()
 	const container = useContainer()
 
-	const { [SHARE_PROJECT_ACTION]: shareProject, [SHARE_SNAPSHOT_ACTION]: shareSnapshot } =
-		useActions()
+	const { [SHARE_PROJECT_ACTION]: shareProject } = useActions()
 
 	const [shareState, setShareState] = useState(getFreshShareState)
 
