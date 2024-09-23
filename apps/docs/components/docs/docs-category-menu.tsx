@@ -8,7 +8,7 @@ const categoryLinks = [
 	{
 		caption: 'Learn',
 		icon: AcademicCapIcon,
-		href: '/docs', // there's currently a redirect here, see next.config.js
+		href: '/quick-start',
 		active: (pathname: string) =>
 			['/quick-start', '/installation', '/releases', '/docs', '/community'].some((e) =>
 				pathname.startsWith(e)
@@ -17,13 +17,13 @@ const categoryLinks = [
 	{
 		caption: 'Reference',
 		icon: CommandLineIcon,
-		href: '/reference', // there's currently a redirect here, see next.config.js
+		href: '/reference/editor/Editor',
 		active: (pathname: string) => pathname.startsWith('/reference'),
 	},
 	{
 		caption: 'Examples',
 		icon: PlayIcon,
-		href: '/examples', // there's currently a redirect here, see next.config.js
+		href: '/examples/basic/basic',
 		active: (pathname: string) => pathname.startsWith('/examples'),
 	},
 ]

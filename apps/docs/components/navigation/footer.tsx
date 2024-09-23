@@ -14,10 +14,9 @@ const menus = [
 	{
 		heading: 'Documentation',
 		items: [
-			// there are currently redirects on these links, see next.config.js
-			{ caption: 'Learn', href: '/docs' },
-			{ caption: 'Reference', href: '/reference' },
-			{ caption: 'Examples', href: '/examples' },
+			{ caption: 'Learn', href: '/quick-start' },
+			{ caption: 'Reference', href: '/reference/editor/Editor' },
+			{ caption: 'Examples', href: '/examples/basic/basic' },
 		],
 	},
 	{
