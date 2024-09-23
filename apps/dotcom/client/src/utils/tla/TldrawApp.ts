@@ -369,14 +369,45 @@ export class TldrawApp {
 		)
 	}
 
-	createFile(ownerId: TldrawAppUserId | TldrawAppGroupId, workspaceId: TldrawAppWorkspaceId) {
+	createFile(
+		ownerId: TldrawAppUserId | TldrawAppGroupId | 'temporary',
+		workspaceId: TldrawAppWorkspaceId,
+		fileId?: TldrawAppFileId
+	) {
 		const file = TldrawAppFileRecordType.create({
 			workspaceId,
 			owner: ownerId,
 			isEmpty: true,
+			id: fileId ?? TldrawAppFileRecordType.createId(),
 		})
 		this.store.put([file])
 		return file
+	}
+
+	claimTemporaryFile(
+		ownerId: TldrawAppUserId | TldrawAppGroupId | 'temporary',
+		workspaceId: TldrawAppWorkspaceId,
+		fileId: TldrawAppFileId
+	) {
+		const file = this.store.get(fileId)
+
+		if (!file) {
+			// the file doesn't exist
+			return
+		}
+
+		if (file.owner !== 'temporary') {
+			// the file is already claimed
+			return
+		}
+
+		this.store.put([
+			{
+				...file,
+				owner: ownerId,
+				workspaceId,
+			},
+		])
 	}
 
 	getFileCollaborators(

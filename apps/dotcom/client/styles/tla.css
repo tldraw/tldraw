@@ -1577,6 +1577,15 @@ want centered content that docks to the top when the window is short
 
 /* ------------------- Logged out ------------------- */
 
+.tla-local-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	width: 100%;
+	background-color: var(--tla-color-canvas);
+}
+
 .tla-logged-out {
 	display: flex;
 	flex-direction: column;

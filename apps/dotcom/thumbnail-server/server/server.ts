@@ -27,6 +27,7 @@ async function main() {
 			const { id, snapshot, hash } = req.body
 			if (!snapshot) return res.status(400).json({ error: 'Snapshot is required' })
 			const screenshot = await manager.getScreenshot(id, snapshot, hash)
+
 			res.json({ message: 'Screenshot', screenshot })
 		} catch (e) {
 			console.error(e)

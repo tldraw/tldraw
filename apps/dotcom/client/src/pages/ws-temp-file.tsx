@@ -4,8 +4,7 @@ import { useValue } from 'tldraw'
 import '../../styles/globals.css'
 import { TlaEditor } from '../components-tla/TlaEditor'
 import { TlaErrorPage } from '../components-tla/TlaErrorPage'
-import { TlaFileHeader } from '../components-tla/TlaFileHeader'
-import { TlaWrapperCollapsableSidebar } from '../components-tla/TlaWrapperCollapsableSidebar'
+import { TlaLoggedOutWrapper } from '../components-tla/TlaLoggedOutWrapper'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/tla/schema/TldrawAppFile'
 
@@ -14,6 +13,7 @@ export function Component() {
 	if (!fileId) throw Error('File id not found')
 
 	const app = useApp()
+
 	const file = useValue(
 		'file',
 		() => {
@@ -21,8 +21,6 @@ export function Component() {
 		},
 		[app, fileId]
 	)
-
-	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 
 	useEffect(() => {
 		let cancelled = false
@@ -48,13 +46,8 @@ export function Component() {
 	}
 
 	return (
-		<TlaWrapperCollapsableSidebar>
-			<div className="tla-content tla-file__content">
-				<TlaFileHeader />
-				<div className={`tla-file__wrapper ${isSidebarOpen ? `tla-file__wrapper-sidebar` : ''}`}>
-					<TlaEditor file={file} />
-				</div>
-			</div>
-		</TlaWrapperCollapsableSidebar>
+		<TlaLoggedOutWrapper>
+			<TlaEditor file={file} />
+		</TlaLoggedOutWrapper>
 	)
 }

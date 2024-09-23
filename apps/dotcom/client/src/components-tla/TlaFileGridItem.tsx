@@ -10,7 +10,12 @@ import { TlaCollaborators } from './TlaCollaborators'
 import { TlaIcon } from './TlaIcon'
 import { TlaSpinner } from './TlaSpinner'
 
-export function TlaFileGridItem({ id: fileId, name, createdAt, workspaceId }: TldrawAppFile) {
+export function TlaFileGridItem({
+	id: fileId,
+	name,
+	createdAt,
+	workspaceId,
+}: Exclude<TldrawAppFile, { owner: 'temporary' }>) {
 	const app = useApp()
 
 	const flags = useFlags()
@@ -42,6 +47,7 @@ export function TlaFileGridItem({ id: fileId, name, createdAt, workspaceId }: Tl
 		() => {
 			const file = app.store.get(fileId)
 			if (!file) throw Error('File not found')
+			if (file.owner === 'temporary') throw Error('temporary file')
 			const owner = app.store.get(file.owner)
 			if (!owner) throw Error('owner not found')
 			return owner

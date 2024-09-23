@@ -672,6 +672,8 @@ function TlaSharedFileOwner({ fileId }: { fileId: TldrawAppFileId }) {
 
 			if (file.owner === userId) return null
 
+			if (file.owner === 'temporary') throw Error('temporary file')
+
 			return app.store.get(file.owner)
 		},
 		[fileId]

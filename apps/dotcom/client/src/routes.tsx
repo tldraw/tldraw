@@ -15,15 +15,15 @@ import {
 	useParams,
 	useRouteError,
 } from 'react-router-dom'
-import { useValue } from 'tldraw'
+import { deleteFromLocalStorage, getFromLocalStorage, useValue } from 'tldraw'
 import { TlaWrapperPublicPage } from './components-tla/TlaWrapperPublicPage'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { AppStateProvider, useApp } from './hooks/useAppState'
-import { useAuth } from './tla-hooks/useAuth'
-import { TldrawAppFile } from './utils/tla/schema/TldrawAppFile'
+import { TldrawAppFile, TldrawAppFileRecordType } from './utils/tla/schema/TldrawAppFile'
 import { TldrawAppUser } from './utils/tla/schema/TldrawAppUser'
 import { TldrawAppWorkspaceId } from './utils/tla/schema/TldrawAppWorkspace'
+import { TEMPORARY_FILE_KEY } from './utils/tla/temporary-files'
 import { getCleanId } from './utils/tla/tldrawAppSchema'
 import { getFileUrl, getUserUrl, getWorkspaceUrl } from './utils/tla/urls'
 
@@ -53,7 +53,7 @@ export const router = createRoutesFromElements(
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" element={<RedirectAtRoot />}>
-				<Route index lazy={() => import('./pages/root')} />
+				<Route index lazy={() => import('./pages/ws-local')} />
 			</Route>
 			<Route element={<TlaWrapperPublicPage />}>
 				<Route path="/offline" lazy={() => import('./pages/ws-local')} />
@@ -85,6 +85,8 @@ export const router = createRoutesFromElements(
 				<Route index element={<RedirectAtUserIndex />} />
 				<Route path="/u/:userId/profile" lazy={() => import('./pages/ws-profile')} />
 			</Route>
+			{/* Temporary file */}
+			<Route path="/t/:fileId" lazy={() => import('./pages/ws-temp-file')} />
 			{/* Workspaces */}
 			<Route path="/w" element={<RedirectAtWorkspacesRoot />} />
 			<Route path="/w/:workspaceId" element={<RequireAuthForWorkspace />}>
@@ -115,8 +117,9 @@ const POSSIBLE_ERRORS = {
 }
 
 function RedirectAtRoot() {
-	const auth = useAuth()
-	if (auth) return <Navigate to="/w" replace />
+	// const auth = useAuth()
+	// if (auth) return <Navigate to="/w" replace />
+
 	return <Outlet />
 }
 
@@ -238,6 +241,19 @@ function RequireAuthForWorkspace() {
 					type: 'error',
 					error: 'user does not have access to this workspace',
 				}
+			}
+
+			// claim any temporary files
+
+			// Get the file id from local storage
+			const temporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
+			if (temporaryFileId) {
+				// Create the file id
+				const fileId = TldrawAppFileRecordType.createId(temporaryFileId)
+				// Claim the file
+				app.claimTemporaryFile(auth.userId, auth.workspaceId, fileId)
+				// Then remove the temporary file key
+				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
 			}
 
 			return { type: 'success' }
