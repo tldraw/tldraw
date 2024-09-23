@@ -10,8 +10,6 @@ export function Component() {
 	const [snapshot, setSnapshot] = useState<TLEditorSnapshot | null>(null)
 
 	useEffect(() => {
-		console.log('posting snapshot')
-
 		fetch(`http://localhost:5002/snapshot`, {
 			method: 'POST',
 			headers: {
