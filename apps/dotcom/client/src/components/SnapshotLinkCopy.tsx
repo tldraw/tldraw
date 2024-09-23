@@ -23,13 +23,13 @@ export const SnapshotLinkCopy = React.memo(function SnapshotLinkCopy() {
 				resolve(new Blob([window.location.href], { type: 'text/plain' }))
 			})
 			writeToClipboard(result)
-			setDidCopySnapshotLink(true)
-			return
+		} else {
+			setIsUploadingSnapshot(true)
+			await shareSnapshot.onSelect('share-menu')
+			setIsUploadingSnapshot(false)
 		}
-		setIsUploadingSnapshot(true)
-		await shareSnapshot.onSelect('share-menu')
-		setIsUploadingSnapshot(false)
 		setDidCopySnapshotLink(true)
+		setTimeout(() => setDidCopySnapshotLink(false), 1000)
 	}, [shareSnapshot])
 
 	return (
