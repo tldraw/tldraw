@@ -85,12 +85,7 @@ const nextConfig = {
 				destination: '/reference/:slug*',
 				permanent: true,
 			},
-			{
-				// For reverse compatibility with old links
-				source: '/examples',
-				destination: '/examples/basic/basic',
-				permanent: true,
-			},
+			// redirects at the top level
 			{
 				source: '/examples',
 				destination: '/examples/basic/basic',
@@ -98,7 +93,7 @@ const nextConfig = {
 			},
 			{
 				source: '/reference',
-				destination: '/examples/basic/basic',
+				destination: '/reference/editor/Editor',
 				permanent: true,
 			},
 			{
