@@ -1597,6 +1597,7 @@ want centered content that docks to the top when the window is short
 	flex-grow: 2;
 	border: 1px solid var(--tla-color-low);
 	border-radius: 9px;
+	overflow: hidden;
 }
 
 .tla-logged-out__footer {

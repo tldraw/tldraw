@@ -64,6 +64,7 @@ async function main() {
 			const { fileId } = req.body
 			if (!fileId) return res.status(400).json({ error: 'File id is required' })
 			const screenshot = await manager.getScreenshotFromDb(fileId)
+			console.log(screenshot)
 			if (!screenshot) return res.status(404).json({ error: 'Screenshot not found' })
 			res.json({ message: 'Screenshot', screenshot })
 		} catch (e) {

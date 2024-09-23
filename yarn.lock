@@ -22715,9 +22715,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"thumbnail-server@workspace:apps/thumbnail-server":
+"thumbnail-server@workspace:apps/dotcom/thumbnail-server":
   version: 0.0.0-use.local
-  resolution: "thumbnail-server@workspace:apps/thumbnail-server"
+  resolution: "thumbnail-server@workspace:apps/dotcom/thumbnail-server"
   dependencies:
     "@supabase/supabase-js": "npm:^2.44.4"
     "@tldraw/assets": "workspace:*"

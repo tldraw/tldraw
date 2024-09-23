@@ -6,7 +6,7 @@ import { TLStoreSnapshot } from 'tldraw'
 export class TldrawScreenshotManager {
 	db: Database
 	browser: Browser
-	queue: { id: string; hash: string; cb: (screenshot: string) => void }[] = []
+	queue: { id: string; hash: string; cb(screenshot: string): void }[] = []
 	reactAppHost = 'localhost:5001'
 	debug = true
 
@@ -62,16 +62,21 @@ export class TldrawScreenshotManager {
 	async addSnapshotToScreenshotQueue(id: string, hash: string, cb: (screenshot: string) => void) {
 		const { queue } = this
 		queue.push({ id, hash, cb })
+
 		if (queue.length === 1) {
 			this.processNextInQueue()
 		}
 	}
+
 	async getScreenshot(id: string, snapshot: TLStoreSnapshot, hash: string) {
+		console.log('screenshot requested', id, snapshot, hash)
+
 		// eslint-disable-next-line
 		if (this.debug) console.log('Getting screenshot from db', id)
 		const { db } = this
 
 		const existingScreenshot = await this.getScreenshotFromDbByHash(hash)
+
 		if (existingScreenshot) {
 			// eslint-disable-next-line
 			if (this.debug) console.log('Screenshot from db using hash', id)
@@ -107,20 +112,20 @@ export class TldrawScreenshotManager {
 
 	async getScreenshotFromDb(id: string) {
 		const { db } = this
-		const { screenshot } = await db.get('SELECT * FROM screenshots WHERE id = ?', id)
+		const res = await db.get('SELECT * FROM screenshots WHERE id = ?', id)
 
 		// eslint-disable-next-line
 		if (this.debug) console.log('Screenshot from db', id)
-		return screenshot
+		return res.screenshot
 	}
 
 	async getScreenshotFromDbByHash(hash: string) {
 		const { db } = this
-		const { screenshot } = await db.get('SELECT * FROM screenshots WHERE hash = ?', hash)
+		const res = await db.get('SELECT * FROM screenshots WHERE hash = ?', hash)
 
 		// eslint-disable-next-line
 		if (this.debug) console.log('Screenshot from db using hash', hash)
-		return screenshot
+		return res.screenshot
 	}
 
 	static async create() {
