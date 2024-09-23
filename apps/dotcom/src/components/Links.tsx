@@ -14,7 +14,7 @@ export function Links() {
 					readonlyOk
 					onSelect={() => {
 						openAndTrack(
-							'https://github.com/tldraw/tldraw/blob/main/apps/dotcom/TERMS_OF_SERVICE.md'
+							'https://github.com/tldraw/tldraw/blob/main/apps/dotcom/client/TERMS_OF_SERVICE.md'
 						)
 					}}
 				/>
@@ -24,7 +24,9 @@ export function Links() {
 					icon="external-link"
 					readonlyOk
 					onSelect={() => {
-						openAndTrack('https://github.com/tldraw/tldraw/blob/main/apps/dotcom/PRIVACY_POLICY.md')
+						openAndTrack(
+							'https://github.com/tldraw/tldraw/blob/main/apps/dotcom/client/PRIVACY_POLICY.md'
+						)
 					}}
 				/>
 			</TldrawUiMenuGroup>
