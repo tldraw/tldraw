@@ -221,6 +221,12 @@ export interface TLEditorOptions {
 	cameraOptions?: Partial<TLCameraOptions>
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
+	/**
+	 * A predicate that should return true if the given shape should be hidden.
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
 }
 
 /**
@@ -255,8 +261,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		autoFocus,
 		inferDarkMode,
 		options,
+		isShapeHidden,
 	}: TLEditorOptions) {
 		super()
+
+		this._isShapeHiddenPredicate = isShapeHidden
 
 		this.options = { ...defaultTldrawOptions, ...options }
 		this.store = store
@@ -728,6 +737,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.performanceTracker = new PerformanceTracker()
+	}
+
+	private readonly _isShapeHiddenPredicate?: (shape: TLShape, editor: Editor) => boolean
+	@computed
+	private getIsShapeHiddenCache() {
+		if (!this._isShapeHiddenPredicate) return null
+		return this.store.createComputedCache<boolean, TLShape>('isShapeHidden', (shape: TLShape) => {
+			const hiddenParent = this.findShapeAncestor(shape, (p) => this.isShapeHidden(p))
+			if (hiddenParent) return true
+			return this._isShapeHiddenPredicate!(shape, this) ?? false
+		})
+	}
+	isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean {
+		if (!this._isShapeHiddenPredicate) return false
+		return !!this.getIsShapeHiddenCache!()!.get(
+			typeof shapeOrId === 'string' ? shapeOrId : shapeOrId.id
+		)
 	}
 
 	readonly options: TldrawOptions
@@ -3605,6 +3631,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			const shape = this.getShape(id)
 			if (!shape) return
+			if (this.isShapeHidden(shape)) return
 
 			opacity *= shape.opacity
 			let isShapeErasing = false
@@ -4691,7 +4718,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? this.getCurrentPageRenderingShapesSorted()
 				: this.getCurrentPageShapesSorted()
 		).filter((shape) => {
-			if ((shape.isLocked && !hitLocked) || this.isShapeOfType(shape, 'group')) return false
+			if (
+				(shape.isLocked && !hitLocked) ||
+				this.isShapeHidden(shape) ||
+				this.isShapeOfType(shape, 'group')
+			)
+				return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
@@ -4851,7 +4883,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.getCurrentPageShapes().filter((shape) => this.isPointInShape(shape, point, opts))
+		return this.getCurrentPageShapes().filter(
+			(shape) => !this.isShapeHidden(shape) && this.isPointInShape(shape, point, opts)
+		)
 	}
 
 	/**
@@ -4969,7 +5003,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageRenderingShapesSorted(): TLShape[] {
 		const culledShapes = this.getCulledShapes()
-		return this.getCurrentPageShapesSorted().filter(({ id }) => !culledShapes.has(id))
+		return this.getCurrentPageShapesSorted().filter(
+			({ id }) => !culledShapes.has(id) && !this.isShapeHidden(id)
+		)
 	}
 
 	/**
@@ -5337,6 +5373,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shape = currentPageShapesSorted[i]
 
 			if (
+				// ignore hidden shapes
+				this.isShapeHidden(shape) ||
 				// don't allow dropping on selected shapes
 				this.getSelectedShapeIds().includes(shape.id) ||
 				// only allow shapes that can receive children
@@ -6998,7 +7036,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 						const parent = currentPageShapesSorted[i]
 						if (
-							// parent.type === 'frame'
+							!this.isShapeHidden(parent) &&
 							this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
 							this.isPointInShape(
 								parent,
@@ -7941,7 +7979,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setTemporaryAssetPreview('someid', file)
+	 * editor.setTemporaryAssetPreview('someId', file)
 	 * ```
 	 *
 	 * @param assetId - The asset's id.
@@ -7975,7 +8013,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.getTemporaryAssetPreview('someid')
+	 * editor.getTemporaryAssetPreview('someId')
 	 * ```
 	 *
 	 * @param assetId - The asset's id.

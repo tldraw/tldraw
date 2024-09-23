@@ -1,5 +1,5 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -181,6 +181,15 @@ export interface TldrawEditorBaseProps {
 	 * Options for syncing the editor's camera state with the URL.
 	 */
 	deepLinks?: true | TLDeepLinkOptions
+
+	/**
+	 * Predicate for whether or not a shape should be hidden.
+	 *
+	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
+	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
+	 * remain in the store and participate in all other operations.
+	 */
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
 }
 
 /**
@@ -362,6 +371,7 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
+	isShapeHidden,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -418,6 +428,7 @@ function TldrawEditorWithReadyStore({
 				cameraOptions,
 				options,
 				licenseKey,
+				isShapeHidden,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -441,7 +452,18 @@ function TldrawEditorWithReadyStore({
 			}
 		},
 		// if any of these change, we need to recreate the editor.
-		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor, licenseKey]
+		[
+			bindingUtils,
+			container,
+			options,
+			shapeUtils,
+			store,
+			tools,
+			user,
+			setEditor,
+			licenseKey,
+			isShapeHidden,
+		]
 	)
 
 	useLayoutEffect(() => {

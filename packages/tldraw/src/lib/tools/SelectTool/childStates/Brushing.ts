@@ -124,7 +124,7 @@ export class Brushing extends StateNode {
 			pageTransform: Mat | undefined,
 			localCorners: Vec[]
 
-		const currentPageShapes = editor.getCurrentPageShapes()
+		const currentPageShapes = editor.getCurrentPageRenderingShapesSorted()
 		const currentPageId = editor.getCurrentPageId()
 
 		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
