@@ -293,9 +293,6 @@
 .tlui-buttons__horizontal > *:nth-last-child(1) {
 	margin-right: 0px;
 }
-/* .tlui-buttons__horizontal > *:only-child {
-	width: 56px;
-} */
 
 /* Button Grid */
 
@@ -1635,8 +1632,8 @@
 }
 
 .tlui-people-menu__avatar {
-	height: 24px;
-	width: 24px;
+	height: 28px;
+	width: 28px;
 	border: 2px solid var(--color-background);
 	background-color: var(--color-low);
 	border-radius: 100%;

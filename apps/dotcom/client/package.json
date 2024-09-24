@@ -19,7 +19,7 @@
 		"test": "yarn run -T jest"
 	},
 	"dependencies": {
-		"@radix-ui/react-dropdown-menu": "^2.1.1",
+		"@radix-ui/react-dropdown-menu": "^2.0.6",
 		"@radix-ui/react-popover": "^1.0.7",
 		"@sentry/integrations": "^7.34.0",
 		"@sentry/react": "^7.77.0",
@@ -45,7 +45,7 @@
 		"@types/qrcode": "^1.5.0",
 		"@types/react": "^18.2.0",
 		"@typescript-eslint/utils": "^5.59.0",
-		"@vitejs/plugin-react-swc": "^3.7.0",
+		"@vitejs/plugin-react-swc": "^3.6.0",
 		"dotenv": "^16.3.1",
 		"eslint": "^8.37.0",
 		"fast-glob": "^3.3.1",

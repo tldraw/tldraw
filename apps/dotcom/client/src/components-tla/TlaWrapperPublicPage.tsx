@@ -23,7 +23,7 @@ export function TlaWrapperPublicPage() {
 					{/* <button
 						className="tla-top-left-button"
 						onClick={() =>
-							navigate('/w', {
+							navigate('/q/w', {
 								state: location.state,
 							})
 						}

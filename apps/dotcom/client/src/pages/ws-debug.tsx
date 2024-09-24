@@ -24,7 +24,7 @@ export function Component() {
 				userId,
 			},
 		})
-		navigate('/w/')
+		navigate('/q/w/')
 	}
 
 	return (

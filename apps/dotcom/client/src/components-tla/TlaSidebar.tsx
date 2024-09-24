@@ -216,7 +216,7 @@ function TlaSidebarMainLink({ icon, label, href }: SideBarMainLink) {
 	)
 	if (!workspaceId) throw Error('Workspace not found')
 
-	const match = useMatch(`/w/:workspaceId/${href}`)
+	const match = useMatch(`/q/w/:workspaceId/${href}`)
 
 	return (
 		<div

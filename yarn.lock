@@ -4103,7 +4103,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-dropdown-menu@npm:^2.1.1":
+"@radix-ui/react-dropdown-menu@npm:^2.0.6":
   version: 2.1.1
   resolution: "@radix-ui/react-dropdown-menu@npm:2.1.1"
   dependencies:
@@ -8453,7 +8453,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react-swc@npm:^3.7.0":
+"@vitejs/plugin-react-swc@npm:^3.6.0":
   version: 3.7.0
   resolution: "@vitejs/plugin-react-swc@npm:3.7.0"
   dependencies:
@@ -11421,7 +11421,7 @@ __metadata:
   resolution: "dotcom@workspace:apps/dotcom/client"
   dependencies:
     "@jest/globals": "npm:30.0.0-alpha.2"
-    "@radix-ui/react-dropdown-menu": "npm:^2.1.1"
+    "@radix-ui/react-dropdown-menu": "npm:^2.0.6"
     "@radix-ui/react-popover": "npm:^1.0.7"
     "@sentry/cli": "npm:^2.25.0"
     "@sentry/integrations": "npm:^7.34.0"
@@ -11436,7 +11436,7 @@ __metadata:
     "@types/react": "npm:^18.2.0"
     "@typescript-eslint/utils": "npm:^5.59.0"
     "@vercel/analytics": "npm:^1.1.1"
-    "@vitejs/plugin-react-swc": "npm:^3.7.0"
+    "@vitejs/plugin-react-swc": "npm:^3.6.0"
     browser-fs-access: "npm:^0.35.0"
     dotenv: "npm:^16.3.1"
     eslint: "npm:^8.37.0"
@@ -12790,7 +12790,7 @@ __metadata:
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@vercel/analytics": "npm:^1.1.1"
-    "@vitejs/plugin-react-swc": "npm:^3.7.0"
+    "@vitejs/plugin-react-swc": "npm:^3.6.0"
     ag-grid-community: "npm:^32.1.0"
     ag-grid-react: "npm:^32.1.0"
     classnames: "npm:^2.3.2"
@@ -22619,7 +22619,7 @@ __metadata:
     "@types/cors": "npm:^2.8.17"
     "@types/express": "npm:^4.17.21"
     "@types/sqlite3": "npm:^3.1.11"
-    "@vitejs/plugin-react-swc": "npm:^3.7.0"
+    "@vitejs/plugin-react-swc": "npm:^3.6.0"
     cors: "npm:^2.8.5"
     dotenv: "npm:^16.3.1"
     eslint: "npm:^8.37.0"
@@ -22694,7 +22694,7 @@ __metadata:
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@radix-ui/react-context-menu": "npm:^2.1.5"
     "@radix-ui/react-dialog": "npm:^1.0.5"
-    "@radix-ui/react-dropdown-menu": "npm:^2.1.1"
+    "@radix-ui/react-dropdown-menu": "npm:^2.0.6"
     "@radix-ui/react-popover": "npm:^1.0.7"
     "@radix-ui/react-select": "npm:^1.2.0"
     "@radix-ui/react-slider": "npm:^1.1.0"

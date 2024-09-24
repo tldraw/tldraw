@@ -1,26 +1,25 @@
-import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
+import { useEffect, useState } from 'react'
+import { getFromLocalStorage, setInLocalStorage, uniqueId, useValue } from 'tldraw'
 import '../../styles/globals.css'
+import { TlaEditor } from '../components-tla/TlaEditor'
 import { TlaLoggedOutWrapper } from '../components-tla/TlaLoggedOutWrapper'
-import { TlaSpinner } from '../components-tla/TlaSpinner'
 import { useApp } from '../hooks/useAppState'
-import { TldrawAppFileRecordType } from '../utils/tla/schema/TldrawAppFile'
+import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/tla/schema/TldrawAppFile'
 import { TldrawAppWorkspaceRecordType } from '../utils/tla/schema/TldrawAppWorkspace'
 import { TEMPORARY_FILE_KEY } from '../utils/tla/temporary-files'
 
 export function Component() {
 	const app = useApp()
-	const navigate = useNavigate()
+	const [fileId, setFileId] = useState<TldrawAppFileId | null>(null)
 
 	useEffect(() => {
+		// Try to load a temporary file; or otherwise create one
 		let temporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
+
 		if (!temporaryFileId) {
 			temporaryFileId = uniqueId()
 			setInLocalStorage(TEMPORARY_FILE_KEY, temporaryFileId)
 		}
-
-		if (!temporaryFileId) throw Error('Temporary file id not found')
 
 		const fileId = TldrawAppFileRecordType.createId(temporaryFileId)
 
@@ -30,14 +29,17 @@ export function Component() {
 			app.createFile('temporary', TldrawAppWorkspaceRecordType.createId('0'), fileId)
 		}
 
-		navigate(`/t/${temporaryFileId}`)
-	}, [app, navigate])
+		setFileId(fileId)
+	}, [app])
 
-	return (
-		<TlaLoggedOutWrapper>
-			<div className="tla-local-wrapper">
-				<TlaSpinner />
-			</div>
-		</TlaLoggedOutWrapper>
+	const file = useValue(
+		'file',
+		() => {
+			if (!fileId) return null
+			return app.store.get(fileId)
+		},
+		[app, fileId]
 	)
+
+	return <TlaLoggedOutWrapper>{file && <TlaEditor file={file} />}</TlaLoggedOutWrapper>
 }

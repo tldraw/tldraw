@@ -38,6 +38,7 @@ import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { LocalFileMenu } from './FileMenu'
 import { Links } from './Links'
+import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
@@ -75,13 +76,13 @@ const components: TLComponents = {
 			</DefaultDebugMenu>
 		)
 	},
-	// SharePanel: () => {
-	// 	return (
-	// 		<div className="tlui-share-zone" draggable={false}>
-	// 			<ShareMenu />
-	// 		</div>
-	// 	)
-	// },
+	SharePanel: () => {
+		return (
+			<div className="tlui-share-zone" draggable={false}>
+				<ShareMenu />
+			</div>
+		)
+	},
 }
 
 export function LocalEditor() {
