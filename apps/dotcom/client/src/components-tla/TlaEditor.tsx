@@ -12,16 +12,12 @@ import {
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	ViewSubmenu,
-	useActions,
 	useBreakpoint,
 	useEditor,
 	useReactor,
 	useTldrawUiComponents,
 } from 'tldraw'
-import { MultiplayerFileMenu } from '../components/FileMenu'
 import { Links } from '../components/Links'
 import { SneakyOnDropOverride } from '../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../components/ThemeUpdater/ThemeUpdater'
@@ -33,7 +29,7 @@ import { LocalMigration } from '../utils/migration/LocalMigration'
 import { useSharing } from '../utils/sharing'
 import { TldrawApp } from '../utils/tla/TldrawApp'
 import { TldrawAppFile } from '../utils/tla/schema/TldrawAppFile'
-import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
+import { useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 
 // const shittyOfflineAtom = atom('shitty offline atom', false)
@@ -52,7 +48,7 @@ const components: TLComponents = {
 	// ),
 	MainMenu: () => (
 		<DefaultMainMenu>
-			<MultiplayerFileMenu />
+			{/* <MultiplayerFileMenu /> */}
 			<EditSubmenu />
 			<ViewSubmenu />
 			<ExportFileContentSubMenu />
@@ -83,13 +79,13 @@ const components: TLComponents = {
 		)
 	},
 	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
+		// const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
+				{/* <TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
-				</TldrawUiMenuGroup>
+				</TldrawUiMenuGroup> */}
 				<DefaultKeyboardShortcutsDialogContent />
 				{/* <TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
 					<TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
