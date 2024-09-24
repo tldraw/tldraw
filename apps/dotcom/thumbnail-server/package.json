@@ -24,7 +24,7 @@
 		"@types/cors": "^2.8.17",
 		"@types/express": "^4.17.21",
 		"@types/sqlite3": "^3.1.9",
-		"@vitejs/plugin-react-swc": "^3.6.0",
+		"@vitejs/plugin-react-swc": "^3.7.0",
 		"cors": "^2.8.5",
 		"dotenv": "^16.3.1",
 		"express": "^4.19.2",
@@ -38,7 +38,7 @@
 		"vite": "^5.4.2"
 	},
 	"devDependencies": {
-		"@vitejs/plugin-react-swc": "^3.6.0",
+		"@vitejs/plugin-react-swc": "^3.7.0",
 		"eslint": "^8.37.0",
 		"eslint-config-next": "13.2.4",
 		"lazyrepo": "0.0.0-alpha.27"
