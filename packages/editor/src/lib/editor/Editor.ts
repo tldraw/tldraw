@@ -7974,12 +7974,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Register a temporary preview of an asset. This is useful for showing a ghost image of
-	 * something that is being uploaded. Returns an `RC` of the URL - call `.retain` to keep it in
-	 * memory, and `.release` when you're done with it.
+	 * something that is being uploaded. Retrieve the placeholder with
+	 * {@link Editor.getTemporaryAssetPreview}. Placeholders last for 3 minutes by default, but this
+	 * can be configured using
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setTemporaryAssetPreview('someId', file)
+	 * editor.createTemporaryAssetPreview(assetId, file)
 	 * ```
 	 *
 	 * @param assetId - The asset's id.
@@ -7996,13 +7997,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.temporaryAssetPreview.set(assetId, objectUrl)
 
 		// eslint-disable-next-line no-restricted-globals -- we always want to revoke the asset and object URL
-		setTimeout(
-			() => {
-				this.temporaryAssetPreview.delete(assetId)
-				URL.revokeObjectURL(objectUrl)
-			},
-			3 * 60 * 1000 /* 3 minutes */
-		)
+		setTimeout(() => {
+			this.temporaryAssetPreview.delete(assetId)
+			URL.revokeObjectURL(objectUrl)
+		}, this.options.temporaryAssetPreviewLifetimeMs)
 
 		return objectUrl
 	}

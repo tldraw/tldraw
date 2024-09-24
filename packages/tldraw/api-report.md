@@ -3640,6 +3640,17 @@ export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string):
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
+// @public
+export function useAsset(options: {
+    assetId: null | TLAssetId;
+    shapeId: TLShapeId;
+    width: number;
+}): {
+    asset: TLAsset | null | undefined;
+    isPlaceholder: boolean;
+    url: null | string;
+};
+
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
 
