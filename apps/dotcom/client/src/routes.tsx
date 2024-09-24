@@ -69,7 +69,7 @@ export const router = createRoutesFromElements(
 			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		<Route
-			path="/q/"
+			path="/q"
 			element={
 				<AppStateProvider>
 					<Outlet />
@@ -85,7 +85,7 @@ export const router = createRoutesFromElements(
 			{/* Temporary file */}
 			<Route path="/q/t/:fileId" lazy={() => import('./pages/ws-temp-file')} />
 			{/* Workspace */}
-			<Route path="/q/w/" element={<Outlet />}>
+			<Route path="/q/w" element={<Outlet />}>
 				<Route index element={<RedirectAtWorkspacesRoot />} />
 				<Route path="/q/w/:workspaceId" element={<RequireAuthForWorkspace />}>
 					<Route index element={<RedirectAtWorkspaceRoot />} />
