@@ -409,11 +409,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			tombstones,
 			schema: this.serializedSchema,
 			documents: Object.values(documents)
+				.filter((d) => this.documentTypes.has(d.state.typeName))
 				.map((doc) => ({
 					state: doc.state,
 					lastChangedClock: doc.lastChangedClock,
-				}))
-				.filter((d) => this.documentTypes.has(d.state.typeName)),
+				})),
 		}
 	}
 
