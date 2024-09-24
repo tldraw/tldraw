@@ -153,6 +153,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			transition: background-color 0.2s ease-in-out;
 			transition-delay: 0.32s;
 		}
+			
 		.${className}:hover > a {
 			animation: delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
