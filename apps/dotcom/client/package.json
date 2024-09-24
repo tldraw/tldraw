@@ -45,7 +45,7 @@
 		"@types/qrcode": "^1.5.0",
 		"@types/react": "^18.2.0",
 		"@typescript-eslint/utils": "^5.59.0",
-		"@vitejs/plugin-react-swc": "^3.7.0",
+		"@vitejs/plugin-react-swc": "^3.6.0",
 		"dotenv": "^16.3.1",
 		"eslint": "^8.37.0",
 		"fast-glob": "^3.3.1",
