@@ -28,6 +28,7 @@ export {
 } from '@tldraw/state'
 export {
 	track,
+	useAtom,
 	useComputed,
 	useQuickReactor,
 	useReactor,

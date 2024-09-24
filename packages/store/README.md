@@ -1,12 +1,8 @@
-# @tldraw/tlstore
+# @tldraw/store
 
-`tlstore` is a library for creating and managing data.
+`@tldraw/store` is a library for creating and managing data. In this library, a "record" is an object that is stored under a typed id.
 
-> In this library, a "record" is an object that is stored under a typed id.
-
-`tlstore` is used by [tldraw](https://www.tldraw.com) to store its data.
-
-It is designed to be used with @tldraw/tlstate.
+`@tldraw/store` is used by [tldraw](https://www.tldraw.com) to store its data. It is designed to be used with [@tldraw/state](https://github.com/tldraw/tldraw/tree/main/packages/state).
 
 # Usage
 
@@ -347,7 +343,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License found [here](https://github.com/tldraw/tldraw/blob/main/packages/store/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 

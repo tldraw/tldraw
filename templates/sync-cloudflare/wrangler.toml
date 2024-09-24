@@ -1,3 +1,4 @@
+name = "tldraw-worker"
 main = "worker/worker.ts"
 compatibility_date = "2024-07-01"
 

@@ -11,7 +11,13 @@ export {
 	type TLPersistentClientSocket,
 	type TLPersistentClientSocketStatus,
 } from './lib/TLSyncClient'
-export { DocumentState, TLSyncRoom, type RoomSnapshot, type TLRoomSocket } from './lib/TLSyncRoom'
+export {
+	DocumentState,
+	TLSyncRoom,
+	type RoomSnapshot,
+	type RoomStoreMethods,
+	type TLRoomSocket,
+} from './lib/TLSyncRoom'
 export { chunk } from './lib/chunk'
 export {
 	RecordOpType,

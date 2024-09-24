@@ -5,8 +5,7 @@ Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). t
 - Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
 - Learn about [our license](https://github.com/tldraw/tldraw#License).
 
-> 🤵 Interested in purchasing a commercial license for the tldraw SDK?
-> Fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+> 🤵 Interested in using tldraw in your product? [Click here](https://tldraw.dev/#pricing) to learn about our license and pricing.
 
 ## Installation
 
@@ -79,10 +78,6 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
 
-## Contact
-
-Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
-
 ## Contributors
 
 <a href="https://github.com/tldraw/tldraw/graphs/contributors">
@@ -104,3 +99,7 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 	  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
 	</picture>
 </a>
+
+## Contact
+
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can contact us at by email at [hello@tldraw.com](mailto:hello@tldraw.com).

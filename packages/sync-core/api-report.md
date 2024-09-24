@@ -201,6 +201,18 @@ export interface RoomSnapshot {
     tombstones?: Record<string, number>;
 }
 
+// @public (undocumented)
+export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
+    // (undocumented)
+    delete(recordOrId: R | string): void;
+    // (undocumented)
+    get(id: string): null | R;
+    // (undocumented)
+    getAll(): R[];
+    // (undocumented)
+    put(record: R): void;
+}
+
 // @internal (undocumented)
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
 
@@ -355,6 +367,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
+    updateStore(updater: (store: RoomStoreMethods) => Promise<void> | void): Promise<void>;
 }
 
 // @internal (undocumented)
@@ -440,12 +453,13 @@ export interface TLSyncLog {
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
         log?: TLSyncLog;
+        onDataChange?(): void;
         schema: StoreSchema<R, any>;
         snapshot?: RoomSnapshot;
     });
     broadcastPatch({ diff, sourceSessionId }: {
         diff: NetworkDiff<R>;
-        sourceSessionId: string;
+        sourceSessionId?: string;
     }): this;
     // (undocumented)
     clock: number;
@@ -489,6 +503,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     }, unknown>;
     // (undocumented)
     tombstoneHistoryStartsAtClock: number;
+    updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
 // @internal (undocumented)

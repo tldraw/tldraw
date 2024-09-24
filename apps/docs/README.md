@@ -128,6 +128,8 @@ The auto-generated docs content is created using [tsdoc](https://tsdoc.org/) and
 
 ## Developing the docs
 
+You'll need to install Git LFS to get our blog post images (which can be large). See instructions [here](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).
+
 When developing the docs, any change to the `content` folder will cause the page to refresh. This is a little shitty but it mostly works.
 
 ## Contribution
@@ -136,7 +138,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-This project is provided under the MIT license. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+This project is provided under the MIT license found [here](https://github.com/tldraw/tldraw/blob/main/apps/docs/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 

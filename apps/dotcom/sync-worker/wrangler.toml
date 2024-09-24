@@ -1,0 +1,224 @@
+main = "src/worker.ts"
+compatibility_date = "2024-06-19"
+workers_dev = true
+
+[dev]
+port = 8787
+ip = "0.0.0.0"
+
+# these migrations are append-only. you can't change them. if you do need to change something, do so
+# by creating new migrations
+[[migrations]]
+tag = "v1"                            # Should be unique for each entry
+new_classes = ["TLDrawDurableObject"]
+
+[[migrations]]
+tag = "v2"
+new_classes = ["TLProWorkspaceDurableObject"]
+
+[[migrations]]
+tag = "v3"
+deleted_classes = ["TLProWorkspaceDurableObject"]
+
+[[analytics_engine_datasets]]
+binding = "MEASURE"
+
+#################### Environment names ####################
+# dev should never actually get deployed anywhere
+[env.dev]
+name = "dev-tldraw-multiplayer"
+
+# we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
+
+# staging is the same as a preview on main:
+[env.staging]
+name = "main-tldraw-multiplayer"
+workers_dev = true               # todo: remove this once clients are updated
+
+# production gets the proper name
+[env.production]
+name = "tldraw-multiplayer"
+workers_dev = true          # todo: remove this once clients are updated
+
+#################### Routing ####################
+# no custom routes for previews and development
+
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging.tldraw.com/api/*"
+
+[[env.staging.routes]]
+custom_domain = true
+pattern = "staging-sync.tldraw.xyz"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "www.tldraw.com/api/*"
+
+[[env.production.routes]]
+custom_domain = true
+pattern = "sync.tldraw.xyz"
+
+#################### Durable objects ####################
+# durable objects have the same configuration in all environments:
+[[env.dev.durable_objects.bindings]]
+name = "TLDR_DOC"
+class_name = "TLDrawDurableObject"
+
+[durable_objects]
+bindings = [{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" }]
+
+[[env.preview.durable_objects.bindings]]
+name = "TLDR_DOC"
+class_name = "TLDrawDurableObject"
+
+[[env.staging.durable_objects.bindings]]
+name = "TLDR_DOC"
+class_name = "TLDrawDurableObject"
+
+[[env.production.durable_objects.bindings]]
+name = "TLDR_DOC"
+class_name = "TLDrawDurableObject"
+
+#################### Analytics engine ####################
+# durable objects have the same configuration in all environments:
+[[env.dev.analytics_engine_datasets]]
+binding = "MEASURE"
+
+[[env.preview.analytics_engine_datasets]]
+binding = "MEASURE"
+
+[[env.staging.analytics_engine_datasets]]
+binding = "MEASURE"
+
+[[env.production.analytics_engine_datasets]]
+binding = "MEASURE"
+
+#################### Rooms R2 bucket ####################
+# in dev, we write to the preview bucket and need a `preview_bucket_name`
+[[env.dev.r2_buckets]]
+binding = "ROOMS"
+bucket_name = "rooms-preview"
+preview_bucket_name = "rooms-preview"
+
+# in preview and staging we write to the preview bucket
+[[env.preview.r2_buckets]]
+binding = "ROOMS"
+bucket_name = "rooms-preview"
+
+[[env.staging.r2_buckets]]
+binding = "ROOMS"
+bucket_name = "rooms-preview"
+
+# in production, we write to the main bucket
+[[env.production.r2_buckets]]
+binding = "ROOMS"
+bucket_name = "rooms"
+
+#################### Rooms History bucket ####################
+# in dev, we write to the preview bucket and need a `preview_bucket_name`
+[[env.dev.r2_buckets]]
+binding = "ROOMS_HISTORY_EPHEMERAL"
+bucket_name = "rooms-history-ephemeral-preview"
+preview_bucket_name = "rooms-history-ephemeral-preview"
+
+# in preview and staging we write to the preview bucket
+[[env.preview.r2_buckets]]
+binding = "ROOMS_HISTORY_EPHEMERAL"
+bucket_name = "rooms-history-ephemeral-preview"
+
+[[env.staging.r2_buckets]]
+binding = "ROOMS_HISTORY_EPHEMERAL"
+bucket_name = "rooms-history-ephemeral-preview"
+
+# in production, we write to the main bucket
+[[env.production.r2_buckets]]
+binding = "ROOMS_HISTORY_EPHEMERAL"
+bucket_name = "rooms-history-ephemeral"
+
+#################### Room snapshots bucket ####################
+# in dev, we write to the preview bucket and need a `preview_bucket_name`
+[[env.dev.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots-preview"
+preview_bucket_name = "room-snapshots-preview"
+
+# in preview and staging we write to the preview bucket
+[[env.preview.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots-preview"
+
+[[env.staging.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots-preview"
+
+# in production, we write to the main bucket
+[[env.production.r2_buckets]]
+binding = "ROOM_SNAPSHOTS"
+bucket_name = "room-snapshots"
+
+#################### Room snapshots parent slug KV store ####################
+[[env.dev.kv_namespaces]]
+binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
+id = "5eaa50a2b87145e582661ea3344804b8"
+
+[[env.preview.kv_namespaces]]
+binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
+id = "5eaa50a2b87145e582661ea3344804b8"
+
+[[env.staging.kv_namespaces]]
+binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
+id = "5eaa50a2b87145e582661ea3344804b8"
+
+[[env.production.kv_namespaces]]
+binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"
+id = "c6ce1f45447e4a44a00edb2a2077bc5c"
+
+#################### Key value storage ####################
+[[env.dev.kv_namespaces]]
+binding = "SLUG_TO_READONLY_SLUG"
+id = "847a6bded62045c6808dda6a275ef96c"
+
+[[env.dev.kv_namespaces]]
+binding = "READONLY_SLUG_TO_SLUG"
+id = "0a83acab40374ccd918cc9d755741714"
+
+[[env.preview.kv_namespaces]]
+binding = "SLUG_TO_READONLY_SLUG"
+id = "847a6bded62045c6808dda6a275ef96c"
+
+[[env.preview.kv_namespaces]]
+binding = "READONLY_SLUG_TO_SLUG"
+id = "0a83acab40374ccd918cc9d755741714"
+
+[[env.staging.kv_namespaces]]
+binding = "SLUG_TO_READONLY_SLUG"
+id = "847a6bded62045c6808dda6a275ef96c"
+
+[[env.staging.kv_namespaces]]
+binding = "READONLY_SLUG_TO_SLUG"
+id = "0a83acab40374ccd918cc9d755741714"
+
+[[env.production.kv_namespaces]]
+binding = "SLUG_TO_READONLY_SLUG"
+id = "2fb5fc7f7ca54a5a9dfae1b07a30a778"
+
+[[env.production.kv_namespaces]]
+binding = "READONLY_SLUG_TO_SLUG"
+id = "96be6637b281412ab35b2544539d78e8"
+
+#################### Version metadata ####################
+[version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.dev.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.preview.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"
