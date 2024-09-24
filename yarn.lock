@@ -6308,7 +6308,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@supabase/supabase-js@npm:^2.44.4":
+"@supabase/supabase-js@npm:^2.33.2":
   version: 2.45.4
   resolution: "@supabase/supabase-js@npm:2.45.4"
   dependencies:
@@ -6709,7 +6709,7 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240620.0"
     "@supabase/auth-helpers-remix": "npm:^0.2.2"
-    "@supabase/supabase-js": "npm:^2.44.4"
+    "@supabase/supabase-js": "npm:^2.33.2"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/sync-core": "workspace:*"
@@ -8453,7 +8453,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react-swc@npm:^3.6.0":
+"@vitejs/plugin-react-swc@npm:^3.7.0":
   version: 3.7.0
   resolution: "@vitejs/plugin-react-swc@npm:3.7.0"
   dependencies:
@@ -11436,7 +11436,7 @@ __metadata:
     "@types/react": "npm:^18.2.0"
     "@typescript-eslint/utils": "npm:^5.59.0"
     "@vercel/analytics": "npm:^1.1.1"
-    "@vitejs/plugin-react-swc": "npm:^3.6.0"
+    "@vitejs/plugin-react-swc": "npm:^3.7.0"
     browser-fs-access: "npm:^0.35.0"
     dotenv: "npm:^16.3.1"
     eslint: "npm:^8.37.0"
@@ -12790,7 +12790,7 @@ __metadata:
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@vercel/analytics": "npm:^1.1.1"
-    "@vitejs/plugin-react-swc": "npm:^3.6.0"
+    "@vitejs/plugin-react-swc": "npm:^3.7.0"
     ag-grid-community: "npm:^32.1.0"
     ag-grid-react: "npm:^32.1.0"
     classnames: "npm:^2.3.2"
@@ -22614,12 +22614,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "thumbnail-server@workspace:apps/dotcom/thumbnail-server"
   dependencies:
-    "@supabase/supabase-js": "npm:^2.44.4"
+    "@supabase/supabase-js": "npm:^2.33.2"
     "@tldraw/assets": "workspace:*"
     "@types/cors": "npm:^2.8.17"
     "@types/express": "npm:^4.17.21"
     "@types/sqlite3": "npm:^3.1.11"
-    "@vitejs/plugin-react-swc": "npm:^3.6.0"
+    "@vitejs/plugin-react-swc": "npm:^3.7.0"
     cors: "npm:^2.8.5"
     dotenv: "npm:^16.3.1"
     eslint: "npm:^8.37.0"

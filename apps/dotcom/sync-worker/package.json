@@ -20,7 +20,7 @@
 	},
 	"dependencies": {
 		"@supabase/auth-helpers-remix": "^0.2.2",
-		"@supabase/supabase-js": "^2.44.4",
+		"@supabase/supabase-js": "^2.33.2",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",

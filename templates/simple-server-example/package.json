@@ -39,7 +39,7 @@
 		"@fastify/websocket": "^10.0.1",
 		"@tldraw/sync": "latest",
 		"@tldraw/sync-core": "latest",
-		"@vitejs/plugin-react-swc": "^3.6.0",
+		"@vitejs/plugin-react-swc": "^3.7.0",
 		"fastify": "^4.28.1",
 		"itty-router": "^5.0.17",
 		"react": "^18.2.0",
