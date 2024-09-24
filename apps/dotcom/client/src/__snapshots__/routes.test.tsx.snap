@@ -7,16 +7,64 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^//?$",
   },
   {
-    "reactRouterPattern": "/auth",
-    "vercelRouterPattern": "^/auth/?$",
-  },
-  {
     "reactRouterPattern": "/new",
     "vercelRouterPattern": "^/new/?$",
   },
   {
-    "reactRouterPattern": "/offline",
-    "vercelRouterPattern": "^/offline/?$",
+    "reactRouterPattern": "/q/",
+    "vercelRouterPattern": "^/q//?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/auth",
+    "vercelRouterPattern": "^/q/q/auth/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/local",
+    "vercelRouterPattern": "^/q/q/local/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/t/:fileId",
+    "vercelRouterPattern": "^/q/q/t/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/",
+    "vercelRouterPattern": "^/q/q/w//?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId/q/w/:workspaceId/debug",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/q/w/[^/]*/debug/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId/q/w/:workspaceId/drafts",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/q/w/[^/]*/drafts/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId/q/w/:workspaceId/f/:fileId",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/q/w/[^/]*/f/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId/q/w/:workspaceId/groups",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/q/w/[^/]*/groups/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId/q/w/:workspaceId/profile",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/q/w/[^/]*/profile/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId/q/w/:workspaceId/settings",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/q/w/[^/]*/settings/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId/q/w/:workspaceId/shared",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/q/w/[^/]*/shared/?$",
+  },
+  {
+    "reactRouterPattern": "/q/q/w/q/w/:workspaceId/q/w/:workspaceId/stars",
+    "vercelRouterPattern": "^/q/q/w/q/w/[^/]*/q/w/[^/]*/stars/?$",
   },
   {
     "reactRouterPattern": "/r",
@@ -43,64 +91,12 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/s/[^/]*/?$",
   },
   {
-    "reactRouterPattern": "/t/:fileId",
-    "vercelRouterPattern": "^/t/[^/]*/?$",
-  },
-  {
     "reactRouterPattern": "/ts-side",
     "vercelRouterPattern": "^/ts-side/?$",
   },
   {
-    "reactRouterPattern": "/u",
-    "vercelRouterPattern": "^/u/?$",
-  },
-  {
-    "reactRouterPattern": "/u/:userId",
-    "vercelRouterPattern": "^/u/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/u/:userId/u/:userId/profile",
-    "vercelRouterPattern": "^/u/[^/]*/u/[^/]*/profile/?$",
-  },
-  {
     "reactRouterPattern": "/v/:roomId",
     "vercelRouterPattern": "^/v/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/w",
-    "vercelRouterPattern": "^/w/?$",
-  },
-  {
-    "reactRouterPattern": "/w/:workspaceId",
-    "vercelRouterPattern": "^/w/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/debug",
-    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/debug/?$",
-  },
-  {
-    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/drafts",
-    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/drafts/?$",
-  },
-  {
-    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/f/:fileId",
-    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/f/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/groups",
-    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/groups/?$",
-  },
-  {
-    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/settings",
-    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/settings/?$",
-  },
-  {
-    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/shared",
-    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/shared/?$",
-  },
-  {
-    "reactRouterPattern": "/w/:workspaceId/w/:workspaceId/stars",
-    "vercelRouterPattern": "^/w/[^/]*/w/[^/]*/stars/?$",
   },
 ]
 `;
