@@ -18,8 +18,8 @@ jobs:
 
       - name: Generate changelog
         run: |
-          npx auto changelog --dry-run > changelog.md
-          cat changelog.md
+          yarn auto changelog --dry-run
+          yarn auto changelog --dry-run > changelog.md
         env:
           GH_TOKEN: ${{ github.token }}
 
