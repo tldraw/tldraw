@@ -19,7 +19,12 @@ import { useEffect, useRef, useState } from 'react'
  *
  * @public
  */
-export function useImageAssetUrl(shapeId: TLShapeId, assetId: TLAssetId | null, width: number) {
+export function useAsset(options: {
+	shapeId: TLShapeId
+	assetId: TLAssetId | null
+	width: number
+}) {
+	const { shapeId, assetId, width } = options
 	const editor = useEditor()
 	const [url, setUrl] = useState<string | null>(null)
 	const [isPlaceholder, setIsPlaceholder] = useState(false)

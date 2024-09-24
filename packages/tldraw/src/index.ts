@@ -74,7 +74,7 @@ export {
 	LABEL_FONT_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
-export { useImageAssetUrl } from './lib/shapes/shared/useAsset'
+export { useAsset } from './lib/shapes/shared/useAsset'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
