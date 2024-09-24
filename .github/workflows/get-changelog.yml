@@ -17,7 +17,8 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Generate changelog
-        run: npx auto changelog --dry-run > changelog.md
+        run: |
+          npx auto changelog --dry-run > changelog.md
           cat changelog.md
         env:
           GH_TOKEN: ${{ github.token }}
