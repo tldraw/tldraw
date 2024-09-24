@@ -13,6 +13,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Prepare repository
+        # Fetch full git history and tags for auto
+        run: git fetch --unshallow --tags
+
       - name: Run our setup
         uses: ./.github/actions/setup
 
