@@ -11,8 +11,8 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/new/?$",
   },
   {
-    "reactRouterPattern": "/q/",
-    "vercelRouterPattern": "^/q//?$",
+    "reactRouterPattern": "/q",
+    "vercelRouterPattern": "^/q/?$",
   },
   {
     "reactRouterPattern": "/q/q/auth",
@@ -27,8 +27,8 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/q/q/t/[^/]*/?$",
   },
   {
-    "reactRouterPattern": "/q/q/w/",
-    "vercelRouterPattern": "^/q/q/w//?$",
+    "reactRouterPattern": "/q/q/w",
+    "vercelRouterPattern": "^/q/q/w/?$",
   },
   {
     "reactRouterPattern": "/q/q/w/q/w/:workspaceId",
