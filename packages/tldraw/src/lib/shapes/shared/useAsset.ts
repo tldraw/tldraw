@@ -9,13 +9,17 @@ import {
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * This is a handy helper hook that resolves an asset to a URL for a given shape. It takes care of fetching the asset.
- * This is used in particular for high-resolution images when you want lower and higher resolution depending
- * on the context.
+ * This is a handy helper hook that resolves an asset to an optimized URL for a given shape, or its
+ * {@link @tldraw/editor#Editor.createTemporaryAssetPreview | placeholder} if the asset is still
+ * uploading. This is used in particular for high-resolution images when you want lower and higher
+ * resolution depending on the context.
+ *
+ * For image scaling to work, you need to implement scaled URLs in
+ * {@link @tldraw/tlschema#TLAssetStore.resolve}.
  *
  * @public
  */
-export function useAsset(shapeId: TLShapeId, assetId: TLAssetId | null, width: number) {
+export function useImageAssetUrl(shapeId: TLShapeId, assetId: TLAssetId | null, width: number) {
 	const editor = useEditor()
 	const [url, setUrl] = useState<string | null>(null)
 	const [isPlaceholder, setIsPlaceholder] = useState(false)

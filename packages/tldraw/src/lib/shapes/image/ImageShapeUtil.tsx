@@ -23,7 +23,7 @@ import { useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useAsset } from '../shared/useAsset'
+import { useImageAssetUrl } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -115,7 +115,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const { asset, url } = useImageAssetUrl(shape.id, shape.props.assetId, shape.props.w)
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {

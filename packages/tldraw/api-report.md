@@ -3719,6 +3719,13 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
+// @public
+export function useImageAssetUrl(shapeId: TLShapeId, assetId: null | TLAssetId, width: number): {
+    asset: TLAsset | null | undefined;
+    isPlaceholder: boolean;
+    url: null | string;
+};
+
 // @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;
 
