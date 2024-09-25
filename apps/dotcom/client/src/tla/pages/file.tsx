@@ -7,6 +7,7 @@ import { TlaErrorPage } from '../components/TlaErrorPage'
 import { TlaSidebarToggle } from '../components/TlaSidebarToggle'
 import { TlaWrapperWithSidebar } from '../components/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
+import { TldrawApp } from '../utils/TldrawApp'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 
 export function Component() {
@@ -50,7 +51,7 @@ export function Component() {
 					<TlaSidebarToggle />
 					<div className="tla-file-header__fileinfo tla-text_ui__section">
 						<span className="tla-file-header__folder">My files / </span>
-						<span className="tla-file-header__title">My title</span>
+						<span className="tla-file-header__title">{TldrawApp.getFileName(file)}</span>
 					</div>
 					<TlaButton>Share</TlaButton>
 				</div>
