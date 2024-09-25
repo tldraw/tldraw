@@ -7,7 +7,6 @@ import '../styles/core.css'
 import '../styles/globals.css'
 import { Head } from './components/Head/Head'
 import { router } from './routes'
-import './tla/styles/tla.css'
 
 const browserRouter = createBrowserRouter(router)
 

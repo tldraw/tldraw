@@ -19,7 +19,7 @@ import { deleteFromLocalStorage, getFromLocalStorage } from 'tldraw'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { TlaErrorPage } from './tla/components/TlaErrorPage'
-import { AppStateProvider, useApp } from './tla/hooks/useAppState'
+import { useApp } from './tla/hooks/useAppState'
 import { useAuth } from './tla/hooks/useAuth'
 import { useSessionState } from './tla/hooks/useSessionState'
 import { TldrawAppFileRecordType } from './tla/utils/schema/TldrawAppFile'
@@ -69,13 +69,7 @@ export const router = createRoutesFromElements(
 			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		{/* begin tla */}
-		<Route
-			element={
-				<AppStateProvider>
-					<Outlet />
-				</AppStateProvider>
-			}
-		>
+		<Route lazy={() => import('./tla/components/TlaAppProvider')}>
 			{/* If not redirected, then local */}
 			<Route path="/q" element={<RedirectAtRoot />} />
 			{/* Force route to local */}
