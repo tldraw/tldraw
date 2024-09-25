@@ -29,9 +29,10 @@
 	--tla-color-border: hsl(204, 16%, 85%);
 	--tla-color-hover-1: hsl(204, 16%, 4%, 3%);
 	--tla-color-hover-2: hsl(204, 16%, 4%, 4.5%);
+	--tla-color-hover-3: hsla(0, 0%, 100%, 32.5%);
 	--tla-color-overlay: hsla(204, 16%, 5%, 1%);
 	--tla-color-primary: hsl(214, 84%, 56%);
-	--tla-color-secondary: rgb(234, 234, 234);
+	--tla-color-secondary: hsl(0, 0%, 92%);
 	--tla-color-accent-1: hsl(50, 91%, 70%);
 	--tla-color-accent-2: hsl(28, 88%, 57%);
 	--tla-color-accent-3: hsl(135, 59%, 49%);
@@ -58,6 +59,7 @@
 	--tla-color-border: hsl(240, 12%, 20%);
 	--tla-color-hover-1: hsl(240, 8%, 100%, 3%);
 	--tla-color-hover-2: hsl(240, 8%, 100%, 5%);
+	--tla-color-hover-3: hsl(204, 16%, 4%, 3%);
 	--tla-color-overlay: hsla(204, 16%, 5%, 1%);
 	--tla-color-primary: hsl(214, 84%, 44%);
 	--tla-color-secondary: hsl(0, 0%, 20%);
@@ -187,11 +189,12 @@
 	-webkit-font-smoothing: antialiased;
 }
 
-.tla-text_ui__regular {
-	font-size: 14px;
+.tla-text_ui__tiny {
+	font-size: 6px;
 	line-height: 1.3;
-	font-weight: 500;
+	font-weight: 800;
 	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -206,18 +209,17 @@
 	-webkit-font-smoothing: antialiased;
 }
 
-.tla-text_ui__tiny {
-	font-size: 6px;
+.tla-text_ui__medium {
+	font-size: 12px;
 	line-height: 1.3;
-	font-weight: 800;
+	font-weight: 500;
 	font-family: var(--tla-font-ui);
-	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
 
-.tla-text_ui__medium {
-	font-size: 12px;
+.tla-text_ui__regular {
+	font-size: 14px;
 	line-height: 1.3;
 	font-weight: 500;
 	font-family: var(--tla-font-ui);
@@ -242,6 +244,7 @@
 	height: 15px;
 	width: 15px;
 	z-index: 1;
+	pointer-events: none;
 }
 
 .tla-icon_wrapper {
@@ -277,7 +280,7 @@
 
 .tla-button {
 	position: relative;
-	height: 40px;
+	height: 32px;
 	border: 1px solid transparent;
 	padding: 0px 12px;
 	background: none;
@@ -332,7 +335,8 @@
 }
 
 .tla-button__secondary {
-	background-color: var(--tla-color-secondary);
+	background-color: var(--tla-color-low);
+	border: 1px solid var(--tla-color-border);
 	color: var(--tla-color-text-1);
 }
 
@@ -342,7 +346,7 @@
 }
 
 @media (hover: hover) {
-	.tla-button:hover {
+	.tla-button__primary:hover {
 		border: 1px solid transparent;
 	}
 }
@@ -1604,4 +1608,240 @@ want centered content that docks to the top when the window is short
 
 .tla-logged-out__footer a {
 	color: var(--tla-color-primary);
+}
+
+/* ------------------- Share menu ------------------- */
+
+.tla-share-menu {
+	width: 260px;
+	--share-menu-padding: 12px;
+}
+
+.tla-share-menu__content {
+	padding: 10px 0px var(--share-menu-padding) 0px;
+}
+
+.tla-share-menu__header {
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0px var(--share-menu-padding);
+	font-weight: 700;
+}
+
+/* Share toggle */
+
+.tla-share-menu__control {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-left: var(--share-menu-padding);
+	height: 40px;
+}
+
+.tla-share-menu__control-button {
+	all: unset;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	cursor: pointer;
+}
+
+.tla-share-menu__control-container {
+	position: relative;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0px var(--share-menu-padding);
+	cursor: pointer;
+	pointer-events: all;
+}
+
+.tla-share-menu__control-container select,
+.tla-share-menu__control-container input[type='checkbox'] {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: pointer;
+	pointer-events: all;
+}
+
+/* Select */
+
+.tla-switch {
+	height: 24px;
+	width: 40px;
+	position: relative;
+	border-radius: 99px;
+	background-color: var(--tla-color-text-3);
+	transition: all 0.12s;
+}
+
+.tla-switch:after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	right: initial;
+	border-radius: 100%;
+	height: 20px;
+	width: 20px;
+	background-color: var(--tla-color-panel);
+	pointer-events: none;
+	transition: all 0.12s;
+}
+
+.tla-switch[data-checked='true'] {
+	background-color: var(--tla-color-primary);
+}
+
+.tla-switch[data-checked='true']:after {
+	left: 18px;
+}
+
+.tla-share-menu__select__label {
+	display: flex;
+	flex-direction: row;
+	gap: 4px;
+}
+
+/* Share link */
+
+/* .tla-share-menu__link-container {
+	padding: 12px;
+	background: none;
+	border: none;
+	width: 100%;
+	cursor: pointer;
+}
+
+.tla-share-menu__link-label {
+	display: flex;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.tla-share-menu__link {
+	padding: 12px;
+	height: 40px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-radius: 6px;
+	gap: 12px;
+	border: 1px solid var(--tla-color-border);
+}
+
+.tla-share-menu__link__url {
+	flex-grow: 2;
+	text-align: left;
+	margin: none;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+} */
+
+.tla-share-menu__copy-link {
+	padding: 0px var(--share-menu-padding);
+	width: 100%;
+}
+
+.tla-share-menu__copy-button {
+	width: 100%;
+	margin: calc(var(--share-menu-padding) / 2) 0px;
+}
+
+.tla-share-menu .tla-divider {
+	margin: var(--share-menu-padding) 0px;
+}
+
+.tla-share-menu__copy-button > .tla-icon {
+	position: absolute;
+	right: 10px;
+}
+
+.tla-share-menu__description {
+	padding: 12px 0px;
+	color: var(--tla-color-text-1);
+	font-weight: 400;
+	background-color: var(--tla-color-low);
+	padding: 12px 12px 0px 12px;
+	border-radius: 6px;
+}
+
+.tla-share-menu__description-dismiss {
+	background: none;
+	border: none;
+	padding: 12px 0px;
+	color: var(--tla-color-primary);
+	font-weight: 500;
+	width: 100%;
+	text-align: right;
+	cursor: pointer;
+}
+
+.tla-share-menu__qr-code-button {
+	height: 100%;
+	width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	border: none;
+	background: none;
+	cursor: pointer;
+}
+
+.tla-share-menu__qr-code {
+	position: relative;
+	width: 100%;
+	height: 256px;
+	padding: 0px var(--share-menu-padding);
+	margin: 0px 0px var(--share-menu-padding) 0px;
+}
+
+.tla-share-menu__qr-code-inner {
+	width: 100%;
+	height: 100%;
+	background-color: var(--tla-color-low);
+}
+
+.tla-share-menu__qr-code-toggle {
+	position: absolute;
+	top: -4px;
+	right: 0px;
+	width: 40px;
+	height: 40px;
+	padding: 0px;
+	cursor: pointer;
+	background: none;
+	border: none;
+}
+
+.tla-share-menu__qr-code-toggle-inner {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+@media (hover: hover) {
+	.tla-share-menu__qr-code-toggle {
+		visibility: hidden;
+	}
+
+	.tla-share-menu__qr-code:hover .tla-share-menu__qr-code-toggle {
+		visibility: visible;
+	}
 }

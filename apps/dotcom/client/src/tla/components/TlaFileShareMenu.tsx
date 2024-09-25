@@ -1,0 +1,321 @@
+import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
+import { ChangeEvent, useCallback, useState } from 'react'
+import {
+	Editor,
+	TldrawUiDropdownMenuTrigger,
+	exportAs,
+	useLocalStorageState,
+	useValue,
+} from 'tldraw'
+import { useApp } from '../hooks/useAppState'
+import { useAuth } from '../hooks/useAuth'
+import { copyTextToClipboard } from '../utils/copy'
+import { TldrawAppFileId } from '../utils/schema/TldrawAppFile'
+import { TldrawAppUser } from '../utils/schema/TldrawAppUser'
+import { getShareableFileUrl } from '../utils/urls'
+import { TlaDivider } from './TlaDivider'
+import { TlaIcon } from './TlaIcon'
+
+export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
+	const app = useApp()
+
+	const shared = useValue(
+		'file',
+		() => {
+			const file = app.store.get(fileId)
+			if (!file) throw Error('no file')
+			return file.shared
+		},
+		[app, fileId]
+	)
+
+	return (
+		<DropdownPrimitive.Root dir="ltr" modal={false}>
+			<TldrawUiDropdownMenuTrigger>
+				<button className={`tla-button tla-button__primary tla-text_ui__medium`}>
+					<span>Share</span>
+				</button>
+			</TldrawUiDropdownMenuTrigger>
+			<DropdownPrimitive.Content
+				className="tla-share-menu tlui-menu tla-text_ui__medium"
+				data-size="large"
+				side="bottom"
+				align="end"
+				collisionPadding={6}
+				alignOffset={-2}
+				sideOffset={6}
+			>
+				<div className="tla-share-menu__content">
+					{/* <div className="tla-share-menu__header tla-text_ui__medium">Share</div>
+				<TlaSpacer height={8} /> */}
+					<TlaToggleShared shared={shared} fileId={fileId} />
+					<TlaSelectSharedLinkType fileId={fileId} />
+					<TlaCopyLinkButton shared={shared} fileId={fileId} />
+					<_TlaQrCodeToggle2 />
+					<TlaDivider />
+					<TlaSelectExportFormat />
+					<TlaExportImageButton />
+				</div>
+			</DropdownPrimitive.Content>
+		</DropdownPrimitive.Root>
+	)
+}
+
+function TlaToggleShared({ shared, fileId }: { shared: boolean; fileId: TldrawAppFileId }) {
+	const app = useApp()
+	const auth = useAuth()
+	if (!auth) throw Error('should have auth')
+
+	const { userId, workspaceId } = auth
+
+	const handleToggleShared = useCallback(() => {
+		// todo: if there are other users connected to the project, warn
+		// that they'll be removed from the project until the project is shared again
+
+		// copy file url
+		app.toggleFileShared(userId, workspaceId, fileId)
+	}, [app, userId, workspaceId, fileId])
+
+	return (
+		<div className="tla-share-menu__control">
+			<div className="tla-text_ui__medium">Share this project</div>
+			<div className="tla-share-menu__control-container">
+				<div className="tla-switch" data-checked={!!shared} />
+				<input name="shared" type="checkbox" checked={!!shared} onChange={handleToggleShared} />
+			</div>
+		</div>
+	)
+}
+
+function TlaSelectSharedLinkType({ fileId }: { fileId: TldrawAppFileId }) {
+	const app = useApp()
+	const auth = useAuth()
+	if (!auth) throw Error('should have auth')
+	const { userId, workspaceId } = auth
+
+	const sharedLinkType = useValue(
+		'file',
+		() => {
+			const file = app.store.get(fileId)
+			if (!file) throw Error('could not get that file')
+			return file.sharedLinkType
+		},
+		[app, fileId]
+	)
+
+	const handleSelectChange = useCallback(() => {
+		app.toggleFileShareLinkType(userId, workspaceId, fileId)
+	}, [app, userId, workspaceId, fileId])
+
+	return (
+		<div className="tla-share-menu__control">
+			<div className="tla-text_ui__medium">Anyone with the link can</div>
+			<div className="tla-share-menu__control-container">
+				<div className="tla-share-menu__select__label">
+					<span>{sharedLinkType === 'edit' ? 'Edit' : 'View'}</span>
+					<TlaIcon icon="chevron-down" />
+				</div>
+				<select value={sharedLinkType} onChange={handleSelectChange}>
+					<option value="edit">Edit</option>
+					<option value="view">View</option>
+				</select>
+			</div>
+		</div>
+	)
+}
+
+function TlaCopyLinkButton({ shared, fileId }: { shared: boolean; fileId: TldrawAppFileId }) {
+	const app = useApp()
+	const auth = useAuth()
+	if (!auth) throw Error('should have auth')
+	const { userId, workspaceId } = auth
+
+	const [copied, setCopied] = useState(false)
+
+	const handleCopyLinkClick = useCallback(() => {
+		if (copied) {
+			return
+		}
+
+		if (!shared) {
+			app.toggleFileShared(userId, workspaceId, fileId)
+		}
+
+		const fileUrl = getShareableFileUrl(workspaceId, fileId)
+		copyTextToClipboard(fileUrl)
+
+		setCopied(true)
+		setTimeout(() => setCopied(false), 2500)
+
+		return () => {
+			setCopied(false)
+		}
+	}, [app, userId, workspaceId, fileId, shared, copied])
+
+	return (
+		<div className="tla-share-menu__copy-link">
+			<button
+				className="tla-button tla-button__primary tla-text_ui__medium tla-share-menu__copy-button"
+				onClick={handleCopyLinkClick}
+			>
+				<span>{shared ? 'Copy link' : 'Copy link and share'}</span>
+				<TlaIcon icon={copied ? 'check' : 'copy'} />
+			</button>
+		</div>
+	)
+}
+
+function TlaSelectExportFormat() {
+	const app = useApp()
+	const auth = useAuth()
+	if (!auth) throw Error('should have auth')
+	const { userId } = auth
+
+	const exportFormat = useValue(
+		'export format',
+		() => {
+			const user = app.getUser(userId)
+			if (!user) throw Error('no user')
+			return user.exportFormat
+		},
+		[app, userId]
+	)
+
+	const handleSelectChange = useCallback(
+		(e: ChangeEvent<HTMLSelectElement>) => {
+			const { value } = e.currentTarget
+			app.setUserExportFormat(userId, value as TldrawAppUser['exportFormat'])
+		},
+		[app, userId]
+	)
+
+	return (
+		<div className="tla-share-menu__control">
+			<div className="tla-text_ui__medium">Export as...</div>
+			<div className="tla-share-menu__control-container">
+				<div className="tla-share-menu__select__label">
+					<span>{exportFormat === 'svg' ? 'SVG' : 'PNG'}</span>
+					<TlaIcon icon="chevron-down" />
+				</div>
+				<select value={exportFormat} onChange={handleSelectChange}>
+					<option value="svg">SVG</option>
+					<option value="png">PNG</option>
+				</select>
+			</div>
+		</div>
+	)
+}
+
+function TlaExportImageButton() {
+	const [exported, setExported] = useState(false)
+
+	const handleExportLinkClick = useCallback(() => {
+		if (exported) {
+			return
+		}
+
+		// todo: export the editor image
+		const editor = (window as any).editor as Editor
+		if (editor) {
+			const ids = editor.getSelectedShapeIds()
+			exportAs(editor, ids, 'png', 'file')
+		}
+
+		setExported(true)
+		setTimeout(() => setExported(false), 2500)
+
+		return () => {
+			setExported(false)
+		}
+	}, [exported])
+
+	return (
+		<div className="tla-share-menu__copy-link">
+			<button
+				className="tla-button tla-button__secondary tla-text_ui__medium tla-share-menu__copy-button"
+				onClick={handleExportLinkClick}
+			>
+				<span>Export image</span>
+				<TlaIcon icon="export" />
+			</button>
+		</div>
+	)
+}
+
+const debugDismissed = false
+
+function _TlaNotice() {
+	const [dismissed, setDismissed] = useLocalStorageState('TLDRAW_APP_DISMISS_COPY_INFO', false)
+
+	if (dismissed && !debugDismissed) return null
+
+	return (
+		<div className="tla-share-menu__description tla-text_ui__medium">
+			<p>
+				Anyone with a link to your shared project can edit it with you. You can turn off sharing at
+				any time.
+			</p>
+			<button className="tla-share-menu__description-dismiss" onClick={() => setDismissed(true)}>
+				Dismiss
+			</button>
+		</div>
+	)
+}
+
+function _TlaQrCodeToggle() {
+	const [showQrCode, setShowQrCode] = useLocalStorageState('show qr code', false)
+
+	const handleClick = useCallback(() => {
+		setShowQrCode((v) => !v)
+	}, [setShowQrCode])
+
+	return showQrCode ? (
+		<div className="tla-share-menu__qr-code">
+			<div className="tla-share-menu__qr-code-inner" />
+			<button className="tla-share-menu__qr-code-toggle" onClick={handleClick}>
+				<div className="tla-share-menu__qr-code-toggle-inner">
+					<TlaIcon icon="close" />
+				</div>
+			</button>
+		</div>
+	) : (
+		<div className="tla-share-menu__control">
+			<button className="tla-share-menu__control-button" onClick={handleClick}>
+				<div className="tla-text_ui__medium">Show QR code</div>
+				<div className="tla-share-menu__control-container">
+					<TlaIcon icon={'chevron-down'} />
+				</div>
+			</button>
+		</div>
+	)
+}
+
+function _TlaQrCodeToggle2() {
+	const [showQrCode, setShowQrCode] = useLocalStorageState('show qr code', false)
+
+	const handleClick = useCallback(() => {
+		setShowQrCode((v) => !v)
+	}, [setShowQrCode])
+
+	return (
+		<>
+			<div className="tla-share-menu__control">
+				<button className="tla-share-menu__control-button" onClick={handleClick}>
+					<div className="tla-text_ui__medium">{showQrCode ? 'QR code' : 'QR code'}</div>
+					<div className="tla-share-menu__control-container">
+						<TlaIcon icon={showQrCode ? 'chevron-up' : 'chevron-down'} />
+					</div>
+				</button>
+			</div>
+			{showQrCode && <TlaQrCode />}
+		</>
+	)
+}
+
+function TlaQrCode() {
+	return (
+		<div className="tla-share-menu__qr-code">
+			<div className="tla-share-menu__qr-code-inner" />
+		</div>
+	)
+}

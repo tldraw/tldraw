@@ -419,6 +419,36 @@ export class TldrawApp {
 		return users.filter((user) => user.presence.fileIds.includes(fileId)).map((user) => user.id)
 	}
 
+	toggleFileShared(
+		userId: TldrawAppUserId,
+		workspaceId: TldrawAppWorkspaceId,
+		fileId: TldrawAppFileId
+	) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+
+		if (userId !== file.owner || workspaceId !== file.workspaceId) {
+			throw Error('user cannot edit that file')
+		}
+
+		this.store.put([{ ...file, shared: !file.shared }])
+	}
+
+	toggleFileShareLinkType(
+		userId: TldrawAppUserId,
+		workspaceId: TldrawAppWorkspaceId,
+		fileId: TldrawAppFileId
+	) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+
+		if (userId !== file.owner || workspaceId !== file.workspaceId) {
+			throw Error('user cannot edit that file')
+		}
+
+		this.store.put([{ ...file, sharedLinkType: file.sharedLinkType === 'edit' ? 'view' : 'edit' }])
+	}
+
 	onFileEnter(userId: TldrawAppUserId, workspaceId: TldrawAppWorkspaceId, fileId: TldrawAppFileId) {
 		const user = this.store.get(userId)
 		if (!user) throw Error('no user')
@@ -435,6 +465,18 @@ export class TldrawApp {
 					...user.presence,
 					fileIds: [...user.presence.fileIds.filter((id) => id !== fileId), fileId],
 				},
+			},
+		])
+	}
+
+	setUserExportFormat(userId: TldrawAppUserId, exportFormat: TldrawAppUser['exportFormat']) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+
+		this.store.put([
+			{
+				...user,
+				exportFormat,
 			},
 		])
 	}

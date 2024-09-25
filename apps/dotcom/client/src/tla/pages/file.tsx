@@ -1,17 +1,17 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
-import { TlaButton } from '../components/TlaButton'
 import { TlaEditor } from '../components/TlaEditor'
 import { TlaErrorPage } from '../components/TlaErrorPage'
+import { TlaFileShareMenu } from '../components/TlaFileShareMenu'
 import { TlaSidebarToggle } from '../components/TlaSidebarToggle'
 import { TlaWrapperWithSidebar } from '../components/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
 import { TldrawApp } from '../utils/TldrawApp'
-import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
+import { TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 
 export function Component() {
-	const { fileId } = useParams<{ fileId: TldrawAppFileId }>()
+	const { fileId } = useParams<{ fileId: string }>()
 	if (!fileId) throw Error('File id not found')
 
 	const app = useApp()
@@ -53,7 +53,7 @@ export function Component() {
 						<span className="tla-file-header__folder">My files / </span>
 						<span className="tla-file-header__title">{TldrawApp.getFileName(file)}</span>
 					</div>
-					<TlaButton>Share</TlaButton>
+					<TlaFileShareMenu fileId={file.id} />
 				</div>
 				<div className={`tla-file__wrapper ${isSidebarOpen ? `tla-file__wrapper-sidebar` : ''}`}>
 					<TlaEditor file={file} />
