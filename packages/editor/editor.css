@@ -166,7 +166,7 @@
 	--shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
 	--shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
 		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+	--shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 10%), 0px 2px 6px hsl(0, 0%, 0%, 6%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 	--shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
 		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--color-panel-contrast);
