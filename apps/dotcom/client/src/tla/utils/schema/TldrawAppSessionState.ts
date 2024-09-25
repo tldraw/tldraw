@@ -8,7 +8,6 @@ import {
 	idValidator,
 } from 'tldraw'
 import { TldrawAppUserId } from './TldrawAppUser'
-import { TldrawAppWorkspaceId } from './TldrawAppWorkspace'
 
 export interface TldrawAppViewState {
 	sort: 'recent' | 'newest' | 'oldest' | 'atoz' | 'ztoa'
@@ -21,7 +20,6 @@ export interface TldrawAppSessionState
 	isSidebarOpen: boolean
 	auth?: {
 		userId: TldrawAppUserId // null,
-		workspaceId: TldrawAppWorkspaceId
 	}
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
 	views: {
@@ -51,7 +49,6 @@ export const tldrawAppSessionStateValidator: T.Validator<TldrawAppSessionState> 
 		),
 		auth: T.object({
 			userId: idValidator<TldrawAppUserId>('user'),
-			workspaceId: idValidator<TldrawAppWorkspaceId>('workspace'),
 		}).optional(),
 		theme: T.literalEnum('light', 'dark'),
 		createdAt: T.number,
