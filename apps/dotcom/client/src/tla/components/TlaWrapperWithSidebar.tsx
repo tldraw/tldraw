@@ -1,7 +1,6 @@
 import { ReactNode } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
-import '../styles/tla.css'
 import { TlaSidebar } from './TlaSidebar'
 
 export function TlaWrapperWithSidebar({
