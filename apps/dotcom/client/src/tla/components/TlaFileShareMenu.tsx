@@ -207,6 +207,8 @@ function TlaSelectExportFormat() {
 }
 
 function TlaExportImageButton() {
+	const app = useApp()
+
 	const [exported, setExported] = useState(false)
 
 	const handleExportLinkClick = useCallback(() => {
@@ -217,8 +219,13 @@ function TlaExportImageButton() {
 		// todo: export the editor image
 		const editor = (window as any).editor as Editor
 		if (editor) {
+			const sessionState = app.getSessionState()
+			const { auth } = sessionState
+			if (!auth) throw Error('expected auth')
+			const user = app.getUser(auth.userId)
+			if (!user) throw Error('expected user')
 			const ids = editor.getSelectedShapeIds()
-			exportAs(editor, ids, 'png', 'file')
+			exportAs(editor, ids, user?.exportFormat, 'file')
 		}
 
 		setExported(true)
@@ -227,7 +234,7 @@ function TlaExportImageButton() {
 		return () => {
 			setExported(false)
 		}
-	}, [exported])
+	}, [exported, app])
 
 	return (
 		<div className="tla-share-menu__copy-link">
