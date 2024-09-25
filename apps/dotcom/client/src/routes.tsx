@@ -70,7 +70,6 @@ export const router = createRoutesFromElements(
 		</Route>
 		{/* begin tla */}
 		<Route
-			path="/q"
 			element={
 				<AppStateProvider>
 					<Outlet />
@@ -78,7 +77,7 @@ export const router = createRoutesFromElements(
 			}
 		>
 			{/* If not redirected, then local */}
-			<Route index element={<RedirectAtRoot />} />
+			<Route path="/q" element={<RedirectAtRoot />} />
 			{/* Force route to local */}
 			<Route path="/q/local" lazy={() => import('./tla/pages/local')} />
 			{/* Force route to auth */}
@@ -86,10 +85,10 @@ export const router = createRoutesFromElements(
 			{/* Temporary file */}
 			<Route path="/q/t/:fileId" lazy={() => import('./tla/pages/file-temp')} />
 			{/* Workspace */}
-			<Route path="/q/w" element={<Outlet />}>
-				<Route index element={<RedirectAtWorkspacesRoot />} />
-				<Route path="/q/w/:workspaceId" element={<RequireAuthForWorkspace />}>
-					<Route index element={<RedirectAtWorkspaceRoot />} />
+			<Route element={<Outlet />}>
+				<Route path="/q/w" element={<RedirectAtWorkspacesRoot />} />
+				<Route element={<RequireAuthForWorkspace />}>
+					<Route path="/q/w/:workspaceId" index element={<RedirectAtWorkspaceRoot />} />
 					{/* File view*/}
 					<Route path="/q/w/:workspaceId/f/:fileId" lazy={() => import('./tla/pages/file')} />
 					{/* List views */}
