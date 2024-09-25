@@ -14,7 +14,6 @@
 	"scripts": {
 		"dev": "vite --host --port 5001",
 		"build": "vite build",
-		"start": "tsx ./server/server.ts",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
