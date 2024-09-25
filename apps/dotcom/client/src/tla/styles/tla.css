@@ -351,6 +351,42 @@
 	}
 }
 
+/* ------------------ Toggle switch ----------------- */
+
+.tla-switch {
+	--switch-h: 24px;
+	--switch-w: calc(var(--switch-h) * 1.618);
+	height: var(--switch-h);
+	width: var(--switch-w);
+	position: relative;
+	border-radius: 99px;
+	background-color: var(--tla-color-text-3);
+	transition: all 0.12s;
+}
+
+.tla-switch:after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	right: initial;
+	border-radius: 100%;
+	height: calc(var(--switch-h) - 4px);
+	width: calc(var(--switch-h) - 4px);
+	background-color: var(--tla-color-panel);
+	pointer-events: none;
+	transition: all 0.12s;
+}
+
+.tla-switch[data-checked='true'] {
+	background-color: var(--tla-color-primary);
+}
+
+.tla-switch[data-checked='true']:after {
+	left: calc(var(--switch-w) - (var(--switch-h) - 4px) - 2px);
+}
+
 /* --------------------- Inputs --------------------- */
 
 .tla-input {
@@ -1613,21 +1649,12 @@ want centered content that docks to the top when the window is short
 /* ------------------- Share menu ------------------- */
 
 .tla-share-menu {
-	width: 260px;
+	width: 240px;
 	--share-menu-padding: 12px;
 }
 
 .tla-share-menu__content {
 	padding: 10px 0px var(--share-menu-padding) 0px;
-}
-
-.tla-share-menu__header {
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0px var(--share-menu-padding);
-	font-weight: 700;
 }
 
 /* Share toggle */
@@ -1675,82 +1702,13 @@ want centered content that docks to the top when the window is short
 
 /* Select */
 
-.tla-switch {
-	height: 24px;
-	width: 40px;
-	position: relative;
-	border-radius: 99px;
-	background-color: var(--tla-color-text-3);
-	transition: all 0.12s;
-}
-
-.tla-switch:after {
-	display: block;
-	content: '';
-	position: absolute;
-	top: 2px;
-	left: 2px;
-	right: initial;
-	border-radius: 100%;
-	height: 20px;
-	width: 20px;
-	background-color: var(--tla-color-panel);
-	pointer-events: none;
-	transition: all 0.12s;
-}
-
-.tla-switch[data-checked='true'] {
-	background-color: var(--tla-color-primary);
-}
-
-.tla-switch[data-checked='true']:after {
-	left: 18px;
-}
-
 .tla-share-menu__select__label {
 	display: flex;
 	flex-direction: row;
 	gap: 4px;
 }
 
-/* Share link */
-
-/* .tla-share-menu__link-container {
-	padding: 12px;
-	background: none;
-	border: none;
-	width: 100%;
-	cursor: pointer;
-}
-
-.tla-share-menu__link-label {
-	display: flex;
-	height: 32px;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-}
-
-.tla-share-menu__link {
-	padding: 12px;
-	height: 40px;
-	width: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	border-radius: 6px;
-	gap: 12px;
-	border: 1px solid var(--tla-color-border);
-}
-
-.tla-share-menu__link__url {
-	flex-grow: 2;
-	text-align: left;
-	margin: none;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-} */
+/* Copy button */
 
 .tla-share-menu__copy-link {
 	padding: 0px var(--share-menu-padding);
@@ -1762,14 +1720,35 @@ want centered content that docks to the top when the window is short
 	margin: calc(var(--share-menu-padding) / 2) 0px;
 }
 
-.tla-share-menu .tla-divider {
-	margin: var(--share-menu-padding) 0px;
-}
-
 .tla-share-menu__copy-button > .tla-icon {
 	position: absolute;
 	right: 10px;
 }
+
+.tla-share-menu .tla-divider {
+	margin: var(--share-menu-padding) 0px;
+}
+
+/* QR Code */
+
+.tla-share-menu__qr-code {
+	position: relative;
+	width: 100%;
+	height: 216px;
+	padding: 0px var(--share-menu-padding);
+	margin: 0px 0px var(--share-menu-padding) 0px;
+}
+
+.tla-share-menu__qr-code-inner {
+	width: 100%;
+	height: 100%;
+	background-color: var(--tla-color-low);
+	background-size: 100% 100%;
+	background-position: center center;
+	background-color: var(--tla-color-low);
+}
+
+/* Share menu description */
 
 .tla-share-menu__description {
 	padding: 12px 0px;
@@ -1789,62 +1768,4 @@ want centered content that docks to the top when the window is short
 	width: 100%;
 	text-align: right;
 	cursor: pointer;
-}
-
-.tla-share-menu__qr-code-button {
-	height: 100%;
-	width: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: flex-end;
-	border: none;
-	background: none;
-	cursor: pointer;
-}
-
-.tla-share-menu__qr-code {
-	position: relative;
-	width: 100%;
-	height: 256px;
-	padding: 0px var(--share-menu-padding);
-	margin: 0px 0px var(--share-menu-padding) 0px;
-}
-
-.tla-share-menu__qr-code-inner {
-	width: 100%;
-	height: 100%;
-	background-color: var(--tla-color-low);
-	background-size: 125% 125%;
-	background-position: center center;
-	background-color: var(--tla-color-low);
-}
-
-.tla-share-menu__qr-code-toggle {
-	position: absolute;
-	top: -4px;
-	right: 0px;
-	width: 40px;
-	height: 40px;
-	padding: 0px;
-	cursor: pointer;
-	background: none;
-	border: none;
-}
-
-.tla-share-menu__qr-code-toggle-inner {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-@media (hover: hover) {
-	.tla-share-menu__qr-code-toggle {
-		visibility: hidden;
-	}
-
-	.tla-share-menu__qr-code:hover .tla-share-menu__qr-code-toggle {
-		visibility: visible;
-	}
 }

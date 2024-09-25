@@ -48,8 +48,6 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 				sideOffset={6}
 			>
 				<div className="tla-share-menu__content">
-					{/* <div className="tla-share-menu__header tla-text_ui__medium">Share</div>
-				<TlaSpacer height={8} /> */}
 					<TlaToggleShared shared={shared} fileId={fileId} />
 					<TlaSelectSharedLinkType fileId={fileId} />
 					<TlaCopyLinkButton shared={shared} fileId={fileId} />
@@ -111,7 +109,7 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: TldrawAppFileId }) {
 
 	return (
 		<div className="tla-share-menu__control">
-			<div className="tla-text_ui__medium">Anyone with the link can</div>
+			<div className="tla-text_ui__medium">Anyone with the link can...</div>
 			<div className="tla-share-menu__control-container">
 				<div className="tla-share-menu__select__label">
 					<span>{sharedLinkType === 'edit' ? 'Edit' : 'View'}</span>
@@ -265,7 +263,7 @@ function _TlaNotice() {
 }
 
 function TlaQrCodeToggle({ fileId }: { fileId: TldrawAppFileId }) {
-	const [qrCode, setQrCode] = useLocalStorageState<string | null>(fileId + 'qr-code_4', null)
+	const [qrCode, setQrCode] = useLocalStorageState<string | null>(fileId + 'qr-code-10', null)
 	const [showQrCode, setShowQrCode] = useLocalStorageState('show qr code', false)
 
 	const auth = useAuth()
