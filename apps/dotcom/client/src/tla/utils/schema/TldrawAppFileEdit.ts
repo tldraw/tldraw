@@ -9,10 +9,8 @@ import {
 } from 'tldraw'
 import { TldrawAppFileId } from './TldrawAppFile'
 import { TldrawAppUserId } from './TldrawAppUser'
-import { TldrawAppWorkspaceId } from './TldrawAppWorkspace'
 
 export interface TldrawAppFileEdit extends BaseRecord<'file-edit', RecordId<TldrawAppFileEdit>> {
-	workspaceId: TldrawAppWorkspaceId
 	userId: TldrawAppUserId
 	fileId: TldrawAppFileId
 	sessionStartedAt: number
@@ -29,7 +27,6 @@ export const tldrawAppFileEditValidator: T.Validator<TldrawAppFileEdit> = T.mode
 	T.object({
 		typeName: T.literal('file-edit'),
 		id: idValidator<TldrawAppFileEditId>('file-edit'),
-		workspaceId: idValidator<TldrawAppWorkspaceId>('workspace'),
 		userId: idValidator<TldrawAppUserId>('user'),
 		fileId: idValidator<TldrawAppFileId>('file'),
 		sessionStartedAt: T.number,

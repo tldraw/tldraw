@@ -27,7 +27,7 @@ export function TlaErrorPage({ error }: { error: TlaPageErrorType }) {
 	)
 }
 
-export function TlaErrorPageContent({ error }: { error: TlaPageErrorType }) {
+function TlaErrorPageContent({ error }: { error: TlaPageErrorType }) {
 	switch (error) {
 		case 'file-not-found': {
 			return (

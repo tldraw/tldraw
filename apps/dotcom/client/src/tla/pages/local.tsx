@@ -4,7 +4,6 @@ import { TlaEditor } from '../components/TlaEditor'
 import { TlaWrapperLoggedOut } from '../components/TlaWrapperLoggedOut'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
-import { TldrawAppWorkspaceRecordType } from '../utils/schema/TldrawAppWorkspace'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
 export function Component() {
@@ -25,7 +24,7 @@ export function Component() {
 		const file = app.store.get(fileId)
 
 		if (!file) {
-			app.createFile('temporary', TldrawAppWorkspaceRecordType.createId('0'), fileId)
+			app.createFile('temporary', fileId)
 		}
 
 		setFileId(fileId)

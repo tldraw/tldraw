@@ -7,14 +7,11 @@ import {
 	createRecordType,
 	idValidator,
 } from 'tldraw'
-import { TldrawAppGroupId } from './TldrawAppGroup'
 import { TldrawAppUserId } from './TldrawAppUser'
-import { TldrawAppWorkspaceId } from './TldrawAppWorkspace'
 
 export interface TldrawAppFile extends BaseRecord<'file', RecordId<TldrawAppFile>> {
 	name: string
-	workspaceId: TldrawAppWorkspaceId
-	owner: TldrawAppUserId | TldrawAppGroupId | 'temporary'
+	owner: TldrawAppUserId | 'temporary'
 	thumbnail: string
 	shared: boolean
 	sharedLinkType: 'view' | 'edit'
@@ -32,11 +29,7 @@ export const tldrawAppFileValidator: T.Validator<TldrawAppFile> = T.model(
 		typeName: T.literal('file'),
 		id: idValidator<TldrawAppFileId>('file'),
 		name: T.string,
-		workspaceId: idValidator<TldrawAppWorkspaceId>('workspace'),
-		owner: T.or(
-			T.literal('temporary'),
-			T.or(idValidator<TldrawAppUserId>('user'), idValidator<TldrawAppGroupId>('group'))
-		),
+		owner: T.or(T.literal('temporary'), idValidator<TldrawAppUserId>('user')),
 		shared: T.boolean,
 		sharedLinkType: T.or(T.literal('view'), T.literal('edit')),
 		thumbnail: T.string,

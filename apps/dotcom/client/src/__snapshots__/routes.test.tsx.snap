@@ -19,52 +19,24 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/q/auth/?$",
   },
   {
+    "reactRouterPattern": "/q/debug",
+    "vercelRouterPattern": "^/q/debug/?$",
+  },
+  {
+    "reactRouterPattern": "/q/f/:fileId",
+    "vercelRouterPattern": "^/q/f/[^/]*/?$",
+  },
+  {
     "reactRouterPattern": "/q/local",
     "vercelRouterPattern": "^/q/local/?$",
   },
   {
+    "reactRouterPattern": "/q/profile",
+    "vercelRouterPattern": "^/q/profile/?$",
+  },
+  {
     "reactRouterPattern": "/q/t/:fileId",
     "vercelRouterPattern": "^/q/t/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w",
-    "vercelRouterPattern": "^/q/w/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId",
-    "vercelRouterPattern": "^/q/w/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId/debug",
-    "vercelRouterPattern": "^/q/w/[^/]*/debug/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId/drafts",
-    "vercelRouterPattern": "^/q/w/[^/]*/drafts/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId/f/:fileId",
-    "vercelRouterPattern": "^/q/w/[^/]*/f/[^/]*/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId/groups",
-    "vercelRouterPattern": "^/q/w/[^/]*/groups/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId/profile",
-    "vercelRouterPattern": "^/q/w/[^/]*/profile/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId/settings",
-    "vercelRouterPattern": "^/q/w/[^/]*/settings/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId/shared",
-    "vercelRouterPattern": "^/q/w/[^/]*/shared/?$",
-  },
-  {
-    "reactRouterPattern": "/q/w/:workspaceId/stars",
-    "vercelRouterPattern": "^/q/w/[^/]*/stars/?$",
   },
   {
     "reactRouterPattern": "/r",

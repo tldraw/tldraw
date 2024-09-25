@@ -126,7 +126,7 @@ export function TlaEditor({
 	const handleUiEvent = useHandleUiEvents()
 	const app = useApp()
 
-	const { id: fileId, workspaceId } = file
+	const { id: fileId } = file
 
 	const [ready, setReady] = useState(false)
 	const rPrevFileId = useRef(fileId)
@@ -162,7 +162,7 @@ export function TlaEditor({
 					const user = app.getUser(sessionState.auth.userId)
 					if (!user) throw Error('User not found')
 
-					app.onFileEdit(user.id, workspaceId, fileId, sessionState.createdAt, fileStartTime)
+					app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
 
 					if (onDocumentChange) {
 						onDocumentChange()
@@ -171,7 +171,7 @@ export function TlaEditor({
 				{ scope: 'document', source: 'user' }
 			)
 		},
-		[app, onDocumentChange, workspaceId, fileId]
+		[app, onDocumentChange, fileId]
 	)
 
 	useEffect(() => {
@@ -191,7 +191,7 @@ export function TlaEditor({
 		const timeout = setTimeout(() => {
 			if (cancelled) return
 			didEnter = true
-			app.onFileEnter(auth.userId, workspaceId, fileId)
+			app.onFileEnter(auth.userId, fileId)
 		}, 1000)
 
 		return () => {
@@ -199,10 +199,10 @@ export function TlaEditor({
 			clearTimeout(timeout)
 
 			if (didEnter) {
-				app.onFileExit(auth.userId, workspaceId, fileId)
+				app.onFileExit(auth.userId, fileId)
 			}
 		}
-	}, [app, fileId, workspaceId])
+	}, [app, fileId])
 
 	return (
 		<div className="tldraw__editor">
