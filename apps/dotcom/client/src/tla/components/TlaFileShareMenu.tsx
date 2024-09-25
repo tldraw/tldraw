@@ -1,7 +1,8 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
-import { ChangeEvent, useCallback, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useState } from 'react'
 import {
 	Editor,
+	FileHelpers,
 	TldrawUiDropdownMenuTrigger,
 	exportAs,
 	useLocalStorageState,
@@ -10,6 +11,7 @@ import {
 import { useApp } from '../hooks/useAppState'
 import { useAuth } from '../hooks/useAuth'
 import { copyTextToClipboard } from '../utils/copy'
+import { createQRCodeImageDataString } from '../utils/qrcode'
 import { TldrawAppFileId } from '../utils/schema/TldrawAppFile'
 import { TldrawAppUser } from '../utils/schema/TldrawAppUser'
 import { getShareableFileUrl } from '../utils/urls'
@@ -30,7 +32,7 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 	)
 
 	return (
-		<DropdownPrimitive.Root dir="ltr" modal={false}>
+		<DropdownPrimitive.Root dir="ltr" modal={false} open>
 			<TldrawUiDropdownMenuTrigger>
 				<button className={`tla-button tla-button__primary tla-text_ui__medium`}>
 					<span>Share</span>
@@ -51,7 +53,7 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 					<TlaToggleShared shared={shared} fileId={fileId} />
 					<TlaSelectSharedLinkType fileId={fileId} />
 					<TlaCopyLinkButton shared={shared} fileId={fileId} />
-					<_TlaQrCodeToggle2 />
+					<TlaQrCodeToggle fileId={fileId} />
 					<TlaDivider />
 					<TlaSelectExportFormat />
 					<TlaExportImageButton />
@@ -262,40 +264,32 @@ function _TlaNotice() {
 	)
 }
 
-function _TlaQrCodeToggle() {
+function TlaQrCodeToggle({ fileId }: { fileId: TldrawAppFileId }) {
+	const [qrCode, setQrCode] = useLocalStorageState<string | null>(fileId + 'qr-code_4', null)
 	const [showQrCode, setShowQrCode] = useLocalStorageState('show qr code', false)
+
+	const auth = useAuth()
+	if (!auth) throw Error('expected auth')
+	const { workspaceId } = auth
 
 	const handleClick = useCallback(() => {
 		setShowQrCode((v) => !v)
 	}, [setShowQrCode])
 
-	return showQrCode ? (
-		<div className="tla-share-menu__qr-code">
-			<div className="tla-share-menu__qr-code-inner" />
-			<button className="tla-share-menu__qr-code-toggle" onClick={handleClick}>
-				<div className="tla-share-menu__qr-code-toggle-inner">
-					<TlaIcon icon="close" />
-				</div>
-			</button>
-		</div>
-	) : (
-		<div className="tla-share-menu__control">
-			<button className="tla-share-menu__control-button" onClick={handleClick}>
-				<div className="tla-text_ui__medium">Show QR code</div>
-				<div className="tla-share-menu__control-container">
-					<TlaIcon icon={'chevron-down'} />
-				</div>
-			</button>
-		</div>
-	)
-}
-
-function _TlaQrCodeToggle2() {
-	const [showQrCode, setShowQrCode] = useLocalStorageState('show qr code', false)
-
-	const handleClick = useCallback(() => {
-		setShowQrCode((v) => !v)
-	}, [setShowQrCode])
+	useEffect(() => {
+		if (showQrCode && !qrCode) {
+			const url = getShareableFileUrl(workspaceId, fileId)
+			createQRCodeImageDataString(url).then((svgString) => {
+				if (svgString) {
+					FileHelpers.blobToDataUrl(new Blob([svgString], { type: 'image/svg+xml' })).then(
+						(svgUrl) => {
+							setQrCode(svgUrl)
+						}
+					)
+				}
+			})
+		}
+	}, [showQrCode, workspaceId, fileId, setQrCode, qrCode])
 
 	return (
 		<>
@@ -307,15 +301,18 @@ function _TlaQrCodeToggle2() {
 					</div>
 				</button>
 			</div>
-			{showQrCode && <TlaQrCode />}
+			{showQrCode && <TlaQrCode src={qrCode} />}
 		</>
 	)
 }
 
-function TlaQrCode() {
+function TlaQrCode({ src }: { src: string | null }) {
 	return (
 		<div className="tla-share-menu__qr-code">
-			<div className="tla-share-menu__qr-code-inner" />
+			<div
+				className="tla-share-menu__qr-code-inner"
+				style={{ backgroundImage: src ? `url(${src})` : '' }}
+			/>
 		</div>
 	)
 }

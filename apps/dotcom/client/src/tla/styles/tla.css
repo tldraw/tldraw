@@ -1814,6 +1814,9 @@ want centered content that docks to the top when the window is short
 	width: 100%;
 	height: 100%;
 	background-color: var(--tla-color-low);
+	background-size: 125% 125%;
+	background-position: center center;
+	background-color: var(--tla-color-low);
 }
 
 .tla-share-menu__qr-code-toggle {
