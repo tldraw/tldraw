@@ -865,8 +865,9 @@
 	z-index: var(--layer-above);
 	width: 100%;
 	pointer-events: none;
-	top: 6px;
-	height: 48px;
+	top: 2px;
+	height: 38px;
+	overflow: hidden;
 }
 
 .tlui-toolbar__extras:empty {
@@ -875,15 +876,15 @@
 
 .tlui-toolbar__extras__controls {
 	display: flex;
-	position: relative;
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
 	flex-direction: row;
 	z-index: var(--layer-above);
-	background-color: var(--color-low);
+	background-color: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
 	border-top-left-radius: var(--radius-4);
 	border-top-right-radius: var(--radius-4);
-	border: 2px solid var(--color-background);
-	margin-left: 8px;
-	margin-right: 0px;
 	pointer-events: all;
 	width: fit-content;
 }

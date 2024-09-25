@@ -1,14 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
+	DefaultActionsMenu,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
+	DefaultQuickActions,
+	DefaultToolbarContent,
 	EditSubmenu,
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	MobileStylePanel,
+	OverflowingToolbar,
+	PORTRAIT_BREAKPOINT,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
@@ -16,8 +23,11 @@ import {
 	useBreakpoint,
 	useEditor,
 	useReactor,
-	useTldrawUiComponents,
+	useReadonly,
+	useValue,
 } from 'tldraw'
+// eslint-disable-next-line local/no-internal-imports
+import { ToggleToolLockedButton } from 'tldraw/src/lib/ui/components/Toolbar/ToggleToolLockedButton'
 import { Links } from '../../components/Links'
 import { SneakyOnDropOverride } from '../../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../../components/ThemeUpdater/ThemeUpdater'
@@ -30,7 +40,14 @@ import { useFileSystem } from '../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../utils/useHandleUiEvent'
 import { useApp } from '../hooks/useAppState'
 import { TldrawApp } from '../utils/TldrawApp'
-import { TldrawAppFile } from '../utils/schema/TldrawAppFile'
+import {
+	TldrawAppFile,
+	TldrawAppFileId,
+	TldrawAppFileRecordType,
+} from '../utils/schema/TldrawAppFile'
+import { TlaIcon } from './TlaIcon'
+import { TlaSidebarCreateFileButton } from './TlaSidebar'
+import { TlaSidebarToggle } from './TlaSidebarToggle'
 
 // const shittyOfflineAtom = atom('shitty offline atom', false)
 
@@ -58,21 +75,58 @@ const components: TLComponents = {
 		</DefaultMainMenu>
 	),
 	MenuPanel: function MenuPanel() {
+		const app = useApp()
+		const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
+
+		const { fileId } = useParams<{ fileId?: TldrawAppFileId }>()
+		return (
+			<div className="tla-file-navbar" style={!isSidebarOpen ? { paddingLeft: 0 } : undefined}>
+				{!isSidebarOpen && (
+					<>
+						<TlaSidebarToggle />
+						<TlaSidebarCreateFileButton />
+					</>
+				)}
+				{fileId && (
+					<div className="tla-file-navbar-breadcrumbs tla-text_ui__regular">
+						My Files
+						<TlaIcon icon="chevron-right" />
+						<button className="tla-button" onClick={() => null}>
+							{TldrawApp.getFileName(app.store.get(TldrawAppFileRecordType.createId(fileId))!)}
+						</button>
+					</div>
+				)}
+			</div>
+		)
+	},
+	Toolbar: () => {
+		const editor = useEditor()
+		const isReadonlyMode = useReadonly()
+		const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
+
 		const breakpoint = useBreakpoint()
 
-		const { MainMenu, QuickActions, ActionsMenu, PageMenu } = useTldrawUiComponents()
-
-		if (!MainMenu && !PageMenu && breakpoint < 6) return null
-
 		return (
-			<div className="tlui-menu-zone">
-				<div className="tlui-buttons__horizontal">
-					{MainMenu && <MainMenu />}
-					{breakpoint < 6 ? null : (
-						<>
-							{QuickActions && <QuickActions />}
-							{ActionsMenu && <ActionsMenu />}
-						</>
+			<div className="tlui-toolbar">
+				<div className="tlui-toolbar__inner">
+					<div className="tlui-toolbar__left">
+						{!isReadonlyMode && (
+							<div className="tlui-toolbar__extras">
+								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
+									<DefaultQuickActions />
+									<DefaultActionsMenu />
+								</div>
+								<ToggleToolLockedButton activeToolId={activeToolId} />
+							</div>
+						)}
+						<OverflowingToolbar>
+							<DefaultToolbarContent />
+						</OverflowingToolbar>
+					</div>
+					{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
+						<div className="tlui-toolbar__tools tlui-transparent-panel">
+							<MobileStylePanel />
+						</div>
 					)}
 				</div>
 			</div>
@@ -151,6 +205,8 @@ export function TlaEditor({
 			editor.timers.setTimeout(() => {
 				setReady(true)
 			}, 200)
+
+			editor.updateInstanceState({ isDebugMode: false })
 
 			const fileStartTime = Date.now()
 

@@ -633,11 +633,6 @@ want centered content that docks to the top when the window is short
 	background-color: var(--tla-color-canvas);
 }
 
-.tla-file__wrapper-sidebar {
-	border-top-left-radius: 9px;
-	border-left: 1px solid var(--tla-color-border);
-}
-
 .tla-file__wrapper > .tldraw__editor {
 	width: 100%;
 	height: 100%;
@@ -684,15 +679,18 @@ want centered content that docks to the top when the window is short
 	height: 100%;
 	display: none;
 	flex: 0 0 auto;
-	padding: 2px 12px 2px 12px;
+	padding: 8px 6px 2px 8px;
 	background: var(--tla-color-sidebar);
+}
+
+.tla-spacer {
+	flex: 1 1 auto;
 }
 
 .tla-sidebar__top,
 .tla-sidebar__bottom {
 	display: flex;
-	flex-direction: column;
-	flex: 0 0 auto;
+	flex-direction: row;
 }
 
 .tla-sidebar__content {
@@ -737,6 +735,7 @@ want centered content that docks to the top when the window is short
 }
 
 .tla-sidebar__toggle {
+	margin-right: -6px;
 	position: relative;
 	background: none;
 	border: none;
@@ -771,13 +770,11 @@ want centered content that docks to the top when the window is short
 }
 
 .tla-sidebar__create {
+	position: relative;
 	background: none;
 	border: none;
 	cursor: pointer;
-	position: absolute;
-	top: 2px;
-	right: 8px;
-	z-index: 10;
+	pointer-events: all;
 }
 
 .tla-sidebar__create::after {
@@ -795,19 +792,8 @@ want centered content that docks to the top when the window is short
 	background-color: var(--tla-color-hover-1);
 }
 
-@media (hover: hover) {
-	.tla-sidebar:hover .tla-sidebar__create:hover::after {
-		visibility: visible;
-	}
-	/* 	
-	.tla-sidebar:hover .tla-sidebar__create:hover {
-		color: var(--tla-color-panel);
-	}
-
-	.tla-sidebar:hover .tla-sidebar__create:hover::after {
-		visibility: visible;
-		background-color: var(--tla-color-primary);
-	} */
+.tla-sidebar__create:hover::after {
+	visibility: visible;
 }
 
 .tla-sidebar__label {
@@ -1088,4 +1074,28 @@ want centered content that docks to the top when the window is short
 
 .tla-logged-out__footer a {
 	color: var(--tla-color-primary);
+}
+
+/* --------------------- file navbar ------------------- */
+
+.tla-file-navbar {
+	border-radius: var(--radius-3);
+	position: absolute;
+	top: var(--space-3);
+	left: var(--space-3);
+	background-color: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 40px;
+	padding: 4px 4px 4px 0px;
+}
+
+.tla-file-navbar-breadcrumbs {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	padding: 0px 8px 0px 16px;
 }
