@@ -1079,6 +1079,7 @@ want centered content that docks to the top when the window is short
 /* --------------------- file navbar ------------------- */
 
 .tla-file-navbar {
+	pointer-events: all;
 	border-radius: var(--radius-3);
 	position: absolute;
 	top: var(--space-3);
@@ -1089,13 +1090,27 @@ want centered content that docks to the top when the window is short
 	flex-direction: row;
 	align-items: center;
 	height: 40px;
-	padding: 4px 4px 4px 0px;
+	padding: 4px 0px 4px 0px;
 }
 
-.tla-file-navbar-breadcrumbs {
+.tla-file-navbar__breadcrumbs {
 	display: flex;
+	flex: 1;
 	flex-direction: row;
 	align-items: center;
 	gap: 8px;
-	padding: 0px 8px 0px 16px;
+	padding: 0px 0px 0px 16px;
+	font-size: 12px;
 }
+
+.tla-file-navbar__filename-button {
+	outline: none;
+	border: none;
+	background: none;
+	font-weight: 600;
+	padding: 0;
+	position: relative;
+	height: 100%;
+	margin-right: -5px;
+}
+

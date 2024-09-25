@@ -88,12 +88,24 @@ const components: TLComponents = {
 					</>
 				)}
 				{fileId && (
-					<div className="tla-file-navbar-breadcrumbs tla-text_ui__regular">
-						My Files
-						<TlaIcon icon="chevron-right" />
-						<button className="tla-button" onClick={() => null}>
+					<div
+						className="tla-file-navbar__breadcrumbs tla-text_ui__regular"
+						style={
+							!isSidebarOpen
+								? {
+										paddingLeft: 8,
+									}
+								: undefined
+						}
+					>
+						<span style={{ color: 'var(--tla-color-text-2)', paddingRight: 'px' }}>My Files</span>
+						<span style={{ opacity: 0.5 }}>
+							<TlaIcon icon="chevron-right" />
+						</span>
+						<button className="tla-file-navbar__filename-button">
 							{TldrawApp.getFileName(app.store.get(TldrawAppFileRecordType.createId(fileId))!)}
 						</button>
+						<DefaultMainMenu />
 					</div>
 				)}
 			</div>
