@@ -1,3 +1,178 @@
+# v3.1.0 (Wed Sep 25 2024)
+
+### Release Notes
+
+#### bug: fix rendering issues on new MacOS 15 / iOS 18 ([#4593](https://github.com/tldraw/tldraw/pull/4593))
+
+- Fix rendering issues on new MacOS 15 / iOS 18
+
+#### Fix watermark appearance ([#4589](https://github.com/tldraw/tldraw/pull/4589))
+
+- Fixed a bug with the watermark's opacities and animations.
+
+#### publish useAsset, tweak docs ([#4590](https://github.com/tldraw/tldraw/pull/4590))
+
+- Publish the `useAsset` media asset helper
+
+#### Add a comment about promise usage for using the clipboard ([#4584](https://github.com/tldraw/tldraw/pull/4584))
+
+- Add a comment explaining why we don't resolve the promise in one of the cases.
+
+#### Fix label wrapping ([#4571](https://github.com/tldraw/tldraw/pull/4571))
+
+- Fixed a bug with arrow label text measurements.
+
+#### Fix collaboration shape indicator showing a line through the arrow's label ([#4580](https://github.com/tldraw/tldraw/pull/4580))
+
+- Fix an issue with arrow collaborator indicator showing on top of the arrow's label.
+
+#### [feature] isShapeHidden option ([#4446](https://github.com/tldraw/tldraw/pull/4446))
+
+- Adds an `isShapeHidden` option, which allows you to provide custom logic to decide whether or not a shape should be shown on the canvas.
+
+#### Don't upload a snapshot from the snapshots page ([#4577](https://github.com/tldraw/tldraw/pull/4577))
+
+- Copying a snapshot link from a snapshot page now just returns the current url.
+
+#### hand tool: remove lockable attr ([#4567](https://github.com/tldraw/tldraw/pull/4567))
+
+- Fix Hand tool being lockable when it already is.
+
+#### [sync] Allow doing CRUD directly on the server ([#4559](https://github.com/tldraw/tldraw/pull/4559))
+
+- Adds the `updateStore` method to the `TLSocketRoom` class, to allow updating room data directly on the server.
+
+#### Unify links for vs code. ([#4565](https://github.com/tldraw/tldraw/pull/4565))
+
+- Unify vs code extension links. Make the watermark link work in the vs code extension.
+
+#### Fix an issue with the dirty state of flags not working after the first change to a file ([#4564](https://github.com/tldraw/tldraw/pull/4564))
+
+- Fixed a bug with the first change after opening a file not marking the file as dirty.
+
+#### Unify licenses. ([#4561](https://github.com/tldraw/tldraw/pull/4561))
+
+- Unify templates licenses. Add back vs code extension license.
+
+#### Add some additional debugging tools. ([#4539](https://github.com/tldraw/tldraw/pull/4539))
+
+- Adds some additional debugging tools to the develop experience.
+
+#### Add an example of switching to the geo tool. ([#4545](https://github.com/tldraw/tldraw/pull/4545))
+
+- Add an example of how you can set the current tool to a `geo` tool.
+
+#### Fix a sentry issue with getting arrow bindings ([#4506](https://github.com/tldraw/tldraw/pull/4506))
+
+- Fix a sentry issue when getting arrow bindings.
+
+#### Add center option to rotateShapesBy ([#4508](https://github.com/tldraw/tldraw/pull/4508))
+
+- Add option to Editor.rotateShapesBy to specify the rotation center point.
+
+#### [fix] build caching i.e. "You have multiple versions of tldraw libraries installed" ([#4525](https://github.com/tldraw/tldraw/pull/4525))
+
+- Fixed the "You have multiple versions of tldraw libraries installed" problem on 3.0.1
+
+#### [fix] container null error ([#4524](https://github.com/tldraw/tldraw/pull/4524))
+
+- Fixed a minor bug related to useContainer's return value being potentially returned from components?
+
+---
+
+#### 🐛 Bug Fix
+
+- fix publish-canary [#4598](https://github.com/tldraw/tldraw/pull/4598) ([@ds300](https://github.com/ds300))
+- Revert "Delete .github/workflows/publish-canary.yml" [#4595](https://github.com/tldraw/tldraw/pull/4595) ([@SomeHats](https://github.com/SomeHats))
+- Update installation.mdx [#4594](https://github.com/tldraw/tldraw/pull/4594) ([@steveruizok](https://github.com/steveruizok))
+- [infra] give auto the tags [#4588](https://github.com/tldraw/tldraw/pull/4588) ([@ds300](https://github.com/ds300))
+- [infra] try using yarn [#4587](https://github.com/tldraw/tldraw/pull/4587) ([@ds300](https://github.com/ds300))
+- fix get-changelog.yml [#4586](https://github.com/tldraw/tldraw/pull/4586) ([@ds300](https://github.com/ds300))
+- [infra] Add get changelog action [#4585](https://github.com/tldraw/tldraw/pull/4585) ([@ds300](https://github.com/ds300))
+- Add a comment about promise usage for using the clipboard [#4584](https://github.com/tldraw/tldraw/pull/4584) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Various docs improvements [#4573](https://github.com/tldraw/tldraw/pull/4573) ([@steveruizok](https://github.com/steveruizok))
+- Unify licenses. [#4561](https://github.com/tldraw/tldraw/pull/4561) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- remove (hopefully) unneeded workers_dev wrangler preview flag [#4557](https://github.com/tldraw/tldraw/pull/4557) ([@SomeHats](https://github.com/SomeHats))
+- fix deploy script [#4556](https://github.com/tldraw/tldraw/pull/4556) ([@ds300](https://github.com/ds300))
+- Add some additional debugging tools. [#4539](https://github.com/tldraw/tldraw/pull/4539) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Serve sync on domain as well as route [#4553](https://github.com/tldraw/tldraw/pull/4553) ([@SomeHats](https://github.com/SomeHats))
+- fix simple-server-example [#4554](https://github.com/tldraw/tldraw/pull/4554) ([@ds300](https://github.com/ds300))
+- mount sync worker on same domain [#4552](https://github.com/tldraw/tldraw/pull/4552) ([@SomeHats](https://github.com/SomeHats))
+- .dev: use Git LFS for our blog images [#4530](https://github.com/tldraw/tldraw/pull/4530) ([@mimecuvalo](https://github.com/mimecuvalo))
+- homepage: good wordsmithing [#4544](https://github.com/tldraw/tldraw/pull/4544) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix footer link in docs. [#4546](https://github.com/tldraw/tldraw/pull/4546) ([@steveruizok](https://github.com/steveruizok))
+- Change version numbers [#4543](https://github.com/tldraw/tldraw/pull/4543) ([@steveruizok](https://github.com/steveruizok))
+- Use shiki for syntax highlighting in docs [#4501](https://github.com/tldraw/tldraw/pull/4501) ([@ds300](https://github.com/ds300))
+- docs: fix link [#4520](https://github.com/tldraw/tldraw/pull/4520) ([@mimecuvalo](https://github.com/mimecuvalo))
+- search: turn back on in production [#4519](https://github.com/tldraw/tldraw/pull/4519) ([@mimecuvalo](https://github.com/mimecuvalo))
+- search: use algolia's grouping by section [#4516](https://github.com/tldraw/tldraw/pull/4516) ([@mimecuvalo](https://github.com/mimecuvalo))
+- docs: tweak search colors [#4515](https://github.com/tldraw/tldraw/pull/4515) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix search on docs [#4513](https://github.com/tldraw/tldraw/pull/4513) ([@steveruizok](https://github.com/steveruizok))
+- hotfix remove bad article [#4511](https://github.com/tldraw/tldraw/pull/4511) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`, `@tldraw/tldraw`, `@tldraw/state-react`, `@tldraw/store`, `@tldraw/sync-core`, `@tldraw/sync`, `tldraw`, `@tldraw/tlschema`
+  - npm: make our React packages consistent [#4547](https://github.com/tldraw/tldraw/pull/4547) ([@mimecuvalo](https://github.com/mimecuvalo) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/editor`, `@tldraw/state-react`, `@tldraw/state`, `@tldraw/store`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate`
+  - docs: cleanup/add readmes/licenses [#4542](https://github.com/tldraw/tldraw/pull/4542) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek) [@SomeHats](https://github.com/SomeHats))
+- `@tldraw/assets`, `@tldraw/editor`, `@tldraw/tldraw`, `@tldraw/state-react`, `@tldraw/state`, `@tldraw/store`, `@tldraw/sync-core`, `@tldraw/sync`, `tldraw`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate`
+  - Clean up `apps` directory [#4548](https://github.com/tldraw/tldraw/pull/4548) ([@SomeHats](https://github.com/SomeHats))
+- `@tldraw/editor`
+  - fix pre-rendering on blog/legal [#4535](https://github.com/tldraw/tldraw/pull/4535) ([@SomeHats](https://github.com/SomeHats))
+- `@tldraw/state-react`, `@tldraw/state`, `@tldraw/store`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate`
+  - licenses: add MIT and update GB ones to match US [#4517](https://github.com/tldraw/tldraw/pull/4517) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🐛 Bug Fixes
+
+- bug: fix rendering issues on new MacOS 15 / iOS 18 [#4593](https://github.com/tldraw/tldraw/pull/4593) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix an issue with the dirty state of flags not working after the first change to a file [#4564](https://github.com/tldraw/tldraw/pull/4564) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix cloudflare sync template deploy [#4551](https://github.com/tldraw/tldraw/pull/4551) ([@phgn0](https://github.com/phgn0))
+- [fix] build caching i.e. "You have multiple versions of tldraw libraries installed" [#4525](https://github.com/tldraw/tldraw/pull/4525) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`
+  - Fix watermark appearance [#4589](https://github.com/tldraw/tldraw/pull/4589) ([@steveruizok](https://github.com/steveruizok))
+  - [fix] container null error [#4524](https://github.com/tldraw/tldraw/pull/4524) ([@ds300](https://github.com/ds300))
+  - Remove feature flag. [#4521](https://github.com/tldraw/tldraw/pull/4521) ([@steveruizok](https://github.com/steveruizok))
+  - Enable license feature flag. [#4518](https://github.com/tldraw/tldraw/pull/4518) ([@steveruizok](https://github.com/steveruizok))
+- `@tldraw/editor`, `tldraw`
+  - Fix label wrapping [#4571](https://github.com/tldraw/tldraw/pull/4571) ([@steveruizok](https://github.com/steveruizok))
+- `tldraw`
+  - Fix collaboration shape indicator showing a line through the arrow's label [#4580](https://github.com/tldraw/tldraw/pull/4580) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+  - hand tool: remove lockable attr [#4567](https://github.com/tldraw/tldraw/pull/4567) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - Fix a sentry issue with getting arrow bindings [#4506](https://github.com/tldraw/tldraw/pull/4506) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/utils`
+  - Fix cloudflare worker error when using tldraw packages [#4549](https://github.com/tldraw/tldraw/pull/4549) ([@SomeHats](https://github.com/SomeHats))
+
+#### 💄 Product Improvements
+
+- Don't upload a snapshot from the snapshots page [#4577](https://github.com/tldraw/tldraw/pull/4577) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Add an example of switching to the geo tool. [#4545](https://github.com/tldraw/tldraw/pull/4545) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- `@tldraw/sync-core`
+  - [sync] tiny perf thing [#4591](https://github.com/tldraw/tldraw/pull/4591) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`
+  - Unify links for vs code. [#4565](https://github.com/tldraw/tldraw/pull/4565) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🎉 New Features
+
+- `@tldraw/editor`, `tldraw`
+  - [feature] isShapeHidden option [#4446](https://github.com/tldraw/tldraw/pull/4446) ([@ds300](https://github.com/ds300))
+- `@tldraw/sync-core`
+  - [sync] Allow doing CRUD directly on the server [#4559](https://github.com/tldraw/tldraw/pull/4559) ([@ds300](https://github.com/ds300))
+
+#### 🛠️ API Changes
+
+- `@tldraw/editor`, `tldraw`
+  - publish useAsset, tweak docs [#4590](https://github.com/tldraw/tldraw/pull/4590) ([@SomeHats](https://github.com/SomeHats))
+  - Add center option to rotateShapesBy [#4508](https://github.com/tldraw/tldraw/pull/4508) ([@ds300](https://github.com/ds300))
+
+#### Authors: 6
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Peter Hagen ([@phgn0](https://github.com/phgn0))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.0.0 (Fri Sep 13 2024)
 
 ### Release Notes
