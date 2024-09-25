@@ -66,15 +66,15 @@ function TlaToggleShared({ shared, fileId }: { shared: boolean; fileId: TldrawAp
 	const auth = useAuth()
 	if (!auth) throw Error('should have auth')
 
-	const { userId, workspaceId } = auth
+	const { userId } = auth
 
 	const handleToggleShared = useCallback(() => {
 		// todo: if there are other users connected to the project, warn
 		// that they'll be removed from the project until the project is shared again
 
 		// copy file url
-		app.toggleFileShared(userId, workspaceId, fileId)
-	}, [app, userId, workspaceId, fileId])
+		app.toggleFileShared(userId, fileId)
+	}, [app, userId, fileId])
 
 	return (
 		<div className="tla-share-menu__control">
@@ -91,7 +91,7 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const auth = useAuth()
 	if (!auth) throw Error('should have auth')
-	const { userId, workspaceId } = auth
+	const { userId } = auth
 
 	const sharedLinkType = useValue(
 		'file',
@@ -104,8 +104,8 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: TldrawAppFileId }) {
 	)
 
 	const handleSelectChange = useCallback(() => {
-		app.toggleFileShareLinkType(userId, workspaceId, fileId)
-	}, [app, userId, workspaceId, fileId])
+		app.toggleFileShareLinkType(userId, fileId)
+	}, [app, userId, fileId])
 
 	return (
 		<div className="tla-share-menu__control">
@@ -128,7 +128,7 @@ function TlaCopyLinkButton({ shared, fileId }: { shared: boolean; fileId: Tldraw
 	const app = useApp()
 	const auth = useAuth()
 	if (!auth) throw Error('should have auth')
-	const { userId, workspaceId } = auth
+	const { userId } = auth
 
 	const [copied, setCopied] = useState(false)
 
@@ -138,10 +138,10 @@ function TlaCopyLinkButton({ shared, fileId }: { shared: boolean; fileId: Tldraw
 		}
 
 		if (!shared) {
-			app.toggleFileShared(userId, workspaceId, fileId)
+			app.toggleFileShared(userId, fileId)
 		}
 
-		const fileUrl = getShareableFileUrl(workspaceId, fileId)
+		const fileUrl = getShareableFileUrl(fileId)
 		copyTextToClipboard(fileUrl)
 
 		setCopied(true)
@@ -150,7 +150,7 @@ function TlaCopyLinkButton({ shared, fileId }: { shared: boolean; fileId: Tldraw
 		return () => {
 			setCopied(false)
 		}
-	}, [app, userId, workspaceId, fileId, shared, copied])
+	}, [app, userId, fileId, shared, copied])
 
 	return (
 		<div className="tla-share-menu__copy-link">
@@ -275,7 +275,6 @@ function TlaQrCodeToggle({ fileId }: { fileId: TldrawAppFileId }) {
 
 	const auth = useAuth()
 	if (!auth) throw Error('expected auth')
-	const { workspaceId } = auth
 
 	const handleClick = useCallback(() => {
 		setShowQrCode((v) => !v)
@@ -283,7 +282,7 @@ function TlaQrCodeToggle({ fileId }: { fileId: TldrawAppFileId }) {
 
 	useEffect(() => {
 		if (showQrCode && !qrCode) {
-			const url = getShareableFileUrl(workspaceId, fileId)
+			const url = getShareableFileUrl(fileId)
 			createQRCodeImageDataString(url).then((svgString) => {
 				if (svgString) {
 					FileHelpers.blobToDataUrl(new Blob([svgString], { type: 'image/svg+xml' })).then(
@@ -294,7 +293,7 @@ function TlaQrCodeToggle({ fileId }: { fileId: TldrawAppFileId }) {
 				}
 			})
 		}
-	}, [showQrCode, workspaceId, fileId, setQrCode, qrCode])
+	}, [showQrCode, fileId, setQrCode, qrCode])
 
 	return (
 		<>
