@@ -1,3 +1,20 @@
+# v3.1.0 (Wed Sep 25 2024)
+
+#### 🐛 Bug Fix
+
+- docs: cleanup/add readmes/licenses [#4542](https://github.com/tldraw/tldraw/pull/4542) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek) [@SomeHats](https://github.com/SomeHats))
+- Clean up `apps` directory [#4548](https://github.com/tldraw/tldraw/pull/4548) ([@SomeHats](https://github.com/SomeHats))
+- licenses: add MIT and update GB ones to match US [#4517](https://github.com/tldraw/tldraw/pull/4517) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.0.0 (Fri Sep 13 2024)
 
 ### Release Notes

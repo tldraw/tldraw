@@ -104,7 +104,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		justify-content: center;
 		z-index: 2147483647 !important;
 		background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
-		opacity: .5;
+		opacity: 1;
 		border-radius: 5px;
 		pointer-events: all;
 		padding: 2px;
@@ -118,6 +118,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		pointer-events: all;
 		cursor: inherit;
 		color: var(--color-text);
+		opacity: .38;
 		background-color: currentColor;
 	}
 
@@ -143,13 +144,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	}
 	
 	@media (hover: hover) {
-		.${className}[data-mobile='true'] > a {
-			opacity: .62;
-			pointer-events: none;
-		}
-
 		.${className} > a {
-			opacity: .28;
 			pointer-events: none;
 		}
 
@@ -158,12 +153,14 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			transition: background-color 0.2s ease-in-out;
 			transition-delay: 0.32s;
 		}
+			
 		.${className}:hover > a {
 			animation: delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
 		}
 	}
 	
+
 	@keyframes delayed_link {
 		0% {
 			cursor: inherit;

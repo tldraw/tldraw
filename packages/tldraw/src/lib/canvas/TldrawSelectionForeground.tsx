@@ -51,6 +51,8 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 		y: -expandOutlineBy,
 	})
 
+	if (onlyShape && editor.isShapeHidden(onlyShape)) return null
+
 	if (!bounds) return null
 	bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
 

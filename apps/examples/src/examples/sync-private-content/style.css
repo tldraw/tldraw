@@ -1,0 +1,23 @@
+.toggle-panel {
+	position: absolute;
+	top: 10px;
+	left: 50%;
+	transform: translateX(-50%);
+	border-radius: 8px;
+	background: #efefef;
+	box-shadow:
+		0 0 0 1px rgba(0, 0, 0, 0.1),
+		0 4px 8px rgba(0, 0, 0, 0.1);
+	padding: 9px 10px 9px 15px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.toggle-panel button {
+	cursor: pointer;
+}
+
+.toggle-panel.pointer {
+	cursor: pointer;
+}

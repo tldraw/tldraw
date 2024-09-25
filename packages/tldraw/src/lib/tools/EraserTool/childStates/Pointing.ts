@@ -11,7 +11,7 @@ export class Pointing extends StateNode {
 
 	override onEnter() {
 		const zoomLevel = this.editor.getZoomLevel()
-		const currentPageShapesSorted = this.editor.getCurrentPageShapesSorted()
+		const currentPageShapesSorted = this.editor.getCurrentPageRenderingShapesSorted()
 		const {
 			inputs: { currentPagePoint },
 		} = this.editor
