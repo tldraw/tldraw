@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { TlaButton } from '../components/TlaButton'
 import { TlaFileList } from '../components/TlaFileList'
-import { TlaPageControls } from '../components/TlaPageControls'
+import { TlaListControls } from '../components/TlaListControls'
 import { TlaSpacer } from '../components/TlaSpacer'
 import { TlaWrapperWithSidebar } from '../components/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
@@ -45,7 +45,7 @@ export function Component() {
 					</TlaButton>
 				</div>
 				<TlaSpacer height={40} />
-				<TlaPageControls viewName={VIEW_NAME} />
+				<TlaListControls viewName={VIEW_NAME} />
 				<TlaSpacer height="20" />
 				<TlaFileList files={files} viewName={VIEW_NAME} />
 			</div>

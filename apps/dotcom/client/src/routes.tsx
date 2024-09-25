@@ -90,19 +90,21 @@ export const router = createRoutesFromElements(
 				<Route index element={<RedirectAtWorkspacesRoot />} />
 				<Route path="/q/w/:workspaceId" element={<RequireAuthForWorkspace />}>
 					<Route index element={<RedirectAtWorkspaceRoot />} />
-					<Route path="/q/w/:workspaceId/debug" lazy={() => import('./tla/pages/debug')} />
+					{/* File view*/}
+					<Route path="/q/w/:workspaceId/f/:fileId" lazy={() => import('./tla/pages/file')} />
+					{/* List views */}
 					<Route path="/q/w/:workspaceId/drafts" lazy={() => import('./tla/pages/drafts')} />
 					<Route path="/q/w/:workspaceId/stars" lazy={() => import('./tla/pages/stars')} />
 					<Route path="/q/w/:workspaceId/shared" lazy={() => import('./tla/pages/shared')} />
 					<Route path="/q/w/:workspaceId/groups" lazy={() => import('./tla/pages/groups')} />
-					{/* File */}
-					<Route path="/q/w/:workspaceId/f/:fileId" lazy={() => import('./tla/pages/file')} />
 					{/* Workspace settings */}
 					<Route path="/q/w/:workspaceId/settings" lazy={() => import('./tla/pages/settings')} />
-					{/* User */}
+					{/* User settings */}
 					<Route path="/q/w/:workspaceId/profile" element={<RequireAuthForUser />}>
 						<Route index lazy={() => import('./tla/pages/profile')} />
 					</Route>
+					{/* Internal */}
+					<Route path="/q/w/:workspaceId/debug" lazy={() => import('./tla/pages/debug')} />
 				</Route>
 			</Route>
 		</Route>

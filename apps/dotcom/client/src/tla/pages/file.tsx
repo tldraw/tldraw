@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
+import { TlaButton } from '../components/TlaButton'
 import { TlaEditor } from '../components/TlaEditor'
 import { TlaErrorPage } from '../components/TlaErrorPage'
-import { TlaFileHeader } from '../components/TlaFileHeader'
+import { TlaSidebarToggle } from '../components/TlaSidebarToggle'
 import { TlaWrapperWithSidebar } from '../components/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
@@ -45,7 +46,14 @@ export function Component() {
 	return (
 		<TlaWrapperWithSidebar collapsable>
 			<div className="tla-content tla-file__content">
-				<TlaFileHeader />
+				<div className="tla-file-header">
+					<TlaSidebarToggle />
+					<div className="tla-file-header__fileinfo tla-text_ui__section">
+						<span className="tla-file-header__folder">My files / </span>
+						<span className="tla-file-header__title">My title</span>
+					</div>
+					<TlaButton>Share</TlaButton>
+				</div>
 				<div className={`tla-file__wrapper ${isSidebarOpen ? `tla-file__wrapper-sidebar` : ''}`}>
 					<TlaEditor file={file} />
 				</div>

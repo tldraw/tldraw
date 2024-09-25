@@ -14,7 +14,7 @@ const LABELS: Record<string, string> = {
 	list: 'List',
 }
 
-export function TlaPageControls({ viewName }: { viewName: string }) {
+export function TlaListControls({ viewName }: { viewName: string }) {
 	const flags = useFlags()
 	const app = useApp()
 	const { sort, view, search } = useValue<TldrawAppViewState>(

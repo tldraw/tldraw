@@ -14,6 +14,8 @@ import {
 } from '../utils/local-sync'
 import { useApp } from './useAppState'
 
+// note: this requires running `yarn start` in the thumbnail-server package
+
 export function useServerThumbnail(id: string) {
 	const app = useApp()
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])

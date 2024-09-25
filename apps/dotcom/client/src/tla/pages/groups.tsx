@@ -1,5 +1,5 @@
 import { useValue } from 'tldraw'
-import { TlaPageControls } from '../components/TlaPageControls'
+import { TlaListControls } from '../components/TlaListControls'
 import { TlaSpacer } from '../components/TlaSpacer'
 import { TlaWrapperWithSidebar } from '../components/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
@@ -26,7 +26,7 @@ export function Component() {
 					<h2 className="tla-text_ui__big">Groups</h2>
 				</div>
 				<TlaSpacer height={40} />
-				<TlaPageControls viewName="shared" />
+				<TlaListControls viewName="shared" />
 				<TlaSpacer height="20" />
 			</div>
 		</TlaWrapperWithSidebar>
