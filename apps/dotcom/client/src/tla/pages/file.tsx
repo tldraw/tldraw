@@ -4,7 +4,7 @@ import { useValue } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor'
 import { TlaErrorPage } from '../components/TlaErrorPage'
 import { TlaFileHeader } from '../components/TlaFileHeader'
-import { TlaWrapperCollapsableSidebar } from '../components/TlaWrapperCollapsableSidebar'
+import { TlaWrapperWithSidebar } from '../components/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 
@@ -43,13 +43,13 @@ export function Component() {
 	}
 
 	return (
-		<TlaWrapperCollapsableSidebar>
+		<TlaWrapperWithSidebar collapsable>
 			<div className="tla-content tla-file__content">
 				<TlaFileHeader />
 				<div className={`tla-file__wrapper ${isSidebarOpen ? `tla-file__wrapper-sidebar` : ''}`}>
 					<TlaEditor file={file} />
 				</div>
 			</div>
-		</TlaWrapperCollapsableSidebar>
+		</TlaWrapperWithSidebar>
 	)
 }

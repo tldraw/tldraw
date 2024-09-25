@@ -83,20 +83,6 @@
 	font-weight: 500;
 }
 
-/* ------------------ Ui Overrides ------------------ */
-
-.tla-layout__signedout .tla-menu-zone {
-	/* padding-left: 100px; */
-}
-
-.tla-layout__signedin .tla-menu-zone {
-	/* padding-left: 36px; */
-}
-
-.tla-layout__signedin .tla-focus-button {
-	/* left: 36px; */
-}
-
 /* ----------------- Sign in button ----------------- */
 
 .tla-signin_button {
@@ -633,10 +619,6 @@ want centered content that docks to the top when the window is short
 		visibility: visible;
 	}
 }
-
-/* .tla-layout[data-sidebar='true'] .tla-top-left-button {
-	left: 260px;
-} */
 
 /* --------------------- Layout --------------------- */
 

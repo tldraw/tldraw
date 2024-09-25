@@ -2,14 +2,15 @@ import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
+import '../styles/tla.css'
 import { TlaButton } from './TlaButton'
 
-export function TlaLoggedOutWrapper({ children }: { children: ReactNode }) {
+export function TlaWrapperLoggedOut({ children }: { children: ReactNode }) {
 	const app = useApp()
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])
 	return (
 		<div
-			className={`tla tla-layout tla-logged-out tl-container tla-layout__signedin ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+			className={`tla tla-layout tla-logged-out tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
 		>
 			<div className="tla-logged-out__header">
 				<Link to="/">

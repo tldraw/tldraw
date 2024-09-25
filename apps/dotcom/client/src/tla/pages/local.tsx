@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getFromLocalStorage, setInLocalStorage, uniqueId, useValue } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor'
-import { TlaLoggedOutWrapper } from '../components/TlaLoggedOutWrapper'
+import { TlaWrapperLoggedOut } from '../components/TlaWrapperLoggedOut'
 import { useApp } from '../hooks/useAppState'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 import { TldrawAppWorkspaceRecordType } from '../utils/schema/TldrawAppWorkspace'
@@ -40,5 +40,5 @@ export function Component() {
 		[app, fileId]
 	)
 
-	return <TlaLoggedOutWrapper>{file && <TlaEditor file={file} />}</TlaLoggedOutWrapper>
+	return <TlaWrapperLoggedOut>{file && <TlaEditor file={file} />}</TlaWrapperLoggedOut>
 }

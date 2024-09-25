@@ -1,7 +1,8 @@
 import { ReactNode } from 'react'
+import '../styles/tla.css'
 import { TlaCloseButton } from './TlaCloseButton'
 
-export function TlaWrapperFullPage({
+export function TlaWrapperCentered({
 	onClose,
 	children,
 }: {
