@@ -27,7 +27,7 @@ export function Component() {
 			if (cancelled) return
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			app.onFileExit(auth.userId, auth.workspaceId, TldrawAppFileRecordType.createId(fileId))
+			app.onFileExit(auth.userId, TldrawAppFileRecordType.createId(fileId))
 		}, 500)
 		return () => {
 			cancelled = true

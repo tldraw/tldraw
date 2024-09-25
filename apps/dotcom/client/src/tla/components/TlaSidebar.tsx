@@ -3,11 +3,10 @@ import { useCallback } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
-import { useWorkspace } from '../hooks/useWorkspace'
 import { TldrawApp } from '../utils/TldrawApp'
 import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 import { getCleanId } from '../utils/tldrawAppSchema'
-import { getDebugUrl, getFileUrl, getUserUrl } from '../utils/urls'
+import { getFileUrl } from '../utils/urls'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
 import { TlaSpacer } from './TlaSpacer'
@@ -30,15 +29,12 @@ export function TlaSidebar() {
 }
 
 function TlaSidebarWorkspaceLink() {
-	const workspace = useWorkspace()
-	if (!workspace) throw Error('Workspace not found')
-
 	return (
 		<div className="tla-sidebar__workspace">
 			<div className="tla-icon_wrapper" data-size="m">
-				<TlaIcon icon={workspace.avatar} />
+				<TlaIcon icon="tldraw" />
 			</div>
-			<div className="tla-sidebar__label tla-text_ui__title">{workspace.name}</div>
+			<div className="tla-sidebar__label tla-text_ui__title">tldraw</div>
 			<button className="tla-sidebar__link-button" />
 		</div>
 	)
@@ -56,11 +52,10 @@ function TlaSidebarCreateFileButton() {
 		app.store.put([
 			TldrawAppFileRecordType.create({
 				id,
-				workspaceId: auth.workspaceId,
 				owner: auth.userId,
 			}),
 		])
-		navigate(getFileUrl(auth.workspaceId, id))
+		navigate(getFileUrl(id))
 	}, [app, navigate])
 
 	return (
@@ -100,14 +95,10 @@ function TlaSidebarUserLink() {
 			{/* <Link className="tla-sidebar__link-button" to={getUserUrl(result.auth.userId)} /> */}
 			<Link
 				className="tla-sidebar__link-button"
-				to={getUserUrl(result.auth.userId)}
+				to={'/q/profile'}
 				state={{ background: location }}
 			/>
-			<Link
-				className="tla-sidebar__link-menu"
-				to={getDebugUrl(result.auth.workspaceId)}
-				state={{ background: location }}
-			>
+			<Link className="tla-sidebar__link-menu" to={'/q/debug'} state={{ background: location }}>
 				<TlaIcon icon="dots-vertical-strong" />
 			</Link>
 		</div>
@@ -153,7 +144,7 @@ function TlaSidebarRecentFiles() {
 			const { auth, createdAt: sessionStart } = app.getSessionState()
 			if (!auth) return false
 
-			return app.getUserRecentFiles(auth.userId, auth.workspaceId, sessionStart)
+			return app.getUserRecentFiles(auth.userId, sessionStart)
 		},
 		[app]
 	)
@@ -220,7 +211,7 @@ function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawA
 }
 
 function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
-	const { workspaceId, id } = file
+	const { id } = file
 	const { fileId } = useParams()
 	const isActive = fileId === getCleanId(id)
 	return (
@@ -228,7 +219,7 @@ function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 			<div className="tla-sidebar__link-content">
 				<div className="tla-sidebar__label tla-text_ui__regular">{TldrawApp.getFileName(file)}</div>
 			</div>
-			<Link to={getFileUrl(workspaceId, id)} className="tla-sidebar__link-button" />
+			<Link to={getFileUrl(id)} className="tla-sidebar__link-button" />
 			<TlaSidebarFileLinkMenu fileId={file.id} />
 		</div>
 	)
