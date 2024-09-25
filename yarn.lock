@@ -22614,7 +22614,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "thumbnail-server@workspace:apps/dotcom/thumbnail-server"
   dependencies:
-    "@supabase/supabase-js": "npm:^2.33.2"
     "@tldraw/assets": "workspace:*"
     "@types/cors": "npm:^2.8.17"
     "@types/express": "npm:^4.17.21"
