@@ -48,7 +48,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 					<OverflowingToolbar>{children ?? <DefaultToolbarContent />}</OverflowingToolbar>
 				</div>
 				{breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
-					<div className="tlui-toolbar__tools">
+					<div className="tlui-toolbar__tools tlui-transparent-panel">
 						<MobileStylePanel />
 					</div>
 				)}

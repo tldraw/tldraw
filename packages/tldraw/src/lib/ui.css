@@ -609,10 +609,10 @@
 /* ------------------- Style Panel ------------------ */
 
 .tlui-style-panel__wrapper {
-	box-shadow: var(--shadow-2);
 	border-radius: var(--radius-3);
 	pointer-events: all;
-	background-color: var(--color-panel);
+	background: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
 	height: fit-content;
 	max-height: 100%;
 	margin: 8px;
@@ -656,11 +656,6 @@
 
 .tlui-style-panel__section:empty {
 	display: none;
-}
-
-.tlui-style-panel__section__common:not(:only-child) {
-	margin-bottom: 7px;
-	border-bottom: 1px solid var(--color-divider);
 }
 
 .tlui-style-panel__row {
@@ -902,9 +897,10 @@
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: relative;
-	background: var(--color-panel);
-	box-shadow: var(--shadow-2);
+	background: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
 }
+
 .tlui-toolbar__tools__list {
 	display: flex;
 	flex-direction: row;
@@ -1170,21 +1166,11 @@
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: absolute;
-	left: 0px;
-	bottom: 0px;
-}
-
-.tlui-navigation-panel::before {
-	content: '';
-	display: block;
-	position: absolute;
-	z-index: -1;
-	inset: -2px -2px 0px 0px;
-	border-radius: 0;
-	border-top: 2px solid var(--color-background);
-	border-right: 2px solid var(--color-background);
-	border-top-right-radius: var(--radius-4);
-	background-color: var(--color-low);
+	left: calc(var(--space-3) + var(--sab));
+	bottom: calc(var(--space-3) + var(--sab));
+	background-color: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
+	border-radius: var(--radius-3);
 }
 
 .tlui-navigation-panel__toggle .tlui-icon {

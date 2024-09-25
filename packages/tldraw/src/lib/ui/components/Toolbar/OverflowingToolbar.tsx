@@ -140,7 +140,7 @@ export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 		<>
 			<style>{css}</style>
 			<div
-				className={classNames('tlui-toolbar__tools', {
+				className={classNames('tlui-toolbar__tools tlui-transparent-panel', {
 					'tlui-toolbar__tools__mobile': breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM,
 				})}
 				role="radiogroup"
