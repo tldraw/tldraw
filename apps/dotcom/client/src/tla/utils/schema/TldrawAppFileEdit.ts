@@ -1,0 +1,64 @@
+import {
+	BaseRecord,
+	RecordId,
+	T,
+	createMigrationIds,
+	createRecordMigrationSequence,
+	createRecordType,
+	idValidator,
+} from 'tldraw'
+import { TldrawAppFileId } from './TldrawAppFile'
+import { TldrawAppUserId } from './TldrawAppUser'
+import { TldrawAppWorkspaceId } from './TldrawAppWorkspace'
+
+export interface TldrawAppFileEdit extends BaseRecord<'file-edit', RecordId<TldrawAppFileEdit>> {
+	workspaceId: TldrawAppWorkspaceId
+	userId: TldrawAppUserId
+	fileId: TldrawAppFileId
+	sessionStartedAt: number
+	fileOpenedAt: number
+	createdAt: number
+	updatedAt: number
+}
+
+export type TldrawAppFileEditId = RecordId<TldrawAppFileEdit>
+
+/** @public */
+export const tldrawAppFileEditValidator: T.Validator<TldrawAppFileEdit> = T.model(
+	'file-edit',
+	T.object({
+		typeName: T.literal('file-edit'),
+		id: idValidator<TldrawAppFileEditId>('file-edit'),
+		workspaceId: idValidator<TldrawAppWorkspaceId>('workspace'),
+		userId: idValidator<TldrawAppUserId>('user'),
+		fileId: idValidator<TldrawAppFileId>('file'),
+		sessionStartedAt: T.number,
+		fileOpenedAt: T.number,
+		createdAt: T.number,
+		updatedAt: T.number,
+	})
+)
+
+/** @public */
+export const tldrawAppFileEditVersions = createMigrationIds('com.tldraw.file-edit', {} as const)
+
+/** @public */
+export const tldrawAppFileEditMigrations = createRecordMigrationSequence({
+	sequenceId: 'com.tldraw-app.file-edit',
+	recordType: 'visit',
+	sequence: [],
+})
+
+/** @public */
+export const TldrawAppFileEditRecordType = createRecordType<TldrawAppFileEdit>('file-edit', {
+	validator: tldrawAppFileEditValidator,
+	scope: 'document',
+}).withDefaultProperties(
+	(): Omit<
+		TldrawAppFileEdit,
+		'id' | 'typeName' | 'workspaceId' | 'userId' | 'fileId' | 'fileOpenedAt' | 'sessionStartedAt'
+	> => ({
+		createdAt: Date.now(),
+		updatedAt: Date.now(),
+	})
+)

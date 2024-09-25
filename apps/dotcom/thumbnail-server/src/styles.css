@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700@400;700&display=swap');
+@import url('tldraw/tldraw.css');
+
+body {
+	font-family: 'Inter', sans-serif;
+}
+
+.tldraw__editor {
+	position: fixed;
+	inset: 0;
+}
+
+.tns_home {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+}
+
+.tldraw__editor > .tl-container .tl-background {
+	background: none !important;
+}
