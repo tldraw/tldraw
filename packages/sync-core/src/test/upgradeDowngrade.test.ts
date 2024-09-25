@@ -331,7 +331,7 @@ test('clients will receive updates from a snapshot migration upon connection', (
 
 	// need to set these two things to get the message through
 	newClientSocketPair.callbacks['onReceiveMessage'] = jest.fn()
-	newClientSocketPair.clientSocket.connectionStatus = 'online'
+	newClientSocketPair.clientSocket.getConnectionStatus = () => 'online'
 
 	const id = 'test_upgrade_brand_new'
 	const newClientSocket = mockSocket()

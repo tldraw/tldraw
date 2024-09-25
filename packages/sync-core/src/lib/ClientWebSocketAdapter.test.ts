@@ -44,19 +44,19 @@ describe(ClientWebSocketAdapter, () => {
 		expect(adapter).toBeTruthy()
 	})
 	it('should start with connectionStatus=offline', () => {
-		expect(adapter.connectionStatus).toBe('offline')
+		expect(adapter.getConnectionStatus()).toBe('offline')
 	})
 	it('should start with connectionStatus=offline', () => {
-		expect(adapter.connectionStatus).toBe('offline')
+		expect(adapter.getConnectionStatus()).toBe('offline')
 	})
 	it('should respond to onopen events by setting connectionStatus=online', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		expect(adapter.connectionStatus).toBe('online')
+		expect(adapter.getConnectionStatus()).toBe('online')
 	})
 	it('should respond to onerror events by setting connectionStatus=error', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		adapter._ws?.onerror?.({} as any)
-		expect(adapter.connectionStatus).toBe('error')
+		expect(adapter.getConnectionStatus()).toBe('error')
 	})
 	it('should try to reopen the connection if there was an error', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
@@ -73,8 +73,8 @@ describe(ClientWebSocketAdapter, () => {
 	})
 	it('should transition to online if a retry succeeds', async () => {
 		adapter._ws?.onerror?.({} as any)
-		await waitFor(() => adapter.connectionStatus === 'online')
-		expect(adapter.connectionStatus).toBe('online')
+		await waitFor(() => adapter.getConnectionStatus() === 'online')
+		expect(adapter.getConnectionStatus()).toBe('online')
 	})
 	it('should call .close on the underlying socket if .close is called before the socket opens', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
@@ -87,20 +87,20 @@ describe(ClientWebSocketAdapter, () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
-		expect(adapter.connectionStatus).toBe('offline')
+		expect(adapter.getConnectionStatus()).toBe('offline')
 	})
 	it('retries to connect if the server disconnects', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
-		expect(adapter.connectionStatus).toBe('offline')
+		expect(adapter.getConnectionStatus()).toBe('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		expect(adapter.connectionStatus).toBe('online')
+		expect(adapter.getConnectionStatus()).toBe('online')
 		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
-		expect(adapter.connectionStatus).toBe('offline')
+		expect(adapter.getConnectionStatus()).toBe('offline')
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		expect(adapter.connectionStatus).toBe('online')
+		expect(adapter.getConnectionStatus()).toBe('online')
 	})
 
 	it('attempts to reconnect early if the tab becomes active', async () => {

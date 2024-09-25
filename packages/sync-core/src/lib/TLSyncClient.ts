@@ -45,7 +45,7 @@ export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
  */
 export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
 	/** Whether there is currently an open connection to the server. */
-	connectionStatus: 'online' | 'offline' | 'error'
+	getConnectionStatus(): 'online' | 'offline' | 'error'
 	/** Send a message to the server */
 	sendMessage(msg: TLSocketClientSentEvent<R>): void
 	/** Attach a listener for messages sent by the server */
@@ -247,7 +247,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		// if the socket is already online before this client was instantiated
 		// then we should send a connect message right away
-		if (this.socket.connectionStatus === 'online') {
+		if (this.socket.getConnectionStatus() === 'online') {
 			this.sendConnectMessage()
 		}
 	}
@@ -288,7 +288,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.isConnectedToRoom = false
 		this.pendingPushRequests = []
 		this.incomingDiffBuffer = []
-		if (this.socket.connectionStatus === 'online') {
+		if (this.socket.getConnectionStatus() === 'online') {
 			this.socket.restart()
 		}
 	}
@@ -515,7 +515,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 		for (const pendingPushRequest of this.pendingPushRequests) {
 			if (!pendingPushRequest.sent) {
-				if (this.socket.connectionStatus !== 'online') {
+				if (this.socket.getConnectionStatus() !== 'online') {
 					// we went offline, so don't send anything
 					return
 				}

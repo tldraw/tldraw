@@ -77,7 +77,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		didOpen?: boolean
 	) {
 		debug('handleDisconnect', {
-			currentStatus: this.connectionStatus,
+			currentStatus: this.getConnectionStatus(),
 			closeCode,
 			reason,
 		})
@@ -105,11 +105,13 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 			)
 		}
 
+		const status = this.getConnectionStatus()
+
 		if (
 			// it the status changed
-			this.connectionStatus !== newStatus &&
+			status !== newStatus &&
 			// ignore errors if we're already in the offline state
-			!(newStatus === 'error' && this.connectionStatus === 'offline')
+			!(newStatus === 'error' && status === 'offline')
 		) {
 			this._connectionStatus.set(newStatus)
 			this.statusListeners.forEach((cb) => cb(newStatus, closeCode))
@@ -186,8 +188,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		'initial'
 	)
 
-	// eslint-disable-next-line no-restricted-syntax
-	get connectionStatus(): TLPersistentClientSocketStatus {
+	getConnectionStatus(): TLPersistentClientSocketStatus {
 		const status = this._connectionStatus.get()
 		return status === 'initial' ? 'offline' : status
 	}
@@ -196,13 +197,13 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		assert(!this.isDisposed, 'Tried to send message on a disposed socket')
 
 		if (!this._ws) return
-		if (this.connectionStatus === 'online') {
+		if (this.getConnectionStatus() === 'online') {
 			const chunks = chunk(JSON.stringify(msg))
 			for (const part of chunks) {
 				this._ws.send(part)
 			}
 		} else {
-			console.warn('Tried to send message while ' + this.connectionStatus)
+			console.warn('Tried to send message while ' + this.getConnectionStatus())
 		}
 	}
 

@@ -34,9 +34,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
     // (undocumented)
     _closeSocket(): void;
     // (undocumented)
-    get connectionStatus(): TLPersistentClientSocketStatus;
-    // (undocumented)
     _connectionStatus: Atom<'initial' | TLPersistentClientSocketStatus>;
+    // (undocumented)
+    getConnectionStatus(): TLPersistentClientSocketStatus;
     // (undocumented)
     isDisposed: boolean;
     // (undocumented)
@@ -249,7 +249,7 @@ export type TLIncompatibilityReason = (typeof TLIncompatibilityReason)[keyof typ
 
 // @internal
 export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecord> {
-    connectionStatus: 'error' | 'offline' | 'online';
+    getConnectionStatus(): 'error' | 'offline' | 'online';
     onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>;
     onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>;
     restart(): void;

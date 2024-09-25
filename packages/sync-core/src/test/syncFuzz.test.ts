@@ -152,7 +152,8 @@ function runTest(seed: number) {
 		}
 		if (
 			peers.some(
-				(p) => p.client.isConnectedToRoom && p.socketPair.clientSocket.connectionStatus !== 'online'
+				(p) =>
+					p.client.isConnectedToRoom && p.socketPair.clientSocket.getConnectionStatus() !== 'online'
 			)
 		) {
 			throw new Error(`peer client connection status mismatch (${when})`)

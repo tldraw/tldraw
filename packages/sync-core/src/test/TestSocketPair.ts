@@ -39,7 +39,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 			if (!this.callbacks.onReceiveMessage) {
 				throw new Error('Socket is closed')
 			}
-			if (this.clientSocket.connectionStatus !== 'online') {
+			if (this.clientSocket.getConnectionStatus() !== 'online') {
 				// client was closed, drop the packet
 				return
 			}
@@ -50,7 +50,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 	didReceiveFromClient?: (msg: TLSocketClientSentEvent<R>) => void = undefined
 	clientDisconnected?: () => void = undefined
 	clientSocket: TLPersistentClientSocket<R> = {
-		connectionStatus: 'offline',
+		getConnectionStatus: () => 'offline',
 		onStatusChange: (cb) => {
 			this.callbacks.onStatusChange = cb
 			return () => {
@@ -64,7 +64,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 			}
 		},
 		sendMessage: (msg: TLSocketClientSentEvent<R>) => {
-			if (this.clientSocket.connectionStatus !== 'online') {
+			if (this.clientSocket.getConnectionStatus() !== 'online') {
 				throw new Error('trying to send before open')
 			}
 			// cloning because callers might reuse the same message object
@@ -83,7 +83,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 
 	// eslint-disable-next-line no-restricted-syntax
 	get isConnected() {
-		return this.clientSocket.connectionStatus === 'online'
+		return this.clientSocket.getConnectionStatus() === 'online'
 	}
 
 	connect() {
@@ -91,7 +91,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 	}
 
 	disconnect() {
-		this.clientSocket.connectionStatus = 'offline'
+		this.clientSocket.getConnectionStatus = () => 'offline'
 		this.serverSentEventQueue = []
 		this.clientSentEventQueue = []
 		this.callbacks.onStatusChange?.('offline')

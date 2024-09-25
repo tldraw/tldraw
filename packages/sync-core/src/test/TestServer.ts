@@ -11,7 +11,7 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 	connect(socketPair: TestSocketPair<R>): void {
 		this.room.handleNewSession(socketPair.id, socketPair.roomSocket, undefined)
 
-		socketPair.clientSocket.connectionStatus = 'online'
+		socketPair.clientSocket.getConnectionStatus = () => 'online'
 		socketPair.didReceiveFromClient = (msg) => {
 			this.room.handleMessage(socketPair.id, msg)
 		}

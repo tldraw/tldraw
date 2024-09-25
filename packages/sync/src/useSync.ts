@@ -141,9 +141,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		let didCancel = false
 
-		const collaborationStatusSignal = computed('collaboration status', () =>
-			socket.connectionStatus === 'error' ? 'offline' : socket.connectionStatus
-		)
+		const collaborationStatusSignal = computed('collaboration status', () => {
+			const status = socket.getConnectionStatus()
+			return status === 'error' ? 'offline' : status
+		})
 
 		const store = createTLStore({
 			id: storeId,
@@ -198,7 +199,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			if (!state) return { status: 'loading' }
 			if (state.error) return { status: 'error', error: state.error }
 			if (!state.readyClient) return { status: 'loading' }
-			const connectionStatus = state.readyClient.socket.connectionStatus
+			const connectionStatus = state.readyClient.socket.getConnectionStatus()
 			return {
 				status: 'synced-remote',
 				connectionStatus: connectionStatus === 'error' ? 'offline' : connectionStatus,
