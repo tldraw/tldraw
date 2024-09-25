@@ -9,10 +9,8 @@ import {
 } from 'tldraw'
 import { TldrawAppFileId } from './TldrawAppFile'
 import { TldrawAppUserId } from './TldrawAppUser'
-import { TldrawAppWorkspaceId } from './TldrawAppWorkspace'
 
 export interface TldrawAppFileVisit extends BaseRecord<'file-visit', RecordId<TldrawAppFileVisit>> {
-	workspaceId: TldrawAppWorkspaceId
 	userId: TldrawAppUserId
 	fileId: TldrawAppFileId
 	createdAt: number
@@ -26,7 +24,6 @@ export const tldrawAppFileVisitValidator: T.Validator<TldrawAppFileVisit> = T.mo
 	T.object({
 		typeName: T.literal('file-visit'),
 		id: idValidator<TldrawAppFileVisitId>('file-visit'),
-		workspaceId: idValidator<TldrawAppWorkspaceId>('workspace'),
 		userId: idValidator<TldrawAppUserId>('user'),
 		fileId: idValidator<TldrawAppFileId>('file'),
 		createdAt: T.number,

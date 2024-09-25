@@ -23,7 +23,7 @@ export function Component() {
 				userId,
 			},
 		})
-		navigate('/q/w/')
+		navigate('/q')
 	}
 
 	return (

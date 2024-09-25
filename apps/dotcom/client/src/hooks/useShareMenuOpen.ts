@@ -7,7 +7,7 @@ import { atom, useMenuIsOpen, useValue } from 'tldraw'
 // So we keep this global atom at a temporary source of truth between
 // editor instances. When the accompanying hook's first effect is run it will set the editor's menu open state
 // to whatever is in the atom. After that, the editor's menu open state will be the source of truth.
-export const persistentShareMenuOpenAtom = atom('persistentMenuOpen', false)
+const persistentShareMenuOpenAtom = atom('persistentMenuOpen', false)
 
 export function useShareMenuIsOpen() {
 	const isOpen = useValue('is menu open', () => persistentShareMenuOpenAtom.get(), [])
