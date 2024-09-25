@@ -55,7 +55,6 @@ export function TlaFileGridItem({
 		[fileId, app]
 	)
 
-	// const { imageUrl, state } = useServerThumbnail(fileId)
 	const { imageUrl, state } = useLocalThumbnail(fileId)
 
 	return (
