@@ -8,40 +8,78 @@ import {
 	defaultBindingUtils,
 	defaultShapeTools,
 	defaultShapeUtils,
+	getHashForObject,
 	getSvgAsImage,
 	loadSnapshot,
 	useValue,
 } from 'tldraw'
-import { loadDataFromStore } from '../utils/local-sync'
+import {
+	loadDataFromStore,
+	loadThumbnailFromStore,
+	storeThumbnailInIndexedDb,
+} from '../utils/local-sync'
 import { useApp } from './useAppState'
 
 export function useLocalThumbnail(id: string) {
 	const app = useApp()
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])
-	const [state] = useState('loaded')
+	const [state, setState] = useState<'loading' | 'error' | 'loaded'>('loading')
 
 	const [imageUrl, setImageUrl] = useState<string | null>(null)
 
 	useEffect(() => {
 		let didDispose = false
-		loadDataFromStore({
-			storePrefix: 'TLDRAW_DOCUMENT_v2',
-			indexKey: 'TLDRAW_DB_NAME_INDEX_v2',
-			persistenceKey: `tla-2_${id}`,
+
+		// Start loading the local thumbnail for this file
+		loadThumbnailFromStore({
+			fileId: id,
 			didCancel: () => didDispose,
-		}).then(async (data) => {
-			if (!data) return
+		}).then(async (localData) => {
+			// If we have a local thumbnail, set it but don't set the state as loaded
+			if (localData && localData.thumbnail) {
+				setImageUrl(localData.thumbnail)
+			}
 
-			const snapshot = {
-				store: Object.fromEntries((data.records as TLRecord[]).map((r) => [r.id, r])),
-				schema: data.schema as SerializedSchemaV2,
-			} satisfies TLStoreSnapshot
+			loadDataFromStore({
+				storePrefix: 'TLDRAW_DOCUMENT_v2',
+				indexKey: 'TLDRAW_DB_NAME_INDEX_v2',
+				persistenceKey: `tla-2_${id}`,
+				didCancel: () => didDispose,
+			}).then(async (data) => {
+				if (!data) return
 
-			const image = await snapshotToImage(snapshot, {
-				darkMode: theme === 'dark',
+				const snapshot = {
+					store: Object.fromEntries((data.records as TLRecord[]).map((r) => [r.id, r])),
+					schema: data.schema as SerializedSchemaV2,
+				} satisfies TLStoreSnapshot
+
+				const hash = getHashForObject(snapshot)
+
+				// If the hash matches our local data hash, we can skip the server request
+				if (localData && localData.hash === hash) {
+					setState('loaded')
+					return
+				}
+
+				// convert the snapshot to an image using an editor
+				const image = await snapshotToImage(snapshot, {
+					darkMode: theme === 'dark',
+				})
+
+				// Set the image URL
+				setImageUrl(image ?? '')
+
+				// Update the state
+				setState('loaded')
+
+				// Set the thumbnail in storage
+				storeThumbnailInIndexedDb({
+					fileId: id,
+					hash,
+					thumbnail: image,
+					didCancel: () => didDispose,
+				})
 			})
-
-			setImageUrl(image ?? '')
 		})
 		return () => {
 			didDispose = true

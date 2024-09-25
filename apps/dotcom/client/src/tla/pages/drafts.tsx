@@ -14,7 +14,7 @@ export function Component() {
 	const app = useApp()
 	const navigate = useNavigate()
 	const files = useValue(
-		'starred files',
+		'user files',
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return false

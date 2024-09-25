@@ -36,7 +36,7 @@ export function useServerThumbnail(id: string) {
 			if (localData && localData.thumbnail) {
 				// Skip if we've already returned a remote thumbnail
 				if (didReturnRemote) return
-				setImageUrl(`data:image/png;base64,${localData.thumbnail}`)
+				setImageUrl(localData.thumbnail)
 			}
 
 			// Next, load the snapshot from the local store for this file and check its hash
@@ -82,8 +82,10 @@ export function useServerThumbnail(id: string) {
 				if (result.screenshot) {
 					didReturnRemote = true
 
+					const thumbnail = `data:image/png;base64,${result.screenshot}`
+
 					// Set the image URL
-					setImageUrl(`data:image/png;base64,${result.screenshot}`)
+					setImageUrl(thumbnail)
 
 					// Update the state
 					setState('loaded')
@@ -92,7 +94,7 @@ export function useServerThumbnail(id: string) {
 					storeThumbnailInIndexedDb({
 						fileId: id,
 						hash,
-						thumbnail: result.screenshot,
+						thumbnail,
 						didCancel: () => didDispose,
 					})
 				} else {

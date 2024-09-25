@@ -130,18 +130,9 @@ export class TldrawApp {
 			}
 			case 'recent': {
 				// never visited first, then recently visited first
-				const visits = this.getAll('file-visit')
-					.filter((v) => v.userId === auth.userId)
-					.sort((a, b) => b.createdAt - a.createdAt)
-
-				const now = Date.now()
-
-				filteredFiles.sort((a, b) => {
-					const visitA = visits.find((v) => v.fileId === a.id)?.createdAt ?? now
-					const visitB = visits.find((v) => v.fileId === b.id)?.createdAt ?? now
-					return visitA > visitB ? -1 : 1
-				})
-				break
+				return this.getUserRecentFiles(auth.userId, auth.workspaceId, sessionState.createdAt).map(
+					(f) => f.file
+				)
 			}
 		}
 
