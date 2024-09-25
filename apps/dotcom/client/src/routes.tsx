@@ -16,16 +16,16 @@ import {
 	useRouteError,
 } from 'react-router-dom'
 import { deleteFromLocalStorage, getFromLocalStorage } from 'tldraw'
-import { TlaErrorPage } from './components-tla/TlaErrorPage'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
-import { AppStateProvider, useApp } from './hooks/useAppState'
-import { useAuth } from './tla-hooks/useAuth'
-import { useSessionState } from './tla-hooks/useSessionState'
-import { TldrawAppFileRecordType } from './utils/tla/schema/TldrawAppFile'
-import { TEMPORARY_FILE_KEY } from './utils/tla/temporary-files'
-import { getCleanId } from './utils/tla/tldrawAppSchema'
-import { getFileUrl, getWorkspaceUrl } from './utils/tla/urls'
+import { TlaErrorPage } from './tla/components/TlaErrorPage'
+import { AppStateProvider, useApp } from './tla/hooks/useAppState'
+import { useAuth } from './tla/hooks/useAuth'
+import { useSessionState } from './tla/hooks/useSessionState'
+import { TldrawAppFileRecordType } from './tla/utils/schema/TldrawAppFile'
+import { TEMPORARY_FILE_KEY } from './tla/utils/temporary-files'
+import { getCleanId } from './tla/utils/tldrawAppSchema'
+import { getFileUrl, getWorkspaceUrl } from './tla/utils/urls'
 
 export const router = createRoutesFromElements(
 	<Route
@@ -79,28 +79,28 @@ export const router = createRoutesFromElements(
 			{/* If not redirected, then local */}
 			<Route index element={<RedirectAtRoot />} />
 			{/* Force route to local */}
-			<Route path="/q/local" lazy={() => import('./pages/ws-local')} />
+			<Route path="/q/local" lazy={() => import('./tla/pages/local')} />
 			{/* Force route to auth */}
-			<Route path="/q/auth" lazy={() => import('./pages/auth')} />
+			<Route path="/q/auth" lazy={() => import('./tla/pages/auth')} />
 			{/* Temporary file */}
-			<Route path="/q/t/:fileId" lazy={() => import('./pages/ws-temp-file')} />
+			<Route path="/q/t/:fileId" lazy={() => import('./tla/pages/file-temp')} />
 			{/* Workspace */}
 			<Route path="/q/w" element={<Outlet />}>
 				<Route index element={<RedirectAtWorkspacesRoot />} />
 				<Route path="/q/w/:workspaceId" element={<RequireAuthForWorkspace />}>
 					<Route index element={<RedirectAtWorkspaceRoot />} />
-					<Route path="/q/w/:workspaceId/debug" lazy={() => import('./pages/ws-debug')} />
-					<Route path="/q/w/:workspaceId/drafts" lazy={() => import('./pages/ws-drafts')} />
-					<Route path="/q/w/:workspaceId/stars" lazy={() => import('./pages/ws-stars')} />
-					<Route path="/q/w/:workspaceId/shared" lazy={() => import('./pages/ws-shared')} />
-					<Route path="/q/w/:workspaceId/groups" lazy={() => import('./pages/ws-groups')} />
+					<Route path="/q/w/:workspaceId/debug" lazy={() => import('./tla/pages/debug')} />
+					<Route path="/q/w/:workspaceId/drafts" lazy={() => import('./tla/pages/drafts')} />
+					<Route path="/q/w/:workspaceId/stars" lazy={() => import('./tla/pages/stars')} />
+					<Route path="/q/w/:workspaceId/shared" lazy={() => import('./tla/pages/shared')} />
+					<Route path="/q/w/:workspaceId/groups" lazy={() => import('./tla/pages/groups')} />
 					{/* File */}
-					<Route path="/q/w/:workspaceId/f/:fileId" lazy={() => import('./pages/ws-file')} />
+					<Route path="/q/w/:workspaceId/f/:fileId" lazy={() => import('./tla/pages/file')} />
 					{/* Workspace settings */}
-					<Route path="/q/w/:workspaceId/settings" lazy={() => import('./pages/ws-settings')} />
+					<Route path="/q/w/:workspaceId/settings" lazy={() => import('./tla/pages/settings')} />
 					{/* User */}
 					<Route path="/q/w/:workspaceId/profile" element={<RequireAuthForUser />}>
-						<Route index lazy={() => import('./pages/ws-profile')} />
+						<Route index lazy={() => import('./tla/pages/profile')} />
 					</Route>
 				</Route>
 			</Route>
