@@ -1,3 +1,33 @@
+# v3.2.0 (Thu Sep 26 2024)
+
+### Release Notes
+
+#### Remove thumbnail logic ([#4602](https://github.com/tldraw/tldraw/pull/4602))
+
+- Remove thumbnail logic.
+
+---
+
+#### 🐛 Bug Fix
+
+- Remove thumbnail logic [#4602](https://github.com/tldraw/tldraw/pull/4602) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [botcom] purge prototype leftovers [#4601](https://github.com/tldraw/tldraw/pull/4601) ([@ds300](https://github.com/ds300))
+- `tldraw`, `@tldraw/validate`
+  - [in the voice of David S: MERGE] tldraw.com v2 [#4576](https://github.com/tldraw/tldraw/pull/4576) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo) [@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🐛 Bug Fixes
+
+- docs: fix up horz. scrolling and slow search typing [#4607](https://github.com/tldraw/tldraw/pull/4607) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 4
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.1.0 (Wed Sep 25 2024)
 
 ### Release Notes
