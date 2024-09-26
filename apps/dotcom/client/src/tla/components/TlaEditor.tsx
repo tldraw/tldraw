@@ -23,6 +23,7 @@ import { SneakyOnDropOverride } from '../../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../utils/assetUrls'
 import { createAssetFromUrl } from '../../utils/createAssetFromUrl'
+import { globalEditor } from '../../utils/globalEditor'
 import { DebugMenuItems } from '../../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../../utils/migration/LocalMigration'
 import { useSharing } from '../../utils/sharing'
@@ -146,6 +147,7 @@ export function TlaEditor({
 		(editor: Editor) => {
 			;(window as any).app = editor
 			;(window as any).editor = editor
+			globalEditor.set(editor)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 			app.setCurrentEditor(editor)
 			editor.timers.setTimeout(() => {
