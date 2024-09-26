@@ -679,7 +679,7 @@ want centered content that docks to the top when the window is short
 	height: 100%;
 	display: none;
 	flex: 0 0 auto;
-	padding: 8px 6px 2px 8px;
+	padding: 7px 6px 2px 8px;
 	background: var(--tla-color-sidebar);
 }
 
@@ -1104,7 +1104,7 @@ want centered content that docks to the top when the window is short
 	flex-direction: row;
 	align-items: center;
 	gap: 8px;
-	padding: 0px 0px 0px 16px;
+	padding: 0px 0px 0px 12px;
 	font-size: 12px;
 }
 

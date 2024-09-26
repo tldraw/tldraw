@@ -82,7 +82,6 @@ const components: TLComponents = {
 	),
 	MenuPanel: function MenuPanel() {
 		const app = useApp()
-		const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 		const { MainMenu } = useTldrawUiComponents()
 
 		const { fileId } = useParams<{ fileId?: TldrawAppFileId }>()
@@ -95,10 +94,9 @@ const components: TLComponents = {
 						className="tla-file-navbar__breadcrumbs tla-text_ui__regular"
 						style={{
 							color: 'var(--tla-color-text-2)',
-							paddingLeft: !isSidebarOpen ? 8 : undefined,
 						}}
 					>
-						<span style={{ paddingRight: 'px' }}>My Files</span>
+						<span>My Files</span>
 						<span style={{ opacity: 0.5 }}>
 							<TlaIcon icon="chevron-right" />
 						</span>
