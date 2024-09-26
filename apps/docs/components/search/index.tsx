@@ -29,7 +29,7 @@ function InstantSearchInner({ onClose }: { onClose(): void }) {
 		router.push(path)
 		onClose()
 	}
-	const handleInputChange = debounce((query: string) => refine(query), 200)
+	const handleInputChange = debounce((query: string) => refine(query), 500)
 
 	return (
 		<SearchAutocomplete
