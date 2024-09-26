@@ -145,6 +145,7 @@
 	bottom: 0px;
 	right: 0px;
 	background-color: var(--tla-color-panel);
-	padding: 2px 4px;
+	padding: 1px 4px;
 	text-align: right;
+	border-top-left-radius: 4px;
 }

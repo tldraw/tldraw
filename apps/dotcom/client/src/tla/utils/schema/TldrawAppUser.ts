@@ -15,6 +15,7 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 	avatar: string
 	color: string
 	exportFormat: 'png' | 'svg'
+	exportTheme: 'dark' | 'light' | 'auto'
 	exportBackground: boolean
 	exportPadding: boolean
 	createdAt: number
@@ -41,6 +42,7 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 		avatar: T.string,
 		color: T.string,
 		exportFormat: T.literalEnum('png', 'svg'),
+		exportTheme: T.literalEnum('dark', 'light', 'auto'),
 		exportBackground: T.boolean,
 		exportPadding: T.boolean,
 		createdAt: T.number,
@@ -75,6 +77,7 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 		color: 'coral', // coral
 		avatar: '',
 		exportFormat: 'png',
+		exportTheme: 'auto',
 		exportBackground: true,
 		exportPadding: true,
 		createdAt: Date.now(),

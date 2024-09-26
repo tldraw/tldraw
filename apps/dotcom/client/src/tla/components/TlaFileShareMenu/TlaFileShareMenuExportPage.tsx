@@ -34,6 +34,7 @@ export function TlaShareMenuExportPage() {
 				<TlaShareMenuControlGroup>
 					<ExportBackgroundToggle />
 					<ExportPaddingToggle />
+					<ExportThemeSelect />
 					<ExportFormatSelect />
 				</TlaShareMenuControlGroup>
 				<ExportPreviewImage />
@@ -143,6 +144,45 @@ function ExportFormatSelect() {
 	)
 }
 
+function ExportThemeSelect() {
+	const app = useApp()
+	const auth = useAuth()
+	if (!auth) throw Error('should have auth')
+	const { userId } = auth
+
+	const exportTheme = useValue(
+		'export format',
+		() => {
+			const user = app.getUser(userId)
+			if (!user) throw Error('no user')
+			return user.exportTheme
+		},
+		[app, userId]
+	)
+
+	const handleSelectChange = useCallback(
+		(value: TldrawAppUser['exportTheme']) => {
+			app.setUserExportTheme(userId, value)
+		},
+		[app, userId]
+	)
+
+	return (
+		<TlaShareMenuControl>
+			<TlaShareMenuControlLabel>Theme...</TlaShareMenuControlLabel>
+			<TlaSelect
+				value={exportTheme}
+				label={exportTheme[0].toLocaleUpperCase() + exportTheme.slice(1)}
+				onChange={handleSelectChange}
+			>
+				<option value="auto">Auto</option>
+				<option value="light">Light</option>
+				<option value="dark">Dark</option>
+			</TlaSelect>
+		</TlaShareMenuControl>
+	)
+}
+
 function ExportImageButton() {
 	const app = useApp()
 
@@ -172,6 +212,7 @@ function ExportImageButton() {
 		exportAs(editor, ids, user.exportFormat, 'file', {
 			padding: user.exportPadding ? editor.options.defaultSvgPadding : 0,
 			background: user.exportBackground,
+			darkMode: user.exportTheme === 'auto' ? undefined : user.exportTheme === 'dark',
 		})
 
 		setExported(true)
@@ -277,6 +318,7 @@ async function getEditorImage(
 		{
 			padding: user.exportPadding ? editor.options.defaultSvgPadding : 0,
 			background: user.exportBackground,
+			darkMode: user.exportTheme === 'auto' ? undefined : user.exportTheme === 'dark',
 		}
 	)
 
