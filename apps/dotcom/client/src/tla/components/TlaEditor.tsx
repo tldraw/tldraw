@@ -53,7 +53,6 @@ import {
 	TldrawAppFileRecordType,
 } from '../utils/schema/TldrawAppFile'
 import { TlaIcon } from './TlaIcon'
-import { TlaSidebarCreateFileButton } from './TlaSidebar'
 import { TlaSidebarToggle } from './TlaSidebarToggle'
 
 // const shittyOfflineAtom = atom('shitty offline atom', false)
@@ -89,13 +88,8 @@ const components: TLComponents = {
 		const { fileId } = useParams<{ fileId?: TldrawAppFileId }>()
 		if (!MainMenu) return null
 		return (
-			<div className="tla-file-navbar" style={!isSidebarOpen ? { paddingLeft: 0 } : undefined}>
-				{!isSidebarOpen && (
-					<>
-						<TlaSidebarToggle />
-						<TlaSidebarCreateFileButton />
-					</>
-				)}
+			<div className="tla-file-navbar" style={{ paddingLeft: 0 }}>
+				<TlaSidebarToggle />
 				{fileId && (
 					<div
 						className="tla-file-navbar__breadcrumbs tla-text_ui__regular"

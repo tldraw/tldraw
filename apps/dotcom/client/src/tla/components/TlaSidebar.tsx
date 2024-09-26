@@ -9,7 +9,6 @@ import { getCleanId } from '../utils/tldrawAppSchema'
 import { getFileUrl } from '../utils/urls'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
-import { TlaSidebarToggle } from './TlaSidebarToggle'
 import { TlaSpacer } from './TlaSpacer'
 
 export function TlaSidebar() {
@@ -17,8 +16,6 @@ export function TlaSidebar() {
 		<div className="tla-sidebar">
 			<div className="tla-sidebar__top">
 				<TlaSidebarWorkspaceLink />
-				<div className="tla-spacer"></div>
-				<TlaSidebarToggle />
 				<TlaSidebarCreateFileButton />
 			</div>
 			<div className="tla-sidebar__content">

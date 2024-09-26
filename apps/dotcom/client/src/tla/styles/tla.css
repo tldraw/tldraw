@@ -1085,13 +1085,17 @@ want centered content that docks to the top when the window is short
 	position: absolute;
 	top: var(--space-3);
 	left: var(--space-3);
-	background-color: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px);
+	background-color: var(--color-background);
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	height: 40px;
 	padding: 4px 0px 4px 0px;
+}
+
+.tla-sicko .tla-file-navbar {
+	background-color: rgb(from var(--color-background) r g b / 85%);
+	backdrop-filter: blur(5px);
 }
 
 .tla-file-navbar__breadcrumbs {
@@ -1142,21 +1146,15 @@ want centered content that docks to the top when the window is short
 	position: absolute;
 	left: 50%;
 	transform: translateX(-50%);
-	background-color: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px);
+	background-color: var(--color-background);
 	border: none;
 	margin: 0;
 }
 
-/* .tla .tla-sicko .tlui-toolbar__extras__controls  {
-	position: absolute;
-	left: 50%;
-	transform: translateX(-50%);
-	background-color: rgb(from var(--color-background) r g b / 90%);
-  backdrop-filter: blur(5px); 
-	border: none;
-	margin: 0;
-} */
+.tla .tla-sicko .tlui-toolbar__extras__controls {
+	background-color: rgb(from var(--color-background) r g b / 85%);
+	backdrop-filter: blur(5px);
+}
 
 .tla .tlui-toolbar__extras {
 	top: 8px;
@@ -1176,9 +1174,13 @@ want centered content that docks to the top when the window is short
 .tla .tlui-navigation-panel {
 	left: calc(var(--space-3) + var(--sab));
 	bottom: calc(var(--space-3) + var(--sab));
+	background-color: var(--color-background);
+	border-radius: var(--radius-3);
+}
+
+.tla .tla-sicko .tlui-navigation-panel {
 	background-color: rgb(from var(--color-background) r g b / 90%);
 	backdrop-filter: blur(5px);
-	border-radius: var(--radius-3);
 }
 
 .tla .tlui-navigation-panel::before {
