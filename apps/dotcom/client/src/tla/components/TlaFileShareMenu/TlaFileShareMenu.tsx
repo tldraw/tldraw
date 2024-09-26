@@ -1,11 +1,11 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
 import classNames from 'classnames'
-import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react'
 import {
 	Editor,
+	exportAs,
 	FileHelpers,
 	TldrawUiDropdownMenuTrigger,
-	exportAs,
 	useLocalStorageState,
 	useValue,
 } from 'tldraw'
@@ -25,6 +25,12 @@ import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
+
+	const [showingHelp, setShowingHelp] = useState(false)
+
+	const handleHelpClick = useCallback(() => {
+		setShowingHelp((v) => !v)
+	}, [])
 
 	const shareMenuActiveTab = useValue(
 		'share menu active tab',
@@ -53,73 +59,33 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 				alignOffset={-2}
 				sideOffset={6}
 			>
-				<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
-					<TlaTabsTabs>
-						<TlaTabsTab id="share">Share</TlaTabsTab>
-						<TlaTabsTab id="export">Export</TlaTabsTab>
-					</TlaTabsTabs>
-					<TlaTabsPages>
-						<SharePage fileId={fileId} />
-						<ExportPage />
-					</TlaTabsPages>
-				</TlaTabsRoot>
+				<tlaHelpContext.Provider value={showingHelp}>
+					<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
+						<TlaTabsTabs>
+							<TlaTabsTab id="share">Share</TlaTabsTab>
+							<TlaTabsTab id="export">Export</TlaTabsTab>
+							<button
+								className={styles.helpButton}
+								onClick={handleHelpClick}
+								data-active={showingHelp}
+							>
+								<TlaIcon icon="question-circle" />
+							</button>
+						</TlaTabsTabs>
+						<TlaTabsPages>
+							<SharePage fileId={fileId} />
+							<ExportPage />
+						</TlaTabsPages>
+					</TlaTabsRoot>
+				</tlaHelpContext.Provider>
 			</DropdownPrimitive.Content>
 		</DropdownPrimitive.Root>
 	)
 }
 
-function SharePage({ fileId }: { fileId: TldrawAppFileId }) {
-	const app = useApp()
-	const shared = useValue(
-		'file',
-		() => {
-			const file = app.store.get(fileId)
-			if (!file) throw Error('no file')
-			return file.shared
-		},
-		[app, fileId]
-	)
+/* ------------------- Primitives ------------------- */
 
-	return (
-		<TlaTabsPage id="share" className={styles.content}>
-			<TlaShareMenuSection>
-				<TlaShareMenuControlGroup>
-					<TlaSharedToggle shared={shared} fileId={fileId} />
-					<TlaSelectSharedLinkType fileId={fileId} />
-				</TlaShareMenuControlGroup>
-				<TlaCopyLinkButton shared={shared} fileId={fileId} />
-				<TlaShareMenuHelpItem id="sharing">
-					<p>
-						Invite someone to collaborate by sending them a <b>link</b> to your project. You can{' '}
-						<b>turn off</b> sharing at any time.
-					</p>
-				</TlaShareMenuHelpItem>
-			</TlaShareMenuSection>
-			<TlaShareMenuSection>
-				<TlaCopySnapshotLinkButton fileId={fileId} />
-				<TlaShareMenuHelpItem id="snapshot">
-					<p>
-						A <b>snapshot</b> is a read-only copy of your project in its current state. Use
-						snapshots to create backups or to share your work in progress.
-					</p>
-				</TlaShareMenuHelpItem>
-			</TlaShareMenuSection>
-		</TlaTabsPage>
-	)
-}
-
-function ExportPage() {
-	return (
-		<TlaTabsPage id="export" className={styles.content}>
-			<TlaShareMenuSection>
-				<TlaShareMenuControlGroup>
-					<TlaSelectExportFormat />
-				</TlaShareMenuControlGroup>
-				<TlaExportImageButton />
-			</TlaShareMenuSection>
-		</TlaTabsPage>
-	)
-}
+const tlaHelpContext = createContext<boolean>(false)
 
 // Used to section areas of the menu, ie share links vs snapshots
 function TlaShareMenuSection({ children }: { children: ReactNode }) {
@@ -139,44 +105,12 @@ function TlaShareMenuControlLabel({ children }: { children: ReactNode }) {
 	return <div className="tla-text_ui__medium">{children}</div>
 }
 
-function TlaShareMenuHelpItem({
-	id,
-	children,
-	debug = false,
-}: {
-	id: string
-	children: ReactNode
-	debug?: boolean
-}) {
-	const [dismissed, setDismissed] = useLocalStorageState('TLDRAW_APP_DISMISS_' + id, false)
-	const [expanded, setExpanded] = useState(false)
+function TlaShareMenuHelpItem({ children }: { children: ReactNode }) {
+	const showingHelp = useContext(tlaHelpContext)
 
-	const handleExpand = useCallback(() => {
-		setExpanded(true)
-	}, [])
+	if (!showingHelp) return null
 
-	const handleDismiss = useCallback(() => {
-		setDismissed(true)
-	}, [setDismissed])
-
-	if (dismissed && !debug) return null
-
-	if (expanded) {
-		return (
-			<div className={classNames(styles.description)}>
-				{children}
-				<button className={classNames(styles.descriptionDismiss)} onClick={handleDismiss}>
-					Dismiss
-				</button>
-			</div>
-		)
-	}
-
-	return (
-		<button className={classNames(styles.descriptionCollapsed)} onClick={handleExpand}>
-			Learn more <TlaIcon icon="chevron-down" />
-		</button>
-	)
+	return <div className={styles.helpItem}>{children}</div>
 }
 
 function TlaShareMenuCopyButton({
@@ -206,6 +140,50 @@ function TlaShareMenuCopyButton({
 			<span>{children}</span>
 			<TlaIcon className={styles.copyButtonIcon} icon={copied ? 'check' : 'copy'} />
 		</button>
+	)
+}
+
+/* -------------------------------------------------- */
+/*                        Pages                       */
+/* -------------------------------------------------- */
+
+function SharePage({ fileId }: { fileId: TldrawAppFileId }) {
+	const app = useApp()
+	const shared = useValue(
+		'file',
+		() => {
+			const file = app.store.get(fileId)
+			if (!file) throw Error('no file')
+			return file.shared
+		},
+		[app, fileId]
+	)
+
+	return (
+		<TlaTabsPage id="share" className={styles.content}>
+			<TlaShareMenuSection>
+				<TlaShareMenuControlGroup>
+					<TlaSharedToggle shared={shared} fileId={fileId} />
+					<TlaSelectSharedLinkType fileId={fileId} />
+				</TlaShareMenuControlGroup>
+				<TlaCopyLinkButton shared={shared} fileId={fileId} />
+				<TlaShareMenuHelpItem>
+					<p>
+						Invite someone to collaborate by sending them a <b>link</b> to your project. You can{' '}
+						<b>turn off</b> sharing at any time.
+					</p>
+				</TlaShareMenuHelpItem>
+			</TlaShareMenuSection>
+			<TlaShareMenuSection>
+				<TlaCopySnapshotLinkButton fileId={fileId} />
+				<TlaShareMenuHelpItem>
+					<p>
+						A <b>snapshot</b> is a read-only copy of your project in its current state. Use
+						snapshots to create backups or to share your work in progress.
+					</p>
+				</TlaShareMenuHelpItem>
+			</TlaShareMenuSection>
+		</TlaTabsPage>
 	)
 }
 
@@ -312,6 +290,89 @@ function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 
 /* --------------------- Export --------------------- */
 
+function ExportPage() {
+	return (
+		<TlaTabsPage id="export" className={styles.content}>
+			<TlaShareMenuSection>
+				<TlaShareMenuControlGroup>
+					<ExportBackgroundToggle />
+					<ExportPaddingToggle />
+					<TlaSelectExportFormat />
+				</TlaShareMenuControlGroup>
+				<TlaExportImageButton />
+				<TlaShareMenuHelpItem>
+					<p>
+						A <b>snapshot</b> is a read-only copy of your project in its current state. Use
+						snapshots to create backups or to share your work in progress.
+					</p>
+				</TlaShareMenuHelpItem>
+			</TlaShareMenuSection>
+		</TlaTabsPage>
+	)
+}
+
+function ExportBackgroundToggle() {
+	const app = useApp()
+	const auth = useAuth()
+	if (!auth) throw Error('should have auth')
+
+	const { userId } = auth
+
+	const exportPadding = useValue(
+		'export format',
+		() => {
+			const user = app.getUser(userId)
+			if (!user) throw Error('no user')
+			return user.exportPadding
+		},
+		[app, userId]
+	)
+
+	const handleToggleShared = useCallback(() => {
+		const user = app.getUser(userId)
+		if (!user) throw Error('no user')
+		app.setUserExportPadding(userId, !user.exportPadding)
+	}, [app, userId])
+
+	return (
+		<TlaShareMenuControl>
+			<TlaShareMenuControlLabel>Padding</TlaShareMenuControlLabel>
+			<TlaSwitch checked={exportPadding} onChange={handleToggleShared} />
+		</TlaShareMenuControl>
+	)
+}
+
+function ExportPaddingToggle() {
+	const app = useApp()
+	const auth = useAuth()
+	if (!auth) throw Error('should have auth')
+
+	const { userId } = auth
+
+	const exportBackground = useValue(
+		'export format',
+		() => {
+			const user = app.getUser(userId)
+			if (!user) throw Error('no user')
+			return user.exportBackground
+		},
+		[app, userId]
+	)
+
+	const handleToggleShared = useCallback(() => {
+		const user = app.getUser(userId)
+		if (!user) throw Error('no user')
+		app.setUserExportBackground(userId, !user.exportBackground)
+	}, [app, userId])
+
+	return (
+		<TlaShareMenuControl>
+			<TlaShareMenuControlLabel>Background</TlaShareMenuControlLabel>
+			<TlaSwitch checked={exportBackground} onChange={handleToggleShared} />
+		</TlaShareMenuControl>
+	)
+}
+
 function TlaSelectExportFormat() {
 	const app = useApp()
 	const auth = useAuth()
@@ -369,7 +430,10 @@ function TlaExportImageButton() {
 			const user = app.getUser(auth.userId)
 			if (!user) throw Error('expected user')
 			const ids = editor.getSelectedShapeIds()
-			exportAs(editor, ids, user?.exportFormat, 'file')
+			exportAs(editor, ids, user.exportFormat, 'file', {
+				padding: user.exportPadding ? 32 : 0,
+				background: user.exportBackground,
+			})
 		}
 
 		setExported(true)
@@ -382,7 +446,7 @@ function TlaExportImageButton() {
 
 	return (
 		<button
-			className="tla-button tla-button__secondary tla-text_ui__medium tla-share-menu__copy-button"
+			className="tla-button tla-button__primary tla-text_ui__medium tla-share-menu__copy-button"
 			onClick={handleExportLinkClick}
 		>
 			<span>Export image</span>

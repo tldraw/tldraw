@@ -5,6 +5,30 @@
 	--share-menu-padding: 12px;
 }
 
+.helpButton {
+	all: unset;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-text-3);
+	cursor: pointer;
+}
+
+.helpButton[data-active='true'] {
+	color: var(--tla-color-text-1);
+}
+
+@media (hover: hover) {
+	.helpButton:hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
 .content {
 	position: relative;
 }
@@ -72,10 +96,12 @@
 
 /* Share menu description */
 
-.description {
+.helpItem {
+	position: relative;
 	color: var(--tla-color-text-1);
 	font-weight: 400;
 	background-color: var(--tla-color-low);
+	border: 1px solid var(--tla-color-border);
 	border-radius: 6px;
 	font-size: 12px;
 	font-weight: 400;
@@ -84,31 +110,7 @@
 	flex-direction: column;
 }
 
-.description p {
+.helpItem p {
 	margin: 0px;
-	padding: 12px 12px 0px 12px;
-}
-
-.descriptionDismiss {
-	all: unset;
-	width: fit-content;
-	align-self: flex-end;
-	background: none;
-	border: none;
 	padding: 12px;
-	color: var(--tla-color-primary);
-	font-weight: 500;
-	text-align: right;
-	cursor: pointer;
-}
-
-.descriptionCollapsed {
-	all: unset;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 4px;
-	font-size: 11px;
-	text-align: center;
-	color: var(--tla-color-primary);
 }
