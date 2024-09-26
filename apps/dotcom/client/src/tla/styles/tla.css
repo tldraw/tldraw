@@ -1120,10 +1120,10 @@ want centered content that docks to the top when the window is short
 }
 
 .tla * * * {
-	--shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 10%), 0px 2px 6px hsl(0, 0%, 0%, 6%),
+	--shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 10%), 0px 2px 6px hsl(0, 0%, 0%, 8%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 
-	--shadow-2: 0px 1px 2px hsl(0, 0%, 0%, 10%), 0px 2px 6px hsl(0, 0%, 0%, 6%),
+	--shadow-2: 0px 1px 2px hsl(0, 0%, 0%, 18%), 0px 2px 6px hsl(0, 0%, 0%, 12%),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
