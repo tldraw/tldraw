@@ -36,6 +36,7 @@ export function TlaShareMenuExportPage() {
 					<ExportPaddingToggle />
 					<TlaSelectExportFormat />
 				</TlaShareMenuControlGroup>
+				<TlaPreviewImage />
 				<TlaExportImageButton />
 				<TlaShareMenuHelpItem>
 					<p>
@@ -189,7 +190,6 @@ function TlaExportImageButton() {
 
 	return (
 		<>
-			<PreviewImage />
 			<button
 				className="tla-button tla-button__primary tla-text_ui__medium tla-share-menu__copy-button"
 				onClick={handleExportLinkClick}
@@ -201,7 +201,7 @@ function TlaExportImageButton() {
 	)
 }
 
-function PreviewImage() {
+function TlaPreviewImage() {
 	const app = useApp()
 	const ref = useRef<HTMLImageElement>(null)
 
@@ -229,6 +229,14 @@ function PreviewImage() {
 						.getSortedChildIdsForParent(editor.getCurrentPageId())
 						.map((s) => editor.getShape(s))
 				)
+			}
+
+			if (shapes.length === 0) {
+				const elm = ref.current
+				if (!elm) return
+				elm.setAttribute('src', '')
+				setExportPreviewSize(null)
+				return
 			}
 
 			// while lots of shapes are selected, debounce a little so that the thread doesn't freeze when editing the page
