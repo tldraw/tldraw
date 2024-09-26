@@ -1,6 +1,7 @@
 'use client'
 
 import { SearchEntry, SearchIndexName, getSearchIndexName } from '@/utils/algolia'
+import { debounce } from '@/utils/debounce'
 import algoliasearch from 'algoliasearch/lite'
 import { useRouter } from 'next/navigation'
 import { InstantSearch, useHits, useSearchBox } from 'react-instantsearch'
@@ -28,11 +29,12 @@ function InstantSearchInner({ onClose }: { onClose(): void }) {
 		router.push(path)
 		onClose()
 	}
+	const handleInputChange = debounce((query: string) => refine(query), 500)
 
 	return (
 		<SearchAutocomplete
 			items={items}
-			onInputChange={(query: string) => refine(query)}
+			onInputChange={handleInputChange}
 			onChange={handleChange}
 			onClose={onClose}
 		/>
