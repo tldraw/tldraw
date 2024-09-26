@@ -3,6 +3,7 @@ import { FileHelpers, useLocalStorageState, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useAuth } from '../../hooks/useAuth'
 import { copyTextToClipboard } from '../../utils/copy'
+import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
@@ -163,8 +164,15 @@ function QrCode({ fileId }: { fileId: TldrawAppFileId }) {
 	// Save the QR codes in local storage
 	const [qrCode, setQrCode] = useLocalStorageState<string | null>(fileId + 'qr-code-11', null)
 
+	const app = useApp()
+
+	const theme = useValue('is dark mode', () => app.getSessionState().theme, [app])
+
 	useEffect(() => {
 		if (!qrCode) {
+			const editor = getCurrentEditor()
+			if (!editor) return
+
 			const url = getShareableFileUrl(fileId)
 			createQRCodeImageDataString(url).then((svgString) => {
 				const blob = new Blob([svgString], { type: 'image/svg+xml' })
@@ -186,7 +194,7 @@ function QrCode({ fileId }: { fileId: TldrawAppFileId }) {
 
 	return (
 		<div className={styles.qrCode}>
-			<img ref={ref} className={styles.qrCodeInner} />
+			<img ref={ref} className={styles.qrCodeInner} data-theme={theme} />
 		</div>
 	)
 }

@@ -116,6 +116,10 @@
 	pointer-events: all;
 }
 
+.qrCodeInner[data-theme='dark'] {
+	filter: invert(100%);
+}
+
 /* Export preview */
 
 .exportPreview {
