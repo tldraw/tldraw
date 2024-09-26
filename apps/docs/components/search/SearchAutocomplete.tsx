@@ -4,7 +4,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/20/solid'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Hit } from 'instantsearch.js'
 import Link from 'next/link'
-import { Fragment, useState } from 'react'
+import { Fragment, startTransition, useState } from 'react'
 import { Highlight } from 'react-instantsearch'
 import { twJoin } from 'tailwind-merge'
 import { ContentHighlight } from './ContentHighlight'
@@ -40,8 +40,10 @@ export default function Autocomplete({
 			resetValueOnHide
 			includesBaseElement={false}
 			setValue={(newValue) => {
-				setValue(newValue)
-				onInputChange(newValue)
+				startTransition(() => {
+					setValue(newValue)
+					onInputChange(newValue)
+				})
 			}}
 			setSelectedValue={(newValue) => onChange(newValue)}
 		>
@@ -75,7 +77,6 @@ function SearchInput({ value }: { value: string }) {
 			<div className="flex h-full grow items-center gap-3">
 				<MagnifyingGlassIcon className="h-4 shrink-0" />
 				<Combobox
-					autoSelect
 					className="h-full w-full mr-4 focus:outline-none text-black dark:text-white bg-transparent"
 					value={value}
 					autoFocus
