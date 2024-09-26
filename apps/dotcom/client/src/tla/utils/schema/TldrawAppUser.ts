@@ -21,7 +21,7 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 		fileIds: TldrawAppFileId[]
 	}
 	flags: {
-		placeholder_feature_flag: boolean
+		batshit_mode: boolean
 	}
 }
 
@@ -43,7 +43,7 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 			fileIds: T.arrayOf(idValidator<TldrawAppFileId>('file')),
 		}),
 		flags: T.object({
-			placeholder_feature_flag: T.boolean,
+			batshit_mode: T.boolean,
 		}),
 	})
 )
@@ -71,7 +71,7 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
 		flags: {
-			placeholder_feature_flag: false,
+			batshit_mode: false,
 		},
 	})
 )

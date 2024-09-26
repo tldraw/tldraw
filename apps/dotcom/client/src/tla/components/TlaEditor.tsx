@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
@@ -16,6 +17,7 @@ import {
 	MobileStylePanel,
 	OverflowingToolbar,
 	PORTRAIT_BREAKPOINT,
+	PeopleMenu,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
@@ -26,9 +28,12 @@ import {
 	useReadonly,
 	useValue,
 } from 'tldraw'
+
 // eslint-disable-next-line local/no-internal-imports
 import { ToggleToolLockedButton } from 'tldraw/src/lib/ui/components/Toolbar/ToggleToolLockedButton'
+
 import { Links } from '../../components/Links'
+import { ShareMenu } from '../../components/ShareMenu'
 import { SneakyOnDropOverride } from '../../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../utils/assetUrls'
@@ -39,6 +44,7 @@ import { useSharing } from '../../utils/sharing'
 import { useFileSystem } from '../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../utils/useHandleUiEvent'
 import { useApp } from '../hooks/useAppState'
+import { useFlags } from '../hooks/useFlags'
 import { TldrawApp } from '../utils/TldrawApp'
 import {
 	TldrawAppFile,
@@ -90,19 +96,19 @@ const components: TLComponents = {
 				{fileId && (
 					<div
 						className="tla-file-navbar__breadcrumbs tla-text_ui__regular"
-						style={
-							!isSidebarOpen
-								? {
-										paddingLeft: 8,
-									}
-								: undefined
-						}
+						style={{
+							color: 'var(--tla-color-text-2)',
+							paddingLeft: !isSidebarOpen ? 8 : undefined,
+						}}
 					>
-						<span style={{ color: 'var(--tla-color-text-2)', paddingRight: 'px' }}>My Files</span>
+						<span style={{ paddingRight: 'px' }}>My Files</span>
 						<span style={{ opacity: 0.5 }}>
 							<TlaIcon icon="chevron-right" />
 						</span>
-						<button className="tla-file-navbar__filename-button">
+						<button
+							style={{ color: 'var(--tla-color-text-2)' }}
+							className="tla-file-navbar__filename-button"
+						>
 							{TldrawApp.getFileName(app.store.get(TldrawAppFileRecordType.createId(fileId))!)}
 						</button>
 						<DefaultMainMenu />
@@ -172,13 +178,12 @@ const components: TLComponents = {
 	// 	return <TlaDocumentTopZone isOffline={isOffline} />
 	// },
 	SharePanel: () => {
-		return null
-		// return (
-		// 	<div className="tlui-share-zone" draggable={false}>
-		// 		<PeopleMenu />
-		// 		<ShareMenu />
-		// 	</div>
-		// )
+		return (
+			<div className="tlui-share-zone" draggable={false}>
+				<PeopleMenu />
+				<ShareMenu />
+			</div>
+		)
 	},
 }
 
@@ -272,8 +277,10 @@ export function TlaEditor({
 		}
 	}, [app, fileId])
 
+	const flags = useFlags()
+
 	return (
-		<div className="tldraw__editor">
+		<div className={classNames('tldraw__editor', flags.batshit_mode && 'tla-batshit')}>
 			<Tldraw
 				key={persistenceKey}
 				assetUrls={assetUrls}

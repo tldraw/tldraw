@@ -611,8 +611,10 @@
 .tlui-style-panel__wrapper {
 	border-radius: var(--radius-3);
 	pointer-events: all;
-	background: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px);
+	background: var(--color-panel-contrast);
+	box-shadow: var(--shadow-3);
+	/* background: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px); */
 	height: fit-content;
 	max-height: 100%;
 	margin: 8px;
@@ -648,10 +650,6 @@
 	display: flex;
 	position: relative;
 	flex-direction: column;
-}
-
-.tlui-style-panel__section:nth-of-type(n + 2):not(:last-child) {
-	border-bottom: 1px solid var(--color-divider);
 }
 
 .tlui-style-panel__section:empty {
@@ -898,8 +896,10 @@
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: relative;
-	background: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px);
+	background: var(--color-panel-contrast);
+	box-shadow: var(--shadow-3);
+	/* background: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px); */
 }
 
 .tlui-toolbar__tools__list {
@@ -1589,14 +1589,17 @@
 
 /* ------------------- Da share zone ------------------ */
 .tlui-share-zone {
-	padding: 0px 0px 0px 0px;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
 	z-index: var(--layer-panels);
 	align-items: center;
-	padding-top: 2px;
-	padding-right: 4px;
+	padding: 2px 4px;
+	background-color: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
+	border-radius: var(--radius-4);
+	margin: var(--space-3);
+	margin-bottom: 2px;
 }
 
 /* ------------------- People Menu ------------------- */
