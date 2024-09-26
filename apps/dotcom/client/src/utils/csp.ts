@@ -10,6 +10,8 @@ export const cspDirectives: { [key: string]: string[] } = {
 		`https://assets.tldraw.xyz`,
 		`https://*.tldraw.workers.dev`,
 		`https://*.ingest.sentry.io`,
+		// for thumbnail server
+		'http://localhost:5002',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`https:`],

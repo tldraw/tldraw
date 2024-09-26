@@ -45,7 +45,11 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	component(shape: TLVideoShape) {
 		const { editor } = this
 		const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const { asset, url } = useAsset({
+			shapeId: shape.id,
+			assetId: shape.props.assetId,
+			width: shape.props.w,
+		})
 		const isEditing = useIsEditing(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const { Spinner } = useEditorComponents()

@@ -1,6 +1,8 @@
-# tldraw/editor
+# @tldraw/editor
 
-The core editor and composable parts for tldraw.
+The core editor and composable parts for tldraw. [Click here](https://tldraw.dev/docs/editor) to learn more.
+
+You might be more interested in the general package [tldraw](https://github.com/tldraw/tldraw/tree/main/packages/tldraw) instead of using this package directly.
 
 ## License
 

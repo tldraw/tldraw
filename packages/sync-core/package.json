@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "A tiny little drawing app (multiplayer sync).",
-	"version": "3.0.0",
+	"version": "3.2.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -71,7 +71,7 @@
 		"ws": "^8.16.0"
 	},
 	"peerDependencies": {
-		"react": "^18",
-		"react-dom": "^18"
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	}
 }

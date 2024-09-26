@@ -1,10 +1,10 @@
 # @tldraw/worker-shared
 
-Shared helpers for the tldraw.com worker.
+Shared helpers for the tldraw.com workers (e.g. bemo-worker, dotcom-worker, and more).
 
 ## License
 
-The code in this repository is not licensed. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+The code in this folder is Copyright (c) 2024-present tldraw Inc. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 

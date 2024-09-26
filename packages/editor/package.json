@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "A tiny little drawing app (editor).",
-	"version": "3.0.0",
+	"version": "3.2.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -60,22 +60,20 @@
 		"is-plain-object": "^5.0.0"
 	},
 	"peerDependencies": {
-		"react": "^18",
-		"react-dom": "^18"
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
 		"@testing-library/jest-dom": "^5.16.5",
-		"@testing-library/react": "^14.0.0",
+		"@testing-library/react": "^15.0.6",
 		"@types/benchmark": "^2.1.2",
-		"@types/react-test-renderer": "^18.0.0",
 		"@types/wicg-file-system-access": "^2020.9.5",
 		"benchmark": "^2.1.4",
 		"fake-indexeddb": "^4.0.0",
 		"jest-canvas-mock": "^2.5.2",
 		"jest-environment-jsdom": "^29.4.3",
 		"lazyrepo": "0.0.0-alpha.27",
-		"react-test-renderer": "^18.2.0",
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"jest": {

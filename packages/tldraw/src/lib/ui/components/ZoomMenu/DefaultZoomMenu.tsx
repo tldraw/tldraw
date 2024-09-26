@@ -73,7 +73,6 @@ const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
 						: 'tlui-zoom-menu__button__pct'
 				}
 				onDoubleClick={handleDoubleClick}
-				icon={breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? 'zoom-in' : undefined}
 			>
 				{breakpoint < PORTRAIT_BREAKPOINT.MOBILE ? null : (
 					<span style={{ flexGrow: 0, textAlign: 'center' }}>{Math.floor(zoom * 100)}%</span>

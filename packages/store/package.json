@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/store",
 	"description": "A tiny little drawing app (store).",
-	"version": "3.0.0",
+	"version": "3.2.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -46,7 +46,7 @@
 		"lodash.isequal": "^4.5.0"
 	},
 	"peerDependencies": {
-		"react": "^18"
+		"react": "^18.2.0"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",

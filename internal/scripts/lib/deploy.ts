@@ -1,5 +1,5 @@
 import * as github from '@actions/github'
-import { appendFile } from 'fs/promises'
+import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { env } from 'process'
 import { exec } from './exec'
@@ -169,12 +169,21 @@ export async function setWranglerPreviewConfig(
 	location: string,
 	{ name, customDomain }: { name: string; customDomain?: string }
 ) {
-	await appendFile(
-		join(location, 'wrangler.toml'),
-		`
-[env.preview]
-name = "${name}"
-${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}
-`
-	)
+	const additionalProperties = `name = "${name}"
+${customDomain ? `routes = [ { pattern = "${customDomain}", custom_domain = true} ]` : ''}`
+
+	const additionalSection = `\n[env.preview]\n${additionalProperties}\n`
+
+	const path = join(location, 'wrangler.toml')
+	let data = readFileSync(path).toString()
+	if (data.includes('\n[env.preview]\n')) {
+		if (!data.includes(additionalSection)) {
+			data = data.replace('\n[env.preview]\n', additionalSection)
+		} else {
+			// it was already added?
+		}
+	} else {
+		data += additionalSection
+	}
+	writeFileSync(path, data)
 }

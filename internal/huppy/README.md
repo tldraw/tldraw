@@ -1,6 +1,6 @@
 # Huppy
 
-The huppy-bot app.
+The huppy-bot app. Huppy-bot is a suite of scripts that helps the tldraw development team automate some processes.
 
 ## Development
 
@@ -57,7 +57,7 @@ to requests in seconds rather than minutes.
 
 ## License
 
-The code in this repository is not licensed. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+The code in this folder is Copyright (c) 2024-present tldraw Inc. The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 
