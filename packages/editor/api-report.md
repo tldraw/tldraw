@@ -2516,7 +2516,7 @@ export interface TLCameraOptions {
     constraints?: TLCameraConstraints;
     isLocked: boolean;
     panSpeed: number;
-    wheelBehavior: 'none' | 'pan' | 'zoom';
+    wheelBehavior: 'auto' | 'none' | 'pan' | 'zoom';
     zoomSpeed: number;
     zoomSteps: number[];
 }
