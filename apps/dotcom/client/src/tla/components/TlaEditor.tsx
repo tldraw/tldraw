@@ -26,6 +26,7 @@ import {
 	useEditor,
 	useReactor,
 	useReadonly,
+	useTldrawUiComponents,
 	useValue,
 } from 'tldraw'
 
@@ -70,7 +71,7 @@ const components: TLComponents = {
 	// 	</DefaultHelpMenu>
 	// ),
 	MainMenu: () => (
-		<DefaultMainMenu>
+		<DefaultMainMenu icon="dots-vertical">
 			{/* <MultiplayerFileMenu /> */}
 			<EditSubmenu />
 			<ViewSubmenu />
@@ -83,8 +84,10 @@ const components: TLComponents = {
 	MenuPanel: function MenuPanel() {
 		const app = useApp()
 		const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
+		const { MainMenu } = useTldrawUiComponents()
 
 		const { fileId } = useParams<{ fileId?: TldrawAppFileId }>()
+		if (!MainMenu) return null
 		return (
 			<div className="tla-file-navbar" style={!isSidebarOpen ? { paddingLeft: 0 } : undefined}>
 				{!isSidebarOpen && (
@@ -111,7 +114,7 @@ const components: TLComponents = {
 						>
 							{TldrawApp.getFileName(app.store.get(TldrawAppFileRecordType.createId(fileId))!)}
 						</button>
-						<DefaultMainMenu />
+						<MainMenu />
 					</div>
 				)}
 			</div>
@@ -280,7 +283,7 @@ export function TlaEditor({
 	const flags = useFlags()
 
 	return (
-		<div className={classNames('tldraw__editor', flags.batshit_mode && 'tla-batshit')}>
+		<div className={classNames('tldraw__editor', flags.sicko_mode && 'tla-sicko')}>
 			<Tldraw
 				key={persistenceKey}
 				assetUrls={assetUrls}

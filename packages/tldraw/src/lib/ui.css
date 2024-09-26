@@ -609,12 +609,10 @@
 /* ------------------- Style Panel ------------------ */
 
 .tlui-style-panel__wrapper {
+	box-shadow: var(--shadow-2);
 	border-radius: var(--radius-3);
 	pointer-events: all;
-	background: var(--color-panel-contrast);
-	box-shadow: var(--shadow-3);
-	/* background: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px); */
+	background-color: var(--color-panel);
 	height: fit-content;
 	max-height: 100%;
 	margin: 8px;
@@ -652,8 +650,17 @@
 	flex-direction: column;
 }
 
+.tlui-style-panel__section:nth-of-type(n + 2):not(:last-child) {
+	border-bottom: 1px solid var(--color-divider);
+}
+
 .tlui-style-panel__section:empty {
 	display: none;
+}
+
+.tlui-style-panel__section__common:not(:only-child) {
+	margin-bottom: 7px;
+	border-bottom: 1px solid var(--color-divider);
 }
 
 .tlui-style-panel__row {
@@ -863,9 +870,8 @@
 	z-index: var(--layer-above);
 	width: 100%;
 	pointer-events: none;
-	top: 2px;
-	height: 38px;
-	overflow: hidden;
+	top: 6px;
+	height: 48px;
 }
 
 .tlui-toolbar__extras:empty {
@@ -874,15 +880,15 @@
 
 .tlui-toolbar__extras__controls {
 	display: flex;
-	position: absolute;
-	left: 50%;
-	transform: translateX(-50%);
+	position: relative;
 	flex-direction: row;
 	z-index: var(--layer-above);
-	background-color: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px);
+	background-color: var(--color-low);
 	border-top-left-radius: var(--radius-4);
 	border-top-right-radius: var(--radius-4);
+	border: 2px solid var(--color-background);
+	margin-left: 8px;
+	margin-right: 0px;
 	pointer-events: all;
 	width: fit-content;
 }
@@ -896,12 +902,9 @@
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: relative;
-	background: var(--color-panel-contrast);
-	box-shadow: var(--shadow-3);
-	/* background: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px); */
+	background: var(--color-panel);
+	box-shadow: var(--shadow-2);
 }
-
 .tlui-toolbar__tools__list {
 	display: flex;
 	flex-direction: row;
@@ -1167,11 +1170,21 @@
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: absolute;
-	left: calc(var(--space-3) + var(--sab));
-	bottom: calc(var(--space-3) + var(--sab));
-	background-color: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px);
-	border-radius: var(--radius-3);
+	left: 0px;
+	bottom: 0px;
+}
+
+.tlui-navigation-panel::before {
+	content: '';
+	display: block;
+	position: absolute;
+	z-index: -1;
+	inset: -2px -2px 0px 0px;
+	border-radius: 0;
+	border-top: 2px solid var(--color-background);
+	border-right: 2px solid var(--color-background);
+	border-top-right-radius: var(--radius-4);
+	background-color: var(--color-low);
 }
 
 .tlui-navigation-panel__toggle .tlui-icon {
@@ -1589,17 +1602,14 @@
 
 /* ------------------- Da share zone ------------------ */
 .tlui-share-zone {
+	padding: 0px 0px 0px 0px;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
 	z-index: var(--layer-panels);
 	align-items: center;
-	padding: 2px 4px;
-	background-color: rgb(from var(--color-background) r g b / 90%);
-	backdrop-filter: blur(5px);
-	border-radius: var(--radius-4);
-	margin: var(--space-3);
-	margin-bottom: 2px;
+	padding-top: 2px;
+	padding-right: 4px;
 }
 
 /* ------------------- People Menu ------------------- */

@@ -11,10 +11,14 @@ import { DefaultMainMenuContent } from './DefaultMainMenuContent'
 /** @public */
 export interface TLUiMainMenuProps {
 	children?: ReactNode
+	icon?: string
 }
 
 /** @public @react */
-export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiMainMenuProps) {
+export const DefaultMainMenu = memo(function DefaultMainMenu({
+	children,
+	icon = 'menu',
+}: TLUiMainMenuProps) {
 	const container = useContainer()
 	const [isOpen, onOpenChange] = useMenuIsOpen('main menu')
 	const msg = useTranslation()
@@ -28,7 +32,7 @@ export const DefaultMainMenu = memo(function DefaultMainMenu({ children }: TLUiM
 		<_Dropdown.Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 			<_Dropdown.Trigger asChild dir="ltr">
 				<TldrawUiButton type="icon" data-testid="main-menu.button" title={msg('menu.title')}>
-					<TldrawUiButtonIcon icon="dots-vertical" small />
+					<TldrawUiButtonIcon icon={icon} small />
 				</TldrawUiButton>
 			</_Dropdown.Trigger>
 			<_Dropdown.Portal container={container}>

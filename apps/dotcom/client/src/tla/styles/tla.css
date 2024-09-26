@@ -813,6 +813,7 @@ want centered content that docks to the top when the window is short
 	position: relative;
 	height: 40px;
 	display: flex;
+	flex: 1;
 	flex-direction: row;
 	align-items: center;
 	white-space: nowrap;
@@ -1114,3 +1115,80 @@ want centered content that docks to the top when the window is short
 	margin-right: -5px;
 }
 
+.tla * * * {
+	--shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 10%), 0px 2px 6px hsl(0, 0%, 0%, 6%),
+		inset 0px 0px 0px 1px var(--color-panel-contrast);
+
+	--shadow-2: 0px 1px 2px hsl(0, 0%, 0%, 10%), 0px 2px 6px hsl(0, 0%, 0%, 6%),
+		inset 0px 0px 0px 1px var(--color-panel-contrast);
+}
+
+.tla-sicko .tlui-style-panel__wrapper {
+	background-color: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
+	box-shadow: none;
+}
+
+.tla-sicko .tlui-style-panel__section:nth-of-type(n + 2):not(:last-child) {
+	border-bottom: none;
+}
+
+.tla-sicko .tlui-style-panel__section__common:not(:only-child) {
+	margin-bottom: 0px;
+	border-bottom: none;
+}
+
+.tla .tlui-toolbar__extras__controls {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	background-color: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
+	border: none;
+	margin: 0;
+}
+
+/* .tla .tla-sicko .tlui-toolbar__extras__controls  {
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%);
+	background-color: rgb(from var(--color-background) r g b / 90%);
+  backdrop-filter: blur(5px); 
+	border: none;
+	margin: 0;
+} */
+
+.tla .tlui-toolbar__extras {
+	top: 8px;
+}
+.tla .tla-sicko .tlui-toolbar__extras {
+	top: 2px;
+	height: 38px;
+	overflow: hidden;
+}
+
+.tla .tla-sicko .tlui-toolbar__tools {
+	background: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
+	box-shadow: none;
+}
+
+.tla .tlui-navigation-panel {
+	left: calc(var(--space-3) + var(--sab));
+	bottom: calc(var(--space-3) + var(--sab));
+	background-color: rgb(from var(--color-background) r g b / 90%);
+	backdrop-filter: blur(5px);
+	border-radius: var(--radius-3);
+}
+
+.tla .tlui-navigation-panel::before {
+	display: none;
+}
+
+.tla .tl-watermark_SEE-LICENSE > a {
+	opacity: 0.23;
+}
+
+.tla-sicko .tlui-share-zone {
+	padding: 8px 8px 20px;
+}
