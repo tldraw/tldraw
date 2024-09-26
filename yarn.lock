@@ -10089,7 +10089,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:*, classnames@npm:^2.3.2, classnames@npm:^2.5.1":
+"classnames@npm:*, classnames@npm:^2.3.2":
   version: 2.5.1
   resolution: "classnames@npm:2.5.1"
   checksum: 58eb394e8817021b153bb6e7d782cfb667e4ab390cb2e9dac2fc7c6b979d1cc2b2a733093955fc5c94aa79ef5c8c89f11ab77780894509be6afbb91dddd79d15
@@ -11237,7 +11237,7 @@ __metadata:
     "@vercel/analytics": "npm:^1.1.1"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
     browser-fs-access: "npm:^0.35.0"
-    classnames: "npm:^2.5.1"
+    classnames: "npm:^2.3.2"
     dotenv: "npm:^16.3.1"
     eslint: "npm:^8.37.0"
     fast-glob: "npm:^3.3.1"
