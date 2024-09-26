@@ -171,6 +171,17 @@ export class TldrawApp {
 		])
 	}
 
+	setShareMenuActiveTab(tab: TldrawAppSessionState['shareMenuActiveTab']) {
+		const sessionState = this.getSessionState()
+
+		this.store.put([
+			{
+				...sessionState,
+				shareMenuActiveTab: tab,
+			},
+		])
+	}
+
 	setSidebarActiveTab(tab: TldrawAppSessionState['sidebarActiveTab']) {
 		const sessionState = this.getSessionState()
 

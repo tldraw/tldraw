@@ -81,4 +81,11 @@ export default defineConfig((env) => ({
 			},
 		},
 	},
+	css: {
+		modules: {
+			scopeBehaviour: 'local',
+			exportGlobals: true,
+			localsConvention: 'camelCase',
+		},
+	},
 }))

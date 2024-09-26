@@ -13,10 +13,11 @@ import { useAuth } from '../hooks/useAuth'
 import { copyTextToClipboard } from '../utils/copy'
 import { createQRCodeImageDataString } from '../utils/qrcode'
 import { TldrawAppFileId } from '../utils/schema/TldrawAppFile'
+import { TldrawAppSessionState } from '../utils/schema/TldrawAppSessionState'
 import { TldrawAppUser } from '../utils/schema/TldrawAppUser'
 import { getShareableFileUrl } from '../utils/urls'
-import { TlaDivider } from './TlaDivider'
 import { TlaIcon } from './TlaIcon'
+import { TlaTabsPage, TlaTabsPages, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from './TlaTabs/TlaTabs'
 
 export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
@@ -29,6 +30,17 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 			return file.shared
 		},
 		[app, fileId]
+	)
+
+	const shareMenuActiveTab = useValue(
+		'share menu active tab',
+		() => app.getSessionState().shareMenuActiveTab,
+		[app]
+	)
+
+	const handleTabChange = useCallback(
+		(value: TldrawAppSessionState['shareMenuActiveTab']) => app.setShareMenuActiveTab(value),
+		[app]
 	)
 
 	return (
@@ -47,15 +59,24 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 				alignOffset={-2}
 				sideOffset={6}
 			>
-				<div className="tla-share-menu__content">
-					<TlaToggleShared shared={shared} fileId={fileId} />
-					<TlaSelectSharedLinkType fileId={fileId} />
-					<TlaCopyLinkButton shared={shared} fileId={fileId} />
-					<TlaQrCodeToggle fileId={fileId} />
-					<TlaDivider />
-					<TlaSelectExportFormat />
-					<TlaExportImageButton />
-				</div>
+				<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
+					<TlaTabsTabs>
+						<TlaTabsTab id="share">Share</TlaTabsTab>
+						<TlaTabsTab id="export">Export</TlaTabsTab>
+					</TlaTabsTabs>
+					<TlaTabsPages>
+						<TlaTabsPage id="share">
+							<TlaToggleShared shared={shared} fileId={fileId} />
+							<TlaSelectSharedLinkType fileId={fileId} />
+							<TlaCopyLinkButton shared={shared} fileId={fileId} />
+							<TlaQrCodeToggle fileId={fileId} />
+						</TlaTabsPage>
+						<TlaTabsPage id="export">
+							<TlaSelectExportFormat />
+							<TlaExportImageButton />
+						</TlaTabsPage>
+					</TlaTabsPages>
+				</TlaTabsRoot>
 			</DropdownPrimitive.Content>
 		</DropdownPrimitive.Root>
 	)
