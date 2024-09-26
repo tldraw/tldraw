@@ -56,7 +56,7 @@ export interface TLCameraOptions {
 	 * - `pan`: The wheel will pan the camera.
 	 * - `none`: The wheel will do nothing.
 	 */
-	wheelBehavior: 'zoom' | 'pan' | 'none'
+	wheelBehavior: 'auto' | 'zoom' | 'pan' | 'none'
 	/** The camera constraints. */
 	constraints?: TLCameraConstraints
 }
