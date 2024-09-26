@@ -132,11 +132,7 @@ function TlaCopyLinkButton({ shared, fileId }: { shared: boolean; fileId: Tldraw
 		copyTextToClipboard(url)
 	}, [app, fileId, shared])
 
-	return (
-		<TlaShareMenuCopyButton onClick={handleCopyLinkClick}>
-			{shared ? 'Copy link' : 'Copy link and share'}
-		</TlaShareMenuCopyButton>
-	)
+	return <TlaShareMenuCopyButton onClick={handleCopyLinkClick}>Copy link</TlaShareMenuCopyButton>
 }
 
 function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
