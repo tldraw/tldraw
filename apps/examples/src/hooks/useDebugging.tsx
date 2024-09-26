@@ -27,6 +27,9 @@ export function useDebugging(): TLUiOverrides {
 				label: 'Log shapes',
 				readonlyOk: true,
 				kbd: '?!l',
+				enabled() {
+					return true
+				},
 			} as TLUiActionItem
 
 			actions['track-changes'] = {
@@ -45,6 +48,9 @@ export function useDebugging(): TLUiOverrides {
 				label: 'Track changes',
 				checkbox: true,
 				readonlyOk: true,
+				enabled() {
+					return true
+				},
 			} as TLUiActionItem
 
 			return actions
