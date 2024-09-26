@@ -1,3 +1,4 @@
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
 import { TlaButton } from '../components/TlaButton'
 import { TlaDivider } from '../components/TlaDivider'
@@ -6,7 +7,6 @@ import { TlaLabel } from '../components/TlaLabel'
 import { TlaSpacer } from '../components/TlaSpacer'
 import { TlaWrapperCentered } from '../components/TlaWrapperCentered'
 import { useApp } from '../hooks/useAppState'
-import { TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 
 export function Component() {
 	const app = useApp()

@@ -1,3 +1,5 @@
+import { TldrawAppFile } from '@tldraw/dotcom-shared'
+import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
@@ -22,15 +24,15 @@ import { Links } from '../../components/Links'
 import { SneakyOnDropOverride } from '../../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../utils/assetUrls'
+import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { createAssetFromUrl } from '../../utils/createAssetFromUrl'
 import { DebugMenuItems } from '../../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../../utils/migration/LocalMigration'
+import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { useSharing } from '../../utils/sharing'
-import { useFileSystem } from '../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../utils/useHandleUiEvent'
 import { useApp } from '../hooks/useAppState'
 import { TldrawApp } from '../utils/TldrawApp'
-import { TldrawAppFile } from '../utils/schema/TldrawAppFile'
 
 // const shittyOfflineAtom = atom('shitty offline atom', false)
 
@@ -140,7 +142,6 @@ export function TlaEditor({
 	const persistenceKey = `tla-2_${fileId}`
 
 	const sharingUiOverrides = useSharing()
-	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -204,14 +205,18 @@ export function TlaEditor({
 		}
 	}, [app, fileId])
 
+	const store = useSync({
+		uri: `${MULTIPLAYER_SERVER}/app/file/${fileId}`,
+		assets: multiplayerAssetStore,
+	})
+
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				key={persistenceKey}
+				store={store}
 				assetUrls={assetUrls}
-				persistenceKey={persistenceKey}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
+				overrides={[sharingUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
 			>

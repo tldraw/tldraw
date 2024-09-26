@@ -1,13 +1,13 @@
 import {
 	BaseRecord,
 	RecordId,
-	T,
 	createMigrationIds,
 	createRecordMigrationSequence,
 	createRecordType,
-	idValidator,
-} from 'tldraw'
+} from '@tldraw/store'
+import { T } from '@tldraw/validate'
 import { TldrawAppUserId } from './TldrawAppUser'
+import { idValidator } from './idValidator'
 
 export interface TldrawAppViewState {
 	sort: 'recent' | 'newest' | 'oldest' | 'atoz' | 'ztoa'

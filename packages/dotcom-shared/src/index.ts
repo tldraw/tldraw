@@ -1,3 +1,4 @@
+/* eslint-disable local/no-export-star */
 export { default as getLicenseKey } from './license'
 export {
 	READ_ONLY_LEGACY_PREFIX,
@@ -15,3 +16,10 @@ export type {
 	GetReadonlySlugResponseBody,
 	Snapshot,
 } from './types'
+
+export * from './tla-schema/TldrawAppFile'
+export * from './tla-schema/TldrawAppFileEdit'
+export * from './tla-schema/TldrawAppFileVisit'
+export * from './tla-schema/TldrawAppSessionState'
+export * from './tla-schema/TldrawAppUser'
+export * from './tla-schema/tldrawAppSchema'

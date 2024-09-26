@@ -1,3 +1,4 @@
+import { TldrawAppUserId, TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TlaButton } from '../components/TlaButton'
@@ -7,7 +8,6 @@ import { TlaWrapperPage } from '../components/TlaWrapperPage'
 import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../hooks/useFlags'
 import { useSessionState } from '../hooks/useSessionState'
-import { TldrawAppUserId, TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 
 export function Component() {
 	const app = useApp()

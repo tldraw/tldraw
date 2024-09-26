@@ -1,5 +1,3 @@
-import { getCleanId } from './tldrawAppSchema'
-
 export function getFileUrl(fileId: string): string {
-	return `/q/f/${getCleanId(fileId)}`
+	return `/q/f/${fileId.split(':').pop()}`
 }

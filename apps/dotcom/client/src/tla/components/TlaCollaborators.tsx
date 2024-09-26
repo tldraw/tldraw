@@ -1,8 +1,7 @@
+import { TldrawAppFileId, TldrawAppUserId } from '@tldraw/dotcom-shared'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
 import { useFileCollaborators } from '../hooks/useFileCollaborators'
-import { TldrawAppFileId } from '../utils/schema/TldrawAppFile'
-import { TldrawAppUserId } from '../utils/schema/TldrawAppUser'
 
 export function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
 	const collaborators = useFileCollaborators(fileId)

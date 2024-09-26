@@ -1,8 +1,8 @@
+import { TldrawAppUser } from '@tldraw/dotcom-shared'
 import { useValue } from 'tldraw'
 import { TlaWrapperPage } from '../components/TlaWrapperPage'
 import { useApp } from '../hooks/useAppState'
 import { useAuth } from '../hooks/useAuth'
-import { TldrawAppUser } from '../utils/schema/TldrawAppUser'
 
 export function Component() {
 	const auth = useAuth()

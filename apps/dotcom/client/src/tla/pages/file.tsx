@@ -1,3 +1,4 @@
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
@@ -8,7 +9,6 @@ import { TlaSidebarToggle } from '../components/TlaSidebarToggle'
 import { TlaWrapperWithSidebar } from '../components/TlaWrapperWithSidebar'
 import { useApp } from '../hooks/useAppState'
 import { TldrawApp } from '../utils/TldrawApp'
-import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 
 export function Component() {
 	const { fileId } = useParams<{ fileId: TldrawAppFileId }>()

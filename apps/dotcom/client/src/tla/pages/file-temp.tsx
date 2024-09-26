@@ -1,3 +1,4 @@
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
@@ -5,7 +6,6 @@ import { TlaEditor } from '../components/TlaEditor'
 import { TlaErrorPage } from '../components/TlaErrorPage'
 import { TlaWrapperLoggedOut } from '../components/TlaWrapperLoggedOut'
 import { useApp } from '../hooks/useAppState'
-import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 
 export function Component() {
 	const { fileId } = useParams<{ fileId: TldrawAppFileId }>()

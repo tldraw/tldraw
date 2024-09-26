@@ -6696,6 +6696,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
+    "@tldraw/store": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0

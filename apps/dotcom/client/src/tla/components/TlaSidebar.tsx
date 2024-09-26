@@ -1,11 +1,10 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
+import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
 import { TldrawApp } from '../utils/TldrawApp'
-import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
-import { getCleanId } from '../utils/tldrawAppSchema'
 import { getFileUrl } from '../utils/urls'
 import { TlaAvatar } from './TlaAvatar'
 import { TlaIcon } from './TlaIcon'
@@ -213,7 +212,7 @@ function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawA
 function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const { id } = file
 	const { fileId } = useParams()
-	const isActive = fileId === getCleanId(id)
+	const isActive = TldrawAppFileRecordType.createId(fileId) === id
 	return (
 		<div className="tla-sidebar__link tla-hoverable" data-active={isActive}>
 			<div className="tla-sidebar__link-content">

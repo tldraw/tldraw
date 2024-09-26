@@ -1,20 +1,24 @@
-import { deleteDB } from 'idb'
-import { computed, Editor, Store } from 'tldraw'
-import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
-import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
-import { TldrawAppFileEdit, TldrawAppFileEditRecordType } from './schema/TldrawAppFileEdit'
-import { TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
 import {
+	TldrawAppFile,
+	TldrawAppFileEdit,
+	TldrawAppFileEditRecordType,
+	TldrawAppFileId,
+	TldrawAppFileRecordType,
+	TldrawAppFileVisitRecordType,
+	TldrawAppRecord,
 	TldrawAppSessionState,
 	TldrawAppSessionStateRecordType,
-} from './schema/TldrawAppSessionState'
-import { TldrawAppUser, TldrawAppUserId, TldrawAppUserRecordType } from './schema/TldrawAppUser'
-import { TldrawAppRecord, tldrawAppSchema } from './tldrawAppSchema'
+	TldrawAppUser,
+	TldrawAppUserId,
+	TldrawAppUserRecordType,
+} from '@tldraw/dotcom-shared'
+import { deleteDB } from 'idb'
+import { Editor, Store, computed } from 'tldraw'
+import { getAllIndexDbNames } from './local-sync'
 
 export class TldrawApp {
-	private constructor(store: Store<TldrawAppRecord>, client: LocalSyncClient<TldrawAppRecord>) {
+	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
-		this.client = client
 
 		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
 			if (prev.theme !== next.theme) {
@@ -38,10 +42,9 @@ export class TldrawApp {
 	}
 
 	store: Store<TldrawAppRecord>
-	client: LocalSyncClient<TldrawAppRecord>
 
 	dispose() {
-		this.client.close()
+		this.store.dispose()
 	}
 
 	private _currentEditor: Editor | null = null
@@ -378,12 +381,8 @@ export class TldrawApp {
 		await Promise.all(getAllIndexDbNames().map((db) => deleteDB(db)))
 	}
 
-	static async create(opts: {
-		persistenceKey: string
-		onLoad(app: TldrawApp): void
-		onLoadError(err: unknown): void
-	}) {
-		const { persistenceKey, onLoad, onLoadError } = opts
+	static async create(opts: { store: Store<TldrawAppRecord>; onLoad(app: TldrawApp): void }) {
+		const { store, onLoad } = opts
 
 		const day = 1000 * 60 * 60 * 24
 
@@ -472,31 +471,9 @@ export class TldrawApp {
 			},
 		})
 
-		const store = new Store<TldrawAppRecord>({
-			id: persistenceKey,
-			schema: tldrawAppSchema,
-			initialData: Object.fromEntries(
-				[user1, user2, user3, ...files, visit1, visit2, session1].map((r) => [r.id, r])
-			),
-			props: {},
-		})
+		store.put([user1, user2, user3, ...files, visit1, visit2, session1])
 
-		const client = await new Promise<LocalSyncClient<TldrawAppRecord>>((r) => {
-			const client = new LocalSyncClient(store, {
-				persistenceKey,
-				onLoad: () => {
-					r(client)
-				},
-				onLoadError: (e) => {
-					Promise.all(getAllIndexDbNames().map((db) => deleteDB(db))).then(() => {
-						window.location.reload()
-					})
-					onLoadError?.(e)
-				},
-			})
-		})
-
-		const app = new TldrawApp(store, client)
+		const app = new TldrawApp(store)
 
 		onLoad(app)
 		return app

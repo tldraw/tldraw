@@ -1,9 +1,9 @@
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
 import { getFromLocalStorage, setInLocalStorage, uniqueId, useValue } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor'
 import { TlaWrapperLoggedOut } from '../components/TlaWrapperLoggedOut'
 import { useApp } from '../hooks/useAppState'
-import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
 export function Component() {

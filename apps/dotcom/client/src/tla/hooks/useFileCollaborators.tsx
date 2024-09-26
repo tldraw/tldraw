@@ -1,5 +1,5 @@
+import { TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useValue } from 'tldraw'
-import { TldrawAppFileId } from '../utils/schema/TldrawAppFile'
 import { useApp } from './useAppState'
 
 export function useFileCollaborators(fileId: TldrawAppFileId) {
