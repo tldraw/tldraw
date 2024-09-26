@@ -33,7 +33,7 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 	)
 
 	return (
-		<DropdownPrimitive.Root dir="ltr" modal={false} open>
+		<DropdownPrimitive.Root dir="ltr" modal={true}>
 			<TldrawUiDropdownMenuTrigger>
 				<button className={classNames('tla-button', 'tla-button__primary', 'tla-text_ui__medium')}>
 					<span>Share</span>
