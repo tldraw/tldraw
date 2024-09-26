@@ -813,7 +813,7 @@ want centered content that docks to the top when the window is short
 	position: relative;
 	height: 40px;
 	display: flex;
-	flex: 1;
+	flex: 2;
 	flex-direction: row;
 	align-items: center;
 	white-space: nowrap;
