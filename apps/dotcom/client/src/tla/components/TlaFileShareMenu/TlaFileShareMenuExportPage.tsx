@@ -23,7 +23,6 @@ import {
 	TlaShareMenuControl,
 	TlaShareMenuControlGroup,
 	TlaShareMenuControlLabel,
-	TlaShareMenuHelpItem,
 	TlaShareMenuSection,
 } from './file-share-menu-primitives'
 import styles from './file-share-menu.module.css'
@@ -35,16 +34,10 @@ export function TlaShareMenuExportPage() {
 				<TlaShareMenuControlGroup>
 					<ExportBackgroundToggle />
 					<ExportPaddingToggle />
-					<TlaSelectExportFormat />
+					<ExportFormatSelect />
 				</TlaShareMenuControlGroup>
-				<TlaPreviewImage />
-				<TlaExportImageButton />
-				<TlaShareMenuHelpItem>
-					<p>
-						A <b>snapshot</b> is a read-only copy of your project in its current state. Use
-						snapshots to create backups or to share your work in progress.
-					</p>
-				</TlaShareMenuHelpItem>
+				<ExportPreviewImage />
+				<ExportImageButton />
 			</TlaShareMenuSection>
 		</TlaTabsPage>
 	)
@@ -112,7 +105,7 @@ function ExportPaddingToggle() {
 	)
 }
 
-function TlaSelectExportFormat() {
+function ExportFormatSelect() {
 	const app = useApp()
 	const auth = useAuth()
 	if (!auth) throw Error('should have auth')
@@ -150,7 +143,7 @@ function TlaSelectExportFormat() {
 	)
 }
 
-function TlaExportImageButton() {
+function ExportImageButton() {
 	const app = useApp()
 
 	const [exported, setExported] = useState(false)
@@ -202,7 +195,7 @@ function TlaExportImageButton() {
 	)
 }
 
-function TlaPreviewImage() {
+function ExportPreviewImage() {
 	const app = useApp()
 	const ref = useRef<HTMLImageElement>(null)
 
