@@ -2,6 +2,21 @@ import classNames from 'classnames'
 import { createContext, ReactNode, useCallback, useContext } from 'react'
 import c from './tabs.module.css'
 
+/*
+This is a set of primitives for creating tabs in the UI. Structure is:
+
+<Root>
+	<Tabs>
+		<Tab>
+		...
+	</Tabs>
+	<Pages>
+		<Page>
+		...
+	</Pages>
+</Root>
+*/
+
 interface TlaTabsContext {
 	activeTab: string
 	onTabChange(tab: string): void
@@ -52,8 +67,16 @@ export function TlaTabsPages({ children }: { children: ReactNode }) {
 	return <div className={c.pages}>{children}</div>
 }
 
-export function TlaTabsPage({ id, children }: { id: string; children: ReactNode }) {
+export function TlaTabsPage({
+	id,
+	className,
+	children,
+}: {
+	id: string
+	className?: string
+	children: ReactNode
+}) {
 	const { activeTab } = useContext(tabsContext)
 	if (activeTab !== id) return null
-	return <div className={c.page}>{children}</div>
+	return <div className={classNames(c.page, className)}>{children}</div>
 }

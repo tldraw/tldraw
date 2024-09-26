@@ -10,3 +10,8 @@ export function getShareableFileUrl(fileId: TldrawAppFileId): string {
 	const host = isDevelopmentEnv ? 'http://localhost:3000' : 'https://tldraw.com'
 	return `${host}/q/f/${getCleanId(fileId)}`
 }
+
+export function getSnapshotFileUrl(fileId: TldrawAppFileId): string {
+	const host = isDevelopmentEnv ? 'http://localhost:3000' : 'https://tldraw.com'
+	return `${host}/q/f/${getCleanId(fileId)}`
+}

@@ -345,6 +345,10 @@ export class TldrawApp {
 		this.store.put([{ ...file, sharedLinkType: file.sharedLinkType === 'edit' ? 'view' : 'edit' }])
 	}
 
+	createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
+		// noop
+	}
+
 	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
 		const user = this.store.get(userId)
 		if (!user) throw Error('no user')

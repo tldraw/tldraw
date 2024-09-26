@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { useLayoutEffect, useRef } from 'react'
 
 export function TlaIcon({
@@ -28,7 +29,7 @@ export function TlaIcon({
 	return (
 		<div
 			ref={ref}
-			className={`tla-icon ${className}`}
+			className={classNames('tla-icon', className)}
 			style={{
 				mask: `url(/icon=${icon}.svg) center 100% / 100% no-repeat`,
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,
