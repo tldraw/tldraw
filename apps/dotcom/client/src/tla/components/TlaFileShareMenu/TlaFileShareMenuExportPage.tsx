@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import {
 	Editor,
@@ -205,11 +206,13 @@ function TlaPreviewImage() {
 	const app = useApp()
 	const ref = useRef<HTMLImageElement>(null)
 
-	const [exportPreviewSize, setExportPreviewSize] = useState<null | string>(null)
+	const [exportPreviewSize, setExportPreviewSize] = useState<null | string[]>(null)
 
 	useReactor(
 		'update preview',
 		() => {
+			let cancelled = false
+
 			const editor = globalEditor.get()
 			if (!editor) return
 
@@ -243,12 +246,17 @@ function TlaPreviewImage() {
 			const fn = shapes.length > 20 ? getEditorImageSlowly : getEditorImage
 
 			fn(editor, shapes, user, ({ src, width, height }) => {
+				if (cancelled) return
 				const elm = ref.current
 				if (!elm) return
 				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
 				elm.setAttribute('src', src)
-				setExportPreviewSize(`${width.toFixed()}x${height.toFixed()}`)
+				setExportPreviewSize([width.toFixed(), height.toFixed()])
 			})
+
+			return () => {
+				cancelled = true
+			}
 		},
 		[]
 	)
@@ -256,7 +264,11 @@ function TlaPreviewImage() {
 	return (
 		<div className={styles.exportPreview}>
 			<img ref={ref} className={styles.exportPreviewInner} />
-			{exportPreviewSize && <span className={styles.exportPreviewSize}>{exportPreviewSize}</span>}
+			{exportPreviewSize && (
+				<div className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}>
+					{exportPreviewSize[0]}×{exportPreviewSize[1]}
+				</div>
+			)}
 		</div>
 	)
 }
