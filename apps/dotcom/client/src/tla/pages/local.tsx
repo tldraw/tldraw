@@ -1,43 +1,25 @@
-import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
-import { useEffect, useState } from 'react'
-import { getFromLocalStorage, setInLocalStorage, uniqueId, useValue } from 'tldraw'
+import { useState } from 'react'
+import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor'
 import { TlaWrapperLoggedOut } from '../components/TlaWrapperLoggedOut'
-import { useApp } from '../hooks/useAppState'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
 export function Component() {
-	const app = useApp()
-	const [fileId, setFileId] = useState<TldrawAppFileId | null>(null)
+	// Try to load a temporary file; or otherwise create one
+	const [fileSlug] = useState(() => {
+		return getFromLocalStorage(TEMPORARY_FILE_KEY) ?? uniqueId()
+	})
 
-	useEffect(() => {
-		// Try to load a temporary file; or otherwise create one
-		let temporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
-
-		if (!temporaryFileId) {
-			temporaryFileId = uniqueId()
-			setInLocalStorage(TEMPORARY_FILE_KEY, temporaryFileId)
-		}
-
-		const fileId = TldrawAppFileRecordType.createId(temporaryFileId)
-
-		const file = app.store.get(fileId)
-
-		if (!file) {
-			app.createFile('temporary', fileId)
-		}
-
-		setFileId(fileId)
-	}, [app])
-
-	const file = useValue(
-		'file',
-		() => {
-			if (!fileId) return null
-			return app.store.get(fileId)
-		},
-		[app, fileId]
+	return (
+		<TlaWrapperLoggedOut>
+			<TlaEditor
+				key={fileSlug}
+				fileSlug={fileSlug}
+				onDocumentChange={() => {
+					// Save the file slug to local storage if they actually make changes
+					setInLocalStorage(TEMPORARY_FILE_KEY, fileSlug)
+				}}
+			/>
+		</TlaWrapperLoggedOut>
 	)
-
-	return <TlaWrapperLoggedOut>{file && <TlaEditor file={file} />}</TlaWrapperLoggedOut>
 }

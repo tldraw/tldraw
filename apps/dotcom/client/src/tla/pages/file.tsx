@@ -11,16 +11,16 @@ import { useApp } from '../hooks/useAppState'
 import { TldrawApp } from '../utils/TldrawApp'
 
 export function Component() {
-	const { fileId } = useParams<{ fileId: TldrawAppFileId }>()
-	if (!fileId) throw Error('File id not found')
+	const { fileSlug } = useParams<{ fileSlug: TldrawAppFileId }>()
+	if (!fileSlug) throw Error('File id not found')
 
 	const app = useApp()
 	const file = useValue(
 		'file',
 		() => {
-			return app.store.get(TldrawAppFileRecordType.createId(fileId))
+			return app.store.get(TldrawAppFileRecordType.createId(fileSlug))
 		},
-		[app, fileId]
+		[app, fileSlug]
 	)
 
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
@@ -31,12 +31,12 @@ export function Component() {
 			if (cancelled) return
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			app.onFileExit(auth.userId, TldrawAppFileRecordType.createId(fileId))
+			app.onFileExit(auth.userId, TldrawAppFileRecordType.createId(fileSlug))
 		}, 500)
 		return () => {
 			cancelled = true
 		}
-	}, [app, fileId])
+	}, [app, fileSlug])
 
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
 
@@ -56,7 +56,7 @@ export function Component() {
 					<TlaButton>Share</TlaButton>
 				</div>
 				<div className={`tla-file__wrapper ${isSidebarOpen ? `tla-file__wrapper-sidebar` : ''}`}>
-					<TlaEditor file={file} />
+					<TlaEditor fileSlug={fileSlug} />
 				</div>
 			</div>
 		</TlaWrapperWithSidebar>

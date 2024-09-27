@@ -13,9 +13,10 @@ import {
 	RoomSnapshot,
 	TLCloseEventCode,
 	TLSocketRoom,
+	TLSyncRoom,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { TLRecord } from '@tldraw/tlschema'
+import { TLRecord, createTLSchema } from '@tldraw/tlschema'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
 import { IRequest, Router } from 'itty-router'
@@ -161,9 +162,25 @@ export class TLDrawDurableObject {
 		})
 	}
 
+	_isApp: boolean | null = null
+
+	_setIsApp(isApp: boolean) {
+		if (this._isApp === null) {
+			this._isApp = isApp
+		} else if (this._isApp !== isApp) {
+			throw new Error('Cannot change app status')
+		}
+	}
+
 	readonly router = Router()
+		.all('*', (req) => {
+			const pathname = new URL(req.url).pathname
+			const isApp = pathname.startsWith('/app/')
+			this._setIsApp(isApp)
+		})
 		.get(
 			`/${ROOM_PREFIX}/:roomId`,
+			this._setIsApp.bind(this, false),
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req)
 		)
@@ -175,6 +192,11 @@ export class TLDrawDurableObject {
 		.get(
 			`/${READ_ONLY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
+			(req) => this.onRequest(req)
+		)
+		.get(
+			`/app/file/:roomId`,
+			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req)
 		)
 		.post(
@@ -229,12 +251,17 @@ export class TLDrawDurableObject {
 		}
 	}
 
+	// eslint-disable-next-line no-restricted-syntax
+	get isApp(): boolean {
+		return assertExists(this._isApp, 'isApp must be present')
+	}
+
 	_isRestoring = false
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
 		try {
 			const roomId = this.documentInfo.slug
-			const roomKey = getR2KeyForRoom(roomId)
+			const roomKey = getR2KeyForRoom(roomId, this.isApp)
 			const timestamp = ((await req.json()) as any).timestamp
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
@@ -356,11 +383,20 @@ export class TLDrawDurableObject {
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(persistenceKey: string): Promise<DBLoadResult> {
 		try {
-			const key = getR2KeyForRoom(persistenceKey)
+			const key = getR2KeyForRoom(persistenceKey, this.isApp)
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
+			}
+
+			if (this.isApp) {
+				return {
+					type: 'room_found',
+					snapshot: new TLSyncRoom({
+						schema: createTLSchema(),
+					}).getSnapshot(),
+				}
 			}
 
 			// if we don't have a room in the bucket, try to load from supabase
@@ -403,7 +439,7 @@ export class TLDrawDurableObject {
 
 		const snapshot = JSON.stringify(room.getCurrentSnapshot())
 
-		const key = getR2KeyForRoom(slug)
+		const key = getR2KeyForRoom(slug, this.isApp)
 		await Promise.all([
 			this.r2.rooms.put(key, snapshot),
 			this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),

@@ -1,25 +1,25 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
-import { tldrawAppSchema } from '@tldraw/dotcom-shared'
+import { TldrawAppFileRecordType, tldrawAppSchema } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { inlineBase64AssetStore } from 'tldraw'
+import { assertExists, inlineBase64AssetStore } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
+import { USER_ID_KEY } from '../components/TlaAppProvider'
 import { TlaErrorPage } from '../components/TlaErrorPage'
 import { TlaWrapperCentered } from '../components/TlaWrapperCentered'
 import { TldrawApp } from '../utils/TldrawApp'
+import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
-const appContext = createContext<TldrawApp>({} as TldrawApp)
+const appContext = createContext<TldrawApp | null>(null)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [ready, setReady] = useState(false)
 	const [app, setApp] = useState({} as TldrawApp)
 
 	// eslint-disable-next-line no-restricted-syntax
-	let userId = localStorage.getItem('userId')
+	const userId = localStorage.getItem(USER_ID_KEY)
 	if (!userId) {
-		userId = window.prompt('Please enter your user id (not secure)') ?? 'silly billy'
-		// eslint-disable-next-line no-restricted-syntax
-		localStorage.setItem('userId', userId)
+		throw new Error('should have redirected in TlaAppProvider')
 	}
 
 	const store = useSync({
@@ -34,12 +34,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 		let _app: TldrawApp
 
+		// eslint-disable-next-line no-restricted-syntax
+		const claimTemporaryFileId = localStorage.getItem(TEMPORARY_FILE_KEY)
+		if (claimTemporaryFileId) {
+			// eslint-disable-next-line no-restricted-syntax
+			localStorage.removeItem(TEMPORARY_FILE_KEY)
+		}
+
 		TldrawApp.create({
+			userId,
 			store: store.store as any,
 			onLoad: () => {
 				// todo
 			},
 		}).then((app) => {
+			if (claimTemporaryFileId) {
+				app.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId))
+			}
 			_app = app
 			setApp(app)
 			setReady(true)
@@ -50,7 +61,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				_app.dispose()
 			}
 		}
-	}, [store.status, store.store])
+	}, [store.status, store.store, userId])
 
 	if (store.status === 'error') {
 		return <TlaErrorPage error={'no-user-access'} />
@@ -63,6 +74,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	return <appContext.Provider value={app}>{children}</appContext.Provider>
 }
 
-export function useApp() {
+export function useMaybeApp() {
 	return useContext(appContext)
+}
+export function useApp(): TldrawApp {
+	return assertExists(useContext(appContext), 'useApp must be used within AppStateProvider')
 }

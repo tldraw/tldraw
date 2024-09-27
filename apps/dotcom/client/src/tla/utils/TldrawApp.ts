@@ -282,24 +282,13 @@ export class TldrawApp {
 		return file
 	}
 
-	claimTemporaryFile(ownerId: TldrawAppUserId | 'temporary', fileId: TldrawAppFileId) {
-		const file = this.store.get(fileId)
-
-		if (!file) {
-			// the file doesn't exist
-			return
-		}
-
-		if (file.owner !== 'temporary') {
-			// the file is already claimed
-			return
-		}
-
+	claimTemporaryFile(fileId: TldrawAppFileId) {
+		// TODO(david): this should be a backend thing to prevent claiming other people's files
 		this.store.put([
-			{
-				...file,
-				owner: ownerId,
-			},
+			TldrawAppFileRecordType.create({
+				id: fileId,
+				owner: this.getSessionState().auth!.userId,
+			}),
 		])
 	}
 
@@ -381,105 +370,43 @@ export class TldrawApp {
 		await Promise.all(getAllIndexDbNames().map((db) => deleteDB(db)))
 	}
 
-	static async create(opts: { store: Store<TldrawAppRecord>; onLoad(app: TldrawApp): void }) {
+	static async create(opts: {
+		userId: string
+		store: Store<TldrawAppRecord>
+		onLoad(app: TldrawApp): void
+	}) {
 		const { store, onLoad } = opts
 
-		const day = 1000 * 60 * 60 * 24
+		const userId = TldrawAppUserRecordType.createId(opts.userId)
+		if (!store.get(TldrawApp.SessionStateId)) {
+			store.put([
+				TldrawAppSessionStateRecordType.create({
+					id: TldrawApp.SessionStateId,
+					auth: {
+						userId,
+					},
+				}),
+			])
+		}
 
-		// Steve
-		const user1 = TldrawAppUserRecordType.create({
-			id: TldrawAppUserRecordType.createId('0'),
-			name: 'Steve Ruiz',
-			email: 'steve@tldraw.com',
-			color: 'seagreen',
-			presence: {
-				fileIds: [],
-			},
-		})
-
-		// David
-		const user2 = TldrawAppUserRecordType.create({
-			id: TldrawAppUserRecordType.createId('1'),
-			name: 'David Sheldrick',
-			email: 'david@tldraw.com',
-			color: 'salmon',
-			presence: {
-				fileIds: [TldrawAppFileRecordType.createId('0'), TldrawAppFileRecordType.createId('1')],
-			},
-		})
-
-		// Alex
-		const user3 = TldrawAppUserRecordType.create({
-			id: TldrawAppUserRecordType.createId('2'),
-			name: 'Alex Dytrych',
-			email: 'alex@tldraw.com',
-			color: 'tomato',
-			presence: {
-				fileIds: [TldrawAppFileRecordType.createId('1')],
-			},
-		})
-
-		const files = [
-			// Steve's files
-			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
-				TldrawAppFileRecordType.create({
-					id: TldrawAppFileRecordType.createId(i.toString()),
-					owner: user1.id,
-					createdAt: Date.now() - day * n,
-					name: i === 0 ? 'A very long name file here we go' : '',
-				})
-			),
-			// David's files
-			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
-				TldrawAppFileRecordType.create({
-					id: TldrawAppFileRecordType.createId('david' + i.toString()),
-					owner: user2.id,
-					createdAt: Date.now() - day * n,
-				})
-			),
-			// Alex's files
-			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
-				TldrawAppFileRecordType.create({
-					id: TldrawAppFileRecordType.createId('alex' + i.toString()),
-					owner: user3.id,
-					createdAt: Date.now() - day * n,
-				})
-			),
-		]
-
-		// steve's visit to his own file
-		const visit1 = TldrawAppFileVisitRecordType.create({
-			id: TldrawAppFileVisitRecordType.createId('0'),
-			userId: user1.id,
-			fileId: TldrawAppFileRecordType.createId('0'),
-			createdAt: Date.now() - day * 1,
-		})
-
-		// steve's visit to david's file
-		const visit2 = TldrawAppFileVisitRecordType.create({
-			id: TldrawAppFileVisitRecordType.createId('1'),
-			userId: user2.id,
-			fileId: TldrawAppFileRecordType.createId('0'),
-			createdAt: Date.now() - day * 1.2,
-		})
-
-		// steve's session
-		const session1 = TldrawAppSessionStateRecordType.create({
-			id: TldrawApp.SessionStateId,
-			auth: {
-				userId: user1.id,
-			},
-		})
-
-		store.put([user1, user2, user3, ...files, visit1, visit2, session1])
+		if (!store.get(userId)) {
+			store.put([
+				TldrawAppUserRecordType.create({
+					id: userId,
+					presence: {
+						fileIds: [],
+					},
+				}),
+			])
+		}
 
 		const app = new TldrawApp(store)
-
 		onLoad(app)
 		return app
 	}
 
-	static SessionStateId = TldrawAppSessionStateRecordType.createId('0')
+	static SessionStateId = TldrawAppSessionStateRecordType.createId('session')
+	static UserStateId = TldrawAppSessionStateRecordType.createId('user')
 
 	static getFileName(file: TldrawAppFile) {
 		return file.name || new Date(file.createdAt).toLocaleString('en-gb')

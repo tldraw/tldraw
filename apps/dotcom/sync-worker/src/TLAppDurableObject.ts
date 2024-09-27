@@ -120,8 +120,9 @@ export class TLAppDurableObject {
 			`insert into topics (id, schema, tombstones, clock) values (?, ?, ?, ?) on conflict (id) do update set schema = ?, tombstones = ?, clock = ?`
 		)
 		this.updateTopicClock = env.DB.prepare(`update topics set clock = ? where id = ?`)
+		// TODO(david): check that you can't put records with the same id in different topics
 		this.updateRecord = env.DB.prepare(
-			`insert into records (id, topicId, record, lastModifiedEpoch) values (?, ?, ?, ?) on conflict (id) do update set record = ?, lastModifiedEpoch = ?`
+			`insert into records (id, topicId, record, lastModifiedEpoch) values (?, ?, ?, ?) on conflict (id, topicId) do update set record = ?, lastModifiedEpoch = ?`
 		)
 		this.deleteRecord = env.DB.prepare(`delete from records where topicId = ?`)
 	}

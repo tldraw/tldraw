@@ -18,7 +18,7 @@ export async function getRoomHistorySnapshot(
 
 	const versionCacheBucket = env.ROOMS_HISTORY_EPHEMERAL
 
-	const result = await versionCacheBucket.get(getR2KeyForRoom(roomId) + '/' + timestamp)
+	const result = await versionCacheBucket.get(getR2KeyForRoom(roomId, false) + '/' + timestamp)
 
 	if (!result) {
 		return new Response('Not found', { status: 404 })
