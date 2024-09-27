@@ -6,6 +6,7 @@ import { TlaButton } from './TlaButton'
 
 export function TlaWrapperLoggedOut({ children }: { children: ReactNode }) {
 	const navigate = useNavigate()
+	// TODO: sync with editor (this was already broken)
 	const defaultTheme: 'light' | 'dark' = window.matchMedia('(prefers-color-scheme: dark)').matches
 		? 'dark'
 		: 'light'
