@@ -20,30 +20,6 @@ export type DBLoadResult =
 			snapshot: RoomSnapshot
 	  }
 
-const loadSql = `
-  SELECT 
-    t.schema AS schema, 
-    t.tombstones AS tombstones, 
-    t.clock AS clock,
-    null as recordId,
-    null as record,
-    null as lastModifiedEpoch
-  FROM 
-    topics t
-  WHERE t.id = ?
-  UNION SELECT
-    null AS schema, 
-    null AS tombstones, 
-    null AS clock,
-    r.id as recordId,
-    r.record as record,
-    r.lastModifiedEpoch as lastModifiedEpoch
-  FROM
-    records r
-  WHERE
-    r.topicId = ?
-	`
-
 export class TLAppDurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
@@ -197,24 +173,23 @@ export class TLAppDurableObject {
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(): Promise<DBLoadResult> {
 		try {
-			const { results } = await this.env.DB.prepare(loadSql).bind(this.userId, this.userId).all()
+			const [
+				{
+					results: [topic],
+				},
+				{ results: records },
+			] = await this.env.DB.batch([
+				this.loadTopic.bind(this.userId),
+				this.loadRecords.bind(this.userId),
+			])
 			const snapshot: RoomSnapshot = {
 				clock: 0,
-				documents: [],
-				schema: tldrawAppSchema.serialize(),
-				tombstones: {},
-			}
-			for (const row of results) {
-				if (row.schema) {
-					snapshot.schema = JSON.parse(row.schema as string)
-					snapshot.tombstones = JSON.parse(row.tombstones as string)
-					snapshot.clock = row.clock as number
-				} else {
-					snapshot.documents.push({
-						state: JSON.parse(row.record as string),
-						lastChangedClock: row.lastModifiedEpoch as number,
-					})
-				}
+				documents: records.map(({ record, lastModifiedEpoch }: any) => ({
+					state: JSON.parse(record),
+					lastChangedClock: lastModifiedEpoch,
+				})),
+				schema: JSON.parse((topic as any)?.schema ?? null) ?? tldrawAppSchema.serialize(),
+				tombstones: JSON.parse((topic as any)?.tombstones ?? null) ?? {},
 			}
 			// when loading, prefer to fetch documents from the bucket
 			return { type: 'snapshot_found', snapshot }

@@ -4,8 +4,8 @@
 DROP TABLE IF EXISTS topics;
 CREATE TABLE IF NOT EXISTS topics (
   id TEXT PRIMARY KEY NOT NULL,
-  schema TEXT NOT NULL,
-  tombstones TEXT NOT NULL,
+  schema JSON NOT NULL,
+  tombstones JSON NOT NULL,
   clock INTEGER NOT NULL
 );
 
@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS records;
 CREATE TABLE IF NOT EXISTS records (
   id TEXT NOT NULL UNIQUE,
   topicId TEXT NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
-  record TEXT NOT NULL,
+  record JSON NOT NULL,
   lastModifiedEpoch INTEGER NOT NULL,
   PRIMARY KEY (id, topicId)
 );
