@@ -131,7 +131,7 @@ function ExportFormatSelect() {
 
 	return (
 		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Export as...</TlaShareMenuControlLabel>
+			<TlaShareMenuControlLabel>Export as</TlaShareMenuControlLabel>
 			<TlaSelect
 				value={exportFormat}
 				label={exportFormat === 'svg' ? 'SVG' : 'PNG'}
@@ -169,7 +169,7 @@ function ExportThemeSelect() {
 
 	return (
 		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Theme...</TlaShareMenuControlLabel>
+			<TlaShareMenuControlLabel>Theme</TlaShareMenuControlLabel>
 			<TlaSelect
 				value={exportTheme}
 				label={exportTheme[0].toLocaleUpperCase() + exportTheme.slice(1)}

@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
-import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
+import { TldrawAppFile, TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
@@ -36,10 +36,10 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 		<TlaTabsPage id="share" className={styles.content}>
 			<TlaShareMenuSection>
 				<TlaShareMenuControlGroup>
-					<TlaSharedToggle shared={isShared} fileId={fileId} />
-					<TlaSelectSharedLinkType fileId={fileId} />
+					<TlaSharedToggle isShared={isShared} fileId={fileId} />
+					<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
 				</TlaShareMenuControlGroup>
-				<TlaCopyLinkButton shared={isShared} fileId={fileId} />
+				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
 				<TlaShareMenuHelpItem>
 					<p>
 						Invite someone to collaborate by sending them a <b>link</b> to your project. You can{' '}
@@ -63,7 +63,7 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 
 /* ---------------------- Share --------------------- */
 
-function TlaSharedToggle({ shared, fileId }: { shared: boolean; fileId: TldrawAppFileId }) {
+function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const auth = useAuth()
 	if (!auth) throw Error('should have auth')
@@ -78,12 +78,18 @@ function TlaSharedToggle({ shared, fileId }: { shared: boolean; fileId: TldrawAp
 	return (
 		<TlaShareMenuControl>
 			<TlaShareMenuControlLabel>Share this project</TlaShareMenuControlLabel>
-			<TlaSwitch checked={!!shared} onChange={handleToggleShared} />
+			<TlaSwitch checked={!!isShared} onChange={handleToggleShared} />
 		</TlaShareMenuControl>
 	)
 }
 
-function TlaSelectSharedLinkType({ fileId }: { fileId: TldrawAppFileId }) {
+function TlaSelectSharedLinkType({
+	isShared,
+	fileId,
+}: {
+	isShared: boolean
+	fileId: TldrawAppFileId
+}) {
 	const app = useApp()
 	const auth = useAuth()
 	if (!auth) throw Error('should have auth')
@@ -99,18 +105,22 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: TldrawAppFileId }) {
 		[app, fileId]
 	)
 
-	const handleSelectChange = useCallback(() => {
-		app.toggleFileShareLinkType(userId, fileId)
-	}, [app, userId, fileId])
+	const handleSelectChange = useCallback(
+		(sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access') => {
+			app.setFileSharedLinkType(userId, fileId, sharedLinkType)
+		},
+		[app, userId, fileId]
+	)
 
 	return (
 		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Anyone with the link can...</TlaShareMenuControlLabel>
+			<TlaShareMenuControlLabel>Anyone with the link</TlaShareMenuControlLabel>
 			<TlaSelect
-				label={sharedLinkType === 'edit' ? 'Edit' : 'View'}
+				label={isShared ? (sharedLinkType === 'edit' ? 'Editor' : 'Viewer') : 'No access'}
 				value={sharedLinkType}
 				onChange={handleSelectChange}
 			>
+				<option value="no-access">No access</option>
 				<option value="edit">Edit</option>
 				<option value="view">View</option>
 			</TlaSelect>
@@ -118,20 +128,11 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: TldrawAppFileId }) {
 	)
 }
 
-function TlaCopyLinkButton({ shared, fileId }: { shared: boolean; fileId: TldrawAppFileId }) {
-	const app = useApp()
-
+function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
 	const handleCopyLinkClick = useCallback(() => {
-		const { auth } = app.getSessionState()
-		if (!auth) throw Error('should have auth')
-		const { userId } = auth
-
-		// Share the file if it isn't shared already
-		if (!shared) app.toggleFileShared(userId, fileId)
-		// Copy the file URL to clipboard
 		const url = getShareableFileUrl(fileId)
 		copyTextToClipboard(url)
-	}, [app, fileId, shared])
+	}, [fileId])
 
 	return <TlaShareMenuCopyButton onClick={handleCopyLinkClick}>Copy link</TlaShareMenuCopyButton>
 }

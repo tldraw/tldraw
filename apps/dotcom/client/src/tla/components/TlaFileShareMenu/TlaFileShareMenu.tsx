@@ -51,7 +51,7 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 				<tlaFileShareMenuHelpContext.Provider value={showingHelp}>
 					<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
-							<TlaTabsTab id="share">Share</TlaTabsTab>
+							<TlaTabsTab id="share">Invite</TlaTabsTab>
 							<TlaTabsTab id="export">Export</TlaTabsTab>
 							<button
 								className={styles.helpButton}

@@ -334,7 +334,11 @@ export class TldrawApp {
 		this.store.put([{ ...file, shared: !file.shared }])
 	}
 
-	toggleFileShareLinkType(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
+	setFileSharedLinkType(
+		userId: TldrawAppUserId,
+		fileId: TldrawAppFileId,
+		sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access'
+	) {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
@@ -342,7 +346,11 @@ export class TldrawApp {
 			throw Error('user cannot edit that file')
 		}
 
-		this.store.put([{ ...file, sharedLinkType: file.sharedLinkType === 'edit' ? 'view' : 'edit' }])
+		if (sharedLinkType === 'no-access') {
+			this.store.put([{ ...file, shared: false }])
+			return
+		}
+		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
 	createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
