@@ -8,8 +8,9 @@ import {
 	inlineBase64AssetStore,
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
-import { TlaErrorPage } from '../components/TlaErrorPage'
+import { TlaErrorContent } from '../components/TlaErrorContent/TlaErrorContent'
 import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
+import { TlaErrorLayout } from '../layouts/TlaErrorLayout/TlaErrorLayout'
 import { USER_ID_KEY } from '../providers/TlaAppProvider'
 import { TldrawApp } from '../utils/TldrawApp'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
@@ -60,7 +61,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}, [store.status, store.store, userId])
 
 	if (store.status === 'error') {
-		return <TlaErrorPage error={'no-user-access'} />
+		return (
+			<TlaErrorLayout>
+				<TlaErrorContent error={'no-user-access'} />
+			</TlaErrorLayout>
+		)
 	}
 
 	if (store.status === 'loading' || !ready || !app) {
