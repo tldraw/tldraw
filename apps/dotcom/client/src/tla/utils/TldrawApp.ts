@@ -400,7 +400,6 @@ export class TldrawApp {
 	}
 
 	static SessionStateId = TldrawAppSessionStateRecordType.createId('session')
-	static UserStateId = TldrawAppSessionStateRecordType.createId('user')
 
 	static getFileName(file: TldrawAppFile) {
 		return file.name || new Date(file.createdAt).toLocaleString('en-gb')
