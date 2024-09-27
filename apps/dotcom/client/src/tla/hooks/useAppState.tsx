@@ -2,7 +2,12 @@ import { ReactNode, createContext, useContext, useEffect, useState } from 'react
 
 import { TldrawAppFileRecordType, tldrawAppSchema } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { assertExists, inlineBase64AssetStore } from 'tldraw'
+import {
+	assertExists,
+	deleteFromLocalStorage,
+	getFromLocalStorage,
+	inlineBase64AssetStore,
+} from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { USER_ID_KEY } from '../components/TlaAppProvider'
 import { TlaErrorPage } from '../components/TlaErrorPage'
@@ -34,21 +39,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 		let _app: TldrawApp
 
-		// eslint-disable-next-line no-restricted-syntax
-		const claimTemporaryFileId = localStorage.getItem(TEMPORARY_FILE_KEY)
-		if (claimTemporaryFileId) {
-			// eslint-disable-next-line no-restricted-syntax
-			localStorage.removeItem(TEMPORARY_FILE_KEY)
-		}
-
 		TldrawApp.create({
 			userId,
 			store: store.store as any,
-			onLoad: () => {
-				// todo
-			},
 		}).then((app) => {
+			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
+				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
 				app.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId))
 			}
 			_app = app

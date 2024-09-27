@@ -189,9 +189,7 @@ function TlaSidebarRecentFiles() {
 			{thisMonthFiles.length ? (
 				<TlaSidebarFileSection title={'This month'} files={thisMonthFiles} />
 			) : null}
-			{olderFiles.length ? (
-				<TlaSidebarFileSection title={'This year'} files={thisMonthFiles} />
-			) : null}
+			{olderFiles.length ? <TlaSidebarFileSection title={'This year'} files={olderFiles} /> : null}
 		</>
 	)
 }
@@ -211,8 +209,8 @@ function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawA
 
 function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const { id } = file
-	const { fileId } = useParams()
-	const isActive = TldrawAppFileRecordType.createId(fileId) === id
+	const { fileSlug } = useParams()
+	const isActive = TldrawAppFileRecordType.createId(fileSlug) === id
 	return (
 		<div className="tla-sidebar__link tla-hoverable" data-active={isActive}>
 			<div className="tla-sidebar__link-content">

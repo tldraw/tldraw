@@ -249,6 +249,11 @@ binding = "DB"
 database_name = "botcom-staging"
 database_id = "b462f23d-ad4b-430b-9bb8-24eb2c92028b"
 
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "botcom-staging"
+database_id = "b462f23d-ad4b-430b-9bb8-24eb2c92028b"
+
 [[env.preview.d1_databases]]
 binding = "DB"
 database_name = "botcom-preview"

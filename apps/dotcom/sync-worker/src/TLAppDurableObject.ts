@@ -266,7 +266,12 @@ export class TLAppDurableObject {
 					doc.lastChangedClock
 				)
 			),
-		])
+		]).catch(async (e) => {
+			// if we failed to persist, we should restart the room and force people to reconnect
+			room.close()
+			this._room = null
+			throw e
+		})
 
 		this._lastPersistedClock = clock
 		// use a shorter timeout for this 'inner' loop than the 'outer' alarm-scheduled loop

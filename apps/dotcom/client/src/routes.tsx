@@ -57,8 +57,6 @@ export const router = createRoutesFromElements(
 		<Route lazy={() => import('./tla/components/TlaAppProvider')}>
 			{/* If not redirected, then local */}
 			<Route path="/q" lazy={() => import('./tla/components/RedirectAtRoot')} />
-			{/* Temporary file */}
-			<Route path="/q/t/:fileSlug" lazy={() => import('./tla/pages/file-temp')} />
 			{/* File view*/}
 			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
 			{/* User settings */}

@@ -283,7 +283,7 @@ export class TldrawApp {
 	}
 
 	claimTemporaryFile(fileId: TldrawAppFileId) {
-		// TODO(david): this should be a backend thing to prevent claiming other people's files
+		// TODO(david): check that you can't claim someone else's file (the db insert should fail and trigger a resync)
 		this.store.put([
 			TldrawAppFileRecordType.create({
 				id: fileId,
@@ -370,12 +370,8 @@ export class TldrawApp {
 		await Promise.all(getAllIndexDbNames().map((db) => deleteDB(db)))
 	}
 
-	static async create(opts: {
-		userId: string
-		store: Store<TldrawAppRecord>
-		onLoad(app: TldrawApp): void
-	}) {
-		const { store, onLoad } = opts
+	static async create(opts: { userId: string; store: Store<TldrawAppRecord> }) {
+		const { store } = opts
 
 		const userId = TldrawAppUserRecordType.createId(opts.userId)
 		if (!store.get(TldrawApp.SessionStateId)) {
@@ -400,9 +396,7 @@ export class TldrawApp {
 			])
 		}
 
-		const app = new TldrawApp(store)
-		onLoad(app)
-		return app
+		return new TldrawApp(store)
 	}
 
 	static SessionStateId = TldrawAppSessionStateRecordType.createId('session')

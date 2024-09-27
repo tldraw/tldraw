@@ -1,9 +1,7 @@
 -- this is sqlite3 schema
 -- specifically, this is cloudflare D1 running sqlite3
 
-DROP TABLE IF EXISTS TMP_auth;
 DROP TABLE IF EXISTS topics;
-
 CREATE TABLE IF NOT EXISTS topics (
   id TEXT PRIMARY KEY NOT NULL,
   schema TEXT NOT NULL,
@@ -13,7 +11,7 @@ CREATE TABLE IF NOT EXISTS topics (
 
 DROP TABLE IF EXISTS records;
 CREATE TABLE IF NOT EXISTS records (
-  id TEXT NOT NULL,
+  id TEXT NOT NULL UNIQUE,
   topicId TEXT NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
   record TEXT NOT NULL,
   lastModifiedEpoch INTEGER NOT NULL,
