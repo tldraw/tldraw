@@ -560,7 +560,7 @@ function checkParams(
 				context.report({
 					node,
 					messageId: 'paramMismatch',
-					data: { paramName: param, name }, // Include name in the message
+					data: { paramName: param, name },
 				})
 			}
 		})
@@ -572,7 +572,7 @@ function checkParams(
 				context.report({
 					node,
 					messageId: 'paramMissing',
-					data: { paramName: param, name }, // Include name in the message
+					data: { paramName: param, name },
 				})
 			}
 		})
