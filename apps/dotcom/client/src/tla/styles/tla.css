@@ -18,13 +18,13 @@
 }
 
 .tla-theme__light {
-	--tla-color-sidebar: hsl(0, 0%, 100%);
+	--tla-color-sidebar: hsl(0, 0%, 99%);
 	--tla-color-canvas: hsl(210, 20%, 98%);
 	--tla-color-panel: hsl(0, 0%, 100%);
 	--tla-color-text-1: hsl(204, 8%, 5%);
 	--tla-color-text-2: hsl(204, 2%, 20%);
 	--tla-color-text-3: hsl(204, 4%, 45%);
-	--tla-color-contrast: hsl(0, 0%, 100%);
+	--tla-color-contrast: hsl(0, 0%, 99%);
 	--tla-color-low: hsl(204, 16%, 94%);
 	--tla-color-border: hsl(204, 16%, 85%);
 	--tla-color-hover-1: hsl(204, 16%, 4%, 3%);
