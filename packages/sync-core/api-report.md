@@ -457,7 +457,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         schema: StoreSchema<R, any>;
         snapshot?: RoomSnapshot;
     });
-    broadcastPatch({ diff, sourceSessionId }: {
+    broadcastPatch(message: {
         diff: NetworkDiff<R>;
         sourceSessionId?: string;
     }): this;
