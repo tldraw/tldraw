@@ -1,6 +1,6 @@
-import classNames from 'classnames'
 import { createContext, ReactNode, useCallback, useContext, useState } from 'react'
-import { TlaIcon } from '../TlaIcon'
+import { TlaButton } from '../TlaButton/TlaButton'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './file-share-menu.module.css'
 
 export const tlaFileShareMenuHelpContext = createContext(
@@ -48,7 +48,7 @@ export function TlaShareMenuCopyButton({
 }: {
 	children: ReactNode
 	onClick(): void
-	type?: string
+	type?: 'primary' | 'secondary' | 'warning'
 }) {
 	const [copied, setCopied] = useState(false)
 
@@ -61,12 +61,9 @@ export function TlaShareMenuCopyButton({
 	}, [copied, onClick])
 
 	return (
-		<button
-			className={classNames('tla-button', `tla-button__${type}`, 'tla-text_ui__medium')}
-			onClick={handleCopyLinkClick}
-		>
+		<TlaButton variant={type} onClick={handleCopyLinkClick}>
 			<span>{children}</span>
 			<TlaIcon className={styles.copyButtonIcon} icon={copied ? 'check' : 'copy'} />
-		</button>
+		</TlaButton>
 	)
 }

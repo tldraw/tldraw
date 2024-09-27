@@ -1,5 +1,5 @@
 import { ChangeEvent, ReactNode, useCallback } from 'react'
-import { TlaIcon } from '../TlaIcon'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './select.module.css'
 
 export function TlaSelect<T extends string>({

@@ -15,7 +15,8 @@ import { useApp } from '../../hooks/useAppState'
 import { useAuth } from '../../hooks/useAuth'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { TldrawAppUser } from '../../utils/schema/TldrawAppUser'
-import { TlaIcon } from '../TlaIcon'
+import { TlaButton } from '../TlaButton/TlaButton'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -225,13 +226,10 @@ function ExportImageButton() {
 
 	return (
 		<>
-			<button
-				className="tla-button tla-button__primary tla-text_ui__medium tla-share-menu__copy-button"
-				onClick={handleExportLinkClick}
-			>
+			<TlaButton className="tla-share-menu__copy-button" onClick={handleExportLinkClick}>
 				<span>Export image</span>
 				<TlaIcon icon="export" />
-			</button>
+			</TlaButton>
 		</>
 	)
 }

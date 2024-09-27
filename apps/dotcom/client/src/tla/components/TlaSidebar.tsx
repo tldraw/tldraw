@@ -7,9 +7,9 @@ import { TldrawApp } from '../utils/TldrawApp'
 import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 import { getCleanId } from '../utils/tldrawAppSchema'
 import { getFileUrl } from '../utils/urls'
-import { TlaAvatar } from './TlaAvatar'
-import { TlaIcon } from './TlaIcon'
-import { TlaSpacer } from './TlaSpacer'
+import { TlaAvatar } from './TlaAvatar/TlaAvatar'
+import { TlaIcon, TlaIconWrapper } from './TlaIcon/TlaIcon'
+import { TlaSpacer } from './TlaSpacer/TlaSpacer'
 
 export function TlaSidebar() {
 	return (
@@ -31,9 +31,9 @@ export function TlaSidebar() {
 function TlaSidebarWorkspaceLink() {
 	return (
 		<div className="tla-sidebar__workspace">
-			<div className="tla-icon_wrapper" data-size="m">
+			<TlaIconWrapper data-size="m">
 				<TlaIcon icon="tldraw" />
-			</div>
+			</TlaIconWrapper>
 			<div className="tla-sidebar__label tla-text_ui__title">tldraw</div>
 			<button className="tla-sidebar__link-button" />
 		</div>
@@ -59,7 +59,7 @@ function TlaSidebarCreateFileButton() {
 	}, [app, navigate])
 
 	return (
-		<button className="tla-sidebar__create tla-icon_wrapper" onClick={handleSidebarCreate}>
+		<button className="tla-sidebar__create" onClick={handleSidebarCreate}>
 			<TlaIcon icon="edit-strong" />
 		</button>
 	)

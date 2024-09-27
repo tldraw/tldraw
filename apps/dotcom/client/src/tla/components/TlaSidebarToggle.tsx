@@ -1,5 +1,5 @@
 import { useApp } from '../hooks/useAppState'
-import { TlaIcon } from './TlaIcon'
+import { TlaIcon } from './TlaIcon/TlaIcon'
 
 export function TlaSidebarToggle() {
 	const app = useApp()

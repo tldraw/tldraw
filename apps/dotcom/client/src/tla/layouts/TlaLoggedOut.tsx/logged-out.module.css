@@ -1,0 +1,33 @@
+.loggedOut {
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	padding: 0px 16px;
+}
+
+.header {
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0px 12px;
+}
+
+.editorWrapper {
+	position: relative;
+	flex-grow: 2;
+	border: 1px solid var(--color-low);
+	border-radius: 9px;
+	overflow: hidden;
+}
+
+.footer {
+	height: 64px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.footer a {
+	color: var(--color-primary);
+}

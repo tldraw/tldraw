@@ -2,11 +2,11 @@ import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TlaButton } from '../components/TlaButton/TlaButton'
 import { TlaFormDivider } from '../components/TlaForm/TlaForm'
-import { TlaSpacer } from '../components/TlaSpacer'
-import { TlaWrapperPage } from '../components/TlaWrapperPage'
+import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
 import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../hooks/useFlags'
 import { useSessionState } from '../hooks/useSessionState'
+import { TlaWrapperPage } from '../layouts/TlaWrapperPage'
 import { TldrawAppUserId, TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 
 export function Component() {

@@ -1,8 +1,10 @@
+import classNames from 'classnames'
 import { useValue } from 'tldraw'
-import { useApp } from '../hooks/useAppState'
-import { useFileCollaborators } from '../hooks/useFileCollaborators'
-import { TldrawAppFileId } from '../utils/schema/TldrawAppFile'
-import { TldrawAppUserId } from '../utils/schema/TldrawAppUser'
+import { useApp } from '../../hooks/useAppState'
+import { useFileCollaborators } from '../../hooks/useFileCollaborators'
+import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
+import { TldrawAppUserId } from '../../utils/schema/TldrawAppUser'
+import styles from './collaborators.module.css'
 
 export function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
 	const collaborators = useFileCollaborators(fileId)
@@ -10,7 +12,7 @@ export function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
 	if (collaborators.length === 0) return null
 
 	return (
-		<div className="tla-collaborators">
+		<div className={styles.collaborators}>
 			{collaborators.map((userId) => (
 				<TlaCollaborator key={userId} userId={userId} />
 			))}
@@ -30,7 +32,10 @@ function TlaCollaborator({ userId }: { userId: TldrawAppUserId }) {
 		[app, userId]
 	)
 	return (
-		<div className="tla-collaborator tla-text_ui__tiny" style={{ backgroundColor: user.color }}>
+		<div
+			className={classNames(styles.collaborator, 'tla-text_ui__tiny')}
+			style={{ backgroundColor: user.color }}
+		>
 			{user.name[0]}
 		</div>
 	)

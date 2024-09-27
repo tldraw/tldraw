@@ -1,5 +1,6 @@
 import classNames from 'classnames'
-import { useLayoutEffect, useRef } from 'react'
+import { HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
+import styles from './icon.module.css'
 
 export function TlaIcon({
 	icon,
@@ -23,17 +24,21 @@ export function TlaIcon({
 	}, [ref, icon])
 
 	if (icon === 'none') {
-		return <div className="tla-icon" />
+		return <div className={classNames(styles.icon, className)} />
 	}
 
 	return (
 		<div
 			ref={ref}
-			className={classNames('tla-icon', className)}
+			className={classNames(styles.icon, className)}
 			style={{
 				mask: `url(/icon=${icon}.svg) center 100% / 100% no-repeat`,
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,
 			}}
 		/>
 	)
+}
+
+export function TlaIconWrapper(props: HtmlHTMLAttributes<HTMLDivElement>) {
+	return <div {...props} className={classNames(styles.iconWrapper, props.className)} />
 }

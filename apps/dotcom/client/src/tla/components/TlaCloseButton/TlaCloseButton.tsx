@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { TlaIcon } from '../TlaIcon'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './close.module.css'
 
 export function TlaCloseButton({ onClose }: { onClose(): void }) {

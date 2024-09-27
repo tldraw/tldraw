@@ -91,76 +91,6 @@
 	font-weight: 500;
 }
 
-/* --------------------- Spacers -------------------- */
-
-.tla-spacer {
-	flex: 0 0 auto;
-}
-
-.tla-height_full {
-	height: 100%;
-}
-
-.tla-height_4 {
-	height: 4px;
-}
-
-.tla-height_8 {
-	height: 8px;
-}
-
-.tla-height_12 {
-	height: 12px;
-}
-
-.tla-height_20 {
-	height: 20px;
-}
-
-.tla-height_32 {
-	height: 32px;
-}
-
-.tla-height_36 {
-	height: 36px;
-}
-
-.tla-height_40 {
-	height: 40px;
-}
-
-.tla-width_full {
-	width: 100%;
-}
-
-.tla-width_4 {
-	width: 4px;
-}
-
-.tla-width_8 {
-	width: 8px;
-}
-
-.tla-width_12 {
-	width: 12px;
-}
-
-.tla-width_20 {
-	width: 20px;
-}
-
-.tla-width_32 {
-	width: 32px;
-}
-
-.tla-width_36 {
-	width: 36px;
-}
-
-.tla-height_40 {
-	width: 40px;
-}
-
 /* ---------------------- Text ---------------------- */
 
 .tla-text_ui__title {
@@ -227,38 +157,6 @@
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
-}
-
-/* ---------------------- Icons --------------------- */
-
-.tla-icon {
-	position: relative;
-	flex-shrink: 0;
-	background-color: currentColor;
-	height: 15px;
-	width: 15px;
-	z-index: 1;
-	pointer-events: none;
-}
-
-.tla-icon_wrapper {
-	width: 40px;
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--tla-color-text-1);
-	flex-shrink: 0;
-}
-
-.tla-icon_wrapper > .tla-icon {
-	height: 15px;
-	width: 15px;
-}
-
-.tla-icon_wrapper[data-size='m'] > .tla-icon {
-	height: 20px;
-	width: 20px;
 }
 
 /* -------------------- Full page ------------------- 
@@ -338,13 +236,6 @@ want centered content that docks to the top when the window is short
 	justify-content: space-between;
 	padding: 0px 8px 0px 0px;
 	position: relative;
-}
-
-.tla-file-header > .tla-button {
-	height: 32px;
-	font-size: 12px;
-	font-weight: 600;
-	color: var(--tla-color-contrast);
 }
 
 .tla-file-header__fileinfo {
@@ -541,6 +432,11 @@ want centered content that docks to the top when the window is short
 	background-color: var(--tla-color-hover-1);
 }
 
+.tla-sidebar__create svg {
+	width: 15px;
+	height: 15px;
+}
+
 @media (hover: hover) {
 	.tla-sidebar:hover .tla-sidebar__create:hover::after {
 		visibility: visible;
@@ -637,30 +533,6 @@ want centered content that docks to the top when the window is short
 	}
 }
 
-.tla-collaborators {
-	display: flex;
-	flex-direction: row;
-	padding-left: 6px;
-	flex: 0 0 auto;
-}
-
-.tla-collaborators > .tla-collaborator:nth-of-type(n + 1) {
-	margin-left: -6px;
-}
-
-.tla-collaborator {
-	width: 15px;
-	height: 15px;
-	background-color: var(--tla-color-accent-2);
-	border: 2px solid var(--tla-color-panel);
-	text-align: center;
-	color: var(--tla-color-sidebar);
-	border-radius: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
 .tla-sidebar__link-content > .tla-sidebar__label {
 	padding: 0px;
 	flex: 0 1 auto;
@@ -711,33 +583,6 @@ want centered content that docks to the top when the window is short
 	.tla-sidebar__link-menu:hover {
 		color: var(--tla-color-text-1);
 	}
-}
-
-/* --------------------- Avatar --------------------- */
-
-.tla-avatar {
-	position: relative;
-	width: 24px;
-	height: 24px;
-	border-radius: 50%;
-	overflow: hidden;
-	background-color: var(--tla-color-accent-2);
-	z-index: 2;
-}
-
-.tla-avatar[data-size='s'] {
-	width: 16px;
-	height: 16px;
-}
-
-.tla-avatar[data-size='m'] {
-	width: 20px;
-	height: 20px;
-}
-
-.tla-avatar[data-size='l'] {
-	width: 32px;
-	height: 32px;
 }
 
 /* ---------------------- Page ---------------------- */
@@ -793,45 +638,4 @@ want centered content that docks to the top when the window is short
 	100% {
 		opacity: 0;
 	}
-}
-
-/* ------------------- Logged out ------------------- */
-
-.tla-logged-out {
-	display: flex;
-	flex-direction: column;
-	position: relative;
-	padding: 0px 16px;
-}
-
-.tla-logged-out__header {
-	height: 64px;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0px 10px;
-}
-
-.tla-logged-out__editor-wrapper {
-	position: relative;
-	flex-grow: 2;
-	border: 1px solid var(--tla-color-low);
-	border-radius: 9px;
-	overflow: hidden;
-}
-
-.tla-logged-out__footer {
-	height: 64px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.tla-logged-out__signin-button {
-	height: 32px;
-	font-weight: 600;
-}
-
-.tla-logged-out__footer a {
-	color: var(--tla-color-primary);
 }

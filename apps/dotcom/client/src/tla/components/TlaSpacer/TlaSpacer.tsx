@@ -1,3 +1,5 @@
+import styles from './spacer.module.css'
+
 export function TlaSpacer({
 	height = 'full',
 	width = 'full',
@@ -5,5 +7,5 @@ export function TlaSpacer({
 	height?: number | string
 	width?: number | string
 }) {
-	return <div className={`tla-spacer tla-height_${height} tla-width_${width}`} />
+	return <div className={styles.spacer} data-h={height} data-w={width} />
 }

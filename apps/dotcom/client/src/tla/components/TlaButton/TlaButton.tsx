@@ -1,26 +1,32 @@
 import classNames from 'classnames'
-import { ButtonHTMLAttributes } from 'react'
-import { TlaIcon } from '../TlaIcon'
-import { TlaSpinner } from '../TlaSpinner'
+import { ButtonHTMLAttributes, forwardRef } from 'react'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './button.module.css'
 
-export function TlaButton({
-	children,
-	className = '',
-	icon = '',
-	iconRight = '',
-	variant = 'primary',
-	isLoading = false,
-	...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & {
-	isLoading?: boolean
-	icon?: string
-	iconRight?: string
-	variant?: 'primary' | 'secondary' | 'warning'
-}) {
+export const TlaButton = forwardRef<
+	HTMLButtonElement,
+	ButtonHTMLAttributes<HTMLButtonElement> & {
+		isLoading?: boolean
+		icon?: string
+		iconRight?: string
+		variant?: 'primary' | 'secondary' | 'warning'
+	}
+>(function TlaButton(
+	{
+		children,
+		className = '',
+		icon = '',
+		iconRight = '',
+		variant = 'primary',
+		isLoading = false,
+		...props
+	},
+	ref
+) {
 	return (
 		<button
 			{...props}
+			ref={ref}
 			data-state={isLoading ? 'loading' : 'ready'}
 			className={classNames(
 				'tla-text_ui__medium',
@@ -37,9 +43,9 @@ export function TlaButton({
 			{iconRight && <TlaIcon icon={iconRight} />}
 			{isLoading && (
 				<div className={styles.spinner}>
-					<TlaSpinner />
+					<TlaIcon className="tla-spinner" icon="spinner" />
 				</div>
 			)}
 		</button>
 	)
-}
+})

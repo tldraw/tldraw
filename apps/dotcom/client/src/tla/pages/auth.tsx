@@ -10,9 +10,9 @@ import {
 	TlaFormItem,
 	TlaFormLabel,
 } from '../components/TlaForm/TlaForm'
-import { TlaSpacer } from '../components/TlaSpacer'
-import { TlaWrapperCentered } from '../components/TlaWrapperCentered'
+import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
 import { useApp } from '../hooks/useAppState'
+import { TlaWrapperCentered } from '../layouts/TlaWrapperCentered'
 import { TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 
 export function Component() {

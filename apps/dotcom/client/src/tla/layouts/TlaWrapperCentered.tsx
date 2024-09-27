@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { TlaCloseButton } from './TlaCloseButton/TlaCloseButton'
+import { TlaCloseButton } from '../components/TlaCloseButton/TlaCloseButton'
 
 export function TlaWrapperCentered({
 	onClose,

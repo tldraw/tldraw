@@ -5,6 +5,7 @@ import { TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { TldrawAppSessionState } from '../../utils/schema/TldrawAppSessionState'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
@@ -27,9 +28,9 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 	return (
 		<DropdownPrimitive.Root dir="ltr" modal={true}>
 			<TldrawUiDropdownMenuTrigger>
-				<button className={classNames('tla-button', 'tla-button__primary', 'tla-text_ui__medium')}>
+				<TlaButton>
 					<span>Share</span>
-				</button>
+				</TlaButton>
 			</TldrawUiDropdownMenuTrigger>
 			<DropdownPrimitive.Content
 				className={classNames('tlui-menu', 'tla-text_ui__medium', styles.shareMenu)}

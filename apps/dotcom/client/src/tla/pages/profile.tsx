@@ -1,7 +1,7 @@
 import { useValue } from 'tldraw'
-import { TlaWrapperPage } from '../components/TlaWrapperPage'
 import { useApp } from '../hooks/useAppState'
 import { useAuth } from '../hooks/useAuth'
+import { TlaWrapperPage } from '../layouts/TlaWrapperPage'
 import { TldrawAppUser } from '../utils/schema/TldrawAppUser'
 
 export function Component() {
