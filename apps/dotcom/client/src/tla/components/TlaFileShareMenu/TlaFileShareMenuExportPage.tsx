@@ -16,30 +16,30 @@ import { useAuth } from '../../hooks/useAuth'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { TldrawAppUser } from '../../utils/schema/TldrawAppUser'
 import { TlaIcon } from '../TlaIcon'
+import {
+	TlaMenuControl,
+	TlaMenuControlGroup,
+	TlaMenuControlLabel,
+	TlaMenuSection,
+} from '../TlaMenu/TlaMenu'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
-import {
-	TlaShareMenuControl,
-	TlaShareMenuControlGroup,
-	TlaShareMenuControlLabel,
-	TlaShareMenuSection,
-} from './file-share-menu-primitives'
 import styles from './file-share-menu.module.css'
 
 export function TlaShareMenuExportPage() {
 	return (
 		<TlaTabsPage id="export">
-			<TlaShareMenuSection>
-				<TlaShareMenuControlGroup>
+			<TlaMenuSection>
+				<TlaMenuControlGroup>
 					<ExportBackgroundToggle />
 					<ExportPaddingToggle />
 					<ExportThemeSelect />
 					<ExportFormatSelect />
-				</TlaShareMenuControlGroup>
+				</TlaMenuControlGroup>
 				<ExportPreviewImage />
 				<ExportImageButton />
-			</TlaShareMenuSection>
+			</TlaMenuSection>
 		</TlaTabsPage>
 	)
 }
@@ -68,10 +68,10 @@ function ExportBackgroundToggle() {
 	}, [app, userId])
 
 	return (
-		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Padding</TlaShareMenuControlLabel>
+		<TlaMenuControl>
+			<TlaMenuControlLabel>Padding</TlaMenuControlLabel>
 			<TlaSwitch checked={exportPadding} onChange={handleToggleShared} />
-		</TlaShareMenuControl>
+		</TlaMenuControl>
 	)
 }
 
@@ -99,10 +99,10 @@ function ExportPaddingToggle() {
 	}, [app, userId])
 
 	return (
-		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Background</TlaShareMenuControlLabel>
+		<TlaMenuControl>
+			<TlaMenuControlLabel>Background</TlaMenuControlLabel>
 			<TlaSwitch checked={exportBackground} onChange={handleToggleShared} />
-		</TlaShareMenuControl>
+		</TlaMenuControl>
 	)
 }
 
@@ -130,8 +130,8 @@ function ExportFormatSelect() {
 	)
 
 	return (
-		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Export as</TlaShareMenuControlLabel>
+		<TlaMenuControl>
+			<TlaMenuControlLabel>Export as</TlaMenuControlLabel>
 			<TlaSelect
 				value={exportFormat}
 				label={exportFormat === 'svg' ? 'SVG' : 'PNG'}
@@ -140,7 +140,7 @@ function ExportFormatSelect() {
 				<option value="svg">SVG</option>
 				<option value="png">PNG</option>
 			</TlaSelect>
-		</TlaShareMenuControl>
+		</TlaMenuControl>
 	)
 }
 
@@ -168,8 +168,8 @@ function ExportThemeSelect() {
 	)
 
 	return (
-		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Theme</TlaShareMenuControlLabel>
+		<TlaMenuControl>
+			<TlaMenuControlLabel>Theme</TlaMenuControlLabel>
 			<TlaSelect
 				value={exportTheme}
 				label={exportTheme[0].toLocaleUpperCase() + exportTheme.slice(1)}
@@ -179,7 +179,7 @@ function ExportThemeSelect() {
 				<option value="light">Light</option>
 				<option value="dark">Dark</option>
 			</TlaSelect>
-		</TlaShareMenuControl>
+		</TlaMenuControl>
 	)
 }
 

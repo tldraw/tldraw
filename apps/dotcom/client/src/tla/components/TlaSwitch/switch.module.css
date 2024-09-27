@@ -45,7 +45,6 @@
 
 .switch[data-checked='true'] {
 	background-color: var(--tla-color-primary);
-	box-shadow: var(--tla-shadow-primary-highlight);
 }
 
 .switch[data-checked='true']::after {

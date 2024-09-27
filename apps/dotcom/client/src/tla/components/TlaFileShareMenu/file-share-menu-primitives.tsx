@@ -40,26 +40,6 @@ export function TlaShareMenuHelpItem({ children }: { children: ReactNode }) {
 	return <div className={styles.helpItem}>{children}</div>
 }
 
-// Used to section areas of the menu, ie share links vs snapshots
-export function TlaShareMenuSection({ children }: { children: ReactNode }) {
-	return <div className={styles.section}>{children}</div>
-}
-
-// Used to group together adjacent controls, ie switches or selects
-export function TlaShareMenuControlGroup({ children }: { children: ReactNode }) {
-	return <div className={styles.controlGroup}>{children}</div>
-}
-
-// A row for a single control, usually label + input
-export function TlaShareMenuControl({ children }: { children: ReactNode }) {
-	return <div className={styles.control}>{children}</div>
-}
-
-// A label for a control
-export function TlaShareMenuControlLabel({ children }: { children: ReactNode }) {
-	return <div className="tla-text_ui__medium">{children}</div>
-}
-
 // A button that copies something to the clipboard
 export function TlaShareMenuCopyButton({
 	children,

@@ -2,7 +2,7 @@ import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
-import { TlaCloseButton } from './TlaCloseButton'
+import { TlaCloseButton } from './TlaCloseButton/TlaCloseButton'
 
 export function TlaWrapperPage({ children }: { children: ReactNode }) {
 	const app = useApp()

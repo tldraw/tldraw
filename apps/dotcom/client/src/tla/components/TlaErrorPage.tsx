@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
-import { TlaCloseButton } from './TlaCloseButton'
+import { TlaCloseButton } from './TlaCloseButton/TlaCloseButton'
 
 type TlaPageErrorType =
 	| 'file-not-found'

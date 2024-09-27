@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { TlaCloseButton } from './TlaCloseButton'
+import { TlaCloseButton } from './TlaCloseButton/TlaCloseButton'
 
 export function TlaWrapperCentered({
 	onClose,
@@ -9,7 +9,7 @@ export function TlaWrapperCentered({
 	children: ReactNode
 }) {
 	return (
-		<div className="tla-full">
+		<div className={`tla tla-full tla-theme__light`}>
 			{onClose ? <TlaCloseButton onClose={onClose} /> : null}
 			<div className="tla-full_inner">
 				<div className="tla-full_content">{children}</div>

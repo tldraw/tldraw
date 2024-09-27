@@ -1,20 +1,23 @@
-.tla {
+:root {
 	box-sizing: border-box;
-	font-family: 'Times New Roman', Times, serif;
 }
 
-.tla * {
+:root * {
 	box-sizing: border-box;
 }
 
 /* Variables */
-.tla {
+:root {
 	/* Border radii */
 	--tla-radius-1: 2px;
 	--tla-radius-2: 4px;
 	/* Fonts */
 	--tla-font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
 		Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.tla {
+	font-family: var(--tla-font-ui);
 }
 
 .tla-theme__light {
@@ -39,7 +42,7 @@
 	--tla-color-accent-3: hsl(135, 59%, 49%);
 	--tla-color-warning: hsl(0, 88%, 57%);
 	/* Shadows */
-	--tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 96%),
+	--tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 94%),
 		inset 4px 4px 4px -6px hsl(214, 94%, 100%);
 	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
 	--tla-shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
@@ -258,241 +261,6 @@
 	width: 20px;
 }
 
-/* --------------------- Buttons -------------------- */
-
-.tla-icon_button {
-	height: 40px;
-	width: 36px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-}
-
-.tla-button {
-	position: relative;
-	height: 32px;
-	border: 1px solid transparent;
-	padding: 0px 12px;
-	background: none;
-	outline: none;
-	color: var(--tla-color-text-1);
-	border-radius: var(--tla-radius-2);
-	cursor: pointer;
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	gap: 8px;
-}
-
-.tla-button > .tla-button_spinner {
-	position: absolute;
-	top: calc(50% - 20px);
-	left: calc(50% - 20px);
-	height: 40px;
-	width: 40px;
-	z-index: 2;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	animation: tla-spin 1.5s linear infinite;
-}
-
-.tla-spinner {
-	color: var(--tla-color-text-3);
-	animation: tla-spin 1.5s linear infinite;
-}
-
-@keyframes tla-spin {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
-}
-
-.tla-button__primary {
-	background-color: var(--tla-color-primary);
-	box-shadow: var(--tla-shadow-primary-highlight);
-	color: var(--tla-color-contrast);
-}
-
-.tla-button__primary[data-state='loading'] {
-	color: var(--tla-color-primary);
-}
-
-.tla-button__primary[data-state='loading'] > .tla-button_spinner {
-	color: var(--tla-color-contrast);
-}
-
-.tla-button__secondary {
-	background-color: var(--tla-color-secondary);
-	border: 1px solid var(--tla-color-secondary-border);
-	color: var(--tla-color-text-1);
-}
-
-.tla-button__warning {
-	background-color: var(--tla-color-secondary);
-	color: var(--tla-color-warning);
-}
-
-/* --------------------- Inputs --------------------- */
-
-.tla-input {
-	height: 40px;
-	background-color: var(--tla-color-panel);
-	color: var(--tla-color-text-1);
-	border: 1px solid var(--tla-color-border);
-	padding: 0px 12px;
-	border-radius: var(--tla-radius-2);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.tla-input::placeholder {
-	color: var(--tla-color-text-3);
-}
-
-.tla-input[type='text']:user-invalid,
-.tla-input[type='password']:user-invalid {
-	border: 1px solid var(--tla-color-warning);
-	transition: border 0s;
-	transition-delay: 0.25s;
-}
-
-/* ------------------ Checkbox row ------------------ */
-
-.tla-checkbox {
-	position: relative;
-	cursor: pointer;
-	height: 40px;
-}
-
-.tla-checkbox > .tla-label {
-	position: absolute;
-	top: 0px;
-	left: 28px;
-	width: calc(100% - 28px);
-	height: 100%;
-	z-index: 2;
-	pointer-events: none;
-}
-
-.tla-input[type='checkbox'] {
-	position: relative;
-	width: 100%;
-	height: 40px;
-	border: none;
-	padding: 0px;
-}
-
-.tla-input[type='checkbox']::after {
-	content: '';
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	position: absolute;
-	top: calc(50% - 10px);
-	left: 0px;
-	width: 20px;
-	height: 20px;
-	border: 1px solid var(--tla-color-border);
-	border-radius: var(--tla-radius-1);
-}
-
-.tla-input[type='checkbox']:checked::after {
-	content: '✔';
-}
-
-.tla-input[type='checkbox']:user-invalid::after {
-	border: 1px solid var(--tla-color-warning);
-	transition: border 0s;
-	transition-delay: 0.25s;
-}
-
-/* -------------------- Dividers -------------------- */
-
-.tla-divider {
-	position: relative;
-	width: 100%;
-	display: flex;
-	text-align: center;
-	justify-content: center;
-}
-
-.tla-divider::after {
-	content: '';
-	display: block;
-	position: absolute;
-	left: 0px;
-	top: 50%;
-	width: 100%;
-	height: 1px;
-	background-color: var(--tla-color-border);
-}
-
-.tla-divider span {
-	position: relative;
-	z-index: 1;
-	color: var(--tla-color-text-3);
-	background-color: var(--tla-color-panel);
-	padding: 0px 12px;
-}
-
-/* --------------------- Labels --------------------- */
-
-.tla-label {
-	height: 40px;
-	width: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: flex-start;
-}
-
-/* ------------------ Close button ------------------ */
-
-.tla-close_button {
-	background: none;
-	border: none;
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	cursor: pointer;
-	display: flex;
-	gap: 0px;
-	align-items: center;
-	justify-content: center;
-	height: 40px;
-	padding: 0px 12px 0px 10px;
-	gap: 10px;
-	z-index: 10000;
-}
-
-.tla-close_button > span {
-	position: relative;
-	z-index: 2;
-}
-
-@media (hover: hover) {
-	.tla-close_button:hover::after {
-		display: block;
-		content: '';
-		position: absolute;
-		top: 4px;
-		left: 4px;
-		right: 4px;
-		bottom: 4px;
-		border-radius: 4px;
-		background-color: var(--tla-color-hover-1);
-		z-index: 0;
-		pointer-events: none;
-	}
-}
-
 /* -------------------- Full page ------------------- 
 Note: the three layers here (full, inner, content) are necessary if we
 want centered content that docks to the top when the window is short 
@@ -526,35 +294,6 @@ want centered content that docks to the top when the window is short
 }
 
 /* ---------------------- Auth ---------------------- */
-
-.tla-auth_container {
-	background: var(--tla-color-panel);
-	border: var(--tla-color-border);
-	width: 100%;
-	max-width: 360px;
-}
-
-.tla-form {
-	display: flex;
-	flex-direction: column;
-}
-
-.tla-auth_container_title {
-	height: 32px;
-	width: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.tla-auth_container_title h1 {
-	text-align: center;
-}
-
-.tla-auth_container > .tla-button,
-.tla-auth_container > .tla-input {
-	width: 100%;
-}
 
 .tla-auth_detail {
 	text-align: center;

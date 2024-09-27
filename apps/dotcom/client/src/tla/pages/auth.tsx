@@ -1,8 +1,15 @@
 import { useState } from 'react'
-import { TlaButton } from '../components/TlaButton'
-import { TlaDivider } from '../components/TlaDivider'
-import { TlaInput } from '../components/TlaInput'
-import { TlaLabel } from '../components/TlaLabel'
+import { useNavigate } from 'react-router-dom'
+import { TlaButton } from '../components/TlaButton/TlaButton'
+import {
+	TlaForm,
+	TlaFormCheckbox,
+	TlaFormDivider,
+	TlaFormGroup,
+	TlaFormInput,
+	TlaFormItem,
+	TlaFormLabel,
+} from '../components/TlaForm/TlaForm'
 import { TlaSpacer } from '../components/TlaSpacer'
 import { TlaWrapperCentered } from '../components/TlaWrapperCentered'
 import { useApp } from '../hooks/useAppState'
@@ -14,21 +21,21 @@ export function Component() {
 	const [loadingState, setLoadingState] = useState<
 		{ name: 'ready' } | { name: 'loading' } | { name: 'error' }
 	>({ name: 'ready' })
+	const navigate = useNavigate()
 
 	if (state === 'sign-in') {
 		return (
 			<TlaWrapperCentered>
-				<div className="tla-auth_container">
-					<div className="tla-auth_container_title">
-						<h2 className="tla-text_ui__big">Sign in</h2>
-					</div>
-					<TlaSpacer height="36" />
-					<TlaButton className="tla-button__secondary">Sign in with Google</TlaButton>
-					<TlaSpacer height="40" />
-					<TlaDivider>or</TlaDivider>
-					<TlaSpacer height="40" />
-					<form
-						className="tla-form"
+				<div style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
+					<h2 className="tla-text_ui__big" style={{ textAlign: 'center' }}>
+						Sign in
+					</h2>
+					<TlaSpacer height={32} />
+					<TlaButton variant="secondary">Sign in with Google</TlaButton>
+					<TlaSpacer height={12} />
+					<TlaFormDivider>or</TlaFormDivider>
+					<TlaSpacer height={12} />
+					<TlaForm
 						onSubmit={async (e) => {
 							e.preventDefault()
 							if (loadingState.name === 'loading') return
@@ -36,22 +43,27 @@ export function Component() {
 							try {
 								const user = app.store.get(TldrawAppUserRecordType.createId('0'))!
 								await app.signIn(user)
+								navigate(`/q`)
 							} catch (e) {
 								setLoadingState({ name: 'error' })
 							}
 						}}
 					>
-						<TlaLabel>Email address</TlaLabel>
-						<TlaInput name="email" type="email" required />
-						<TlaSpacer height="20" />
-						<TlaButton name="submit" type="submit" isLoading={loadingState.name === 'loading'}>
-							Continue
-						</TlaButton>
-						<TlaSpacer height="40" />
-						<div className="tla-auth_detail tla-text_ui__small">
-							Need an account? <button onClick={() => setState('sign-up')}>Sign up</button>
-						</div>
-					</form>
+						<TlaFormItem>
+							<TlaFormLabel>Email address</TlaFormLabel>
+							<TlaFormInput name="email" type="email" required />
+						</TlaFormItem>
+						<TlaSpacer height={12} />
+						<TlaFormItem>
+							<TlaButton name="submit" type="submit" isLoading={loadingState.name === 'loading'}>
+								Continue
+							</TlaButton>
+							<TlaSpacer height="32" />
+							<div className="tla-auth_detail tla-text_ui__small">
+								Need an account? <button onClick={() => setState('sign-up')}>Sign up</button>
+							</div>
+						</TlaFormItem>
+					</TlaForm>
 				</div>
 			</TlaWrapperCentered>
 		)
@@ -60,17 +72,16 @@ export function Component() {
 	if (state === 'sign-up') {
 		return (
 			<TlaWrapperCentered>
-				<div className="tla-auth_container">
-					<div className="tla-auth_container_title">
-						<h2 className="tla-text_ui__big">Create your account</h2>
-					</div>
-					<TlaSpacer height="36" />
-					<TlaButton className="tla-button__secondary">Continue with Google</TlaButton>
-					<TlaSpacer height="40" />
-					<TlaDivider>or</TlaDivider>
-					<TlaSpacer height="40" />
-					<form
-						className="tla-form"
+				<div style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
+					<h2 className="tla-text_ui__big" style={{ textAlign: 'center' }}>
+						Create your account
+					</h2>
+					<TlaSpacer height={32} />
+					<TlaButton variant="secondary">Continue with Google</TlaButton>
+					<TlaSpacer height={12} />
+					<TlaFormDivider>or</TlaFormDivider>
+					<TlaSpacer height={12} />
+					<TlaForm
 						onSubmit={async (e) => {
 							e.preventDefault()
 							if (loadingState.name === 'loading') return
@@ -78,38 +89,47 @@ export function Component() {
 							try {
 								const user = app.store.get(TldrawAppUserRecordType.createId('0'))!
 								await app.signIn(user)
+								navigate(`/q`)
 							} catch (e) {
 								setLoadingState({ name: 'error' })
 							}
 						}}
 					>
-						<TlaLabel>Name</TlaLabel>
-						<TlaInput name="name" type="text" required />
-						<TlaLabel>Email address</TlaLabel>
-						<TlaInput name="email" type="email" required />
-						<TlaLabel>Password</TlaLabel>
-						<TlaInput name="password" type="password" required />
-						<TlaSpacer height="20" />
-						<div className="tla-checkbox">
-							<TlaInput name="terms" type="checkbox" required />
-							<TlaLabel>
+						<TlaFormGroup>
+							<TlaFormItem>
+								<TlaFormLabel>Name</TlaFormLabel>
+								<TlaFormInput name="name" type="text" required />
+							</TlaFormItem>
+							<TlaFormItem>
+								<TlaFormLabel>Email address</TlaFormLabel>
+								<TlaFormInput name="email" type="email" required />
+							</TlaFormItem>
+							<TlaFormItem>
+								<TlaFormLabel>Password</TlaFormLabel>
+								<TlaFormInput name="password" type="password" required />
+							</TlaFormItem>
+						</TlaFormGroup>
+						<TlaFormGroup>
+							<TlaFormCheckbox name="terms" required>
 								I agree to the{'  '}
 								<a href="/">Terms and Conditions</a>.
-							</TlaLabel>
-						</div>
-						<div className="tla-checkbox">
-							<TlaInput name="terms" type="checkbox" />
-							<TlaLabel>{'It’s ok to email me news and updates.'}</TlaLabel>
-						</div>
-						<TlaSpacer height="20" />
-						<TlaButton name="submit" type="submit" isLoading={loadingState.name === 'loading'}>
-							Continue
-						</TlaButton>
-						<TlaSpacer height="40" />
+							</TlaFormCheckbox>
+							<TlaFormCheckbox name="contact">
+								{'It’s ok to email me news and updates.'}
+							</TlaFormCheckbox>
+						</TlaFormGroup>
+						<TlaFormGroup>
+							<TlaFormItem>
+								<TlaButton name="submit" type="submit" isLoading={loadingState.name === 'loading'}>
+									Continue
+								</TlaButton>
+							</TlaFormItem>
+						</TlaFormGroup>
+						<TlaSpacer height="32" />
 						<div className="tla-auth_detail tla-text_ui__small">
 							Have an account? <button onClick={() => setState('sign-in')}>Sign in</button>
 						</div>
-					</form>
+					</TlaForm>
 				</div>
 			</TlaWrapperCentered>
 		)

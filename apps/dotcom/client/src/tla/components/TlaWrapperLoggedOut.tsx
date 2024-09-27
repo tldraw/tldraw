@@ -2,7 +2,7 @@ import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
-import { TlaButton } from './TlaButton'
+import { TlaButton } from './TlaButton/TlaButton'
 
 export function TlaWrapperLoggedOut({ children }: { children: ReactNode }) {
 	const app = useApp()

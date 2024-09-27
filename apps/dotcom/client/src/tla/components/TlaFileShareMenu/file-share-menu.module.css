@@ -1,33 +1,5 @@
-/* ------------------- Share menu ------------------- */
-
 .shareMenu {
 	width: 240px;
-	--share-menu-padding: 12px;
-}
-
-.section {
-	display: flex;
-	padding: var(--share-menu-padding);
-	flex-direction: column;
-	gap: var(--share-menu-padding);
-}
-
-.section:nth-of-type(n + 2) {
-	border-top: 1px solid var(--tla-color-border);
-}
-
-.controlGroup {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-}
-
-.control {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	height: 32px;
-	gap: 8px;
 }
 
 /* Copy button */

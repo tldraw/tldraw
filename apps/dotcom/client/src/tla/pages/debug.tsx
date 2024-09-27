@@ -1,7 +1,7 @@
 import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TlaButton } from '../components/TlaButton'
-import { TlaDivider } from '../components/TlaDivider'
+import { TlaButton } from '../components/TlaButton/TlaButton'
+import { TlaFormDivider } from '../components/TlaForm/TlaForm'
 import { TlaSpacer } from '../components/TlaSpacer'
 import { TlaWrapperPage } from '../components/TlaWrapperPage'
 import { useApp } from '../hooks/useAppState'
@@ -70,13 +70,13 @@ export function Component() {
 				</TlaButton>
 			</div>
 			<TlaSpacer height={40} />
-			<TlaDivider />
+			<TlaFormDivider />
 			<TlaSpacer height={40} />
 			<h2>Flags</h2>
 			<TlaSpacer height={20} />
 			<Flags />
 			<TlaSpacer height={40} />
-			<TlaDivider />
+			<TlaFormDivider />
 			<TlaSpacer height={40} />
 			<h2>Theme</h2>
 			<TlaSpacer height={20} />

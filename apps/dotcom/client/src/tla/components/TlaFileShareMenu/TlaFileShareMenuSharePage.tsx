@@ -7,17 +7,16 @@ import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import { TldrawAppFile, TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
+import {
+	TlaMenuControl,
+	TlaMenuControlGroup,
+	TlaMenuControlLabel,
+	TlaMenuSection,
+} from '../TlaMenu/TlaMenu'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
-import {
-	TlaShareMenuControl,
-	TlaShareMenuControlGroup,
-	TlaShareMenuControlLabel,
-	TlaShareMenuCopyButton,
-	TlaShareMenuHelpItem,
-	TlaShareMenuSection,
-} from './file-share-menu-primitives'
+import { TlaShareMenuCopyButton, TlaShareMenuHelpItem } from './file-share-menu-primitives'
 import styles from './file-share-menu.module.css'
 
 export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
@@ -34,17 +33,17 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 
 	return (
 		<TlaTabsPage id="share">
-			<TlaShareMenuSection>
-				<TlaShareMenuControlGroup>
+			<TlaMenuSection>
+				<TlaMenuControlGroup>
 					<TlaSharedToggle isShared={isShared} fileId={fileId} />
 					<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
-				</TlaShareMenuControlGroup>
+				</TlaMenuControlGroup>
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
 				{isShared && <QrCode fileId={fileId} />}
-			</TlaShareMenuSection>
-			<TlaShareMenuSection>
+			</TlaMenuSection>
+			<TlaMenuSection>
 				<TlaCopySnapshotLinkButton fileId={fileId} />
-			</TlaShareMenuSection>
+			</TlaMenuSection>
 		</TlaTabsPage>
 	)
 }
@@ -64,10 +63,10 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: Tldr
 	}, [app, userId, fileId])
 
 	return (
-		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Share this project</TlaShareMenuControlLabel>
+		<TlaMenuControl>
+			<TlaMenuControlLabel>Share this project</TlaMenuControlLabel>
 			<TlaSwitch checked={!!isShared} onChange={handleToggleShared} />
-		</TlaShareMenuControl>
+		</TlaMenuControl>
 	)
 }
 
@@ -101,8 +100,8 @@ function TlaSelectSharedLinkType({
 	)
 
 	return (
-		<TlaShareMenuControl>
-			<TlaShareMenuControlLabel>Anyone with the link</TlaShareMenuControlLabel>
+		<TlaMenuControl>
+			<TlaMenuControlLabel>Anyone with the link</TlaMenuControlLabel>
 			<TlaSelect
 				label={isShared ? (sharedLinkType === 'edit' ? 'Editor' : 'Viewer') : 'No access'}
 				value={sharedLinkType}
@@ -113,7 +112,7 @@ function TlaSelectSharedLinkType({
 				<option value="edit">Editor</option>
 				<option value="view">Viewer</option>
 			</TlaSelect>
-		</TlaShareMenuControl>
+		</TlaMenuControl>
 	)
 }
 
