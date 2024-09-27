@@ -11,9 +11,12 @@
 .headerFileInfo {
 	position: absolute;
 	top: calc(50% - 7px);
-	left: 40px;
-	right: 40px;
+	left: 72px;
+	right: 72px;
 	text-align: center;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 
 .headerTitle {
