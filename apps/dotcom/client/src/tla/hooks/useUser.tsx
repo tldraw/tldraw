@@ -1,9 +1,11 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
 import assert from 'assert'
-import { ReactNode, createContext, useContext, useMemo } from 'react'
+import { ReactNode, createContext, useContext, useEffect, useMemo } from 'react'
 import { DefaultSpinner, LoadingScreen } from 'tldraw'
 import 'tldraw/tldraw.css'
+import { TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
+import { useApp } from './useAppState'
 
 export interface TldrawUser {
 	id: string
@@ -16,10 +18,10 @@ const UserContext = createContext<null | TldrawUser>(null)
 export function UserProvider({ children }: { children: ReactNode }) {
 	const { user, isLoaded } = useClerkUser()
 	const auth = useAuth()
+	const app = useApp()
 
 	const value = useMemo(() => {
 		if (!user || !auth.isSignedIn) return null
-
 		return {
 			id: user.id,
 			clerkUser: user,
@@ -33,6 +35,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
 			},
 		}
 	}, [auth, user])
+
+	useEffect(() => {
+		async function registerInAppStore() {
+			if (!user) return
+
+			const tldrawUser = TldrawAppUserRecordType.create({
+				id: TldrawAppUserRecordType.createId(user.id),
+				name: user.fullName || '',
+				email: user.emailAddresses[0]?.emailAddress || '',
+				color: 'salmon',
+				avatar: user.imageUrl || '',
+				presence: {
+					fileIds: [],
+				},
+			})
+			app.store.put([tldrawUser])
+			await app.signIn(tldrawUser)
+		}
+		registerInAppStore()
+	}, [app, user])
 
 	if (!isLoaded || !auth.isLoaded) {
 		return (

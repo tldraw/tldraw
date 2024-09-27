@@ -128,18 +128,14 @@ export class TldrawApp {
 		return filteredFiles
 	}
 
-	async signIn(_user: TldrawAppUser, forceError = false) {
-		await new Promise((resolve) => setTimeout(resolve, 1000))
-		if (forceError) {
-			return { error: 'An error occurred', success: false }
-		}
+	async signIn(_user: TldrawAppUser) {
 		const sessionState = this.getSessionState()
 
 		this.store.put([
 			{
 				...sessionState,
 				auth: {
-					userId: TldrawAppUserRecordType.createId('0'), // null,
+					userId: _user.id,
 				},
 			},
 		])
