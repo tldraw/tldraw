@@ -4031,7 +4031,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.renamePage('page1', 'My Page')
 	 * ```
 	 *
-	 * @param page - The page (or the id) of the page to rename.
+	 * @param page - The page (or the page id) to rename.
 	 * @param name - The new name.
 	 *
 	 * @public
