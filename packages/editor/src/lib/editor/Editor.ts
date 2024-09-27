@@ -7175,7 +7175,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this.store.put(shapeRecordsToCreate)
 
-			if (select) {
+			if (select && shapeRecordsToCreate.length) {
 				this.setSelectedShapes(shapeRecordsToCreate.map((s) => s.id))
 			}
 		})
