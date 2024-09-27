@@ -536,6 +536,7 @@ exports.rules = {
 		},
 	}),
 }
+
 function checkParams(
 	context: RuleContext<'paramMismatch' | 'paramMissing', []>,
 	node:
