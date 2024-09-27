@@ -96,7 +96,7 @@ function traverse(reactors: Set<EffectScheduler<unknown>>, child: Child) {
 /**
  * Collect all of the reactors that need to run for an atom and run them.
  *
- * @param atoms The atoms to flush changes for.
+ * @param atoms - The atoms to flush changes for.
  */
 function flushChanges(atoms: Iterable<_Atom>) {
 	if (inst.globalIsReacting) {
