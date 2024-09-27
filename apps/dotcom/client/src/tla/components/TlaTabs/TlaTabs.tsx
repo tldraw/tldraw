@@ -10,10 +10,9 @@ This is a set of primitives for creating tabs in the UI. Structure is:
 		<Tab>
 		...
 	</Tabs>
-	<Pages>
-		<Page>
-		...
-	</Pages>
+	<Page>
+	<Page>
+	<Page>
 </Root>
 */
 
@@ -29,11 +28,7 @@ export function TlaTabsRoot({
 	onTabChange,
 	children,
 }: TlaTabsContext & { children: ReactNode }) {
-	return (
-		<>
-			<tabsContext.Provider value={{ activeTab, onTabChange }}>{children}</tabsContext.Provider>
-		</>
-	)
+	return <tabsContext.Provider value={{ activeTab, onTabChange }}>{children}</tabsContext.Provider>
 }
 
 export function TlaTabsTabs({ children }: { children: ReactNode }) {
@@ -63,20 +58,8 @@ export function TlaTabsTab({ id, children }: { id: string; children: ReactNode }
 	)
 }
 
-export function TlaTabsPages({ children }: { children: ReactNode }) {
-	return <div className={c.pages}>{children}</div>
-}
-
-export function TlaTabsPage({
-	id,
-	className,
-	children,
-}: {
-	id: string
-	className?: string
-	children: ReactNode
-}) {
+export function TlaTabsPage({ id, children }: { id: string; children: ReactNode }) {
 	const { activeTab } = useContext(tabsContext)
 	if (activeTab !== id) return null
-	return <div className={classNames(c.page, className)}>{children}</div>
+	return <div>{children}</div>
 }

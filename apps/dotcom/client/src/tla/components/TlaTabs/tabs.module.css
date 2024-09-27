@@ -1,5 +1,3 @@
-/* ---------------------- Tabs ---------------------- */
-
 .tabs {
 	height: 40px;
 	display: flex;
@@ -62,12 +60,4 @@
 	right: var(--tab-padding);
 	height: var(--line-height);
 	background-color: var(--tla-color-hover-1);
-}
-
-.pages {
-	position: relative;
-}
-
-.page {
-	position: relative;
 }

@@ -5,7 +5,7 @@ import { TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { TldrawAppSessionState } from '../../utils/schema/TldrawAppSessionState'
-import { TlaTabsPages, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
+import { TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
 import styles from './file-share-menu.module.css'
@@ -45,10 +45,8 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 						<TlaTabsTab id="share">Invite</TlaTabsTab>
 						<TlaTabsTab id="export">Export</TlaTabsTab>
 					</TlaTabsTabs>
-					<TlaTabsPages>
-						<TlaShareMenuSharePage fileId={fileId} />
-						<TlaShareMenuExportPage />
-					</TlaTabsPages>
+					<TlaShareMenuSharePage fileId={fileId} />
+					<TlaShareMenuExportPage />
 				</TlaTabsRoot>
 			</DropdownPrimitive.Content>
 		</DropdownPrimitive.Root>

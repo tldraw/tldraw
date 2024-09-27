@@ -33,7 +33,7 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 	)
 
 	return (
-		<TlaTabsPage id="share" className={styles.content}>
+		<TlaTabsPage id="share">
 			<TlaShareMenuSection>
 				<TlaShareMenuControlGroup>
 					<TlaSharedToggle isShared={isShared} fileId={fileId} />

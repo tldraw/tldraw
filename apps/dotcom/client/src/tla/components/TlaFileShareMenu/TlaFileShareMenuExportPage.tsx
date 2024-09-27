@@ -29,7 +29,7 @@ import styles from './file-share-menu.module.css'
 
 export function TlaShareMenuExportPage() {
 	return (
-		<TlaTabsPage id="export" className={styles.content}>
+		<TlaTabsPage id="export">
 			<TlaShareMenuSection>
 				<TlaShareMenuControlGroup>
 					<ExportBackgroundToggle />

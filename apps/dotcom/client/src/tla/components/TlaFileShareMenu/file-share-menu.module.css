@@ -5,34 +5,6 @@
 	--share-menu-padding: 12px;
 }
 
-.helpButton {
-	all: unset;
-	position: absolute;
-	top: 0px;
-	right: 0px;
-	width: 40px;
-	height: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--tla-color-text-3);
-	cursor: pointer;
-}
-
-.helpButton[data-active='true'] {
-	color: var(--tla-color-text-1);
-}
-
-@media (hover: hover) {
-	.helpButton:hover {
-		color: var(--tla-color-text-1);
-	}
-}
-
-.content {
-	position: relative;
-}
-
 .section {
 	display: flex;
 	padding: var(--share-menu-padding);
@@ -63,27 +35,6 @@
 .copyButtonIcon {
 	position: absolute;
 	right: 10px;
-}
-
-/* Help item */
-
-.helpItem {
-	position: relative;
-	color: var(--tla-color-text-1);
-	font-weight: 400;
-	background-color: var(--tla-color-low);
-	border: 1px solid var(--tla-color-border);
-	border-radius: 6px;
-	font-size: 12px;
-	font-weight: 400;
-	line-height: 16px;
-	display: flex;
-	flex-direction: column;
-}
-
-.helpItem p {
-	margin: 0px;
-	padding: 12px;
 }
 
 /* QR Code */
@@ -142,4 +93,51 @@
 	padding: 1px 4px;
 	text-align: right;
 	border-top-left-radius: 4px;
+}
+
+/* Help state toggle */
+
+.helpButton {
+	all: unset;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-text-3);
+	cursor: pointer;
+}
+
+.helpButton[data-active='true'] {
+	color: var(--tla-color-text-1);
+}
+
+@media (hover: hover) {
+	.helpButton:hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
+/* Help item */
+
+.helpItem {
+	position: relative;
+	color: var(--tla-color-text-1);
+	font-weight: 400;
+	background-color: var(--tla-color-low);
+	border: 1px solid var(--tla-color-border);
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 16px;
+	display: flex;
+	flex-direction: column;
+}
+
+.helpItem p {
+	margin: 0px;
+	padding: 12px;
 }
