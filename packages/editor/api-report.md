@@ -1078,7 +1078,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         select: boolean;
     }>): this;
     // (undocumented)
-    groupShapes(ids: TLShapeId[], options?: Partial<{
+    groupShapes(ids: TLShapeId[], opts?: Partial<{
         groupId: TLShapeId;
         select: boolean;
     }>): this;

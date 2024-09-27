@@ -3962,7 +3962,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.deletePage('page1')
 	 * ```
 	 *
-	 * @param page - The page (or page id) to delete.
+	 * @param page - The page (or the page id) to delete.
 	 *
 	 * @public
 	 */
@@ -3989,7 +3989,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Duplicate a page.
 	 *
-	 * @param page - The page (or the page id) of the page to duplicate. Defaults to the current page.
+	 * @param page - The page (or the page id) to duplicate. Defaults to the current page.
 	 * @param createId - The id of the new page. Defaults to a new id.
 	 *
 	 * @public
@@ -4485,7 +4485,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shape - The shape (or shape id) to get the ancestors for.
-	 * @param acc - The
+	 * @param acc - The accumulator.
 	 *
 	 * @public
 	 */
@@ -7319,12 +7319,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	groupShapes(shapes: TLShape[], opts?: Partial<{ groupId: TLShapeId; select: boolean }>): this
-	groupShapes(ids: TLShapeId[], options?: Partial<{ groupId: TLShapeId; select: boolean }>): this
+	groupShapes(ids: TLShapeId[], opts?: Partial<{ groupId: TLShapeId; select: boolean }>): this
 	groupShapes(
 		shapes: TLShapeId[] | TLShape[],
-		options = {} as Partial<{ groupId: TLShapeId; select: boolean }>
+		opts = {} as Partial<{ groupId: TLShapeId; select: boolean }>
 	): this {
-		const { groupId = createShapeId(), select = true } = options
+		const { groupId = createShapeId(), select = true } = opts
 
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
