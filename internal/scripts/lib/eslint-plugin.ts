@@ -491,7 +491,7 @@ exports.rules = {
 				description: 'Ensure TSDoc @param tags match function parameters',
 				recommended: 'error',
 			},
-			schema: [], // No options for now
+			schema: [],
 			messages: {
 				paramMismatch:
 					"Parameter '{{ paramName }}' is documented but not present in function definition (in {{ name }}).",
