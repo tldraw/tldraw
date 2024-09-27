@@ -7,4 +7,4 @@ set -eux
 # npx wrangler d1 execute --env=production botcom-production --file=./schema.sql
 
 # this one just resets your local database
-npx wrangler d1 execute botcom-staging --local --file=./schema.sql
+npx wrangler d1 execute botcom-staging --env=dev --local --file=./schema.sql

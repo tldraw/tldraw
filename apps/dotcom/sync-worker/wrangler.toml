@@ -239,15 +239,10 @@ binding = "CF_VERSION_METADATA"
 binding = "CF_VERSION_METADATA"
 
 #################### botcom D1 ###########################
-[[d1_databases]]
-binding = "DB"
-database_name = "botcom-staging"
-database_id = "b462f23d-ad4b-430b-9bb8-24eb2c92028b"
-
 [[env.dev.d1_databases]]
 binding = "DB"
-database_name = "botcom-staging"
-database_id = "b462f23d-ad4b-430b-9bb8-24eb2c92028b"
+database_name = "botcom-dev"
+database_id = "8a70c474-fcf3-4793-9220-805c8fba8637"
 
 [[env.staging.d1_databases]]
 binding = "DB"
