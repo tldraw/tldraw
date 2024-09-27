@@ -2,14 +2,14 @@ import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { clearLocalStorage, setInLocalStorage } from 'tldraw'
-import { USER_ID_KEY } from '../components/TlaAppProvider'
-import { TlaButton } from '../components/TlaButton'
-import { TlaDivider } from '../components/TlaDivider'
-import { TlaSpacer } from '../components/TlaSpacer'
-import { TlaWrapperPage } from '../components/TlaWrapperPage'
+import { TlaButton } from '../components/TlaButton/TlaButton'
+import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
+import { TlaFormDivider } from '../components/tla-form/tla-form'
 import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../hooks/useFlags'
 import { useSessionState } from '../hooks/useSessionState'
+import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
+import { USER_ID_KEY } from '../providers/TlaAppProvider'
 
 export function Component() {
 	const navigate = useNavigate()
@@ -20,7 +20,7 @@ export function Component() {
 	}
 
 	return (
-		<TlaWrapperPage>
+		<TlaPageLayout>
 			<div className="tla-page__header">
 				<h2 className="tla-text_ui__big">Debug</h2>
 			</div>
@@ -63,18 +63,18 @@ export function Component() {
 				</TlaButton>
 			</div>
 			<TlaSpacer height={40} />
-			<TlaDivider />
+			<TlaFormDivider />
 			<TlaSpacer height={40} />
 			<h2>Flags</h2>
 			<TlaSpacer height={20} />
 			<Flags />
 			<TlaSpacer height={40} />
-			<TlaDivider />
+			<TlaFormDivider />
 			<TlaSpacer height={40} />
 			<h2>Theme</h2>
 			<TlaSpacer height={20} />
 			<DarkMode />
-		</TlaWrapperPage>
+		</TlaPageLayout>
 	)
 }
 

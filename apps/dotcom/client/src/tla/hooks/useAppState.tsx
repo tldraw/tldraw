@@ -1,7 +1,6 @@
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
-
 import { TldrawAppFileRecordType, tldrawAppSchema } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import {
 	assertExists,
 	deleteFromLocalStorage,
@@ -9,9 +8,9 @@ import {
 	inlineBase64AssetStore,
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
-import { USER_ID_KEY } from '../components/TlaAppProvider'
 import { TlaErrorPage } from '../components/TlaErrorPage'
-import { TlaWrapperCentered } from '../components/TlaWrapperCentered'
+import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
+import { USER_ID_KEY } from '../providers/TlaAppProvider'
 import { TldrawApp } from '../utils/TldrawApp'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
@@ -65,7 +64,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}
 
 	if (store.status === 'loading' || !ready || !app) {
-		return <TlaWrapperCentered>Loading...</TlaWrapperCentered>
+		return <TlaCenteredLayout>Loading...</TlaCenteredLayout>
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>
