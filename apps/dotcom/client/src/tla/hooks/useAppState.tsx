@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
-import { TlaWrapperCentered } from '../layouts/TlaWrapperCentered'
+import { TlaWrapperCentered } from '../layouts/TlaCentered/TlaWrapperCentered'
 import { TldrawApp } from '../utils/TldrawApp'
 import { TLA_VERSION } from '../utils/tla-version'
 
