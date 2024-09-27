@@ -167,6 +167,28 @@ export class TldrawApp {
 		])
 	}
 
+	toggleSidebarMobile() {
+		const sessionState = this.getSessionState()
+
+		this.store.put([
+			{
+				...sessionState,
+				isSidebarOpenMobile: !sessionState.isSidebarOpenMobile,
+			},
+		])
+	}
+
+	setShareMenuActiveTab(tab: TldrawAppSessionState['shareMenuActiveTab']) {
+		const sessionState = this.getSessionState()
+
+		this.store.put([
+			{
+				...sessionState,
+				shareMenuActiveTab: tab,
+			},
+		])
+	}
+
 	setSidebarActiveTab(tab: TldrawAppSessionState['sidebarActiveTab']) {
 		const sessionState = this.getSessionState()
 
@@ -308,6 +330,40 @@ export class TldrawApp {
 		return users.filter((user) => user.presence.fileIds.includes(fileId)).map((user) => user.id)
 	}
 
+	toggleFileShared(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+
+		if (userId !== file.owner) {
+			throw Error('user cannot edit that file')
+		}
+
+		this.store.put([{ ...file, shared: !file.shared }])
+	}
+
+	setFileSharedLinkType(
+		userId: TldrawAppUserId,
+		fileId: TldrawAppFileId,
+		sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access'
+	) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+
+		if (userId !== file.owner) {
+			throw Error('user cannot edit that file')
+		}
+
+		if (sharedLinkType === 'no-access') {
+			this.store.put([{ ...file, shared: false }])
+			return
+		}
+		this.store.put([{ ...file, sharedLinkType, shared: true }])
+	}
+
+	createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
+		// noop
+	}
+
 	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
 		const user = this.store.get(userId)
 		if (!user) throw Error('no user')
@@ -325,6 +381,30 @@ export class TldrawApp {
 				},
 			},
 		])
+	}
+
+	setUserExportBackground(userId: TldrawAppUserId, exportBackground: boolean) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+		this.store.put([{ ...user, exportBackground }])
+	}
+
+	setUserExportPadding(userId: TldrawAppUserId, exportPadding: boolean) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+		this.store.put([{ ...user, exportPadding }])
+	}
+
+	setUserExportFormat(userId: TldrawAppUserId, exportFormat: TldrawAppUser['exportFormat']) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+		this.store.put([{ ...user, exportFormat }])
+	}
+
+	setUserExportTheme(userId: TldrawAppUserId, exportTheme: TldrawAppUser['exportTheme']) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+		this.store.put([{ ...user, exportTheme }])
 	}
 
 	onFileEdit(
