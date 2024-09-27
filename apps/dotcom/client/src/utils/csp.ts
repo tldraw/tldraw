@@ -18,6 +18,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'frame-src': [`https:`],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
+	'script-src': [`'self'`, 'https://challenges.cloudflare.com'],
 	'script-src-elem': [`'self'`, 'https://*.clerk.accounts.dev'],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
