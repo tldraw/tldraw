@@ -5,11 +5,13 @@ import styles from './select.module.css'
 export function TlaSelect<T extends string>({
 	label,
 	value,
+	disabled,
 	onChange,
 	children,
 }: {
 	label: string
 	value: T
+	disabled?: boolean
 	onChange(value: T): void
 	children: ReactNode
 }) {
@@ -21,12 +23,12 @@ export function TlaSelect<T extends string>({
 	)
 
 	return (
-		<div className={styles.container}>
+		<div className={styles.container} data-disabled={disabled}>
 			<div className={styles.label}>
 				<span>{label}</span>
-				<TlaIcon icon="chevron-down" />
+				<TlaIcon icon="chevron-down" className={styles.chevron} />
 			</div>
-			<select className={styles.select} value={value} onChange={handleChange}>
+			<select className={styles.select} value={value} onChange={handleChange} disabled={disabled}>
 				{children}
 			</select>
 		</div>

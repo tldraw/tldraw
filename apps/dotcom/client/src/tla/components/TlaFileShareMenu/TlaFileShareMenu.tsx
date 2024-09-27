@@ -8,10 +8,6 @@ import { TldrawAppSessionState } from '../../utils/schema/TldrawAppSessionState'
 import { TlaTabsPages, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
-import {
-	TlaFileShareMenuHelpProvider,
-	TlaFileShareMenuHelpToggle,
-} from './file-share-menu-primitives'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
@@ -44,19 +40,16 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 				alignOffset={-2}
 				sideOffset={6}
 			>
-				<TlaFileShareMenuHelpProvider>
-					<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
-						<TlaTabsTabs>
-							<TlaTabsTab id="share">Invite</TlaTabsTab>
-							<TlaTabsTab id="export">Export</TlaTabsTab>
-							<TlaFileShareMenuHelpToggle />
-						</TlaTabsTabs>
-						<TlaTabsPages>
-							<TlaShareMenuSharePage fileId={fileId} />
-							<TlaShareMenuExportPage />
-						</TlaTabsPages>
-					</TlaTabsRoot>
-				</TlaFileShareMenuHelpProvider>
+				<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
+					<TlaTabsTabs>
+						<TlaTabsTab id="share">Invite</TlaTabsTab>
+						<TlaTabsTab id="export">Export</TlaTabsTab>
+					</TlaTabsTabs>
+					<TlaTabsPages>
+						<TlaShareMenuSharePage fileId={fileId} />
+						<TlaShareMenuExportPage />
+					</TlaTabsPages>
+				</TlaTabsRoot>
 			</DropdownPrimitive.Content>
 		</DropdownPrimitive.Root>
 	)

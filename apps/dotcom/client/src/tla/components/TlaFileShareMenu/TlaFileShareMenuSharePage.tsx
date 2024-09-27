@@ -40,22 +40,10 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 					<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
 				</TlaShareMenuControlGroup>
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
-				<TlaShareMenuHelpItem>
-					<p>
-						Invite someone to collaborate by sending them a <b>link</b> to your project. You can{' '}
-						<b>turn off</b> sharing at any time.
-					</p>
-				</TlaShareMenuHelpItem>
 				{isShared && <QrCode fileId={fileId} />}
 			</TlaShareMenuSection>
 			<TlaShareMenuSection>
 				<TlaCopySnapshotLinkButton fileId={fileId} />
-				<TlaShareMenuHelpItem>
-					<p>
-						A <b>snapshot</b> is a read-only copy of your project in its current state. Use
-						snapshots to create backups or to share your work in progress.
-					</p>
-				</TlaShareMenuHelpItem>
 			</TlaShareMenuSection>
 		</TlaTabsPage>
 	)
@@ -118,11 +106,12 @@ function TlaSelectSharedLinkType({
 			<TlaSelect
 				label={isShared ? (sharedLinkType === 'edit' ? 'Editor' : 'Viewer') : 'No access'}
 				value={sharedLinkType}
+				disabled={!isShared}
 				onChange={handleSelectChange}
 			>
-				<option value="no-access">No access</option>
-				<option value="edit">Edit</option>
-				<option value="view">View</option>
+				{/* <option value="no-access">No access</option> */}
+				<option value="edit">Editor</option>
+				<option value="view">Viewer</option>
 			</TlaSelect>
 		</TlaShareMenuControl>
 	)
@@ -197,5 +186,27 @@ function QrCode({ fileId }: { fileId: TldrawAppFileId }) {
 		<div className={styles.qrCode}>
 			<img ref={ref} className={styles.qrCodeInner} data-theme={theme} />
 		</div>
+	)
+}
+
+function _ShareHelp() {
+	return (
+		<TlaShareMenuHelpItem>
+			<p>
+				Invite someone to collaborate by sending them a <b>link</b> to your project. You can{' '}
+				<b>turn off</b> sharing at any time.
+			</p>
+		</TlaShareMenuHelpItem>
+	)
+}
+
+function _SnapshotHelp() {
+	return (
+		<TlaShareMenuHelpItem>
+			<p>
+				A <b>snapshot</b> is a read-only copy of your project in its current state. Use snapshots to
+				create backups or to share your work in progress.
+			</p>
+		</TlaShareMenuHelpItem>
 	)
 }

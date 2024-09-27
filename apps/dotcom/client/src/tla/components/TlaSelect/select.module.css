@@ -40,7 +40,19 @@
 }
 
 @media (hover: hover) {
-	.container:hover > .label::after {
+	.container[data-disabled='false']:hover > .label::after {
 		visibility: visible;
 	}
+}
+
+.select:disabled {
+	cursor: default;
+}
+
+.container[data-disabled='true'] .label {
+	color: var(--tla-color-text-3);
+}
+
+.container[data-disabled='true'] .chevron {
+	display: none;
 }
