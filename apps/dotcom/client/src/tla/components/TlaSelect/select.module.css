@@ -3,7 +3,6 @@
 	display: flex;
 	align-items: center;
 	height: 100%;
-	flex-grow: 2;
 	justify-content: flex-end;
 }
 

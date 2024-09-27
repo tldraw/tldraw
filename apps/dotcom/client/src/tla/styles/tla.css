@@ -33,11 +33,14 @@
 	--tla-color-overlay: hsla(204, 16%, 5%, 1%);
 	--tla-color-primary: hsl(214, 84%, 56%);
 	--tla-color-secondary: hsl(0, 0%, 92%);
+	--tla-color-secondary-border: hsl(0, 0%, 80%);
 	--tla-color-accent-1: hsl(50, 91%, 70%);
 	--tla-color-accent-2: hsl(28, 88%, 57%);
 	--tla-color-accent-3: hsl(135, 59%, 49%);
 	--tla-color-warning: hsl(0, 88%, 57%);
 	/* Shadows */
+	--tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 96%),
+		inset 0px -4px 2px -4px hsl(214, 94%, 33%);
 	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
 	--tla-shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
 		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-contrast);
@@ -61,13 +64,15 @@
 	--tla-color-hover-2: hsl(240, 8%, 100%, 5%);
 	--tla-color-hover-3: hsl(204, 16%, 4%, 3%);
 	--tla-color-overlay: hsla(204, 16%, 5%, 1%);
-	--tla-color-primary: hsl(214, 84%, 44%);
+	--tla-color-primary: hsl(214, 84%, 46%);
 	--tla-color-secondary: hsl(0, 0%, 20%);
+	--tla-color-secondary-border: hsl(0, 0%, 25%);
 	--tla-color-accent-1: hsl(50, 91%, 60%);
 	--tla-color-accent-2: hsl(28, 88%, 47%);
 	--tla-color-accent-3: hsl(135, 59%, 39%);
 	--tla-color-warning: hsl(0, 95%, 65%);
 	/* Shadows */
+	--tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 61%);
 	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
 		inset 0px 0px 0px 1px var(--tla-color-panel);
 	--tla-shadow-2: 0px 1px 3px hsl(0, 0%, 0%, 66.6%), 0px 2px 6px hsl(0, 0%, 0%, 33%),
@@ -310,30 +315,27 @@
 
 .tla-button__primary {
 	background-color: var(--tla-color-primary);
+	box-shadow: var(--tla-shadow-primary-highlight);
 	color: var(--tla-color-contrast);
 }
+
 .tla-button__primary[data-state='loading'] {
 	color: var(--tla-color-primary);
 }
+
 .tla-button__primary[data-state='loading'] > .tla-button_spinner {
 	color: var(--tla-color-contrast);
 }
 
 .tla-button__secondary {
 	background-color: var(--tla-color-secondary);
-	border: 1px solid var(--tla-color-border);
+	border: 1px solid var(--tla-color-secondary-border);
 	color: var(--tla-color-text-1);
 }
 
 .tla-button__warning {
 	background-color: var(--tla-color-secondary);
 	color: var(--tla-color-warning);
-}
-
-@media (hover: hover) {
-	.tla-button__primary:hover {
-		border: 1px solid transparent;
-	}
 }
 
 /* --------------------- Inputs --------------------- */
