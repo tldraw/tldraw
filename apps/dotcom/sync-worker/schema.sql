@@ -18,5 +18,4 @@ CREATE TABLE IF NOT EXISTS records (
   PRIMARY KEY (id, topicId)
 );
 
-CREATE INDEX IF NOT EXISTS topicIdIndex ON records(topicId);
 CREATE INDEX IF NOT EXISTS lastModifiedEpochIndex ON records(lastModifiedEpoch);
