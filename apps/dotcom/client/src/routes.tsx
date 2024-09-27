@@ -56,7 +56,7 @@ export const router = createRoutesFromElements(
 			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		{/* begin tla */}
-		<Route lazy={() => import('./tla/components/TlaAppProvider')}>
+		<Route lazy={() => import('./tla/providers/TlaAppProvider')}>
 			{/* If not redirected, then local */}
 			<Route path="/q" element={<RedirectAtRoot />} />
 			{/* Force route to local */}

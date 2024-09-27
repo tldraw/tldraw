@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
-import { TlaWrapperCentered } from '../components/TlaWrapperCentered'
+import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
 import { TldrawApp } from '../utils/TldrawApp'
 import { TLA_VERSION } from '../utils/tla-version'
 
@@ -35,7 +35,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}, [])
 
 	if (!ready || !app) {
-		return <TlaWrapperCentered>Loading...</TlaWrapperCentered>
+		return <TlaCenteredLayout>Loading...</TlaCenteredLayout>
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>

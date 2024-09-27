@@ -1,0 +1,13 @@
+.page {
+	position: relative;
+	display: flex;
+	padding: 48px 16px 16px 16px;
+	width: 100%;
+	max-width: 760px;
+	height: 100%;
+	margin: 0px auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-grow: 2;
+}

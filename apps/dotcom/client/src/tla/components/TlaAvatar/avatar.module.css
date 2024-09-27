@@ -1,0 +1,24 @@
+.avatar {
+	position: relative;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	overflow: hidden;
+	background-color: var(--tla-color-accent-2);
+	z-index: 2;
+}
+
+.avatar[data-size='s'] {
+	width: 16px;
+	height: 16px;
+}
+
+.avatar[data-size='m'] {
+	width: 20px;
+	height: 20px;
+}
+
+.avatar[data-size='l'] {
+	width: 32px;
+	height: 32px;
+}
