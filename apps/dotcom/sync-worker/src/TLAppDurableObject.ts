@@ -160,7 +160,6 @@ export class TLAppDurableObject {
 			return await this.router.fetch(req)
 		} catch (err) {
 			console.error(err)
-			// eslint-disable-next-line deprecation/deprecation
 			return new Response('Something went wrong', {
 				status: 500,
 				statusText: 'Internal Server Error',
