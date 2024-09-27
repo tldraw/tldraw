@@ -3849,7 +3849,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * const idsOnPage2 = editor.getPageShapeIds(myPage2)
 	 * ```
 	 *
-	 * @param page - The page (or the page id) to get.
+	 * @param page - The page (or the page id) to get the shape ids for.
 	 *
 	 * @public
 	 **/
