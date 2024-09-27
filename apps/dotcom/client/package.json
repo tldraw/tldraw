@@ -50,6 +50,7 @@
 		"dotenv": "^16.3.1",
 		"eslint": "^8.37.0",
 		"fast-glob": "^3.3.1",
+		"identity-obj-proxy": "^3.0.0",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"vite": "^5.4.2",
@@ -64,6 +65,9 @@
 		"transformIgnorePatterns": [
 			"node_modules/(?!(nanoevents)/)"
 		],
+		"moduleNameMapper": {
+			"\\.(css|less)$": "identity-obj-proxy"
+		},
 		"setupFiles": [
 			"./setupTests.js"
 		]
