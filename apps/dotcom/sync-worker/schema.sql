@@ -13,10 +13,11 @@ CREATE TABLE IF NOT EXISTS topics (
 
 DROP TABLE IF EXISTS records;
 CREATE TABLE IF NOT EXISTS records (
-  id TEXT PRIMARY KEY NOT NULL,
+  id TEXT NOT NULL,
   topicId TEXT NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
   record TEXT NOT NULL,
-  lastModifiedEpoch INTEGER NOT NULL
+  lastModifiedEpoch INTEGER NOT NULL,
+  PRIMARY KEY (id, topicId)
 );
 
 CREATE INDEX IF NOT EXISTS topicIdIndex ON records(topicId);
