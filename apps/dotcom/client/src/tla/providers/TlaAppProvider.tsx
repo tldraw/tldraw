@@ -11,6 +11,7 @@ export function Component() {
 	if (!userId) {
 		return <Navigate to="/q/local" replace />
 	}
+
 	return (
 		<AppStateProvider>
 			<Outlet />

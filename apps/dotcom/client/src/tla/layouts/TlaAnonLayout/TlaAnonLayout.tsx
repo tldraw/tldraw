@@ -3,13 +3,20 @@ import { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
-import { useApp } from '../../hooks/useAppState'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { USER_ID_KEY } from '../../providers/TlaAppProvider'
 import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
-	const app = useApp()
-	const theme = useValue('theme', () => app.getSessionState().theme, [app])
+	const app = useMaybeApp()
+	const theme = useValue(
+		'theme',
+		() => {
+			if (!app) return 'light'
+			app.getSessionState().theme
+		},
+		[app]
+	)
 	const navigate = useNavigate()
 
 	return (
