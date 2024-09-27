@@ -5,6 +5,7 @@ import { useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { TldrawAppFile } from '../../utils/schema/TldrawAppFile'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditor } from '../TlaEditor/TlaEditor'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
@@ -43,14 +44,18 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 					<span className={styles.headerFolder}>My files / </span>
 					<span className={styles.headerTitle}>{TldrawApp.getFileName(file)}</span>
 				</div>
-				<SignedOut>
-					{/* @ts-ignore this is fine */}
-					<SignInButton className="tla-button tla-button__secondary tla-text_ui__regular" />
-				</SignedOut>
-				<SignedIn>
-					<UserButton />
-				</SignedIn>
-				<TlaFileShareMenu fileId={file.id} />
+				<div className={styles.rightSide}>
+					<SignedOut>
+						{/* @ts-ignore this is fine */}
+						<SignInButton asChild>
+							<TlaButton>Sign in</TlaButton>
+						</SignInButton>
+					</SignedOut>
+					<SignedIn>
+						<UserButton />
+					</SignedIn>
+					<TlaFileShareMenu fileId={file.id} />
+				</div>
 			</div>
 			<div
 				className={styles.editorWrapper}
