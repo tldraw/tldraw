@@ -8,6 +8,11 @@ import styles from './sidebar-layout.module.css'
 export function TlaSidebarLayout({ children }: { children: ReactNode; collapsable?: boolean }) {
 	const app = useApp()
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
+	const isSidebarOpenMobile = useValue(
+		'sidebar open mobile',
+		() => app.getSessionState().isSidebarOpenMobile,
+		[app]
+	)
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])
 	return (
 		<div
@@ -16,6 +21,7 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsabl
 				styles.layout
 			)}
 			data-sidebar={isSidebarOpen}
+			data-sidebarmobile={isSidebarOpenMobile}
 		>
 			<TlaSidebar />
 			{children}

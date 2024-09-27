@@ -16,20 +16,40 @@ import styles from './sidebar.module.css'
 export function TlaSidebar() {
 	const app = useApp()
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
+	const isSidebarOpenMobile = useValue(
+		'sidebar open mobile',
+		() => app.getSessionState().isSidebarOpenMobile,
+		[app]
+	)
+
+	const handleOverlayClick = useCallback(() => {
+		app.toggleSidebarMobile()
+	}, [app])
 
 	return (
-		<div className={styles.sidebar} data-visible={isSidebarOpen}>
-			<div className={styles.top}>
-				<TlaSidebarWorkspaceLink />
-				<TlaSidebarCreateFileButton />
+		<>
+			<button
+				className={styles.sidebarOverlayMobile}
+				data-visiblemobile={isSidebarOpenMobile}
+				onClick={handleOverlayClick}
+			/>
+			<div
+				className={styles.sidebar}
+				data-visible={isSidebarOpen}
+				data-visiblemobile={isSidebarOpenMobile}
+			>
+				<div className={styles.top}>
+					<TlaSidebarWorkspaceLink />
+					<TlaSidebarCreateFileButton />
+				</div>
+				<div className={styles.content}>
+					<TlaSidebarRecentFiles />
+				</div>
+				<div className={styles.bottom}>
+					<TlaSidebarUserLink />
+				</div>
 			</div>
-			<div className={styles.content}>
-				<TlaSidebarRecentFiles />
-			</div>
-			<div className={styles.bottom}>
-				<TlaSidebarUserLink />
-			</div>
-		</div>
+		</>
 	)
 }
 
@@ -264,7 +284,16 @@ function TlaMenuButton({ label, onClick }: { label: string; onClick(): void }) {
 export function TlaSidebarToggle() {
 	const app = useApp()
 	return (
-		<button className={styles.toggle} onClick={() => app.toggleSidebar()}>
+		<button className={styles.toggle} data-mobile={false} onClick={() => app.toggleSidebar()}>
+			<TlaIcon icon="sidebar" />
+		</button>
+	)
+}
+
+export function TlaSidebarToggleMobile() {
+	const app = useApp()
+	return (
+		<button className={styles.toggle} data-mobile={true} onClick={() => app.toggleSidebarMobile()}>
 			<TlaIcon icon="sidebar" />
 		</button>
 	)

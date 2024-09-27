@@ -6,6 +6,8 @@
 	height: 100%;
 }
 
-.layout[data-sidebar='true'] {
-	padding-left: 260px;
+@media (min-width: 768px) {
+	.layout[data-sidebar='true'] {
+		padding-left: 260px;
+	}
 }

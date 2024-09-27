@@ -45,12 +45,14 @@
 	background-color: var(--tla-color-canvas);
 }
 
-.editorWrapper[data-sidebar='true'] {
-	border-top-left-radius: 9px;
-	border-left: 1px solid var(--tla-color-border);
-}
-
 .editorWrapper > .tldraw__editor {
 	width: 100%;
 	height: 100%;
+}
+
+@media (min-width: 768px) {
+	.editorWrapper[data-sidebar='true'] {
+		border-top-left-radius: 9px;
+		border-left: 1px solid var(--tla-color-border);
+	}
 }

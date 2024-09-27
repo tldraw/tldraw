@@ -12,8 +12,32 @@
 	background: var(--tla-color-sidebar);
 }
 
-.sidebar[data-visible='true'] {
-	display: flex;
+.sidebarOverlayMobile {
+	all: unset;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: 99;
+	background-color: var(--tla-color-overlay);
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.sidebar[data-visible='true'] {
+		display: flex;
+	}
+}
+
+@media (max-width: 767px) {
+	.sidebar[data-visiblemobile='true'] {
+		display: flex;
+	}
+
+	.sidebarOverlayMobile[data-visiblemobile='true'] {
+		display: block;
+	}
 }
 
 .top,
@@ -90,6 +114,24 @@
 @media (hover: hover) {
 	.toggle:hover::after {
 		visibility: visible;
+	}
+}
+
+.toggle[data-mobile='true'] {
+	display: flex;
+}
+
+.toggle[data-mobile='false'] {
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.toggle[data-mobile='true'] {
+		display: none;
+	}
+
+	.toggle[data-mobile='false'] {
+		display: flex;
 	}
 }
 
