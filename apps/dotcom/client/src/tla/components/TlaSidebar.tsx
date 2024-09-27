@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../hooks/useAppState'
+import { useTldrawUser } from '../hooks/useUser'
 import { TldrawApp } from '../utils/TldrawApp'
 import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 import { getCleanId } from '../utils/tldrawAppSchema'
@@ -66,32 +67,18 @@ function TlaSidebarCreateFileButton() {
 }
 
 function TlaSidebarUserLink() {
-	const app = useApp()
-
-	const result = useValue(
-		'auth',
-		() => {
-			const { auth } = app.getSessionState()
-			if (!auth) return false
-			const user = app.store.get(auth.userId)!
-			return {
-				auth,
-				user,
-			}
-		},
-		[app]
-	)
+	const user = useTldrawUser()
 
 	const location = useLocation()
 
-	if (!result) throw Error('Could not get user')
+	if (!user) return null
 
 	return (
 		<div className="tla-sidebar__user tla-hoverable tla-text_ui__regular">
 			<div className="tla-icon_wrapper">
 				<TlaAvatar size="s" />
 			</div>
-			<div className="tla-sidebar__label">{result.user.name}</div>
+			<div className="tla-sidebar__label">{user.clerkUser.fullName}</div>
 			{/* <Link className="tla-sidebar__link-button" to={getUserUrl(result.auth.userId)} /> */}
 			<Link
 				className="tla-sidebar__link-button"

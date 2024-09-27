@@ -1,3 +1,4 @@
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
@@ -53,7 +54,16 @@ export function Component() {
 						<span className="tla-file-header__folder">My files / </span>
 						<span className="tla-file-header__title">{TldrawApp.getFileName(file)}</span>
 					</div>
-					<TlaButton>Share</TlaButton>
+					<div className="tla-file-header__share">
+						<SignedOut>
+							{/* @ts-ignore this is fine */}
+							<SignInButton className="tla-button tla-button__secondary tla-text_ui__regular" />
+						</SignedOut>
+						<SignedIn>
+							<UserButton />
+						</SignedIn>
+						<TlaButton>Share</TlaButton>
+					</div>
 				</div>
 				<div className={`tla-file__wrapper ${isSidebarOpen ? `tla-file__wrapper-sidebar` : ''}`}>
 					<TlaEditor file={file} />

@@ -31,6 +31,7 @@ import {
 	ViewSubmenu,
 } from 'tldraw'
 import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
+import { useLoggedInUser } from '../tla/hooks/useUser'
 import { assetUrls } from '../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../utils/config'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -121,11 +122,16 @@ export function MultiplayerEditor({
 }) {
 	// make sure this runs before the editor is instantiated
 	useLegacyUrlParams()
+	const user = useLoggedInUser()
 
 	const handleUiEvent = useHandleUiEvents()
 
 	const storeWithStatus = useSync({
-		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
+		uri: useCallback(
+			async () =>
+				`${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}?clerk_token=${await user.getToken()}`,
+			[roomOpenMode, roomSlug, user]
+		),
 		roomId: roomSlug,
 		assets: multiplayerAssetStore,
 		trackAnalyticsEvent,

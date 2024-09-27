@@ -643,6 +643,17 @@ want centered content that docks to the top when the window is short
 	height: 100%;
 }
 
+.tla-file-header__share {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.cl-popoverBox {
+	transform: scale(1.3);
+	transform-origin: top right;
+}
+
 /* ---------------------- Error --------------------- */
 
 .tla-error__page {

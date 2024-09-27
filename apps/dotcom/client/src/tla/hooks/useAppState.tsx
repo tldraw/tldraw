@@ -35,7 +35,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}, [])
 
 	if (!ready || !app) {
-		return <TlaWrapperCentered>Loading...</TlaWrapperCentered>
+		return <TlaWrapperCentered>Loading…</TlaWrapperCentered>
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>

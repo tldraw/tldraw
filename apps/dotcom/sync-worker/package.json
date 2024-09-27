@@ -19,6 +19,7 @@
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
+		"@clerk/backend": "^1.13.4",
 		"@supabase/auth-helpers-remix": "^0.2.2",
 		"@supabase/supabase-js": "^2.33.2",
 		"@tldraw/dotcom-shared": "workspace:*",
