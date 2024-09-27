@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { getFromLocalStorage, setInLocalStorage, uniqueId, useValue } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor'
 import { useApp } from '../hooks/useAppState'
-import { TlaWrapperLoggedOut } from '../layouts/TlaLoggedOut.tsx/TlaWrapperLoggedOut'
+import { TlaWrapperLoggedOut } from '../layouts/TlaLoggedOut/TlaWrapperLoggedOut'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 

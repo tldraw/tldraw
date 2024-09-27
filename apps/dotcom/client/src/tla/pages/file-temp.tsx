@@ -4,7 +4,7 @@ import { useValue } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor'
 import { TlaErrorPage } from '../components/TlaErrorPage'
 import { useApp } from '../hooks/useAppState'
-import { TlaWrapperLoggedOut } from '../layouts/TlaLoggedOut.tsx/TlaWrapperLoggedOut'
+import { TlaWrapperLoggedOut } from '../layouts/TlaLoggedOut/TlaWrapperLoggedOut'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 
 export function Component() {
