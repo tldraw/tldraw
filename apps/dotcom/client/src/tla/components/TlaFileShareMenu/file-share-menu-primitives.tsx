@@ -3,7 +3,42 @@ import { createContext, ReactNode, useCallback, useContext, useState } from 'rea
 import { TlaIcon } from '../TlaIcon'
 import styles from './file-share-menu.module.css'
 
-export const tlaFileShareMenuHelpContext = createContext<boolean>(false)
+export const tlaFileShareMenuHelpContext = createContext(
+	{} as { showingHelp: boolean; onChange(): void }
+)
+
+export function TlaFileShareMenuHelpProvider({ children }: { children: ReactNode }) {
+	const [showingHelp, setShowingHelp] = useState(false)
+
+	const onChange = useCallback(() => {
+		setShowingHelp((v) => !v)
+	}, [])
+
+	return (
+		<tlaFileShareMenuHelpContext.Provider value={{ showingHelp, onChange }}>
+			{children}
+		</tlaFileShareMenuHelpContext.Provider>
+	)
+}
+
+export function TlaFileShareMenuHelpToggle() {
+	const { showingHelp, onChange } = useContext(tlaFileShareMenuHelpContext)
+
+	return (
+		<button className={styles.helpButton} onClick={onChange} data-active={showingHelp}>
+			<TlaIcon icon="question-circle" />
+		</button>
+	)
+}
+
+// A help item is displayed only when the user has toggled the menu's help mode
+export function TlaShareMenuHelpItem({ children }: { children: ReactNode }) {
+	const { showingHelp } = useContext(tlaFileShareMenuHelpContext)
+
+	if (!showingHelp) return null
+
+	return <div className={styles.helpItem}>{children}</div>
+}
 
 // Used to section areas of the menu, ie share links vs snapshots
 export function TlaShareMenuSection({ children }: { children: ReactNode }) {
@@ -23,15 +58,6 @@ export function TlaShareMenuControl({ children }: { children: ReactNode }) {
 // A label for a control
 export function TlaShareMenuControlLabel({ children }: { children: ReactNode }) {
 	return <div className="tla-text_ui__medium">{children}</div>
-}
-
-// A help item is displayed only when the user has toggled the menu's help mode
-export function TlaShareMenuHelpItem({ children }: { children: ReactNode }) {
-	const showingHelp = useContext(tlaFileShareMenuHelpContext)
-
-	if (!showingHelp) return null
-
-	return <div className={styles.helpItem}>{children}</div>
 }
 
 // A button that copies something to the clipboard

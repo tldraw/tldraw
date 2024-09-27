@@ -1,25 +1,21 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
 import classNames from 'classnames'
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { TldrawAppSessionState } from '../../utils/schema/TldrawAppSessionState'
-import { TlaIcon } from '../TlaIcon'
 import { TlaTabsPages, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
-import { tlaFileShareMenuHelpContext } from './file-share-menu-primitives'
+import {
+	TlaFileShareMenuHelpProvider,
+	TlaFileShareMenuHelpToggle,
+} from './file-share-menu-primitives'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
-
-	const [showingHelp, setShowingHelp] = useState(false)
-
-	const handleHelpClick = useCallback(() => {
-		setShowingHelp((v) => !v)
-	}, [])
 
 	const shareMenuActiveTab = useValue(
 		'share menu active tab',
@@ -48,25 +44,19 @@ export function TlaFileShareMenu({ fileId }: { fileId: TldrawAppFileId }) {
 				alignOffset={-2}
 				sideOffset={6}
 			>
-				<tlaFileShareMenuHelpContext.Provider value={showingHelp}>
+				<TlaFileShareMenuHelpProvider>
 					<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
 							<TlaTabsTab id="share">Invite</TlaTabsTab>
 							<TlaTabsTab id="export">Export</TlaTabsTab>
-							<button
-								className={styles.helpButton}
-								onClick={handleHelpClick}
-								data-active={showingHelp}
-							>
-								<TlaIcon icon="question-circle" />
-							</button>
+							<TlaFileShareMenuHelpToggle />
 						</TlaTabsTabs>
 						<TlaTabsPages>
 							<TlaShareMenuSharePage fileId={fileId} />
 							<TlaShareMenuExportPage />
 						</TlaTabsPages>
 					</TlaTabsRoot>
-				</tlaFileShareMenuHelpContext.Provider>
+				</TlaFileShareMenuHelpProvider>
 			</DropdownPrimitive.Content>
 		</DropdownPrimitive.Root>
 	)
