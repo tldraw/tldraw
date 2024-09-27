@@ -29,7 +29,7 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
 
 	return (
-		<>
+		<div className={styles.content}>
 			<div className={styles.header}>
 				<TlaSidebarToggle />
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
@@ -41,6 +41,6 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 			<div className={styles.editorWrapper} data-sidebar={isSidebarOpen}>
 				<TlaEditor file={file} />
 			</div>
-		</>
+		</div>
 	)
 }

@@ -50,7 +50,7 @@
 }
 
 .tab:nth-of-type(n + 2) {
-	margin-left: calc(var(--tab-padding) * -1);
+	margin-left: calc(var(--tab-padding) * -0.5);
 }
 
 .line {

@@ -38,8 +38,6 @@
 	position: relative;
 	flex-grow: 2;
 	overflow: hidden;
-	height: 100%;
-	width: 100%;
 	border-top: 1px solid var(--tla-color-border);
 	background-color: var(--tla-color-canvas);
 }

@@ -207,7 +207,7 @@ export function TlaEditor({
 	}, [app, fileId])
 
 	return (
-		<div className="tldraw__editor">
+		<div className={styles.editor}>
 			<Tldraw
 				key={persistenceKey}
 				assetUrls={assetUrls}
