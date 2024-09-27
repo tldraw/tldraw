@@ -4,16 +4,16 @@ import { Link } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
 import { useApp } from '../../hooks/useAppState'
-import styles from './logged-out.module.css'
+import styles from './anon.module.css'
 
-export function TlaWrapperLoggedOut({ children }: { children: ReactNode }) {
+export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	const app = useApp()
 	const theme = useValue('theme', () => app.getSessionState().theme, [app])
 	return (
 		<div
 			className={classNames(
 				styles.loggedOut,
-				`tla tla-layout tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`
+				`tla tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`
 			)}
 		>
 			<div className={styles.header}>

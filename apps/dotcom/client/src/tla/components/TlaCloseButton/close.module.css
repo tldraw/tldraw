@@ -1,7 +1,7 @@
 .button {
 	background: none;
 	border: none;
-	position: absolute;
+	position: fixed;
 	top: 0px;
 	left: 0px;
 	cursor: pointer;
@@ -13,7 +13,8 @@
 	padding: 0px 12px 0px 10px;
 	gap: 10px;
 	z-index: 10000;
-	background-color: var(--tla-color-canvas);
+	color: var(--tla-color-text-1);
+	background-color: var(--tla-color-sidebar);
 }
 
 .button > span {

@@ -4,7 +4,7 @@
 	height: 24px;
 	border-radius: 50%;
 	overflow: hidden;
-	background-color: var(--color-accent-2);
+	background-color: var(--tla-color-accent-2);
 	z-index: 2;
 }
 

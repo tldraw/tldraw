@@ -1,12 +1,12 @@
 import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TlaButton } from '../components/TlaButton/TlaButton'
-import { TlaFormDivider } from '../components/TlaForm/TlaForm'
 import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
+import { TlaFormDivider } from '../components/tla-form/tla-form'
 import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../hooks/useFlags'
 import { useSessionState } from '../hooks/useSessionState'
-import { TlaWrapperPage } from '../layouts/TlaWrapperPage'
+import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
 import { TldrawAppUserId, TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 
 export function Component() {
@@ -27,7 +27,7 @@ export function Component() {
 	}
 
 	return (
-		<TlaWrapperPage>
+		<TlaPageLayout>
 			<div className="tla-page__header">
 				<h2 className="tla-text_ui__big">Debug</h2>
 			</div>
@@ -81,7 +81,7 @@ export function Component() {
 			<h2>Theme</h2>
 			<TlaSpacer height={20} />
 			<DarkMode />
-		</TlaWrapperPage>
+		</TlaPageLayout>
 	)
 }
 

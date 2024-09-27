@@ -18,21 +18,21 @@ import {
 	useReactor,
 	useTldrawUiComponents,
 } from 'tldraw'
-import { Links } from '../../components/Links'
-import { SneakyOnDropOverride } from '../../components/SneakyOnDropOverride'
-import { ThemeUpdater } from '../../components/ThemeUpdater/ThemeUpdater'
-import { assetUrls } from '../../utils/assetUrls'
-import { createAssetFromUrl } from '../../utils/createAssetFromUrl'
-import { globalEditor } from '../../utils/globalEditor'
-import { DebugMenuItems } from '../../utils/migration/DebugMenuItems'
-import { LocalMigration } from '../../utils/migration/LocalMigration'
-import { useSharing } from '../../utils/sharing'
-import { useFileSystem } from '../../utils/useFileSystem'
-import { useHandleUiEvents } from '../../utils/useHandleUiEvent'
-import { useApp } from '../hooks/useAppState'
-import { TldrawApp } from '../utils/TldrawApp'
-import { TldrawAppFile } from '../utils/schema/TldrawAppFile'
-
+import { Links } from '../../../components/Links'
+import { SneakyOnDropOverride } from '../../../components/SneakyOnDropOverride'
+import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { assetUrls } from '../../../utils/assetUrls'
+import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { globalEditor } from '../../../utils/globalEditor'
+import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
+import { LocalMigration } from '../../../utils/migration/LocalMigration'
+import { useSharing } from '../../../utils/sharing'
+import { useFileSystem } from '../../../utils/useFileSystem'
+import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
+import { useApp } from '../../hooks/useAppState'
+import { TldrawApp } from '../../utils/TldrawApp'
+import { TldrawAppFile } from '../../utils/schema/TldrawAppFile'
+import styles from './editor.module.css'
 // const shittyOfflineAtom = atom('shitty offline atom', false)
 
 const components: TLComponents = {
@@ -223,7 +223,7 @@ export function TlaEditor({
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
 			</Tldraw>
-			{ready ? null : <div key={persistenceKey + 'overlay'} className="tla-editor__overlay" />}
+			{ready ? null : <div key={persistenceKey + 'overlay'} className={styles.overlay} />}
 		</div>
 	)
 }

@@ -21,7 +21,7 @@
 			}
 		]
 	},
-	"include": ["**/*.ts", "**/*.tsx", "src/tla/layouts/TlaLoggedOut"],
+	"include": ["**/*.ts", "**/*.tsx", "src/tla/layouts/TlaAnonLayout"],
 	"exclude": ["node_modules", "_archive"],
 	"references": [
 		{

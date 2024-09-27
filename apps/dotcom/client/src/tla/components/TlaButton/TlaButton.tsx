@@ -40,7 +40,7 @@ export const TlaButton = forwardRef<
 		>
 			{icon && <TlaIcon icon={icon} />}
 			{children && <span>{children}</span>}
-			{iconRight && <TlaIcon icon={iconRight} />}
+			{iconRight && <TlaIcon icon={iconRight} className={styles.iconRight} />}
 			{isLoading && (
 				<div className={styles.spinner}>
 					<TlaIcon className="tla-spinner" icon="spinner" />

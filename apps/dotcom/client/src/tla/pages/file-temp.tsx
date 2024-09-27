@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
-import { TlaEditor } from '../components/TlaEditor'
-import { TlaErrorPage } from '../components/TlaErrorPage'
+import { TlaEditor } from '../components/TlaEditor/TlaEditor'
+import { TlaErrorContent } from '../components/TlaErrorContent/TlaErrorContent'
 import { useApp } from '../hooks/useAppState'
-import { TlaWrapperLoggedOut } from '../layouts/TlaLoggedOut/TlaWrapperLoggedOut'
+import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { TlaErrorLayout } from '../layouts/TlaErrorLayout/TlaErrorLayout'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
 
 export function Component() {
@@ -37,14 +38,16 @@ export function Component() {
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
 
 	if (!file) {
-		// throw Error(`oops ${fileId}`)
-		// navigate('/404')
-		return <TlaErrorPage error="file-not-found" />
+		return (
+			<TlaErrorLayout>
+				<TlaErrorContent error="file-not-found" />
+			</TlaErrorLayout>
+		)
 	}
 
 	return (
-		<TlaWrapperLoggedOut>
+		<TlaAnonLayout>
 			<TlaEditor file={file} />
-		</TlaWrapperLoggedOut>
+		</TlaAnonLayout>
 	)
 }

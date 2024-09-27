@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TlaButton } from '../components/TlaButton/TlaButton'
+import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
 import {
 	TlaForm,
 	TlaFormCheckbox,
@@ -9,10 +10,9 @@ import {
 	TlaFormInput,
 	TlaFormItem,
 	TlaFormLabel,
-} from '../components/TlaForm/TlaForm'
-import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
+} from '../components/tla-form/tla-form'
 import { useApp } from '../hooks/useAppState'
-import { TlaWrapperCentered } from '../layouts/TlaCentered/TlaWrapperCentered'
+import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
 import { TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 
 export function Component() {
@@ -25,7 +25,7 @@ export function Component() {
 
 	if (state === 'sign-in') {
 		return (
-			<TlaWrapperCentered>
+			<TlaCenteredLayout>
 				<div style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
 					<h2 className="tla-text_ui__big" style={{ textAlign: 'center' }}>
 						Sign in
@@ -65,13 +65,13 @@ export function Component() {
 						</TlaFormItem>
 					</TlaForm>
 				</div>
-			</TlaWrapperCentered>
+			</TlaCenteredLayout>
 		)
 	}
 
 	if (state === 'sign-up') {
 		return (
-			<TlaWrapperCentered>
+			<TlaCenteredLayout>
 				<div style={{ display: 'flex', flexDirection: 'column', width: 320 }}>
 					<h2 className="tla-text_ui__big" style={{ textAlign: 'center' }}>
 						Create your account
@@ -131,7 +131,7 @@ export function Component() {
 						</div>
 					</TlaForm>
 				</div>
-			</TlaWrapperCentered>
+			</TlaCenteredLayout>
 		)
 	}
 

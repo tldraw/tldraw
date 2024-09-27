@@ -13,7 +13,6 @@ want centered content that docks to the top when the window is short
 	align-items: center;
 	justify-content: center;
 	overflow: hidden;
-	background-color: var(--tla-color-sidebar);
 }
 
 .inner {

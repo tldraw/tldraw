@@ -67,3 +67,8 @@
 	background-color: var(--tla-color-secondary);
 	color: var(--tla-color-warning);
 }
+
+.iconRight {
+	position: absolute;
+	right: 8px;
+}

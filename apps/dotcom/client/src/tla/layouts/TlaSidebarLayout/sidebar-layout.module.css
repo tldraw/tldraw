@@ -1,0 +1,11 @@
+.layout {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+}
+
+.layout[data-sidebar='true'] {
+	padding-left: 260px;
+}

@@ -7,15 +7,15 @@ import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import { TldrawAppFile, TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
+import { TlaSelect } from '../TlaSelect/TlaSelect'
+import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
+import { TlaTabsPage } from '../TlaTabs/TlaTabs'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlLabel,
 	TlaMenuSection,
-} from '../TlaMenu/TlaMenu'
-import { TlaSelect } from '../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
-import { TlaTabsPage } from '../TlaTabs/TlaTabs'
+} from '../tla-menu/tla-menu'
 import { TlaShareMenuCopyButton, TlaShareMenuHelpItem } from './file-share-menu-primitives'
 import styles from './file-share-menu.module.css'
 

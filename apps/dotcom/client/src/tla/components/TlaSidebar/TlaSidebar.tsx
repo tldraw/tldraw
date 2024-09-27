@@ -1,27 +1,32 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
+import classNames from 'classnames'
 import { useCallback } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
-import { useApp } from '../hooks/useAppState'
-import { TldrawApp } from '../utils/TldrawApp'
-import { TldrawAppFile, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
-import { getCleanId } from '../utils/tldrawAppSchema'
-import { getFileUrl } from '../utils/urls'
-import { TlaAvatar } from './TlaAvatar/TlaAvatar'
-import { TlaIcon, TlaIconWrapper } from './TlaIcon/TlaIcon'
-import { TlaSpacer } from './TlaSpacer/TlaSpacer'
+import { useApp } from '../../hooks/useAppState'
+import { TldrawApp } from '../../utils/TldrawApp'
+import { TldrawAppFile, TldrawAppFileRecordType } from '../../utils/schema/TldrawAppFile'
+import { getCleanId } from '../../utils/tldrawAppSchema'
+import { getFileUrl } from '../../utils/urls'
+import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
+import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
+import { TlaSpacer } from '../TlaSpacer/TlaSpacer'
+import styles from './sidebar.module.css'
 
 export function TlaSidebar() {
+	const app = useApp()
+	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
+
 	return (
-		<div className="tla-sidebar">
-			<div className="tla-sidebar__top">
+		<div className={styles.sidebar} data-visible={isSidebarOpen}>
+			<div className={styles.top}>
 				<TlaSidebarWorkspaceLink />
 				<TlaSidebarCreateFileButton />
 			</div>
-			<div className="tla-sidebar__content">
+			<div className={styles.content}>
 				<TlaSidebarRecentFiles />
 			</div>
-			<div className="tla-sidebar__bottom">
+			<div className={styles.bottom}>
 				<TlaSidebarUserLink />
 			</div>
 		</div>
@@ -30,12 +35,12 @@ export function TlaSidebar() {
 
 function TlaSidebarWorkspaceLink() {
 	return (
-		<div className="tla-sidebar__workspace">
+		<div className={styles.workspace}>
 			<TlaIconWrapper data-size="m">
 				<TlaIcon icon="tldraw" />
 			</TlaIconWrapper>
-			<div className="tla-sidebar__label tla-text_ui__title">tldraw</div>
-			<button className="tla-sidebar__link-button" />
+			<div className={classNames(styles.label, 'tla-text_ui__title')}>tldraw</div>
+			<button className={styles.linkButton} />
 		</div>
 	)
 }
@@ -59,7 +64,7 @@ function TlaSidebarCreateFileButton() {
 	}, [app, navigate])
 
 	return (
-		<button className="tla-sidebar__create" onClick={handleSidebarCreate}>
+		<button className={styles.create} onClick={handleSidebarCreate}>
 			<TlaIcon icon="edit-strong" />
 		</button>
 	)
@@ -87,54 +92,19 @@ function TlaSidebarUserLink() {
 	if (!result) throw Error('Could not get user')
 
 	return (
-		<div className="tla-sidebar__user tla-hoverable tla-text_ui__regular">
-			<div className="tla-icon_wrapper">
+		<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
+			<TlaIconWrapper>
 				<TlaAvatar size="s" />
-			</div>
-			<div className="tla-sidebar__label">{result.user.name}</div>
-			{/* <Link className="tla-sidebar__link-button" to={getUserUrl(result.auth.userId)} /> */}
-			<Link
-				className="tla-sidebar__link-button"
-				to={'/q/profile'}
-				state={{ background: location }}
-			/>
-			<Link className="tla-sidebar__link-menu" to={'/q/debug'} state={{ background: location }}>
+			</TlaIconWrapper>
+			<div className={styles.label}>{result.user.name}</div>
+			{/* <Link className="__link-button" to={getUserUrl(result.auth.userId)} /> */}
+			<Link className={styles.linkButton} to={'/q/profile'} state={{ background: location }} />
+			<Link className={styles.linkMenu} to={'/q/debug'} state={{ background: location }}>
 				<TlaIcon icon="dots-vertical-strong" />
 			</Link>
 		</div>
 	)
 }
-
-// function TlaSidebarCreateFileLink() {
-// 	const app = useApp()
-// 	const navigate = useNavigate()
-// 	return (
-// 		<div className="tla-sidebar__link tla-hoverable">
-// 			<div className="tla-sidebar__link-content">
-// 				<div className="tla-sidebar__label tla-text_ui__regular">New file</div>
-// 			</div>
-// 			<button
-// 				className="tla-sidebar__link-button"
-// 				onClick={() => {
-// 					const { auth } = app.getSessionState()
-// 					if (!auth) return false
-// 					const id = TldrawAppFileRecordType.createId()
-// 					app.store.put([
-// 						TldrawAppFileRecordType.create({
-// 							id,
-// 							workspaceId: auth.workspaceId,
-// 							owner: auth.userId,
-// 						}),
-// 					])
-// 					navigate(getFileUrl(auth.workspaceId, id))
-// 				}}
-// 			/>
-// 			<div className="tla-sidebar__create tla-icon_wrapper" style={{ height: '100%' }}>
-// 				<TlaIcon icon="edit-strong" />
-// 			</div>
-// 		</div>
-// 	)
-// }
 
 function TlaSidebarRecentFiles() {
 	const app = useApp()
@@ -199,10 +169,9 @@ function TlaSidebarRecentFiles() {
 
 function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
 	return (
-		<div className="tla-sidebar__section">
-			{/* <TlaSpacer height="20" /> */}
+		<div className={styles.section}>
 			<TlaSpacer height="8" />
-			<div className="tla-sidebar__section_title tla-text_ui__medium">{title}</div>
+			<div className={classNames(styles.sectionTitle, 'tla-text_ui__medium')}>{title}</div>
 			{files.map((file) => (
 				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
 			))}
@@ -215,11 +184,13 @@ function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const { fileId } = useParams()
 	const isActive = fileId === getCleanId(id)
 	return (
-		<div className="tla-sidebar__link tla-hoverable" data-active={isActive}>
-			<div className="tla-sidebar__link-content">
-				<div className="tla-sidebar__label tla-text_ui__regular">{TldrawApp.getFileName(file)}</div>
+		<div className={classNames(styles.link, styles.hoverable)} data-active={isActive}>
+			<div className={styles.linkContent}>
+				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
+					{TldrawApp.getFileName(file)}
+				</div>
 			</div>
-			<Link to={getFileUrl(id)} className="tla-sidebar__link-button" />
+			<Link to={getFileUrl(id)} className={styles.linkButton} />
 			<TlaSidebarFileLinkMenu fileId={file.id} />
 		</div>
 	)
@@ -253,12 +224,12 @@ function TlaSidebarFileLinkMenu(_props: { fileId: TldrawAppFile['id'] }) {
 	return (
 		<DropdownPrimitive.Root dir="ltr" modal={false}>
 			<TldrawUiDropdownMenuTrigger>
-				<button className="tla-sidebar__link-menu">
+				<button className={styles.linkMenu}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
 			</TldrawUiDropdownMenuTrigger>
 			<DropdownPrimitive.Content
-				className="tlui-menu tla-text_ui__medium"
+				className={classNames('tlui-menu', 'tla-text_ui__medium')}
 				data-size="small"
 				side="bottom"
 				align="start"
@@ -287,5 +258,14 @@ function TlaMenuButton({ label, onClick }: { label: string; onClick(): void }) {
 				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
 			</TldrawUiButton>
 		</DropdownPrimitive.DropdownMenuItem>
+	)
+}
+
+export function TlaSidebarToggle() {
+	const app = useApp()
+	return (
+		<button className={styles.toggle} onClick={() => app.toggleSidebar()}>
+			<TlaIcon icon="sidebar" />
+		</button>
 	)
 }

@@ -61,9 +61,8 @@ export function TlaShareMenuCopyButton({
 	}, [copied, onClick])
 
 	return (
-		<TlaButton variant={type} onClick={handleCopyLinkClick}>
-			<span>{children}</span>
-			<TlaIcon className={styles.copyButtonIcon} icon={copied ? 'check' : 'copy'} />
+		<TlaButton variant={type} onClick={handleCopyLinkClick} iconRight={copied ? 'check' : 'copy'}>
+			{children}
 		</TlaButton>
 	)
 }

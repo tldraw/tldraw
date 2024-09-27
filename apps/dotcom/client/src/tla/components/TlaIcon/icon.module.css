@@ -6,6 +6,7 @@
 	width: 15px;
 	z-index: 1;
 	pointer-events: none;
+	color: var(--tla-color-text-1);
 }
 
 .icon_wrapper {

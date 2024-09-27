@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 import { TlaCloseButton } from '../../components/TlaCloseButton/TlaCloseButton'
 import styles from './centered.module.css'
 
-export function TlaWrapperCentered({
+export function TlaCenteredLayout({
 	onClose,
 	children,
 }: {

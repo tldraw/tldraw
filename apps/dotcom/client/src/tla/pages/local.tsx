@@ -1,43 +1,17 @@
-import { useEffect, useState } from 'react'
-import { getFromLocalStorage, setInLocalStorage, uniqueId, useValue } from 'tldraw'
-import { TlaEditor } from '../components/TlaEditor'
+import { Navigate } from 'react-router-dom'
 import { useApp } from '../hooks/useAppState'
-import { TlaWrapperLoggedOut } from '../layouts/TlaLoggedOut/TlaWrapperLoggedOut'
-import { TldrawAppFileId, TldrawAppFileRecordType } from '../utils/schema/TldrawAppFile'
-import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
+import { useSessionState } from '../hooks/useSessionState'
+import { getFileUrl } from '../utils/urls'
 
 export function Component() {
 	const app = useApp()
-	const [fileId, setFileId] = useState<TldrawAppFileId | null>(null)
+	const { auth, createdAt } = useSessionState()
 
-	useEffect(() => {
-		// Try to load a temporary file; or otherwise create one
-		let temporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
+	if (!auth) throw Error('This should be wrapped in a workspace auth check')
 
-		if (!temporaryFileId) {
-			temporaryFileId = uniqueId()
-			setInLocalStorage(TEMPORARY_FILE_KEY, temporaryFileId)
-		}
+	// Navigate to the most recent file (if there is one) or else a new file
+	const file =
+		app.getUserRecentFiles(auth.userId, createdAt)?.[0]?.file ?? app.createFile(auth.userId)
 
-		const fileId = TldrawAppFileRecordType.createId(temporaryFileId)
-
-		const file = app.store.get(fileId)
-
-		if (!file) {
-			app.createFile('temporary', fileId)
-		}
-
-		setFileId(fileId)
-	}, [app])
-
-	const file = useValue(
-		'file',
-		() => {
-			if (!fileId) return null
-			return app.store.get(fileId)
-		},
-		[app, fileId]
-	)
-
-	return <TlaWrapperLoggedOut>{file && <TlaEditor file={file} />}</TlaWrapperLoggedOut>
+	return <Navigate to={getFileUrl(file.id)} replace />
 }

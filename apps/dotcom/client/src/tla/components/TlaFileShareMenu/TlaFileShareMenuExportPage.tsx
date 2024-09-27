@@ -16,16 +16,15 @@ import { useAuth } from '../../hooks/useAuth'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { TldrawAppUser } from '../../utils/schema/TldrawAppUser'
 import { TlaButton } from '../TlaButton/TlaButton'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaSelect } from '../TlaSelect/TlaSelect'
+import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
+import { TlaTabsPage } from '../TlaTabs/TlaTabs'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlLabel,
 	TlaMenuSection,
-} from '../TlaMenu/TlaMenu'
-import { TlaSelect } from '../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
-import { TlaTabsPage } from '../TlaTabs/TlaTabs'
+} from '../tla-menu/tla-menu'
 import styles from './file-share-menu.module.css'
 
 export function TlaShareMenuExportPage() {
@@ -226,9 +225,12 @@ function ExportImageButton() {
 
 	return (
 		<>
-			<TlaButton className="tla-share-menu__copy-button" onClick={handleExportLinkClick}>
-				<span>Export image</span>
-				<TlaIcon icon="export" />
+			<TlaButton
+				className="tla-share-menu__copy-button"
+				onClick={handleExportLinkClick}
+				iconRight="export"
+			>
+				Export image
 			</TlaButton>
 		</>
 	)
