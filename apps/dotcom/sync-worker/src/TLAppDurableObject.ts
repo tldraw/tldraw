@@ -242,7 +242,12 @@ export class TLAppDurableObject {
 				)
 			),
 		]).catch(async (e) => {
+			console.error(
+				'bad ids',
+				updatedRecords.map((doc) => doc.state.id)
+			)
 			// if we failed to persist, we should restart the room and force people to reconnect
+			const room = await this.getRoom()
 			room.close()
 			this._room = null
 			throw e

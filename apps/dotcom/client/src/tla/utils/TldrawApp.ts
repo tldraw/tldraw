@@ -12,9 +12,7 @@ import {
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
 } from '@tldraw/dotcom-shared'
-import { deleteDB } from 'idb'
 import { Editor, Store, computed } from 'tldraw'
-import { getAllIndexDbNames } from './local-sync'
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -353,7 +351,7 @@ export class TldrawApp {
 
 	onFileExit(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
 		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
+		if (!user) return
 
 		this.store.put([
 			{
@@ -364,10 +362,6 @@ export class TldrawApp {
 				},
 			},
 		])
-	}
-
-	async resetDatabase() {
-		await Promise.all(getAllIndexDbNames().map((db) => deleteDB(db)))
 	}
 
 	static async create(opts: { userId: string; store: Store<TldrawAppRecord> }) {

@@ -68,7 +68,7 @@ export const tldrawAppSessionStateMigrations = createRecordMigrationSequence({
 /** @public */
 export const TldrawAppSessionStateRecordType = createRecordType<TldrawAppSessionState>('session', {
 	validator: tldrawAppSessionStateValidator,
-	scope: 'document',
+	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TldrawAppSessionState, 'id' | 'typeName'> => ({
 		isSidebarOpen: true,
