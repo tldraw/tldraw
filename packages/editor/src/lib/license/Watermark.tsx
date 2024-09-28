@@ -2,7 +2,6 @@ import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { memo, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
-import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
@@ -66,14 +65,9 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			{...events}
 		>
 			<a
-				target="_blank"
-				href={url}
-				rel="noreferrer"
+				role="button"
+				tabIndex={0}
 				draggable={false}
-				onPointerDown={(e) => {
-					stopEventPropagation(e)
-					preventDefault(e)
-				}}
 				onClick={() => runtime.openWindow(url, '_blank')}
 				style={{ mask: maskCss, WebkitMask: maskCss }}
 			/>
