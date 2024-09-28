@@ -1,7 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
-export { handleUnfurlRequest } from 'cloudflare-workers-unfurl'
+export { handleExtractBookmarkMetadataRequest } from './bookmarks'
 export { createPersistQueue } from './createPersistQueue'
 export { notFound } from './errors'
 export {

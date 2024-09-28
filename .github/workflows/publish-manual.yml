@@ -1,4 +1,4 @@
-name: (Re)Publish public packages manually
+name: (Re)Publish SDK packages manually
 # This only attempts to publish the public packages to npm.
 # It does not bump the version, it does not update the changelogs, it does not create a github release.
 
@@ -28,7 +28,7 @@ jobs:
 
       - name: Publish
         id: publish_step
-        run: yarn tsx ./scripts/publish-manual.ts
+        run: yarn tsx ./internal/scripts/publish-manual.ts
         env:
           GH_TOKEN: ${{ github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

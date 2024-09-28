@@ -5,9 +5,8 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { mapObjectMapValues } from '@tldraw/utils'
+import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { nanoid } from 'nanoid'
 import { SchemaPropsInfo } from '../createTLSchema'
 import { TLPropsMigrations } from '../recordsWithProps'
 import { TLArrowShape } from '../shapes/TLArrowShape'
@@ -153,7 +152,7 @@ export function isShapeId(id?: string): id is TLShapeId {
 
 /** @public */
 export function createShapeId(id?: string): TLShapeId {
-	return `shape:${id ?? nanoid()}` as TLShapeId
+	return `shape:${id ?? uniqueId()}` as TLShapeId
 }
 
 /** @internal */

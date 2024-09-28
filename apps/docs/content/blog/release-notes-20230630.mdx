@@ -1,0 +1,60 @@
+---
+title: Release Notes – June 30th 2023
+category: release-notes
+description: Cursor chat, faster multiplayer, and more.
+hero: /images/blog/5cf1b953-5562-4540-9c1b-80457083fb9a.heic
+date: 6/30/2023
+status: published
+author:
+  - luwilson
+  - steveruizok
+---
+
+Hello! and welcome back to another tldraw release.
+
+[Last time around](https://tldraw.dev/blog/release-notes/release-notes-june-9th-2023) we shipped a bunch of new stuff. This month we’ve been working on the developer side of tldraw: a wrapped up version of tldraw that developers can put inside of their own apps and extend to make their own [weird stuff](https://twitter.com/steveruizok/status/1674376276788883456). If that sounds interesting to you, learn more at [tldraw.dev](https://www.tldraw.dev).
+
+We have however still managed to sneak in some new features, fixes and plenty of improvements for [tldraw.com](https://www.tldraw.com). Let’s go through what’s new!
+
+## What’s new
+
+You can now use **cursor chat** in shared projects.
+
+![](/images/blog/7feb9bb9-b771-4ce0-a6ec-726dde1b4305_960x540.gif)
+
+Start chatting by pressing the forward slash key **/** in a shared project. Type your message and it will be visible to other people in the project before disappearing after a few seconds.
+
+![](/images/blog/946479a2-4c86-4fd7-a36e-23adc6e69c2e_720x406.gif)
+
+Remember: you can change your name, cursor color, and follow or unfollow other users from the people menu up top. Your choices here will follow you from project to project, too!
+
+![](/images/blog/54e27896-1f4c-4719-9d0e-4ea1e9991d97_960x540.gif)
+
+## Improvements
+
+We improved how we store tldraw multiplayer rooms. Less downtime, faster loads!
+
+Our multiplayer servers now deal with larger document sizes. Previously, sharing a project was limited based on the size of the project. We’ve increased that limit so that you can share much larger projects.
+
+Our loading and error screens now support dark mode.
+
+We added more community contributed translations for Farsi, Italian, Russian, Simplified Chinese and Ukrainian.
+
+## Fixes
+
+- Fixed a bug where touching the screen too many times could exit pen mode.
+- We now cull off-screen shapes correctly, to make panning and zooming smoother.
+- Fixed a crash when trying to rotate a deleted shape.
+- Fixed a bug where shape-snapping could crash the app.
+- Fixed groups exporting incorrectly in images.
+- Fixed a problem where assets were not loading in snapshots.
+- Fixed some rare inconsistency issues with multiplayer rooms.
+- Fixes some state management bugs that manifested in multiplayer rooms.
+
+---
+
+That’s it for this week. That’s all this for week! We hope you enjoy trying out the new changes. If you have any ideas or feedback, [swing by the Discord](https://discord.gg/Up7bFHPstc) or @ us on [Twitter](https://twitter.com/tldraw) or [Mastodon](https://mas.to/@tldraw). And if you’re a developer, come check out the [GitHub repo](https://github.com/tldraw/tldraw). See you next time!
+
+And a stinger:
+
+![](/images/blog/4fd8e559-e03d-4103-b300-29666313ea06_720x406.gif)

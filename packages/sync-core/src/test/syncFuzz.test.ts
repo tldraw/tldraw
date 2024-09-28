@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import {
 	Editor,
 	TLArrowBinding,
@@ -10,7 +9,11 @@ import {
 	createTLSchema,
 	createTLStore,
 	isRecordsDiffEmpty,
+	mockUniqueId,
+	uniqueId,
 } from 'tldraw'
+import uuid from 'uuid-by-string'
+import readable from 'uuid-readable'
 import { prettyPrintDiff } from '../../../tldraw/src/test/testutils/pretty'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { FuzzEditor, Op } from './FuzzEditor'
@@ -35,24 +38,14 @@ global.requestAnimationFrame = (cb: () => any) => {
 	cb()
 }
 
-jest.mock('nanoid', () => {
-	const { RandomSource } = jest.requireActual('./RandomSource')
-	let source = new RandomSource(0)
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const readable = require('uuid-readable')
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	const uuid = require('uuid-by-string')
-	const nanoid = () => {
-		return readable.short(uuid(source.randomInt().toString(16))).replaceAll(' ', '_')
-	}
-	return {
-		nanoid,
-		default: nanoid,
-		__reseed(seed: number) {
-			source = new RandomSource(seed)
-		},
-	}
-})
+let source = new RandomSource(0)
+const nanoid = () => {
+	return readable.short(uuid(source.randomInt().toString(16))).replaceAll(' ', '_')
+}
+const reseed = (seed: number) => {
+	source = new RandomSource(seed)
+}
+mockUniqueId(nanoid)
 
 const disposables: Array<() => void> = []
 
@@ -78,7 +71,7 @@ class FuzzTestInstance extends RandomSource {
 	) {
 		super(seed)
 
-		this.id = nanoid()
+		this.id = uniqueId()
 		this.store = createTLStore({ schema, id: this.id })
 		this.socketPair = new TestSocketPair(this.id, server)
 		this.client = new TLSyncClient<TLRecord>({
@@ -140,8 +133,7 @@ function arrowsAreSound(editor: Editor) {
 }
 
 function runTest(seed: number) {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	require('nanoid').__reseed(seed)
+	reseed(seed)
 	const server = new TestServer(schema)
 	const instance = new FuzzTestInstance(seed, server)
 

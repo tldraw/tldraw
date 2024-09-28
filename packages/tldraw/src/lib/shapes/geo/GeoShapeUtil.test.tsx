@@ -11,18 +11,20 @@ beforeEach(() => {
 
 describe('Handle snapping', () => {
 	beforeEach(() => {
-		ids = editor.createShapesFromJsx([
-			<TL.geo ref="geo" x={0} y={0} geo="rectangle" w={100} h={100} />,
-			<TL.line
-				ref="line"
-				x={0}
-				y={0}
-				points={{
-					a1: { id: 'a1', index: 'a1' as IndexKey, x: 200, y: 0 },
-					a2: { id: 'a2', index: 'a2' as IndexKey, x: 200, y: 100 },
-				}}
-			/>,
-		])
+		ids = editor.createShapesFromJsx(
+			<>
+				<TL.geo ref="geo" x={0} y={0} geo="rectangle" w={100} h={100} />
+				<TL.line
+					ref="line"
+					x={0}
+					y={0}
+					points={{
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 200, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 200, y: 100 },
+					}}
+				/>
+			</>
+		)
 	})
 
 	const geoShape = () => editor.getShape(ids.geo)!

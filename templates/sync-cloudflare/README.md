@@ -12,13 +12,12 @@ This is a production-ready backend for [tldraw sync](https://tldraw.dev/docs/syn
   R2](https://developers.cloudflare.com/r2/) bucket.
 - Although unreliated to tldraw sync, this server also includes a component to fetch link previews
   for URLs added to the canvas.
-
-This is a minimal setup of the same system that powers multiplayer collaboration for hundreds of
-thousands of rooms & users on www.tldraw.com. Because durable objects effectively create a mini
-server instance for every single active room, we've never needed to worry about scale. Cloudflare
-handles the tricky infrastructure work of ensuring there's only ever one instance of each room, and
-making sure that every user gets connected to that instance. We've found that with this approach,
-each room is able to handle about 30 simultaneous collaborators.
+  This is a minimal setup of the same system that powers multiplayer collaboration for hundreds of
+  thousands of rooms & users on www.tldraw.com. Because durable objects effectively create a mini
+  server instance for every single active room, we've never needed to worry about scale. Cloudflare
+  handles the tricky infrastructure work of ensuring there's only ever one instance of each room, and
+  making sure that every user gets connected to that instance. We've found that with this approach,
+  each room is able to handle about 30 simultaneous collaborators.
 
 ## Overview
 
@@ -66,7 +65,7 @@ The frontend client is under [`client`](./client):
 - **[`client/getBookmarkPreview.tsx`](./client/getBookmarkPreview.tsx):** how does the client fetch
   bookmark previews from the worker?
 
-## Custom shapes
+  ## Custom shapes
 
 To add support for custom shapes, see the [tldraw sync custom shapes
 docs](https://tldraw.dev/docs/sync#Custom-shapes--bindings).
@@ -108,7 +107,24 @@ your document across devices.
 
 ## License
 
-Whilst the code in this template is available under the MIT license, `tldraw` and `@tldraw/sync` are
-under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) which does not
-allow their use for commercial purposes. To purchase an alternative license for commercial use,
-contact [sales@tldraw.com](mailto:sales@tldraw.com).
+This project is provided under the MIT license found [here](https://github.com/tldraw/tldraw-sync-cloudflare/blob/main/LICENSE). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+
+## Trademarks
+
+Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
+
+## Distributions
+
+You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
+
+## Contribution
+
+Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+
+## Community
+
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
+
+## Contact
+
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).

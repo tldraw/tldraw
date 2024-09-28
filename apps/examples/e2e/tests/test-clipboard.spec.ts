@@ -1,10 +1,6 @@
 import test, { expect } from '@playwright/test'
-import { Editor } from 'tldraw'
+import { Editor, sleep } from 'tldraw'
 import { setup } from '../shared-e2e'
-
-export function sleep(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms))
-}
 
 declare const editor: Editor
 

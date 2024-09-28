@@ -1,0 +1,74 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`the_routes 1`] = `
+[
+  {
+    "reactRouterPattern": "/",
+    "vercelRouterPattern": "^//?$",
+  },
+  {
+    "reactRouterPattern": "/new",
+    "vercelRouterPattern": "^/new/?$",
+  },
+  {
+    "reactRouterPattern": "/q",
+    "vercelRouterPattern": "^/q/?$",
+  },
+  {
+    "reactRouterPattern": "/q/auth",
+    "vercelRouterPattern": "^/q/auth/?$",
+  },
+  {
+    "reactRouterPattern": "/q/debug",
+    "vercelRouterPattern": "^/q/debug/?$",
+  },
+  {
+    "reactRouterPattern": "/q/f/:fileId",
+    "vercelRouterPattern": "^/q/f/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/q/local",
+    "vercelRouterPattern": "^/q/local/?$",
+  },
+  {
+    "reactRouterPattern": "/q/profile",
+    "vercelRouterPattern": "^/q/profile/?$",
+  },
+  {
+    "reactRouterPattern": "/q/t/:fileId",
+    "vercelRouterPattern": "^/q/t/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/r",
+    "vercelRouterPattern": "^/r/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:boardId/history",
+    "vercelRouterPattern": "^/r/[^/]*/history/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:boardId/history/:timestamp",
+    "vercelRouterPattern": "^/r/[^/]*/history/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/r/:roomId",
+    "vercelRouterPattern": "^/r/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/ro/:roomId",
+    "vercelRouterPattern": "^/ro/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/s/:roomId",
+    "vercelRouterPattern": "^/s/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/ts-side",
+    "vercelRouterPattern": "^/ts-side/?$",
+  },
+  {
+    "reactRouterPattern": "/v/:roomId",
+    "vercelRouterPattern": "^/v/[^/]*/?$",
+  },
+]
+`;

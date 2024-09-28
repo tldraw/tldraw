@@ -388,7 +388,7 @@ export function getCurvedArrowInfo(
  */
 function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 	// find a circle from the three points
-	const center = centerOfCircleFromThreePoints(a, b, c)
+	const center = centerOfCircleFromThreePoints(a, b, c) ?? Vec.Med(a, b)
 
 	const radius = Vec.Dist(center, a)
 

@@ -7,9 +7,8 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffs,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, fpsThrottle, objectMapEntries } from '@tldraw/utils'
+import { exhaustiveSwitchError, fpsThrottle, objectMapEntries, uniqueId } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
-import { nanoid } from 'nanoid'
 import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord, getNetworkDiff } from './diff'
 import { interval } from './interval'
 import {
@@ -265,7 +264,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			return
 		}
 		this.debug('sending connect message')
-		this.latestConnectRequestId = nanoid()
+		this.latestConnectRequestId = uniqueId()
 		this.socket.sendMessage({
 			type: 'connect',
 			connectRequestId: this.latestConnectRequestId,

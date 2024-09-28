@@ -1,13 +1,13 @@
 {
 	"name": "@tldraw/state-react",
 	"description": "A tiny little drawing app (react bindings for state).",
-	"version": "2.4.0",
+	"version": "3.2.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "SEE LICENSE IN LICENSE.md",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -33,37 +33,37 @@
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
-		"build": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
-		"postpack": "../../scripts/postpack.sh",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"jest": {
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"setupFiles": [
 			"raf/polyfill"
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1"
 		},
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid)/)"
-		]
+		"testEnvironment": "jsdom"
 	},
 	"dependencies": {
-		"@tldraw/state": "workspace:*"
+		"@tldraw/state": "workspace:*",
+		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
+		"@testing-library/jest-dom": "^5.16.5",
+		"@testing-library/react": "^15.0.6",
 		"@types/lodash": "^4.14.188",
-		"@types/react": "^18.2.47",
-		"@types/react-test-renderer": "^18.0.0",
-		"lodash": "^4.17.21",
-		"react-test-renderer": "^18.2.0"
+		"@types/react": "^18.2.0",
+		"lodash": "^4.17.21"
 	},
 	"peerDependencies": {
-		"react": "^18"
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	},
 	"typedoc": {
 		"readmeFile": "none",

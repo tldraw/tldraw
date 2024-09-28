@@ -35,7 +35,7 @@ function debug(...args: any[]) {
 //       we might not be able to detect the websocket connection going down in a timely manner
 //       (it will probably time out on outgoing data packets at some point).
 //
-//       This is by design. Whilst the Websocket protocol specifies protocol-level pings,
+//       This is by design. While the Websocket protocol specifies protocol-level pings,
 //       they don't seem to be surfaced in browser APIs and can't be relied on. Therefore,
 //       pings need to be implemented one level up, on the application API side, which for our
 //       codebase means whatever code that uses ClientWebSocketAdapter.

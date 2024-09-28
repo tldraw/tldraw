@@ -7,8 +7,8 @@ const menus = [
 		items: [
 			{ caption: 'Overview', href: '/' },
 			{ caption: 'Playground', href: 'https://tldraw.com' },
-			{ caption: 'Pricing', href: '/pricing' },
-			{ caption: 'Terms of Use', href: '/terms' },
+			{ caption: 'Pricing', href: '/#pricing' },
+			// { caption: 'Terms of Use', href: '/legal/terms' },
 		],
 	},
 	{
@@ -26,28 +26,40 @@ const menus = [
 			{ caption: 'X/Twitter', href: 'https://x.com/tldraw/' },
 			{ caption: 'Discord', href: 'https://discord.com/invite/SBBEVCA4PG' },
 			{ caption: 'GitHub', href: 'https://github.com/tldraw/tldraw' },
+			{ caption: 'Bluesky', href: 'https://bsky.app/profile/tldraw.bsky.social' },
+			{ caption: 'Mastodon', href: 'https://mas.to/@tldraw' },
+		],
+	},
+	{
+		heading: 'Legal',
+		items: [
+			{ caption: 'License', href: '/legal/tldraw-license' },
+			{ caption: 'Trademarks', href: '/legal/trademarks' },
+			{ caption: 'CLA', href: '/legal/cla' },
 		],
 	},
 ]
 
-export const Footer = () => {
+export function Footer() {
 	return (
-		<footer className="bg-zinc-50 py-12 md:py-16">
-			<div className="w-full max-w-screen-xl mx-auto px-5 flex flex-col sm:flex-row sm:justify-between gap-12">
+		<footer className="py-12 bg-zinc-50 dark:bg-zinc-900 md:py-16">
+			<div className="flex flex-col w-full max-w-screen-xl gap-12 px-5 mx-auto sm:flex-row sm:justify-between">
 				<div>
 					<Link href="/" className="w-28">
 						<Logo className="h-6" />
 					</Link>
-					<p className="text-sm mt-4">&copy; tldraw {new Date().getFullYear()}</p>
+					<p className="mt-4 text-sm">&copy; tldraw {new Date().getFullYear()}</p>
 				</div>
-				<div className="flex gap-12 flex-wrap">
+				<div className="flex flex-wrap gap-12">
 					{menus.map(({ heading, items }, index) => (
 						<div key={index}>
-							<h4 className="text-black uppercase text-xs font-semibold">{heading}</h4>
-							<ul className="flex flex-col mt-2 gap-2 text-sm">
+							<h4 className="text-xs font-semibold text-black uppercase dark:text-white">
+								{heading}
+							</h4>
+							<ul className="flex flex-col gap-2 mt-2 text-sm">
 								{items.map(({ caption, href }, index) => (
 									<li key={index}>
-										<Link href={href} className="hover:text-zinc-800">
+										<Link href={href} className="hover:text-zinc-800 dark:hover:text-zinc-200">
 											{caption}
 										</Link>
 									</li>

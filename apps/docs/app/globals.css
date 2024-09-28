@@ -2,7 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+	scroll-padding-top: 72px;
+}
+
 @layer base {
+	.prose h2 a,
+	.prose h3 a,
+	.prose h4 a {
+		@apply font-bold;
+	}
 	.prose blockquote p {
 		margin: 0;
 	}
@@ -22,5 +31,15 @@
 	input[type='search']::-webkit-search-results-button,
 	input[type='search']::-webkit-search-results-decoration {
 		-webkit-appearance: none;
+	}
+
+	@media (max-width: 768px) {
+		.prose table {
+			table-layout: fixed;
+		}
+
+		.prose td {
+			word-break: break-word;
+		}
 	}
 }

@@ -1,6 +1,6 @@
+import { RenderResult, act, render } from '@testing-library/react'
 import { Atom, Computed, atom } from '@tldraw/state'
 import { useState } from 'react'
-import ReactTestRenderer from 'react-test-renderer'
 import { useAtom } from './useAtom'
 import { useComputed } from './useComputed'
 import { useValue } from './useValue'
@@ -16,20 +16,20 @@ test('useValue returns a value from a computed', async () => {
 		return <>{useValue(b)}</>
 	}
 
-	let view: ReactTestRenderer.ReactTestRenderer
-	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Component />)
+	let view: RenderResult
+	await act(() => {
+		view = render(<Component />)
 	})
 
 	expect(theComputed).not.toBeNull()
 	expect(theComputed?.get()).toBe(2)
 	expect(theComputed?.name).toBe('useComputed(a+1)')
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"2"`)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		theAtom?.set(5)
 	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"6"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"6"`)
 })
 
 test('useValue returns a value from an atom', async () => {
@@ -40,17 +40,17 @@ test('useValue returns a value from an atom', async () => {
 		return <>{useValue(a)}</>
 	}
 
-	let view: ReactTestRenderer.ReactTestRenderer
-	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Component />)
+	let view: RenderResult
+	await act(() => {
+		view = render(<Component />)
 	})
 
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"1"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"1"`)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		theAtom?.set(5)
 	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"5"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"5"`)
 })
 
 test('useValue returns a value from a compute function', async () => {
@@ -65,22 +65,22 @@ test('useValue returns a value from a compute function', async () => {
 		return <>{c}</>
 	}
 
-	let view: ReactTestRenderer.ReactTestRenderer
-	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Component />)
+	let view: RenderResult
+	await act(() => {
+		view = render(<Component />)
 	})
 
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"2"`)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		theAtom?.set(5)
 	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"6"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"6"`)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		setB!(5)
 	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"10"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"10"`)
 })
 
 test("useValue doesn't throw when used in a zombie-child component", async () => {
@@ -107,28 +107,17 @@ test("useValue doesn't throw when used in a zombie-child component", async () =>
 		return <>{value}</>
 	}
 
-	let view: ReactTestRenderer.ReactTestRenderer
-	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Parent />)
+	let view: RenderResult
+	await act(() => {
+		view = render(<Parent />)
 	})
 
-	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		[
-		  "1",
-		  "2",
-		  "3",
-		]
-	`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot('"123"')
 
 	// remove id 'b' creating a zombie-child
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		theAtom?.update(({ b: _, ...rest }) => rest)
 	})
 
-	expect(view!.toJSON()).toMatchInlineSnapshot(`
-		[
-		  "1",
-		  "3",
-		]
-	`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot('"13"')
 })

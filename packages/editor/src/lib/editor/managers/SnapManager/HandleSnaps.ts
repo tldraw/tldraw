@@ -1,9 +1,8 @@
 import { computed } from '@tldraw/state'
 import { TLHandle, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
-import { assertExists } from '@tldraw/utils'
+import { assertExists, uniqueId } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
-import { uniqueId } from '../../../utils/uniqueId'
 import { Editor } from '../../Editor'
 import { SnapData, SnapManager } from './SnapManager'
 

@@ -30,7 +30,10 @@ export class Rotating extends StateNode {
 
 		this.markId = this.editor.markHistoryStoppingPoint('rotate start')
 
-		const snapshot = getRotationSnapshot({ editor: this.editor })
+		const snapshot = getRotationSnapshot({
+			editor: this.editor,
+			ids: this.editor.getSelectedShapeIds(),
+		})
 		if (!snapshot) return this.parent.transition('idle', this.info)
 		this.snapshot = snapshot
 
@@ -49,7 +52,7 @@ export class Rotating extends StateNode {
 		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
 		})
 	}
 
@@ -101,7 +104,7 @@ export class Rotating extends StateNode {
 		// Update cursor
 		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			rotation: newSelectionRotation + this.snapshot.initialShapesRotation,
 		})
 	}
 
@@ -138,9 +141,9 @@ export class Rotating extends StateNode {
 		const {
 			inputs: { shiftKey, currentPagePoint },
 		} = this.editor
-		const { initialCursorAngle, initialSelectionRotation } = this.snapshot
+		const { initialCursorAngle, initialShapesRotation } = this.snapshot
 
-		if (!selectionBounds) return initialSelectionRotation
+		if (!selectionBounds) return initialShapesRotation
 
 		const selectionPageCenter = selectionBounds.center
 			.clone()
@@ -148,7 +151,7 @@ export class Rotating extends StateNode {
 
 		// The delta is the difference between the current angle and the initial angle
 		const preSnapRotationDelta = selectionPageCenter.angle(currentPagePoint) - initialCursorAngle
-		let newSelectionRotation = initialSelectionRotation + preSnapRotationDelta
+		let newSelectionRotation = initialShapesRotation + preSnapRotationDelta
 
 		if (shiftKey) {
 			newSelectionRotation = snapAngle(newSelectionRotation, 24)
@@ -164,6 +167,6 @@ export class Rotating extends StateNode {
 			}
 		}
 
-		return newSelectionRotation - initialSelectionRotation
+		return newSelectionRotation - initialShapesRotation
 	}
 }

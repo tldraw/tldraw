@@ -5,9 +5,8 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { Expand, mapObjectMapValues } from '@tldraw/utils'
+import { Expand, mapObjectMapValues, uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { nanoid } from 'nanoid'
 import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { TLBaseBinding, createBindingValidator } from '../bindings/TLBaseBinding'
 import { SchemaPropsInfo } from '../createTLSchema'
@@ -86,7 +85,7 @@ export function isBindingId(id?: string): id is TLBindingId {
 
 /** @public */
 export function createBindingId(id?: string): TLBindingId {
-	return `binding:${id ?? nanoid()}` as TLBindingId
+	return `binding:${id ?? uniqueId()}` as TLBindingId
 }
 
 /**

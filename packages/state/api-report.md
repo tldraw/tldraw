@@ -65,11 +65,14 @@ export interface Computed<Value, Diff = unknown> extends Signal<Value, Diff> {
 // @public
 export function computed<Value, Diff = unknown>(name: string, compute: (previousValue: typeof UNINITIALIZED | Value, lastComputedEpoch: number) => Value | WithDiff<Value, Diff>, options?: ComputedOptions<Value, Diff>): Computed<Value, Diff>;
 
-// @public (undocumented)
+// @public
+export function computed<This extends object, Value>(compute: () => Value, context: ClassMethodDecoratorContext<This, () => Value>): () => Value;
+
+// @public
 export function computed(target: any, key: string, descriptor: PropertyDescriptor): PropertyDescriptor;
 
-// @public (undocumented)
-export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): (target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor;
+// @public
+export function computed<Value, Diff = unknown>(options?: ComputedOptions<Value, Diff>): ((target: any, key: string, descriptor: PropertyDescriptor) => PropertyDescriptor) & (<This>(compute: () => Value, context: ClassMethodDecoratorContext<This, () => Value>) => () => Value);
 
 // @public
 export type ComputeDiff<Value, Diff> = (previousValue: Value, currentValue: Value, lastComputedEpoch: number, currentEpoch: number) => Diff | RESET_VALUE;
@@ -125,7 +128,7 @@ export function isAtom(value: unknown): value is Atom<unknown>;
 export function isSignal(value: any): value is Signal<any>;
 
 // @public
-export const isUninitialized: (value: any) => value is typeof UNINITIALIZED;
+export function isUninitialized(value: any): value is UNINITIALIZED;
 
 // @public
 export function react(name: string, fn: (lastReactedEpoch: number) => any, options?: EffectSchedulerOptions): () => void;

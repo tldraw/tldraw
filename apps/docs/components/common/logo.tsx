@@ -1,11 +1,11 @@
 import { cn } from '@/utils/cn'
 
-export const Logo: React.FC<{ className: string }> = ({ className }) => {
+export function Logo({ className }: { className: string }) {
 	return (
 		<svg
 			viewBox="0 0 96 24"
 			xmlns="http://www.w3.org/2000/svg"
-			className={cn('fill-current text-black', className)}
+			className={cn('fill-current text-black dark:text-white', className)}
 		>
 			<path
 				fillRule="evenodd"

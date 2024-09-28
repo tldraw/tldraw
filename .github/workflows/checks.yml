@@ -38,14 +38,11 @@ jobs:
       - name: Check for installation warnings
         run: 'yarn | grep -vzq "with warnings"'
 
-      - name: Check tsconfigs
-        run: yarn check-tsconfigs
+      - name: Check packages
+        run: yarn check-packages
 
       - name: Typecheck
         run: yarn build-types
-
-      - name: Check scripts
-        run: yarn check-scripts
 
       - name: Check bundle sizes
         run: yarn lazy check-bundle-size

@@ -116,3 +116,17 @@ export function areObjectsShallowEqual<T extends object>(obj1: T, obj2: T): bool
 	}
 	return true
 }
+
+/** @internal */
+export function groupBy<K extends string, V>(
+	array: ReadonlyArray<V>,
+	keySelector: (value: V) => K
+): Record<K, V[]> {
+	const result: Record<K, V[]> = {} as any
+	for (const value of array) {
+		const key = keySelector(value)
+		if (!result[key]) result[key] = []
+		result[key].push(value)
+	}
+	return result
+}

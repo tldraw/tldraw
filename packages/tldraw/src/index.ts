@@ -1,5 +1,6 @@
 /// <reference types="react" />
 
+import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -73,6 +74,7 @@ export {
 	LABEL_FONT_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
+export { useAsset } from './lib/shapes/shared/useAsset'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
@@ -496,3 +498,9 @@ export {
 	type TldrawFile,
 	type TldrawFileParseError,
 } from './lib/utils/tldr/file'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

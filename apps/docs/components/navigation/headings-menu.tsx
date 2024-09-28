@@ -1,11 +1,11 @@
 'use client'
 
-import { ArticleHeadings } from '@/types/content-types'
+import { ArticleHeading } from '@/types/content-types'
 import { cn } from '@/utils/cn'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
-export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings }) => {
+export function HeadingsMenu({ headings }: { headings: ArticleHeading[] }) {
 	const [activeSlug, setActiveSlug] = useState('')
 
 	useEffect(() => {
@@ -25,10 +25,12 @@ export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings
 	if (headings.length === 0) return null
 
 	return (
-		<div className="relative shrink overflow-y-auto">
+		<div className="relative overflow-y-auto shrink mb-12">
 			<div className="sticky top-0">
-				<h4 className="block bg-white text-black uppercase text-xs font-semibold">On this page</h4>
-				<div className="h-2 w-full bg-gradient-to-b from-white" />
+				<h4 className="block text-xs font-semibold text-black uppercase bg-white dark:bg-zinc-950 dark:text-white">
+					On this page
+				</h4>
+				<div className="w-full h-2 bg-gradient-to-b from-white dark:from-zinc-950" />
 			</div>
 			<ul className="flex flex-col gap-2 text-sm break-words">
 				{headings.map(({ title, level, slug }, index) => (
@@ -36,7 +38,9 @@ export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings
 						<Link
 							href={`#${slug}`}
 							className={cn(
-								slug === activeSlug ? 'text-black font-semibold' : 'hover:text-zinc-800'
+								slug === activeSlug
+									? 'text-black dark:text-white font-semibold'
+									: 'hover:text-zinc-800 dark:hover:text-zinc-100'
 							)}
 						>
 							{title}
@@ -44,7 +48,6 @@ export const HeadingsMenu: React.FC<{ headings: ArticleHeadings }> = ({ headings
 					</li>
 				))}
 			</ul>
-			<div className="sticky bottom-0 h-12 w-full bg-gradient-to-t from-white via-white" />
 		</div>
 	)
 }

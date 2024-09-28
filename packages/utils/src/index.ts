@@ -1,3 +1,5 @@
+import { registerTldrawLibraryVersion } from './lib/version'
+
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
 export { PerformanceTracker } from './lib/PerformanceTracker'
@@ -18,6 +20,7 @@ export {
 	assertExists,
 	exhaustiveSwitchError,
 	promiseWithResolve,
+	sleep,
 	type ErrorResult,
 	type OkResult,
 } from './lib/control'
@@ -26,6 +29,7 @@ export { annotateError, getErrorAnnotations, type ErrorAnnotations } from './lib
 export { FileHelpers } from './lib/file'
 export { noop, omitFromStackTrace } from './lib/function'
 export { getHashForBuffer, getHashForObject, getHashForString, lns } from './lib/hash'
+export { mockUniqueId, restoreUniqueId, uniqueId } from './lib/id'
 export { getFirstFromIterable } from './lib/iterable'
 export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export {
@@ -41,6 +45,7 @@ export {
 	areObjectsShallowEqual,
 	filterEntries,
 	getOwnProperty,
+	groupBy,
 	hasOwnProperty,
 	mapObjectMapValues,
 	objectMapEntries,
@@ -85,4 +90,11 @@ export {
 	isNonNullish,
 	structuredClone,
 } from './lib/value'
+export { registerTldrawLibraryVersion } from './lib/version'
 export { warnDeprecatedGetter, warnOnce } from './lib/warn'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

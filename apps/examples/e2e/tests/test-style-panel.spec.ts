@@ -96,7 +96,7 @@ test.describe('Style selection behaviour', () => {
 				// mobile styles button is disabled for the eraser tool
 				if (tool.name === 'tools.eraser' && isMobile) return
 
-				if (tool.name === 'tools.more.frame') await toolbar.moreToolsButton.click()
+				if (tool.name.startsWith('tools.more')) await toolbar.moreToolsButton.click()
 
 				await page.getByTestId(tool.name).click()
 

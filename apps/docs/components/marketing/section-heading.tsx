@@ -1,10 +1,14 @@
 import { cn } from '@/utils/cn'
 
-export const SectionHeading: React.FC<{
+export function SectionHeading({
+	heading,
+	subheading,
+	description,
+}: {
 	heading: string
 	subheading?: string
 	description?: React.ReactNode
-}> = ({ heading, subheading, description }) => {
+}) {
 	return (
 		<>
 			{subheading && (
@@ -14,7 +18,7 @@ export const SectionHeading: React.FC<{
 			)}
 			<h2
 				className={cn(
-					'text-black font-black text-2xl sm:text-3xl md:text-4xl text-center px-5 md:px-0',
+					'text-black dark:text-white font-black text-2xl sm:text-3xl md:text-4xl text-center px-5 md:px-0',
 					subheading && 'mt-2 md:mt-3',
 					description ? 'mb-6' : 'mb-12'
 				)}

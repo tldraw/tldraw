@@ -39,6 +39,8 @@ export class Pointing extends StateNode {
 					},
 				])
 				.select(id)
+
+			const parent = this.parent as BaseBoxShapeTool
 			this.editor.setCurrentTool(
 				'select.resizing',
 				{
@@ -49,7 +51,9 @@ export class Pointing extends StateNode {
 					creatingMarkId,
 					creationCursorOffset: { x: 1, y: 1 },
 					onInteractionEnd: this.parent.id,
-					onCreate: (shape: TLShape | null) => (this.parent as BaseBoxShapeTool).onCreate?.(shape),
+					onCreate: parent.onCreate
+						? (shape: TLShape | null) => parent.onCreate?.(shape)
+						: undefined,
 				} /** satisfies ResizingInfo, defined in main tldraw package 😧 */
 			)
 		}

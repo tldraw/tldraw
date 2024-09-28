@@ -45,25 +45,25 @@ export function useDefaultHelpers() {
 export type TLUiOverrideHelpers = ReturnType<typeof useDefaultHelpers>
 
 /** @public */
-export type TLUiOverrides = Partial<{
-	actions(
+export interface TLUiOverrides {
+	actions?(
 		editor: Editor,
 		actions: TLUiActionsContextType,
 		helpers: TLUiOverrideHelpers
 	): TLUiActionsContextType
-	tools(
+	tools?(
 		editor: Editor,
 		tools: TLUiToolsContextType,
 		helpers: { insertMedia(): void } & TLUiOverrideHelpers
 	): TLUiToolsContextType
-	translations: TLUiTranslationProviderProps['overrides']
-}>
+	translations?: TLUiTranslationProviderProps['overrides']
+}
 
-export type TLUiOverridesWithoutDefaults = Partial<{
-	actions: ActionsProviderProps['overrides']
-	tools: TLUiToolsProviderProps['overrides']
-	translations: TLUiTranslationProviderProps['overrides']
-}>
+export interface TLUiOverridesWithoutDefaults {
+	actions?: ActionsProviderProps['overrides']
+	tools?: TLUiToolsProviderProps['overrides']
+	translations?: TLUiTranslationProviderProps['overrides']
+}
 
 export function mergeOverrides(
 	overrides: TLUiOverrides[],

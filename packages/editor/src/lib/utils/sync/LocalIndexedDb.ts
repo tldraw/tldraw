@@ -56,6 +56,7 @@ async function migrateLegacyAssetDbIfNeeded(persistenceKey: string) {
 			}
 		},
 	})
+	if (!oldAssetDb.objectStoreNames.contains('assets')) return
 
 	const oldTx = oldAssetDb.transaction(['assets'], 'readonly')
 	const oldAssetStore = oldTx.objectStore('assets')
@@ -138,11 +139,19 @@ export class LocalIndexedDb {
 			assert(!this.isClosed, 'db is closed')
 			const db = await this.getDb()
 			const tx = db.transaction(names, mode)
+			// need to add a catch here early to prevent unhandled promise rejection
+			// during react-strict-mode where this tx.done promise can be rejected
+			// before we have a chance to await on it
+			const done = tx.done.catch((e: unknown) => {
+				if (!this.isClosed) {
+					throw e
+				}
+			})
 			try {
 				return await cb(tx)
 			} finally {
 				if (!this.isClosed) {
-					await tx.done
+					await done
 				} else {
 					tx.abort()
 				}

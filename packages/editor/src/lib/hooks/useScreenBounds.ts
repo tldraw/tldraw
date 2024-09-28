@@ -1,39 +1,22 @@
 import { throttle } from '@tldraw/utils'
 import { useLayoutEffect } from 'react'
-import { Box } from '../primitives/Box'
 import { useEditor } from './useEditor'
 
 export function useScreenBounds(ref: React.RefObject<HTMLElement>) {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {
-		let prevBounds = new Box()
-
-		function updateScreenBounds() {
-			const container = ref.current
-			if (!container) return null
-
-			const rect = container.getBoundingClientRect()
-
-			const next = new Box(
-				rect.left || rect.x,
-				rect.top || rect.y,
-				Math.max(rect.width, 1),
-				Math.max(rect.height, 1)
-			)
-
-			if (prevBounds.equals(next)) return
-			editor.updateViewportScreenBounds(next)
-			prevBounds = next
-		}
-
-		// Set the initial bounds
-		updateScreenBounds()
-
 		// Everything else uses a debounced update...
-		const updateBounds = throttle(updateScreenBounds, 200, {
-			trailing: true,
-		})
+		const updateBounds = throttle(
+			() => {
+				if (!ref.current) return
+				editor.updateViewportScreenBounds(ref.current)
+			},
+			200,
+			{
+				trailing: true,
+			}
+		)
 
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes.

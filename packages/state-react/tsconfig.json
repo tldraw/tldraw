@@ -1,5 +1,5 @@
 {
-	"extends": "../../config/tsconfig.base.json",
+	"extends": "../../internal/config/tsconfig.base.json",
 	"include": ["src"],
 	"exclude": ["node_modules", "dist", ".tsbuild*"],
 	"compilerOptions": {
@@ -9,6 +9,9 @@
 	"references": [
 		{
 			"path": "../state"
+		},
+		{
+			"path": "../utils"
 		}
 	]
 }

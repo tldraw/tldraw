@@ -7,12 +7,12 @@ import {
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
 
-export const DetailsSection = () => {
+export function DetailsSection() {
 	return (
 		<Section>
 			<SectionHeading
-				subheading="Features"
-				heading="Fine-tuned details"
+				subheading="details"
+				heading="Beautiful software"
 				description="Carefully considered details that turn table-stakes features into best-in-class user experience."
 			/>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-5">
@@ -22,7 +22,7 @@ export const DetailsSection = () => {
 						<div key={index}>
 							<div className="flex items-center gap-2 mb-4 justify-center sm:justify-start ">
 								<Icon className="size-5 text-blue-500" />
-								<h3 className="text-black font-black text-xl">{heading}</h3>
+								<h3 className="text-black dark:text-white font-black text-xl">{heading}</h3>
 							</div>
 							<p className="text-center sm:max-w-md sm:text-start">{description}</p>
 						</div>

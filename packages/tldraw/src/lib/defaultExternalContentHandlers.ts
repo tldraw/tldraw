@@ -64,7 +64,7 @@ export function registerDefaultExternalContentHandlers(
 	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
-	editor.registerExternalAssetHandler('file', async ({ file }) => {
+	editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 
@@ -88,7 +88,7 @@ export function registerDefaultExternalContentHandlers(
 		)
 
 		const hash = getHashForBuffer(await file.arrayBuffer())
-		const assetId: TLAssetId = AssetRecordType.createId(hash)
+		assetId = assetId ?? AssetRecordType.createId(hash)
 		const assetInfo = await getMediaAssetInfoPartial(file, assetId, isImageType, isVideoType)
 
 		if (isFinite(maxImageDimension)) {
@@ -275,7 +275,7 @@ export function registerDefaultExternalContentHandlers(
 					severity: 'error',
 				})
 
-				console.warn(`${file.name} not loaded - Extension not allowed.`)
+				console.warn(`${file.name} not loaded - Mime type not allowed ${file.type}.`)
 				continue
 			}
 

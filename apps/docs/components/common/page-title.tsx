@@ -1,8 +1,15 @@
 import { cn } from '@/utils/cn'
 
-export const PageTitle: React.FC<{ children: React.ReactNode; className?: string }> = ({
+export function PageTitle({
 	children,
 	className,
-}) => {
-	return <h1 className={cn('font-black text-black text-3xl sm:text-4xl', className)}>{children}</h1>
+}: {
+	children: React.ReactNode
+	className?: string
+}) {
+	return (
+		<h1 className={cn('font-black text-black dark:text-white text-3xl sm:text-4xl', className)}>
+			{children}
+		</h1>
+	)
 }

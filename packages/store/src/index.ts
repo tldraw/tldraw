@@ -1,3 +1,4 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
 export { RecordType, assertIdType, createRecordType, type RecordScope } from './lib/RecordType'
@@ -30,7 +31,7 @@ export type {
 	StoreValidators,
 } from './lib/Store'
 export { StoreQueries, type RSIndex, type RSIndexDiff, type RSIndexMap } from './lib/StoreQueries'
-export { StoreSchema } from './lib/StoreSchema'
+export { StoreSchema, type StoreValidationFailure } from './lib/StoreSchema'
 export type {
 	SerializedSchema,
 	SerializedSchemaV1,
@@ -66,3 +67,9 @@ export {
 	type MigrationSequence,
 	type StandaloneDependsOn,
 } from './lib/migrate'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)

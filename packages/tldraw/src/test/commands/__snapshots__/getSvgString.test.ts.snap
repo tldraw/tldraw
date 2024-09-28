@@ -3,6 +3,8 @@
 exports[`Matches a snapshot: Basic SVG 1`] = `
 <wrapper>
   <svg
+    class="tl-container tl-theme__force-sRGB tl-theme__light"
+    data-color-mode="light"
     direction="ltr"
     height="564"
     stroke-linecap="round"

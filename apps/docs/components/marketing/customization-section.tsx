@@ -12,7 +12,7 @@ import {
 import Link from 'next/link'
 import { ArrowUp } from './arrow-up'
 
-export const CustomizationSection = async () => {
+export async function CustomizationSection() {
 	return (
 		<Section>
 			<SectionHeading
@@ -22,7 +22,7 @@ export const CustomizationSection = async () => {
 			/>
 			<TabGroup>
 				<TabList className="relative flex sm:justify-center overflow-x-auto gap-8 mb-12 px-5">
-					<div className="absolute inset-x-0 bottom-0 h-px bg-zinc-100" />
+					<div className="absolute inset-x-0 bottom-0 h-px bg-zinc-100 dark:bg-zinc-800" />
 					{examples.map(({ icon, name }, index) => {
 						const Icon = icon
 						return (
@@ -43,7 +43,7 @@ export const CustomizationSection = async () => {
 								<span>{description}</span>
 								<Link
 									href={example}
-									className="inline-flex ml-2 gap-1 items-center text-blue-500 hover:text-blue-600"
+									className="inline-flex ml-2 gap-1 items-center text-blue-500 hover:text-blue-600 dark:hover:text-blue-400"
 								>
 									<span>See Docs</span>
 									<ArrowLongRightIcon className="size-4" />

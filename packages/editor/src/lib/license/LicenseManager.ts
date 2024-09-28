@@ -1,6 +1,7 @@
 import { atom } from '@tldraw/state'
+import { fetch } from '@tldraw/utils'
 import { publishDates } from '../../version'
-import { featureFlags } from '../utils/debug-flags'
+import { getDefaultCdnBaseUrl } from '../utils/assets'
 import { importPublicKey, str2ab } from '../utils/licensing'
 
 const GRACE_PERIOD_DAYS = 5
@@ -22,6 +23,8 @@ export const PROPERTIES = {
 const NUMBER_OF_KNOWN_PROPERTIES = Object.keys(PROPERTIES).length
 
 const LICENSE_EMAIL = 'sales@tldraw.com'
+
+const WATERMARK_TRACK_SRC = `${getDefaultCdnBaseUrl()}/watermarks/watermark-track.svg`
 
 /** @internal */
 export interface LicenseInfo {
@@ -74,6 +77,7 @@ export class LicenseManager {
 		'license state',
 		'pending'
 	)
+	public verbose = true
 
 	constructor(
 		licenseKey: string | undefined,
@@ -85,20 +89,21 @@ export class LicenseManager {
 		this.publicKey = testPublicKey || this.publicKey
 		this.isCryptoAvailable = !!crypto.subtle
 
-		if (!featureFlags.enableLicensing.get()) {
-			this.state.set('licensed')
-		} else {
-			this.getLicenseFromKey(licenseKey).then((result) => {
-				const isUnlicensed = isEditorUnlicensed(result)
-				if (isUnlicensed) {
-					this.state.set('unlicensed')
-				} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
-					this.state.set('licensed-with-watermark')
-				} else {
-					this.state.set('licensed')
-				}
-			})
-		}
+		this.getLicenseFromKey(licenseKey).then((result) => {
+			const isUnlicensed = isEditorUnlicensed(result)
+
+			if (!this.isDevelopment && isUnlicensed) {
+				fetch(WATERMARK_TRACK_SRC)
+			}
+
+			if (isUnlicensed) {
+				this.state.set('unlicensed')
+			} else if ((result as ValidLicenseKeyResult).isLicensedWithWatermark) {
+				this.state.set('licensed-with-watermark')
+			} else {
+				this.state.set('licensed')
+			}
+		})
 	}
 
 	private getIsDevelopment(testEnvironment?: TestEnvironment) {
@@ -170,12 +175,14 @@ export class LicenseManager {
 		}
 
 		if (this.isDevelopment && !this.isCryptoAvailable) {
-			// eslint-disable-next-line no-console
-			console.log(
-				'tldraw: you seem to be in a development environment that does not support crypto. License not verified.'
-			)
-			// eslint-disable-next-line no-console
-			console.log('You should check that this works in production separately.')
+			if (this.verbose) {
+				// eslint-disable-next-line no-console
+				console.log(
+					'tldraw: you seem to be in a development environment that does not support crypto. License not verified.'
+				)
+				// eslint-disable-next-line no-console
+				console.log('You should check that this works in production separately.')
+			}
 			// We can't parse the license if we are in development mode since crypto
 			// is not available on http
 			return { isLicenseParseable: false, reason: 'has-key-development-mode' }
@@ -287,10 +294,11 @@ export class LicenseManager {
 	}
 
 	private outputNoLicenseKeyProvided() {
-		this.outputMessages([
-			'No tldraw license key provided!',
-			`Please reach out to ${LICENSE_EMAIL} if you would like to license tldraw or if you'd like a trial.`,
-		])
+		// Noop, we don't need to show this message.
+		// this.outputMessages([
+		// 	'No tldraw license key provided!',
+		// 	`Please reach out to ${LICENSE_EMAIL} if you would like to license tldraw or if you'd like a trial.`,
+		// ])
 	}
 
 	private outputInvalidLicenseKey(msg: string) {
@@ -323,15 +331,17 @@ export class LicenseManager {
 
 	private outputMessages(messages: string[]) {
 		if (this.isTest) return
-		this.outputDelimiter()
-		for (const message of messages) {
-			// eslint-disable-next-line no-console
-			console.log(
-				`%c${message}`,
-				`color: white; background: crimson; padding: 2px; border-radius: 3px;`
-			)
+		if (this.verbose) {
+			this.outputDelimiter()
+			for (const message of messages) {
+				// eslint-disable-next-line no-console
+				console.log(
+					`%c${message}`,
+					`color: white; background: crimson; padding: 2px; border-radius: 3px;`
+				)
+			}
+			this.outputDelimiter()
 		}
-		this.outputDelimiter()
 	}
 
 	private outputDelimiter() {

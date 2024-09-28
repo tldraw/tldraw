@@ -2226,14 +2226,11 @@ describe('cancelling a translate operation', () => {
 			})
 			.select(shapeId)
 		const shape = editor.getOnlySelectedShape()!
-		// eslint-disable-next-line deprecation/deprecation
-		editor.mark(`before`)
+		editor.markHistoryStoppingPoint(`before`)
 		editor.updateShape({ ...shape, meta: { a: 'before' } })
-		// eslint-disable-next-line deprecation/deprecation
-		editor.mark(`creating:${shapeId}`)
+		editor.markHistoryStoppingPoint(`creating:${shapeId}`)
 		editor.updateShape({ ...shape, meta: { a: 'creating' } })
-		// eslint-disable-next-line deprecation/deprecation
-		editor.mark(`after`)
+		editor.markHistoryStoppingPoint(`after`)
 		editor.updateShape({ ...shape, meta: { a: 'after' } })
 		editor.pointerMove(0, 0)
 		editor.setCurrentTool('select.translating', {

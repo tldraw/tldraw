@@ -1,0 +1,76 @@
+---
+title: Announcing tldraw's $2.7M seed
+category: announcements
+description: "We're building a new infinite canvas for the web: built with React, made for developers, and with a super-fast engine for collaboration. Try it today."
+hero: /images/blog/a3c85b04-1a4e-4b67-9a1d-a60ba3293e99_3182x2072.png
+date: 11/30/2022
+status: published
+author:
+  - steveruizok
+---
+
+Hi, this is [Steve Ruiz](https://twitter.com/steveruizok). You might know me from **[tldraw](https://tldraw.com/)** , a free and open source collaborative whiteboard that I released last year. That project got quite popular: users liked the simplicity and attention to detail, while developers saw its React-based “canvas” as the perfect starting point for their own adventures in spatial user interfaces.
+
+This last year, we’ve been hard at work on bringing that idea forward.
+
+The new tldraw (which you can **[try here](http://beta.tldraw.com)** ) is a full rewrite, built from the ground up to provide **a primitive for spatial user interfaces** that can display native web content on an infinite canvas. Like the original, tldraw is both an app and a library, designed for integration and extension. The new project goes further, introducing a custom engine for real-time collaboration.
+
+**Today I’m announcing tldraw’s $2.7 million seed round led by [Lux Capital](https://luxcapital.com/)** and including the support of [Amplify Partners](https://www.amplifypartners.com/), [Sabrina Hahn](https://www.sabrinahahn.com/), [Guillermo Rauch](https://twitter.com/rauchg) of Vercel, [Liu Jiang](https://www.linkedin.com/in/liujiang1), [NP-Hard Ventures](https://nphard.vc/), [Soleio](https://twitter.com/soleio), [Badrul Farooqi](https://twitter.com/farooqib), [Michael Stoppelman](https://www.linkedin.com/in/michaelstoppelman), [Tom Preston-Werner](https://twitter.com/mojombo), [Adam Wiggins](https://twitter.com/_adamwiggins_) of Muse, [Brian Lovin](https://twitter.com/brian_lovin) of Campsite, [David Khourshid](https://twitter.com/DavidKPiano) of Stately.ai, [Cristóbal Valenzuela](https://twitter.com/c_valenzuelab) of Runway ML, [Johannes Schickling](https://twitter.com/schickling) of Prisma, [Brian Shultz](https://twitter.com/brianlshultz) of Tango, [Shin Kim](https://twitter.com/_shinkim) of Eraser, [Jeff Weinstein](https://twitter.com/jeff_weinstein) and [Chase Davis](https://twitter.com/Chase_Davis_).
+
+Subscribe for updates or read on for more!
+
+---
+
+## Where it’s been
+
+From the beginning, tldraw was more than an app: it’s distributed as a [React component](https://www.npmjs.com/package/@tldraw/tldraw) that can be embedded in other apps; and, being [open source](https://github.com/tldraw/tldraw), it’s been free to fork and modify to create new experiences.
+
+Developers have used tldraw to build some truly amazing things.
+
+![](/images/blog/993840f2-48e3-4ff0-aa8b-817aac4ce170_2458x1692.png)
+
+A surprise to me was that, with a few notable exceptions (such as the fantastic [okso.app](https://okso.app) and Jordan Singer’s [Macpaint](https://paint.diagram.com/) app), most of these new projects were less about drawing or white-boarding and more about putting interactive widgets into a Figma-like interface.
+
+![](/images/blog/9df12c13-3435-4853-93f6-0abe3701f340_2312x1596.png)
+
+[Affine](https://pathfinder.affine.pro/) used tldraw to create their “edgeless” view of their Notion-style blocks. [Legend Keeper](https://www.legendkeeper.com/boards-announcement/) and [WorldAnvil](https://www.worldanvil.com/features/whiteboard) both use tldraw to include characters and places from users’ story-worlds onto the canvas. [Vidext](https://www.vidext.io/) is using tldraw to create AI-driven [videos](https://www.vidext.io/), BigBlueButton has reimplemented their [virtual classroom’s whiteboard](https://docs.bigbluebutton.org/2.6/new.html#engagement) with tldraw, and Logseq is building their [whiteboards feature](https://twitter.com/logseq/status/1527487236916228096) on tldraw, too.
+
+However, as I spoke with developers about what they were making with tldraw, a few things became obvious:
+
+1. that the community needed an open-source primitive for spatial interfaces;
+2. the canvas was only part of the question; and
+3. what was needed was much bigger than what I’d made.
+
+And so we started making something new.
+
+## Where it’s going
+
+The new tldraw is designed to be a primitive for infinite canvas applications, providing the same type of infrastructure utility that [ProseMirror](https://prosemirror.net/) provides for rich text editors or [Mapbox](https://www.mapbox.com/) provides for maps. Like text editors and maps, a canvas is a nightmare of internal complexity, both technical and in user experience design, together with a long list of table-stakes features that need to accompany any product.
+
+It’s our belief that a canvas should be a thing you _build_ _with_ , rather than build yourself.
+
+![](/images/blog/656017c1-0d25-4c13-bfca-72f8153be33e_720x406.gif)
+
+And so the new tldraw library comes **batteries included** —much more-so than the original tldraw library ever did—with solid implementations for complex features such as selection, rotation, translation, resizing, styling, erasing, camera controls, editable text, reordering, snapping and alignment, support for multiple pages, undo and redo, copy and paste, embedded content, image export, file persistence, digital ink, and of course perfect arrows.
+
+![](/images/blog/e7e74c7c-9f4b-4cf0-b9f2-5fed540c18af_720x406.gif)
+
+And, just like maps and text editors, the story doesn’t end there.
+
+Our new canvas is also joined by our new **high-performance service for collaboration** , providing an easy path to creating multiplayer experiences. You can try this on our beta site by visiting [beta.tldraw.com/r](https://beta.tldraw.com/r) and sharing the URL with up to 30 friends.
+
+![](/images/blog/03445090-ba4a-421e-a8b7-dbbf868bb81a_722x406.gif)
+
+Like the core library, we intend to make this service available for teams to build with. And we’ll be rolling out new services next year for related features: comments and messages, history and versioning, permissions and all of the other bits and pieces that go into making a spatial collaboration experience.
+
+## What’s next
+
+We’ve been building the team: I’m joined by [David Sheldrick](https://twitter.com/djsheldrick), [Jaime Blair](https://twitter.com/orangemugdev), [Lu Wilson](https://twitter.com/TodePond), and [Alex Dytrych](https://twitter.com/somehats), together with [Faraz Shaikh](https://twitter.com/CantBeFaraz), [Mitja Bezenšek](https://twitter.com/MitjaBezensek), and [Sunil Pai](https://twitter.com/threepointone). We have a lovely office in London (Thursdays are for visitors) and of course we’re hiring.
+
+While we haven’t open-sourced the new tldraw yet, we are looking for design partners to help get us there. If you are interested in getting early access to the new tldraw library, please let me know at steve@tldraw.com or [schedule a call](https://calendly.com/steveruizok-meet/tldraw-chat).
+
+Until then, please give the new tldraw a spin at [beta.tldraw.com](https://beta.tldraw.com). Share some projects! Let us know on [Twitter](https://twitter.com/tldraw) or [Discord](https://discord.gg/s4FXZ6fppJ) if you have any questions, feedback, issues, or ideas.
+
+---
+
+P.S. A very special thanks to the hundreds of individual and corporate sponsors that helped me bring this project to where it is today. This would not have happened without your support. Thank you!

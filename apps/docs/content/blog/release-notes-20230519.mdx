@@ -1,0 +1,64 @@
+---
+title: Release Notes – May 19th 2023
+category: release-notes
+description: open source when? now! and better image import, export, and one neat trick.
+hero: /images/blog/8c87f61e-5696-4f05-8336-4a9c79f5f020_2992x2066.png
+date: 5/19/2023
+status: published
+author:
+  - luwilson
+  - steveruizok
+---
+
+Welcome back to tldraw’s weekly (not so weekly) updates. We’ve spent the last few weeks working under the hood to get tldraw’s core libraries **open source**.
+
+Whether you’re a contributor looking to get involved, if you have an idea for a project that could build on what we’ve built, or if you’ve just been wondering how we’re doing what we do, you’re welcome to come check out the [tldraw/tldraw repo](https://github.com/tldraw/tldraw) on GitHub.
+
+Getting to an initial open source release involved mostly “under the hood” work, meaning that this update will be a short one. However, we’re celebrating the end of grinding infrastructure work with some long-awaited features, so expect a big update next week.
+
+## One neat trick
+
+Let’s learn some **arrow tricks**. When dragging an arrowhead onto another shape: hold Control / Command to prevent the arrow from binding to the shape; or hold Alt / Option to bind to a specific point inside of the shape. Drag an arrow’s middle handle to bend it, or double click an arrow to edit its label.
+
+![](/images/blog/c1c2b15b-dbc0-455b-a963-5fe81e246dd2_720x406.gif)
+
+## Improvements
+
+We improved the appearance of **selection** **for single draw shapes**.
+
+![](/images/blog/24ccdcbe-3b7d-4cd3-991a-b39f6f649904_2776x688.png)
+
+Text shapes can **preserve leading whitespace** in image exports. Actually, this issue created quite a lot of [motivated coding](https://twitter.com/steveruizok/status/1658820828983590912) on the team with regard to text, white space, and image exports. Keep an eye out for a few big releases next week.
+
+![](/images/blog/fa93c03b-c35a-4646-90e2-62460b4d75a9_2688x834.png)
+
+Speaking of images, we now respect **pixel scale** when pasting images into the app. This is most noticeable when pasting screenshots from retina displays—they no longer come out at 2x scale! We also write this data to the images we export, ensuring that they appear correctly when viewed in other apps that respect it.
+
+![](/images/blog/60c639ec-aafd-43b9-b5a8-6fbfcc798a3a_720x406.gif)
+
+We also:
+
+- Increased the distance needed to initiate a drag when using touch.
+- Improved the performance of deleting shapes in a project with lots of pages.
+- Added and updated translations for Galician, Italian, Simplified Chinese, and Traditional Chinese.
+
+## Fixes
+
+- Fixed a bug where pasted tabs wouldn't get converted into spaces.
+- Fixed trailing tab characters in text labels not exporting correctly.
+- Fixed empty text shapes sometimes not getting deleted.
+- Fix a bug where grid mode couldn’t be enabled.
+- Fixed not being able to interact with embed shapes in readonly mode.
+- Fixed a bug where the pointer location would not update when moving the pointer over an editing shape.
+- Fixed a bug where the wrong default language option could be chosen.
+- Fixed a minor consistency bug when re-doing a shape update.
+- Re-doing a deletion of the current page now correctly navigates back to that page.
+- Linux: Fixed middle mouse panning triggering a paste.
+- Firefox: Enable copying as PNG if the browser supports it.
+- iOS: Fixed a bug where the style menu couldn’t be closed.
+
+---
+
+That’s it for this week! Tune in next week for some long-awaited improvements to our multiplayer experience.
+
+![](/images/blog/542769d2-eb5d-41da-bdaa-41acd33328a2_720x406.gif)

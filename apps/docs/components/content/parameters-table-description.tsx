@@ -1,5 +1,3 @@
-export const ParametersTableDescription: React.FC<{ children: React.ReactNode }> = ({
-	children,
-}) => {
+export function ParametersTableDescription({ children }: { children: React.ReactNode }) {
 	return <td>{children}</td>
 }

@@ -62,7 +62,22 @@ declare global {
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
+		const bounds = {
+			x: 0,
+			y: 0,
+			top: 0,
+			left: 0,
+			width: 1080,
+			height: 720,
+			bottom: 720,
+			right: 1080,
+		}
+		// make the app full screen for the sake of the insets property
+		jest.spyOn(document.body, 'scrollWidth', 'get').mockImplementation(() => bounds.width)
+		jest.spyOn(document.body, 'scrollHeight', 'get').mockImplementation(() => bounds.height)
+
 		elm.tabIndex = 0
+		elm.getBoundingClientRect = () => bounds as DOMRect
 
 		const shapeUtilsWithDefaults = [...defaultShapeUtils, ...(options.shapeUtils ?? [])]
 		const bindingUtilsWithDefaults = [...defaultBindingUtils, ...(options.bindingUtils ?? [])]
@@ -79,10 +94,10 @@ export class TestEditor extends Editor {
 			getContainer: () => elm,
 			initialState: 'select',
 		})
+		this.elm = elm
+		this.bounds = bounds
 
 		// Pretty hacky way to mock the screen bounds
-		this.elm = elm
-		this.elm.getBoundingClientRect = () => this.bounds as DOMRect
 		document.body.appendChild(this.elm)
 
 		this.textMeasure.measureText = (
@@ -154,8 +169,17 @@ export class TestEditor extends Editor {
 		return this.getShape<T>(lastShape)!
 	}
 
-	elm: HTMLDivElement
-	bounds = { x: 0, y: 0, top: 0, left: 0, width: 1080, height: 720, bottom: 720, right: 1080 }
+	elm: HTMLElement
+	readonly bounds: {
+		x: number
+		y: number
+		top: number
+		left: number
+		width: number
+		height: number
+		bottom: number
+		right: number
+	}
 
 	/**
 	 * The center of the viewport in the current page space.
@@ -667,7 +691,8 @@ export class TestEditor extends Editor {
 	createShapesFromJsx(
 		shapesJsx: React.JSX.Element | React.JSX.Element[]
 	): Record<string, TLShapeId> {
-		const { shapes, ids } = shapesFromJsx(shapesJsx)
+		const { shapes, assets, ids } = shapesFromJsx(shapesJsx)
+		this.createAssets(assets)
 		this.createShapes(shapes)
 		return ids
 	}

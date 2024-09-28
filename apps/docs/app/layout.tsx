@@ -2,9 +2,9 @@ import { Footer } from '@/components/navigation/footer'
 import { Header } from '@/components/navigation/header'
 import { cn } from '@/utils/cn'
 import { Analytics } from '@vercel/analytics/react'
-import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import { Metadata, Viewport } from 'next'
+import { ThemeProvider } from 'next-themes'
 import localFont from 'next/font/local'
 import './github-dark.css'
 import './github-light.css'
@@ -13,8 +13,8 @@ import './globals.css'
 export const metadata: Metadata = {
 	metadataBase: new URL('https://tldraw.dev'),
 	title: {
-		default: 'tldraw SDK',
-		template: `%s • tldraw SDK`,
+		default: 'The infinite canvas SDK • tldraw',
+		template: `%s • tldraw`,
 	},
 	description:
 		'Infinite canvas SDK from tldraw. Build whiteboards, design tools, and canvas experiences for the web.',
@@ -57,18 +57,15 @@ export default async function Layout({ children }: { children: React.ReactNode }
 	return (
 		<html
 			lang="en"
-			className={cn(
-				GeistSans.variable,
-				GeistMono.variable,
-				ShantellSans.variable,
-				'font-sans bg-white antialiased text-zinc-600'
-			)}
+			className={cn(GeistSans.variable, ShantellSans.variable, 'font-sans antialiased')}
 		>
-			<body className="pt-14 md:pt-[4.5rem] overflow-x-hidden">
-				<Header />
-				{children}
-				<Footer />
-				<Analytics />
+			<body className="pt-14 md:pt-[4.5rem] overflow-x-hidden bg-white text-zinc-600 dark:bg-zinc-950 dark:text-zinc-400">
+				<ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+					<Header />
+					{children}
+					<Footer />
+					<Analytics />
+				</ThemeProvider>
 			</body>
 		</html>
 	)

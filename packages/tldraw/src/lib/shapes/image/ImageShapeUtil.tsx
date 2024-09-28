@@ -115,7 +115,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const { asset, url } = useAsset({
+			shapeId: shape.id,
+			assetId: shape.props.assetId,
+			width: shape.props.w,
+		})
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {
@@ -158,7 +162,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const containerStyle = getCroppedContainerStyle(shape)
 
 		const nextSrc = url === loadedUrl ? null : url
-		const loadedSrc = !shape.props.playing || reduceMotion ? staticFrameSrc : loadedUrl
+		const loadedSrc = reduceMotion ? staticFrameSrc : loadedUrl
 
 		// This logic path is for when it's broken/missing asset.
 		if (!url && !asset?.props.src) {
@@ -196,15 +200,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				{showCropPreview && loadedSrc && (
 					<div style={containerStyle}>
 						<img
-							className={classNames('tl-image', {
-								'tl-flip-x': shape.props.flipX && !shape.props.flipY,
-								'tl-flip-y': shape.props.flipY && !shape.props.flipX,
-								'tl-flip-xy': shape.props.flipY && shape.props.flipX,
-							})}
+							className="tl-image"
+							style={{ ...getFlipStyle(shape), opacity: 0.1 }}
 							crossOrigin={crossOrigin}
 							src={loadedSrc}
 							referrerPolicy="strict-origin-when-cross-origin"
-							style={{ opacity: 0.1 }}
 							draggable={false}
 						/>
 					</div>
@@ -215,7 +215,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				>
 					<div className={classNames('tl-image-container')} style={containerStyle}>
 						{/* We have two images: the currently loaded image, and the next image that
-						we're waiting to load. we keep the loaded image mounted whilst we're waiting
+						we're waiting to load. we keep the loaded image mounted while we're waiting
 						for the next one by storing the loaded URL in state. We use `key` props with
 						the src of the image so that when the next image is ready, the previous one will
 						be unmounted and the next will be shown with the browser having to remount a
@@ -223,11 +223,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						{loadedSrc && (
 							<img
 								key={loadedSrc}
-								className={classNames('tl-image', {
-									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
-									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
-									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
-								})}
+								className="tl-image"
+								style={getFlipStyle(shape)}
 								crossOrigin={crossOrigin}
 								src={loadedSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
@@ -237,20 +234,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						{nextSrc && (
 							<img
 								key={nextSrc}
-								className={classNames('tl-image', 'tl-image-next', {
-									'tl-flip-x': shape.props.flipX && !shape.props.flipY,
-									'tl-flip-y': shape.props.flipY && !shape.props.flipX,
-									'tl-flip-xy': shape.props.flipY && shape.props.flipX,
-								})}
+								className="tl-image"
+								style={getFlipStyle(shape)}
 								crossOrigin={crossOrigin}
 								src={nextSrc}
 								referrerPolicy="strict-origin-when-cross-origin"
 								draggable={false}
 								onLoad={() => setLoadedUrl(nextSrc)}
 							/>
-						)}
-						{this.isAnimated(shape) && !shape.props.playing && (
-							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
 					{shape.props.url && (
@@ -291,7 +282,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const containerStyle = getCroppedContainerStyle(shape)
 		const crop = shape.props.crop
 		if (containerStyle.transform && crop) {
-			const { transform, width, height } = containerStyle
+			const { transform: cropTransform, width, height } = containerStyle
 			const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
 			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
 
@@ -303,6 +294,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			]
 
 			const cropClipId = `cropClipPath_${shape.id.replace(':', '_')}`
+
+			const flip = getFlipStyle(shape, { width, height })
+
 			return (
 				<>
 					<defs>
@@ -311,33 +305,29 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						</clipPath>
 					</defs>
 					<g clipPath={`url(#${cropClipId})`}>
-						<image href={src} width={width} height={height} style={{ transform }} />
+						<image
+							href={src}
+							width={width}
+							height={height}
+							style={
+								flip
+									? { ...flip, transform: `${cropTransform} ${flip.transform}` }
+									: { transform: cropTransform }
+							}
+						/>
 					</g>
 				</>
 			)
 		} else {
-			return <image href={src} width={shape.props.w} height={shape.props.h} />
+			return (
+				<image
+					href={src}
+					width={shape.props.w}
+					height={shape.props.h}
+					style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
+				/>
+			)
 		}
-	}
-
-	override onDoubleClick(shape: TLImageShape) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
-
-		if (!asset) return
-
-		const canPlay = asset.props.src && this.isAnimated(shape)
-
-		if (!canPlay) return
-
-		this.editor.updateShapes([
-			{
-				type: 'image',
-				id: shape.id,
-				props: {
-					playing: !shape.props.playing,
-				},
-			},
-		])
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -434,5 +424,21 @@ function getCroppedContainerStyle(shape: TLImageShape) {
 		transform: `translate(${offsetX}px, ${offsetY}px)`,
 		width: w,
 		height: h,
+	}
+}
+
+function getFlipStyle(shape: TLImageShape, size?: { width: number; height: number }) {
+	const { flipX, flipY } = shape.props
+	if (!flipX && !flipY) return undefined
+
+	const scale = `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})`
+	const translate = size
+		? `translate(${flipX ? size.width : 0}px, ${flipY ? size.height : 0}px)`
+		: ''
+
+	return {
+		transform: `${translate} ${scale}`,
+		// in SVG, flipping around the center doesn't work so we use explicit width/height
+		transformOrigin: size ? '0 0' : 'center center',
 	}
 }

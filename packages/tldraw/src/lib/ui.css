@@ -5,7 +5,6 @@
 	--layer-focused-input: 10;
 	--layer-panels: 300;
 	--layer-menus: 400;
-	--layer-canvas-overlays: 500;
 	--layer-toasts: 650;
 	--layer-cursor: 700;
 	--layer-header-footer: 999;
@@ -56,6 +55,7 @@
 }
 
 .tlui-button__label {
+	font-size: 12px;
 	flex-grow: 2;
 	text-align: left;
 }
@@ -211,6 +211,10 @@
 	margin-right: -2px;
 }
 
+.tlui-button__tool:focus-visible:not(:hover) {
+	border-radius: var(--radius-4);
+}
+
 .tlui-button__tool:nth-of-type(1) {
 	margin-left: 0px;
 }
@@ -245,7 +249,7 @@
 
 .tlui-layout__mobile .tlui-button__tool {
 	height: 48px;
-	width: 44px;
+	width: 43px;
 }
 
 .tlui-layout__mobile .tlui-button__tool > .tlui-icon {
@@ -288,9 +292,6 @@
 }
 .tlui-buttons__horizontal > *:nth-last-child(1) {
 	margin-right: 0px;
-}
-.tlui-buttons__horizontal > *:only-child {
-	width: 56px;
 }
 
 /* Button Grid */
@@ -806,6 +807,20 @@
 	color: var(--color-text-1);
 	user-select: all;
 	-webkit-user-select: text;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
+.tlui-dialog__body a {
+	color: var(--color-selected);
+}
+
+.tlui-dialog__body ul,
+.tlui-dialog__body ol {
+	padding-left: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
 }
 
 .tlui-dialog__footer {

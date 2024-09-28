@@ -25,23 +25,24 @@
 		"infinite"
 	],
 	"workspaces": [
-		"apps/*",
 		"packages/*",
+		"apps/*",
 		"apps/vscode/*",
-		"config",
-		"scripts"
+		"apps/dotcom/*",
+		"internal/*"
 	],
 	"scripts": {
-		"clean": "scripts/clean.sh",
+		"clean": "internal/scripts/clean.sh",
 		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
-		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/{bemo-worker,images.tldraw.xyz}'",
+		"dev": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/examples' --filter='packages/tldraw' --filter='apps/bemo-worker' --filter='apps/dotcom/image-resize-worker'",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='apps/vscode/{extension,editor}'",
-		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/{dotcom,dotcom-asset-upload,dotcom-worker,images.tldraw.xyz}' --filter='packages/tldraw'",
+		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/*' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
-		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/huppy'",
+		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'internal/huppy'",
+		"dev-tools": "yarn tsx internal/scripts/get-pr-numbers.ts && lazy run dev --filter='internal/dev-tools'",
 		"build": "lazy build",
-		"build-app": "lazy run build --filter 'apps/dotcom'",
+		"build-app": "lazy run build --filter 'apps/dotcom/client'",
 		"build-docs": "lazy run build --filter 'apps/docs'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
@@ -49,14 +50,13 @@
 		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
 		"format": "prettier --write --cache '**/*.{yml,yaml,json,md,mdx,html,css,js,jsx,ts,tsx,cjs,mjs}'",
-		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
-		"check-scripts": "tsx scripts/check-scripts.ts",
-		"check-tsconfigs": "tsx scripts/check-tsconfigs.ts",
-		"update-pr-template": "tsx scripts/update-pr-template.ts",
+		"typecheck": "yarn refresh-assets && tsx internal/scripts/typecheck.ts",
+		"check-packages": "tsx internal/scripts/check-packages.ts",
+		"update-pr-template": "tsx internal/scripts/update-pr-template.ts",
 		"api-check": "lazy api-check",
 		"test-ci": "lazy test-ci",
 		"test": "lazy test",
-		"test-coverage": "lazy test-coverage && node scripts/offer-coverage.mjs",
+		"test-coverage": "lazy test-coverage && node internal/scripts/offer-coverage.mjs",
 		"e2e": "lazy e2e --filter='apps/examples'"
 	},
 	"engines": {
@@ -65,7 +65,7 @@
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [
-			"prettier --write --cache"
+			"prettier --write --cache --log-level=error"
 		]
 	},
 	"devDependencies": {
@@ -76,8 +76,8 @@
 		"@types/glob": "^8.1.0",
 		"@types/jest": "^29.5.12",
 		"@types/node": "~20.11",
-		"@types/react": "^18.2.47",
-		"@types/react-dom": "^18.2.18",
+		"@types/react": "^18.2.0",
+		"@types/react-dom": "^18.2.0",
 		"@typescript-eslint/eslint-plugin": "^5.57.0",
 		"@typescript-eslint/parser": "^5.57.0",
 		"auto": "^11.1.1",

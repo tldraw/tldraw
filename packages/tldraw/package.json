@@ -1,7 +1,7 @@
 {
 	"name": "tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "2.4.0",
+	"version": "3.2.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -34,12 +34,12 @@
 		"predev": "node ./scripts/copy-css-files.mjs",
 		"dev": "chokidar '../{editor/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs'",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
-		"build": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
-		"postpack": "../../scripts/postpack.sh",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"files": [
 		"tldraw.css"
@@ -62,13 +62,13 @@
 		"lz-string": "^1.4.4"
 	},
 	"peerDependencies": {
-		"react": "^18",
-		"react-dom": "^18"
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
 		"@testing-library/jest-dom": "^5.16.5",
-		"@testing-library/react": "^14.0.0",
+		"@testing-library/react": "^15.0.6",
 		"@types/canvas-size": "^1.2.0",
 		"@types/classnames": "^2.3.1",
 		"@types/lz-string": "^1.3.34",
@@ -79,16 +79,13 @@
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"jest": {
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"testEnvironment": "../../../packages/utils/patchedJestJsDom.js",
 		"fakeTimers": {
 			"enableGlobally": true
 		},
 		"testPathIgnorePatterns": [
 			"^.+\\.*.css$"
-		],
-		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid)/)"
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1",
@@ -100,7 +97,7 @@
 			"<rootDir>/setupTests.js"
 		],
 		"setupFilesAfterEnv": [
-			"../../config/setupJest.ts"
+			"../../internal/config/setupJest.ts"
 		]
 	}
 }

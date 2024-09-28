@@ -83,6 +83,7 @@ import { track } from '@tldraw/state-react';
 import { transact } from '@tldraw/state';
 import { transaction } from '@tldraw/state';
 import { UnknownRecord } from '@tldraw/store';
+import { useAtom } from '@tldraw/state-react';
 import { useComputed } from '@tldraw/state-react';
 import { useQuickReactor } from '@tldraw/state-react';
 import { useReactor } from '@tldraw/state-react';
@@ -95,7 +96,8 @@ import { whyAmIRunning } from '@tldraw/state';
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
-export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
+export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, centerOverride, }: {
+    centerOverride?: VecLike;
     delta: number;
     editor: Editor;
     snapshot: TLRotationSnapshot;
@@ -410,7 +412,7 @@ export type BoxLike = Box | BoxModel;
 export function canonicalizeRotation(a: number): number;
 
 // @public
-export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike): Vec;
+export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike): null | Vec;
 
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
@@ -480,7 +482,7 @@ export { computed }
 // @internal (undocumented)
 export function ContainerProvider({ container, children, }: {
     children: React.ReactNode;
-    container: HTMLDivElement;
+    container: HTMLElement;
 }): JSX_2.Element;
 
 // @public (undocumented)
@@ -488,6 +490,9 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 
 // @public
 export function counterClockwiseAngleDist(a0: number, a1: number): number;
+
+// @public
+export function createDeepLinkString(deepLink: TLDeepLink): string;
 
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
@@ -560,8 +565,8 @@ export class CubicSpline2d extends Geometry2d {
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
-// @public (undocumented)
-export function debugEnableLicensing(): () => void;
+// @public @deprecated (undocumented)
+export function debugEnableLicensing(): void;
 
 // @internal (undocumented)
 export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
@@ -708,11 +713,13 @@ export const defaultTldrawOptions: {
     readonly hitTestMargin: 8;
     readonly laserDelayMs: 1200;
     readonly longPressDurationMs: 500;
+    readonly maxExportDelayMs: 5000;
     readonly maxFilesAtOnce: 100;
     readonly maxPages: 40;
     readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
+    readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
 
@@ -796,27 +803,11 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
-    animateShape(partial: null | TLShapePartial | undefined, opts?: Partial<{
-        animation: Partial<{
-            duration: number;
-            easing(t: number): number;
-        }>;
-        force: boolean;
-        immediate: boolean;
-        reset: boolean;
-    }>): this;
-    animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: Partial<{
-        animation: Partial<{
-            duration: number;
-            easing(t: number): number;
-        }>;
-        force: boolean;
-        immediate: boolean;
-        reset: boolean;
-    }>): this;
+    animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
+    animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         extras?: Record<string, unknown>;
@@ -864,6 +855,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     createAssets(assets: TLAsset[]): this;
     createBinding<B extends TLBinding = TLBinding>(partial: TLBindingCreate<B>): this;
     createBindings(partials: TLBindingCreate[]): this;
+    createDeepLink(opts?: {
+        param?: string;
+        to?: TLDeepLink;
+        url?: string | URL;
+    }): URL;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
         extras: {
@@ -1002,14 +998,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
-    getRenderingShapes(): {
-        backgroundIndex: number;
-        id: TLShapeId;
-        index: number;
-        opacity: number;
-        shape: TLShape;
-        util: ShapeUtil<TLUnknownShape>;
-    }[];
+    getRenderingShapes(): TLRenderingShape[];
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
@@ -1045,6 +1034,12 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): TLShape[];
+    // @internal (undocumented)
+    getShapesPageBounds(shapeIds: TLShapeId[]): Box | null;
+    // @internal (undocumented)
+    getShapesRotatedPageBounds(shapeIds: TLShapeId[]): Box | undefined;
+    // @internal (undocumented)
+    getShapesSharedRotation(shapeIds: TLShapeId[]): number;
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
@@ -1060,27 +1055,20 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // @deprecated (undocumented)
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<SVGSVGElement | undefined>;
-    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<{
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<SVGSVGElement | undefined>;
+    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
         width: number;
     } | undefined>;
-    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgOptions): Promise<{
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
         height: number;
         svg: string;
         width: number;
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
     // @internal (undocumented)
-    getUnorderedRenderingShapes(useEditorState: boolean): {
-        backgroundIndex: number;
-        id: TLShapeId;
-        index: number;
-        opacity: number;
-        shape: TLShape;
-        util: ShapeUtil;
-    }[];
+    getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
@@ -1117,6 +1105,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         isPinching: boolean;
         isPointing: boolean;
+        isSpacebarPanning: boolean;
     };
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
@@ -1127,6 +1116,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    // (undocumented)
+    isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     // (undocumented)
@@ -1134,11 +1125,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
-    loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): this;
+    loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
     // @deprecated
     mark(markId?: string): this;
     markHistoryStoppingPoint(name?: string): string;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
+    navigateToDeepLink(opts?: {
+        param?: string;
+        url?: string | URL;
+    } | TLDeepLink): Editor;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike): this;
     // (undocumented)
     readonly options: TldrawOptions;
@@ -1154,6 +1149,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     putExternalContent<E>(info: TLExternalContent<E>): Promise<void>;
     redo(): this;
+    registerDeepLinkListener(opts?: TLDeepLinkOptions): () => void;
     registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(type: T, handler: ((info: TLExternalAssetContent & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
@@ -1172,7 +1168,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         shouldResolveToOriginal?: boolean;
     }): Promise<null | string>;
     readonly root: StateNode;
-    rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number): this;
+    rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number, opts?: {
+        center?: VecLike;
+    }): this;
     run(fn: () => void, opts?: TLEditorRunOptions): this;
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
@@ -1254,7 +1252,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[]): this;
     // @internal (undocumented)
     _updateShapes(_partials: (null | TLShapePartial | undefined)[]): void;
-    updateViewportScreenBounds(screenBounds: Box, center?: boolean): this;
+    updateViewportScreenBounds(screenBounds: Box | HTMLElement, center?: boolean): this;
     uploadAsset(asset: TLAsset, file: File): Promise<string>;
     readonly user: UserPreferencesManager;
     visitDescendants(parent: TLPage | TLParentId | TLShape, visitor: (id: TLShapeId) => false | void): this;
@@ -1485,8 +1483,9 @@ export function getPointsOnArc(startPoint: VecLike, endPoint: VecLike, center: n
 export function getPolygonVertices(width: number, height: number, sides: number): Vec[];
 
 // @internal (undocumented)
-export function getRotationSnapshot({ editor }: {
+export function getRotationSnapshot({ editor, ids, }: {
     editor: Editor;
+    ids: TLShapeId[];
 }): null | TLRotationSnapshot;
 
 // @public (undocumented)
@@ -1713,6 +1712,8 @@ export class LicenseManager {
     isTest: boolean;
     // (undocumented)
     state: Atom<"licensed-with-watermark" | "licensed" | "pending" | "unlicensed", unknown>;
+    // (undocumented)
+    verbose: boolean;
 }
 
 // @public (undocumented)
@@ -1728,10 +1729,10 @@ export interface LoadingScreenProps {
 }
 
 // @public
-export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
+export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot, opts?: TLLoadSessionStateSnapshotOptions): void;
 
 // @public
-export function loadSnapshot(store: TLStore, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot): void;
+export function loadSnapshot(store: TLStore, _snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): void;
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
@@ -1879,6 +1880,9 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
 
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+// @public
+export function parseDeepLinkString(deepLinkString: string): TLDeepLink;
 
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
@@ -2033,20 +2037,19 @@ export function resizeBox<T extends TLBaseBoxShape>(shape: T, info: {
     newPoint: VecModel;
     scaleX: number;
     scaleY: number;
-}, opts?: Partial<{
-    maxHeight: number;
-    maxWidth: number;
-    minHeight: number;
-    minWidth: number;
-}>): T;
+}, opts?: ResizeBoxOptions): T;
 
 // @public (undocumented)
-export type ResizeBoxOptions = Partial<{
-    maxHeight: number;
-    maxWidth: number;
-    minHeight: number;
-    minWidth: number;
-}>;
+export interface ResizeBoxOptions {
+    // (undocumented)
+    maxHeight?: number;
+    // (undocumented)
+    maxWidth?: number;
+    // (undocumented)
+    minHeight?: number;
+    // (undocumented)
+    minWidth?: number;
+}
 
 // @public (undocumented)
 export const ROTATE_CORNER_TO_SELECTION_CORNER: {
@@ -2385,6 +2388,7 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly isDarkMode: boolean;
+    waitUntil(promise: Promise<void>): void;
 }
 
 // @public (undocumented)
@@ -2497,15 +2501,15 @@ export interface TLCameraConstraints {
 }
 
 // @public (undocumented)
-export type TLCameraMoveOptions = Partial<{
-    animation: Partial<{
-        easing(t: number): number;
-        duration: number;
-    }>;
-    force: boolean;
-    immediate: boolean;
-    reset: boolean;
-}>;
+export interface TLCameraMoveOptions {
+    animation?: {
+        easing?(t: number): number;
+        duration?: number;
+    };
+    force?: boolean;
+    immediate?: boolean;
+    reset?: boolean;
+}
 
 // @public (undocumented)
 export interface TLCameraOptions {
@@ -2611,6 +2615,28 @@ export interface TLCursorProps {
 }
 
 // @public (undocumented)
+export type TLDeepLink = {
+    bounds: BoxModel;
+    pageId?: TLPageId;
+    type: 'viewport';
+} | {
+    pageId: TLPageId;
+    type: 'page';
+} | {
+    shapeIds: TLShapeId[];
+    type: 'shapes';
+};
+
+// @public (undocumented)
+export interface TLDeepLinkOptions {
+    debounceMs?: number;
+    getTarget?(editor: Editor): TLDeepLink;
+    getUrl?(editor: Editor): string | URL;
+    onChange?(url: URL, editor: Editor): void;
+    param?: string;
+}
+
+// @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
@@ -2621,8 +2647,10 @@ export interface TldrawEditorBaseProps {
     children?: ReactNode;
     className?: string;
     components?: TLEditorComponents;
+    deepLinks?: TLDeepLinkOptions | true;
     inferDarkMode?: boolean;
     initialState?: string;
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -2710,6 +2738,8 @@ export interface TldrawOptions {
     // (undocumented)
     readonly longPressDurationMs: number;
     // (undocumented)
+    readonly maxExportDelayMs: number;
+    // (undocumented)
     readonly maxFilesAtOnce: number;
     // (undocumented)
     readonly maxPages: number;
@@ -2719,6 +2749,7 @@ export interface TldrawOptions {
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
+    readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
 }
@@ -2789,6 +2820,7 @@ export interface TLEditorOptions {
     getContainer(): HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
     // (undocumented)
@@ -2918,6 +2950,7 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExternalAssetContent = {
+    assetId?: TLAssetId;
     file: File;
     type: 'file';
 } | {
@@ -3032,6 +3065,22 @@ export interface TLHistoryMark {
 }
 
 // @public (undocumented)
+export interface TLImageExportOptions {
+    // (undocumented)
+    background?: boolean;
+    // (undocumented)
+    bounds?: Box;
+    // (undocumented)
+    darkMode?: boolean;
+    // (undocumented)
+    padding?: number;
+    // (undocumented)
+    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    // (undocumented)
+    scale?: number;
+}
+
+// @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
 
 // @public (undocumented)
@@ -3055,6 +3104,16 @@ export type TLKeyboardEventInfo = TLBaseEventInfo & {
 
 // @public (undocumented)
 export type TLKeyboardEventName = 'key_down' | 'key_repeat' | 'key_up';
+
+// @public
+export interface TLLoadSessionStateSnapshotOptions {
+    forceOverwrite?: boolean;
+}
+
+// @public
+export interface TLLoadSnapshotOptions {
+    forceOverwriteSessionState?: boolean;
+}
 
 // @public (undocumented)
 export interface TLMeasureTextSpanOpts {
@@ -3131,6 +3190,22 @@ export type TLPointerEventTarget = {
 };
 
 // @public (undocumented)
+export interface TLRenderingShape {
+    // (undocumented)
+    backgroundIndex: number;
+    // (undocumented)
+    id: TLShapeId;
+    // (undocumented)
+    index: number;
+    // (undocumented)
+    opacity: number;
+    // (undocumented)
+    shape: TLShape;
+    // (undocumented)
+    util: ShapeUtil;
+}
+
+// @public (undocumented)
 export type TLResizeHandle = SelectionCorner | SelectionEdge;
 
 // @public
@@ -3167,14 +3242,14 @@ export type TLResizeShapeOptions = Partial<{
     skipStartAndEndCallbacks: boolean;
 }>;
 
-// @public
+// @internal (undocumented)
 export interface TLRotationSnapshot {
     // (undocumented)
     initialCursorAngle: number;
     // (undocumented)
-    initialSelectionRotation: number;
+    initialShapesRotation: number;
     // (undocumented)
-    selectionPageCenter: Vec;
+    pageCenter: Vec;
     // (undocumented)
     shapeSnapshots: {
         initialPagePoint: Vec;
@@ -3218,27 +3293,27 @@ export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 // @public
 export interface TLSessionStateSnapshot {
     // (undocumented)
-    currentPageId: TLPageId;
+    currentPageId?: TLPageId;
     // (undocumented)
-    exportBackground: boolean;
+    exportBackground?: boolean;
     // (undocumented)
-    isDebugMode: boolean;
+    isDebugMode?: boolean;
     // (undocumented)
-    isFocusMode: boolean;
+    isFocusMode?: boolean;
     // (undocumented)
-    isGridMode: boolean;
+    isGridMode?: boolean;
     // (undocumented)
-    isToolLocked: boolean;
+    isToolLocked?: boolean;
     // (undocumented)
-    pageStates: Array<{
-        camera: {
+    pageStates?: Array<{
+        camera?: {
             x: number;
             y: number;
             z: number;
         };
-        focusedGroupId: null | TLShapeId;
+        focusedGroupId?: null | TLShapeId;
         pageId: TLPageId;
-        selectedShapeIds: TLShapeId[];
+        selectedShapeIds?: TLShapeId[];
     }>;
     // (undocumented)
     version: number;
@@ -3372,21 +3447,8 @@ export type TLStoreWithStatus = {
     readonly store: TLStore;
 };
 
-// @public (undocumented)
-export interface TLSvgOptions {
-    // (undocumented)
-    background?: boolean;
-    // (undocumented)
-    bounds?: Box;
-    // (undocumented)
-    darkMode?: boolean;
-    // (undocumented)
-    padding?: number;
-    // (undocumented)
-    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
-    // (undocumented)
-    scale?: number;
-}
+// @public @deprecated (undocumented)
+export type TLSvgOptions = TLImageExportOptions;
 
 // @public (undocumented)
 export type TLTickEvent = (info: TLTickEventInfo) => void;
@@ -3473,13 +3535,15 @@ export function uniq<T>(array: {
     readonly length: number;
 } | null | undefined): T[];
 
-// @public
-export function uniqueId(): string;
+export { useAtom }
 
 export { useComputed }
 
 // @public (undocumented)
-export function useContainer(): HTMLDivElement;
+export function useContainer(): HTMLElement;
+
+// @public
+export function useDelaySvgExport(): () => void;
 
 // @public (undocumented)
 export function useEditor(): Editor;
@@ -3579,7 +3643,7 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 };
 
 // @internal (undocumented)
-export function useShallowArrayIdentity<T>(arr: readonly T[]): readonly T[];
+export function useShallowArrayIdentity<T extends null | readonly any[] | undefined>(arr: T): T;
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
@@ -3587,9 +3651,7 @@ export function useShallowObjectIdentity<T extends null | object | undefined>(ob
 export { useStateTracking }
 
 // @public
-export function useSvgExportContext(): {
-    isDarkMode: boolean;
-} | null;
+export function useSvgExportContext(): null | SvgExportContext;
 
 // @public (undocumented)
 export function useTldrawUser(opts: {

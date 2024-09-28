@@ -2,13 +2,17 @@
 
 import { cn } from '@/utils/cn'
 import { CheckIcon, ShareIcon } from '@heroicons/react/20/solid'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
-export const ShareButton: React.FC<{
+export function ShareButton({
+	url,
+	size = 'small',
+	className,
+}: {
 	url: string
 	size?: 'small' | 'base'
 	className?: string
-}> = ({ url, size = 'small', className }) => {
+}) {
 	const [copied, setCopied] = useState<boolean>(false)
 
 	return (
@@ -19,7 +23,7 @@ export const ShareButton: React.FC<{
 				setTimeout(() => setCopied(false), 1500)
 			}}
 			className={cn(
-				'flex items-center gap-1.5 text-blue-500 hover:text-blue-600',
+				'flex items-center gap-1.5 text-blue-500 hover:text-blue-600 dark:hover:text-blue-400',
 				size === 'small' && 'text-xs',
 				className
 			)}
