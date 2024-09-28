@@ -11220,6 +11220,7 @@ __metadata:
   resolution: "dotcom@workspace:apps/dotcom/client"
   dependencies:
     "@jest/globals": "npm:30.0.0-alpha.2"
+    "@radix-ui/react-dialog": "npm:^1.0.5"
     "@radix-ui/react-dropdown-menu": "npm:^2.0.6"
     "@radix-ui/react-popover": "npm:^1.0.7"
     "@sentry/cli": "npm:^2.25.0"

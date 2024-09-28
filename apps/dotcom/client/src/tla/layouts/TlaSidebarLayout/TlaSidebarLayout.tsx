@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { useValue } from 'tldraw'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
@@ -13,13 +12,9 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsabl
 		() => app.getSessionState().isSidebarOpenMobile,
 		[app]
 	)
-	const theme = useValue('theme', () => app.getSessionState().theme, [app])
 	return (
 		<div
-			className={classNames(
-				`tla tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`,
-				styles.layout
-			)}
+			className={styles.layout}
 			data-sidebar={isSidebarOpen}
 			data-sidebarmobile={isSidebarOpenMobile}
 		>

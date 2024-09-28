@@ -4,10 +4,12 @@ import { useCallback } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { dialogsAtom } from '../../providers/TlaDialogsProvider'
 import { TldrawApp } from '../../utils/TldrawApp'
+import { copyTextToClipboard } from '../../utils/copy'
 import { TldrawAppFile, TldrawAppFileRecordType } from '../../utils/schema/TldrawAppFile'
 import { getCleanId } from '../../utils/tldrawAppSchema'
-import { getFileUrl } from '../../utils/urls'
+import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
 import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSpacer } from '../TlaSpacer/TlaSpacer'
@@ -218,15 +220,25 @@ function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 
 /* ---------------------- Menu ---------------------- */
 
-function TlaSidebarFileLinkMenu(_props: { fileId: TldrawAppFile['id'] }) {
+function TlaSidebarFileLinkMenu({ fileId }: { fileId: TldrawAppFile['id'] }) {
 	// const app = useApp()
 
 	const handleCopyLinkClick = useCallback(() => {
-		// copy file url
-	}, [])
+		const url = getShareableFileUrl(fileId)
+		copyTextToClipboard(url)
+	}, [fileId])
 
 	const handleRenameLinkClick = useCallback(() => {
 		// open rename dialog
+		dialogsAtom.update((d) => [
+			...d,
+			{
+				id: 'rename',
+				Component: () => {
+					return <div>hello!!!!!!</div>
+				},
+			},
+		])
 	}, [])
 
 	const handleDuplicateLinkClick = useCallback(() => {

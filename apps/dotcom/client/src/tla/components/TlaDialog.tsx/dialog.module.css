@@ -1,0 +1,33 @@
+.overlay {
+	position: absolute;
+	inset: 0px;
+	background-color: var(--tla-color-overlay);
+	z-index: 2000;
+}
+
+.container {
+	outline: none;
+	display: flex;
+	align-self: center;
+	justify-self: center;
+	align-items: center;
+	justify-content: center;
+	pointer-events: none;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 2200;
+}
+
+.containerInner {
+	position: relative;
+	width: 100%;
+	max-width: 360px;
+	height: fit-content;
+	padding: 12px;
+	z-index: 2200;
+	color: var(--tla-color-text-1);
+	background-color: var(--tla-color-panel);
+	pointer-events: all;
+}
