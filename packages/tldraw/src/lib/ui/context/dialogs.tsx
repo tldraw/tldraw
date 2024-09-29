@@ -1,5 +1,5 @@
-import { addOpenMenu, Atom, deleteOpenMenu, Editor, uniqueId, useAtom } from '@tldraw/editor'
-import { ComponentType, createContext, ReactNode, useContext, useMemo } from 'react'
+import { Atom, Editor, tlmenus, uniqueId, useAtom } from '@tldraw/editor'
+import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
 import { useUiEvents } from './events'
 
 /** @public */
@@ -47,7 +47,7 @@ export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProvid
 					return [...d.filter((m) => m.id !== dialog.id), { ...dialog, id }]
 				})
 				trackEvent('open-menu', { source: 'dialog', id })
-				addOpenMenu(id, context)
+				tlmenus.addOpenMenu(id, context)
 				return id
 			},
 			removeDialog(id: string) {
@@ -55,7 +55,7 @@ export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProvid
 				if (dialog) {
 					dialog.onClose?.()
 					trackEvent('close-menu', { source: 'dialog', id })
-					deleteOpenMenu(id, context)
+					tlmenus.deleteOpenMenu(id, context)
 					dialogs.update((d) => d.filter((m) => m !== dialog))
 				}
 				return id
@@ -66,7 +66,7 @@ export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProvid
 				current.forEach((d) => {
 					d.onClose?.()
 					trackEvent('close-menu', { source: 'dialog', id: d.id })
-					deleteOpenMenu(d.id, context)
+					tlmenus.deleteOpenMenu(d.id, context)
 				})
 				dialogs.set([])
 			},

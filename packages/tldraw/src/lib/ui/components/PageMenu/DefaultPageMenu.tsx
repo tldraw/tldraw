@@ -392,7 +392,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												isCurrentPage={page.id === currentPage.id}
 												onCancel={() => {
 													setIsEditing(false)
-													editor.clearOpenMenus()
+													editor.menus.clearOpenMenus()
 												}}
 											/>
 										</div>

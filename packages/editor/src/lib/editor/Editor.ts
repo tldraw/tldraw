@@ -104,6 +104,7 @@ import {
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
 import { tlenv } from '../globals/environment'
+import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
@@ -140,7 +141,6 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { addOpenMenu, clearOpenMenus, deleteOpenMenu, globalOpenMenus } from './menus'
 import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -1475,79 +1475,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	// Menus
 
-	/**
-	 * A set of strings representing any open menus. When menus are open,
-	 * certain interactions will behave differently; for example, when a
-	 * draw tool is selected and a menu is open, a pointer-down will not
-	 * create a dot (because the user is probably trying to close the menu)
-	 * however a pointer-down event followed by a drag will begin drawing
-	 * a line (because the user is BOTH trying to close the menu AND start
-	 * drawing a line).
-	 *
-	 * @public
-	 */
-	@computed getOpenMenus(): string[] {
-		return globalOpenMenus.get()
-	}
-
-	/**
-	 * Add an open menu.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.addOpenMenu('menu-id')
-	 * ```
-	 *
-	 * @public
-	 */
-	addOpenMenu(id: string): this {
-		addOpenMenu(id, this.contextId)
-		return this
-	}
-
-	/**
-	 * Delete an open menu.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deleteOpenMenu('menu-id')
-	 * ```
-	 *
-	 * @public
-	 */
-	deleteOpenMenu(id: string): this {
-		deleteOpenMenu(id, this.contextId)
-		return this
-	}
-
-	/**
-	 * Clear all open menus.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.clearOpenMenus()
-	 * ```
-	 *
-	 * @public
-	 */
-	clearOpenMenus(): this {
-		clearOpenMenus(this.contextId)
-		return this
-	}
-
-	/**
-	 * Get whether any menus are open.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getIsMenuOpen()
-	 * ```
-	 *
-	 * @public
-	 */
-	@computed getIsMenuOpen(): boolean {
-		return this.getOpenMenus().length > 0
-	}
+	menus = tlmenus.forContext(this.contextId)
 
 	/* --------------------- Cursor --------------------- */
 
@@ -9373,7 +9301,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this._updateInputsFromEvent(info)
 
-				if (this.getIsMenuOpen()) {
+				if (this.menus.getIsMenuOpen()) {
 					// noop
 				} else {
 					const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
@@ -9545,7 +9473,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.buttons.delete(info.button)
 
 						// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
-						if (this.getIsMenuOpen()) return
+						if (this.menus.getIsMenuOpen()) return
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return
@@ -9706,7 +9634,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// close open menus at the very end on pointer down! after everything else! συντελείας τοῦ κώδικα!!
 		if (info.type === 'pointer' && info.name === 'pointer_down') {
-			this.clearOpenMenus()
+			this.menus.clearOpenMenus()
 		}
 
 		return this

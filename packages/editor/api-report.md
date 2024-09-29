@@ -93,9 +93,6 @@ import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
 // @public
-export function addOpenMenu(id: string, context?: string): void;
-
-// @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
@@ -461,9 +458,6 @@ export function clamp(n: number, min: number, max: number): number;
 // @public
 export function clampRadians(r: number): number;
 
-// @public
-export function clearOpenMenus(context?: string): void;
-
 // @public (undocumented)
 export class ClickManager {
     constructor(editor: Editor);
@@ -751,9 +745,6 @@ export const defaultUserPreferences: Readonly<{
 // @public
 export function degreesToRadians(d: number): number;
 
-// @public
-export function deleteOpenMenu(id: string, context?: string): void;
-
 // @public (undocumented)
 export const EASINGS: {
     readonly easeInCubic: (t: number) => number;
@@ -818,7 +809,6 @@ export class EdgeScrollManager {
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
-    addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -860,7 +850,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
     // (undocumented)
     clearHistory(): this;
-    clearOpenMenus(): this;
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
@@ -900,7 +889,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
         isolateShapes?: boolean | undefined;
     }): this;
-    deleteOpenMenu(id: string): this;
     deletePage(page: TLPage | TLPageId): this;
     deleteShape(id: TLShapeId): this;
     // (undocumented)
@@ -1007,12 +995,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInstanceState(): TLInstance;
     // (undocumented)
     getIsFocused(): boolean;
-    getIsMenuOpen(): boolean;
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
-    getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
     getPages(): TLPage[];
@@ -1152,6 +1138,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated
     mark(markId?: string): this;
     markHistoryStoppingPoint(name?: string): string;
+    // (undocumented)
+    menus: {
+        addOpenMenu: (id: string) => void;
+        clearOpenMenus: () => void;
+        deleteOpenMenu: (id: string) => void;
+        getIsMenuOpen: () => boolean;
+        getOpenMenus: () => string[];
+    };
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     navigateToDeepLink(opts?: {
         param?: string;
@@ -1457,12 +1451,6 @@ export function getFreshUserPreferences(): TLUserPreferences;
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
-// @public
-export function getIsMenuOpen(context?: string): boolean;
-
-// @public
-export function getOpenMenus(context?: string): string[];
-
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
     closed: boolean;
@@ -1518,9 +1506,6 @@ export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): strin
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
-
-// @public
-export const globalOpenMenus: Atom<string[], unknown>;
 
 // @public (undocumented)
 export class Group2d extends Geometry2d {
@@ -3172,6 +3157,23 @@ export interface TLMeasureTextSpanOpts {
     // (undocumented)
     width: number;
 }
+
+// @public (undocumented)
+export const tlmenus: {
+    menus: Atom<string[], unknown>;
+    addOpenMenu(id: string, contextId?: string): void;
+    clearOpenMenus(contextId?: string): void;
+    deleteOpenMenu(id: string, contextId?: string): void;
+    getOpenMenus(contextId?: string): string[];
+    getIsMenuOpen(contextId?: string): boolean;
+    forContext(contextId: string): {
+        addOpenMenu: (id: string) => void;
+        clearOpenMenus: () => void;
+        deleteOpenMenu: (id: string) => void;
+        getIsMenuOpen: () => boolean;
+        getOpenMenus: () => string[];
+    };
+};
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;

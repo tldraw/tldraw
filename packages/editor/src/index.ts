@@ -4,15 +4,8 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-export {
-	addOpenMenu,
-	clearOpenMenus,
-	deleteOpenMenu,
-	getIsMenuOpen,
-	getOpenMenus,
-	globalOpenMenus,
-} from './lib/editor/menus'
 export { tlenv } from './lib/globals/environment'
+export { tlmenus } from './lib/globals/menus'
 export { tltime } from './lib/globals/time'
 export { useContainerIfExists } from './lib/hooks/useContainer'
 export { useMaybeEditor } from './lib/hooks/useEditor'

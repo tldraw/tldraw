@@ -1,6 +1,6 @@
 import { useValue } from '@tldraw/state-react'
 import { useCallback, useEffect, useRef } from 'react'
-import { addOpenMenu, deleteOpenMenu, getOpenMenus, globalOpenMenus } from '../editor/menus'
+import { tlmenus } from '../globals/menus'
 
 /** @public */
 export function useGlobalMenuIsOpen(
@@ -15,9 +15,9 @@ export function useGlobalMenuIsOpen(
 			rIsOpen.current = isOpen
 
 			if (isOpen) {
-				addOpenMenu(id)
+				tlmenus.addOpenMenu(id)
 			} else {
-				deleteOpenMenu(id)
+				tlmenus.deleteOpenMenu(id)
 			}
 
 			onChange?.(isOpen)
@@ -25,7 +25,7 @@ export function useGlobalMenuIsOpen(
 		[id, onChange]
 	)
 
-	const isOpen = useValue('is menu open', () => globalOpenMenus.get().includes(id), [id])
+	const isOpen = useValue('is menu open', () => tlmenus.getOpenMenus().includes(id), [id])
 
 	useEffect(() => {
 		// When the effect runs, if the menu is open then
@@ -38,19 +38,19 @@ export function useGlobalMenuIsOpen(
 		// this effect runs twice or re-runs.
 		if (rIsOpen.current) {
 			onEvent?.('open-menu')
-			addOpenMenu(id)
+			tlmenus.addOpenMenu(id)
 		}
 
 		return () => {
 			if (rIsOpen.current) {
 				// Close menu on unmount
-				deleteOpenMenu(id)
+				tlmenus.deleteOpenMenu(id)
 
 				// Close menu and all submenus when the parent is closed
-				getOpenMenus().forEach((menuId) => {
+				tlmenus.getOpenMenus().forEach((menuId) => {
 					if (menuId.startsWith(id)) {
 						onEvent?.('close-menu')
-						deleteOpenMenu(menuId)
+						tlmenus.deleteOpenMenu(menuId)
 					}
 				})
 
