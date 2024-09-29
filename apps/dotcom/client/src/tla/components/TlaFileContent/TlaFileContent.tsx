@@ -43,9 +43,6 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 				<TlaSidebarToggleMobile />
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
 					<span className={styles.headerFolder}>My files / </span>
-					{/* <button className={styles.headerTitle} onClick={handleNameClick}>
-						{TldrawApp.getFileName(file)}
-					</button> */}
 					<TlaFileNameEditor fileId={file.id} fileName={TldrawApp.getFileName(file)} />
 					<TlaFileMenu fileId={file.id} source="file-header">
 						<button className={styles.linkMenu}>
