@@ -9,12 +9,14 @@ export class EnvironmentManager {
 			this.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
 			this.isFirefox = /firefox/i.test(navigator.userAgent)
 			this.isAndroid = /android/i.test(navigator.userAgent)
+			this.isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 		} else {
 			this.isSafari = false
 			this.isIos = false
 			this.isChromeForIos = false
 			this.isFirefox = false
 			this.isAndroid = false
+			this.isDarwin = false
 		}
 	}
 
@@ -52,4 +54,11 @@ export class EnvironmentManager {
 	 * @public
 	 */
 	readonly isAndroid: boolean
+
+	/**
+	 * Whether the editor is running on Darwin (mac).
+	 *
+	 * @public
+	 */
+	readonly isDarwin: boolean
 }

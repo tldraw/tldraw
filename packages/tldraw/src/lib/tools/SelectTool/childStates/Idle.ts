@@ -54,23 +54,6 @@ export class Idle extends StateNode {
 
 		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
 
-		if (info.ctrlKey && !shouldEnterCropMode) {
-			// On Mac, you can right click using the Control keys + Click.
-			if (info.target === 'shape' && this.isDarwin && this.editor.inputs.keys.has('ControlLeft')) {
-				if (!this.editor.isShapeOrAncestorLocked(info.shape)) {
-					this.parent.transition('pointing_shape', info)
-					return
-				}
-			}
-
-			// We go into brushing (unless they're holding the Meta key, which is conflated with the Ctrl key
-			// in our world).
-			if (!this.editor.inputs.keys.has('MetaLeft')) {
-				this.parent.transition('brushing', info)
-				return
-			}
-		}
-
 		switch (info.target) {
 			case 'canvas': {
 				// Check to see if we hit any shape under the pointer; if so,
@@ -110,6 +93,7 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
+
 				if (this.isOverArrowLabelTest(shape)) {
 					// We're moving the label on a shape.
 					this.parent.transition('pointing_arrow_label', info)
@@ -120,6 +104,8 @@ export class Idle extends StateNode {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}
+
+				// If we're holding ctrl key, we might select it, or start brushing...
 				this.parent.transition('pointing_shape', info)
 				break
 			}
@@ -128,6 +114,7 @@ export class Idle extends StateNode {
 				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
+					// If we're holding ctrl key, we might select it, or start brushing...
 					this.parent.transition('pointing_handle', info)
 				}
 				break
@@ -139,7 +126,15 @@ export class Idle extends StateNode {
 					case 'top_right_rotate':
 					case 'bottom_left_rotate':
 					case 'bottom_right_rotate': {
-						this.parent.transition('pointing_rotate_handle', info)
+						if (shouldEnterCropMode) {
+							this.parent.transition('crop.pointing_crop_handle', info)
+						} else {
+							if (info.ctrlKey) {
+								this.parent.transition('brushing', info)
+								break
+							}
+							this.parent.transition('pointing_rotate_handle', info)
+						}
 						break
 					}
 					case 'top':
@@ -153,6 +148,10 @@ export class Idle extends StateNode {
 						if (shouldEnterCropMode) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
+							if (info.ctrlKey) {
+								this.parent.transition('brushing', info)
+								break
+							}
 							this.parent.transition('pointing_resize_handle', info)
 						}
 						break
@@ -182,6 +181,9 @@ export class Idle extends StateNode {
 
 	override onDoubleClick(info: TLClickEventInfo) {
 		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
+
+		// We don't want to double click while toggling shapes
+		if (info.ctrlKey || info.shiftKey) return
 
 		switch (info.target) {
 			case 'canvas': {

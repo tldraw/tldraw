@@ -8,6 +8,7 @@ export class PointingShape extends StateNode {
 	hitShapeForPointerUp = {} as TLShape
 	isDoubleClick = false
 
+	didCtrlOnEnter = false
 	didSelectOnEnter = false
 
 	override onEnter(info: TLPointerEventInfo & { target: 'shape' }) {
@@ -20,12 +21,14 @@ export class PointingShape extends StateNode {
 
 		this.hitShape = info.shape
 		this.isDoubleClick = false
+		this.didCtrlOnEnter = ctrlKey
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
 		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
 			selectedShapeIds.includes(parent.id)
 		)
 
 		if (
+			info.ctrlKey ||
 			// If the shape has an onClick handler
 			this.editor.getShapeUtil(info.shape).onClick ||
 			// ...or if the shape is the focused layer (e.g. group)
@@ -45,8 +48,7 @@ export class PointingShape extends StateNode {
 
 		this.didSelectOnEnter = true
 
-		const additiveSelectionKey = shiftKey || ctrlKey
-		if (additiveSelectionKey && !altKey) {
+		if (shiftKey && !altKey) {
 			this.editor.cancelDoubleClick()
 			if (!selectedShapeIds.includes(outermostSelectingShape.id)) {
 				this.editor.markHistoryStoppingPoint('shift selecting shape')
@@ -202,7 +204,11 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
-			this.startTranslating(info)
+			if (this.didCtrlOnEnter) {
+				this.parent.transition('brushing', info)
+			} else {
+				this.startTranslating(info)
+			}
 		}
 	}
 

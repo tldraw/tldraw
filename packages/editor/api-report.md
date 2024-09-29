@@ -1307,6 +1307,7 @@ export class EnvironmentManager {
     editor: Editor;
     readonly isAndroid: boolean;
     readonly isChromeForIos: boolean;
+    readonly isDarwin: boolean;
     readonly isFirefox: boolean;
     readonly isIos: boolean;
     readonly isSafari: boolean;
