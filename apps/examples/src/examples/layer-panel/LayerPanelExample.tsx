@@ -44,11 +44,10 @@ export default function LayerPanelExample() {
 	)
 }
 
-/**
- * Guide:
- *
- * 1. Here we override the `InFrontOfTheCanvas` component with a custom component that renders a simple layer panel.
- * 2. We pass the root ids of the current page to the recursive ShapeList component. (see ShapeList.tsx)
- * 3. This is a function that determines whether a shape is hidden. We use this to hide shapes that have the `hidden` meta property set to true.
- *
- */
+/*
+Guide:
+
+1. Here we override the `InFrontOfTheCanvas` component with a custom component that renders a simple layer panel.
+2. We pass the root ids of the current page to the recursive ShapeList component. (see ShapeList.tsx)
+3. This is a function that determines whether a shape is hidden. We use this to hide shapes that have the `hidden` meta property set to true.
+*/
