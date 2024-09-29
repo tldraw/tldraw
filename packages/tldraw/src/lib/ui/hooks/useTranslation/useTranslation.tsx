@@ -1,4 +1,4 @@
-import { track, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/editor'
 import * as React from 'react'
 import { useAssetUrls } from '../../context/asset-urls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
@@ -8,6 +8,7 @@ import { TLUiTranslation, fetchTranslation } from './translations'
 /** @public */
 export interface TLUiTranslationProviderProps {
 	children: React.ReactNode
+	locale: string
 	/**
 	 * A collection of overrides different locales.
 	 *
@@ -41,10 +42,9 @@ export function useCurrentTranslation() {
  */
 export const TranslationProvider = track(function TranslationProvider({
 	overrides,
+	locale,
 	children,
 }: TLUiTranslationProviderProps) {
-	const editor = useEditor()
-	const locale = editor.user.getLocale()
 	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => {

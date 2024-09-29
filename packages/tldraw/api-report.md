@@ -738,6 +738,22 @@ export function DefaultZoomMenuContent(): JSX_2.Element;
 export function DeleteMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
+export const Dialogs: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export function DialogsProvider({ context, children }: DialogsProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface DialogsProviderProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    context?: string;
+    // (undocumented)
+    overrides?(editor: Editor): TLUiDialogsContextType;
+}
+
+// @public (undocumented)
 export function DiamondToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -2310,6 +2326,8 @@ export interface TLUiButtonPickerProps<T extends string> {
     // (undocumented)
     items: StyleValuesForUi<T>;
     // (undocumented)
+    onHistoryMark?(id: string): void;
+    // (undocumented)
     onValueChange(style: StyleProp<T>, value: T): void;
     // (undocumented)
     style: StyleProp<T>;
@@ -2808,6 +2826,8 @@ export interface TLUiInputProps {
     // (undocumented)
     iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
+    isIos?: boolean;
+    // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
     onBlur?(value: string): void;
@@ -2821,6 +2841,8 @@ export interface TLUiInputProps {
     onValueChange?(value: string): void;
     // (undocumented)
     placeholder?: string;
+    // (undocumented)
+    requestAnimationFrame(cb: () => void): void;
     shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
     // (undocumented)
     value?: string;
@@ -3002,6 +3024,8 @@ export interface TLUiSliderProps {
     // (undocumented)
     label: string;
     // (undocumented)
+    onHistoryMark(id: string): void;
+    // (undocumented)
     onValueChange(value: number): void;
     // (undocumented)
     steps: number;
@@ -3126,6 +3150,8 @@ export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-ho
 export interface TLUiTranslationProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
+    // (undocumented)
+    locale: string;
     overrides?: Record<string, Record<string, string>>;
 }
 
@@ -3613,6 +3639,9 @@ export interface ToolbarItemProps {
     tool: string;
 }
 
+// @internal
+export const TranslationProvider: React_2.NamedExoticComponent<TLUiTranslationProviderProps>;
+
 // @public (undocumented)
 export function TrapezoidToolbarItem(): JSX_2.Element;
 
@@ -3711,6 +3740,9 @@ export function useDefaultHelpers(): {
 };
 
 // @public (undocumented)
+export function useDefaultUiAssetUrlsWithOverrides(overrides?: RecursivePartial<TLUiAssetUrls>): TLUiAssetUrls;
+
+// @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
@@ -3750,6 +3782,9 @@ export function useMenuClipboardEvents(): {
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
 
 // @public (undocumented)
+export function useMergedTranslationOverrides(overrides?: TLUiOverrides | TLUiOverrides[]): NonNullable<TLUiTranslationProviderProps['overrides']>;
+
+// @public (undocumented)
 export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
@@ -3759,7 +3794,7 @@ export function usePreloadAssets(assetUrls: TLEditorAssetUrls): {
 };
 
 // @public (undocumented)
-export function useReadonly(): boolean;
+export function useReadonly(): boolean | undefined;
 
 // @public (undocumented)
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;

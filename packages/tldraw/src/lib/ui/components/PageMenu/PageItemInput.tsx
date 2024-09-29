@@ -54,6 +54,8 @@ export const PageItemInput = function PageItemInput({
 			shouldManuallyMaintainScrollPositionWhenFocused
 			autoFocus={isCurrentPage}
 			autoSelect
+			isIos={editor.environment.isIos}
+			requestAnimationFrame={editor.timers.requestAnimationFrame}
 		/>
 	)
 }

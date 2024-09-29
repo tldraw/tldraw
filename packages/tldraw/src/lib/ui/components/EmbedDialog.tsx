@@ -84,6 +84,8 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 									320
 								)
 							}}
+							isIos={editor.environment.isIos}
+							requestAnimationFrame={editor.timers.requestAnimationFrame}
 						/>
 						{url === '' ? (
 							<div className="tlui-embed-dialog__instruction">

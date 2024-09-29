@@ -1,4 +1,4 @@
-import { RecursivePartial } from '@tldraw/editor'
+import { RecursivePartial, useEditor } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { MimeTypeContext } from '../hooks/useInsertMedia'
@@ -61,13 +61,17 @@ export function TldrawUiContextProvider({
 	mediaMimeTypes,
 	children,
 }: TldrawUiContextProviderProps) {
+	const editor = useEditor()
 	return (
 		<MimeTypeContext.Provider value={mediaMimeTypes}>
 			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
-				<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
+				<TranslationProvider
+					overrides={useMergedTranslationOverrides(overrides)}
+					locale={editor.user.getLocale()}
+				>
 					<UiEventsProvider onEvent={onUiEvent}>
 						<ToastsProvider>
-							<DialogsProvider>
+							<DialogsProvider context={editor.menuId}>
 								<BreakPointProvider forceMobile={forceMobile}>
 									<TldrawUiComponentsProvider overrides={components}>
 										<InternalProviders overrides={overrides}>{children}</InternalProviders>

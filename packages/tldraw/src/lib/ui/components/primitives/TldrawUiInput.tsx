@@ -1,4 +1,4 @@
-import { stopEventPropagation, useEditor } from '@tldraw/editor'
+import { stopEventPropagation } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -33,6 +33,8 @@ export interface TLUiInputProps {
 	 */
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
 	value?: string
+	isIos?: boolean
+	requestAnimationFrame(cb: () => void): void
 }
 
 /** @public @react */
@@ -54,11 +56,12 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			onBlur,
 			shouldManuallyMaintainScrollPositionWhenFocused = false,
 			children,
+			requestAnimationFrame,
+			isIos,
 			value,
 		},
 		ref
 	) {
-		const editor = useEditor()
 		const rInputRef = React.useRef<HTMLInputElement>(null)
 
 		// combine rInputRef and ref
@@ -74,14 +77,14 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 				setIsFocused(true)
 				const elm = e.currentTarget as HTMLInputElement
 				rCurrentValue.current = elm.value
-				editor.timers.requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
 					if (autoSelect) {
 						elm.select()
 					}
 				})
 				onFocus?.()
 			},
-			[autoSelect, onFocus, editor.timers]
+			[autoSelect, onFocus, requestAnimationFrame]
 		)
 
 		const handleChange = React.useCallback(
@@ -124,7 +127,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		)
 
 		React.useEffect(() => {
-			if (!editor.environment.isIos) return
+			if (!isIos) return
 
 			const visualViewport = window.visualViewport
 			if (isFocused && shouldManuallyMaintainScrollPositionWhenFocused && visualViewport) {
@@ -134,7 +137,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 				visualViewport.addEventListener('resize', onViewportChange)
 				visualViewport.addEventListener('scroll', onViewportChange)
 
-				editor.timers.requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
 					rInputRef.current?.scrollIntoView({ block: 'center' })
 				})
 
@@ -143,7 +146,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					visualViewport.removeEventListener('scroll', onViewportChange)
 				}
 			}
-		}, [editor, isFocused, shouldManuallyMaintainScrollPositionWhenFocused])
+		}, [isFocused, shouldManuallyMaintainScrollPositionWhenFocused, isIos, requestAnimationFrame])
 
 		return (
 			<div draggable={false} className="tlui-input__wrapper">

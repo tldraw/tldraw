@@ -140,6 +140,7 @@ import { SnapManager } from './managers/SnapManager/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
+import { addOpenMenu, clearOpenMenus, deleteOpenMenu, globalOpenMenus } from './menus'
 import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -268,6 +269,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._isShapeHiddenPredicate = isShapeHidden
 
 		this.options = { ...defaultTldrawOptions, ...options }
+
+		this.menuId = this.options.menuId ?? uniqueId()
+
 		this.store = store
 		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
@@ -757,6 +761,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	readonly options: TldrawOptions
+
+	readonly menuId: string
 
 	/**
 	 * The editor's store
@@ -1484,7 +1490,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getOpenMenus(): string[] {
-		return this.getInstanceState().openMenus
+		return globalOpenMenus.get()
 	}
 
 	/**
@@ -1498,11 +1504,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	addOpenMenu(id: string): this {
-		const menus = new Set(this.getOpenMenus())
-		if (!menus.has(id)) {
-			menus.add(id)
-			this.updateInstanceState({ openMenus: [...menus] })
-		}
+		addOpenMenu(id, this.menuId)
 		return this
 	}
 
@@ -1517,11 +1519,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteOpenMenu(id: string): this {
-		const menus = new Set(this.getOpenMenus())
-		if (menus.has(id)) {
-			menus.delete(id)
-			this.updateInstanceState({ openMenus: [...menus] })
-		}
+		deleteOpenMenu(id, this.menuId)
 		return this
 	}
 
@@ -1536,9 +1534,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	clearOpenMenus(): this {
-		if (this.getOpenMenus().length) {
-			this.updateInstanceState({ openMenus: [] })
-		}
+		clearOpenMenus(this.menuId)
 		return this
 	}
 

@@ -4,7 +4,17 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-
+export {
+	addOpenMenu,
+	clearOpenMenus,
+	deleteOpenMenu,
+	getIsMenuOpen,
+	getOpenMenus,
+	globalOpenMenus,
+} from './lib/editor/menus'
+export { useContainerIfExists } from './lib/hooks/useContainer'
+export { useMaybeEditor } from './lib/hooks/useEditor'
+export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -258,7 +268,11 @@ export {
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
+export {
+	ContainerProvider,
+	useContainer,
+	type ContainerProviderProps,
+} from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
 export { useEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'

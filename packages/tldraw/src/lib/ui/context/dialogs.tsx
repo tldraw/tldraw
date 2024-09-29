@@ -1,5 +1,5 @@
-import { Editor, uniqueId, useEditor } from '@tldraw/editor'
-import { ComponentType, ReactNode, createContext, useCallback, useContext, useState } from 'react'
+import { addOpenMenu, deleteOpenMenu, Editor, uniqueId } from '@tldraw/editor'
+import { ComponentType, createContext, ReactNode, useCallback, useContext, useState } from 'react'
 import { useUiEvents } from './events'
 
 /** @public */
@@ -26,15 +26,15 @@ export interface TLUiDialogsContextType {
 /** @internal */
 export const DialogsContext = createContext<TLUiDialogsContextType | null>(null)
 
-/** @internal */
+/** @public */
 export interface DialogsProviderProps {
+	context?: string
 	overrides?(editor: Editor): TLUiDialogsContextType
 	children: ReactNode
 }
 
-/** @internal */
-export function DialogsProvider({ children }: DialogsProviderProps) {
-	const editor = useEditor()
+/** @public */
+export function DialogsProvider({ context, children }: DialogsProviderProps) {
 	const trackEvent = useUiEvents()
 
 	const [dialogs, setDialogs] = useState<TLUiDialog[]>([])
@@ -47,11 +47,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			})
 
 			trackEvent('open-menu', { source: 'dialog', id })
-			editor.addOpenMenu(id)
+			addOpenMenu(id, context)
 
 			return id
 		},
-		[editor, trackEvent]
+		[trackEvent, context]
 	)
 
 	const updateDialog = useCallback(
@@ -69,11 +69,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			)
 
 			trackEvent('open-menu', { source: 'dialog', id })
-			editor.addOpenMenu(id)
+			addOpenMenu(id, context)
 
 			return id
 		},
-		[editor, trackEvent]
+		[trackEvent, context]
 	)
 
 	const removeDialog = useCallback(
@@ -89,23 +89,24 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			)
 
 			trackEvent('close-menu', { source: 'dialog', id })
-			editor.deleteOpenMenu(id)
+			deleteOpenMenu(id, context)
 
 			return id
 		},
-		[editor, trackEvent]
+		[trackEvent, context]
 	)
 
 	const clearDialogs = useCallback(() => {
 		setDialogs((d) => {
+			if (d.length === 0) return d
 			d.forEach((m) => {
 				m.onClose?.()
 				trackEvent('close-menu', { source: 'dialog', id: m.id })
-				editor.deleteOpenMenu(m.id)
+				deleteOpenMenu(m.id, context)
 			})
 			return []
 		})
-	}, [editor, trackEvent])
+	}, [trackEvent, context])
 
 	return (
 		<DialogsContext.Provider

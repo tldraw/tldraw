@@ -93,6 +93,9 @@ import { VecModel } from '@tldraw/tlschema';
 import { whyAmIRunning } from '@tldraw/state';
 
 // @public
+export function addOpenMenu(id: string, context?: string): void;
+
+// @public
 export function angleDistance(fromAngle: number, toAngle: number, direction: number): number;
 
 // @internal (undocumented)
@@ -458,6 +461,9 @@ export function clamp(n: number, min: number, max: number): number;
 // @public
 export function clampRadians(r: number): number;
 
+// @public
+export function clearOpenMenus(context?: string): void;
+
 // @public (undocumented)
 export class ClickManager {
     constructor(editor: Editor);
@@ -479,11 +485,16 @@ export function clockwiseAngleDist(a0: number, a1: number): number;
 
 export { computed }
 
-// @internal (undocumented)
-export function ContainerProvider({ container, children, }: {
+// @public (undocumented)
+export function ContainerProvider({ container, children }: ContainerProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface ContainerProviderProps {
+    // (undocumented)
     children: React.ReactNode;
+    // (undocumented)
     container: HTMLElement;
-}): JSX_2.Element;
+}
 
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
@@ -739,6 +750,9 @@ export const defaultUserPreferences: Readonly<{
 
 // @public
 export function degreesToRadians(d: number): number;
+
+// @public
+export function deleteOpenMenu(id: string, context?: string): void;
 
 // @public (undocumented)
 export const EASINGS: {
@@ -1129,6 +1143,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated
     mark(markId?: string): this;
     markHistoryStoppingPoint(name?: string): string;
+    // (undocumented)
+    readonly menuId: string;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     navigateToDeepLink(opts?: {
         param?: string;
@@ -1441,6 +1457,12 @@ export function getFreshUserPreferences(): TLUserPreferences;
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
+// @public
+export function getIsMenuOpen(context?: string): boolean;
+
+// @public
+export function getOpenMenus(context?: string): string[];
+
 // @public (undocumented)
 export function getPerfectDashProps(totalLength: number, strokeWidth: number, opts?: Partial<{
     closed: boolean;
@@ -1496,6 +1518,9 @@ export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): strin
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
+
+// @public
+export const globalOpenMenus: Atom<string[], unknown>;
 
 // @public (undocumented)
 export class Group2d extends Geometry2d {
@@ -2748,6 +2773,8 @@ export interface TldrawOptions {
     // (undocumented)
     readonly maxShapesPerPage: number;
     // (undocumented)
+    readonly menuId?: string;
+    // (undocumented)
     readonly multiClickDurationMs: number;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
@@ -3542,6 +3569,9 @@ export { useComputed }
 // @public (undocumented)
 export function useContainer(): HTMLElement;
 
+// @public (undocumented)
+export function useContainerIfExists(): HTMLElement | null;
+
 // @public
 export function useDelaySvgExport(): () => void;
 
@@ -3553,6 +3583,9 @@ export function useEditorComponents(): Required<TLEditorComponents>;
 
 // @internal
 export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
+
+// @public (undocumented)
+export function useGlobalMenuIsOpen(id: string, onChange?: (isOpen: boolean) => void, onEvent?: (id: string) => void): readonly [boolean, (isOpen: boolean) => void];
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
@@ -3569,6 +3602,9 @@ export function useLocalStore(options: {
     sessionId?: string;
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;
 } & TLStoreOptions): TLStoreWithStatus;
+
+// @public (undocumented)
+export function useMaybeEditor(): Editor | null;
 
 // @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;

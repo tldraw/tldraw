@@ -1,6 +1,8 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export { useDefaultUiAssetUrlsWithOverrides } from './lib/ui/assetUrls'
+export { Dialogs } from './lib/ui/components/Dialogs'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -13,6 +15,9 @@ export {
 	TldrawUiMenuToolItem,
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
+export { DialogsProvider, type DialogsProviderProps } from './lib/ui/context/dialogs'
+export { TranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
+export { useMergedTranslationOverrides } from './lib/ui/overrides'
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
