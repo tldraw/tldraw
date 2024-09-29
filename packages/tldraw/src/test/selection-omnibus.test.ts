@@ -2107,6 +2107,10 @@ describe('control pointing', () => {
 		editor.expectToBeIn('select.brushing')
 	})
 
+	it.todo('pointing arrow label, should do the same behavior as pointing the shape')
+	it.todo('pointing handle, should do the same behavior as pointing the shape')
+	it.todo('pointing crop handle should go directly to cropping')
+
 	it('double clicks into label', () => {
 		// while selecting box 1...
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
