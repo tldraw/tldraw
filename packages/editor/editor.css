@@ -817,6 +817,7 @@ input,
 	text-shadow: inherit;
 	text-transform: none;
 	white-space: pre-wrap;
+	line-break: normal;
 	word-spacing: 0px;
 	word-wrap: break-word;
 	writing-mode: horizontal-tb !important;
@@ -831,7 +832,6 @@ input,
 	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
-	line-break: normal;
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow-wrap: break-word;

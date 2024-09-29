@@ -115,7 +115,11 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const { asset, url } = useAsset({
+			shapeId: shape.id,
+			assetId: shape.props.assetId,
+			width: shape.props.w,
+		})
 
 		useEffect(() => {
 			if (url && this.isAnimated(shape)) {

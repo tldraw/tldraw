@@ -83,6 +83,7 @@ import { track } from '@tldraw/state-react';
 import { transact } from '@tldraw/state';
 import { transaction } from '@tldraw/state';
 import { UnknownRecord } from '@tldraw/store';
+import { useAtom } from '@tldraw/state-react';
 import { useComputed } from '@tldraw/state-react';
 import { useQuickReactor } from '@tldraw/state-react';
 import { useReactor } from '@tldraw/state-react';
@@ -718,6 +719,7 @@ export const defaultTldrawOptions: {
     readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
+    readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
 
@@ -801,7 +803,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
@@ -1114,6 +1116,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    // (undocumented)
+    isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     // (undocumented)
@@ -2647,6 +2651,7 @@ export interface TldrawEditorBaseProps {
     deepLinks?: TLDeepLinkOptions | true;
     inferDarkMode?: boolean;
     initialState?: string;
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -2745,6 +2750,7 @@ export interface TldrawOptions {
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
+    readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
 }
@@ -2815,6 +2821,7 @@ export interface TLEditorOptions {
     getContainer(): HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
     // (undocumented)
@@ -3528,6 +3535,8 @@ export function uniq<T>(array: {
     readonly [n: number]: T;
     readonly length: number;
 } | null | undefined): T[];
+
+export { useAtom }
 
 export { useComputed }
 
