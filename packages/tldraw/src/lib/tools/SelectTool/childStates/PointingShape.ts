@@ -16,20 +16,20 @@ export class PointingShape extends StateNode {
 		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const {
-			inputs: { currentPagePoint, shiftKey, altKey, ctrlKey },
+			inputs: { currentPagePoint },
 		} = this.editor
+		const { shiftKey, altKey, ctrlKey, metaKey } = info
 
 		this.hitShape = info.shape
 		this.isDoubleClick = false
-		this.didCtrlOnEnter = ctrlKey
+		this.didCtrlOnEnter = metaKey || (ctrlKey && !this.editor.environment.isDarwin)
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
 		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
 			selectedShapeIds.includes(parent.id)
 		)
 
 		if (
-			info.metaKey ||
-			(info.ctrlKey && !this.editor.environment.isDarwin) ||
+			this.didCtrlOnEnter ||
 			// If the shape has an onClick handler
 			this.editor.getShapeUtil(info.shape).onClick ||
 			// ...or if the shape is the focused layer (e.g. group)

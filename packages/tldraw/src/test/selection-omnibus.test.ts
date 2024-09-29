@@ -2137,4 +2137,41 @@ describe('control pointing', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.expectToBeIn('select.idle')
 	})
+
+	it('selects on ctrl click when on a mac', () => {
+		// @ts-expect-error
+		editor.environment.isDarwin = true
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.keyDown('Control')
+		editor.pointerMove(450, 50) // inside of box 3
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box3])
+		// ...and expect menu to be open, but that's a native thing
+	})
+
+	it('selects on ctrl click when on a pc or other device', () => {
+		// @ts-expect-error
+		editor.environment.isDarwin = false
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.keyDown('Control')
+		editor.pointerMove(450, 50) // inside of box 3
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box3])
+	})
+
+	it('selects on meta click when on a mac', () => {
+		// @ts-expect-error
+		editor.environment.isDarwin = true
+
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
+		editor.keyDown('Meta')
+		editor.pointerMove(450, 50) // inside of box 3
+		editor.pointerDown()
+		editor.pointerUp()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box3])
+	})
 })

@@ -42,7 +42,7 @@ export class PointingArrowLabel extends StateNode {
 		this.info = info
 		this.shapeId = shape.id
 		this.didDrag = false
-		this.didCtrlOnEnter = info.ctrlKey
+		this.didCtrlOnEnter = info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)
 		this.wasAlreadySelected = this.editor.getOnlySelectedShapeId() === shape.id
 		this.updateCursor()
 

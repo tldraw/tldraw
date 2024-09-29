@@ -25,7 +25,7 @@ export class PointingHandle extends StateNode {
 	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
 
-		this.didCtrlOnEnter = info.ctrlKey
+		this.didCtrlOnEnter = info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)
 
 		const { shape } = info
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {

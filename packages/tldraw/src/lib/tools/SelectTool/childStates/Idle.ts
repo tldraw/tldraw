@@ -210,7 +210,7 @@ export class Idle extends StateNode {
 				if (hitShape) {
 					if (this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
 						// Probably select the shape
-						selectOnCanvasPointerUp(this.editor)
+						selectOnCanvasPointerUp(this.editor, info)
 						return
 					} else {
 						const parent = this.editor.getShape(hitShape.parentId)
@@ -223,7 +223,7 @@ export class Idle extends StateNode {
 							} else {
 								// The shape is the child of some group other than our current
 								// focus layer. We should probably select the group instead.
-								selectOnCanvasPointerUp(this.editor)
+								selectOnCanvasPointerUp(this.editor, info)
 								return
 							}
 						}

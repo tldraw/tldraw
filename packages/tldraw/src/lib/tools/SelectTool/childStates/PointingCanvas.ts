@@ -22,9 +22,9 @@ export class PointingCanvas extends StateNode {
 		}
 	}
 
-	override onPointerUp() {
+	override onPointerUp(info: TLPointerEventInfo) {
 		// todo: also make this deselect
-		selectOnCanvasPointerUp(this.editor)
+		selectOnCanvasPointerUp(this.editor, info)
 		this.complete()
 	}
 
