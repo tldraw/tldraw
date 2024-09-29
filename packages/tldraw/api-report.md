@@ -2121,7 +2121,7 @@ export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProp
 export function TldrawUiDropdownMenuCheckboxItem({ children, onSelect, ...rest }: TLUiDropdownMenuCheckboxItemProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiDropdownMenuContent({ side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
+export function TldrawUiDropdownMenuContent({ className, side, align, sideOffset, alignOffset, children, }: TLUiDropdownMenuContentProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDropdownMenuGroup({ children }: TLUiDropdownMenuGroupProps): JSX_2.Element;
@@ -2501,6 +2501,8 @@ export interface TLUiDropdownMenuContentProps {
     alignOffset?: number;
     // (undocumented)
     children: ReactNode;
+    // (undocumented)
+    className?: string;
     // (undocumented)
     id?: string;
     // (undocumented)

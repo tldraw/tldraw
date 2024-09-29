@@ -33,7 +33,7 @@ export interface DialogsProviderProps {
 	children: ReactNode
 }
 
-/** @public */
+/** @public @react */
 export function DialogsProvider({ context, children }: DialogsProviderProps) {
 	const trackEvent = useUiEvents()
 

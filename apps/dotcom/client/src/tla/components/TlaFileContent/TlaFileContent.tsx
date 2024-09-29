@@ -1,9 +1,11 @@
 import classNames from 'classnames'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { TldrawUiInput, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useEnvironment } from '../../providers/TlaEnvironmentProvider'
-import { TldrawAppFile } from '../../utils/schema/TldrawAppFile'
+import { TldrawApp } from '../../utils/TldrawApp'
+import { TldrawAppFile, TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditor } from '../TlaEditor/TlaEditor'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
@@ -33,20 +35,6 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 		}
 	}, [app, file.id])
 
-	const handleNameValueChange = useCallback(
-		(value: string) => {
-			app.store.update(file.id, (file) => {
-				return {
-					...file,
-					name: value ?? '',
-				}
-			})
-		},
-		[app, file.id]
-	)
-
-	const environment = useEnvironment()
-
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
 
 	return (
@@ -59,23 +47,18 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 					{/* <button className={styles.headerTitle} onClick={handleNameClick}>
 						{TldrawApp.getFileName(file)}
 					</button> */}
-					<div className={styles.inputWrapper}>
-						<TldrawUiInput
-							className={styles.nameInput}
-							value={file.name}
-							onValueChange={handleNameValueChange}
-							isIos={environment.isIos}
-							requestAnimationFrame={requestAnimationFrame}
-						/>
-						<div className={styles.nameWidthSetter}>{file.name}</div>
-					</div>
+					<TlaFileNameEditor fileId={file.id} fileName={TldrawApp.getFileName(file)} />
 					<TlaFileMenu fileId={file.id} source="file-header">
 						<button className={styles.linkMenu}>
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
 					</TlaFileMenu>
 				</div>
-				<TlaFileShareMenu fileId={file.id} />
+				<TlaFileShareMenu fileId={file.id} source="file-header">
+					<TlaButton>
+						<span>Share</span>
+					</TlaButton>
+				</TlaFileShareMenu>
 			</div>
 			<div
 				className={styles.editorWrapper}
@@ -84,6 +67,47 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 			>
 				<TlaEditor file={file} />
 			</div>
+		</div>
+	)
+}
+
+function TlaFileNameEditor({ fileId, fileName }: { fileName: string; fileId: TldrawAppFileId }) {
+	const app = useApp()
+
+	const [temporaryFileName, setTemporaryFileName] = useState(fileName)
+
+	const handleNameValueChange = useCallback(
+		(value: string) => {
+			app.store.update(fileId, (file) => {
+				return {
+					...file,
+					name: value,
+				}
+			})
+			setTemporaryFileName(TldrawApp.getFileName(app.store.get(fileId)!))
+		},
+		[app, fileId]
+	)
+
+	const handleCancel = useCallback(() => {
+		setTemporaryFileName(TldrawApp.getFileName(app.store.get(fileId)!))
+	}, [app, fileId])
+
+	const environment = useEnvironment()
+
+	return (
+		<div className={styles.inputWrapper}>
+			<TldrawUiInput
+				className={styles.nameInput}
+				value={temporaryFileName.replace(/ /g, '\u00a0')}
+				onValueChange={setTemporaryFileName}
+				onCancel={handleCancel}
+				onBlur={handleNameValueChange}
+				isIos={environment.isIos}
+				requestAnimationFrame={requestAnimationFrame}
+				autoSelect
+			/>
+			<div className={styles.nameWidthSetter}>{temporaryFileName.replace(/ /g, '\u00a0')}</div>
 		</div>
 	)
 }

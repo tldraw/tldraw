@@ -86,9 +86,9 @@
 	position: relative;
 	z-index: 1;
 	width: fit-content;
-	max-width: 100%;
+	max-width: 320px;
 	min-width: 0px;
-	white-space: nowrap;
+	white-space: no-wrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
 	opacity: 0;
@@ -105,7 +105,17 @@
 }
 
 .inputWrapper input {
+	position: relative;
 	padding-right: 0px;
+}
+
+.inputWrapper:focus-within::after {
+	display: block;
+	position: absolute;
+	content: '';
+	inset: -4px;
+	border-radius: 4px;
+	background-color: var(--color-muted-2);
 }
 
 .linkMenu {

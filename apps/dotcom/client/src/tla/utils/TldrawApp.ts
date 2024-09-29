@@ -364,6 +364,23 @@ export class TldrawApp {
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
+	duplicateFile(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+
+		const newFile = TldrawAppFileRecordType.create({
+			...file,
+			id: TldrawAppFileRecordType.createId(),
+			owner: userId,
+			// todo: maybe iterate the file name
+			createdAt: Date.now(),
+		})
+
+		this.store.put([newFile])
+
+		return newFile
+	}
+
 	createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
 		// noop
 	}
@@ -585,6 +602,6 @@ export class TldrawApp {
 	static SessionStateId = TldrawAppSessionStateRecordType.createId('0')
 
 	static getFileName(file: TldrawAppFile) {
-		return file.name || new Date(file.createdAt).toLocaleString('en-gb')
+		return file.name.trim() || new Date(file.createdAt).toLocaleString('en-gb')
 	}
 }

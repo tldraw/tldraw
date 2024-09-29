@@ -1,6 +1,7 @@
 /* ---------------------- Menu ---------------------- */
 
 import { ReactNode, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -10,9 +11,10 @@ import {
 	TldrawUiMenuItem,
 	useDialogs,
 } from 'tldraw'
+import { useApp } from '../../hooks/useAppState'
 import { copyTextToClipboard } from '../../utils/copy'
 import { TldrawAppFile } from '../../utils/schema/TldrawAppFile'
-import { getShareableFileUrl } from '../../utils/urls'
+import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
 import { TlaRenameFileDialog } from '../dialogs/TlaRenameFileDialog'
 
 export function TlaFileMenu({
@@ -24,7 +26,9 @@ export function TlaFileMenu({
 	source: string
 	fileId: TldrawAppFile['id']
 }) {
+	const app = useApp()
 	const { addDialog } = useDialogs()
+	const navigate = useNavigate()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
@@ -39,7 +43,12 @@ export function TlaFileMenu({
 
 	const handleDuplicateLinkClick = useCallback(() => {
 		// duplicate file
-	}, [])
+		const { auth } = app.getSessionState()
+		if (!auth) throw Error('expected auth')
+		const newFile = app.duplicateFile(auth.userId, fileId)
+
+		navigate(getFileUrl(newFile.id))
+	}, [app, navigate, fileId])
 
 	const handleStarLinkClick = useCallback(() => {
 		// toggle star file

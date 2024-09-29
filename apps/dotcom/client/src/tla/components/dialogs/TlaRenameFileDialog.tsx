@@ -12,6 +12,7 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useEnvironment } from '../../providers/TlaEnvironmentProvider'
+import { TldrawApp } from '../../utils/TldrawApp'
 import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import styles from './dialogs.module.css'
 
@@ -26,17 +27,17 @@ export function TlaRenameFileDialog({
 	const ref = useRef<HTMLInputElement>(null)
 	const environment = useEnvironment()
 
-	const fileName = useValue(
-		'file name',
+	const file = useValue(
+		'file',
 		() => {
 			const file = app.store.get(fileId)
 			if (!file) throw Error('expected a file')
-			return file.name
+			return file
 		},
 		[app]
 	)
 
-	const handleClose = useCallback(() => {
+	const handleSave = useCallback(() => {
 		// rename the file
 		const file = app.store.get(fileId)
 		if (!file) return
@@ -62,16 +63,18 @@ export function TlaRenameFileDialog({
 				<TldrawUiInput
 					ref={ref}
 					className={styles.input}
-					defaultValue={fileName}
+					defaultValue={TldrawApp.getFileName(file)}
 					isIos={environment.isIos}
+					onComplete={handleSave}
 					requestAnimationFrame={requestAnimationFrame}
+					autoSelect
 				/>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
 					<TldrawUiButtonLabel>Cancel</TldrawUiButtonLabel>
 				</TldrawUiButton>
-				<TldrawUiButton type="primary" onClick={handleClose}>
+				<TldrawUiButton type="primary" onClick={handleSave}>
 					<TldrawUiButtonLabel>Save</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
