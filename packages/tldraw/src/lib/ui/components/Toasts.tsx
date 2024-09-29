@@ -1,5 +1,6 @@
 import * as T from '@radix-ui/react-toast'
-import { memo, useEffect, useState } from 'react'
+import { useValue } from '@tldraw/editor'
+import { memo } from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
@@ -81,37 +82,13 @@ function Toast({ toast }: { toast: TLUiToast }) {
 	)
 }
 
-/** @public */
-export interface TLUiToastsProps {
-	setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number
-}
-
 /** @public @react */
-export const TldrawUiToasts = memo(function TldrawUiToasts({ setTimeout }: TLUiToastsProps) {
+export const TldrawUiToasts = memo(function TldrawUiToasts() {
 	const { toasts } = useToasts()
-
-	const [hasToasts, setHasToasts] = useState(false)
-
-	useEffect(() => {
-		let timeoutId = -1
-		if (toasts.length) {
-			setHasToasts(true)
-		} else {
-			timeoutId = setTimeout(() => {
-				setHasToasts(false)
-			}, 1000)
-		}
-
-		return () => {
-			clearTimeout(timeoutId)
-		}
-	}, [toasts.length, setHasToasts, setTimeout])
-
-	if (!hasToasts) return null
-
+	const toastsArray = useValue('toasts', () => toasts.get(), [])
 	return (
 		<>
-			{toasts.map((toast) => (
+			{toastsArray.map((toast) => (
 				<Toast key={toast.id} toast={toast} />
 			))}
 			<T.ToastViewport className="tlui-toast__viewport" />

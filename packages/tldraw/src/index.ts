@@ -3,7 +3,7 @@
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export { useDefaultUiAssetUrlsWithOverrides } from './lib/ui/assetUrls'
 export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
-export { TldrawUiToasts, type TLUiToastsProps } from './lib/ui/components/Toasts'
+export { TldrawUiToasts } from './lib/ui/components/Toasts'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,

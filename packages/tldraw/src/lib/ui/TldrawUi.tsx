@@ -161,7 +161,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
-			<TldrawUiToasts setTimeout={editor.timers.setTimeout} />
+			<TldrawUiToasts />
 			<TldrawUiDialogs />
 			<FollowingIndicator />
 			{CursorChatBubble && <CursorChatBubble />}

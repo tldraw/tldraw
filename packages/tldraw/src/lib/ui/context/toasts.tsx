@@ -1,6 +1,6 @@
 import { ToastProvider } from '@radix-ui/react-toast'
-import { Editor, uniqueId } from '@tldraw/editor'
-import { ReactNode, createContext, useCallback, useContext, useState } from 'react'
+import { Atom, Editor, uniqueId, useAtom } from '@tldraw/editor'
+import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { TLUiIconType } from '../icon-types'
 
 /** @public */
@@ -30,7 +30,7 @@ export interface TLUiToastsContextType {
 	addToast(toast: Omit<TLUiToast, 'id'> & { id?: string }): string
 	removeToast(id: TLUiToast['id']): string
 	clearToasts(): void
-	toasts: TLUiToast[]
+	toasts: Atom<TLUiToast[]>
 }
 
 /** @internal */
@@ -44,28 +44,29 @@ export interface TLUiToastsProviderProps {
 
 /** @public @react */
 export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps) {
-	const [toasts, setToasts] = useState<TLUiToast[]>([])
+	const toasts = useAtom<TLUiToast[]>('toasts', [])
 
-	const addToast = useCallback((toast: Omit<TLUiToast, 'id'> & { id?: string }) => {
-		const id = toast.id ?? uniqueId()
-		setToasts((d) => [...d.filter((m) => m.id !== toast.id), { ...toast, id }])
-		return id
-	}, [])
-
-	const removeToast = useCallback((id: string) => {
-		setToasts((d) => d.filter((m) => m.id !== id))
-		return id
-	}, [])
-
-	const clearToasts = useCallback(() => {
-		setToasts(() => [])
-	}, [])
+	const current = useMemo(() => {
+		return {
+			toasts,
+			addToast(toast: Omit<TLUiToast, 'id'> & { id?: string }) {
+				const id = toast.id ?? uniqueId()
+				toasts.update((d) => [...d.filter((m) => m.id !== toast.id), { ...toast, id }])
+				return id
+			},
+			removeToast(id: string) {
+				toasts.update((d) => d.filter((m) => m.id !== id))
+				return id
+			},
+			clearToasts() {
+				toasts.set([])
+			},
+		}
+	}, [toasts])
 
 	return (
 		<ToastProvider>
-			<ToastsContext.Provider value={{ toasts, addToast, removeToast, clearToasts }}>
-				{children}
-			</ToastsContext.Provider>
+			<ToastsContext.Provider value={current}>{children}</ToastsContext.Provider>
 		</ToastProvider>
 	)
 }

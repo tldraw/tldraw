@@ -2182,7 +2182,7 @@ export interface TldrawUiProps extends TLUiContextProviderProps {
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
 
 // @public (undocumented)
-export const TldrawUiToasts: NamedExoticComponent<TLUiToastsProps>;
+export const TldrawUiToasts: NamedExoticComponent<object>;
 
 // @public (undocumented)
 export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps): JSX_2.Element;
@@ -3099,13 +3099,7 @@ export interface TLUiToastsContextType {
     // (undocumented)
     removeToast(id: TLUiToast['id']): string;
     // (undocumented)
-    toasts: TLUiToast[];
-}
-
-// @public (undocumented)
-export interface TLUiToastsProps {
-    // (undocumented)
-    setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    toasts: Atom<TLUiToast[]>;
 }
 
 // @public (undocumented)

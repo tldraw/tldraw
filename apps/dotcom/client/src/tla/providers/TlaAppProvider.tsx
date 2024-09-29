@@ -58,7 +58,7 @@ function InnerInner() {
 						<TldrawUiToastsProvider>
 							<Outlet />
 							<TldrawUiDialogs />
-							<TldrawUiToasts setTimeout={window.setTimeout} />
+							<TldrawUiToasts />
 						</TldrawUiToastsProvider>
 					</TldrawUiDialogsProvider>
 				</TldrawUiTranslationProvider>
