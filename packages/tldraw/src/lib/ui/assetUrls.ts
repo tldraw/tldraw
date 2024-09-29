@@ -37,7 +37,7 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls) {
 	defaultUiAssetUrls = urls
 }
 
-/** @public */
+/** @internal */
 export function useDefaultUiAssetUrlsWithOverrides(
 	overrides?: RecursivePartial<TLUiAssetUrls>
 ): TLUiAssetUrls {

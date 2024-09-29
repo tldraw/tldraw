@@ -3750,9 +3750,6 @@ export function useDefaultHelpers(): {
 };
 
 // @public (undocumented)
-export function useDefaultUiAssetUrlsWithOverrides(overrides?: RecursivePartial<TLUiAssetUrls>): TLUiAssetUrls;
-
-// @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)

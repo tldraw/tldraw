@@ -1,7 +1,6 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
-export { useDefaultUiAssetUrlsWithOverrides } from './lib/ui/assetUrls'
 export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
 export { TldrawUiToasts } from './lib/ui/components/Toasts'
 export {
