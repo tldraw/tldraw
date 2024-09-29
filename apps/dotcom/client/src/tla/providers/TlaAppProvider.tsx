@@ -15,7 +15,6 @@ import {
 } from 'tldraw'
 import { AppStateProvider, useApp } from '../hooks/useAppState'
 import '../styles/tla.css'
-import { TlaEnvironmentProvider } from './TlaEnvironmentProvider'
 
 export const assetUrls = getAssetUrlsByImport()
 
@@ -52,20 +51,18 @@ function InnerInner() {
 	}, [])
 
 	return (
-		<TlaEnvironmentProvider>
-			<AssetUrlsProvider assetUrls={assetUrls}>
-				<TldrawUiEventsProvider onEvent={handleAppLevelUiEvent}>
-					<TldrawUiTranslationProvider locale="en">
-						<TldrawUiDialogsProvider>
-							<TldrawUiToastsProvider>
-								<Outlet />
-								<TldrawUiDialogs />
-								<TldrawUiToasts setTimeout={window.setTimeout} />
-							</TldrawUiToastsProvider>
-						</TldrawUiDialogsProvider>
-					</TldrawUiTranslationProvider>
-				</TldrawUiEventsProvider>
-			</AssetUrlsProvider>
-		</TlaEnvironmentProvider>
+		<AssetUrlsProvider assetUrls={assetUrls}>
+			<TldrawUiEventsProvider onEvent={handleAppLevelUiEvent}>
+				<TldrawUiTranslationProvider locale="en">
+					<TldrawUiDialogsProvider>
+						<TldrawUiToastsProvider>
+							<Outlet />
+							<TldrawUiDialogs />
+							<TldrawUiToasts setTimeout={window.setTimeout} />
+						</TldrawUiToastsProvider>
+					</TldrawUiDialogsProvider>
+				</TldrawUiTranslationProvider>
+			</TldrawUiEventsProvider>
+		</AssetUrlsProvider>
 	)
 }

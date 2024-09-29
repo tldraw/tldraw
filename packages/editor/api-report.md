@@ -914,7 +914,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     edgeScrollManager: EdgeScrollManager;
-    readonly environment: EnvironmentManager;
+    // @deprecated
+    readonly environment: {
+        isAndroid: boolean;
+        isChromeForIos: boolean;
+        isFirefox: boolean;
+        isIos: boolean;
+        isSafari: boolean;
+    };
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent['type']]: {
@@ -1319,18 +1326,6 @@ export class Ellipse2d extends Geometry2d {
 }
 
 export { EMPTY_ARRAY }
-
-// @public (undocumented)
-export class EnvironmentManager {
-    constructor(editor: Editor);
-    // (undocumented)
-    editor: Editor;
-    readonly isAndroid: boolean;
-    readonly isChromeForIos: boolean;
-    readonly isFirefox: boolean;
-    readonly isIos: boolean;
-    readonly isSafari: boolean;
-}
 
 // @public (undocumented)
 export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<TLErrorBoundaryProps>>, {
@@ -2874,6 +2869,15 @@ export interface TLEditorSnapshot {
 
 // @public (undocumented)
 export type TLEnterEventHandler = (info: any, from: string) => void;
+
+// @public
+export const tlenv: {
+    isAndroid: boolean;
+    isChromeForIos: boolean;
+    isFirefox: boolean;
+    isIos: boolean;
+    isSafari: boolean;
+};
 
 // @public (undocumented)
 export interface TLErrorBoundaryProps {

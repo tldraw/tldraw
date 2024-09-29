@@ -3,6 +3,7 @@ import {
 	TLPageId,
 	releasePointerCapture,
 	setPointerCapture,
+	tlenv,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -421,7 +422,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												item={page}
 												listSize={pages.length}
 												onRename={() => {
-													if (editor.environment.isIos) {
+													if (tlenv.isIos) {
 														const name = window.prompt('Rename page', page.name)
 														if (name && name !== page.name) {
 															renamePage(page.id, name)

@@ -11,7 +11,6 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
-import { useEnvironment } from '../../providers/TlaEnvironmentProvider'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import styles from './dialogs.module.css'
@@ -25,7 +24,6 @@ export function TlaRenameFileDialog({
 }) {
 	const app = useApp()
 	const ref = useRef<HTMLInputElement>(null)
-	const environment = useEnvironment()
 
 	const file = useValue(
 		'file',
@@ -64,7 +62,6 @@ export function TlaRenameFileDialog({
 					ref={ref}
 					className={styles.input}
 					defaultValue={TldrawApp.getFileName(file)}
-					isIos={environment.isIos}
 					onComplete={handleSave}
 					requestAnimationFrame={requestAnimationFrame}
 					autoSelect

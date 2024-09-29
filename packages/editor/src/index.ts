@@ -12,6 +12,7 @@ export {
 	getOpenMenus,
 	globalOpenMenus,
 } from './lib/editor/menus'
+export { tlenv } from './lib/globals/environment'
 export { useContainerIfExists } from './lib/hooks/useContainer'
 export { useMaybeEditor } from './lib/hooks/useEditor'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
@@ -171,7 +172,6 @@ export {
 } from './lib/editor/bindings/BindingUtil'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
-export { EnvironmentManager } from './lib/editor/managers/EnvironmentManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
 export {

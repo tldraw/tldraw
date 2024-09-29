@@ -4,6 +4,7 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
 import { Fragment, JSX, useEffect, useRef, useState } from 'react'
+import { tlenv } from '../../globals/environment'
 import { useCanvasEvents } from '../../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../../hooks/useCoarsePointer'
 import { useContainer } from '../../hooks/useContainer'
@@ -55,7 +56,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 			const { x, y, z } = editor.getCamera()
 
 			// This should only run once on first load
-			if (rMemoizedStuff.current.allowTextOutline && editor.environment.isSafari) {
+			if (rMemoizedStuff.current.allowTextOutline && tlenv.isSafari) {
 				container.style.setProperty('--tl-text-outline', 'none')
 				rMemoizedStuff.current.allowTextOutline = false
 			}
@@ -410,7 +411,7 @@ function ShapesToDisplay() {
 			{renderingShapes.map((result) => (
 				<Shape key={result.id + '_shape'} {...result} />
 			))}
-			{editor.environment.isSafari && <ReflowIfNeeded />}
+			{tlenv.isSafari && <ReflowIfNeeded />}
 		</>
 	)
 }

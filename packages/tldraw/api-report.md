@@ -2836,8 +2836,6 @@ export interface TLUiInputProps {
     // (undocumented)
     iconLeft?: Exclude<string, TLUiIconType> | TLUiIconType;
     // (undocumented)
-    isIos?: boolean;
-    // (undocumented)
     label?: Exclude<string, TLUiTranslationKey> | TLUiTranslationKey;
     // (undocumented)
     onBlur?(value: string): void;

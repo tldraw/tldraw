@@ -4,6 +4,7 @@ import {
 	TLSelectionForegroundProps,
 	TLTextShape,
 	getCursor,
+	tlenv,
 	toDomPrecision,
 	track,
 	useEditor,
@@ -101,7 +102,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
 
 	if (onlyShape && shouldDisplayBox) {
-		if (editor.environment.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+		if (tlenv.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
 			shouldDisplayBox = false
 		}
 	}

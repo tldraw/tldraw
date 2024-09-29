@@ -1,4 +1,4 @@
-import { stopEventPropagation } from '@tldraw/editor'
+import { stopEventPropagation, tlenv } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -33,7 +33,6 @@ export interface TLUiInputProps {
 	 */
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
 	value?: string
-	isIos?: boolean
 	requestAnimationFrame(cb: () => void): void
 }
 
@@ -57,7 +56,6 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			shouldManuallyMaintainScrollPositionWhenFocused = false,
 			children,
 			requestAnimationFrame,
-			isIos,
 			value,
 		},
 		ref
@@ -127,7 +125,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 		)
 
 		React.useEffect(() => {
-			if (!isIos) return
+			if (!tlenv.isIos) return
 
 			const visualViewport = window.visualViewport
 			if (isFocused && shouldManuallyMaintainScrollPositionWhenFocused && visualViewport) {
@@ -146,7 +144,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					visualViewport.removeEventListener('scroll', onViewportChange)
 				}
 			}
-		}, [isFocused, shouldManuallyMaintainScrollPositionWhenFocused, isIos, requestAnimationFrame])
+		}, [isFocused, shouldManuallyMaintainScrollPositionWhenFocused, requestAnimationFrame])
 
 		return (
 			<div draggable={false} className="tlui-input__wrapper">

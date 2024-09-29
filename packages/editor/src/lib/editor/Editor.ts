@@ -104,6 +104,7 @@ import {
 	ZOOM_TO_FIT_PADDING,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
+import { tlenv } from '../globals/environment'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
@@ -132,7 +133,6 @@ import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager'
-import { EnvironmentManager } from './managers/EnvironmentManager'
 import { FocusManager } from './managers/FocusManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
@@ -348,7 +348,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.root.children![Tool.id] = new Tool(this, this.root)
 		}
 
-		this.environment = new EnvironmentManager(this)
 		this.scribbles = new ScribbleManager(this)
 
 		// Cleanup
@@ -827,9 +826,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * A manager for the editor's environment.
 	 *
+	 * @deprecated This is deprecated and will be removed in a future version. Use the `tlenv` global export instead.
 	 * @public
 	 */
-	readonly environment: EnvironmentManager
+	readonly environment = tlenv
 
 	/**
 	 * A manager for the editor's scribbles.

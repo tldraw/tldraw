@@ -2,7 +2,6 @@ import classNames from 'classnames'
 import { useCallback, useEffect, useState } from 'react'
 import { TldrawUiInput, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
-import { useEnvironment } from '../../providers/TlaEnvironmentProvider'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { TldrawAppFile, TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { TlaButton } from '../TlaButton/TlaButton'
@@ -93,8 +92,6 @@ function TlaFileNameEditor({ fileId, fileName }: { fileName: string; fileId: Tld
 		setTemporaryFileName(TldrawApp.getFileName(app.store.get(fileId)!))
 	}, [app, fileId])
 
-	const environment = useEnvironment()
-
 	return (
 		<div className={styles.inputWrapper}>
 			<TldrawUiInput
@@ -103,7 +100,6 @@ function TlaFileNameEditor({ fileId, fileName }: { fileName: string; fileId: Tld
 				onValueChange={setTemporaryFileName}
 				onCancel={handleCancel}
 				onBlur={handleNameValueChange}
-				isIos={environment.isIos}
 				requestAnimationFrame={requestAnimationFrame}
 				autoSelect
 			/>
