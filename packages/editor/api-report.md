@@ -864,6 +864,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
+    // (undocumented)
+    readonly contextId: string;
     // @internal (undocumented)
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
@@ -1150,8 +1152,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated
     mark(markId?: string): this;
     markHistoryStoppingPoint(name?: string): string;
-    // (undocumented)
-    readonly menuId: string;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     navigateToDeepLink(opts?: {
         param?: string;
@@ -1250,7 +1250,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly textMeasure: TextManager;
     // (undocumented)
     _tickCameraState(): void;
-    readonly timers: Timers;
+    readonly timers: {
+        dispose: () => void;
+        requestAnimationFrame: (callback: FrameRequestCallback) => number;
+        setInterval: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+    };
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     undo(): this;
     ungroupShapes(ids: TLShapeId[], options?: Partial<{
@@ -3493,6 +3498,9 @@ export interface TLTickEventInfo {
     // (undocumented)
     type: 'misc';
 }
+
+// @public
+export const tltime: Timers;
 
 // @public (undocumented)
 export interface TLUser {

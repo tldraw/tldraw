@@ -13,6 +13,7 @@ export {
 	globalOpenMenus,
 } from './lib/editor/menus'
 export { tlenv } from './lib/globals/environment'
+export { tltime } from './lib/globals/time'
 export { useContainerIfExists } from './lib/hooks/useContainer'
 export { useMaybeEditor } from './lib/hooks/useEditor'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'

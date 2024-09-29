@@ -1,4 +1,4 @@
-import { stopEventPropagation, tlenv } from '@tldraw/editor'
+import { stopEventPropagation, tlenv, tltime, useMaybeEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -33,7 +33,6 @@ export interface TLUiInputProps {
 	 */
 	shouldManuallyMaintainScrollPositionWhenFocused?: boolean
 	value?: string
-	requestAnimationFrame(cb: () => void): void
 }
 
 /** @public @react */
@@ -55,11 +54,11 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			onBlur,
 			shouldManuallyMaintainScrollPositionWhenFocused = false,
 			children,
-			requestAnimationFrame,
 			value,
 		},
 		ref
 	) {
+		const editor = useMaybeEditor()
 		const rInputRef = React.useRef<HTMLInputElement>(null)
 
 		// combine rInputRef and ref
@@ -75,14 +74,22 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 				setIsFocused(true)
 				const elm = e.currentTarget as HTMLInputElement
 				rCurrentValue.current = elm.value
-				requestAnimationFrame(() => {
-					if (autoSelect) {
-						elm.select()
-					}
-				})
+				if (editor) {
+					editor.timers.requestAnimationFrame(() => {
+						if (autoSelect) {
+							elm.select()
+						}
+					})
+				} else {
+					tltime.requestAnimationFrame('anon', () => {
+						if (autoSelect) {
+							elm.select()
+						}
+					})
+				}
 				onFocus?.()
 			},
-			[autoSelect, onFocus, requestAnimationFrame]
+			[autoSelect, editor, onFocus]
 		)
 
 		const handleChange = React.useCallback(
@@ -135,16 +142,22 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 				visualViewport.addEventListener('resize', onViewportChange)
 				visualViewport.addEventListener('scroll', onViewportChange)
 
-				requestAnimationFrame(() => {
-					rInputRef.current?.scrollIntoView({ block: 'center' })
-				})
+				if (editor) {
+					editor.timers.requestAnimationFrame(() => {
+						rInputRef.current?.scrollIntoView({ block: 'center' })
+					})
+				} else {
+					tltime.requestAnimationFrame('anon', () => {
+						rInputRef.current?.scrollIntoView({ block: 'center' })
+					})
+				}
 
 				return () => {
 					visualViewport.removeEventListener('resize', onViewportChange)
 					visualViewport.removeEventListener('scroll', onViewportChange)
 				}
 			}
-		}, [isFocused, shouldManuallyMaintainScrollPositionWhenFocused, requestAnimationFrame])
+		}, [isFocused, editor, shouldManuallyMaintainScrollPositionWhenFocused])
 
 		return (
 			<div draggable={false} className="tlui-input__wrapper">

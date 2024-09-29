@@ -56,7 +56,6 @@ export function UserPresenceEditor() {
 					shouldManuallyMaintainScrollPositionWhenFocused
 					autoFocus
 					autoSelect
-					requestAnimationFrame={editor.timers.requestAnimationFrame}
 				/>
 			) : (
 				<>

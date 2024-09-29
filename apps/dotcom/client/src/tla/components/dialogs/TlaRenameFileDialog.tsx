@@ -63,7 +63,6 @@ export function TlaRenameFileDialog({
 					className={styles.input}
 					defaultValue={TldrawApp.getFileName(file)}
 					onComplete={handleSave}
-					requestAnimationFrame={requestAnimationFrame}
 					autoSelect
 					autoFocus
 				/>

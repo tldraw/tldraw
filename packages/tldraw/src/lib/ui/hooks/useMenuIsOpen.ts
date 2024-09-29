@@ -25,5 +25,5 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		[id, trackEvent]
 	)
 
-	return useGlobalMenuIsOpen(editor ? `${id}-${editor.menuId}` : id, onChange, onEvent)
+	return useGlobalMenuIsOpen(editor ? `${id}-${editor.contextId}` : id, onChange, onEvent)
 }

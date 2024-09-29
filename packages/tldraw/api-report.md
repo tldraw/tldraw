@@ -2849,8 +2849,6 @@ export interface TLUiInputProps {
     onValueChange?(value: string): void;
     // (undocumented)
     placeholder?: string;
-    // (undocumented)
-    requestAnimationFrame(cb: () => void): void;
     shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
     // (undocumented)
     value?: string;

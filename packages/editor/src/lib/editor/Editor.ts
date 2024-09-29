@@ -59,7 +59,6 @@ import {
 	JsonObject,
 	PerformanceTracker,
 	Result,
-	Timers,
 	annotateError,
 	assert,
 	assertExists,
@@ -105,6 +104,7 @@ import {
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
 import { tlenv } from '../globals/environment'
+import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
@@ -270,8 +270,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.options = { ...defaultTldrawOptions, ...options }
 
-		this.menuId = this.options.menuId ?? uniqueId()
-
 		this.store = store
 		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
@@ -284,7 +282,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.snaps = new SnapManager(this)
 
-		this.timers = new Timers()
 		this.disposables.add(this.timers.dispose.bind(this.timers))
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
@@ -761,7 +758,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	readonly options: TldrawOptions
 
-	readonly menuId: string
+	readonly contextId = uniqueId()
 
 	/**
 	 * The editor's store
@@ -807,7 +804,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly timers: Timers
+	readonly timers = tltime.forContext(this.contextId)
 
 	/**
 	 * A manager for the user and their preferences.
@@ -1504,7 +1501,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	addOpenMenu(id: string): this {
-		addOpenMenu(id, this.menuId)
+		addOpenMenu(id, this.contextId)
 		return this
 	}
 
@@ -1519,7 +1516,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteOpenMenu(id: string): this {
-		deleteOpenMenu(id, this.menuId)
+		deleteOpenMenu(id, this.contextId)
 		return this
 	}
 
@@ -1534,7 +1531,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	clearOpenMenus(): this {
-		clearOpenMenus(this.menuId)
+		clearOpenMenus(this.contextId)
 		return this
 	}
 

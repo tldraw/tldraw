@@ -71,7 +71,7 @@ export function TldrawUiContextProvider({
 				>
 					<TldrawUiEventsProvider onEvent={onUiEvent}>
 						<TldrawUiToastsProvider>
-							<TldrawUiDialogsProvider context={editor.menuId}>
+							<TldrawUiDialogsProvider context={editor.contextId}>
 								<BreakPointProvider forceMobile={forceMobile}>
 									<TldrawUiComponentsProvider overrides={components}>
 										<InternalProviders overrides={overrides}>{children}</InternalProviders>

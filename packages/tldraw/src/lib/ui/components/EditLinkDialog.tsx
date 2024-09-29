@@ -155,7 +155,6 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 						onValueChange={handleChange}
 						onComplete={handleComplete}
 						onCancel={handleCancel}
-						requestAnimationFrame={editor.timers.requestAnimationFrame}
 					/>
 					<div>
 						{urlInputState.valid

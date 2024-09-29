@@ -100,7 +100,6 @@ function TlaFileNameEditor({ fileId, fileName }: { fileName: string; fileId: Tld
 				onValueChange={setTemporaryFileName}
 				onCancel={handleCancel}
 				onBlur={handleNameValueChange}
-				requestAnimationFrame={requestAnimationFrame}
 				autoSelect
 			/>
 			<div className={styles.nameWidthSetter}>{temporaryFileName.replace(/ /g, '\u00a0')}</div>
