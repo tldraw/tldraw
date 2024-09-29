@@ -147,6 +147,7 @@ export function useDocumentEvents() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
 			}
 
 			editor.dispatch(info)
@@ -172,6 +173,7 @@ export function useDocumentEvents() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
 			}
 
 			editor.dispatch(info)

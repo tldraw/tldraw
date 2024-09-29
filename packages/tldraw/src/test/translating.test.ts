@@ -2238,6 +2238,7 @@ describe('cancelling a translate operation', () => {
 			button: 0, // left mouse button
 			altKey: false,
 			ctrlKey: false,
+			metaKey: false,
 			isPen: false,
 			name: 'pointer_move',
 			point: { x: 0, y: 0 },
@@ -2284,6 +2285,7 @@ describe('cancelling a translate operation', () => {
 			button: 0, // left mouse button
 			altKey: false,
 			ctrlKey: false,
+			metaKey: false,
 			isPen: false,
 			name: 'pointer_move',
 			point: { x: 0, y: 0 },

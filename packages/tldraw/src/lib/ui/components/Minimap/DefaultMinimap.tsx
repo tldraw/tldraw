@@ -178,6 +178,7 @@ export function DefaultMinimap() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
 			})
 		},
 		[editor]

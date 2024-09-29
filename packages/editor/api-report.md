@@ -1099,6 +1099,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         altKey: boolean;
         ctrlKey: boolean;
         isPen: boolean;
+        metaKey: boolean;
         shiftKey: boolean;
         isDragging: boolean;
         isEditing: boolean;
@@ -1462,6 +1463,7 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
     button: number;
     ctrlKey: boolean;
     isPen: boolean;
+    metaKey: boolean;
     point: {
         x: number;
         y: number;
@@ -2460,6 +2462,8 @@ export interface TLBaseEventInfo {
     altKey: boolean;
     // (undocumented)
     ctrlKey: boolean;
+    // (undocumented)
+    metaKey: boolean;
     // (undocumented)
     shiftKey: boolean;
     // (undocumented)

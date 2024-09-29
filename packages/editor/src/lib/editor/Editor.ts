@@ -2671,6 +2671,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					ctrlKey: this.inputs.ctrlKey,
 					altKey: this.inputs.altKey,
 					shiftKey: this.inputs.shiftKey,
+					metaKey: this.inputs.metaKey,
 					button: 0,
 					isPen: this.getInstanceState().isPenMode ?? false,
 				}
@@ -8625,6 +8626,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isPen: false,
 		/** Whether the shift key is currently pressed. */
 		shiftKey: false,
+		/** Whether the meta key is currently pressed. */
+		metaKey: false,
 		/** Whether the control or command key is currently pressed. */
 		ctrlKey: false,
 		/** Whether the alt or option key is currently pressed. */
@@ -9122,6 +9125,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
 			code: 'ShiftLeft',
 		})
 	}
@@ -9140,6 +9144,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
 			code: 'AltLeft',
 		})
 	}
@@ -9158,6 +9163,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
 			code: 'ControlLeft',
 		})
 	}

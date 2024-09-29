@@ -28,7 +28,7 @@ export class PointingShape extends StateNode {
 		)
 
 		if (
-			info.ctrlKey ||
+			(info.ctrlKey && this.editor.environment.isDarwin) ||
 			// If the shape has an onClick handler
 			this.editor.getShapeUtil(info.shape).onClick ||
 			// ...or if the shape is the focused layer (e.g. group)

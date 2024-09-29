@@ -125,6 +125,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
 				ctrlKey: event.metaKey || event.ctrlKey,
+				metaKey: event.metaKey,
 			}
 
 			editor.dispatch(info)
@@ -161,6 +162,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
 				ctrlKey: event.metaKey || event.ctrlKey,
+				metaKey: event.metaKey,
 			})
 		}
 
@@ -244,6 +246,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 						shiftKey: event.shiftKey,
 						altKey: event.altKey,
 						ctrlKey: event.metaKey || event.ctrlKey,
+						metaKey: event.metaKey,
 					})
 					break
 				}
@@ -256,6 +259,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 						shiftKey: event.shiftKey,
 						altKey: event.altKey,
 						ctrlKey: event.metaKey || event.ctrlKey,
+						metaKey: event.metaKey,
 					})
 					break
 				}
@@ -282,6 +286,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 					shiftKey: event.shiftKey,
 					altKey: event.altKey,
 					ctrlKey: event.metaKey || event.ctrlKey,
+					metaKey: event.metaKey,
 				})
 			})
 		}

@@ -21,6 +21,7 @@ const wheelEvent = {
 	shiftKey: false,
 	altKey: false,
 	ctrlKey: false,
+	metaKey: false,
 } as const
 
 const pinchEvent = {
@@ -31,6 +32,7 @@ const pinchEvent = {
 	shiftKey: false,
 	altKey: false,
 	ctrlKey: false,
+	metaKey: false,
 } as const
 
 const keyBoardEvent = {
@@ -41,6 +43,7 @@ const keyBoardEvent = {
 	shiftKey: false,
 	altKey: false,
 	ctrlKey: false,
+	metaKey: false,
 } as const
 
 describe('With default options', () => {

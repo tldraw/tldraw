@@ -48,6 +48,7 @@ export interface TLBaseEventInfo {
 	shiftKey: boolean
 	altKey: boolean
 	ctrlKey: boolean
+	metaKey: boolean
 }
 
 /** @public */

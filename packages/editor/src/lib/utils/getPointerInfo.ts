@@ -11,6 +11,7 @@ export function getPointerInfo(e: React.PointerEvent | PointerEvent) {
 		shiftKey: e.shiftKey,
 		altKey: e.altKey,
 		ctrlKey: e.metaKey || e.ctrlKey,
+		metaKey: e.metaKey,
 		pointerId: e.pointerId,
 		button: e.button,
 		isPen: e.pointerType === 'pen',
