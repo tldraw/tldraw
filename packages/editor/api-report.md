@@ -2773,8 +2773,6 @@ export interface TldrawOptions {
     // (undocumented)
     readonly maxShapesPerPage: number;
     // (undocumented)
-    readonly menuId?: string;
-    // (undocumented)
     readonly multiClickDurationMs: number;
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)

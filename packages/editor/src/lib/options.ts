@@ -16,7 +16,6 @@
  * @public
  */
 export interface TldrawOptions {
-	readonly menuId?: string
 	readonly maxShapesPerPage: number
 	readonly maxFilesAtOnce: number
 	readonly maxPages: number
