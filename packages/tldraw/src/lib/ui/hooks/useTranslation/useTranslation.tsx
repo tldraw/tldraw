@@ -40,7 +40,7 @@ export function useCurrentTranslation() {
  *
  * @internal
  */
-export const TranslationProvider = track(function TranslationProvider({
+export const TldrawUiTranslationProvider = track(function TranslationProvider({
 	overrides,
 	locale,
 	children,

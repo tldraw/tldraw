@@ -1,5 +1,5 @@
 import * as _Dialog from '@radix-ui/react-dialog'
-import { useContainer } from '@tldraw/editor'
+import { useContainer, useValue } from '@tldraw/editor'
 import { memo, useCallback } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 
@@ -45,8 +45,8 @@ const Dialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
 }
 
 /** @public @react */
-export const Dialogs = memo(function Dialogs() {
+export const TldrawUiDialogs = memo(function TldrawUiDialogs() {
 	const { dialogs } = useDialogs()
-
-	return dialogs.map((dialog: TLUiDialog) => <Dialog key={dialog.id} {...dialog} />)
+	const dialogsArray = useValue('dialogs', () => dialogs.get(), [dialogs])
+	return dialogsArray.map((dialog) => <Dialog key={dialog.id} {...dialog} />)
 })

@@ -6,6 +6,7 @@
 
 /// <reference types="react" />
 
+import { Atom } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
 import { BindingOnChangeOptions } from '@tldraw/editor';
@@ -736,22 +737,6 @@ export function DefaultZoomMenuContent(): JSX_2.Element;
 
 // @public (undocumented)
 export function DeleteMenuItem(): JSX_2.Element;
-
-// @public (undocumented)
-export const Dialogs: NamedExoticComponent<object>;
-
-// @public (undocumented)
-export function DialogsProvider({ context, children }: DialogsProviderProps): JSX_2.Element;
-
-// @public (undocumented)
-export interface DialogsProviderProps {
-    // (undocumented)
-    children: ReactNode;
-    // (undocumented)
-    context?: string;
-    // (undocumented)
-    overrides?(editor: Editor): TLUiDialogsContextType;
-}
 
 // @public (undocumented)
 export function DiamondToolbarItem(): JSX_2.Element;
@@ -2089,18 +2074,7 @@ export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerPro
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, mediaMimeTypes, children, }: TldrawUiContextProviderProps): JSX_2.Element;
-
-// @public (undocumented)
-export interface TldrawUiContextProviderProps {
-    assetUrls?: RecursivePartial<TLUiAssetUrls>;
-    children?: ReactNode;
-    components?: TLUiComponents;
-    forceMobile?: boolean;
-    mediaMimeTypes?: string[];
-    onUiEvent?: TLUiEventHandler;
-    overrides?: TLUiOverrides | TLUiOverrides[];
-}
+export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, mediaMimeTypes, children, }: TLUiContextProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
@@ -2113,6 +2087,12 @@ export function TldrawUiDialogFooter({ className, children }: TLUiDialogFooterPr
 
 // @public (undocumented)
 export function TldrawUiDialogHeader({ className, children }: TLUiDialogHeaderProps): JSX_2.Element;
+
+// @public (undocumented)
+export const TldrawUiDialogs: NamedExoticComponent<object>;
+
+// @public (undocumented)
+export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export function TldrawUiDialogTitle({ className, children }: TLUiDialogTitleProps): JSX_2.Element;
@@ -2145,6 +2125,9 @@ export function TldrawUiDropdownMenuSubTrigger({ id, label, title, disabled, }: 
 export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownMenuTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
+export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
+
+// @public (undocumented)
 export const TldrawUiIcon: NamedExoticComponent<TLUiIconProps>;
 
 // @public (undocumented)
@@ -2164,9 +2147,6 @@ export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string,
 
 // @public (undocumented)
 export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX_2.Element;
-
-// @public (undocumented)
-export type TldrawUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'panel' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
 
 // @public (undocumented)
 export function TldrawUiMenuGroup({ id, label, children }: TLUiMenuGroupProps): boolean | JSX_2.Element | Iterable<ReactNode> | null | number | string | undefined;
@@ -2190,7 +2170,7 @@ export function TldrawUiPopoverContent({ side, children, align, sideOffset, alig
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX_2.Element;
 
 // @public (undocumented)
-export interface TldrawUiProps extends TldrawUiContextProviderProps {
+export interface TldrawUiProps extends TLUiContextProviderProps {
     assetUrls?: TLUiAssetUrlOverrides;
     children?: ReactNode;
     components?: TLUiComponents;
@@ -2200,6 +2180,15 @@ export interface TldrawUiProps extends TldrawUiContextProviderProps {
 
 // @public (undocumented)
 export const TldrawUiSlider: NamedExoticComponent<TLUiSliderProps>;
+
+// @public (undocumented)
+export const TldrawUiToasts: NamedExoticComponent<TLUiToastsProps>;
+
+// @public (undocumented)
+export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps): JSX_2.Element;
+
+// @internal
+export const TldrawUiTranslationProvider: React_2.NamedExoticComponent<TLUiTranslationProviderProps>;
 
 // @public (undocumented)
 export interface TLEditorAssetUrls {
@@ -2408,6 +2397,17 @@ export interface TLUiContextMenuProps {
 }
 
 // @public (undocumented)
+export interface TLUiContextProviderProps {
+    assetUrls?: RecursivePartial<TLUiAssetUrls>;
+    children?: ReactNode;
+    components?: TLUiComponents;
+    forceMobile?: boolean;
+    mediaMimeTypes?: string[];
+    onUiEvent?: TLUiEventHandler;
+    overrides?: TLUiOverrides | TLUiOverrides[];
+}
+
+// @public (undocumented)
 export interface TLUiDebugMenuProps {
     // (undocumented)
     children?: ReactNode;
@@ -2464,11 +2464,19 @@ export interface TLUiDialogsContextType {
     // (undocumented)
     clearDialogs(): void;
     // (undocumented)
-    dialogs: TLUiDialog[];
+    dialogs: Atom<TLUiDialog[]>;
     // (undocumented)
     removeDialog(id: string): string;
+}
+
+// @public (undocumented)
+export interface TLUiDialogsProviderProps {
     // (undocumented)
-    updateDialog(id: string, newDialogData: Partial<TLUiDialog>): string;
+    children: ReactNode;
+    // (undocumented)
+    context?: string;
+    // (undocumented)
+    overrides?(editor: Editor): TLUiDialogsContextType;
 }
 
 // @public (undocumented)
@@ -2912,8 +2920,11 @@ export interface TLUiMenuContextProviderProps {
     // (undocumented)
     sourceId: TLUiEventSource;
     // (undocumented)
-    type: TldrawUiMenuContextType;
+    type: TLUiMenuContextType;
 }
+
+// @public (undocumented)
+export type TLUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'panel' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
 
 // @public (undocumented)
 export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
@@ -3093,6 +3104,20 @@ export interface TLUiToastsContextType {
     removeToast(id: TLUiToast['id']): string;
     // (undocumented)
     toasts: TLUiToast[];
+}
+
+// @public (undocumented)
+export interface TLUiToastsProps {
+    // (undocumented)
+    setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+}
+
+// @public (undocumented)
+export interface TLUiToastsProviderProps {
+    // (undocumented)
+    children: ReactNode;
+    // (undocumented)
+    overrides?(editor: Editor): TLUiToastsContextType;
 }
 
 // @public (undocumented)
@@ -3641,9 +3666,6 @@ export interface ToolbarItemProps {
     tool: string;
 }
 
-// @internal
-export const TranslationProvider: React_2.NamedExoticComponent<TLUiTranslationProviderProps>;
-
 // @public (undocumented)
 export function TrapezoidToolbarItem(): JSX_2.Element;
 
@@ -3652,9 +3674,6 @@ export function TriangleToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
 export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
-
-// @public (undocumented)
-export function UiEventsProvider({ onEvent, children }: EventsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export function UndoRedoGroup(): JSX_2.Element;
@@ -3738,7 +3757,6 @@ export function useDefaultHelpers(): {
     msg: (id?: string | undefined) => string;
     removeDialog: (id: string) => string;
     removeToast: (id: string) => string;
-    updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string;
 };
 
 // @public (undocumented)

@@ -4,15 +4,18 @@ import { Outlet } from 'react-router-dom'
 import {
 	AssetUrlsProvider,
 	ContainerProvider,
-	Dialogs,
-	DialogsProvider,
 	TLUiEventHandler,
-	TranslationProvider,
-	UiEventsProvider,
+	TldrawUiDialogs,
+	TldrawUiDialogsProvider,
+	TldrawUiEventsProvider,
+	TldrawUiToasts,
+	TldrawUiToastsProvider,
+	TldrawUiTranslationProvider,
 	useValue,
 } from 'tldraw'
 import { AppStateProvider, useApp } from '../hooks/useAppState'
 import '../styles/tla.css'
+import { TlaEnvironmentProvider } from './TlaEnvironmentProvider'
 
 export const assetUrls = getAssetUrlsByImport()
 
@@ -49,15 +52,20 @@ function InnerInner() {
 	}, [])
 
 	return (
-		<AssetUrlsProvider assetUrls={assetUrls}>
-			<UiEventsProvider onEvent={handleAppLevelUiEvent}>
-				<TranslationProvider locale="en">
-					<DialogsProvider>
-						<Outlet />
-						<Dialogs />
-					</DialogsProvider>
-				</TranslationProvider>
-			</UiEventsProvider>
-		</AssetUrlsProvider>
+		<TlaEnvironmentProvider>
+			<AssetUrlsProvider assetUrls={assetUrls}>
+				<TldrawUiEventsProvider onEvent={handleAppLevelUiEvent}>
+					<TldrawUiTranslationProvider locale="en">
+						<TldrawUiDialogsProvider>
+							<TldrawUiToastsProvider>
+								<Outlet />
+								<TldrawUiDialogs />
+								<TldrawUiToasts setTimeout={window.setTimeout} />
+							</TldrawUiToastsProvider>
+						</TldrawUiDialogsProvider>
+					</TldrawUiTranslationProvider>
+				</TldrawUiEventsProvider>
+			</AssetUrlsProvider>
+		</TlaEnvironmentProvider>
 	)
 }

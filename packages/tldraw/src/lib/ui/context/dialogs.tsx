@@ -1,5 +1,5 @@
-import { addOpenMenu, deleteOpenMenu, Editor, uniqueId } from '@tldraw/editor'
-import { ComponentType, createContext, ReactNode, useCallback, useContext, useState } from 'react'
+import { addOpenMenu, Atom, deleteOpenMenu, Editor, uniqueId, useAtom } from '@tldraw/editor'
+import { ComponentType, createContext, ReactNode, useContext, useMemo } from 'react'
 import { useUiEvents } from './events'
 
 /** @public */
@@ -18,103 +18,62 @@ export interface TLUiDialog {
 export interface TLUiDialogsContextType {
 	addDialog(dialog: Omit<TLUiDialog, 'id'> & { id?: string }): string
 	removeDialog(id: string): string
-	updateDialog(id: string, newDialogData: Partial<TLUiDialog>): string
 	clearDialogs(): void
-	dialogs: TLUiDialog[]
+	dialogs: Atom<TLUiDialog[]>
 }
 
 /** @internal */
 export const DialogsContext = createContext<TLUiDialogsContextType | null>(null)
 
 /** @public */
-export interface DialogsProviderProps {
+export interface TLUiDialogsProviderProps {
 	context?: string
 	overrides?(editor: Editor): TLUiDialogsContextType
 	children: ReactNode
 }
 
 /** @public @react */
-export function DialogsProvider({ context, children }: DialogsProviderProps) {
+export function TldrawUiDialogsProvider({ context, children }: TLUiDialogsProviderProps) {
 	const trackEvent = useUiEvents()
 
-	const [dialogs, setDialogs] = useState<TLUiDialog[]>([])
+	const dialogs = useAtom<TLUiDialog[]>('dialogs', [])
 
-	const addDialog = useCallback(
-		(dialog: Omit<TLUiDialog, 'id'> & { id?: string }) => {
-			const id = dialog.id ?? uniqueId()
-			setDialogs((d) => {
-				return [...d.filter((m) => m.id !== dialog.id), { ...dialog, id }]
-			})
-
-			trackEvent('open-menu', { source: 'dialog', id })
-			addOpenMenu(id, context)
-
-			return id
-		},
-		[trackEvent, context]
-	)
-
-	const updateDialog = useCallback(
-		(id: string, newDialogData: Partial<TLUiDialog>) => {
-			setDialogs((d) =>
-				d.map((m) => {
-					if (m.id === id) {
-						return {
-							...m,
-							...newDialogData,
-						}
-					}
-					return m
+	const content = useMemo(() => {
+		return {
+			dialogs,
+			addDialog(dialog: Omit<TLUiDialog, 'id'> & { id?: string }) {
+				const id = dialog.id ?? uniqueId()
+				dialogs.update((d) => {
+					return [...d.filter((m) => m.id !== dialog.id), { ...dialog, id }]
 				})
-			)
-
-			trackEvent('open-menu', { source: 'dialog', id })
-			addOpenMenu(id, context)
-
-			return id
-		},
-		[trackEvent, context]
-	)
-
-	const removeDialog = useCallback(
-		(id: string) => {
-			setDialogs((d) =>
-				d.filter((m) => {
-					if (m.id === id) {
-						m.onClose?.()
-						return false
-					}
-					return true
+				trackEvent('open-menu', { source: 'dialog', id })
+				addOpenMenu(id, context)
+				return id
+			},
+			removeDialog(id: string) {
+				const dialog = dialogs.get().find((d) => d.id === id)
+				if (dialog) {
+					dialog.onClose?.()
+					trackEvent('close-menu', { source: 'dialog', id })
+					deleteOpenMenu(id, context)
+					dialogs.update((d) => d.filter((m) => m !== dialog))
+				}
+				return id
+			},
+			clearDialogs() {
+				const current = dialogs.get()
+				if (current.length === 0) return
+				current.forEach((d) => {
+					d.onClose?.()
+					trackEvent('close-menu', { source: 'dialog', id: d.id })
+					deleteOpenMenu(d.id, context)
 				})
-			)
+				dialogs.set([])
+			},
+		}
+	}, [trackEvent, dialogs, context])
 
-			trackEvent('close-menu', { source: 'dialog', id })
-			deleteOpenMenu(id, context)
-
-			return id
-		},
-		[trackEvent, context]
-	)
-
-	const clearDialogs = useCallback(() => {
-		setDialogs((d) => {
-			if (d.length === 0) return d
-			d.forEach((m) => {
-				m.onClose?.()
-				trackEvent('close-menu', { source: 'dialog', id: m.id })
-				deleteOpenMenu(m.id, context)
-			})
-			return []
-		})
-	}, [trackEvent, context])
-
-	return (
-		<DialogsContext.Provider
-			value={{ dialogs, addDialog, removeDialog, clearDialogs, updateDialog }}
-		>
-			{children}
-		</DialogsContext.Provider>
-	)
+	return <DialogsContext.Provider value={content}>{children}</DialogsContext.Provider>
 }
 
 /** @public */

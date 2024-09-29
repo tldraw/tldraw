@@ -36,14 +36,14 @@ export interface TLUiToastsContextType {
 /** @internal */
 export const ToastsContext = createContext<TLUiToastsContextType | null>(null)
 
-/** @internal */
-export interface ToastsProviderProps {
+/** @public */
+export interface TLUiToastsProviderProps {
 	overrides?(editor: Editor): TLUiToastsContextType
 	children: ReactNode
 }
 
-/** @internal */
-export function ToastsProvider({ children }: ToastsProviderProps) {
+/** @public @react */
+export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps) {
 	const [toasts, setToasts] = useState<TLUiToast[]>([])
 
 	const addToast = useCallback((toast: Omit<TLUiToast, 'id'> & { id?: string }) => {

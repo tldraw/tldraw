@@ -2,7 +2,8 @@
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
 export { useDefaultUiAssetUrlsWithOverrides } from './lib/ui/assetUrls'
-export { Dialogs } from './lib/ui/components/Dialogs'
+export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
+export { TldrawUiToasts, type TLUiToastsProps } from './lib/ui/components/Toasts'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -15,10 +16,10 @@ export {
 	TldrawUiMenuToolItem,
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
-export { DialogsProvider, type DialogsProviderProps } from './lib/ui/context/dialogs'
-export { TranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
+export { TldrawUiDialogsProvider, type TLUiDialogsProviderProps } from './lib/ui/context/dialogs'
+export { TldrawUiToastsProvider, type TLUiToastsProviderProps } from './lib/ui/context/toasts'
+export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 export { useMergedTranslationOverrides } from './lib/ui/overrides'
-
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
@@ -357,7 +358,7 @@ export {
 export {
 	TldrawUiMenuContextProvider,
 	type TLUiMenuContextProviderProps,
-	type TldrawUiMenuContextType,
+	type TLUiMenuContextType,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuContext'
 export {
 	TldrawUiMenuGroup,
@@ -374,7 +375,7 @@ export {
 export { PORTRAIT_BREAKPOINT } from './lib/ui/constants'
 export {
 	TldrawUiContextProvider,
-	type TldrawUiContextProviderProps,
+	type TLUiContextProviderProps,
 } from './lib/ui/context/TldrawUiContextProvider'
 export {
 	unwrapLabel,
@@ -402,7 +403,7 @@ export {
 	type TLUiDialogsContextType,
 } from './lib/ui/context/dialogs'
 export {
-	UiEventsProvider,
+	TldrawUiEventsProvider,
 	useUiEvents,
 	type EventsProviderProps,
 	type TLUiEventContextType,

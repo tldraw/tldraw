@@ -10,6 +10,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	useDialogs,
+	useToasts,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { copyTextToClipboard } from '../../utils/copy'
@@ -29,11 +30,16 @@ export function TlaFileMenu({
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
+	const { addToast } = useToasts()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
 		copyTextToClipboard(url)
-	}, [fileId])
+		addToast({
+			id: 'copied-link',
+			title: 'Copied link',
+		})
+	}, [fileId, addToast])
 
 	const handleRenameLinkClick = useCallback(() => {
 		addDialog({

@@ -419,6 +419,7 @@ export function throttleToNextFrame(fn: () => void): () => void;
 
 // @public (undocumented)
 export class Timers {
+    constructor();
     // (undocumented)
     dispose(): void;
     // (undocumented)

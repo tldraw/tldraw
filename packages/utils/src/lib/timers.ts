@@ -6,6 +6,13 @@ export class Timers {
 	private intervals: number[] = []
 	private rafs: number[] = []
 
+	constructor() {
+		this.setTimeout = this.setTimeout.bind(this)
+		this.setInterval = this.setInterval.bind(this)
+		this.requestAnimationFrame = this.requestAnimationFrame.bind(this)
+		this.dispose = this.dispose.bind(this)
+	}
+
 	/** @public */
 	setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number {
 		const id = window.setTimeout(handler, timeout, args)
