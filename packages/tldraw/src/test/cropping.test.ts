@@ -203,7 +203,7 @@ describe('When in the select.idle state', () => {
 		expect(editor.getCroppingShapeId()).toBe(ids.imageB)
 	})
 
-	it.only('when only an image is selected control-pointing a selection handle should transition to select.crop.pointing_crop_handle', () => {
+	it('when only an image is selected control-pointing a selection handle should transition to select.crop.pointing_crop_handle', () => {
 		// two shapes / edge
 		editor
 			.cancel()
