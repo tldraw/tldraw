@@ -28,7 +28,8 @@ export class PointingShape extends StateNode {
 		)
 
 		if (
-			(info.ctrlKey && this.editor.environment.isDarwin) ||
+			info.metaKey ||
+			(info.ctrlKey && !this.editor.environment.isDarwin) ||
 			// If the shape has an onClick handler
 			this.editor.getShapeUtil(info.shape).onClick ||
 			// ...or if the shape is the focused layer (e.g. group)
@@ -65,10 +66,11 @@ export class PointingShape extends StateNode {
 		const focusedGroupId = this.editor.getFocusedGroupId()
 		const zoomLevel = this.editor.getZoomLevel()
 		const {
-			inputs: { currentPagePoint, shiftKey, ctrlKey },
+			inputs: { currentPagePoint },
 		} = this.editor
 
-		const additiveSelectionKey = shiftKey || ctrlKey
+		const additiveSelectionKey =
+			info.shiftKey || info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {

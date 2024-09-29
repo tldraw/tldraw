@@ -129,7 +129,7 @@ export class Idle extends StateNode {
 						if (shouldEnterCropMode) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
-							if (info.ctrlKey) {
+							if (info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)) {
 								this.parent.transition('brushing', info)
 								break
 							}
@@ -148,7 +148,7 @@ export class Idle extends StateNode {
 						if (shouldEnterCropMode) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
-							if (info.ctrlKey) {
+							if (info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)) {
 								this.parent.transition('brushing', info)
 								break
 							}

@@ -4,14 +4,9 @@ import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPoi
 export class PointingCanvas extends StateNode {
 	static override id = 'pointing_canvas'
 
-	didCtrlOnEnter = false
-
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
-		const { inputs } = this.editor
-
-		this.didCtrlOnEnter = inputs.ctrlKey
-
-		const additiveSelectionKey = info.ctrlKey || info.shiftKey
+		const additiveSelectionKey =
+			info.shiftKey || info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)
 
 		if (!additiveSelectionKey) {
 			if (this.editor.getSelectedShapeIds().length > 0) {

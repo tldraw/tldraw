@@ -9169,6 +9169,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
+	private _metaKeyTimeout = -1 as any
+
+	/** @internal */
+	@bind
+	_setMetaKeyTimeout() {
+		this.inputs.shiftKey = false
+		this.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: 'Meta',
+			shiftKey: this.inputs.shiftKey,
+			ctrlKey: this.inputs.ctrlKey,
+			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			code: 'MetaLeft',
+		})
+	}
+
+	/** @internal */
 	private _restoreToolId = 'select'
 
 	/** @internal */
@@ -9282,6 +9301,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			inputs.ctrlKey = true
 		} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
 			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
+		}
+
+		if (info.metaKey) {
+			clearTimeout(this._metaKeyTimeout)
+			this._metaKeyTimeout = -1
+			inputs.metaKey = true
+		} else if (!info.metaKey && inputs.metaKey && this._metaKeyTimeout === -1) {
+			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
 		}
 
 		const { originPagePoint, currentPagePoint } = inputs
