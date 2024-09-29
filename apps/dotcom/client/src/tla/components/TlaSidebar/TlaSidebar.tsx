@@ -13,6 +13,7 @@ import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
 import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSpacer } from '../TlaSpacer/TlaSpacer'
+import { TlaRenameFileDialog } from '../dialogs/TlaRenameFileDialog'
 import styles from './sidebar.module.css'
 
 export function TlaSidebar() {
@@ -234,12 +235,10 @@ function TlaSidebarFileLinkMenu({ fileId }: { fileId: TldrawAppFile['id'] }) {
 			...d,
 			{
 				id: 'rename',
-				Component: () => {
-					return <div>hello!!!!!!</div>
-				},
+				Component: () => <TlaRenameFileDialog fileId={fileId} />,
 			},
 		])
-	}, [])
+	}, [fileId])
 
 	const handleDuplicateLinkClick = useCallback(() => {
 		// duplicate file

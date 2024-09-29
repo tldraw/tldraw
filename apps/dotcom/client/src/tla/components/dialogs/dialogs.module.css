@@ -1,0 +1,8 @@
+.actionGroup {
+	flex-direction: row;
+	justify-content: flex-end;
+}
+
+.actionButton {
+	width: fit-content;
+}
