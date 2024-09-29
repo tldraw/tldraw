@@ -112,7 +112,8 @@ export const tlmenus = {
 			addOpenMenu: (id: string) => this.addOpenMenu(id, contextId),
 			deleteOpenMenu: (id: string) => this.deleteOpenMenu(id, contextId),
 			clearOpenMenus: () => this.clearOpenMenus(contextId),
-			getIsMenuOpen: () => this.getIsMenuOpen(contextId),
+			// Gets whether any menus are open
+			getIsMenuOpen: () => this.getIsMenuOpen(),
 		}
 	},
 }
