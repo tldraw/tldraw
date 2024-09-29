@@ -1,13 +1,14 @@
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	AssetUrlsProvider,
 	ContainerProvider,
 	Dialogs,
 	DialogsProvider,
+	TLUiEventHandler,
 	TranslationProvider,
-	useMergedTranslationOverrides,
+	UiEventsProvider,
 	useValue,
 } from 'tldraw'
 import { AppStateProvider, useApp } from '../hooks/useAppState'
@@ -29,28 +30,34 @@ function Inner() {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 
 	return (
-		<DialogsProvider>
-			<div
-				ref={setContainer}
-				className={`tla tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-			>
-				{container && (
-					<ContainerProvider container={container}>
-						<InnerInner />
-					</ContainerProvider>
-				)}
-			</div>
-		</DialogsProvider>
+		<div
+			ref={setContainer}
+			className={`tla tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+		>
+			{container && (
+				<ContainerProvider container={container}>
+					<InnerInner />
+				</ContainerProvider>
+			)}
+		</div>
 	)
 }
 
 function InnerInner() {
+	const handleAppLevelUiEvent = useCallback<TLUiEventHandler>(() => {
+		// todo, implement handling ui events at the application layer
+	}, [])
+
 	return (
 		<AssetUrlsProvider assetUrls={assetUrls}>
-			<TranslationProvider overrides={useMergedTranslationOverrides()} locale="en">
-				<Outlet />
-				<Dialogs />
-			</TranslationProvider>
+			<UiEventsProvider onEvent={handleAppLevelUiEvent}>
+				<TranslationProvider locale="en">
+					<DialogsProvider>
+						<Outlet />
+						<Dialogs />
+					</DialogsProvider>
+				</TranslationProvider>
+			</UiEventsProvider>
 		</AssetUrlsProvider>
 	)
 }

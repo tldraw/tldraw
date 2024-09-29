@@ -68,6 +68,7 @@ export function TlaRenameFileDialog({
 					onComplete={handleSave}
 					requestAnimationFrame={requestAnimationFrame}
 					autoSelect
+					autoFocus
 				/>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
