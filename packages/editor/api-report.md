@@ -1082,12 +1082,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
     getZoomLevel(): number;
-    groupShapes(shapes: TLShape[], options?: Partial<{
+    groupShapes(shapes: TLShape[], opts?: Partial<{
         groupId: TLShapeId;
         select: boolean;
     }>): this;
     // (undocumented)
-    groupShapes(ids: TLShapeId[], options?: Partial<{
+    groupShapes(ids: TLShapeId[], opts?: Partial<{
         groupId: TLShapeId;
         select: boolean;
     }>): this;
@@ -1158,7 +1158,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
     popFocusedGroupId(): this;
-    putContentOntoCurrentPage(content: TLContent, options?: {
+    putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
         preserveIds?: boolean;
         preservePosition?: boolean;
@@ -1176,7 +1176,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
-    resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
+    resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
     // (undocumented)
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
@@ -1199,7 +1199,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
-    setCameraOptions(options: Partial<TLCameraOptions>): this;
+    setCameraOptions(opts: Partial<TLCameraOptions>): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     // @internal (undocumented)
     _setCtrlKeyTimeout(): void;
@@ -1252,11 +1252,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     undo(): this;
-    ungroupShapes(ids: TLShapeId[], options?: Partial<{
+    ungroupShapes(ids: TLShapeId[], opts?: Partial<{
         select: boolean;
     }>): this;
     // (undocumented)
-    ungroupShapes(shapes: TLShape[], options?: Partial<{
+    ungroupShapes(shapes: TLShape[], opts?: Partial<{
         select: boolean;
     }>): this;
     updateAssets(assets: TLAssetPartial[]): this;

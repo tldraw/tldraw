@@ -1,5 +1,7 @@
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { clearLocalStorage, setInLocalStorage } from 'tldraw'
 import { TlaButton } from '../components/TlaButton/TlaButton'
 import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
 import { TlaFormDivider } from '../components/tla-form/tla-form'
@@ -7,23 +9,14 @@ import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../hooks/useFlags'
 import { useSessionState } from '../hooks/useSessionState'
 import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
-import { TldrawAppUserId, TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
+import { USER_ID_KEY } from '../providers/TlaAppProvider'
 
 export function Component() {
-	const app = useApp()
 	const navigate = useNavigate()
 
-	function handleSignInAsUser(userId: TldrawAppUserId) {
-		const current = app.getSessionState()
-		if (!current.auth) throw Error('No auth')
-		app.setSessionState({
-			...current,
-			auth: {
-				...current.auth,
-				userId,
-			},
-		})
-		navigate('/q')
+	function handleSignInAsUser(userId: string) {
+		setInLocalStorage(USER_ID_KEY, userId)
+		window.location.href = '/q'
 	}
 
 	return (
@@ -38,7 +31,7 @@ export function Component() {
 				<TlaButton
 					variant="primary"
 					onClick={() => {
-						handleSignInAsUser(TldrawAppUserRecordType.createId('0')) // steve
+						handleSignInAsUser('steve') // steve
 					}}
 				>
 					Sign in as Steve
@@ -46,7 +39,7 @@ export function Component() {
 				<TlaButton
 					variant="primary"
 					onClick={() => {
-						handleSignInAsUser(TldrawAppUserRecordType.createId('1')) // david
+						handleSignInAsUser('david') // david
 					}}
 				>
 					Sign in as David
@@ -54,19 +47,19 @@ export function Component() {
 				<TlaButton
 					variant="primary"
 					onClick={() => {
-						handleSignInAsUser(TldrawAppUserRecordType.createId('2')) // alex
+						handleSignInAsUser('alex') // alex
 					}}
 				>
 					Sign in as Alex
 				</TlaButton>
 				<TlaButton
 					variant="warning"
-					onClick={async () => {
-						await app.resetDatabase()
-						window.location.reload()
+					onClick={() => {
+						clearLocalStorage()
+						navigate('/q')
 					}}
 				>
-					Reset database
+					Sign out
 				</TlaButton>
 			</div>
 			<TlaSpacer height={40} />

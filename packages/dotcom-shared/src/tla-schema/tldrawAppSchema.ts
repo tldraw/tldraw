@@ -1,12 +1,9 @@
-import { StoreSchema, createMigrationSequence } from 'tldraw'
-import { TldrawAppFile, TldrawAppFileRecordType } from './schema/TldrawAppFile'
-import { TldrawAppFileEdit, TldrawAppFileEditRecordType } from './schema/TldrawAppFileEdit'
-import { TldrawAppFileVisit, TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
-import {
-	TldrawAppSessionState,
-	TldrawAppSessionStateRecordType,
-} from './schema/TldrawAppSessionState'
-import { TldrawAppUser, TldrawAppUserRecordType } from './schema/TldrawAppUser'
+import { StoreSchema, createMigrationSequence } from '@tldraw/store'
+import { TldrawAppFile, TldrawAppFileRecordType } from './TldrawAppFile'
+import { TldrawAppFileEdit, TldrawAppFileEditRecordType } from './TldrawAppFileEdit'
+import { TldrawAppFileVisit, TldrawAppFileVisitRecordType } from './TldrawAppFileVisit'
+import { TldrawAppSessionState, TldrawAppSessionStateRecordType } from './TldrawAppSessionState'
+import { TldrawAppUser, TldrawAppUserRecordType } from './TldrawAppUser'
 
 export type TldrawAppRecord =
 	| TldrawAppFile
@@ -34,7 +31,3 @@ export const tldrawAppSchema = StoreSchema.create<TldrawAppRecord>(
 		migrations: [migrations],
 	}
 )
-
-export function getCleanId(id: string) {
-	return id.split(':')[1]
-}

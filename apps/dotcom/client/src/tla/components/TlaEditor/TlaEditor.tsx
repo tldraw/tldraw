@@ -1,3 +1,5 @@
+import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DefaultDebugMenu,
@@ -22,17 +24,18 @@ import { Links } from '../../../components/Links'
 import { SneakyOnDropOverride } from '../../../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
+import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../../../utils/migration/LocalMigration'
+import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useSharing } from '../../../utils/sharing'
-import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { useApp } from '../../hooks/useAppState'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { TldrawApp } from '../../utils/TldrawApp'
-import { TldrawAppFile } from '../../utils/schema/TldrawAppFile'
 import styles from './editor.module.css'
+
 // const shittyOfflineAtom = atom('shitty offline atom', false)
 
 const components: TLComponents = {
@@ -119,18 +122,18 @@ const components: TLComponents = {
 }
 
 export function TlaEditor({
-	file,
+	fileSlug,
 	onDocumentChange,
 }: {
-	file: TldrawAppFile
+	fileSlug: string
 	onDocumentChange?(): void
 }) {
 	const handleUiEvent = useHandleUiEvents()
-	const app = useApp()
-
-	const { id: fileId } = file
+	const app = useMaybeApp()
 
 	const [ready, setReady] = useState(false)
+	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+
 	const rPrevFileId = useRef(fileId)
 	useEffect(() => {
 		if (rPrevFileId.current !== fileId) {
@@ -139,10 +142,7 @@ export function TlaEditor({
 		}
 	}, [fileId])
 
-	const persistenceKey = `tla-2_${fileId}`
-
 	const sharingUiOverrides = useSharing()
-	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -150,7 +150,7 @@ export function TlaEditor({
 			;(window as any).editor = editor
 			globalEditor.set(editor)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
-			app.setCurrentEditor(editor)
+			app?.setCurrentEditor(editor)
 			editor.timers.setTimeout(() => {
 				setReady(true)
 			}, 200)
@@ -160,16 +160,15 @@ export function TlaEditor({
 			editor.store.listen(
 				() => {
 					// Update the user's edited session date for this file
-					const sessionState = app.getSessionState()
-					if (!sessionState.auth) throw Error('Auth not found')
-					const user = app.getUser(sessionState.auth.userId)
-					if (!user) throw Error('User not found')
-
-					app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
-
-					if (onDocumentChange) {
-						onDocumentChange()
+					if (app) {
+						const sessionState = app.getSessionState()
+						if (!sessionState.auth) throw Error('Auth not found')
+						const user = app.getUser(sessionState.auth.userId)
+						if (!user) throw Error('User not found')
+						app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
 					}
+
+					onDocumentChange?.()
 				},
 				{ scope: 'document', source: 'user' }
 			)
@@ -178,6 +177,7 @@ export function TlaEditor({
 	)
 
 	useEffect(() => {
+		if (!app) return
 		const { auth } = app.getSessionState()
 		if (!auth) throw Error('Auth not found')
 
@@ -207,14 +207,18 @@ export function TlaEditor({
 		}
 	}, [app, fileId])
 
+	const store = useSync({
+		uri: `${MULTIPLAYER_SERVER}/app/file/${fileSlug}`,
+		assets: multiplayerAssetStore,
+	})
+
 	return (
 		<div className={styles.editor}>
 			<Tldraw
-				key={persistenceKey}
+				store={store}
 				assetUrls={assetUrls}
-				persistenceKey={persistenceKey}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
+				overrides={[sharingUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
 			>
@@ -224,18 +228,19 @@ export function TlaEditor({
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
 			</Tldraw>
-			{ready ? null : <div key={persistenceKey + 'overlay'} className={styles.overlay} />}
+			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
 		</div>
 	)
 }
 
 function SneakyDarkModeSync() {
-	const app = useApp()
+	const app = useMaybeApp()
 	const editor = useEditor()
 
 	useReactor(
 		'dark mode sync',
 		() => {
+			if (!app) return
 			const appIsDark =
 				app.store.unsafeGetWithoutCapture(TldrawApp.SessionStateId)!.theme === 'dark'
 			const editorIsDark = editor.user.getIsDarkMode()

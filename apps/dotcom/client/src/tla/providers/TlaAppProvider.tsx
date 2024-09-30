@@ -1,6 +1,6 @@
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { useCallback, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Navigate, Outlet } from 'react-router-dom'
 import {
 	AssetUrlsProvider,
 	ContainerProvider,
@@ -18,7 +18,16 @@ import '../styles/tla.css'
 
 export const assetUrls = getAssetUrlsByImport()
 
+// prototype shit, this will be set during fake login
+export const USER_ID_KEY = 'tldraw_app_userId'
+
 export function Component() {
+	// eslint-disable-next-line no-restricted-syntax
+	const userId = localStorage.getItem(USER_ID_KEY)
+	if (!userId) {
+		return <Navigate to="/q/local" replace />
+	}
+
 	return (
 		<AppStateProvider>
 			<Inner />

@@ -1,3 +1,4 @@
+import { TldrawAppFileId, TldrawAppSessionState } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiDropdownMenuContent,
@@ -7,8 +8,6 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
-import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
-import { TldrawAppSessionState } from '../../utils/schema/TldrawAppSessionState'
 import { TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'

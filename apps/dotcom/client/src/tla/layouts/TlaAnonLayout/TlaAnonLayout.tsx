@@ -1,17 +1,30 @@
 import classNames from 'classnames'
 import { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
+import { USER_ID_KEY } from '../../providers/TlaAppProvider'
 import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
+	const navigate = useNavigate()
+
 	return (
 		<div className={classNames(styles.loggedOut)}>
 			<div className={styles.header}>
 				<Link to="/">
 					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />
 				</Link>
-				<TlaButton>Sign in</TlaButton>
+				<TlaButton
+					onClick={() => {
+						const userid = window.prompt('Enter your user id (trip code lol)')
+						if (!userid) return
+						// eslint-disable-next-line no-restricted-syntax
+						localStorage.setItem(USER_ID_KEY, userid)
+						navigate('/q', { replace: true })
+					}}
+				>
+					Sign in
+				</TlaButton>
 			</div>
 			<div className={styles.editorWrapper}>{children}</div>
 			<div className={classNames(styles.footer, 'tla-text_ui__regular')}>

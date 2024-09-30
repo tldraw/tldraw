@@ -1,9 +1,9 @@
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useEffect, useState } from 'react'
 import { TldrawUiInput, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawApp } from '../../utils/TldrawApp'
-import { TldrawAppFile, TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditor } from '../TlaEditor/TlaEditor'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
@@ -12,7 +12,7 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
 import styles from './file.module.css'
 
-export function TlaFileContent({ file }: { file: TldrawAppFile }) {
+export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 	const app = useApp()
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
@@ -21,18 +21,30 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 		[app]
 	)
 
+	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+
+	const file = useValue(
+		'file',
+		() => {
+			return app.store.get(TldrawAppFileRecordType.createId(fileSlug))
+		},
+		[app, fileSlug]
+	)
+
+	if (!file) throw Error('expected a file')
+
 	useEffect(() => {
 		let cancelled = false
 		setTimeout(() => {
 			if (cancelled) return
 			const { auth } = app.getSessionState()
 			if (!auth) throw Error('expected auth')
-			app.onFileExit(auth.userId, file.id)
+			app.onFileExit(auth.userId, fileId)
 		}, 500)
 		return () => {
 			cancelled = true
 		}
-	}, [app, file.id])
+	}, [app, fileId])
 
 	// todo: handle viewing permissions—is this file owned by the user, or is it part of a group that they belong to?
 
@@ -61,7 +73,7 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 				data-sidebar={isSidebarOpen}
 				data-sidebarmobile={isSidebarOpenMobile}
 			>
-				<TlaEditor file={file} />
+				<TlaEditor fileSlug={fileId} />
 			</div>
 		</div>
 	)
