@@ -8,6 +8,8 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"dependencies": {
+		"@tldraw/store": "workspace:*",
+		"@tldraw/validate": "workspace:*",
 		"tldraw": "workspace:*"
 	},
 	"peerDependencies": {

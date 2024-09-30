@@ -315,7 +315,9 @@ function HandlesWrapperInner({ shapeId }: { shapeId: TLShapeId }) {
 		[editor, zoomLevel, isCoarse, shapeId]
 	)
 
-	if (!Handles || !handles || !transform) {
+	const isHidden = useValue('isHidden', () => editor.isShapeHidden(shapeId), [editor, shapeId])
+
+	if (!Handles || !handles || !transform || isHidden) {
 		return null
 	}
 

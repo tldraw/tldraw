@@ -2,7 +2,8 @@ import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { memo, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
-import { stopEventPropagation } from '../utils/dom'
+import { preventDefault, stopEventPropagation } from '../utils/dom'
+import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
@@ -53,6 +54,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	const events = useCanvasEvents()
 
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
+	const url = 'https://tldraw.dev'
 
 	return (
 		<div
@@ -63,14 +65,29 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			draggable={false}
 			{...events}
 		>
-			<a
-				href="https://tldraw.dev"
-				target="_blank"
-				rel="noreferrer"
-				draggable={false}
-				onPointerDown={stopEventPropagation}
-				style={{ mask: maskCss, WebkitMask: maskCss }}
-			/>
+			{editor.environment.isCodeOss ? (
+				<a
+					draggable={false}
+					role="button"
+					onPointerDown={(e) => {
+						stopEventPropagation(e)
+						preventDefault(e)
+					}}
+					onClick={() => runtime.openWindow(url, '_blank')}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
+				/>
+			) : (
+				<a
+					href={url}
+					target="_blank"
+					rel="noreferrer"
+					draggable={false}
+					onPointerDown={(e) => {
+						stopEventPropagation(e)
+					}}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
+				/>
+			)}
 		</div>
 	)
 })
@@ -98,7 +115,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		justify-content: center;
 		z-index: 2147483647 !important;
 		background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
-		opacity: .5;
+		opacity: 1;
 		border-radius: 5px;
 		pointer-events: all;
 		padding: 2px;
@@ -112,6 +129,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		pointer-events: all;
 		cursor: inherit;
 		color: var(--color-text);
+		opacity: .38;
 		background-color: currentColor;
 	}
 
@@ -137,13 +155,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 	}
 	
 	@media (hover: hover) {
-		.${className}[data-mobile='true'] > a {
-			opacity: .62;
-			pointer-events: none;
-		}
-
 		.${className} > a {
-			opacity: .28;
 			pointer-events: none;
 		}
 
@@ -152,12 +164,14 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			transition: background-color 0.2s ease-in-out;
 			transition-delay: 0.32s;
 		}
+			
 		.${className}:hover > a {
 			animation: delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
 		}
 	}
 	
+
 	@keyframes delayed_link {
 		0% {
 			cursor: inherit;

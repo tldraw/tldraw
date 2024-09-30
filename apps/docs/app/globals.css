@@ -32,4 +32,14 @@ html {
 	input[type='search']::-webkit-search-results-decoration {
 		-webkit-appearance: none;
 	}
+
+	@media (max-width: 768px) {
+		.prose table {
+			table-layout: fixed;
+		}
+
+		.prose td {
+			word-break: break-word;
+		}
+	}
 }

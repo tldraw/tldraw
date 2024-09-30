@@ -7,15 +7,20 @@ async function main() {
 	const relativeCwd = path.relative(REPO_ROOT, process.cwd())
 
 	try {
-		await exec('yarn', ['prettier', shouldFix ? '--write' : '--check', '--cache', relativeCwd], {
-			pwd: REPO_ROOT,
-		})
+		await exec(
+			'yarn',
+			['prettier', shouldFix ? '--write' : '--check', '--log-level=error', '--cache', relativeCwd],
+			{
+				pwd: REPO_ROOT,
+			}
+		)
 		await exec(
 			'yarn',
 			[
 				'eslint',
 				'--report-unused-disable-directives',
 				'--no-error-on-unmatched-pattern',
+				'--quiet',
 				shouldFix ? '--fix' : null,
 				relativeCwd,
 			],

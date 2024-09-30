@@ -153,7 +153,7 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 export type RoomSession<R extends UnknownRecord, Meta> = {
     cancellationTime: number;
     meta: Meta;
-    presenceId: string;
+    presenceId: null | string;
     sessionId: string;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingRemoval;
@@ -162,14 +162,14 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     lastInteractionTime: number;
     meta: Meta;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
-    presenceId: string;
+    presenceId: null | string;
     serializedSchema: SerializedSchema;
     sessionId: string;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.Connected;
 } | {
     meta: Meta;
-    presenceId: string;
+    presenceId: null | string;
     sessionId: string;
     sessionStartTime: number;
     socket: TLRoomSocket<R>;
@@ -199,6 +199,18 @@ export interface RoomSnapshot {
     schema?: SerializedSchema;
     // (undocumented)
     tombstones?: Record<string, number>;
+}
+
+// @public (undocumented)
+export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
+    // (undocumented)
+    delete(recordOrId: R | string): void;
+    // (undocumented)
+    get(id: string): null | R;
+    // (undocumented)
+    getAll(): R[];
+    // (undocumented)
+    put(record: R): void;
 }
 
 // @internal (undocumented)
@@ -355,6 +367,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
+    updateStore(updater: (store: RoomStoreMethods) => Promise<void> | void): Promise<void>;
 }
 
 // @internal (undocumented)
@@ -440,12 +453,13 @@ export interface TLSyncLog {
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
         log?: TLSyncLog;
+        onDataChange?(): void;
         schema: StoreSchema<R, any>;
         snapshot?: RoomSnapshot;
     });
-    broadcastPatch({ diff, sourceSessionId }: {
+    broadcastPatch(message: {
         diff: NetworkDiff<R>;
-        sourceSessionId: string;
+        sourceSessionId?: string;
     }): this;
     // (undocumented)
     clock: number;
@@ -473,7 +487,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     isClosed(): boolean;
     // (undocumented)
-    readonly presenceType: RecordType<R, any>;
+    readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
     pruneSessions: () => void;
     // (undocumented)
@@ -489,6 +503,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     }, unknown>;
     // (undocumented)
     tombstoneHistoryStartsAtClock: number;
+    updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
 // @internal (undocumented)

@@ -7,6 +7,7 @@ import { Pointing } from './childStates/Pointing'
 export class HandTool extends StateNode {
 	static override id = 'hand'
 	static override initial = 'idle'
+	static override isLockable = false
 	static override children(): TLStateNodeConstructor[] {
 		return [Idle, Pointing, Dragging]
 	}

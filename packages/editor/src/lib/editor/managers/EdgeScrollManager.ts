@@ -52,6 +52,9 @@ export class EdgeScrollManager {
 	 * Helper function to get the scroll proximity factor for a given position.
 	 * @param position - The mouse position on the axis.
 	 * @param dimension - The component dimension on the axis.
+	 * @param isCoarse - Whether the pointer is coarse.
+	 * @param insetStart - Whether the pointer is inset at the start of the axis.
+	 * @param insetEnd - Whether the pointer is inset at the end of the axis.
 	 * @internal
 	 */
 	private getEdgeProximityFactors(

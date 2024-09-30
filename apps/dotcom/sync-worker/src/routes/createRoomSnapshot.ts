@@ -39,7 +39,7 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(roomId, parentSlug)
 	}
 	await env.ROOM_SNAPSHOTS.put(
-		getR2KeyForSnapshot(parentSlug, roomId),
+		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: false }),
 		JSON.stringify(persistedRoomSnapshot)
 	)
 

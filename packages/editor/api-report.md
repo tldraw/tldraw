@@ -83,6 +83,7 @@ import { track } from '@tldraw/state-react';
 import { transact } from '@tldraw/state';
 import { transaction } from '@tldraw/state';
 import { UnknownRecord } from '@tldraw/store';
+import { useAtom } from '@tldraw/state-react';
 import { useComputed } from '@tldraw/state-react';
 import { useQuickReactor } from '@tldraw/state-react';
 import { useReactor } from '@tldraw/state-react';
@@ -718,6 +719,7 @@ export const defaultTldrawOptions: {
     readonly maxPointsPerDrawShape: 500;
     readonly maxShapesPerPage: 4000;
     readonly multiClickDurationMs: 200;
+    readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
 };
 
@@ -801,7 +803,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
@@ -1071,12 +1073,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportScreenBounds(): Box;
     getViewportScreenCenter(): Vec;
     getZoomLevel(): number;
-    groupShapes(shapes: TLShape[], options?: Partial<{
+    groupShapes(shapes: TLShape[], opts?: Partial<{
         groupId: TLShapeId;
         select: boolean;
     }>): this;
     // (undocumented)
-    groupShapes(ids: TLShapeId[], options?: Partial<{
+    groupShapes(ids: TLShapeId[], opts?: Partial<{
         groupId: TLShapeId;
         select: boolean;
     }>): this;
@@ -1114,6 +1116,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
     }): boolean;
+    // (undocumented)
+    isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     // (undocumented)
@@ -1137,7 +1141,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
     popFocusedGroupId(): this;
-    putContentOntoCurrentPage(content: TLContent, options?: {
+    putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
         preserveIds?: boolean;
         preservePosition?: boolean;
@@ -1155,7 +1159,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     renamePage(page: TLPage | TLPageId, name: string): this;
     reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: IndexKey): this;
     resetZoom(point?: Vec, opts?: TLCameraMoveOptions): this;
-    resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
+    resizeShape(shape: TLShape | TLShapeId, scale: VecLike, opts?: TLResizeShapeOptions): this;
     // (undocumented)
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
@@ -1178,7 +1182,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     _setAltKeyTimeout(): void;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
-    setCameraOptions(options: Partial<TLCameraOptions>): this;
+    setCameraOptions(opts: Partial<TLCameraOptions>): this;
     setCroppingShape(shape: null | TLShape | TLShapeId): this;
     // @internal (undocumented)
     _setCtrlKeyTimeout(): void;
@@ -1226,11 +1230,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly timers: Timers;
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     undo(): this;
-    ungroupShapes(ids: TLShapeId[], options?: Partial<{
+    ungroupShapes(ids: TLShapeId[], opts?: Partial<{
         select: boolean;
     }>): this;
     // (undocumented)
-    ungroupShapes(shapes: TLShape[], options?: Partial<{
+    ungroupShapes(shapes: TLShape[], opts?: Partial<{
         select: boolean;
     }>): this;
     updateAssets(assets: TLAssetPartial[]): this;
@@ -1307,6 +1311,7 @@ export class EnvironmentManager {
     editor: Editor;
     readonly isAndroid: boolean;
     readonly isChromeForIos: boolean;
+    readonly isCodeOss: boolean;
     readonly isFirefox: boolean;
     readonly isIos: boolean;
     readonly isSafari: boolean;
@@ -2069,6 +2074,9 @@ export const runtime: {
     refreshPage(): void;
 };
 
+// @internal (undocumented)
+export function sanitizeId(id: string): string;
+
 // @public (undocumented)
 export interface ScribbleItem {
     // (undocumented)
@@ -2646,6 +2654,7 @@ export interface TldrawEditorBaseProps {
     deepLinks?: TLDeepLinkOptions | true;
     inferDarkMode?: boolean;
     initialState?: string;
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -2744,6 +2753,7 @@ export interface TldrawOptions {
     readonly maxShapesPerPage: number;
     // (undocumented)
     readonly multiClickDurationMs: number;
+    readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
 }
@@ -2814,6 +2824,7 @@ export interface TLEditorOptions {
     getContainer(): HTMLElement;
     inferDarkMode?: boolean;
     initialState?: string;
+    isShapeHidden?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
     // (undocumented)
@@ -3527,6 +3538,8 @@ export function uniq<T>(array: {
     readonly [n: number]: T;
     readonly length: number;
 } | null | undefined): T[];
+
+export { useAtom }
 
 export { useComputed }
 

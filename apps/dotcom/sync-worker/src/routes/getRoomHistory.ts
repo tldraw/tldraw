@@ -12,7 +12,7 @@ export async function getRoomHistory(request: IRequest, env: Environment): Promi
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
 	const versionCacheBucket = env.ROOMS_HISTORY_EPHEMERAL
-	const bucketKey = getR2KeyForRoom(roomId)
+	const bucketKey = getR2KeyForRoom({ slug: roomId, isApp: false })
 
 	let batch = await versionCacheBucket.list({
 		prefix: bucketKey,

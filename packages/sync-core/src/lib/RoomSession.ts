@@ -21,7 +21,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 	| {
 			state: typeof RoomSessionState.AwaitingConnectMessage
 			sessionId: string
-			presenceId: string
+			presenceId: string | null
 			socket: TLRoomSocket<R>
 			sessionStartTime: number
 			meta: Meta
@@ -29,7 +29,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 	| {
 			state: typeof RoomSessionState.AwaitingRemoval
 			sessionId: string
-			presenceId: string
+			presenceId: string | null
 			socket: TLRoomSocket<R>
 			cancellationTime: number
 			meta: Meta
@@ -37,7 +37,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 	| {
 			state: typeof RoomSessionState.Connected
 			sessionId: string
-			presenceId: string
+			presenceId: string | null
 			socket: TLRoomSocket<R>
 			serializedSchema: SerializedSchema
 			lastInteractionTime: number

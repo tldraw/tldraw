@@ -11,7 +11,6 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	fetch,
-	unwrapLabel,
 	useActions,
 	useContainer,
 	useEditor,
@@ -20,8 +19,9 @@ import {
 } from 'tldraw'
 import { useShareMenuIsOpen } from '../hooks/useShareMenuOpen'
 import { createQRCodeImageDataString } from '../utils/qrcode'
-import { SHARE_PROJECT_ACTION, SHARE_SNAPSHOT_ACTION } from '../utils/sharing'
+import { SHARE_PROJECT_ACTION } from '../utils/sharing'
 import { ShareButton } from './ShareButton'
+import { SnapshotLinkCopy } from './SnapshotLinkCopy'
 
 const SHARE_CURRENT_STATE = {
 	OFFLINE: 'offline',
@@ -113,13 +113,11 @@ export const ShareMenu = React.memo(function ShareMenu() {
 	const msg = useTranslation()
 	const container = useContainer()
 
-	const { [SHARE_PROJECT_ACTION]: shareProject, [SHARE_SNAPSHOT_ACTION]: shareSnapshot } =
-		useActions()
+	const { [SHARE_PROJECT_ACTION]: shareProject } = useActions()
 
 	const [shareState, setShareState] = useState(getFreshShareState)
 
 	const [isUploading, setIsUploading] = useState(false)
-	const [isUploadingSnapshot, setIsUploadingSnapshot] = useState(false)
 	const isReadOnlyLink = shareState.state === SHARE_CURRENT_STATE.SHARED_READ_ONLY
 	const currentShareLinkUrl = isReadOnlyLink ? shareState.readonlyUrl : shareState.url
 	const currentQrCodeUrl = isReadOnlyLink
@@ -248,22 +246,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										{msg('share-menu.copy-readonly-link-note')}
 									</p>
 								</TldrawUiMenuGroup>
-
-								<TldrawUiMenuGroup id="snapshot">
-									<TldrawUiMenuItem
-										{...shareSnapshot}
-										icon="clipboard-copy"
-										onSelect={async () => {
-											setIsUploadingSnapshot(true)
-											await shareSnapshot.onSelect('share-menu')
-											setIsUploadingSnapshot(false)
-										}}
-										spinner={isUploadingSnapshot}
-									/>
-									<p className="tlui-menu__group tlui-share-zone__details">
-										{msg('share-menu.snapshot-link-note')}
-									</p>
-								</TldrawUiMenuGroup>
+								<SnapshotLinkCopy />
 							</>
 						) : (
 							<>
@@ -292,23 +275,7 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										)}
 									</p>
 								</TldrawUiMenuGroup>
-								<TldrawUiMenuGroup id="copy-snapshot-link">
-									<TldrawUiMenuItem
-										id="copy-snapshot-link"
-										readonlyOk
-										icon="clipboard-copy"
-										label={unwrapLabel(shareSnapshot.label)}
-										onSelect={async () => {
-											setIsUploadingSnapshot(true)
-											await shareSnapshot.onSelect('share-menu')
-											setIsUploadingSnapshot(false)
-										}}
-										spinner={isUploadingSnapshot}
-									/>
-									<p className="tlui-menu__group tlui-share-zone__details">
-										{msg('share-menu.snapshot-link-note')}
-									</p>
-								</TldrawUiMenuGroup>
+								<SnapshotLinkCopy />
 							</>
 						)}
 					</TldrawUiMenuContextProvider>

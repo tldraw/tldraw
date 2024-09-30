@@ -1,0 +1,30 @@
+name: Publish Canary Packages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: 'Publish Canary Packages'
+    environment: npm deploy
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Publish Canary Packages
+        run: yarn tsx ./internal/scripts/publish-prerelease.ts canary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          TLDRAW_BEMO_URL: https://canary-demo.tldraw.xyz

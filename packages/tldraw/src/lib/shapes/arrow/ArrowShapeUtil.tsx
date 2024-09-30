@@ -26,6 +26,7 @@ import {
 	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
+	sanitizeId,
 	structuredClone,
 	toDomPrecision,
 	track,
@@ -38,7 +39,7 @@ import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
-import { STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
@@ -627,7 +628,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						verticalAlign="middle"
 						text={shape.props.text}
 						labelColor={theme[shape.props.labelColor].solid}
-						textWidth={labelPosition.box.w}
+						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
 						padding={0}
 						style={{
@@ -666,7 +667,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
 
-		const maskId = (shape.id + '_clip').replace(':', '_')
+		const maskId = sanitizeId(shape.id + '_clip')
 
 		if (isEditing && labelGeometry) {
 			return (
@@ -788,8 +789,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					verticalAlign="middle"
 					text={shape.props.text}
 					labelColor={theme[shape.props.labelColor].solid}
-					bounds={getArrowLabelPosition(this.editor, shape).box}
-					padding={4 * shape.props.scale}
+					bounds={getArrowLabelPosition(this.editor, shape)
+						.box.clone()
+						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
+					padding={0}
 				/>
 			</g>
 		)
@@ -933,7 +936,9 @@ const ArrowSvg = track(function ArrowSvg({
 
 	// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
 	// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
-	const maskId = (shape.id + '_clip_' + changeIndex).replace(':', '_')
+	const maskId = sanitizeId(
+		shape.id + '_clip' + (editor.environment.isSafari ? `_${changeIndex}` : '')
+	)
 
 	return (
 		<>
