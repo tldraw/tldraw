@@ -1478,6 +1478,54 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	menus = tlmenus.forContext(this.contextId)
 
+	/**
+	 * @deprecated Use `editor.menus.getOpenMenus` instead.
+	 *
+	 * @public
+	 */
+	@computed getOpenMenus(): string[] {
+		return this.menus.getOpenMenus()
+	}
+
+	/**
+	 * @deprecated Use `editor.menus.addOpenMenu` instead.
+	 *
+	 * @public
+	 */
+	addOpenMenu(id: string): this {
+		this.menus.addOpenMenu(id)
+		return this
+	}
+
+	/**
+	 * @deprecated Use `editor.menus.deleteOpenMenu` instead.
+	 *
+	 * @public
+	 */
+	deleteOpenMenu(id: string): this {
+		this.menus.deleteOpenMenu(id)
+		return this
+	}
+
+	/**
+	 * @deprecated Use `editor.menus.clearOpenMenus` instead.
+	 *
+	 * @public
+	 */
+	clearOpenMenus(): this {
+		this.menus.clearOpenMenus()
+		return this
+	}
+
+	/**
+	 * @deprecated Use `editor.menus.hasAnyOpenMenus` instead.
+	 *
+	 * @public
+	 */
+	@computed getIsMenuOpen(): boolean {
+		return this.menus.hasAnyOpenMenus()
+	}
+
 	/* --------------------- Cursor --------------------- */
 
 	/**
