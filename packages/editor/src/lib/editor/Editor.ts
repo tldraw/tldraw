@@ -3887,6 +3887,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.run(
 			() => {
 				this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }])
+				// ensure camera constraints are applied
+				this.setCamera(this.getCamera())
 			},
 			{ history: 'record-preserveRedoStack' }
 		)
