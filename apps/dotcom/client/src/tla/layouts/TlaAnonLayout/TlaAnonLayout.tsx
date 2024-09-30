@@ -7,7 +7,7 @@ import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	return (
-		<div className={classNames(styles.loggedOut)}>
+		<div className={classNames('tla tla-theme__light tl-container', styles.loggedOut)}>
 			<div className={styles.header}>
 				<Link to="/">
 					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />
