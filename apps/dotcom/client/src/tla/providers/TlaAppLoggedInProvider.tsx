@@ -24,6 +24,7 @@ export function Component() {
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn) {
+		// todo: different routes should implement redirects; for example, shared files need to be accessible by from anon users
 		return <Navigate to="/q/local" replace />
 	}
 
