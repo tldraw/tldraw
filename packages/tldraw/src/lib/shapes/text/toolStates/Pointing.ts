@@ -79,9 +79,8 @@ export class Pointing extends StateNode {
 				creationCursorOffset: { x: currentDragDist, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
-					editor.select(shape.id)
-					// this will automatically set the state to 'select.editing_shape'
 					editor.setEditingShape(shape.id)
+					// this will automatically set the state to 'select.editing_shape'
 				},
 			})
 		}
