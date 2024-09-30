@@ -2073,6 +2073,9 @@ export const runtime: {
     refreshPage(): void;
 };
 
+// @internal (undocumented)
+export function sanitizeId(id: string): string;
+
 // @public (undocumented)
 export interface ScribbleItem {
     // (undocumented)

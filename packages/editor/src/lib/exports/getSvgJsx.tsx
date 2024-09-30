@@ -29,6 +29,7 @@ import {
 import { TLImageExportOptions } from '../editor/types/misc-types'
 import { useEditor } from '../hooks/useEditor'
 import { useEvent } from '../hooks/useEvent'
+import { sanitizeId } from '../hooks/useSafeId'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
 import { ExportDelay } from './ExportDelay'
@@ -204,7 +205,7 @@ function SvgExport({
 						const shapeMask = pageMask
 							? Mat.From(Mat.Inverse(pageTransform)).applyToPoints(pageMask)
 							: null
-						const shapeMaskId = `mask_${shape.id.replace(':', '_')}`
+						const shapeMaskId = `mask_${sanitizeId(shape.id)}`
 						if (shapeMask) {
 							// Create a clip path and add it to defs
 							shapeDefs[shapeMaskId] = (
