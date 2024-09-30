@@ -32,7 +32,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.menus.getIsMenuOpen()) return
+		if (this.editor.menus.getIsAnyMenuOpen()) return
 
 		if (info.ctrlKey) {
 			this.cancel()

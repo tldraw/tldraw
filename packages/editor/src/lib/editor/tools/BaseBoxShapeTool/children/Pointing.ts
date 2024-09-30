@@ -12,7 +12,7 @@ export class Pointing extends StateNode {
 	wasFocusedOnEnter = false
 
 	override onEnter() {
-		this.wasFocusedOnEnter = !this.editor.menus.getIsMenuOpen()
+		this.wasFocusedOnEnter = !this.editor.menus.getIsAnyMenuOpen()
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {

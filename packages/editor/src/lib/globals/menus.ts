@@ -91,19 +91,33 @@ export const tlmenus = {
 	},
 
 	/**
-	 * Get whether any menus are open.
+	 * Get whether any menus are open for a given context.
 	 *
 	 * @example
 	 * ```ts
-	 * getIsMenuOpen()
+	 * getIsMenuOpen(contextId)
 	 * ```
 	 *
-	 * @param contextId - An optional context to check menus for.
+	 * @param contextId - A context to check menus for.
 	 *
 	 * @public
 	 */
-	getIsMenuOpen(contextId?: string): boolean {
+	getIsMenuOpen(contextId: string): boolean {
 		return this.getOpenMenus(contextId).length > 0
+	},
+
+	/**
+	 * Get whether any menus are open for any context.
+	 *
+	 * @example
+	 * ```ts
+	 * getIsAnyMenuOpen()
+	 * ```
+	 *
+	 * @public
+	 */
+	getIsAnyMenuOpen() {
+		return this.getOpenMenus().length > 0
 	},
 
 	forContext(contextId: string) {
@@ -113,7 +127,8 @@ export const tlmenus = {
 			deleteOpenMenu: (id: string) => this.deleteOpenMenu(id, contextId),
 			clearOpenMenus: () => this.clearOpenMenus(contextId),
 			// Gets whether any menus are open
-			getIsMenuOpen: () => this.getIsMenuOpen(),
+			getIsMenuOpen: () => this.getIsMenuOpen(contextId),
+			getIsAnyMenuOpen: () => this.getIsAnyMenuOpen(),
 		}
 	},
 }

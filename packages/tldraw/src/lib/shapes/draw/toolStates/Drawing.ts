@@ -54,7 +54,7 @@ export class Drawing extends StateNode {
 	override onEnter(info: TLPointerEventInfo) {
 		this.markId = null
 		this.info = info
-		this.canDraw = !this.editor.menus.getIsMenuOpen()
+		this.canDraw = !this.editor.menus.getIsAnyMenuOpen()
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 		if (this.canDraw) {
 			this.startShape()
