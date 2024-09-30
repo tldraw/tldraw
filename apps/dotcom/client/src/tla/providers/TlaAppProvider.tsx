@@ -11,7 +11,7 @@ if (!PUBLISHABLE_KEY) {
 
 export function Component() {
 	return (
-		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
 			<Outlet />
 		</ClerkProvider>
 	)
