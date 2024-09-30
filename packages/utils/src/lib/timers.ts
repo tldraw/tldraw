@@ -24,7 +24,7 @@ export class Timers {
 	/** @public */
 	setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number {
 		const id = window.setInterval(handler, timeout, args)
-		const current = this.timeouts.get(contextId) ?? []
+		const current = this.intervals.get(contextId) ?? []
 		this.intervals.set(contextId, [...current, id])
 		return id
 	}
