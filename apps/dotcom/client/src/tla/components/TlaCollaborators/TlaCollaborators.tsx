@@ -1,9 +1,8 @@
+import { TldrawAppFileId, TldrawAppUserId } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useFileCollaborators } from '../../hooks/useFileCollaborators'
-import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
-import { TldrawAppUserId } from '../../utils/schema/TldrawAppUser'
 import styles from './collaborators.module.css'
 
 export function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {

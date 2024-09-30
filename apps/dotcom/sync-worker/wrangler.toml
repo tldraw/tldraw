@@ -20,6 +20,10 @@ new_classes = ["TLProWorkspaceDurableObject"]
 tag = "v3"
 deleted_classes = ["TLProWorkspaceDurableObject"]
 
+[[migrations]]
+tag = "v4"
+new_classes = ["TLAppDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
@@ -61,24 +65,35 @@ pattern = "sync.tldraw.xyz"
 
 #################### Durable objects ####################
 # durable objects have the same configuration in all environments:
-[[env.dev.durable_objects.bindings]]
-name = "TLDR_DOC"
-class_name = "TLDrawDurableObject"
+[env.dev.durable_objects]
+bindings = [
+  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
+]
 
 [durable_objects]
-bindings = [{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" }]
+bindings = [
+  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
+]
 
-[[env.preview.durable_objects.bindings]]
-name = "TLDR_DOC"
-class_name = "TLDrawDurableObject"
+[env.preview.durable_objects]
+bindings = [
+  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
+]
 
-[[env.staging.durable_objects.bindings]]
-name = "TLDR_DOC"
-class_name = "TLDrawDurableObject"
+[env.staging.durable_objects]
+bindings = [
+  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
+]
 
-[[env.production.durable_objects.bindings]]
-name = "TLDR_DOC"
-class_name = "TLDrawDurableObject"
+[env.production.durable_objects]
+bindings = [
+  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
+]
 
 #################### Analytics engine ####################
 # durable objects have the same configuration in all environments:
@@ -222,3 +237,25 @@ binding = "CF_VERSION_METADATA"
 
 [env.production.version_metadata]
 binding = "CF_VERSION_METADATA"
+
+#################### botcom D1 ###########################
+[[env.dev.d1_databases]]
+binding = "DB"
+database_name = "botcom-dev"
+database_id = "8a70c474-fcf3-4793-9220-805c8fba8637"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "botcom-staging"
+database_id = "b462f23d-ad4b-430b-9bb8-24eb2c92028b"
+
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "botcom-preview"
+database_id = "94ea5481-5863-4b3d-9397-6b8681d207cc"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "botcom-production"
+database_id = "0d808475-7f83-4804-abab-2233367a28b9"
+

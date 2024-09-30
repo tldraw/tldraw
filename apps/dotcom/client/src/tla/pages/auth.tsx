@@ -1,3 +1,4 @@
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { TlaButton } from '../components/TlaButton/TlaButton'
@@ -13,7 +14,6 @@ import {
 } from '../components/tla-form/tla-form'
 import { useApp } from '../hooks/useAppState'
 import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
-import { TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 
 export function Component() {
 	const app = useApp()
