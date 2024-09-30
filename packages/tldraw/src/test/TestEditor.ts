@@ -33,6 +33,7 @@ import {
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
+import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
 import { defaultTools } from '../lib/defaultTools'
 import { shapesFromJsx } from './test-jsx'
 
@@ -144,6 +145,9 @@ export class TestEditor extends Editor {
 		this.sideEffects.registerAfterCreateHandler('shape', (record) => {
 			this._lastCreatedShapes.push(record)
 		})
+
+		// Wow! we'd forgotten these for a long time
+		registerDefaultSideEffects(this)
 	}
 
 	getHistory() {
