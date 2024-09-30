@@ -8,7 +8,7 @@ jest.mock('../hooks/useEditor', () => ({
 		getViewportScreenBounds: jest.fn().mockReturnValue({ width: 800 }),
 		getInstanceState: jest.fn().mockReturnValue({ isDebugMode: false }),
 		menus: {
-			getIsMenuOpen: jest.fn().mockReturnValue(false),
+			hasAnyOpenMenus: jest.fn().mockReturnValue(false),
 		},
 		getIsMenuOpen: jest.fn().mockReturnValue(false),
 		environment: jest.fn().mockReturnValue({
