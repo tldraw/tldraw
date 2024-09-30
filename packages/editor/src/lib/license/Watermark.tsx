@@ -1,5 +1,6 @@
 import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { memo, useState } from 'react'
+import { tlenv } from '../globals/environment'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { preventDefault, stopEventPropagation } from '../utils/dom'
@@ -65,7 +66,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			draggable={false}
 			{...events}
 		>
-			{editor.environment.isWebview ? (
+			{tlenv.isWebview ? (
 				<a
 					draggable={false}
 					role="button"
