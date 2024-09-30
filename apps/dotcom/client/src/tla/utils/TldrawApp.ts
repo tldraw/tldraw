@@ -1,20 +1,22 @@
-import { deleteDB } from 'idb'
-import { computed, Editor, Store } from 'tldraw'
-import { getAllIndexDbNames, LocalSyncClient } from './local-sync'
-import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from './schema/TldrawAppFile'
-import { TldrawAppFileEdit, TldrawAppFileEditRecordType } from './schema/TldrawAppFileEdit'
-import { TldrawAppFileVisitRecordType } from './schema/TldrawAppFileVisit'
 import {
+	TldrawAppFile,
+	TldrawAppFileEdit,
+	TldrawAppFileEditRecordType,
+	TldrawAppFileId,
+	TldrawAppFileRecordType,
+	TldrawAppFileVisitRecordType,
+	TldrawAppRecord,
 	TldrawAppSessionState,
 	TldrawAppSessionStateRecordType,
-} from './schema/TldrawAppSessionState'
-import { TldrawAppUser, TldrawAppUserId, TldrawAppUserRecordType } from './schema/TldrawAppUser'
-import { TldrawAppRecord, tldrawAppSchema } from './tldrawAppSchema'
+	TldrawAppUser,
+	TldrawAppUserId,
+	TldrawAppUserRecordType,
+} from '@tldraw/dotcom-shared'
+import { Editor, Store, computed } from 'tldraw'
 
 export class TldrawApp {
-	private constructor(store: Store<TldrawAppRecord>, client: LocalSyncClient<TldrawAppRecord>) {
+	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
-		this.client = client
 
 		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
 			if (prev.theme !== next.theme) {
@@ -38,10 +40,9 @@ export class TldrawApp {
 	}
 
 	store: Store<TldrawAppRecord>
-	client: LocalSyncClient<TldrawAppRecord>
 
 	dispose() {
-		this.client.close()
+		this.store.dispose()
 	}
 
 	private _currentEditor: Editor | null = null
@@ -297,24 +298,13 @@ export class TldrawApp {
 		return file
 	}
 
-	claimTemporaryFile(ownerId: TldrawAppUserId | 'temporary', fileId: TldrawAppFileId) {
-		const file = this.store.get(fileId)
-
-		if (!file) {
-			// the file doesn't exist
-			return
-		}
-
-		if (file.owner !== 'temporary') {
-			// the file is already claimed
-			return
-		}
-
+	claimTemporaryFile(fileId: TldrawAppFileId) {
+		// TODO(david): check that you can't claim someone else's file (the db insert should fail and trigger a resync)
 		this.store.put([
-			{
-				...file,
-				owner: ownerId,
-			},
+			TldrawAppFileRecordType.create({
+				id: fileId,
+				owner: this.getSessionState().auth!.userId,
+			}),
 		])
 	}
 
@@ -437,7 +427,7 @@ export class TldrawApp {
 
 	onFileExit(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
 		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
+		if (!user) return
 
 		this.store.put([
 			{
@@ -450,135 +440,36 @@ export class TldrawApp {
 		])
 	}
 
-	async resetDatabase() {
-		await Promise.all(getAllIndexDbNames().map((db) => deleteDB(db)))
+	static async create(opts: { userId: string; store: Store<TldrawAppRecord> }) {
+		const { store } = opts
+
+		const userId = TldrawAppUserRecordType.createId(opts.userId)
+		if (!store.get(TldrawApp.SessionStateId)) {
+			store.put([
+				TldrawAppSessionStateRecordType.create({
+					id: TldrawApp.SessionStateId,
+					auth: {
+						userId,
+					},
+				}),
+			])
+		}
+
+		if (!store.get(userId)) {
+			store.put([
+				TldrawAppUserRecordType.create({
+					id: userId,
+					presence: {
+						fileIds: [],
+					},
+				}),
+			])
+		}
+
+		return new TldrawApp(store)
 	}
 
-	static async create(opts: {
-		persistenceKey: string
-		onLoad(app: TldrawApp): void
-		onLoadError(err: unknown): void
-	}) {
-		const { persistenceKey, onLoad, onLoadError } = opts
-
-		const day = 1000 * 60 * 60 * 24
-
-		// Steve
-		const user1 = TldrawAppUserRecordType.create({
-			id: TldrawAppUserRecordType.createId('0'),
-			name: 'Steve Ruiz',
-			email: 'steve@tldraw.com',
-			color: 'seagreen',
-			presence: {
-				fileIds: [],
-			},
-		})
-
-		// David
-		const user2 = TldrawAppUserRecordType.create({
-			id: TldrawAppUserRecordType.createId('1'),
-			name: 'David Sheldrick',
-			email: 'david@tldraw.com',
-			color: 'salmon',
-			presence: {
-				fileIds: [TldrawAppFileRecordType.createId('0'), TldrawAppFileRecordType.createId('1')],
-			},
-		})
-
-		// Alex
-		const user3 = TldrawAppUserRecordType.create({
-			id: TldrawAppUserRecordType.createId('2'),
-			name: 'Alex Dytrych',
-			email: 'alex@tldraw.com',
-			color: 'tomato',
-			presence: {
-				fileIds: [TldrawAppFileRecordType.createId('1')],
-			},
-		})
-
-		const files = [
-			// Steve's files
-			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
-				TldrawAppFileRecordType.create({
-					id: TldrawAppFileRecordType.createId(i.toString()),
-					owner: user1.id,
-					createdAt: Date.now() - day * n,
-					name: i === 0 ? 'A very long name file here we go' : '',
-				})
-			),
-			// David's files
-			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
-				TldrawAppFileRecordType.create({
-					id: TldrawAppFileRecordType.createId('david' + i.toString()),
-					owner: user2.id,
-					createdAt: Date.now() - day * n,
-				})
-			),
-			// Alex's files
-			...[0.5, 0.6, 0.7, 1.2, 1.3, 1.4, 1.6, 2.5, 3.5].map((n, i) =>
-				TldrawAppFileRecordType.create({
-					id: TldrawAppFileRecordType.createId('alex' + i.toString()),
-					owner: user3.id,
-					createdAt: Date.now() - day * n,
-				})
-			),
-		]
-
-		// steve's visit to his own file
-		const visit1 = TldrawAppFileVisitRecordType.create({
-			id: TldrawAppFileVisitRecordType.createId('0'),
-			userId: user1.id,
-			fileId: TldrawAppFileRecordType.createId('0'),
-			createdAt: Date.now() - day * 1,
-		})
-
-		// steve's visit to david's file
-		const visit2 = TldrawAppFileVisitRecordType.create({
-			id: TldrawAppFileVisitRecordType.createId('1'),
-			userId: user2.id,
-			fileId: TldrawAppFileRecordType.createId('0'),
-			createdAt: Date.now() - day * 1.2,
-		})
-
-		// steve's session
-		const session1 = TldrawAppSessionStateRecordType.create({
-			id: TldrawApp.SessionStateId,
-			auth: {
-				userId: user1.id,
-			},
-		})
-
-		const store = new Store<TldrawAppRecord>({
-			id: persistenceKey,
-			schema: tldrawAppSchema,
-			initialData: Object.fromEntries(
-				[user1, user2, user3, ...files, visit1, visit2, session1].map((r) => [r.id, r])
-			),
-			props: {},
-		})
-
-		const client = await new Promise<LocalSyncClient<TldrawAppRecord>>((r) => {
-			const client = new LocalSyncClient(store, {
-				persistenceKey,
-				onLoad: () => {
-					r(client)
-				},
-				onLoadError: (e) => {
-					Promise.all(getAllIndexDbNames().map((db) => deleteDB(db))).then(() => {
-						window.location.reload()
-					})
-					onLoadError?.(e)
-				},
-			})
-		})
-
-		const app = new TldrawApp(store, client)
-
-		onLoad(app)
-		return app
-	}
-
-	static SessionStateId = TldrawAppSessionStateRecordType.createId('0')
+	static SessionStateId = TldrawAppSessionStateRecordType.createId('session')
 
 	static getFileName(file: TldrawAppFile) {
 		return file.name || new Date(file.createdAt).toLocaleString('en-gb')

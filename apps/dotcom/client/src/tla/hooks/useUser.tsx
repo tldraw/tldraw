@@ -1,10 +1,10 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import assert from 'assert'
 import { ReactNode, createContext, useContext, useEffect, useMemo } from 'react'
 import { DefaultSpinner, LoadingScreen } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 import { useApp } from './useAppState'
 
 export interface TldrawUser {

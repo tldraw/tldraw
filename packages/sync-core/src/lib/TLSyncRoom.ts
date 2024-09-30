@@ -215,7 +215,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	readonly serializedSchema: SerializedSchema
 
 	readonly documentTypes: Set<string>
-	readonly presenceType: RecordType<R, any>
+	readonly presenceType: RecordType<R, any> | null
 	private log?: TLSyncLog
 	public readonly schema: StoreSchema<R, any>
 	private onDataChange?(): void
@@ -250,13 +250,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			Object.values<RecordType<R, any>>(this.schema.types).filter((t) => t.scope === 'presence')
 		)
 
-		if (presenceTypes.size != 1) {
+		if (presenceTypes.size > 1) {
 			throw new Error(
-				`TLSyncRoom: exactly one presence type is expected, but found ${presenceTypes.size}`
+				`TLSyncRoom: exactly zero or one presence type is expected, but found ${presenceTypes.size}`
 			)
 		}
 
-		this.presenceType = presenceTypes.values().next().value
+		this.presenceType = presenceTypes.values().next()?.value
 
 		if (!snapshot) {
 			snapshot = {
@@ -489,7 +489,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		this.sessions.delete(sessionId)
 
-		const presence = this.getDocument(session.presenceId)
+		const presence = this.getDocument(session.presenceId ?? '')
 
 		try {
 			if (session.socket.isOpen) {
@@ -502,12 +502,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (presence) {
 			this.state.update(({ tombstones, documents }) => {
 				documents = { ...documents }
-				delete documents[session.presenceId]
+				delete documents[session.presenceId!]
 				return { documents, tombstones }
 			})
 
 			this.broadcastPatch({
-				diff: { [session.presenceId]: [RecordOpType.Remove] },
+				diff: { [session.presenceId!]: [RecordOpType.Remove] },
 				sourceSessionId: sessionId,
 			})
 		}
@@ -543,9 +543,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * Broadcast a message to all connected clients except the one with the sessionId provided.
 	 *
 	 * @param message - The message to broadcast.
-	 * @param sourceSessionId - The session to exclude.
 	 */
-	broadcastPatch({ diff, sourceSessionId }: { diff: NetworkDiff<R>; sourceSessionId?: string }) {
+	broadcastPatch(message: { diff: NetworkDiff<R>; sourceSessionId?: string }) {
+		const { diff, sourceSessionId } = message
 		this.sessions.forEach((session) => {
 			if (session.state !== RoomSessionState.Connected) return
 			if (sourceSessionId === session.sessionId) return
@@ -582,6 +582,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 *
 	 * @param sessionId - The session of the client that connected to the room.
 	 * @param socket - Their socket.
+	 * @param meta - Any metadata associated with the session.
 	 */
 	handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) {
 		const existing = this.sessions.get(sessionId)
@@ -589,7 +590,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			state: RoomSessionState.AwaitingConnectMessage,
 			sessionId,
 			socket,
-			presenceId: existing?.presenceId ?? this.presenceType.createId(),
+			presenceId: existing?.presenceId ?? this.presenceType?.createId() ?? null,
 			sessionStartTime: Date.now(),
 			meta,
 		})
@@ -778,10 +779,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				const updatedDocs = Object.values(this.state.get().documents).filter(
 					(doc) => doc.lastChangedClock > message.lastServerClock
 				)
-				const presenceDocs = Object.values(this.state.get().documents).filter(
-					(doc) =>
-						this.presenceType.typeName === doc.state.typeName && doc.state.id !== session.presenceId
-				)
+				const presenceDocs = this.presenceType
+					? Object.values(this.state.get().documents).filter(
+							(doc) =>
+								this.presenceType!.typeName === doc.state.typeName &&
+								doc.state.id !== session.presenceId
+						)
+					: []
 				const deletedDocsIds = Object.entries(this.state.get().tombstones)
 					.filter(([_id, deletedAtClock]) => deletedAtClock > message.lastServerClock)
 					.map(([id]) => id)
@@ -959,7 +963,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 			const { clientClock } = message
 
-			if ('presence' in message && message.presence) {
+			if (this.presenceType && session?.presenceId && 'presence' in message && message.presence) {
 				if (!session) throw new Error('session is required for presence pushes')
 				// The push request was for the presence scope.
 				const id = session.presenceId

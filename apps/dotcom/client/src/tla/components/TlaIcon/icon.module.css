@@ -6,7 +6,7 @@
 	width: 15px;
 	z-index: 1;
 	pointer-events: none;
-	color: var(--tla-color-text-1);
+	color: inherit;
 }
 
 .icon_wrapper {
@@ -15,13 +15,17 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--tla-color-text-1);
+	color: inherit;
 	flex-shrink: 0;
 }
 
 .icon_wrapper > .icon {
 	height: 15px;
 	width: 15px;
+}
+
+.icon_wrapper[data-size='m'] {
+	width: 32px;
 }
 
 .icon_wrapper[data-size='m'] > .icon {

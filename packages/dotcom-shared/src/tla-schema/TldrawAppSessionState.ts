@@ -1,13 +1,13 @@
 import {
 	BaseRecord,
 	RecordId,
-	T,
 	createMigrationIds,
 	createRecordMigrationSequence,
 	createRecordType,
-	idValidator,
-} from 'tldraw'
+} from '@tldraw/store'
+import { T } from '@tldraw/validate'
 import { TldrawAppUserId } from './TldrawAppUser'
+import { idValidator } from './idValidator'
 
 export interface TldrawAppViewState {
 	sort: 'recent' | 'newest' | 'oldest' | 'atoz' | 'ztoa'
@@ -72,7 +72,7 @@ export const tldrawAppSessionStateMigrations = createRecordMigrationSequence({
 /** @public */
 export const TldrawAppSessionStateRecordType = createRecordType<TldrawAppSessionState>('session', {
 	validator: tldrawAppSessionStateValidator,
-	scope: 'document',
+	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TldrawAppSessionState, 'id' | 'typeName'> => ({
 		isSidebarOpen: true,

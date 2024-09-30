@@ -125,7 +125,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private readonly presenceType: R['typeName']
+	private readonly presenceType: R['typeName'] | null
 
 	didCancel?: () => boolean
 
@@ -142,9 +142,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.didCancel = config.didCancel
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value
-		if (!this.presenceType || config.store.scopedTypes.presence.size > 1) {
-			throw new Error('Store must have exactly one presence type')
-		}
 
 		if (typeof window !== 'undefined') {
 			;(window as any).tlsync = this

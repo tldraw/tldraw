@@ -1,12 +1,11 @@
 import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
+import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawApp } from '../../utils/TldrawApp'
-import { TldrawAppFile, TldrawAppFileRecordType } from '../../utils/schema/TldrawAppFile'
-import { getCleanId } from '../../utils/tldrawAppSchema'
 import { getFileUrl } from '../../utils/urls'
 import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
@@ -180,9 +179,7 @@ function TlaSidebarRecentFiles() {
 			{thisMonthFiles.length ? (
 				<TlaSidebarFileSection title={'This month'} files={thisMonthFiles} />
 			) : null}
-			{olderFiles.length ? (
-				<TlaSidebarFileSection title={'This year'} files={thisMonthFiles} />
-			) : null}
+			{olderFiles.length ? <TlaSidebarFileSection title={'This year'} files={olderFiles} /> : null}
 		</>
 	)
 }
@@ -201,8 +198,8 @@ function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawA
 
 function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 	const { id } = file
-	const { fileId } = useParams()
-	const isActive = fileId === getCleanId(id)
+	const { fileSlug } = useParams()
+	const isActive = TldrawAppFileRecordType.createId(fileSlug) === id
 	return (
 		<div className={classNames(styles.link, styles.hoverable)} data-active={isActive}>
 			<div className={styles.linkContent}>

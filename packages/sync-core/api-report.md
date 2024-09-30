@@ -153,7 +153,7 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 export type RoomSession<R extends UnknownRecord, Meta> = {
     cancellationTime: number;
     meta: Meta;
-    presenceId: string;
+    presenceId: null | string;
     sessionId: string;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.AwaitingRemoval;
@@ -162,14 +162,14 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     lastInteractionTime: number;
     meta: Meta;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
-    presenceId: string;
+    presenceId: null | string;
     serializedSchema: SerializedSchema;
     sessionId: string;
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.Connected;
 } | {
     meta: Meta;
-    presenceId: string;
+    presenceId: null | string;
     sessionId: string;
     sessionStartTime: number;
     socket: TLRoomSocket<R>;
@@ -457,7 +457,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         schema: StoreSchema<R, any>;
         snapshot?: RoomSnapshot;
     });
-    broadcastPatch({ diff, sourceSessionId }: {
+    broadcastPatch(message: {
         diff: NetworkDiff<R>;
         sourceSessionId?: string;
     }): this;
@@ -487,7 +487,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     isClosed(): boolean;
     // (undocumented)
-    readonly presenceType: RecordType<R, any>;
+    readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
     pruneSessions: () => void;
     // (undocumented)
