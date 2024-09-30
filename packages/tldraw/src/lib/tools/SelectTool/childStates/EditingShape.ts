@@ -27,8 +27,6 @@ export class EditingShape extends StateNode {
 
 		this.info = info
 
-		console.log(this.info)
-
 		if (info.isCreatingTextWhileToolLocked) {
 			this.parent.setCurrentToolIdMask('text')
 		}
