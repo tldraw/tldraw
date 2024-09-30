@@ -1,3 +1,4 @@
+import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { TldrawAppFileRecordType, tldrawAppSchema } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
@@ -11,7 +12,6 @@ import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { TlaErrorContent } from '../components/TlaErrorContent/TlaErrorContent'
 import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
 import { TlaErrorLayout } from '../layouts/TlaErrorLayout/TlaErrorLayout'
-import { USER_ID_KEY } from '../providers/TlaAppProvider'
 import { TldrawApp } from '../utils/TldrawApp'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
@@ -20,16 +20,16 @@ const appContext = createContext<TldrawApp | null>(null)
 export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [ready, setReady] = useState(false)
 	const [app, setApp] = useState({} as TldrawApp)
+	const auth = useAuth()
+	const { user, isLoaded } = useClerkUser()
 
-	// eslint-disable-next-line no-restricted-syntax
-	const userId = localStorage.getItem(USER_ID_KEY)
-	if (!userId) {
+	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaAppProvider')
 	}
 
 	const store = useSync({
 		schema: tldrawAppSchema as any,
-		uri: `${MULTIPLAYER_SERVER}/app/${encodeURIComponent(userId)}`,
+		uri: `${MULTIPLAYER_SERVER}/app/${encodeURIComponent(auth.userId)}`,
 		assets: inlineBase64AssetStore,
 	})
 
@@ -40,16 +40,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		let _app: TldrawApp
 
 		TldrawApp.create({
-			userId,
+			userId: auth.userId,
+			fullName: user.fullName || '',
+			email: user.emailAddresses[0]?.emailAddress || '',
+			avatar: user.imageUrl || '',
 			store: store.store as any,
-		}).then((app) => {
+		}).then(({ store, userId }) => {
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
 				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-				app.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId))
+				store.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId), userId)
 			}
-			_app = app
-			setApp(app)
+			_app = store
+			setApp(store)
 			setReady(true)
 		})
 
@@ -58,7 +61,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				_app.dispose()
 			}
 		}
-	}, [store.status, store.store, userId])
+	}, [store.status, store.store, auth.userId, user])
 
 	if (store.status === 'error') {
 		return (

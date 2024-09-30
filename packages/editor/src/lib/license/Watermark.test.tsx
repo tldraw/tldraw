@@ -10,6 +10,15 @@ jest.mock('../hooks/useEditor', () => ({
 		menus: {
 			getIsMenuOpen: jest.fn().mockReturnValue(false),
 		},
+		getIsMenuOpen: jest.fn().mockReturnValue(false),
+		environment: jest.fn().mockReturnValue({
+			isSafari: true,
+			isIos: false,
+			isChromeForIos: false,
+			isFirefox: false,
+			isAndroid: false,
+			isWebview: false,
+		}),
 	}),
 }))
 

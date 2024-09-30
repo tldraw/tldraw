@@ -911,6 +911,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         isFirefox: boolean;
         isIos: boolean;
         isSafari: boolean;
+        isWebview: boolean;
     };
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -2083,6 +2084,9 @@ export const runtime: {
     refreshPage(): void;
 };
 
+// @internal (undocumented)
+export function sanitizeId(id: string): string;
+
 // @public (undocumented)
 export interface ScribbleItem {
     // (undocumented)
@@ -2865,6 +2869,7 @@ export const tlenv: {
     isFirefox: boolean;
     isIos: boolean;
     isSafari: boolean;
+    isWebview: boolean;
 };
 
 // @public (undocumented)

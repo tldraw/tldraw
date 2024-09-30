@@ -65,18 +65,29 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			draggable={false}
 			{...events}
 		>
-			<a
-				target="_blank"
-				href={url}
-				rel="noreferrer"
-				draggable={false}
-				onPointerDown={(e) => {
-					stopEventPropagation(e)
-					preventDefault(e)
-				}}
-				onClick={() => runtime.openWindow(url, '_blank')}
-				style={{ mask: maskCss, WebkitMask: maskCss }}
-			/>
+			{editor.environment.isWebview ? (
+				<a
+					draggable={false}
+					role="button"
+					onPointerDown={(e) => {
+						stopEventPropagation(e)
+						preventDefault(e)
+					}}
+					onClick={() => runtime.openWindow(url, '_blank')}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
+				/>
+			) : (
+				<a
+					href={url}
+					target="_blank"
+					rel="noreferrer"
+					draggable={false}
+					onPointerDown={(e) => {
+						stopEventPropagation(e)
+					}}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
+				/>
+			)}
 		</div>
 	)
 })

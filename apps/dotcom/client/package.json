@@ -19,6 +19,7 @@
 		"test": "yarn run -T jest"
 	},
 	"dependencies": {
+		"@clerk/clerk-react": "^5.9.3",
 		"@radix-ui/react-popover": "^1.0.7",
 		"@sentry/integrations": "^7.34.0",
 		"@sentry/react": "^7.77.0",

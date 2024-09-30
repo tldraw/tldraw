@@ -151,3 +151,8 @@ button.nameWidthSetter {
 		color: var(--tla-color-text-1);
 	}
 }
+
+.rightSide {
+	display: flex;
+	gap: 8px;
+}

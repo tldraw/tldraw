@@ -9,6 +9,7 @@ const tlenv = {
 	isChromeForIos: false,
 	isFirefox: false,
 	isAndroid: false,
+	isWebview: false,
 }
 
 if (typeof window !== 'undefined' && 'navigator' in window) {

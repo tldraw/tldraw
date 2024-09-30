@@ -1,5 +1,5 @@
+import { useAuth } from '@clerk/clerk-react'
 import { Outlet } from 'react-router-dom'
-import { useAuth } from '../hooks/useAuth'
 
 /**
  * At the user index, an authenticated user should be taken to their workspaces.

@@ -2,7 +2,7 @@ import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
-import { useAuth } from '../../hooks/useAuth'
+import { useTldrawUser } from '../../hooks/useUser'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
@@ -52,10 +52,10 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 
 function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
 	const app = useApp()
-	const auth = useAuth()
-	if (!auth) throw Error('should have auth')
+	const user = useTldrawUser()
+	if (!user) throw Error('should have auth')
 
-	const { userId } = auth
+	const { id: userId } = user
 
 	const handleToggleShared = useCallback(() => {
 		// todo: if there are other users connected to the project, warn that they'll be removed from the project until the project is shared again
@@ -78,9 +78,9 @@ function TlaSelectSharedLinkType({
 	fileId: TldrawAppFileId
 }) {
 	const app = useApp()
-	const auth = useAuth()
-	if (!auth) throw Error('should have auth')
-	const { userId } = auth
+	const user = useTldrawUser()
+	if (!user) throw Error('should have auth')
+	const { id: userId } = user
 
 	const sharedLinkType = useValue(
 		'file',
