@@ -32,7 +32,7 @@ export class Timers {
 	/** @public */
 	requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number {
 		const id = window.requestAnimationFrame(callback)
-		const current = this.timeouts.get(contextId) ?? []
+		const current = this.rafs.get(contextId) ?? []
 		this.rafs.set(contextId, [...current, id])
 		return id
 	}
