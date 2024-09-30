@@ -1045,3 +1045,33 @@ test('it animated towards the constrained viewport rather than the given viewpor
 		}
 	`)
 })
+
+test('calling setCameraOptions will apply the new constraints', () => {
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: {
+			...DEFAULT_CONSTRAINTS,
+		},
+	})
+	editor.setCamera(new Vec(-1000000, -1000000, 1))
+	const camera = editor.getCamera()
+	expect(camera).toMatchObject({ x: -1000000, y: -1000000, z: 1 })
+	editor.setCameraOptions({
+		...DEFAULT_CAMERA_OPTIONS,
+		constraints: {
+			...DEFAULT_CONSTRAINTS,
+			bounds: { x: 0, y: 0, w: 1600, h: 900 },
+			behavior: 'contain',
+		},
+	})
+	expect(editor.getCamera()).toMatchInlineSnapshot(`
+		{
+		  "id": "camera:page:page",
+		  "meta": {},
+		  "typeName": "camera",
+		  "x": 0,
+		  "y": 0,
+		  "z": 1,
+		}
+	`)
+})

@@ -2461,7 +2461,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
-		this.setCamera(this.getCamera(), { force: true })
+		this.setCamera(this.getCamera())
 		return this
 	}
 
@@ -3889,7 +3889,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			() => {
 				this.store.put([{ ...this.getInstanceState(), currentPageId: pageId }])
 				// ensure camera constraints are applied
-				this.setCamera(this.getCamera(), { force: true })
+				this.setCamera(this.getCamera())
 			},
 			{ history: 'record-preserveRedoStack' }
 		)
