@@ -2,7 +2,7 @@ import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { memo, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
-import { preventDefault, stopEventPropagation } from '../utils/dom'
+import { stopEventPropagation } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
@@ -69,7 +69,6 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 				draggable={false}
 				role="button"
 				onPointerDown={(e) => {
-					preventDefault(e)
 					stopEventPropagation(e)
 					runtime.openWindow(url, '_blank')
 				}}
