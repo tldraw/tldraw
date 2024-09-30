@@ -3,7 +3,8 @@ import { useContainer, useValue } from '@tldraw/editor'
 import { memo, useCallback } from 'react'
 import { TLUiDialog, useDialogs } from '../context/dialogs'
 
-const Dialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
+/** @internal */
+const TldrawUiDialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
 
 	const container = useContainer()
@@ -48,5 +49,5 @@ const Dialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
 export const TldrawUiDialogs = memo(function TldrawUiDialogs() {
 	const { dialogs } = useDialogs()
 	const dialogsArray = useValue('dialogs', () => dialogs.get(), [dialogs])
-	return dialogsArray.map((dialog) => <Dialog key={dialog.id} {...dialog} />)
+	return dialogsArray.map((dialog) => <TldrawUiDialog key={dialog.id} {...dialog} />)
 })

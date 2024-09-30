@@ -17,7 +17,8 @@ const SEVERITY_TO_ICON: { [msg in AlertSeverity]: TLUiIconType } = {
 	info: 'info-circle',
 }
 
-function Toast({ toast }: { toast: TLUiToast }) {
+/** @internal */
+function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 	const { removeToast } = useToasts()
 	const msg = useTranslation()
 
@@ -89,7 +90,7 @@ export const TldrawUiToasts = memo(function TldrawUiToasts() {
 	return (
 		<>
 			{toastsArray.map((toast) => (
-				<Toast key={toast.id} toast={toast} />
+				<TldrawUiToast key={toast.id} toast={toast} />
 			))}
 			<T.ToastViewport className="tlui-toast__viewport" />
 		</>

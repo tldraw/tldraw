@@ -3798,7 +3798,7 @@ export function usePreloadAssets(assetUrls: TLEditorAssetUrls): {
 };
 
 // @public (undocumented)
-export function useReadonly(): boolean | undefined;
+export function useReadonly(): boolean;
 
 // @public (undocumented)
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
