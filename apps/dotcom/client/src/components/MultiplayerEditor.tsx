@@ -125,10 +125,7 @@ export function MultiplayerEditor({
 	const handleUiEvent = useHandleUiEvents()
 
 	const storeWithStatus = useSync({
-		uri: useCallback(
-			async () => `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
-			[roomOpenMode, roomSlug]
-		),
+		uri: `${MULTIPLAYER_SERVER}/${RoomOpenModeToPath[roomOpenMode]}/${roomSlug}`,
 		roomId: roomSlug,
 		assets: multiplayerAssetStore,
 		trackAnalyticsEvent,
