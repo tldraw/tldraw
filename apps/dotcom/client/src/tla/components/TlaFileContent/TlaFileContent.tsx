@@ -1,13 +1,14 @@
-import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react'
-import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useEffect } from 'react'
-import { useValue } from 'tldraw'
+import { useCallback, useEffect, useState } from 'react'
+import { TldrawUiInput, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditor } from '../TlaEditor/TlaEditor'
+import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
 import styles from './file.module.css'
 
@@ -50,22 +51,23 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 	return (
 		<div className={styles.content}>
 			<div className={styles.header}>
-				<TlaSidebarToggle />
-				<TlaSidebarToggleMobile />
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
 					<span className={styles.headerFolder}>My files / </span>
-					<span className={styles.headerTitle}>{TldrawApp.getFileName(file)}</span>
+					<TlaFileNameEditor fileId={file.id} fileName={TldrawApp.getFileName(file)} />
+					<TlaFileMenu fileId={file.id} source="file-header">
+						<button className={styles.linkMenu}>
+							<TlaIcon icon="dots-vertical-strong" />
+						</button>
+					</TlaFileMenu>
 				</div>
+				<TlaSidebarToggle />
+				<TlaSidebarToggleMobile />
 				<div className={styles.rightSide}>
-					<SignedOut>
-						<SignInButton>
-							<TlaButton>Sign in</TlaButton>
-						</SignInButton>
-					</SignedOut>
-					<SignedIn>
-						<UserButton />
-					</SignedIn>
-					<TlaFileShareMenu fileId={fileId} />
+					<TlaFileShareMenu fileId={file.id} source="file-header">
+						<TlaButton>
+							<span>Share</span>
+						</TlaButton>
+					</TlaFileShareMenu>
 				</div>
 			</div>
 			<div
@@ -76,5 +78,76 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 				<TlaEditor fileSlug={fileId} />
 			</div>
 		</div>
+	)
+}
+
+function TlaFileNameEditor({ fileId, fileName }: { fileName: string; fileId: TldrawAppFileId }) {
+	const [isEditing, setIsEditing] = useState(false)
+
+	const handleEditingStart = useCallback(() => {
+		setIsEditing(true)
+	}, [])
+
+	const handleEditingEnd = useCallback(() => {
+		setIsEditing(false)
+	}, [])
+
+	return (
+		<div className={styles.inputWrapper}>
+			{isEditing ? (
+				<>
+					<TlaFileNameEditorInput fileId={fileId} fileName={fileName} onBlur={handleEditingEnd} />
+					<div className={styles.nameWidthSetter}>{fileName.replace(/ /g, '\u00a0')}</div>
+				</>
+			) : (
+				<button className={styles.nameWidthSetter} onClick={handleEditingStart}>
+					{fileName.replace(/ /g, '\u00a0')}
+				</button>
+			)}
+		</div>
+	)
+}
+
+function TlaFileNameEditorInput({
+	fileId,
+	fileName,
+	onBlur,
+}: {
+	fileName: string
+	fileId: TldrawAppFileId
+	onBlur(): void
+}) {
+	const app = useApp()
+
+	const [temporaryFileName, setTemporaryFileName] = useState(fileName)
+	const handleNameValueChange = useCallback(
+		(value: string) => {
+			app.store.update(fileId, (file) => {
+				return {
+					...file,
+					name: value,
+				}
+			})
+			setTemporaryFileName(TldrawApp.getFileName(app.store.get(fileId)!))
+			onBlur()
+		},
+		[app, fileId, onBlur]
+	)
+
+	const handleCancel = useCallback(() => {
+		setTemporaryFileName(TldrawApp.getFileName(app.store.get(fileId)!))
+		onBlur()
+	}, [app, fileId, onBlur])
+
+	return (
+		<TldrawUiInput
+			className={styles.nameInput}
+			value={temporaryFileName.replace(/ /g, '\u00a0')}
+			onValueChange={setTemporaryFileName}
+			onCancel={handleCancel}
+			onBlur={handleNameValueChange}
+			autoSelect
+			autoFocus
+		/>
 	)
 }

@@ -14,3 +14,8 @@ export function useEditor(): Editor {
 	}
 	return editor
 }
+
+/** @public */
+export function useMaybeEditor(): Editor | null {
+	return React.useContext(EditorContext)
+}

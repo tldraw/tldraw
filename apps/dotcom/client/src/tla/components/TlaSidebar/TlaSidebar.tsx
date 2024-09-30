@@ -1,13 +1,13 @@
-import * as DropdownPrimitive from '@radix-ui/react-dropdown-menu'
+import { SignedIn, UserButton } from '@clerk/clerk-react'
 import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { TldrawUiButton, TldrawUiButtonLabel, TldrawUiDropdownMenuTrigger, useValue } from 'tldraw'
+import { useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { getFileUrl } from '../../utils/urls'
-import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
+import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSpacer } from '../TlaSpacer/TlaSpacer'
 import styles from './sidebar.module.css'
@@ -45,6 +45,11 @@ export function TlaSidebar() {
 					<TlaSidebarRecentFiles />
 				</div>
 				<div className={styles.bottom}>
+					<SignedIn>
+						<div className={styles.userButton}>
+							<UserButton />
+						</div>
+					</SignedIn>
 					<TlaSidebarUserLink />
 				</div>
 			</div>
@@ -112,9 +117,6 @@ function TlaSidebarUserLink() {
 
 	return (
 		<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
-			<TlaIconWrapper>
-				<TlaAvatar size="s" />
-			</TlaIconWrapper>
 			<div className={styles.label}>{result.user.name}</div>
 			{/* <Link className="__link-button" to={getUserUrl(result.auth.userId)} /> */}
 			<Link className={styles.linkButton} to={'/q/profile'} state={{ background: location }} />
@@ -215,66 +217,13 @@ function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 
 /* ---------------------- Menu ---------------------- */
 
-function TlaSidebarFileLinkMenu(_props: { fileId: TldrawAppFile['id'] }) {
-	// const app = useApp()
-
-	const handleCopyLinkClick = useCallback(() => {
-		// copy file url
-	}, [])
-
-	const handleRenameLinkClick = useCallback(() => {
-		// open rename dialog
-	}, [])
-
-	const handleDuplicateLinkClick = useCallback(() => {
-		// duplicate file
-	}, [])
-
-	const handleStarLinkClick = useCallback(() => {
-		// toggle star file
-	}, [])
-
-	const handleDeleteLinkClick = useCallback(() => {
-		// toggle star file
-	}, [])
-
+function TlaSidebarFileLinkMenu({ fileId }: { fileId: TldrawAppFile['id'] }) {
 	return (
-		<DropdownPrimitive.Root dir="ltr" modal={false}>
-			<TldrawUiDropdownMenuTrigger>
-				<button className={styles.linkMenu}>
-					<TlaIcon icon="dots-vertical-strong" />
-				</button>
-			</TldrawUiDropdownMenuTrigger>
-			<DropdownPrimitive.Content
-				className={classNames('tlui-menu', 'tla-text_ui__medium')}
-				data-size="small"
-				side="bottom"
-				align="start"
-				collisionPadding={4}
-				alignOffset={0}
-				sideOffset={0}
-			>
-				<div className="tlui-menu__group">
-					<TlaMenuButton label="Copy link" onClick={handleCopyLinkClick} />
-					<TlaMenuButton label="Rename" onClick={handleRenameLinkClick} />
-					<TlaMenuButton label="Duplicate" onClick={handleDuplicateLinkClick} />
-					<TlaMenuButton label="Star" onClick={handleStarLinkClick} />
-				</div>
-				<div className="tlui-menu__group">
-					<TlaMenuButton label="Delete" onClick={handleDeleteLinkClick} />
-				</div>
-			</DropdownPrimitive.Content>
-		</DropdownPrimitive.Root>
-	)
-}
-
-function TlaMenuButton({ label, onClick }: { label: string; onClick(): void }) {
-	return (
-		<DropdownPrimitive.DropdownMenuItem asChild>
-			<TldrawUiButton type="menu" onClick={onClick}>
-				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
-			</TldrawUiButton>
-		</DropdownPrimitive.DropdownMenuItem>
+		<TlaFileMenu fileId={fileId} source="sidebar">
+			<button className={styles.linkMenu}>
+				<TlaIcon icon="dots-vertical-strong" />
+			</button>
+		</TlaFileMenu>
 	)
 }
 

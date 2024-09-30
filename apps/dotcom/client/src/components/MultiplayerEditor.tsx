@@ -24,6 +24,7 @@ import {
 	TldrawUiButtonLabel,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	tlmenus,
 	useActions,
 	useEditor,
 	useTranslation,
@@ -90,7 +91,6 @@ const components: TLComponents = {
 		return <DocumentTopZone isOffline={isOffline} />
 	},
 	SharePanel: () => {
-		const editor = useEditor()
 		const msg = useTranslation()
 		return (
 			<div className="tlui-share-zone" draggable={false}>
@@ -99,7 +99,7 @@ const components: TLComponents = {
 						<TldrawUiButton
 							type="menu"
 							data-testid="people-menu.invite"
-							onClick={() => editor.addOpenMenu('share menu')}
+							onClick={() => tlmenus.addOpenMenu('share menu')}
 						>
 							<TldrawUiButtonLabel>{msg('people-menu.invite')}</TldrawUiButtonLabel>
 							<TldrawUiButtonIcon icon="plus" />

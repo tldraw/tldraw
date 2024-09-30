@@ -59,7 +59,6 @@ import {
 	JsonObject,
 	PerformanceTracker,
 	Result,
-	Timers,
 	annotateError,
 	assert,
 	assertExists,
@@ -104,6 +103,9 @@ import {
 	ZOOM_TO_FIT_PADDING,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
+import { tlenv } from '../globals/environment'
+import { tlmenus } from '../globals/menus'
+import { tltime } from '../globals/time'
 import { TldrawOptions, defaultTldrawOptions } from '../options'
 import { Box, BoxLike } from '../primitives/Box'
 import { Mat, MatLike } from '../primitives/Mat'
@@ -132,7 +134,6 @@ import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager'
-import { EnvironmentManager } from './managers/EnvironmentManager'
 import { FocusManager } from './managers/FocusManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
@@ -268,6 +269,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._isShapeHiddenPredicate = isShapeHidden
 
 		this.options = { ...defaultTldrawOptions, ...options }
+
 		this.store = store
 		this.disposables.add(this.store.dispose.bind(this.store))
 		this.history = new HistoryManager<TLRecord>({
@@ -280,8 +282,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.snaps = new SnapManager(this)
 
-		this.timers = new Timers()
-		this.disposables.add(this.timers.dispose.bind(this.timers))
+		this.disposables.add(this.timers.dispose)
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
@@ -344,7 +345,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.root.children![Tool.id] = new Tool(this, this.root)
 		}
 
-		this.environment = new EnvironmentManager(this)
 		this.scribbles = new ScribbleManager(this)
 
 		// Cleanup
@@ -758,6 +758,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	readonly options: TldrawOptions
 
+	readonly contextId = uniqueId()
+
 	/**
 	 * The editor's store
 	 *
@@ -802,7 +804,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly timers: Timers
+	readonly timers = tltime.forContext(this.contextId)
 
 	/**
 	 * A manager for the user and their preferences.
@@ -821,9 +823,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * A manager for the editor's environment.
 	 *
+	 * @deprecated This is deprecated and will be removed in a future version. Use the `tlenv` global export instead.
 	 * @public
 	 */
-	readonly environment: EnvironmentManager
+	readonly environment = tlenv
 
 	/**
 	 * A manager for the editor's scribbles.
@@ -1473,88 +1476,54 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	// Menus
 
+	menus = tlmenus.forContext(this.contextId)
+
 	/**
-	 * A set of strings representing any open menus. When menus are open,
-	 * certain interactions will behave differently; for example, when a
-	 * draw tool is selected and a menu is open, a pointer-down will not
-	 * create a dot (because the user is probably trying to close the menu)
-	 * however a pointer-down event followed by a drag will begin drawing
-	 * a line (because the user is BOTH trying to close the menu AND start
-	 * drawing a line).
+	 * @deprecated Use `editor.menus.getOpenMenus` instead.
 	 *
 	 * @public
 	 */
 	@computed getOpenMenus(): string[] {
-		return this.getInstanceState().openMenus
+		return this.menus.getOpenMenus()
 	}
 
 	/**
-	 * Add an open menu.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.addOpenMenu('menu-id')
-	 * ```
+	 * @deprecated Use `editor.menus.addOpenMenu` instead.
 	 *
 	 * @public
 	 */
 	addOpenMenu(id: string): this {
-		const menus = new Set(this.getOpenMenus())
-		if (!menus.has(id)) {
-			menus.add(id)
-			this.updateInstanceState({ openMenus: [...menus] })
-		}
+		this.menus.addOpenMenu(id)
 		return this
 	}
 
 	/**
-	 * Delete an open menu.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deleteOpenMenu('menu-id')
-	 * ```
+	 * @deprecated Use `editor.menus.deleteOpenMenu` instead.
 	 *
 	 * @public
 	 */
 	deleteOpenMenu(id: string): this {
-		const menus = new Set(this.getOpenMenus())
-		if (menus.has(id)) {
-			menus.delete(id)
-			this.updateInstanceState({ openMenus: [...menus] })
-		}
+		this.menus.deleteOpenMenu(id)
 		return this
 	}
 
 	/**
-	 * Clear all open menus.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.clearOpenMenus()
-	 * ```
+	 * @deprecated Use `editor.menus.clearOpenMenus` instead.
 	 *
 	 * @public
 	 */
 	clearOpenMenus(): this {
-		if (this.getOpenMenus().length) {
-			this.updateInstanceState({ openMenus: [] })
-		}
+		this.menus.clearOpenMenus()
 		return this
 	}
 
 	/**
-	 * Get whether any menus are open.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getIsMenuOpen()
-	 * ```
+	 * @deprecated Use `editor.menus.hasAnyOpenMenus` instead.
 	 *
 	 * @public
 	 */
 	@computed getIsMenuOpen(): boolean {
-		return this.getOpenMenus().length > 0
+		return this.menus.hasAnyOpenMenus()
 	}
 
 	/* --------------------- Cursor --------------------- */
@@ -9379,7 +9348,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this._updateInputsFromEvent(info)
 
-				if (this.getIsMenuOpen()) {
+				if (this.menus.hasAnyOpenMenus()) {
 					// noop
 				} else {
 					const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
@@ -9551,7 +9520,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.buttons.delete(info.button)
 
 						// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
-						if (this.getIsMenuOpen()) return
+						if (this.menus.hasAnyOpenMenus()) return
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return
@@ -9712,7 +9681,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// close open menus at the very end on pointer down! after everything else! συντελείας τοῦ κώδικα!!
 		if (info.type === 'pointer' && info.name === 'pointer_down') {
-			this.clearOpenMenus()
+			this.menus.clearOpenMenus()
 		}
 
 		return this

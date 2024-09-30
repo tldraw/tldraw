@@ -4,6 +4,7 @@ import {
 	TLSelectionForegroundProps,
 	TLTextShape,
 	getCursor,
+	tlenv,
 	toDomPrecision,
 	track,
 	useEditor,
@@ -35,7 +36,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	const bottomLeftEvents = useSelectionEvents('bottom_left')
 
 	const isDefaultCursor =
-		!editor.getIsMenuOpen() && editor.getInstanceState().cursor.type === 'default'
+		!editor.menus.hasAnyOpenMenus() && editor.getInstanceState().cursor.type === 'default'
 	const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
 	const onlyShape = editor.getOnlySelectedShape()
@@ -101,7 +102,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 			editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
 
 	if (onlyShape && shouldDisplayBox) {
-		if (editor.environment.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+		if (tlenv.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
 			shouldDisplayBox = false
 		}
 	}

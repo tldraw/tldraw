@@ -419,14 +419,24 @@ export function throttleToNextFrame(fn: () => void): () => void;
 
 // @public (undocumented)
 export class Timers {
+    constructor();
     // (undocumented)
-    dispose(): void;
+    dispose(contextId: string): void;
     // (undocumented)
-    requestAnimationFrame(callback: FrameRequestCallback): number;
+    disposeAll(): void;
     // (undocumented)
-    setInterval(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    forContext(contextId: string): {
+        dispose: () => void;
+        requestAnimationFrame: (callback: FrameRequestCallback) => number;
+        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+    };
     // (undocumented)
-    setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number;
+    // (undocumented)
+    setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    // (undocumented)
+    setTimeout(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
 }
 
 export { uniq }

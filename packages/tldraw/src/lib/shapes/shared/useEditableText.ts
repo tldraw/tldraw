@@ -4,6 +4,7 @@ import {
 	getPointerInfo,
 	noop,
 	stopEventPropagation,
+	tlenv,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -45,7 +46,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 
 		// XXX(mime): This fixes iOS not showing the cursor sometimes.
 		// This "shakes" the cursor awake.
-		if (editor.environment.isSafari) {
+		if (tlenv.isSafari) {
 			rInput.current?.blur()
 			rInput.current?.focus()
 		}

@@ -2,29 +2,12 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-reac
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { useValue } from 'tldraw'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
-import { useMaybeApp } from '../../hooks/useAppState'
 import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
-	const app = useMaybeApp()
-	const theme = useValue(
-		'theme',
-		() => {
-			if (!app) return 'light'
-			app.getSessionState().theme
-		},
-		[app]
-	)
-
 	return (
-		<div
-			className={classNames(
-				styles.loggedOut,
-				`tla tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`
-			)}
-		>
+		<div className={classNames('tla tla-theme__light tl-container', styles.loggedOut)}>
 			<div className={styles.header}>
 				<Link to="/">
 					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />

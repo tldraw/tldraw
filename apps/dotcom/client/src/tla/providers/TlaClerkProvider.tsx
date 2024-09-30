@@ -1,5 +1,10 @@
 import { ClerkProvider } from '@clerk/clerk-react'
+import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { Outlet } from 'react-router-dom'
+import '../styles/tla.css'
+
+export const assetUrls = getAssetUrlsByImport()
+
 import '../styles/tla.css'
 
 // @ts-ignore this is fine

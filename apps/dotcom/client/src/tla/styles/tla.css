@@ -186,8 +186,3 @@
 	gap: 8px;
 	align-items: center;
 }
-
-.cl-popoverBox {
-	transform: scale(1.3);
-	transform-origin: top right;
-}

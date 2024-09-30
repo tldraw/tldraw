@@ -1,5 +1,6 @@
 import * as _DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
+import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TldrawUiButton } from './Button/TldrawUiButton'
@@ -59,15 +60,17 @@ export function TldrawUiDropdownMenuTrigger({ children, ...rest }: TLUiDropdownM
 /** @public */
 export interface TLUiDropdownMenuContentProps {
 	id?: string
-	children: ReactNode
-	alignOffset?: number
-	sideOffset?: number
-	align?: 'start' | 'center' | 'end'
+	className?: string
 	side?: 'bottom' | 'top' | 'right' | 'left'
+	align?: 'start' | 'center' | 'end'
+	sideOffset?: number
+	alignOffset?: number
+	children: ReactNode
 }
 
 /** @public @react */
 export function TldrawUiDropdownMenuContent({
+	className,
 	side = 'bottom',
 	align = 'start',
 	sideOffset = 8,
@@ -79,7 +82,7 @@ export function TldrawUiDropdownMenuContent({
 	return (
 		<_DropdownMenu.Portal container={container}>
 			<_DropdownMenu.Content
-				className="tlui-menu"
+				className={classNames('tlui-menu', className)}
 				side={side}
 				sideOffset={sideOffset}
 				align={align}

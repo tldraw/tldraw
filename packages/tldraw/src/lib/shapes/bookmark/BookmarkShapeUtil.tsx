@@ -14,6 +14,7 @@ import {
 	getHashForString,
 	lerp,
 	stopEventPropagation,
+	tlenv,
 	toDomPrecision,
 	useSvgExportContext,
 } from '@tldraw/editor'
@@ -112,7 +113,7 @@ function BookmarkShapeComponent({
 		shape.props.assetId ? util.editor.getAsset(shape.props.assetId) : null
 	) as TLBookmarkAsset
 
-	const isSafariExport = !!useSvgExportContext() && util.editor.environment.isSafari
+	const isSafariExport = !!useSvgExportContext() && tlenv.isSafari
 
 	const pageRotation = util.editor.getShapePageTransform(shape)!.rotation()
 

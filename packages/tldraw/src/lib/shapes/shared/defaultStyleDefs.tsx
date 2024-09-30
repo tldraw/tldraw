@@ -11,6 +11,7 @@ import {
 	debugFlags,
 	fetch,
 	last,
+	tlenv,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -277,7 +278,7 @@ function PatternFillDefForCanvas() {
 	const { defs, isReady } = usePattern()
 
 	useEffect(() => {
-		if (isReady && editor.environment.isSafari) {
+		if (isReady && tlenv.isSafari) {
 			const htmlLayer = findHtmlLayerParent(containerRef.current!)
 			if (htmlLayer) {
 				// Wait for `patternContext` to be picked up

@@ -1,6 +1,6 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import { FileHelpers, useLocalStorageState, useValue } from 'tldraw'
+import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useTldrawUser } from '../../hooks/useUser'
 import { copyTextToClipboard } from '../../utils/copy'
@@ -117,16 +117,25 @@ function TlaSelectSharedLinkType({
 }
 
 function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
+	const { addToast } = useToasts()
+
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
 		copyTextToClipboard(url)
-	}, [fileId])
+
+		addToast({
+			title: 'copied',
+			severity: 'success',
+		})
+	}, [fileId, addToast])
 
 	return <TlaShareMenuCopyButton onClick={handleCopyLinkClick}>Copy link</TlaShareMenuCopyButton>
 }
 
 function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
+
+	const { addToast } = useToasts()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const { auth } = app.getSessionState()
@@ -138,7 +147,12 @@ function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 		// Copy the snapshot url to clipboard
 		const url = getSnapshotFileUrl(fileId)
 		copyTextToClipboard(url)
-	}, [app, fileId])
+
+		addToast({
+			title: 'copied',
+			severity: 'success',
+		})
+	}, [app, fileId, addToast])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">

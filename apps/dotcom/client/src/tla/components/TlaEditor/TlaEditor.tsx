@@ -72,6 +72,7 @@ const components: TLComponents = {
 			<div className="tlui-menu-zone">
 				<div className="tlui-buttons__horizontal">
 					{MainMenu && <MainMenu />}
+					{PageMenu && <PageMenu />}
 					{breakpoint < 6 ? null : (
 						<>
 							{QuickActions && <QuickActions />}
