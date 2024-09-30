@@ -39,8 +39,6 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 	return (
 		<div className={styles.content}>
 			<div className={styles.header}>
-				<TlaSidebarToggle />
-				<TlaSidebarToggleMobile />
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
 					<span className={styles.headerFolder}>My files / </span>
 					<TlaFileNameEditor fileId={file.id} fileName={TldrawApp.getFileName(file)} />
@@ -50,6 +48,8 @@ export function TlaFileContent({ file }: { file: TldrawAppFile }) {
 						</button>
 					</TlaFileMenu>
 				</div>
+				<TlaSidebarToggle />
+				<TlaSidebarToggleMobile />
 				<TlaFileShareMenu fileId={file.id} source="file-header">
 					<TlaButton>
 						<span>Share</span>
