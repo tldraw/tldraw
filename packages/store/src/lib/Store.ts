@@ -280,6 +280,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/**
 	 * Filters out non-document changes from a diff. Returns null if there are no changes left.
 	 * @param change - the records diff
+	 * @param scope - the records scope
 	 * @returns
 	 */
 	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
@@ -322,6 +323,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * Add some records to the store. It's an error if they already exist.
 	 *
 	 * @param records - The records to add.
+	 * @param phaseOverride - The phase override.
 	 * @public
 	 */
 	put(records: R[], phaseOverride?: 'initialize'): void {
@@ -760,6 +762,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @param name - The name of the derivation cache.
 	 * @param derive - A function used to derive the value of the cache.
+	 * @param isEqual - A function that determins equality between two records.
 	 * @public
 	 */
 	createComputedCache<Result, Record extends R = R>(

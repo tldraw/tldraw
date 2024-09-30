@@ -136,7 +136,7 @@ export class MediaHelpers {
 	/**
 	 * Get the size of a video blob
 	 *
-	 * @param src - A SharedBlob containing the video
+	 * @param blob - A SharedBlob containing the video
 	 * @public
 	 */
 	static async getVideoSize(blob: Blob): Promise<{ w: number; h: number }> {
@@ -149,7 +149,7 @@ export class MediaHelpers {
 	/**
 	 * Get the size of an image blob
 	 *
-	 * @param dataURL - A Blob containing the image.
+	 * @param blob - A Blob containing the image.
 	 * @public
 	 */
 	static async getImageSize(blob: Blob): Promise<{ w: number; h: number }> {

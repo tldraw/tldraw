@@ -543,9 +543,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * Broadcast a message to all connected clients except the one with the sessionId provided.
 	 *
 	 * @param message - The message to broadcast.
-	 * @param sourceSessionId - The session to exclude.
 	 */
-	broadcastPatch({ diff, sourceSessionId }: { diff: NetworkDiff<R>; sourceSessionId?: string }) {
+	broadcastPatch(message: { diff: NetworkDiff<R>; sourceSessionId?: string }) {
+		const { diff, sourceSessionId } = message
 		this.sessions.forEach((session) => {
 			if (session.state !== RoomSessionState.Connected) return
 			if (sourceSessionId === session.sessionId) return
@@ -582,6 +582,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 *
 	 * @param sessionId - The session of the client that connected to the room.
 	 * @param socket - Their socket.
+	 * @param meta - Any metadata associated with the session.
 	 */
 	handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) {
 		const existing = this.sessions.get(sessionId)
