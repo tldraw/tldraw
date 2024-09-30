@@ -2,6 +2,7 @@ import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { memo, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
+import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
@@ -64,13 +65,29 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			draggable={false}
 			{...events}
 		>
-			<a
-				role="button"
-				tabIndex={0}
-				draggable={false}
-				onClick={() => runtime.openWindow(url, '_blank')}
-				style={{ mask: maskCss, WebkitMask: maskCss }}
-			/>
+			{editor.environment.isCodeOss ? (
+				<a
+					draggable={false}
+					role="button"
+					onPointerDown={(e) => {
+						stopEventPropagation(e)
+						preventDefault(e)
+					}}
+					onClick={() => runtime.openWindow(url, '_blank')}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
+				/>
+			) : (
+				<a
+					href={url}
+					target="_blank"
+					rel="noreferrer"
+					draggable={false}
+					onPointerDown={(e) => {
+						stopEventPropagation(e)
+					}}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
+				/>
+			)}
 		</div>
 	)
 })
