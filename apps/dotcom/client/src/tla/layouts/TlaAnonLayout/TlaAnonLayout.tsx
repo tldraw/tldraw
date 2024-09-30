@@ -30,7 +30,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />
 				</Link>
 				<SignedOut>
-					<SignInButton>
+					<SignInButton forceRedirectUrl="/q">
 						<TlaButton>Sign in</TlaButton>
 					</SignInButton>
 				</SignedOut>

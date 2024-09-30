@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { TldrawAppFileRecordType, tldrawAppSchema } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
@@ -21,8 +21,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [ready, setReady] = useState(false)
 	const [app, setApp] = useState({} as TldrawApp)
 	const auth = useAuth()
+	const { user, isLoaded } = useClerkUser()
 
-	if (!auth.isSignedIn) {
+	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaAppProvider')
 	}
 
@@ -40,15 +41,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
 		TldrawApp.create({
 			userId: auth.userId,
+			fullName: user.fullName || '',
+			email: user.emailAddresses[0]?.emailAddress || '',
+			avatar: user.imageUrl || '',
 			store: store.store as any,
-		}).then((app) => {
+		}).then(({ store, userId }) => {
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
 				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-				app.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId))
+				store.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId), userId)
 			}
-			_app = app
-			setApp(app)
+			_app = store
+			setApp(store)
 			setReady(true)
 		})
 
@@ -57,7 +61,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				_app.dispose()
 			}
 		}
-	}, [store.status, store.store, auth.userId])
+	}, [store.status, store.store, auth.userId, user])
 
 	if (store.status === 'error') {
 		return (

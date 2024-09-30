@@ -1,14 +1,14 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
-import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
+import { TldrawAppUserId, TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import assert from 'assert'
-import { ReactNode, createContext, useContext, useEffect, useMemo } from 'react'
+import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { DefaultSpinner, LoadingScreen } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { useApp } from './useAppState'
 
 export interface TldrawUser {
-	id: string
+	id: TldrawAppUserId
 	clerkUser: UserResource
 	isTldraw: boolean
 	getToken(): Promise<string>
@@ -22,8 +22,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
 	const value = useMemo(() => {
 		if (!user || !auth.isSignedIn) return null
+
+		const storeUser = app.store.get(TldrawAppUserRecordType.createId(user.id))
+		if (!storeUser) throw new Error('User not found in app store')
+
 		return {
-			id: user.id,
+			id: storeUser.id,
 			clerkUser: user,
 			isTldraw:
 				user?.primaryEmailAddress?.verification.status === 'verified' &&
@@ -34,27 +38,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 				return token
 			},
 		}
-	}, [auth, user])
-
-	useEffect(() => {
-		async function registerInAppStore() {
-			if (!user) return
-
-			const tldrawUser = TldrawAppUserRecordType.create({
-				id: TldrawAppUserRecordType.createId(user.id),
-				name: user.fullName || '',
-				email: user.emailAddresses[0]?.emailAddress || '',
-				color: 'salmon',
-				avatar: user.imageUrl || '',
-				presence: {
-					fileIds: [],
-				},
-			})
-			app.store.put([tldrawUser])
-			await app.signIn(tldrawUser)
-		}
-		registerInAppStore()
-	}, [app, user])
+	}, [auth, user, app.store])
 
 	if (!isLoaded || !auth.isLoaded) {
 		return (

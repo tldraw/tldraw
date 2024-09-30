@@ -53,7 +53,6 @@ export const router = createRoutesFromElements(
 		</Route>
 		{/* begin tla */}
 		<Route lazy={() => import('./tla/providers/TlaAppProvider')}>
-			<Route path="/q/auth" lazy={() => import('./tla/pages/auth')} />
 			<Route path="/q/local" lazy={() => import('./tla/pages/local')} />
 			<Route lazy={() => import('./tla/providers/TlaAppLoggedInProvider')}>
 				{/* If not redirected, then local */}
