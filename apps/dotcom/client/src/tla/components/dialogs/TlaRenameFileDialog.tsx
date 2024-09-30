@@ -1,3 +1,4 @@
+import { TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback, useRef } from 'react'
 import {
 	TldrawUiButton,
@@ -12,7 +13,6 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawApp } from '../../utils/TldrawApp'
-import { TldrawAppFileId } from '../../utils/schema/TldrawAppFile'
 import styles from './dialogs.module.css'
 
 export function TlaRenameFileDialog({

@@ -1,5 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
+import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -14,7 +15,6 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { copyTextToClipboard } from '../../utils/copy'
-import { TldrawAppFile } from '../../utils/schema/TldrawAppFile'
 import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
 import { TlaRenameFileDialog } from '../dialogs/TlaRenameFileDialog'
 

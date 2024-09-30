@@ -9,7 +9,9 @@ export function TlaErrorLayout({ children }: { children: ReactNode }) {
 	return (
 		<div data-sidebar="false">
 			<TlaCloseButton onClose={() => navigate('/q/')} />
-			<div className={styles.page}>{children}</div>
+			<div className={styles.page}>
+				<div className={styles.pageCentered}>{children}</div>
+			</div>
 		</div>
 	)
 }

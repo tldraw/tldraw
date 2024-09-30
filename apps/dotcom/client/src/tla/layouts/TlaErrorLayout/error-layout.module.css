@@ -1,13 +1,23 @@
 .page {
-	position: relative;
+	position: absolute;
 	display: flex;
 	padding: 48px 16px 16px 16px;
 	width: 100%;
 	max-width: 760px;
 	height: 100%;
+	width: 100%;
 	margin: 0px auto;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-grow: 2;
+}
+
+.pageCentered {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-height: 100%;
+	overflow-y: auto;
 }
