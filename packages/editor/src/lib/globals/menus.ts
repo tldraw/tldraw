@@ -91,18 +91,35 @@ export const tlmenus = {
 	},
 
 	/**
+	 * Get whether a menu is open for a given context.
+	 *
+	 * @example
+	 * ```ts
+	 * isMenuOpem(id, myEditorId)
+	 * ```
+	 *
+	 * @param id - The id of the menu to check.
+	 * @param contextId - An optional context to check menus for.
+	 *
+	 * @public
+	 */
+	isMenuOpen(id: string, contextId?: string): boolean {
+		return this.getOpenMenus(contextId).includes(id)
+	},
+
+	/**
 	 * Get whether any menus are open for a given context.
 	 *
 	 * @example
 	 * ```ts
-	 * getIsMenuOpen(contextId)
+	 * hasOpenMenus(myEditorId)
 	 * ```
 	 *
 	 * @param contextId - A context to check menus for.
 	 *
 	 * @public
 	 */
-	getIsMenuOpen(contextId: string): boolean {
+	hasOpenMenus(contextId: string): boolean {
 		return this.getOpenMenus(contextId).length > 0
 	},
 
@@ -111,12 +128,12 @@ export const tlmenus = {
 	 *
 	 * @example
 	 * ```ts
-	 * getIsAnyMenuOpen()
+	 * hasAnyOpenMenus()
 	 * ```
 	 *
 	 * @public
 	 */
-	getIsAnyMenuOpen() {
+	hasAnyOpenMenus(): boolean {
 		return this.getOpenMenus().length > 0
 	},
 
@@ -127,8 +144,9 @@ export const tlmenus = {
 			deleteOpenMenu: (id: string) => this.deleteOpenMenu(id, contextId),
 			clearOpenMenus: () => this.clearOpenMenus(contextId),
 			// Gets whether any menus are open
-			getIsMenuOpen: () => this.getIsMenuOpen(contextId),
-			getIsAnyMenuOpen: () => this.getIsAnyMenuOpen(),
+			isMenuOpen: (id: string) => this.isMenuOpen(id, contextId),
+			hasOpenMenus: () => this.hasOpenMenus(contextId),
+			hasAnyOpenMenus: () => this.hasAnyOpenMenus(),
 		}
 	},
 }

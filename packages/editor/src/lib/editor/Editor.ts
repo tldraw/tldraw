@@ -9300,7 +9300,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this._updateInputsFromEvent(info)
 
-				if (this.menus.getIsAnyMenuOpen()) {
+				if (this.menus.hasAnyOpenMenus()) {
 					// noop
 				} else {
 					const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
@@ -9472,7 +9472,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						inputs.buttons.delete(info.button)
 
 						// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
-						if (this.menus.getIsAnyMenuOpen()) return
+						if (this.menus.hasAnyOpenMenus()) return
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return

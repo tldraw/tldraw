@@ -1144,9 +1144,10 @@ export class Editor extends EventEmitter<TLEventMap> {
         addOpenMenu: (id: string) => void;
         clearOpenMenus: () => void;
         deleteOpenMenu: (id: string) => void;
-        getIsAnyMenuOpen: () => boolean;
-        getIsMenuOpen: () => boolean;
         getOpenMenus: () => string[];
+        hasAnyOpenMenus: () => boolean;
+        hasOpenMenus: () => boolean;
+        isMenuOpen: (id: string) => boolean;
     };
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     navigateToDeepLink(opts?: {
@@ -3171,15 +3172,17 @@ export const tlmenus: {
     clearOpenMenus(contextId?: string): void;
     deleteOpenMenu(id: string, contextId?: string): void;
     getOpenMenus(contextId?: string): string[];
-    getIsMenuOpen(contextId: string): boolean;
-    getIsAnyMenuOpen(): boolean;
+    isMenuOpen(id: string, contextId?: string): boolean;
+    hasOpenMenus(contextId: string): boolean;
+    hasAnyOpenMenus(): boolean;
     forContext(contextId: string): {
         addOpenMenu: (id: string) => void;
         clearOpenMenus: () => void;
         deleteOpenMenu: (id: string) => void;
-        getIsAnyMenuOpen: () => boolean;
-        getIsMenuOpen: () => boolean;
         getOpenMenus: () => string[];
+        hasAnyOpenMenus: () => boolean;
+        hasOpenMenus: () => boolean;
+        isMenuOpen: (id: string) => boolean;
     };
 };
 

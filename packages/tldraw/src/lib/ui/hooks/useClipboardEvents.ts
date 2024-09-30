@@ -73,7 +73,7 @@ const INPUTS = ['input', 'select', 'textarea']
 function disallowClipboardEvents(editor: Editor) {
 	const { activeElement } = document
 	return (
-		editor.menus.getIsAnyMenuOpen() ||
+		editor.menus.hasAnyOpenMenus() ||
 		(activeElement &&
 			(activeElement.getAttribute('contenteditable') ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))

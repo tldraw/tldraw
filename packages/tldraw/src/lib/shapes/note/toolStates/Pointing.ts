@@ -28,7 +28,7 @@ export class Pointing extends StateNode {
 	override onEnter() {
 		const { editor } = this
 
-		this.wasFocusedOnEnter = !editor.menus.getIsAnyMenuOpen()
+		this.wasFocusedOnEnter = !editor.menus.hasAnyOpenMenus()
 
 		if (this.wasFocusedOnEnter) {
 			const id = createShapeId()
