@@ -129,38 +129,6 @@ export class TldrawApp {
 		return filteredFiles
 	}
 
-	async signIn(_user: TldrawAppUser, forceError = false) {
-		await new Promise((resolve) => setTimeout(resolve, 1000))
-		if (forceError) {
-			return { error: 'An error occurred', success: false }
-		}
-		const sessionState = this.getSessionState()
-
-		this.store.put([
-			{
-				...sessionState,
-				auth: {
-					userId: TldrawAppUserRecordType.createId('0'), // null,
-				},
-			},
-		])
-
-		return { success: true }
-	}
-
-	async signOut() {
-		const sessionState = this.getSessionState()
-
-		this.store.put([
-			{
-				...sessionState,
-				auth: undefined,
-			},
-		])
-
-		return { success: true }
-	}
-
 	toggleSidebar() {
 		const sessionState = this.getSessionState()
 
@@ -302,12 +270,12 @@ export class TldrawApp {
 		return file
 	}
 
-	claimTemporaryFile(fileId: TldrawAppFileId) {
+	claimTemporaryFile(fileId: TldrawAppFileId, owner: TldrawAppUserId) {
 		// TODO(david): check that you can't claim someone else's file (the db insert should fail and trigger a resync)
 		this.store.put([
 			TldrawAppFileRecordType.create({
 				id: fileId,
-				owner: this.getSessionState().auth!.userId,
+				owner,
 			}),
 		])
 	}
@@ -444,7 +412,13 @@ export class TldrawApp {
 		])
 	}
 
-	static async create(opts: { userId: string; store: Store<TldrawAppRecord> }) {
+	static async create(opts: {
+		userId: string
+		fullName: string
+		email: string
+		avatar: string
+		store: Store<TldrawAppRecord>
+	}) {
 		const { store } = opts
 
 		const userId = TldrawAppUserRecordType.createId(opts.userId)
@@ -463,6 +437,10 @@ export class TldrawApp {
 			store.put([
 				TldrawAppUserRecordType.create({
 					id: userId,
+					name: opts.fullName,
+					email: opts.email,
+					color: 'salmon',
+					avatar: opts.avatar,
 					presence: {
 						fileIds: [],
 					},
@@ -470,7 +448,7 @@ export class TldrawApp {
 			])
 		}
 
-		return new TldrawApp(store)
+		return { store: new TldrawApp(store), userId }
 	}
 
 	static SessionStateId = TldrawAppSessionStateRecordType.createId('session')

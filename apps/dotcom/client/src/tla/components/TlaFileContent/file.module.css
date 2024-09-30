@@ -56,3 +56,8 @@
 		border-left: 1px solid var(--tla-color-border);
 	}
 }
+
+.rightSide {
+	display: flex;
+	gap: 8px;
+}

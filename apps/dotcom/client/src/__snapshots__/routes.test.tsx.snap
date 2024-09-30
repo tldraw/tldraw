@@ -15,10 +15,6 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/q/?$",
   },
   {
-    "reactRouterPattern": "/q/auth",
-    "vercelRouterPattern": "^/q/auth/?$",
-  },
-  {
     "reactRouterPattern": "/q/debug",
     "vercelRouterPattern": "^/q/debug/?$",
   },

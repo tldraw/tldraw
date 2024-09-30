@@ -1,9 +1,11 @@
+import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react'
 import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useEffect } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { TldrawApp } from '../../utils/TldrawApp'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditor } from '../TlaEditor/TlaEditor'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
@@ -54,7 +56,17 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 					<span className={styles.headerFolder}>My files / </span>
 					<span className={styles.headerTitle}>{TldrawApp.getFileName(file)}</span>
 				</div>
-				<TlaFileShareMenu fileId={fileId} />
+				<div className={styles.rightSide}>
+					<SignedOut>
+						<SignInButton>
+							<TlaButton>Sign in</TlaButton>
+						</SignInButton>
+					</SignedOut>
+					<SignedIn>
+						<UserButton />
+					</SignedIn>
+					<TlaFileShareMenu fileId={fileId} />
+				</div>
 			</div>
 			<div
 				className={styles.editorWrapper}

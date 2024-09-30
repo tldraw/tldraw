@@ -1,7 +1,6 @@
+import { SignOutButton } from '@clerk/clerk-react'
 import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { Fragment } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { clearLocalStorage, setInLocalStorage } from 'tldraw'
 import { TlaButton } from '../components/TlaButton/TlaButton'
 import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
 import { TlaFormDivider } from '../components/tla-form/tla-form'
@@ -9,16 +8,8 @@ import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../hooks/useFlags'
 import { useSessionState } from '../hooks/useSessionState'
 import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
-import { USER_ID_KEY } from '../providers/TlaAppProvider'
 
 export function Component() {
-	const navigate = useNavigate()
-
-	function handleSignInAsUser(userId: string) {
-		setInLocalStorage(USER_ID_KEY, userId)
-		window.location.href = '/q'
-	}
-
 	return (
 		<TlaPageLayout>
 			<div className="tla-page__header">
@@ -28,39 +19,9 @@ export function Component() {
 			<h2>Users</h2>
 			<TlaSpacer height={20} />
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 'fit-content' }}>
-				<TlaButton
-					variant="primary"
-					onClick={() => {
-						handleSignInAsUser('steve') // steve
-					}}
-				>
-					Sign in as Steve
-				</TlaButton>
-				<TlaButton
-					variant="primary"
-					onClick={() => {
-						handleSignInAsUser('david') // david
-					}}
-				>
-					Sign in as David
-				</TlaButton>
-				<TlaButton
-					variant="primary"
-					onClick={() => {
-						handleSignInAsUser('alex') // alex
-					}}
-				>
-					Sign in as Alex
-				</TlaButton>
-				<TlaButton
-					variant="warning"
-					onClick={() => {
-						clearLocalStorage()
-						navigate('/q')
-					}}
-				>
-					Sign out
-				</TlaButton>
+				<SignOutButton redirectUrl="/q">
+					<TlaButton variant="warning">Sign out</TlaButton>
+				</SignOutButton>
 			</div>
 			<TlaSpacer height={40} />
 			<TlaFormDivider />
