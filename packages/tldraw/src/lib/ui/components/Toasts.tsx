@@ -1,12 +1,14 @@
 import * as T from '@radix-ui/react-toast'
-import { useEditor } from '@tldraw/editor'
-import * as React from 'react'
+import { useValue } from '@tldraw/editor'
+import { memo } from 'react'
 import { AlertSeverity, TLUiToast, useToasts } from '../context/toasts'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonLabel } from './primitives/Button/TldrawUiButtonLabel'
 import { TldrawUiIcon } from './primitives/TldrawUiIcon'
+
+const DEFAULT_TOAST_DURATION = 4000
 
 const SEVERITY_TO_ICON: { [msg in AlertSeverity]: TLUiIconType } = {
 	success: 'check-circle',
@@ -15,7 +17,8 @@ const SEVERITY_TO_ICON: { [msg in AlertSeverity]: TLUiIconType } = {
 	info: 'info-circle',
 }
 
-function Toast({ toast }: { toast: TLUiToast }) {
+/** @internal */
+function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 	const { removeToast } = useToasts()
 	const msg = useTranslation()
 
@@ -33,7 +36,7 @@ function Toast({ toast }: { toast: TLUiToast }) {
 		<T.Root
 			onOpenChange={onOpenChange}
 			className="tlui-toast__container"
-			duration={toast.keepOpen ? Infinity : 5000}
+			duration={toast.keepOpen ? Infinity : DEFAULT_TOAST_DURATION}
 			data-severity={toast.severity}
 		>
 			{icon && (
@@ -80,36 +83,16 @@ function Toast({ toast }: { toast: TLUiToast }) {
 	)
 }
 
-function _Toasts() {
+/** @public @react */
+export const TldrawUiToasts = memo(function TldrawUiToasts() {
 	const { toasts } = useToasts()
-
-	return toasts.map((toast) => <Toast key={toast.id} toast={toast} />)
-}
-
-export const Toasts = React.memo(_Toasts)
-
-export function ToastViewport() {
-	const editor = useEditor()
-	const { toasts } = useToasts()
-
-	const [hasToasts, setHasToasts] = React.useState(false)
-
-	React.useEffect(() => {
-		let timeoutId = -1
-		if (toasts.length) {
-			setHasToasts(true)
-		} else {
-			timeoutId = editor.timers.setTimeout(() => {
-				setHasToasts(false)
-			}, 1000)
-		}
-
-		return () => {
-			clearTimeout(timeoutId)
-		}
-	}, [toasts.length, setHasToasts, editor])
-
-	if (!hasToasts) return null
-
-	return <T.ToastViewport className="tlui-toast__viewport" />
-}
+	const toastsArray = useValue('toasts', () => toasts.get(), [])
+	return (
+		<>
+			{toastsArray.map((toast) => (
+				<TldrawUiToast key={toast.id} toast={toast} />
+			))}
+			<T.ToastViewport className="tlui-toast__viewport" />
+		</>
+	)
+})

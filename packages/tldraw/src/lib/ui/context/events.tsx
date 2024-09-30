@@ -140,7 +140,7 @@ export interface EventsProviderProps {
 }
 
 /** @public @react */
-export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
+export function TldrawUiEventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
 		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>
 			{children}

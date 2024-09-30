@@ -43,8 +43,12 @@
 .top,
 .bottom {
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
 	flex: 0 0 auto;
+}
+
+.bottom {
+	gap: 8px;
 }
 
 .content {
@@ -75,6 +79,10 @@
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
+}
+
+.linkMenu {
+	right: 4px;
 }
 
 .hoverable .linkMenu[data-state='open']::after,
@@ -195,6 +203,7 @@
 	border: none;
 	position: relative;
 	height: 40px;
+	flex-grow: 2;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -311,4 +320,10 @@
 	.linkMenu:hover {
 		color: var(--tla-color-text-1);
 	}
+}
+
+.userButton {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }

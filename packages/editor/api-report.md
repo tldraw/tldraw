@@ -479,11 +479,16 @@ export function clockwiseAngleDist(a0: number, a1: number): number;
 
 export { computed }
 
-// @internal (undocumented)
-export function ContainerProvider({ container, children, }: {
+// @public (undocumented)
+export function ContainerProvider({ container, children }: ContainerProviderProps): JSX_2.Element;
+
+// @public (undocumented)
+export interface ContainerProviderProps {
+    // (undocumented)
     children: React.ReactNode;
+    // (undocumented)
     container: HTMLElement;
-}): JSX_2.Element;
+}
 
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
@@ -804,6 +809,7 @@ export class EdgeScrollManager {
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
+    // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
@@ -846,10 +852,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
     // (undocumented)
     clearHistory(): this;
+    // @deprecated (undocumented)
     clearOpenMenus(): this;
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
+    // (undocumented)
+    readonly contextId: string;
     // @internal (undocumented)
     crash(error: unknown): this;
     createAssets(assets: TLAsset[]): this;
@@ -884,6 +893,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
         isolateShapes?: boolean | undefined;
     }): this;
+    // @deprecated (undocumented)
     deleteOpenMenu(id: string): this;
     deletePage(page: TLPage | TLPageId): this;
     deleteShape(id: TLShapeId): this;
@@ -900,7 +910,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     edgeScrollManager: EdgeScrollManager;
-    readonly environment: EnvironmentManager;
+    // @deprecated
+    readonly environment: {
+        isAndroid: boolean;
+        isChromeForIos: boolean;
+        isFirefox: boolean;
+        isIos: boolean;
+        isSafari: boolean;
+        isWebview: boolean;
+    };
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent['type']]: {
@@ -984,11 +1002,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInstanceState(): TLInstance;
     // (undocumented)
     getIsFocused(): boolean;
+    // @deprecated (undocumented)
     getIsMenuOpen(): boolean;
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getOnlySelectedShape(): null | TLShape;
     getOnlySelectedShapeId(): null | TLShapeId;
+    // @deprecated (undocumented)
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
@@ -1129,6 +1149,16 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated
     mark(markId?: string): this;
     markHistoryStoppingPoint(name?: string): string;
+    // (undocumented)
+    menus: {
+        addOpenMenu: (id: string) => void;
+        clearOpenMenus: () => void;
+        deleteOpenMenu: (id: string) => void;
+        getOpenMenus: () => string[];
+        hasAnyOpenMenus: () => boolean;
+        hasOpenMenus: () => boolean;
+        isMenuOpen: (id: string) => boolean;
+    };
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     navigateToDeepLink(opts?: {
         param?: string;
@@ -1227,7 +1257,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly textMeasure: TextManager;
     // (undocumented)
     _tickCameraState(): void;
-    readonly timers: Timers;
+    readonly timers: {
+        dispose: () => void;
+        requestAnimationFrame: (callback: FrameRequestCallback) => number;
+        setInterval: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
+    };
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
     undo(): this;
     ungroupShapes(ids: TLShapeId[], opts?: Partial<{
@@ -1303,19 +1338,6 @@ export class Ellipse2d extends Geometry2d {
 }
 
 export { EMPTY_ARRAY }
-
-// @public (undocumented)
-export class EnvironmentManager {
-    constructor(editor: Editor);
-    // (undocumented)
-    editor: Editor;
-    readonly isAndroid: boolean;
-    readonly isChromeForIos: boolean;
-    readonly isCodeOss: boolean;
-    readonly isFirefox: boolean;
-    readonly isIos: boolean;
-    readonly isSafari: boolean;
-}
 
 // @public (undocumented)
 export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<TLErrorBoundaryProps>>, {
@@ -2852,6 +2874,16 @@ export interface TLEditorSnapshot {
 // @public (undocumented)
 export type TLEnterEventHandler = (info: any, from: string) => void;
 
+// @public
+export const tlenv: {
+    isAndroid: boolean;
+    isChromeForIos: boolean;
+    isFirefox: boolean;
+    isIos: boolean;
+    isSafari: boolean;
+    isWebview: boolean;
+};
+
 // @public (undocumented)
 export interface TLErrorBoundaryProps {
     // (undocumented)
@@ -3142,6 +3174,27 @@ export interface TLMeasureTextSpanOpts {
     // (undocumented)
     width: number;
 }
+
+// @public (undocumented)
+export const tlmenus: {
+    menus: Atom<string[], unknown>;
+    addOpenMenu(id: string, contextId?: string): void;
+    clearOpenMenus(contextId?: string): void;
+    deleteOpenMenu(id: string, contextId?: string): void;
+    getOpenMenus(contextId?: string): string[];
+    isMenuOpen(id: string, contextId?: string): boolean;
+    hasOpenMenus(contextId: string): boolean;
+    hasAnyOpenMenus(): boolean;
+    forContext(contextId: string): {
+        addOpenMenu: (id: string) => void;
+        clearOpenMenus: () => void;
+        deleteOpenMenu: (id: string) => void;
+        getOpenMenus: () => string[];
+        hasAnyOpenMenus: () => boolean;
+        hasOpenMenus: () => boolean;
+        isMenuOpen: (id: string) => boolean;
+    };
+};
 
 // @public
 export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
@@ -3467,6 +3520,9 @@ export interface TLTickEventInfo {
     type: 'misc';
 }
 
+// @public
+export const tltime: Timers;
+
 // @public (undocumented)
 export interface TLUser {
     // (undocumented)
@@ -3546,6 +3602,9 @@ export { useComputed }
 // @public (undocumented)
 export function useContainer(): HTMLElement;
 
+// @public (undocumented)
+export function useContainerIfExists(): HTMLElement | null;
+
 // @public
 export function useDelaySvgExport(): () => void;
 
@@ -3557,6 +3616,9 @@ export function useEditorComponents(): Required<TLEditorComponents>;
 
 // @internal
 export function useEvent<Args extends Array<unknown>, Result>(handler: (...args: Args) => Result): (...args: Args) => Result;
+
+// @public (undocumented)
+export function useGlobalMenuIsOpen(id: string, onChange?: (isOpen: boolean) => void, onEvent?: (id: string) => void): readonly [boolean, (isOpen: boolean) => void];
 
 // @public (undocumented)
 export function useIsCropping(shapeId: TLShapeId): boolean;
@@ -3573,6 +3635,9 @@ export function useLocalStore(options: {
     sessionId?: string;
     snapshot?: TLEditorSnapshot | TLStoreSnapshot;
 } & TLStoreOptions): TLStoreWithStatus;
+
+// @public (undocumented)
+export function useMaybeEditor(): Editor | null;
 
 // @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;

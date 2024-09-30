@@ -4,7 +4,6 @@ import { TldrawAppUserId, TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import assert from 'assert'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { DefaultSpinner, LoadingScreen } from 'tldraw'
-import 'tldraw/tldraw.css'
 import { useApp } from './useAppState'
 
 export interface TldrawUser {

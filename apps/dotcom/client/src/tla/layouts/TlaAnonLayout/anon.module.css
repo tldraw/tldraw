@@ -1,7 +1,8 @@
 .loggedOut {
 	display: flex;
 	flex-direction: column;
-	position: relative;
+	position: absolute;
+	inset: 0px;
 	padding: 0px 16px;
 }
 
@@ -16,7 +17,7 @@
 .editorWrapper {
 	position: relative;
 	flex-grow: 2;
-	border: 1px solid var(--color-low);
+	border: 1px solid var(--tla-color-border);
 	border-radius: 9px;
 	overflow: hidden;
 }
@@ -26,8 +27,10 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	text-align: center;
+	padding: 0px 36px;
 }
 
-.footer a {
-	color: var(--color-primary);
+.footer > p > a {
+	color: var(--tla-color-primary);
 }
