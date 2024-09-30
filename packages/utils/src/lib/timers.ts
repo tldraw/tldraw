@@ -24,7 +24,7 @@ export class Timers {
 	/** @public */
 	setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number {
 		const id = window.setInterval(handler, timeout, args)
-		const current = this.timeouts.get(contextId) ?? []
+		const current = this.intervals.get(contextId) ?? []
 		this.intervals.set(contextId, [...current, id])
 		return id
 	}
@@ -32,7 +32,7 @@ export class Timers {
 	/** @public */
 	requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number {
 		const id = window.requestAnimationFrame(callback)
-		const current = this.timeouts.get(contextId) ?? []
+		const current = this.rafs.get(contextId) ?? []
 		this.rafs.set(contextId, [...current, id])
 		return id
 	}
