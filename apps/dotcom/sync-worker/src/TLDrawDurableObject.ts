@@ -261,7 +261,7 @@ export class TLDrawDurableObject {
 		this._isRestoring = true
 		try {
 			const roomId = this.documentInfo.slug
-			const roomKey = getR2KeyForRoom(roomId, this.isApp)
+			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.isApp })
 			const timestamp = ((await req.json()) as any).timestamp
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
@@ -381,9 +381,9 @@ export class TLDrawDurableObject {
 	}
 
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
-	async loadFromDatabase(persistenceKey: string): Promise<DBLoadResult> {
+	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 		try {
-			const key = getR2KeyForRoom(persistenceKey, this.isApp)
+			const key = getR2KeyForRoom({ slug, isApp: this.isApp })
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
@@ -404,12 +404,12 @@ export class TLDrawDurableObject {
 			const { data, error } = await this.supabaseClient
 				.from(this.supabaseTable)
 				.select('*')
-				.eq('slug', persistenceKey)
+				.eq('slug', slug)
 
 			if (error) {
-				this.logEvent({ type: 'room', roomId: persistenceKey, name: 'failed_load_from_db' })
+				this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
 
-				console.error('failed to retrieve document', persistenceKey, error)
+				console.error('failed to retrieve document', slug, error)
 				return { type: 'error', error: new Error(error.message) }
 			}
 			// if it didn't find a document, data will be an empty array
@@ -420,9 +420,9 @@ export class TLDrawDurableObject {
 			const roomFromSupabase = data[0] as PersistedRoomSnapshotForSupabase
 			return { type: 'room_found', snapshot: roomFromSupabase.drawing }
 		} catch (error) {
-			this.logEvent({ type: 'room', roomId: persistenceKey, name: 'failed_load_from_db' })
+			this.logEvent({ type: 'room', roomId: slug, name: 'failed_load_from_db' })
 
-			console.error('failed to fetch doc', persistenceKey, error)
+			console.error('failed to fetch doc', slug, error)
 			return { type: 'error', error: error as Error }
 		}
 	}
@@ -439,7 +439,7 @@ export class TLDrawDurableObject {
 
 		const snapshot = JSON.stringify(room.getCurrentSnapshot())
 
-		const key = getR2KeyForRoom(slug, this.isApp)
+		const key = getR2KeyForRoom({ slug: slug, isApp: this.isApp })
 		await Promise.all([
 			this.r2.rooms.put(key, snapshot),
 			this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),

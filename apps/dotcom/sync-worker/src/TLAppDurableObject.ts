@@ -10,6 +10,8 @@ import { AlarmScheduler } from './AlarmScheduler'
 import { Environment } from './types'
 import { throttle } from './utils/throttle'
 
+const PERSIST_INTERVAL = 1000
+
 export type DBLoadResult =
 	| {
 			type: 'error'
@@ -93,12 +95,12 @@ export class TLAppDurableObject {
 			`select record, lastModifiedEpoch from records where topicId = ?`
 		)
 		this.updateTopic = env.DB.prepare(
-			`insert into topics (id, schema, tombstones, clock) values (?, ?, ?, ?) on conflict (id) do update set schema = ?, tombstones = ?, clock = ?`
+			`insert into topics (id, schema, tombstones, clock) values (?1, ?2, ?3, ?4) on conflict (id) do update set schema = ?2, tombstones = ?3, clock = ?4`
 		)
 		this.updateTopicClock = env.DB.prepare(`update topics set clock = ? where id = ?`)
 		// TODO(david): check that you can't put records with the same id in different topics
 		this.updateRecord = env.DB.prepare(
-			`insert into records (id, topicId, record, lastModifiedEpoch) values (?, ?, ?, ?) on conflict (id, topicId) do update set record = ?, lastModifiedEpoch = ?`
+			`insert into records (id, topicId, record, lastModifiedEpoch) values (?1, ?2, ?3, ?4) on conflict (id, topicId) do update set record = ?3, lastModifiedEpoch = ?4`
 		)
 		this.deleteRecord = env.DB.prepare(`delete from records where topicId = ?`)
 	}
@@ -146,11 +148,10 @@ export class TLAppDurableObject {
 	async onRequest(req: IRequest) {
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
-		const params = Object.fromEntries(url.searchParams.entries())
-		let { sessionId } = params
-
-		// handle legacy param names
-		sessionId ??= params.sessionKey ?? params.instanceId
+		const sessionId = url.searchParams.get('sessionId')
+		if (typeof sessionId !== 'string') {
+			throw new Error('sessionId must be present')
+		}
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
@@ -168,9 +169,9 @@ export class TLAppDurableObject {
 
 	triggerPersistSchedule = throttle(() => {
 		this.persistToDatabase()
-	}, 2000)
+	}, PERSIST_INTERVAL)
 
-	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
+	// Load the room's drawing data from D1
 	async loadFromDatabase(): Promise<DBLoadResult> {
 		try {
 			const [
@@ -225,9 +226,6 @@ export class TLAppDurableObject {
 				this.userId,
 				JSON.stringify(snapshot.schema),
 				JSON.stringify(snapshot.tombstones),
-				snapshot.clock,
-				JSON.stringify(snapshot.schema),
-				JSON.stringify(snapshot.tombstones),
 				snapshot.clock
 			),
 			...deletedIds.map((id) => this.deleteRecord.bind(id)),
@@ -235,8 +233,6 @@ export class TLAppDurableObject {
 				this.updateRecord.bind(
 					doc.state.id,
 					this.userId,
-					JSON.stringify(doc.state),
-					doc.lastChangedClock,
 					JSON.stringify(doc.state),
 					doc.lastChangedClock
 				)
@@ -256,9 +252,8 @@ export class TLAppDurableObject {
 		this._lastPersistedClock = clock
 		// use a shorter timeout for this 'inner' loop than the 'outer' alarm-scheduled loop
 		// just in case there's any possibility of setting up a neverending queue
-	}, 1000)
+	}, PERSIST_INTERVAL / 2)
 
-	// Save the room to supabase
 	async persistToDatabase() {
 		try {
 			await this._persistQueue()
