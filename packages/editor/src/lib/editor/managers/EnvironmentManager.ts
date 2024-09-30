@@ -9,12 +9,14 @@ export class EnvironmentManager {
 			this.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
 			this.isFirefox = /firefox/i.test(navigator.userAgent)
 			this.isAndroid = /android/i.test(navigator.userAgent)
+			this.isCodeOss = /code-oss/i.test(navigator.userAgent)
 		} else {
 			this.isSafari = false
 			this.isIos = false
 			this.isChromeForIos = false
 			this.isFirefox = false
 			this.isAndroid = false
+			this.isCodeOss = false
 		}
 	}
 
@@ -52,4 +54,12 @@ export class EnvironmentManager {
 	 * @public
 	 */
 	readonly isAndroid: boolean
+
+	/**
+	 * Whether the editor is running on Visual Studio Code - Open Source
+	 * ("Code * - OSS").
+	 *
+	 * @public
+	 */
+	readonly isCodeOss: boolean
 }
