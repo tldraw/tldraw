@@ -16,14 +16,7 @@ import {
 import { AppStateProvider, useApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { assetUrls } from './TlaAppProvider'
-
-// @ts-ignore this is fine
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
-
-if (!PUBLISHABLE_KEY) {
-	throw new Error('Missing Publishable Key')
-}
+import { assetUrls } from './TlaClerkProvider'
 
 export function Component() {
 	const auth = useAuth()

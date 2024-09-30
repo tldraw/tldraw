@@ -10,9 +10,6 @@ import '../styles/tla.css'
 // @ts-ignore this is fine
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
-// prototype shit, this will be set during fake login
-export const USER_ID_KEY = 'tldraw_app_userId'
-
 if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing Publishable Key')
 }

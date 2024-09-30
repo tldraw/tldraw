@@ -1,4 +1,3 @@
-import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useEffect, useState } from 'react'
@@ -63,16 +62,7 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 				</div>
 				<TlaSidebarToggle />
 				<TlaSidebarToggleMobile />
-
 				<div className={styles.rightSide}>
-					<SignedOut>
-						<SignInButton>
-							<TlaButton>Sign in</TlaButton>
-						</SignInButton>
-					</SignedOut>
-					<SignedIn>
-						<UserButton />
-					</SignedIn>
 					<TlaFileShareMenu fileId={file.id} source="file-header">
 						<TlaButton>
 							<span>Share</span>
