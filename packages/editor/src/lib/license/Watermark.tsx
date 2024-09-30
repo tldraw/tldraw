@@ -66,15 +66,13 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			{...events}
 		>
 			<a
-				target="_blank"
-				href={url}
-				rel="noreferrer"
 				draggable={false}
+				role="button"
 				onPointerDown={(e) => {
-					stopEventPropagation(e)
 					preventDefault(e)
+					stopEventPropagation(e)
+					runtime.openWindow(url, '_blank')
 				}}
-				onClick={() => runtime.openWindow(url, '_blank')}
 				style={{ mask: maskCss, WebkitMask: maskCss }}
 			/>
 		</div>
