@@ -6963,15 +6963,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shape - The shape (or shape partial) to create.
-	 * @param select - Whether to select the created shapes. Defaults to false.
 	 *
 	 * @public
 	 */
-	createShape<T extends TLUnknownShape>(
-		shape: OptionalKeys<TLShapePartial<T>, 'id'>,
-		select = false
-	): this {
-		this.createShapes([shape], select)
+	createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this {
+		this.createShapes([shape])
 		return this
 	}
 
@@ -6985,14 +6981,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape partials) to create.
-	 * @param select - Whether to select the created shapes. Defaults to false.
 	 *
 	 * @public
 	 */
-	createShapes<T extends TLUnknownShape>(
-		shapes: OptionalKeys<TLShapePartial<T>, 'id'>[],
-		select = false
-	): this {
+	createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
@@ -7171,10 +7163,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 
 			this.store.put(shapeRecordsToCreate)
-
-			if (select && shapeRecordsToCreate.length) {
-				this.setSelectedShapes(shapeRecordsToCreate.map((s) => s.id))
-			}
 		})
 
 		return this
