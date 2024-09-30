@@ -1,3 +1,4 @@
+import { TldrawAppUser } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import {
@@ -14,7 +15,6 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { useApp } from '../../hooks/useAppState'
 import { useAuth } from '../../hooks/useAuth'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { TldrawAppUser } from '../../utils/schema/TldrawAppUser'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
