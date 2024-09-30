@@ -96,7 +96,7 @@ function useShallowArrayEquality<T extends unknown[]>(array: T): T {
 	return useMemo(() => array, array)
 }
 
-/** public */
+/** @internal */
 export function useMergedTranslationOverrides(
 	overrides?: TLUiOverrides[] | TLUiOverrides
 ): NonNullable<TLUiTranslationProviderProps['overrides']> {

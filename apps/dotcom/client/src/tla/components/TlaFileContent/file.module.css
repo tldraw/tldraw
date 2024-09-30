@@ -96,6 +96,17 @@
 	padding-left: 2px;
 }
 
+button.nameWidthSetter {
+	background: none;
+	border: none;
+	padding: none;
+	margin: none;
+	opacity: 1;
+	padding-left: 2px;
+	padding-right: 0px;
+	pointer-events: all;
+}
+
 .inputWrapper > div:nth-of-type(1) {
 	position: absolute;
 	z-index: 2;

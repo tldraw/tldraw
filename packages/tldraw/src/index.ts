@@ -18,7 +18,6 @@ export {
 export { TldrawUiDialogsProvider, type TLUiDialogsProviderProps } from './lib/ui/context/dialogs'
 export { TldrawUiToastsProvider, type TLUiToastsProviderProps } from './lib/ui/context/toasts'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
-export { useMergedTranslationOverrides } from './lib/ui/overrides'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'

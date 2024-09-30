@@ -3789,9 +3789,6 @@ export function useMenuClipboardEvents(): {
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void): readonly [boolean, (isOpen: boolean) => void];
 
 // @public (undocumented)
-export function useMergedTranslationOverrides(overrides?: TLUiOverrides | TLUiOverrides[]): NonNullable<TLUiTranslationProviderProps['overrides']>;
-
-// @public (undocumented)
 export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)

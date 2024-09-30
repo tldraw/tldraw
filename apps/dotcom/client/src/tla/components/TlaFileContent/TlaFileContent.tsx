@@ -80,10 +80,44 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 }
 
 function TlaFileNameEditor({ fileId, fileName }: { fileName: string; fileId: TldrawAppFileId }) {
+	const [isEditing, setIsEditing] = useState(false)
+
+	const handleEditingStart = useCallback(() => {
+		setIsEditing(true)
+	}, [])
+
+	const handleEditingEnd = useCallback(() => {
+		setIsEditing(false)
+	}, [])
+
+	return (
+		<div className={styles.inputWrapper}>
+			{isEditing ? (
+				<>
+					<TlaFileNameEditorInput fileId={fileId} fileName={fileName} onBlur={handleEditingEnd} />
+					<div className={styles.nameWidthSetter}>{fileName.replace(/ /g, '\u00a0')}</div>
+				</>
+			) : (
+				<button className={styles.nameWidthSetter} onClick={handleEditingStart}>
+					{fileName.replace(/ /g, '\u00a0')}
+				</button>
+			)}
+		</div>
+	)
+}
+
+function TlaFileNameEditorInput({
+	fileId,
+	fileName,
+	onBlur,
+}: {
+	fileName: string
+	fileId: TldrawAppFileId
+	onBlur(): void
+}) {
 	const app = useApp()
 
 	const [temporaryFileName, setTemporaryFileName] = useState(fileName)
-
 	const handleNameValueChange = useCallback(
 		(value: string) => {
 			app.store.update(fileId, (file) => {
@@ -93,25 +127,25 @@ function TlaFileNameEditor({ fileId, fileName }: { fileName: string; fileId: Tld
 				}
 			})
 			setTemporaryFileName(TldrawApp.getFileName(app.store.get(fileId)!))
+			onBlur()
 		},
-		[app, fileId]
+		[app, fileId, onBlur]
 	)
 
 	const handleCancel = useCallback(() => {
 		setTemporaryFileName(TldrawApp.getFileName(app.store.get(fileId)!))
-	}, [app, fileId])
+		onBlur()
+	}, [app, fileId, onBlur])
 
 	return (
-		<div className={styles.inputWrapper}>
-			<TldrawUiInput
-				className={styles.nameInput}
-				value={temporaryFileName.replace(/ /g, '\u00a0')}
-				onValueChange={setTemporaryFileName}
-				onCancel={handleCancel}
-				onBlur={handleNameValueChange}
-				autoSelect
-			/>
-			<div className={styles.nameWidthSetter}>{temporaryFileName.replace(/ /g, '\u00a0')}</div>
-		</div>
+		<TldrawUiInput
+			className={styles.nameInput}
+			value={temporaryFileName.replace(/ /g, '\u00a0')}
+			onValueChange={setTemporaryFileName}
+			onCancel={handleCancel}
+			onBlur={handleNameValueChange}
+			autoSelect
+			autoFocus
+		/>
 	)
 }
