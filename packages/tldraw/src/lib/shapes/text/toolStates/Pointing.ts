@@ -79,10 +79,9 @@ export class Pointing extends StateNode {
 				creationCursorOffset: { x: currentDragDist, y: 1 },
 				onInteractionEnd: 'text',
 				onCreate: () => {
-					editor.setCurrentTool('select.editing_shape', {
-						shapeId: shape.id,
-						onInteractionEnd: this.editor.getInstanceState().isToolLocked ? 'text' : undefined,
-					})
+					editor.select(shape.id)
+					// this will automatically set the state to 'select.editing_shape'
+					editor.setEditingShape(shape.id)
 				},
 			})
 		}
@@ -112,16 +111,8 @@ export class Pointing extends StateNode {
 		if (!shape) return
 
 		this.editor.select(id)
-		if (this.editor.getInstanceState().isToolLocked) {
-			this.editor.setCurrentTool('select.editing_shape', {
-				shapeId: id,
-				onInteractionEnd: 'text',
-			})
-		} else {
-			this.editor.setEditingShape(id)
-			this.editor.setCurrentTool('select')
-			this.editor.root.getCurrent()?.transition('editing_shape')
-		}
+		this.editor.setEditingShape(id)
+		// this will automatically set the state to 'select.editing_shape'
 	}
 
 	private cancel() {
