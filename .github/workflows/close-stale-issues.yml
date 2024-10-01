@@ -21,4 +21,5 @@ jobs:
           days-before-pr-stale: -1
           days-before-pr-close: -1
           operations-per-run: 1000
+          exempt-issue-labels: keep
           repo-token: ${{ secrets.GITHUB_TOKEN }}
