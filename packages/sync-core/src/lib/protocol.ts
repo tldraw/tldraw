@@ -15,6 +15,7 @@ export const TLIncompatibilityReason = {
 	InvalidRecord: 'invalidRecord',
 	InvalidOperation: 'invalidOperation',
 	RoomNotFound: 'roomNotFound',
+	NotAuthorized: 'notAuthorized',
 } as const
 
 /** @internal */

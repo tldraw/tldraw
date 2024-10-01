@@ -1,7 +1,7 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { TldrawAppFileRecordType, tldrawAppSchema } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
+import { ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react'
 import {
 	assertExists,
 	deleteFromLocalStorage,
@@ -31,7 +31,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
 	const store = useSync({
 		schema: tldrawAppSchema as any,
-		uri: `${MULTIPLAYER_SERVER}/app/${encodeURIComponent(auth.userId)}`,
+		uri: useCallback(async () => {
+			const url = new URL(`${MULTIPLAYER_SERVER}/app`)
+			const token = await auth.getToken()
+			if (!token) {
+				throw new Error('no token')
+			}
+			url.searchParams.set('accessToken', token)
+			return url.toString()
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+		}, [auth.userId]),
 		assets: inlineBase64AssetStore,
 	})
 

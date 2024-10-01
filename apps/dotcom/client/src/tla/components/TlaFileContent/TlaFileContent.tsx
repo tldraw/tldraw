@@ -25,16 +25,6 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
 
-	const file = useValue(
-		'file',
-		() => {
-			return app.store.get(TldrawAppFileRecordType.createId(fileSlug))
-		},
-		[app, fileSlug]
-	)
-
-	if (!file) throw Error('expected a file')
-
 	useEffect(() => {
 		let cancelled = false
 		setTimeout(() => {
@@ -54,9 +44,9 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 		<div className={styles.content}>
 			<div className={styles.header}>
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
-					<span className={styles.headerFolder}>{raw('My files')}</span>
-					<TlaFileNameEditor fileId={file.id} fileName={TldrawApp.getFileName(file)} />
-					<TlaFileMenu fileId={file.id} source="file-header">
+					<span className={styles.headerFolder}>My files / </span>
+					<TlaFileNameEditor fileId={fileId} fileName={'bob'} />
+					<TlaFileMenu fileId={fileId} source="file-header">
 						<button className={styles.linkMenu}>
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
@@ -65,7 +55,7 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 				<TlaSidebarToggle />
 				<TlaSidebarToggleMobile />
 				<div className={styles.rightSide}>
-					<TlaFileShareMenu fileId={file.id} source="file-header">
+					<TlaFileShareMenu fileId={fileId} source="file-header">
 						<TlaButton>
 							<span>{raw('Share')}</span>
 						</TlaButton>

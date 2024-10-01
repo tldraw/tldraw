@@ -35,6 +35,8 @@ export interface Environment {
 	SUPABASE_KEY: string | undefined
 
 	APP_ORIGIN: string | undefined
+	CLERK_SECRET_KEY: string | undefined
+	CLERK_PUBLISHABLE_KEY: string | undefined
 
 	TLDRAW_ENV: string | undefined
 	SENTRY_DSN: string | undefined

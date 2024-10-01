@@ -218,6 +218,7 @@ export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
 
 // @internal
 export const TLCloseEventCode: {
+    readonly NOT_AUTHORIZED: 4100;
     readonly NOT_FOUND: 4099;
 };
 
@@ -240,6 +241,7 @@ export const TLIncompatibilityReason: {
     readonly ClientTooOld: "clientTooOld";
     readonly InvalidOperation: "invalidOperation";
     readonly InvalidRecord: "invalidRecord";
+    readonly NotAuthorized: "notAuthorized";
     readonly RoomNotFound: "roomNotFound";
     readonly ServerTooOld: "serverTooOld";
 };
