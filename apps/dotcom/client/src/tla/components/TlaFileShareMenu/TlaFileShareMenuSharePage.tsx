@@ -216,9 +216,9 @@ function _ShareHelp() {
 	return (
 		<TlaShareMenuHelpItem>
 			<p>
-				{raw('Invite someone to collaborate by sending them a')} <b>{raw('link')}</b>{' '}
-				{raw('to your project. You can ')}
-				<b>{raw('turn off')}</b> {raw('sharing at any time.')}
+				{raw('Invite someone to collaborate by sending them a ')} <b>{raw('link')}</b>
+				{raw(' to your project. You can ')}
+				<b>{raw('turn off')}</b> {raw(' sharing at any time.')}
 			</p>
 		</TlaShareMenuHelpItem>
 	)
@@ -229,7 +229,7 @@ function _SnapshotHelp() {
 	return (
 		<TlaShareMenuHelpItem>
 			<p>
-				{raw('A')} <b>{raw('snapshot')}</b>{' '}
+				{raw('A ')} <b>{raw('snapshot')}</b>{' '}
 				{raw(
 					'is a read-only copy of your project in its current state. Use snapshots to create backups or to share your work in progress.'
 				)}
