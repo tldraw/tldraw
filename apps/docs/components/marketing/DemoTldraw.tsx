@@ -17,8 +17,6 @@ export default function DemoTldraw({ hidden }: { hidden?: boolean }) {
 	useEffect(() => {
 		if (!editor) return
 		editor.focus({ focusContainer: false })
-		// don't want this at dev time
-		editor.updateInstanceState({ isDebugMode: false })
 		const handleClickOutside = (e: MouseEvent) => {
 			if (!wrapper.current?.contains(e.target as Node)) {
 				// prevent capturing scroll events on the landing page after clicking outside
