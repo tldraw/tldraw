@@ -28,7 +28,6 @@ import {
 	mapObjectMapValues,
 	sanitizeId,
 	structuredClone,
-	tlenv,
 	toDomPrecision,
 	track,
 	useEditor,
@@ -63,8 +62,6 @@ import {
 	getArrowTerminalsInArrowSpace,
 	removeArrowBinding,
 } from './shared'
-
-let globalRenderIndex = 0
 
 enum ARROW_HANDLES {
 	START = 'start',
@@ -862,11 +859,6 @@ const ArrowSvg = track(function ArrowSvg({
 		[editor]
 	)
 
-	const changeIndex = React.useMemo<number>(() => {
-		return tlenv.isSafari ? (globalRenderIndex += 1) : 0
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [shape])
-
 	if (!info?.isValid) return null
 
 	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
@@ -935,40 +927,26 @@ const ArrowSvg = track(function ArrowSvg({
 	const maskStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
 	const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
-	// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
-	// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
-	const maskId = sanitizeId(shape.id + '_clip' + (tlenv.isSafari ? `_${changeIndex}` : ''))
+	const clipPathId = sanitizeId(shape.id + '_clip')
 
 	return (
 		<>
 			{/* Yep */}
 			<defs>
-				<mask id={maskId}>
-					<rect
-						x={toDomPrecision(-100 + bounds.minX)}
-						y={toDomPrecision(-100 + bounds.minY)}
-						width={toDomPrecision(bounds.width + 200)}
-						height={toDomPrecision(bounds.height + 200)}
-						fill="white"
+				<clipPath id={clipPathId}>
+					<ArrowClipPath
+						hasText={shape.props.text.trim().length > 0}
+						bounds={bounds}
+						labelPositionBounds={labelPosition.box}
 					/>
-					{shape.props.text.trim() && (
-						<rect
-							x={labelPosition.box.x}
-							y={labelPosition.box.y}
-							width={labelPosition.box.w}
-							height={labelPosition.box.h}
-							fill="black"
-							rx={4}
-							ry={4}
-						/>
-					)}
+
 					{as && maskStartArrowhead && (
 						<path d={as} fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
 					)}
 					{ae && maskEndArrowhead && (
 						<path d={ae} fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
 					)}
-				</mask>
+				</clipPath>
 			</defs>
 			<g
 				fill="none"
@@ -980,7 +958,12 @@ const ArrowSvg = track(function ArrowSvg({
 			>
 				{handlePath}
 				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
-				<g mask={`url(#${maskId})`}>
+				<g
+					style={{
+						clipPath: `url(#${clipPathId})`,
+						WebkitClipPath: `url(#${clipPathId})`,
+					}}
+				>
 					<rect
 						x={toDomPrecision(bounds.minX - 100)}
 						y={toDomPrecision(bounds.minY - 100)}
@@ -1014,6 +997,62 @@ const ArrowSvg = track(function ArrowSvg({
 		</>
 	)
 })
+
+function ArrowClipPath({
+	hasText,
+	bounds,
+	labelPositionBounds,
+}: {
+	hasText: boolean
+	bounds: Box
+	labelPositionBounds: Box
+}) {
+	if (hasText) {
+		// There doesn't seem to be an easy way to invert a clipPath, so we instead create this complex polygon.
+		// We create the three sides of the outer rectangle in the clockwise direction, then move to the inside rectangle
+		// and create that one in the counterclockwise direction (so we don't intersect and complete the path).
+		// We then finish with the outer rectangle. Diagram shows the order of the points.
+		//
+		//    (1, 11)--------------------------(2)
+		//       |                              |
+		//       |         Outer Rect           |
+		//       |                            	|
+		//       |  (8)-------------------(7)   |
+		//       |    |                    |    |
+		//       |    |                    |    |
+		//       |    |    Inner Rect      |    |
+		//       |    |                    |    |
+		//       |    |                    |    |
+		//       |  (5,9)-----------------(6)   |
+		//    (4, 10)--------------------------(3)
+
+		return (
+			<polygon
+				points={`
+        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} 
+        ${toDomPrecision(bounds.minX + bounds.width + 100)},${toDomPrecision(bounds.minY - 100)} 
+        ${toDomPrecision(bounds.minX + bounds.width + 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
+        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
+        ${labelPositionBounds.x},${labelPositionBounds.y + labelPositionBounds.h}
+        ${labelPositionBounds.x + labelPositionBounds.w},${labelPositionBounds.y + labelPositionBounds.h}
+        ${labelPositionBounds.x + labelPositionBounds.w},${labelPositionBounds.y}
+        ${labelPositionBounds.x},${labelPositionBounds.y}
+        ${labelPositionBounds.x},${labelPositionBounds.y + labelPositionBounds.h}
+        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
+        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} 
+      `}
+			/>
+		)
+	}
+	return (
+		<rect
+			x={toDomPrecision(bounds.minX - 100)}
+			y={toDomPrecision(bounds.minY - 100)}
+			width={toDomPrecision(bounds.width + 200)}
+			height={toDomPrecision(bounds.height + 200)}
+		/>
+	)
+}
 
 const shapeAtTranslationStart = new WeakMap<
 	TLArrowShape,
