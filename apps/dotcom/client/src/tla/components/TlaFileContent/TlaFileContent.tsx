@@ -45,7 +45,11 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 			<div className={styles.header}>
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
 					<span className={styles.headerFolder}>My files / </span>
-					<TlaFileNameEditor fileId={fileId} fileName={'bob'} />
+					{/* TODO(david): fix this when adding support for shared files */}
+					<TlaFileNameEditor
+						fileId={fileId}
+						fileName={app.getFileName(fileId) ?? 'SHARED_FILE_TODO'}
+					/>
 					<TlaFileMenu fileId={fileId} source="file-header">
 						<button className={styles.linkMenu}>
 							<TlaIcon icon="dots-vertical-strong" />
