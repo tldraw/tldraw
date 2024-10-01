@@ -1,4 +1,4 @@
-import { TLFrameShape, TLGeoShape, createShapeId } from '@tldraw/editor'
+import { TLFrameShape, TLGeoShape, createShapeId, tlenv } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -2139,7 +2139,6 @@ describe('control pointing', () => {
 	})
 
 	it('selects on ctrl click when on a mac', () => {
-		// @ts-expect-error
 		tlenv.isDarwin = true
 
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -2152,7 +2151,6 @@ describe('control pointing', () => {
 	})
 
 	it('selects on ctrl click when on a pc or other device', () => {
-		// @ts-expect-error
 		tlenv.isDarwin = false
 
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
@@ -2164,7 +2162,6 @@ describe('control pointing', () => {
 	})
 
 	it('selects on meta click when on a mac', () => {
-		// @ts-expect-error
 		tlenv.isDarwin = true
 
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
