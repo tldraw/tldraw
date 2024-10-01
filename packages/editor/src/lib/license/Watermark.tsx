@@ -1,5 +1,6 @@
 import { useQuickReactor, useValue } from '@tldraw/state-react'
 import { memo, useState } from 'react'
+import { tlenv } from '../globals/environment'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { preventDefault, stopEventPropagation } from '../utils/dom'
@@ -47,7 +48,7 @@ export const Watermark = memo(function Watermark() {
 const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	const editor = useEditor()
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
-	const isMenuOpen = useValue('is menu open', () => editor.getIsMenuOpen(), [editor])
+	const isMenuOpen = useValue('is menu open', () => editor.menus.hasAnyOpenMenus(), [editor])
 	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
 		editor,
 	])
@@ -65,18 +66,29 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			draggable={false}
 			{...events}
 		>
-			<a
-				target="_blank"
-				href={url}
-				rel="noreferrer"
-				draggable={false}
-				onPointerDown={(e) => {
-					stopEventPropagation(e)
-					preventDefault(e)
-				}}
-				onClick={() => runtime.openWindow(url, '_blank')}
-				style={{ mask: maskCss, WebkitMask: maskCss }}
-			/>
+			{tlenv.isWebview ? (
+				<a
+					draggable={false}
+					role="button"
+					onPointerDown={(e) => {
+						stopEventPropagation(e)
+						preventDefault(e)
+					}}
+					onClick={() => runtime.openWindow(url, '_blank')}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
+				/>
+			) : (
+				<a
+					href={url}
+					target="_blank"
+					rel="noreferrer"
+					draggable={false}
+					onPointerDown={(e) => {
+						stopEventPropagation(e)
+					}}
+					style={{ mask: maskCss, WebkitMask: maskCss }}
+				/>
+			)}
 		</div>
 	)
 })

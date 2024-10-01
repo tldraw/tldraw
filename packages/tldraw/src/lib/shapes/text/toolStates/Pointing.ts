@@ -80,7 +80,7 @@ export class Pointing extends StateNode {
 				onInteractionEnd: 'text',
 				onCreate: () => {
 					editor.setEditingShape(shape.id)
-					editor.setCurrentTool('select.editing_shape')
+					// this will automatically set the state to 'select.editing_shape'
 				},
 			})
 		}
@@ -111,8 +111,7 @@ export class Pointing extends StateNode {
 
 		this.editor.select(id)
 		this.editor.setEditingShape(id)
-		this.editor.setCurrentTool('select')
-		this.editor.root.getCurrent()?.transition('editing_shape')
+		// this will automatically set the state to 'select.editing_shape'
 	}
 
 	private cancel() {

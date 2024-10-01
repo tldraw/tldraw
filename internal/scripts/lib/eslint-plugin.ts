@@ -6,6 +6,8 @@
 import ts = require('typescript')
 // @ts-ignore - no import/require
 import utils = require('@typescript-eslint/utils')
+import { TSDocParser } from '@microsoft/tsdoc'
+import { RuleContext } from '@typescript-eslint/utils/dist/ts-eslint'
 
 const { isReassignmentTarget } = require('tsutils') as typeof import('tsutils')
 
@@ -482,4 +484,147 @@ exports.rules = {
 		},
 		defaultOptions: [],
 	}),
+	'tsdoc-param-matching': ESLintUtils.RuleCreator.withoutDocs({
+		meta: {
+			type: 'problem',
+			docs: {
+				description: 'Ensure TSDoc @param tags match function parameters',
+				recommended: 'error',
+			},
+			schema: [],
+			messages: {
+				paramMismatch:
+					"Parameter '{{ paramName }}' is documented but not present in function definition (in {{ name }}).",
+				paramMissing:
+					"Parameter '{{ paramName }}' is defined but missing from TSDoc @param (in {{ name }}).",
+			},
+		},
+		defaultOptions: [],
+		create(context) {
+			return {
+				FunctionDeclaration(node: TSESTree.FunctionDeclaration) {
+					checkParams(context, node, node.params, node.id?.name || 'anonymous function')
+				},
+				MethodDefinition(node: TSESTree.MethodDefinition) {
+					if (node.value.type === utils.AST_NODE_TYPES.FunctionExpression) {
+						checkParams(
+							context,
+							node,
+							node.value.params,
+							node.key.type === 'Identifier' ? node.key.name : 'anonymous method'
+						)
+					}
+				},
+				TSAbstractMethodDefinition(node: TSESTree.TSAbstractMethodDefinition) {
+					checkParams(
+						context,
+						node,
+						node.value.params,
+						node.key.type === 'Identifier' ? node.key.name : 'anonymous method'
+					)
+				},
+				Property(node: TSESTree.Property) {
+					if (
+						(node.value.type === 'FunctionExpression' ||
+							node.value.type === 'ArrowFunctionExpression') &&
+						node.key.type === 'Identifier'
+					) {
+						checkParams(context, node, node.value.params, node.key.name)
+					}
+				},
+			}
+		},
+	}),
+}
+
+function checkParams(
+	context: RuleContext<'paramMismatch' | 'paramMissing', []>,
+	node:
+		| TSESTree.FunctionDeclaration
+		| TSESTree.TSAbstractMethodDefinition
+		| TSESTree.MethodDefinition
+		| TSESTree.Property,
+	params: TSESTree.Parameter[],
+	name: string
+) {
+	const tsDocComment = getTSDocComment(context, node)
+	if (tsDocComment) {
+		const docParams = getTSDocParams(tsDocComment)
+		if (docParams.length === 0) return
+
+		const funcParams = params.map((param) => getParamName(param)).filter(Boolean) as string[]
+
+		docParams.forEach((param) => {
+			// We have to check if the function is using the parameter name with or without the _
+			if (!funcParams.includes(param) && !funcParams.includes(`_${param}`)) {
+				context.report({
+					node,
+					messageId: 'paramMismatch',
+					data: { paramName: param, name },
+				})
+			}
+		})
+
+		// Some abstract methods use _param names, so we need to adjust the doc params to match
+		const adjustedDocsParams = new Set(docParams.flatMap((param) => [param, `_${param}`]))
+		funcParams.forEach((param) => {
+			if (!adjustedDocsParams.has(param)) {
+				context.report({
+					node,
+					messageId: 'paramMissing',
+					data: { paramName: param, name },
+				})
+			}
+		})
+	}
+}
+
+function getTSDocComment(
+	context: RuleContext<'paramMismatch' | 'paramMissing', []>,
+	node:
+		| TSESTree.FunctionDeclaration
+		| TSESTree.TSAbstractMethodDefinition
+		| TSESTree.MethodDefinition
+		| TSESTree.Property
+): string | null {
+	const sourceCode = context.getSourceCode()
+
+	const leadingComments = sourceCode.getCommentsBefore(node)
+
+	for (let i = leadingComments.length - 1; i >= 0; i--) {
+		const comment = leadingComments[i]
+		const isBlockComment = comment.type === 'Block' && comment.value.includes('* @param')
+		const isDirectlyBeforeNode = comment.loc.end.line === node.loc.start.line - 1
+
+		if (isBlockComment && isDirectlyBeforeNode) {
+			return '/*' + comment.value + '*/'
+		}
+	}
+
+	return null
+}
+
+function getTSDocParams(tsDocComment: string): string[] {
+	const parser = new TSDocParser()
+	const docComment = parser.parseString(tsDocComment)
+	return docComment.docComment.params.blocks.map((paramBlock) => paramBlock.parameterName)
+}
+
+function getParamName(param: TSESTree.Parameter): string | null {
+	switch (param.type) {
+		case 'Identifier':
+			return param.name
+		case 'AssignmentPattern':
+			if (param.left.type === 'Identifier') {
+				return param.left.name
+			}
+			return getParamName(param.left)
+		case 'RestElement':
+			if (param.argument.type === 'Identifier') {
+				return param.argument.name
+			}
+			return null
+		default:
+			return null
+	}
 }

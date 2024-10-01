@@ -19,7 +19,7 @@
 		"test": "yarn run -T jest"
 	},
 	"dependencies": {
-		"@radix-ui/react-dropdown-menu": "^2.0.6",
+		"@clerk/clerk-react": "^5.9.3",
 		"@radix-ui/react-popover": "^1.0.7",
 		"@sentry/integrations": "^7.34.0",
 		"@sentry/react": "^7.77.0",

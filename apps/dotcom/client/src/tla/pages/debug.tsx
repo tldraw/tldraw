@@ -1,5 +1,6 @@
+import { SignOutButton } from '@clerk/clerk-react'
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { Fragment } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { TlaButton } from '../components/TlaButton/TlaButton'
 import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
 import { TlaFormDivider } from '../components/tla-form/tla-form'
@@ -7,25 +8,8 @@ import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../hooks/useFlags'
 import { useSessionState } from '../hooks/useSessionState'
 import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
-import { TldrawAppUserId, TldrawAppUserRecordType } from '../utils/schema/TldrawAppUser'
 
 export function Component() {
-	const app = useApp()
-	const navigate = useNavigate()
-
-	function handleSignInAsUser(userId: TldrawAppUserId) {
-		const current = app.getSessionState()
-		if (!current.auth) throw Error('No auth')
-		app.setSessionState({
-			...current,
-			auth: {
-				...current.auth,
-				userId,
-			},
-		})
-		navigate('/q')
-	}
-
 	return (
 		<TlaPageLayout>
 			<div className="tla-page__header">
@@ -35,39 +19,9 @@ export function Component() {
 			<h2>Users</h2>
 			<TlaSpacer height={20} />
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 'fit-content' }}>
-				<TlaButton
-					variant="primary"
-					onClick={() => {
-						handleSignInAsUser(TldrawAppUserRecordType.createId('0')) // steve
-					}}
-				>
-					Sign in as Steve
-				</TlaButton>
-				<TlaButton
-					variant="primary"
-					onClick={() => {
-						handleSignInAsUser(TldrawAppUserRecordType.createId('1')) // david
-					}}
-				>
-					Sign in as David
-				</TlaButton>
-				<TlaButton
-					variant="primary"
-					onClick={() => {
-						handleSignInAsUser(TldrawAppUserRecordType.createId('2')) // alex
-					}}
-				>
-					Sign in as Alex
-				</TlaButton>
-				<TlaButton
-					variant="warning"
-					onClick={async () => {
-						await app.resetDatabase()
-						window.location.reload()
-					}}
-				>
-					Reset database
-				</TlaButton>
+				<SignOutButton redirectUrl="/q">
+					<TlaButton variant="warning">Sign out</TlaButton>
+				</SignOutButton>
 			</div>
 			<TlaSpacer height={40} />
 			<TlaFormDivider />

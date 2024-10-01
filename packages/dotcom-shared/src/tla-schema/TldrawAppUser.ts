@@ -1,13 +1,13 @@
 import {
 	BaseRecord,
 	RecordId,
-	T,
 	createMigrationIds,
 	createRecordMigrationSequence,
 	createRecordType,
-	idValidator,
-} from 'tldraw'
+} from '@tldraw/store'
+import { T } from '@tldraw/validate'
 import { TldrawAppFileId } from './TldrawAppFile'
+import { idValidator } from './idValidator'
 
 export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser>> {
 	name: string

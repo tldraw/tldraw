@@ -1,6 +1,5 @@
 import { sleep } from '@tldraw/utils'
 
-// Save the room to supabase
 export function createPersistQueue(persist: () => Promise<void>, timeout: number) {
 	let persistAgain = false
 	let queue: null | Promise<void> = null

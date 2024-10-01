@@ -88,7 +88,7 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Tab': {
-					if (isFocusingInput() || editor.getIsMenuOpen()) {
+					if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
 						return
 					}
 					break
@@ -115,7 +115,7 @@ export function useDocumentEvents() {
 					}
 
 					// Don't do anything if we open menus open
-					if (editor.getOpenMenus().length > 0) return
+					if (editor.menus.getOpenMenus().length > 0) return
 
 					if (editor.inputs.keys.has('Escape')) {
 						// noop
@@ -133,7 +133,7 @@ export function useDocumentEvents() {
 					return
 				}
 				default: {
-					if (isFocusingInput() || editor.getIsMenuOpen()) {
+					if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
 						return
 					}
 				}
@@ -157,7 +157,7 @@ export function useDocumentEvents() {
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
 
-			if (isFocusingInput() || editor.getIsMenuOpen()) {
+			if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
 				return
 			}
 

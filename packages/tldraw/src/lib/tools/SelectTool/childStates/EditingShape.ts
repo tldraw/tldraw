@@ -10,15 +10,27 @@ import {
 import { getTextLabels } from '../../../utils/shapes/shapes'
 import { updateHoveredShapeId } from '../../selection-logic/updateHoveredShapeId'
 
+interface EditingShapeInfo {
+	isCreatingTextWhileToolLocked?: boolean
+}
+
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
 
 	hitShapeForPointerUp: TLShape | null = null
+	private info = {} as EditingShapeInfo
 
-	override onEnter() {
+	override onEnter(info: EditingShapeInfo) {
 		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
 		this.hitShapeForPointerUp = null
+
+		this.info = info
+
+		if (info.isCreatingTextWhileToolLocked) {
+			this.parent.setCurrentToolIdMask('text')
+		}
+
 		updateHoveredShapeId(this.editor)
 		this.editor.select(editingShape)
 	}
@@ -37,6 +49,11 @@ export class EditingShape extends StateNode {
 
 		// Check for changes on editing end
 		util.onEditEnd?.(shape)
+
+		if (this.info.isCreatingTextWhileToolLocked) {
+			this.parent.setCurrentToolIdMask(undefined)
+			this.editor.setCurrentTool('text', {})
+		}
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {

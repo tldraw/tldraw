@@ -1,3 +1,4 @@
+import { TldrawAppUser } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import {
@@ -12,9 +13,8 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../../utils/globalEditor'
 import { useApp } from '../../hooks/useAppState'
-import { useAuth } from '../../hooks/useAuth'
+import { useTldrawUser } from '../../hooks/useUser'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { TldrawAppUser } from '../../utils/schema/TldrawAppUser'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
@@ -46,10 +46,10 @@ export function TlaShareMenuExportPage() {
 
 function ExportBackgroundToggle() {
 	const app = useApp()
-	const auth = useAuth()
-	if (!auth) throw Error('should have auth')
+	const user = useTldrawUser()
+	if (!user) throw Error('should have auth')
 
-	const { userId } = auth
+	const { id: userId } = user
 
 	const exportPadding = useValue(
 		'export format',
@@ -77,10 +77,10 @@ function ExportBackgroundToggle() {
 
 function ExportPaddingToggle() {
 	const app = useApp()
-	const auth = useAuth()
-	if (!auth) throw Error('should have auth')
+	const user = useTldrawUser()
+	if (!user) throw Error('should have auth')
 
-	const { userId } = auth
+	const { id: userId } = user
 
 	const exportBackground = useValue(
 		'export format',
@@ -108,9 +108,9 @@ function ExportPaddingToggle() {
 
 function ExportFormatSelect() {
 	const app = useApp()
-	const auth = useAuth()
-	if (!auth) throw Error('should have auth')
-	const { userId } = auth
+	const user = useTldrawUser()
+	if (!user) throw Error('should have auth')
+	const { id: userId } = user
 
 	const exportFormat = useValue(
 		'export format',
@@ -146,9 +146,9 @@ function ExportFormatSelect() {
 
 function ExportThemeSelect() {
 	const app = useApp()
-	const auth = useAuth()
-	if (!auth) throw Error('should have auth')
-	const { userId } = auth
+	const user = useTldrawUser()
+	if (!user) throw Error('should have auth')
+	const { id: userId } = user
 
 	const exportTheme = useValue(
 		'export format',

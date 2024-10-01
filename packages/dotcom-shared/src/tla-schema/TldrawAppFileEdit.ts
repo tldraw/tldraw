@@ -1,14 +1,14 @@
 import {
 	BaseRecord,
 	RecordId,
-	T,
 	createMigrationIds,
 	createRecordMigrationSequence,
 	createRecordType,
-	idValidator,
-} from 'tldraw'
+} from '@tldraw/store'
+import { T } from '@tldraw/validate'
 import { TldrawAppFileId } from './TldrawAppFile'
 import { TldrawAppUserId } from './TldrawAppUser'
+import { idValidator } from './idValidator'
 
 export interface TldrawAppFileEdit extends BaseRecord<'file-edit', RecordId<TldrawAppFileEdit>> {
 	userId: TldrawAppUserId

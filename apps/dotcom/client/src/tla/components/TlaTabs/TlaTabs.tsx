@@ -49,7 +49,7 @@ export function TlaTabsTab({ id, children }: { id: string; children: ReactNode }
 
 	return (
 		<button
-			className={classNames(c.tab, 'tla-text_ui__regular')}
+			className={classNames(c.tab, 'tla-text_ui__medium')}
 			data-active={activeTab === id}
 			onClick={handleClick}
 		>

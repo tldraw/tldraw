@@ -9,6 +9,5 @@ export class TextShapeTool extends StateNode {
 	static override children(): TLStateNodeConstructor[] {
 		return [Idle, Pointing]
 	}
-	static override isLockable = false
 	override shapeType = 'text'
 }

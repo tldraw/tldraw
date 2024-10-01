@@ -14,7 +14,10 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace
+	TLAPP_DO: DurableObjectNamespace
 	MEASURE: Analytics | undefined
+
+	DB: D1Database
 
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket

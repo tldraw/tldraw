@@ -4,7 +4,12 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-
+export { tlenv } from './lib/globals/environment'
+export { tlmenus } from './lib/globals/menus'
+export { tltime } from './lib/globals/time'
+export { useContainerIfExists } from './lib/hooks/useContainer'
+export { useMaybeEditor } from './lib/hooks/useEditor'
+export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -161,7 +166,6 @@ export {
 } from './lib/editor/bindings/BindingUtil'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
-export { EnvironmentManager } from './lib/editor/managers/EnvironmentManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
 export {
@@ -258,7 +262,11 @@ export {
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
+export {
+	ContainerProvider,
+	useContainer,
+	type ContainerProviderProps,
+} from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
 export { useEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
@@ -272,7 +280,7 @@ export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useRefState } from './lib/hooks/useRefState'
-export { useSafeId } from './lib/hooks/useSafeId'
+export { sanitizeId, useSafeId } from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'

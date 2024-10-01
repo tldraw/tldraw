@@ -26,7 +26,9 @@ import {
 	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
+	sanitizeId,
 	structuredClone,
+	tlenv,
 	toDomPrecision,
 	track,
 	useEditor,
@@ -666,7 +668,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
 
-		const maskId = (shape.id + '_clip').replace(':', '_')
+		const maskId = sanitizeId(shape.id + '_clip')
 
 		if (isEditing && labelGeometry) {
 			return (
@@ -861,7 +863,7 @@ const ArrowSvg = track(function ArrowSvg({
 	)
 
 	const changeIndex = React.useMemo<number>(() => {
-		return editor.environment.isSafari ? (globalRenderIndex += 1) : 0
+		return tlenv.isSafari ? (globalRenderIndex += 1) : 0
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [shape])
 
@@ -935,11 +937,7 @@ const ArrowSvg = track(function ArrowSvg({
 
 	// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
 	// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
-	const maskId = (
-		shape.id +
-		'_clip' +
-		(editor.environment.isSafari ? `_${changeIndex}` : '')
-	).replace(':', '_')
+	const maskId = sanitizeId(shape.id + '_clip' + (tlenv.isSafari ? `_${changeIndex}` : ''))
 
 	return (
 		<>

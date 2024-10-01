@@ -4,7 +4,6 @@ import {
 	StyleProp,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
-	useEditor,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactElement, memo, useMemo, useRef } from 'react'
@@ -23,6 +22,7 @@ export interface TLUiButtonPickerProps<T extends string> {
 	items: StyleValuesForUi<T>
 	theme: TLDefaultColorTheme
 	onValueChange(style: StyleProp<T>, value: T): void
+	onHistoryMark?(id: string): void
 }
 
 /** @public */
@@ -37,9 +37,9 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 		value,
 		// columns = clamp(items.length, 2, 4),
 		onValueChange,
+		onHistoryMark,
 		theme,
 	} = props
-	const editor = useEditor()
 	const msg = useTranslation()
 
 	const rPointing = useRef(false)
@@ -69,14 +69,14 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			const { id } = e.currentTarget.dataset
 			if (value.type === 'shared' && value.value === id) return
 
-			editor.markHistoryStoppingPoint('point picker item')
+			onHistoryMark?.('point picker item')
 			onValueChange(style, id as T)
 		}
 
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
-			editor.markHistoryStoppingPoint('point picker item')
+			onHistoryMark?.('point picker item')
 			onValueChange(style, id as T)
 
 			rPointing.current = true
@@ -104,7 +104,7 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
 		}
-	}, [value, editor, onValueChange, style])
+	}, [value, onHistoryMark, onValueChange, style])
 
 	return (
 		<div data-testid={`style.${uiType}`} className={classNames('tlui-buttons__grid')}>

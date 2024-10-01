@@ -180,3 +180,9 @@
 	cursor: pointer;
 	color: var(--tla-color-primary);
 }
+
+.tla-file-header__share {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
