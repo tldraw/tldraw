@@ -57,7 +57,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'v',
 				readonlyOk: true,
 				onSelect(source) {
-					editor.setCurrentTool('select')
+					editor.setCurrentTool('select.idle')
 					trackEvent('select-tool', { source, id: 'select' })
 				},
 			},
