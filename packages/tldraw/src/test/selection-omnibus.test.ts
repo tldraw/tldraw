@@ -2140,7 +2140,7 @@ describe('control pointing', () => {
 
 	it('selects on ctrl click when on a mac', () => {
 		// @ts-expect-error
-		editor.environment.isDarwin = true
+		tlenv.isDarwin = true
 
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Control')
@@ -2153,7 +2153,7 @@ describe('control pointing', () => {
 
 	it('selects on ctrl click when on a pc or other device', () => {
 		// @ts-expect-error
-		editor.environment.isDarwin = false
+		tlenv.isDarwin = false
 
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Control')
@@ -2165,7 +2165,7 @@ describe('control pointing', () => {
 
 	it('selects on meta click when on a mac', () => {
 		// @ts-expect-error
-		editor.environment.isDarwin = true
+		tlenv.isDarwin = true
 
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
 		editor.keyDown('Meta')

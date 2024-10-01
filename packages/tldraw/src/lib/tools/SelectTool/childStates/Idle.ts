@@ -14,6 +14,7 @@ import {
 	createShapeId,
 	debugFlags,
 	pointInPolygon,
+	tlenv,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
@@ -129,7 +130,7 @@ export class Idle extends StateNode {
 						if (shouldEnterCropMode) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
-							if (info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)) {
+							if (info.metaKey || (info.ctrlKey && !tlenv.isDarwin)) {
 								this.parent.transition('brushing', info)
 								break
 							}
@@ -148,7 +149,7 @@ export class Idle extends StateNode {
 						if (shouldEnterCropMode) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
-							if (info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)) {
+							if (info.metaKey || (info.ctrlKey && !tlenv.isDarwin)) {
 								this.parent.transition('brushing', info)
 								break
 							}

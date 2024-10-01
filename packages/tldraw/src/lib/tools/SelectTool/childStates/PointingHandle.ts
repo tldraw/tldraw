@@ -2,6 +2,7 @@ import {
 	Editor,
 	StateNode,
 	TLArrowShape,
+	tlenv,
 	TLHandle,
 	TLNoteShape,
 	TLPointerEventInfo,
@@ -9,9 +10,9 @@ import {
 } from '@tldraw/editor'
 import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
-	NOTE_CENTER_OFFSET,
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
+	NOTE_CENTER_OFFSET,
 } from '../../../shapes/note/noteHelpers'
 import { startEditingShapeWithLabel } from '../selectHelpers'
 
@@ -25,7 +26,7 @@ export class PointingHandle extends StateNode {
 	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
 
-		this.didCtrlOnEnter = info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)
+		this.didCtrlOnEnter = info.metaKey || (info.ctrlKey && !tlenv.isDarwin)
 
 		const { shape } = info
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {

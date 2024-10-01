@@ -1,4 +1,4 @@
-import { StateNode, TLPointerEventInfo, TLShape } from '@tldraw/editor'
+import { StateNode, tlenv, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { getTextLabels } from '../../../utils/shapes/shapes'
 
 export class PointingShape extends StateNode {
@@ -22,7 +22,7 @@ export class PointingShape extends StateNode {
 
 		this.hitShape = info.shape
 		this.isDoubleClick = false
-		this.didCtrlOnEnter = metaKey || (ctrlKey && !this.editor.environment.isDarwin)
+		this.didCtrlOnEnter = metaKey || (ctrlKey && !tlenv.isDarwin)
 		const outermostSelectingShape = this.editor.getOutermostSelectableShape(info.shape)
 		const selectedAncestor = this.editor.findShapeAncestor(outermostSelectingShape, (parent) =>
 			selectedShapeIds.includes(parent.id)
@@ -69,8 +69,7 @@ export class PointingShape extends StateNode {
 			inputs: { currentPagePoint },
 		} = this.editor
 
-		const additiveSelectionKey =
-			info.shiftKey || info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)
+		const additiveSelectionKey = info.shiftKey || info.metaKey || (info.ctrlKey && !tlenv.isDarwin)
 
 		const hitShape =
 			this.editor.getShapeAtPoint(currentPagePoint, {

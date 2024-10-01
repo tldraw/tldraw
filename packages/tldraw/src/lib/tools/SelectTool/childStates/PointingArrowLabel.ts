@@ -8,6 +8,7 @@ import {
 	TLShapeId,
 	Vec,
 	getPointInArcT,
+	tlenv,
 } from '@tldraw/editor'
 import { getArrowInfo } from '../../../shapes/arrow/shared'
 
@@ -42,7 +43,7 @@ export class PointingArrowLabel extends StateNode {
 		this.info = info
 		this.shapeId = shape.id
 		this.didDrag = false
-		this.didCtrlOnEnter = info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)
+		this.didCtrlOnEnter = info.metaKey || (info.ctrlKey && !tlenv.isDarwin)
 		this.wasAlreadySelected = this.editor.getOnlySelectedShapeId() === shape.id
 		this.updateCursor()
 

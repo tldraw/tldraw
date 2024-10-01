@@ -1,12 +1,11 @@
-import { StateNode, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, tlenv, TLPointerEventInfo } from '@tldraw/editor'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 
 export class PointingCanvas extends StateNode {
 	static override id = 'pointing_canvas'
 
 	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
-		const additiveSelectionKey =
-			info.shiftKey || info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)
+		const additiveSelectionKey = info.shiftKey || info.metaKey || (info.ctrlKey && !tlenv.isDarwin)
 
 		if (!additiveSelectionKey) {
 			if (this.editor.getSelectedShapeIds().length > 0) {

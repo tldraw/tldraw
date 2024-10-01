@@ -1,13 +1,14 @@
 import {
 	StateNode,
 	TLClickEventInfo,
+	tlenv,
 	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	Vec,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
-import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
+import { getTranslateCroppedImageChange, ShapeWithCrop } from './crop_helpers'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -34,7 +35,7 @@ export class Idle extends StateNode {
 	override onPointerDown(info: TLPointerEventInfo) {
 		if (this.editor.menus.hasAnyOpenMenus()) return
 
-		if (info.metaKey || (info.ctrlKey && !this.editor.environment.isDarwin)) {
+		if (info.metaKey || (info.ctrlKey && !tlenv.isDarwin)) {
 			this.cancel()
 			// feed the event back into the statechart
 			this.editor.root.handleEvent(info)
