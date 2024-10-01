@@ -209,6 +209,19 @@ module.exports = {
 				],
 			},
 		},
+
+		{
+			files: ['apps/dotcom/client/src/tla/**/*'],
+			rules: {
+				'react/jsx-no-literals': [
+					'error',
+					{
+						noStrings: true,
+						ignoreProps: true,
+					},
+				],
+			},
+		},
 		{
 			files: 'internal/scripts/**/*',
 			rules: {

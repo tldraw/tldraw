@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { useCallback, useEffect, useState } from 'react'
 import { TldrawUiInput, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useRaw } from '../../hooks/useRaw'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditor } from '../TlaEditor/TlaEditor'
@@ -14,6 +15,7 @@ import styles from './file.module.css'
 
 export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 	const app = useApp()
+	const raw = useRaw()
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
 		'mobile sidebar open',
@@ -52,7 +54,7 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 		<div className={styles.content}>
 			<div className={styles.header}>
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
-					<span className={styles.headerFolder}>My files / </span>
+					<span className={styles.headerFolder}>{raw('My files')}</span>
 					<TlaFileNameEditor fileId={file.id} fileName={TldrawApp.getFileName(file)} />
 					<TlaFileMenu fileId={file.id} source="file-header">
 						<button className={styles.linkMenu}>
@@ -65,7 +67,7 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 				<div className={styles.rightSide}>
 					<TlaFileShareMenu fileId={file.id} source="file-header">
 						<TlaButton>
-							<span>Share</span>
+							<span>{raw('Share')}</span>
 						</TlaButton>
 					</TlaFileShareMenu>
 				</div>

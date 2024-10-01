@@ -14,6 +14,7 @@ import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayou
 import { TlaErrorLayout } from '../layouts/TlaErrorLayout/TlaErrorLayout'
 import { TldrawApp } from '../utils/TldrawApp'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
+import { useRaw } from './useRaw'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -22,6 +23,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState({} as TldrawApp)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
+	const raw = useRaw()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaAppProvider')
@@ -72,7 +74,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}
 
 	if (store.status === 'loading' || !ready || !app) {
-		return <TlaCenteredLayout>Loading...</TlaCenteredLayout>
+		return <TlaCenteredLayout>{raw('Loading...')}</TlaCenteredLayout>
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>
