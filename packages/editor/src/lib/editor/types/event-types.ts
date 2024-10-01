@@ -49,6 +49,7 @@ export interface TLBaseEventInfo {
 	altKey: boolean
 	ctrlKey: boolean
 	metaKey: boolean
+	accelKey: boolean
 }
 
 /** @public */

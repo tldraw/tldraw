@@ -28,7 +28,9 @@ import {
 	computed,
 	createShapeId,
 	createTLStore,
+	isAccelKey,
 	rotateSelectionHandle,
+	tlenv,
 } from '@tldraw/editor'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
@@ -341,6 +343,7 @@ export class TestEditor extends Editor {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			point: { x, y, z: null },
 			button: 0,
 			isPen: false,
@@ -359,6 +362,7 @@ export class TestEditor extends Editor {
 			ctrlKey: key === 'Control' || key === 'Meta',
 			altKey: key === 'Alt',
 			metaKey: key === 'Meta',
+			accelKey: tlenv.isDarwin ? key === 'Meta' : key === 'Control' || key === 'Meta',
 			...options,
 			name,
 			code:
@@ -521,6 +525,7 @@ export class TestEditor extends Editor {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			delta: { x: dx, y: dy },
 		}).forceTick(2)
@@ -553,6 +558,7 @@ export class TestEditor extends Editor {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
@@ -576,6 +582,7 @@ export class TestEditor extends Editor {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
@@ -599,6 +606,7 @@ export class TestEditor extends Editor {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },

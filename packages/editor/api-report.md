@@ -1484,6 +1484,7 @@ export function getPerfectDashProps(totalLength: number, strokeWidth: number, op
 
 // @public (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
+    accelKey: boolean;
     altKey: boolean;
     button: number;
     ctrlKey: boolean;
@@ -1706,6 +1707,12 @@ export interface InvalidLicenseKeyResult {
 
 // @internal (undocumented)
 export type InvalidLicenseReason = 'has-key-development-mode' | 'invalid-license-key' | 'no-key-provided';
+
+// @internal (undocumented)
+export const isAccelKey: <InputType extends {
+    ctrlKey: boolean;
+    metaKey: boolean;
+}>(e: InputType) => boolean;
 
 // @public
 export const isSafeFloat: (n: number) => boolean;
@@ -2486,6 +2493,8 @@ export type TLBaseBoxShape = TLBaseShape<string, {
 
 // @public (undocumented)
 export interface TLBaseEventInfo {
+    // (undocumented)
+    accelKey: boolean;
     // (undocumented)
     altKey: boolean;
     // (undocumented)

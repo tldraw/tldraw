@@ -14,7 +14,6 @@ import {
 	createShapeId,
 	debugFlags,
 	pointInPolygon,
-	tlenv,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
@@ -130,7 +129,7 @@ export class Idle extends StateNode {
 						if (shouldEnterCropMode) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
-							if (info.metaKey || (info.ctrlKey && !tlenv.isDarwin)) {
+							if (info.accelKey) {
 								this.parent.transition('brushing', info)
 								break
 							}
@@ -149,7 +148,7 @@ export class Idle extends StateNode {
 						if (shouldEnterCropMode) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
-							if (info.metaKey || (info.ctrlKey && !tlenv.isDarwin)) {
+							if (info.accelKey) {
 								this.parent.transition('brushing', info)
 								break
 							}
@@ -543,8 +542,6 @@ export class Idle extends StateNode {
 		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
 		this.parent.transition('editing_shape', info)
 	}
-
-	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 
 	isOverArrowLabelTest(shape: TLShape | undefined) {
 		if (!shape) return false

@@ -1,4 +1,11 @@
-import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
+import {
+	Editor,
+	TLPointerEventInfo,
+	isAccelKey,
+	preventDefault,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
@@ -92,6 +99,7 @@ export function useKeyboardShortcuts() {
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
 				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 				pointerId: 0,
 				button: 0,
 				isPen: editor.getInstanceState().isPenMode,
@@ -116,6 +124,7 @@ export function useKeyboardShortcuts() {
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
 				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 				pointerId: 0,
 				button: 0,
 				isPen: editor.getInstanceState().isPenMode,

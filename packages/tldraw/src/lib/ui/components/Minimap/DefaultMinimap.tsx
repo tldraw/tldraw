@@ -3,6 +3,7 @@ import {
 	TLPointerEventInfo,
 	Vec,
 	getPointerInfo,
+	isAccelKey,
 	normalizeWheel,
 	releasePointerCapture,
 	setPointerCapture,
@@ -179,6 +180,7 @@ export function DefaultMinimap() {
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
 				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 			})
 		},
 		[editor]

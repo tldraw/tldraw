@@ -125,6 +125,7 @@ import {
 	parseDeepLinkString,
 } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
+import { isAccelKey } from '../utils/keyboard'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
@@ -2641,6 +2642,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					altKey: this.inputs.altKey,
 					shiftKey: this.inputs.shiftKey,
 					metaKey: this.inputs.metaKey,
+					accelKey: isAccelKey(this.inputs),
 					button: 0,
 					isPen: this.getInstanceState().isPenMode ?? false,
 				}
@@ -9094,6 +9096,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			code: 'ShiftLeft',
 		})
 	}
@@ -9113,6 +9116,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			code: 'AltLeft',
 		})
 	}
@@ -9132,6 +9136,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			code: 'ControlLeft',
 		})
 	}
@@ -9151,6 +9156,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
 			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			code: 'MetaLeft',
 		})
 	}

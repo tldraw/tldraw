@@ -19,6 +19,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import { tlenv } from '../globals/environment'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
 
@@ -39,7 +40,7 @@ function iOS() {
 			window.navigator.platform
 		) ||
 		// iPad on iOS 13 detection
-		(window.navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+		(tlenv.isDarwin && 'ontouchend' in document)
 	)
 }
 
