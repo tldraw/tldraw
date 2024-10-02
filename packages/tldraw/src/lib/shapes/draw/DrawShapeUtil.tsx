@@ -139,7 +139,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const scaleFactor = 1 / shape.props.scale
 		return (
 			<g transform={`scale(${scaleFactor})`}>
-				<DrawShapeSvg shape={shape} zoomLevel={1} />
+				<DrawShapeSvg shape={shape} zoomOverride={1} />
 			</g>
 		)
 	}
@@ -201,7 +201,7 @@ function getIsDot(shape: TLDrawShape) {
 	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
 }
 
-function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel?: number }) {
+function DrawShapeSvg({ shape, zoomOverride }: { shape: TLDrawShape; zoomOverride?: number }) {
 	const theme = useDefaultColorTheme()
 	const editor = useEditor()
 
@@ -213,21 +213,21 @@ function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel?: nu
 	const forceSolid = useValue(
 		'force solid',
 		() => {
-			const z = zoomLevel ?? editor.getZoomLevel()
-			return z < 0.5 && z < 1.5 / sw
+			const zoomLevel = zoomOverride ?? editor.getZoomLevel()
+			return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
 		},
-		[editor, sw, zoomLevel]
+		[editor, sw, zoomOverride]
 	)
 
 	const dotAdjustment = useValue(
 		'dot adjustment',
 		() => {
-			const z = zoomLevel ?? editor.getZoomLevel()
+			const zoomLevel = zoomOverride ?? editor.getZoomLevel()
 			// If we're zoomed way out (10%), then we need to make the dotted line go to 9 instead 0.1
 			// Chrome doesn't render anything otherwise.
-			return z < 0.2 ? 0 : 0.1
+			return zoomLevel < 0.2 ? 0 : 0.1
 		},
-		[editor, zoomLevel]
+		[editor, zoomOverride]
 	)
 
 	if (
