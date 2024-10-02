@@ -911,7 +911,7 @@ const ArrowSvg = track(function ArrowSvg({
 		<>
 			{/* Yep */}
 			<defs>
-				<clipPath id={clipPathId} fillRule="evenodd">
+				<clipPath id={clipPathId}>
 					<ArrowClipPath
 						hasText={shape.props.text.trim().length > 0}
 						bounds={bounds}
