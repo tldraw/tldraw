@@ -32,8 +32,7 @@ Learn more at [tldraw.dev](https://tldraw.dev).
 
 ## Local development
 
-The local development server will run our examples app.
-The basic example will show any changes you've made to the codebase.
+The local development server will run our examples app. The basic example will show any changes you've made to the codebase.
 
 To run the local development server, first clone this repo.
 
