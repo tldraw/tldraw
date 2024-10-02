@@ -118,11 +118,7 @@ export function getOccludedChildren(editor: Editor, parent: TLShape) {
 export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selectAll = false) {
 	// Finish this shape and start editing the next one
 	editor.select(shape)
-	editor.setEditingShape(shape)
-	editor.setCurrentTool('select.editing_shape', {
-		target: 'shape',
-		shape: shape,
-	})
+	editor.setEditingShape(shape) // will transition to 'select.editing_shape'
 	if (selectAll) {
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}

@@ -24,13 +24,7 @@ export class Idle extends StateNode {
 				onlySelectedShape &&
 				this.editor.getShapeUtil(onlySelectedShape).canEdit(onlySelectedShape)
 			) {
-				this.editor.setCurrentTool('select')
-				this.editor.setEditingShape(onlySelectedShape.id)
-				this.editor.root.getCurrent()?.transition('editing_shape', {
-					...info,
-					target: 'shape',
-					shape: onlySelectedShape,
-				})
+				this.editor.setEditingShape(onlySelectedShape.id) // will transition to 'select.editing_shape'
 			}
 		}
 	}

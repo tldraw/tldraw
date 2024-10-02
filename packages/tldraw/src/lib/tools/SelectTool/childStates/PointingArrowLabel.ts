@@ -115,9 +115,7 @@ export class PointingArrowLabel extends StateNode {
 		if (this.didDrag || !this.wasAlreadySelected) {
 			this.complete()
 		} else {
-			// Go into edit mode.
-			this.editor.setEditingShape(shape.id)
-			this.editor.setCurrentTool('select.editing_shape')
+			this.editor.setEditingShape(shape.id) // will transition to 'select.editing_shape'
 		}
 	}
 

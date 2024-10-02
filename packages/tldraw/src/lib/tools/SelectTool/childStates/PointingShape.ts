@@ -153,8 +153,7 @@ export class PointingShape extends StateNode {
 											}
 										}
 
-										this.editor.setEditingShape(selectingShape.id)
-										this.editor.setCurrentTool('select.editing_shape')
+										this.editor.setEditingShape(selectingShape.id) // will transition to 'select.editing_shape'
 
 										if (this.isDoubleClick) {
 											this.editor.emit('select-all-text', { shapeId: selectingShape.id })

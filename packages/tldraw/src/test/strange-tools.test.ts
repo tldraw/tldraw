@@ -10,9 +10,6 @@ beforeEach(() => {
 // It's a bit of a hack to simulate the user clicking the select tool
 // Since there's no way of importing this code, it's copied here.
 function onSelectToolClick(editor: TestEditor) {
-	const currentNode = editor.root.getCurrent()!
-	currentNode.exit({}, currentNode.id)
-	currentNode.enter({}, currentNode.id)
 	editor.setCurrentTool('select')
 }
 

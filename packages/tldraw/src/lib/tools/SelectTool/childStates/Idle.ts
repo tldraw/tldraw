@@ -533,8 +533,7 @@ export class Idle extends StateNode {
 	) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.markHistoryStoppingPoint('editing shape')
-		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll)
-		this.parent.transition('editing_shape', info)
+		startEditingShapeWithLabel(this.editor, shape, shouldSelectAll) // will transition to 'select.editing_shape'
 	}
 
 	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
@@ -594,9 +593,8 @@ export class Idle extends StateNode {
 			}
 		}
 
-		this.editor.setEditingShape(id)
 		this.editor.select(id)
-		this.parent.transition('editing_shape', info)
+		this.editor.setEditingShape(id) // will transition to 'select.editing_shape'
 	}
 
 	private nudgeSelectedShapes(ephemeral = false) {
