@@ -665,7 +665,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
 
-		const maskId = sanitizeId(shape.id + '_clip')
+		const clipPathId = sanitizeId(shape.id + '_clip')
 
 		if (isEditing && labelGeometry) {
 			return (
@@ -679,6 +679,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				/>
 			)
 		}
+		const clipStartArrowhead = !(
+			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
+		)
+		const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
 		return (
 			<g>
@@ -688,16 +692,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							hasText={shape.props.text.trim().length > 0}
 							bounds={bounds}
 							labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
-							as={as ?? ''}
-							ae={ae ?? ''}
+							as={clipStartArrowhead && as ? as : ''}
+							ae={clipEndArrowhead && ae ? ae : ''}
 						/>
 					</defs>
 				)}
-				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
 				<g
 					style={{
-						clipPath: includeClipPath ? `url(#${maskId})` : undefined,
-						WebkitClipPath: includeClipPath ? `url(#${maskId})` : undefined,
+						clipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
+						WebkitClipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
 					}}
 				>
 					{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
@@ -902,8 +905,8 @@ const ArrowSvg = track(function ArrowSvg({
 
 	const labelPosition = getArrowLabelPosition(editor, shape)
 
-	const maskStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
-	const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
+	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
+	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
 	const clipPathId = sanitizeId(shape.id + '_clip')
 
@@ -916,8 +919,8 @@ const ArrowSvg = track(function ArrowSvg({
 						hasText={shape.props.text.trim().length > 0}
 						bounds={bounds}
 						labelBounds={labelPosition.box}
-						as={maskStartArrowhead && as ? as : ''}
-						ae={maskEndArrowhead && ae ? ae : ''}
+						as={clipStartArrowhead && as ? as : ''}
+						ae={clipEndArrowhead && ae ? ae : ''}
 					/>
 				</clipPath>
 			</defs>
@@ -945,7 +948,7 @@ const ArrowSvg = track(function ArrowSvg({
 					/>
 					<path d={path} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
 				</g>
-				{as && maskStartArrowhead && shape.props.fill !== 'none' && (
+				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
 						theme={theme}
 						d={as}
@@ -954,7 +957,7 @@ const ArrowSvg = track(function ArrowSvg({
 						scale={shape.props.scale}
 					/>
 				)}
-				{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
+				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
 						theme={theme}
 						d={ae}
