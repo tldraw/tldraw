@@ -44,7 +44,7 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 		<div className={styles.content}>
 			<div className={styles.header}>
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
-					<span className={styles.headerFolder}>My files / </span>
+					<span className={styles.headerFolder}>{raw('My files /')}</span>
 					{/* TODO(david): fix this when adding support for shared files */}
 					<TlaFileNameEditor
 						fileId={fileId}
