@@ -63,6 +63,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						// text tool.
 						const currentNode = editor.root.getCurrent()!
 						currentNode.exit({}, currentNode.id)
+						currentNode.enter({}, currentNode.id)
 					}
 					editor.setCurrentTool('select.idle')
 					trackEvent('select-tool', { source, id: 'select' })
