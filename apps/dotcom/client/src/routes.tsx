@@ -28,9 +28,9 @@ export const router = createRoutesFromElements(
 						para1 = 'The file you are looking for does not exist.'
 						break
 					}
-					case TLIncompatibilityReason.NotAuthorized: {
-						header = 'Not authorized'
-						para1 = 'You are not authorized to view this file.'
+					case TLIncompatibilityReason.Forbidden: {
+						header = 'Unauthorized'
+						para1 = 'You need to be authorized to view this file.'
 						break
 					}
 				}

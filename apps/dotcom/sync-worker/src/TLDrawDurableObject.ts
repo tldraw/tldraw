@@ -336,7 +336,7 @@ export class TLDrawDurableObject {
 			if (ownerId) {
 				const auth = await requireAuth(req, this.env)
 				if (ownerId !== auth.userId) {
-					return closeSocket(TLCloseEventCode.NOT_AUTHORIZED, 'Not authorized')
+					return closeSocket(TLCloseEventCode.FORBIDDEN, 'Not authorized')
 				}
 			} else if (!this.documentInfo.isOrWasTemporary) {
 				// If there is no owner that means it's a temporary room, but if they didn't add the temporary

@@ -32,7 +32,7 @@ export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
  */
 export const TLCloseEventCode = {
 	NOT_FOUND: 4099,
-	NOT_AUTHORIZED: 4100,
+	FORBIDDEN: 4100,
 } as const
 
 /** @internal */

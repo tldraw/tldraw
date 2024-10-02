@@ -88,7 +88,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 				if (closeCode === TLCloseEventCode.NOT_FOUND) {
 					newStatus = 'error'
 					break
-				} else if (closeCode === TLCloseEventCode.NOT_AUTHORIZED) {
+				} else if (closeCode === TLCloseEventCode.FORBIDDEN) {
 					newStatus = 'error'
 					break
 				}

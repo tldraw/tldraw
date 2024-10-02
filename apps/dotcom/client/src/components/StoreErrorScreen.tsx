@@ -47,9 +47,9 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 				message = 'The room you are trying to connect to does not exist.'
 				break
 			}
-			case TLIncompatibilityReason.NotAuthorized: {
-				header = 'Not authorized'
-				message = 'You are not authorized to view this room.'
+			case TLIncompatibilityReason.Forbidden: {
+				header = 'Unauthorized'
+				message = 'You need to be authorized to view this room.'
 				break
 			}
 			default:
