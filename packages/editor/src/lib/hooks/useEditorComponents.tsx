@@ -17,6 +17,7 @@ import {
 import { DefaultGrid, TLGridProps } from '../components/default-components/DefaultGrid'
 import { DefaultHandle, TLHandleProps } from '../components/default-components/DefaultHandle'
 import { DefaultHandles, TLHandlesProps } from '../components/default-components/DefaultHandles'
+import { DefaultInFrontOfTheCanvas } from '../components/default-components/DefaultInFrontOfTheCanvas'
 import { DefaultLoadingScreen } from '../components/default-components/DefaultLoadingScreen'
 import { DefaultScribble, TLScribbleProps } from '../components/default-components/DefaultScribble'
 import {
@@ -119,7 +120,7 @@ export function EditorComponentsProvider({
 			ShapeIndicators: DefaultShapeIndicators,
 			ShapeIndicator: DefaultShapeIndicator,
 			OnTheCanvas: null,
-			InFrontOfTheCanvas: null,
+			InFrontOfTheCanvas: DefaultInFrontOfTheCanvas,
 			Canvas: DefaultCanvas,
 			LoadingScreen: DefaultLoadingScreen,
 			..._overrides,

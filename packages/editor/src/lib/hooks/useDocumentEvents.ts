@@ -88,7 +88,7 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Tab': {
-					if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
+					if (isFocusingInput()) {
 						return
 					}
 					break
@@ -133,7 +133,7 @@ export function useDocumentEvents() {
 					return
 				}
 				default: {
-					if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
+					if (isFocusingInput()) {
 						return
 					}
 				}
@@ -156,7 +156,7 @@ export function useDocumentEvents() {
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
 
-			if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
+			if (isFocusingInput()) {
 				return
 			}
 

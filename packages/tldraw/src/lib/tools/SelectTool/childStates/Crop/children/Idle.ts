@@ -32,8 +32,6 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.menus.hasAnyOpenMenus()) return
-
 		if (info.ctrlKey) {
 			this.cancel()
 			// feed the event back into the statechart
