@@ -938,8 +938,8 @@ const ArrowSvg = track(function ArrowSvg({
 						hasText={shape.props.text.trim().length > 0}
 						bounds={bounds}
 						labelPositionBounds={labelPosition.box}
-						as={as && maskStartArrowhead ? as : undefined}
-						ae={ae && maskEndArrowhead ? ae : undefined}
+						as={maskStartArrowhead ? as : ''}
+						ae={maskEndArrowhead ? ae : ''}
 					/>
 				</clipPath>
 			</defs>
@@ -1005,12 +1005,13 @@ function ArrowClipPath({
 	as: string | undefined
 	ae: string | undefined
 }) {
+	// Not sure why, but we need to add this one for things to work correctly
+	const labelBox = hasText ? labelPositionBounds : new Box(0, 0, 0, 0)
 	const path = `
 M${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} h${bounds.width + 200} v${bounds.height + 200} h-${bounds.width + 200} Z
-M${toDomPrecision(labelPositionBounds.minX)},${toDomPrecision(labelPositionBounds.minY)} v${labelPositionBounds.height} h${labelPositionBounds.width} v-${labelPositionBounds.height} Z
-${as && as}
-${ae && ae}
-`
+M${toDomPrecision(labelBox.minX)},${toDomPrecision(labelBox.minY)} v${labelBox.height} h${labelBox.width} v-${labelBox.height} Z
+${as}
+${ae}`
 	return <path d={path} stroke="none" />
 }
 
