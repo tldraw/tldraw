@@ -25,6 +25,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			socket: TLRoomSocket<R>
 			sessionStartTime: number
 			meta: Meta
+			isReadonly: boolean
 	  }
 	| {
 			state: typeof RoomSessionState.AwaitingRemoval
@@ -33,6 +34,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			socket: TLRoomSocket<R>
 			cancellationTime: number
 			meta: Meta
+			isReadonly: boolean
 	  }
 	| {
 			state: typeof RoomSessionState.Connected
@@ -44,4 +46,5 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
 			meta: Meta
+			isReadonly: boolean
 	  }

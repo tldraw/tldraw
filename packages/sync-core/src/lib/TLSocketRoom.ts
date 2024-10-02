@@ -97,14 +97,19 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *
 	 * - `sessionId` is a unique ID for a browser tab. This is passed as a query param by the useSync hook.
 	 * - `socket` is a WebSocket-like object that the server uses to communicate with the client.
+	 * - `isReadonly` is an optional boolean that can be set to true if the client should not be able to make changes to the document. They will still be able to send presence updates.
 	 * - `meta` is an optional object that can be used to store additional information about the session.
 	 *
 	 * @param opts - The options object
 	 */
 	handleSocketConnect(
-		opts: OmitVoid<{ sessionId: string; socket: WebSocketMinimal; meta: SessionMeta }>
+		opts: {
+			sessionId: string
+			socket: WebSocketMinimal
+			isReadonly?: boolean
+		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket } = opts
+		const { sessionId, socket, isReadonly = false } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -120,9 +125,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			},
 		})
 
-		this.room.handleNewSession(
+		this.room.handleNewSession({
 			sessionId,
-			new ServerSocketAdapter({
+			isReadonly,
+			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
 					? (message, stringified) =>
@@ -134,8 +140,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 							})
 					: undefined,
 			}),
-			'meta' in opts ? (opts.meta as any) : undefined
-		)
+			meta: 'meta' in opts ? (opts.meta as any) : undefined,
+		})
 
 		socket.addEventListener?.('message', handleSocketMessage)
 		socket.addEventListener?.('close', handleSocketClose)
