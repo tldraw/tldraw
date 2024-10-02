@@ -27,6 +27,7 @@ export function registerDefaultSideEffects(editor: Editor) {
 							// then create the shape with a flag that will let it know to
 							// go back to the text tool once the edit is complete.
 							const shape = editor.getEditingShape()
+
 							if (
 								shape &&
 								shape.type === 'text' &&

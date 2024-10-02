@@ -59,6 +59,7 @@ describe('interaction between the select tool and the editing state', () => {
 			.pointerDown()
 			.pointerUp()
 			.expectToBeIn('select.editing_shape')
+
 		onSelectToolClick(editor)
 		editor.expectToBeIn('select.idle')
 	})

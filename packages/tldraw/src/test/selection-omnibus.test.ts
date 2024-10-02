@@ -1644,6 +1644,7 @@ describe('scribble brushes to add to the selection', () => {
 		editor.pointerMove(-50, -50)
 		editor.keyDown('Alt')
 		editor.pointerDown()
+		editor.expectToBeIn('select.pointing_canvas')
 		editor.pointerMove(-1, -1)
 		editor.expectToBeIn('select.scribble_brushing')
 		expect(editor.getSelectedShapeIds()).toEqual([])

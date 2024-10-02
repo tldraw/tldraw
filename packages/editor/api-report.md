@@ -2332,6 +2332,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     getCurrent(): StateNode | undefined;
     // (undocumented)
     getCurrentToolIdMask(): string | undefined;
+    // (undocumented)
+    getDescendant<T extends StateNode>(path: string): T | undefined;
     getIsActive(): boolean;
     getPath(): string;
     // (undocumented)
@@ -2396,6 +2398,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     setCurrentToolIdMask(id: string | undefined): void;
     // (undocumented)
     shapeType?: string;
+    // (undocumented)
+    start(): void;
+    // (undocumented)
+    _started: boolean;
     transition(path: string, info?: any): this | undefined;
     // (undocumented)
     type: 'branch' | 'leaf' | 'root';

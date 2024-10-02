@@ -81,8 +81,5 @@ export class SelectTool extends StateNode {
 
 	override onExit() {
 		this.reactor?.()
-		if (this.editor.getCurrentPageState().editingShapeId) {
-			this.editor.setEditingShape(null)
-		}
 	}
 }

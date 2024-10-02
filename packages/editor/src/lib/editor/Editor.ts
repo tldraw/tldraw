@@ -720,11 +720,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			throw Error(`No state found for initialState "${initialState}".`)
 		}
 
-		this.root.enter(undefined, 'initial')
-
 		this.edgeScrollManager = new EdgeScrollManager(this)
 		this.focusManager = new FocusManager(this, autoFocus)
 		this.disposables.add(this.focusManager.dispose.bind(this.focusManager))
+
+		this.root.start()
 
 		if (this.getInstanceState().followingUserId) {
 			this.stopFollowingUser()
@@ -1380,16 +1380,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getStateDescendant<T extends StateNode>(path: string): T | undefined {
-		const ids = path.split('.').reverse()
-		let state = this.root as StateNode
-		while (ids.length > 0) {
-			const id = ids.pop()
-			if (!id) return state as T
-			const childState = state.children?.[id]
-			if (!childState) return undefined
-			state = childState
-		}
-		return state as T
+		return this.root.getDescendant(path)
 	}
 
 	/* ---------------- Document Settings --------------- */
