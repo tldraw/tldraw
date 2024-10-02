@@ -933,19 +933,14 @@ const ArrowSvg = track(function ArrowSvg({
 		<>
 			{/* Yep */}
 			<defs>
-				<clipPath id={clipPathId}>
+				<clipPath id={clipPathId} fillRule="evenodd">
 					<ArrowClipPath
 						hasText={shape.props.text.trim().length > 0}
 						bounds={bounds}
 						labelPositionBounds={labelPosition.box}
+						as={as && maskStartArrowhead ? as : undefined}
+						ae={ae && maskEndArrowhead ? ae : undefined}
 					/>
-
-					{as && maskStartArrowhead && (
-						<path d={as} fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
-					)}
-					{ae && maskEndArrowhead && (
-						<path d={ae} fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
-					)}
 				</clipPath>
 			</defs>
 			<g
@@ -957,7 +952,6 @@ const ArrowSvg = track(function ArrowSvg({
 				pointerEvents="none"
 			>
 				{handlePath}
-				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
 				<g
 					style={{
 						clipPath: `url(#${clipPathId})`,
@@ -1002,56 +996,22 @@ function ArrowClipPath({
 	hasText,
 	bounds,
 	labelPositionBounds,
+	as,
+	ae,
 }: {
 	hasText: boolean
 	bounds: Box
 	labelPositionBounds: Box
+	as: string | undefined
+	ae: string | undefined
 }) {
-	if (hasText) {
-		// There doesn't seem to be an easy way to invert a clipPath, so we instead create this complex polygon.
-		// We create the three sides of the outer rectangle in the clockwise direction, then move to the inside rectangle
-		// and create that one in the counterclockwise direction (so we don't intersect and complete the path).
-		// We then finish with the outer rectangle. Diagram shows the order of the points.
-		//
-		//    (1, 11)--------------------------(2)
-		//       |                              |
-		//       |         Outer Rect           |
-		//       |                            	|
-		//       |  (8)-------------------(7)   |
-		//       |    |                    |    |
-		//       |    |                    |    |
-		//       |    |    Inner Rect      |    |
-		//       |    |                    |    |
-		//       |    |                    |    |
-		//       |  (5,9)-----------------(6)   |
-		//    (4, 10)--------------------------(3)
-
-		return (
-			<polygon
-				points={`
-        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} 
-        ${toDomPrecision(bounds.minX + bounds.width + 100)},${toDomPrecision(bounds.minY - 100)} 
-        ${toDomPrecision(bounds.minX + bounds.width + 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
-        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
-        ${labelPositionBounds.x},${labelPositionBounds.y + labelPositionBounds.h}
-        ${labelPositionBounds.x + labelPositionBounds.w},${labelPositionBounds.y + labelPositionBounds.h}
-        ${labelPositionBounds.x + labelPositionBounds.w},${labelPositionBounds.y}
-        ${labelPositionBounds.x},${labelPositionBounds.y}
-        ${labelPositionBounds.x},${labelPositionBounds.y + labelPositionBounds.h}
-        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
-        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} 
-      `}
-			/>
-		)
-	}
-	return (
-		<rect
-			x={toDomPrecision(bounds.minX - 100)}
-			y={toDomPrecision(bounds.minY - 100)}
-			width={toDomPrecision(bounds.width + 200)}
-			height={toDomPrecision(bounds.height + 200)}
-		/>
-	)
+	const path = `
+M${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} h${bounds.width + 200} v${bounds.height + 200} h-${bounds.width + 200} Z
+M${toDomPrecision(labelPositionBounds.minX)},${toDomPrecision(labelPositionBounds.minY)} v${labelPositionBounds.height} h${labelPositionBounds.width} v-${labelPositionBounds.height} Z
+${as && as}
+${ae && ae}
+`
+	return <path d={path} stroke="none" />
 }
 
 const shapeAtTranslationStart = new WeakMap<
