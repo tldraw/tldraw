@@ -18,6 +18,8 @@ import {
 	lerp,
 	rng,
 	toFixed,
+	useEditor,
+	useValue,
 } from '@tldraw/editor'
 
 import { ShapeFill } from '../shared/ShapeFill'
@@ -100,7 +102,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	component(shape: TLDrawShape) {
 		return (
 			<SVGContainer id={shape.id}>
-				<DrawShapeSvg shape={shape} zoomLevel={this.editor.getZoomLevel()} />
+				<DrawShapeSvg shape={shape} />
 			</SVGContainer>
 		)
 	}
@@ -137,7 +139,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const scaleFactor = 1 / shape.props.scale
 		return (
 			<g transform={`scale(${scaleFactor})`}>
-				<DrawShapeSvg shape={shape} zoomLevel={1} />
+				<DrawShapeSvg shape={shape} use100PercentZoom />
 			</g>
 		)
 	}
@@ -199,15 +201,41 @@ function getIsDot(shape: TLDrawShape) {
 	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
 }
 
-function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: number }) {
+function DrawShapeSvg({
+	shape,
+	use100PercentZoom = false,
+}: {
+	shape: TLDrawShape
+	use100PercentZoom?: boolean
+}) {
 	const theme = useDefaultColorTheme()
+	const editor = useEditor()
 
 	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
 	let sw = (STROKE_SIZES[shape.props.size] + 1) * shape.props.scale
-	const forceSolid = zoomLevel < 0.5 && zoomLevel < 1.5 / sw
+	const forceSolid = useValue(
+		'force solid',
+		() => {
+			if (use100PercentZoom) return false
+			const zoomLevel = editor.getZoomLevel()
+			return zoomLevel < 0.5 && zoomLevel < 1.5 / sw
+		},
+		[editor, sw, use100PercentZoom]
+	)
+
+	const dotAdjustment = useValue(
+		'dot adjustment',
+		() => {
+			if (use100PercentZoom) return 0.1
+			// If we're zoomed way out (10%), then we need to make the dotted line go to 9 instead 0.1
+			// Chrome doesn't render anything otherwise.
+			return editor.getZoomLevel() < 0.2 ? 0 : 0.1
+		},
+		[editor, use100PercentZoom]
+	)
 
 	if (
 		!forceSolid &&
@@ -265,7 +293,7 @@ function DrawShapeSvg({ shape, zoomLevel }: { shape: TLDrawShape; zoomLevel: num
 				fill={isDot ? theme[shape.props.color].solid : 'none'}
 				stroke={theme[shape.props.color].solid}
 				strokeWidth={sw}
-				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, zoomLevel)}
+				strokeDasharray={isDot ? 'none' : getDrawShapeStrokeDashArray(shape, sw, dotAdjustment)}
 				strokeDashoffset="0"
 			/>
 		</>
