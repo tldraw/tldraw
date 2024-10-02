@@ -15,7 +15,7 @@ import {
 	TLShapeId,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { IndexKey, ZERO_INDEX_KEY, promiseWithResolve, sortById } from '@tldraw/utils'
+import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, promiseWithResolve, sortById } from '@tldraw/utils'
 import {
 	MAX_TOMBSTONES,
 	RoomSnapshot,
@@ -46,6 +46,11 @@ const makeSnapshot = (records: TLRecord[], others: Partial<RoomSnapshot> = {}) =
 	documents: records.map((r) => ({ state: r, lastChangedClock: 0 })),
 	clock: 0,
 	...others,
+})
+
+beforeEach(() => {
+	let id = 0
+	mockUniqueId(() => `id_${id++}`)
 })
 
 const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
@@ -629,6 +634,7 @@ describe('isReadonly', () => {
 			presence: [
 				'put',
 				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('foo'),
 					currentPageId: 'page:page_2' as any,
 					userId: 'foo',
 					userName: 'Jimbo',
@@ -661,7 +667,7 @@ describe('isReadonly', () => {
 		  "data": [
 		    {
 		      "diff": {
-		        "instance_presence:rglo5ftbgT7PrMl5dECSA": [
+		        "instance_presence:id_0": [
 		          "put",
 		          {
 		            "brush": null,
@@ -680,7 +686,7 @@ describe('isReadonly', () => {
 		              "y": 0,
 		            },
 		            "followingUserId": null,
-		            "id": "instance_presence:rglo5ftbgT7PrMl5dECSA",
+		            "id": "instance_presence:id_0",
 		            "lastActivityTimestamp": 0,
 		            "meta": {},
 		            "screenBounds": {
