@@ -288,3 +288,57 @@ describe('setting atoms during a reaction', () => {
 		expect(dValue).toBe(4)
 	})
 })
+
+test('it should be possible to run a transaction during a reaction', () => {
+	const a = atom('', 0)
+	const b = atom('', 0)
+
+	react('', () => {
+		transaction(() => {
+			b.set(a.get() + 1)
+		})
+	})
+
+	expect(a.get()).toBe(0)
+	expect(b.get()).toBe(1)
+
+	a.set(1)
+
+	expect(b.get()).toBe(2)
+})
+
+test('it should be possible to abort a transaction during a reaction', () => {
+	const a = atom('', 0)
+	const b = atom('', 0)
+
+	const unsub = react('', () => {
+		transaction((rollback) => {
+			b.set(a.get() + 1)
+			rollback()
+		})
+		expect(b.get()).toBe(0)
+	})
+
+	expect(a.get()).toBe(0)
+	expect(b.get()).toBe(0)
+
+	unsub()
+
+	react('', () => {
+		try {
+			transaction(() => {
+				b.set(a.get() + 1)
+				throw new Error('oops')
+			})
+		} catch (e: any) {
+			expect(e.message).toBe('oops')
+		} finally {
+			expect(b.get()).toBe(0)
+		}
+	})
+
+	expect(a.get()).toBe(0)
+	expect(b.get()).toBe(0)
+
+	expect.assertions(7)
+})
