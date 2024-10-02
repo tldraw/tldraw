@@ -660,7 +660,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
 
-		const includeMask =
+		const includeClipPath =
 			(as && info.start.arrowhead !== 'arrow') ||
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
@@ -682,48 +682,26 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		return (
 			<g>
-				{includeMask && (
+				{includeClipPath && (
 					<defs>
-						<mask id={maskId}>
-							<rect
-								x={bounds.minX - 100}
-								y={bounds.minY - 100}
-								width={bounds.w + 200}
-								height={bounds.h + 200}
-								fill="white"
-							/>
-							{labelGeometry && (
-								<rect
-									x={toDomPrecision(labelGeometry.x)}
-									y={toDomPrecision(labelGeometry.y)}
-									width={labelGeometry.w}
-									height={labelGeometry.h}
-									fill="black"
-									rx={3.5 * shape.props.scale}
-									ry={3.5 * shape.props.scale}
-								/>
-							)}
-							{as && (
-								<path
-									d={as}
-									fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'}
-									stroke="none"
-								/>
-							)}
-							{ae && (
-								<path
-									d={ae}
-									fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'}
-									stroke="none"
-								/>
-							)}
-						</mask>
+						<ArrowClipPath
+							hasText={shape.props.text.trim().length > 0}
+							bounds={bounds}
+							labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
+							as={as ?? ''}
+							ae={ae ?? ''}
+						/>
 					</defs>
 				)}
 				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
-				<g {...(includeMask ? { mask: `url(#${maskId})` } : undefined)}>
+				<g
+					style={{
+						clipPath: includeClipPath ? `url(#${maskId})` : undefined,
+						WebkitClipPath: includeClipPath ? `url(#${maskId})` : undefined,
+					}}
+				>
 					{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
-					{includeMask && (
+					{includeClipPath && (
 						<rect
 							x={bounds.minX - 100}
 							y={bounds.minY - 100}
@@ -937,7 +915,7 @@ const ArrowSvg = track(function ArrowSvg({
 					<ArrowClipPath
 						hasText={shape.props.text.trim().length > 0}
 						bounds={bounds}
-						labelPositionBounds={labelPosition.box}
+						labelBounds={labelPosition.box}
 						as={maskStartArrowhead && as ? as : ''}
 						ae={maskEndArrowhead && ae ? ae : ''}
 					/>
