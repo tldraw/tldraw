@@ -6,33 +6,35 @@ import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
 import { TlaFormDivider } from '../components/tla-form/tla-form'
 import { useApp } from '../hooks/useAppState'
 import { useFlags } from '../hooks/useFlags'
+import { useRaw } from '../hooks/useRaw'
 import { useSessionState } from '../hooks/useSessionState'
 import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
 
 export function Component() {
+	const raw = useRaw()
 	return (
 		<TlaPageLayout>
 			<div className="tla-page__header">
-				<h2 className="tla-text_ui__big">Debug</h2>
+				<h2 className="tla-text_ui__big">{raw('Debug')}</h2>
 			</div>
 			<TlaSpacer height={40} />
-			<h2>Users</h2>
+			<h2>{raw('Users')}</h2>
 			<TlaSpacer height={20} />
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 'fit-content' }}>
 				<SignOutButton redirectUrl="/q">
-					<TlaButton variant="warning">Sign out</TlaButton>
+					<TlaButton variant="warning">{raw('Sign out')}</TlaButton>
 				</SignOutButton>
 			</div>
 			<TlaSpacer height={40} />
 			<TlaFormDivider />
 			<TlaSpacer height={40} />
-			<h2>Flags</h2>
+			<h2>{raw('Flags')}</h2>
 			<TlaSpacer height={20} />
 			<Flags />
 			<TlaSpacer height={40} />
 			<TlaFormDivider />
 			<TlaSpacer height={40} />
-			<h2>Theme</h2>
+			<h2>{raw('Theme')}</h2>
 			<TlaSpacer height={20} />
 			<DarkMode />
 		</TlaPageLayout>
@@ -41,6 +43,7 @@ export function Component() {
 
 function Flags() {
 	const app = useApp()
+	const raw = useRaw()
 	const flags = useFlags()
 
 	return (
@@ -95,7 +98,7 @@ function Flags() {
 					])
 				}}
 			>
-				Reset defaults
+				{raw('Reset defaults')}
 			</TlaButton>
 		</div>
 	)
@@ -103,6 +106,7 @@ function Flags() {
 
 function DarkMode() {
 	const app = useApp()
+	const raw = useRaw()
 	const isDarkMode = useSessionState().theme === 'dark'
 	return (
 		<div
@@ -114,7 +118,7 @@ function DarkMode() {
 				rowGap: 4,
 			}}
 		>
-			<label htmlFor="dark mode">Dark mode</label>
+			<label htmlFor="dark mode">{raw('Dark mode')}</label>
 			<input
 				name="dark mode"
 				type="checkbox"
