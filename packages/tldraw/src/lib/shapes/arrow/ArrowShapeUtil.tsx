@@ -995,26 +995,25 @@ const ArrowSvg = track(function ArrowSvg({
 function ArrowClipPath({
 	hasText,
 	bounds,
-	labelPositionBounds,
+	labelBounds,
 	as,
 	ae,
 }: {
 	hasText: boolean
 	bounds: Box
-	labelPositionBounds: Box
+	labelBounds: Box
 	as: string
 	ae: string
 }) {
-	const labelBox = hasText ? labelPositionBounds : new Box(0, 0, 0, 0)
 	// The direction in which we create the different path parts is important, as it determines what gets clipped.
 	// See the description on the directions in the non-zero fill rule example:
 	// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule#nonzero
 	// We create this one in the clockwise direction
 	const boundingBoxPath = `M${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} h${bounds.width + 200} v${bounds.height + 200} h-${bounds.width + 200} Z`
 	// We create this one in the counter-clockwise direction, which cuts out the label box
-	const labelBoxPath = `M${toDomPrecision(labelBox.minX)},${toDomPrecision(labelBox.minY)} v${labelBox.height} h${labelBox.width} v-${labelBox.height} Z`
+	const labelBoxPath = `M${toDomPrecision(labelBounds.minX)},${toDomPrecision(labelBounds.minY)} v${labelBounds.height} h${labelBounds.width} v-${labelBounds.height} Z`
 	// We also append the arrowhead paths to the clip path, so that we also clip the arrowheads
-	return <path d={`${boundingBoxPath} ${labelBoxPath} ${as} ${ae}`} />
+	return <path d={`${boundingBoxPath}${hasText ? labelBoxPath : ''}${as}${ae}`} />
 }
 
 const shapeAtTranslationStart = new WeakMap<
