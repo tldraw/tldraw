@@ -48,7 +48,7 @@ function getArrowhead({ point, int }: TLArrowPointsInfo) {
 	const PL = Vec.RotWith(int, point, PI / 6)
 	const PR = Vec.RotWith(int, point, -PI / 6)
 
-	return `M ${PL.x} ${PL.y} ${point.x} ${point.y} L ${PR.x} ${PR.y}`
+	return `M ${PL.x} ${PL.y} L ${point.x} ${point.y} L ${PR.x} ${PR.y}`
 }
 
 function getTriangleHead({ point, int }: TLArrowPointsInfo) {
