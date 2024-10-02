@@ -102,9 +102,13 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @param opts - The options object
 	 */
 	handleSocketConnect(
-		opts: OmitVoid<{ sessionId: string; socket: WebSocketMinimal; meta: SessionMeta }>
+		opts: {
+			sessionId: string
+			socket: WebSocketMinimal
+			isReadonly?: boolean
+		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket } = opts
+		const { sessionId, socket, isReadonly = false } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -120,9 +124,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			},
 		})
 
-		this.room.handleNewSession(
+		this.room.handleNewSession({
 			sessionId,
-			new ServerSocketAdapter({
+			isReadonly,
+			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
 					? (message, stringified) =>
@@ -134,8 +139,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 							})
 					: undefined,
 			}),
-			'meta' in opts ? (opts.meta as any) : undefined
-		)
+			meta: 'meta' in opts ? (opts.meta as any) : undefined,
+		})
 
 		socket.addEventListener?.('message', handleSocketMessage)
 		socket.addEventListener?.('close', handleSocketClose)

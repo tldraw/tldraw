@@ -188,22 +188,22 @@ export class TLDrawDurableObject {
 			`/${ROOM_PREFIX}/:roomId`,
 			this._setIsApp.bind(this, false),
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
-			(req) => this.onRequest(req)
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
 		)
 		.get(
 			`/${READ_ONLY_LEGACY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY),
-			(req) => this.onRequest(req)
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
 		)
 		.get(
 			`/${READ_ONLY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
-			(req) => this.onRequest(req)
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_ONLY)
 		)
 		.get(
 			`/app/file/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
-			(req) => this.onRequest(req)
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
 		)
 		.post(
 			`/${ROOM_PREFIX}/:roomId/restore`,
@@ -310,7 +310,7 @@ export class TLDrawDurableObject {
 		return this._ownerId
 	}
 
-	async onRequest(req: IRequest) {
+	async onRequest(req: IRequest, openMode: RoomOpenMode) {
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
@@ -360,6 +360,8 @@ export class TLDrawDurableObject {
 				sessionId: sessionId,
 				socket: serverWebSocket,
 				meta: { storeId },
+				isReadonly:
+					openMode === ROOM_OPEN_MODE.READ_ONLY || openMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY,
 			})
 			if (isNewSession) {
 				this.logEvent({
