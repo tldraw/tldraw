@@ -33,6 +33,7 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useSharing } from '../../../utils/sharing'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useTldrawUser } from '../../hooks/useUser'
 import { TldrawApp } from '../../utils/TldrawApp'
 import styles from './editor.module.css'
 
@@ -124,9 +125,11 @@ const components: TLComponents = {
 export function TlaEditor({
 	fileSlug,
 	onDocumentChange,
+	temporary,
 }: {
 	fileSlug: string
 	onDocumentChange?(): void
+	temporary?: boolean
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -207,8 +210,19 @@ export function TlaEditor({
 		}
 	}, [app, fileId])
 
+	const user = useTldrawUser()
+
 	const store = useSync({
-		uri: `${MULTIPLAYER_SERVER}/app/file/${fileSlug}`,
+		uri: useCallback(async () => {
+			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
+			if (user) {
+				url.searchParams.set('accessToken', await user.getToken())
+			}
+			if (temporary) {
+				url.searchParams.set('temporary', 'true')
+			}
+			return url.toString()
+		}, [user, fileSlug, temporary]),
 		assets: multiplayerAssetStore,
 	})
 

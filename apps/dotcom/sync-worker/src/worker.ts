@@ -19,6 +19,7 @@ import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
+import { getAuth } from './utils/getAuth'
 export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
@@ -42,15 +43,18 @@ const router = createRouter<Environment>()
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
 	.get('/app/file/:roomId', forwardRoomRequest)
-	.get('/app/:userName', async (req, env) => {
-		const userName = req.params.userName
-		if (!userName) return notFound()
+	.get('/app', async (req, env) => {
+		const auth = await getAuth(req, env)
+		if (!auth?.userId) return notFound()
 
 		// This needs to be a websocket request!
 		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
 			// Set up the durable object for this room
-			const id = env.TLAPP_DO.idFromName(userName)
-			return env.TLAPP_DO.get(id).fetch(req)
+			const id = env.TLAPP_DO.idFromName(auth.userId)
+			const url = new URL(req.url)
+			url.pathname = `/app/${auth.userId}`
+			// clone the request and add the new url
+			return env.TLAPP_DO.get(id).fetch(new Request(url, req))
 		}
 
 		return notFound()
