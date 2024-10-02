@@ -136,20 +136,32 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 * ```ts
 	 * parentState.transition('childStateA')
 	 * parentState.transition('childStateB', { myData: 4 })
+	 * parentState.transition('childStateA.childStateAB.childStateABC')
 	 *```
 	 *
-	 * @param id - The id of the child state node to transition to.
+	 * @param path - The path of child state nodes to transition to.
 	 * @param info - Any data to pass to the `onEnter` and `onExit` handlers.
 	 *
 	 * @public
 	 */
-	transition(id: string, info: any = {}) {
-		const path = id.split('.')
+	transition(path: string, info: any = {}) {
+		const pathIds = path.split('.')
 
 		let currState = this as StateNode
 
-		for (let i = 0; i < path.length; i++) {
-			const id = path[i]
+		const currentPath = this.getPath().split('root.')[1]
+		// todo: if the transition is to a parent of the current path, we should exit the current path
+		if (currentPath === path) {
+			return
+		}
+
+		if (currentPath?.includes(path)) {
+			this.exit(info, this.id)
+			this.enter(info, this.id)
+		}
+
+		for (let i = 0; i < pathIds.length; i++) {
+			const id = pathIds[i]
 			const prevChildState = currState.getCurrent()
 			const nextChildState = currState.children?.[id]
 
