@@ -583,17 +583,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 *
 	 * @internal
 	 */
-	handleNewSession({
-		sessionId,
-		socket,
-		meta,
-		isReadonly,
-	}: {
+	handleNewSession(opts: {
 		sessionId: string
 		socket: TLRoomSocket<R>
 		meta: SessionMeta
 		isReadonly: boolean
 	}) {
+		const { sessionId, socket, meta, isReadonly } = opts
 		const existing = this.sessions.get(sessionId)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingConnectMessage,
