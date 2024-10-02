@@ -97,6 +97,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *
 	 * - `sessionId` is a unique ID for a browser tab. This is passed as a query param by the useSync hook.
 	 * - `socket` is a WebSocket-like object that the server uses to communicate with the client.
+	 * - `isReadonly` is an optional boolean that can be set to true if the client should not be able to make changes to the document. They will still be able to send presence updates.
 	 * - `meta` is an optional object that can be used to store additional information about the session.
 	 *
 	 * @param opts - The options object

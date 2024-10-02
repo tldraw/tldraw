@@ -490,7 +490,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     getSnapshot(): RoomSnapshot;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
-    handleNewSession({ sessionId, socket, meta, isReadonly }: {
+    handleNewSession({ sessionId, socket, meta, isReadonly, }: {
         isReadonly: boolean;
         meta: SessionMeta;
         sessionId: string;
