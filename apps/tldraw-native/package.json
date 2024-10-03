@@ -1,0 +1,27 @@
+{
+	"name": "tldraw-native",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc && vite build",
+		"preview": "vite preview",
+		"tauri": "tauri"
+	},
+	"dependencies": {
+		"@tauri-apps/api": ">=2.0.0",
+		"@tauri-apps/plugin-shell": ">=2.0.0",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"@tauri-apps/cli": ">=2.0.0",
+		"@types/react": "^18.2.15",
+		"@types/react-dom": "^18.2.7",
+		"@vitejs/plugin-react-swc": "^3.7.0",
+		"typescript": "^5.2.2",
+		"vite": "^5.3.1"
+	}
+}

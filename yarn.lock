@@ -6593,6 +6593,133 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tauri-apps/api@npm:>=2.0.0, @tauri-apps/api@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "@tauri-apps/api@npm:2.0.1"
+  checksum: c6680d3720b4b69badca0d64a9f84e198c1534d57d74680c0905228ee3455e2608f49801ca4957c5945a03342888e0ed4ce26a36811bd6603ae7a0f3ac6a4ced
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-darwin-arm64@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-darwin-arm64@npm:2.0.0"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-darwin-x64@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-darwin-x64@npm:2.0.0"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-arm-gnueabihf@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-arm-gnueabihf@npm:2.0.0"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-arm64-gnu@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-arm64-gnu@npm:2.0.0"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-arm64-musl@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-arm64-musl@npm:2.0.0"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-x64-gnu@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-x64-gnu@npm:2.0.0"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-x64-musl@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-x64-musl@npm:2.0.0"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-win32-arm64-msvc@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-win32-arm64-msvc@npm:2.0.0"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-win32-ia32-msvc@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-win32-ia32-msvc@npm:2.0.0"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-win32-x64-msvc@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-win32-x64-msvc@npm:2.0.0"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli@npm:>=2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli@npm:2.0.0"
+  dependencies:
+    "@tauri-apps/cli-darwin-arm64": "npm:2.0.0"
+    "@tauri-apps/cli-darwin-x64": "npm:2.0.0"
+    "@tauri-apps/cli-linux-arm-gnueabihf": "npm:2.0.0"
+    "@tauri-apps/cli-linux-arm64-gnu": "npm:2.0.0"
+    "@tauri-apps/cli-linux-arm64-musl": "npm:2.0.0"
+    "@tauri-apps/cli-linux-x64-gnu": "npm:2.0.0"
+    "@tauri-apps/cli-linux-x64-musl": "npm:2.0.0"
+    "@tauri-apps/cli-win32-arm64-msvc": "npm:2.0.0"
+    "@tauri-apps/cli-win32-ia32-msvc": "npm:2.0.0"
+    "@tauri-apps/cli-win32-x64-msvc": "npm:2.0.0"
+  dependenciesMeta:
+    "@tauri-apps/cli-darwin-arm64":
+      optional: true
+    "@tauri-apps/cli-darwin-x64":
+      optional: true
+    "@tauri-apps/cli-linux-arm-gnueabihf":
+      optional: true
+    "@tauri-apps/cli-linux-arm64-gnu":
+      optional: true
+    "@tauri-apps/cli-linux-arm64-musl":
+      optional: true
+    "@tauri-apps/cli-linux-x64-gnu":
+      optional: true
+    "@tauri-apps/cli-linux-x64-musl":
+      optional: true
+    "@tauri-apps/cli-win32-arm64-msvc":
+      optional: true
+    "@tauri-apps/cli-win32-ia32-msvc":
+      optional: true
+    "@tauri-apps/cli-win32-x64-msvc":
+      optional: true
+  bin:
+    tauri: tauri.js
+  checksum: 847a4f60054295dc8cdfd50a836b9a9336e320f15c87b35c0e18812418d96391478e6ded063590789bdc2deccfa445624cb89acf7fa99a75d5fa0a8e4e63908b
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/plugin-shell@npm:>=2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/plugin-shell@npm:2.0.0"
+  dependencies:
+    "@tauri-apps/api": "npm:^2.0.0"
+  checksum: ebfa7d0c55bd6941a6889ba227fa91aacbfc4de05d004131bfb3a7c144c5de2061b70004961ddf1e9833494eda2c7461890827d7a1fbb43b769443f1f8a15817
+  languageName: node
+  linkType: hard
+
 "@testing-library/dom@npm:^10.0.0":
   version: 10.4.0
   resolution: "@testing-library/dom@npm:10.4.0"
@@ -7688,7 +7815,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.2.0":
+"@types/react-dom@npm:^18.0.0, @types/react-dom@npm:^18.2.0, @types/react-dom@npm:^18.2.7":
   version: 18.3.0
   resolution: "@types/react-dom@npm:18.3.0"
   dependencies:
@@ -7725,6 +7852,16 @@ __metadata:
     "@types/prop-types": "npm:*"
     csstype: "npm:^3.0.2"
   checksum: 30cfbe33c82e8033df5f70a4f54068f4344a691cff3f2b3901dd678e89ce5477dc8faada4a45d333ea570e1992ca8fda5b096d9deddfafb8c373acababc40c70
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^18.2.15":
+  version: 18.3.11
+  resolution: "@types/react@npm:18.3.11"
+  dependencies:
+    "@types/prop-types": "npm:*"
+    csstype: "npm:^3.0.2"
+  checksum: a36f0707fdfe9fe19cbe5892bcdab0f042ecadb501ea4e1c39519943f3e74cffbd31e892d3860f5c87cf33f5f223552b246a552bed0087b95954f2cb39d5cf65
   languageName: node
   linkType: hard
 
@@ -22314,6 +22451,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tldraw-native@workspace:apps/tldraw-native":
+  version: 0.0.0-use.local
+  resolution: "tldraw-native@workspace:apps/tldraw-native"
+  dependencies:
+    "@tauri-apps/api": "npm:>=2.0.0"
+    "@tauri-apps/cli": "npm:>=2.0.0"
+    "@tauri-apps/plugin-shell": "npm:>=2.0.0"
+    "@types/react": "npm:^18.2.15"
+    "@types/react-dom": "npm:^18.2.7"
+    "@vitejs/plugin-react-swc": "npm:^3.7.0"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    tldraw: "workspace:*"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.3.1"
+  languageName: unknown
+  linkType: soft
+
 "tldraw-vscode@workspace:apps/vscode/extension":
   version: 0.0.0-use.local
   resolution: "tldraw-vscode@workspace:apps/vscode/extension"
@@ -22959,6 +23114,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:^5.2.2":
+  version: 5.6.2
+  resolution: "typescript@npm:5.6.2"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: f95365d4898f357823e93d334ecda9fcade54f009b397c7d05b7621cd9e865981033cf89ccde0f3e3a7b73b1fdbae18e92bc77db237b43e912f053fef0f9a53b
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^4.4.2#optional!builtin<compat/typescript>":
   version: 4.9.5
   resolution: "typescript@patch:typescript@npm%3A4.9.5#optional!builtin<compat/typescript>::version=4.9.5&hash=289587"
@@ -22976,6 +23141,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: ef4fc2994cc0219dc9ada94c92106ba8d44cbfd7a0328ed6f8d730311caf66e114cdfa07fbc6f369bfc0fc182d9493851b3bf1644c06fc5818690b19ee960d72
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>":
+  version: 5.6.2
+  resolution: "typescript@patch:typescript@npm%3A5.6.2#optional!builtin<compat/typescript>::version=5.6.2&hash=e012d7"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 060a7349adf698477b411be4ace470aee6c2c1bd99917fdf5d33697c17ec55c64fe724eb10399387530b50e9913b41528dd8bfcca0a5fc8f8bac63fbb4580a2e
   languageName: node
   linkType: hard
 
@@ -23583,6 +23758,49 @@ __metadata:
   version: 2.0.0
   resolution: "visit-values@npm:2.0.0"
   checksum: 9422c453864c363a93421f94342ce7c53fbd3e52b7dcd1f4df63c45e2ac1a71332047f1153fbdad2d9544867fa835f4029e2dca9415ee58437513fdb64895618
+  languageName: node
+  linkType: hard
+
+"vite@npm:^5.3.1":
+  version: 5.4.8
+  resolution: "vite@npm:5.4.8"
+  dependencies:
+    esbuild: "npm:^0.21.3"
+    fsevents: "npm:~2.3.3"
+    postcss: "npm:^8.4.43"
+    rollup: "npm:^4.20.0"
+  peerDependencies:
+    "@types/node": ^18.0.0 || >=20.0.0
+    less: "*"
+    lightningcss: ^1.21.0
+    sass: "*"
+    sass-embedded: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    lightningcss:
+      optional: true
+    sass:
+      optional: true
+    sass-embedded:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 17fdffa558abaf854f04ead7d3ddd76e4556a59871f9ac63cca3fc20a79979984837d8dddaae4b171e3d73061f781e4eec0f6d3babdbce2b4d111d29cf474c1c
   languageName: node
   linkType: hard
 
