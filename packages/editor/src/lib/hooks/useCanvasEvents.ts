@@ -114,8 +114,9 @@ export function useCanvasEvents() {
 				preventDefault(e)
 			}
 
-			async function onDrop(e: React.DragEvent<Element>) {
+			async function onDropCapture(e: React.DragEvent<Element>) {
 				preventDefault(e)
+				stopEventPropagation(e)
 				if (!e.dataTransfer?.files?.length) return
 
 				const files = Array.from(e.dataTransfer.files)
@@ -139,7 +140,7 @@ export function useCanvasEvents() {
 				onPointerEnter,
 				onPointerLeave,
 				onDragOver,
-				onDrop,
+				onDropCapture,
 				onTouchStart,
 				onTouchEnd,
 				onClick,
