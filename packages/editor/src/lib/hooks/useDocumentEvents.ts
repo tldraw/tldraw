@@ -19,17 +19,17 @@ export function useDocumentEvents() {
 			// this is tricky: we don't want the event to do anything
 			// here, but we do want it to make its way to the canvas,
 			// even if the drop is over some other element (like a toolbar),
-			// so we're going to flag the event as "killed" and then dispatch
+			// so we're going to flag the event and then dispatch
 			// it to the canvas; the canvas will handle it and try to
 			// stop it from propagating back, but in case we do see it again,
-			// we'll look for the killed flag and stop it from being
+			// we'll look for the flag so we know to stop it from being
 			// re-dispatched, which would lead to an infinite loop.
-			if ((e as any).isKilled) return
+			if ((e as any).isSpecialRedispatchedEvent) return
 			preventDefault(e)
 			const cvs = container.querySelector('.tl-canvas')
 			if (!cvs) return
 			const newEvent = new DragEvent('drop', e)
-			;(newEvent as any).isKilled = true
+			;(newEvent as any).isSpecialRedispatchedEvent = true
 			cvs.dispatchEvent(newEvent)
 		}
 
