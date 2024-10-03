@@ -1794,3 +1794,9 @@
 		opacity: 1;
 	}
 }
+
+.tlui-menu-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: var(--layer-panels);
+}

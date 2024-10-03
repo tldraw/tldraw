@@ -35,8 +35,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	const bottomRightEvents = useSelectionEvents('bottom_right')
 	const bottomLeftEvents = useSelectionEvents('bottom_left')
 
-	const isDefaultCursor =
-		!editor.menus.hasAnyOpenMenus() && editor.getInstanceState().cursor.type === 'default'
+	const isDefaultCursor = editor.getInstanceState().cursor.type === 'default'
 	const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
 	const onlyShape = editor.getOnlySelectedShape()

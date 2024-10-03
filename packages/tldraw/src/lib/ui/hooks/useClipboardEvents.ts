@@ -67,16 +67,14 @@ const INPUTS = ['input', 'select', 'textarea']
 /**
  * Get whether to disallow clipboard events.
  *
- * @param editor - The editor instance.
  * @internal
  */
-function disallowClipboardEvents(editor: Editor) {
+function disallowClipboardEvents() {
 	const { activeElement } = document
 	return (
-		editor.menus.hasAnyOpenMenus() ||
-		(activeElement &&
-			(activeElement.getAttribute('contenteditable') ||
-				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
+		activeElement &&
+		(activeElement.getAttribute('contenteditable') ||
+			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
 	)
 }
 
@@ -610,7 +608,7 @@ export function useNativeClipboardEvents() {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
-				disallowClipboardEvents(editor)
+				disallowClipboardEvents()
 			) {
 				return
 			}
@@ -624,7 +622,7 @@ export function useNativeClipboardEvents() {
 			if (
 				editor.getSelectedShapeIds().length === 0 ||
 				editor.getEditingShapeId() !== null ||
-				disallowClipboardEvents(editor)
+				disallowClipboardEvents()
 			) {
 				return
 			}
@@ -654,7 +652,7 @@ export function useNativeClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.getEditingShapeId() !== null || disallowClipboardEvents(editor)) return
+			if (editor.getEditingShapeId() !== null || disallowClipboardEvents()) return
 
 			// Where should the shapes go?
 			let point: Vec | undefined = undefined
