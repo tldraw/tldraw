@@ -114,7 +114,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		z-index: 2147483647 !important;
+		z-index: var(--layer-watermark) !important;
 		background-color: color-mix(in srgb, var(--color-background) 62%, transparent);
 		opacity: 1;
 		border-radius: 5px;
