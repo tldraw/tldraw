@@ -26,6 +26,7 @@
 	--layer-canvas-hidden: -999999;
 	--layer-canvas-background: 100;
 	--layer-canvas-grid: 150;
+	--layer-watermark: 200;
 	--layer-canvas-shapes: 300;
 	--layer-canvas-overlays: 500;
 	--layer-canvas-blocker: 10000;
