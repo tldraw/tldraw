@@ -487,6 +487,50 @@ const snapshots: Snapshots = {
 			),
 		},
 	},
+	Arrows: {
+		'': {
+			Arrow1: (
+				<TL.arrow
+					start={{ x: 0, y: 0 }}
+					end={{ x: 0, y: 100 }}
+					arrowheadStart="arrow"
+					arrowheadEnd="triangle"
+				/>
+			),
+			Arrow2: (
+				<TL.arrow
+					start={{ x: 50, y: 0 }}
+					end={{ x: 50, y: 100 }}
+					arrowheadStart="square"
+					arrowheadEnd="dot"
+				/>
+			),
+			Arrow3: (
+				<TL.arrow
+					start={{ x: 100, y: 0 }}
+					end={{ x: 100, y: 100 }}
+					arrowheadStart="pipe"
+					arrowheadEnd="diamond"
+				/>
+			),
+			Arrow4: (
+				<TL.arrow
+					start={{ x: 150, y: 0 }}
+					end={{ x: 150, y: 100 }}
+					arrowheadStart="inverted"
+					arrowheadEnd="bar"
+				/>
+			),
+			Arrow5: (
+				<TL.arrow
+					start={{ x: 200, y: 0 }}
+					end={{ x: 200, y: 100 }}
+					arrowheadStart="none"
+					arrowheadEnd="none"
+				/>
+			),
+		},
+	},
 }
 
 interface SnapshotWithoutJsx {
