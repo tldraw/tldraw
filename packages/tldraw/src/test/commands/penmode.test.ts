@@ -19,6 +19,8 @@ it('ignores touch events while in pen mode', async () => {
 		shiftKey: false,
 		altKey: false,
 		ctrlKey: false,
+		metaKey: false,
+		accelKey: false,
 		button: 1,
 		target: 'canvas',
 	})

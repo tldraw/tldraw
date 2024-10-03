@@ -4,6 +4,7 @@ import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
 import { Vec } from '../primitives/Vec'
 import { preventDefault, stopEventPropagation } from '../utils/dom'
+import { isAccelKey } from '../utils/keyboard'
 import { normalizeWheel } from '../utils/normalizeWheel'
 import { useEditor } from './useEditor'
 
@@ -125,6 +126,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
 				ctrlKey: event.metaKey || event.ctrlKey,
+				metaKey: event.metaKey,
+				accelKey: isAccelKey(event),
 			}
 
 			editor.dispatch(info)
@@ -161,6 +164,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
 				ctrlKey: event.metaKey || event.ctrlKey,
+				metaKey: event.metaKey,
+				accelKey: isAccelKey(event),
 			})
 		}
 
@@ -244,6 +249,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 						shiftKey: event.shiftKey,
 						altKey: event.altKey,
 						ctrlKey: event.metaKey || event.ctrlKey,
+						metaKey: event.metaKey,
+						accelKey: isAccelKey(event),
 					})
 					break
 				}
@@ -256,6 +263,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 						shiftKey: event.shiftKey,
 						altKey: event.altKey,
 						ctrlKey: event.metaKey || event.ctrlKey,
+						metaKey: event.metaKey,
+						accelKey: isAccelKey(event),
 					})
 					break
 				}
@@ -282,6 +291,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 					shiftKey: event.shiftKey,
 					altKey: event.altKey,
 					ctrlKey: event.metaKey || event.ctrlKey,
+					metaKey: event.metaKey,
+					accelKey: isAccelKey(event),
 				})
 			})
 		}

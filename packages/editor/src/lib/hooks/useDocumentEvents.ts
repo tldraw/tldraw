@@ -2,6 +2,7 @@ import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
+import { isAccelKey } from '../utils/keyboard'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
@@ -147,6 +148,8 @@ export function useDocumentEvents() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 			}
 
 			editor.dispatch(info)
@@ -172,6 +175,8 @@ export function useDocumentEvents() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 			}
 
 			editor.dispatch(info)
