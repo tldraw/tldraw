@@ -181,7 +181,7 @@ describe('states', () => {
 		expect(fallingEnter).toHaveBeenCalledTimes(1)
 	})
 
-	it.only('transitions from child to parent', () => {
+	it('transitions from child to parent', () => {
 		root.transition('asleep.dreaming.falling')
 		expect(root.getPath()).toBe('root.asleep.dreaming.falling')
 
