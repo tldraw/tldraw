@@ -214,6 +214,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			APP_ORIGIN: env.APP_ORIGIN,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			WORKER_NAME: workerId,
+			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
+			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
 		},
 		sentry: {
 			project: 'tldraw-sync',
