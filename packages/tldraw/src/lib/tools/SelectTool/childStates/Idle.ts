@@ -236,7 +236,7 @@ export class Idle extends StateNode {
 				}
 
 				if (!this.editor.inputs.shiftKey) {
-					this.handleDoubleClickOnCanvas(info)
+					this.handleDoubleClickOnCanvas()
 				}
 				break
 			}
@@ -319,7 +319,7 @@ export class Idle extends StateNode {
 					// If the shape's double click handler has not created a change,
 					// and if the shape cannot edit, then create a text shape and
 					// begin editing the text shape
-					this.handleDoubleClickOnCanvas(info)
+					this.handleDoubleClickOnCanvas()
 				}
 				break
 			}
@@ -560,7 +560,7 @@ export class Idle extends StateNode {
 		return false
 	}
 
-	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
+	handleDoubleClickOnCanvas() {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getInstanceState().isReadonly) return
 
