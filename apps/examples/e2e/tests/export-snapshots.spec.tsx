@@ -492,31 +492,38 @@ const snapshots: Snapshots = {
 			Arrow1: (
 				<TL.arrow
 					start={{ x: 0, y: 0 }}
-					end={{ x: 0, y: 100 }}
+					end={{ x: 0, y: 300 }}
+					size="xl"
 					arrowheadStart="arrow"
 					arrowheadEnd="triangle"
+					text="arrow 1"
 				/>
 			),
 			Arrow2: (
 				<TL.arrow
 					start={{ x: 50, y: 0 }}
-					end={{ x: 50, y: 100 }}
+					end={{ x: 50, y: 300 }}
+					size="xl"
 					arrowheadStart="square"
 					arrowheadEnd="dot"
+					text="arrow 2"
 				/>
 			),
 			Arrow3: (
 				<TL.arrow
 					start={{ x: 100, y: 0 }}
-					end={{ x: 100, y: 100 }}
+					end={{ x: 100, y: 300 }}
+					size="xl"
 					arrowheadStart="pipe"
 					arrowheadEnd="diamond"
+					text="arrow 3"
 				/>
 			),
 			Arrow4: (
 				<TL.arrow
 					start={{ x: 150, y: 0 }}
-					end={{ x: 150, y: 100 }}
+					end={{ x: 150, y: 300 }}
+					size="xl"
 					arrowheadStart="inverted"
 					arrowheadEnd="bar"
 				/>
@@ -524,7 +531,8 @@ const snapshots: Snapshots = {
 			Arrow5: (
 				<TL.arrow
 					start={{ x: 200, y: 0 }}
-					end={{ x: 200, y: 100 }}
+					end={{ x: 200, y: 300 }}
+					size="xl"
 					arrowheadStart="none"
 					arrowheadEnd="none"
 				/>
