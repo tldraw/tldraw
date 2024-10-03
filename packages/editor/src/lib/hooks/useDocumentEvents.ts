@@ -11,6 +11,27 @@ export function useDocumentEvents() {
 
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
 
+	// Prevent the browser's default drag and drop behavior on our container (UI, etc)
+	useEffect(() => {
+		if (!container) return
+
+		function onDrop(e: DragEvent) {
+			preventDefault(e)
+			const cvs = container.querySelector('.tl-canvas')
+			if (cvs) {
+				const newEvent = new DragEvent('drop', e)
+				cvs.dispatchEvent(newEvent)
+			}
+		}
+
+		container.addEventListener('dragover', onDrop)
+		container.addEventListener('drop', onDrop)
+		return () => {
+			container.removeEventListener('dragover', onDrop)
+			container.removeEventListener('drop', onDrop)
+		}
+	}, [container])
+
 	useEffect(() => {
 		if (typeof window === 'undefined' || !('matchMedia' in window)) return
 
