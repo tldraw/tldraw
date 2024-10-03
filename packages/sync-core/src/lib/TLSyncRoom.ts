@@ -536,6 +536,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			socket: session.socket,
 			cancellationTime: Date.now(),
 			meta: session.meta,
+			isReadonly: session.isReadonly,
 		})
 	}
 
@@ -580,11 +581,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * When a client connects to the room, add them to the list of clients and then merge the history
 	 * down into the snapshots.
 	 *
-	 * @param sessionId - The session of the client that connected to the room.
-	 * @param socket - Their socket.
-	 * @param meta - Any metadata associated with the session.
+	 * @internal
 	 */
-	handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta) {
+	handleNewSession(opts: {
+		sessionId: string
+		socket: TLRoomSocket<R>
+		meta: SessionMeta
+		isReadonly: boolean
+	}) {
+		const { sessionId, socket, meta, isReadonly } = opts
 		const existing = this.sessions.get(sessionId)
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.AwaitingConnectMessage,
@@ -593,6 +598,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			presenceId: existing?.presenceId ?? this.presenceType?.createId() ?? null,
 			sessionStartTime: Date.now(),
 			meta,
+			isReadonly: isReadonly ?? false,
 		})
 		return this
 	}
@@ -734,6 +740,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				debounceTimer: null,
 				outstandingDataMessages: [],
 				meta: session.meta,
+				isReadonly: session.isReadonly,
 			})
 			this.sendMessage(session.sessionId, msg)
 		}
@@ -990,7 +997,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					}
 				}
 			}
-			if (message.diff) {
+			if (message.diff && !session?.isReadonly) {
 				// The push request was for the document scope.
 				for (const [id, op] of Object.entries(message.diff!)) {
 					switch (op[0]) {

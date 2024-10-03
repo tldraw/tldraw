@@ -5,32 +5,37 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
+import { TLIncompatibilityReason, TLRemoteSyncError } from '@tldraw/sync-core'
 import { useEffect } from 'react'
-import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
+import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 
 export const router = createRoutesFromElements(
 	<Route
-		element={
-			// Add all top level providers that require the router here
-
-			<Outlet />
-		}
 		ErrorBoundary={() => {
 			const error = useRouteError()
 			useEffect(() => {
 				captureException(error)
 			}, [error])
-			return (
-				<ErrorPage
-					messages={{
-						header: 'Something went wrong',
-						para1:
-							'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.',
-					}}
-				/>
-			)
+			let header = 'Something went wrong'
+			let para1 =
+				'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.'
+			if (error instanceof TLRemoteSyncError) {
+				switch (error.reason) {
+					case TLIncompatibilityReason.RoomNotFound: {
+						header = 'Not found'
+						para1 = 'The file you are looking for does not exist.'
+						break
+					}
+					case TLIncompatibilityReason.Forbidden: {
+						header = 'Unauthorized'
+						para1 = 'You need to be authorized to view this file.'
+						break
+					}
+				}
+			}
+			return <ErrorPage messages={{ header, para1 }} />
 		}}
 	>
 		<Route errorElement={<DefaultErrorFallback />}>

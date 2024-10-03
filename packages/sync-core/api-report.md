@@ -152,6 +152,7 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 // @internal (undocumented)
 export type RoomSession<R extends UnknownRecord, Meta> = {
     cancellationTime: number;
+    isReadonly: boolean;
     meta: Meta;
     presenceId: null | string;
     sessionId: string;
@@ -159,6 +160,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     state: typeof RoomSessionState.AwaitingRemoval;
 } | {
     debounceTimer: null | ReturnType<typeof setTimeout>;
+    isReadonly: boolean;
     lastInteractionTime: number;
     meta: Meta;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
@@ -168,6 +170,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = {
     socket: TLRoomSocket<R>;
     state: typeof RoomSessionState.Connected;
 } | {
+    isReadonly: boolean;
     meta: Meta;
     presenceId: null | string;
     sessionId: string;
@@ -218,6 +221,7 @@ export type SubscribingFn<T> = (cb: (val: T) => void) => () => void;
 
 // @internal
 export const TLCloseEventCode: {
+    readonly FORBIDDEN: 4100;
     readonly NOT_FOUND: 4099;
 };
 
@@ -238,6 +242,7 @@ export interface TLConnectRequest {
 // @internal (undocumented)
 export const TLIncompatibilityReason: {
     readonly ClientTooOld: "clientTooOld";
+    readonly Forbidden: "forbidden";
     readonly InvalidOperation: "invalidOperation";
     readonly InvalidRecord: "invalidRecord";
     readonly RoomNotFound: "roomNotFound";
@@ -330,11 +335,13 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;
     handleSocketClose(sessionId: string): void;
-    handleSocketConnect(opts: OmitVoid<{
-        meta: SessionMeta;
+    handleSocketConnect(opts: {
+        isReadonly?: boolean;
         sessionId: string;
         socket: WebSocketMinimal;
-    }>): void;
+    } & (SessionMeta extends void ? object : {
+        meta: SessionMeta;
+    })): void;
     handleSocketError(sessionId: string): void;
     handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
     // (undocumented)
@@ -483,7 +490,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     getSnapshot(): RoomSnapshot;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
-    handleNewSession(sessionId: string, socket: TLRoomSocket<R>, meta: SessionMeta): this;
+    handleNewSession(opts: {
+        isReadonly: boolean;
+        meta: SessionMeta;
+        sessionId: string;
+        socket: TLRoomSocket<R>;
+    }): this;
     // (undocumented)
     isClosed(): boolean;
     // (undocumented)

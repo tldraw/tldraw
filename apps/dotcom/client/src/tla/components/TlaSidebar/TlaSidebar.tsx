@@ -5,6 +5,7 @@ import { useCallback } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useRaw } from '../../hooks/useRaw'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { getFileUrl } from '../../utils/urls'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
@@ -58,12 +59,13 @@ export function TlaSidebar() {
 }
 
 function TlaSidebarWorkspaceLink() {
+	const raw = useRaw()
 	return (
 		<div className={styles.workspace}>
 			<TlaIconWrapper data-size="m">
 				<TlaIcon icon="tldraw" />
 			</TlaIconWrapper>
-			<div className={classNames(styles.label, 'tla-text_ui__title')}>tldraw</div>
+			<div className={classNames(styles.label, 'tla-text_ui__title')}>{raw('tldraw')}</div>
 			<button className={styles.linkButton} />
 		</div>
 	)

@@ -270,6 +270,14 @@ export class TldrawApp {
 		return file
 	}
 
+	getFileName(fileId: TldrawAppFileId) {
+		const file = this.store.get(fileId)
+		// TODO(david): handle 'shared with me' files that exist in other users's areas
+		// gonna require a message queue or something.
+		if (!file) return null
+		return TldrawApp.getFileName(file)
+	}
+
 	claimTemporaryFile(fileId: TldrawAppFileId, owner: TldrawAppUserId) {
 		// TODO(david): check that you can't claim someone else's file (the db insert should fail and trigger a resync)
 		this.store.put([

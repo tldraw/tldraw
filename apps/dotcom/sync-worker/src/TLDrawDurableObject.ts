@@ -7,6 +7,7 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	TldrawAppFileRecordType,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -25,16 +26,21 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { requireAuth } from './utils/getAuth'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 
 const MAX_CONNECTIONS = 50
 
 // increment this any time you make a change to this type
-const CURRENT_DOCUMENT_INFO_VERSION = 0
+const CURRENT_DOCUMENT_INFO_VERSION = 1
 interface DocumentInfo {
 	version: number
 	slug: string
+	isApp: boolean
+	// if this room loaded as a temporary room this will be true,
+	// even if the room later was claimed by a user (which will be checked every time while still unclaimed)
+	isOrWasTemporary: boolean
 }
 
 const ROOM_NOT_FOUND = Symbol('room_not_found')
@@ -182,22 +188,22 @@ export class TLDrawDurableObject {
 			`/${ROOM_PREFIX}/:roomId`,
 			this._setIsApp.bind(this, false),
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
-			(req) => this.onRequest(req)
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
 		)
 		.get(
 			`/${READ_ONLY_LEGACY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY),
-			(req) => this.onRequest(req)
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_ONLY_LEGACY)
 		)
 		.get(
 			`/${READ_ONLY_PREFIX}/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_ONLY),
-			(req) => this.onRequest(req)
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_ONLY)
 		)
 		.get(
 			`/app/file/:roomId`,
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
-			(req) => this.onRequest(req)
+			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
 		)
 		.post(
 			`/${ROOM_PREFIX}/:roomId/restore`,
@@ -224,12 +230,17 @@ export class TLDrawDurableObject {
 			await getSlug(this.env, req.params.roomId, roomOpenMode),
 			'roomId must be present'
 		)
+		const isApp = new URL(req.url).pathname.startsWith('/app/')
+		const isOrWasTemporary = isApp && new URL(req.url).searchParams.get('temporary') === 'true'
+
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
 			this._documentInfo = {
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug,
+				isApp,
+				isOrWasTemporary,
 			}
 		}
 	}
@@ -283,7 +294,23 @@ export class TLDrawDurableObject {
 		}
 	}
 
-	async onRequest(req: IRequest) {
+	_ownerId: string | null = null
+	async getOwnerId() {
+		if (!this._ownerId) {
+			const slug = this.documentInfo.slug
+			const fileId = TldrawAppFileRecordType.createId(slug)
+			const row = await this.env.DB.prepare('SELECT topicId as ownerId FROM records WHERE id = ?')
+				.bind(fileId)
+				.first()
+
+			if (row) {
+				this._ownerId = row.ownerId as string
+			}
+		}
+		return this._ownerId
+	}
+
+	async onRequest(req: IRequest, openMode: RoomOpenMode) {
 		// extract query params from request, should include instanceId
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
@@ -298,6 +325,29 @@ export class TLDrawDurableObject {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
+		const closeSocket = (code: number, message: string) => {
+			serverWebSocket.close(code, message)
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
+		}
+
+		if (this.isApp) {
+			const ownerId = await this.getOwnerId()
+
+			if (ownerId) {
+				const auth = await requireAuth(req, this.env)
+				if (ownerId !== auth.userId) {
+					return closeSocket(TLCloseEventCode.FORBIDDEN, 'Not authorized')
+				}
+			} else if (!this.documentInfo.isOrWasTemporary) {
+				// If there is no owner that means it's a temporary room, but if they didn't add the temporary
+				// flag don't let them in.
+				// This prevents people from just creating rooms by typing extra chars in the URL because we only
+				// add that flag in temporary rooms.
+				return closeSocket(TLCloseEventCode.NOT_FOUND, 'Room not found')
+			}
+			// otherwise, it's a temporary room and we let them in
+		}
+
 		try {
 			const room = await this.getRoom()
 			// Don't connect if we're already at max connections
@@ -310,6 +360,8 @@ export class TLDrawDurableObject {
 				sessionId: sessionId,
 				socket: serverWebSocket,
 				meta: { storeId },
+				isReadonly:
+					openMode === ROOM_OPEN_MODE.READ_ONLY || openMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY,
 			})
 			if (isNewSession) {
 				this.logEvent({

@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { useCallback, useEffect, useState } from 'react'
 import { TldrawUiInput, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useRaw } from '../../hooks/useRaw'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditor } from '../TlaEditor/TlaEditor'
@@ -14,6 +15,7 @@ import styles from './file.module.css'
 
 export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 	const app = useApp()
+	const raw = useRaw()
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
 		'mobile sidebar open',
@@ -22,16 +24,6 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 	)
 
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
-
-	const file = useValue(
-		'file',
-		() => {
-			return app.store.get(TldrawAppFileRecordType.createId(fileSlug))
-		},
-		[app, fileSlug]
-	)
-
-	if (!file) throw Error('expected a file')
 
 	useEffect(() => {
 		let cancelled = false
@@ -52,9 +44,13 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 		<div className={styles.content}>
 			<div className={styles.header}>
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
-					<span className={styles.headerFolder}>My files / </span>
-					<TlaFileNameEditor fileId={file.id} fileName={TldrawApp.getFileName(file)} />
-					<TlaFileMenu fileId={file.id} source="file-header">
+					<span className={styles.headerFolder}>{raw('My files /')}</span>
+					{/* TODO(david): fix this when adding support for shared files */}
+					<TlaFileNameEditor
+						fileId={fileId}
+						fileName={app.getFileName(fileId) ?? 'SHARED_FILE_TODO'}
+					/>
+					<TlaFileMenu fileId={fileId} source="file-header">
 						<button className={styles.linkMenu}>
 							<TlaIcon icon="dots-vertical-strong" />
 						</button>
@@ -63,9 +59,9 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 				<TlaSidebarToggle />
 				<TlaSidebarToggleMobile />
 				<div className={styles.rightSide}>
-					<TlaFileShareMenu fileId={file.id} source="file-header">
+					<TlaFileShareMenu fileId={fileId} source="file-header">
 						<TlaButton>
-							<span>Share</span>
+							<span>{raw('Share')}</span>
 						</TlaButton>
 					</TlaFileShareMenu>
 				</div>
@@ -75,7 +71,7 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 				data-sidebar={isSidebarOpen}
 				data-sidebarmobile={isSidebarOpenMobile}
 			>
-				<TlaEditor fileSlug={fileId} />
+				<TlaEditor fileSlug={fileSlug} />
 			</div>
 		</div>
 	)

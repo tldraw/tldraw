@@ -13,6 +13,7 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../../utils/globalEditor'
 import { useApp } from '../../hooks/useAppState'
+import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { TlaButton } from '../TlaButton/TlaButton'
@@ -46,6 +47,7 @@ export function TlaShareMenuExportPage() {
 
 function ExportBackgroundToggle() {
 	const app = useApp()
+	const raw = useRaw()
 	const user = useTldrawUser()
 	if (!user) throw Error('should have auth')
 
@@ -69,7 +71,7 @@ function ExportBackgroundToggle() {
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>Padding</TlaMenuControlLabel>
+			<TlaMenuControlLabel>{raw('Padding')}</TlaMenuControlLabel>
 			<TlaSwitch checked={exportPadding} onChange={handleToggleShared} />
 		</TlaMenuControl>
 	)
@@ -77,6 +79,7 @@ function ExportBackgroundToggle() {
 
 function ExportPaddingToggle() {
 	const app = useApp()
+	const raw = useRaw()
 	const user = useTldrawUser()
 	if (!user) throw Error('should have auth')
 
@@ -100,7 +103,7 @@ function ExportPaddingToggle() {
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>Background</TlaMenuControlLabel>
+			<TlaMenuControlLabel>{raw('Background')}</TlaMenuControlLabel>
 			<TlaSwitch checked={exportBackground} onChange={handleToggleShared} />
 		</TlaMenuControl>
 	)
@@ -108,6 +111,7 @@ function ExportPaddingToggle() {
 
 function ExportFormatSelect() {
 	const app = useApp()
+	const raw = useRaw()
 	const user = useTldrawUser()
 	if (!user) throw Error('should have auth')
 	const { id: userId } = user
@@ -131,14 +135,14 @@ function ExportFormatSelect() {
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>Export as</TlaMenuControlLabel>
+			<TlaMenuControlLabel>{raw('Export as')}</TlaMenuControlLabel>
 			<TlaSelect
 				value={exportFormat}
 				label={exportFormat === 'svg' ? 'SVG' : 'PNG'}
 				onChange={handleSelectChange}
 			>
-				<option value="svg">SVG</option>
-				<option value="png">PNG</option>
+				<option value="svg">{raw('SVG')}</option>
+				<option value="png">{raw('PNG')}</option>
 			</TlaSelect>
 		</TlaMenuControl>
 	)
@@ -146,6 +150,7 @@ function ExportFormatSelect() {
 
 function ExportThemeSelect() {
 	const app = useApp()
+	const raw = useRaw()
 	const user = useTldrawUser()
 	if (!user) throw Error('should have auth')
 	const { id: userId } = user
@@ -169,15 +174,15 @@ function ExportThemeSelect() {
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>Theme</TlaMenuControlLabel>
+			<TlaMenuControlLabel>{raw('Theme')}</TlaMenuControlLabel>
 			<TlaSelect
 				value={exportTheme}
 				label={exportTheme[0].toLocaleUpperCase() + exportTheme.slice(1)}
 				onChange={handleSelectChange}
 			>
-				<option value="auto">Auto</option>
-				<option value="light">Light</option>
-				<option value="dark">Dark</option>
+				<option value="auto">{raw('Auto')}</option>
+				<option value="light">{raw('Light')}</option>
+				<option value="dark">{raw('Dark')}</option>
 			</TlaSelect>
 		</TlaMenuControl>
 	)
@@ -185,6 +190,7 @@ function ExportThemeSelect() {
 
 function ExportImageButton() {
 	const app = useApp()
+	const raw = useRaw()
 
 	const [exported, setExported] = useState(false)
 
@@ -230,7 +236,7 @@ function ExportImageButton() {
 				onClick={handleExportLinkClick}
 				iconRight="export"
 			>
-				Export image
+				{raw('Export image')}
 			</TlaButton>
 		</>
 	)
@@ -238,6 +244,7 @@ function ExportImageButton() {
 
 function ExportPreviewImage() {
 	const app = useApp()
+	const raw = useRaw()
 	const ref = useRef<HTMLImageElement>(null)
 
 	const [exportPreviewSize, setExportPreviewSize] = useState<null | string[]>(null)
@@ -300,7 +307,7 @@ function ExportPreviewImage() {
 			<img ref={ref} className={styles.exportPreviewInner} />
 			{exportPreviewSize && (
 				<div className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}>
-					{exportPreviewSize[0]}×{exportPreviewSize[1]}
+					{raw(`${exportPreviewSize[0]}×${exportPreviewSize[1]}`)}
 				</div>
 			)}
 		</div>

@@ -136,6 +136,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				client.close()
 				socket.close()
 				return
+			} else if (val === 'error' && closeCode === TLCloseEventCode.FORBIDDEN) {
+				track?.(MULTIPLAYER_EVENT_NAME, { name: 'not-authorized', roomId })
+				setState({ error: new TLRemoteSyncError(TLIncompatibilityReason.Forbidden) })
+				client.close()
+				socket.close()
 			}
 		})
 

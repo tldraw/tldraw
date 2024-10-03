@@ -335,7 +335,12 @@ test('clients will receive updates from a snapshot migration upon connection', (
 
 	const id = 'test_upgrade_brand_new'
 	const newClientSocket = mockSocket()
-	newServer.room.handleNewSession(id, newClientSocket, undefined)
+	newServer.room.handleNewSession({
+		sessionId: id,
+		socket: newClientSocket,
+		meta: undefined,
+		isReadonly: false,
+	})
 	newServer.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -359,7 +364,7 @@ test('out-of-date clients will receive incompatibility errors', () => {
 	const id = 'test_upgrade_v2'
 	const socket = mockSocket()
 
-	v3server.room.handleNewSession(id, socket, undefined)
+	v3server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
 	v3server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -383,7 +388,7 @@ test('clients using an out-of-date protocol will receive compatibility errors', 
 		const id = 'test_upgrade_v3'
 		const socket = mockSocket()
 
-		v2server.room.handleNewSession(id, socket, undefined)
+		v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
 		v2server.room.handleMessage(id, {
 			type: 'connect',
 			connectRequestId: 'test',
@@ -412,7 +417,7 @@ test('v5 special case should allow connections', () => {
 	const id = 'test_upgrade_v3'
 	const socket = mockSocket()
 
-	v2server.room.handleNewSession(id, socket, undefined)
+	v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
 	v2server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -443,7 +448,7 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 	const id = 'test_upgrade_v3'
 	const socket = mockSocket()
 
-	v2server.room.handleNewSession(id, socket, undefined)
+	v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
 	v2server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -485,7 +490,12 @@ test('when the client is too new it cannot connect', () => {
 	const v2_id = 'test_upgrade_v2'
 	const v2_socket = mockSocket<RV2>()
 
-	v1Server.room.handleNewSession(v2_id, v2_socket as any, undefined)
+	v1Server.room.handleNewSession({
+		sessionId: v2_id,
+		socket: v2_socket as any,
+		meta: undefined,
+		isReadonly: false,
+	})
 	v1Server.room.handleMessage(v2_id as any, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -545,7 +555,12 @@ describe('when the client is too old', () => {
 
 		const v1SendMessage = v1Socket.sendMessage as jest.Mock
 
-		v2Server.room.handleNewSession(v1Id, v1Socket as any, undefined)
+		v2Server.room.handleNewSession({
+			sessionId: v1Id,
+			socket: v1Socket as any,
+			meta: undefined,
+			isReadonly: false,
+		})
 		v2Server.room.handleMessage(v1Id, {
 			type: 'connect',
 			connectRequestId: 'test',
@@ -554,7 +569,12 @@ describe('when the client is too old', () => {
 			schema: schemaV1.serialize(),
 		})
 
-		v2Server.room.handleNewSession(v2Id, v2Socket, undefined)
+		v2Server.room.handleNewSession({
+			sessionId: v2Id,
+			socket: v2Socket,
+			meta: undefined,
+			isReadonly: false,
+		})
 		v2Server.room.handleMessage(v2Id, {
 			type: 'connect',
 			connectRequestId: 'test',
@@ -692,7 +712,12 @@ describe('when the client is the same version', () => {
 		const bId = 'v2ClientB'
 		const bSocket = mockSocket<RV2>()
 
-		v2Server.room.handleNewSession(aId, aSocket, undefined)
+		v2Server.room.handleNewSession({
+			sessionId: aId,
+			socket: aSocket,
+			meta: undefined,
+			isReadonly: false,
+		})
 		v2Server.room.handleMessage(aId, {
 			type: 'connect',
 			connectRequestId: 'test',
@@ -701,7 +726,12 @@ describe('when the client is the same version', () => {
 			schema: JSON.parse(JSON.stringify(schemaV2.serialize())),
 		})
 
-		v2Server.room.handleNewSession(bId, bSocket, undefined)
+		v2Server.room.handleNewSession({
+			sessionId: bId,
+			socket: bSocket,
+			meta: undefined,
+			isReadonly: false,
+		})
 		v2Server.room.handleMessage(bId, {
 			type: 'connect',
 			connectRequestId: 'test',
