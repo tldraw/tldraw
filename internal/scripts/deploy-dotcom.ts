@@ -35,6 +35,7 @@ const env = makeEnv([
 	'APP_ORIGIN',
 	'ASSET_UPLOAD_SENTRY_DSN',
 	'ASSET_UPLOAD',
+	'CLERK_SECRET_KEY',
 	'CLOUDFLARE_ACCOUNT_ID',
 	'CLOUDFLARE_API_TOKEN',
 	'DISCORD_DEPLOY_WEBHOOK_URL',
@@ -57,6 +58,7 @@ const env = makeEnv([
 	'VERCEL_ORG_ID',
 	'VERCEL_PROJECT_ID',
 	'VERCEL_TOKEN',
+	'VITE_CLERK_PUBLISHABLE_KEY',
 	'WORKER_SENTRY_DSN',
 ])
 
@@ -212,6 +214,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			APP_ORIGIN: env.APP_ORIGIN,
 			ASSET_UPLOAD_ORIGIN: env.ASSET_UPLOAD,
 			WORKER_NAME: workerId,
+			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
+			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
 		},
 		sentry: {
 			project: 'tldraw-sync',

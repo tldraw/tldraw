@@ -914,6 +914,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly environment: {
         isAndroid: boolean;
         isChromeForIos: boolean;
+        isDarwin: boolean;
         isFirefox: boolean;
         isIos: boolean;
         isSafari: boolean;
@@ -1119,6 +1120,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         altKey: boolean;
         ctrlKey: boolean;
         isPen: boolean;
+        metaKey: boolean;
         shiftKey: boolean;
         isDragging: boolean;
         isEditing: boolean;
@@ -1224,6 +1226,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setHoveredShape(shape: null | TLShape | TLShapeId): this;
+    // @internal (undocumented)
+    _setMetaKeyTimeout(): void;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
@@ -1480,10 +1484,12 @@ export function getPerfectDashProps(totalLength: number, strokeWidth: number, op
 
 // @public (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
+    accelKey: boolean;
     altKey: boolean;
     button: number;
     ctrlKey: boolean;
     isPen: boolean;
+    metaKey: boolean;
     point: {
         x: number;
         y: number;
@@ -1701,6 +1707,12 @@ export interface InvalidLicenseKeyResult {
 
 // @internal (undocumented)
 export type InvalidLicenseReason = 'has-key-development-mode' | 'invalid-license-key' | 'no-key-provided';
+
+// @internal (undocumented)
+export const isAccelKey: <InputType extends {
+    ctrlKey: boolean;
+    metaKey: boolean;
+}>(e: InputType) => boolean;
 
 // @public
 export const isSafeFloat: (n: number) => boolean;
@@ -2482,9 +2494,13 @@ export type TLBaseBoxShape = TLBaseShape<string, {
 // @public (undocumented)
 export interface TLBaseEventInfo {
     // (undocumented)
+    accelKey: boolean;
+    // (undocumented)
     altKey: boolean;
     // (undocumented)
     ctrlKey: boolean;
+    // (undocumented)
+    metaKey: boolean;
     // (undocumented)
     shiftKey: boolean;
     // (undocumented)
@@ -2878,6 +2894,7 @@ export type TLEnterEventHandler = (info: any, from: string) => void;
 export const tlenv: {
     isAndroid: boolean;
     isChromeForIos: boolean;
+    isDarwin: boolean;
     isFirefox: boolean;
     isIos: boolean;
     isSafari: boolean;

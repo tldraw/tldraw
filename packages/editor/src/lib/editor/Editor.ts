@@ -125,6 +125,7 @@ import {
 	parseDeepLinkString,
 } from '../utils/deepLinks'
 import { getIncrementedName } from '../utils/getIncrementedName'
+import { isAccelKey } from '../utils/keyboard'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { BindingOnDeleteOptions, BindingUtil } from './bindings/BindingUtil'
@@ -2640,6 +2641,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					ctrlKey: this.inputs.ctrlKey,
 					altKey: this.inputs.altKey,
 					shiftKey: this.inputs.shiftKey,
+					metaKey: this.inputs.metaKey,
+					accelKey: isAccelKey(this.inputs),
 					button: 0,
 					isPen: this.getInstanceState().isPenMode ?? false,
 				}
@@ -8592,6 +8595,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isPen: false,
 		/** Whether the shift key is currently pressed. */
 		shiftKey: false,
+		/** Whether the meta key is currently pressed. */
+		metaKey: false,
 		/** Whether the control or command key is currently pressed. */
 		ctrlKey: false,
 		/** Whether the alt or option key is currently pressed. */
@@ -9090,6 +9095,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			code: 'ShiftLeft',
 		})
 	}
@@ -9108,6 +9115,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			code: 'AltLeft',
 		})
 	}
@@ -9126,7 +9135,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			code: 'ControlLeft',
+		})
+	}
+
+	/** @internal */
+	private _metaKeyTimeout = -1 as any
+
+	/** @internal */
+	@bind
+	_setMetaKeyTimeout() {
+		this.inputs.shiftKey = false
+		this.dispatch({
+			type: 'keyboard',
+			name: 'key_up',
+			key: 'Meta',
+			shiftKey: this.inputs.shiftKey,
+			ctrlKey: this.inputs.ctrlKey,
+			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
+			code: 'MetaLeft',
 		})
 	}
 
@@ -9244,6 +9275,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			inputs.ctrlKey = true
 		} else if (!info.ctrlKey && inputs.ctrlKey && this._ctrlKeyTimeout === -1) {
 			this._ctrlKeyTimeout = this.timers.setTimeout(this._setCtrlKeyTimeout, 150)
+		}
+
+		if (info.metaKey) {
+			clearTimeout(this._metaKeyTimeout)
+			this._metaKeyTimeout = -1
+			inputs.metaKey = true
+		} else if (!info.metaKey && inputs.metaKey && this._metaKeyTimeout === -1) {
+			this._metaKeyTimeout = this.timers.setTimeout(this._setMetaKeyTimeout, 150)
 		}
 
 		const { originPagePoint, currentPagePoint } = inputs
@@ -9575,6 +9614,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
 				if (info.key === 'AltRight') info.key = 'AltLeft'
 				if (info.code === 'ControlRight') info.code = 'ControlLeft'
+				if (info.code === 'MetaRight') info.code = 'MetaLeft'
 
 				switch (info.name) {
 					case 'key_down': {

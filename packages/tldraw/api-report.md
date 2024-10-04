@@ -1402,6 +1402,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     static migrations: TLPropsMigrations;
     // (undocumented)
+    onBeforeCreate(next: TLLineShape): TLLineShape | void;
+    // (undocumented)
     onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>): {
         id: TLShapeId;
         index: IndexKey;
