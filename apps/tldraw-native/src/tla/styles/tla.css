@@ -1,0 +1,188 @@
+:root {
+	box-sizing: border-box;
+}
+
+:root * {
+	box-sizing: border-box;
+}
+
+/* Variables */
+:root {
+	/* Border radii */
+	--tla-radius-1: 2px;
+	--tla-radius-2: 4px;
+	/* Fonts */
+	--tla-font-ui: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+		Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.tla {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	font-family: var(--tla-font-ui);
+	background-color: var(--tla-color-sidebar);
+	color: var(--tla-color-text-1);
+}
+
+.tla-theme__light {
+	--tla-color-sidebar: hsl(0, 0%, 99%);
+	--tla-color-canvas: hsl(210, 20%, 98%);
+	--tla-color-panel: hsl(0, 0%, 100%);
+	--tla-color-text-1: hsl(204, 8%, 5%);
+	--tla-color-text-2: hsl(204, 2%, 20%);
+	--tla-color-text-3: hsl(204, 4%, 45%);
+	--tla-color-contrast: hsl(0, 0%, 99%);
+	--tla-color-low: hsl(204, 16%, 94%);
+	--tla-color-border: hsl(204, 16%, 85%);
+	--tla-color-hover-1: hsl(204, 16%, 4%, 3%);
+	--tla-color-hover-2: hsl(204, 16%, 4%, 4.5%);
+	--tla-color-hover-3: hsla(0, 0%, 100%, 32.5%);
+	--tla-color-overlay: hsla(240, 16%, 2%, 30%);
+	--tla-color-primary: hsl(214, 84%, 56%);
+	--tla-color-secondary: hsl(0, 0%, 92%);
+	--tla-color-secondary-border: hsl(0, 0%, 80%);
+	--tla-color-accent-1: hsl(50, 91%, 70%);
+	--tla-color-accent-2: hsl(28, 88%, 57%);
+	--tla-color-accent-3: hsl(135, 59%, 49%);
+	--tla-color-warning: hsl(0, 88%, 57%);
+	/* Shadows */
+	/* --tla-shadow-primary-highlight: inset 0px 4px 2px -4px hsl(214, 94%, 94%),
+		inset 4px 4px 4px -6px hsl(214, 94%, 100%); */
+	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 25%), 0px 1px 3px hsl(0, 0%, 0%, 9%);
+	--tla-shadow-2: 0px 0px 2px hsl(0, 0%, 0%, 16%), 0px 2px 3px hsl(0, 0%, 0%, 24%),
+		0px 2px 6px hsl(0, 0%, 0%, 0.1), inset 0px 0px 0px 1px var(--tla-color-contrast);
+	--tla-shadow-3: 0px 1px 2px hsl(0, 0%, 0%, 28%), 0px 2px 6px hsl(0, 0%, 0%, 14%),
+		inset 0px 0px 0px 1px var(--tla-color-contrast);
+	--tla-shadow-4: 0px 0px 3px hsl(0, 0%, 0%, 19%), 0px 5px 4px hsl(0, 0%, 0%, 16%),
+		0px 2px 16px hsl(0, 0%, 0%, 6%), inset 0px 0px 0px 1px var(--tla-color-contrast);
+}
+
+.tla-theme__dark {
+	--tla-color-sidebar: hsl(0, 0%, 5%);
+	--tla-color-canvas: hsl(240, 5%, 6.5%);
+	--tla-color-panel: hsl(240, 6%, 13%);
+	--tla-color-text-1: hsl(204, 8%, 98%);
+	--tla-color-text-2: hsl(204, 5%, 85%);
+	--tla-color-text-3: hsl(204, 4%, 75%);
+	--tla-color-contrast: hsl(0, 0%, 100%);
+	--tla-color-low: hsl(240, 4%, 11%);
+	--tla-color-border: hsl(240, 12%, 20%);
+	--tla-color-hover-1: hsl(240, 8%, 100%, 3%);
+	--tla-color-hover-2: hsl(240, 8%, 100%, 5%);
+	--tla-color-hover-3: hsl(204, 16%, 4%, 3%);
+	--tla-color-overlay: hsla(240, 0%, 0%, 81%);
+	--tla-color-primary: hsl(214, 84%, 46%);
+	--tla-color-secondary: hsl(0, 0%, 20%);
+	--tla-color-secondary-border: hsl(0, 0%, 25%);
+	--tla-color-accent-1: hsl(50, 91%, 60%);
+	--tla-color-accent-2: hsl(28, 88%, 47%);
+	--tla-color-accent-3: hsl(135, 59%, 39%);
+	--tla-color-warning: hsl(0, 95%, 65%);
+	/* Shadows */
+	/* --tla-shadow-primary-highlight: inset 0px 1px 1px -1px hsl(214, 94%, 72%),
+		inset 4px 4px 4px -6px hsl(214, 94%, 80%); */
+	--tla-shadow-1: 0px 1px 2px hsl(0, 0%, 0%, 16.1%), 0px 1px 3px hsl(0, 0%, 0%, 22%),
+		inset 0px 0px 0px 1px var(--tla-color-panel);
+	--tla-shadow-2: 0px 1px 3px hsla(0, 44%, 27%, 0.666), 0px 2px 6px hsl(0, 0%, 0%, 33%),
+		inset 0px 0px 0px 1px var(--tla-color-panel);
+	--tla-shadow-3: 0px 1px 3px hsl(0, 0%, 0%, 50%), 0px 2px 12px hsl(0, 0%, 0%, 50%),
+		inset 0px 0px 0px 1px var(--tla-color-panel);
+}
+
+.tla .tl-container {
+	font-family: var(--tla-font-ui);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+/* ---------------------- Text ---------------------- */
+
+.tla-text_ui__title {
+	font-size: 14px;
+	line-height: 1.3;
+	font-weight: 600;
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-1);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tla-text_ui__section {
+	font-size: 12px;
+	line-height: 1.3;
+	font-weight: 500;
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-3);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tla-text_ui__tiny {
+	font-size: 6px;
+	line-height: 1.3;
+	font-weight: 800;
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-1);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tla-text_ui__small {
+	font-size: 11px;
+	line-height: 1.3;
+	font-weight: 500;
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-3);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tla-text_ui__medium {
+	font-size: 12px;
+	line-height: 1.3;
+	font-weight: 500;
+	font-family: var(--tla-font-ui);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tla-text_ui__regular {
+	font-size: 14px;
+	line-height: 1.3;
+	font-weight: 500;
+	font-family: var(--tla-font-ui);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+.tla-text_ui__big {
+	font-size: 24px;
+	line-height: 1.3;
+	font-family: var(--tla-font-ui);
+	color: var(--tla-color-text-1);
+	text-rendering: optimizeLegibility;
+}
+
+/* ---------------------- Auth ---------------------- */
+
+.tla-auth_detail {
+	text-align: center;
+	color: var(--tla-color-text-3);
+}
+
+.tla-auth_detail button {
+	background: none;
+	border: none;
+	display: inline;
+	cursor: pointer;
+	color: var(--tla-color-primary);
+}
+
+.tla-file-header__share {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
