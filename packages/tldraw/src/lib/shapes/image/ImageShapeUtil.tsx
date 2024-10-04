@@ -1,10 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Editor,
 	FileHelpers,
 	HTMLContainer,
 	Image,
 	MediaHelpers,
+	TLAsset,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
@@ -20,7 +22,7 @@ import {
 	toDomPrecision,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -99,158 +101,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return resized
 	}
 
-	isAnimated(shape: TLImageShape) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
-
-		if (!asset) return false
-
-		return (
-			('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
-			('isAnimated' in asset.props && asset.props.isAnimated)
-		)
-	}
-
 	component(shape: TLImageShape) {
-		const isCropping = this.editor.getCroppingShapeId() === shape.id
-		const prefersReducedMotion = usePrefersReducedMotion()
-		const [staticFrameSrc, setStaticFrameSrc] = useState('')
-		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const { asset, url } = useAsset({
 			shapeId: shape.id,
 			assetId: shape.props.assetId,
 			width: shape.props.w,
 		})
 
-		useEffect(() => {
-			if (url && this.isAnimated(shape)) {
-				let cancelled = false
-
-				const image = Image()
-				image.onload = () => {
-					if (cancelled) return
-
-					const canvas = document.createElement('canvas')
-					canvas.width = image.width
-					canvas.height = image.height
-
-					const ctx = canvas.getContext('2d')
-					if (!ctx) return
-
-					ctx.drawImage(image, 0, 0)
-					setStaticFrameSrc(canvas.toDataURL())
-					setLoadedUrl(url)
-				}
-				image.crossOrigin = 'anonymous'
-				image.src = url
-
-				return () => {
-					cancelled = true
-				}
-			}
-		}, [prefersReducedMotion, url, shape])
-
-		if (asset?.type === 'bookmark') {
-			throw Error("Bookmark assets can't be rendered as images")
-		}
-
-		const showCropPreview = isSelected && isCropping && this.editor.isIn('select.crop')
-
-		// We only want to reduce motion for mimeTypes that have motion
-		const reduceMotion =
-			prefersReducedMotion && (asset?.props.mimeType?.includes('video') || this.isAnimated(shape))
-
-		const containerStyle = getCroppedContainerStyle(shape)
-
-		const nextSrc = url === loadedUrl ? null : url
-		const loadedSrc = reduceMotion ? staticFrameSrc : loadedUrl
-
-		// This logic path is for when it's broken/missing asset.
-		if (!url && !asset?.props.src) {
-			return (
-				<HTMLContainer
-					id={shape.id}
-					style={{
-						overflow: 'hidden',
-						width: shape.props.w,
-						height: shape.props.h,
-						color: 'var(--color-text-3)',
-						backgroundColor: 'var(--color-low)',
-						border: '1px solid var(--color-low-border)',
-					}}
-				>
-					<div
-						className={classNames('tl-image-container', asset && 'tl-image-container-loading')}
-						style={containerStyle}
-					>
-						{asset ? null : <BrokenAssetIcon />}
-					</div>
-					{'url' in shape.props && shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-					)}
-				</HTMLContainer>
-			)
-		}
-
-		// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
-		// have that set up.
-		const crossOrigin = this.isAnimated(shape) ? 'anonymous' : undefined
-
-		return (
-			<>
-				{showCropPreview && loadedSrc && (
-					<div style={containerStyle}>
-						<img
-							className="tl-image"
-							style={{ ...getFlipStyle(shape), opacity: 0.1 }}
-							crossOrigin={crossOrigin}
-							src={loadedSrc}
-							referrerPolicy="strict-origin-when-cross-origin"
-							draggable={false}
-						/>
-					</div>
-				)}
-				<HTMLContainer
-					id={shape.id}
-					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
-				>
-					<div className={classNames('tl-image-container')} style={containerStyle}>
-						{/* We have two images: the currently loaded image, and the next image that
-						we're waiting to load. we keep the loaded image mounted while we're waiting
-						for the next one by storing the loaded URL in state. We use `key` props with
-						the src of the image so that when the next image is ready, the previous one will
-						be unmounted and the next will be shown with the browser having to remount a
-						fresh image and decoded it again from the cache. */}
-						{loadedSrc && (
-							<img
-								key={loadedSrc}
-								className="tl-image"
-								style={getFlipStyle(shape)}
-								crossOrigin={crossOrigin}
-								src={loadedSrc}
-								referrerPolicy="strict-origin-when-cross-origin"
-								draggable={false}
-							/>
-						)}
-						{nextSrc && (
-							<img
-								key={nextSrc}
-								className="tl-image"
-								style={getFlipStyle(shape)}
-								crossOrigin={crossOrigin}
-								src={nextSrc}
-								referrerPolicy="strict-origin-when-cross-origin"
-								draggable={false}
-								onLoad={() => setLoadedUrl(nextSrc)}
-							/>
-						)}
-					</div>
-					{shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-					)}
-				</HTMLContainer>
-			</>
-		)
+		return <ImageShape asset={asset} editor={this.editor} shape={shape} url={url} />
 	}
 
 	indicator(shape: TLImageShape) {
@@ -397,6 +255,165 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 }
+
+function isAnimated(editor: Editor, shape: TLImageShape) {
+	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : undefined
+
+	if (!asset) return false
+
+	return (
+		('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
+		('isAnimated' in asset.props && asset.props.isAnimated)
+	)
+}
+
+const ImageShape = memo(function ImageShape({
+	editor,
+	shape,
+	asset,
+	url,
+}: {
+	editor: Editor
+	shape: TLImageShape
+	asset?: TLAsset | null
+	url: string | null
+}) {
+	const isCropping = editor.getCroppingShapeId() === shape.id
+	const prefersReducedMotion = usePrefersReducedMotion()
+	const [staticFrameSrc, setStaticFrameSrc] = useState('')
+	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
+	const isSelected = shape.id === editor.getOnlySelectedShapeId()
+
+	useEffect(() => {
+		if (url && isAnimated(editor, shape)) {
+			let cancelled = false
+
+			const image = Image()
+			image.onload = () => {
+				if (cancelled) return
+
+				const canvas = document.createElement('canvas')
+				canvas.width = image.width
+				canvas.height = image.height
+
+				const ctx = canvas.getContext('2d')
+				if (!ctx) return
+
+				ctx.drawImage(image, 0, 0)
+				setStaticFrameSrc(canvas.toDataURL())
+				setLoadedUrl(url)
+			}
+			image.crossOrigin = 'anonymous'
+			image.src = url
+
+			return () => {
+				cancelled = true
+			}
+		}
+	}, [editor, prefersReducedMotion, url, shape])
+
+	if (asset?.type === 'bookmark') {
+		throw Error("Bookmark assets can't be rendered as images")
+	}
+
+	const showCropPreview = isSelected && isCropping && editor.isIn('select.crop')
+
+	// We only want to reduce motion for mimeTypes that have motion
+	const reduceMotion =
+		prefersReducedMotion && (asset?.props.mimeType?.includes('video') || isAnimated(editor, shape))
+
+	const containerStyle = getCroppedContainerStyle(shape)
+
+	const nextSrc = url === loadedUrl ? null : url
+	const loadedSrc = reduceMotion ? staticFrameSrc : loadedUrl
+
+	// This logic path is for when it's broken/missing asset.
+	if (!url && !asset?.props.src) {
+		return (
+			<HTMLContainer
+				id={shape.id}
+				style={{
+					overflow: 'hidden',
+					width: shape.props.w,
+					height: shape.props.h,
+					color: 'var(--color-text-3)',
+					backgroundColor: 'var(--color-low)',
+					border: '1px solid var(--color-low-border)',
+				}}
+			>
+				<div
+					className={classNames('tl-image-container', asset && 'tl-image-container-loading')}
+					style={containerStyle}
+				>
+					{asset ? null : <BrokenAssetIcon />}
+				</div>
+				{'url' in shape.props && shape.props.url && (
+					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
+				)}
+			</HTMLContainer>
+		)
+	}
+
+	// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
+	// have that set up.
+	const crossOrigin = isAnimated(editor, shape) ? 'anonymous' : undefined
+
+	return (
+		<>
+			{showCropPreview && loadedSrc && (
+				<div style={containerStyle}>
+					<img
+						className="tl-image"
+						style={{ ...getFlipStyle(shape), opacity: 0.1 }}
+						crossOrigin={crossOrigin}
+						src={loadedSrc}
+						referrerPolicy="strict-origin-when-cross-origin"
+						draggable={false}
+					/>
+				</div>
+			)}
+			<HTMLContainer
+				id={shape.id}
+				style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+			>
+				<div className={classNames('tl-image-container')} style={containerStyle}>
+					{/* We have two images: the currently loaded image, and the next image that
+					we're waiting to load. we keep the loaded image mounted while we're waiting
+					for the next one by storing the loaded URL in state. We use `key` props with
+					the src of the image so that when the next image is ready, the previous one will
+					be unmounted and the next will be shown with the browser having to remount a
+					fresh image and decoded it again from the cache. */}
+					{loadedSrc && (
+						<img
+							key={loadedSrc}
+							className="tl-image"
+							style={getFlipStyle(shape)}
+							crossOrigin={crossOrigin}
+							src={loadedSrc}
+							referrerPolicy="strict-origin-when-cross-origin"
+							draggable={false}
+						/>
+					)}
+					{nextSrc && (
+						<img
+							key={nextSrc}
+							className="tl-image"
+							style={getFlipStyle(shape)}
+							crossOrigin={crossOrigin}
+							src={nextSrc}
+							referrerPolicy="strict-origin-when-cross-origin"
+							draggable={false}
+							onLoad={() => setLoadedUrl(nextSrc)}
+						/>
+					)}
+				</div>
+				{shape.props.url && (
+					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
+				)}
+			</HTMLContainer>
+		</>
+	)
+})
 
 /**
  * When an image is cropped we need to translate the image to show the portion withing the cropped
