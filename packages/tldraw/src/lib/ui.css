@@ -320,9 +320,9 @@
 
 /* Zoom button */
 
-.tlui-zoom-menu__button__pct {
-	width: 60px;
-	min-width: 60px;
+.tlui-zoom-menu__button {
+	width: 56px;
+	min-width: 56px;
 	text-align: center;
 }
 
