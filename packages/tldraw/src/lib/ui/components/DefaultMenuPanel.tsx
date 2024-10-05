@@ -20,7 +20,7 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 			? true
 			: editor.options.actionShortcutsLocation === 'toolbar'
 				? false
-				: breakpoint < PORTRAIT_BREAKPOINT.TABLET
+				: breakpoint >= PORTRAIT_BREAKPOINT.TABLET
 
 	if (!MainMenu && !PageMenu && !showQuickActions) return null
 
