@@ -80,10 +80,6 @@
 	opacity: 1;
 }
 
-.tlui-button__icon {
-	padding: 0px;
-}
-
 .tlui-button__icon + .tlui-button__label {
 	margin-left: var(--space-2);
 }
@@ -324,9 +320,9 @@
 
 /* Zoom button */
 
-.tlui-zoom-menu__button {
-	width: 56px;
-	min-width: 56px;
+.tlui-zoom-menu__button__pct {
+	width: 60px;
+	min-width: 60px;
 	text-align: center;
 }
 

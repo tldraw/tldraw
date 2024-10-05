@@ -16,10 +16,6 @@
 		Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
-body {
-	overscroll-behavior-y: none;
-}
-
 .tla {
 	position: absolute;
 	top: 0px;

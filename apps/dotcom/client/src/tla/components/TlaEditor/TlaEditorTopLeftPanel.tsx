@@ -2,7 +2,7 @@ import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { DefaultPageMenu, TldrawUiInput, usePassThroughWheelEvents, useValue } from 'tldraw'
+import { DefaultPageMenu, TldrawUiInput, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { TlaButton } from '../TlaButton/TlaButton'
@@ -152,8 +152,6 @@ export function TlaEditorTopLeftPanel() {
 
 	if (!fileName) throw Error('File name not found')
 
-	const { onWheel } = usePassThroughWheelEvents()
-
 	const handleNameChange = useCallback(
 		(name: string) => {
 			app.store.update(fileId, (file) => {
@@ -167,7 +165,7 @@ export function TlaEditorTopLeftPanel() {
 	)
 
 	return (
-		<div className={classNames(styles.topPanelLeft)} onWheel={onWheel}>
+		<div className={classNames(styles.topPanelLeft)}>
 			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
 				<TlaSidebarToggle />
 				<TlaSidebarToggleMobile />
