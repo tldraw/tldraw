@@ -1,5 +1,5 @@
 import { usePassThroughWheelEvents } from '@tldraw/editor'
-import { ReactNode, memo } from 'react'
+import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -23,7 +23,8 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
-	const { onWheel } = usePassThroughWheelEvents()
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
 
 	// Get the help menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
@@ -33,7 +34,7 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 	if (breakpoint < PORTRAIT_BREAKPOINT.MOBILE) return null
 
 	return (
-		<div className="tlui-help-menu" onWheel={onWheel}>
+		<div ref={ref} className="tlui-help-menu">
 			<TldrawUiDropdownMenuRoot id="help menu">
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton type="help" title={msg('help-menu.title')} data-testid="help-menu.button">

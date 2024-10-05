@@ -207,7 +207,7 @@ export function DefaultMinimap() {
 				onDoubleClick={onDoubleClick}
 				onPointerMove={onPointerMove}
 				onPointerDown={onPointerDown}
-				onWheel={onWheel}
+				onWheelCapture={onWheel}
 			/>
 		</div>
 	)

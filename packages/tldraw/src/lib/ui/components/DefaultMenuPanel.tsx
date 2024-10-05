@@ -1,5 +1,5 @@
 import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
-import { memo } from 'react'
+import { memo, useRef } from 'react'
 import { useBreakpoint } from '../context/breakpoints'
 import { useTldrawUiComponents } from '../context/components'
 
@@ -7,7 +7,8 @@ import { useTldrawUiComponents } from '../context/components'
 export const DefaultMenuPanel = memo(function MenuPanel() {
 	const breakpoint = useBreakpoint()
 
-	const { onWheel } = usePassThroughWheelEvents()
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
 
 	const { MainMenu, QuickActions, ActionsMenu, PageMenu } = useTldrawUiComponents()
 
@@ -19,7 +20,7 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 	if (!MainMenu && !PageMenu && breakpoint < 6) return null
 
 	return (
-		<div className="tlui-menu-zone" onWheel={onWheel}>
+		<div ref={ref} className="tlui-menu-zone">
 			<div className="tlui-buttons__horizontal">
 				{MainMenu && <MainMenu />}
 				{PageMenu && !isSinglePageMode && <PageMenu />}
