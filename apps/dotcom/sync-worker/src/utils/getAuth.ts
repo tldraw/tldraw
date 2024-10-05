@@ -12,6 +12,7 @@ export async function requireAuth(request: IRequest, env: Environment): Promise<
 }
 
 export async function getAuth(request: IRequest, env: Environment): Promise<SignedInAuth | null> {
+	// throw Error(`${env.CLERK_SECRET_KEY} ${env.CLERK_PUBLISHABLE_KEY}`)
 	const clerk = createClerkClient({
 		secretKey: env.CLERK_SECRET_KEY,
 		publishableKey: env.CLERK_PUBLISHABLE_KEY,

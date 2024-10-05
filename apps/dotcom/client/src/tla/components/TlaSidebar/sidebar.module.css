@@ -47,10 +47,6 @@
 	flex: 0 0 auto;
 }
 
-.bottom {
-	gap: 8px;
-}
-
 .content {
 	display: flex;
 	flex-direction: column;
@@ -210,6 +206,11 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	padding-right: 4px;
+}
+
+.user {
+	padding-left: 8px;
 }
 
 .main-link {
@@ -292,7 +293,7 @@
 	border: none;
 	position: relative;
 	outline: none;
-	margin-right: -8px;
+	margin-right: -12px;
 	width: 36px;
 	height: 36px;
 	display: flex;

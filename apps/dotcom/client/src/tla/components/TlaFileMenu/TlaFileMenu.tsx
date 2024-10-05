@@ -77,7 +77,7 @@ export function TlaFileMenu({
 							id="copy-link"
 							onSelect={handleDuplicateLinkClick}
 						/>
-						<TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} />
+						{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="file-delete">
 						<TldrawUiMenuItem label="Delete" id="delete" onSelect={handleDeleteLinkClick} />
