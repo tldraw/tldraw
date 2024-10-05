@@ -3203,6 +3203,8 @@ export const tlmenus: {
     isMenuOpen(id: string, contextId?: string): boolean;
     hasOpenMenus(contextId: string): boolean;
     hasAnyOpenMenus(): boolean;
+    hideOpenMenus(contextId?: string): void;
+    showOpenMenus(contextId?: string): void;
     forContext(contextId: string): {
         addOpenMenu: (id: string) => void;
         clearOpenMenus: () => void;
@@ -3212,8 +3214,6 @@ export const tlmenus: {
         hasOpenMenus: () => boolean;
         isMenuOpen: (id: string) => boolean;
     };
-    hideOpenMenus(contextId?: string): void;
-    showOpenMenus(contextId?: string): void;
 };
 
 // @public
