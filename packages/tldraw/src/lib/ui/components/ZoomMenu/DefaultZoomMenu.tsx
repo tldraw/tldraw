@@ -1,7 +1,6 @@
 import * as _Dropdown from '@radix-ui/react-dropdown-menu'
 import { useContainer, useEditor, useValue } from '@tldraw/editor'
 import { ReactNode, forwardRef, memo, useCallback } from 'react'
-import { useBreakpoint } from '../../context/breakpoints'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -49,7 +48,6 @@ export const DefaultZoomMenu = memo(function DefaultZoomMenu({ children }: TLUiZ
 const ZoomTriggerButton = forwardRef<HTMLButtonElement, any>(
 	function ZoomTriggerButton(props, ref) {
 		const editor = useEditor()
-		const breakpoint = useBreakpoint()
 		const zoom = useValue('zoom', () => editor.getZoomLevel(), [editor])
 		const msg = useTranslation()
 

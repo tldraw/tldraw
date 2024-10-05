@@ -34,23 +34,27 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 					<ZoomMenu />
 				) : collapsed ? (
 					<>
-						<TldrawUiButton
-							type="icon"
-							data-testid="minimap.zoom-out"
-							title={`${msg(unwrapLabel(actions['zoom-out'].label))} ${kbdStr(actions['zoom-out'].kbd!)}`}
-							onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
-						>
-							<TldrawUiButtonIcon icon="minus" />
-						</TldrawUiButton>
+						{breakpoint < PORTRAIT_BREAKPOINT.DESKTOP ? null : (
+							<TldrawUiButton
+								type="icon"
+								data-testid="minimap.zoom-out"
+								title={`${msg(unwrapLabel(actions['zoom-out'].label))} ${kbdStr(actions['zoom-out'].kbd!)}`}
+								onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
+							>
+								<TldrawUiButtonIcon icon="minus" />
+							</TldrawUiButton>
+						)}
 						{ZoomMenu && <ZoomMenu />}
-						<TldrawUiButton
-							type="icon"
-							data-testid="minimap.zoom-in"
-							title={`${msg(unwrapLabel(actions['zoom-in'].label))} ${kbdStr(actions['zoom-in'].kbd!)}`}
-							onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
-						>
-							<TldrawUiButtonIcon icon="plus" />
-						</TldrawUiButton>
+						{breakpoint < PORTRAIT_BREAKPOINT.DESKTOP ? null : (
+							<TldrawUiButton
+								type="icon"
+								data-testid="minimap.zoom-in"
+								title={`${msg(unwrapLabel(actions['zoom-in'].label))} ${kbdStr(actions['zoom-in'].kbd!)}`}
+								onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
+							>
+								<TldrawUiButtonIcon icon="plus" />
+							</TldrawUiButton>
+						)}
 						{Minimap && (
 							<TldrawUiButton
 								type="icon"
@@ -59,7 +63,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								className="tlui-navigation-panel__toggle"
 								onClick={toggleMinimap}
 							>
-								<TldrawUiButtonIcon icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'} />
+								<TldrawUiButtonIcon icon={'chevrons-ne'} />
 							</TldrawUiButton>
 						)}
 					</>
@@ -90,7 +94,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								className="tlui-navigation-panel__toggle"
 								onClick={toggleMinimap}
 							>
-								<TldrawUiButtonIcon icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'} />
+								<TldrawUiButtonIcon icon={'chevrons-sw'} />
 							</TldrawUiButton>
 						)}
 					</>

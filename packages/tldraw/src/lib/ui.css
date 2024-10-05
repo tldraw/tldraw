@@ -80,6 +80,10 @@
 	opacity: 1;
 }
 
+.tlui-button__icon {
+	padding: 0px;
+}
+
 .tlui-button__icon + .tlui-button__label {
 	margin-left: var(--space-2);
 }
