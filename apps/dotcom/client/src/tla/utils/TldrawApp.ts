@@ -327,6 +327,7 @@ export class TldrawApp {
 			this.store.put([{ ...file, shared: false }])
 			return
 		}
+
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
@@ -345,6 +346,11 @@ export class TldrawApp {
 		this.store.put([newFile])
 
 		return newFile
+	}
+
+	async deleteFile(_fileId: TldrawAppFileId) {
+		// todo: delete the file from the server
+		console.warn('tldraw file deletes are not implemented yet, but you are in the right place')
 	}
 
 	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {

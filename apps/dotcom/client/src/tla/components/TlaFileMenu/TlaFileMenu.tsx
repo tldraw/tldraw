@@ -56,13 +56,9 @@ export function TlaFileMenu({
 		navigate(getFileUrl(newFile.id))
 	}, [app, navigate, fileId])
 
-	const handleStarLinkClick = useCallback(() => {
-		// toggle star file
-	}, [])
-
 	const handleDeleteLinkClick = useCallback(() => {
-		// toggle star file
-	}, [])
+		app.deleteFile(fileId)
+	}, [app])
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}`}>
