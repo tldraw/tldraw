@@ -26,8 +26,8 @@ import { NamedExoticComponent } from 'react';
 import { PerformanceTracker } from '@tldraw/utils';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
-import * as React_2 from 'react';
-import { default as React_3 } from 'react';
+import { default as React_2 } from 'react';
+import * as React_3 from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
@@ -677,6 +677,7 @@ export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
+    readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
     readonly cameraMovingTimeoutMs: 64;
@@ -726,7 +727,6 @@ export const defaultTldrawOptions: {
     readonly multiClickDurationMs: 200;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
-    readonly toolbarPositions: "swap";
 };
 
 // @public (undocumented)
@@ -1345,7 +1345,7 @@ export class Ellipse2d extends Geometry2d {
 export { EMPTY_ARRAY }
 
 // @public (undocumented)
-export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_2.PropsWithChildren<TLErrorBoundaryProps>>, {
+export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<TLErrorBoundaryProps>>, {
     error: Error | null;
 }> {
     // (undocumented)
@@ -1355,7 +1355,7 @@ export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_
         error: Error;
     };
     // (undocumented)
-    render(): boolean | JSX_2.Element | Iterable<React_2.ReactNode> | null | number | string | undefined;
+    render(): boolean | JSX_2.Element | Iterable<React_3.ReactNode> | null | number | string | undefined;
     // (undocumented)
     state: {
         error: null;
@@ -1666,7 +1666,7 @@ export class HistoryManager<R extends UnknownRecord> {
 export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX_2.Element;
 
 // @public (undocumented)
-export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
+export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
 // @public (undocumented)
 export const inlineBase64AssetStore: TLAssetStore;
@@ -1912,7 +1912,7 @@ export function openWindow(url: string, target?: string): void;
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: TLErrorFallbackComponent;
-}): boolean | JSX_2.Element | Iterable<React_2.ReactNode> | null | number | string | undefined;
+}): boolean | JSX_2.Element | Iterable<React_3.ReactNode> | null | number | string | undefined;
 
 // @public (undocumented)
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -2000,7 +2000,7 @@ export class Polyline2d extends Geometry2d {
 export function precise(A: VecLike): string;
 
 // @public
-export function preventDefault(event: Event | React_3.BaseSyntheticEvent): void;
+export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
 
 // @public
 export function radiansToDegrees(r: number): number;
@@ -2059,7 +2059,7 @@ export class Rectangle2d extends Polygon2d {
 export function refreshPage(): void;
 
 // @public (undocumented)
-export function releasePointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
+export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, K>;
@@ -2154,7 +2154,7 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 export type SelectionHandle = SelectionCorner | SelectionEdge;
 
 // @public (undocumented)
-export function setPointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
+export function setPointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
 // @public (undocumented)
 export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
@@ -2421,7 +2421,7 @@ export const stopEventPropagation: (e: any) => any;
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
 
 // @public (undocumented)
-export type SVGContainerProps = React_2.HTMLAttributes<SVGElement>;
+export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
 // @public (undocumented)
 export interface SvgExportContext {
@@ -2680,7 +2680,7 @@ export interface TLDeepLinkOptions {
 }
 
 // @public (undocumented)
-export const TldrawEditor: React_3.NamedExoticComponent<TldrawEditorProps>;
+export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
@@ -2726,6 +2726,8 @@ export interface TldrawEditorWithStoreProps {
 
 // @public
 export interface TldrawOptions {
+    // (undocumented)
+    readonly actionShortcutsLocation: 'menu' | 'swap' | 'toolbar';
     // (undocumented)
     readonly adjacentShapeMargin: number;
     // (undocumented)
@@ -2795,8 +2797,6 @@ export interface TldrawOptions {
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
-    // (undocumented)
-    readonly toolbarPositions: 'bottom' | 'swap' | 'top';
 }
 
 // @public (undocumented)
@@ -2907,7 +2907,7 @@ export const tlenv: {
 // @public (undocumented)
 export interface TLErrorBoundaryProps {
     // (undocumented)
-    children: React_2.ReactNode;
+    children: React_3.ReactNode;
     // (undocumented)
     fallback: TLErrorFallbackComponent;
     // (undocumented)

@@ -193,7 +193,7 @@ export function TlaEditor({
 				onUiEvent={handleUiEvent}
 				components={components}
 				options={{
-					toolbarPositions: 'bottom',
+					actionShortcutsLocation: 'toolbar',
 				}}
 			>
 				<LocalMigration />
