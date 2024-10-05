@@ -677,6 +677,7 @@ export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
+    readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
     readonly cameraMovingTimeoutMs: 64;
@@ -2726,6 +2727,8 @@ export interface TldrawEditorWithStoreProps {
 // @public
 export interface TldrawOptions {
     // (undocumented)
+    readonly actionShortcutsLocation: 'menu' | 'swap' | 'toolbar';
+    // (undocumented)
     readonly adjacentShapeMargin: number;
     // (undocumented)
     readonly animationMediumMs: number;
@@ -3194,6 +3197,7 @@ export interface TLMeasureTextSpanOpts {
 
 // @public (undocumented)
 export const tlmenus: {
+    _hiddenMenus: string[];
     menus: Atom<string[], unknown>;
     addOpenMenu(id: string, contextId?: string): void;
     clearOpenMenus(contextId?: string): void;
@@ -3202,6 +3206,8 @@ export const tlmenus: {
     isMenuOpen(id: string, contextId?: string): boolean;
     hasOpenMenus(contextId: string): boolean;
     hasAnyOpenMenus(): boolean;
+    hideOpenMenus(contextId?: string): void;
+    showOpenMenus(contextId?: string): void;
     forContext(contextId: string): {
         addOpenMenu: (id: string) => void;
         clearOpenMenus: () => void;

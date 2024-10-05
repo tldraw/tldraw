@@ -56,13 +56,9 @@ export function TlaFileMenu({
 		navigate(getFileUrl(newFile.id))
 	}, [app, navigate, fileId])
 
-	const handleStarLinkClick = useCallback(() => {
-		// toggle star file
-	}, [])
-
 	const handleDeleteLinkClick = useCallback(() => {
-		// toggle star file
-	}, [])
+		app.deleteFile(fileId)
+	}, [app, fileId])
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}`}>
@@ -77,7 +73,7 @@ export function TlaFileMenu({
 							id="copy-link"
 							onSelect={handleDuplicateLinkClick}
 						/>
-						<TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} />
+						{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
 					</TldrawUiMenuGroup>
 					<TldrawUiMenuGroup id="file-delete">
 						<TldrawUiMenuItem label="Delete" id="delete" onSelect={handleDeleteLinkClick} />
