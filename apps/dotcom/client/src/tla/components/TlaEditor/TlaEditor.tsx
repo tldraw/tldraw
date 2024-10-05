@@ -21,7 +21,6 @@ import {
 	useTldrawUiComponents,
 } from 'tldraw'
 import { Links } from '../../../components/Links'
-import { SneakyOnDropOverride } from '../../../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -32,7 +31,8 @@ import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useSharing } from '../../../utils/sharing'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { useMaybeApp } from '../../hooks/useAppState'
+import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { handleDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { TldrawApp } from '../../utils/TldrawApp'
 import styles from './editor.module.css'
@@ -237,10 +237,10 @@ export function TlaEditor({
 				components={components}
 			>
 				<LocalMigration />
-				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
+				<SneakyTldrawFileDropHandler />
 			</Tldraw>
 			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
 		</div>
@@ -268,5 +268,25 @@ function SneakyDarkModeSync() {
 		[app, editor]
 	)
 
+	return null
+}
+
+function SneakyTldrawFileDropHandler() {
+	const editor = useEditor()
+	const app = useApp()
+	useEffect(() => {
+		const defaultOnDrop = editor.externalContentHandlers['files']
+		editor.registerExternalContentHandler('files', async (content) => {
+			const { files } = content
+			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
+			if (tldrawFiles.length > 0) {
+				const snapshots = await handleDroppedTldrawFiles(editor, tldrawFiles)
+				if (!snapshots.length) return
+				await app.createFilesFromTldrFiles(snapshots)
+			} else {
+				defaultOnDrop?.(content)
+			}
+		})
+	}, [editor, app])
 	return null
 }
