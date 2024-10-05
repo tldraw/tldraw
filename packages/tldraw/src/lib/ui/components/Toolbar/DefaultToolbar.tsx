@@ -36,7 +36,11 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 				<div className="tlui-toolbar__left">
 					{!isReadonlyMode && (
 						<div className="tlui-toolbar__extras">
-							{breakpoint < PORTRAIT_BREAKPOINT.TABLET && (
+							{(editor.options.actionShortcutsLocation === 'menu'
+								? false
+								: editor.options.actionShortcutsLocation === 'toolbar'
+									? true
+									: breakpoint < PORTRAIT_BREAKPOINT.TABLET) && (
 								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
 									{QuickActions && <QuickActions />}
 									{ActionsMenu && <ActionsMenu />}

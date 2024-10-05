@@ -677,6 +677,7 @@ export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
+    readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
     readonly cameraMovingTimeoutMs: 64;
@@ -2725,6 +2726,8 @@ export interface TldrawEditorWithStoreProps {
 
 // @public
 export interface TldrawOptions {
+    // (undocumented)
+    readonly actionShortcutsLocation: 'menu' | 'swap' | 'toolbar';
     // (undocumented)
     readonly adjacentShapeMargin: number;
     // (undocumented)
