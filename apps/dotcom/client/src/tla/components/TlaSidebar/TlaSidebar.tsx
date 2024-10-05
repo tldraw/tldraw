@@ -27,7 +27,7 @@ export function TlaSidebar() {
 		app.toggleSidebarMobile()
 	}, [app])
 
-	const { onDrop, onDragOver } = useTldrFileDrop()
+	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
 	return (
 		<>
@@ -41,7 +41,10 @@ export function TlaSidebar() {
 				data-visible={isSidebarOpen}
 				data-visiblemobile={isSidebarOpenMobile}
 				onDropCapture={onDrop}
-				onDragOverCapture={onDragOver}
+				onDragOver={onDragOver}
+				onDragEnter={onDragEnter}
+				onDragLeave={onDragLeave}
+				data-dragging={isDraggingOver}
 			>
 				<div className={styles.top}>
 					<TlaSidebarWorkspaceLink />

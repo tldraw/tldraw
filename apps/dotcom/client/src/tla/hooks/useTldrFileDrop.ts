@@ -1,13 +1,17 @@
-import { DragEvent, useCallback } from 'react'
-import { Editor, TLStoreSnapshot, parseTldrawJsonFile } from 'tldraw'
+import { DragEvent, useCallback, useState } from 'react'
+import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { useApp } from './useAppState'
 
 export function useTldrFileDrop() {
 	const app = useApp()
 
+	const [isDraggingOver, setIsDraggingOver] = useState(false)
+
 	const onDrop = useCallback(
 		async (e: DragEvent) => {
+			setIsDraggingOver(false)
+
 			if (!e.dataTransfer?.files?.length) return
 			const files = Array.from(e.dataTransfer.files)
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
@@ -24,7 +28,24 @@ export function useTldrFileDrop() {
 		[app]
 	)
 
-	return { onDrop, onDragOver: onDrop }
+	const onDragOver = useCallback((e: DragEvent) => {
+		e.preventDefault()
+	}, [])
+
+	const onDragEnter = useCallback(() => {
+		setIsDraggingOver(true)
+		tlmenus.hideOpenMenus()
+	}, [])
+
+	const onDragLeave = useCallback((e: DragEvent) => {
+		if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget as any)) {
+			return
+		}
+		setIsDraggingOver(false)
+		tlmenus.showOpenMenus()
+	}, [])
+
+	return { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver }
 }
 
 export async function handleDroppedTldrawFiles(editor: Editor, tldrawFiles: File[]) {

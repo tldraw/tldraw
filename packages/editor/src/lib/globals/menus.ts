@@ -90,6 +90,22 @@ export const tlmenus = {
 		this.menus.set(contextId ? this.menus.get().filter((m) => !m.endsWith('-' + contextId)) : [])
 	},
 
+	_hiddenMenus: [] as string[],
+
+	hideOpenMenus(contextId?: string) {
+		this._hiddenMenus = [...this.getOpenMenus(contextId)]
+		for (const menu of this._hiddenMenus) {
+			this.deleteOpenMenu(menu, contextId)
+		}
+	},
+
+	showOpenMenus(contextId?: string) {
+		for (const menu of this._hiddenMenus) {
+			this.addOpenMenu(menu, contextId)
+		}
+		this._hiddenMenus = []
+	},
+
 	/**
 	 * Get whether a menu is open for a given context.
 	 *

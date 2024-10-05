@@ -3194,6 +3194,7 @@ export interface TLMeasureTextSpanOpts {
 
 // @public (undocumented)
 export const tlmenus: {
+    _hiddenMenus: string[];
     menus: Atom<string[], unknown>;
     addOpenMenu(id: string, contextId?: string): void;
     clearOpenMenus(contextId?: string): void;
@@ -3211,6 +3212,8 @@ export const tlmenus: {
         hasOpenMenus: () => boolean;
         isMenuOpen: (id: string) => boolean;
     };
+    hideOpenMenus(contextId?: string): void;
+    showOpenMenus(contextId?: string): void;
 };
 
 // @public

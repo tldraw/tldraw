@@ -10,6 +10,31 @@
 	flex: 0 0 auto;
 	padding: 2px 12px 2px 12px;
 	background: var(--tla-color-sidebar);
+	border-right: 1px solid var(--tla-color-panel);
+}
+
+.sidebar[data-dragging='true']::after {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 600;
+	content: 'Add to files';
+	position: absolute;
+	inset: 0px;
+	background-color: var(--tla-color-panel);
+	opacity: 0;
+	z-index: 1000;
+	animation: fade-in 0.2s forwards;
+}
+
+@keyframes fade-in {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
 }
 
 .sidebarOverlayMobile {
