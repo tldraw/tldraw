@@ -34,7 +34,23 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 					<ZoomMenu />
 				) : collapsed ? (
 					<>
+						<TldrawUiButton
+							type="icon"
+							data-testid="minimap.zoom-out"
+							title={`${msg(unwrapLabel(actions['zoom-out'].label))} ${kbdStr(actions['zoom-out'].kbd!)}`}
+							onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
+						>
+							<TldrawUiButtonIcon icon="minus" />
+						</TldrawUiButton>
 						{ZoomMenu && <ZoomMenu />}
+						<TldrawUiButton
+							type="icon"
+							data-testid="minimap.zoom-in"
+							title={`${msg(unwrapLabel(actions['zoom-in'].label))} ${kbdStr(actions['zoom-in'].kbd!)}`}
+							onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
+						>
+							<TldrawUiButtonIcon icon="plus" />
+						</TldrawUiButton>
 						{Minimap && (
 							<TldrawUiButton
 								type="icon"

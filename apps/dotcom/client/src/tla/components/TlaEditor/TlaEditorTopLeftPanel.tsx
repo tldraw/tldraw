@@ -10,7 +10,7 @@ import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
-import styles from './top-panel.module.css'
+import styles from './top.module.css'
 
 export function TlaEditorTopPanel({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()

@@ -53,6 +53,7 @@
 	opacity: 0;
 	pointer-events: none;
 	padding: 0px 12px;
+	font-weight: 800;
 }
 
 button.nameWidthSetter {
@@ -78,6 +79,7 @@ button.nameWidthSetter {
 	position: relative;
 	padding: 0px 12px 1px 12px;
 	height: 100%;
+	font-weight: 800;
 }
 
 .inputWrapper::after {

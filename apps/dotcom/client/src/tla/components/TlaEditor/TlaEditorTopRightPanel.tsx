@@ -4,7 +4,7 @@ import { PeopleMenu } from 'tldraw'
 import { useRaw } from '../../hooks/useRaw'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
-import styles from './top-panel.module.css'
+import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel() {
 	const raw = useRaw()
