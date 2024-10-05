@@ -10,6 +10,7 @@ export { tltime } from './lib/globals/time'
 export { useContainerIfExists } from './lib/hooks/useContainer'
 export { useMaybeEditor } from './lib/hooks/useEditor'
 export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
+export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
@@ -17,8 +18,6 @@ export * from '@tldraw/tlschema'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/utils'
 // eslint-disable-next-line local/no-export-star
-export * from '@tldraw/validate'
-
 export {
 	EMPTY_ARRAY,
 	EffectScheduler,
@@ -40,6 +39,7 @@ export {
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+export * from '@tldraw/validate'
 export {
 	ErrorScreen,
 	LoadingScreen,
