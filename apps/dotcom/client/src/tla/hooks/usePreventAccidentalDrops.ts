@@ -7,6 +7,9 @@ export function usePreventAccidentalDrops() {
 			if ((e as any).isSpecialRedispatchedEvent) return
 			preventDefault(e)
 		}
+
+		// todo: make the sidebar accept drop events for .tldr files
+
 		document.addEventListener('dragover', stopDrop)
 		document.addEventListener('drop', stopDrop)
 		return () => {
