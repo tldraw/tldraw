@@ -21,7 +21,11 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 			<div className="tlui-buttons__horizontal">
 				{MainMenu && <MainMenu />}
 				{PageMenu && !isSinglePageMode && <PageMenu />}
-				{breakpoint < 6 ? null : (
+				{editor.options.toolbarPositions === 'top' ? (
+					true
+				) : editor.options.toolbarPositions === 'bottom' ? (
+					false
+				) : breakpoint < 6 ? null : (
 					<>
 						{QuickActions && <QuickActions />}
 						{ActionsMenu && <ActionsMenu />}

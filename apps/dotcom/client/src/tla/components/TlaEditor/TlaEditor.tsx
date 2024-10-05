@@ -6,21 +6,15 @@ import {
 	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
-	DefaultMainMenu,
-	EditSubmenu,
 	Editor,
-	ExportFileContentSubMenu,
-	ExtrasGroup,
-	PreferencesGroup,
 	TLComponents,
 	Tldraw,
-	ViewSubmenu,
-	useBreakpoint,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	useActions,
 	useEditor,
 	useReactor,
-	useTldrawUiComponents,
 } from 'tldraw'
-import { Links } from '../../../components/Links'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -30,11 +24,14 @@ import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useSharing } from '../../../utils/sharing'
+import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { handleDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { TldrawApp } from '../../utils/TldrawApp'
+import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
+import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
 // const shittyOfflineAtom = atom('shitty offline atom', false)
@@ -51,53 +48,22 @@ const components: TLComponents = {
 	// 		<Links />
 	// 	</DefaultHelpMenu>
 	// ),
-	MainMenu: () => (
-		<DefaultMainMenu>
-			{/* <MultiplayerFileMenu /> */}
-			<EditSubmenu />
-			<ViewSubmenu />
-			<ExportFileContentSubMenu />
-			<ExtrasGroup />
-			<PreferencesGroup />
-			<Links />
-		</DefaultMainMenu>
-	),
-	MenuPanel: function MenuPanel() {
-		const breakpoint = useBreakpoint()
-
-		const { MainMenu, QuickActions, ActionsMenu, PageMenu } = useTldrawUiComponents()
-
-		if (!MainMenu && !PageMenu && breakpoint < 6) return null
-
-		return (
-			<div className="tlui-menu-zone">
-				<div className="tlui-buttons__horizontal">
-					{MainMenu && <MainMenu />}
-					{PageMenu && <PageMenu />}
-					{breakpoint < 6 ? null : (
-						<>
-							{QuickActions && <QuickActions />}
-							{ActionsMenu && <ActionsMenu />}
-						</>
-					)}
-				</div>
-			</div>
-		)
-	},
 	KeyboardShortcutsDialog: (props) => {
-		// const actions = useActions()
+		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				{/* <TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
+				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
-				</TldrawUiMenuGroup> */}
+				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
-				{/* <TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
-					<TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
-				</TldrawUiMenuGroup> */}
 			</DefaultKeyboardShortcutsDialog>
 		)
+	},
+	MenuPanel: () => {
+		return <TlaEditorTopLeftPanel />
+	},
+	SharePanel: () => {
+		return <TlaEditorTopRightPanel />
 	},
 	DebugMenu: () => {
 		return (
@@ -111,15 +77,6 @@ const components: TLComponents = {
 	// 	const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
 	// 	return <TlaDocumentTopZone isOffline={isOffline} />
 	// },
-	SharePanel: () => {
-		return null
-		// return (
-		// 	<div className="tlui-share-zone" draggable={false}>
-		// 		<PeopleMenu />
-		// 		<ShareMenu />
-		// 	</div>
-		// )
-	},
 }
 
 export function TlaEditor({
@@ -235,6 +192,9 @@ export function TlaEditor({
 				overrides={[sharingUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
+				options={{
+					toolbarPositions: 'bottom',
+				}}
 			>
 				<LocalMigration />
 				<ThemeUpdater />

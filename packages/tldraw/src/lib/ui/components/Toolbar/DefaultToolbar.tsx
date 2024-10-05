@@ -1,4 +1,4 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
 import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -28,15 +28,21 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 	const isReadonlyMode = useReadonly()
 	const activeToolId = useValue('current tool id', () => editor.getCurrentToolId(), [editor])
 
+	const { onWheel } = usePassThroughWheelEvents()
+
 	const { ActionsMenu, QuickActions } = useTldrawUiComponents()
 
 	return (
-		<div className="tlui-toolbar">
+		<div className="tlui-toolbar" onWheel={onWheel}>
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
 					{!isReadonlyMode && (
 						<div className="tlui-toolbar__extras">
-							{breakpoint < PORTRAIT_BREAKPOINT.TABLET && (
+							{(editor.options.toolbarPositions === 'top'
+								? false
+								: editor.options.toolbarPositions === 'bottom'
+									? true
+									: breakpoint < PORTRAIT_BREAKPOINT.TABLET) && (
 								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
 									{QuickActions && <QuickActions />}
 									{ActionsMenu && <ActionsMenu />}

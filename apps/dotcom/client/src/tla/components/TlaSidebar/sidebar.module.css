@@ -10,7 +10,6 @@
 	flex: 0 0 auto;
 	padding: 2px 12px 2px 12px;
 	background: var(--tla-color-sidebar);
-	border-right: 1px solid var(--tla-color-panel);
 }
 
 .sidebar[data-dragging='true']::after {
