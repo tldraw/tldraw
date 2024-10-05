@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
 
