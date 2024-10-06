@@ -12,7 +12,7 @@ import {
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
 } from '@tldraw/dotcom-shared'
-import { Editor, Store, computed } from 'tldraw'
+import { Editor, Store, TLStoreSnapshot, computed } from 'tldraw'
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -327,6 +327,7 @@ export class TldrawApp {
 			this.store.put([{ ...file, shared: false }])
 			return
 		}
+
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
@@ -347,8 +348,19 @@ export class TldrawApp {
 		return newFile
 	}
 
-	createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
-		// noop
+	async deleteFile(_fileId: TldrawAppFileId) {
+		// todo: delete the file from the server
+		console.warn('tldraw file deletes are not implemented yet, but you are in the right place')
+	}
+
+	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {
+		// todo: upload the files to the server and create files locally
+		console.warn('tldraw file uploads are not implemented yet, but you are in the right place')
+	}
+
+	async createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
+		// todo: create a snapshot link on the server and return the url
+		console.warn('snapshot links are not implemented yet, but you are in the right place')
 	}
 
 	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {

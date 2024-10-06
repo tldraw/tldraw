@@ -186,3 +186,27 @@
 	gap: 8px;
 	align-items: center;
 }
+
+/* --------------------- Editor --------------------- */
+
+.tlui-layout__top {
+	display: flex;
+	flex-direction: row;
+	height: fit-content;
+}
+
+.tlui-layout__top__left {
+	flex-grow: 2;
+}
+
+.tlui-layout__top__center {
+	display: none;
+}
+
+.tlui-page-menu__trigger {
+	width: fit-content;
+}
+
+.tlui-page-menu__trigger .tlui-button__icon {
+	display: none;
+}

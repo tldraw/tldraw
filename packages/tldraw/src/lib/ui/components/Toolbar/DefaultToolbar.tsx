@@ -33,13 +33,20 @@ export const DefaultToolbar = memo(function DefaultToolbar({ children }: Default
 
 	const { ActionsMenu, QuickActions } = useTldrawUiComponents()
 
+	const showQuickActions =
+		editor.options.actionShortcutsLocation === 'menu'
+			? false
+			: editor.options.actionShortcutsLocation === 'toolbar'
+				? true
+				: breakpoint < PORTRAIT_BREAKPOINT.TABLET
+
 	return (
 		<div ref={ref} className="tlui-toolbar">
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
 					{!isReadonlyMode && (
 						<div className="tlui-toolbar__extras">
-							{breakpoint < PORTRAIT_BREAKPOINT.TABLET && (
+							{showQuickActions && (
 								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
 									{QuickActions && <QuickActions />}
 									{ActionsMenu && <ActionsMenu />}

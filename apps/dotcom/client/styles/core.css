@@ -16,12 +16,12 @@
 	font-weight: 500;
 	color: var(--text-color-0);
 	line-height: 1.6;
-	overscroll-behavior: none;
 	touch-action: none;
 }
 
 body {
 	font-size: 12px;
+	overscroll-behavior: none;
 }
 
 /*

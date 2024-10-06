@@ -1,6 +1,6 @@
 import { TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useParams } from 'react-router-dom'
-import { TlaFileContent } from '../components/TlaFileContent/TlaFileContent'
+import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 
 export function Component() {
@@ -9,7 +9,7 @@ export function Component() {
 
 	return (
 		<TlaSidebarLayout collapsable>
-			<TlaFileContent fileSlug={fileSlug} />
+			<TlaEditor fileSlug={fileSlug} />
 		</TlaSidebarLayout>
 	)
 }
