@@ -1,5 +1,5 @@
-import { useQuickReactor, useValue } from '@tldraw/state-react'
-import { memo, useState } from 'react'
+import { useValue } from '@tldraw/state-react'
+import { memo } from 'react'
 import { tlenv } from '../globals/environment'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
@@ -7,7 +7,7 @@ import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
-import { useLicenseContext } from './LicenseProvider'
+import { useLicenseContext, useLicenseManagerState } from './LicenseProvider'
 
 const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
 const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkMobileSvg)}`
@@ -19,28 +19,15 @@ export const Watermark = memo(function Watermark() {
 	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
 		editor,
 	])
-	const [src, setSrc] = useState<string | null>(null)
 
-	useQuickReactor(
-		'set watermark src',
-		async () => {
-			const showWatermark = ['licensed-with-watermark', 'unlicensed'].includes(
-				licenseManager.state.get()
-			)
+	const licenseManagerState = useLicenseManagerState(licenseManager)
 
-			if (showWatermark) {
-				setSrc(isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC)
-			}
-		},
-		[licenseManager, isMobile]
-	)
-
-	if (!src) return null
+	if (!['licensed-with-watermark', 'unlicensed'].includes(licenseManagerState)) return null
 
 	return (
 		<>
 			<LicenseStyles />
-			<WatermarkInner src={src} />
+			<WatermarkInner src={isMobile ? WATERMARK_MOBILE_LOCAL_SRC : WATERMARK_DESKTOP_LOCAL_SRC} />
 		</>
 	)
 })

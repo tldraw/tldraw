@@ -1,3 +1,4 @@
+import { useValue } from '@tldraw/state-react'
 import { createContext, ReactNode, useContext, useState } from 'react'
 import { LicenseManager } from './LicenseManager'
 
@@ -17,4 +18,9 @@ export function LicenseProvider({
 }) {
 	const [licenseManager] = useState(() => new LicenseManager(licenseKey))
 	return <LicenseContext.Provider value={licenseManager}>{children}</LicenseContext.Provider>
+}
+
+/** @internal */
+export function useLicenseManagerState(licenseManager: LicenseManager) {
+	return useValue('watermarkState', () => licenseManager.state.get(), [licenseManager])
 }
