@@ -1,8 +1,9 @@
 import { useValue } from '@tldraw/state-react'
-import { memo } from 'react'
+import { memo, useRef } from 'react'
 import { tlenv } from '../globals/environment'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
+import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
 import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
@@ -41,11 +42,15 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	])
 	const events = useCanvasEvents()
 
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
 	const url = 'https://tldraw.dev'
 
 	return (
 		<div
+			ref={ref}
 			className={LicenseManager.className}
 			data-debug={isDebugMode}
 			data-menu={isMenuOpen}
