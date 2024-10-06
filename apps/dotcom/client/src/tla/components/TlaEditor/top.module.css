@@ -143,12 +143,12 @@ button.nameWidthSetter {
 
 /* ------------------- Share panel ------------------ */
 
-.sharePanel {
+.topRightPanel {
 	height: 42px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 2px 6px 0px 6px;
+	padding: 2px 4px 0px 6px;
 	pointer-events: all;
 }
 
