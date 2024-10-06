@@ -2,10 +2,10 @@ import { act, render, waitFor } from '@testing-library/react'
 import { TldrawEditor } from '../TldrawEditor'
 import { LicenseManager } from './LicenseManager'
 
-let licenseState = 'unlicensed'
+let mockLicenseState = 'unlicensed'
 
 jest.mock('../hooks/useLicenseManagerState', () => ({
-	useLicenseManagerState: () => licenseState,
+	useLicenseManagerState: () => mockLicenseState,
 }))
 
 async function renderWithMockedLicenseState() {
@@ -16,17 +16,17 @@ async function renderWithMockedLicenseState() {
 
 describe('Watermark', () => {
 	it('Displays the watermark when the editor is unlicensed', async () => {
-		licenseState = 'unlicensed'
+		mockLicenseState = 'unlicensed'
 		expect(await renderWithMockedLicenseState()).not.toBeNull()
 	})
 
 	it('Displays the watermark when the editor is licensed with watermark', async () => {
-		licenseState = 'licensed-with-watermark'
+		mockLicenseState = 'licensed-with-watermark'
 		expect(await renderWithMockedLicenseState()).not.toBeNull()
 	})
 
 	it('Does not display the watermark when the editor is licensed', async () => {
-		licenseState = 'licensed'
+		mockLicenseState = 'licensed'
 		expect(await renderWithMockedLicenseState()).toBeNull()
 	})
 })
