@@ -9,7 +9,7 @@ export function getLines(props: TLGeoShape['props'], sw: number) {
 			return getCheckBoxLines(props.w, props.h)
 		}
 		default: {
-			return undefined
+			return []
 		}
 	}
 }

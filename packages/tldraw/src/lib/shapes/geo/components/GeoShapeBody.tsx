@@ -347,9 +347,52 @@ export function GeoShapeBody({
 					getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
 				)
 
+				if (props.geo === 'arrow-up') {
+					const RQ = outline[0].clone().lrp(outline[1], 0.4)
+					const RA = outline[0].clone().lrp(outline[1], 0.45)
+					const RB = outline[0].clone().lrp(outline[1], 0.65)
+					const RE = outline[0].clone().lrp(outline[1], 0.7)
+					const LQ = outline[0].clone().lrp(outline[6], 0.4)
+					const LA = outline[0].clone().lrp(outline[6], 0.45)
+					const LB = outline[0].clone().lrp(outline[6], 0.65)
+					const LE = outline[0].clone().lrp(outline[6], 0.7)
+					lines.push(
+						[new Vec(w * 0.25, h * 0.44), new Vec(w * 0.3, h * 0.45)],
+						[new Vec(w * 0.7, h * 0.45), new Vec(w * 0.75, h * 0.44)],
+						[
+							new Vec(w * 0.45, h * 0.5),
+							new Vec(w * 0.55, h * 0.5),
+							new Vec(w * 0.5, h * 0.55),
+							new Vec(w * 0.45, h * 0.5),
+						],
+						[
+							new Vec(w * 0.4, h * 0.58),
+							new Vec(w * 0.45, h * 0.6),
+							new Vec(w * 0.5, h * 0.55),
+							new Vec(w * 0.55, h * 0.6),
+							new Vec(w * 0.6, h * 0.58),
+						],
+						[
+							new Vec(w * 0.4, h * 0.58),
+							new Vec(w * 0.45, h * 0.6),
+							new Vec(w * 0.5, h * 0.55),
+							new Vec(w * 0.55, h * 0.6),
+							new Vec(w * 0.6, h * 0.58),
+						],
+						[RA, new Vec(RE.x, RQ.y), RB],
+						[LA, new Vec(LE.x, LQ.y), LB],
+						[new Vec(w * 0.7, h * 0.52), new Vec(w * 0.9, h * 0.5)],
+						[new Vec(w * 0.7, h * 0.54), new Vec(w * 0.9, h * 0.54)],
+						[new Vec(w * 0.7, h * 0.56), new Vec(w * 0.9, h * 0.58)],
+						[new Vec(w * 0.3, h * 0.52), new Vec(w * 0.1, h * 0.5)],
+						[new Vec(w * 0.3, h * 0.54), new Vec(w * 0.1, h * 0.54)],
+						[new Vec(w * 0.3, h * 0.56), new Vec(w * 0.1, h * 0.58)]
+					)
+				}
+
 				if (lines) {
-					for (const [A, B] of lines) {
-						d += `M${A.toFixed()}L${B.toFixed()}`
+					for (const [A, ...rest] of lines) {
+						d += `M${A.toFixed()}L${rest.map((r) => r.toFixed())}`
 					}
 				}
 
