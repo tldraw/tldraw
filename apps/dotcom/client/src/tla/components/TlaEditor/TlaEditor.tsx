@@ -27,7 +27,7 @@ import { useSharing } from '../../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
-import { handleDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
+import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
@@ -237,7 +237,7 @@ function SneakyTldrawFileDropHandler() {
 			const { files } = content
 			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
 			if (tldrawFiles.length > 0) {
-				const snapshots = await handleDroppedTldrawFiles(editor, tldrawFiles)
+				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
 				if (!snapshots.length) return
 				await app.createFilesFromTldrFiles(snapshots)
 			} else {

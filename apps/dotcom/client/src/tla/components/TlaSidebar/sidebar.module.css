@@ -14,18 +14,18 @@
 }
 
 .sidebar[data-dragging='true']::after {
+	position: absolute;
+	inset: 0px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-size: 12px;
 	font-weight: 600;
-	content: 'Add to files';
-	position: absolute;
-	inset: 0px;
-	background-color: var(--tla-color-panel);
-	opacity: 0;
 	z-index: 1000;
-	animation: fade-in 0.2s forwards;
+	background-color: var(--tla-color-panel);
+	content: 'Upload .tldr files';
+	opacity: 0;
+	animation: 0.2s fade-in 0.25s forwards;
 }
 
 @keyframes fade-in {

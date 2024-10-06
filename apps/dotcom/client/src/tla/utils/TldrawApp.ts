@@ -351,16 +351,19 @@ export class TldrawApp {
 	async deleteFile(_fileId: TldrawAppFileId) {
 		// todo: delete the file from the server
 		console.warn('tldraw file deletes are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
 	}
 
 	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {
 		// todo: upload the files to the server and create files locally
 		console.warn('tldraw file uploads are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
 	}
 
 	async createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
 		// todo: create a snapshot link on the server and return the url
 		console.warn('snapshot links are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
 	}
 
 	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
