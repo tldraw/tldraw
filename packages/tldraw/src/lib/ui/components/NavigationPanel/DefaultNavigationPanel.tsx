@@ -15,7 +15,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
-	const [collapsed, setCollapsed] = useLocalStorageState('minimap', true)
+	const [collapsed, setCollapsed] = useLocalStorageState('minimap', false)
 
 	const toggleMinimap = useCallback(() => {
 		setCollapsed((s) => !s)
