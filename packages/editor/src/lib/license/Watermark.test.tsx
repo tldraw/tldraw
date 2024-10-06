@@ -4,7 +4,7 @@ import { LicenseManager } from './LicenseManager'
 
 let mockLicenseState = 'unlicensed'
 
-jest.mock('../hooks/useLicenseManagerState', () => ({
+jest.mock('./useLicenseManagerState', () => ({
 	useLicenseManagerState: () => mockLicenseState,
 }))
 

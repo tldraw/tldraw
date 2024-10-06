@@ -8,7 +8,8 @@ import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
-import { useLicenseContext, useLicenseManagerState } from './LicenseProvider'
+import { useLicenseContext } from './LicenseProvider'
+import { useLicenseManagerState } from './useLicenseManagerState'
 
 const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
 const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkMobileSvg)}`
