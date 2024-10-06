@@ -1,4 +1,11 @@
-import { debugFlags, track, useEditor, useValue, Vec } from '@tldraw/editor'
+import {
+	debugFlags,
+	track,
+	useEditor,
+	usePassThroughWheelEvents,
+	useValue,
+	Vec,
+} from '@tldraw/editor'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 
@@ -6,8 +13,11 @@ import { useTldrawUiComponents } from '../context/components'
 export const DefaultDebugPanel = memo(function DefaultDebugPanel() {
 	const { DebugMenu } = useTldrawUiComponents()
 
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+
 	return (
-		<div className="tlui-debug-panel">
+		<div ref={ref} className="tlui-debug-panel">
 			<CurrentState />
 			<FPS />
 			{DebugMenu && <DebugMenu />}

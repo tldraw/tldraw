@@ -4,21 +4,6 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-export { tlenv } from './lib/globals/environment'
-export { tlmenus } from './lib/globals/menus'
-export { tltime } from './lib/globals/time'
-export { useContainerIfExists } from './lib/hooks/useContainer'
-export { useMaybeEditor } from './lib/hooks/useEditor'
-export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/store'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/tlschema'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/utils'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/validate'
-
 export {
 	EMPTY_ARRAY,
 	EffectScheduler,
@@ -40,6 +25,14 @@ export {
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/store'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/tlschema'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/utils'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/validate'
 export {
 	ErrorScreen,
 	LoadingScreen,
@@ -262,21 +255,27 @@ export {
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
+export { tlenv } from './lib/globals/environment'
+export { tlmenus } from './lib/globals/menus'
+export { tltime } from './lib/globals/time'
 export {
 	ContainerProvider,
 	useContainer,
+	useContainerIfExists,
 	type ContainerProviderProps,
 } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditor } from './lib/hooks/useEditor'
+export { useEditor, useMaybeEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useEvent } from './lib/hooks/useEvent'
+export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
+export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useRefState } from './lib/hooks/useRefState'
