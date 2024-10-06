@@ -5,44 +5,52 @@ import { useParams } from 'react-router-dom'
 import { DefaultPageMenu, TldrawUiInput, usePassThroughWheelEvents, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
-import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
-import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
 import styles from './top.module.css'
 
-export function TlaEditorTopPanel({ fileId }: { fileId: TldrawAppFileId }) {
+// There are some styles in tla.css that adjust the regular tlui top panels
+
+export function TlaEditorTopLeftPanel() {
 	const app = useApp()
 	const raw = useRaw()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
+	const { fileSlug } = useParams<{ fileSlug: TldrawAppFileId }>()
+	if (!fileSlug) throw Error('File id not found')
+	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+
+	const fileName = useValue('fileName', () => app.getFileName(fileId), [fileId])
+
+	if (!fileName) throw Error('File name not found')
+
+	const handleNameChange = useCallback(
+		(name: string) => {
+			app.store.update(fileId, (file) => {
+				return {
+					...file,
+					name,
+				}
+			})
+		},
+		[app, fileId]
+	)
+
 	return (
-		<div ref={ref} className={styles.topPanel}>
-			<div className={styles.header}>
-				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
-					<span className={styles.headerFolder}>{raw('My files /')}</span>
-					{/* TODO(david): fix this when adding support for shared files */}
-					<TlaFileNameEditor
-						fileName={app.getFileName(fileId) ?? 'SHARED_FILE_TODO'}
-						onChange={() => void null}
-					/>
-					<TlaFileMenu fileId={fileId} source="file-header">
-						<button className={styles.linkMenu}>
-							<TlaIcon icon="dots-vertical-strong" />
-						</button>
-					</TlaFileMenu>
-				</div>
+		<div ref={ref} className={classNames(styles.topPanelLeft)}>
+			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
 				<TlaSidebarToggle />
 				<TlaSidebarToggleMobile />
-				<div className={styles.rightSide}>
-					<TlaFileShareMenu fileId={fileId} source="file-header">
-						<TlaButton>
-							<span>{raw('Share')}</span>
-						</TlaButton>
-					</TlaFileShareMenu>
-				</div>
+				<TlaFileNameEditor fileName={fileName} onChange={handleNameChange} />
+				<span className={styles.topPanelSeparator}>{raw('/')}</span>
+				<DefaultPageMenu />
+				<TlaFileMenu fileId={fileId} source="file-header">
+					<button className={styles.linkMenu}>
+						<TlaIcon icon="dots-vertical-strong" />
+					</button>
+				</TlaFileMenu>
 			</div>
 		</div>
 	)
@@ -136,50 +144,5 @@ function TlaFileNameEditorInput({
 			/>
 			<div className={styles.nameWidthSetter}>{temporaryFileName.replace(/ /g, '\u00a0')}</div>
 		</>
-	)
-}
-
-// There are some styles in tla.css that adjust the regular tlui top panels
-
-export function TlaEditorTopLeftPanel() {
-	const app = useApp()
-
-	const raw = useRaw()
-
-	const { fileSlug } = useParams<{ fileSlug: TldrawAppFileId }>()
-	if (!fileSlug) throw Error('File id not found')
-	const fileId = TldrawAppFileRecordType.createId(fileSlug)
-
-	const fileName = useValue('fileName', () => app.getFileName(fileId), [fileId])
-
-	if (!fileName) throw Error('File name not found')
-
-	const handleNameChange = useCallback(
-		(name: string) => {
-			app.store.update(fileId, (file) => {
-				return {
-					...file,
-					name,
-				}
-			})
-		},
-		[app, fileId]
-	)
-
-	return (
-		<div className={classNames(styles.topPanelLeft)}>
-			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
-				<TlaSidebarToggle />
-				<TlaSidebarToggleMobile />
-				<TlaFileNameEditor fileName={fileName} onChange={handleNameChange} />
-				<span className={styles.topPanelSeparator}>{raw('/')}</span>
-				<DefaultPageMenu />
-				<TlaFileMenu fileId={fileId} source="file-header">
-					<button className={styles.linkMenu}>
-						<TlaIcon icon="dots-vertical-strong" />
-					</button>
-				</TlaFileMenu>
-			</div>
-		</div>
 	)
 }
