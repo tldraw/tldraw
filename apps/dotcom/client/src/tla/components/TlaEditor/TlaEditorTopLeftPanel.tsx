@@ -2,7 +2,7 @@ import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { DefaultPageMenu, TldrawUiInput, useValue } from 'tldraw'
+import { DefaultPageMenu, TldrawUiInput, usePassThroughWheelEvents, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { TlaButton } from '../TlaButton/TlaButton'
@@ -15,9 +15,11 @@ import styles from './top.module.css'
 export function TlaEditorTopPanel({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const raw = useRaw()
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
 
 	return (
-		<div className={styles.topPanel}>
+		<div ref={ref} className={styles.topPanel}>
 			<div className={styles.header}>
 				<div className={classNames(styles.headerFileInfo, 'tla-text_ui__section')}>
 					<span className={styles.headerFolder}>{raw('My files /')}</span>
