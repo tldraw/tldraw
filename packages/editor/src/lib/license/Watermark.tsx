@@ -3,13 +3,13 @@ import { memo, useRef } from 'react'
 import { tlenv } from '../globals/environment'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
-import { useLicenseManagerState } from '../hooks/useLicenseManagerState'
 import { usePassThroughWheelEvents } from '../hooks/usePassThroughWheelEvents'
 import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { runtime } from '../utils/runtime'
 import { watermarkDesktopSvg, watermarkMobileSvg } from '../watermarks'
 import { LicenseManager } from './LicenseManager'
 import { useLicenseContext } from './LicenseProvider'
+import { useLicenseManagerState } from './useLicenseManagerState'
 
 const WATERMARK_DESKTOP_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkDesktopSvg)}`
 const WATERMARK_MOBILE_LOCAL_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(watermarkMobileSvg)}`

@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { LicenseManager } from '../license/LicenseManager'
+import { LicenseManager } from './LicenseManager'
 
 /** @internal */
 export function useLicenseManagerState(licenseManager: LicenseManager) {
