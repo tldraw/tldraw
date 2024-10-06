@@ -192,6 +192,7 @@ export function TlaEditor({
 				overrides={[sharingUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
+				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<LocalMigration />
 				<ThemeUpdater />
