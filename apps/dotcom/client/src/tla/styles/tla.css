@@ -207,6 +207,15 @@
 	width: fit-content;
 }
 
+/* Hide the icon on the page menu trigger button */
+
 .tlui-page-menu__trigger .tlui-button__icon {
 	display: none;
+}
+
+/* Fix the location of the focus button */
+
+.tlui-focus-button {
+	margin-top: 4px;
+	margin-left: 4px;
 }

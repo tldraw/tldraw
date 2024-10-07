@@ -18,7 +18,10 @@
 	position: relative;
 	flex-grow: 2;
 	border: 1px solid var(--tla-color-border);
-	border-radius: 9px;
+	border-top-left-radius: 13px;
+	border-top-right-radius: 15px;
+	border-bottom-left-radius: 9px;
+	border-bottom-right-radius: 9px;
 	overflow: hidden;
 }
 

@@ -11,6 +11,7 @@
 	background-color: var(--color-background);
 	border-bottom-right-radius: 11px;
 	padding-left: 2px;
+	color: var(--color-text-1);
 }
 
 .topPanelLeftButtons {
@@ -27,7 +28,7 @@
 }
 
 .topPanelSeparator {
-	color: var(--tla-color-text-3);
+	color: var(--color-text-3);
 	pointer-events: none;
 	padding: 0px 4px;
 }
@@ -66,6 +67,7 @@ button.nameWidthSetter {
 	pointer-events: all;
 	height: 100%;
 	cursor: pointer;
+	color: var(--color-text-1);
 }
 
 .inputWrapper > div:nth-of-type(1) {
@@ -80,6 +82,7 @@ button.nameWidthSetter {
 	padding: 0px 12px 1px 12px;
 	height: 100%;
 	font-weight: 800;
+	color: var(--color-text-1);
 }
 
 .inputWrapper::after {
@@ -113,7 +116,7 @@ button.nameWidthSetter {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--tla-color-text-3);
+	color: var(--color-text-3);
 	flex: 0 0 auto;
 	z-index: 3;
 	padding: 0px;
@@ -129,7 +132,7 @@ button.nameWidthSetter {
 
 @media (hover: hover) {
 	.linkMenu:hover {
-		color: var(--tla-color-text-1);
+		color: var(--color-text-1);
 	}
 
 	.linkMenu:hover::after {

@@ -1,6 +1,5 @@
 /* ---------------------- Menu ---------------------- */
 
-import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -14,23 +13,17 @@ import {
 	useToasts,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
 import { TlaRenameFileDialog } from '../dialogs/TlaRenameFileDialog'
 
-export function TlaFileMenu({
-	children,
-	source,
-	fileId,
-}: {
-	children: ReactNode
-	source: string
-	fileId: TldrawAppFile['id']
-}) {
+export function TlaFileMenu({ children, source }: { children: ReactNode; source: string }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
+	const fileId = useCurrentFileId()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
