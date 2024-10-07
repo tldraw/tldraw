@@ -26,7 +26,7 @@ import { useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useImageOrVideoAsset } from '../shared/useAsset'
+import { useAsset } from '../shared/useAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -253,7 +253,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 function ImageShape({ shape }: { shape: TLImageShape }) {
 	const editor = useEditor()
 
-	const { asset, url } = useImageOrVideoAsset({
+	const { asset, url } = useAsset({
 		shapeId: shape.id,
 		assetId: shape.props.assetId,
 	})

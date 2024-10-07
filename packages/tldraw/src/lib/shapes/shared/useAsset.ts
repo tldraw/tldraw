@@ -1,15 +1,15 @@
 import {
-	debounce,
 	Editor,
 	TLAssetId,
 	TLImageShape,
 	TLShapeId,
 	TLVideoShape,
+	debounce,
+	react,
 	useDelaySvgExport,
 	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
-import { react } from '@tldraw/state'
 import { useEffect, useRef, useState } from 'react'
 
 /**
@@ -23,7 +23,7 @@ import { useEffect, useRef, useState } from 'react'
  *
  * @public
  */
-export function useImageOrVideoAsset(options: { shapeId: TLShapeId; assetId: TLAssetId | null }) {
+export function useAsset(options: { shapeId: TLShapeId; assetId: TLAssetId | null }) {
 	const { shapeId, assetId } = options
 
 	const editor = useEditor()
