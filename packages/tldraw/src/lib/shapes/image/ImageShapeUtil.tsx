@@ -20,9 +20,10 @@ import {
 	structuredClone,
 	toDomPrecision,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -250,7 +251,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 }
 
-function ImageShape({ shape }: { shape: TLImageShape }) {
+const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) {
 	const editor = useEditor()
 
 	const { asset, url } = useAsset({
@@ -258,11 +259,9 @@ function ImageShape({ shape }: { shape: TLImageShape }) {
 		assetId: shape.props.assetId,
 	})
 
-	const isCropping = editor.getCroppingShapeId() === shape.id
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
 	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
-	const isSelected = shape.id === editor.getOnlySelectedShapeId()
 
 	const isAnimated = getIsAnimated(editor, shape)
 
@@ -298,7 +297,14 @@ function ImageShape({ shape }: { shape: TLImageShape }) {
 		throw Error("Bookmark assets can't be rendered as images")
 	}
 
-	const showCropPreview = isSelected && isCropping && editor.isIn('select.crop')
+	const showCropPreview = useValue(
+		'show crop preview',
+		() =>
+			shape.id === editor.getOnlySelectedShapeId() &&
+			editor.getCroppingShapeId() === shape.id &&
+			editor.isIn('select.crop'),
+		[editor, shape.id]
+	)
 
 	// We only want to reduce motion for mimeTypes that have motion
 	const reduceMotion =
@@ -391,7 +397,7 @@ function ImageShape({ shape }: { shape: TLImageShape }) {
 			</HTMLContainer>
 		</>
 	)
-}
+})
 
 function getIsAnimated(editor: Editor, shape: TLImageShape) {
 	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : undefined
