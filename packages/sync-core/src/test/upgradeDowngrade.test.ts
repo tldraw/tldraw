@@ -439,7 +439,8 @@ test('v5 special case should allow connections', () => {
 		},
 		serverClock: 1,
 		type: 'connect',
-	})
+		isReadonly: false,
+	} satisfies TLSocketServerSentEvent<RV2>)
 })
 
 test('clients using a too-new protocol will receive compatibility errors', () => {
@@ -591,6 +592,7 @@ describe('when the client is too old', () => {
 			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
+			isReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(v1SendMessage).toHaveBeenCalledWith({
@@ -601,6 +603,7 @@ describe('when the client is too old', () => {
 			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
+			isReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		v2SendMessage.mockClear()
@@ -748,6 +751,7 @@ describe('when the client is the same version', () => {
 			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
+			isReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(bSocket.sendMessage).toHaveBeenCalledWith({
@@ -758,6 +762,7 @@ describe('when the client is the same version', () => {
 			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
+			isReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
 		;(aSocket.sendMessage as jest.Mock).mockClear()
 		;(bSocket.sendMessage as jest.Mock).mockClear()

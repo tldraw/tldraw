@@ -142,9 +142,6 @@ export function MultiplayerEditor({
 				;(window as any).app = editor
 				;(window as any).editor = editor
 			}
-			editor.updateInstanceState({
-				isReadonly,
-			})
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 		},
 		[isReadonly]

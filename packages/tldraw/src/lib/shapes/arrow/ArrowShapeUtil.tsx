@@ -596,7 +596,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'select.dragging_handle',
 				'select.translating',
 				'arrow.dragging'
-			) && !this.editor.getInstanceState().isReadonly
+			) && !this.editor.getIsReadonly()
 
 		const info = getArrowInfo(this.editor, shape)
 		if (!info?.isValid) return null
