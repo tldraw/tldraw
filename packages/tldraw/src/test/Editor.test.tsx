@@ -824,3 +824,25 @@ describe('isShapeHidden', () => {
 		expect(editor.getCurrentPageShapesSorted().length).toBe(3)
 	})
 })
+
+describe('instance.isReadonly', () => {
+	it('updates in accordance with collaboration.mode', () => {
+		const mode = atom<'readonly' | 'readwrite'>('', 'readonly')
+		const editor = new TestEditor(
+			{},
+			{
+				collaboration: {
+					mode,
+					status: atom('', 'online'),
+				},
+			}
+		)
+
+		expect(editor.getIsReadonly()).toBe(true)
+
+		mode.set('readwrite')
+		expect(editor.getIsReadonly()).toBe(false)
+		mode.set('readonly')
+		expect(editor.getIsReadonly()).toBe(true)
+	})
+})

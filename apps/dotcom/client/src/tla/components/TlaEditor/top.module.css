@@ -1,0 +1,197 @@
+/* ------------------- Menu Panel ------------------- */
+
+.topPanelLeft {
+	border-top: 4px solid var(--color-background);
+	height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: all;
+	white-space: nowrap;
+	background-color: var(--color-background);
+	border-bottom-right-radius: 11px;
+	padding-left: 2px;
+	color: var(--color-text-1);
+}
+
+.topPanelLeftButtons {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.topPanelLeft > button:nth-last-of-type(1) {
+	position: relative;
+	z-index: 2;
+}
+
+.topPanelSeparator {
+	color: var(--color-text-3);
+	pointer-events: none;
+	padding: 0px 4px;
+}
+
+.inputWrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 100%;
+	height: 40px;
+}
+
+.nameWidthSetter {
+	position: relative;
+	z-index: 1;
+	width: fit-content;
+	max-width: 320px;
+	min-width: 0px;
+	white-space: no-wrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	opacity: 0;
+	pointer-events: none;
+	padding: 0px 12px;
+	font-weight: 800;
+}
+
+button.nameWidthSetter {
+	background: none;
+	border: none;
+	padding: none;
+	margin: none;
+	opacity: 1;
+	padding: 0px 12px;
+	pointer-events: all;
+	height: 100%;
+	cursor: pointer;
+	color: var(--color-text-1);
+}
+
+.inputWrapper > div:nth-of-type(1) {
+	position: absolute;
+	z-index: 2;
+	width: 100%;
+	height: 100%;
+}
+
+.inputWrapper input {
+	position: relative;
+	padding: 0px 12px 1px 12px;
+	height: 100%;
+	font-weight: 800;
+	color: var(--color-text-1);
+}
+
+.inputWrapper::after {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 4px;
+	background-color: transparent;
+	border-radius: var(--radius-2);
+}
+
+@media (hover: hover) {
+	.inputWrapper:hover::after {
+		background-color: var(--color-muted-2);
+	}
+}
+
+/* .inputWrapper:focus-within::after {
+	background-color: var(--color-muted-2);
+} */
+
+/* -------------------- Link Menu ------------------- */
+
+.linkMenu {
+	background: none;
+	border: none;
+	position: relative;
+	outline: none;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-text-3);
+	flex: 0 0 auto;
+	z-index: 3;
+	padding: 0px;
+	cursor: pointer;
+}
+
+.linkMenu::after {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--radius-2);
+}
+
+@media (hover: hover) {
+	.linkMenu:hover {
+		color: var(--color-text-1);
+	}
+
+	.linkMenu:hover::after {
+		background-color: var(--color-muted-2);
+	}
+}
+
+.linkMenu[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+}
+
+/* ------------------- Share panel ------------------ */
+
+.topRightPanel {
+	height: 42px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 2px 4px 0px 6px;
+	pointer-events: all;
+}
+
+.shareButton {
+	font-family: inherit;
+	font-size: inherit;
+	height: 36px;
+	border: 2px solid var(--color-background);
+	border-left: 2px solid var(--color-background);
+	border-radius: 8px;
+	background-color: var(--color-selected);
+	color: var(--color-selected-contrast);
+	text-shadow: none;
+	pointer-events: all;
+	position: relative;
+	font-weight: 700;
+}
+
+.shareButton::before {
+	position: absolute;
+	display: block;
+	content: '';
+	inset: 0px;
+	background-color: var(--color-background);
+	border-top-left-radius: var(--radius-3);
+	border-bottom-right-radius: var(--radius-3);
+	border-bottom-left-radius: var(--radius-3);
+	z-index: -1;
+}
+
+.shareButton:active {
+	color: var(--color-selected-contrast);
+}
+
+@media (hover: hover) {
+	.shareButton:hover {
+		color: var(--color-selected-contrast);
+	}
+
+	.shareButton:not(:disabled, :focus-visible):hover {
+		color: var(--color-selected-contrast);
+	}
+}

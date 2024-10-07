@@ -46,7 +46,7 @@ export function TlaFileShareMenu({
 					side="bottom"
 					align="end"
 					alignOffset={-2}
-					sideOffset={6}
+					sideOffset={4}
 				>
 					<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
 						<TlaTabsTabs>

@@ -1,4 +1,5 @@
-import { memo, useCallback } from 'react'
+import { usePassThroughWheelEvents } from '@tldraw/editor'
+import { memo, useCallback, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { unwrapLabel, useActions } from '../../context/actions'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -15,6 +16,9 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+
 	const [collapsed, setCollapsed] = useLocalStorageState('minimap', true)
 
 	const toggleMinimap = useCallback(() => {
@@ -28,7 +32,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 	}
 
 	return (
-		<div className="tlui-navigation-panel">
+		<div ref={ref} className="tlui-navigation-panel">
 			<div className="tlui-buttons__horizontal">
 				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />

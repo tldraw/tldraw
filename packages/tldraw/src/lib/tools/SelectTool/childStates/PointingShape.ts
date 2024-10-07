@@ -153,7 +153,7 @@ export class PointingShape extends StateNode {
 										this.editor.select(selectingShape.id)
 
 										const util = this.editor.getShapeUtil(selectingShape)
-										if (this.editor.getInstanceState().isReadonly) {
+										if (this.editor.getIsReadonly()) {
 											if (!util.canEditInReadOnly(selectingShape)) {
 												return
 											}
@@ -218,7 +218,7 @@ export class PointingShape extends StateNode {
 	}
 
 	private startTranslating(info: TLPointerEventInfo) {
-		if (this.editor.getInstanceState().isReadonly) return
+		if (this.editor.getIsReadonly()) return
 
 		// Re-focus the editor, just in case the text label of the shape has stolen focus
 		this.editor.focus()

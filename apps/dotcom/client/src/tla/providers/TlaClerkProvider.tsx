@@ -6,6 +6,7 @@ import '../styles/tla.css'
 export const assetUrls = getAssetUrlsByImport()
 
 import '../styles/tla.css'
+import { TlaRootProviders } from './TlaRootProviders'
 
 // @ts-ignore this is fine
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -17,7 +18,9 @@ if (!PUBLISHABLE_KEY) {
 export function Component() {
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-			<Outlet />
+			<TlaRootProviders>
+				<Outlet />
+			</TlaRootProviders>
 		</ClerkProvider>
 	)
 }

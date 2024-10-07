@@ -3,4 +3,5 @@
 
 body {
 	font-family: 'Inter';
+	overscroll-behavior: none;
 }

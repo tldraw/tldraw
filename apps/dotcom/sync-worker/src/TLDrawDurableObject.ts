@@ -12,8 +12,9 @@ import {
 } from '@tldraw/dotcom-shared'
 import {
 	RoomSnapshot,
-	TLCloseEventCode,
 	TLSocketRoom,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
 	TLSyncRoom,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
@@ -325,8 +326,8 @@ export class TLDrawDurableObject {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
-		const closeSocket = (code: number, message: string) => {
-			serverWebSocket.close(code, message)
+		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
+			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
@@ -336,14 +337,14 @@ export class TLDrawDurableObject {
 			if (ownerId) {
 				const auth = await requireAuth(req, this.env)
 				if (ownerId !== auth.userId) {
-					return closeSocket(TLCloseEventCode.FORBIDDEN, 'Not authorized')
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
 			} else if (!this.documentInfo.isOrWasTemporary) {
 				// If there is no owner that means it's a temporary room, but if they didn't add the temporary
 				// flag don't let them in.
 				// This prevents people from just creating rooms by typing extra chars in the URL because we only
 				// add that flag in temporary rooms.
-				return closeSocket(TLCloseEventCode.NOT_FOUND, 'Room not found')
+				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
 			// otherwise, it's a temporary room and we let them in
 		}
@@ -382,8 +383,7 @@ export class TLDrawDurableObject {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
-				serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
-				return new Response(null, { status: 101, webSocket: clientWebSocket })
+				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
 			}
 			throw e
 		}
