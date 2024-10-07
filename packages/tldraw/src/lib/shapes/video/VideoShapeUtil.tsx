@@ -47,7 +47,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const { asset, url } = useAsset({
 			shapeId: shape.id,
 			assetId: shape.props.assetId,
-			width: shape.props.w,
 		})
 
 		return <VideoShape editor={this.editor} shape={shape} asset={asset} url={url} />
@@ -172,9 +171,7 @@ const VideoShape = memo(function VideoShape({
 					</div>
 				</div>
 			</HTMLContainer>
-			{'url' in shape.props && shape.props.url && (
-				<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
-			)}
+			{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 		</>
 	)
 })
