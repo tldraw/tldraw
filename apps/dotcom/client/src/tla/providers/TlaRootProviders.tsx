@@ -12,7 +12,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useMaybeApp } from '../hooks/useAppState'
-import { assetUrls } from './TlaClerkProvider'
+import { assetUrls } from './TlaProvider'
 
 export function TlaRootProviders({ children }: { children: ReactNode }) {
 	const app = useMaybeApp()

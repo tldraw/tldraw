@@ -88,11 +88,11 @@ const components: TLComponents = {
 export function TlaEditor({
 	fileSlug,
 	onDocumentChange,
-	temporary,
+	isCreateMode,
 }: {
 	fileSlug: string
 	onDocumentChange?(): void
-	temporary?: boolean
+	isCreateMode?: boolean
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -156,11 +156,11 @@ export function TlaEditor({
 			if (user) {
 				url.searchParams.set('accessToken', await user.getToken())
 			}
-			if (temporary) {
-				url.searchParams.set('temporary', 'true')
+			if (isCreateMode) {
+				url.searchParams.set('isCreateMode', 'true')
 			}
 			return url.toString()
-		}, [user, fileSlug, temporary]),
+		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
 	})
 
