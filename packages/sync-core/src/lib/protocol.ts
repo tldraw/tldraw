@@ -1,25 +1,30 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
-const TLSYNC_PROTOCOL_VERSION = 6
+const TLSYNC_PROTOCOL_VERSION = 7
 
 /** @internal */
 export function getTlsyncProtocolVersion() {
 	return TLSYNC_PROTOCOL_VERSION
 }
 
-/** @internal */
+/**
+ * @internal
+ * @deprecated Replaced by websocket .close status/reason
+ */
 export const TLIncompatibilityReason = {
 	ClientTooOld: 'clientTooOld',
 	ServerTooOld: 'serverTooOld',
 	InvalidRecord: 'invalidRecord',
 	InvalidOperation: 'invalidOperation',
-	RoomNotFound: 'roomNotFound',
-	Forbidden: 'forbidden',
 } as const
 
-/** @internal */
+/**
+ * @internal
+ * @deprecated replaced by websocket .close status/reason
+ */
 export type TLIncompatibilityReason =
+	// eslint-disable-next-line deprecation/deprecation
 	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
 /** @internal */
@@ -36,11 +41,8 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	  }
 	| {
 			type: 'incompatibility_error'
+			// eslint-disable-next-line deprecation/deprecation
 			reason: TLIncompatibilityReason
-	  }
-	| {
-			type: 'error'
-			error?: any
 	  }
 	| {
 			type: 'pong'

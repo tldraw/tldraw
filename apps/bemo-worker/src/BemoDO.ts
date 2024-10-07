@@ -1,5 +1,10 @@
 import { AnalyticsEngineDataset } from '@cloudflare/workers-types'
-import { RoomSnapshot, TLCloseEventCode, TLSocketRoom } from '@tldraw/sync-core'
+import {
+	RoomSnapshot,
+	TLSocketRoom,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
+} from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { throttle } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
@@ -114,7 +119,7 @@ export class BemoDO extends DurableObject<Environment> {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		} catch (e) {
 			if (e === ROOM_NOT_FOUND) {
-				serverWebSocket.close(TLCloseEventCode.NOT_FOUND, 'Room not found')
+				serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
 				return new Response(null, { status: 101, webSocket: clientWebSocket })
 			}
 			throw e

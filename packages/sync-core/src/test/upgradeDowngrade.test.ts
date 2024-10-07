@@ -10,14 +10,10 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { TLSyncClient } from '../lib/TLSyncClient'
+import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
 import { RecordOpType, ValueOpType } from '../lib/diff'
-import {
-	TLIncompatibilityReason,
-	TLSocketServerSentEvent,
-	getTlsyncProtocolVersion,
-} from '../lib/protocol'
+import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 
@@ -37,9 +33,7 @@ function mockSocket<R extends UnknownRecord>(): TLRoomSocket<R> {
 	return {
 		isOpen: true,
 		sendMessage: jest.fn(),
-		close() {
-			// noop
-		},
+		close: jest.fn(),
 	}
 }
 
@@ -187,9 +181,6 @@ class TestInstance {
 			onLoad: () => {
 				this.hasLoaded = true
 			},
-			onLoadError: (e) => {
-				throw new Error('onLoadError', e)
-			},
 			onSyncError: jest.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
 			}),
@@ -201,9 +192,6 @@ class TestInstance {
 			socket: this.newSocketPair.clientSocket,
 			onLoad: () => {
 				this.hasLoaded = true
-			},
-			onLoadError: (e) => {
-				throw new Error('onLoadError', e)
 			},
 			onSyncError: jest.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
@@ -373,10 +361,7 @@ test('out-of-date clients will receive incompatibility errors', () => {
 		schema: schemaV2.serialize(),
 	})
 
-	expect(socket.sendMessage).toHaveBeenCalledWith({
-		type: 'incompatibility_error',
-		reason: TLIncompatibilityReason.ClientTooOld,
-	})
+	expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 })
 
 test('clients using an out-of-date protocol will receive compatibility errors', () => {
@@ -397,10 +382,7 @@ test('clients using an out-of-date protocol will receive compatibility errors', 
 			schema: schemaV2.serialize(),
 		})
 
-		expect(socket.sendMessage).toHaveBeenCalledWith({
-			type: 'incompatibility_error',
-			reason: TLIncompatibilityReason.ClientTooOld,
-		})
+		expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 	} finally {
 		mockGetTlsyncProtocolVersion.mockReset()
 		mockGetTlsyncProtocolVersion.mockImplementation(actualProtocol.getTlsyncProtocolVersion)
@@ -458,10 +440,7 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 		schema: schemaV2.serialize(),
 	})
 
-	expect(socket.sendMessage).toHaveBeenCalledWith({
-		type: 'incompatibility_error',
-		reason: TLIncompatibilityReason.ServerTooOld,
-	})
+	expect(socket.close).toHaveBeenCalledWith(4099, TLSyncErrorCloseEventReason.SERVER_TOO_OLD)
 })
 
 test('when the client is too new it cannot connect', () => {
@@ -505,12 +484,12 @@ test('when the client is too new it cannot connect', () => {
 		schema: schemaV2.serialize(),
 	})
 
-	expect(v2_socket.sendMessage).toHaveBeenCalledWith({
-		type: 'incompatibility_error',
+	expect(v2_socket.close).toHaveBeenCalledWith(
+		4099,
 		// this should really be 'serverTooOld' but our schema format is a bit too loose to
 		// accurately determine that now.
-		reason: 'clientTooOld',
-	})
+		TLSyncErrorCloseEventReason.CLIENT_TOO_OLD
+	)
 })
 
 describe('when the client is too old', () => {

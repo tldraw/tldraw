@@ -451,7 +451,7 @@ describe('TLSyncRoom.updateStore', () => {
 				page.index = 34 as any
 				store.put(page)
 			})
-		).rejects.toMatchInlineSnapshot(`[Error: failed to apply changes: invalidRecord]`)
+		).rejects.toMatchInlineSnapshot(`[Error: failed to apply changes: INVALID_RECORD]`)
 	})
 
 	test('changes in multiple transaction are isolated from one another', async () => {
