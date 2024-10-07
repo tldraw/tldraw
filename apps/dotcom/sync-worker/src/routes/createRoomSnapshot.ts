@@ -11,7 +11,11 @@ export interface R2Snapshot {
 	drawing: RoomSnapshot
 }
 
-export async function createRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
+export async function createRoomSnapshot(
+	request: IRequest,
+	env: Environment,
+	isApp: boolean
+): Promise<Response> {
 	const data = (await request.json()) as CreateSnapshotRequestBody
 
 	const snapshotResult = validateSnapshot(data)
@@ -39,7 +43,7 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(roomId, parentSlug)
 	}
 	await env.ROOM_SNAPSHOTS.put(
-		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: false }),
+		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp }),
 		JSON.stringify(persistedRoomSnapshot)
 	)
 
