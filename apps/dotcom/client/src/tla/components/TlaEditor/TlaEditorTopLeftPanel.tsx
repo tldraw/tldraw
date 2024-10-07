@@ -7,8 +7,10 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
-import { useMaybeApp } from '../../hooks/useAppState'
+import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useRaw } from '../../hooks/useRaw'
+import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
@@ -50,11 +52,22 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 export function TlaEditorTopLeftPanelSignedIn() {
 	const raw = useRaw()
-	const editor = useEditor()
-	const fileName = useValue('fileName', () => editor.getDocumentSettings().name, [])
+	const app = useApp()
+	const fileId = useCurrentFileId()
+	const fileName = useValue(
+		'fileName',
+		() => {
+			const file = app.store.get(fileId)
+			if (!file) throw Error('cant get file')
+			return TldrawApp.getFileName(file)
+		},
+		[app, fileId]
+	)
 	const handleFileNameChange = useCallback(
-		(name: string) => editor.updateDocumentSettings({ name }),
-		[editor]
+		(name: string) => {
+			app.store.update(fileId, (file) => ({ ...file, name }))
+		},
+		[app, fileId]
 	)
 
 	return (
