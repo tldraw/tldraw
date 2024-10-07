@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="mtrl_calendar_bottom_padding">0dp</dimen>
+    <dimen name="mtrl_calendar_day_corner">22dp</dimen>
+    <dimen name="mtrl_calendar_day_height">48dp</dimen>
+    <dimen name="mtrl_calendar_day_horizontal_padding">2dp</dimen>
+    <dimen name="mtrl_calendar_day_vertical_padding">2dp</dimen>
+    <dimen name="mtrl_calendar_day_width">48dp</dimen>
+    <dimen name="mtrl_calendar_days_of_week_height">48dp</dimen>
+    <dimen name="mtrl_calendar_month_horizontal_padding">0dp</dimen>
+</resources>

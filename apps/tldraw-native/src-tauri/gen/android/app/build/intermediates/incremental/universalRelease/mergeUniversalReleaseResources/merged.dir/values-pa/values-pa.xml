@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d ਨਵੀਂ ਸੂਚਨਾ</item>
+    <item quantity="other">%d ਨਵੀਆਂ ਸੂਚਨਾਵਾਂ</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"ਹੋਮ \'ਤੇ ਜਾਓ"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"ਉੱਪਰ ਜਾਓ"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"ਹੋਰ ਵਿਕਲਪ"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"ਹੋ ਗਿਆ"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"ਸਭ ਦੇਖੋ"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"ਇੱਕ ਐਪ ਚੁਣੋ"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"ਬੰਦ"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"ਚਾਲੂ"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt+"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl+"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"ਮਿਟਾਓ"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Function+"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta+"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift+"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"space"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym+"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Menu+"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"ਖੋਜ…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"ਪੁੱਛਗਿੱਛ ਕਲੀਅਰ ਕਰੋ"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"ਖੋਜ ਪੁੱਛਗਿੱਛ"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"ਖੋਜ"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"ਪੁੱਛਗਿੱਛ ਸਪੁਰਦ ਕਰੋ"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"ਅਵਾਜ਼ੀ ਖੋਜ"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"ਇਸ ਨਾਲ ਸਾਂਝਾ ਕਰੋ"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g> ਨਾਲ ਸਾਂਝਾ ਕਰੋ"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"ਸਮੇਟੋ"</string>
+    <string name="bottomsheet_action_collapse">ਹੇਠਲੀ ਸ਼ੀਟ ਨੂੰ ਸਮੇਟੋ</string>
+    <string name="bottomsheet_action_expand">ਹੇਠਲੀ ਸ਼ੀਟ ਦਾ ਵਿਸਤਾਰ ਕਰੋ</string>
+    <string name="bottomsheet_action_expand_halfway">ਅੱਧ ਤੱਕ ਵਿਸਤਾਰ ਕਰੋ</string>
+    <string name="bottomsheet_drag_handle_clicked">ਘਸੀਟਣ ਵਾਲੇ ਹੈਂਡਲ \'ਤੇ ਡਬਲ-ਟੈਪ ਕੀਤਾ ਗਿਆ</string>
+    <string name="bottomsheet_drag_handle_content_description">ਘਸੀਟਣ ਵਾਲਾ ਹੈਂਡਲ</string>
+    <string name="character_counter_content_description">%2$d ਵਿੱਚੋਂ %1$d ਅੱਖਰ-ਚਿੰਨ੍ਹ ਦਾਖਲ ਕੀਤੇ ਗਏ</string>
+    <string name="character_counter_overflowed_content_description">ਅੱਖਰ-ਚਿੰਨ੍ਹ ਸੀਮਾ %2$d ਤੋਂ %1$d ਵਧੀ</string>
+    <string name="clear_text_end_icon_content_description">ਲਿਖਤ ਕਲੀਅਰ ਕਰੋ</string>
+    <string name="error_icon_content_description">ਗੜਬੜ</string>
+    <string name="exposed_dropdown_menu_content_description">ਡ੍ਰੌਪ-ਡਾਊਨ ਮੀਨੂ ਦਿਖਾਓ</string>
+    <string name="icon_content_description">ਵਿੰਡੋ ਦਾ ਪ੍ਰਤੀਕ</string>
+    <string name="item_view_role_description">ਟੈਬ</string>
+    <string name="material_clock_toggle_content_description">AM ਜਾਂ PM ਚੁਣੋ</string>
+    <string name="material_hour_24h_suffix">%1$s ਘੰਟੇ</string>
+    <string name="material_hour_selection">ਸਮਾਂ ਚੁਣੋ</string>
+    <string name="material_hour_suffix">%1$s ਵਜੇ</string>
+    <string name="material_minute_selection">ਮਿੰਟ ਚੁਣੋ</string>
+    <string name="material_minute_suffix">%1$s ਮਿੰਟ</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">ਸਮਾਂ ਇਨਪੁੱਟ ਕਰਨ ਲਈ ਘੜੀ ਮੋਡ \'ਤੇ ਸਵਿੱਚ ਕਰੋ।</string>
+    <string name="material_timepicker_hour">ਘੰਟਾ</string>
+    <string name="material_timepicker_minute">ਮਿੰਟ</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">ਸਮਾਂ ਚੁਣੋ</string>
+    <string name="material_timepicker_text_input_mode_description">ਸਮਾਂ ਇਨਪੁੱਟ ਕਰਨ ਲਈ ਲਿਖਤ ਇਨਪੁੱਟ ਮੋਡ \'ਤੇ ਸਵਿੱਚ ਕਰੋ।</string>
+    <string name="mtrl_badge_numberless_content_description">ਨਵੀਂ ਸੂਚਨਾ</string>
+    <string name="mtrl_chip_close_icon_content_description">%1$s ਹਟਾਓ</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">%1$d ਤੋਂ ਵੱਧ ਨਵੀਆਂ ਸੂਚਨਾਵਾਂ</string>
+    <string name="mtrl_picker_a11y_next_month">ਅਗਲੇ ਮਹੀਨੇ \'ਤੇ ਜਾਓ</string>
+    <string name="mtrl_picker_a11y_prev_month">ਪਿਛਲੇ ਮਹੀਨੇ \'ਤੇ ਜਾਓ</string>
+    <string name="mtrl_picker_announce_current_selection">ਮੌਜੂਦਾ ਚੋਣ: %1$s</string>
+    <string name="mtrl_picker_cancel">ਰੱਦ ਕਰੋ</string>
+    <string name="mtrl_picker_confirm">ਠੀਕ ਹੈ</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">ਤਾਰੀਖ ਚੁਣੋ</string>
+    <string name="mtrl_picker_date_header_unselected">ਚੁਣੀ ਗਈ ਤਾਰੀਖ</string>
+    <string name="mtrl_picker_day_of_week_column_header">ਦਿਨਾਂ ਦਾ ਕਾਲਮ: %1$s</string>
+    <string name="mtrl_picker_invalid_format">ਅਵੈਧ ਫਾਰਮੈਟ।</string>
+    <string name="mtrl_picker_invalid_format_example">ਉਦਾਹਰਨ: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">ਵਰਤੋ: %1$s</string>
+    <string name="mtrl_picker_invalid_range">ਅਵੈਧ ਰੇਂਜ।</string>
+    <string name="mtrl_picker_navigate_to_year_description">ਸਾਲ %1$s \'ਤੇ ਨੈਵੀਗੇਟ ਕਰੋ</string>
+    <string name="mtrl_picker_out_of_range">ਰੇਂਜ ਤੋਂ ਬਾਹਰ: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">ਸ਼ੁੁਰੂਆਤੀ ਤਾਰੀਖ – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – ਸਮਾਪਤੀ ਤਾਰੀਖ</string>
+    <string name="mtrl_picker_range_header_selected">%1$s – %2$s</string>
+    <string name="mtrl_picker_range_header_title">ਰੇਂਜ ਚੁਣੋ</string>
+    <string name="mtrl_picker_range_header_unselected">ਸ਼ੁਰੂਆਤੀ ਤਾਰੀਖ – ਸਮਾਪਤੀ ਤਾਰੀਖ</string>
+    <string name="mtrl_picker_save">ਰੱਖਿਅਤ ਕਰੋ</string>
+    <string name="mtrl_picker_text_input_date_hint">ਤਾਰੀਖ</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">ਸਮਾਪਤੀ ਤਾਰੀਖ</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">ਸ਼ੁਰੂਆਤੀ ਤਾਰੀਖ</string>
+    <string name="mtrl_picker_text_input_day_abbr">d</string>
+    <string name="mtrl_picker_text_input_month_abbr">m</string>
+    <string name="mtrl_picker_text_input_year_abbr">y</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">ਕੈਲੰਡਰ ਇਨਪੁੱਟ ਮੋਡ \'ਤੇ ਜਾਓ</string>
+    <string name="mtrl_picker_toggle_to_day_selection">ਦਿਨ ਦੀ ਚੋਣ \'ਤੇ ਜਾਣ ਲਈ ਟੈਪ ਕਰੋ</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">ਲਿਖਤ ਇਨਪੁੱਟ ਮੋਡ \'ਤੇ ਜਾਓ</string>
+    <string name="mtrl_picker_toggle_to_year_selection">ਸਾਲ ਦੀ ਚੋਣ \'ਤੇ ਜਾਣ ਲਈ ਟੈਪ ਕਰੋ</string>
+    <string name="mtrl_timepicker_cancel">ਰੱਦ ਕਰੋ</string>
+    <string name="mtrl_timepicker_confirm">ਠੀਕ ਹੈ</string>
+    <string name="password_toggle_content_description">ਪਾਸਵਰਡ ਦਿਖਾਓ</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"ਖੋਜ"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

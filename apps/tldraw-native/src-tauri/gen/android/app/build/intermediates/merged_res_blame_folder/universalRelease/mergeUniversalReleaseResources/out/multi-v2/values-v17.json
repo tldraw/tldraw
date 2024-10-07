@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.tldraw_native_app-mergeUniversalReleaseResources-29:/values-v17/values-v17.xml",
+            "map": [
+                {
+                    "source": "/Users/mitja/.gradle/caches/8.9/transforms/ede7ea88e1b8502aa7c11322403475e2/transformed/appcompat-1.6.1/res/values-v17/values-v17.xml",
+                    "from": {
+                        "startLines": "2,5,9,12,15,18,22,25,29,33,37,40,43,46,50,53,57",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,228,456,614,764,936,1161,1331,1559,1783,2025,2196,2370,2539,2812,3012,3216",
+                        "endLines": "4,8,11,14,17,21,24,28,32,36,39,42,45,49,52,56,60",
+                        "endColumns": "12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12",
+                        "endOffsets": "223,451,609,759,931,1156,1326,1554,1778,2020,2191,2365,2534,2807,3007,3211,3540"
+                    }
+                }
+            ]
+        }
+    ]
+}

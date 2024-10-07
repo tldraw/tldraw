@@ -6711,6 +6711,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tauri-apps/plugin-dialog@npm:>=2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/plugin-dialog@npm:2.0.0"
+  dependencies:
+    "@tauri-apps/api": "npm:^2.0.0"
+  checksum: 93ac21a5c3069af6e02478d7ce33fbfe9d4035d136e9c0993b1803d90dd08a9e6c5f7731dea03a5cf194f73555ec6f4e90ab25bcfa156231aae14757ad15ff87
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/plugin-notification@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/plugin-notification@npm:2.0.0"
+  dependencies:
+    "@tauri-apps/api": "npm:^2.0.0"
+  checksum: 0a6a3085380f56d593c2c7fab3184007495b71c6b09e839c0075649a3a36398374475cfca320bf1ee0f2acc40bc3c635149f92220bf658d2b3ba84c7a99177b3
+  languageName: node
+  linkType: hard
+
 "@tauri-apps/plugin-shell@npm:>=2.0.0":
   version: 2.0.0
   resolution: "@tauri-apps/plugin-shell@npm:2.0.0"
@@ -22453,6 +22471,8 @@ __metadata:
     "@sentry/react": "npm:^7.77.0"
     "@tauri-apps/api": "npm:>=2.0.0"
     "@tauri-apps/cli": "npm:>=2.0.0"
+    "@tauri-apps/plugin-dialog": "npm:>=2.0.0"
+    "@tauri-apps/plugin-notification": "npm:^2.0.0"
     "@tauri-apps/plugin-shell": "npm:>=2.0.0"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"

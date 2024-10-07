@@ -1,0 +1,36 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.tldraw_native_app-mergeUniversalReleaseResources-29:/values-en-rXC/values-en-rXC.xml",
+            "map": [
+                {
+                    "source": "/Users/mitja/.gradle/caches/8.9/transforms/ab4fb08c13136743d893e52a8dffec55/transformed/core-1.9.0/res/values-en-rXC/values-en-rXC.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "203",
+                        "endOffsets": "254"
+                    },
+                    "to": {
+                        "startLines": "30",
+                        "startColumns": "4",
+                        "startOffsets": "5714",
+                        "endColumns": "203",
+                        "endOffsets": "5913"
+                    }
+                },
+                {
+                    "source": "/Users/mitja/.gradle/caches/8.9/transforms/ede7ea88e1b8502aa7c11322403475e2/transformed/appcompat-1.6.1/res/values-en-rXC/values-en-rXC.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "105,312,515,725,912,1113,1329,1509,1684,1878,2072,2267,2464,2663,2858,3056,3253,3447,3641,3826,4031,4234,4435,4641,4846,5053,5327,5528",
+                        "endColumns": "206,202,209,186,200,215,179,174,193,193,194,196,198,194,197,196,193,193,184,204,202,200,205,204,206,273,200,185",
+                        "endOffsets": "307,510,720,907,1108,1324,1504,1679,1873,2067,2262,2459,2658,2853,3051,3248,3442,3636,3821,4026,4229,4430,4636,4841,5048,5322,5523,5709"
+                    }
+                }
+            ]
+        }
+    ]
+}

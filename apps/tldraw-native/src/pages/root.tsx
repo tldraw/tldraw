@@ -4,8 +4,11 @@ import { LocalEditor } from '../components/LocalEditor'
 
 export function Component() {
 	return (
-		<IFrameProtector slug="home" context={ROOM_CONTEXT.LOCAL}>
-			<LocalEditor />
-		</IFrameProtector>
+		<>
+			<a href="/q/local">Local</a>
+			<IFrameProtector slug="home" context={ROOM_CONTEXT.LOCAL}>
+				<LocalEditor />
+			</IFrameProtector>
+		</>
 	)
 }

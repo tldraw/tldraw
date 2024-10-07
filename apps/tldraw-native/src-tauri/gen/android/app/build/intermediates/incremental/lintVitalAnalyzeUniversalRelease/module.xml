@@ -1,0 +1,18 @@
+<lint-module
+    format="1"
+    dir="/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app"
+    name=":app"
+    type="APP"
+    maven="android:app:unspecified"
+    agpVersion="8.5.1"
+    buildFolder="build"
+    bootClassPath="/Users/mitja/Library/Android/sdk/platforms/android-34/android.jar:/Users/mitja/Library/Android/sdk/build-tools/34.0.0/core-lambda-stubs.jar"
+    javaSourceLevel="1.8"
+    compileTarget="android-34">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="universalRelease"/>
+</lint-module>

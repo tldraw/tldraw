@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d புதிய அறிவிப்பு</item>
+    <item quantity="other">%d புதிய அறிவிப்புகள்</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"முகப்பிற்குச் செல்லும்"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"மேலே செல்லும்"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"மேலும் விருப்பங்கள்"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"முடிந்தது"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"அனைத்தையும் காட்டு"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"ஆப்ஸைத் தேர்வுசெய்க"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"ஆஃப்"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"ஆன்"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt மற்றும்"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl மற்றும்"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"delete"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Function மற்றும்"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta மற்றும்"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift மற்றும்"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"space"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym மற்றும்"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Menu மற்றும்"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"தேடுக…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"வினவலை அழிக்கும்"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"தேடல் வினவல்"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"தேடும்"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"வினவலைச் சமர்ப்பிக்கும்"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"குரல் தேடல்"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"இதில் பகிர்"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g> மூலம் பகிர்"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"சுருக்கும்"</string>
+    <string name="bottomsheet_action_collapse">கீழ்ப்புறச் சீட்டைச் சுருக்கும்</string>
+    <string name="bottomsheet_action_expand">கீழ்ப்புறச் சீட்டை விரிவாக்கும்</string>
+    <string name="bottomsheet_action_expand_halfway">பாதியளவு விரிவாக்கும்</string>
+    <string name="bottomsheet_drag_handle_clicked">இழுப்பதற்கான ஹேண்டில் இருமுறை தட்டப்பட்டது</string>
+    <string name="bottomsheet_drag_handle_content_description">இழுப்பதற்கான ஹேண்டில்</string>
+    <string name="character_counter_content_description">%2$d இல் %1$d எழுத்துகள் உள்ளிடப்பட்டுள்ளன</string>
+    <string name="character_counter_overflowed_content_description">%2$d இல் %1$d எழுத்து வரம்பு மீறப்பட்டது</string>
+    <string name="clear_text_end_icon_content_description">உரையை அழிக்கும்</string>
+    <string name="error_icon_content_description">பிழை</string>
+    <string name="exposed_dropdown_menu_content_description">கீழ் தோன்றல் மெனுவைக் காட்டும் பட்டன்</string>
+    <string name="icon_content_description">உரையாடல் ஐகான்</string>
+    <string name="item_view_role_description">தாவல்</string>
+    <string name="material_clock_toggle_content_description">AM அல்லது PMமைத் தேர்ந்தெடுக்க உதவும்</string>
+    <string name="material_hour_24h_suffix">%1$s மணிநேரம்</string>
+    <string name="material_hour_selection">மணிநேரத்தைத் தேர்ந்தெடுக்க உதவும்</string>
+    <string name="material_hour_suffix">%1$s மணி</string>
+    <string name="material_minute_selection">நிமிடத்தைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="material_minute_suffix">%1$s நிமிடங்கள்</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">நேர உள்ளீட்டிற்காக, கடிகாரப் பயன்முறைக்கு மாற்றும்.</string>
+    <string name="material_timepicker_hour">மணிநேரம்</string>
+    <string name="material_timepicker_minute">நிமிடம்</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">நேரத்தைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="material_timepicker_text_input_mode_description">உரை உள்ளீட்டிற்காக, கடிகாரப் பயன்முறைக்கு மாற்றும்.</string>
+    <string name="mtrl_badge_numberless_content_description">புதிய அறிவிப்பு</string>
+    <string name="mtrl_chip_close_icon_content_description">%1$sஐ அகற்று</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">%1$d+ புதிய அறிவிப்புகள்</string>
+    <string name="mtrl_picker_a11y_next_month">அடுத்த மாதத்தைக் காட்டு</string>
+    <string name="mtrl_picker_a11y_prev_month">முந்தைய மாதத்தைக் காட்டு</string>
+    <string name="mtrl_picker_announce_current_selection">தற்போதைய தேர்வு: %1$s</string>
+    <string name="mtrl_picker_cancel">ரத்துசெய்</string>
+    <string name="mtrl_picker_confirm">சரி</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">தேதியைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="mtrl_picker_date_header_unselected">தேர்ந்தெடுக்கப்பட்ட தேதி</string>
+    <string name="mtrl_picker_day_of_week_column_header">நாட்களின் நெடுவரிசை: %1$s</string>
+    <string name="mtrl_picker_invalid_format">தவறான வடிவம்.</string>
+    <string name="mtrl_picker_invalid_format_example">உதாரணம்: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">%1$sஐப் பயன்படுத்துக</string>
+    <string name="mtrl_picker_invalid_range">தவறான வரம்பு.</string>
+    <string name="mtrl_picker_navigate_to_year_description">%1$s ஆம் ஆண்டிற்குச் செல்லும்</string>
+    <string name="mtrl_picker_out_of_range">எல்லைக்கு வெளியே உள்ளது: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">தொடக்கத் தேதி – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – முடிவுத் தேதி</string>
+    <string name="mtrl_picker_range_header_selected">%1$s – %2$s</string>
+    <string name="mtrl_picker_range_header_title">வரம்பைத் தேர்ந்தெடுக்கவும்</string>
+    <string name="mtrl_picker_range_header_unselected">தொடக்கத் தேதி - முடிவுத் தேதி</string>
+    <string name="mtrl_picker_save">சேமி</string>
+    <string name="mtrl_picker_text_input_date_hint">தேதி</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">முடிவுத் தேதி</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">தொடக்கத் தேதி</string>
+    <string name="mtrl_picker_text_input_day_abbr">நா</string>
+    <string name="mtrl_picker_text_input_month_abbr">மா</string>
+    <string name="mtrl_picker_text_input_year_abbr">ஆ</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">கேலெண்டர் உள்ளீட்டு முறைக்கு மாற்றும்</string>
+    <string name="mtrl_picker_toggle_to_day_selection">நாளைத் தேர்வுசெய்வதற்கு மாற்ற தட்டவும்</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">உரை உள்ளீட்டு முறைக்கு மாற்றும்</string>
+    <string name="mtrl_picker_toggle_to_year_selection">ஆண்டைத் தேர்வுசெய்வதற்கு மாற்ற தட்டவும்</string>
+    <string name="mtrl_timepicker_cancel">ரத்துசெய்</string>
+    <string name="mtrl_timepicker_confirm">சரி</string>
+    <string name="password_toggle_content_description">கடவுச்சொல்லைக் காட்டு</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"தேடல்"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

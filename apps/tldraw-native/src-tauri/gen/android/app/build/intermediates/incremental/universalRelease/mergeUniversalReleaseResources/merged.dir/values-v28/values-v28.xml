@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item format="float" name="m3_sys_state_dragged_state_layer_opacity" type="dimen">0.16</item>
+    <item format="float" name="m3_sys_state_focus_state_layer_opacity" type="dimen">0.2</item>
+    <item format="float" name="m3_sys_state_hover_state_layer_opacity" type="dimen">0.4</item>
+    <item format="float" name="m3_sys_state_pressed_state_layer_opacity" type="dimen">0.12</item>
+    <item format="float" name="mtrl_high_ripple_default_alpha" type="dimen">0.24</item>
+    <item format="float" name="mtrl_high_ripple_focused_alpha" type="dimen">0.40</item>
+    <item format="float" name="mtrl_high_ripple_hovered_alpha" type="dimen">0.40</item>
+    <item format="float" name="mtrl_high_ripple_pressed_alpha" type="dimen">0.24</item>
+    <item format="float" name="mtrl_low_ripple_default_alpha" type="dimen">0.12</item>
+    <item format="float" name="mtrl_low_ripple_focused_alpha" type="dimen">0.20</item>
+    <item format="float" name="mtrl_low_ripple_hovered_alpha" type="dimen">0.20</item>
+    <item format="float" name="mtrl_low_ripple_pressed_alpha" type="dimen">0.12</item>
+    <style name="Base.Theme.AppCompat" parent="Base.V28.Theme.AppCompat"/>
+    <style name="Base.Theme.AppCompat.Light" parent="Base.V28.Theme.AppCompat.Light"/>
+    <style name="Base.V28.Theme.AppCompat" parent="Base.V26.Theme.AppCompat">
+        
+        <item name="dialogCornerRadius">?android:attr/dialogCornerRadius</item>
+    </style>
+    <style name="Base.V28.Theme.AppCompat.Light" parent="Base.V26.Theme.AppCompat.Light">
+        
+        <item name="dialogCornerRadius">?android:attr/dialogCornerRadius</item>
+    </style>
+    <style name="Widget.Material3.BottomNavigationView" parent="Base.Widget.Material3.BottomNavigationView">
+    <item name="android:outlineAmbientShadowColor">@android:color/transparent</item>
+    <item name="android:outlineSpotShadowColor">@android:color/transparent</item>
+  </style>
+</resources>

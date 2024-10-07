@@ -33,7 +33,6 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useSharing } from '../../../utils/sharing'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useTldrawUser } from '../../hooks/useUser'
 import { TldrawApp } from '../../utils/TldrawApp'
 import styles from './editor.module.css'
 
@@ -179,71 +178,37 @@ export function TlaEditor({
 		[app, onDocumentChange, fileId]
 	)
 
-	useEffect(() => {
-		if (!app) return
-		const { auth } = app.getSessionState()
-		if (!auth) throw Error('Auth not found')
-
-		const user = app.getUser(auth.userId)
-		if (!user) throw Error('User not found')
-
-		if (user.presence.fileIds.includes(fileId)) {
-			return
-		}
-
-		let cancelled = false
-		let didEnter = false
-
-		const timeout = setTimeout(() => {
-			if (cancelled) return
-			didEnter = true
-			app.onFileEnter(auth.userId, fileId)
-		}, 1000)
-
-		return () => {
-			cancelled = true
-			clearTimeout(timeout)
-
-			if (didEnter) {
-				app.onFileExit(auth.userId, fileId)
-			}
-		}
-	}, [app, fileId])
-
-	const user = useTldrawUser()
-
 	const store = useSync({
 		uri: useCallback(async () => {
 			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
-			if (user) {
-				url.searchParams.set('accessToken', await user.getToken())
-			}
 			if (temporary) {
 				url.searchParams.set('temporary', 'true')
 			}
 			return url.toString()
-		}, [user, fileSlug, temporary]),
+		}, [fileSlug, temporary]),
 		assets: multiplayerAssetStore,
 	})
 
 	return (
-		<div className={styles.editor}>
-			<Tldraw
-				store={store}
-				assetUrls={assetUrls}
-				onMount={handleMount}
-				overrides={[sharingUiOverrides]}
-				onUiEvent={handleUiEvent}
-				components={components}
-			>
-				<LocalMigration />
-				<SneakyOnDropOverride isMultiplayer={false} />
-				<ThemeUpdater />
-				{/* <CursorChatBubble /> */}
-				<SneakyDarkModeSync />
-			</Tldraw>
-			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
-		</div>
+		<>
+			<div className={styles.editor}>
+				<Tldraw
+					store={store}
+					assetUrls={assetUrls}
+					onMount={handleMount}
+					overrides={[sharingUiOverrides]}
+					onUiEvent={handleUiEvent}
+					components={components}
+				>
+					<LocalMigration />
+					<SneakyOnDropOverride isMultiplayer={false} />
+					<ThemeUpdater />
+					{/* <CursorChatBubble /> */}
+					<SneakyDarkModeSync />
+				</Tldraw>
+				{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
+			</div>
+		</>
 	)
 }
 

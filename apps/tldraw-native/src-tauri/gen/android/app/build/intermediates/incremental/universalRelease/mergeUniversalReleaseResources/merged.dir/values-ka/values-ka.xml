@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d ახალი შეტყობინება</item>
+    <item quantity="other">%d ახალი შეტყობინება</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"მთავარზე გადასვლა"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"ზემოთ გადასვლა"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"სხვა ვარიანტები"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"მზადაა"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"ყველას ნახვა"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"აირჩიეთ აპი"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"გამორთვა"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"ჩართვა"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt+"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl+"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"delete"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Function+"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta+"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift+"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"შორისი"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym+"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Menu+"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"ძიება…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"მოთხოვნის გასუფთავება"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"მოთხოვნის ძიება"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"ძიება"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"მოთხოვნის გადაგზავნა"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"ხმოვანი ძიება"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"გაზიარება:"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g>-ით გაზიარება"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"ჩაკეცვა"</string>
+    <string name="bottomsheet_action_collapse">ქვედა ფურცლის ჩაკეცვა</string>
+    <string name="bottomsheet_action_expand">ქვედა ფურცლის გაშლა</string>
+    <string name="bottomsheet_action_expand_halfway">ნახევრამდე გაფართოება</string>
+    <string name="bottomsheet_drag_handle_clicked">ორმაგი შეხება ჩავლების სახელურზე</string>
+    <string name="bottomsheet_drag_handle_content_description">სახელური ჩავლებისთვის</string>
+    <string name="character_counter_content_description">შეყვანილია %2$d-დან %1$d სიმბოლო</string>
+    <string name="character_counter_overflowed_content_description">გადაჭარბებულია სიმბოლოთა ლიმიტი (%2$d-დან %1$d)</string>
+    <string name="clear_text_end_icon_content_description">ტექსტის გასუფთავება</string>
+    <string name="error_icon_content_description">შეცდომა</string>
+    <string name="exposed_dropdown_menu_content_description">ჩამოსაშლელი მენიუს ჩვენება</string>
+    <string name="icon_content_description">დიალოგის ხატულა</string>
+    <string name="item_view_role_description">ჩანართი</string>
+    <string name="material_clock_toggle_content_description">აირჩიეთ AM ან PM</string>
+    <string name="material_hour_24h_suffix">%1$s საათი</string>
+    <string name="material_hour_selection">აირჩიეთ საათი</string>
+    <string name="material_hour_suffix">%1$s საათი</string>
+    <string name="material_minute_selection">აირჩიეთ წუთები</string>
+    <string name="material_minute_suffix">%1$s წუთი</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">დროის შეყვანისთვის საათის რეჟიმზე გადართვა.</string>
+    <string name="material_timepicker_hour">საათი</string>
+    <string name="material_timepicker_minute">წუთი</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">აირჩიეთ დრო</string>
+    <string name="material_timepicker_text_input_mode_description">დროის შეყვანისთვის ტექსტის შეყვანის რეჟიმზე გადართვა.</string>
+    <string name="mtrl_badge_numberless_content_description">ახალი შეტყობინება</string>
+    <string name="mtrl_chip_close_icon_content_description">%1$s-ის ამოშლა</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">%1$d-ზე მეტი ახალი შეტყობინება</string>
+    <string name="mtrl_picker_a11y_next_month">შემდეგ თვეზე გადასვლა</string>
+    <string name="mtrl_picker_a11y_prev_month">წინა თვეზე გადასვლა</string>
+    <string name="mtrl_picker_announce_current_selection">ამჟამინდელი არჩევანი: %1$s</string>
+    <string name="mtrl_picker_cancel">გაუქმება</string>
+    <string name="mtrl_picker_confirm">კარგი</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">აირჩიეთ თარიღი</string>
+    <string name="mtrl_picker_date_header_unselected">არჩეული თარიღი</string>
+    <string name="mtrl_picker_day_of_week_column_header">დღეების სვეტი: %1$s</string>
+    <string name="mtrl_picker_invalid_format">არასწორი ფორმატი.</string>
+    <string name="mtrl_picker_invalid_format_example">მაგალითი: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">%1$s-ის გამოყენება</string>
+    <string name="mtrl_picker_invalid_range">დიაპაზონი არასწორია.</string>
+    <string name="mtrl_picker_navigate_to_year_description">%1$s წელზე ნავიგაცია</string>
+    <string name="mtrl_picker_out_of_range">დიაპაზონს მიღმა: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">დაწყების თარიღი - %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s - დასრულების თარიღი</string>
+    <string name="mtrl_picker_range_header_selected">%1$s - %2$s</string>
+    <string name="mtrl_picker_range_header_title">აირჩიეთ დიაპაზონი</string>
+    <string name="mtrl_picker_range_header_unselected">დაწყების თარიღი - დასრულების თარიღი</string>
+    <string name="mtrl_picker_save">შენახვა</string>
+    <string name="mtrl_picker_text_input_date_hint">თარიღი</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">დასრულების თარიღი</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">დაწყების თარიღი</string>
+    <string name="mtrl_picker_text_input_day_abbr">დ</string>
+    <string name="mtrl_picker_text_input_month_abbr">წთ</string>
+    <string name="mtrl_picker_text_input_year_abbr">წ</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">კალენდარში შეყვანის რეჟიმზე გადართვა</string>
+    <string name="mtrl_picker_toggle_to_day_selection">შეეხეთ დღის არჩევაზე გადასართავად</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">ტექსტის შეყვანის რეჟიმზე გადართვა</string>
+    <string name="mtrl_picker_toggle_to_year_selection">შეეხეთ წლის არჩევაზე გადასართავად</string>
+    <string name="mtrl_timepicker_cancel">გაუქმება</string>
+    <string name="mtrl_timepicker_confirm">კარგი</string>
+    <string name="password_toggle_content_description">პაროლის ჩვენება</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"ძიება"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

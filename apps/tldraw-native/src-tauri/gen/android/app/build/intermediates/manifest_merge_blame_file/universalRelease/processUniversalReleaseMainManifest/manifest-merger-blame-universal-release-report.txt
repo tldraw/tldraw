@@ -1,0 +1,113 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.tldraw_native_app"
+4    android:versionCode="1000"
+5    android:versionName="0.1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:3:5-67
+11-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:3:22-64
+12
+13    <!-- AndroidTV support -->
+14    <uses-feature
+14-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:6:5-87
+15        android:name="android.software.leanback"
+15-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:6:19-59
+16        android:required="false" />
+16-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:6:60-84
+17
+18    <permission
+18-->[androidx.core:core:1.9.0] /Users/mitja/.gradle/caches/8.9/transforms/ab4fb08c13136743d893e52a8dffec55/transformed/core-1.9.0/AndroidManifest.xml:22:5-24:47
+19        android:name="com.tldraw_native_app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+19-->[androidx.core:core:1.9.0] /Users/mitja/.gradle/caches/8.9/transforms/ab4fb08c13136743d893e52a8dffec55/transformed/core-1.9.0/AndroidManifest.xml:23:9-81
+20        android:protectionLevel="signature" />
+20-->[androidx.core:core:1.9.0] /Users/mitja/.gradle/caches/8.9/transforms/ab4fb08c13136743d893e52a8dffec55/transformed/core-1.9.0/AndroidManifest.xml:24:9-44
+21
+22    <uses-permission android:name="com.tldraw_native_app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+22-->[androidx.core:core:1.9.0] /Users/mitja/.gradle/caches/8.9/transforms/ab4fb08c13136743d893e52a8dffec55/transformed/core-1.9.0/AndroidManifest.xml:26:5-97
+22-->[androidx.core:core:1.9.0] /Users/mitja/.gradle/caches/8.9/transforms/ab4fb08c13136743d893e52a8dffec55/transformed/core-1.9.0/AndroidManifest.xml:26:22-94
+23
+24    <application
+25        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+25-->[androidx.core:core:1.9.0] /Users/mitja/.gradle/caches/8.9/transforms/ab4fb08c13136743d893e52a8dffec55/transformed/core-1.9.0/AndroidManifest.xml:28:18-86
+26        android:extractNativeLibs="false"
+27        android:icon="@mipmap/ic_launcher"
+27-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:9:9-43
+28        android:label="@string/app_name"
+28-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:10:9-41
+29        android:theme="@style/Theme.tldraw_native"
+29-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:11:9-51
+30        android:usesCleartextTraffic="false" >
+30-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:12:9-63
+31        <activity
+31-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:13:9-25:20
+32            android:name="com.tldraw_native_app.MainActivity"
+32-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:17:13-41
+33            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+33-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:14:13-129
+34            android:exported="true"
+34-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:18:13-36
+35            android:label="@string/main_activity_title"
+35-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:16:13-56
+36            android:launchMode="singleTask" >
+36-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:15:13-44
+37            <intent-filter>
+37-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:19:13-24:29
+38                <action android:name="android.intent.action.MAIN" />
+38-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:20:17-69
+38-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:20:25-66
+39
+40                <category android:name="android.intent.category.LAUNCHER" />
+40-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:21:17-77
+40-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:21:27-74
+41                <!-- AndroidTV support -->
+42                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+42-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:23:17-86
+42-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:23:27-83
+43            </intent-filter>
+44        </activity>
+45
+46        <provider
+47            android:name="androidx.core.content.FileProvider"
+47-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:28:11-60
+48            android:authorities="com.tldraw_native_app.fileprovider"
+48-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:29:11-62
+49            android:exported="false"
+49-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:30:11-35
+50            android:grantUriPermissions="true" >
+50-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:31:11-45
+51            <meta-data
+51-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:32:11-34:50
+52                android:name="android.support.FILE_PROVIDER_PATHS"
+52-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:33:13-63
+53                android:resource="@xml/file_paths" />
+53-->/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/src/main/AndroidManifest.xml:34:13-47
+54        </provider>
+55        <provider
+55-->[androidx.emoji2:emoji2:1.2.0] /Users/mitja/.gradle/caches/8.9/transforms/b639c70bbb1c9023261a5e0e2370c9fe/transformed/emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
+56            android:name="androidx.startup.InitializationProvider"
+56-->[androidx.emoji2:emoji2:1.2.0] /Users/mitja/.gradle/caches/8.9/transforms/b639c70bbb1c9023261a5e0e2370c9fe/transformed/emoji2-1.2.0/AndroidManifest.xml:25:13-67
+57            android:authorities="com.tldraw_native_app.androidx-startup"
+57-->[androidx.emoji2:emoji2:1.2.0] /Users/mitja/.gradle/caches/8.9/transforms/b639c70bbb1c9023261a5e0e2370c9fe/transformed/emoji2-1.2.0/AndroidManifest.xml:26:13-68
+58            android:exported="false" >
+58-->[androidx.emoji2:emoji2:1.2.0] /Users/mitja/.gradle/caches/8.9/transforms/b639c70bbb1c9023261a5e0e2370c9fe/transformed/emoji2-1.2.0/AndroidManifest.xml:27:13-37
+59            <meta-data
+59-->[androidx.emoji2:emoji2:1.2.0] /Users/mitja/.gradle/caches/8.9/transforms/b639c70bbb1c9023261a5e0e2370c9fe/transformed/emoji2-1.2.0/AndroidManifest.xml:29:13-31:52
+60                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+60-->[androidx.emoji2:emoji2:1.2.0] /Users/mitja/.gradle/caches/8.9/transforms/b639c70bbb1c9023261a5e0e2370c9fe/transformed/emoji2-1.2.0/AndroidManifest.xml:30:17-75
+61                android:value="androidx.startup" />
+61-->[androidx.emoji2:emoji2:1.2.0] /Users/mitja/.gradle/caches/8.9/transforms/b639c70bbb1c9023261a5e0e2370c9fe/transformed/emoji2-1.2.0/AndroidManifest.xml:31:17-49
+62            <meta-data
+62-->[androidx.lifecycle:lifecycle-process:2.4.1] /Users/mitja/.gradle/caches/8.9/transforms/bfc872b4623342c2946e350390dd2f82/transformed/lifecycle-process-2.4.1/AndroidManifest.xml:31:13-33:52
+63                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+63-->[androidx.lifecycle:lifecycle-process:2.4.1] /Users/mitja/.gradle/caches/8.9/transforms/bfc872b4623342c2946e350390dd2f82/transformed/lifecycle-process-2.4.1/AndroidManifest.xml:32:17-78
+64                android:value="androidx.startup" />
+64-->[androidx.lifecycle:lifecycle-process:2.4.1] /Users/mitja/.gradle/caches/8.9/transforms/bfc872b4623342c2946e350390dd2f82/transformed/lifecycle-process-2.4.1/AndroidManifest.xml:33:17-49
+65        </provider>
+66    </application>
+67
+68</manifest>

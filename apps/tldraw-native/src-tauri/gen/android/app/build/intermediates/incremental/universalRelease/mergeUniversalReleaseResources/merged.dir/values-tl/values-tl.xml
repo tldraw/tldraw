@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d bagong notification</item>
+    <item quantity="other">%d na bagong notification</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"Mag-navigate sa home"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"Mag-navigate pataas"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"Higit pang opsyon"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"Tapos na"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"Tingnan lahat"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"Pumili ng app"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"I-OFF"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"I-ON"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt+"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl+"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"delete"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Function+"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta+"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift+"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"space"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym+"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Menu+"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"Maghanap…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"I-clear ang query"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"Query sa paghahanap"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"Maghanap"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"Isumite ang query"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"Paghahanap gamit ang boses"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Ibahagi sa/kay"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Ibahagi gamit ang <ns1:g id="APPLICATION_NAME">%s</ns1:g>"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"I-collapse"</string>
+    <string name="bottomsheet_action_collapse">I-collapse ang bottom sheet</string>
+    <string name="bottomsheet_action_expand">I-expand ang bottom sheet</string>
+    <string name="bottomsheet_action_expand_halfway">I-expand hanggang gitna</string>
+    <string name="bottomsheet_drag_handle_clicked">Na-double tap ang handle sa pag-drag</string>
+    <string name="bottomsheet_drag_handle_content_description">I-drag ang handle</string>
+    <string name="character_counter_content_description">Mga character na nailagay %1$d sa %2$d</string>
+    <string name="character_counter_overflowed_content_description">Lumampas sa limitasyon sa bilang ng character %1$d sa %2$d</string>
+    <string name="clear_text_end_icon_content_description">I-clear ang text</string>
+    <string name="error_icon_content_description">Error</string>
+    <string name="exposed_dropdown_menu_content_description">Ipakita ang dropdown na menu</string>
+    <string name="icon_content_description">Icon ng Dialog</string>
+    <string name="item_view_role_description">Tab</string>
+    <string name="material_clock_toggle_content_description">Piliin ang AM o PM</string>
+    <string name="material_hour_24h_suffix">%1$s (na) oras</string>
+    <string name="material_hour_selection">Pumili ng oras</string>
+    <string name="material_hour_suffix">%1$s o\'clock</string>
+    <string name="material_minute_selection">Pumili ng mga minuto</string>
+    <string name="material_minute_suffix">%1$s (na) minuto</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">Lumipat sa mode ng orasan para sa input na oras.</string>
+    <string name="material_timepicker_hour">Oras</string>
+    <string name="material_timepicker_minute">Minuto</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">Pumili ng oras</string>
+    <string name="material_timepicker_text_input_mode_description">Lumipat sa pamamaraan ng pag-input ng text para sa input na oras.</string>
+    <string name="mtrl_badge_numberless_content_description">Bagong notification</string>
+    <string name="mtrl_chip_close_icon_content_description">Alisin ang %1$s</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">Mahigit %1$d (na) bagong notification</string>
+    <string name="mtrl_picker_a11y_next_month">Lumipat sa susunod na buwan</string>
+    <string name="mtrl_picker_a11y_prev_month">Lumipat sa nakaraang buwan</string>
+    <string name="mtrl_picker_announce_current_selection">Kasalukuyang seleksyon: %1$s</string>
+    <string name="mtrl_picker_cancel">Kanselahin</string>
+    <string name="mtrl_picker_confirm">OK</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">Pumili ng Petsa</string>
+    <string name="mtrl_picker_date_header_unselected">Piniling petsa</string>
+    <string name="mtrl_picker_day_of_week_column_header">Column ng mga araw: %1$s</string>
+    <string name="mtrl_picker_invalid_format">Invalid na format.</string>
+    <string name="mtrl_picker_invalid_format_example">Halimbawa: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">Gamitin: %1$s</string>
+    <string name="mtrl_picker_invalid_range">Invalid na hanay.</string>
+    <string name="mtrl_picker_navigate_to_year_description">Mag-navigate patungo sa taong %1$s</string>
+    <string name="mtrl_picker_out_of_range">Wala sa sakop: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">Petsa ng pagsisimula – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – Petsa ng pagtatapos</string>
+    <string name="mtrl_picker_range_header_selected">%1$s – %2$s</string>
+    <string name="mtrl_picker_range_header_title">Pumili ng Range</string>
+    <string name="mtrl_picker_range_header_unselected">Petsa ng pagsisimula – Petsa ng pagtatapos</string>
+    <string name="mtrl_picker_save">I-save</string>
+    <string name="mtrl_picker_text_input_date_hint">Petsa</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">Petsa ng pagtatapos</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">Petsa ng pagsisimula</string>
+    <string name="mtrl_picker_text_input_day_abbr">d</string>
+    <string name="mtrl_picker_text_input_month_abbr">m</string>
+    <string name="mtrl_picker_text_input_year_abbr">y</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">Lumipat sa pamamaraan ng pag-input ng kalendaryo</string>
+    <string name="mtrl_picker_toggle_to_day_selection">I-tap para lumipat sa pagpili ng araw</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">Lumipat sa pamamaraan ng pag-input ng text</string>
+    <string name="mtrl_picker_toggle_to_year_selection">I-tap para lumipat sa pagpili ng taon</string>
+    <string name="mtrl_timepicker_cancel">Kanselahin</string>
+    <string name="mtrl_timepicker_confirm">OK</string>
+    <string name="password_toggle_content_description">Ipakita ang password</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"Maghanap"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

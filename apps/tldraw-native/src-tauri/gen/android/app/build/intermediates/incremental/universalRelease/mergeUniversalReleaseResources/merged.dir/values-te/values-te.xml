@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d కొత్త నోటిఫికేషన్</item>
+    <item quantity="other">%d కొత్త నోటిఫికేషన్‌లు</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"హోమ్‌కు నావిగేట్ చేస్తుంది"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"పైకి నావిగేట్ చేస్తుంది"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"మరిన్ని ఆప్షన్‌లు"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"పూర్తయింది"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"అన్నీ చూడండి"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"యాప్‌ను ఎంచుకోండి"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"ఆఫ్"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"ఆన్"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt+"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl+"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"delete"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Function+"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta+"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift+"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"స్పేస్"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym+"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Menu+"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"సెర్చ్ చేయండి…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"ప్రశ్నను తీసివేస్తుంది"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"సెర్చ్ క్వెరీ"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"సెర్చ్"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"ప్రశ్నని సమర్పిస్తుంది"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"వాయిస్ సెర్చ్"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"వీరితో షేర్ చేస్తుంది"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g>తో షేర్ చేస్తుంది"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"కుదిస్తుంది"</string>
+    <string name="bottomsheet_action_collapse">దిగువున ఉన్న షీట్‌ను కుదిస్తుంది</string>
+    <string name="bottomsheet_action_expand">దిగువున ఉన్న షీట్‌ను విస్తరిస్తుంది</string>
+    <string name="bottomsheet_action_expand_halfway">సగాన్ని విస్తరింపజేయండి</string>
+    <string name="bottomsheet_drag_handle_clicked">లాగే హ్యాండిల్ డబుల్-ట్యాప్ చేయబడింది</string>
+    <string name="bottomsheet_drag_handle_content_description">లాగే హ్యాండిల్</string>
+    <string name="character_counter_content_description">%2$dలో %1$d అక్షరాలు నమోదు చేయబడ్డాయి</string>
+    <string name="character_counter_overflowed_content_description">అక్షర పరిధి %2$dలో %1$dను అధిగమించింది</string>
+    <string name="clear_text_end_icon_content_description">రాసినదాన్ని తీసివేయండి</string>
+    <string name="error_icon_content_description">ఎర్రర్</string>
+    <string name="exposed_dropdown_menu_content_description">డ్రాప్‌డౌన్ మెనూను చూపు</string>
+    <string name="icon_content_description">డైలాగ్ చిహ్నం</string>
+    <string name="item_view_role_description">ట్యాబ్</string>
+    <string name="material_clock_toggle_content_description">AM లేదా PMను ఎంచుకోండి</string>
+    <string name="material_hour_24h_suffix">%1$s గంటలు</string>
+    <string name="material_hour_selection">గంటను ఎంచుకోండి</string>
+    <string name="material_hour_suffix">%1$s అవుతుంది</string>
+    <string name="material_minute_selection">నిమిషాలను ఎంచుకోండి</string>
+    <string name="material_minute_suffix">%1$s నిమిషాలు</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">సమయాన్ని నమోదు చేయడం కోసం గడియారం మోడ్‌కు మారండి.</string>
+    <string name="material_timepicker_hour">గంట</string>
+    <string name="material_timepicker_minute">నిమిషం</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">సమయాన్ని ఎంచుకోండి</string>
+    <string name="material_timepicker_text_input_mode_description">సమయాన్ని నమోదు చేయడం కోసం వచన నమోదు మోడ్‌కి మారండి.</string>
+    <string name="mtrl_badge_numberless_content_description">కొత్త నోటిఫికేషన్</string>
+    <string name="mtrl_chip_close_icon_content_description">(%1$s)ని తీసివేస్తుంది</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">%1$d కంటే ఎక్కువ కొత్త నోటిఫికేషన్‌లు</string>
+    <string name="mtrl_picker_a11y_next_month">వచ్చే నెలకు మార్చుతుంది</string>
+    <string name="mtrl_picker_a11y_prev_month">మునుపటి నెలకు మార్చుతుంది</string>
+    <string name="mtrl_picker_announce_current_selection">ప్రస్తుత ఎంపిక: %1$s</string>
+    <string name="mtrl_picker_cancel">రద్దు చేయి</string>
+    <string name="mtrl_picker_confirm">సరే</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">తేదీని ఎంచుకోండి</string>
+    <string name="mtrl_picker_date_header_unselected">ఎంచుకున్న తేది</string>
+    <string name="mtrl_picker_day_of_week_column_header">రోజుల నిలువు వరుస: %1$s</string>
+    <string name="mtrl_picker_invalid_format">ఫార్మాట్ చెల్లదు.</string>
+    <string name="mtrl_picker_invalid_format_example">ఉదాహరణ: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">ఇలా ఉపయోగించండి: %1$s</string>
+    <string name="mtrl_picker_invalid_range">చెల్లని పరిధి.</string>
+    <string name="mtrl_picker_navigate_to_year_description">%1$sసంవత్సరానికి నావిగేట్ చేస్తుంది</string>
+    <string name="mtrl_picker_out_of_range">పరిధి వెలుపల ఉంది: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">ప్రారంభ తేదీ – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – ముగింపు తేది</string>
+    <string name="mtrl_picker_range_header_selected">%1$s – %2$s</string>
+    <string name="mtrl_picker_range_header_title">పరిధిని ఎంచుకోండి</string>
+    <string name="mtrl_picker_range_header_unselected">ప్రారంభ తేది - ముగింపు తేది</string>
+    <string name="mtrl_picker_save">సేవ్ చేయి</string>
+    <string name="mtrl_picker_text_input_date_hint">తేదీ</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">ముగింపు తేదీ</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">ప్రారంభ తేదీ</string>
+    <string name="mtrl_picker_text_input_day_abbr">రో</string>
+    <string name="mtrl_picker_text_input_month_abbr">నె</string>
+    <string name="mtrl_picker_text_input_year_abbr">సం</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">క్యాలెండర్ ఇన్‌పుట్ మోడ్‌కు మారుస్తుంది</string>
+    <string name="mtrl_picker_toggle_to_day_selection">\'రోజును ఎంపిక చేసుకోవడం\'కు మారడానికి నొక్కండి</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">వచన ఇన్‌పుట్ మోడ్‌కు మారుస్తుంది</string>
+    <string name="mtrl_picker_toggle_to_year_selection">\'సంవత్సరాన్ని ఎంపిక చేసుకోవడం\'కు మారడానికి నొక్కండి</string>
+    <string name="mtrl_timepicker_cancel">రద్దు చేయండి</string>
+    <string name="mtrl_timepicker_confirm">సరే</string>
+    <string name="password_toggle_content_description">పాస్‌వర్డ్‌ను చూపు</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"సెర్చ్"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

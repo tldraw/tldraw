@@ -17,7 +17,11 @@ if (!PUBLISHABLE_KEY) {
 export function Component() {
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-			<Outlet />
+			<div>{window.location.href}</div>
+
+			<div style={{ position: 'absolute', top: '10%', bottom: 0, left: 0, right: 0 }}>
+				<Outlet />
+			</div>
 		</ClerkProvider>
 	)
 }
