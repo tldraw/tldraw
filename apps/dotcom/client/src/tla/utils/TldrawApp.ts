@@ -1,4 +1,7 @@
 import {
+	CreateSnapshotRequestBody,
+	CreateSnapshotResponseBody,
+	SNAPSHOT_PREFIX,
 	TldrawAppFile,
 	TldrawAppFileEdit,
 	TldrawAppFileEditRecordType,
@@ -12,8 +15,11 @@ import {
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
 } from '@tldraw/dotcom-shared'
-import { Store, TLStoreSnapshot, computed } from 'tldraw'
+import { fetch } from '@tldraw/utils'
+import { Editor, Store, TLStoreSnapshot, computed } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { getSnapshotData } from '../../utils/sharing'
+const CREATE_APP_SNAPSHOT_ENDPOINT = `/api/app/snapshots`
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -351,10 +357,33 @@ export class TldrawApp {
 		return new Promise((r) => setTimeout(r, 2000))
 	}
 
-	async createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
-		// todo: create a snapshot link on the server and return the url
-		console.warn('snapshot links are not implemented yet, but you are in the right place')
-		return new Promise((r) => setTimeout(r, 2000))
+	async createSnapshotLink(editor: Editor, _userId: TldrawAppUserId, parentSlug: string) {
+		const data = await getSnapshotData(editor)
+
+		if (!data) return
+
+		const res = await fetch(CREATE_APP_SNAPSHOT_ENDPOINT, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				snapshot: data,
+				schema: editor.store.schema.serialize(),
+				parent_slug: parentSlug,
+			} satisfies CreateSnapshotRequestBody),
+		})
+		const response = (await res.json()) as CreateSnapshotResponseBody
+
+		if (!res.ok || response.error) {
+			console.error(await res.text())
+			return
+		}
+
+		const url = editor.createDeepLink({
+			url: `${window.location.origin}/q/${SNAPSHOT_PREFIX}/${response.roomId}`,
+		})
+		return url.toString()
 	}
 
 	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {

@@ -1,5 +1,6 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useParams } from 'react-router-dom'
 import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
@@ -7,7 +8,7 @@ import { useTldrawUser } from '../../hooks/useUser'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
-import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
+import { getShareableFileUrl } from '../../utils/urls'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
@@ -43,7 +44,7 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 				{isShared && <QrCode fileId={fileId} />}
 			</TlaMenuSection>
 			<TlaMenuSection>
-				<TlaCopySnapshotLinkButton fileId={fileId} />
+				<TlaCopySnapshotLinkButton />
 			</TlaMenuSection>
 		</TlaTabsPage>
 	)
@@ -140,28 +141,38 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 	)
 }
 
-function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
+function TlaCopySnapshotLinkButton() {
 	const app = useApp()
+	const { fileSlug } = useParams()
+
+	const editor = getCurrentEditor()
 	const raw = useRaw()
 
 	const { addToast } = useToasts()
 
-	const handleCopyLinkClick = useCallback(() => {
+	if (!fileSlug) throw Error('no file slug')
+
+	const handleCopyLinkClick = useCallback(async () => {
 		const { auth } = app.getSessionState()
 		if (!auth) throw Error('should have auth')
 		const { userId } = auth
+		if (!editor) throw Error('no editor')
 
-		// todo: implement snapshot link
-		app.createSnapshotLink(userId, fileId)
-		// Copy the snapshot url to clipboard
-		const url = getSnapshotFileUrl(fileId)
-		copyTextToClipboard(url)
+		const url = await app.createSnapshotLink(editor, userId, fileSlug)
+		if (!url) {
+			addToast({
+				title: 'could not create snapshot',
+				severity: 'success',
+			})
+		} else {
+			copyTextToClipboard(url)
 
-		addToast({
-			title: 'copied',
-			severity: 'success',
-		})
-	}, [app, fileId, addToast])
+			addToast({
+				title: 'copied',
+				severity: 'success',
+			})
+		}
+	}, [app, , addToast, editor, fileSlug])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">

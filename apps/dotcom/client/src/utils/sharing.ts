@@ -191,6 +191,26 @@ async function getRoomData(
 	addToast: TLUiToastsContextType['addToast'],
 	msg: (id: TLUiTranslationKey) => string
 ) {
+	const data = await getSnapshotData(editor)
+	const size = new Blob([JSON.stringify(data)]).size
+
+	if (size > 3999999) {
+		addToast({
+			title: 'Too big!',
+			description: msg('share-menu.project-too-large'),
+			severity: 'warning',
+		})
+
+		trackAnalyticsEvent('shared-fail-too-big', {
+			size: size.toString(),
+		})
+
+		return null
+	}
+	return data
+}
+
+export async function getSnapshotData(editor: Editor) {
 	const rawData = editor.store.serialize()
 
 	// rawData contains a cache of previously added assets,
@@ -229,22 +249,6 @@ async function getRoomData(
 			// remove the asset after processing so we don't clone it multiple times
 			assets.delete(asset.id)
 		}
-	}
-
-	const size = new Blob([JSON.stringify(data)]).size
-
-	if (size > 3999999) {
-		addToast({
-			title: 'Too big!',
-			description: msg('share-menu.project-too-large'),
-			severity: 'warning',
-		})
-
-		trackAnalyticsEvent('shared-fail-too-big', {
-			size: size.toString(),
-		})
-
-		return null
 	}
 	return data
 }

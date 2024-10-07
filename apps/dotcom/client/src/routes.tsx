@@ -65,6 +65,7 @@ export const router = createRoutesFromElements(
 				<Route path="/q" lazy={() => import('./tla/components/RedirectAtRoot')} />
 				{/* File view*/}
 				<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
+				<Route path="/q/s/:fileSlug" lazy={() => import('./tla/pages/snapshot')} />
 				{/* User settings */}
 				<Route path="/q/profile" lazy={() => import('./tla/components/RequireAuthForUser')}>
 					<Route index lazy={() => import('./tla/pages/profile')} />
