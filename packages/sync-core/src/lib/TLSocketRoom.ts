@@ -1,6 +1,7 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
-import { objectMapValues } from '@tldraw/utils'
+import { objectMapValues, structuredClone } from '@tldraw/utils'
+import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
@@ -233,6 +234,34 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	getCurrentDocumentClock() {
 		return this.room.documentClock
+	}
+
+	/**
+	 * Returns a deeply cloned record from the store, if available.
+	 * @param id - The id of the record
+	 * @returns the cloned record
+	 */
+	getRecord(id: string) {
+		return structuredClone(this.room.state.get().documents[id]?.state)
+	}
+
+	/**
+	 * Returns a list of the sessions in the room.
+	 */
+	getSessions(): Array<{
+		sessionId: string
+		isConnected: boolean
+		isReadonly: boolean
+		meta: SessionMeta
+	}> {
+		return [...this.room.sessions.values()].map((session) => {
+			return {
+				sessionId: session.sessionId,
+				isConnected: session.state === RoomSessionState.Connected,
+				isReadonly: session.isReadonly,
+				meta: session.meta,
+			}
+		})
 	}
 
 	/**

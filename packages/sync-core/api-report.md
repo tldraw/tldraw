@@ -334,6 +334,13 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     getCurrentDocumentClock(): number;
     getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;
+    getRecord(id: string): R;
+    getSessions(): Array<{
+        isConnected: boolean;
+        isReadonly: boolean;
+        meta: SessionMeta;
+        sessionId: string;
+    }>;
     handleSocketClose(sessionId: string): void;
     handleSocketConnect(opts: {
         isReadonly?: boolean;
