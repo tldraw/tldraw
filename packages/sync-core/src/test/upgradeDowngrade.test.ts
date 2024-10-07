@@ -439,7 +439,8 @@ test('v5 special case should allow connections', () => {
 		},
 		serverClock: 1,
 		type: 'connect',
-	})
+		isReadonly: false,
+	} satisfies TLSocketServerSentEvent<RV2>)
 })
 
 test('clients using a too-new protocol will receive compatibility errors', () => {
