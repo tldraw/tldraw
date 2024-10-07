@@ -21,6 +21,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLStoreOptions,
 	TLWheelEventInfo,
 	Vec,
 	VecLike,
@@ -63,7 +64,10 @@ declare global {
 }
 
 export class TestEditor extends Editor {
-	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
+	constructor(
+		options: Partial<Omit<TLEditorOptions, 'store'>> = {},
+		storeOptions: Partial<TLStoreOptions> = {}
+	) {
 		const elm = document.createElement('div')
 		const bounds = {
 			x: 0,
@@ -93,6 +97,7 @@ export class TestEditor extends Editor {
 			store: createTLStore({
 				shapeUtils: shapeUtilsWithDefaults,
 				bindingUtils: bindingUtilsWithDefaults,
+				...storeOptions,
 			}),
 			getContainer: () => elm,
 			initialState: 'select',
