@@ -1,6 +1,8 @@
 import { useAuth } from '@clerk/clerk-react'
+import { ReactNode } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { AppStateProvider } from '../hooks/useAppState'
+import { useValue } from 'tldraw'
+import { AppStateProvider, useApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 
@@ -17,8 +19,22 @@ export function Component() {
 	return (
 		<AppStateProvider>
 			<UserProvider>
-				<Outlet />
+				<ThemeContainer>
+					<Outlet />
+				</ThemeContainer>
 			</UserProvider>
 		</AppStateProvider>
+	)
+}
+
+function ThemeContainer({ children }: { children: ReactNode }) {
+	const app = useApp()
+	const theme = useValue('theme', () => app?.getSessionState().theme ?? 'light', [app])
+	return (
+		<div
+			className={`tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+		>
+			{children}
+		</div>
 	)
 }

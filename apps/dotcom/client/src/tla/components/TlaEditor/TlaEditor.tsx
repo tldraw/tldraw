@@ -104,6 +104,7 @@ export function TlaEditor({
 	const handleMount = useCallback((editor: Editor) => {
 		;(window as any).app = editor
 		;(window as any).editor = editor
+
 		// Register the editor globally
 		globalEditor.set(editor)
 
