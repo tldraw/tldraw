@@ -1,6 +1,6 @@
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -101,6 +101,15 @@ export function TlaEditor({
 
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
 
+	useLayoutEffect(() => {
+		setReady(false)
+		// Set the editor to ready after a short delay
+		const timeout = setTimeout(() => setReady(true), 200)
+		return () => {
+			clearTimeout(timeout)
+		}
+	}, [fileId])
+
 	const handleMount = useCallback((editor: Editor) => {
 		;(window as any).app = editor
 		;(window as any).editor = editor
@@ -109,9 +118,6 @@ export function TlaEditor({
 
 		// Register the external asset handler
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-
-		// Set the editor to ready after a short delay
-		editor.timers.setTimeout(() => setReady(true), 200)
 	}, [])
 
 	// Handle entering and exiting the file
