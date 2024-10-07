@@ -1,9 +1,13 @@
-import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { DefaultPageMenu, TldrawUiInput, usePassThroughWheelEvents, useValue } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
+import {
+	DefaultPageMenu,
+	TldrawUiInput,
+	useEditor,
+	usePassThroughWheelEvents,
+	useValue,
+} from 'tldraw'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -13,46 +17,59 @@ import styles from './top.module.css'
 // There are some styles in tla.css that adjust the regular tlui top panels
 
 export function TlaEditorTopLeftPanel() {
-	const app = useApp()
-	const raw = useRaw()
+	const app = useMaybeApp()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
-
-	const { fileSlug } = useParams<{ fileSlug: TldrawAppFileId }>()
-	if (!fileSlug) throw Error('File id not found')
-	const fileId = TldrawAppFileRecordType.createId(fileSlug)
-
-	const fileName = useValue('fileName', () => app.getFileName(fileId), [fileId])
-
-	if (!fileName) throw Error('File name not found')
-
-	const handleNameChange = useCallback(
-		(name: string) => {
-			app.store.update(fileId, (file) => {
-				return {
-					...file,
-					name,
-				}
-			})
-		},
-		[app, fileId]
-	)
 
 	return (
 		<div ref={ref} className={classNames(styles.topPanelLeft)}>
 			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
-				<TlaSidebarToggle />
-				<TlaSidebarToggleMobile />
-				<TlaFileNameEditor fileName={fileName} onChange={handleNameChange} />
-				<span className={styles.topPanelSeparator}>{raw('/')}</span>
-				<DefaultPageMenu />
-				<TlaFileMenu fileId={fileId} source="file-header">
-					<button className={styles.linkMenu}>
-						<TlaIcon icon="dots-vertical-strong" />
-					</button>
-				</TlaFileMenu>
+				{app ? <TlaEditorTopLeftPanelSignedIn /> : <TlaEditorTopLeftPanelAnonymous />}
 			</div>
 		</div>
+	)
+}
+
+export function TlaEditorTopLeftPanelAnonymous() {
+	const raw = useRaw()
+	const editor = useEditor()
+	const fileName = useValue('fileName', () => editor.getDocumentSettings().name || 'New board', [])
+	const handleFileNameChange = useCallback(
+		(name: string) => editor.updateDocumentSettings({ name }),
+		[editor]
+	)
+
+	return (
+		<>
+			<TlaFileNameEditor fileName={fileName} onChange={handleFileNameChange} />
+			<span className={styles.topPanelSeparator}>{raw('/')}</span>
+			<DefaultPageMenu />
+		</>
+	)
+}
+
+export function TlaEditorTopLeftPanelSignedIn() {
+	const raw = useRaw()
+	const editor = useEditor()
+	const fileName = useValue('fileName', () => editor.getDocumentSettings().name, [])
+	const handleFileNameChange = useCallback(
+		(name: string) => editor.updateDocumentSettings({ name }),
+		[editor]
+	)
+
+	return (
+		<>
+			<TlaSidebarToggle />
+			<TlaSidebarToggleMobile />
+			<TlaFileNameEditor fileName={fileName} onChange={handleFileNameChange} />
+			<span className={styles.topPanelSeparator}>{raw('/')}</span>
+			<DefaultPageMenu />
+			<TlaFileMenu source="file-header">
+				<button className={styles.linkMenu}>
+					<TlaIcon icon="dots-vertical-strong" />
+				</button>
+			</TlaFileMenu>
+		</>
 	)
 }
 

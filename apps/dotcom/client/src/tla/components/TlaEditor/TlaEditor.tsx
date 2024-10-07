@@ -7,11 +7,13 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	Editor,
+	OfflineIndicator,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	useActions,
+	useCollaborationStatus,
 	useEditor,
 	useReactor,
 } from 'tldraw'
@@ -26,7 +28,7 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useSharing } from '../../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { TldrawApp } from '../../utils/TldrawApp'
@@ -34,20 +36,10 @@ import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
-// const shittyOfflineAtom = atom('shitty offline atom', false)
-
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	// HelpMenu: () => (
-	// 	<DefaultHelpMenu>
-	// 		<TldrawUiMenuGroup id="help">
-	// 			<DefaultHelpMenuContent />
-	// 		</TldrawUiMenuGroup>
-	// 		<Links />
-	// 	</DefaultHelpMenu>
-	// ),
 	KeyboardShortcutsDialog: (props) => {
 		const actions = useActions()
 		return (
@@ -73,10 +65,11 @@ const components: TLComponents = {
 			</DefaultDebugMenu>
 		)
 	},
-	// TopPanel: () => {
-	// 	const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
-	// 	return <TlaDocumentTopZone isOffline={isOffline} />
-	// },
+	TopPanel: () => {
+		const collaborationStatus = useCollaborationStatus()
+		if (collaborationStatus === 'offline') return null
+		return <OfflineIndicator />
+	},
 }
 
 export function TlaEditor({
@@ -231,8 +224,9 @@ function SneakyDarkModeSync() {
 
 function SneakyTldrawFileDropHandler() {
 	const editor = useEditor()
-	const app = useApp()
+	const app = useMaybeApp()
 	useEffect(() => {
+		if (!app) return
 		const defaultOnDrop = editor.externalContentHandlers['files']
 		editor.registerExternalContentHandler('files', async (content) => {
 			const { files } = content
