@@ -12,23 +12,24 @@ import {
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
 } from '@tldraw/dotcom-shared'
-import { Editor, Store, TLStoreSnapshot, computed } from 'tldraw'
+import { Store, TLStoreSnapshot, computed } from 'tldraw'
+import { globalEditor } from '../../utils/globalEditor'
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
 
+		// todo: replace this when we have application-level user preferences
 		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
 			if (prev.theme !== next.theme) {
-				const editor = this.getCurrentEditor()
-				if (editor) {
-					const editorIsDark = editor.user.getIsDarkMode()
-					const appIsDark = next.theme === 'dark'
-					if (appIsDark && !editorIsDark) {
-						editor.user.updateUserPreferences({ colorScheme: 'dark' })
-					} else if (!appIsDark && editorIsDark) {
-						editor.user.updateUserPreferences({ colorScheme: 'light' })
-					}
+				const editor = globalEditor.get()
+				if (!editor) return
+				const editorIsDark = editor.user.getIsDarkMode()
+				const appIsDark = next.theme === 'dark'
+				if (appIsDark && !editorIsDark) {
+					editor.user.updateUserPreferences({ colorScheme: 'dark' })
+				} else if (!appIsDark && editorIsDark) {
+					editor.user.updateUserPreferences({ colorScheme: 'light' })
 				}
 			}
 		})
@@ -43,16 +44,6 @@ export class TldrawApp {
 
 	dispose() {
 		this.store.dispose()
-	}
-
-	private _currentEditor: Editor | null = null
-
-	getCurrentEditor() {
-		return this._currentEditor
-	}
-
-	setCurrentEditor(editor: Editor | null) {
-		this._currentEditor = editor
 	}
 
 	getSessionState(): TldrawAppSessionState {

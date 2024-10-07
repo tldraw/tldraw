@@ -1,6 +1,6 @@
-import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -15,6 +15,7 @@ import {
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	tltime,
 	useActions,
 	useCollaborationStatus,
 	useEditor,
@@ -28,10 +29,9 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { useSharing } from '../../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { useMaybeApp } from '../../hooks/useAppState'
+import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { TldrawApp } from '../../utils/TldrawApp'
@@ -98,70 +98,45 @@ export function TlaEditor({
 	const app = useMaybeApp()
 
 	const [ready, setReady] = useState(false)
+
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
 
-	const rPrevFileId = useRef(fileId)
-	useEffect(() => {
-		if (rPrevFileId.current !== fileId) {
-			setReady(false)
-			rPrevFileId.current = fileId
-		}
-	}, [fileId])
+	const handleMount = useCallback((editor: Editor) => {
+		;(window as any).app = editor
+		;(window as any).editor = editor
+		// Register the editor globally
+		globalEditor.set(editor)
 
-	const sharingUiOverrides = useSharing()
+		// Register the external asset handler
+		editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
-	const handleMount = useCallback(
-		(editor: Editor) => {
-			;(window as any).app = editor
-			;(window as any).editor = editor
-			globalEditor.set(editor)
-			editor.registerExternalAssetHandler('url', createAssetFromUrl)
-			app?.setCurrentEditor(editor)
-			editor.timers.setTimeout(() => {
-				setReady(true)
-			}, 200)
+		// Set the editor to ready after a short delay
+		editor.timers.setTimeout(() => setReady(true), 200)
+	}, [])
 
-			const fileStartTime = Date.now()
-
-			editor.store.listen(
-				() => {
-					// Update the user's edited session date for this file
-					if (app) {
-						const sessionState = app.getSessionState()
-						if (!sessionState.auth) throw Error('Auth not found')
-						const user = app.getUser(sessionState.auth.userId)
-						if (!user) throw Error('User not found')
-						app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
-					}
-
-					onDocumentChange?.()
-				},
-				{ scope: 'document', source: 'user' }
-			)
-		},
-		[app, onDocumentChange, fileId]
-	)
-
+	// Handle entering and exiting the file
 	useEffect(() => {
 		if (!app) return
+
 		const { auth } = app.getSessionState()
 		if (!auth) throw Error('Auth not found')
 
 		const user = app.getUser(auth.userId)
 		if (!user) throw Error('User not found')
 
-		if (user.presence.fileIds.includes(fileId)) {
-			return
-		}
-
 		let cancelled = false
 		let didEnter = false
 
-		const timeout = setTimeout(() => {
-			if (cancelled) return
-			didEnter = true
-			app.onFileEnter(auth.userId, fileId)
-		}, 1000)
+		// Only mark as entered after one second
+		const timeout = tltime.setTimeout(
+			'app',
+			() => {
+				if (cancelled) return
+				didEnter = true
+				app.onFileEnter(auth.userId, fileId)
+			},
+			1000
+		)
 
 		return () => {
 			cancelled = true
@@ -195,7 +170,6 @@ export function TlaEditor({
 				store={store}
 				assetUrls={assetUrls}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
@@ -205,6 +179,7 @@ export function TlaEditor({
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
 				<SneakyTldrawFileDropHandler />
+				<SneakyFileUpdateHandler fileId={fileId} onDocumentChange={onDocumentChange} />
 			</Tldraw>
 			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
 		</div>
@@ -253,5 +228,33 @@ function SneakyTldrawFileDropHandler() {
 			}
 		})
 	}, [editor, app])
+	return null
+}
+
+function SneakyFileUpdateHandler({
+	onDocumentChange,
+	fileId,
+}: {
+	onDocumentChange?(): void
+	fileId: TldrawAppFileId
+}) {
+	const app = useApp()
+	const editor = useEditor()
+	useEffect(() => {
+		const fileStartTime = Date.now()
+		return editor.store.listen(
+			() => {
+				if (!app) return
+				const sessionState = app.getSessionState()
+				if (!sessionState.auth) throw Error('Auth not found')
+				const user = app.getUser(sessionState.auth.userId)
+				if (!user) throw Error('User not found')
+				app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
+				onDocumentChange?.()
+			},
+			{ scope: 'document', source: 'user' }
+		)
+	}, [app, onDocumentChange, fileId, editor])
+
 	return null
 }
