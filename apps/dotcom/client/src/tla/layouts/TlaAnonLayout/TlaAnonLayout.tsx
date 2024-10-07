@@ -29,7 +29,8 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 			<div className={classNames(styles.footer, 'tla-text_ui__regular')}>
 				<p>
 					<b>{raw('tldraw')}</b> {raw(' is a free online whiteboard for you and your friends. ')}
-					<Link to="/">{raw('Learn more')}</Link>
+					{/* Todo, make the rest of this layout the landing page, learn more should scroll down? */}
+					<Link to="/">{raw('Learn more.')}</Link>
 				</p>
 			</div>
 		</div>
