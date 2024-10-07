@@ -1,6 +1,6 @@
-import { useEditor } from '@tldraw/editor'
+import { useEditor, usePassThroughWheelEvents } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactNode, memo, useCallback } from 'react'
+import { ReactNode, memo, useCallback, useRef } from 'react'
 import { useRelevantStyles } from '../../hooks/useRelevantStyles'
 import { DefaultStylePanelContent } from './DefaultStylePanelContent'
 
@@ -17,6 +17,9 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 }: TLUiStylePanelProps) {
 	const editor = useEditor()
 
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
+
 	const styles = useRelevantStyles()
 
 	const handlePointerOut = useCallback(() => {
@@ -29,6 +32,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 
 	return (
 		<div
+			ref={ref}
 			className={classNames('tlui-style-panel', { 'tlui-style-panel__wrapper': !isMobile })}
 			data-ismobile={isMobile}
 			onPointerLeave={handlePointerOut}

@@ -76,7 +76,7 @@ export class PointingHandle extends StateNode {
 
 	private startDraggingHandle() {
 		const { editor } = this
-		if (editor.getInstanceState().isReadonly) return
+		if (editor.getIsReadonly()) return
 		const { shape, handle } = this.info
 
 		if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {

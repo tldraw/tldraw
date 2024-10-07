@@ -1,8 +1,10 @@
 import { ReactNode } from 'react'
 import { EditorContext, TldrawUiContextProvider, useValue } from 'tldraw'
+import { globalEditor } from '../../../utils/globalEditor'
 import { components } from '../../components/TlaEditor/TlaEditor'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { useApp } from '../../hooks/useAppState'
+import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import styles from './sidebar-layout.module.css'
 
 export function TlaSidebarLayout({ children }: { children: ReactNode; collapsable?: boolean }) {
@@ -13,17 +15,15 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsabl
 		() => app.getSessionState().isSidebarOpenMobile,
 		[app]
 	)
-	const currentEditor = useValue(
-		'editor',
-		() => (app.getSessionState().isEditorReady ? app.getCurrentEditor() : null),
-		[app]
-	)
+	const currentEditor = useValue('editor', () => globalEditor.get(), [])
 	const MaybeEditorProvider = currentEditor ? EditorContext.Provider : FakeProvider
 
 	function FakeProvider({ children }: { children: ReactNode }) {
 		return children
 	}
 	const MaybeUiContextProvider = currentEditor ? TldrawUiContextProvider : FakeProvider
+
+	usePreventAccidentalDrops()
 
 	return (
 		<MaybeEditorProvider value={currentEditor}>

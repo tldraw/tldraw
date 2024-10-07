@@ -24,7 +24,7 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 			this.room.handleClose(socketPair.id)
 		}
 
-		socketPair.callbacks.onStatusChange?.('online')
+		socketPair.callbacks.onStatusChange?.({ status: 'online' })
 	}
 
 	flushDebouncingMessages() {

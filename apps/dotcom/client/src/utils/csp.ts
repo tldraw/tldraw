@@ -14,6 +14,8 @@ export const cspDirectives: { [key: string]: string[] } = {
 		// for thumbnail server
 		'http://localhost:5002',
 		'https://*.clerk.accounts.dev',
+		'https://clerk.tldraw.com',
+		'https://clerk.staging.tldraw.com',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`https:`],

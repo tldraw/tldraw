@@ -1,25 +1,30 @@
-import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
+	DefaultQuickActions,
+	DefaultQuickActionsContent,
 	EditSubmenu,
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	OfflineIndicator,
 	TLComponents,
 	Tldraw,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	ViewSubmenu,
-	useBreakpoint,
+	tltime,
+	useActions,
+	useCollaborationStatus,
 	useEditor,
 	useReactor,
-	useTldrawUiComponents,
 } from 'tldraw'
-import { SneakyOnDropOverride } from '../../../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -28,72 +33,39 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
 import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { useSharing } from '../../../utils/sharing'
+import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
+import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
+import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
-// const shittyOfflineAtom = atom('shitty offline atom', false)
-
+/** @internal */
 export const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	// HelpMenu: () => (
-	// 	<DefaultHelpMenu>
-	// 		<TldrawUiMenuGroup id="help">
-	// 			<DefaultHelpMenuContent />
-	// 		</TldrawUiMenuGroup>
-	// 		<Links />
-	// 	</DefaultHelpMenu>
-	// ),
-	MainMenu: () => (
-		<DefaultMainMenu>
-			{/* <MultiplayerFileMenu /> */}
-			<EditSubmenu />
-			<ViewSubmenu />
-			<ExportFileContentSubMenu />
-			<ExtrasGroup />
-		</DefaultMainMenu>
-	),
-	MenuPanel: function MenuPanel() {
-		const breakpoint = useBreakpoint()
-
-		const { MainMenu, QuickActions, ActionsMenu, PageMenu } = useTldrawUiComponents()
-
-		if (!MainMenu && !PageMenu && breakpoint < 6) return null
-
-		return (
-			<div className="tlui-menu-zone">
-				<div className="tlui-buttons__horizontal">
-					{MainMenu && <MainMenu />}
-					{PageMenu && <PageMenu />}
-					{breakpoint < 6 ? null : (
-						<>
-							{QuickActions && <QuickActions />}
-							{ActionsMenu && <ActionsMenu />}
-						</>
-					)}
-				</div>
-			</div>
-		)
-	},
 	KeyboardShortcutsDialog: (props) => {
-		// const actions = useActions()
+		const actions = useActions()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				{/* <TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
+				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-					<TldrawUiMenuItem {...actions[OPEN_FILE_ACTION]} />
-				</TldrawUiMenuGroup> */}
+				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
-				{/* <TldrawUiMenuGroup label="shortcuts-dialog.collaboration" id="collaboration">
-					<TldrawUiMenuItem {...actions[CURSOR_CHAT_ACTION]} />
-				</TldrawUiMenuGroup> */}
 			</DefaultKeyboardShortcutsDialog>
 		)
+	},
+	MenuPanel: () => {
+		return <TlaEditorTopLeftPanel />
+	},
+	SharePanel: () => {
+		const app = useMaybeApp()
+		if (!app) return null
+		return <TlaEditorTopRightPanel />
 	},
 	DebugMenu: () => {
 		return (
@@ -103,18 +75,23 @@ export const components: TLComponents = {
 			</DefaultDebugMenu>
 		)
 	},
-	// TopPanel: () => {
-	// 	const isOffline = useValue('offline', () => shittyOfflineAtom.get(), [])
-	// 	return <TlaDocumentTopZone isOffline={isOffline} />
-	// },
-	SharePanel: () => {
-		return null
-		// return (
-		// 	<div className="tlui-share-zone" draggable={false}>
-		// 		<PeopleMenu />
-		// 		<ShareMenu />
-		// 	</div>
-		// )
+	TopPanel: () => {
+		const collaborationStatus = useCollaborationStatus()
+		if (collaborationStatus === 'offline') return null
+		return <OfflineIndicator />
+	},
+	QuickActions: () => {
+		return (
+			<DefaultQuickActions>
+				<DefaultMainMenu>
+					<EditSubmenu />
+					<ViewSubmenu />
+					<ExportFileContentSubMenu />
+					<ExtrasGroup />
+				</DefaultMainMenu>
+				<DefaultQuickActionsContent />
+			</DefaultQuickActions>
+		)
 	},
 }
 
@@ -131,70 +108,45 @@ export function TlaEditor({
 	const app = useMaybeApp()
 
 	const [ready, setReady] = useState(false)
+
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
 
-	const rPrevFileId = useRef(fileId)
-	useEffect(() => {
-		if (rPrevFileId.current !== fileId) {
-			setReady(false)
-			rPrevFileId.current = fileId
-		}
-	}, [fileId])
+	const handleMount = useCallback((editor: Editor) => {
+		;(window as any).app = editor
+		;(window as any).editor = editor
+		// Register the editor globally
+		globalEditor.set(editor)
 
-	const sharingUiOverrides = useSharing()
+		// Register the external asset handler
+		editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
-	const handleMount = useCallback(
-		(editor: Editor) => {
-			;(window as any).app = editor
-			;(window as any).editor = editor
-			globalEditor.set(editor)
-			editor.registerExternalAssetHandler('url', createAssetFromUrl)
-			app?.setCurrentEditor(editor)
-			editor.timers.setTimeout(() => {
-				setReady(true)
-			}, 200)
+		// Set the editor to ready after a short delay
+		editor.timers.setTimeout(() => setReady(true), 200)
+	}, [])
 
-			const fileStartTime = Date.now()
-
-			editor.store.listen(
-				() => {
-					// Update the user's edited session date for this file
-					if (app) {
-						const sessionState = app.getSessionState()
-						if (!sessionState.auth) throw Error('Auth not found')
-						const user = app.getUser(sessionState.auth.userId)
-						if (!user) throw Error('User not found')
-						app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
-					}
-
-					onDocumentChange?.()
-				},
-				{ scope: 'document', source: 'user' }
-			)
-		},
-		[app, onDocumentChange, fileId]
-	)
-
+	// Handle entering and exiting the file
 	useEffect(() => {
 		if (!app) return
+
 		const { auth } = app.getSessionState()
 		if (!auth) throw Error('Auth not found')
 
 		const user = app.getUser(auth.userId)
 		if (!user) throw Error('User not found')
 
-		if (user.presence.fileIds.includes(fileId)) {
-			return
-		}
-
 		let cancelled = false
 		let didEnter = false
 
-		const timeout = setTimeout(() => {
-			if (cancelled) return
-			didEnter = true
-			app.onFileEnter(auth.userId, fileId)
-		}, 1000)
+		// Only mark as entered after one second
+		const timeout = tltime.setTimeout(
+			'app',
+			() => {
+				if (cancelled) return
+				didEnter = true
+				app.onFileEnter(auth.userId, fileId)
+			},
+			1000
+		)
 
 		return () => {
 			cancelled = true
@@ -228,15 +180,16 @@ export function TlaEditor({
 				store={store}
 				assetUrls={assetUrls}
 				onMount={handleMount}
-				overrides={[sharingUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
+				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<LocalMigration />
-				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
+				<SneakyTldrawFileDropHandler />
+				<SneakyFileUpdateHandler fileId={fileId} onDocumentChange={onDocumentChange} />
 			</Tldraw>
 			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
 		</div>
@@ -263,6 +216,55 @@ function SneakyDarkModeSync() {
 		},
 		[app, editor]
 	)
+
+	return null
+}
+
+function SneakyTldrawFileDropHandler() {
+	const editor = useEditor()
+	const app = useMaybeApp()
+	useEffect(() => {
+		if (!app) return
+		const defaultOnDrop = editor.externalContentHandlers['files']
+		editor.registerExternalContentHandler('files', async (content) => {
+			const { files } = content
+			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
+			if (tldrawFiles.length > 0) {
+				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
+				if (!snapshots.length) return
+				await app.createFilesFromTldrFiles(snapshots)
+			} else {
+				defaultOnDrop?.(content)
+			}
+		})
+	}, [editor, app])
+	return null
+}
+
+function SneakyFileUpdateHandler({
+	onDocumentChange,
+	fileId,
+}: {
+	onDocumentChange?(): void
+	fileId: TldrawAppFileId
+}) {
+	const app = useMaybeApp()
+	const editor = useEditor()
+	useEffect(() => {
+		const fileStartTime = Date.now()
+		return editor.store.listen(
+			() => {
+				if (!app) return
+				const sessionState = app.getSessionState()
+				if (!sessionState.auth) throw Error('Auth not found')
+				const user = app.getUser(sessionState.auth.userId)
+				if (!user) throw Error('User not found')
+				app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
+				onDocumentChange?.()
+			},
+			{ scope: 'document', source: 'user' }
+		)
+	}, [app, onDocumentChange, fileId, editor])
 
 	return null
 }

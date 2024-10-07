@@ -24,7 +24,7 @@ body {
 	min-height: -webkit-fill-available;
 	height: 100%;
 	/* prevent two-finger swipe to go back */
-	overscroll-behavior-x: none;
+	overscroll-behavior: none;
 	background-color: var(--background);
 	color: var(--text);
 }

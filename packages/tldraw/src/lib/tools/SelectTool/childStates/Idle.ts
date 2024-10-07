@@ -110,7 +110,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.getInstanceState().isReadonly) break
+				if (this.editor.getIsReadonly()) break
 				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
@@ -247,7 +247,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'selection': {
-				if (this.editor.getInstanceState().isReadonly) break
+				if (this.editor.getIsReadonly()) break
 
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
@@ -294,12 +294,7 @@ export class Idle extends StateNode {
 				const util = this.editor.getShapeUtil(shape)
 
 				// Allow playing videos and embeds
-				if (
-					shape.type !== 'video' &&
-					shape.type !== 'embed' &&
-					this.editor.getInstanceState().isReadonly
-				)
-					break
+				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
@@ -330,7 +325,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.getInstanceState().isReadonly) break
+				if (this.editor.getIsReadonly()) break
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
@@ -567,7 +562,7 @@ export class Idle extends StateNode {
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
-		if (this.editor.getInstanceState().isReadonly) return
+		if (this.editor.getIsReadonly()) return
 
 		this.editor.markHistoryStoppingPoint('creating text shape')
 
@@ -592,7 +587,7 @@ export class Idle extends StateNode {
 		if (!shape) return
 
 		const util = this.editor.getShapeUtil(shape)
-		if (this.editor.getInstanceState().isReadonly) {
+		if (this.editor.getIsReadonly()) {
 			if (!util.canEditInReadOnly(shape)) {
 				return
 			}
@@ -628,7 +623,7 @@ export class Idle extends StateNode {
 
 		const { gridSize } = this.editor.getDocumentSettings()
 
-		const step = this.editor.getInstanceState().isGridMode
+		const step = this.editor.user.getIsGridMode()
 			? shiftKey
 				? gridSize * GRID_INCREMENT
 				: gridSize
@@ -642,7 +637,7 @@ export class Idle extends StateNode {
 	}
 
 	private canInteractWithShapeInReadOnly(shape: TLShape) {
-		if (!this.editor.getInstanceState().isReadonly) return true
+		if (!this.editor.getIsReadonly()) return true
 		const util = this.editor.getShapeUtil(shape)
 		if (util.canEditInReadOnly(shape)) return true
 		return false

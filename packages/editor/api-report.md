@@ -32,6 +32,7 @@ import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
+import { RefObject } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { SetStateAction } from 'react';
@@ -678,6 +679,7 @@ export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
+    readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
     readonly cameraMovingTimeoutMs: 64;
@@ -735,9 +737,13 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "system";
     edgeScrollSpeed: 1;
+    isDebugMode: false;
     isDynamicSizeMode: false;
+    isFocusMode: false;
+    isGridMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
+    isToolLocked: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
@@ -1006,6 +1012,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getIsFocused(): boolean;
     // @deprecated (undocumented)
     getIsMenuOpen(): boolean;
+    // (undocumented)
+    getIsReadonly(): boolean;
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getOnlySelectedShape(): null | TLShape;
@@ -2730,6 +2738,8 @@ export interface TldrawEditorWithStoreProps {
 // @public
 export interface TldrawOptions {
     // (undocumented)
+    readonly actionShortcutsLocation: 'menu' | 'swap' | 'toolbar';
+    // (undocumented)
     readonly adjacentShapeMargin: number;
     // (undocumented)
     readonly animationMediumMs: number;
@@ -3198,6 +3208,7 @@ export interface TLMeasureTextSpanOpts {
 
 // @public (undocumented)
 export const tlmenus: {
+    _hiddenMenus: string[];
     menus: Atom<string[], unknown>;
     addOpenMenu(id: string, contextId?: string): void;
     clearOpenMenus(contextId?: string): void;
@@ -3206,6 +3217,8 @@ export const tlmenus: {
     isMenuOpen(id: string, contextId?: string): boolean;
     hasOpenMenus(contextId: string): boolean;
     hasAnyOpenMenus(): boolean;
+    hideOpenMenus(contextId?: string): void;
+    showOpenMenus(contextId?: string): void;
     forContext(contextId: string): {
         addOpenMenu: (id: string) => void;
         clearOpenMenus: () => void;
@@ -3487,6 +3500,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
+        mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
     id?: string;
@@ -3565,11 +3579,19 @@ export interface TLUserPreferences {
     // (undocumented)
     id: string;
     // (undocumented)
+    isDebugMode?: boolean | null;
+    // (undocumented)
     isDynamicSizeMode?: boolean | null;
+    // (undocumented)
+    isFocusMode?: boolean | null;
+    // (undocumented)
+    isGridMode?: boolean | null;
     // (undocumented)
     isPasteAtCursorMode?: boolean | null;
     // (undocumented)
     isSnapMode?: boolean | null;
+    // (undocumented)
+    isToolLocked?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
     // (undocumented)
@@ -3663,6 +3685,9 @@ export function useMaybeEditor(): Editor | null;
 // @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;
 
+// @public (undocumented)
+export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
+
 // @internal (undocumented)
 export function usePeerIds(): string[];
 
@@ -3681,7 +3706,9 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 
 // @public (undocumented)
 export class UserPreferencesManager {
-    constructor(user: TLUser, inferDarkMode: boolean);
+    constructor(editor: Editor, user: TLUser, inferDarkMode: boolean);
+    // (undocumented)
+    editor: Editor;
     // (undocumented)
     getAnimationSpeed(): number;
     // (undocumented)
@@ -3692,11 +3719,19 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsDarkMode(): boolean;
     // (undocumented)
+    getIsDebugMode(): boolean;
+    // (undocumented)
     getIsDynamicResizeMode(): boolean;
+    // (undocumented)
+    getIsFocusMode(): boolean;
+    // (undocumented)
+    getIsGridMode(): boolean;
     // (undocumented)
     getIsPasteAtCursorMode(): boolean;
     // (undocumented)
     getIsSnapMode(): boolean;
+    // (undocumented)
+    getIsToolLocked(): boolean;
     // (undocumented)
     getIsWrapMode(): boolean;
     // (undocumented)

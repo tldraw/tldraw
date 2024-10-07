@@ -6,6 +6,7 @@ import { useValue } from 'tldraw'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
+import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { getFileUrl } from '../../utils/urls'
 import { TlaAccountMenu } from '../TlaAccountMenu/TlaAccountMenu'
 import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
@@ -27,6 +28,8 @@ export function TlaSidebar() {
 		app.toggleSidebarMobile()
 	}, [app])
 
+	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
+
 	return (
 		<>
 			<button
@@ -38,6 +41,11 @@ export function TlaSidebar() {
 				className={styles.sidebar}
 				data-visible={isSidebarOpen}
 				data-visiblemobile={isSidebarOpenMobile}
+				onDropCapture={onDrop}
+				onDragOver={onDragOver}
+				onDragEnter={onDragEnter}
+				onDragLeave={onDragLeave}
+				data-dragging={isDraggingOver}
 			>
 				<div className={styles.top}>
 					<TlaSidebarWorkspaceLink />
@@ -207,16 +215,16 @@ function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 				</div>
 			</div>
 			<Link to={getFileUrl(id)} className={styles.linkButton} />
-			<TlaSidebarFileLinkMenu fileId={file.id} />
+			<TlaSidebarFileLinkMenu />
 		</div>
 	)
 }
 
 /* ---------------------- Menu ---------------------- */
 
-function TlaSidebarFileLinkMenu({ fileId }: { fileId: TldrawAppFile['id'] }) {
+function TlaSidebarFileLinkMenu() {
 	return (
-		<TlaFileMenu fileId={fileId} source="sidebar">
+		<TlaFileMenu source="sidebar">
 			<button className={styles.linkMenu}>
 				<TlaIcon icon="dots-vertical-strong" />
 			</button>

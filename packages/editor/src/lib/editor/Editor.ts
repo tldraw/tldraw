@@ -287,7 +287,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
-		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
+		this.user = new UserPreferencesManager(this, user ?? createTLUser(), inferDarkMode ?? false)
 
 		this.getContainer = getContainer
 
@@ -738,6 +738,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.performanceTracker = new PerformanceTracker()
+
+		if (this.store.props.collaboration?.mode) {
+			const mode = this.store.props.collaboration.mode
+			this.disposables.add(
+				react('update collaboration mode', () => {
+					this.store.put([{ ...this.getInstanceState(), isReadonly: mode.get() === 'readonly' }])
+				})
+			)
+		}
 	}
 
 	private readonly _isShapeHiddenPredicate?: (shape: TLShape, editor: Editor) => boolean
@@ -3879,7 +3888,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this {
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		const prev = this.getPage(partial.id)
 		if (!prev) return this
@@ -3902,7 +3911,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	createPage(page: Partial<TLPage>): this {
 		this.run(() => {
-			if (this.getInstanceState().isReadonly) return
+			if (this.getIsReadonly()) return
 			if (this.getPages().length >= this.options.maxPages) return
 			const pages = this.getPages()
 
@@ -3944,7 +3953,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deletePage(page: TLPageId | TLPage): this {
 		const id = typeof page === 'string' ? page : page.id
 		this.run(() => {
-			if (this.getInstanceState().isReadonly) return
+			if (this.getIsReadonly()) return
 			const pages = this.getPages()
 			if (pages.length === 1) return
 
@@ -4013,7 +4022,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	renamePage(page: TLPageId | TLPage, name: string) {
 		const id = typeof page === 'string' ? page : page.id
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 		this.updatePage({ id, name })
 		return this
 	}
@@ -4047,7 +4056,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createAssets(assets: TLAsset[]): this {
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 		if (assets.length <= 0) return this
 		this.run(() => this.store.put(assets), { history: 'ignore' })
 		return this
@@ -4066,7 +4075,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateAssets(assets: TLAssetPartial[]): this {
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 		if (assets.length <= 0) return this
 		this.run(
 			() => {
@@ -4095,7 +4104,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteAssets(assets: TLAssetId[] | TLAsset[]): this {
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		const ids =
 			typeof assets[0] === 'string'
@@ -5856,7 +5865,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (shapes as TLShape[]).map((s) => s.id)
 
 		if (ids.length === 0) return this
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		const currentPageId = this.getCurrentPageId()
 
@@ -5919,7 +5928,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getInstanceState().isReadonly || ids.length === 0) return this
+		if (this.getIsReadonly() || ids.length === 0) return this
 
 		let allLocked = true,
 			allUnlocked = true
@@ -6067,7 +6076,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		let shapesToFlip = compact(ids.map((id) => this.getShape(id)))
 
@@ -6137,7 +6146,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		const shapesToStack = ids
 			.map((id) => this.getShape(id)) // always fresh shapes
@@ -6274,7 +6283,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 		if (ids.length < 2) return this
 
 		const shapesToPack = ids
@@ -6430,7 +6439,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 		if (ids.length < 2) return this
 
 		const shapesToAlign = compact(ids.map((id) => this.getShape(id))) // always fresh shapes
@@ -6506,7 +6515,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 		if (ids.length < 3) return this
 
 		const len = ids.length
@@ -6585,7 +6594,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
 
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 		if (ids.length < 2) return this
 
 		const shapesToStretch = compact(ids.map((id) => this.getShape(id))) // always fresh shapes
@@ -6659,7 +6668,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	resizeShape(shape: TLShapeId | TLShape, scale: VecLike, opts: TLResizeShapeOptions = {}): this {
 		const id = typeof shape === 'string' ? shape : shape.id
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
 		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
@@ -6963,7 +6972,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 		if (shapes.length <= 0) return this
 
 		const currentPageShapeIds = this.getCurrentPageShapeIds()
@@ -7292,7 +7301,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
 		}
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		const ids =
 			typeof shapes[0] === 'string'
@@ -7368,7 +7377,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	ungroupShapes(ids: TLShapeId[], opts?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShape[], opts?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<{ select: boolean }>) {
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		const { select = true } = opts
 		const ids =
@@ -7500,7 +7509,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	_updateShapes(_partials: (TLShapePartial | null | undefined)[]) {
-		if (this.getInstanceState().isReadonly) return
+		if (this.getIsReadonly()) return
 
 		this.run(() => {
 			const updates = []
@@ -7555,7 +7564,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteShapes(ids: TLShapeId[]): this
 	deleteShapes(shapes: TLShape[]): this
 	deleteShapes(_ids: TLShapeId[] | TLShape[]): this {
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		if (!Array.isArray(_ids)) {
 			throw Error('Editor.deleteShapes: must provide an array of shapes or shapeIds')
@@ -8195,7 +8204,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			preserveIds?: boolean
 		} = {}
 	): this {
-		if (this.getInstanceState().isReadonly) return this
+		if (this.getIsReadonly()) return this
 
 		// todo: make this able to support putting content onto any page, not just the current page
 
@@ -8793,6 +8802,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getIsFocused() {
 		return this.getInstanceState().isFocused
+	}
+
+	/**
+	 * @public
+	 * @returns true if the editor is in readonly mode
+	 */
+	@computed getIsReadonly() {
+		return this.getInstanceState().isReadonly
 	}
 
 	/**

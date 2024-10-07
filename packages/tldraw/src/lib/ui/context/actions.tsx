@@ -1232,7 +1232,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
-					editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
+
+					// This used to be on the instance state, grab the instance state if it doesn't match the user pref.
+					const previousState = editor.user.getIsToolLocked()
+					editor.updateInstanceState({
+						isToolLocked: !previousState,
+					})
+					editor.user.updateUserPreferences({
+						isToolLocked: !previousState,
+					})
 				},
 				checkbox: true,
 			},
@@ -1269,7 +1277,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
-							editor.updateInstanceState({ isFocusMode: !editor.getInstanceState().isFocusMode })
+
+							// This used to be on the instance state, grab the instance state if it doesn't match the user pref.
+							const previousState = editor.user.getIsFocusMode()
+							editor.updateInstanceState({
+								isFocusMode: !previousState,
+							})
+							editor.user.updateUserPreferences({
+								isFocusMode: !previousState,
+							})
 						})
 					})
 				},
@@ -1284,7 +1300,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
-					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
+
+					// This used to be on the instance state, grab the instance state if it doesn't match the user pref.
+					const previousState = editor.user.getIsGridMode()
+					editor.updateInstanceState({
+						isGridMode: !previousState,
+					})
+					editor.user.updateUserPreferences({
+						isGridMode: !previousState,
+					})
 				},
 				checkbox: true,
 			},
@@ -1297,8 +1321,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-debug-mode', { source })
+
+					// This used to be on the instance state, grab the instance state if it doesn't match the user pref.
+					const previousState = editor.user.getIsDebugMode()
 					editor.updateInstanceState({
-						isDebugMode: !editor.getInstanceState().isDebugMode,
+						isDebugMode: !previousState,
+					})
+					editor.user.updateUserPreferences({
+						isDebugMode: !previousState,
 					})
 				},
 				checkbox: true,

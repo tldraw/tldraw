@@ -12,23 +12,24 @@ import {
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
 } from '@tldraw/dotcom-shared'
-import { Editor, Store, TLUser, computed } from 'tldraw'
+import { Store, TLStoreSnapshot, TLUser, computed } from 'tldraw'
+import { globalEditor } from '../../utils/globalEditor'
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
 
+		// todo: replace this when we have application-level user preferences
 		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
 			if (prev.theme !== next.theme) {
-				const editor = this.getCurrentEditor()
-				if (editor) {
-					const editorIsDark = editor.user.getIsDarkMode()
-					const appIsDark = next.theme === 'dark'
-					if (appIsDark && !editorIsDark) {
-						editor.user.updateUserPreferences({ colorScheme: 'dark' })
-					} else if (!appIsDark && editorIsDark) {
-						editor.user.updateUserPreferences({ colorScheme: 'light' })
-					}
+				const editor = globalEditor.get()
+				if (!editor) return
+				const editorIsDark = editor.user.getIsDarkMode()
+				const appIsDark = next.theme === 'dark'
+				if (appIsDark && !editorIsDark) {
+					editor.user.updateUserPreferences({ colorScheme: 'dark' })
+				} else if (!appIsDark && editorIsDark) {
+					editor.user.updateUserPreferences({ colorScheme: 'light' })
 				}
 			}
 		})
@@ -43,25 +44,6 @@ export class TldrawApp {
 
 	dispose() {
 		this.store.dispose()
-	}
-
-	private _currentEditor: Editor | null = null
-
-	getCurrentEditor() {
-		return this._currentEditor
-	}
-
-	setCurrentEditor(editor: Editor | null) {
-		this._currentEditor = editor
-
-		const sessionState = this.getSessionState()
-
-		this.store.put([
-			{
-				...sessionState,
-				isEditorReady: true,
-			},
-		])
 	}
 
 	getSessionState(): TldrawAppSessionState {
@@ -354,6 +336,7 @@ export class TldrawApp {
 			this.store.put([{ ...file, shared: false }])
 			return
 		}
+
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
@@ -374,8 +357,22 @@ export class TldrawApp {
 		return newFile
 	}
 
-	createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
-		// noop
+	async deleteFile(_fileId: TldrawAppFileId) {
+		// todo: delete the file from the server
+		console.warn('tldraw file deletes are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
+	}
+
+	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {
+		// todo: upload the files to the server and create files locally
+		console.warn('tldraw file uploads are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
+	}
+
+	async createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
+		// todo: create a snapshot link on the server and return the url
+		console.warn('snapshot links are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
 	}
 
 	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
