@@ -48,16 +48,19 @@ export function useAsset({ shapeId, assetId }: { shapeId: TLShapeId; assetId: TL
 	useEffect(() => {
 		if (!assetId) return
 
-		const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
-		if (!asset) return
-
 		let isCancelled = false
 		let cancelDebounceFn: (() => void) | undefined
 
 		const cleanupEffectScheduler = react('update state', () => {
+			if (!isExport && editor.getCulledShapes().has(shapeId)) return
+
+			// Get the fresh asset
+			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
 			if (!asset) return
 
-			if (!isExport && editor.getCulledShapes().has(shapeId)) return
+			// Get the fresh shape
+			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
+			if (!shape) return
 
 			// Set initial preview for the shape if it has no source (if it was pasted into a local project as base64)
 			if (!asset.props.src) {
@@ -66,20 +69,15 @@ export function useAsset({ shapeId, assetId }: { shapeId: TLShapeId; assetId: TL
 					if (previousUrl.current !== preview) {
 						previousUrl.current = preview // just for kicks, let's save the url as the previous URL
 						setResult((prev) => ({ ...prev, isPlaceholder: true, url: preview })) // set the preview as the URL
-						isReady() // let the SVG export know we're ready
+						isReady() // let the SVG export know we're ready for export
 					}
 					return
 				}
 			}
 
-			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
-			if (!shape) return
+			// aside ...we could bail here if the only thing that has changed is the shape has changed from culled to not culled
 
-			const width = shape.props.w
-			const shapeScale = width / asset.props.w
-			const screenScale = editor.getZoomLevel() * shapeScale
-
-			// todo: we could bail here if the only thing that has changed is the shape has changed from culled to not culled
+			const screenScale = editor.getZoomLevel() * (shape.props.w / asset.props.w)
 
 			// If we already resolved the URL, debounce fetching potentially multiple image variations.
 			if (didAlreadyResolve.current) {
@@ -87,15 +85,15 @@ export function useAsset({ shapeId, assetId }: { shapeId: TLShapeId; assetId: TL
 					if (isCancelled) return // don't update if the hook has remounted
 					if (previousUrl.current === url) return // don't update the state if the url is the same
 					previousUrl.current = url // keep the url around to compare with the next one
-					setResult((prev) => ({ ...prev, url, isPlaceholder: false }))
+					setResult(() => ({ asset, url }))
 				})
 				cancelDebounceFn = resolveAssetUrlDebounced.cancel // cancel the debounce when the hook unmounts
 			} else {
 				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => {
-					if (isCancelled) return
+					if (isCancelled) return // don't update if the hook has remounted
 					didAlreadyResolve.current = true // mark that we've resolved our first image
 					previousUrl.current = url // keep the url around to compare with the next one
-					setResult((prev) => ({ ...prev, url, isPlaceholder: false }))
+					setResult(() => ({ asset, url }))
 				})
 			}
 		})

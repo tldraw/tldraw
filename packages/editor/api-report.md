@@ -947,7 +947,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         focusContainer?: boolean | undefined;
     }): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
-    getAsset<T extends TLAsset>(asset: T | T["id"]): T | undefined;
+    getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getBaseZoom(): number;
