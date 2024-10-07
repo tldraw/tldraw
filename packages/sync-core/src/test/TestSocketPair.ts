@@ -1,6 +1,11 @@
 import { UnknownRecord } from '@tldraw/store'
 import { structuredClone } from '@tldraw/utils'
-import { TLPersistentClientSocket, TLSocketStatusListener } from '../lib/TLSyncClient'
+import {
+	TLPersistentClientSocket,
+	TLSocketStatusListener,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
+} from '../lib/TLSyncClient'
 import { TLRoomSocket } from '../lib/TLSyncRoom'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../lib/protocol'
 import { TestServer } from './TestServer'
@@ -28,9 +33,9 @@ export class TestSocketPair<R extends UnknownRecord> {
 	}
 
 	roomSocket: TLRoomSocket<R> = {
-		close: () => {
+		close: (code?: number, reason?: string) => {
 			this.flushServerSentEvents()
-			this.disconnect()
+			this.disconnect(code, reason)
 		},
 		get isOpen() {
 			return true
@@ -90,11 +95,18 @@ export class TestSocketPair<R extends UnknownRecord> {
 		this.server.connect(this)
 	}
 
-	disconnect() {
+	disconnect(code?: number, reason?: string) {
 		this.clientSocket.connectionStatus = 'offline'
 		this.serverSentEventQueue = []
 		this.clientSentEventQueue = []
-		this.callbacks.onStatusChange?.({ status: 'offline' })
+		if (code === TLSyncErrorCloseEventCode) {
+			this.callbacks.onStatusChange?.({
+				status: 'error',
+				reason: reason ?? TLSyncErrorCloseEventReason.UNKNOWN_ERROR,
+			})
+		} else {
+			this.callbacks.onStatusChange?.({ status: 'offline' })
+		}
 		this.clientDisconnected?.()
 	}
 

@@ -2,6 +2,7 @@ import { TLRecord, sleep } from 'tldraw'
 import { ClientWebSocketAdapter, INACTIVE_MIN_DELAY } from './ClientWebSocketAdapter'
 // NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
 import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
+import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 import { TLSocketClientSentEvent, getTlsyncProtocolVersion } from './protocol'
 
 async function waitFor(predicate: () => boolean) {
@@ -157,21 +158,24 @@ describe(ClientWebSocketAdapter, () => {
 		adapter.onStatusChange(onStatusChange)
 
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		expect(onStatusChange).toHaveBeenCalledWith('online')
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'online' })
 		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
-		expect(onStatusChange).toHaveBeenCalledWith('offline', 1006)
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'offline' })
 
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		expect(onStatusChange).toHaveBeenCalledWith('online')
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'online' })
 		connectedServerSocket.terminate()
 		await waitFor(() => adapter._ws?.readyState === WebSocket.CLOSED)
-		expect(onStatusChange).toHaveBeenCalledWith('offline', 1006)
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'offline' })
 
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
-		expect(onStatusChange).toHaveBeenCalledWith('online')
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'online' })
 		adapter._ws?.onerror?.({} as any)
-		expect(onStatusChange).toHaveBeenCalledWith('error', undefined)
+		expect(onStatusChange).toHaveBeenCalledWith({
+			status: 'error',
+			reason: TLSyncErrorCloseEventReason.UNKNOWN_ERROR,
+		})
 	})
 
 	it('signals the correct closeCode when a room is not found', async () => {
@@ -179,9 +183,9 @@ describe(ClientWebSocketAdapter, () => {
 		adapter.onStatusChange(onStatusChange)
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 
-		adapter._ws!.onclose?.({ code: 4099 } as any)
+		adapter._ws!.onclose?.({ code: 4099, reason: 'NOT_FOUND' } satisfies Partial<CloseEvent> as any)
 
-		expect(onStatusChange).toHaveBeenCalledWith('error', 4099)
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'error', reason: 'NOT_FOUND' })
 	})
 
 	it('signals status changes while restarting', async () => {
@@ -194,7 +198,7 @@ describe(ClientWebSocketAdapter, () => {
 
 		await waitFor(() => onStatusChange.mock.calls.length === 2)
 
-		expect(onStatusChange).toHaveBeenCalledWith('offline', undefined)
-		expect(onStatusChange).toHaveBeenCalledWith('online')
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'offline' })
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'online' })
 	})
 })
