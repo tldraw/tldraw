@@ -31,7 +31,7 @@ import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { TldrawApp } from '../../utils/TldrawApp'
@@ -238,7 +238,7 @@ function SneakyFileUpdateHandler({
 	onDocumentChange?(): void
 	fileId: TldrawAppFileId
 }) {
-	const app = useApp()
+	const app = useMaybeApp()
 	const editor = useEditor()
 	useEffect(() => {
 		const fileStartTime = Date.now()
