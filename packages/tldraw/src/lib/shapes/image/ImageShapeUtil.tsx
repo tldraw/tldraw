@@ -293,10 +293,6 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		}
 	}, [editor, isAnimated, prefersReducedMotion, url])
 
-	if (asset?.type === 'bookmark') {
-		throw Error("Bookmark assets can't be rendered as images")
-	}
-
 	const showCropPreview = useValue(
 		'show crop preview',
 		() =>

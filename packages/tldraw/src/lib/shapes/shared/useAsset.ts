@@ -1,8 +1,10 @@
 import {
 	Editor,
 	TLAssetId,
+	TLImageAsset,
 	TLImageShape,
 	TLShapeId,
+	TLVideoAsset,
 	TLVideoShape,
 	debounce,
 	react,
@@ -23,38 +25,36 @@ import { useEffect, useRef, useState } from 'react'
  *
  * @public
  */
-export function useAsset(options: { shapeId: TLShapeId; assetId: TLAssetId | null }) {
-	const { shapeId, assetId } = options
-
+export function useAsset({ shapeId, assetId }: { shapeId: TLShapeId; assetId: TLAssetId | null }) {
 	const editor = useEditor()
-
 	const isExport = !!useSvgExportContext()
-
 	const isReady = useDelaySvgExport()
 
-	const didAlreadyResolve = useRef(false)
-
-	const [result, setResult] = useState(() => ({
-		asset: assetId ? editor.getAsset(assetId) : null,
+	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
+	const [result, setResult] = useState<{
+		asset: (TLImageAsset | TLVideoAsset) | null
+		url: string | null
+	}>(() => ({
+		asset: assetId ? editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null : null,
 		url: null as string | null,
-		isPlaceholder: false,
-		isCulled: editor.getCulledShapes().has(shapeId),
 	}))
 
+	// A flag for whether we've resolved the asset URL at least once, after which we can debounce
+	const didAlreadyResolve = useRef(false)
+
+	// The last URL that we've seen for the shape
 	const previousUrl = useRef<string | null>(null)
 
 	useEffect(() => {
 		if (!assetId) return
 
-		const asset = editor.getAsset(assetId)
-
+		const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
 		if (!asset) return
 
 		let isCancelled = false
+		let cancelDebounceFn: (() => void) | undefined
 
-		let cancel: (() => void) | undefined
-
-		const cleanup = react('update state', () => {
+		const cleanupEffectScheduler = react('update state', () => {
 			if (!asset) return
 
 			if (!isExport && editor.getCulledShapes().has(shapeId)) return
@@ -72,8 +72,11 @@ export function useAsset(options: { shapeId: TLShapeId; assetId: TLAssetId | nul
 				}
 			}
 
-			const width = editor.getShape<TLImageShape | TLVideoShape>(shapeId)?.props.w ?? 1
-			const shapeScale = asset && 'w' in asset.props ? width / asset.props.w : 1
+			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
+			if (!shape) return
+
+			const width = shape.props.w
+			const shapeScale = width / asset.props.w
 			const screenScale = editor.getZoomLevel() * shapeScale
 
 			// todo: we could bail here if the only thing that has changed is the shape has changed from culled to not culled
@@ -86,7 +89,7 @@ export function useAsset(options: { shapeId: TLShapeId; assetId: TLAssetId | nul
 					previousUrl.current = url // keep the url around to compare with the next one
 					setResult((prev) => ({ ...prev, url, isPlaceholder: false }))
 				})
-				cancel = resolveAssetUrlDebounced.cancel // cancel the debounce when the hook unmounts
+				cancelDebounceFn = resolveAssetUrlDebounced.cancel // cancel the debounce when the hook unmounts
 			} else {
 				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => {
 					if (isCancelled) return
@@ -98,8 +101,8 @@ export function useAsset(options: { shapeId: TLShapeId; assetId: TLAssetId | nul
 		})
 
 		return () => {
-			cleanup()
-			cancel?.()
+			cleanupEffectScheduler()
+			cancelDebounceFn?.()
 			isCancelled = true
 		}
 	}, [editor, assetId, isExport, isReady, shapeId])

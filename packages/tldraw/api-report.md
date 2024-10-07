@@ -3679,13 +3679,11 @@ export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string):
 export function useActions(): TLUiActionsContextType;
 
 // @public
-export function useAsset(options: {
+export function useAsset({ shapeId, assetId }: {
     assetId: null | TLAssetId;
     shapeId: TLShapeId;
 }): {
-    asset: TLAsset | null | undefined;
-    isCulled: boolean;
-    isPlaceholder: boolean;
+    asset: (TLImageAsset | TLVideoAsset) | null;
     url: null | string;
 };
 
