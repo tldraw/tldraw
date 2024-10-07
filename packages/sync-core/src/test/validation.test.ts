@@ -68,13 +68,13 @@ async function makeTestInstance() {
 			socketPair.flushServerSentEvents()
 		}
 	}
-	const onSyncError = jest.fn()
+	let onSyncError = jest.fn()
 	const client = await new Promise<TLSyncClient<Book | Presence>>((resolve, reject) => {
+		onSyncError = jest.fn(reject)
 		const client = new TLSyncClient({
 			store: new Store<Book | Presence, unknown>({ schema: schemaWithoutValidator, props: {} }),
 			socket: socketPair.clientSocket as any,
 			onLoad: resolve,
-			onLoadError: reject,
 			onSyncError,
 			presence: computed('', () => null),
 		})

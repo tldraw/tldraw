@@ -5,7 +5,7 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { TLIncompatibilityReason, TLRemoteSyncError } from '@tldraw/sync-core'
+import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { useEffect } from 'react'
 import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
@@ -23,12 +23,13 @@ export const router = createRoutesFromElements(
 				'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.'
 			if (error instanceof TLRemoteSyncError) {
 				switch (error.reason) {
-					case TLIncompatibilityReason.RoomNotFound: {
+					case TLSyncErrorCloseEventReason.NOT_FOUND: {
 						header = 'Not found'
 						para1 = 'The file you are looking for does not exist.'
 						break
 					}
-					case TLIncompatibilityReason.Forbidden: {
+					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
+					case TLSyncErrorCloseEventReason.FORBIDDEN: {
 						header = 'Unauthorized'
 						para1 = 'You need to be authorized to view this file.'
 						break

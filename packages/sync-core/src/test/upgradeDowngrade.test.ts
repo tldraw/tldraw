@@ -187,9 +187,6 @@ class TestInstance {
 			onLoad: () => {
 				this.hasLoaded = true
 			},
-			onLoadError: (e) => {
-				throw new Error('onLoadError', e)
-			},
 			onSyncError: jest.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
 			}),
@@ -201,9 +198,6 @@ class TestInstance {
 			socket: this.newSocketPair.clientSocket,
 			onLoad: () => {
 				this.hasLoaded = true
-			},
-			onLoadError: (e) => {
-				throw new Error('onLoadError', e)
 			},
 			onSyncError: jest.fn((reason) => {
 				throw new Error('onSyncError: ' + reason)
@@ -375,6 +369,7 @@ test('out-of-date clients will receive incompatibility errors', () => {
 
 	expect(socket.sendMessage).toHaveBeenCalledWith({
 		type: 'incompatibility_error',
+		// eslint-disable-next-line deprecation/deprecation
 		reason: TLIncompatibilityReason.ClientTooOld,
 	})
 })
@@ -399,6 +394,7 @@ test('clients using an out-of-date protocol will receive compatibility errors', 
 
 		expect(socket.sendMessage).toHaveBeenCalledWith({
 			type: 'incompatibility_error',
+			// eslint-disable-next-line deprecation/deprecation
 			reason: TLIncompatibilityReason.ClientTooOld,
 		})
 	} finally {
@@ -460,6 +456,7 @@ test('clients using a too-new protocol will receive compatibility errors', () =>
 
 	expect(socket.sendMessage).toHaveBeenCalledWith({
 		type: 'incompatibility_error',
+		// eslint-disable-next-line deprecation/deprecation
 		reason: TLIncompatibilityReason.ServerTooOld,
 	})
 })

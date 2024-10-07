@@ -3,6 +3,7 @@ import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
 import { objectMapValues, structuredClone } from '@tldraw/utils'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
+import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
@@ -194,16 +195,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			}
 		} catch (e) {
 			this.log?.error?.(e)
-			const socket = this.sessions.get(sessionId)?.socket
-			if (socket) {
-				socket.send(
-					JSON.stringify({
-						type: 'error',
-						error: typeof e?.toString === 'function' ? e.toString() : e,
-					} satisfies TLSocketServerSentEvent<R>)
-				)
-				socket.close()
-			}
+			// here we use rejectSession rather than removeSession to support legacy clients
+			// that use the old incompatibility_error close event
+			this.room.rejectSession(sessionId, TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
 		}
 	}
 
@@ -338,6 +332,20 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	async updateStore(updater: (store: RoomStoreMethods) => void | Promise<void>) {
 		return this.room.updateStore(updater)
+	}
+
+	/**
+	 * Immediately remove a session from the room, and close its socket if not already closed.
+	 *
+	 * If no `fatalReason` parameter is supplied, the client will attempt to reconnect.
+	 *
+	 * The `fatalReason` parameter will be available in the return value of the `useSync` hook as `useSync().error.reason`.
+	 *
+	 * @param sessionId - The id of the session to remove
+	 * @param fatalReason - The reason message to use when calling .close on the underlying websocket
+	 */
+	evictSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
+		this.room.rejectSession(sessionId, fatalReason)
 	}
 
 	/**

@@ -1,6 +1,6 @@
 import { UnknownRecord } from '@tldraw/store'
 import { structuredClone } from '@tldraw/utils'
-import { TLPersistentClientSocket, TLPersistentClientSocketStatus } from '../lib/TLSyncClient'
+import { TLPersistentClientSocket, TLSocketStatusListener } from '../lib/TLSyncClient'
 import { TLRoomSocket } from '../lib/TLSyncRoom'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../lib/protocol'
 import { TestServer } from './TestServer'
@@ -78,7 +78,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 
 	callbacks = {
 		onReceiveMessage: null as null | ((msg: TLSocketServerSentEvent<R>) => void),
-		onStatusChange: null as null | ((status: TLPersistentClientSocketStatus) => void),
+		onStatusChange: null as null | TLSocketStatusListener,
 	}
 
 	// eslint-disable-next-line no-restricted-syntax
@@ -94,7 +94,7 @@ export class TestSocketPair<R extends UnknownRecord> {
 		this.clientSocket.connectionStatus = 'offline'
 		this.serverSentEventQueue = []
 		this.clientSentEventQueue = []
-		this.callbacks.onStatusChange?.('offline')
+		this.callbacks.onStatusChange?.({ status: 'offline' })
 		this.clientDisconnected?.()
 	}
 
