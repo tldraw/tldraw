@@ -337,14 +337,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	/**
 	 * Immediately remove a session from the room, and close its socket if not already closed.
 	 *
-	 * If no `fatalReason` parameter is supplied, the client will attempt to reconnect.
+	 * The client will attempt to reconnect unless you provide a `fatalReason` parameter.
 	 *
 	 * The `fatalReason` parameter will be available in the return value of the `useSync` hook as `useSync().error.reason`.
 	 *
 	 * @param sessionId - The id of the session to remove
 	 * @param fatalReason - The reason message to use when calling .close on the underlying websocket
 	 */
-	evictSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
+	closeSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
 		this.room.rejectSession(sessionId, fatalReason)
 	}
 

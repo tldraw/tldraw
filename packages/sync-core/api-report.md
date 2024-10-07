@@ -326,7 +326,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         schema?: StoreSchema<R, any>;
     });
     close(): void;
-    evictSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
+    closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
     getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;

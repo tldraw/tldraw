@@ -690,6 +690,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	rejectSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
 		const session = this.sessions.get(sessionId)
 		if (!session) return
+		if (!fatalReason) {
+			this.removeSession(sessionId)
+			return
+		}
 		if (session.requiresLegacyRejection) {
 			try {
 				if (session.socket.isOpen) {
