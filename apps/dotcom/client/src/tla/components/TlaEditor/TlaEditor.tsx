@@ -11,7 +11,6 @@ import {
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
-	PreferencesGroup,
 	TLComponents,
 	Tldraw,
 	ViewSubmenu,
@@ -20,7 +19,6 @@ import {
 	useReactor,
 	useTldrawUiComponents,
 } from 'tldraw'
-import { Links } from '../../../components/Links'
 import { SneakyOnDropOverride } from '../../../components/SneakyOnDropOverride'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -32,14 +30,14 @@ import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useSharing } from '../../../utils/sharing'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useTldrawUser } from '../../hooks/useUser'
-import { TldrawApp } from '../../utils/TldrawApp'
 import styles from './editor.module.css'
 
 // const shittyOfflineAtom = atom('shitty offline atom', false)
 
-const components: TLComponents = {
+export const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
@@ -58,8 +56,6 @@ const components: TLComponents = {
 			<ViewSubmenu />
 			<ExportFileContentSubMenu />
 			<ExtrasGroup />
-			<PreferencesGroup />
-			<Links />
 		</DefaultMainMenu>
 	),
 	MenuPanel: function MenuPanel() {

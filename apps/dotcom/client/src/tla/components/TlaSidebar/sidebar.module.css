@@ -192,7 +192,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding-right: 4px;
+	padding: 0 4px;
 	position: relative;
 	z-index: 1;
 }
@@ -210,6 +210,11 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.user {
+	padding: 0 4px;
+	cursor: pointer;
 }
 
 .main-link {

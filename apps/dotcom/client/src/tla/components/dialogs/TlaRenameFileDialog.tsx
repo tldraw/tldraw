@@ -11,9 +11,9 @@ import {
 	TldrawUiInput,
 	useValue,
 } from 'tldraw'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
-import { TldrawApp } from '../../utils/TldrawApp'
 import styles from './dialogs.module.css'
 
 export function TlaRenameFileDialog({

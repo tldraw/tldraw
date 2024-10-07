@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
-import { useValue } from 'tldraw'
+import { EditorContext, TldrawUiContextProvider, useValue } from 'tldraw'
+import { components } from '../../components/TlaEditor/TlaEditor'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { useApp } from '../../hooks/useAppState'
 import styles from './sidebar-layout.module.css'
@@ -12,14 +13,30 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsabl
 		() => app.getSessionState().isSidebarOpenMobile,
 		[app]
 	)
+	const currentEditor = useValue(
+		'editor',
+		() => (app.getSessionState().isEditorReady ? app.getCurrentEditor() : null),
+		[app]
+	)
+	const MaybeEditorProvider = currentEditor ? EditorContext.Provider : FakeProvider
+
+	function FakeProvider({ children }: { children: ReactNode }) {
+		return children
+	}
+	const MaybeUiContextProvider = currentEditor ? TldrawUiContextProvider : FakeProvider
+
 	return (
-		<div
-			className={styles.layout}
-			data-sidebar={isSidebarOpen}
-			data-sidebarmobile={isSidebarOpenMobile}
-		>
-			<TlaSidebar />
-			{children}
-		</div>
+		<MaybeEditorProvider value={currentEditor}>
+			<MaybeUiContextProvider components={components}>
+				<div
+					className={styles.layout}
+					data-sidebar={isSidebarOpen}
+					data-sidebarmobile={isSidebarOpenMobile}
+				>
+					<TlaSidebar />
+					{children}
+				</div>
+			</MaybeUiContextProvider>
+		</MaybeEditorProvider>
 	)
 }

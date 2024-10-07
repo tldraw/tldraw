@@ -35,7 +35,8 @@ interface UserChangeBroadcastMessage {
 	data: UserDataSnapshot
 }
 
-const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
+/** @public */
+export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
 	id: T.string,
 	name: T.string.nullable().optional(),
 	locale: T.string.nullable().optional(),

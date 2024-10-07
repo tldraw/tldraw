@@ -19,6 +19,7 @@ export interface TldrawAppSessionState
 	extends BaseRecord<'session', RecordId<TldrawAppSessionState>> {
 	isSidebarOpen: boolean
 	isSidebarOpenMobile: boolean
+	isEditorReady: boolean
 	auth?: {
 		userId: TldrawAppUserId // null,
 	}
@@ -41,6 +42,7 @@ export const tldrawAppSessionStateValidator: T.Validator<TldrawAppSessionState> 
 		id: idValidator<TldrawAppSessionStateId>('session'),
 		isSidebarOpen: T.boolean,
 		isSidebarOpenMobile: T.boolean,
+		isEditorReady: T.boolean,
 		shareMenuActiveTab: T.literalEnum('share', 'export'),
 		sidebarActiveTab: T.literalEnum('recent', 'groups', 'shared', 'drafts', 'starred'),
 		views: T.dict(
@@ -77,6 +79,7 @@ export const TldrawAppSessionStateRecordType = createRecordType<TldrawAppSession
 	(): Omit<TldrawAppSessionState, 'id' | 'typeName'> => ({
 		isSidebarOpen: true,
 		isSidebarOpenMobile: false,
+		isEditorReady: false,
 		sidebarActiveTab: 'recent',
 		shareMenuActiveTab: 'share',
 		auth: undefined,

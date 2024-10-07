@@ -60,11 +60,17 @@ function InnerInner() {
 	const handleAppLevelUiEvent = useCallback<TLUiEventHandler>(() => {
 		// todo, implement handling ui events at the application layer
 	}, [])
+	const app = useApp()
+	const user = useValue(
+		'user',
+		() => (app.getSessionState().isEditorReady ? app.getCurrentEditor()?.user : null),
+		[app]
+	)
 
 	return (
 		<AssetUrlsProvider assetUrls={assetUrls}>
 			<TldrawUiEventsProvider onEvent={handleAppLevelUiEvent}>
-				<TldrawUiTranslationProvider locale="en">
+				<TldrawUiTranslationProvider locale={user?.getLocale() || 'en'}>
 					<TldrawUiDialogsProvider>
 						<TldrawUiToastsProvider>
 							<Outlet />

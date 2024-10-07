@@ -1,7 +1,7 @@
 import React, { createContext } from 'react'
 import { Editor } from '../editor/Editor'
 
-/** @internal */
+/** @public */
 export const EditorContext = createContext<Editor | null>(null)
 
 /** @public */

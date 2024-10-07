@@ -1,13 +1,14 @@
-import { SignedIn, UserButton } from '@clerk/clerk-react'
 import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useValue } from 'tldraw'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
-import { TldrawApp } from '../../utils/TldrawApp'
 import { getFileUrl } from '../../utils/urls'
+import { TlaAccountMenu } from '../TlaAccountMenu/TlaAccountMenu'
+import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSpacer } from '../TlaSpacer/TlaSpacer'
@@ -46,11 +47,6 @@ export function TlaSidebar() {
 					<TlaSidebarRecentFiles />
 				</div>
 				<div className={styles.bottom}>
-					<SignedIn>
-						<div className={styles.userButton}>
-							<UserButton />
-						</div>
-					</SignedIn>
 					<TlaSidebarUserLink />
 				</div>
 			</div>
@@ -113,19 +109,18 @@ function TlaSidebarUserLink() {
 		[app]
 	)
 
-	const location = useLocation()
-
 	if (!result) throw Error('Could not get user')
 
 	return (
-		<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
-			<div className={styles.label}>{result.user.name}</div>
-			{/* <Link className="__link-button" to={getUserUrl(result.auth.userId)} /> */}
-			<Link className={styles.linkButton} to={'/q/profile'} state={{ background: location }} />
-			<Link className={styles.linkMenu} to={'/q/debug'} state={{ background: location }}>
-				<TlaIcon icon="dots-vertical-strong" />
-			</Link>
-		</div>
+		<TlaAccountMenu source="sidebar">
+			<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
+				<TlaAvatar img={result.user.avatar} />
+				<div className={styles.label}>{result.user.name}</div>
+				<button className={styles.linkMenu}>
+					<TlaIcon icon="dots-vertical-strong" />
+				</button>
+			</div>
+		</TlaAccountMenu>
 	)
 }
 

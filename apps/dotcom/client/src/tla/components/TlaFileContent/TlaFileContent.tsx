@@ -1,10 +1,10 @@
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useEffect, useState } from 'react'
-import { TldrawUiInput, useValue } from 'tldraw'
+import { TldrawUiInput, useTranslation, useValue } from 'tldraw'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
-import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaEditor } from '../TlaEditor/TlaEditor'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
@@ -22,6 +22,7 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 		() => app.getSessionState().isSidebarOpenMobile,
 		[app]
 	)
+	const msg = useTranslation()
 
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
 
@@ -61,7 +62,7 @@ export function TlaFileContent({ fileSlug }: { fileSlug: string }) {
 				<div className={styles.rightSide}>
 					<TlaFileShareMenu fileId={fileId} source="file-header">
 						<TlaButton>
-							<span>{raw('Share')}</span>
+							<span>{msg('share-menu.title')}</span>
 						</TlaButton>
 					</TlaFileShareMenu>
 				</div>

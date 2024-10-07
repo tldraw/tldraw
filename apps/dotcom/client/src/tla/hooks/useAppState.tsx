@@ -1,18 +1,23 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
-import { TldrawAppFileRecordType, tldrawAppSchema } from '@tldraw/dotcom-shared'
+import { TldrawAppFileRecordType, TldrawAppUser, tldrawAppSchema } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react'
 import {
+	RecordId,
+	TLUserPreferences,
 	assertExists,
+	atom,
+	createTLUser,
 	deleteFromLocalStorage,
 	getFromLocalStorage,
+	getUserPreferences,
 	inlineBase64AssetStore,
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
+import { TldrawApp } from '../app/TldrawApp'
 import { TlaErrorContent } from '../components/TlaErrorContent/TlaErrorContent'
 import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
 import { TlaErrorLayout } from '../layouts/TlaErrorLayout/TlaErrorLayout'
-import { TldrawApp } from '../utils/TldrawApp'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 import { useRaw } from './useRaw'
 
@@ -49,6 +54,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			return
 		}
 		let _app: TldrawApp
+		let _userId: RecordId<TldrawAppUser>
+
+		const userPreferencesRaw = getUserPreferences()
+		const userPreferences = atom<TLUserPreferences>('userPreferences', userPreferencesRaw)
+		const tlUser = createTLUser({
+			userPreferences,
+			setUserPreferences: (preferences) => {
+				userPreferences.set(preferences)
+			},
+		})
 
 		TldrawApp.create({
 			userId: auth.userId,
@@ -56,14 +71,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			email: user.emailAddresses[0]?.emailAddress || '',
 			avatar: user.imageUrl || '',
 			store: store.store as any,
-		}).then(({ store, userId }) => {
+			tlUser,
+		}).then(({ app, userId }) => {
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
 				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-				store.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId), userId)
+				app.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId), userId)
 			}
-			_app = store
-			setApp(store)
+			_app = app
+			_userId = userId
+			setApp(app)
 			setReady(true)
 		})
 
