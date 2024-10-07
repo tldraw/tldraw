@@ -1,11 +1,15 @@
 import {
+	debounce,
+	Editor,
 	TLAssetId,
+	TLImageShape,
 	TLShapeId,
+	TLVideoShape,
 	useDelaySvgExport,
 	useEditor,
 	useSvgExportContext,
-	useValue,
 } from '@tldraw/editor'
+import { react } from '@tldraw/state'
 import { useEffect, useRef, useState } from 'react'
 
 /**
@@ -19,81 +23,102 @@ import { useEffect, useRef, useState } from 'react'
  *
  * @public
  */
-export function useAsset(options: {
-	shapeId: TLShapeId
-	assetId: TLAssetId | null
-	width: number
-}) {
-	const { shapeId, assetId, width } = options
+export function useImageOrVideoAsset(options: { shapeId: TLShapeId; assetId: TLAssetId | null }) {
+	const { shapeId, assetId } = options
+
 	const editor = useEditor()
-	const [url, setUrl] = useState<string | null>(null)
-	const [isPlaceholder, setIsPlaceholder] = useState(false)
+
 	const isExport = !!useSvgExportContext()
-	const asset = assetId ? editor.getAsset(assetId) : null
-	const culledShapes = editor.getCulledShapes()
-	const isCulled = culledShapes.has(shapeId)
-	const didAlreadyResolve = useRef(false)
+
 	const isReady = useDelaySvgExport()
 
-	useEffect(() => {
-		if (url) didAlreadyResolve.current = true
-	}, [url])
+	const didAlreadyResolve = useRef(false)
 
-	const shapeScale = asset && 'w' in asset.props ? width / asset.props.w : 1
-	// We debounce the zoom level to reduce the number of times we fetch a new image and,
-	// more importantly, to not cause zooming in and out to feel janky.
-	const screenScale = useValue('zoom level', () => editor.getZoomLevel() * shapeScale, [
-		editor,
-		shapeScale,
-	])
+	const [result, setResult] = useState(() => ({
+		asset: assetId ? editor.getAsset(assetId) : null,
+		url: null as string | null,
+		isPlaceholder: false,
+		isCulled: editor.getCulledShapes().has(shapeId),
+	}))
 
 	useEffect(() => {
-		if (url) didAlreadyResolve.current = true
-	}, [url])
-
-	useEffect(() => {
-		if (!isExport && isCulled) return
-
-		if (assetId && !asset?.props.src) {
-			const preview = editor.getTemporaryAssetPreview(assetId)
-
-			if (preview) {
-				setUrl(preview)
-				setIsPlaceholder(true)
-				isReady()
-				return
-			}
-		}
+		if (!assetId) return
+		const asset = editor.getAsset(assetId)
+		if (!asset) return
 
 		let isCancelled = false
 
-		async function resolve() {
-			const resolvedUrl = await editor.resolveAssetUrl(assetId, {
-				screenScale,
-				shouldResolveToOriginal: isExport,
-			})
+		let cancel: (() => void) | undefined
 
-			if (!isCancelled) {
-				setUrl(resolvedUrl)
-				setIsPlaceholder(false)
-				isReady()
+		const cleanup = react('update state', () => {
+			const result = {
+				asset,
+				url: null as string | null,
+				isPlaceholder: false,
+				isCulled: editor.getCulledShapes().has(shapeId),
 			}
+
+			const width = editor.getShape<TLImageShape | TLVideoShape>(shapeId)?.props.w ?? 1
+			const shapeScale = asset && 'w' in asset.props ? width / asset.props.w : 1
+			const screenScale = editor.getZoomLevel() * shapeScale
+			const isCulled = editor.getCulledShapes().has(shapeId)
+
+			if (!isExport && isCulled) {
+				return
+			}
+
+			if (!asset.props.src) {
+				const preview = editor.getTemporaryAssetPreview(asset.id)
+				if (preview) {
+					result.isPlaceholder = true
+					result.url = preview
+					setResult(result)
+					isReady()
+					return
+				}
+			}
+
+			// If we already resolved the URL, debounce fetching potentially multiple image variations.
+			if (didAlreadyResolve.current) {
+				resolveAssetUrlDebounced(editor, assetId, screenScale, isExport, (url) => {
+					if (isCancelled) return
+					setResult((prev) => ({ ...prev, url, isPlaceholder: false }))
+				})
+				cancel = resolveAssetUrlDebounced.cancel
+			} else {
+				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => {
+					if (isCancelled) return
+					didAlreadyResolve.current = true
+					setResult((prev) => ({ ...prev, url, isPlaceholder: false }))
+				})
+			}
+		})
+
+		return () => {
+			cleanup()
+			cancel?.()
+			isCancelled = true
 		}
+	}, [editor, assetId, isExport, isReady, shapeId])
 
-		// If we already resolved the URL, debounce fetching potentially multiple image variations.
-		if (didAlreadyResolve.current) {
-			const timer = editor.timers.setTimeout(resolve, 500)
-			return () => {
-				clearTimeout(timer)
-				isCancelled = true
-			}
-		} else {
-			resolve()
-			return () => {
-				isCancelled = true
-			}
-		}
-	}, [assetId, asset?.props.src, isCulled, screenScale, editor, isExport, isReady])
-
-	return { asset, url, isPlaceholder }
+	return result
 }
+
+function resolveAssetUrl(
+	editor: Editor,
+	assetId: TLAssetId,
+	screenScale: number,
+	isExport: boolean,
+	callback: (url: string | null) => void
+) {
+	editor
+		.resolveAssetUrl(assetId, {
+			screenScale,
+			shouldResolveToOriginal: isExport,
+		})
+		.then((url) => {
+			callback(url)
+		})
+}
+
+const resolveAssetUrlDebounced = debounce(resolveAssetUrl, 500)

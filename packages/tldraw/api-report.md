@@ -3682,9 +3682,9 @@ export function useActions(): TLUiActionsContextType;
 export function useAsset(options: {
     assetId: null | TLAssetId;
     shapeId: TLShapeId;
-    width: number;
 }): {
     asset: TLAsset | null | undefined;
+    isCulled: boolean;
     isPlaceholder: boolean;
     url: null | string;
 };

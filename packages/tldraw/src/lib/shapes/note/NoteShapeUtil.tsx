@@ -230,9 +230,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						onKeyDown={handleKeyDown}
 					/>
 				</div>
-				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-				)}
+				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
 	}
