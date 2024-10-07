@@ -6,6 +6,9 @@ import {
 	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
+	DefaultMainMenu,
+	DefaultQuickActions,
+	DefaultQuickActionsContent,
 	Editor,
 	OfflineIndicator,
 	TLComponents,
@@ -55,6 +58,8 @@ const components: TLComponents = {
 		return <TlaEditorTopLeftPanel />
 	},
 	SharePanel: () => {
+		const app = useMaybeApp()
+		if (!app) return null
 		return <TlaEditorTopRightPanel />
 	},
 	DebugMenu: () => {
@@ -69,6 +74,14 @@ const components: TLComponents = {
 		const collaborationStatus = useCollaborationStatus()
 		if (collaborationStatus === 'offline') return null
 		return <OfflineIndicator />
+	},
+	QuickActions: () => {
+		return (
+			<DefaultQuickActions>
+				<DefaultMainMenu />
+				<DefaultQuickActionsContent />
+			</DefaultQuickActions>
+		)
 	},
 }
 

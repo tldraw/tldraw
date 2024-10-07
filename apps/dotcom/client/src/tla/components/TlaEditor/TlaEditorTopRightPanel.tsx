@@ -1,22 +1,14 @@
-import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { forwardRef, useRef } from 'react'
-import { useParams } from 'react-router-dom'
 import { PeopleMenu, usePassThroughWheelEvents, useTranslation } from 'tldraw'
 import { ShareButtonProps } from '../../../components/ShareButton'
-import { useMaybeApp } from '../../hooks/useAppState'
+import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel() {
-	const app = useMaybeApp()
-	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
-
-	if (!app) return null
-
-	if (!fileSlug) throw Error('File id not found')
-	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+	const fileId = useCurrentFileId()
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
