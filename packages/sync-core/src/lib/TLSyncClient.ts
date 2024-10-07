@@ -115,7 +115,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * Called immediately after a connect acceptance has been received and processed Use this to make
 	 * any changes to the store that are required to keep it operational
 	 */
-	public readonly onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void
+	public readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
 	public readonly onSyncError: (reason: TLIncompatibilityReason) => void
 
 	private isDebugging = false
@@ -137,7 +137,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onLoadError(error: Error): void
 		onSyncError(reason: TLIncompatibilityReason): void
-		onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void
+		onAfterConnect?(self: TLSyncClient<R, S>, details: { isReadonly: boolean }): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -363,8 +363,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.store.applyDiff(stashedChanges, false)
 
 			this.store.ensureStoreIsUsable()
-			// TODO: reinstate isNew
-			this.onAfterConnect?.(this, false)
+			this.onAfterConnect?.(this, { isReadonly: event.isReadonly })
 		})
 
 		this.lastServerClock = event.serverClock

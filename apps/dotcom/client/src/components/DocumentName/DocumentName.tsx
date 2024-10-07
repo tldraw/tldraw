@@ -64,7 +64,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 	const msg = useTranslation()
 	const toasts = useToasts()
 	const trackEvent = useUiEvents()
-	const isReadonly = editor.getInstanceState().isReadonly
+	const isReadonly = editor.getIsReadonly()
 
 	return (
 		<div className="tlui-document-name__inner">
@@ -73,7 +73,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
 						type="icon"
-						className="tlui-document-name__menu tlui-menu__trigger flex-none"
+						className="flex-none tlui-document-name__menu tlui-menu__trigger"
 					>
 						<TldrawUiButtonIcon icon="chevron-down" />
 					</TldrawUiButton>
@@ -96,10 +96,7 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 								type="menu"
 								onClick={async () => {
 									trackEvent('copy-link', { source: 'document-name' })
-									const shareLink = await getShareUrl(
-										window.location.href,
-										editor.getInstanceState().isReadonly
-									)
+									const shareLink = await getShareUrl(window.location.href, editor.getIsReadonly())
 									shareLink && navigator.clipboard.writeText(shareLink)
 									toasts.addToast({
 										title: msg('share-menu.copied'),

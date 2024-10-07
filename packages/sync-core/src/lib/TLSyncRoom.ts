@@ -779,6 +779,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					schema: this.schema.serialize(),
 					serverClock: this.clock,
 					diff: migrated.value,
+					isReadonly: session.isReadonly,
 				})
 			} else {
 				// calculate the changes since the time the client last saw
@@ -827,6 +828,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					protocolVersion: getTlsyncProtocolVersion(),
 					serverClock: this.clock,
 					diff: migrated.value,
+					isReadonly: session.isReadonly,
 				})
 			}
 		})

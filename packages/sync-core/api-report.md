@@ -396,6 +396,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     connectRequestId: string;
     diff: NetworkDiff<R>;
     hydrationType: 'wipe_all' | 'wipe_presence';
+    isReadonly: boolean;
     protocolVersion: number;
     schema: SerializedSchema;
     serverClock: number;
@@ -417,7 +418,9 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
         didCancel?(): boolean;
-        onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void;
+        onAfterConnect?(self: TLSyncClient<R, S>, details: {
+            isReadonly: boolean;
+        }): void;
         onLoad(self: TLSyncClient<R, S>): void;
         onLoadError(error: Error): void;
         onSyncError(reason: TLIncompatibilityReason): void;
@@ -437,7 +440,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     lastPushedPresenceState: null | R;
     // (undocumented)
     latestConnectRequestId: null | string;
-    readonly onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void;
+    readonly onAfterConnect?: (self: this, details: {
+        isReadonly: boolean;
+    }) => void;
     // (undocumented)
     readonly onSyncError: (reason: TLIncompatibilityReason) => void;
     // (undocumented)

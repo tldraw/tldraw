@@ -1007,6 +1007,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getIsFocused(): boolean;
     // @deprecated (undocumented)
     getIsMenuOpen(): boolean;
+    // (undocumented)
+    getIsReadonly(): boolean;
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getOnlySelectedShape(): null | TLShape;
@@ -3490,6 +3492,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
+        mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
     id?: string;

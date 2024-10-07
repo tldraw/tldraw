@@ -32,6 +32,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			schema: SerializedSchema
 			diff: NetworkDiff<R>
 			serverClock: number
+			isReadonly: boolean
 	  }
 	| {
 			type: 'incompatibility_error'
