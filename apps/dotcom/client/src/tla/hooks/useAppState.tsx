@@ -7,7 +7,6 @@ import {
 	assertExists,
 	deleteFromLocalStorage,
 	getFromLocalStorage,
-	getUserPreferences,
 	inlineBase64AssetStore,
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
@@ -67,8 +66,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			}
 			_app = app
 			_userId = userId
-			const { id: _, ...restOfPreferences } = getUserPreferences()
-			app.tlUser.setUserPreferences(restOfPreferences as Partial<TldrawAppUser>)
 			setApp(app)
 			setReady(true)
 		})

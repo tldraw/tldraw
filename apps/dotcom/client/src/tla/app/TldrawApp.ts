@@ -14,7 +14,14 @@ import {
 	UserPreferencesKeys,
 } from '@tldraw/dotcom-shared'
 import pick from 'lodash.pick'
-import { Store, TLStoreSnapshot, computed } from 'tldraw'
+import {
+	Store,
+	TLStoreSnapshot,
+	TLUserPreferences,
+	computed,
+	createTLUser,
+	getUserPreferences,
+} from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -55,25 +62,25 @@ export class TldrawApp {
 		return this.store.put([sessionState])
 	}
 
-	tlUser = {
+	tlUser = createTLUser({
 		userPreferences: computed('user prefs', () => {
 			const userId = this.getCurrentUserId()
 			if (!userId) throw Error('no user')
 			const user = this.getUser(userId)
-			return pick(user, UserPreferencesKeys)
+			return pick(user, UserPreferencesKeys) as TLUserPreferences
 		}),
-		setUserPreferences: (prefs: Partial<TldrawAppUser>) => {
+		setUserPreferences: (prefs: Partial<TLUserPreferences>) => {
 			const user = this.getCurrentUser()
 			if (!user) throw Error('no user')
 
 			this.store.put([
 				{
 					...user,
-					...prefs,
+					...(prefs as TldrawAppUser),
 				},
 			])
 		},
-	}
+	})
 
 	@computed getTheme() {
 		return this.getSessionState().theme
@@ -497,6 +504,7 @@ export class TldrawApp {
 
 		const user = store.get(userId)
 		if (!user) {
+			const { id: _id, name: _name, color: _color, ...restOfPreferences } = getUserPreferences()
 			store.put([
 				TldrawAppUserRecordType.create({
 					id: userId,
@@ -507,6 +515,7 @@ export class TldrawApp {
 					presence: {
 						fileIds: [],
 					},
+					...restOfPreferences,
 				}),
 			])
 		}

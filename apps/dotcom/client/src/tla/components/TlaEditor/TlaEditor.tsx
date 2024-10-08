@@ -179,6 +179,7 @@ export function TlaEditor({
 			<Tldraw
 				store={store}
 				assetUrls={assetUrls}
+				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={components}
