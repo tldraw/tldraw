@@ -1,7 +1,15 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { fetch } from '@tldraw/utils'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
+import {
+	FileHelpers,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	useLocalStorageState,
+	useToasts,
+	useValue,
+} from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
@@ -144,6 +152,7 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 function TlaCopySnapshotLinkButton() {
 	const app = useApp()
 	const { fileSlug } = useParams()
+	const [snapshots, setSnapshots] = useState<string[]>([])
 
 	const editor = getCurrentEditor()
 	const raw = useRaw()
@@ -151,6 +160,26 @@ function TlaCopySnapshotLinkButton() {
 	const { addToast } = useToasts()
 
 	if (!fileSlug) throw Error('no file slug')
+
+	useEffect(() => {
+		async function getSnapshots() {
+			const result = await fetch(`/api/app/snapshots/${fileSlug}`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			})
+			if (!result.ok) {
+				console.log('error fetching snapshots')
+			}
+			const data = await result.json()
+			console.log('data', data)
+			if (data && data.snapshots) {
+				setSnapshots(data.snapshots)
+			}
+		}
+		getSnapshots()
+	}, [fileSlug])
 
 	const handleCopyLinkClick = useCallback(async () => {
 		const { auth } = app.getSessionState()
@@ -166,18 +195,48 @@ function TlaCopySnapshotLinkButton() {
 			})
 		} else {
 			copyTextToClipboard(url)
+			const id = url.split('/').pop()?.split('?')[0]
+			if (id) {
+				setSnapshots((prev) => [id, ...prev])
+			}
 
 			addToast({
 				title: 'copied',
 				severity: 'success',
 			})
 		}
-	}, [app, , addToast, editor, fileSlug])
+	}, [app, addToast, editor, fileSlug])
+
+	const handleSnapshotDeleteClick = useCallback(async (snapshot: string) => {
+		const result = await fetch(`/api/app/snapshot/${snapshot}`, {
+			method: 'DELETE',
+		})
+		if (!result.ok) {
+			console.log('error deleting snapshot')
+		} else {
+			setSnapshots((prev) => prev.filter((s) => s !== snapshot))
+		}
+	}, [])
 
 	return (
-		<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">
-			{raw('Copy snapshot link')}
-		</TlaShareMenuCopyButton>
+		<>
+			<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">
+				{raw('Copy snapshot link')}
+			</TlaShareMenuCopyButton>
+			{snapshots.map((snapshot) => (
+				<div key={snapshot} style={{ display: 'flex', flexDirection: 'column' }}>
+					<div>{snapshot}</div>
+					<div key={snapshot} style={{ display: 'flex', alignItems: 'center' }}>
+						<TldrawUiButton type="menu" onClick={() => window.open(`/q/s/${snapshot}`)}>
+							<TldrawUiButtonIcon icon="link" />
+						</TldrawUiButton>
+						<TldrawUiButton type="menu" onClick={() => handleSnapshotDeleteClick(snapshot)}>
+							<TldrawUiButtonIcon icon="trash" />
+						</TldrawUiButton>
+					</div>
+				</div>
+			))}
+		</>
 	)
 }
 

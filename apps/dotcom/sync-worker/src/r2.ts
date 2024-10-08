@@ -15,3 +15,13 @@ export function getR2KeyForSnapshot({
 	const slug = parentSlug ? `${parentSlug}/${snapshotSlug}` : snapshotSlug
 	return getR2KeyForRoom({ slug, isApp })
 }
+
+export function getR2KeyForSnapshots({
+	parentSlug,
+	isApp,
+}: {
+	parentSlug: string
+	isApp: boolean
+}) {
+	return getR2KeyForRoom({ slug: parentSlug, isApp })
+}

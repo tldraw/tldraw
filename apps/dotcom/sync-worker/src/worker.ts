@@ -11,12 +11,14 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
+import { deleteRoomSnapshot } from './routes/deleteRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
+import { getRoomSnapshots } from './routes/getRoomSnapshots'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
 import { getAuth } from './utils/getAuth'
@@ -59,8 +61,10 @@ const router = createRouter<Environment>()
 
 		return notFound()
 	})
+	.get('/app/snapshots/:roomId', (req, env) => getRoomSnapshots(req, env))
 	.post('/app/snapshots', (req, env) => createRoomSnapshot(req, env, true))
 	.get('/app/snapshot/:roomId', (req, env) => getRoomSnapshot(req, env, true))
+	.delete('/app/snapshot/:roomId', (req, env) => deleteRoomSnapshot(req, env))
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
