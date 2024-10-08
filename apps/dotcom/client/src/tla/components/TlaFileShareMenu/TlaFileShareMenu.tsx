@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
@@ -25,6 +26,7 @@ export function TlaFileShareMenu({
 }) {
 	const app = useApp()
 	const raw = useRaw()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const shareMenuActiveTab = useValue(
 		'share menu active tab',
@@ -33,8 +35,11 @@ export function TlaFileShareMenu({
 	)
 
 	const handleTabChange = useCallback(
-		(value: TldrawAppSessionState['shareMenuActiveTab']) => app.setShareMenuActiveTab(value),
-		[app]
+		(value: TldrawAppSessionState['shareMenuActiveTab']) => {
+			app.setShareMenuActiveTab(value)
+			trackEvent('change-share-menu-tab', { tab: value, source: 'file-share-menu' })
+		},
+		[app, trackEvent]
 	)
 
 	return (

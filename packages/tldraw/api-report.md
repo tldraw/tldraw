@@ -2572,7 +2572,7 @@ export interface TLUiDropdownMenuTriggerProps {
 }
 
 // @public (undocumented)
-export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>;
+export type TLUiEventContextType = TLUiEventHandler;
 
 // @public (undocumented)
 export type TLUiEventData<K> = K extends null ? {
@@ -2582,7 +2582,7 @@ export type TLUiEventData<K> = K extends null ? {
 } & K;
 
 // @public (undocumented)
-export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (name: T, data: TLUiEventData<TLUiEventMap[T]>) => void;
+export type TLUiEventHandler = <T extends keyof TLUiEventMap>(name: T, data: TLUiEventData<TLUiEventMap[T]>) => void;
 
 // @public (undocumented)
 export interface TLUiEventMap {
