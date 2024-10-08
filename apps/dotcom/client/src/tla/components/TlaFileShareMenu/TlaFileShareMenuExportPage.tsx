@@ -239,10 +239,10 @@ function ExportImageButton() {
 
 		trackEvent('export-image', {
 			source: 'file-share-menu',
-			padding: user.exportPadding,
-			background: opts.background,
-			theme: user.exportTheme,
 			fullPage,
+			padding: user.exportPadding,
+			background: !!opts.background,
+			theme: user.exportTheme,
 			format: user.exportFormat,
 		})
 

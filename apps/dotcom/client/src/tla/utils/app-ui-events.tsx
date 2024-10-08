@@ -23,7 +23,7 @@ export interface TLAppUiEventMap {
 	'copy-share-link': null
 	'toggle-shared': { shared: boolean }
 	'set-theme': { theme: 'dark' | 'light' | 'auto' }
-	'toggle-export-padding': { padding: TldrawAppUser['exportPadding'] }
+	'toggle-export-padding': { padding: boolean }
 	'toggle-export-background': { background: TldrawAppUser['exportBackground'] }
 	'set-export-format': { format: TldrawAppUser['exportFormat'] }
 	'set-export-theme': { theme: TldrawAppUser['exportTheme'] }
@@ -37,26 +37,21 @@ export interface TLAppUiEventMap {
 }
 
 /** @public */
-export type TLAppUiData<K extends keyof TLAppUiEventMap> = TLAppUiEventMap[K] extends null
-	? { source: TLAppUiEventSource }
-	: {
-			source: TLAppUiEventSource
-		} & TLAppUiEventMap[K]
-
-/** @public */
-export type TLAppUiHandler<T extends keyof TLAppUiEventMap = keyof TLAppUiEventMap> = (
+export type TLAppUiHandler = <T extends keyof TLAppUiEventMap>(
 	name: T,
-	data: TLAppUiData<T>
+	data: { source: TLAppUiEventSource } & (TLAppUiEventMap[T] extends null
+		? object
+		: TLAppUiEventMap[T])
 ) => void
 
 /** @public */
-export type TLAppUiContextType = TLAppUiHandler<keyof TLAppUiEventMap>
+export type TLAppUiContextType = TLAppUiHandler
 
 /** @internal */
 const defaultEventHandler: TLAppUiContextType = () => void null
 
 /** @internal */
-export const EventsContext = createContext<TLAppUiContextType | null>(null)
+export const EventsContext = createContext<TLAppUiContextType>(defaultEventHandler)
 
 /** @public */
 export interface TldrawAppUiEventsProviderProps {
@@ -76,5 +71,5 @@ export function TldrawAppUiEventsProvider({ onEvent, children }: TldrawAppUiEven
 /** @public */
 export function useTldrawAppUiEvents(): TLAppUiContextType {
 	const eventHandler = useContext(EventsContext)
-	return eventHandler ?? defaultEventHandler
+	return eventHandler
 }

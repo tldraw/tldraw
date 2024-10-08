@@ -10,7 +10,7 @@ import { AssetUrlsProvider } from './asset-urls'
 import { BreakPointProvider } from './breakpoints'
 import { TLUiComponents, TldrawUiComponentsProvider } from './components'
 import { TldrawUiDialogsProvider } from './dialogs'
-import { TLUiEventHandler, TLUiEventMap, TldrawUiEventsProvider } from './events'
+import { TLUiEventHandler, TldrawUiEventsProvider } from './events'
 import { TldrawUiToastsProvider } from './toasts'
 
 /** @public */
@@ -33,7 +33,7 @@ export interface TLUiContextProviderProps {
 	/**
 	 * Callback for when an event occurs in the UI.
 	 */
-	onUiEvent?: TLUiEventHandler<keyof TLUiEventMap>
+	onUiEvent?: TLUiEventHandler
 
 	/**
 	 * Whether to always should the mobile breakpoints.
