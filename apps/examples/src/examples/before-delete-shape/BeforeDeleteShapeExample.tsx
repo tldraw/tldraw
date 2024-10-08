@@ -1,4 +1,5 @@
 import { Editor, Tldraw, createShapeId } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 export default function BeforeDeleteShapeExample() {
 	return (
