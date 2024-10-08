@@ -58,18 +58,15 @@ export const router = createRoutesFromElements(
 			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		{/* begin tla */}
-		<Route lazy={() => import('./tla/providers/TlaClerkProvider')}>
-			<Route path="/q/local" lazy={() => import('./tla/pages/local')} />
-			<Route lazy={() => import('./tla/providers/TlaAppLoggedInProvider')}>
-				{/* If not redirected, then local */}
-				<Route path="/q" lazy={() => import('./tla/components/RedirectAtRoot')} />
-				{/* File view*/}
-				<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
-				<Route path="/q/s/:fileSlug" lazy={() => import('./tla/pages/snapshot')} />
+		<Route lazy={() => import('./tla/providers/TlaProvider')}>
+			<Route path="/q" lazy={() => import('./tla/pages/local')} />
+			{/* File view */}
+			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
+			<Route path="/q/s/:fileSlug" lazy={() => import('./tla/pages/snapshot')} />
+			{/* Views that require login */}
+			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
 				{/* User settings */}
-				<Route path="/q/profile" lazy={() => import('./tla/components/RequireAuthForUser')}>
-					<Route index lazy={() => import('./tla/pages/profile')} />
-				</Route>
+				<Route path="/q/profile" lazy={() => import('./tla/pages/profile')} />
 				{/* Internal */}
 				<Route path="/q/debug" lazy={() => import('./tla/pages/debug')} />
 			</Route>

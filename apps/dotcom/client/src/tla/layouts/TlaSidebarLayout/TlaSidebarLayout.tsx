@@ -5,7 +5,7 @@ import { useApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import styles from './sidebar-layout.module.css'
 
-export function TlaSidebarLayout({ children }: { children: ReactNode; collapsable?: boolean }) {
+export function TlaSidebarLayout({ children }: { children: ReactNode; collapsible?: boolean }) {
 	const app = useApp()
 	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
