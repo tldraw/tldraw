@@ -6754,6 +6754,7 @@ __metadata:
   resolution: "@tldraw/dotcom-shared@workspace:packages/dotcom-shared"
   dependencies:
     "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@tldraw/validate": "workspace:*"
     tldraw: "workspace:*"
   peerDependencies:
@@ -7503,6 +7504,15 @@ __metadata:
   dependencies:
     "@types/lodash": "npm:*"
   checksum: f3180c2d2925514fff1908a1303c11468c9f39b47fd7b053416aad3f1447f8e4a9894dd0460187ac9ac19387e25aec8dd8214d13a50a0967e0dc9cca8e4c5353
+  languageName: node
+  linkType: hard
+
+"@types/lodash.pick@npm:^4.4.9":
+  version: 4.4.9
+  resolution: "@types/lodash.pick@npm:4.4.9"
+  dependencies:
+    "@types/lodash": "npm:*"
+  checksum: 007c298133b5bc2157f13d6641b139d2782b4af7b6a942cc4b1a427c6ebc6020e46b32ee2e782607389b0c63a5211d51152606424fdfe25f3eeac8afea0bdf02
   languageName: node
   linkType: hard
 
@@ -11308,6 +11318,7 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
+    "@types/lodash.pick": "npm:^4.4.9"
     "@types/qrcode": "npm:^1.5.0"
     "@types/react": "npm:^18.2.0"
     "@typescript-eslint/utils": "npm:^5.59.0"
@@ -11322,6 +11333,7 @@ __metadata:
     identity-obj-proxy: "npm:^3.0.0"
     json5: "npm:^2.2.3"
     lazyrepo: "npm:0.0.0-alpha.27"
+    lodash.pick: "npm:^4.4.0"
     qrcode: "npm:^1.5.1"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
@@ -16600,6 +16612,13 @@ __metadata:
   version: 4.1.1
   resolution: "lodash.once@npm:4.1.1"
   checksum: 202f2c8c3d45e401b148a96de228e50ea6951ee5a9315ca5e15733d5a07a6b1a02d9da1e7fdf6950679e17e8ca8f7190ec33cae47beb249b0c50019d753f38f3
+  languageName: node
+  linkType: hard
+
+"lodash.pick@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "lodash.pick@npm:4.4.0"
+  checksum: 5a76778aa1c245ce081d19c5a625a44cdf4853f421c8789ec962cb5d73dd21be7cf11ae3bc2123ff5f432326ed0176d674d22ca6e0e8f9eaba5b74b00f632c12
   languageName: node
   linkType: hard
 

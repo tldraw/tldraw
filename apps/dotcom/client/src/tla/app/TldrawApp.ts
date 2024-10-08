@@ -11,10 +11,11 @@ import {
 	TldrawAppUser,
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
+	UserPreferencesKeys,
 } from '@tldraw/dotcom-shared'
-import { Store, TLStoreSnapshot, TLUser, computed } from 'tldraw'
+import pick from 'lodash.pick'
+import { Store, TLStoreSnapshot, computed } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
@@ -54,22 +55,24 @@ export class TldrawApp {
 		return this.store.put([sessionState])
 	}
 
-	setUserPreferences(
-		userId: TldrawAppUserId,
-		preferences: Partial<TldrawAppUser['userPreferences']>
-	) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
+	tlUser = {
+		userPreferences: computed('user prefs', () => {
+			const userId = this.getCurrentUserId()
+			if (!userId) throw Error('no user')
+			const user = this.getUser(userId)
+			return pick(user, UserPreferencesKeys)
+		}),
+		setUserPreferences: (prefs: Partial<TldrawAppUser>) => {
+			const user = this.getCurrentUser()
+			if (!user) throw Error('no user')
 
-		this.store.put([
-			{
-				...user,
-				userPreferences: {
-					...user.userPreferences!,
-					...preferences,
+			this.store.put([
+				{
+					...user,
+					...prefs,
 				},
-			},
-		])
+			])
+		},
 	}
 
 	@computed getTheme() {
@@ -194,6 +197,16 @@ export class TldrawApp {
 
 	get<T extends TldrawAppRecord>(id: T['id']): T | undefined {
 		return this.store.get(id) as T | undefined
+	}
+
+	getCurrentUserId() {
+		return this.getSessionState().auth?.userId
+	}
+
+	getCurrentUser(): TldrawAppUser | undefined {
+		const userId = this.getCurrentUserId()
+		if (!userId) return
+		return this.get(userId)
 	}
 
 	getUser(userId: TldrawAppUserId): TldrawAppUser | undefined {
@@ -467,7 +480,6 @@ export class TldrawApp {
 		email: string
 		avatar: string
 		store: Store<TldrawAppRecord>
-		tlUser: TLUser
 	}) {
 		const { store } = opts
 
@@ -483,7 +495,6 @@ export class TldrawApp {
 			])
 		}
 
-		const userPreferences = opts.tlUser.userPreferences.get()
 		const user = store.get(userId)
 		if (!user) {
 			store.put([
@@ -496,16 +507,11 @@ export class TldrawApp {
 					presence: {
 						fileIds: [],
 					},
-					userPreferences: userPreferences,
 				}),
 			])
 		}
 
 		const app = new TldrawApp(store)
-		if (!user?.userPreferences) {
-			app.setUserPreferences(userId, userPreferences)
-		}
-
 		return { app, userId }
 	}
 

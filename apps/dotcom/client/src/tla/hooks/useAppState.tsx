@@ -4,10 +4,7 @@ import { useSync } from '@tldraw/sync'
 import { ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react'
 import {
 	RecordId,
-	TLUserPreferences,
 	assertExists,
-	atom,
-	createTLUser,
 	deleteFromLocalStorage,
 	getFromLocalStorage,
 	getUserPreferences,
@@ -56,22 +53,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		let _app: TldrawApp
 		let _userId: RecordId<TldrawAppUser>
 
-		const userPreferencesRaw = getUserPreferences()
-		const userPreferences = atom<TLUserPreferences>('userPreferences', userPreferencesRaw)
-		const tlUser = createTLUser({
-			userPreferences,
-			setUserPreferences: (preferences) => {
-				userPreferences.set(preferences)
-			},
-		})
-
 		TldrawApp.create({
 			userId: auth.userId,
 			fullName: user.fullName || '',
 			email: user.emailAddresses[0]?.emailAddress || '',
 			avatar: user.imageUrl || '',
 			store: store.store as any,
-			tlUser,
 		}).then(({ app, userId }) => {
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
@@ -80,6 +67,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			}
 			_app = app
 			_userId = userId
+			const { id: _, ...restOfPreferences } = getUserPreferences()
+			app.tlUser.setUserPreferences(restOfPreferences as Partial<TldrawAppUser>)
 			setApp(app)
 			setReady(true)
 		})
