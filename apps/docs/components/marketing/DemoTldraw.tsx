@@ -14,7 +14,7 @@ const assetUrls = getAssetUrlsByMetaUrl()
 export default function DemoTldraw() {
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const wrapper = useRef<HTMLDivElement | null>(null)
-	const { theme, setTheme } = useTheme()
+	const { theme } = useTheme()
 
 	const handleEditorMount = useCallback((editor: Editor) => {
 		setEditor(editor)
