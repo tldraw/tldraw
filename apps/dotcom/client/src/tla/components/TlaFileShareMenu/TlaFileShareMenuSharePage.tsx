@@ -233,7 +233,7 @@ function TlaCopySnapshotLinkButton() {
 						<select style={{ flex: 1 }} onChange={(el) => setSelectedSnapshot(el.target.value)}>
 							{snapshots.map((snapshot) => (
 								<option key={snapshot.id} value={snapshot.id}>
-									<div>{new Date(snapshot.uploaded).toDateString()}</div>
+									{new Date(snapshot.uploaded).toDateString()}
 								</option>
 							))}
 						</select>
@@ -243,7 +243,7 @@ function TlaCopySnapshotLinkButton() {
 				</>
 			)}
 			<TlaShareMenuCopyButton onClick={handleCreateSnapshotClick} type="secondary">
-				{raw('Create new snapshot')}
+				{raw('Create a new snapshot')}
 			</TlaShareMenuCopyButton>
 		</>
 	)
