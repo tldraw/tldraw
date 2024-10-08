@@ -12,7 +12,7 @@ import {
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
 } from '@tldraw/dotcom-shared'
-import { Store, TLStoreSnapshot, computed } from 'tldraw'
+import { Store, TLStoreSnapshot, TLUser, computed } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 
 export class TldrawApp {
@@ -52,6 +52,24 @@ export class TldrawApp {
 
 	setSessionState(sessionState: TldrawAppSessionState) {
 		return this.store.put([sessionState])
+	}
+
+	setUserPreferences(
+		userId: TldrawAppUserId,
+		preferences: Partial<TldrawAppUser['userPreferences']>
+	) {
+		const user = this.store.get(userId)
+		if (!user) throw Error('no user')
+
+		this.store.put([
+			{
+				...user,
+				userPreferences: {
+					...user.userPreferences!,
+					...preferences,
+				},
+			},
+		])
 	}
 
 	@computed getTheme() {
@@ -449,6 +467,7 @@ export class TldrawApp {
 		email: string
 		avatar: string
 		store: Store<TldrawAppRecord>
+		tlUser: TLUser
 	}) {
 		const { store } = opts
 
@@ -464,7 +483,9 @@ export class TldrawApp {
 			])
 		}
 
-		if (!store.get(userId)) {
+		const userPreferences = opts.tlUser.userPreferences.get()
+		const user = store.get(userId)
+		if (!user) {
 			store.put([
 				TldrawAppUserRecordType.create({
 					id: userId,
@@ -475,11 +496,17 @@ export class TldrawApp {
 					presence: {
 						fileIds: [],
 					},
+					userPreferences: userPreferences,
 				}),
 			])
 		}
 
-		return { store: new TldrawApp(store), userId }
+		const app = new TldrawApp(store)
+		if (!user?.userPreferences) {
+			app.setUserPreferences(userId, userPreferences)
+		}
+
+		return { app, userId }
 	}
 
 	static SessionStateId = TldrawAppSessionStateRecordType.createId('session')

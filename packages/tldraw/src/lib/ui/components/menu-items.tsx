@@ -520,13 +520,13 @@ export function ToggleSnapModeItem() {
 /** @public @react */
 export function ToggleToolLockItem() {
 	const editor = useEditor()
-	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
+	const isToolLock = useValue('isToolLock', () => editor.user.getIsToolLocked(), [editor])
 	return <TldrawUiMenuActionCheckboxItem actionId="toggle-tool-lock" checked={isToolLock} />
 }
 /** @public @react */
 export function ToggleGridItem() {
 	const editor = useEditor()
-	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.user.getIsGridMode(), [editor])
 	return <TldrawUiMenuActionCheckboxItem actionId="toggle-grid" checked={isGridMode} />
 }
 
@@ -546,7 +546,7 @@ export function ToggleDarkModeItem() {
 /** @public @react */
 export function ToggleFocusModeItem() {
 	const editor = useEditor()
-	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
+	const isFocusMode = useValue('isFocusMode', () => editor.user.getIsFocusMode(), [editor])
 	return <TldrawUiMenuActionCheckboxItem actionId="toggle-focus-mode" checked={isFocusMode} />
 }
 /** @public @react */
@@ -576,7 +576,7 @@ export function ToggleReduceMotionItem() {
 /** @public @react */
 export function ToggleDebugModeItem() {
 	const editor = useEditor()
-	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
+	const isDebugMode = useValue('isDebugMode', () => editor.user.getIsDebugMode(), [editor])
 	return <TldrawUiMenuActionCheckboxItem actionId="toggle-debug-mode" checked={isDebugMode} />
 }
 

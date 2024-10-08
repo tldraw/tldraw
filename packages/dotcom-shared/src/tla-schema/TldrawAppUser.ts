@@ -6,6 +6,7 @@ import {
 	createRecordType,
 } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import { TLUserPreferences, getFreshUserPreferences, userTypeValidator } from 'tldraw'
 import { TldrawAppFileId } from './TldrawAppFile'
 import { idValidator } from './idValidator'
 
@@ -27,6 +28,7 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 	flags: {
 		placeholder_feature_flag: boolean
 	}
+	userPreferences?: TLUserPreferences
 }
 
 export type TldrawAppUserId = RecordId<TldrawAppUser>
@@ -53,6 +55,7 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 		flags: T.object({
 			placeholder_feature_flag: T.boolean,
 		}),
+		userPreferences: T.optional(userTypeValidator),
 	})
 )
 
@@ -85,5 +88,6 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 		flags: {
 			placeholder_feature_flag: false,
 		},
+		userPreferences: getFreshUserPreferences(),
 	})
 )

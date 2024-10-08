@@ -15,9 +15,7 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 
-	const isToolLocked = useValue('is tool locked', () => editor.getInstanceState().isToolLocked, [
-		editor,
-	])
+	const isToolLocked = useValue('is tool locked', () => editor.user.getIsToolLocked(), [editor])
 	const tool = useValue('current tool', () => editor.getCurrentTool(), [editor])
 
 	if (!activeToolId || !tool.isLockable) return null

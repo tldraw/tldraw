@@ -7,10 +7,10 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useRaw } from '../../hooks/useRaw'
-import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
