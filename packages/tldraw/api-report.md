@@ -2403,7 +2403,7 @@ export interface TLUiContextProviderProps {
     components?: TLUiComponents;
     forceMobile?: boolean;
     mediaMimeTypes?: string[];
-    onUiEvent?: TLUiEventHandler;
+    onUiEvent?: TLUiEventHandler<keyof TLUiEventMap>;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
 

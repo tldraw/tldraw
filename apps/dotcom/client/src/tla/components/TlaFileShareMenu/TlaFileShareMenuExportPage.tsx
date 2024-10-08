@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react'
 import {
 	Editor,
 	FileHelpers,
+	TLImageExportOptions,
 	TLShape,
 	compact,
 	debounce,
@@ -15,6 +16,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
@@ -49,6 +51,7 @@ function ExportBackgroundToggle() {
 	const app = useApp()
 	const raw = useRaw()
 	const user = useTldrawUser()
+	const trackEvent = useTldrawAppUiEvents()
 	if (!user) throw Error('should have auth')
 
 	const { id: userId } = user
@@ -66,8 +69,10 @@ function ExportBackgroundToggle() {
 	const handleToggleShared = useCallback(() => {
 		const user = app.getUser(userId)
 		if (!user) throw Error('no user')
-		app.setUserExportPadding(userId, !user.exportPadding)
-	}, [app, userId])
+		const padding = !user.exportPadding
+		app.setUserExportPadding(userId, padding)
+		trackEvent('toggle-export-padding', { padding, source: 'file-share-menu' })
+	}, [app, userId, trackEvent])
 
 	return (
 		<TlaMenuControl>
@@ -81,6 +86,7 @@ function ExportPaddingToggle() {
 	const app = useApp()
 	const raw = useRaw()
 	const user = useTldrawUser()
+	const trackEvent = useTldrawAppUiEvents()
 	if (!user) throw Error('should have auth')
 
 	const { id: userId } = user
@@ -98,8 +104,10 @@ function ExportPaddingToggle() {
 	const handleToggleShared = useCallback(() => {
 		const user = app.getUser(userId)
 		if (!user) throw Error('no user')
-		app.setUserExportBackground(userId, !user.exportBackground)
-	}, [app, userId])
+		const background = !user.exportBackground
+		app.setUserExportBackground(userId, background)
+		trackEvent('toggle-export-background', { background, source: 'file-share-menu' })
+	}, [app, userId, trackEvent])
 
 	return (
 		<TlaMenuControl>
@@ -113,6 +121,7 @@ function ExportFormatSelect() {
 	const app = useApp()
 	const raw = useRaw()
 	const user = useTldrawUser()
+	const trackEvent = useTldrawAppUiEvents()
 	if (!user) throw Error('should have auth')
 	const { id: userId } = user
 
@@ -129,8 +138,9 @@ function ExportFormatSelect() {
 	const handleSelectChange = useCallback(
 		(value: TldrawAppUser['exportFormat']) => {
 			app.setUserExportFormat(userId, value)
+			trackEvent('set-export-format', { format: value, source: 'file-share-menu' })
 		},
-		[app, userId]
+		[app, userId, trackEvent]
 	)
 
 	return (
@@ -152,6 +162,7 @@ function ExportThemeSelect() {
 	const app = useApp()
 	const raw = useRaw()
 	const user = useTldrawUser()
+	const trackEvent = useTldrawAppUiEvents()
 	if (!user) throw Error('should have auth')
 	const { id: userId } = user
 
@@ -168,8 +179,9 @@ function ExportThemeSelect() {
 	const handleSelectChange = useCallback(
 		(value: TldrawAppUser['exportTheme']) => {
 			app.setUserExportTheme(userId, value)
+			trackEvent('set-export-theme', { theme: value, source: 'file-share-menu' })
 		},
-		[app, userId]
+		[app, userId, trackEvent]
 	)
 
 	return (
@@ -191,13 +203,12 @@ function ExportThemeSelect() {
 function ExportImageButton() {
 	const app = useApp()
 	const raw = useRaw()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const [exported, setExported] = useState(false)
 
 	const handleExportLinkClick = useCallback(() => {
-		if (exported) {
-			return
-		}
+		if (exported) return
 
 		const editor = getCurrentEditor()
 
@@ -210,15 +221,29 @@ function ExportImageButton() {
 		const user = app.getUser(auth.userId)
 		if (!user) throw Error('expected user')
 
+		let fullPage = false
+
 		let ids = editor.getSelectedShapeIds()
 		if (ids.length === 0) {
+			fullPage = true
 			ids = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
 		}
 
-		exportAs(editor, ids, user.exportFormat, 'file', {
+		const opts: TLImageExportOptions = {
 			padding: user.exportPadding ? editor.options.defaultSvgPadding : 0,
 			background: user.exportBackground,
 			darkMode: user.exportTheme === 'auto' ? undefined : user.exportTheme === 'dark',
+		}
+
+		exportAs(editor, ids, user.exportFormat, 'file', opts)
+
+		trackEvent('export-image', {
+			source: 'file-share-menu',
+			padding: user.exportPadding,
+			background: opts.background,
+			theme: user.exportTheme,
+			fullPage,
+			format: user.exportFormat,
 		})
 
 		setExported(true)
@@ -227,7 +252,7 @@ function ExportImageButton() {
 		return () => {
 			setExported(false)
 		}
-	}, [exported, app])
+	}, [exported, trackEvent, app])
 
 	return (
 		<>

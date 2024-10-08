@@ -1,5 +1,5 @@
-import { TldrawAppSessionState } from '@tldraw/dotcom-shared'
-import { createContext, ReactNode, useContext } from 'react'
+import { TldrawAppSessionState, TldrawAppUser } from '@tldraw/dotcom-shared'
+import { ReactNode, createContext, useContext } from 'react'
 
 /** @public */
 export type TLAppUiEventSource =
@@ -20,21 +20,33 @@ export interface TLAppUiEventMap {
 	'change-user-name': null
 	'click-watermark': null
 	'change-share-menu-tab': { tab: TldrawAppSessionState['shareMenuActiveTab'] }
-	'export-image': { format: 'svg' | 'png' }
-	'copy-share-link': { format: 'svg' | 'png' }
+	'copy-share-link': null
 	'toggle-shared': { shared: boolean }
 	'set-theme': { theme: 'dark' | 'light' | 'auto' }
+	'toggle-export-padding': { padding: TldrawAppUser['exportPadding'] }
+	'toggle-export-background': { background: TldrawAppUser['exportBackground'] }
+	'set-export-format': { format: TldrawAppUser['exportFormat'] }
+	'set-export-theme': { theme: TldrawAppUser['exportTheme'] }
+	'export-image': {
+		fullPage: boolean
+		theme: TldrawAppUser['exportTheme']
+		format: TldrawAppUser['exportFormat']
+		padding: TldrawAppUser['exportPadding']
+		background: TldrawAppUser['exportBackground']
+	}
 }
 
 /** @public */
-export type TLAppUiData<K> = K extends null
+export type TLAppUiData<K extends keyof TLAppUiEventMap> = TLAppUiEventMap[K] extends null
 	? { source: TLAppUiEventSource }
-	: { source: TLAppUiEventSource } & K
+	: {
+			source: TLAppUiEventSource
+		} & TLAppUiEventMap[K]
 
 /** @public */
 export type TLAppUiHandler<T extends keyof TLAppUiEventMap = keyof TLAppUiEventMap> = (
 	name: T,
-	data: TLAppUiData<TLAppUiEventMap[T]>
+	data: TLAppUiData<T>
 ) => void
 
 /** @public */
