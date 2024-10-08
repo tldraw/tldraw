@@ -2,14 +2,7 @@ import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { fetch } from '@tldraw/utils'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import {
-	FileHelpers,
-	TldrawUiButton,
-	TldrawUiButtonIcon,
-	useLocalStorageState,
-	useToasts,
-	useValue,
-} from 'tldraw'
+import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
@@ -17,6 +10,7 @@ import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import { getShareableFileUrl } from '../../utils/urls'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
@@ -152,7 +146,8 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 function TlaCopySnapshotLinkButton() {
 	const app = useApp()
 	const { fileSlug } = useParams()
-	const [snapshots, setSnapshots] = useState<string[]>([])
+	const [snapshots, setSnapshots] = useState<{ id: string; uploaded: string }[]>([])
+	const [selectedSnapshot, setSelectedSnapshot] = useState<string | null>(null)
 
 	const editor = getCurrentEditor()
 	const raw = useRaw()
@@ -173,15 +168,15 @@ function TlaCopySnapshotLinkButton() {
 				console.log('error fetching snapshots')
 			}
 			const data = await result.json()
-			console.log('data', data)
 			if (data && data.snapshots) {
 				setSnapshots(data.snapshots)
+				setSelectedSnapshot(data.snapshots[0]?.id)
 			}
 		}
 		getSnapshots()
 	}, [fileSlug])
 
-	const handleCopyLinkClick = useCallback(async () => {
+	const handleCreateSnapshotClick = useCallback(async () => {
 		const { auth } = app.getSessionState()
 		if (!auth) throw Error('should have auth')
 		const { userId } = auth
@@ -197,7 +192,8 @@ function TlaCopySnapshotLinkButton() {
 			copyTextToClipboard(url)
 			const id = url.split('/').pop()?.split('?')[0]
 			if (id) {
-				setSnapshots((prev) => [id, ...prev])
+				setSnapshots((prev) => [{ id, uploaded: new Date().toUTCString() }, ...prev])
+				setSelectedSnapshot(id)
 			}
 
 			addToast({
@@ -207,35 +203,48 @@ function TlaCopySnapshotLinkButton() {
 		}
 	}, [app, addToast, editor, fileSlug])
 
-	const handleSnapshotDeleteClick = useCallback(async (snapshot: string) => {
-		const result = await fetch(`/api/app/snapshot/${snapshot}`, {
+	const handleSnapshotCopyClick = useCallback(() => {
+		copyTextToClipboard(`${window.location.origin}/q/s/${selectedSnapshot}`)
+		addToast({
+			title: 'copied',
+			severity: 'success',
+		})
+	}, [addToast, selectedSnapshot])
+
+	const handleSnapshotDeleteClick = useCallback(async () => {
+		const result = await fetch(`/api/app/snapshot/${selectedSnapshot}`, {
 			method: 'DELETE',
 		})
 		if (!result.ok) {
 			console.log('error deleting snapshot')
 		} else {
-			setSnapshots((prev) => prev.filter((s) => s !== snapshot))
+			const newSnapshots = snapshots.filter((s) => s.id !== selectedSnapshot)
+			setSnapshots(newSnapshots)
+			setSelectedSnapshot(newSnapshots[0]?.id)
 		}
-	}, [])
+	}, [selectedSnapshot, snapshots])
 
 	return (
 		<>
-			<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">
-				{raw('Copy snapshot link')}
-			</TlaShareMenuCopyButton>
-			{snapshots.map((snapshot) => (
-				<div key={snapshot} style={{ display: 'flex', flexDirection: 'column' }}>
-					<div>{snapshot}</div>
-					<div key={snapshot} style={{ display: 'flex', alignItems: 'center' }}>
-						<TldrawUiButton type="menu" onClick={() => window.open(`/q/s/${snapshot}`)}>
-							<TldrawUiButtonIcon icon="link" />
-						</TldrawUiButton>
-						<TldrawUiButton type="menu" onClick={() => handleSnapshotDeleteClick(snapshot)}>
-							<TldrawUiButtonIcon icon="trash" />
-						</TldrawUiButton>
+			{snapshots.length > 0 && (
+				<>
+					<div>{raw('Snapshots:')}</div>
+					<div style={{ display: 'flex', gap: '5px' }}>
+						<select style={{ flex: 1 }} onChange={(el) => setSelectedSnapshot(el.target.value)}>
+							{snapshots.map((snapshot) => (
+								<option key={snapshot.id} value={snapshot.id}>
+									<div>{new Date(snapshot.uploaded).toDateString()}</div>
+								</option>
+							))}
+						</select>
+						<TlaButton variant="secondary" onClick={handleSnapshotCopyClick} icon="copy" />
+						<TlaButton variant="secondary" onClick={handleSnapshotDeleteClick} icon="trash" />
 					</div>
-				</div>
-			))}
+				</>
+			)}
+			<TlaShareMenuCopyButton onClick={handleCreateSnapshotClick} type="secondary">
+				{raw('Create new snapshot')}
+			</TlaShareMenuCopyButton>
 		</>
 	)
 }
