@@ -2074,7 +2074,7 @@ export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerPro
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, mediaMimeTypes, children, }: TLUiContextProviderProps): JSX_2.Element;
+export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderProps>;
 
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
@@ -2188,7 +2188,7 @@ export const TldrawUiToasts: NamedExoticComponent<object>;
 export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps): JSX_2.Element;
 
 // @internal
-export const TldrawUiTranslationProvider: React_2.NamedExoticComponent<TLUiTranslationProviderProps>;
+export function TldrawUiTranslationProvider({ overrides, locale, children, }: TLUiTranslationProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface TLEditorAssetUrls {
@@ -2572,7 +2572,7 @@ export interface TLUiDropdownMenuTriggerProps {
 }
 
 // @public (undocumented)
-export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>;
+export type TLUiEventContextType = TLUiEventHandler;
 
 // @public (undocumented)
 export type TLUiEventData<K> = K extends null ? {
@@ -2582,7 +2582,7 @@ export type TLUiEventData<K> = K extends null ? {
 } & K;
 
 // @public (undocumented)
-export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (name: T, data: TLUiEventData<TLUiEventMap[T]>) => void;
+export type TLUiEventHandler = <T extends keyof TLUiEventMap>(name: T, data: TLUiEventData<TLUiEventMap[T]>) => void;
 
 // @public (undocumented)
 export interface TLUiEventMap {
