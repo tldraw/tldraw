@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('./demo.css');
 
 html {
 	scroll-padding-top: 72px;
