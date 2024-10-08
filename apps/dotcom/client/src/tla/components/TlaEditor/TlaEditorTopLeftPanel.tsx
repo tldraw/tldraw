@@ -10,7 +10,6 @@ import {
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useRaw } from '../../hooks/useRaw'
-import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
@@ -54,14 +53,15 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const raw = useRaw()
 	const app = useApp()
 	const fileId = useCurrentFileId()
+	const editor = useEditor()
 	const fileName = useValue(
 		'fileName',
-		() => {
-			const file = app.store.get(fileId)
-			if (!file) throw Error('cant get file')
-			return TldrawApp.getFileName(file)
-		},
-		[app, fileId]
+		// TODO(david): This is a temporary fix for allowing guests to see the file name.
+		// We update the name in the document record on it's DO when the file record changes.
+		// We should figure out a way to have a single source of truth for the file name.
+		// And to allow guests to 'subscribe' to file metadata updates somehow.
+		() => app.getFileName(fileId) ?? editor.getDocumentSettings().name,
+		[app, editor, fileId]
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
@@ -74,7 +74,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		<>
 			<TlaSidebarToggle />
 			<TlaSidebarToggleMobile />
-			<TlaFileNameEditor fileName={fileName} onChange={handleFileNameChange} />
+			<TlaFileNameEditor fileName={fileName ?? 'FIXME'} onChange={handleFileNameChange} />
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
 			<TlaFileMenu source="file-header">

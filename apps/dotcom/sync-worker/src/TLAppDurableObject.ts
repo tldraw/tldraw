@@ -1,10 +1,17 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
-import { tldrawAppSchema } from '@tldraw/dotcom-shared'
+import {
+	ROOM_PREFIX,
+	TldrawAppFile,
+	TldrawAppFileId,
+	TldrawAppFileRecordType,
+	tldrawAppSchema,
+} from '@tldraw/dotcom-shared'
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import { assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { createPersistQueue } from '@tldraw/worker-shared'
+import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
 import { Environment } from './types'
@@ -22,7 +29,7 @@ export type DBLoadResult =
 			snapshot: RoomSnapshot
 	  }
 
-export class TLAppDurableObject {
+export class TLAppDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
@@ -31,7 +38,7 @@ export class TLAppDurableObject {
 
 	getRoom() {
 		if (!this._userId) {
-			throw new Error('documentInfo must be present when accessing room')
+			throw new Error('userId must be present when accessing room')
 		}
 		if (!this._room) {
 			this._room = this.loadFromDatabase().then((result) => {
@@ -85,8 +92,9 @@ export class TLAppDurableObject {
 	deleteRecord: D1PreparedStatement
 	constructor(
 		private state: DurableObjectState,
-		private env: Environment
+		override env: Environment
 	) {
+		super(state, env)
 		this.id = state.id
 		this.storage = state.storage
 
@@ -133,7 +141,7 @@ export class TLAppDurableObject {
 	}
 
 	// Handle a request to the Durable Object.
-	async fetch(req: IRequest) {
+	override async fetch(req: IRequest) {
 		try {
 			return await this.router.fetch(req)
 		} catch (err) {
@@ -249,6 +257,18 @@ export class TLAppDurableObject {
 			throw e
 		})
 
+		for (const updatedRecord of updatedRecords) {
+			if (TldrawAppFileRecordType.isInstance(updatedRecord.state)) {
+				const file = updatedRecord.state
+				const slug = TldrawAppFileRecordType.parseId(file.id)
+				const docDurableObject = this.env.TLDR_DOC.get(
+					this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${slug}`)
+				)
+				// no need to await, fire and forget
+				docDurableObject.appFileRecordDidUpdate(file, this.userId)
+			}
+		}
+
 		this._lastPersistedClock = clock
 		// use a shorter timeout for this 'inner' loop than the 'outer' alarm-scheduled loop
 		// just in case there's any possibility of setting up a neverending queue
@@ -260,5 +280,20 @@ export class TLAppDurableObject {
 		} catch (e) {
 			console.error('failed to persist', e)
 		}
+	}
+
+	async getFileShareType(
+		fileId: TldrawAppFileId,
+		userId: string
+	): Promise<'private' | 'view' | 'edit'> {
+		if (!this._userId) {
+			this._userId = userId
+		} else if (userId !== this._userId) {
+			throw new Error('userId mismatch')
+		}
+		const room = await this.getRoom()
+		const file = room.getRecord(fileId) as TldrawAppFile | undefined
+		if (!file?.shared) return 'private'
+		return file.sharedLinkType
 	}
 }
