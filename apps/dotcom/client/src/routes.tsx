@@ -65,7 +65,7 @@ export const router = createRoutesFromElements(
 			{/* Views that require login */}
 			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
 				{/* User settings */}
-				<Route index lazy={() => import('./tla/pages/profile')} />
+				<Route path="/q/profile" lazy={() => import('./tla/pages/profile')} />
 				{/* Internal */}
 				<Route path="/q/debug" lazy={() => import('./tla/pages/debug')} />
 			</Route>
