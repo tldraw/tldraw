@@ -1,4 +1,4 @@
-import { RecursivePartial, useEditor } from '@tldraw/editor'
+import { RecursivePartial, track, useEditor } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { MimeTypeContext } from '../hooks/useInsertMedia'
@@ -52,7 +52,7 @@ export interface TLUiContextProviderProps {
 }
 
 /** @public @react */
-export function TldrawUiContextProvider({
+export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	overrides,
 	components,
 	assetUrls,
@@ -84,7 +84,7 @@ export function TldrawUiContextProvider({
 			</AssetUrlsProvider>
 		</MimeTypeContext.Provider>
 	)
-}
+})
 
 function InternalProviders({
 	overrides,
