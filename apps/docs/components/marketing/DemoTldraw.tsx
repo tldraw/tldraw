@@ -11,7 +11,7 @@ const options: Partial<TldrawOptions> = {
 
 const assetUrls = getAssetUrlsByMetaUrl()
 
-export default function DemoTldraw() {
+export default function DemoTldraw({ hidden }: { hidden: boolean }) {
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const wrapper = useRef<HTMLDivElement | null>(null)
 	const { theme } = useTheme()
@@ -47,6 +47,8 @@ export default function DemoTldraw() {
 		if (!editor) return
 		editor.focus({ focusContainer: false })
 	}, [editor])
+
+	if (hidden) return null
 
 	return (
 		<>
