@@ -1,4 +1,3 @@
-import { track } from '@tldraw/editor'
 import * as React from 'react'
 import { useAssetUrls } from '../../context/asset-urls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
@@ -40,7 +39,7 @@ export function useCurrentTranslation() {
  *
  * @internal
  */
-export const TldrawUiTranslationProvider = track(function TranslationProvider({
+export function TldrawUiTranslationProvider({
 	overrides,
 	locale,
 	children,
@@ -95,7 +94,7 @@ export const TldrawUiTranslationProvider = track(function TranslationProvider({
 			{children}
 		</TranslationsContext.Provider>
 	)
-})
+}
 
 /**
  * Returns a function to translate a translation key into a string based on the current translation.
