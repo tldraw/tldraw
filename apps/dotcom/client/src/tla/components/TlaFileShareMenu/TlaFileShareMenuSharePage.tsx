@@ -224,19 +224,28 @@ function TlaCopySnapshotLinkButton() {
 		}
 	}, [selectedSnapshot, snapshots])
 
+	const handleSnapshotOpenClick = useCallback(() => {
+		const url = `${window.location.origin}/q/s/${selectedSnapshot}`
+		window.open(url, '_blank')
+	}, [selectedSnapshot])
+
 	return (
 		<>
 			{snapshots.length > 0 && (
 				<>
 					<div>{raw('Snapshots:')}</div>
-					<div style={{ display: 'flex', gap: '5px' }}>
-						<select style={{ flex: 1 }} onChange={(el) => setSelectedSnapshot(el.target.value)}>
-							{snapshots.map((snapshot) => (
-								<option key={snapshot.id} value={snapshot.id}>
-									{new Date(snapshot.uploaded).toDateString()}
-								</option>
-							))}
-						</select>
+					<select
+						style={{ height: '30px' }}
+						onChange={(el) => setSelectedSnapshot(el.target.value)}
+					>
+						{snapshots.map((snapshot) => (
+							<option key={snapshot.id} value={snapshot.id}>
+								{new Date(snapshot.uploaded).toLocaleString('en-gb')}
+							</option>
+						))}
+					</select>
+					<div style={{ display: 'flex', gap: '5px', justifyContent: 'end' }}>
+						<TlaButton variant="secondary" onClick={handleSnapshotOpenClick} icon="link" />
 						<TlaButton variant="secondary" onClick={handleSnapshotCopyClick} icon="copy" />
 						<TlaButton variant="secondary" onClick={handleSnapshotDeleteClick} icon="trash" />
 					</div>
