@@ -177,25 +177,9 @@ export class TLDrawDurableObject extends DurableObject {
 		})
 	}
 
-	_isApp: boolean | null = null
-
-	_setIsApp(isApp: boolean) {
-		if (this._isApp === null) {
-			this._isApp = isApp
-		} else if (this._isApp !== isApp) {
-			throw new Error('Cannot change app status')
-		}
-	}
-
 	readonly router = Router()
-		.all('*', (req) => {
-			const pathname = new URL(req.url).pathname
-			const isApp = pathname.startsWith('/app/')
-			this._setIsApp(isApp)
-		})
 		.get(
 			`/${ROOM_PREFIX}/:roomId`,
-			this._setIsApp.bind(this, false),
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
 		)
@@ -234,6 +218,10 @@ export class TLDrawDurableObject extends DurableObject {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
+	setDocumentInfo(info: DocumentInfo) {
+		this._documentInfo = info
+		this.storage.put('documentInfo', info)
+	}
 	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
 		const slug = assertExists(
 			await getSlug(this.env, req.params.roomId, roomOpenMode),
@@ -245,12 +233,12 @@ export class TLDrawDurableObject extends DurableObject {
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
-			this._documentInfo = {
+			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug,
 				isApp,
 				isOrWasCreateMode,
-			}
+			})
 		}
 	}
 
@@ -271,17 +259,12 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
-	get isApp(): boolean {
-		return assertExists(this._isApp, 'isApp must be present')
-	}
-
 	_isRestoring = false
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
 		try {
 			const roomId = this.documentInfo.slug
-			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.isApp })
+			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
 			const timestamp = ((await req.json()) as any).timestamp
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
@@ -340,7 +323,7 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 
 		const auth = await getAuth(req, this.env)
-		if (this.isApp) {
+		if (this.documentInfo.isApp) {
 			const ownerId = await this.getOwnerId()
 
 			if (ownerId) {
@@ -453,14 +436,14 @@ export class TLDrawDurableObject extends DurableObject {
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 		try {
-			const key = getR2KeyForRoom({ slug, isApp: this.isApp })
+			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
 
-			if (this.isApp) {
+			if (this.documentInfo.isApp) {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({
@@ -509,7 +492,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 		const snapshot = JSON.stringify(room.getCurrentSnapshot())
 
-		const key = getR2KeyForRoom({ slug: slug, isApp: this.isApp })
+		const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 		await Promise.all([
 			this.r2.rooms.put(key, snapshot),
 			this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
@@ -536,6 +519,14 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	async appFileRecordDidUpdate(file: TldrawAppFile, ownerId: string) {
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug: TldrawAppFileRecordType.parseId(file.id),
+				isApp: true,
+				isOrWasCreateMode: false,
+			})
+		}
 		const room = await this.getRoom()
 
 		// if the app file record updated, it might mean that the file name changed
