@@ -67,12 +67,11 @@ function ExportBackgroundToggle() {
 	)
 
 	const handleToggleShared = useCallback(() => {
-		const user = app.getUser(userId)
-		if (!user) throw Error('no user')
+		const user = app.getCurrentUser()
 		const padding = !user.exportPadding
-		app.setUserExportPadding(userId, padding)
+		app.setUserExportPadding(padding)
 		trackEvent('toggle-export-padding', { padding, source: 'file-share-menu' })
-	}, [app, userId, trackEvent])
+	}, [app, trackEvent])
 
 	return (
 		<TlaMenuControl>
@@ -102,12 +101,11 @@ function ExportPaddingToggle() {
 	)
 
 	const handleToggleShared = useCallback(() => {
-		const user = app.getUser(userId)
-		if (!user) throw Error('no user')
+		const user = app.getCurrentUser()
 		const background = !user.exportBackground
-		app.setUserExportBackground(userId, background)
+		app.setUserExportBackground(background)
 		trackEvent('toggle-export-background', { background, source: 'file-share-menu' })
-	}, [app, userId, trackEvent])
+	}, [app, trackEvent])
 
 	return (
 		<TlaMenuControl>
@@ -137,10 +135,10 @@ function ExportFormatSelect() {
 
 	const handleSelectChange = useCallback(
 		(value: TldrawAppUser['exportFormat']) => {
-			app.setUserExportFormat(userId, value)
+			app.setUserExportFormat(value)
 			trackEvent('set-export-format', { format: value, source: 'file-share-menu' })
 		},
-		[app, userId, trackEvent]
+		[app, trackEvent]
 	)
 
 	return (
@@ -178,10 +176,10 @@ function ExportThemeSelect() {
 
 	const handleSelectChange = useCallback(
 		(value: TldrawAppUser['exportTheme']) => {
-			app.setUserExportTheme(userId, value)
+			app.setUserExportTheme(value)
 			trackEvent('set-export-theme', { theme: value, source: 'file-share-menu' })
 		},
-		[app, userId, trackEvent]
+		[app, trackEvent]
 	)
 
 	return (

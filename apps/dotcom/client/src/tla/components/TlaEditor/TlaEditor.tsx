@@ -127,7 +127,7 @@ export function TlaEditor({
 			() => {
 				if (cancelled) return
 				didEnter = true
-				app.onFileEnter(auth.userId, fileId)
+				app.onFileEnter(fileId)
 			},
 			1000
 		)
@@ -137,7 +137,7 @@ export function TlaEditor({
 			clearTimeout(timeout)
 
 			if (didEnter) {
-				app.onFileExit(auth.userId, fileId)
+				app.onFileExit(fileId)
 			}
 		}
 	}, [app, fileId])
@@ -240,9 +240,7 @@ function SneakyFileUpdateHandler({
 				if (!app) return
 				const sessionState = app.getSessionState()
 				if (!sessionState.auth) throw Error('Auth not found')
-				const user = app.getUser(sessionState.auth.userId)
-				if (!user) throw Error('User not found')
-				app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
+				app.onFileEdit(fileId, sessionState.createdAt, fileStartTime)
 				onDocumentChange?.()
 			},
 			{ scope: 'document', source: 'user' }
