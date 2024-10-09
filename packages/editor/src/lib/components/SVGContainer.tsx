@@ -1,11 +1,8 @@
 import classNames from 'classnames'
 import * as React from 'react'
-import { SafeId } from '../hooks/useSafeId'
 
 /** @public */
-export interface SVGContainerProps extends React.HTMLAttributes<SVGElement> {
-	id?: SafeId
-}
+export type SVGContainerProps = React.ComponentProps<'svg'>
 
 /** @public @react */
 export function SVGContainer({ children, className = '', ...rest }: SVGContainerProps) {

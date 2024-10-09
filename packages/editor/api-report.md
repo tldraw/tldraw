@@ -2432,12 +2432,7 @@ export function suffixSafeId(id: SafeId, suffix: string): SafeId;
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
 
 // @public (undocumented)
-export interface SVGContainerProps extends React_3.HTMLAttributes<SVGElement> {
-    // Warning: (ae-incompatible-release-tags) The symbol "id" is marked as @public, but its signature references "SafeId" which is marked as @internal
-    //
-    // (undocumented)
-    id?: SafeId;
-}
+export type SVGContainerProps = React_3.ComponentProps<'svg'>;
 
 // @public (undocumented)
 export interface SvgExportContext {
