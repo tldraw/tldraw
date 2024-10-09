@@ -1,5 +1,5 @@
+import { assertExists } from '@tldraw/utils'
 import { createContext, useContext, useId } from 'react'
-import { assertExists } from '../../../api/internal'
 
 /**
  * The DOM requires that all IDs are unique. We often use e.g. shape IDs in the dom, but this isn't
