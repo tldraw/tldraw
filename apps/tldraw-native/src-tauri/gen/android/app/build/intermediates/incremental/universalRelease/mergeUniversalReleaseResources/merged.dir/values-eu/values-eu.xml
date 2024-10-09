@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d jakinarazpen berri</item>
+    <item quantity="other">%d jakinarazpen berri</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"Joan orri nagusira"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"Joan gora"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"Aukera gehiago"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"Eginda"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"Ikusi guztiak"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"Aukeratu aplikazio bat"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"DESAKTIBATU"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"AKTIBATU"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt +"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ktrl +"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"ezabatu"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"sartu"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Funtzioa +"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta +"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Maius +"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"zuriunea"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym +"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Menua +"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"Bilatu…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"Garbitu kontsulta"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"Bilaketa-kontsulta"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"Bilatu"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"Bidali kontsulta"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"Ahozko bilaketa"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Partekatu honekin"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Partekatu <ns1:g id="APPLICATION_NAME">%s</ns1:g> aplikazioarekin"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Tolestu"</string>
+    <string name="bottomsheet_action_collapse">Tolestu pantailaren behealdean ainguratutako orria</string>
+    <string name="bottomsheet_action_expand">Zabaldu pantailaren behealdean ainguratutako orria</string>
+    <string name="bottomsheet_action_expand_halfway">Zabaldu erdiraino</string>
+    <string name="bottomsheet_drag_handle_clicked">Birritan sakatu da arrastatzeko kontrol-puntua</string>
+    <string name="bottomsheet_drag_handle_content_description">Arrastatzeko kontrol-puntua</string>
+    <string name="character_counter_content_description">%1$d/%2$d karaktere idatzi dira</string>
+    <string name="character_counter_overflowed_content_description">Karaktere-muga gainditu da: %1$d/%2$d</string>
+    <string name="clear_text_end_icon_content_description">Garbitu testua</string>
+    <string name="error_icon_content_description">Errorea</string>
+    <string name="exposed_dropdown_menu_content_description">Erakutsi goitibeherako menua</string>
+    <string name="icon_content_description">Leihoko ikonoa</string>
+    <string name="item_view_role_description">Fitxa</string>
+    <string name="material_clock_toggle_content_description">Hautatu AM edo PM</string>
+    <string name="material_hour_24h_suffix">%1$s ordu</string>
+    <string name="material_hour_selection">Hautatu ordua</string>
+    <string name="material_hour_suffix">%1$s(r)ak dira</string>
+    <string name="material_minute_selection">Hautatu minutuak</string>
+    <string name="material_minute_suffix">%1$s minutu</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">Aldatu erloju modura ordua zehazteko.</string>
+    <string name="material_timepicker_hour">Ordua</string>
+    <string name="material_timepicker_minute">Minutua</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">Hautatu ordua</string>
+    <string name="material_timepicker_text_input_mode_description">Ordua idazteko, aldatu testua idazteko metodora.</string>
+    <string name="mtrl_badge_numberless_content_description">Jakinarazpen berria</string>
+    <string name="mtrl_chip_close_icon_content_description">Kendu %1$s</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">%1$d jakinarazpen berri baino gehiago</string>
+    <string name="mtrl_picker_a11y_next_month">Aldatu hurrengo hilabetera</string>
+    <string name="mtrl_picker_a11y_prev_month">Aldatu aurreko hilabetera</string>
+    <string name="mtrl_picker_announce_current_selection">Oraingo hautapena: %1$s</string>
+    <string name="mtrl_picker_cancel">Utzi</string>
+    <string name="mtrl_picker_confirm">Ados</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">Hautatu data</string>
+    <string name="mtrl_picker_date_header_unselected">Hautatutako data</string>
+    <string name="mtrl_picker_day_of_week_column_header">Egunen zutabea:%1$s</string>
+    <string name="mtrl_picker_invalid_format">Formatuak ez du balio.</string>
+    <string name="mtrl_picker_invalid_format_example">Adibidea: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">Erabili: %1$s</string>
+    <string name="mtrl_picker_invalid_range">Tarteak ez du balio.</string>
+    <string name="mtrl_picker_navigate_to_year_description">Joan %1$s. urtera</string>
+    <string name="mtrl_picker_out_of_range">Onartutako barrutitik kanpo: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">Hasiera-data – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – Amaiera-data</string>
+    <string name="mtrl_picker_range_header_selected">%1$s-%2$s</string>
+    <string name="mtrl_picker_range_header_title">Hautatu barrutia</string>
+    <string name="mtrl_picker_range_header_unselected">Hasiera-data - Amaiera-data</string>
+    <string name="mtrl_picker_save">Gorde</string>
+    <string name="mtrl_picker_text_input_date_hint">Data</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">Amaiera-data</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">Hasiera-data</string>
+    <string name="mtrl_picker_text_input_day_abbr">e</string>
+    <string name="mtrl_picker_text_input_month_abbr">h</string>
+    <string name="mtrl_picker_text_input_year_abbr">u</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">Aldatu egutegiaren idazketa-metodora</string>
+    <string name="mtrl_picker_toggle_to_day_selection">Sakatu eguna hautatzeko modura aldatzeko</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">Aldatu testua idazteko modura</string>
+    <string name="mtrl_picker_toggle_to_year_selection">Sakatu urtea hautatzeko modura aldatzeko</string>
+    <string name="mtrl_timepicker_cancel">Utzi</string>
+    <string name="mtrl_timepicker_confirm">Ados</string>
+    <string name="password_toggle_content_description">Erakutsi pasahitza</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"Bilatu"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

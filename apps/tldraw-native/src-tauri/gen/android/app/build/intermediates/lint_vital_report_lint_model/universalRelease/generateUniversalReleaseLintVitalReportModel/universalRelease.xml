@@ -1,0 +1,37 @@
+<variant
+    name="universalRelease"
+    package="com.tldraw_native_app"
+    minSdkVersion="24"
+    targetSdkVersion="34"
+    shrinking="true"
+    mergedManifest="build/intermediates/merged_manifest/universalRelease/processUniversalReleaseMainManifest/AndroidManifest.xml"
+    manifestMergeReport="build/outputs/logs/manifest-merger-universal-release-report.txt"
+    proguardFiles="proguard-rules.pro:proguard-tauri.pro:src/main/java/com/tldraw_native_app/generated/proguard-wry.pro:build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.5.1"
+    partialResultsDir="build/intermediates/lint_vital_partial_results/universalRelease/lintVitalAnalyzeUniversalRelease/out">
+  <buildFeatures
+      namespacing="REQUIRED"/>
+  <sourceProviders>
+    <sourceProvider
+        manifests="src/main/AndroidManifest.xml"
+        javaDirectories="src/main/java:src/universal/java:src/release/java:src/universalRelease/java:src/main/kotlin:src/universal/kotlin:src/release/kotlin:src/universalRelease/kotlin"
+        resDirectories="src/main/res:src/universal/res:src/release/res:src/universalRelease/res"
+        assetsDirectories="src/main/assets:src/universal/assets:src/release/assets:src/universalRelease/assets"/>
+  </sourceProviders>
+  <testSourceProviders>
+  </testSourceProviders>
+  <testFixturesSourceProviders>
+  </testFixturesSourceProviders>
+  <manifestPlaceholders>
+    <placeholder
+        name="usesCleartextTraffic"
+        value="false" />
+  </manifestPlaceholders>
+  <artifact
+      classOutputs="build/intermediates/javac/universalRelease/compileUniversalReleaseJavaWithJavac/classes:build/tmp/kotlin-classes/universalRelease:build/kotlinToolingMetadata:build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/universalRelease/processUniversalReleaseResources/R.jar"
+      type="MAIN"
+      applicationId="com.tldraw_native_app"
+      generatedSourceFolders="build/generated/ap_generated_sources/universalRelease/out:build/generated/source/buildConfig/universal/release"
+      generatedResourceFolders="build/generated/res/resValues/universal/release"
+      desugaredMethodsFiles="/Users/mitja/.gradle/caches/8.9/transforms/ef5e8d6dcb424632d24f391970bbfa3f/transformed/D8BackportedDesugaredMethods.txt">
+  </artifact>
+</variant>

@@ -103,3 +103,6 @@ license-report-prod.html
 license-report.html
 
 .bundle-meta.json
+
+vite.config.js*
+vite.config.d.ts

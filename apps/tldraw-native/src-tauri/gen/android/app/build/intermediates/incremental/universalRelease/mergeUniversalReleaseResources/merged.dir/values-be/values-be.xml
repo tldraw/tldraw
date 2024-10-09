@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d новае апавяшчэнне</item>
+    <item quantity="few">%d новыя апавяшчэнні</item>
+    <item quantity="many">%d новых апавяшчэнняў</item>
+    <item quantity="other">%d новага апавяшчэння</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"Перайсці на галоўную старонку"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"Перайсці ўверх"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"Дадатковыя параметры"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"Гатова"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"Паказаць усе"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"Выберыце праграму"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"ВЫКЛ."</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"УКЛ."</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt +"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl +"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"Delete"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"Enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Fn +"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta +"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift +"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"Прабел"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym +"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Меню +"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"Пошук…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"Выдаліць запыт"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"Пошукавы запыт"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"Пошук"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"Адправіць запыт"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"Галасавы пошук"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Абагуліць праз"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Абагуліць праз праграму \"<ns1:g id="APPLICATION_NAME">%s</ns1:g>\""</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Згарнуць"</string>
+    <string name="bottomsheet_action_collapse">Згарнуць ніжні аркуш</string>
+    <string name="bottomsheet_action_expand">Разгарнуць ніжні аркуш</string>
+    <string name="bottomsheet_action_expand_halfway">Разгарнуць напалову</string>
+    <string name="bottomsheet_drag_handle_clicked">Маркер перацягвання націснуты двойчы</string>
+    <string name="bottomsheet_drag_handle_content_description">Маркер перацягвання</string>
+    <string name="character_counter_content_description">Уведзена сімвалаў: %1$d з %2$d</string>
+    <string name="character_counter_overflowed_content_description">Абмежаванне колькасці сімвалаў перавышана: %1$d з %2$d</string>
+    <string name="clear_text_end_icon_content_description">Ачысціць тэкст</string>
+    <string name="error_icon_content_description">Памылка</string>
+    <string name="exposed_dropdown_menu_content_description">Паказаць выпадное меню</string>
+    <string name="icon_content_description">Значок дыялогавага акна</string>
+    <string name="item_view_role_description">Укладка</string>
+    <string name="material_clock_toggle_content_description">Выберыце AM (да паўдня) або PM (пасля паўдня)</string>
+    <string name="material_hour_24h_suffix">%1$s гадз</string>
+    <string name="material_hour_selection">Выберыце гадзіну</string>
+    <string name="material_hour_suffix">%1$s гадз</string>
+    <string name="material_minute_selection">Выберыце хвіліны</string>
+    <string name="material_minute_suffix">%1$s хв</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">Пераключыцца на рэжым гадзінніка пры ўводзе часу.</string>
+    <string name="material_timepicker_hour">Гадзіна</string>
+    <string name="material_timepicker_minute">Хвіліна</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">Выберыце час</string>
+    <string name="material_timepicker_text_input_mode_description">Пераключыцца на рэжым тэксту пры ўводзе часу.</string>
+    <string name="mtrl_badge_numberless_content_description">Новае апавяшчэнне</string>
+    <string name="mtrl_chip_close_icon_content_description">Выдаліць %1$s</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">Колькасць новых апавяшчэнняў перавысіла %1$d</string>
+    <string name="mtrl_picker_a11y_next_month">Перайсці да наступнага месяца</string>
+    <string name="mtrl_picker_a11y_prev_month">Перайсці да папярэдняга месяца</string>
+    <string name="mtrl_picker_announce_current_selection">Бягучае вылучэнне: %1$s</string>
+    <string name="mtrl_picker_cancel">Скасаваць</string>
+    <string name="mtrl_picker_confirm">ОК</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">Выберыце дату</string>
+    <string name="mtrl_picker_date_header_unselected">Выбраная дата</string>
+    <string name="mtrl_picker_day_of_week_column_header">Слупок дзён: %1$s</string>
+    <string name="mtrl_picker_invalid_format">Няправільны фармат.</string>
+    <string name="mtrl_picker_invalid_format_example">Прыклад: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">Неабходны фармат: %1$s</string>
+    <string name="mtrl_picker_invalid_range">Няправільны дыяпазон.</string>
+    <string name="mtrl_picker_navigate_to_year_description">Перайсці ў %1$s год</string>
+    <string name="mtrl_picker_out_of_range">Па-за межамі дыяпазону: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">Дата пачатку – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – дата заканчэння</string>
+    <string name="mtrl_picker_range_header_selected">%1$s – %2$s</string>
+    <string name="mtrl_picker_range_header_title">Выберыце дыяпазон дат</string>
+    <string name="mtrl_picker_range_header_unselected">Дата пачатку – дата заканчэння</string>
+    <string name="mtrl_picker_save">Захаваць</string>
+    <string name="mtrl_picker_text_input_date_hint">Дата</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">Дата заканчэння</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">Дата пачатку</string>
+    <string name="mtrl_picker_text_input_day_abbr">д</string>
+    <string name="mtrl_picker_text_input_month_abbr">м</string>
+    <string name="mtrl_picker_text_input_year_abbr">г</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">Пераключыцца ў рэжым уводу \"Каляндар\"</string>
+    <string name="mtrl_picker_toggle_to_day_selection">Дакраніцеся, каб пераключыцца на выбар дня</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">Пераключыцца ў рэжым уводу \"Тэкст\"</string>
+    <string name="mtrl_picker_toggle_to_year_selection">Дакраніцеся, каб пераключыцца на выбар года</string>
+    <string name="mtrl_timepicker_cancel">Скасаваць</string>
+    <string name="mtrl_timepicker_confirm">ОК</string>
+    <string name="password_toggle_content_description">Паказаць пароль</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"Пошук"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

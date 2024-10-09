@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+
+:root {
+	font-family:
+		Inter,
+		-apple-system,
+		'system-ui',
+		'Segoe UI',
+		'Noto Sans',
+		Helvetica,
+		Arial,
+		sans-serif,
+		'Apple Color Emoji',
+		'Segoe UI Emoji';
+
+	font-weight: 500;
+	color: var(--text-color-0);
+	line-height: 1.6;
+	overscroll-behavior: none;
+	touch-action: none;
+}
+
+body {
+	font-size: 12px;
+}
+
+/*
+  1. Use a more-intuitive box-sizing model.
+*/
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+/*
+  2. Remove default margin
+*/
+* {
+	margin: 0;
+}
+/*
+  5. Improve media defaults
+*/
+img,
+picture,
+video,
+canvas,
+svg {
+	display: block;
+	max-width: 100%;
+}
+/*
+  6. Remove built-in form typography styles
+*/
+input,
+button,
+textarea,
+select {
+	font: inherit;
+}
+/*
+  7. Avoid text overflows
+*/
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	overflow-wrap: break-word;
+}
+
+html {
+	height: 100%;
+}
+
+html,
+body {
+	overscroll-behavior-x: none;
+}
+
+body {
+	display: flex;
+	height: 100%;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	font-smooth: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+div {
+	box-sizing: border-box;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.site-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	height: 100%;
+}
+
+.icon {
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+	background-color: currentColor;
+}
+
+.scroll-light {
+	scrollbar-width: thin;
+}
+.scroll-light::-webkit-scrollbar {
+	display: block;
+	width: 8px;
+	height: 8px;
+	position: absolute;
+	top: 0;
+	left: 0;
+	background-color: inherit;
+}
+.scroll-light::-webkit-scrollbar-button {
+	display: none;
+	width: 0;
+	height: 10px;
+}
+.scroll-light::-webkit-scrollbar-thumb {
+	background-clip: padding-box;
+	width: 0;
+	min-height: 36px;
+	border: 2px solid transparent;
+	border-radius: 6px;
+	background-color: rgba(0, 0, 0, 0.25);
+}
+.scroll-light::-webkit-scrollbar-thumb:hover {
+	background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ------------------- Error Page ------------------- */
+
+.error-page {
+	display: flex;
+	inset: 0px;
+	position: absolute;
+	align-items: center;
+	justify-content: center;
+}
+
+.error-page__container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 30px;
+}
+
+.error-page__content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+
+/* text-header mb-sm */
+.error-page__content h1 {
+	font-size: 20px;
+	font-weight: 800;
+	margin-bottom: 0.5rem;
+}
+
+/* text-primary-bold text-grey */
+.error-page__content p {
+	font-size: 14px;
+	color: var(--text-color-2);
+}
+
+/* text-primary-bold text-grey */
+.error-page__container a {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--text-color-2);
+	padding: 12px 4px;
+	text-decoration: underline;
+}
+
+/* ------------------ Board history ----------------- */
+
+.board-history__list {
+	padding: 8px 8px 8px 24px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.board-history__list a {
+	padding: 8px 8px 8px 0px;
+}
+
+.board-history__list a:hover {
+	text-decoration: underline;
+}
+
+.board-history__restore {
+	position: fixed;
+	top: 8px;
+	right: 8px;
+}
+
+/* ----------------- Iframe warning ----------------- */
+
+.iframe-warning__container {
+	position: absolute;
+	inset: 0px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+}
+
+.iframe-warning__link {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 32px;
+	font-size: 14px;
+}
+
+.iframe-warning__link svg {
+	width: 14px;
+	height: 14px;
+}

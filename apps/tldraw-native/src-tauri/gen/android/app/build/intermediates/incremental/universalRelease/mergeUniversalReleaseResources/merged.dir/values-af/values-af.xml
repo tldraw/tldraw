@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d nuwe kennisgewing</item>
+    <item quantity="other">%d nuwe kennisgewings</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"Gaan na tuisskerm"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"Gaan op"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"Nog opsies"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"Klaar"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"Sien alles"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"Kies \'n program"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"AF"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"AAN"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt+"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl+"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"delete"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Funksie+"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta+"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift+"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"spasiebalk"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Simbool+"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Kieslys+"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"Soek …"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"Vee navraag uit"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"Soektognavraag"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"Soek"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"Dien navraag in"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"Stemsoektog"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Deel met"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Deel met <ns1:g id="APPLICATION_NAME">%s</ns1:g>"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Vou in"</string>
+    <string name="bottomsheet_action_collapse">Vou die onderste blad in</string>
+    <string name="bottomsheet_action_expand">Vou die onderste blad uit</string>
+    <string name="bottomsheet_action_expand_halfway">Vou halfpad uit</string>
+    <string name="bottomsheet_drag_handle_clicked">Het op sleephandvatsel gedubbeltik</string>
+    <string name="bottomsheet_drag_handle_content_description">Sleephandvatsel</string>
+    <string name="character_counter_content_description">Karakters ingevoer: %1$d van %2$d</string>
+    <string name="character_counter_overflowed_content_description">Karakterlimiet oorskry %1$d van %2$d</string>
+    <string name="clear_text_end_icon_content_description">Vee teks uit</string>
+    <string name="error_icon_content_description">Fout</string>
+    <string name="exposed_dropdown_menu_content_description">Wys aftrekkieslys</string>
+    <string name="icon_content_description">Dialoogikoon</string>
+    <string name="item_view_role_description">Oortjie</string>
+    <string name="material_clock_toggle_content_description">Kies vm. of nm.</string>
+    <string name="material_hour_24h_suffix">%1$s uur</string>
+    <string name="material_hour_selection">Kies uur</string>
+    <string name="material_hour_suffix">%1$s-uur</string>
+    <string name="material_minute_selection">Kies minute</string>
+    <string name="material_minute_suffix">%1$s minute</string>
+    <string name="material_timepicker_am">VM.</string>
+    <string name="material_timepicker_clock_mode_description">Skakel oor na horlosiemodus vir die tydinvoer.</string>
+    <string name="material_timepicker_hour">Uur</string>
+    <string name="material_timepicker_minute">Minuut</string>
+    <string name="material_timepicker_pm">NM.</string>
+    <string name="material_timepicker_select_time">Kies tyd</string>
+    <string name="material_timepicker_text_input_mode_description">Skakel oor na teksmodus vir die tydinvoer.</string>
+    <string name="mtrl_badge_numberless_content_description">Nuwe kennisgewing</string>
+    <string name="mtrl_chip_close_icon_content_description">Verwyder %1$s</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">Meer as %1$d nuwe kennisgewings</string>
+    <string name="mtrl_picker_a11y_next_month">Verander na volgende maand</string>
+    <string name="mtrl_picker_a11y_prev_month">Verander na vorige maand</string>
+    <string name="mtrl_picker_announce_current_selection">Huidige keuse: %1$s</string>
+    <string name="mtrl_picker_cancel">Kanselleer</string>
+    <string name="mtrl_picker_confirm">OK</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">Kies datum</string>
+    <string name="mtrl_picker_date_header_unselected">Gekose datum</string>
+    <string name="mtrl_picker_day_of_week_column_header">Kolom van dae: %1$s</string>
+    <string name="mtrl_picker_invalid_format">Ongeldige formaat.</string>
+    <string name="mtrl_picker_invalid_format_example">Voorbeeld: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">Gebruik: %1$s</string>
+    <string name="mtrl_picker_invalid_range">Ongeldige reeks.</string>
+    <string name="mtrl_picker_navigate_to_year_description">Gaan na jaar %1$s</string>
+    <string name="mtrl_picker_out_of_range">Buite reeks: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">Begindatum – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – Einddatum</string>
+    <string name="mtrl_picker_range_header_selected">%1$s-%2$s</string>
+    <string name="mtrl_picker_range_header_title">Kies datumreeks</string>
+    <string name="mtrl_picker_range_header_unselected">Begindatum – Einddatum</string>
+    <string name="mtrl_picker_save">Stoor</string>
+    <string name="mtrl_picker_text_input_date_hint">Datum</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">Einddatum</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">Begindatum</string>
+    <string name="mtrl_picker_text_input_day_abbr">d</string>
+    <string name="mtrl_picker_text_input_month_abbr">m</string>
+    <string name="mtrl_picker_text_input_year_abbr">j</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">Skakel oor na kalenderinvoermodus</string>
+    <string name="mtrl_picker_toggle_to_day_selection">Tik om oor te skakel na die kies van \'n dag</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">Skakel oor na teksinvoermodus</string>
+    <string name="mtrl_picker_toggle_to_year_selection">Tik om oor te skakel na die kies van \'n jaar</string>
+    <string name="mtrl_timepicker_cancel">Kanselleer</string>
+    <string name="mtrl_timepicker_confirm">OK</string>
+    <string name="password_toggle_content_description">Wys wagwoord</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"Soek"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

@@ -1,0 +1,16 @@
+.actionGroup {
+	flex-direction: row;
+	justify-content: flex-end;
+}
+
+.actionButton {
+	width: fit-content;
+}
+
+.input {
+	background-color: var(--color-muted-2);
+	flex-grow: 2;
+	border-radius: var(--radius-2);
+	padding: 0px var(--space-4);
+	border: 1px solid var(--tla-color-border);
+}

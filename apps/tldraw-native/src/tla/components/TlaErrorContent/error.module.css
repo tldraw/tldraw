@@ -1,0 +1,27 @@
+.page {
+	position: relative;
+	display: flex;
+	padding: 48px 16px 16px 16px;
+	width: 100%;
+	max-width: 760px;
+	height: 100%;
+	margin: 0px auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-grow: 2;
+}
+
+.container {
+	width: 100%;
+	max-width: 320px;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
+	pointer-events: all;
+	gap: 20px;
+}
+
+.link {
+	color: var(--tla-color-primary);
+}

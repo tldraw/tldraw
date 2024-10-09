@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Base.TextAppearance.AppCompat.Widget.Button.Borderless.Colored" parent="android:TextAppearance.Material.Widget.Button.Borderless.Colored"/>
+    <style name="Base.TextAppearance.AppCompat.Widget.Button.Colored" parent="android:TextAppearance.Material.Widget.Button.Colored"/>
+    <style name="Base.Theme.Material3.Dark" parent="Base.V24.Theme.Material3.Dark"/>
+    <style name="Base.Theme.Material3.Dark.Dialog" parent="Base.V24.Theme.Material3.Dark.Dialog"/>
+    <style name="Base.Theme.Material3.Light" parent="Base.V24.Theme.Material3.Light"/>
+    <style name="Base.Theme.Material3.Light.Dialog" parent="Base.V24.Theme.Material3.Light.Dialog"/>
+    <style name="Base.V24.Theme.Material3.Dark" parent="Base.V14.Theme.Material3.Dark">
+    <item name="android:contextPopupMenuStyle">@style/Widget.Material3.PopupMenu.ContextMenu</item>
+  </style>
+    <style name="Base.V24.Theme.Material3.Dark.Dialog" parent="Base.V14.Theme.Material3.Dark.Dialog">
+    <item name="android:contextPopupMenuStyle">@style/Widget.Material3.PopupMenu.ContextMenu</item>
+  </style>
+    <style name="Base.V24.Theme.Material3.Light" parent="Base.V14.Theme.Material3.Light">
+    <item name="android:contextPopupMenuStyle">@style/Widget.Material3.PopupMenu.ContextMenu</item>
+  </style>
+    <style name="Base.V24.Theme.Material3.Light.Dialog" parent="Base.V14.Theme.Material3.Light.Dialog">
+    <item name="android:contextPopupMenuStyle">@style/Widget.Material3.PopupMenu.ContextMenu</item>
+  </style>
+</resources>

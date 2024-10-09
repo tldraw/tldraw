@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d жаңа хабарландыру</item>
+    <item quantity="other">%d жаңа хабарландыру</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"Негізгі бетке өту"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"Жоғары қарай өту"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"Басқа опциялар"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"Дайын"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"Барлығын көру"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"Қолданбаны таңдау"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"ӨШІРУ"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"ҚОСУ"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt+"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl+"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"delete"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Function+"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta+"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift+"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"бос орын"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym+"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Menu+"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"Іздеу…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"Сұрауды өшіру"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"Іздеу сұрауы"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"Іздеу"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"Сұрауды жіберу"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"Дауыспен іздеу"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Бөлісу"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g> қолданбасымен бөлісу"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Жию"</string>
+    <string name="bottomsheet_action_collapse">Төменгі парақшаны жию</string>
+    <string name="bottomsheet_action_expand">Төменгі парақшаны жаю</string>
+    <string name="bottomsheet_action_expand_halfway">Жартылай кеңейту</string>
+    <string name="bottomsheet_drag_handle_clicked">Сүйрейтін тетік екі рет түртілді.</string>
+    <string name="bottomsheet_drag_handle_content_description">Сүйрейтін тетік</string>
+    <string name="character_counter_content_description">%1$d/%2$d таңба енгізілді</string>
+    <string name="character_counter_overflowed_content_description">Таңба саны шегінен асты: %1$d/%2$d</string>
+    <string name="clear_text_end_icon_content_description">Мәтінді өшіру</string>
+    <string name="error_icon_content_description">Қате</string>
+    <string name="exposed_dropdown_menu_content_description">Ашылмалы мәзірді көрсету</string>
+    <string name="icon_content_description">Диалог белгішесі</string>
+    <string name="item_view_role_description">Қойынды</string>
+    <string name="material_clock_toggle_content_description">\"AM\" немесе \"PM\" форматын таңдау</string>
+    <string name="material_hour_24h_suffix">Сағат: %1$s</string>
+    <string name="material_hour_selection">Сағатты таңдау</string>
+    <string name="material_hour_suffix">Сағат: %1$s</string>
+    <string name="material_minute_selection">Минут таңдау</string>
+    <string name="material_minute_suffix">%1$s минут</string>
+    <string name="material_timepicker_am">AM</string>
+    <string name="material_timepicker_clock_mode_description">Уақытты енгізу үшін сағат режиміне өтіңіз.</string>
+    <string name="material_timepicker_hour">Сағат</string>
+    <string name="material_timepicker_minute">Mинут</string>
+    <string name="material_timepicker_pm">PM</string>
+    <string name="material_timepicker_select_time">Уақытты таңдау</string>
+    <string name="material_timepicker_text_input_mode_description">Уақытты енгізу үшін мәтін енгізу режиміне өтіңіз.</string>
+    <string name="mtrl_badge_numberless_content_description">Жаңа хабарландыру</string>
+    <string name="mtrl_chip_close_icon_content_description">%1$s мазмұнын өшіру</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">%1$d санынан көп жаңа хабарландыру</string>
+    <string name="mtrl_picker_a11y_next_month">Келесі айға өту</string>
+    <string name="mtrl_picker_a11y_prev_month">Алдыңғы айға өту</string>
+    <string name="mtrl_picker_announce_current_selection">Ағымдағы таңдау: %1$s</string>
+    <string name="mtrl_picker_cancel">Бас тарту</string>
+    <string name="mtrl_picker_confirm">Жарайды</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">Күнді таңдау</string>
+    <string name="mtrl_picker_date_header_unselected">Таңдалған күн</string>
+    <string name="mtrl_picker_day_of_week_column_header">Күндер бағаны: %1$s</string>
+    <string name="mtrl_picker_invalid_format">Формат жарамсыз.</string>
+    <string name="mtrl_picker_invalid_format_example">Мысал: %1$s.</string>
+    <string name="mtrl_picker_invalid_format_use">Жарамды формат: %1$s.</string>
+    <string name="mtrl_picker_invalid_range">Ауқым жарамсыз.</string>
+    <string name="mtrl_picker_navigate_to_year_description">%1$s жылына жылжу</string>
+    <string name="mtrl_picker_out_of_range">Ауқымнан тыc: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">Басталу күні – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – аяқталу күні</string>
+    <string name="mtrl_picker_range_header_selected">%1$s – %2$s</string>
+    <string name="mtrl_picker_range_header_title">Аралықты таңдау</string>
+    <string name="mtrl_picker_range_header_unselected">Басталу күні – аяқталу күні</string>
+    <string name="mtrl_picker_save">Сақтау</string>
+    <string name="mtrl_picker_text_input_date_hint">Күні</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">Аяқталу күні</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">Басталу күні</string>
+    <string name="mtrl_picker_text_input_day_abbr">к</string>
+    <string name="mtrl_picker_text_input_month_abbr">а</string>
+    <string name="mtrl_picker_text_input_year_abbr">ж</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">Күнтізбенің енгізу режиміне ауысу</string>
+    <string name="mtrl_picker_toggle_to_day_selection">Күнді таңдауға ауысу үшін түртіңіз.</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">Мәтін енгізу режиміне ауысу</string>
+    <string name="mtrl_picker_toggle_to_year_selection">Жылды таңдауға ауысу үшін түртіңіз.</string>
+    <string name="mtrl_timepicker_cancel">Бас тарту</string>
+    <string name="mtrl_timepicker_confirm">Жарайды</string>
+    <string name="password_toggle_content_description">Құпия сөзді көрсету</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"Іздеу"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

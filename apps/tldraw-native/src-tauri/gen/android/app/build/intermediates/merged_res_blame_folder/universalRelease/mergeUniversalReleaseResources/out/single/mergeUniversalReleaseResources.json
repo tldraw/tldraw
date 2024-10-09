@@ -1,0 +1,78 @@
+[
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.tldraw_native_app-main-32:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xxhdpi_ic_launcher_round.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/xml_file_paths.xml.flat",
+        "source": "com.tldraw_native_app-main-32:/xml/file_paths.xml"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xxhdpi_ic_launcher.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xxhdpi_ic_launcher_foreground.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xxhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-hdpi_ic_launcher_round.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-hdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xxxhdpi_ic_launcher.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xxxhdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xxxhdpi_ic_launcher_round.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xxxhdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-mdpi_ic_launcher.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xhdpi_ic_launcher_foreground.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-hdpi_ic_launcher.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-hdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-mdpi_ic_launcher_foreground.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-mdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/drawable-v24_ic_launcher_foreground.xml.flat",
+        "source": "com.tldraw_native_app-main-32:/drawable-v24/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/layout_activity_main.xml.flat",
+        "source": "com.tldraw_native_app-main-32:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-hdpi_ic_launcher_foreground.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-hdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-mdpi_ic_launcher_round.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-mdpi/ic_launcher_round.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xxxhdpi_ic_launcher_foreground.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xxxhdpi/ic_launcher_foreground.png"
+    },
+    {
+        "merged": "com.tldraw_native_app-universalRelease-31:/mipmap-xhdpi_ic_launcher_round.png.flat",
+        "source": "com.tldraw_native_app-main-32:/mipmap-xhdpi/ic_launcher_round.png"
+    }
+]

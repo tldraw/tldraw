@@ -1,0 +1,74 @@
+.button {
+	position: relative;
+	height: 32px;
+	border: 1px solid transparent;
+	padding: 0px 12px;
+	background: none;
+	outline: none;
+	color: var(--tla-color-text-1);
+	border-radius: var(--tla-radius-2);
+	cursor: pointer;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	gap: 8px;
+}
+
+.button > .spinner {
+	position: absolute;
+	top: calc(50% - 20px);
+	left: calc(50% - 20px);
+	height: 40px;
+	width: 40px;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	animation: tla-spin 1.5s linear infinite;
+}
+
+.spinner {
+	color: var(--tla-color-text-3);
+	animation: tla-spin 1.5s linear infinite;
+}
+
+@keyframes tla-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.primary {
+	background-color: var(--tla-color-primary);
+	box-shadow: var(--tla-shadow-primary-highlight);
+	color: var(--tla-color-contrast);
+}
+
+.primary[data-state='loading'] {
+	color: var(--tla-color-primary);
+}
+
+.primary[data-state='loading'] > .spinner {
+	color: var(--tla-color-contrast);
+}
+
+.secondary {
+	background-color: var(--tla-color-secondary);
+	border: 1px solid var(--tla-color-secondary-border);
+	color: var(--tla-color-text-1);
+}
+
+.warning {
+	background-color: var(--tla-color-secondary);
+	color: var(--tla-color-warning);
+}
+
+.iconRight {
+	position: absolute;
+	right: 8px;
+}

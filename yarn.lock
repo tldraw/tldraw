@@ -6593,6 +6593,151 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tauri-apps/api@npm:>=2.0.0, @tauri-apps/api@npm:^2.0.0":
+  version: 2.0.1
+  resolution: "@tauri-apps/api@npm:2.0.1"
+  checksum: c6680d3720b4b69badca0d64a9f84e198c1534d57d74680c0905228ee3455e2608f49801ca4957c5945a03342888e0ed4ce26a36811bd6603ae7a0f3ac6a4ced
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-darwin-arm64@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-darwin-arm64@npm:2.0.0"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-darwin-x64@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-darwin-x64@npm:2.0.0"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-arm-gnueabihf@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-arm-gnueabihf@npm:2.0.0"
+  conditions: os=linux & cpu=arm
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-arm64-gnu@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-arm64-gnu@npm:2.0.0"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-arm64-musl@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-arm64-musl@npm:2.0.0"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-x64-gnu@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-x64-gnu@npm:2.0.0"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-linux-x64-musl@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-linux-x64-musl@npm:2.0.0"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-win32-arm64-msvc@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-win32-arm64-msvc@npm:2.0.0"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-win32-ia32-msvc@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-win32-ia32-msvc@npm:2.0.0"
+  conditions: os=win32 & cpu=ia32
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli-win32-x64-msvc@npm:2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli-win32-x64-msvc@npm:2.0.0"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/cli@npm:>=2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/cli@npm:2.0.0"
+  dependencies:
+    "@tauri-apps/cli-darwin-arm64": "npm:2.0.0"
+    "@tauri-apps/cli-darwin-x64": "npm:2.0.0"
+    "@tauri-apps/cli-linux-arm-gnueabihf": "npm:2.0.0"
+    "@tauri-apps/cli-linux-arm64-gnu": "npm:2.0.0"
+    "@tauri-apps/cli-linux-arm64-musl": "npm:2.0.0"
+    "@tauri-apps/cli-linux-x64-gnu": "npm:2.0.0"
+    "@tauri-apps/cli-linux-x64-musl": "npm:2.0.0"
+    "@tauri-apps/cli-win32-arm64-msvc": "npm:2.0.0"
+    "@tauri-apps/cli-win32-ia32-msvc": "npm:2.0.0"
+    "@tauri-apps/cli-win32-x64-msvc": "npm:2.0.0"
+  dependenciesMeta:
+    "@tauri-apps/cli-darwin-arm64":
+      optional: true
+    "@tauri-apps/cli-darwin-x64":
+      optional: true
+    "@tauri-apps/cli-linux-arm-gnueabihf":
+      optional: true
+    "@tauri-apps/cli-linux-arm64-gnu":
+      optional: true
+    "@tauri-apps/cli-linux-arm64-musl":
+      optional: true
+    "@tauri-apps/cli-linux-x64-gnu":
+      optional: true
+    "@tauri-apps/cli-linux-x64-musl":
+      optional: true
+    "@tauri-apps/cli-win32-arm64-msvc":
+      optional: true
+    "@tauri-apps/cli-win32-ia32-msvc":
+      optional: true
+    "@tauri-apps/cli-win32-x64-msvc":
+      optional: true
+  bin:
+    tauri: tauri.js
+  checksum: 847a4f60054295dc8cdfd50a836b9a9336e320f15c87b35c0e18812418d96391478e6ded063590789bdc2deccfa445624cb89acf7fa99a75d5fa0a8e4e63908b
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/plugin-dialog@npm:>=2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/plugin-dialog@npm:2.0.0"
+  dependencies:
+    "@tauri-apps/api": "npm:^2.0.0"
+  checksum: 93ac21a5c3069af6e02478d7ce33fbfe9d4035d136e9c0993b1803d90dd08a9e6c5f7731dea03a5cf194f73555ec6f4e90ab25bcfa156231aae14757ad15ff87
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/plugin-notification@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/plugin-notification@npm:2.0.0"
+  dependencies:
+    "@tauri-apps/api": "npm:^2.0.0"
+  checksum: 0a6a3085380f56d593c2c7fab3184007495b71c6b09e839c0075649a3a36398374475cfca320bf1ee0f2acc40bc3c635149f92220bf658d2b3ba84c7a99177b3
+  languageName: node
+  linkType: hard
+
+"@tauri-apps/plugin-shell@npm:>=2.0.0":
+  version: 2.0.0
+  resolution: "@tauri-apps/plugin-shell@npm:2.0.0"
+  dependencies:
+    "@tauri-apps/api": "npm:^2.0.0"
+  checksum: ebfa7d0c55bd6941a6889ba227fa91aacbfc4de05d004131bfb3a7c144c5de2061b70004961ddf1e9833494eda2c7461890827d7a1fbb43b769443f1f8a15817
+  languageName: node
+  linkType: hard
+
 "@testing-library/dom@npm:^10.0.0":
   version: 10.4.0
   resolution: "@testing-library/dom@npm:10.4.0"
@@ -22313,6 +22458,52 @@ __metadata:
   checksum: 066c3acf4f82b81c58a0d3ab85f49407efe95ba87afc3c7a16b1d77625193dfbe10dd46c26d0a263c1137361dd5a6a68bff2fb71def5fb9b9aec940fb030bcd4
   languageName: node
   linkType: hard
+
+"tldraw-native@workspace:apps/tldraw-native":
+  version: 0.0.0-use.local
+  resolution: "tldraw-native@workspace:apps/tldraw-native"
+  dependencies:
+    "@clerk/clerk-react": "npm:^5.9.3"
+    "@jest/globals": "npm:30.0.0-alpha.2"
+    "@radix-ui/react-popover": "npm:^1.0.7"
+    "@sentry/cli": "npm:^2.25.0"
+    "@sentry/integrations": "npm:^7.34.0"
+    "@sentry/react": "npm:^7.77.0"
+    "@tauri-apps/api": "npm:>=2.0.0"
+    "@tauri-apps/cli": "npm:>=2.0.0"
+    "@tauri-apps/plugin-dialog": "npm:>=2.0.0"
+    "@tauri-apps/plugin-notification": "npm:^2.0.0"
+    "@tauri-apps/plugin-shell": "npm:>=2.0.0"
+    "@tldraw/assets": "workspace:*"
+    "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
+    "@types/qrcode": "npm:^1.5.0"
+    "@types/react": "npm:^18.2.0"
+    "@typescript-eslint/utils": "npm:^5.59.0"
+    "@vercel/analytics": "npm:^1.1.1"
+    "@vitejs/plugin-react-swc": "npm:^3.7.0"
+    browser-fs-access: "npm:^0.35.0"
+    classnames: "npm:^2.3.2"
+    dotenv: "npm:^16.3.1"
+    eslint: "npm:^8.37.0"
+    fast-glob: "npm:^3.3.1"
+    idb: "npm:^7.1.1"
+    identity-obj-proxy: "npm:^3.0.0"
+    json5: "npm:^2.2.3"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    qrcode: "npm:^1.5.1"
+    react: "npm:^18.2.0"
+    react-dom: "npm:^18.2.0"
+    react-helmet-async: "npm:^1.3.0"
+    react-router-dom: "npm:^6.24.1"
+    tldraw: "workspace:*"
+    vite: "npm:^5.4.2"
+    ws: "npm:^8.16.0"
+  languageName: unknown
+  linkType: soft
 
 "tldraw-vscode@workspace:apps/vscode/extension":
   version: 0.0.0-use.local

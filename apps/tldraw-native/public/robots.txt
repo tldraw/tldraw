@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /r
+
+User-agent: *
+Disallow: /v
+
+User-agent: *
+Disallow: /s
+
+User-agent: *
+Allow: /
