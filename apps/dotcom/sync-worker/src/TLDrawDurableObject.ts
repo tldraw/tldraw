@@ -7,8 +7,6 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
-	TldrawAppFile,
-	TldrawAppFileRecordType,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -19,7 +17,7 @@ import {
 	TLSyncRoom,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
+import { TLRecord, createTLSchema } from '@tldraw/tlschema'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -286,21 +284,21 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	_ownerId: string | null = null
-	async getOwnerId() {
-		if (!this._ownerId) {
-			const slug = this.documentInfo.slug
-			const fileId = TldrawAppFileRecordType.createId(slug)
-			const row = await this.env.DB.prepare('SELECT topicId as ownerId FROM records WHERE id = ?')
-				.bind(fileId)
-				.first()
+	// _ownerId: string | null = null
+	// async getOwnerId() {
+	// 	if (!this._ownerId) {
+	// 		const slug = this.documentInfo.slug
+	// 		const fileId = TldrawAppFileRecordType.createId(slug)
+	// 		const row = await this.env.DB.prepare('SELECT topicId as ownerId FROM records WHERE id = ?')
+	// 			.bind(fileId)
+	// 			.first()
 
-			if (row) {
-				this._ownerId = row.ownerId as string
-			}
-		}
-		return this._ownerId
-	}
+	// 		if (row) {
+	// 			this._ownerId = row.ownerId as string
+	// 		}
+	// 	}
+	// 	return this._ownerId
+	// }
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
 		// extract query params from request, should include instanceId
@@ -323,32 +321,32 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 
 		const auth = await getAuth(req, this.env)
-		if (this.documentInfo.isApp) {
-			const ownerId = await this.getOwnerId()
+		// if (this.documentInfo.isApp) {
+		// 	const ownerId = await this.getOwnerId()
 
-			if (ownerId) {
-				if (ownerId !== auth?.userId) {
-					const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(ownerId))
-					const shareType = await ownerDurableObject.getFileShareType(
-						TldrawAppFileRecordType.createId(this.documentInfo.slug),
-						ownerId
-					)
-					if (shareType === 'private') {
-						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
-					}
-					if (shareType === 'view') {
-						openMode = ROOM_OPEN_MODE.READ_ONLY
-					}
-				}
-			} else if (!this.documentInfo.isOrWasCreateMode) {
-				// If there is no owner that means it's a temporary room, but if they didn't add the create
-				// flag don't let them in.
-				// This prevents people from just creating rooms by typing extra chars in the URL because we only
-				// add that flag in temporary rooms.
-				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
-			}
-			// otherwise, it's a temporary room and we let them in
-		}
+		// 	if (ownerId) {
+		// 		if (ownerId !== auth?.userId) {
+		// 			const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(ownerId))
+		// 			const shareType = await ownerDurableObject.getFileShareType(
+		// 				TldrawAppFileRecordType.createId(this.documentInfo.slug),
+		// 				ownerId
+		// 			)
+		// 			if (shareType === 'private') {
+		// 				return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+		// 			}
+		// 			if (shareType === 'view') {
+		// 				openMode = ROOM_OPEN_MODE.READ_ONLY
+		// 			}
+		// 		}
+		// 	} else if (!this.documentInfo.isOrWasCreateMode) {
+		// 		// If there is no owner that means it's a temporary room, but if they didn't add the create
+		// 		// flag don't let them in.
+		// 		// This prevents people from just creating rooms by typing extra chars in the URL because we only
+		// 		// add that flag in temporary rooms.
+		// 		return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+		// 	}
+		// 	// otherwise, it's a temporary room and we let them in
+		// }
 
 		try {
 			const room = await this.getRoom()
@@ -518,43 +516,43 @@ export class TLDrawDurableObject extends DurableObject {
 		await this.scheduler.onAlarm()
 	}
 
-	async appFileRecordDidUpdate(file: TldrawAppFile, ownerId: string) {
-		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: TldrawAppFileRecordType.parseId(file.id),
-				isApp: true,
-				isOrWasCreateMode: false,
-			})
-		}
-		const room = await this.getRoom()
+	// async appFileRecordDidUpdate(file: TldrawAppFile, ownerId: string) {
+	// 	if (!this._documentInfo) {
+	// 		this.setDocumentInfo({
+	// 			version: CURRENT_DOCUMENT_INFO_VERSION,
+	// 			slug: TldrawAppFileRecordType.parseId(file.id),
+	// 			isApp: true,
+	// 			isOrWasCreateMode: false,
+	// 		})
+	// 	}
+	// 	const room = await this.getRoom()
 
-		// if the app file record updated, it might mean that the file name changed
-		const documentRecord = room.getRecord(TLDOCUMENT_ID) as TLDocument
-		if (documentRecord.name !== file.name) {
-			room.updateStore((store) => {
-				store.put({ ...documentRecord, name: file.name })
-			})
-		}
+	// 	// if the app file record updated, it might mean that the file name changed
+	// 	const documentRecord = room.getRecord(TLDOCUMENT_ID) as TLDocument
+	// 	if (documentRecord.name !== file.name) {
+	// 		room.updateStore((store) => {
+	// 			store.put({ ...documentRecord, name: file.name })
+	// 		})
+	// 	}
 
-		// if the app file record updated, it might mean that the sharing state was updated
-		// in which case we should kick people out or change their permissions
-		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
+	// 	// if the app file record updated, it might mean that the sharing state was updated
+	// 	// in which case we should kick people out or change their permissions
+	// 	const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
 
-		for (const session of room.getSessions()) {
-			// allow the owner to stay connected
-			if (session.meta.userId === ownerId) continue
+	// 	for (const session of room.getSessions()) {
+	// 		// allow the owner to stay connected
+	// 		if (session.meta.userId === ownerId) continue
 
-			if (!file.shared) {
-				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
-			} else if (
-				// if the file is still shared but the readonly state changed, make them reconnect
-				(session.isReadonly && !roomIsReadOnlyForGuests) ||
-				(!session.isReadonly && roomIsReadOnlyForGuests)
-			) {
-				// not passing a reason means they will try to reconnect
-				room.closeSession(session.sessionId)
-			}
-		}
-	}
+	// 		if (!file.shared) {
+	// 			room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+	// 		} else if (
+	// 			// if the file is still shared but the readonly state changed, make them reconnect
+	// 			(session.isReadonly && !roomIsReadOnlyForGuests) ||
+	// 			(!session.isReadonly && roomIsReadOnlyForGuests)
+	// 		) {
+	// 			// not passing a reason means they will try to reconnect
+	// 			room.closeSession(session.sessionId)
+	// 		}
+	// 	}
+	// }
 }

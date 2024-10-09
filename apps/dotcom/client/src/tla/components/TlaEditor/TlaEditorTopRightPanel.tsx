@@ -1,14 +1,16 @@
 import { forwardRef, useRef } from 'react'
+import { useParams } from 'react-router-dom'
 import { PeopleMenu, usePassThroughWheelEvents, useTranslation } from 'tldraw'
 import { ShareButtonProps } from '../../../components/ShareButton'
-import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel() {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
-	const fileId = useCurrentFileId()
+
+	const { fileSlug: fileId } = useParams<{ fileSlug: string }>()
+	if (!fileId) throw Error('expected a file id')
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>

@@ -115,6 +115,7 @@
 		"@microsoft/tsdoc@npm:0.14.2": "patch:@microsoft/tsdoc@npm%3A0.14.2#~/.yarn/patches/@microsoft-tsdoc-npm-0.14.2-9988282153.patch"
 	},
 	"dependencies": {
+		"@instantdb/react": "^0.14.13",
 		"@sentry/cli": "^2.25.0",
 		"@yarnpkg/types": "^4.0.0",
 		"cross-env": "^7.0.3",

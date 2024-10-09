@@ -1,4 +1,4 @@
-import { TldrawAppFileId } from '@tldraw/dotcom-shared'
+import { tx } from '@instantdb/core'
 import { useCallback, useRef } from 'react'
 import {
 	TldrawUiButton,
@@ -9,49 +9,40 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	TldrawUiInput,
-	useValue,
 } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
+import { useDbFile } from '../../hooks/db-hooks'
 import { useRaw } from '../../hooks/useRaw'
-import { TldrawApp } from '../../utils/TldrawApp'
+import { db } from '../../utils/db'
+import { TldrawAppFile } from '../../utils/db-schema'
 import styles from './dialogs.module.css'
 
 export function TlaRenameFileDialog({
 	fileId,
 	onClose,
 }: {
-	fileId: TldrawAppFileId
+	fileId: TldrawAppFile['id']
 	onClose(): void
 }) {
-	const app = useApp()
 	const raw = useRaw()
 	const ref = useRef<HTMLInputElement>(null)
 
-	const file = useValue(
-		'file',
-		() => {
-			const file = app.store.get(fileId)
-			if (!file) throw Error('expected a file')
-			return file
-		},
-		[app]
-	)
+	const file = useDbFile(fileId)
 
 	const handleSave = useCallback(() => {
 		// rename the file
-		const file = app.store.get(fileId)
-		if (!file) return
 		const elm = ref.current
 		if (!elm) return
 		const name = elm.value.slice(0, 312).trim()
 
 		if (name) {
 			// Only update the name if there is a name there to update
-			app.store.put([{ ...file, name }])
+			db.transact([tx.files[fileId].merge({ name })])
 		}
 
 		onClose()
-	}, [app, fileId, onClose])
+	}, [fileId, onClose])
+
+	if (!file) return null
 
 	return (
 		<>
@@ -63,7 +54,7 @@ export function TlaRenameFileDialog({
 				<TldrawUiInput
 					ref={ref}
 					className={styles.input}
-					defaultValue={TldrawApp.getFileName(file)}
+					defaultValue={file.name}
 					onComplete={handleSave}
 					autoSelect
 					autoFocus

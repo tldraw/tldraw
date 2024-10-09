@@ -2488,6 +2488,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@instantdb/core@npm:^0.14.13, @instantdb/core@npm:v0.14.13":
+  version: 0.14.13
+  resolution: "@instantdb/core@npm:0.14.13"
+  dependencies:
+    "@types/object-hash": "npm:^3.0.6"
+    mutative: "npm:^1.0.10"
+    object-hash: "npm:^3.0.0"
+    uuid: "npm:^9.0.0"
+  checksum: 2498b09a9a814a3c79fb6f177a8366c5204f55028bc259cf92f6187eb01a7dc4df484971bdff576f6d0a27d65955c36a16abee5b9042119e6f772e85a8692e79
+  languageName: node
+  linkType: hard
+
+"@instantdb/react@npm:^0.14.13":
+  version: 0.14.13
+  resolution: "@instantdb/react@npm:0.14.13"
+  dependencies:
+    "@instantdb/core": "npm:v0.14.13"
+  peerDependencies:
+    react: ">=16"
+  checksum: b09f6da70f5ea7260e1244777cc3aa5e725768609b63a3138d4dbafdd64e314122554c7f101f732e04fb21fe11c9a109a472d792667ac9e98bff16a021a36bef
+  languageName: node
+  linkType: hard
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -6825,6 +6848,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/monorepo@workspace:."
   dependencies:
+    "@instantdb/react": "npm:^0.14.13"
     "@microsoft/api-extractor": "npm:^7.43.1"
     "@next/eslint-plugin-next": "npm:^13.3.0"
     "@sentry/cli": "npm:^2.25.0"
@@ -6972,7 +6996,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/sync@workspace:*, @tldraw/sync@workspace:packages/sync":
+"@tldraw/sync@workspace:*, @tldraw/sync@workspace:^, @tldraw/sync@workspace:packages/sync":
   version: 0.0.0-use.local
   resolution: "@tldraw/sync@workspace:packages/sync"
   dependencies:
@@ -7639,6 +7663,13 @@ __metadata:
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
   checksum: 65dff72b543997b7be8b0265eca7ace0e34b75c3e5fee31de11179d08fa7124a7a5587265d53d0409532ecb7f7fba662c2012807963e1f9b059653ec2c83ee05
+  languageName: node
+  linkType: hard
+
+"@types/object-hash@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@types/object-hash@npm:3.0.6"
+  checksum: 2c7979d4e540af817b99c09fb4c2fed1c0b0e14342df474d8dcde4165a82c440b038341fd66fe998d9f86acdd5cccc65ba8092315e39e7c2114f945fa70aaa56
   languageName: node
   linkType: hard
 
@@ -11297,6 +11328,7 @@ __metadata:
   resolution: "dotcom@workspace:apps/dotcom/client"
   dependencies:
     "@clerk/clerk-react": "npm:^5.9.3"
+    "@instantdb/core": "npm:^0.14.13"
     "@jest/globals": "npm:30.0.0-alpha.2"
     "@radix-ui/react-popover": "npm:^1.0.7"
     "@sentry/cli": "npm:^2.25.0"
@@ -11304,7 +11336,7 @@ __metadata:
     "@sentry/react": "npm:^7.77.0"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
-    "@tldraw/sync": "workspace:*"
+    "@tldraw/sync": "workspace:^"
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -18105,6 +18137,13 @@ __metadata:
   bin:
     mustache: bin/mustache
   checksum: 6e668bd5803255ab0779c3983b9412b5c4f4f90e822230e0e8f414f5449ed7a137eed29430e835aa689886f663385cfe05f808eb34b16e1f3a95525889b05cd3
+  languageName: node
+  linkType: hard
+
+"mutative@npm:^1.0.10":
+  version: 1.0.11
+  resolution: "mutative@npm:1.0.11"
+  checksum: c69ef64c9c4060968cdae3cf983a335ac9eeb69093ac4cd941c76cea0806d7c01d5bc1bdcb149529e768e7d0ec51f892be179f8b178585c670370deffb849a4e
   languageName: node
   linkType: hard
 

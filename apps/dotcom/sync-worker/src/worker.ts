@@ -20,7 +20,6 @@ import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
 import { getAuth } from './utils/getAuth'
-export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
 const { preflight, corsify } = cors({
@@ -50,11 +49,9 @@ const router = createRouter<Environment>()
 		// This needs to be a websocket request!
 		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
 			// Set up the durable object for this room
-			const id = env.TLAPP_DO.idFromName(auth.userId)
 			const url = new URL(req.url)
 			url.pathname = `/app/${auth.userId}`
 			// clone the request and add the new url
-			return env.TLAPP_DO.get(id).fetch(new Request(url, req))
 		}
 
 		return notFound()

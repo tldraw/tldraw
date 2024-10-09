@@ -1,11 +1,8 @@
 import { DragEvent, useCallback, useState } from 'react'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { useApp } from './useAppState'
 
 export function useTldrFileDrop() {
-	const app = useApp()
-
 	const [isDraggingOver, setIsDraggingOver] = useState(false)
 
 	const { addToast, removeToast } = useToasts()
@@ -32,7 +29,7 @@ export function useTldrFileDrop() {
 					title: `Uploading .tldr file${snapshots.length > 1 ? 's' : ''}...`,
 				})
 
-				await app.createFilesFromTldrFiles(snapshots)
+				// await app.createFilesFromTldrFiles(snapshots)
 
 				removeToast(id)
 				addToast({
@@ -42,7 +39,7 @@ export function useTldrFileDrop() {
 				})
 			}
 		},
-		[app, addToast, removeToast]
+		[addToast, removeToast]
 	)
 
 	const onDragOver = useCallback((e: DragEvent) => {

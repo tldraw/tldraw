@@ -1,13 +1,12 @@
 import { useAuth } from '@clerk/clerk-react'
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { db } from '../utils/db'
 
-export function Component() {
+export function ClerkSignedInComponent() {
 	const { getToken, signOut } = useAuth()
-	console.log('hello')
 
-	const signInToInstantWithClerkToken = useCallback(async () => {
+	const signInToInstantWithClerkToken = async () => {
 		// getToken gets the jwt from Clerk for your signed in user.
 		const idToken = await getToken()
 
@@ -23,26 +22,23 @@ export function Component() {
 			clientName: 'tldraw_clerk',
 			idToken: idToken,
 		})
-	}, [getToken])
+	}
 
 	useEffect(() => {
 		signInToInstantWithClerkToken()
-	}, [signInToInstantWithClerkToken])
+	}, [])
 
 	const { isLoading, user, error } = db.useAuth()
 
 	if (isLoading) {
 		return <div>Loading...</div>
 	}
-
 	if (error) {
 		return <div>Error signing in to Instant! {error.message}</div>
 	}
-
 	if (user) {
 		return <Outlet />
 	}
-
 	return (
 		<div>
 			<button onClick={signInToInstantWithClerkToken}>Sign in to Instant</button>

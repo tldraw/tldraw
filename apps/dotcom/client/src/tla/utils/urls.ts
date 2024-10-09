@@ -1,7 +1,7 @@
 import { isDevelopmentEnv } from '../../utils/env'
 
 export function getFileUrl(fileId: string): string {
-	return `/q/f/${fileId.split(':').pop()}`
+	return `/q/f/${fileId}`
 }
 
 export function getShareableFileUrl(fileId: string): string {

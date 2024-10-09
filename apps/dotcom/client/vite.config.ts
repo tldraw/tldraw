@@ -26,66 +26,80 @@ function urlOrLocalFallback(mode: string, url: string | undefined, localFallback
 }
 
 // https://vitejs.dev/config/
-export default defineConfig((env) => ({
-	plugins: [react({ tsDecorators: true })],
-	publicDir: './public',
-	build: {
-		// output source maps to .map files and include //sourceMappingURL comments in JavaScript files
-		// these get uploaded to Sentry and can be used for debugging
-		sourcemap: true,
+export default defineConfig((env) => {
+	const TLDRAW_BEMO_URL_STRING = undefined
 
-		// our svg icons break if we use data urls, so disable inline assets for now
-		assetsInlineLimit: 0,
-	},
-	// add backwards-compatible support for NEXT_PUBLIC_ env vars
-	define: {
-		...Object.fromEntries(
-			Object.entries(process.env)
-				.filter(([key]) => key.startsWith('NEXT_PUBLIC_'))
-				.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
-		),
-		'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(env.mode, getMultiplayerServerURL(), 8787),
-		'process.env.ASSET_UPLOAD': urlOrLocalFallback(env.mode, process.env.ASSET_UPLOAD, 8788),
-		'process.env.IMAGE_WORKER': urlOrLocalFallback(env.mode, process.env.IMAGE_WORKER, 8786),
-		'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
-		'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
-		// Fall back to staging DSN for local develeopment, although you still need to
-		// modify the env check in 'sentry.client.config.ts' to get it reporting errors
-		'process.env.SENTRY_DSN': JSON.stringify(
-			process.env.SENTRY_DSN ??
-				'https://4adc43773d07854d8a60e119505182cc@o578706.ingest.sentry.io/4506178821881856'
-		),
-	},
-	server: {
-		proxy: {
-			'/api': {
-				target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
-				rewrite: (path) => path.replace(/^\/api/, ''),
-				ws: false, // we talk to the websocket directly via workers.dev
-				// Useful for debugging proxy issues
-				// configure: (proxy, _options) => {
-				// 	proxy.on('error', (err, _req, _res) => {
-				// 		console.log('[proxy] proxy error', err)
-				// 	})
-				// 	proxy.on('proxyReq', (proxyReq, req, _res) => {
-				// 		console.log('[proxy] Sending Request to the Target:', req.method, req.url)
-				// 	})
-				// 	proxy.on('proxyRes', (proxyRes, req, _res) => {
-				// 		console.log(
-				// 			'[proxy] Received Response from the Target:',
-				// 			proxyRes.statusCode,
-				// 			req.url
-				// 		)
-				// 	})
-				// },
+	return {
+		plugins: [react({ tsDecorators: true })],
+		publicDir: './public',
+		build: {
+			// output source maps to .map files and include //sourceMappingURL comments in JavaScript files
+			// these get uploaded to Sentry and can be used for debugging
+			sourcemap: true,
+
+			// our svg icons break if we use data urls, so disable inline assets for now
+			assetsInlineLimit: 0,
+		},
+		// add backwards-compatible support for NEXT_PUBLIC_ env vars
+		define: {
+			...Object.fromEntries(
+				Object.entries(process.env)
+					.filter(([key]) => key.startsWith('NEXT_PUBLIC_'))
+					.map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
+			),
+			'process.env.MULTIPLAYER_SERVER': urlOrLocalFallback(
+				env.mode,
+				getMultiplayerServerURL(),
+				8787
+			),
+			'process.env.ASSET_UPLOAD': urlOrLocalFallback(env.mode, process.env.ASSET_UPLOAD, 8788),
+			'process.env.IMAGE_WORKER': urlOrLocalFallback(env.mode, process.env.IMAGE_WORKER, 8786),
+			'process.env.TLDRAW_ENV': JSON.stringify(process.env.TLDRAW_ENV ?? 'development'),
+			'process.env.TLDRAW_LICENSE': JSON.stringify(process.env.TLDRAW_LICENSE ?? ''),
+			// Fall back to staging DSN for local develeopment, although you still need to
+			// modify the env check in 'sentry.client.config.ts' to get it reporting errors
+			'process.env.SENTRY_DSN': JSON.stringify(
+				process.env.SENTRY_DSN ??
+					'https://4adc43773d07854d8a60e119505182cc@o578706.ingest.sentry.io/4506178821881856'
+			),
+			'process.env.TLDRAW_BEMO_URL': urlOrLocalFallback(env.mode, TLDRAW_BEMO_URL_STRING, 8989),
+			'process.env.TLDRAW_IMAGE_URL': urlOrLocalFallback(
+				env.mode,
+				env.mode === 'development' ? undefined : 'https://images.tldraw.xyz',
+				8989
+			),
+		},
+		server: {
+			proxy: {
+				'/api': {
+					target: getMultiplayerServerURL() || 'http://127.0.0.1:8787',
+					rewrite: (path) => path.replace(/^\/api/, ''),
+					ws: false, // we talk to the websocket directly via workers.dev
+					// Useful for debugging proxy issues
+					// configure: (proxy, _options) => {
+					// 	proxy.on('error', (err, _req, _res) => {
+					// 		console.log('[proxy] proxy error', err)
+					// 	})
+					// 	proxy.on('proxyReq', (proxyReq, req, _res) => {
+					// 		console.log('[proxy] Sending Request to the Target:', req.method, req.url)
+					// 	})
+					// 	proxy.on('proxyRes', (proxyRes, req, _res) => {
+					// 		console.log(
+					// 			'[proxy] Received Response from the Target:',
+					// 			proxyRes.statusCode,
+					// 			req.url
+					// 		)
+					// 	})
+					// },
+				},
 			},
 		},
-	},
-	css: {
-		modules: {
-			scopeBehaviour: 'local',
-			exportGlobals: true,
-			localsConvention: 'camelCase',
+		css: {
+			modules: {
+				scopeBehaviour: 'local',
+				exportGlobals: true,
+				localsConvention: 'camelCase',
+			},
 		},
-	},
-}))
+	}
+})

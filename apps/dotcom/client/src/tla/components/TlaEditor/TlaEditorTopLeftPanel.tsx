@@ -1,5 +1,9 @@
+// There are some styles in tla.css that adjust the regular tlui top panels
+
+import { tx } from '@instantdb/core'
 import classNames from 'classnames'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
 	DefaultPageMenu,
 	TldrawUiInput,
@@ -7,25 +11,22 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
-import { useApp, useMaybeApp } from '../../hooks/useAppState'
-import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useDbFile } from '../../hooks/db-hooks'
 import { useRaw } from '../../hooks/useRaw'
+import { db } from '../../utils/db'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
 import styles from './top.module.css'
 
-// There are some styles in tla.css that adjust the regular tlui top panels
-
 export function TlaEditorTopLeftPanel() {
-	const app = useMaybeApp()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
 	return (
 		<div ref={ref} className={classNames(styles.topPanelLeft)}>
 			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
-				{app ? <TlaEditorTopLeftPanelSignedIn /> : <TlaEditorTopLeftPanelAnonymous />}
+				<TlaEditorTopLeftPanelSignedIn />
 			</div>
 		</div>
 	)
@@ -51,33 +52,29 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 export function TlaEditorTopLeftPanelSignedIn() {
 	const raw = useRaw()
-	const app = useApp()
-	const fileId = useCurrentFileId()
-	const editor = useEditor()
-	const fileName = useValue(
-		'fileName',
-		// TODO(david): This is a temporary fix for allowing guests to see the file name.
-		// We update the name in the document record on it's DO when the file record changes.
-		// We should figure out a way to have a single source of truth for the file name.
-		// And to allow guests to 'subscribe' to file metadata updates somehow.
-		() => app.getFileName(fileId) ?? editor.getDocumentSettings().name,
-		[app, editor, fileId]
-	)
+	const { fileSlug } = useParams()
+	if (!fileSlug) throw Error('expected a file id')
+
+	const file = useDbFile(fileSlug)
+
 	const handleFileNameChange = useCallback(
 		(name: string) => {
-			app.store.update(fileId, (file) => ({ ...file, name }))
+			if (!fileSlug) throw Error('expected a file id')
+			db.transact([tx.files[fileSlug].merge({ name })])
 		},
-		[app, fileId]
+		[fileSlug]
 	)
+
+	if (!file) return null
 
 	return (
 		<>
 			<TlaSidebarToggle />
 			<TlaSidebarToggleMobile />
-			<TlaFileNameEditor fileName={fileName ?? 'FIXME'} onChange={handleFileNameChange} />
+			<TlaFileNameEditor fileName={file.name ?? 'FIXME'} onChange={handleFileNameChange} />
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
-			<TlaFileMenu source="file-header">
+			<TlaFileMenu fileId={file.id} source="file-header">
 				<button className={styles.linkMenu}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
@@ -139,6 +136,10 @@ function TlaFileNameEditorInput({
 }) {
 	const rTemporaryName = useRef<string>(fileName)
 	const [temporaryFileName, setTemporaryFileName] = useState(fileName)
+
+	useEffect(() => {
+		setTemporaryFileName(fileName)
+	}, [fileName])
 
 	const handleBlur = useCallback(() => {
 		// dispatch the new filename via onComplete

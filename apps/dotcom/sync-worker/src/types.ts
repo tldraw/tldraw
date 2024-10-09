@@ -1,7 +1,6 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { TLAppDurableObject } from './TLAppDurableObject'
 import { TLDrawDurableObject } from './TLDrawDurableObject'
 
 // This type isn't available in @cloudflare/workers-types yet
@@ -16,7 +15,6 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace<TLDrawDurableObject>
-	TLAPP_DO: DurableObjectNamespace<TLAppDurableObject>
 	MEASURE: Analytics | undefined
 
 	DB: D1Database

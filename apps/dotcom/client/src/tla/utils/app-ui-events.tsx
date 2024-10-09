@@ -1,5 +1,5 @@
-import { TldrawAppSessionState, TldrawAppUser } from '@tldraw/dotcom-shared'
 import { ReactNode, createContext, useContext } from 'react'
+import { TldrawAppSessionState, TldrawAppUser } from './db-schema'
 
 /** @public */
 export type TLAppUiEventSource =

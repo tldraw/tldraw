@@ -257,7 +257,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			)
 		}
 
-		this.presenceType = presenceTypes.values().next()?.value
+		this.presenceType = presenceTypes.values().next()!.value!
 
 		if (!snapshot) {
 			snapshot = {
@@ -695,6 +695,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 		if (session.requiresLegacyRejection) {
+			console.log('hello')
 			try {
 				if (session.socket.isOpen) {
 					// eslint-disable-next-line deprecation/deprecation

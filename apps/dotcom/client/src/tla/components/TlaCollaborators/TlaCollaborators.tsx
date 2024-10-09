@@ -1,11 +1,10 @@
-import { TldrawAppFileId, TldrawAppUserId } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useValue } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
 import { useFileCollaborators } from '../../hooks/useFileCollaborators'
+import { db } from '../../utils/db'
+import { TldrawAppFile, TldrawAppUser } from '../../utils/db-schema'
 import styles from './collaborators.module.css'
 
-export function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
+export function TlaCollaborators({ fileId }: { fileId: TldrawAppFile['id'] }) {
 	const collaborators = useFileCollaborators(fileId)
 
 	if (collaborators.length === 0) return null
@@ -19,17 +18,23 @@ export function TlaCollaborators({ fileId }: { fileId: TldrawAppFileId }) {
 	)
 }
 
-function TlaCollaborator({ userId }: { userId: TldrawAppUserId }) {
-	const app = useApp()
-	const user = useValue(
-		'user',
-		() => {
-			const user = app.getUser(userId)
-			if (!user) throw Error('no user')
-			return user
+function TlaCollaborator({ userId }: { userId: TldrawAppUser['id'] }) {
+	const userResp = db.useQuery({
+		users: {
+			$: {
+				where: {
+					id: userId,
+				},
+			},
 		},
-		[app, userId]
-	)
+	})
+
+	if (userResp.isLoading) return null
+
+	const user = userResp.data?.users[0]
+
+	if (!user) return null
+
 	return (
 		<div
 			className={classNames(styles.collaborator, 'tla-text_ui__tiny')}

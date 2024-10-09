@@ -1,7 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
 import { ReactNode, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -12,18 +11,26 @@ import {
 	useDialogs,
 	useToasts,
 } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
-import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useDbFile } from '../../hooks/db-hooks'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
+import { getShareableFileUrl } from '../../utils/urls'
 import { TlaRenameFileDialog } from '../dialogs/TlaRenameFileDialog'
+// import { useApp } from '../../hooks/useAppState'
 
-export function TlaFileMenu({ children, source }: { children: ReactNode; source: string }) {
-	const app = useApp()
+export function TlaFileMenu({
+	fileId,
+	source,
+	children,
+}: {
+	children: ReactNode
+	source: string
+	fileId: string
+}) {
 	const { addDialog } = useDialogs()
-	const navigate = useNavigate()
 	const { addToast } = useToasts()
-	const fileId = useCurrentFileId()
+	// const navigate = useNavigate()
+
+	const file = useDbFile(fileId)
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
@@ -42,16 +49,15 @@ export function TlaFileMenu({ children, source }: { children: ReactNode; source:
 
 	const handleDuplicateLinkClick = useCallback(() => {
 		// duplicate file
-		const { auth } = app.getSessionState()
-		if (!auth) throw Error('expected auth')
-		const newFile = app.duplicateFile(auth.userId, fileId)
-
-		navigate(getFileUrl(newFile.id))
-	}, [app, navigate, fileId])
+		// const newFile = app.duplicateFile(auth.userId, fileId)
+		// navigate(getFileUrl(newFile.id))
+	}, [])
 
 	const handleDeleteLinkClick = useCallback(() => {
-		app.deleteFile(fileId)
-	}, [app, fileId])
+		// app.deleteFile(fileId)
+	}, [])
+
+	if (!file) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}`}>
