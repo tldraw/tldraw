@@ -240,19 +240,12 @@ export class TldrawApp {
 		return Object.values(filesToDates).sort((a, b) => b.date - a.date)
 	}
 
-	getUserSharedFiles(userId: TldrawAppUserId) {
+	getUserSharedFiles() {
 		return Array.from(
 			new Set(
 				this.getAll('file-visit')
-					.filter((r) => r.userId === userId)
-					.map((s) => {
-						const file = this.get<TldrawAppFile>(s.fileId)
-						if (!file) return
-						// skip files where the owner is the current user
-						if (file.owner === userId) return
-						return file
-					})
-					.filter(Boolean) as TldrawAppFile[]
+					// skip files where the owner is the current user
+					.filter((s) => !this.get<TldrawAppFile>(s.fileId))
 			)
 		)
 	}
@@ -361,22 +354,16 @@ export class TldrawApp {
 		return new Promise((r) => setTimeout(r, 2000))
 	}
 
-	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-
+	onFileEnter(fileId: TldrawAppFileId) {
+		// the file name is set on the server
+		const isMyFile = !!this.store.get(fileId)
+		const existing = this.getAll('file-visit').find((v) => v.fileId === fileId)
 		this.store.put([
 			TldrawAppFileVisitRecordType.create({
-				userId,
+				...existing,
 				fileId,
+				guestInfo: isMyFile ? undefined : { fileName: '' },
 			}),
-			{
-				...user,
-				presence: {
-					...user.presence,
-					fileIds: [...user.presence.fileIds.filter((id) => id !== fileId), fileId],
-				},
-			},
 		])
 	}
 
@@ -429,21 +416,6 @@ export class TldrawApp {
 				sessionStartedAt,
 				fileOpenedAt,
 			}),
-		])
-	}
-
-	onFileExit(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
-		const user = this.store.get(userId)
-		if (!user) return
-
-		this.store.put([
-			{
-				...user,
-				presence: {
-					...user.presence,
-					fileIds: user.presence.fileIds.filter((id) => id !== fileId),
-				},
-			},
 		])
 	}
 

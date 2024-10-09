@@ -6,6 +6,10 @@ import {
 	TldrawAppFile,
 	TldrawAppFileId,
 	TldrawAppFileRecordType,
+	TldrawAppFileVisit,
+	TldrawAppFileVisitRecordType,
+	TldrawAppRecord,
+	TldrawAppRecordId,
 	tldrawAppSchema,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
@@ -65,6 +69,8 @@ export class TLAppDurableObject extends DurableObject {
 								this.triggerPersistSchedule()
 							},
 						})
+						this.scheduleRefreshMySubscriptions()
+						this.scheduleRefreshMySubscribers()
 						return room
 					}
 					case 'error': {
@@ -267,6 +273,17 @@ export class TLAppDurableObject extends DurableObject {
 				// no need to await, fire and forget
 				docDurableObject.appFileRecordDidUpdate(file, this.userId)
 			}
+			const subscriberIds = this.subscribers.get(updatedRecord.state.id)
+			if (subscriberIds) {
+				for (const subscriberId of subscriberIds) {
+					const subscriber = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(subscriberId))
+					subscriber.notifyOfUpdate(subscriberId, updatedRecord.state)
+				}
+			}
+			const subscriptionId = getSubscriptionId(updatedRecord.state)
+			if (subscriptionId && !this.mySubscriptions.has(subscriptionId)) {
+				this.scheduleRefreshMySubscriptions()
+			}
 		}
 
 		this._lastPersistedClock = clock
@@ -296,4 +313,174 @@ export class TLAppDurableObject extends DurableObject {
 		if (!file?.shared) return 'private'
 		return file.sharedLinkType
 	}
+
+	scheduleRefreshMySubscriptions = throttle(
+		() => {
+			this.refreshMySubscriptions()
+		},
+		200,
+		{ trailingOnly: true }
+	)
+
+	mySubscriptions: Set<string> = new Set()
+
+	async refreshMySubscriptions() {
+		this.state.blockConcurrencyWhile(async () => {
+			const allSubscriptionsResult = await this.env.DB.prepare(
+				'select recordId from subscriptions where subscriberTopicId = ?'
+			)
+				.bind(this.userId)
+				.all()
+			const allSubscriptions = new Set(
+				allSubscriptionsResult.results.map((row) => row.recordId as string)
+			)
+			const desiredSubscriptions = new Set<string>(
+				(await this.getRoom())
+					.getCurrentSnapshot()
+					.documents.map((doc) => getSubscriptionId(doc.state as TldrawAppRecord))
+					.filter((id) => id !== null) as string[]
+			)
+			const newSubscriptions = new Set()
+			const removedSubscriptions = new Set()
+
+			for (const recordId of desiredSubscriptions) {
+				if (!allSubscriptions.has(recordId)) {
+					newSubscriptions.add(recordId)
+				}
+			}
+
+			for (const recordId of allSubscriptions) {
+				if (!desiredSubscriptions.has(recordId)) {
+					removedSubscriptions.add(recordId)
+				}
+			}
+
+			// ho ho ho
+
+			const statements: D1PreparedStatement[] = [
+				...Array.from(newSubscriptions).map((recordId) =>
+					this.env.DB.prepare(
+						'insert into subscriptions (subscriberTopicId, recordId) select ?, ? from records where id = ?'
+					).bind(this.userId, recordId, recordId)
+				),
+				...Array.from(removedSubscriptions).map((recordId) =>
+					this.env.DB.prepare(
+						'delete from subscriptions where subscriberTopicId = ? and recordId = ?'
+					).bind(this.userId, recordId)
+				),
+			]
+			if (statements.length === 0) return
+			await this.env.DB.batch(statements)
+
+			const newOwners = await this.env.DB.prepare(
+				`select r.topicId as ownerId from records r join subscriptions s on r.id = s.recordId where s.recordId in (${new Array(newSubscriptions.size).fill('?').join(', ')}) group by r.topicId`
+			)
+				.bind(...Array.from(newSubscriptions))
+				.all()
+
+			for (const { ownerId } of newOwners.results) {
+				const owner = await this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(ownerId as string))
+				owner.refreshMySubscribers(ownerId as string)
+			}
+
+			this.mySubscriptions = desiredSubscriptions
+		})
+	}
+
+	scheduleRefreshMySubscribers = throttle(
+		() => {
+			this.refreshMySubscribers(this._userId!)
+		},
+		200,
+		{ trailingOnly: true }
+	)
+
+	subscribers: Map<string, string[]> = new Map()
+	async refreshMySubscribers(myId: string) {
+		if (!this._userId) {
+			this._userId = myId
+		}
+		await this.state.blockConcurrencyWhile(async () => {
+			const room = await this.getRoom()
+			const records = Object.fromEntries(
+				room.getCurrentSnapshot().documents.map((doc) => [doc.state.id, doc])
+			)
+			const newSubscribers = new Map<string, string[]>()
+			const allSubscribersResult = await this.env.DB.prepare(
+				'select subscriberTopicId, recordId, recordEpochAtLastNotify from subscriptions s join records r on s.recordId = r.id where r.topicId = ?'
+			)
+				.bind(myId)
+				.all()
+			const subscriptionsToNotify = []
+			for (const {
+				subscriberTopicId,
+				recordId,
+				recordEpochAtLastNotify,
+			} of allSubscribersResult.results as any as Subscription[]) {
+				if (!newSubscribers.has(recordId as string)) {
+					newSubscribers.set(recordId as string, [])
+				}
+				newSubscribers.get(recordId as string)!.push(subscriberTopicId as string)
+				if (records[recordId as string].lastChangedClock > recordEpochAtLastNotify) {
+					subscriptionsToNotify.push({ subscriberTopicId, recordId })
+				}
+			}
+			this.subscribers = newSubscribers
+
+			for (const { subscriberTopicId, recordId } of subscriptionsToNotify) {
+				const subscriber = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(subscriberTopicId))
+				subscriber.notifyOfUpdate(subscriberTopicId, records[recordId as string].state as any)
+			}
+
+			const statements = subscriptionsToNotify.map(({ subscriberTopicId, recordId }) =>
+				this.env.DB.prepare(
+					'update subscriptions set recordEpochAtLastNotify = ? where subscriberTopicId = ? and recordId = ?'
+				).bind(records[recordId].lastChangedClock, subscriberTopicId, recordId)
+			)
+			if (statements.length === 0) return
+			await this.env.DB.batch(statements)
+		})
+	}
+
+	async notifyOfUpdate(subscriberTopicId: string, record: TldrawAppRecord) {
+		if (!this._userId) {
+			this._userId = subscriberTopicId
+		}
+
+		if (record.typeName !== 'file') {
+			// nothing to do
+			return
+		}
+		const room = await this.getRoom()
+
+		const roomVisits = room
+			.getCurrentSnapshot()
+			.documents.filter((doc) => TldrawAppFileVisitRecordType.isInstance(doc.state))
+			.map((doc) => doc.state) as TldrawAppFileVisit[]
+		// handle file visit name updates
+		const myVisitRecord = roomVisits.find((visit) => visit.fileId === record.id)
+		if (!myVisitRecord) {
+			this.scheduleRefreshMySubscriptions()
+			return
+		}
+		if (myVisitRecord.guestInfo?.fileName === record.name) return
+
+		room.updateStore((store) => {
+			myVisitRecord.guestInfo = { fileName: record.name }
+			store.put(myVisitRecord)
+		})
+	}
+}
+
+interface Subscription {
+	subscriberTopicId: string
+	recordId: string
+	recordEpochAtLastNotify: number
+}
+
+function getSubscriptionId(record: TldrawAppRecord): TldrawAppRecordId | null {
+	if (TldrawAppFileVisitRecordType.isInstance(record) && record.guestInfo) {
+		return record.fileId
+	}
+	return null
 }

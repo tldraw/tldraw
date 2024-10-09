@@ -86,6 +86,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		return <TlaCenteredLayout>{raw('Loading...')}</TlaCenteredLayout>
 	}
 
+	;(window as any).app = app
+
 	return <appContext.Provider value={app}>{children}</appContext.Provider>
 }
 

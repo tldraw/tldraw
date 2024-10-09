@@ -111,7 +111,6 @@ export function TlaEditor({
 	}, [fileId])
 
 	const handleMount = useCallback((editor: Editor) => {
-		;(window as any).app = editor
 		;(window as any).editor = editor
 		// Register the editor globally
 		globalEditor.set(editor)
@@ -131,15 +130,13 @@ export function TlaEditor({
 		if (!user) throw Error('User not found')
 
 		let cancelled = false
-		let didEnter = false
 
 		// Only mark as entered after one second
 		const timeout = tltime.setTimeout(
 			'app',
 			() => {
 				if (cancelled) return
-				didEnter = true
-				app.onFileEnter(auth.userId, fileId)
+				app.onFileEnter(fileId)
 			},
 			1000
 		)
@@ -147,10 +144,6 @@ export function TlaEditor({
 		return () => {
 			cancelled = true
 			clearTimeout(timeout)
-
-			if (didEnter) {
-				app.onFileExit(auth.userId, fileId)
-			}
 		}
 	}, [app, fileId])
 
