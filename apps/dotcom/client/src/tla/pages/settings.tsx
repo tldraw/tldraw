@@ -1,3 +1,6 @@
+import { useRaw } from '../hooks/useRaw'
+
 export function Component() {
-	return <div>Settings</div>
+	const raw = useRaw()
+	return <div>{raw('Settings')}</div>
 }

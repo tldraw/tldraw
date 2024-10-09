@@ -12,23 +12,24 @@ import {
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
 } from '@tldraw/dotcom-shared'
-import { Editor, Store, computed } from 'tldraw'
+import { Store, TLStoreSnapshot, assertExists, computed } from 'tldraw'
+import { globalEditor } from '../../utils/globalEditor'
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
 
+		// todo: replace this when we have application-level user preferences
 		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
 			if (prev.theme !== next.theme) {
-				const editor = this.getCurrentEditor()
-				if (editor) {
-					const editorIsDark = editor.user.getIsDarkMode()
-					const appIsDark = next.theme === 'dark'
-					if (appIsDark && !editorIsDark) {
-						editor.user.updateUserPreferences({ colorScheme: 'dark' })
-					} else if (!appIsDark && editorIsDark) {
-						editor.user.updateUserPreferences({ colorScheme: 'light' })
-					}
+				const editor = globalEditor.get()
+				if (!editor) return
+				const editorIsDark = editor.user.getIsDarkMode()
+				const appIsDark = next.theme === 'dark'
+				if (appIsDark && !editorIsDark) {
+					editor.user.updateUserPreferences({ colorScheme: 'dark' })
+				} else if (!appIsDark && editorIsDark) {
+					editor.user.updateUserPreferences({ colorScheme: 'light' })
 				}
 			}
 		})
@@ -43,16 +44,6 @@ export class TldrawApp {
 
 	dispose() {
 		this.store.dispose()
-	}
-
-	private _currentEditor: Editor | null = null
-
-	getCurrentEditor() {
-		return this._currentEditor
-	}
-
-	setCurrentEditor(editor: Editor | null) {
-		this._currentEditor = editor
 	}
 
 	getSessionState(): TldrawAppSessionState {
@@ -122,7 +113,7 @@ export class TldrawApp {
 			}
 			case 'recent': {
 				// never visited first, then recently visited first
-				return this.getUserRecentFiles(auth.userId, sessionState.createdAt).map((f) => f.file)
+				return this.getUserRecentFiles(sessionState.createdAt).map((f) => f.file)
 			}
 		}
 
@@ -191,11 +182,13 @@ export class TldrawApp {
 		return this.get(userId)
 	}
 
-	getUserOwnFiles(userId: TldrawAppUserId) {
+	getUserOwnFiles() {
+		const userId = this.getCurrentUserId()
 		return Array.from(new Set(this.getAll('file').filter((f) => f.owner === userId)))
 	}
 
-	getUserFileEdits(userId: TldrawAppUserId) {
+	getUserFileEdits() {
+		const userId = this.getCurrentUserId()
 		return this.store.allRecords().filter((r) => {
 			if (r.typeName !== 'file-edit') return
 			if (r.userId !== userId) return
@@ -203,13 +196,17 @@ export class TldrawApp {
 		}) as TldrawAppFileEdit[]
 	}
 
-	getUserRecentFiles(userId: TldrawAppUserId, sessionStart: number) {
+	getCurrentUserId() {
+		return assertExists(this.getSessionState().auth).userId
+	}
+
+	getUserRecentFiles(sessionStart: number) {
 		// For now, just the user's files; but generally we also want
 		// to get all files the user has access to, including shared files.
-		const fileRecords = this.getUserOwnFiles(userId)
+		const fileRecords = this.getUserOwnFiles()
 
 		// Now look at which files the user has edited
-		const fileEditRecords = this.getUserFileEdits(userId)
+		const fileEditRecords = this.getUserFileEdits()
 
 		// A map of file IDs to the most recent date we have for them
 		// the default date is the file's creation date; but we'll use the
@@ -260,14 +257,20 @@ export class TldrawApp {
 		)
 	}
 
-	createFile(ownerId: TldrawAppUserId | 'temporary', fileId?: TldrawAppFileId) {
+	createFile(fileId?: TldrawAppFileId) {
 		const file = TldrawAppFileRecordType.create({
-			owner: ownerId,
+			owner: this.getCurrentUserId(),
 			isEmpty: true,
 			id: fileId ?? TldrawAppFileRecordType.createId(),
 		})
 		this.store.put([file])
 		return file
+	}
+
+	getFileName(fileId: TldrawAppFileId) {
+		const file = this.store.get(fileId)
+		if (!file) return null
+		return TldrawApp.getFileName(file)
 	}
 
 	claimTemporaryFile(fileId: TldrawAppFileId, owner: TldrawAppUserId) {
@@ -319,6 +322,7 @@ export class TldrawApp {
 			this.store.put([{ ...file, shared: false }])
 			return
 		}
+
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
@@ -339,8 +343,22 @@ export class TldrawApp {
 		return newFile
 	}
 
-	createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
-		// noop
+	async deleteFile(_fileId: TldrawAppFileId) {
+		// todo: delete the file from the server
+		console.warn('tldraw file deletes are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
+	}
+
+	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {
+		// todo: upload the files to the server and create files locally
+		console.warn('tldraw file uploads are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
+	}
+
+	async createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
+		// todo: create a snapshot link on the server and return the url
+		console.warn('snapshot links are not implemented yet, but you are in the right place')
+		return new Promise((r) => setTimeout(r, 2000))
 	}
 
 	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {

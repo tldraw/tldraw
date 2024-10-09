@@ -90,6 +90,50 @@ export const tlmenus = {
 		this.menus.set(contextId ? this.menus.get().filter((m) => !m.endsWith('-' + contextId)) : [])
 	},
 
+	_hiddenMenus: [] as string[],
+
+	/**
+	 * Hide all open menus. Restore them with the `showOpenMenus` method.
+	 *
+	 * @example
+	 * ```ts
+	 * hideOpenMenus()
+	 * hideOpenMenus(myEditorId)
+	 * ```
+	 *
+	 * @param contextId - An optional context to hide menus for.
+	 *
+	 * @public
+	 */
+	hideOpenMenus(contextId?: string) {
+		this._hiddenMenus = [...this.getOpenMenus(contextId)]
+		if (this._hiddenMenus.length === 0) return
+		for (const menu of this._hiddenMenus) {
+			this.deleteOpenMenu(menu, contextId)
+		}
+	},
+
+	/**
+	 * Show all hidden menus.
+	 *
+	 * @example
+	 * ```ts
+	 * showOpenMenus()
+	 * showOpenMenus(myEditorId)
+	 * ```
+	 *
+	 * @param contextId - An optional context to show menus for.
+	 *
+	 * @public
+	 */
+	showOpenMenus(contextId?: string) {
+		if (this._hiddenMenus.length === 0) return
+		for (const menu of this._hiddenMenus) {
+			this.addOpenMenu(menu, contextId)
+		}
+		this._hiddenMenus = []
+	},
+
 	/**
 	 * Get whether a menu is open for a given context.
 	 *

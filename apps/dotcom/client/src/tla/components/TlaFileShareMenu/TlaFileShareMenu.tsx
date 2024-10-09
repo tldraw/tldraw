@@ -8,6 +8,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useRaw } from '../../hooks/useRaw'
 import { TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
@@ -23,6 +24,7 @@ export function TlaFileShareMenu({
 	children: ReactNode
 }) {
 	const app = useApp()
+	const raw = useRaw()
 
 	const shareMenuActiveTab = useValue(
 		'share menu active tab',
@@ -44,12 +46,12 @@ export function TlaFileShareMenu({
 					side="bottom"
 					align="end"
 					alignOffset={-2}
-					sideOffset={6}
+					sideOffset={4}
 				>
 					<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
-							<TlaTabsTab id="share">Invite</TlaTabsTab>
-							<TlaTabsTab id="export">Export</TlaTabsTab>
+							<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
+							<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
 						</TlaTabsTabs>
 						<TlaShareMenuSharePage fileId={fileId} />
 						<TlaShareMenuExportPage />

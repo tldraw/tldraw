@@ -10,6 +10,7 @@ const tlenv = {
 	isFirefox: false,
 	isAndroid: false,
 	isWebview: false,
+	isDarwin: false,
 }
 
 if (typeof window !== 'undefined' && 'navigator' in window) {
@@ -18,6 +19,7 @@ if (typeof window !== 'undefined' && 'navigator' in window) {
 	tlenv.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
 	tlenv.isFirefox = /firefox/i.test(navigator.userAgent)
 	tlenv.isAndroid = /android/i.test(navigator.userAgent)
+	tlenv.isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 }
 
 export { tlenv }

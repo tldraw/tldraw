@@ -1,6 +1,6 @@
 import { computed } from '@tldraw/state'
 import { RecordId, Store, StoreSchema, UnknownRecord, createRecordType } from '@tldraw/store'
-import { TLSyncClient } from '../lib/TLSyncClient'
+import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RecordOpType } from '../lib/diff'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
@@ -68,13 +68,13 @@ async function makeTestInstance() {
 			socketPair.flushServerSentEvents()
 		}
 	}
-	const onSyncError = jest.fn()
+	let onSyncError = jest.fn()
 	const client = await new Promise<TLSyncClient<Book | Presence>>((resolve, reject) => {
+		onSyncError = jest.fn(reject)
 		const client = new TLSyncClient({
 			store: new Store<Book | Presence, unknown>({ schema: schemaWithoutValidator, props: {} }),
 			socket: socketPair.clientSocket as any,
 			onLoad: resolve,
-			onLoadError: reject,
 			onSyncError,
 			presence: computed('', () => null),
 		})
@@ -107,7 +107,7 @@ it('rejects invalid put operations that create a new document', async () => {
 	await flush()
 
 	expect(onSyncError).toHaveBeenCalledTimes(1)
-	expect(onSyncError).toHaveBeenLastCalledWith('invalidRecord')
+	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
 	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })
 
@@ -141,7 +141,7 @@ it('rejects invalid put operations that replace an existing document', async () 
 	await flush()
 
 	expect(onSyncError).toHaveBeenCalledTimes(1)
-	expect(onSyncError).toHaveBeenLastCalledWith('invalidRecord')
+	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
 	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })
 
@@ -175,6 +175,6 @@ it('rejects invalid update operations', async () => {
 	])
 	await flush()
 	expect(onSyncError).toHaveBeenCalledTimes(1)
-	expect(onSyncError).toHaveBeenLastCalledWith('invalidRecord')
+	expect(onSyncError).toHaveBeenLastCalledWith(TLSyncErrorCloseEventReason.INVALID_RECORD)
 	expect(server.room.getSnapshot().documents).toStrictEqual(prevServerDocs)
 })

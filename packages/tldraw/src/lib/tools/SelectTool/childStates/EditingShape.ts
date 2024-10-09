@@ -60,7 +60,7 @@ export class EditingShape extends StateNode {
 		// In the case where on pointer down we hit a shape's label, we need to check if the user is dragging.
 		// and if they are, we need to transition to translating instead.
 		if (this.hitShapeForPointerUp && this.editor.inputs.isDragging) {
-			if (this.editor.getInstanceState().isReadonly) return
+			if (this.editor.getIsReadonly()) return
 			if (this.hitShapeForPointerUp.isLocked) return
 			this.editor.select(this.hitShapeForPointerUp)
 			this.parent.transition('translating', info)
@@ -153,7 +153,7 @@ export class EditingShape extends StateNode {
 		const util = this.editor.getShapeUtil(hitShape)
 		if (hitShape.isLocked) return
 
-		if (this.editor.getInstanceState().isReadonly) {
+		if (this.editor.getIsReadonly()) {
 			if (!util.canEditInReadOnly(hitShape)) {
 				this.parent.transition('pointing_shape', info)
 				return

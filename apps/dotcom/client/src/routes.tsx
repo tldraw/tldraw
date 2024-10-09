@@ -5,32 +5,38 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
+import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { useEffect } from 'react'
-import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
+import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 
 export const router = createRoutesFromElements(
 	<Route
-		element={
-			// Add all top level providers that require the router here
-
-			<Outlet />
-		}
 		ErrorBoundary={() => {
 			const error = useRouteError()
 			useEffect(() => {
 				captureException(error)
 			}, [error])
-			return (
-				<ErrorPage
-					messages={{
-						header: 'Something went wrong',
-						para1:
-							'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.',
-					}}
-				/>
-			)
+			let header = 'Something went wrong'
+			let para1 =
+				'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.'
+			if (error instanceof TLRemoteSyncError) {
+				switch (error.reason) {
+					case TLSyncErrorCloseEventReason.NOT_FOUND: {
+						header = 'Not found'
+						para1 = 'The file you are looking for does not exist.'
+						break
+					}
+					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
+					case TLSyncErrorCloseEventReason.FORBIDDEN: {
+						header = 'Unauthorized'
+						para1 = 'You need to be authorized to view this file.'
+						break
+					}
+				}
+			}
+			return <ErrorPage messages={{ header, para1 }} />
 		}}
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
@@ -52,17 +58,14 @@ export const router = createRoutesFromElements(
 			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		{/* begin tla */}
-		<Route lazy={() => import('./tla/providers/TlaClerkProvider')}>
-			<Route path="/q/local" lazy={() => import('./tla/pages/local')} />
-			<Route lazy={() => import('./tla/providers/TlaAppLoggedInProvider')}>
-				{/* If not redirected, then local */}
-				<Route path="/q" lazy={() => import('./tla/components/RedirectAtRoot')} />
-				{/* File view*/}
-				<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
+		<Route lazy={() => import('./tla/providers/TlaProvider')}>
+			<Route path="/q" lazy={() => import('./tla/pages/local')} />
+			{/* File view */}
+			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
+			{/* Views that require login */}
+			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
 				{/* User settings */}
-				<Route path="/q/profile" lazy={() => import('./tla/components/RequireAuthForUser')}>
-					<Route index lazy={() => import('./tla/pages/profile')} />
-				</Route>
+				<Route path="/q/profile" lazy={() => import('./tla/pages/profile')} />
 				{/* Internal */}
 				<Route path="/q/debug" lazy={() => import('./tla/pages/debug')} />
 			</Route>

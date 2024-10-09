@@ -1416,6 +1416,10 @@
 	}
 }
 
+.tlui-button__icon {
+	padding: 0px;
+}
+
 .tlui-page-menu__item__button .tlui-button__icon {
 	margin-right: 4px;
 }

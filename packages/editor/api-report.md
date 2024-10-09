@@ -32,6 +32,7 @@ import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
+import { RefObject } from 'react';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { SetStateAction } from 'react';
@@ -677,6 +678,7 @@ export const DefaultSvgDefs: () => null;
 
 // @public (undocumented)
 export const defaultTldrawOptions: {
+    readonly actionShortcutsLocation: "swap";
     readonly adjacentShapeMargin: 10;
     readonly animationMediumMs: 320;
     readonly cameraMovingTimeoutMs: 64;
@@ -914,6 +916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly environment: {
         isAndroid: boolean;
         isChromeForIos: boolean;
+        isDarwin: boolean;
         isFirefox: boolean;
         isIos: boolean;
         isSafari: boolean;
@@ -1004,6 +1007,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getIsFocused(): boolean;
     // @deprecated (undocumented)
     getIsMenuOpen(): boolean;
+    // (undocumented)
+    getIsReadonly(): boolean;
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getOnlySelectedShape(): null | TLShape;
@@ -1119,6 +1124,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         altKey: boolean;
         ctrlKey: boolean;
         isPen: boolean;
+        metaKey: boolean;
         shiftKey: boolean;
         isDragging: boolean;
         isEditing: boolean;
@@ -1224,6 +1230,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setHoveredShape(shape: null | TLShape | TLShapeId): this;
+    // @internal (undocumented)
+    _setMetaKeyTimeout(): void;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
     setSelectedShapes(shapes: TLShape[] | TLShapeId[]): this;
@@ -1480,10 +1488,12 @@ export function getPerfectDashProps(totalLength: number, strokeWidth: number, op
 
 // @public (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
+    accelKey: boolean;
     altKey: boolean;
     button: number;
     ctrlKey: boolean;
     isPen: boolean;
+    metaKey: boolean;
     point: {
         x: number;
         y: number;
@@ -1701,6 +1711,12 @@ export interface InvalidLicenseKeyResult {
 
 // @internal (undocumented)
 export type InvalidLicenseReason = 'has-key-development-mode' | 'invalid-license-key' | 'no-key-provided';
+
+// @internal (undocumented)
+export const isAccelKey: <InputType extends {
+    ctrlKey: boolean;
+    metaKey: boolean;
+}>(e: InputType) => boolean;
 
 // @public
 export const isSafeFloat: (n: number) => boolean;
@@ -2482,9 +2498,13 @@ export type TLBaseBoxShape = TLBaseShape<string, {
 // @public (undocumented)
 export interface TLBaseEventInfo {
     // (undocumented)
+    accelKey: boolean;
+    // (undocumented)
     altKey: boolean;
     // (undocumented)
     ctrlKey: boolean;
+    // (undocumented)
+    metaKey: boolean;
     // (undocumented)
     shiftKey: boolean;
     // (undocumented)
@@ -2710,6 +2730,8 @@ export interface TldrawEditorWithStoreProps {
 // @public
 export interface TldrawOptions {
     // (undocumented)
+    readonly actionShortcutsLocation: 'menu' | 'swap' | 'toolbar';
+    // (undocumented)
     readonly adjacentShapeMargin: number;
     // (undocumented)
     readonly animationMediumMs: number;
@@ -2878,6 +2900,7 @@ export type TLEnterEventHandler = (info: any, from: string) => void;
 export const tlenv: {
     isAndroid: boolean;
     isChromeForIos: boolean;
+    isDarwin: boolean;
     isFirefox: boolean;
     isIos: boolean;
     isSafari: boolean;
@@ -3177,6 +3200,7 @@ export interface TLMeasureTextSpanOpts {
 
 // @public (undocumented)
 export const tlmenus: {
+    _hiddenMenus: string[];
     menus: Atom<string[], unknown>;
     addOpenMenu(id: string, contextId?: string): void;
     clearOpenMenus(contextId?: string): void;
@@ -3185,6 +3209,8 @@ export const tlmenus: {
     isMenuOpen(id: string, contextId?: string): boolean;
     hasOpenMenus(contextId: string): boolean;
     hasAnyOpenMenus(): boolean;
+    hideOpenMenus(contextId?: string): void;
+    showOpenMenus(contextId?: string): void;
     forContext(contextId: string): {
         addOpenMenu: (id: string) => void;
         clearOpenMenus: () => void;
@@ -3466,6 +3492,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
+        mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
     id?: string;
@@ -3641,6 +3668,9 @@ export function useMaybeEditor(): Editor | null;
 
 // @internal (undocumented)
 export function useOnMount(onMount?: TLOnMountHandler): void;
+
+// @public (undocumented)
+export function usePassThroughWheelEvents(ref: RefObject<HTMLElement>): void;
 
 // @internal (undocumented)
 export function usePeerIds(): string[];

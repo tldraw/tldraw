@@ -1,37 +1,22 @@
-import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
-import { useParams } from 'react-router-dom'
-import { useValue } from 'tldraw'
-import { TlaErrorContent } from '../components/TlaErrorContent/TlaErrorContent'
-import { TlaFileContent } from '../components/TlaFileContent/TlaFileContent'
-import { useApp } from '../hooks/useAppState'
-import { TlaErrorLayout } from '../layouts/TlaErrorLayout/TlaErrorLayout'
+import { useLocation, useParams } from 'react-router-dom'
+import { TlaEditor } from '../components/TlaEditor/TlaEditor'
+import { useMaybeApp } from '../hooks/useAppState'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 
 export function Component() {
-	const app = useApp()
-
-	const { fileSlug } = useParams<{ fileSlug: TldrawAppFileId }>()
+	const { fileSlug } = useParams<{ fileSlug: string }>()
 	if (!fileSlug) throw Error('File id not found')
+	const app = useMaybeApp()
 
-	const file = useValue(
-		'file',
-		() => {
-			return app.store.get(TldrawAppFileRecordType.createId(fileSlug))
-		},
-		[app, fileSlug]
-	)
+	const routeState = useLocation().state
 
-	if (!file) {
-		return (
-			<TlaErrorLayout>
-				<TlaErrorContent error="file-not-found" />
-			</TlaErrorLayout>
-		)
+	if (!app) {
+		return <TlaEditor fileSlug={fileSlug} isCreateMode={false} />
 	}
 
 	return (
-		<TlaSidebarLayout collapsable>
-			<TlaFileContent fileSlug={fileSlug} />
+		<TlaSidebarLayout collapsible>
+			<TlaEditor fileSlug={fileSlug} isCreateMode={!!routeState?.isCreateMode} />
 		</TlaSidebarLayout>
 	)
 }

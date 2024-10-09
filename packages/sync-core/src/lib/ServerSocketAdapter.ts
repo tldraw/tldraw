@@ -22,7 +22,7 @@ export interface WebSocketMinimal {
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
 	send: (data: string) => void
 	// eslint-disable-next-line @typescript-eslint/method-signature-style
-	close: () => void
+	close: (code?: number, reason?: string) => void
 	readyState: number
 }
 
@@ -46,7 +46,7 @@ export class ServerSocketAdapter<R extends UnknownRecord> implements TLRoomSocke
 		this.opts.onBeforeSendMessage?.(msg, message)
 		this.opts.ws.send(message)
 	}
-	close() {
-		this.opts.ws.close()
+	close(code?: number, reason?: string) {
+		this.opts.ws.close(code, reason)
 	}
 }

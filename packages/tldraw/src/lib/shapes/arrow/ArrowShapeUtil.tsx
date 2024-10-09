@@ -596,7 +596,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'select.dragging_handle',
 				'select.translating',
 				'arrow.dragging'
-			) && !this.editor.getInstanceState().isReadonly
+			) && !this.editor.getIsReadonly()
 
 		const info = getArrowInfo(this.editor, shape)
 		if (!info?.isValid) return null
@@ -660,12 +660,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
 
-		const includeMask =
+		const includeClipPath =
 			(as && info.start.arrowhead !== 'arrow') ||
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
 
-		const maskId = sanitizeId(shape.id + '_clip')
+		const clipPathId = sanitizeId(shape.id + '_clip')
 
 		if (isEditing && labelGeometry) {
 			return (
@@ -679,51 +679,32 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				/>
 			)
 		}
+		const clipStartArrowhead = !(
+			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
+		)
+		const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
 		return (
 			<g>
-				{includeMask && (
+				{includeClipPath && (
 					<defs>
-						<mask id={maskId}>
-							<rect
-								x={bounds.minX - 100}
-								y={bounds.minY - 100}
-								width={bounds.w + 200}
-								height={bounds.h + 200}
-								fill="white"
-							/>
-							{labelGeometry && (
-								<rect
-									x={toDomPrecision(labelGeometry.x)}
-									y={toDomPrecision(labelGeometry.y)}
-									width={labelGeometry.w}
-									height={labelGeometry.h}
-									fill="black"
-									rx={3.5 * shape.props.scale}
-									ry={3.5 * shape.props.scale}
-								/>
-							)}
-							{as && (
-								<path
-									d={as}
-									fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'}
-									stroke="none"
-								/>
-							)}
-							{ae && (
-								<path
-									d={ae}
-									fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'}
-									stroke="none"
-								/>
-							)}
-						</mask>
+						<ArrowClipPath
+							hasText={shape.props.text.trim().length > 0}
+							bounds={bounds}
+							labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
+							as={clipStartArrowhead && as ? as : ''}
+							ae={clipEndArrowhead && ae ? ae : ''}
+						/>
 					</defs>
 				)}
-				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
-				<g {...(includeMask ? { mask: `url(#${maskId})` } : undefined)}>
+				<g
+					style={{
+						clipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
+						WebkitClipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
+					}}
+				>
 					{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
-					{includeMask && (
+					{includeClipPath && (
 						<rect
 							x={bounds.minX - 100}
 							y={bounds.minY - 100}
@@ -924,8 +905,8 @@ const ArrowSvg = track(function ArrowSvg({
 
 	const labelPosition = getArrowLabelPosition(editor, shape)
 
-	const maskStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
-	const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
+	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
+	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
 	const clipPathId = sanitizeId(shape.id + '_clip')
 
@@ -937,15 +918,10 @@ const ArrowSvg = track(function ArrowSvg({
 					<ArrowClipPath
 						hasText={shape.props.text.trim().length > 0}
 						bounds={bounds}
-						labelPositionBounds={labelPosition.box}
+						labelBounds={labelPosition.box}
+						as={clipStartArrowhead && as ? as : ''}
+						ae={clipEndArrowhead && ae ? ae : ''}
 					/>
-
-					{as && maskStartArrowhead && (
-						<path d={as} fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
-					)}
-					{ae && maskEndArrowhead && (
-						<path d={ae} fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
-					)}
 				</clipPath>
 			</defs>
 			<g
@@ -957,7 +933,6 @@ const ArrowSvg = track(function ArrowSvg({
 				pointerEvents="none"
 			>
 				{handlePath}
-				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
 				<g
 					style={{
 						clipPath: `url(#${clipPathId})`,
@@ -973,7 +948,7 @@ const ArrowSvg = track(function ArrowSvg({
 					/>
 					<path d={path} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
 				</g>
-				{as && maskStartArrowhead && shape.props.fill !== 'none' && (
+				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
 						theme={theme}
 						d={as}
@@ -982,7 +957,7 @@ const ArrowSvg = track(function ArrowSvg({
 						scale={shape.props.scale}
 					/>
 				)}
-				{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
+				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
 						theme={theme}
 						d={ae}
@@ -1001,57 +976,25 @@ const ArrowSvg = track(function ArrowSvg({
 function ArrowClipPath({
 	hasText,
 	bounds,
-	labelPositionBounds,
+	labelBounds,
+	as,
+	ae,
 }: {
 	hasText: boolean
 	bounds: Box
-	labelPositionBounds: Box
+	labelBounds: Box
+	as: string
+	ae: string
 }) {
-	if (hasText) {
-		// There doesn't seem to be an easy way to invert a clipPath, so we instead create this complex polygon.
-		// We create the three sides of the outer rectangle in the clockwise direction, then move to the inside rectangle
-		// and create that one in the counterclockwise direction (so we don't intersect and complete the path).
-		// We then finish with the outer rectangle. Diagram shows the order of the points.
-		//
-		//    (1, 11)--------------------------(2)
-		//       |                              |
-		//       |         Outer Rect           |
-		//       |                            	|
-		//       |  (8)-------------------(7)   |
-		//       |    |                    |    |
-		//       |    |                    |    |
-		//       |    |    Inner Rect      |    |
-		//       |    |                    |    |
-		//       |    |                    |    |
-		//       |  (5,9)-----------------(6)   |
-		//    (4, 10)--------------------------(3)
-
-		return (
-			<polygon
-				points={`
-        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} 
-        ${toDomPrecision(bounds.minX + bounds.width + 100)},${toDomPrecision(bounds.minY - 100)} 
-        ${toDomPrecision(bounds.minX + bounds.width + 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
-        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
-        ${labelPositionBounds.x},${labelPositionBounds.y + labelPositionBounds.h}
-        ${labelPositionBounds.x + labelPositionBounds.w},${labelPositionBounds.y + labelPositionBounds.h}
-        ${labelPositionBounds.x + labelPositionBounds.w},${labelPositionBounds.y}
-        ${labelPositionBounds.x},${labelPositionBounds.y}
-        ${labelPositionBounds.x},${labelPositionBounds.y + labelPositionBounds.h}
-        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY + bounds.height + 100)}
-        ${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} 
-      `}
-			/>
-		)
-	}
-	return (
-		<rect
-			x={toDomPrecision(bounds.minX - 100)}
-			y={toDomPrecision(bounds.minY - 100)}
-			width={toDomPrecision(bounds.width + 200)}
-			height={toDomPrecision(bounds.height + 200)}
-		/>
-	)
+	// The direction in which we create the different path parts is important, as it determines what gets clipped.
+	// See the description on the directions in the non-zero fill rule example:
+	// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule#nonzero
+	// We create this one in the clockwise direction
+	const boundingBoxPath = `M${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} h${bounds.width + 200} v${bounds.height + 200} h-${bounds.width + 200} Z`
+	// We create this one in the counter-clockwise direction, which cuts out the label box
+	const labelBoxPath = `M${toDomPrecision(labelBounds.minX)},${toDomPrecision(labelBounds.minY)} v${labelBounds.height} h${labelBounds.width} v-${labelBounds.height} Z`
+	// We also append the arrowhead paths to the clip path, so that we also clip the arrowheads
+	return <path d={`${boundingBoxPath}${hasText ? labelBoxPath : ''}${as}${ae}`} />
 }
 
 const shapeAtTranslationStart = new WeakMap<
