@@ -162,7 +162,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	component(shape: TLLineShape) {
 		return (
-			<SVGContainer id={shape.id}>
+			<SVGContainer>
 				<LineShapeSvg shape={shape} />
 			</SVGContainer>
 		)

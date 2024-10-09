@@ -1,6 +1,8 @@
 import { cn } from '@/utils/cn'
+import { useUniqueSafeId } from 'tldraw'
 
 export function ArrowUp({ className }: { className?: string }) {
+	const id = useUniqueSafeId()
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -13,7 +15,7 @@ export function ArrowUp({ className }: { className?: string }) {
 			<g transform="matrix(1, 0, 0, 1, 347.5742, 459.043)" opacity="1">
 				<g transform="scale(1)">
 					<defs>
-						<mask id="shape_Cwz1jB8LOkLSsGtR1diQO_clip_0">
+						<mask id={id}>
 							<rect x="-85.6992" y="-146.707" width="242.8281" height="244.5493" fill="white" />
 						</mask>
 					</defs>
@@ -24,7 +26,7 @@ export function ArrowUp({ className }: { className?: string }) {
 						strokeLinecap="round"
 						pointerEvents="none"
 					>
-						<g mask="url(#shape_Cwz1jB8LOkLSsGtR1diQO_clip_0)">
+						<g mask={`url(#${id})`}>
 							<rect x="-85.6992" y="-146.707" width="242.8281" height="244.5493" opacity="0" />
 							<path
 								d="M14.30078125,-2.1576968473331704 A114.9123956781845 114.9123956781845 0 0 0 57.12890625,-46.70703125"
