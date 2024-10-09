@@ -20,6 +20,7 @@ export function LanguageMenu() {
 						title={locale}
 						label={label}
 						checked={locale === currentLanguage}
+						readonlyOk
 						onSelect={() => {
 							editor.user.updateUserPreferences({ locale })
 							trackEvent('change-language', { source: 'menu', locale })
