@@ -1,17 +1,13 @@
 import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
-import { useEditor } from '../../hooks/useEditor'
+import { useEditor } from '../hooks/useEditor'
 
-export const DefaultInFrontOfTheCanvas = () => {
-	return (
-		<>
-			<MenuClickCapture />
-		</>
-	)
-}
-
-// When a menu is open, we prevent the user from interacting with the canvas.
-function MenuClickCapture() {
+/**
+ * When a menu is open, this component prevents the user from interacting with the canvas.
+ *
+ * @public @react
+ */
+export function MenuClickCapture() {
 	const editor = useEditor()
 	const isMenuOpen = useValue('is menu open', () => editor.menus.hasAnyOpenMenus(), [editor])
 	const handlePointerDown = () => editor.menus.clearOpenMenus()
