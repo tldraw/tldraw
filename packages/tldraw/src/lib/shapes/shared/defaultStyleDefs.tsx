@@ -11,13 +11,13 @@ import {
 	debugFlags,
 	fetch,
 	last,
+	suffixSafeId,
 	tlenv,
 	useEditor,
 	useSharedSafeId,
 	useUniqueSafeId,
 	useValue,
 } from '@tldraw/editor'
-import { suffixSafeId } from '@tldraw/editor/src/lib/hooks/useSafeId'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDefaultColorTheme } from './useDefaultColorTheme'
 
