@@ -29,7 +29,7 @@ import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
-import { EditorContext, useEditor } from './hooks/useEditor'
+import { EditorProvider, useEditor } from './hooks/useEditor'
 import {
 	EditorComponentsProvider,
 	TLEditorComponents,
@@ -550,12 +550,12 @@ function TldrawEditorWithReadyStore({
 			{crashingError ? (
 				<Crash crashingError={crashingError} />
 			) : (
-				<EditorContext.Provider value={editor}>
+				<EditorProvider editor={editor}>
 					<Layout onMount={onMount}>
 						{children ?? (Canvas ? <Canvas /> : null)}
 						<Watermark />
 					</Layout>
-				</EditorContext.Provider>
+				</EditorProvider>
 			)}
 		</OptionalErrorBoundary>
 	)

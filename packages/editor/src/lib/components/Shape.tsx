@@ -145,6 +145,7 @@ export const Shape = memo(function Shape({
 					ref={bgContainerRef}
 					className="tl-shape tl-shape-background"
 					data-shape-type={shape.type}
+					data-shape-id={shape.id}
 					draggable={false}
 				>
 					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
@@ -157,6 +158,7 @@ export const Shape = memo(function Shape({
 				className="tl-shape"
 				data-shape-type={shape.type}
 				data-shape-is-filled={isFilledShape}
+				data-shape-id={shape.id}
 				draggable={false}
 			>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>

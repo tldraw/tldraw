@@ -101,7 +101,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	component(shape: TLDrawShape) {
 		return (
-			<SVGContainer id={shape.id}>
+			<SVGContainer>
 				<DrawShapeSvg shape={shape} />
 			</SVGContainer>
 		)

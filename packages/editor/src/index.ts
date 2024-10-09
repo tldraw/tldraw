@@ -279,7 +279,13 @@ export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useRefState } from './lib/hooks/useRefState'
-export { sanitizeId, useSafeId } from './lib/hooks/useSafeId'
+export {
+	sanitizeId,
+	suffixSafeId,
+	useSharedSafeId,
+	useUniqueSafeId,
+	type SafeId,
+} from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'

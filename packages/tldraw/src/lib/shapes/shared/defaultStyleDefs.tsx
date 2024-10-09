@@ -13,9 +13,12 @@ import {
 	last,
 	tlenv,
 	useEditor,
+	useSharedSafeId,
+	useUniqueSafeId,
 	useValue,
 } from '@tldraw/editor'
-import { useEffect, useRef, useState } from 'react'
+import { suffixSafeId } from '@tldraw/editor/src/lib/hooks/useSafeId'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useDefaultColorTheme } from './useDefaultColorTheme'
 
 /** @public */
@@ -62,11 +65,13 @@ export function getFillDefForExport(fill: TLDefaultFillStyle): SvgExportDef {
 }
 
 function HashPatternForExport() {
+	const getHashPatternZoomName = useGetHashPatternZoomName()
+	const maskId = useUniqueSafeId()
 	const theme = useDefaultColorTheme()
 	const t = 8 / 12
 	return (
 		<>
-			<mask id="hash_pattern_mask">
+			<mask id={maskId}>
 				<rect x="0" y="0" width="8" height="8" fill="white" />
 				<g strokeLinecap="round" stroke="black">
 					<line x1={t * 1} y1={t * 3} x2={t * 3} y2={t * 1} />
@@ -80,7 +85,7 @@ function HashPatternForExport() {
 				height="8"
 				patternUnits="userSpaceOnUse"
 			>
-				<rect x="0" y="0" width="8" height="8" fill={theme.solid} mask="url(#hash_pattern_mask)" />
+				<rect x="0" y="0" width="8" height="8" fill={theme.solid} mask={`url(#${maskId})`} />
 			</pattern>
 		</>
 	)
@@ -176,9 +181,15 @@ function getPatternLodForZoomLevel(zoom: number) {
 	return Math.ceil(Math.log2(Math.max(1, zoom)))
 }
 
-export function getHashPatternZoomName(zoom: number, theme: TLDefaultColorTheme['id']) {
-	const lod = getPatternLodForZoomLevel(zoom)
-	return `tldraw_hash_pattern_${theme}_${lod}`
+export function useGetHashPatternZoomName() {
+	const id = useSharedSafeId('hash_pattern')
+	return useCallback(
+		(zoom: number, theme: TLDefaultColorTheme['id']) => {
+			const lod = getPatternLodForZoomLevel(zoom)
+			return suffixSafeId(id, `${theme}_${lod}`)
+		},
+		[id]
+	)
 }
 
 function getPatternLodsToGenerate(maxZoom: number) {
@@ -211,6 +222,7 @@ function usePattern() {
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(() =>
 		getDefaultPatterns(maxZoom)
 	)
+	const getHashPatternZoomName = useGetHashPatternZoomName()
 
 	useEffect(() => {
 		if (process.env.NODE_ENV === 'test') {
