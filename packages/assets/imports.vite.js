@@ -200,6 +200,7 @@ export function getAssetUrlsByImport(opts) {
 			'toggle-off': iconsIcon0MergedSvg2 + '#toggle-off',
 			'toggle-on': iconsIcon0MergedSvg2 + '#toggle-on',
 			'tool-arrow': iconsIcon0MergedSvg2 + '#tool-arrow',
+			'tool-embed': iconsIcon0MergedSvg2 + '#tool-embed',
 			'tool-eraser': iconsIcon0MergedSvg2 + '#tool-eraser',
 			'tool-frame': iconsIcon0MergedSvg2 + '#tool-frame',
 			'tool-hand': iconsIcon0MergedSvg2 + '#tool-hand',

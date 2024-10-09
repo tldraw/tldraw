@@ -121,6 +121,7 @@ export type TLUiIconType =
 	| 'toggle-off'
 	| 'toggle-on'
 	| 'tool-arrow'
+	| 'tool-embed'
 	| 'tool-eraser'
 	| 'tool-frame'
 	| 'tool-hand'
@@ -265,6 +266,7 @@ export const iconTypes = [
 	'toggle-off',
 	'toggle-on',
 	'tool-arrow',
+	'tool-embed',
 	'tool-eraser',
 	'tool-frame',
 	'tool-hand',

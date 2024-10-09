@@ -193,7 +193,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			{
 				id: 'embed',
 				label: 'tool.embed',
-				icon: 'dot',
+				icon: 'tool-embed',
 				onSelect(source) {
 					addDialog({ component: EmbedDialog })
 					trackEvent('select-tool', { source, id: 'embed' })

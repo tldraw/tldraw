@@ -129,6 +129,7 @@ export type AssetUrls = {
 		'toggle-off': string
 		'toggle-on': string
 		'tool-arrow': string
+		'tool-embed': string
 		'tool-eraser': string
 		'tool-frame': string
 		'tool-hand': string

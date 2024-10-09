@@ -152,6 +152,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			'toggle-off': iconsIcon0MergedSvg + '#toggle-off',
 			'toggle-on': iconsIcon0MergedSvg + '#toggle-on',
 			'tool-arrow': iconsIcon0MergedSvg + '#tool-arrow',
+			'tool-embed': iconsIcon0MergedSvg + '#tool-embed',
 			'tool-eraser': iconsIcon0MergedSvg + '#tool-eraser',
 			'tool-frame': iconsIcon0MergedSvg + '#tool-frame',
 			'tool-hand': iconsIcon0MergedSvg + '#tool-hand',
