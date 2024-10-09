@@ -23,6 +23,10 @@ try {
 
 const localSessionState = atom<TldrawAppSessionState>('session', prev)
 
+export function getLocalSessionStateUnsafe() {
+	return localSessionState.__unsafe__getWithoutCapture()
+}
+
 export function getLocalSessionState() {
 	return localSessionState.get()
 }
