@@ -3,6 +3,7 @@ import {
 	CameraRecordType,
 	DocumentRecordType,
 	InstancePageStateRecordType,
+	InstancePresenceRecordType,
 	PageRecordType,
 	TLArrowShape,
 	TLArrowShapeProps,
@@ -14,7 +15,7 @@ import {
 	TLShapeId,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { IndexKey, ZERO_INDEX_KEY, promiseWithResolve, sortById } from '@tldraw/utils'
+import { IndexKey, ZERO_INDEX_KEY, mockUniqueId, promiseWithResolve, sortById } from '@tldraw/utils'
 import {
 	MAX_TOMBSTONES,
 	RoomSnapshot,
@@ -24,6 +25,7 @@ import {
 } from '../lib/TLSyncRoom'
 import {
 	TLConnectRequest,
+	TLPushRequest,
 	TLSocketServerSentEvent,
 	getTlsyncProtocolVersion,
 } from '../lib/protocol'
@@ -44,6 +46,11 @@ const makeSnapshot = (records: TLRecord[], others: Partial<RoomSnapshot> = {}) =
 	documents: records.map((r) => ({ state: r, lastChangedClock: 0 })),
 	clock: 0,
 	...others,
+})
+
+beforeEach(() => {
+	let id = 0
+	mockUniqueId(() => `id_${id++}`)
 })
 
 const oldArrow: TLBaseShape<'arrow', Omit<TLArrowShapeProps, 'labelColor'>> = {
@@ -195,8 +202,18 @@ describe('TLSyncRoom.updateStore', () => {
 		})
 		socketA = makeSocket()
 		socketB = makeSocket()
-		room.handleNewSession(sessionAId, socketA, null as any)
-		room.handleNewSession(sessionBId, socketB, null as any)
+		room.handleNewSession({
+			sessionId: sessionAId,
+			socket: socketA,
+			meta: null as any,
+			isReadonly: false,
+		})
+		room.handleNewSession({
+			sessionId: sessionBId,
+			socket: socketB,
+			meta: null as any,
+			isReadonly: false,
+		})
 		room.handleMessage(sessionAId, {
 			connectRequestId: 'connectRequestId' + sessionAId,
 			lastServerClock: 0,
@@ -434,7 +451,7 @@ describe('TLSyncRoom.updateStore', () => {
 				page.index = 34 as any
 				store.put(page)
 			})
-		).rejects.toMatchInlineSnapshot(`[Error: failed to apply changes: invalidRecord]`)
+		).rejects.toMatchInlineSnapshot(`[Error: failed to apply changes: INVALID_RECORD]`)
 	})
 
 	test('changes in multiple transaction are isolated from one another', async () => {
@@ -500,5 +517,198 @@ describe('TLSyncRoom.updateStore', () => {
 		})
 
 		expect(getPageNames()).toEqual(['my lovely page 2', 'my lovely page 3', 'my lovely page 4'])
+	})
+})
+
+describe('isReadonly', () => {
+	const sessionAId = 'sessionA'
+	const sessionBId = 'sessionB'
+	let room = new TLSyncRoom<TLRecord, undefined>({ schema, snapshot: makeSnapshot(records) })
+	let socketA = makeSocket()
+	let socketB = makeSocket()
+	function init(snapshot?: RoomSnapshot) {
+		room = new TLSyncRoom<TLRecord, undefined>({
+			schema,
+			snapshot: snapshot ?? makeSnapshot(records),
+		})
+		socketA = makeSocket()
+		socketB = makeSocket()
+		room.handleNewSession({
+			sessionId: sessionAId,
+			socket: socketA,
+			meta: null as any,
+			isReadonly: true,
+		})
+		room.handleNewSession({
+			sessionId: sessionBId,
+			socket: socketB,
+			meta: null as any,
+			isReadonly: false,
+		})
+		room.handleMessage(sessionAId, {
+			connectRequestId: 'connectRequestId' + sessionAId,
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		} satisfies TLConnectRequest)
+		room.handleMessage(sessionBId, {
+			connectRequestId: 'connectRequestId' + sessionBId,
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+			type: 'connect',
+		} satisfies TLConnectRequest)
+		expect(room.sessions.get(sessionAId)?.state).toBe('connected')
+		expect(room.sessions.get(sessionBId)?.state).toBe('connected')
+		socketA.__lastMessage = null
+		socketB.__lastMessage = null
+	}
+	beforeEach(() => {
+		init()
+	})
+
+	it('does not allow updates from users who are marked as readonly', async () => {
+		const push: TLPushRequest<any> = {
+			clientClock: 0,
+			diff: {
+				'page:page_3': [
+					'put',
+					PageRecordType.create({
+						id: 'page:page_3' as any,
+						name: 'my lovely page 3',
+						index: 'ab34' as IndexKey,
+					}),
+				],
+			},
+			presence: undefined,
+			type: 'push',
+		}
+
+		// sessionA is readonly
+		room.handleMessage(sessionAId, push)
+
+		expect(room.state.get().documents['page:page_3']?.state).toBe(undefined)
+		// should tell the session to discard it
+		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
+		{
+		  "data": [
+		    {
+		      "action": "discard",
+		      "clientClock": 0,
+		      "serverClock": 1,
+		      "type": "push_result",
+		    },
+		  ],
+		  "type": "data",
+		}
+	`)
+		// should not have sent anything to sessionB
+		expect(socketB.__lastMessage).toBe(null)
+
+		// sessionB is not readonly
+		room.handleMessage(sessionBId, push)
+
+		expect(room.state.get().documents['page:page_3']?.state).not.toBe(undefined)
+
+		// should tell the session to commit it
+		expect(socketB.__lastMessage).toMatchInlineSnapshot(`
+		{
+		  "data": [
+		    {
+		      "action": "commit",
+		      "clientClock": 0,
+		      "serverClock": 2,
+		      "type": "push_result",
+		    },
+		  ],
+		  "type": "data",
+		}
+	`)
+	})
+
+	it('still allows presence updates from readonly users', async () => {
+		const presencePush: TLPushRequest<any> = {
+			clientClock: 0,
+			diff: undefined,
+			presence: [
+				'put',
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('foo'),
+					currentPageId: 'page:page_2' as any,
+					userId: 'foo',
+					userName: 'Jimbo',
+				}),
+			],
+			type: 'push',
+		}
+
+		// sessionA is readonly
+		room.handleMessage(sessionAId, presencePush)
+
+		// commit for sessionA
+		expect(socketA.__lastMessage).toMatchInlineSnapshot(`
+		{
+		  "data": [
+		    {
+		      "action": "commit",
+		      "clientClock": 0,
+		      "serverClock": 1,
+		      "type": "push_result",
+		    },
+		  ],
+		  "type": "data",
+		}
+	`)
+
+		// patch for sessionB
+		expect(socketB.__lastMessage).toMatchInlineSnapshot(`
+		{
+		  "data": [
+		    {
+		      "diff": {
+		        "instance_presence:id_0": [
+		          "put",
+		          {
+		            "brush": null,
+		            "camera": {
+		              "x": 0,
+		              "y": 0,
+		              "z": 1,
+		            },
+		            "chatMessage": "",
+		            "color": "#FF0000",
+		            "currentPageId": "page:page_2",
+		            "cursor": {
+		              "rotation": 0,
+		              "type": "default",
+		              "x": 0,
+		              "y": 0,
+		            },
+		            "followingUserId": null,
+		            "id": "instance_presence:id_0",
+		            "lastActivityTimestamp": 0,
+		            "meta": {},
+		            "screenBounds": {
+		              "h": 1,
+		              "w": 1,
+		              "x": 0,
+		              "y": 0,
+		            },
+		            "scribbles": [],
+		            "selectedShapeIds": [],
+		            "typeName": "instance_presence",
+		            "userId": "foo",
+		            "userName": "Jimbo",
+		          },
+		        ],
+		      },
+		      "serverClock": 1,
+		      "type": "patch",
+		    },
+		  ],
+		  "type": "data",
+		}
+	`)
 	})
 })

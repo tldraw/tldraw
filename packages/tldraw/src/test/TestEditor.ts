@@ -21,6 +21,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	TLStoreOptions,
 	TLWheelEventInfo,
 	Vec,
 	VecLike,
@@ -28,11 +29,14 @@ import {
 	computed,
 	createShapeId,
 	createTLStore,
+	isAccelKey,
 	rotateSelectionHandle,
+	tlenv,
 } from '@tldraw/editor'
 import { defaultBindingUtils } from '../lib/defaultBindingUtils'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
+import { registerDefaultSideEffects } from '../lib/defaultSideEffects'
 import { defaultTools } from '../lib/defaultTools'
 import { shapesFromJsx } from './test-jsx'
 
@@ -60,7 +64,10 @@ declare global {
 }
 
 export class TestEditor extends Editor {
-	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
+	constructor(
+		options: Partial<Omit<TLEditorOptions, 'store'>> = {},
+		storeOptions: Partial<TLStoreOptions> = {}
+	) {
 		const elm = document.createElement('div')
 		const bounds = {
 			x: 0,
@@ -90,6 +97,7 @@ export class TestEditor extends Editor {
 			store: createTLStore({
 				shapeUtils: shapeUtilsWithDefaults,
 				bindingUtils: bindingUtilsWithDefaults,
+				...storeOptions,
 			}),
 			getContainer: () => elm,
 			initialState: 'select',
@@ -144,6 +152,9 @@ export class TestEditor extends Editor {
 		this.sideEffects.registerAfterCreateHandler('shape', (record) => {
 			this._lastCreatedShapes.push(record)
 		})
+
+		// Wow! we'd forgotten these for a long time
+		registerDefaultSideEffects(this)
 	}
 
 	getHistory() {
@@ -336,6 +347,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			point: { x, y, z: null },
 			button: 0,
 			isPen: false,
@@ -353,6 +366,8 @@ export class TestEditor extends Editor {
 			shiftKey: key === 'Shift',
 			ctrlKey: key === 'Control' || key === 'Meta',
 			altKey: key === 'Alt',
+			metaKey: key === 'Meta',
+			accelKey: tlenv.isDarwin ? key === 'Meta' : key === 'Control' || key === 'Meta',
 			...options,
 			name,
 			code:
@@ -360,17 +375,19 @@ export class TestEditor extends Editor {
 					? 'ShiftLeft'
 					: key === 'Alt'
 						? 'AltLeft'
-						: key === 'Control' || key === 'Meta'
+						: key === 'Control'
 							? 'CtrlLeft'
-							: key === ' '
-								? 'Space'
-								: key === 'Enter' ||
-									  key === 'ArrowRight' ||
-									  key === 'ArrowLeft' ||
-									  key === 'ArrowUp' ||
-									  key === 'ArrowDown'
-									? key
-									: 'Key' + key[0].toUpperCase() + key.slice(1),
+							: key === 'Meta'
+								? 'MetaLeft'
+								: key === ' '
+									? 'Space'
+									: key === 'Enter' ||
+										  key === 'ArrowRight' ||
+										  key === 'ArrowLeft' ||
+										  key === 'ArrowUp' ||
+										  key === 'ArrowDown'
+										? key
+										: 'Key' + key[0].toUpperCase() + key.slice(1),
 			type: 'keyboard',
 			key,
 		}
@@ -497,6 +514,7 @@ export class TestEditor extends Editor {
 				shiftKey: this.inputs.shiftKey && key !== 'Shift',
 				ctrlKey: this.inputs.ctrlKey && !(key === 'Control' || key === 'Meta'),
 				altKey: this.inputs.altKey && key !== 'Alt',
+				metaKey: this.inputs.metaKey && key !== 'Meta',
 				...options,
 			}),
 		}).forceTick()
@@ -511,6 +529,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			delta: { x: dx, y: dy },
 		}).forceTick(2)
@@ -542,6 +562,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
@@ -564,6 +586,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },
@@ -586,6 +610,8 @@ export class TestEditor extends Editor {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
+			metaKey: this.inputs.metaKey,
+			accelKey: isAccelKey(this.inputs),
 			...options,
 			point: { x, y, z },
 			delta: { x: dx, y: dy, z: dz },

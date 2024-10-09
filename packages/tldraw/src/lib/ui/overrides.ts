@@ -11,7 +11,7 @@ import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTransla
 /** @public */
 export function useDefaultHelpers() {
 	const { addToast, removeToast, clearToasts } = useToasts()
-	const { addDialog, clearDialogs, removeDialog, updateDialog } = useDialogs()
+	const { addDialog, clearDialogs, removeDialog } = useDialogs()
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const msg = useTranslation()
@@ -21,23 +21,12 @@ export function useDefaultHelpers() {
 			removeToast,
 			clearToasts,
 			addDialog,
-			clearDialogs,
 			removeDialog,
-			updateDialog,
+			clearDialogs,
 			msg,
 			isMobile,
 		}),
-		[
-			addDialog,
-			addToast,
-			clearDialogs,
-			clearToasts,
-			msg,
-			removeDialog,
-			removeToast,
-			updateDialog,
-			isMobile,
-		]
+		[addDialog, addToast, clearDialogs, clearToasts, msg, removeDialog, removeToast, isMobile]
 	)
 }
 
@@ -107,6 +96,7 @@ function useShallowArrayEquality<T extends unknown[]>(array: T): T {
 	return useMemo(() => array, array)
 }
 
+/** @internal */
 export function useMergedTranslationOverrides(
 	overrides?: TLUiOverrides[] | TLUiOverrides
 ): NonNullable<TLUiTranslationProviderProps['overrides']> {

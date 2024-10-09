@@ -1,3 +1,75 @@
+# v3.1.0 (Wed Sep 25 2024)
+
+### Release Notes
+
+#### Fix watermark appearance ([#4589](https://github.com/tldraw/tldraw/pull/4589))
+
+- Fixed a bug with the watermark's opacities and animations.
+
+#### publish useAsset, tweak docs ([#4590](https://github.com/tldraw/tldraw/pull/4590))
+
+- Publish the `useAsset` media asset helper
+
+#### Fix label wrapping ([#4571](https://github.com/tldraw/tldraw/pull/4571))
+
+- Fixed a bug with arrow label text measurements.
+
+#### [feature] isShapeHidden option ([#4446](https://github.com/tldraw/tldraw/pull/4446))
+
+- Adds an `isShapeHidden` option, which allows you to provide custom logic to decide whether or not a shape should be shown on the canvas.
+
+#### Unify links for vs code. ([#4565](https://github.com/tldraw/tldraw/pull/4565))
+
+- Unify vs code extension links. Make the watermark link work in the vs code extension.
+
+#### Add center option to rotateShapesBy ([#4508](https://github.com/tldraw/tldraw/pull/4508))
+
+- Add option to Editor.rotateShapesBy to specify the rotation center point.
+
+#### [fix] container null error ([#4524](https://github.com/tldraw/tldraw/pull/4524))
+
+- Fixed a minor bug related to useContainer's return value being potentially returned from components?
+
+---
+
+#### 🐛 Bug Fix
+
+- npm: make our React packages consistent [#4547](https://github.com/tldraw/tldraw/pull/4547) ([@mimecuvalo](https://github.com/mimecuvalo) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- docs: cleanup/add readmes/licenses [#4542](https://github.com/tldraw/tldraw/pull/4542) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek) [@SomeHats](https://github.com/SomeHats))
+- Clean up `apps` directory [#4548](https://github.com/tldraw/tldraw/pull/4548) ([@SomeHats](https://github.com/SomeHats))
+- fix pre-rendering on blog/legal [#4535](https://github.com/tldraw/tldraw/pull/4535) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🐛 Bug Fixes
+
+- Fix watermark appearance [#4589](https://github.com/tldraw/tldraw/pull/4589) ([@steveruizok](https://github.com/steveruizok))
+- Fix label wrapping [#4571](https://github.com/tldraw/tldraw/pull/4571) ([@steveruizok](https://github.com/steveruizok))
+- [fix] container null error [#4524](https://github.com/tldraw/tldraw/pull/4524) ([@ds300](https://github.com/ds300))
+- Remove feature flag. [#4521](https://github.com/tldraw/tldraw/pull/4521) ([@steveruizok](https://github.com/steveruizok))
+- Enable license feature flag. [#4518](https://github.com/tldraw/tldraw/pull/4518) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Unify links for vs code. [#4565](https://github.com/tldraw/tldraw/pull/4565) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🎉 New Features
+
+- [feature] isShapeHidden option [#4446](https://github.com/tldraw/tldraw/pull/4446) ([@ds300](https://github.com/ds300))
+
+#### 🛠️ API Changes
+
+- publish useAsset, tweak docs [#4590](https://github.com/tldraw/tldraw/pull/4590) ([@SomeHats](https://github.com/SomeHats))
+- Add center option to rotateShapesBy [#4508](https://github.com/tldraw/tldraw/pull/4508) ([@ds300](https://github.com/ds300))
+
+#### Authors: 5
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.0.0 (Fri Sep 13 2024)
 
 ### Release Notes

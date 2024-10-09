@@ -1,24 +1,35 @@
 'use client'
 import { cn } from '@/utils/cn'
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
-import { useEffect, useRef, useState } from 'react'
+import { useTheme } from 'next-themes'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Editor, Tldraw, TldrawOptions } from 'tldraw'
-import './demo.css'
 
 const options: Partial<TldrawOptions> = {
 	maxPages: 1,
 }
 
 const assetUrls = getAssetUrlsByMetaUrl()
-export default function DemoTldraw({ hidden }: { hidden?: boolean }) {
+
+export default function DemoTldraw({ hidden }: { hidden: boolean }) {
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const wrapper = useRef<HTMLDivElement | null>(null)
+	const { theme } = useTheme()
+
+	const handleEditorMount = useCallback((editor: Editor) => {
+		setEditor(editor)
+	}, [])
+
+	useEffect(() => {
+		if (!editor) return
+		editor.user.updateUserPreferences({
+			colorScheme: theme === 'dark' ? 'dark' : 'light',
+		})
+	}, [theme, editor])
 
 	useEffect(() => {
 		if (!editor) return
 		editor.focus({ focusContainer: false })
-		// don't want this at dev time
-		editor.updateInstanceState({ isDebugMode: false })
 		const handleClickOutside = (e: MouseEvent) => {
 			if (!wrapper.current?.contains(e.target as Node)) {
 				// prevent capturing scroll events on the landing page after clicking outside
@@ -32,19 +43,20 @@ export default function DemoTldraw({ hidden }: { hidden?: boolean }) {
 		}
 	}, [editor])
 
+	const handleEditorFocus = useCallback(() => {
+		if (!editor) return
+		editor.focus({ focusContainer: false })
+	}, [editor])
+
+	if (hidden) return null
+
 	return (
 		<>
-			<div
-				ref={wrapper}
-				className={cn('z-10 h-full', hidden ? 'hidden' : '')}
-				onFocus={() => {
-					editor?.focus({ focusContainer: false })
-				}}
-			>
+			<div ref={wrapper} className={cn('z-10 h-full w-full')} onFocus={handleEditorFocus}>
 				<Tldraw
 					initialState="draw"
 					assetUrls={assetUrls}
-					onMount={setEditor}
+					onMount={handleEditorMount}
 					autoFocus
 					options={options}
 				/>

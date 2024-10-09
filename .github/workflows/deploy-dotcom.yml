@@ -57,6 +57,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
 
           ASSET_UPLOAD_SENTRY_DSN: ${{ secrets.ASSET_UPLOAD_SENTRY_DSN }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
@@ -71,4 +72,5 @@ jobs:
           SUPABASE_LITE_ANON_KEY: ${{ secrets.SUPABASE_LITE_ANON_KEY }}
           TLDRAW_LICENSE: ${{ secrets.TLDRAW_LICENSE }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}

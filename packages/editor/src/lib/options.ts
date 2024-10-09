@@ -57,6 +57,7 @@ export interface TldrawOptions {
 	 * they expire? Defaults to 3 minutes.
 	 */
 	readonly temporaryAssetPreviewLifetimeMs: number
+	readonly actionShortcutsLocation: 'menu' | 'toolbar' | 'swap'
 }
 
 /** @public */
@@ -99,4 +100,5 @@ export const defaultTldrawOptions = {
 	laserDelayMs: 1200,
 	maxExportDelayMs: 5000,
 	temporaryAssetPreviewLifetimeMs: 180000,
+	actionShortcutsLocation: 'swap',
 } as const satisfies TldrawOptions

@@ -1,3 +1,15 @@
+# v3.1.0 (Wed Sep 25 2024)
+
+#### 🐛 Bug Fix
+
+- Clean up `apps` directory [#4548](https://github.com/tldraw/tldraw/pull/4548) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.0.0 (Fri Sep 13 2024)
 
 #### 🐛 Bug Fix

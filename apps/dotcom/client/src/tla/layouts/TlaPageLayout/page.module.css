@@ -1,0 +1,15 @@
+.container {
+	position: absolute;
+	inset: 0px;
+	overflow-y: auto;
+	color: var(--tla-color-text-1);
+	font-family: var(--tla-font-ui);
+	background-color: var(--tla-color-sidebar);
+}
+
+.page {
+	padding: 80px 16px 90px 16px;
+	max-width: 760px;
+	margin: 0px auto;
+	width: 100%;
+}

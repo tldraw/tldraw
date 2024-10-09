@@ -18,6 +18,7 @@ export class PointingArrowLabel extends StateNode {
 	markId = ''
 	wasAlreadySelected = false
 	didDrag = false
+	didCtrlOnEnter = false
 
 	private info = {} as TLPointerEventInfo & {
 		shape: TLArrowShape
@@ -41,6 +42,7 @@ export class PointingArrowLabel extends StateNode {
 		this.info = info
 		this.shapeId = shape.id
 		this.didDrag = false
+		this.didCtrlOnEnter = info.accelKey
 		this.wasAlreadySelected = this.editor.getOnlySelectedShapeId() === shape.id
 		this.updateCursor()
 
@@ -69,6 +71,11 @@ export class PointingArrowLabel extends StateNode {
 	override onPointerMove() {
 		const { isDragging } = this.editor.inputs
 		if (!isDragging) return
+
+		if (this.didCtrlOnEnter) {
+			this.parent.transition('brushing', this.info)
+			return
+		}
 
 		const shape = this.editor.getShape<TLArrowShape>(this.shapeId)
 		if (!shape) return
@@ -114,7 +121,7 @@ export class PointingArrowLabel extends StateNode {
 
 		if (this.didDrag || !this.wasAlreadySelected) {
 			this.complete()
-		} else {
+		} else if (!this.editor.getIsReadonly()) {
 			// Go into edit mode.
 			this.editor.setEditingShape(shape.id)
 			this.editor.setCurrentTool('select.editing_shape')

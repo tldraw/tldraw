@@ -11,14 +11,15 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"scripts": {
-		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts --var ASSET_UPLOAD_ORIGIN:http://localhost:8788",
+		"dev": "./dev.sh",
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
-		"check-bundle-size": "yarn run -T tsx ../../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 350000",
+		"check-bundle-size": "yarn run -T tsx ../../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 450000",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
+		"@clerk/backend": "^1.13.4",
 		"@supabase/auth-helpers-remix": "^0.2.2",
 		"@supabase/supabase-js": "^2.33.2",
 		"@tldraw/dotcom-shared": "workspace:*",

@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import url('tldraw/tldraw.css');
 @import url('./z-board.css');
 
 /* NB: If we did position: fixed, Safari on iOS 18 and MacOS 15 would
- * have several rendering issues. This must stay position: absolute. */
+ * have several rendering issues. This must stay position: absolute. 
+ */
 .tldraw__editor {
 	position: absolute;
 	inset: 0;

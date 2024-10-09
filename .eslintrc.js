@@ -59,6 +59,7 @@ module.exports = {
 		'local/no-internal-imports': 'error',
 		'local/tagged-components': 'error',
 		'local/prefer-class-methods': 'error',
+		'local/tsdoc-param-matching': 'error',
 		'no-only-tests/no-only-tests': 'error',
 		'no-restricted-syntax': [
 			'error',
@@ -204,6 +205,19 @@ module.exports = {
 						object: 'crypto',
 						property: 'randomUUID',
 						message: 'Please use the makeUUID util instead.',
+					},
+				],
+			},
+		},
+
+		{
+			files: ['apps/dotcom/client/src/tla/**/*'],
+			rules: {
+				'react/jsx-no-literals': [
+					'error',
+					{
+						noStrings: true,
+						ignoreProps: true,
 					},
 				],
 			},

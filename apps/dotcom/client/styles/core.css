@@ -13,12 +13,15 @@
 		'Apple Color Emoji',
 		'Segoe UI Emoji';
 
-	font-size: 12px;
 	font-weight: 500;
 	color: var(--text-color-0);
 	line-height: 1.6;
-	overscroll-behavior: none;
 	touch-action: none;
+}
+
+body {
+	font-size: 12px;
+	overscroll-behavior: none;
 }
 
 /*
@@ -96,6 +99,7 @@ a {
 }
 
 .site-wrapper {
+	position: relative;
 	display: flex;
 	flex-direction: column;
 	flex-grow: 1;

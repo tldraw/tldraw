@@ -101,6 +101,7 @@ export interface TLStoreProps {
 	onMount(editor: unknown): void | (() => void)
 	collaboration?: {
 		status: Signal<'online' | 'offline'> | null
+		mode?: Signal<'readonly' | 'readwrite'> | null
 	}
 }
 

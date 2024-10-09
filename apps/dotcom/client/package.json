@@ -19,6 +19,7 @@
 		"test": "yarn run -T jest"
 	},
 	"dependencies": {
+		"@clerk/clerk-react": "^5.9.3",
 		"@radix-ui/react-popover": "^1.0.7",
 		"@sentry/integrations": "^7.34.0",
 		"@sentry/react": "^7.77.0",
@@ -29,6 +30,7 @@
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"browser-fs-access": "^0.35.0",
+		"classnames": "^2.3.2",
 		"idb": "^7.1.1",
 		"qrcode": "^1.5.1",
 		"react": "^18.2.0",
@@ -48,6 +50,7 @@
 		"dotenv": "^16.3.1",
 		"eslint": "^8.37.0",
 		"fast-glob": "^3.3.1",
+		"identity-obj-proxy": "^3.0.0",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"vite": "^5.4.2",
@@ -62,6 +65,9 @@
 		"transformIgnorePatterns": [
 			"node_modules/(?!(nanoevents)/)"
 		],
+		"moduleNameMapper": {
+			"\\.(css|less)$": "identity-obj-proxy"
+		},
 		"setupFiles": [
 			"./setupTests.js"
 		]

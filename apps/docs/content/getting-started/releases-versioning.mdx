@@ -15,140 +15,23 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.0.0](/releases/v3.0.0)
+## Current release: [v3.2.0](/releases/v3.2.0)
 
-Welcome to the 3.0.0 release of the tldraw SDK. This release includes a number of new features, improved features, and bug fixes.
+Welcome to the `v3.2.0` release of tldraw!
 
-The biggest change, and the reason for a new major version, is our **new watermark and licenses**. See the **New licenses** section below.
+### Oops
 
-Thank you also to all of our first-time contributors: Alex ([@qwertyu-alex](https://github.com/qwertyu-alex)), [@dimitriadamou](https://github.com/dimitriadamou), Ravi theja ([@raviteja83](https://github.com/raviteja83)), & Zachary Wood ([@zacwood9](https://github.com/zacwood9)).
+We accidentally clicked the 'publish new version' button 🤦🏼 so there have been no actual changes in this release.
 
-## What's new
+Please refer to the [release notes for `v3.1.0`](https://github.com/tldraw/tldraw/releases/tag/v3.1.0) to see what changed since the `v3.0.x` branch.
 
-### New license
-
-This release includes new licenses for the tldraw SDK. These are meant to make the SDK more accessible to small teams and independent developers with commercial products.
-
-Previously, the tldraw SDK was provided under a non-commercial license, with commercial licenses available for purchase separately. In this version, the tldraw SDK's new license permits use in both commercial non-commercial projects so long as our "Made with tldraw" watermark is visible.
-
-![watermark 2](https://github.com/user-attachments/assets/65facf1a-9c34-42bd-8b96-5d618b5dc570)
-
-If you wish to use the tldraw SDK without the watermark, you can purchase a Business License. You'll receive a License Key that hides the watermark while the license is active. For more information, or to request a business license, visit [tldraw.dev](https://tldraw.dev/#pricing).
-
-The watermark is a link to [tldraw.dev](https://tldraw.dev). It becomes active after a short delay, ensuring that users don't accidentally click on it while trying to perform other actions on the canvas.
-
-If you don't have a business license, then you must preserve the watermark as it is and not obscure it, disable it, or otherwise make it inaccessible to your users.
-
-If you have questions or comments, let us know at hello@tldraw.com.
-
-### Deep Links
-
-'Deep Links' are URLs that point to a specific part of a document, like a particular shape or a particular part of a page. We added some APIs to help creating and using deep links, and for updating the current page's URL as the user navigates around the document.
-
-See the [Deep Links documentation](https://tldraw.dev/examples/basic/deep-links) for more information and example code.
-
-([#4333](https://github.com/tldraw/tldraw/pull/4333))
-
-### Export custom shapes as images
-
-Tldraw lets you convert the contents of your canvas to a PNG or SVG image. Previously, this relied on each shape implementing a method that would render it as an SVG. If your shape is complex with lots of HTML/CSS UI, this isn't an easy thing to do.
-
-Now, custom shapes are supported in image exports by default. This relies on embedding HTML/CSS into an SVG which does have some issues, so it's worth reading about [image exports in tldraw](https://tldraw.dev/docs/editor#Image-exports) and testing the feature for yourself.
-
-([#4403](https://github.com/tldraw/tldraw/pull/4403))
-
-### Custom embeds API
-
-Tldraw supports including content from other websites (e.g. YouTube, Google Maps, CodeSandbox) via the `embed` shape. Previously the list of supported websites was hard-coded. This release includes support to fully customize the list of supported websites. This means you can now add your own custom embeds, or remove existing ones.
-
-([#4326](https://github.com/tldraw/tldraw/pull/4326))
-
-### Enabling text search with the `getText` API
-
-Previously there was no reliable way to get the human-readable text from a shape. This is now possible with the new `getText` API.
-
-The main intended usage of this API is to implement text search in your application. We provide a basic example of how to go about that [here](https://tldraw.dev/examples/editor-api/text-search)
-
-([#4306](https://github.com/tldraw/tldraw/pull/4306)) ([#4414](https://github.com/tldraw/tldraw/pull/4414))
-
-### Move the camera while spacebar panning
-
-While holding the space bar, use the arrow keys to move the viewport.
-
-### Breaking changes
-
-- Removes the `TLRotationSnapshot` type. This was exported by mistake and should not have been useful to SDK users.
-- The `onEditorMount` option to `createTLStore` is now called `onMount`. ([#4320](https://github.com/tldraw/tldraw/pull/4320))
-- `Editor.mark()` was deprecated in favour of `Editor.markHistoryStoppingPoint()`. ([#4250](https://github.com/tldraw/tldraw/pull/4250))
-
-  In most cases you can treat this as a renamed method. However if you previously passed an ID to `Editor.mark()`, you should now use the return value of `Editor.markHistoryStoppingPoint()` as the mark ID instead.
-
-- Rename `TLSvgOptions` to `TLImageExportOptions` ([#4442](https://github.com/tldraw/tldraw/pull/4442))
-- Setting `editor.updateInstanceState({isFocused: true})` no longer triggers a `focus` event on the canvas container. Use `editor.focus()` and `editor.blur()` instead.
-
-### Improvements
-
-- Enable interpolation method for all builtin shapes, including draw and highlighter. ([#4241](https://github.com/tldraw/tldraw/pull/4241))
-- Custom shapes (and our own bookmark shapes) now render in image exports by default. ([#4403](https://github.com/tldraw/tldraw/pull/4403))
-- We detect when there are multiple versions of tldraw installed and let you know, as this can cause bugs in your application. ([#4398](https://github.com/tldraw/tldraw/pull/4398))
-- Improved `loadSnapshot` to preserve page state like camera position and current page if no session snapshot is provided. ([#4392](https://github.com/tldraw/tldraw/pull/4392))
-- Make arrow labels reflow text dynamically. ([#4384](https://github.com/tldraw/tldraw/pull/4384))
-- Prevent accidental creation of tiny fixed-width text shapes. ([#4293](https://github.com/tldraw/tldraw/pull/4293)) ([#4331](https://github.com/tldraw/tldraw/pull/4331))
-- Upgrade fractional indexing to use jittered indexes, to help avoid conflicts ([#4312](https://github.com/tldraw/tldraw/pull/4312))
-- Show ghost preview image whilst uploading images ([#3988](https://github.com/tldraw/tldraw/pull/3988))
-- Update the 'x-box' icon to more closely resemble the shape itself. ([#4287](https://github.com/tldraw/tldraw/pull/4287))
-
-### API changes
-
-- Allow the `<TldrawImage />` component to accept custom asset URLs. ([#4465](https://github.com/tldraw/tldraw/pull/4465))
-- Allow the users to programmatically disable the context menu. ([#4415](https://github.com/tldraw/tldraw/pull/4415))
-- Make `rotateShapesBy` work with any shapes, not just the currently selected shapes. ([#4385](https://github.com/tldraw/tldraw/pull/4385))
-- When deleting actions or tools using overrides, menu items are automatically removed. ([#4345](https://github.com/tldraw/tldraw/pull/4345))
-- Make the page management UI disappear when maxPages is 1 ([#4348](https://github.com/tldraw/tldraw/pull/4348))
-- Export some missing components that are used in the `DefaultToolbar` ([#4321](https://github.com/tldraw/tldraw/pull/4321))
-- Export `registerDefaultSideEffects` and `registerDefaultExternalContentHandler` ([#4323](https://github.com/tldraw/tldraw/pull/4323))
-- Added an option for for the maximum number of files that a user can paste/drop at once ([#4294](https://github.com/tldraw/tldraw/pull/4294))
-- Added support for laser delay customization ([#4300](https://github.com/tldraw/tldraw/pull/4300))
-- Allow scribble points to have non default z values. ([#4260](https://github.com/tldraw/tldraw/pull/4260))
-- Export certain helpers for pasting external content. ([#4258](https://github.com/tldraw/tldraw/pull/4258))
-
-### Bug fixes
-
-- Fix an issue with not being able to cancel out changing of page names and user names. ([#4408](https://github.com/tldraw/tldraw/pull/4408))
-- Fix an issue with migrating legacy assets in Firefox. ([#4432](https://github.com/tldraw/tldraw/pull/4432))
-- Allow the 'insert media' file picker to use the custom mime types configuration to control which files can be selected. ([#4453](https://github.com/tldraw/tldraw/pull/4453))
-- Fixed a perf issue that caused shapes to rerender too often. ([#4433](https://github.com/tldraw/tldraw/pull/4433))
-- Fixed issue where pinch gestures on Safari would snap camera at low zoom levels. ([#4427](https://github.com/tldraw/tldraw/pull/4427))
-- Fix exports for dark mode frames and flipped images. ([#4424](https://github.com/tldraw/tldraw/pull/4424))
-- Prevented a harmless Unhandled Promise Rejection error message during dev time with React strict mode. ([#4406](https://github.com/tldraw/tldraw/pull/4406))
-- Fix a bug with embed dialog throwing an error when entering an invalid url. ([#4397](https://github.com/tldraw/tldraw/pull/4397))
-- Fix a couple of minor cloud rendering issues. ([#4382](https://github.com/tldraw/tldraw/pull/4382)) ([#4380](https://github.com/tldraw/tldraw/pull/4380))
-- Fix cropping of images that have been flipped. ([#4337](https://github.com/tldraw/tldraw/pull/4337)) ([#4350](https://github.com/tldraw/tldraw/pull/4350))
-- Fix fullscreen video rendering. ([#4338](https://github.com/tldraw/tldraw/pull/4338))
-- Fix bookmark shape rendering. ([#4330](https://github.com/tldraw/tldraw/pull/4330))
-- Fix an issue with duplicating groups. ([#4316](https://github.com/tldraw/tldraw/pull/4316))
-- Fix dotted line draw shape rendering when zoomed out. ([#4261](https://github.com/tldraw/tldraw/pull/4261))
-- Fix the threshold for arrow label snapping. ([#4265](https://github.com/tldraw/tldraw/pull/4265))
-- Fix the checkbox value for the theme menu item. ([#4289](https://github.com/tldraw/tldraw/pull/4289))
-- Fix a minor rendering issue in the sharing menu. ([#4271](https://github.com/tldraw/tldraw/pull/4271))
-- Prevent accidental drawing / tool usage when closing menus. ([#4247](https://github.com/tldraw/tldraw/pull/4247))
-
-## Authors
-
-- Alex ([@SomeHats](https://github.com/SomeHats))
-- Alex ([@qwertyu-alex](https://github.com/qwertyu-alex))
-- David Sheldrick ([@ds300](https://github.com/ds300))
-- [@dimitriadamou](https://github.com/dimitriadamou)
-- Lu Wilson ([@TodePond](https://github.com/TodePond))
-- Lukas Wiesehan ([@lukaswiesehan](https://github.com/lukaswiesehan))
-- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
-- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
-- Ravi theja ([@raviteja83](https://github.com/raviteja83))
-- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
-- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
-- Zachary Wood ([@zacwood9](https://github.com/zacwood9))
+Sorry pals!
 
 ## Previous releases
+
+- [v3.1.0](/releases/v3.1.0)
+
+- [v3.0.0](/releases/v3.0.0)
 
 - [v2.4.0](/releases/v2.4.0)
 

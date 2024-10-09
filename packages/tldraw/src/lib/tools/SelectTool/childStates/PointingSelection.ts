@@ -13,7 +13,7 @@ export class PointingSelection extends StateNode {
 	}
 
 	override onPointerUp(info: TLPointerEventInfo) {
-		selectOnCanvasPointerUp(this.editor)
+		selectOnCanvasPointerUp(this.editor, info)
 		this.parent.transition('idle', info)
 	}
 
@@ -28,7 +28,7 @@ export class PointingSelection extends StateNode {
 	}
 
 	private startTranslating(info: TLPointerEventInfo) {
-		if (this.editor.getInstanceState().isReadonly) return
+		if (this.editor.getIsReadonly()) return
 		this.parent.transition('translating', info)
 	}
 

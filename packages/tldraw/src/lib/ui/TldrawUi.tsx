@@ -2,15 +2,15 @@ import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
-import { Dialogs } from './components/Dialogs'
+import { TldrawUiDialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
-import { ToastViewport, Toasts } from './components/Toasts'
+import { TldrawUiToasts } from './components/Toasts'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
 import { PORTRAIT_BREAKPOINT } from './constants'
 import {
+	TLUiContextProviderProps,
 	TldrawUiContextProvider,
-	TldrawUiContextProviderProps,
 } from './context/TldrawUiContextProvider'
 import { useActions } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
@@ -22,7 +22,7 @@ import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
-export interface TldrawUiProps extends TldrawUiContextProviderProps {
+export interface TldrawUiProps extends TLUiContextProviderProps {
 	/**
 	 * The component's children.
 	 */
@@ -161,9 +161,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
-			<Toasts />
-			<Dialogs />
-			<ToastViewport />
+			<TldrawUiToasts />
+			<TldrawUiDialogs />
 			<FollowingIndicator />
 			{CursorChatBubble && <CursorChatBubble />}
 		</div>

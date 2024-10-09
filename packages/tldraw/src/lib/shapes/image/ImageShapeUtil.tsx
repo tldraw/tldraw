@@ -15,6 +15,7 @@ import {
 	imageShapeProps,
 	lerp,
 	resizeBox,
+	sanitizeId,
 	structuredClone,
 	toDomPrecision,
 } from '@tldraw/editor'
@@ -293,7 +294,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				new Vec(0, croppedHeight),
 			]
 
-			const cropClipId = `cropClipPath_${shape.id.replace(':', '_')}`
+			const cropClipId = `cropClipPath_${sanitizeId(shape.id)}`
 
 			const flip = getFlipStyle(shape, { width, height })
 

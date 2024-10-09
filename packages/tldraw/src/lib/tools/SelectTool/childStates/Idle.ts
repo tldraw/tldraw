@@ -50,22 +50,9 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown(info: TLPointerEventInfo) {
-		if (this.editor.getIsMenuOpen()) return
+		if (this.editor.menus.hasAnyOpenMenus()) return
 
 		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
-
-		if (info.ctrlKey && !shouldEnterCropMode) {
-			// On Mac, you can right click using the Control keys + Click.
-			if (info.target === 'shape' && this.isDarwin && this.editor.inputs.keys.has('ControlLeft')) {
-				if (!this.editor.isShapeOrAncestorLocked(info.shape)) {
-					this.parent.transition('pointing_shape', info)
-					return
-				}
-			}
-
-			this.parent.transition('brushing', info)
-			return
-		}
 
 		switch (info.target) {
 			case 'canvas': {
@@ -106,6 +93,7 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
+
 				if (this.isOverArrowLabelTest(shape)) {
 					// We're moving the label on a shape.
 					this.parent.transition('pointing_arrow_label', info)
@@ -116,14 +104,17 @@ export class Idle extends StateNode {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}
+
+				// If we're holding ctrl key, we might select it, or start brushing...
 				this.parent.transition('pointing_shape', info)
 				break
 			}
 			case 'handle': {
-				if (this.editor.getInstanceState().isReadonly) break
+				if (this.editor.getIsReadonly()) break
 				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
+					// If we're holding ctrl key, we might select it, or start brushing...
 					this.parent.transition('pointing_handle', info)
 				}
 				break
@@ -135,7 +126,15 @@ export class Idle extends StateNode {
 					case 'top_right_rotate':
 					case 'bottom_left_rotate':
 					case 'bottom_right_rotate': {
-						this.parent.transition('pointing_rotate_handle', info)
+						if (shouldEnterCropMode) {
+							this.parent.transition('crop.pointing_crop_handle', info)
+						} else {
+							if (info.accelKey) {
+								this.parent.transition('brushing', info)
+								break
+							}
+							this.parent.transition('pointing_rotate_handle', info)
+						}
 						break
 					}
 					case 'top':
@@ -149,6 +148,10 @@ export class Idle extends StateNode {
 						if (shouldEnterCropMode) {
 							this.parent.transition('crop.pointing_crop_handle', info)
 						} else {
+							if (info.accelKey) {
+								this.parent.transition('brushing', info)
+								break
+							}
 							this.parent.transition('pointing_resize_handle', info)
 						}
 						break
@@ -179,6 +182,9 @@ export class Idle extends StateNode {
 	override onDoubleClick(info: TLClickEventInfo) {
 		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
 
+		// We don't want to double click while toggling shapes
+		if (info.ctrlKey || info.shiftKey) return
+
 		switch (info.target) {
 			case 'canvas': {
 				const hoveredShape = this.editor.getHoveredShape()
@@ -204,7 +210,7 @@ export class Idle extends StateNode {
 				if (hitShape) {
 					if (this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
 						// Probably select the shape
-						selectOnCanvasPointerUp(this.editor)
+						selectOnCanvasPointerUp(this.editor, info)
 						return
 					} else {
 						const parent = this.editor.getShape(hitShape.parentId)
@@ -217,7 +223,7 @@ export class Idle extends StateNode {
 							} else {
 								// The shape is the child of some group other than our current
 								// focus layer. We should probably select the group instead.
-								selectOnCanvasPointerUp(this.editor)
+								selectOnCanvasPointerUp(this.editor, info)
 								return
 							}
 						}
@@ -241,7 +247,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'selection': {
-				if (this.editor.getInstanceState().isReadonly) break
+				if (this.editor.getIsReadonly()) break
 
 				const onlySelectedShape = this.editor.getOnlySelectedShape()
 
@@ -288,12 +294,7 @@ export class Idle extends StateNode {
 				const util = this.editor.getShapeUtil(shape)
 
 				// Allow playing videos and embeds
-				if (
-					shape.type !== 'video' &&
-					shape.type !== 'embed' &&
-					this.editor.getInstanceState().isReadonly
-				)
-					break
+				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
@@ -324,7 +325,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.getInstanceState().isReadonly) break
+				if (this.editor.getIsReadonly()) break
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
@@ -537,8 +538,6 @@ export class Idle extends StateNode {
 		this.parent.transition('editing_shape', info)
 	}
 
-	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
-
 	isOverArrowLabelTest(shape: TLShape | undefined) {
 		if (!shape) return false
 
@@ -563,7 +562,7 @@ export class Idle extends StateNode {
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
-		if (this.editor.getInstanceState().isReadonly) return
+		if (this.editor.getIsReadonly()) return
 
 		this.editor.markHistoryStoppingPoint('creating text shape')
 
@@ -588,7 +587,7 @@ export class Idle extends StateNode {
 		if (!shape) return
 
 		const util = this.editor.getShapeUtil(shape)
-		if (this.editor.getInstanceState().isReadonly) {
+		if (this.editor.getIsReadonly()) {
 			if (!util.canEditInReadOnly(shape)) {
 				return
 			}
@@ -638,7 +637,7 @@ export class Idle extends StateNode {
 	}
 
 	private canInteractWithShapeInReadOnly(shape: TLShape) {
-		if (!this.editor.getInstanceState().isReadonly) return true
+		if (!this.editor.getIsReadonly()) return true
 		const util = this.editor.getShapeUtil(shape)
 		if (util.canEditInReadOnly(shape)) return true
 		return false

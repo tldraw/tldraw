@@ -12,7 +12,6 @@ import isEqual from 'lodash.isequal'
 import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord, getNetworkDiff } from './diff'
 import { interval } from './interval'
 import {
-	TLIncompatibilityReason,
 	TLPushRequest,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
@@ -24,15 +23,55 @@ import {
 export type SubscribingFn<T> = (cb: (val: T) => void) => () => void
 
 /**
- * These are our private codes to be sent from server-\>client.
- * They are in the private range of the websocket code range.
- * See: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+ * This the close code that we use on the server to signal to a socket that
+ * the connection is being closed because of a non-recoverable error.
  *
+ * You should use this if you need to close a connection.
+ *
+ * @example
+ * ```ts
+ * socket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
+ * ```
+ *
+ * The `reason` parameter that you pass to `socket.close()` will be made available at `useSync().error.reason`
+ *
+ * @public
+ */
+export const TLSyncErrorCloseEventCode = 4099 as const
+
+/**
+ * The set of reasons that a connection can be closed by the server
+ * @public
+ */
+export const TLSyncErrorCloseEventReason = {
+	NOT_FOUND: 'NOT_FOUND',
+	FORBIDDEN: 'FORBIDDEN',
+	NOT_AUTHENTICATED: 'NOT_AUTHENTICATED',
+	UNKNOWN_ERROR: 'UNKNOWN_ERROR',
+	CLIENT_TOO_OLD: 'CLIENT_TOO_OLD',
+	SERVER_TOO_OLD: 'SERVER_TOO_OLD',
+	INVALID_RECORD: 'INVALID_RECORD',
+} as const
+/**
+ * The set of reasons that a connection can be closed by the server
+ * @public
+ */
+export type TLSyncErrorCloseEventReason =
+	(typeof TLSyncErrorCloseEventReason)[keyof typeof TLSyncErrorCloseEventReason]
+
+/**
  * @internal
  */
-export const TLCloseEventCode = {
-	NOT_FOUND: 4099,
-} as const
+export type TlSocketStatusChangeEvent =
+	| {
+			status: 'online' | 'offline'
+	  }
+	| {
+			status: 'error'
+			reason: string
+	  }
+/** @internal */
+export type TLSocketStatusListener = (params: TlSocketStatusChangeEvent) => void
 
 /** @internal */
 export type TLPersistentClientSocketStatus = 'online' | 'offline' | 'error'
@@ -51,7 +90,7 @@ export interface TLPersistentClientSocket<R extends UnknownRecord = UnknownRecor
 	/** Attach a listener for messages sent by the server */
 	onReceiveMessage: SubscribingFn<TLSocketServerSentEvent<R>>
 	/** Attach a listener for connection status changes */
-	onStatusChange: SubscribingFn<TLPersistentClientSocketStatus>
+	onStatusChange: SubscribingFn<TlSocketStatusChangeEvent>
 	/** Restart the connection */
 	restart(): void
 }
@@ -114,8 +153,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * Called immediately after a connect acceptance has been received and processed Use this to make
 	 * any changes to the store that are required to keep it operational
 	 */
-	public readonly onAfterConnect?: (self: TLSyncClient<R, S>, isNew: boolean) => void
-	public readonly onSyncError: (reason: TLIncompatibilityReason) => void
+	public readonly onAfterConnect?: (self: this, details: { isReadonly: boolean }) => void
 
 	private isDebugging = false
 	private debug(...args: any[]) {
@@ -125,7 +163,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
-	private readonly presenceType: R['typeName']
+	private readonly presenceType: R['typeName'] | null
 
 	didCancel?: () => boolean
 
@@ -134,17 +172,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		socket: TLPersistentClientSocket<R>
 		presence: Signal<R | null>
 		onLoad(self: TLSyncClient<R, S>): void
-		onLoadError(error: Error): void
-		onSyncError(reason: TLIncompatibilityReason): void
-		onAfterConnect?(self: TLSyncClient<R, S>, isNew: boolean): void
+		onSyncError(reason: string): void
+		onAfterConnect?(self: TLSyncClient<R, S>, details: { isReadonly: boolean }): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value
-		if (!this.presenceType || config.store.scopedTypes.presence.size > 1) {
-			throw new Error('Store must have exactly one presence type')
-		}
 
 		if (typeof window !== 'undefined') {
 			;(window as any).tlsync = this
@@ -152,7 +186,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.store = config.store
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
-		this.onSyncError = config.onSyncError
 
 		let didLoad = false
 
@@ -179,27 +212,21 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				// one of the load callbacks
 				if (!didLoad) {
 					didLoad = true
-					if (msg.type === 'error') {
-						config.onLoadError(msg.error)
-					} else {
-						config.onLoad(this)
-					}
+					config.onLoad(this)
 				}
 			}),
 			// handle switching between online and offline
-			this.socket.onStatusChange((status) => {
+			this.socket.onStatusChange((ev) => {
 				if (this.didCancel?.()) return this.close()
-				this.debug('socket status changed', status)
-				if (status === 'online') {
+				this.debug('socket status changed', ev.status)
+				if (ev.status === 'online') {
 					this.sendConnectMessage()
 				} else {
 					this.resetConnection()
-					// if we reached here before connecting to the server
-					// it's a socket error, mostly likely the server is down or
-					// it's the wrong url.
-					if (status === 'error' && !didLoad) {
+					if (ev.status === 'error') {
 						didLoad = true
-						config.onLoadError(new Error('socket error'))
+						config.onSyncError(ev.reason)
+						this.close()
 					}
 				}
 			}),
@@ -365,8 +392,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.store.applyDiff(stashedChanges, false)
 
 			this.store.ensureStoreIsUsable()
-			// TODO: reinstate isNew
-			this.onAfterConnect?.(this, false)
+			this.onAfterConnect?.(this, { isReadonly: event.isReadonly })
 		})
 
 		this.lastServerClock = event.serverClock
@@ -383,11 +409,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			case 'connect':
 				this.didReconnect(event)
 				break
-			case 'error':
-				console.error('Server error', event.error)
-				console.error('Restarting socket')
-				this.socket.restart()
-				break
 			// legacy v4 events
 			case 'patch':
 			case 'push_result':
@@ -402,7 +423,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				this.scheduleRebase()
 				break
 			case 'incompatibility_error':
-				this.onSyncError(event.reason)
+				// legacy unrecoverable errors
+				console.error('incompatibility error is legacy and should no longer be sent by the server')
 				break
 			case 'pong':
 				// noop, we only use ping/pong to set lastSeverInteractionTimestamp

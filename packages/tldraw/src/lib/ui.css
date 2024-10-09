@@ -5,7 +5,6 @@
 	--layer-focused-input: 10;
 	--layer-panels: 300;
 	--layer-menus: 400;
-	--layer-canvas-overlays: 500;
 	--layer-toasts: 650;
 	--layer-cursor: 700;
 	--layer-header-footer: 999;
@@ -56,6 +55,7 @@
 }
 
 .tlui-button__label {
+	font-size: 12px;
 	flex-grow: 2;
 	text-align: left;
 }
@@ -292,9 +292,6 @@
 }
 .tlui-buttons__horizontal > *:nth-last-child(1) {
 	margin-right: 0px;
-}
-.tlui-buttons__horizontal > *:only-child {
-	width: 56px;
 }
 
 /* Button Grid */
@@ -1417,6 +1414,10 @@
 	.tlui-page_menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
+}
+
+.tlui-button__icon {
+	padding: 0px;
 }
 
 .tlui-page-menu__item__button .tlui-button__icon {

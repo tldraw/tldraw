@@ -33,7 +33,7 @@ export async function createRoom(request: IRequest, env: Environment): Promise<R
 	}
 
 	// Bang that snapshot into the database
-	await env.ROOMS.put(getR2KeyForRoom(slug), JSON.stringify(snapshot))
+	await env.ROOMS.put(getR2KeyForRoom({ slug, isApp: false }), JSON.stringify(snapshot))
 
 	// Create a readonly slug and store it
 	const readonlySlug = uniqueId()

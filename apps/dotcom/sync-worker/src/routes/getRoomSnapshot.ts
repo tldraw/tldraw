@@ -30,7 +30,9 @@ export async function getRoomSnapshot(request: IRequest, env: Environment): Prom
 	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
 
 	// Get the room snapshot from R2
-	const snapshot = await env.ROOM_SNAPSHOTS.get(getR2KeyForSnapshot(parentSlug, roomId))
+	const snapshot = await env.ROOM_SNAPSHOTS.get(
+		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: false })
+	)
 
 	if (snapshot) {
 		const data = ((await snapshot.json()) as R2Snapshot)?.drawing as RoomSnapshot

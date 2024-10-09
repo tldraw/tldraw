@@ -7,5 +7,10 @@ import { useId } from 'react'
  * @internal
  */
 export function useSafeId() {
-	return useId().replace(/:/g, '_')
+	return sanitizeId(useId())
+}
+
+/** @internal */
+export function sanitizeId(id: string) {
+	return id.replace(/:/g, '_')
 }

@@ -2,6 +2,7 @@ import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
+import { isAccelKey } from '../utils/keyboard'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
@@ -10,6 +11,36 @@ export function useDocumentEvents() {
 	const container = useContainer()
 
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
+
+	// Prevent the browser's default drag and drop behavior on our container (UI, etc)
+	useEffect(() => {
+		if (!container) return
+
+		function onDrop(e: DragEvent) {
+			// this is tricky: we don't want the event to do anything
+			// here, but we do want it to make its way to the canvas,
+			// even if the drop is over some other element (like a toolbar),
+			// so we're going to flag the event and then dispatch
+			// it to the canvas; the canvas will handle it and try to
+			// stop it from propagating back, but in case we do see it again,
+			// we'll look for the flag so we know to stop it from being
+			// re-dispatched, which would lead to an infinite loop.
+			if ((e as any).isSpecialRedispatchedEvent) return
+			preventDefault(e)
+			const cvs = container.querySelector('.tl-canvas')
+			if (!cvs) return
+			const newEvent = new DragEvent('drop', e)
+			;(newEvent as any).isSpecialRedispatchedEvent = true
+			cvs.dispatchEvent(newEvent)
+		}
+
+		container.addEventListener('dragover', onDrop)
+		container.addEventListener('drop', onDrop)
+		return () => {
+			container.removeEventListener('dragover', onDrop)
+			container.removeEventListener('drop', onDrop)
+		}
+	}, [container])
 
 	useEffect(() => {
 		if (typeof window === 'undefined' || !('matchMedia' in window)) return
@@ -88,7 +119,7 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Tab': {
-					if (isFocusingInput() || editor.getIsMenuOpen()) {
+					if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
 						return
 					}
 					break
@@ -115,7 +146,7 @@ export function useDocumentEvents() {
 					}
 
 					// Don't do anything if we open menus open
-					if (editor.getOpenMenus().length > 0) return
+					if (editor.menus.getOpenMenus().length > 0) return
 
 					if (editor.inputs.keys.has('Escape')) {
 						// noop
@@ -133,7 +164,7 @@ export function useDocumentEvents() {
 					return
 				}
 				default: {
-					if (isFocusingInput() || editor.getIsMenuOpen()) {
+					if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
 						return
 					}
 				}
@@ -147,6 +178,8 @@ export function useDocumentEvents() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 			}
 
 			editor.dispatch(info)
@@ -156,7 +189,7 @@ export function useDocumentEvents() {
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
 
-			if (isFocusingInput() || editor.getIsMenuOpen()) {
+			if (isFocusingInput() || editor.menus.hasAnyOpenMenus()) {
 				return
 			}
 
@@ -172,6 +205,8 @@ export function useDocumentEvents() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 			}
 
 			editor.dispatch(info)

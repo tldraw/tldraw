@@ -1,20 +1,20 @@
-import { RecursivePartial } from '@tldraw/editor'
+import { RecursivePartial, track, useEditor } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from '../assetUrls'
 import { MimeTypeContext } from '../hooks/useInsertMedia'
 import { ToolsProvider } from '../hooks/useTools'
-import { TranslationProvider } from '../hooks/useTranslation/useTranslation'
+import { TldrawUiTranslationProvider } from '../hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from '../overrides'
 import { ActionsProvider } from './actions'
 import { AssetUrlsProvider } from './asset-urls'
 import { BreakPointProvider } from './breakpoints'
 import { TLUiComponents, TldrawUiComponentsProvider } from './components'
-import { DialogsProvider } from './dialogs'
-import { TLUiEventHandler, UiEventsProvider } from './events'
-import { ToastsProvider } from './toasts'
+import { TldrawUiDialogsProvider } from './dialogs'
+import { TLUiEventHandler, TldrawUiEventsProvider } from './events'
+import { TldrawUiToastsProvider } from './toasts'
 
 /** @public */
-export interface TldrawUiContextProviderProps {
+export interface TLUiContextProviderProps {
 	/**
 	 * Urls for where to find fonts and other assets for the UI.
 	 */
@@ -52,7 +52,7 @@ export interface TldrawUiContextProviderProps {
 }
 
 /** @public @react */
-export function TldrawUiContextProvider({
+export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	overrides,
 	components,
 	assetUrls,
@@ -60,32 +60,36 @@ export function TldrawUiContextProvider({
 	forceMobile,
 	mediaMimeTypes,
 	children,
-}: TldrawUiContextProviderProps) {
+}: TLUiContextProviderProps) {
+	const editor = useEditor()
 	return (
 		<MimeTypeContext.Provider value={mediaMimeTypes}>
 			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
-				<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
-					<UiEventsProvider onEvent={onUiEvent}>
-						<ToastsProvider>
-							<DialogsProvider>
+				<TldrawUiTranslationProvider
+					overrides={useMergedTranslationOverrides(overrides)}
+					locale={editor.user.getLocale()}
+				>
+					<TldrawUiEventsProvider onEvent={onUiEvent}>
+						<TldrawUiToastsProvider>
+							<TldrawUiDialogsProvider context={editor.contextId}>
 								<BreakPointProvider forceMobile={forceMobile}>
 									<TldrawUiComponentsProvider overrides={components}>
 										<InternalProviders overrides={overrides}>{children}</InternalProviders>
 									</TldrawUiComponentsProvider>
 								</BreakPointProvider>
-							</DialogsProvider>
-						</ToastsProvider>
-					</UiEventsProvider>
-				</TranslationProvider>
+							</TldrawUiDialogsProvider>
+						</TldrawUiToastsProvider>
+					</TldrawUiEventsProvider>
+				</TldrawUiTranslationProvider>
 			</AssetUrlsProvider>
 		</MimeTypeContext.Provider>
 	)
-}
+})
 
 function InternalProviders({
 	overrides,
 	children,
-}: Omit<TldrawUiContextProviderProps, 'assetBaseUrl'>) {
+}: Omit<TLUiContextProviderProps, 'assetBaseUrl'>) {
 	const mergedOverrides = useMergedOverrides(overrides)
 	return (
 		<ActionsProvider overrides={mergedOverrides.actions}>
