@@ -20,6 +20,7 @@ import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { getRoomSnapshots } from './routes/getRoomSnapshots'
 import { joinExistingRoom } from './routes/joinExistingRoom'
+import { updateRoomSnapshot } from './routes/updateRoomSnapshot'
 import { Environment } from './types'
 import { getAuth } from './utils/getAuth'
 export { TLAppDurableObject } from './TLAppDurableObject'
@@ -63,6 +64,7 @@ const router = createRouter<Environment>()
 	})
 	.get('/app/snapshots/:roomId', (req, env) => getRoomSnapshots(req, env))
 	.post('/app/snapshots', (req, env) => createRoomSnapshot(req, env, true))
+	.patch('/app/snapshots/:roomId', (req, env) => updateRoomSnapshot(req, env))
 	.get('/app/snapshot/:roomId', (req, env) => getRoomSnapshot(req, env, true))
 	.delete('/app/snapshot/:roomId', (req, env) => deleteRoomSnapshot(req, env))
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)

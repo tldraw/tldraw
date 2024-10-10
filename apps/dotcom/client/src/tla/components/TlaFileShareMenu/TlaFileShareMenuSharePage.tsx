@@ -34,7 +34,8 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 		},
 		[app, fileId]
 	)
-
+	const user = app.getUser(app.getCurrentUserId())
+	const publish = user?.flags?.publish
 	return (
 		<TlaTabsPage id="share">
 			<TlaMenuSection>
@@ -45,9 +46,11 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
 				{isShared && <QrCode fileId={fileId} />}
 			</TlaMenuSection>
-			<TlaMenuSection>
-				<TlaCopySnapshotLinkButton />
-			</TlaMenuSection>
+			{!publish && (
+				<TlaMenuSection>
+					<TlaCopySnapshotLinkButton />
+				</TlaMenuSection>
+			)}
 		</TlaTabsPage>
 	)
 }
@@ -154,8 +157,6 @@ function TlaCopySnapshotLinkButton() {
 
 	const { addToast } = useToasts()
 
-	if (!fileSlug) throw Error('no file slug')
-
 	useEffect(() => {
 		async function getSnapshots() {
 			const result = await fetch(`/api/app/snapshots/${fileSlug}`, {
@@ -181,8 +182,9 @@ function TlaCopySnapshotLinkButton() {
 		if (!auth) throw Error('should have auth')
 		const { userId } = auth
 		if (!editor) throw Error('no editor')
+		if (!fileSlug) throw Error('no file slug')
 
-		const url = await app.createSnapshotLink(editor, userId, fileSlug)
+		const url = await app.createSnapshotLink(editor, userId, fileSlug, null)
 		if (!url) {
 			addToast({
 				title: 'could not create snapshot',
@@ -229,6 +231,8 @@ function TlaCopySnapshotLinkButton() {
 		window.open(url, '_blank')
 	}, [selectedSnapshot])
 
+	if (!fileSlug) throw Error('no file slug')
+
 	return (
 		<>
 			{snapshots.length > 0 && (
@@ -237,6 +241,7 @@ function TlaCopySnapshotLinkButton() {
 					<select
 						style={{ height: '30px' }}
 						onChange={(el) => setSelectedSnapshot(el.target.value)}
+						value={selectedSnapshot ?? snapshots[0].id}
 					>
 						{snapshots.map((snapshot) => (
 							<option key={snapshot.id} value={snapshot.id}>

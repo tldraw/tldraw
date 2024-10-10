@@ -19,7 +19,7 @@ import { fetch } from '@tldraw/utils'
 import { Editor, Store, TLStoreSnapshot, assertExists, computed } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { getSnapshotData } from '../../utils/sharing'
-const CREATE_APP_SNAPSHOT_ENDPOINT = `/api/app/snapshots`
+const CREATE_AND_UPDATE_APP_SNAPSHOT_ENDPOINT = `/api/app/snapshots`
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -361,13 +361,25 @@ export class TldrawApp {
 		return new Promise((r) => setTimeout(r, 2000))
 	}
 
-	async createSnapshotLink(editor: Editor, _userId: TldrawAppUserId, parentSlug: string) {
+	async createSnapshotLink(
+		editor: Editor,
+		_userId: TldrawAppUserId,
+		parentSlug: string,
+		fileSlug: string | null
+	) {
 		const data = await getSnapshotData(editor)
 
 		if (!data) return
 
-		const res = await fetch(CREATE_APP_SNAPSHOT_ENDPOINT, {
-			method: 'POST',
+		let endpoint: string
+		if (fileSlug) {
+			endpoint = `${CREATE_AND_UPDATE_APP_SNAPSHOT_ENDPOINT}/${fileSlug}`
+		} else {
+			endpoint = CREATE_AND_UPDATE_APP_SNAPSHOT_ENDPOINT
+		}
+
+		const res = await fetch(endpoint, {
+			method: fileSlug ? 'PATCH' : 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 			},

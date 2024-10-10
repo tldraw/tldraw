@@ -3,7 +3,7 @@ import { TldrawAppFile, TldrawAppFileRecordType } from './TldrawAppFile'
 import { TldrawAppFileEdit, TldrawAppFileEditRecordType } from './TldrawAppFileEdit'
 import { TldrawAppFileVisit, TldrawAppFileVisitRecordType } from './TldrawAppFileVisit'
 import { TldrawAppSessionState, TldrawAppSessionStateRecordType } from './TldrawAppSessionState'
-import { TldrawAppUser, TldrawAppUserRecordType } from './TldrawAppUser'
+import { TldrawAppUser, TldrawAppUserRecordType, tldrawAppUserMigrations } from './TldrawAppUser'
 
 export type TldrawAppRecord =
 	| TldrawAppFile
@@ -28,6 +28,6 @@ export const tldrawAppSchema = StoreSchema.create<TldrawAppRecord>(
 		session: TldrawAppSessionStateRecordType,
 	},
 	{
-		migrations: [migrations],
+		migrations: [migrations, tldrawAppUserMigrations],
 	}
 )
