@@ -1,7 +1,7 @@
 import { SerializedSchema, TLRecord, fetch } from 'tldraw'
 import { IFrameProtector, ROOM_CONTEXT } from '../../components/IFrameProtector'
-import { SnapshotsEditor } from '../../components/SnapshotsEditor'
 import { defineLoader } from '../../utils/defineLoader'
+import { TlaSnapshotsEditor } from '../components/TlaEditor/TlaSnapshotsEditor'
 
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
@@ -24,7 +24,7 @@ export function Component() {
 	const { roomId, records, schema } = result
 	return (
 		<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
-			<SnapshotsEditor records={records} schema={schema} />
+			<TlaSnapshotsEditor records={records} schema={schema} />
 		</IFrameProtector>
 	)
 }
