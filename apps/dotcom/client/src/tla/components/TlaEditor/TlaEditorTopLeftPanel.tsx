@@ -22,10 +22,12 @@ export function TlaEditorTopLeftPanel() {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
+	const hasAuth = !!app
+
 	return (
 		<div ref={ref} className={classNames(styles.topPanelLeft)}>
 			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
-				{app ? <TlaEditorTopLeftPanelSignedIn /> : <TlaEditorTopLeftPanelAnonymous />}
+				{hasAuth ? <TlaEditorTopLeftPanelSignedIn /> : <TlaEditorTopLeftPanelAnonymous />}
 			</div>
 		</div>
 	)
@@ -51,9 +53,10 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 export function TlaEditorTopLeftPanelSignedIn() {
 	const raw = useRaw()
+	const editor = useEditor()
+
 	const app = useApp()
 	const fileId = useCurrentFileId()
-	const editor = useEditor()
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
@@ -65,6 +68,9 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
+			// don't allow guests to update the file name
+			const file = app.getFileName(fileId)
+			if (!file) return
 			app.store.update(fileId, (file) => ({ ...file, name }))
 		},
 		[app, fileId]
