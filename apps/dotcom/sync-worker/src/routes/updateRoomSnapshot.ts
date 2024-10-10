@@ -1,6 +1,6 @@
 import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { uniqueId } from '@tldraw/utils'
+import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
@@ -11,22 +11,21 @@ export interface R2Snapshot {
 	drawing: RoomSnapshot
 }
 
-export async function createRoomSnapshot(
-	request: IRequest,
-	env: Environment,
-	isApp: boolean
-): Promise<Response> {
+export async function updateRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
+	const snapshotSlug = request.params.roomId
+	if (!snapshotSlug) return notFound()
 	const data = (await request.json()) as CreateSnapshotRequestBody
 
 	const snapshotResult = validateSnapshot(data)
 	if (!snapshotResult.ok) {
 		return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })
 	}
-
-	const roomId = `v2_c_${uniqueId()}`
-
+	const parentSlug = data.parent_slug
+	if (!parentSlug) {
+		return notFound()
+	}
 	const persistedRoomSnapshot = {
-		parent_slug: data.parent_slug,
+		parent_slug: parentSlug,
 		drawing: {
 			schema: data.schema,
 			clock: 0,
@@ -38,14 +37,9 @@ export async function createRoomSnapshot(
 		},
 	} satisfies R2Snapshot
 
-	const parentSlug = data.parent_slug
-	if (parentSlug) {
-		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(roomId, parentSlug)
-	}
 	await env.ROOM_SNAPSHOTS.put(
-		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp }),
+		getR2KeyForSnapshot({ parentSlug, snapshotSlug, isApp: true }),
 		JSON.stringify(persistedRoomSnapshot)
 	)
-
-	return new Response(JSON.stringify({ error: false, roomId }))
+	return new Response(JSON.stringify({ error: false }))
 }

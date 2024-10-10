@@ -13,6 +13,7 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
+import { TlaPublishPage } from './TlaPublishPage'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({
@@ -27,6 +28,8 @@ export function TlaFileShareMenu({
 	const app = useApp()
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
+	const storeUser = app.store.get(app.getCurrentUserId())
+	const publish = storeUser?.flags?.publish
 
 	const shareMenuActiveTab = useValue(
 		'share menu active tab',
@@ -57,9 +60,11 @@ export function TlaFileShareMenu({
 						<TlaTabsTabs>
 							<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
 							<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
+							{publish && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
 						</TlaTabsTabs>
 						<TlaShareMenuSharePage fileId={fileId} />
 						<TlaShareMenuExportPage />
+						{publish && <TlaPublishPage />}
 					</TlaTabsRoot>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>

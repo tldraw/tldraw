@@ -22,7 +22,7 @@ export interface TldrawAppSessionState
 	auth?: {
 		userId: TldrawAppUserId // null,
 	}
-	shareMenuActiveTab: 'share' | 'export'
+	shareMenuActiveTab: 'share' | 'export' | 'publish'
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
 	views: {
 		[key: string]: TldrawAppViewState
@@ -41,7 +41,7 @@ export const tldrawAppSessionStateValidator: T.Validator<TldrawAppSessionState> 
 		id: idValidator<TldrawAppSessionStateId>('session'),
 		isSidebarOpen: T.boolean,
 		isSidebarOpenMobile: T.boolean,
-		shareMenuActiveTab: T.literalEnum('share', 'export'),
+		shareMenuActiveTab: T.literalEnum('share', 'export', 'publish'),
 		sidebarActiveTab: T.literalEnum('recent', 'groups', 'shared', 'drafts', 'starred'),
 		views: T.dict(
 			T.string,
