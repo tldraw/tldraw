@@ -1,3 +1,16 @@
+# v3.3.1 (Thu Oct 10 2024)
+
+#### 🐛 Bug Fix
+
+- [fix] Meta key bug (#4701) [#4703](https://github.com/tldraw/tldraw/pull/4703) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 2
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.3.0 (Wed Oct 09 2024)
 
 ### Release Notes
