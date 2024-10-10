@@ -1,6 +1,6 @@
 import { modulate } from '@tldraw/utils'
 import { useEditor } from '../../hooks/useEditor'
-import { useSafeId } from '../../hooks/useSafeId'
+import { suffixSafeId, useUniqueSafeId } from '../../hooks/useSafeId'
 
 /** @public */
 export interface TLGridProps {
@@ -12,7 +12,7 @@ export interface TLGridProps {
 
 /** @public @react */
 export function DefaultGrid({ x, y, z, size }: TLGridProps) {
-	const id = `grid_${useSafeId()}`
+	const id = useUniqueSafeId('grid')
 	const editor = useEditor()
 	const { gridSteps } = editor.options
 	return (
@@ -29,7 +29,7 @@ export function DefaultGrid({ x, y, z, size }: TLGridProps) {
 					return (
 						<pattern
 							key={i}
-							id={`${id}_${step}`}
+							id={suffixSafeId(id, `${step}`)}
 							width={s}
 							height={s}
 							patternUnits="userSpaceOnUse"

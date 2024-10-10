@@ -18,6 +18,7 @@ import {
 	createBindingId,
 	getIndexBetween,
 } from 'tldraw'
+import 'tldraw/tldraw.css'
 import snapShot from './snapshot.json'
 
 // The container shapes that can contain element shapes

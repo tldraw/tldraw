@@ -13,7 +13,6 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { useMaybeApp } from '../hooks/useAppState'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -25,16 +24,11 @@ if (!PUBLISHABLE_KEY) {
 }
 
 export function Component() {
-	const app = useMaybeApp()
-	const theme = useValue('theme', () => app?.getSessionState().theme ?? 'light', [app])
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-			<div
-				ref={setContainer}
-				className={`tla tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-			>
+			<div ref={setContainer} className={`tla tl-container`}>
 				{container && (
 					<ContainerProvider container={container}>
 						<InsideOfContainerContext>

@@ -32,6 +32,8 @@ import {
 	track,
 	useEditor,
 	useIsEditing,
+	useSharedSafeId,
+	useUniqueSafeId,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
@@ -608,7 +610,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		return (
 			<>
-				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
+				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
@@ -616,7 +618,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				</SVGContainer>
 				{showArrowLabel && (
 					<TextLabel
-						id={shape.id}
+						shapeId={shape.id}
 						classNamePrefix="tl-arrow"
 						type="arrow"
 						font={shape.props.font}
@@ -840,6 +842,10 @@ const ArrowSvg = track(function ArrowSvg({
 		[editor]
 	)
 
+	const clipPathId = useUniqueSafeId()
+	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
+	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
+
 	if (!info?.isValid) return null
 
 	const strokeWidth = STROKE_SIZES[shape.props.size] * shape.props.scale
@@ -876,8 +882,8 @@ const ArrowSvg = track(function ArrowSvg({
 							? bindings.start.props.isExact
 								? ''
 								: bindings.start.props.isPrecise
-									? 'url(#arrowhead-cross)'
-									: 'url(#arrowhead-dot)'
+									? `url(#${arrowheadCrossId})`
+									: `url(#${arrowheadDotId})`
 							: ''
 					}
 					markerEnd={
@@ -885,8 +891,8 @@ const ArrowSvg = track(function ArrowSvg({
 							? bindings.end.props.isExact
 								? ''
 								: bindings.end.props.isPrecise
-									? 'url(#arrowhead-cross)'
-									: 'url(#arrowhead-dot)'
+									? `url(#${arrowheadCrossId})`
+									: `url(#${arrowheadDotId})`
 							: ''
 					}
 					opacity={0.16}
@@ -907,8 +913,6 @@ const ArrowSvg = track(function ArrowSvg({
 
 	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
 	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
-
-	const clipPathId = sanitizeId(shape.id + '_clip')
 
 	return (
 		<>
@@ -1013,16 +1017,18 @@ const shapeAtTranslationStart = new WeakMap<
 >()
 
 function ArrowheadDotDef() {
+	const id = useSharedSafeId('arrowhead-dot')
 	return (
-		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
+		<marker id={id} className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
 			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
 		</marker>
 	)
 }
 
 function ArrowheadCrossDef() {
+	const id = useSharedSafeId('arrowhead-cross')
 	return (
-		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
+		<marker id={id} className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
 			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>

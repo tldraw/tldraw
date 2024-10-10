@@ -18,11 +18,13 @@ import {
 	Store,
 	TLStoreSnapshot,
 	TLUserPreferences,
+	assertExists,
 	computed,
 	createTLUser,
 	getUserPreferences,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
@@ -141,7 +143,7 @@ export class TldrawApp {
 			}
 			case 'recent': {
 				// never visited first, then recently visited first
-				return this.getUserRecentFiles(auth.userId, sessionState.createdAt).map((f) => f.file)
+				return this.getUserRecentFiles(sessionState.createdAt).map((f) => f.file)
 			}
 		}
 
@@ -206,10 +208,6 @@ export class TldrawApp {
 		return this.store.get(id) as T | undefined
 	}
 
-	getCurrentUserId() {
-		return this.getSessionState().auth?.userId
-	}
-
 	getCurrentUser(): TldrawAppUser | undefined {
 		const userId = this.getCurrentUserId()
 		if (!userId) return
@@ -220,11 +218,13 @@ export class TldrawApp {
 		return this.get(userId)
 	}
 
-	getUserOwnFiles(userId: TldrawAppUserId) {
+	getUserOwnFiles() {
+		const userId = this.getCurrentUserId()
 		return Array.from(new Set(this.getAll('file').filter((f) => f.owner === userId)))
 	}
 
-	getUserFileEdits(userId: TldrawAppUserId) {
+	getUserFileEdits() {
+		const userId = this.getCurrentUserId()
 		return this.store.allRecords().filter((r) => {
 			if (r.typeName !== 'file-edit') return
 			if (r.userId !== userId) return
@@ -232,13 +232,17 @@ export class TldrawApp {
 		}) as TldrawAppFileEdit[]
 	}
 
-	getUserRecentFiles(userId: TldrawAppUserId, sessionStart: number) {
+	getCurrentUserId() {
+		return assertExists(this.getSessionState().auth).userId
+	}
+
+	getUserRecentFiles(sessionStart: number) {
 		// For now, just the user's files; but generally we also want
 		// to get all files the user has access to, including shared files.
-		const fileRecords = this.getUserOwnFiles(userId)
+		const fileRecords = this.getUserOwnFiles()
 
 		// Now look at which files the user has edited
-		const fileEditRecords = this.getUserFileEdits(userId)
+		const fileEditRecords = this.getUserFileEdits()
 
 		// A map of file IDs to the most recent date we have for them
 		// the default date is the file's creation date; but we'll use the
@@ -289,9 +293,9 @@ export class TldrawApp {
 		)
 	}
 
-	createFile(ownerId: TldrawAppUserId | 'temporary', fileId?: TldrawAppFileId) {
+	createFile(fileId?: TldrawAppFileId) {
 		const file = TldrawAppFileRecordType.create({
-			owner: ownerId,
+			owner: this.getCurrentUserId(),
 			isEmpty: true,
 			id: fileId ?? TldrawAppFileRecordType.createId(),
 		})
@@ -301,8 +305,6 @@ export class TldrawApp {
 
 	getFileName(fileId: TldrawAppFileId) {
 		const file = this.store.get(fileId)
-		// TODO(david): handle 'shared with me' files that exist in other users's areas
-		// gonna require a message queue or something.
 		if (!file) return null
 		return TldrawApp.getFileName(file)
 	}

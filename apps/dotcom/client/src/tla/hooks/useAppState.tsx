@@ -27,7 +27,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const raw = useRaw()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
-		throw new Error('should have redirected in TlaAppProvider')
+		throw new Error('should have redirected in TlaRootProviders')
 	}
 
 	const store = useSync({

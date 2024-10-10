@@ -377,7 +377,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         }) => void;
         schema?: StoreSchema<R, any>;
     };
-    updateStore(updater: (store: RoomStoreMethods) => Promise<void> | void): Promise<void>;
+    updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
 // @internal (undocumented)

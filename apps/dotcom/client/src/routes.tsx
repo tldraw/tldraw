@@ -59,16 +59,13 @@ export const router = createRoutesFromElements(
 		</Route>
 		{/* begin tla */}
 		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-			<Route path="/q/local" lazy={() => import('./tla/pages/local')} />
-			<Route lazy={() => import('./tla/providers/TlaAppLoggedInProvider')}>
-				{/* If not redirected, then local */}
-				<Route path="/q" lazy={() => import('./tla/components/RedirectAtRoot')} />
-				{/* File view*/}
-				<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
+			<Route path="/q" lazy={() => import('./tla/pages/local')} />
+			{/* File view */}
+			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
+			{/* Views that require login */}
+			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
 				{/* User settings */}
-				<Route path="/q/profile" lazy={() => import('./tla/components/RequireAuthForUser')}>
-					<Route index lazy={() => import('./tla/pages/profile')} />
-				</Route>
+				<Route path="/q/profile" lazy={() => import('./tla/pages/profile')} />
 				{/* Internal */}
 				<Route path="/q/debug" lazy={() => import('./tla/pages/debug')} />
 			</Route>

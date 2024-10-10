@@ -1,9 +1,7 @@
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import {
-	DefaultDebugMenu,
-	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -30,8 +28,6 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
-import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
-import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
@@ -67,14 +63,6 @@ export const components: TLComponents = {
 		if (!app) return null
 		return <TlaEditorTopRightPanel />
 	},
-	DebugMenu: () => {
-		return (
-			<DefaultDebugMenu>
-				<DefaultDebugMenuContent />
-				<DebugMenuItems />
-			</DefaultDebugMenu>
-		)
-	},
 	TopPanel: () => {
 		const collaborationStatus = useCollaborationStatus()
 		if (collaborationStatus === 'offline') return null
@@ -98,11 +86,11 @@ export const components: TLComponents = {
 export function TlaEditor({
 	fileSlug,
 	onDocumentChange,
-	temporary,
+	isCreateMode,
 }: {
 	fileSlug: string
 	onDocumentChange?(): void
-	temporary?: boolean
+	isCreateMode?: boolean
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -110,6 +98,15 @@ export function TlaEditor({
 	const [ready, setReady] = useState(false)
 
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+
+	useLayoutEffect(() => {
+		setReady(false)
+		// Set the editor to ready after a short delay
+		const timeout = setTimeout(() => setReady(true), 200)
+		return () => {
+			clearTimeout(timeout)
+		}
+	}, [fileId])
 
 	const handleMount = useCallback((editor: Editor) => {
 		;(window as any).app = editor
@@ -119,9 +116,6 @@ export function TlaEditor({
 
 		// Register the external asset handler
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-
-		// Set the editor to ready after a short delay
-		editor.timers.setTimeout(() => setReady(true), 200)
 	}, [])
 
 	// Handle entering and exiting the file
@@ -166,11 +160,11 @@ export function TlaEditor({
 			if (user) {
 				url.searchParams.set('accessToken', await user.getToken())
 			}
-			if (temporary) {
-				url.searchParams.set('temporary', 'true')
+			if (isCreateMode) {
+				url.searchParams.set('isCreateMode', 'true')
 			}
 			return url.toString()
-		}, [user, fileSlug, temporary]),
+		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
 	})
 
@@ -185,7 +179,6 @@ export function TlaEditor({
 				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
-				<LocalMigration />
 				<ThemeUpdater />
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />

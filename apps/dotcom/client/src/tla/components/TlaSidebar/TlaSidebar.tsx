@@ -90,7 +90,7 @@ function TlaSidebarCreateFileButton() {
 				owner: auth.userId,
 			}),
 		])
-		navigate(getFileUrl(id))
+		navigate(getFileUrl(id), { state: { isCreateMode: true } })
 	}, [app, navigate])
 
 	return (
@@ -140,7 +140,7 @@ function TlaSidebarRecentFiles() {
 			const { auth, createdAt: sessionStart } = app.getSessionState()
 			if (!auth) return false
 
-			return app.getUserRecentFiles(auth.userId, sessionStart)
+			return app.getUserRecentFiles(sessionStart)
 		},
 		[app]
 	)

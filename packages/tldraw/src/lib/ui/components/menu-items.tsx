@@ -21,6 +21,7 @@ import {
 	useUnlockedSelectedShapesCount,
 } from '../hooks/menu-hooks'
 import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
+import { useReadonly } from '../hooks/useReadonly'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
@@ -313,7 +314,9 @@ export function DeleteMenuItem() {
 
 /** @public @react */
 export function EditMenuSubmenu() {
+	const isReadonlyMode = useReadonly()
 	if (!useAnySelectedShapesCount(1)) return null
+	if (isReadonlyMode) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
@@ -335,7 +338,9 @@ export function EditMenuSubmenu() {
 export function ArrangeMenuSubmenu() {
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
+	const isReadonlyMode = useReadonly()
 
+	if (isReadonlyMode) return null
 	if (!(twoSelected || onlyFlippableShapeSelected)) return null
 
 	return (
@@ -395,7 +400,9 @@ function OrderMenuGroup() {
 }
 /** @public @react */
 export function ReorderMenuSubmenu() {
+	const isReadonlyMode = useReadonly()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
+	if (isReadonlyMode) return null
 	if (!oneSelected) return null
 
 	return (
@@ -416,9 +423,11 @@ export function MoveToPageMenu() {
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 	const { addToast } = useToasts()
 	const trackEvent = useUiEvents()
-
+	const isReadonlyMode = useReadonly()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
+
 	if (!oneSelected) return null
+	if (isReadonlyMode) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="move-to-page" label="context-menu.move-to-page" size="small">

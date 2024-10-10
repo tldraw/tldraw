@@ -12,15 +12,13 @@ import { Button } from '../common/button'
 
 export function Demo() {
 	const [showCanvas, setShowCanvas] = useState<boolean>(false)
-	const [isLoading, setIsLoading] = useState<boolean>(false)
 
 	const onClick = () => {
-		setIsLoading(true)
 		setShowCanvas(true)
 	}
 
 	const skeletonTldraw = (
-		<div className="absolute inset-0 bg-[#FBFCFE] cursor-pointer" onClick={onClick}>
+		<div className="absolute inset-0 z-20 bg-[#FBFCFE] cursor-pointer" onClick={onClick}>
 			<Image
 				src={LgTl}
 				alt="Tldraw UI"
@@ -52,26 +50,17 @@ export function Demo() {
 				className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[350px] h-auto sm:hidden"
 			/>
 			<div className="absolute inset-0 bg-[#FBFCFE]/50 flex items-center justify-center">
-				<Button
-					onClick={onClick}
-					caption={isLoading ? 'Loading…' : 'Try it'}
-					icon="play"
-					className="shadow"
-				/>
+				<Button onClick={onClick} caption={'Try it'} icon="play" className="shadow" />
 			</div>
 		</div>
 	)
 
 	return (
-		<div className="w-full">
-			<div className="w-full bg-blue-500 py-1 md:rounded-2xl md:px-1 mt-1 h-96 sm:h-[40rem] max-h-[80vh]">
-				<div className="relative w-full h-full overflow-hidden bg-white shadow md:rounded-xl">
-					{!showCanvas && skeletonTldraw}
-					<Suspense fallback={skeletonTldraw}>
-						<DemoTldraw hidden={!showCanvas} />
-					</Suspense>
-				</div>
-			</div>
+		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden">
+			<Suspense fallback={skeletonTldraw}>
+				<DemoTldraw hidden={false} />
+			</Suspense>
+			{!showCanvas && skeletonTldraw}
 		</div>
 	)
 }

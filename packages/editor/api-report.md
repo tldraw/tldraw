@@ -2120,6 +2120,11 @@ export const runtime: {
     refreshPage(): void;
 };
 
+// @internal
+export type SafeId = string & {
+    __brand: 'SafeId';
+};
+
 // @internal (undocumented)
 export function sanitizeId(id: string): string;
 
@@ -2428,11 +2433,14 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 // @public (undocumented)
 export const stopEventPropagation: (e: any) => any;
 
+// @internal (undocumented)
+export function suffixSafeId(id: SafeId, suffix: string): SafeId;
+
 // @public (undocumented)
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
 
 // @public (undocumented)
-export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
+export type SVGContainerProps = React_3.ComponentProps<'svg'>;
 
 // @public (undocumented)
 export interface SvgExportContext {
@@ -3760,9 +3768,6 @@ export class UserPreferencesManager {
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUserPreferences>;
 
-// @internal
-export function useSafeId(): string;
-
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {
     onPointerDown: PointerEventHandler<Element>;
@@ -3775,6 +3780,9 @@ export function useShallowArrayIdentity<T extends null | readonly any[] | undefi
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
+
+// @internal
+export function useSharedSafeId(id: string): SafeId;
 
 export { useStateTracking }
 
@@ -3795,6 +3803,9 @@ export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
+
+// @internal
+export function useUniqueSafeId(suffix?: string): SafeId;
 
 export { useValue }
 

@@ -15,9 +15,9 @@ import {
 	imageShapeProps,
 	lerp,
 	resizeBox,
-	sanitizeId,
 	structuredClone,
 	toDomPrecision,
+	useUniqueSafeId,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
@@ -280,55 +280,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			src = (await getDataURIFromURL(src)) || ''
 		}
 
-		const containerStyle = getCroppedContainerStyle(shape)
-		const crop = shape.props.crop
-		if (containerStyle.transform && crop) {
-			const { transform: cropTransform, width, height } = containerStyle
-			const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
-			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
-
-			const points = [
-				new Vec(0, 0),
-				new Vec(croppedWidth, 0),
-				new Vec(croppedWidth, croppedHeight),
-				new Vec(0, croppedHeight),
-			]
-
-			const cropClipId = `cropClipPath_${sanitizeId(shape.id)}`
-
-			const flip = getFlipStyle(shape, { width, height })
-
-			return (
-				<>
-					<defs>
-						<clipPath id={cropClipId}>
-							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
-						</clipPath>
-					</defs>
-					<g clipPath={`url(#${cropClipId})`}>
-						<image
-							href={src}
-							width={width}
-							height={height}
-							style={
-								flip
-									? { ...flip, transform: `${cropTransform} ${flip.transform}` }
-									: { transform: cropTransform }
-							}
-						/>
-					</g>
-				</>
-			)
-		} else {
-			return (
-				<image
-					href={src}
-					width={shape.props.w}
-					height={shape.props.h}
-					style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
-				/>
-			)
-		}
+		return <SvgImage shape={shape} src={src} />
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -441,5 +393,56 @@ function getFlipStyle(shape: TLImageShape, size?: { width: number; height: numbe
 		transform: `${translate} ${scale}`,
 		// in SVG, flipping around the center doesn't work so we use explicit width/height
 		transformOrigin: size ? '0 0' : 'center center',
+	}
+}
+
+function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
+	const cropClipId = useUniqueSafeId()
+	const containerStyle = getCroppedContainerStyle(shape)
+	const crop = shape.props.crop
+	if (containerStyle.transform && crop) {
+		const { transform: cropTransform, width, height } = containerStyle
+		const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
+		const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
+
+		const points = [
+			new Vec(0, 0),
+			new Vec(croppedWidth, 0),
+			new Vec(croppedWidth, croppedHeight),
+			new Vec(0, croppedHeight),
+		]
+
+		const flip = getFlipStyle(shape, { width, height })
+
+		return (
+			<>
+				<defs>
+					<clipPath id={cropClipId}>
+						<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+					</clipPath>
+				</defs>
+				<g clipPath={`url(#${cropClipId})`}>
+					<image
+						href={src}
+						width={width}
+						height={height}
+						style={
+							flip
+								? { ...flip, transform: `${cropTransform} ${flip.transform}` }
+								: { transform: cropTransform }
+						}
+					/>
+				</g>
+			</>
+		)
+	} else {
+		return (
+			<image
+				href={src}
+				width={shape.props.w}
+				height={shape.props.h}
+				style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
+			/>
+		)
 	}
 }

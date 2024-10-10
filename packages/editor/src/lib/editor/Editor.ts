@@ -9164,7 +9164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@bind
 	_setMetaKeyTimeout() {
-		this.inputs.shiftKey = false
+		this.inputs.metaKey = false
 		this.dispatch({
 			type: 'keyboard',
 			name: 'key_up',

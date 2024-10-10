@@ -119,13 +119,13 @@ export type TLUiEventData<K> = K extends null
 	: { source: TLUiEventSource } & K
 
 /** @public */
-export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (
+export type TLUiEventHandler = <T extends keyof TLUiEventMap>(
 	name: T,
 	data: TLUiEventData<TLUiEventMap[T]>
 ) => void
 
 /** @public */
-export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
+export type TLUiEventContextType = TLUiEventHandler
 
 /** @internal */
 const defaultEventHandler: TLUiEventContextType = () => void null
