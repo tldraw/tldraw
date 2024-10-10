@@ -88,12 +88,7 @@ function TlaSidebarCreateFileButton() {
 		if (!auth) return false
 
 		const id = TldrawAppFileRecordType.createId()
-		app.store.put([
-			TldrawAppFileRecordType.create({
-				id,
-				owner: auth.userId,
-			}),
-		])
+		app.store.put([TldrawAppFileRecordType.create({ id, ownerId: auth.userId })])
 		navigate(getFileUrl(id), { state: { isCreateMode: true } })
 	}, [app, navigate])
 
@@ -112,10 +107,9 @@ function TlaSidebarUserLink() {
 		() => {
 			const { auth } = app.getSessionState()
 			if (!auth) return false
-			const user = app.store.get(auth.userId)!
 			return {
 				auth,
-				user,
+				user: app.getCurrentUser(),
 			}
 		},
 		[app]

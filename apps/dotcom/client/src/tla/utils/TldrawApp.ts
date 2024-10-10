@@ -184,20 +184,24 @@ export class TldrawApp {
 
 	getUserOwnFiles() {
 		const userId = this.getCurrentUserId()
-		return Array.from(new Set(this.getAll('file').filter((f) => f.owner === userId)))
+		return Array.from(new Set(this.getAll('file').filter((f) => f.ownerId === userId)))
 	}
 
 	getUserFileEdits() {
 		const userId = this.getCurrentUserId()
 		return this.store.allRecords().filter((r) => {
 			if (r.typeName !== 'file-edit') return
-			if (r.userId !== userId) return
+			if (r.ownerId !== userId) return
 			return true
 		}) as TldrawAppFileEdit[]
 	}
 
 	getCurrentUserId() {
 		return assertExists(this.getSessionState().auth).userId
+	}
+
+	getCurrentUser() {
+		return assertExists(this.getUser(this.getCurrentUserId()), 'no current user')
 	}
 
 	getUserRecentFiles(sessionStart: number) {
@@ -240,16 +244,17 @@ export class TldrawApp {
 		return Object.values(filesToDates).sort((a, b) => b.date - a.date)
 	}
 
-	getUserSharedFiles(userId: TldrawAppUserId) {
+	getUserSharedFiles() {
+		const userId = this.getCurrentUserId()
 		return Array.from(
 			new Set(
 				this.getAll('file-visit')
-					.filter((r) => r.userId === userId)
+					.filter((r) => r.ownerId === userId)
 					.map((s) => {
 						const file = this.get<TldrawAppFile>(s.fileId)
 						if (!file) return
 						// skip files where the owner is the current user
-						if (file.owner === userId) return
+						if (file.ownerId === userId) return
 						return file
 					})
 					.filter(Boolean) as TldrawAppFile[]
@@ -259,7 +264,7 @@ export class TldrawApp {
 
 	createFile(fileId?: TldrawAppFileId) {
 		const file = TldrawAppFileRecordType.create({
-			owner: this.getCurrentUserId(),
+			ownerId: this.getCurrentUserId(),
 			isEmpty: true,
 			id: fileId ?? TldrawAppFileRecordType.createId(),
 		})
@@ -273,12 +278,12 @@ export class TldrawApp {
 		return TldrawApp.getFileName(file)
 	}
 
-	claimTemporaryFile(fileId: TldrawAppFileId, owner: TldrawAppUserId) {
+	claimTemporaryFile(fileId: TldrawAppFileId) {
 		// TODO(david): check that you can't claim someone else's file (the db insert should fail and trigger a resync)
 		this.store.put([
 			TldrawAppFileRecordType.create({
 				id: fileId,
-				owner,
+				ownerId: this.getCurrentUserId(),
 			}),
 		])
 	}
@@ -299,7 +304,7 @@ export class TldrawApp {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
-		if (userId !== file.owner) {
+		if (userId !== file.ownerId) {
 			throw Error('user cannot edit that file')
 		}
 
@@ -314,7 +319,7 @@ export class TldrawApp {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
-		if (userId !== file.owner) {
+		if (userId !== file.ownerId) {
 			throw Error('user cannot edit that file')
 		}
 
@@ -333,7 +338,7 @@ export class TldrawApp {
 		const newFile = TldrawAppFileRecordType.create({
 			...file,
 			id: TldrawAppFileRecordType.createId(),
-			owner: userId,
+			ownerId: userId,
 			// todo: maybe iterate the file name
 			createdAt: Date.now(),
 		})
@@ -361,13 +366,12 @@ export class TldrawApp {
 		return new Promise((r) => setTimeout(r, 2000))
 	}
 
-	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-
+	onFileEnter(fileId: TldrawAppFileId) {
+		const userId = this.getCurrentUserId()
+		const user = this.store.get(userId) as TldrawAppUser
 		this.store.put([
 			TldrawAppFileVisitRecordType.create({
-				userId,
+				ownerId: userId,
 				fileId,
 			}),
 			{
@@ -380,40 +384,28 @@ export class TldrawApp {
 		])
 	}
 
-	setUserExportBackground(userId: TldrawAppUserId, exportBackground: boolean) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportBackground }])
+	setUserExportBackground(exportBackground: boolean) {
+		this.store.put([{ ...this.getCurrentUser(), exportBackground }])
 	}
 
-	setUserExportPadding(userId: TldrawAppUserId, exportPadding: boolean) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportPadding }])
+	setUserExportPadding(exportPadding: boolean) {
+		this.store.put([{ ...this.getCurrentUser(), exportPadding }])
 	}
 
-	setUserExportFormat(userId: TldrawAppUserId, exportFormat: TldrawAppUser['exportFormat']) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportFormat }])
+	setUserExportFormat(exportFormat: TldrawAppUser['exportFormat']) {
+		this.store.put([{ ...this.getCurrentUser(), exportFormat }])
 	}
 
-	setUserExportTheme(userId: TldrawAppUserId, exportTheme: TldrawAppUser['exportTheme']) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportTheme }])
+	setUserExportTheme(exportTheme: TldrawAppUser['exportTheme']) {
+		this.store.put([{ ...this.getCurrentUser(), exportTheme }])
 	}
 
-	onFileEdit(
-		userId: TldrawAppUserId,
-		fileId: TldrawAppFileId,
-		sessionStartedAt: number,
-		fileOpenedAt: number
-	) {
+	onFileEdit(fileId: TldrawAppFileId, sessionStartedAt: number, fileOpenedAt: number) {
+		const userId = this.getCurrentUserId()
 		// Find the store's most recent file edit record for this user
 		const fileEdit = this.store
 			.allRecords()
-			.filter((r) => r.typeName === 'file-edit' && r.fileId === fileId && r.userId === userId)
+			.filter((r) => r.typeName === 'file-edit' && r.fileId === fileId && r.ownerId === userId)
 			.sort((a, b) => b.createdAt - a.createdAt)[0] as TldrawAppFileEdit | undefined
 
 		// If the most recent file edit is part of this session or a later session, ignore it
@@ -424,7 +416,7 @@ export class TldrawApp {
 		// Create the file edit record
 		this.store.put([
 			TldrawAppFileEditRecordType.create({
-				userId,
+				ownerId: userId,
 				fileId,
 				sessionStartedAt,
 				fileOpenedAt,
@@ -432,9 +424,8 @@ export class TldrawApp {
 		])
 	}
 
-	onFileExit(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
-		const user = this.store.get(userId)
-		if (!user) return
+	onFileExit(fileId: TldrawAppFileId) {
+		const user = this.getCurrentUser()
 
 		this.store.put([
 			{
@@ -472,6 +463,7 @@ export class TldrawApp {
 			store.put([
 				TldrawAppUserRecordType.create({
 					id: userId,
+					ownerId: userId,
 					name: opts.fullName,
 					email: opts.email,
 					color: 'salmon',
