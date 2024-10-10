@@ -95,7 +95,8 @@
 }
 
 @media (hover: hover) {
-	.tlui-button::after {
+	.tlui-button:not(.tlui-menu__submenu__trigger)::after,
+	.tlui-button.tlui-menu__submenu__trigger[data-highlighted]::after {
 		background-color: var(--color-muted-2);
 		opacity: 0;
 	}
@@ -997,12 +998,12 @@
 }
 
 .tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
-	border-radius: var(--radius-1);
+	border-radius: var(--radius-2);
 	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
 .tlui-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
-	border-radius: var(--radius-1);
+	border-radius: var(--radius-2);
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
