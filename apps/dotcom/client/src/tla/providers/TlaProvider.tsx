@@ -15,7 +15,6 @@ import {
 	TldrawUiTranslationProvider,
 	useValue,
 } from 'tldraw'
-import 'tldraw/tldraw.css'
 import { AppStateProvider } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
