@@ -1,6 +1,6 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
-import { ReactNode, useCallback, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -13,7 +13,7 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
+import { AppStateProvider, useApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 
@@ -27,9 +27,9 @@ if (!PUBLISHABLE_KEY) {
 }
 
 export function Component() {
-	const app = useMaybeApp()
-	const theme = useValue('theme', () => app?.getSessionState().theme ?? 'light', [app])
 	const [container, setContainer] = useState<HTMLElement | null>(null)
+	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
+	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
@@ -40,7 +40,7 @@ export function Component() {
 				{container && (
 					<ContainerProvider container={container}>
 						<InsideOfContainerContext>
-							<SignedInProvider />
+							<SignedInProvider onThemeChange={handleThemeChange} />
 						</InsideOfContainerContext>
 					</ContainerProvider>
 				)}
@@ -73,7 +73,11 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 	)
 }
 
-function SignedInProvider() {
+function SignedInProvider({
+	onThemeChange,
+}: {
+	onThemeChange(theme: 'light' | 'dark' | 'system'): void
+}) {
 	const auth = useAuth()
 
 	if (!auth.isLoaded) return null
@@ -85,8 +89,27 @@ function SignedInProvider() {
 	return (
 		<AppStateProvider>
 			<UserProvider>
-				<Outlet />
+				<ThemeContainer onThemeChange={onThemeChange}>
+					<Outlet />
+				</ThemeContainer>
 			</UserProvider>
 		</AppStateProvider>
 	)
+}
+
+function ThemeContainer({
+	children,
+	onThemeChange,
+}: {
+	children: ReactNode
+	onThemeChange(theme: 'light' | 'dark' | 'system'): void
+}) {
+	const app = useApp()
+	const theme = useValue('theme', () => app?.getCurrentUser()?.colorScheme ?? 'light', [app])
+
+	useEffect(() => {
+		onThemeChange(theme)
+	}, [theme, onThemeChange])
+
+	return children
 }
