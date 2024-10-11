@@ -19,7 +19,7 @@ export interface TldrawAppSessionState {
 		}
 	}
 	flags: { [key: string]: boolean }
-	preferences: Pick<
+	exportSettings: Pick<
 		TldrawAppUser,
 		'exportFormat' | 'exportTheme' | 'exportBackground' | 'exportPadding'
 	>
@@ -34,7 +34,7 @@ let prev: TldrawAppSessionState = {
 	theme: 'light',
 	views: {},
 	flags: {},
-	preferences: {
+	exportSettings: {
 		exportFormat: 'png',
 		exportTheme: 'auto',
 		exportBackground: true,

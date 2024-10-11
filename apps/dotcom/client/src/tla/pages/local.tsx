@@ -35,7 +35,6 @@ function LocalTldraw() {
 	return (
 		<TlaAnonLayout>
 			<TlaEditor
-				isAnonUser
 				isCreateMode
 				key={fileSlug}
 				fileSlug={fileSlug}

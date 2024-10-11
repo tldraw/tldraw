@@ -14,7 +14,7 @@ export function Component() {
 	if (!app) {
 		return (
 			<TlaAnonLayout>
-				<TlaEditor fileSlug={fileSlug} isCreateMode={false} isAnonUser={true} />
+				<TlaEditor fileSlug={fileSlug} isCreateMode={false} />
 			</TlaAnonLayout>
 		)
 	}

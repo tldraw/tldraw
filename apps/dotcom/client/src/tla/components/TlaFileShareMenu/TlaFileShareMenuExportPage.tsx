@@ -39,15 +39,15 @@ export function TlaShareMenuExportPage() {
 	const preferences = useValue('preferences', () => getExportPreferences(app), [app])
 
 	const onChange = useCallback(
-		<T extends keyof TldrawAppSessionState['preferences']>(
+		<T extends keyof TldrawAppSessionState['exportSettings']>(
 			key: T,
-			value: TldrawAppSessionState['preferences'][T]
+			value: TldrawAppSessionState['exportSettings'][T]
 		) => {
 			const userId = getLocalSessionState().auth?.userId
 			if (app && userId) {
 				app.updateUserExportPreferences(userId, { [key]: value })
 			} else {
-				updateLocalSessionState((s) => ({ preferences: { ...s.preferences, [key]: value } }))
+				updateLocalSessionState((s) => ({ exportSettings: { ...s.exportSettings, [key]: value } }))
 			}
 		},
 		[app]
@@ -73,8 +73,11 @@ function ExportPaddingToggle({
 	value,
 	onChange,
 }: {
-	value: TldrawAppSessionState['preferences']['exportPadding']
-	onChange(key: 'exportPadding', value: TldrawAppSessionState['preferences']['exportPadding']): void
+	value: TldrawAppSessionState['exportSettings']['exportPadding']
+	onChange(
+		key: 'exportPadding',
+		value: TldrawAppSessionState['exportSettings']['exportPadding']
+	): void
 }) {
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
@@ -97,10 +100,10 @@ function ExportBackgroundToggle({
 	value,
 	onChange,
 }: {
-	value: TldrawAppSessionState['preferences']['exportBackground']
+	value: TldrawAppSessionState['exportSettings']['exportBackground']
 	onChange(
 		key: 'exportBackground',
-		value: TldrawAppSessionState['preferences']['exportBackground']
+		value: TldrawAppSessionState['exportSettings']['exportBackground']
 	): void
 }) {
 	const raw = useRaw()
@@ -124,14 +127,17 @@ function ExportFormatSelect({
 	value,
 	onChange,
 }: {
-	value: TldrawAppSessionState['preferences']['exportFormat']
-	onChange(key: 'exportFormat', value: TldrawAppSessionState['preferences']['exportFormat']): void
+	value: TldrawAppSessionState['exportSettings']['exportFormat']
+	onChange(
+		key: 'exportFormat',
+		value: TldrawAppSessionState['exportSettings']['exportFormat']
+	): void
 }) {
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(
-		(value: TldrawAppSessionState['preferences']['exportFormat']) => {
+		(value: TldrawAppSessionState['exportSettings']['exportFormat']) => {
 			onChange('exportFormat', value)
 			trackEvent('set-export-format', { format: value, source: 'file-share-menu' })
 		},
@@ -153,13 +159,13 @@ function ExportThemeSelect({
 	value,
 	onChange,
 }: {
-	value: TldrawAppSessionState['preferences']['exportTheme']
-	onChange(key: 'exportTheme', value: TldrawAppSessionState['preferences']['exportTheme']): void
+	value: TldrawAppSessionState['exportSettings']['exportTheme']
+	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = useCallback(
-		(value: TldrawAppSessionState['preferences']['exportTheme']) => {
+		(value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
 			onChange('exportTheme', value)
 			trackEvent('set-export-theme', { theme: value, source: 'file-share-menu' })
 		},
@@ -308,7 +314,7 @@ function ExportPreviewImage() {
 async function getEditorImage(
 	editor: Editor,
 	shapes: TLShape[],
-	preferences: TldrawAppSessionState['preferences'],
+	preferences: TldrawAppSessionState['exportSettings'],
 	cb: (info: { src: string; width: number; height: number }) => void
 ) {
 	const { exportPadding, exportBackground, exportTheme } = preferences
@@ -334,7 +340,7 @@ const getEditorImageSlowly = debounce(getEditorImage, 60)
 function getExportPreferences(app: TldrawApp | null) {
 	const sessionState = getLocalSessionState()
 
-	let { exportPadding, exportBackground, exportTheme, exportFormat } = sessionState.preferences
+	let { exportPadding, exportBackground, exportTheme, exportFormat } = sessionState.exportSettings
 
 	if (app && sessionState.auth) {
 		const user = app.getUser(sessionState.auth.userId)

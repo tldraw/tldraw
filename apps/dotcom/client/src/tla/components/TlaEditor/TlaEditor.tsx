@@ -101,12 +101,10 @@ export function TlaEditor({
 	fileSlug,
 	onDocumentChange,
 	isCreateMode,
-	isAnonUser,
 }: {
 	fileSlug: string
 	onDocumentChange?(): void
 	isCreateMode?: boolean
-	isAnonUser?: boolean
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -191,7 +189,7 @@ export function TlaEditor({
 				assetUrls={assetUrls}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={isAnonUser ? anonComponents : components}
+				components={!app ? anonComponents : components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<ThemeUpdater />
