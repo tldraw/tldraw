@@ -1,4 +1,4 @@
-import { ClerkProvider } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { ReactNode, useCallback, useState } from 'react'
 import { Outlet } from 'react-router-dom'
@@ -13,6 +13,8 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { components } from '../components/TlaEditor/TlaEditor'
+import { AppStateProvider, useApp } from '../hooks/useAppState'
+import { UserProvider } from '../hooks/useUser'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -32,7 +34,7 @@ export function Component() {
 				{container && (
 					<ContainerProvider container={container}>
 						<InsideOfContainerContext>
-							<Outlet />
+							<SignedInProvider />
 						</InsideOfContainerContext>
 					</ContainerProvider>
 				)}
@@ -62,5 +64,37 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				{currentEditor && <TldrawUiToasts />}
 			</MaybeUiContextProvider>
 		</MaybeEditorProvider>
+	)
+}
+
+function SignedInProvider() {
+	const auth = useAuth()
+
+	if (!auth.isLoaded) return null
+
+	if (!auth.isSignedIn) {
+		return <Outlet />
+	}
+
+	return (
+		<AppStateProvider>
+			<UserProvider>
+				<ThemeContainer>
+					<Outlet />
+				</ThemeContainer>
+			</UserProvider>
+		</AppStateProvider>
+	)
+}
+
+function ThemeContainer({ children }: { children: ReactNode }) {
+	const app = useApp()
+	const theme = useValue('theme', () => app?.getSessionState().theme ?? 'light', [app])
+	return (
+		<div
+			className={`tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+		>
+			{children}
+		</div>
 	)
 }
