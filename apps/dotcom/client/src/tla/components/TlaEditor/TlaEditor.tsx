@@ -30,7 +30,11 @@ import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
-import { TldrawApp } from '../../utils/TldrawApp'
+import {
+	getLocalSessionState,
+	getLocalSessionStateUnsafe,
+	updateLocalSessionState,
+} from '../../utils/local-session-state'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
@@ -112,7 +116,7 @@ export function TlaEditor({
 	useEffect(() => {
 		if (!app) return
 
-		const { auth } = app.getSessionState()
+		const { auth } = getLocalSessionState()
 		if (!auth) throw Error('Auth not found')
 
 		const user = app.getUser(auth.userId)
@@ -187,14 +191,13 @@ function SneakyDarkModeSync() {
 		'dark mode sync',
 		() => {
 			if (!app) return
-			const appIsDark =
-				app.store.unsafeGetWithoutCapture(TldrawApp.SessionStateId)!.theme === 'dark'
+			const appIsDark = getLocalSessionStateUnsafe()!.theme === 'dark'
 			const editorIsDark = editor.user.getIsDarkMode()
 
 			if (appIsDark && !editorIsDark) {
-				app.setSessionState({ ...app.getSessionState(), theme: 'light' })
+				updateLocalSessionState(() => ({ theme: 'light' }))
 			} else if (!appIsDark && editorIsDark) {
-				app.setSessionState({ ...app.getSessionState(), theme: 'dark' })
+				updateLocalSessionState(() => ({ theme: 'dark' }))
 			}
 		},
 		[app, editor]
@@ -238,7 +241,7 @@ function SneakyFileUpdateHandler({
 		return editor.store.listen(
 			() => {
 				if (!app) return
-				const sessionState = app.getSessionState()
+				const sessionState = getLocalSessionState()
 				if (!sessionState.auth) throw Error('Auth not found')
 				const user = app.getUser(sessionState.auth.userId)
 				if (!user) throw Error('User not found')

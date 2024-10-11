@@ -6,6 +6,7 @@ import { useValue } from 'tldraw'
 import { AppStateProvider, useApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { getLocalSessionState } from '../utils/local-session-state'
 import { TlaRootProviders } from './TlaRootProviders'
 
 export const assetUrls = getAssetUrlsByImport()
@@ -49,7 +50,7 @@ function SignedInProvider() {
 
 function ThemeContainer({ children }: { children: ReactNode }) {
 	const app = useApp()
-	const theme = useValue('theme', () => app?.getSessionState().theme ?? 'light', [app])
+	const theme = useValue('theme', () => getLocalSessionState().theme ?? 'light', [app])
 	return (
 		<div
 			className={`tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}

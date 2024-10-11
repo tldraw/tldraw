@@ -18,6 +18,7 @@ import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { getLocalSessionState } from '../../utils/local-session-state'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
@@ -184,7 +185,7 @@ function ExportImageButton() {
 		const editor = getCurrentEditor()
 
 		if (!editor) return
-		const sessionState = app.getSessionState()
+		const sessionState = getLocalSessionState()
 
 		const { auth } = sessionState
 		if (!auth) throw Error('expected auth')
@@ -249,7 +250,7 @@ function ExportPreviewImage() {
 			const editor = globalEditor.get()
 			if (!editor) return
 
-			const sessionState = app.getSessionState()
+			const sessionState = getLocalSessionState()
 
 			const { auth } = sessionState
 			if (!auth) throw Error('expected auth')

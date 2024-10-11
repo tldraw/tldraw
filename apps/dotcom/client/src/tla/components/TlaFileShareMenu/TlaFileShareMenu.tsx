@@ -7,9 +7,9 @@ import {
 	TldrawUiMenuContextProvider,
 	useValue,
 } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
@@ -24,22 +24,21 @@ export function TlaFileShareMenu({
 	source: string
 	children: ReactNode
 }) {
-	const app = useApp()
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const shareMenuActiveTab = useValue(
 		'share menu active tab',
-		() => app.getSessionState().shareMenuActiveTab,
-		[app]
+		() => getLocalSessionState().shareMenuActiveTab,
+		[]
 	)
 
 	const handleTabChange = useCallback(
 		(value: TldrawAppSessionState['shareMenuActiveTab']) => {
-			app.setShareMenuActiveTab(value)
+			updateLocalSessionState(() => ({ shareMenuActiveTab: value }))
 			trackEvent('change-share-menu-tab', { tab: value, source: 'file-share-menu' })
 		},
-		[app, trackEvent]
+		[trackEvent]
 	)
 
 	return (

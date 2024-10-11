@@ -6,6 +6,7 @@ import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { getLocalSessionState } from '../../utils/local-session-state'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
@@ -147,7 +148,7 @@ function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 	const { addToast } = useToasts()
 
 	const handleCopyLinkClick = useCallback(() => {
-		const { auth } = app.getSessionState()
+		const { auth } = getLocalSessionState()
 		if (!auth) throw Error('should have auth')
 		const { userId } = auth
 
@@ -178,7 +179,7 @@ function QrCode({ fileId }: { fileId: TldrawAppFileId }) {
 
 	const app = useApp()
 
-	const theme = useValue('is dark mode', () => app.getSessionState().theme, [app])
+	const theme = useValue('is dark mode', () => getLocalSessionState().theme, [app])
 
 	useEffect(() => {
 		if (!qrCode) {
