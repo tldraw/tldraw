@@ -36,7 +36,15 @@ try {
 	const stored = getFromLocalStorage('tldrawapp_session_2')
 	const prevStored = stored ? JSON.parse(stored) : null
 	if (prevStored) {
-		prev = { ...prev, ...(prevStored as TldrawAppSessionState), auth: undefined }
+		prev = {
+			...prev,
+			...(prevStored as TldrawAppSessionState),
+			// forced initial values
+			createdAt: Date.now(),
+			isSidebarOpen: false,
+			isSidebarOpenMobile: false,
+			auth: undefined,
+		}
 	}
 } catch (e) {
 	// noop

@@ -47,3 +47,14 @@
 		border-left: 1px solid var(--tla-color-border);
 	}
 }
+
+.anonStylePanel {
+	display: flex;
+	flex-direction: row;
+	position: relative;
+	padding-top: 4px;
+}
+
+.anonStylePanel > button:nth-of-type(1) {
+	margin-top: 4px;
+}

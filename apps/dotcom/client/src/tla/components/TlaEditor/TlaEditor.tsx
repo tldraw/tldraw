@@ -7,8 +7,10 @@ import {
 	DefaultMainMenu,
 	DefaultQuickActions,
 	DefaultQuickActionsContent,
+	DefaultStylePanel,
 	Editor,
 	OfflineIndicator,
+	PeopleMenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -77,14 +79,28 @@ const components: TLComponents = {
 	},
 }
 
+const anonComponents = {
+	...components,
+	StylePanel: () => {
+		return (
+			<div className={styles.anonStylePanel}>
+				<PeopleMenu />
+				<DefaultStylePanel />
+			</div>
+		)
+	},
+}
+
 export function TlaEditor({
 	fileSlug,
 	onDocumentChange,
 	isCreateMode,
+	isAnonUser,
 }: {
 	fileSlug: string
 	onDocumentChange?(): void
 	isCreateMode?: boolean
+	isAnonUser?: boolean
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -169,7 +185,7 @@ export function TlaEditor({
 				assetUrls={assetUrls}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={components}
+				components={isAnonUser ? anonComponents : components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<ThemeUpdater />
