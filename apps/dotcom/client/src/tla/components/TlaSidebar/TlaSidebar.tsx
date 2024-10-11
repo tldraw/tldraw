@@ -84,7 +84,7 @@ function TlaSidebarWorkspaceLink() {
 	return (
 		<div className={styles.workspace}>
 			<TlaIconWrapper data-size="m">
-				<TlaIcon icon="tldraw" />
+				<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" />
 			</TlaIconWrapper>
 			<div className={classNames(styles.label, 'tla-text_ui__title')}>{raw('tldraw')}</div>
 			<button className={styles.linkButton} />
