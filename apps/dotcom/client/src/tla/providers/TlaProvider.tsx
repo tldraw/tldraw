@@ -1,13 +1,25 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
-import { ReactNode } from 'react'
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import { useValue } from 'tldraw'
-import { AppStateProvider, useApp } from '../hooks/useAppState'
+import {
+	AssetUrlsProvider,
+	ContainerProvider,
+	TLUiEventHandler,
+	TldrawUiDialogs,
+	TldrawUiDialogsProvider,
+	TldrawUiEventsProvider,
+	TldrawUiToasts,
+	TldrawUiToastsProvider,
+	TldrawUiTranslationProvider,
+	useValue,
+} from 'tldraw'
+import 'tldraw/tldraw.css'
+import { AppStateProvider } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { getLocalSessionState } from '../utils/local-session-state'
-import { TlaRootProviders } from './TlaRootProviders'
+import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 
 export const assetUrls = getAssetUrlsByImport()
 
@@ -21,41 +33,74 @@ if (!PUBLISHABLE_KEY) {
 export function Component() {
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-			<TlaRootProviders>
-				<SignedInProvider />
-			</TlaRootProviders>
+			<SignedInProvider>
+				<ContainerContextProvider>
+					<UiContextProviders>
+						<Outlet />
+					</UiContextProviders>
+				</ContainerContextProvider>
+			</SignedInProvider>
 		</ClerkProvider>
 	)
 }
 
-function SignedInProvider() {
+function SignedInProvider({ children }: { children: ReactNode }) {
 	const auth = useAuth()
+	useEffect(() => {
+		if (auth.isSignedIn && auth.userId) {
+			updateLocalSessionState(() => ({
+				auth: { userId: TldrawAppUserRecordType.createId(auth.userId) },
+			}))
+		} else {
+			updateLocalSessionState(() => ({
+				auth: undefined,
+			}))
+		}
+	}, [auth.userId, auth.isSignedIn])
 
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn) {
-		return <Outlet />
+		return children
 	}
 
 	return (
 		<AppStateProvider>
-			<UserProvider>
-				<ThemeContainer>
-					<Outlet />
-				</ThemeContainer>
-			</UserProvider>
+			<UserProvider>{children}</UserProvider>
 		</AppStateProvider>
 	)
 }
 
-function ThemeContainer({ children }: { children: ReactNode }) {
-	const app = useApp()
-	const theme = useValue('theme', () => getLocalSessionState().theme ?? 'light', [app])
+function ContainerContextProvider({ children }: { children: ReactNode }) {
+	const [container, setContainer] = useState<HTMLElement | null>(null)
+
+	const theme = useValue('theme', () => getLocalSessionState().theme, [])
+
 	return (
-		<div
-			className={`tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-		>
-			{children}
+		<div ref={setContainer} className={`tla tl-container tla-theme__${theme}`}>
+			{container && <ContainerProvider container={container}>{children}</ContainerProvider>}
 		</div>
+	)
+}
+
+function UiContextProviders({ children }: { children: ReactNode }) {
+	const handleAppLevelUiEvent = useCallback<TLUiEventHandler>(() => {
+		// todo, implement handling ui events at the application layer
+	}, [])
+
+	return (
+		<AssetUrlsProvider assetUrls={assetUrls}>
+			<TldrawUiEventsProvider onEvent={handleAppLevelUiEvent}>
+				<TldrawUiTranslationProvider locale="en">
+					<TldrawUiDialogsProvider>
+						<TldrawUiToastsProvider>
+							{children}
+							<TldrawUiDialogs />
+							<TldrawUiToasts />
+						</TldrawUiToastsProvider>
+					</TldrawUiDialogsProvider>
+				</TldrawUiTranslationProvider>
+			</TldrawUiEventsProvider>
+		</AssetUrlsProvider>
 	)
 }
