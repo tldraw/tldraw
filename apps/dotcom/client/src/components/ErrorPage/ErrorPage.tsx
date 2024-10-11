@@ -20,7 +20,6 @@ export function ErrorPage({
 	icon = sadFaceIcon,
 	cta = <GoBackLink />,
 }: {
-	href?: string
 	icon?: ReactNode
 	messages: { header: string; para1: string; para2?: string }
 	cta?: ReactNode
