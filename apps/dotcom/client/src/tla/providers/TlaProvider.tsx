@@ -31,13 +31,27 @@ if (!PUBLISHABLE_KEY) {
 }
 
 export function Component() {
+	const handleAppLevelUiEvent = useCallback<TLUiEventHandler>(() => {
+		// todo, implement handling ui events at the application layer
+	}, [])
+
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
 			<SignedInProvider>
 				<ContainerContextProvider>
-					<UiContextProviders>
-						<Outlet />
-					</UiContextProviders>
+					<AssetUrlsProvider assetUrls={assetUrls}>
+						<TldrawUiEventsProvider onEvent={handleAppLevelUiEvent}>
+							<TldrawUiTranslationProvider locale="en">
+								<TldrawUiDialogsProvider>
+									<TldrawUiToastsProvider>
+										<Outlet />
+										<TldrawUiDialogs />
+										<TldrawUiToasts />
+									</TldrawUiToastsProvider>
+								</TldrawUiDialogsProvider>
+							</TldrawUiTranslationProvider>
+						</TldrawUiEventsProvider>
+					</AssetUrlsProvider>
 				</ContainerContextProvider>
 			</SignedInProvider>
 		</ClerkProvider>
@@ -46,6 +60,7 @@ export function Component() {
 
 function SignedInProvider({ children }: { children: ReactNode }) {
 	const auth = useAuth()
+
 	useEffect(() => {
 		if (auth.isSignedIn && auth.userId) {
 			updateLocalSessionState(() => ({
@@ -80,27 +95,5 @@ function ContainerContextProvider({ children }: { children: ReactNode }) {
 		<div ref={setContainer} className={`tla tl-container tla-theme__${theme}`}>
 			{container && <ContainerProvider container={container}>{children}</ContainerProvider>}
 		</div>
-	)
-}
-
-function UiContextProviders({ children }: { children: ReactNode }) {
-	const handleAppLevelUiEvent = useCallback<TLUiEventHandler>(() => {
-		// todo, implement handling ui events at the application layer
-	}, [])
-
-	return (
-		<AssetUrlsProvider assetUrls={assetUrls}>
-			<TldrawUiEventsProvider onEvent={handleAppLevelUiEvent}>
-				<TldrawUiTranslationProvider locale="en">
-					<TldrawUiDialogsProvider>
-						<TldrawUiToastsProvider>
-							{children}
-							<TldrawUiDialogs />
-							<TldrawUiToasts />
-						</TldrawUiToastsProvider>
-					</TldrawUiDialogsProvider>
-				</TldrawUiTranslationProvider>
-			</TldrawUiEventsProvider>
-		</AssetUrlsProvider>
 	)
 }
