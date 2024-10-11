@@ -36,7 +36,7 @@ try {
 	const stored = getFromLocalStorage('tldrawapp_session_2')
 	const prevStored = stored ? JSON.parse(stored) : null
 	if (prevStored) {
-		prev = { ...prev, ...(prevStored as TldrawAppSessionState) }
+		prev = { ...prev, ...(prevStored as TldrawAppSessionState), auth: undefined }
 	}
 } catch (e) {
 	// noop
