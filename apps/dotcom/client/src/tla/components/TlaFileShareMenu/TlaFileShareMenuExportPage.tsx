@@ -1,4 +1,3 @@
-import { TldrawAppUser } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import {
@@ -13,16 +12,19 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../../utils/globalEditor'
-import { useApp } from '../../hooks/useAppState'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
-import { useTldrawUser } from '../../hooks/useUser'
+import { TldrawApp } from '../../utils/TldrawApp'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { getLocalSessionState } from '../../utils/local-session-state'
+import {
+	TldrawAppSessionState,
+	getLocalSessionState,
+	updateLocalSessionState,
+} from '../../utils/local-session-state'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
-import { TlaTabsPage } from '../TlaTabs/TlaTabs'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -32,33 +34,38 @@ import {
 import styles from './file-share-menu.module.css'
 
 export function TlaShareMenuExportPage() {
-	const app = useApp()
-	const tldrawUser = useTldrawUser()
-	if (!tldrawUser) throw Error('should have auth')
+	const app = useMaybeApp()
 
-	const { id: userId } = tldrawUser
-	const user = useValue('user', () => app.getUser(userId)!, [app, userId])
+	const preferences = useValue('preferences', () => getExportPreferences(app), [app])
 
 	const onChange = useCallback(
-		<T extends keyof TldrawAppUser>(key: T, value: TldrawAppUser[T]) => {
-			app.store.update(user.id, (u) => ({ ...u, [key]: value }))
+		<T extends keyof TldrawAppSessionState['preferences']>(
+			key: T,
+			value: TldrawAppSessionState['preferences'][T]
+		) => {
+			const userId = getLocalSessionState().auth?.userId
+			if (app && userId) {
+				app.updateUserExportPreferences(userId, { [key]: value })
+			} else {
+				updateLocalSessionState((s) => ({ preferences: { ...s.preferences, [key]: value } }))
+			}
 		},
-		[user, app]
+		[app]
 	)
 
+	const { exportPadding, exportBackground, exportTheme, exportFormat } = preferences
+
 	return (
-		<TlaTabsPage id="export">
-			<TlaMenuSection>
-				<TlaMenuControlGroup>
-					<ExportBackgroundToggle onChange={onChange} value={user.exportBackground} />
-					<ExportPaddingToggle onChange={onChange} value={user.exportPadding} />
-					<ExportThemeSelect onChange={onChange} value={user.exportTheme} />
-					<ExportFormatSelect onChange={onChange} value={user.exportFormat} />
-				</TlaMenuControlGroup>
-				<ExportPreviewImage />
-				<ExportImageButton />
-			</TlaMenuSection>
-		</TlaTabsPage>
+		<TlaMenuSection>
+			<TlaMenuControlGroup>
+				<ExportBackgroundToggle onChange={onChange} value={exportBackground} />
+				<ExportPaddingToggle onChange={onChange} value={exportPadding} />
+				<ExportThemeSelect onChange={onChange} value={exportTheme} />
+				<ExportFormatSelect onChange={onChange} value={exportFormat} />
+			</TlaMenuControlGroup>
+			<ExportPreviewImage />
+			<ExportImageButton />
+		</TlaMenuSection>
 	)
 }
 
@@ -66,8 +73,8 @@ function ExportPaddingToggle({
 	value,
 	onChange,
 }: {
-	value: TldrawAppUser['exportPadding']
-	onChange(key: 'exportPadding', value: TldrawAppUser['exportPadding']): void
+	value: TldrawAppSessionState['preferences']['exportPadding']
+	onChange(key: 'exportPadding', value: TldrawAppSessionState['preferences']['exportPadding']): void
 }) {
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
@@ -90,8 +97,11 @@ function ExportBackgroundToggle({
 	value,
 	onChange,
 }: {
-	value: TldrawAppUser['exportBackground']
-	onChange(key: 'exportBackground', value: TldrawAppUser['exportBackground']): void
+	value: TldrawAppSessionState['preferences']['exportBackground']
+	onChange(
+		key: 'exportBackground',
+		value: TldrawAppSessionState['preferences']['exportBackground']
+	): void
 }) {
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
@@ -114,14 +124,14 @@ function ExportFormatSelect({
 	value,
 	onChange,
 }: {
-	value: TldrawAppUser['exportFormat']
-	onChange(key: 'exportFormat', value: TldrawAppUser['exportFormat']): void
+	value: TldrawAppSessionState['preferences']['exportFormat']
+	onChange(key: 'exportFormat', value: TldrawAppSessionState['preferences']['exportFormat']): void
 }) {
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(
-		(value: TldrawAppUser['exportFormat']) => {
+		(value: TldrawAppSessionState['preferences']['exportFormat']) => {
 			onChange('exportFormat', value)
 			trackEvent('set-export-format', { format: value, source: 'file-share-menu' })
 		},
@@ -143,13 +153,13 @@ function ExportThemeSelect({
 	value,
 	onChange,
 }: {
-	value: TldrawAppUser['exportTheme']
-	onChange(key: 'exportTheme', value: TldrawAppUser['exportTheme']): void
+	value: TldrawAppSessionState['preferences']['exportTheme']
+	onChange(key: 'exportTheme', value: TldrawAppSessionState['preferences']['exportTheme']): void
 }) {
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = useCallback(
-		(value: TldrawAppUser['exportTheme']) => {
+		(value: TldrawAppSessionState['preferences']['exportTheme']) => {
 			onChange('exportTheme', value)
 			trackEvent('set-export-theme', { theme: value, source: 'file-share-menu' })
 		},
@@ -173,7 +183,7 @@ function ExportThemeSelect({
 }
 
 function ExportImageButton() {
-	const app = useApp()
+	const app = useMaybeApp()
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -183,15 +193,9 @@ function ExportImageButton() {
 		if (exported) return
 
 		const editor = getCurrentEditor()
-
 		if (!editor) return
-		const sessionState = getLocalSessionState()
 
-		const { auth } = sessionState
-		if (!auth) throw Error('expected auth')
-
-		const user = app.getUser(auth.userId)
-		if (!user) throw Error('expected user')
+		const { exportPadding, exportBackground, exportTheme, exportFormat } = getExportPreferences(app)
 
 		let fullPage = false
 
@@ -202,20 +206,20 @@ function ExportImageButton() {
 		}
 
 		const opts: TLImageExportOptions = {
-			padding: user.exportPadding ? editor.options.defaultSvgPadding : 0,
-			background: user.exportBackground,
-			darkMode: user.exportTheme === 'auto' ? undefined : user.exportTheme === 'dark',
+			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
+			background: exportBackground,
+			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 		}
 
-		exportAs(editor, ids, user.exportFormat, 'file', opts)
+		exportAs(editor, ids, exportFormat, 'file', opts)
 
 		trackEvent('export-image', {
 			source: 'file-share-menu',
 			fullPage,
-			padding: user.exportPadding,
+			padding: exportPadding,
 			background: !!opts.background,
-			theme: user.exportTheme,
-			format: user.exportFormat,
+			theme: exportTheme,
+			format: exportFormat,
 		})
 
 		setExported(true)
@@ -236,7 +240,7 @@ function ExportImageButton() {
 }
 
 function ExportPreviewImage() {
-	const app = useApp()
+	const app = useMaybeApp()
 	const raw = useRaw()
 	const ref = useRef<HTMLImageElement>(null)
 
@@ -250,13 +254,7 @@ function ExportPreviewImage() {
 			const editor = globalEditor.get()
 			if (!editor) return
 
-			const sessionState = getLocalSessionState()
-
-			const { auth } = sessionState
-			if (!auth) throw Error('expected auth')
-
-			const user = app.getUser(auth.userId)
-			if (!user) throw Error('expected user')
+			const preferences = getExportPreferences(app)
 
 			// We need shapes here so that the reactor updates when selected shapes change
 			let shapes = editor.getSelectedShapes()
@@ -279,7 +277,7 @@ function ExportPreviewImage() {
 			// while lots of shapes are selected, debounce a little so that the thread doesn't freeze when editing the page
 			const fn = shapes.length > 20 ? getEditorImageSlowly : getEditorImage
 
-			fn(editor, shapes, user, ({ src, width, height }) => {
+			fn(editor, shapes, preferences, ({ src, width, height }) => {
 				if (cancelled) return
 				const elm = ref.current
 				if (!elm) return
@@ -310,15 +308,16 @@ function ExportPreviewImage() {
 async function getEditorImage(
 	editor: Editor,
 	shapes: TLShape[],
-	user: TldrawAppUser,
+	preferences: TldrawAppSessionState['preferences'],
 	cb: (info: { src: string; width: number; height: number }) => void
 ) {
+	const { exportPadding, exportBackground, exportTheme } = preferences
 	const result = await editor.getSvgString(
 		shapes.map((s) => s.id),
 		{
-			padding: user.exportPadding ? editor.options.defaultSvgPadding : 0,
-			background: user.exportBackground,
-			darkMode: user.exportTheme === 'auto' ? undefined : user.exportTheme === 'dark',
+			padding: exportPadding ? editor.options.defaultSvgPadding : 0,
+			background: exportBackground,
+			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 		}
 	)
 
@@ -331,3 +330,26 @@ async function getEditorImage(
 }
 
 const getEditorImageSlowly = debounce(getEditorImage, 60)
+
+function getExportPreferences(app: TldrawApp | null) {
+	const sessionState = getLocalSessionState()
+
+	let { exportPadding, exportBackground, exportTheme, exportFormat } = sessionState.preferences
+
+	if (app && sessionState.auth) {
+		const user = app.getUser(sessionState.auth.userId)
+		if (user) {
+			exportPadding = user.exportPadding
+			exportBackground = user.exportBackground
+			exportTheme = user.exportTheme
+			exportFormat = user.exportFormat
+		}
+	}
+
+	return {
+		exportPadding,
+		exportBackground,
+		exportTheme,
+		exportFormat,
+	}
+}

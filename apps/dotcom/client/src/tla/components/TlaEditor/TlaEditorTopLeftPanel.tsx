@@ -7,7 +7,7 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
-import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useRaw } from '../../hooks/useRaw'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
@@ -17,17 +17,14 @@ import styles from './top.module.css'
 
 // There are some styles in tla.css that adjust the regular tlui top panels
 
-export function TlaEditorTopLeftPanel() {
-	const app = useMaybeApp()
+export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
-
-	const hasAuth = !!app
 
 	return (
 		<div ref={ref} className={classNames(styles.topPanelLeft)}>
 			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
-				{hasAuth ? <TlaEditorTopLeftPanelSignedIn /> : <TlaEditorTopLeftPanelAnonymous />}
+				{isAnonUser ? <TlaEditorTopLeftPanelAnonymous /> : <TlaEditorTopLeftPanelSignedIn />}
 			</div>
 		</div>
 	)

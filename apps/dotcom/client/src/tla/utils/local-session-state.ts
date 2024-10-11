@@ -1,4 +1,4 @@
-import { TldrawAppUserId } from '@tldraw/dotcom-shared'
+import { TldrawAppUser, TldrawAppUserId } from '@tldraw/dotcom-shared'
 import { atom, getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
 
 export interface TldrawAppSessionState {
@@ -19,6 +19,10 @@ export interface TldrawAppSessionState {
 		}
 	}
 	flags: { [key: string]: boolean }
+	preferences: Pick<
+		TldrawAppUser,
+		'exportFormat' | 'exportTheme' | 'exportBackground' | 'exportPadding'
+	>
 }
 
 let prev: TldrawAppSessionState = {
@@ -30,6 +34,12 @@ let prev: TldrawAppSessionState = {
 	theme: 'light',
 	views: {},
 	flags: {},
+	preferences: {
+		exportFormat: 'png',
+		exportTheme: 'auto',
+		exportBackground: true,
+		exportPadding: true,
+	},
 }
 
 try {

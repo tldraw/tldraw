@@ -7,10 +7,8 @@ import {
 	DefaultMainMenu,
 	DefaultQuickActions,
 	DefaultQuickActionsContent,
-	DefaultStylePanel,
 	Editor,
 	OfflineIndicator,
-	PeopleMenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -57,11 +55,10 @@ const components: TLComponents = {
 		)
 	},
 	MenuPanel: () => {
-		return <TlaEditorTopLeftPanel />
+		const app = useMaybeApp()
+		return <TlaEditorTopLeftPanel isAnonUser={!app} />
 	},
 	SharePanel: () => {
-		const app = useMaybeApp()
-		if (!app) return null
 		return <TlaEditorTopRightPanel />
 	},
 	TopPanel: () => {
@@ -81,14 +78,14 @@ const components: TLComponents = {
 
 const anonComponents = {
 	...components,
-	StylePanel: () => {
-		return (
-			<div className={styles.anonStylePanel}>
-				<PeopleMenu />
-				<DefaultStylePanel />
-			</div>
-		)
-	},
+	// StylePanel: () => {
+	// 	return (
+	// 		<div className={styles.anonStylePanel}>
+	// 			<PeopleMenu />
+	// 			<DefaultStylePanel />
+	// 		</div>
+	// 	)
+	// },
 }
 
 export function TlaEditor({

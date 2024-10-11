@@ -245,29 +245,15 @@ export class TldrawApp {
 			},
 		])
 	}
-
-	setUserExportBackground(userId: TldrawAppUserId, exportBackground: boolean) {
+	updateUserExportPreferences(
+		userId: TldrawAppUserId,
+		exportPreferences: Partial<
+			Pick<TldrawAppUser, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
+		>
+	) {
 		const user = this.store.get(userId)
 		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportBackground }])
-	}
-
-	setUserExportPadding(userId: TldrawAppUserId, exportPadding: boolean) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportPadding }])
-	}
-
-	setUserExportFormat(userId: TldrawAppUserId, exportFormat: TldrawAppUser['exportFormat']) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportFormat }])
-	}
-
-	setUserExportTheme(userId: TldrawAppUserId, exportTheme: TldrawAppUser['exportTheme']) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportTheme }])
+		this.store.put([{ ...user, ...exportPreferences }])
 	}
 
 	onFileEdit(
