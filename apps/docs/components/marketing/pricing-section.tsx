@@ -2,6 +2,7 @@ import { RequestForm } from '@/components/marketing/request-form'
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { CheckBadgeIcon } from '@heroicons/react/20/solid'
+import { WatermarkImage } from './watermark-image'
 
 export function PricingSection() {
 	return (
@@ -9,7 +10,7 @@ export function PricingSection() {
 			<Section id="pricing" className="pb-24 md:pb-32 lg:pb-40">
 				<SectionHeading subheading="License and Pricing" heading="Free with our Watermark" />
 				<div className="flex justify-center mb-8">
-					<img src={'/watermark-desktop.svg'} className="h-20" />
+					<WatermarkImage />
 				</div>
 				<p className="text-center max-w-xl text-balance mb-12 mx-auto px-5 md:px-0">
 					You can use the tldraw SDK for free in your project—even in a commercial project—as long
@@ -19,7 +20,7 @@ export function PricingSection() {
 					</a>{' '}
 					to learn more.
 				</p>
-				<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 max-w-2xl">
+				<div className="py-1 md:rounded-2xl md:mx-auto md:px-1 bg-zinc-200 dark:bg-zinc-800 md:max-w-2xl">
 					<div className="relative w-full h-full bg-zinc-900 md:rounded-xl shadow p-5 md:p-8 overflow-hidden text-zinc-300">
 						<div className="flex items-center gap-1 mb-4 -mt-1">
 							<h3 className="text-white font-black text-xl md:text-2xl">Business License</h3>

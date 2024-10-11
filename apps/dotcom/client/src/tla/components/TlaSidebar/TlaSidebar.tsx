@@ -1,8 +1,8 @@
 import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useValue } from 'tldraw'
+import { preventDefault, useValue } from 'tldraw'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
@@ -23,6 +23,23 @@ export function TlaSidebar() {
 		() => app.getSessionState().isSidebarOpenMobile,
 		[app]
 	)
+	const sidebarRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		const sidebarEl = sidebarRef.current
+		if (!sidebarEl) return
+
+		function handleWheel(e: WheelEvent) {
+			if (!sidebarEl) return
+			// Ctrl/Meta key indicates a pinch event (funny, eh?)
+			if (sidebarEl.contains(e.target as Node) && (e.ctrlKey || e.metaKey)) {
+				preventDefault(e)
+			}
+		}
+
+		sidebarEl.addEventListener('wheel', handleWheel, { passive: false })
+		return () => sidebarEl.removeEventListener('wheel', handleWheel)
+	}, [sidebarRef])
 
 	const handleOverlayClick = useCallback(() => {
 		app.toggleSidebarMobile()
@@ -31,7 +48,7 @@ export function TlaSidebar() {
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
 	return (
-		<>
+		<div ref={sidebarRef}>
 			<button
 				className={styles.sidebarOverlayMobile}
 				data-visiblemobile={isSidebarOpenMobile}
@@ -58,7 +75,7 @@ export function TlaSidebar() {
 					<TlaSidebarUserLink />
 				</div>
 			</div>
-		</>
+		</div>
 	)
 }
 
