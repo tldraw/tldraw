@@ -13,8 +13,9 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { AppStateProvider, useApp } from '../hooks/useAppState'
+import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
+import '../styles/tla.css'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -26,11 +27,16 @@ if (!PUBLISHABLE_KEY) {
 }
 
 export function Component() {
+	const app = useMaybeApp()
+	const theme = useValue('theme', () => app?.getSessionState().theme ?? 'light', [app])
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-			<div ref={setContainer} className={`tla tl-container`}>
+			<div
+				ref={setContainer}
+				className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+			>
 				{container && (
 					<ContainerProvider container={container}>
 						<InsideOfContainerContext>
@@ -79,22 +85,8 @@ function SignedInProvider() {
 	return (
 		<AppStateProvider>
 			<UserProvider>
-				<ThemeContainer>
-					<Outlet />
-				</ThemeContainer>
+				<Outlet />
 			</UserProvider>
 		</AppStateProvider>
-	)
-}
-
-function ThemeContainer({ children }: { children: ReactNode }) {
-	const app = useApp()
-	const theme = useValue('theme', () => app?.getSessionState().theme ?? 'light', [app])
-	return (
-		<div
-			className={`tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-		>
-			{children}
-		</div>
 	)
 }

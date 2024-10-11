@@ -13,7 +13,9 @@ export function TlaCenteredLayout({
 }) {
 	usePreventAccidentalDrops()
 	return (
-		<div className={classNames(`tla tla-theme__light tl-container`, styles.container)}>
+		<div
+			className={classNames(`tla tla-theme__light tl-theme-light tl-container`, styles.container)}
+		>
 			{onClose ? <TlaCloseButton onClose={onClose} /> : null}
 			<div className={styles.inner}>
 				<div className={styles.content}>{children}</div>
