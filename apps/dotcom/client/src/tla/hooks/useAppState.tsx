@@ -12,10 +12,8 @@ import {
 import { MULTIPLAYER_SERVER } from '../../utils/config'
 import { TldrawApp } from '../app/TldrawApp'
 import { TlaErrorContent } from '../components/TlaErrorContent/TlaErrorContent'
-import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
 import { TlaErrorLayout } from '../layouts/TlaErrorLayout/TlaErrorLayout'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
-import { useRaw } from './useRaw'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -24,7 +22,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState({} as TldrawApp)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
-	const raw = useRaw()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaRootProviders')
@@ -86,7 +83,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}
 
 	if (store.status === 'loading' || !ready || !app) {
-		return <TlaCenteredLayout>{raw('Loading...')}</TlaCenteredLayout>
+		// We used to show a Loading... here but it was causing too much flickering.
+		return null
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>
