@@ -2,8 +2,6 @@ import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import {
-	DefaultDebugMenu,
-	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -26,8 +24,6 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
-import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
-import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
@@ -61,14 +57,6 @@ const components: TLComponents = {
 		const app = useMaybeApp()
 		if (!app) return null
 		return <TlaEditorTopRightPanel />
-	},
-	DebugMenu: () => {
-		return (
-			<DefaultDebugMenu>
-				<DefaultDebugMenuContent />
-				<DebugMenuItems />
-			</DefaultDebugMenu>
-		)
 	},
 	TopPanel: () => {
 		const collaborationStatus = useCollaborationStatus()
@@ -180,7 +168,6 @@ export function TlaEditor({
 				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
-				<LocalMigration />
 				<ThemeUpdater />
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
