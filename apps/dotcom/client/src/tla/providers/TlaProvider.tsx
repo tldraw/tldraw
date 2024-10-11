@@ -37,8 +37,8 @@ export function Component() {
 
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-			<SignedInProvider>
-				<ContainerContextProvider>
+			<AppStateOrNotProvider>
+				<TlaContainerProvider>
 					<AssetUrlsProvider assetUrls={assetUrls}>
 						<TldrawUiEventsProvider onEvent={handleAppLevelUiEvent}>
 							<TldrawUiTranslationProvider locale="en">
@@ -52,13 +52,13 @@ export function Component() {
 							</TldrawUiTranslationProvider>
 						</TldrawUiEventsProvider>
 					</AssetUrlsProvider>
-				</ContainerContextProvider>
-			</SignedInProvider>
+				</TlaContainerProvider>
+			</AppStateOrNotProvider>
 		</ClerkProvider>
 	)
 }
 
-function SignedInProvider({ children }: { children: ReactNode }) {
+function AppStateOrNotProvider({ children }: { children: ReactNode }) {
 	const auth = useAuth()
 
 	useEffect(() => {
@@ -86,7 +86,7 @@ function SignedInProvider({ children }: { children: ReactNode }) {
 	)
 }
 
-function ContainerContextProvider({ children }: { children: ReactNode }) {
+function TlaContainerProvider({ children }: { children: ReactNode }) {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 
 	const theme = useValue('theme', () => getLocalSessionState().theme, [])
