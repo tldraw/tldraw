@@ -2,6 +2,8 @@ import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import {
 	DefaultPageMenu,
+	TldrawUiButton,
+	TldrawUiIcon,
 	TldrawUiInput,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -11,6 +13,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useRaw } from '../../hooks/useRaw'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
+import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
 import styles from './top.module.css'
@@ -41,6 +44,11 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 	return (
 		<>
+			<TlaFileShareMenu fileId={'' as any} source="file-header" isAnonUser>
+				<TldrawUiButton type="icon">
+					<TldrawUiIcon icon="share-1" />
+				</TldrawUiButton>
+			</TlaFileShareMenu>
 			<TlaFileNameEditor fileName={fileName} onChange={handleFileNameChange} />
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />

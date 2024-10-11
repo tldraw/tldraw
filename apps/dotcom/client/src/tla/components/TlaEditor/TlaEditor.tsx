@@ -1,14 +1,17 @@
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
 	DefaultQuickActions,
 	DefaultQuickActionsContent,
+	DefaultStylePanel,
 	Editor,
 	OfflineIndicator,
+	PeopleMenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -78,14 +81,20 @@ const components: TLComponents = {
 
 const anonComponents = {
 	...components,
-	// StylePanel: () => {
-	// 	return (
-	// 		<div className={styles.anonStylePanel}>
-	// 			<PeopleMenu />
-	// 			<DefaultStylePanel />
-	// 		</div>
-	// 	)
-	// },
+	SharePanel: null,
+	StylePanel: () => {
+		// When on a temporary file, we don't want to show the people menu or file share menu, just the regular style panel
+		const { fileSlug } = useParams()
+		if (!fileSlug) return <DefaultStylePanel />
+
+		// ...but when an anonymous user is on a shared file, we do want to show the people menu next to the style panel
+		return (
+			<div className={styles.anonStylePanel}>
+				<PeopleMenu />
+				<DefaultStylePanel />
+			</div>
+		)
+	},
 }
 
 export function TlaEditor({

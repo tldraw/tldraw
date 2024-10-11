@@ -19,10 +19,12 @@ import styles from './file-share-menu.module.css'
 export function TlaFileShareMenu({
 	fileId,
 	source,
+	isAnonUser,
 	children,
 }: {
 	fileId: TldrawAppFileId
 	source: string
+	isAnonUser?: boolean
 	children: ReactNode
 }) {
 	const raw = useRaw()
@@ -50,8 +52,8 @@ export function TlaFileShareMenu({
 				<TldrawUiDropdownMenuContent
 					className={styles.shareMenu}
 					side="bottom"
-					align="end"
-					alignOffset={-2}
+					align={isAnonUser ? 'start' : 'end'}
+					alignOffset={isAnonUser ? 2 : -2}
 					sideOffset={4}
 				>
 					{app ? (
