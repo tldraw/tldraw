@@ -1317,8 +1317,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
-    isAnimated(shape: TLImageShape): boolean;
-    // (undocumented)
     isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -3680,16 +3678,8 @@ export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string):
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
-// @public
-export function useAsset(options: {
-    assetId: null | TLAssetId;
-    shapeId: TLShapeId;
-    width: number;
-}): {
-    asset: TLAsset | null | undefined;
-    isPlaceholder: boolean;
-    url: null | string;
-};
+// @public @deprecated (undocumented)
+export const useAsset: typeof useImageOrVideoAsset;
 
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
@@ -3768,6 +3758,15 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string):
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+
+// @public
+export function useImageOrVideoAsset({ shapeId, assetId, }: {
+    assetId: null | TLAssetId;
+    shapeId: TLShapeId;
+}): {
+    asset: (TLImageAsset | TLVideoAsset) | null;
+    url: null | string;
+};
 
 // @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;
