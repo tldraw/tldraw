@@ -26,7 +26,7 @@ import { memo, useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useAsset } from '../shared/useAsset'
+import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -205,7 +205,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) {
 	const editor = useEditor()
 
-	const { asset, url } = useAsset({
+	const { asset, url } = useImageOrVideoAsset({
 		shapeId: shape.id,
 		assetId: shape.props.assetId,
 	})

@@ -25,7 +25,13 @@ import { useEffect, useRef, useState } from 'react'
  *
  * @public
  */
-export function useAsset({ shapeId, assetId }: { shapeId: TLShapeId; assetId: TLAssetId | null }) {
+export function useImageOrVideoAsset({
+	shapeId,
+	assetId,
+}: {
+	shapeId: TLShapeId
+	assetId: TLAssetId | null
+}) {
 	const editor = useEditor()
 	const isExport = !!useSvgExportContext()
 	const isReady = useDelaySvgExport()
@@ -129,3 +135,10 @@ function resolveAssetUrl(
 }
 
 const resolveAssetUrlDebounced = debounce(resolveAssetUrl, 500)
+
+/**
+ * @deprecated Use {@link useImageOrVideoAsset} instead.
+ *
+ * @public
+ */
+export const useAsset = useImageOrVideoAsset
