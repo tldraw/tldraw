@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
 	Editor,
@@ -6,7 +5,6 @@ import {
 	HTMLContainer,
 	Image,
 	MediaHelpers,
-	TLAsset,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
@@ -20,6 +18,8 @@ import {
 	sanitizeId,
 	structuredClone,
 	toDomPrecision,
+	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
@@ -102,13 +102,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	component(shape: TLImageShape) {
-		const { asset, url } = useAsset({
-			shapeId: shape.id,
-			assetId: shape.props.assetId,
-			width: shape.props.w,
-		})
-
-		return <ImageShape asset={asset} editor={this.editor} shape={shape} url={url} />
+		return <ImageShape shape={shape} />
 	}
 
 	indicator(shape: TLImageShape) {
@@ -256,36 +250,22 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 }
 
-function isAnimated(editor: Editor, shape: TLImageShape) {
-	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : undefined
+const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) {
+	const editor = useEditor()
 
-	if (!asset) return false
+	const { asset, url } = useAsset({
+		shapeId: shape.id,
+		assetId: shape.props.assetId,
+	})
 
-	return (
-		('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
-		('isAnimated' in asset.props && asset.props.isAnimated)
-	)
-}
-
-const ImageShape = memo(function ImageShape({
-	editor,
-	shape,
-	asset,
-	url,
-}: {
-	editor: Editor
-	shape: TLImageShape
-	asset?: TLAsset | null
-	url: string | null
-}) {
-	const isCropping = editor.getCroppingShapeId() === shape.id
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
 	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
-	const isSelected = shape.id === editor.getOnlySelectedShapeId()
+
+	const isAnimated = getIsAnimated(editor, shape)
 
 	useEffect(() => {
-		if (url && isAnimated(editor, shape)) {
+		if (url && isAnimated) {
 			let cancelled = false
 
 			const image = Image()
@@ -310,17 +290,20 @@ const ImageShape = memo(function ImageShape({
 				cancelled = true
 			}
 		}
-	}, [editor, prefersReducedMotion, url, shape])
+	}, [editor, isAnimated, prefersReducedMotion, url])
 
-	if (asset?.type === 'bookmark') {
-		throw Error("Bookmark assets can't be rendered as images")
-	}
-
-	const showCropPreview = isSelected && isCropping && editor.isIn('select.crop')
+	const showCropPreview = useValue(
+		'show crop preview',
+		() =>
+			shape.id === editor.getOnlySelectedShapeId() &&
+			editor.getCroppingShapeId() === shape.id &&
+			editor.isIn('select.crop'),
+		[editor, shape.id]
+	)
 
 	// We only want to reduce motion for mimeTypes that have motion
 	const reduceMotion =
-		prefersReducedMotion && (asset?.props.mimeType?.includes('video') || isAnimated(editor, shape))
+		prefersReducedMotion && (asset?.props.mimeType?.includes('video') || isAnimated)
 
 	const containerStyle = getCroppedContainerStyle(shape)
 
@@ -347,16 +330,14 @@ const ImageShape = memo(function ImageShape({
 				>
 					{asset ? null : <BrokenAssetIcon />}
 				</div>
-				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
-				)}
+				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</HTMLContainer>
 		)
 	}
 
 	// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
 	// have that set up.
-	const crossOrigin = isAnimated(editor, shape) ? 'anonymous' : undefined
+	const crossOrigin = isAnimated ? 'anonymous' : undefined
 
 	return (
 		<>
@@ -407,13 +388,22 @@ const ImageShape = memo(function ImageShape({
 						/>
 					)}
 				</div>
-				{shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
-				)}
+				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</HTMLContainer>
 		</>
 	)
 })
+
+function getIsAnimated(editor: Editor, shape: TLImageShape) {
+	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : undefined
+
+	if (!asset) return false
+
+	return (
+		('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
+		('isAnimated' in asset.props && asset.props.isAnimated)
+	)
+}
 
 /**
  * When an image is cropped we need to translate the image to show the portion withing the cropped

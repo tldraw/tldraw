@@ -1,10 +1,16 @@
 import {
+	Editor,
 	TLAssetId,
+	TLImageAsset,
+	TLImageShape,
 	TLShapeId,
+	TLVideoAsset,
+	TLVideoShape,
+	debounce,
+	react,
 	useDelaySvgExport,
 	useEditor,
 	useSvgExportContext,
-	useValue,
 } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 
@@ -19,81 +25,107 @@ import { useEffect, useRef, useState } from 'react'
  *
  * @public
  */
-export function useAsset(options: {
-	shapeId: TLShapeId
-	assetId: TLAssetId | null
-	width: number
-}) {
-	const { shapeId, assetId, width } = options
+export function useAsset({ shapeId, assetId }: { shapeId: TLShapeId; assetId: TLAssetId | null }) {
 	const editor = useEditor()
-	const [url, setUrl] = useState<string | null>(null)
-	const [isPlaceholder, setIsPlaceholder] = useState(false)
 	const isExport = !!useSvgExportContext()
-	const asset = assetId ? editor.getAsset(assetId) : null
-	const culledShapes = editor.getCulledShapes()
-	const isCulled = culledShapes.has(shapeId)
-	const didAlreadyResolve = useRef(false)
 	const isReady = useDelaySvgExport()
 
+	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
+	const [result, setResult] = useState<{
+		asset: (TLImageAsset | TLVideoAsset) | null
+		url: string | null
+	}>(() => ({
+		asset: assetId ? editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null : null,
+		url: null as string | null,
+	}))
+
+	// A flag for whether we've resolved the asset URL at least once, after which we can debounce
+	const didAlreadyResolve = useRef(false)
+
+	// The last URL that we've seen for the shape
+	const previousUrl = useRef<string | null>(null)
+
 	useEffect(() => {
-		if (url) didAlreadyResolve.current = true
-	}, [url])
-
-	const shapeScale = asset && 'w' in asset.props ? width / asset.props.w : 1
-	// We debounce the zoom level to reduce the number of times we fetch a new image and,
-	// more importantly, to not cause zooming in and out to feel janky.
-	const screenScale = useValue('zoom level', () => editor.getZoomLevel() * shapeScale, [
-		editor,
-		shapeScale,
-	])
-
-	useEffect(() => {
-		if (url) didAlreadyResolve.current = true
-	}, [url])
-
-	useEffect(() => {
-		if (!isExport && isCulled) return
-
-		if (assetId && !asset?.props.src) {
-			const preview = editor.getTemporaryAssetPreview(assetId)
-
-			if (preview) {
-				setUrl(preview)
-				setIsPlaceholder(true)
-				isReady()
-				return
-			}
-		}
+		if (!assetId) return
 
 		let isCancelled = false
+		let cancelDebounceFn: (() => void) | undefined
 
-		async function resolve() {
-			const resolvedUrl = await editor.resolveAssetUrl(assetId, {
-				screenScale,
-				shouldResolveToOriginal: isExport,
-			})
+		const cleanupEffectScheduler = react('update state', () => {
+			if (!isExport && editor.getCulledShapes().has(shapeId)) return
 
-			if (!isCancelled) {
-				setUrl(resolvedUrl)
-				setIsPlaceholder(false)
-				isReady()
+			// Get the fresh asset
+			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
+			if (!asset) return
+
+			// Get the fresh shape
+			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
+			if (!shape) return
+
+			// Set initial preview for the shape if it has no source (if it was pasted into a local project as base64)
+			if (!asset.props.src) {
+				const preview = editor.getTemporaryAssetPreview(asset.id)
+				if (preview) {
+					if (previousUrl.current !== preview) {
+						previousUrl.current = preview // just for kicks, let's save the url as the previous URL
+						setResult((prev) => ({ ...prev, isPlaceholder: true, url: preview })) // set the preview as the URL
+						isReady() // let the SVG export know we're ready for export
+					}
+					return
+				}
 			}
+
+			// aside ...we could bail here if the only thing that has changed is the shape has changed from culled to not culled
+
+			const screenScale = editor.getZoomLevel() * (shape.props.w / asset.props.w)
+
+			// If we already resolved the URL, debounce fetching potentially multiple image variations.
+			if (didAlreadyResolve.current) {
+				resolveAssetUrlDebounced(editor, assetId, screenScale, isExport, (url) => {
+					if (isCancelled) return // don't update if the hook has remounted
+					if (previousUrl.current === url) return // don't update the state if the url is the same
+					previousUrl.current = url // keep the url around to compare with the next one
+					setResult(() => ({ asset, url }))
+				})
+				cancelDebounceFn = resolveAssetUrlDebounced.cancel // cancel the debounce when the hook unmounts
+			} else {
+				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => {
+					if (isCancelled) return // don't update if the hook has remounted
+					didAlreadyResolve.current = true // mark that we've resolved our first image
+					previousUrl.current = url // keep the url around to compare with the next one
+					setResult(() => ({ asset, url }))
+				})
+			}
+		})
+
+		return () => {
+			cleanupEffectScheduler()
+			cancelDebounceFn?.()
+			isCancelled = true
 		}
+	}, [editor, assetId, isExport, isReady, shapeId])
 
-		// If we already resolved the URL, debounce fetching potentially multiple image variations.
-		if (didAlreadyResolve.current) {
-			const timer = editor.timers.setTimeout(resolve, 500)
-			return () => {
-				clearTimeout(timer)
-				isCancelled = true
-			}
-		} else {
-			resolve()
-			return () => {
-				isCancelled = true
-			}
-		}
-	}, [assetId, asset?.props.src, isCulled, screenScale, editor, isExport, isReady])
-
-	return { asset, url, isPlaceholder }
+	return result
 }
+
+function resolveAssetUrl(
+	editor: Editor,
+	assetId: TLAssetId,
+	screenScale: number,
+	isExport: boolean,
+	callback: (url: string | null) => void
+) {
+	editor
+		.resolveAssetUrl(assetId, {
+			screenScale,
+			shouldResolveToOriginal: isExport,
+		})
+		// There's a weird bug with out debounce function that doesn't
+		// make it work right with async functions, so we use a callback
+		// here instead of returning a promise.
+		.then((url) => {
+			callback(url)
+		})
+}
+
+const resolveAssetUrlDebounced = debounce(resolveAssetUrl, 500)
