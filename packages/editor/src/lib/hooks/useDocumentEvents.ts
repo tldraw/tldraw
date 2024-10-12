@@ -240,6 +240,7 @@ export function useDocumentEvents() {
 
 		// Prevent wheel events that occur inside of the container
 		const handleWheel = (e: WheelEvent) => {
+			// Ctrl/Meta key indicates a pinch event (funny, eh?)
 			if (container.contains(e.target as Node) && (e.ctrlKey || e.metaKey)) {
 				preventDefault(e)
 			}

@@ -1,3 +1,114 @@
+# v3.3.0 (Wed Oct 09 2024)
+
+### Release Notes
+
+#### [sync] Set instance.isReadonly automatically ([#4673](https://github.com/tldraw/tldraw/pull/4673))
+
+- Puts the editor into readonly mode automatically when the tlsync server responds in readonly mode.
+- Adds the `editor.getIsReadonly()` method.
+- Fixes a bug where arrow labels could be edited in readonly mode.
+
+#### Pass through wheel events over non-scrolling user interface elements ([#4662](https://github.com/tldraw/tldraw/pull/4662))
+
+- Fixes a bug where scrolling over user interface elements would not scroll the canvas.
+
+#### Add editor option for quick actions placement. ([#4666](https://github.com/tldraw/tldraw/pull/4666))
+
+- Adds an editor option to control the placement of quick action shortcuts.
+
+#### Fix icon button width ([#4663](https://github.com/tldraw/tldraw/pull/4663))
+
+- Fixed a bug with the width of icon buttons.
+
+#### prevent accidental image drops ([#4651](https://github.com/tldraw/tldraw/pull/4651))
+
+- Fixed a bug where dropping images or other things on user interface elements would navigate away from the canvas
+
+#### Arrowhead clipping fix ([#4646](https://github.com/tldraw/tldraw/pull/4646))
+
+- Fix an issue introduced with #4636. The arrowheads did not correctly clip the arrow body.
+
+#### Fix an issue with nearest point and lines that start and end at the same point ([#4650](https://github.com/tldraw/tldraw/pull/4650))
+
+- Fix a bug with nearest points for lines that start and end at the same point.
+
+#### selection: allow cmd/ctrl to add to selection ([#4570](https://github.com/tldraw/tldraw/pull/4570))
+
+- Selection: allow cmd/ctrl to add multiple shapes to the selection.
+
+#### text: followup to the followup of fix to locking text shapes ([#4644](https://github.com/tldraw/tldraw/pull/4644))
+
+- Fix bug with text shape locking.
+
+#### Prevent some draw shape rerenders when changing the zoom ([#4647](https://github.com/tldraw/tldraw/pull/4647))
+
+- Reduce the number of times the draw shape has to rerender due to the zoom changes.
+
+#### text: followup fix to locking text shapes ([#4632](https://github.com/tldraw/tldraw/pull/4632))
+
+- Fix bug with text shape locking.
+
+#### Improve perf for safari ([#4636](https://github.com/tldraw/tldraw/pull/4636))
+
+- Fix a performance issue with panning when zoomed in on arrows in Safari.
+
+#### text: be able to keep tool locked ([#4569](https://github.com/tldraw/tldraw/pull/4569))
+
+- Make text shape be lockable
+
+#### [dotcom] Menus, dialogs, toasts, etc. ([#4624](https://github.com/tldraw/tldraw/pull/4624))
+
+- exports dialogs system
+- exports toasts system
+- exports translations system
+- create a global `tlmenus` system for menus
+- create a global `tltime` system for timers
+- create a global `tlenv` for environment" 
+- create a `useMaybeEditor` hook
+
+#### [bugfix] respect camera constraints after switching page + setting constraints ([#4628](https://github.com/tldraw/tldraw/pull/4628))
+
+- Fixed a bug where camera constraints were not upheld after switching pages or setting new camera constraints.
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] Add event tracking [#4687](https://github.com/tldraw/tldraw/pull/4687) ([@steveruizok](https://github.com/steveruizok))
+- [dotcom] Menus, dialogs, toasts, etc. [#4624](https://github.com/tldraw/tldraw/pull/4624) ([@steveruizok](https://github.com/steveruizok))
+- chore: refactor safe id [#4618](https://github.com/tldraw/tldraw/pull/4618) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🐛 Bug Fixes
+
+- i18n: fix up lang menu reactivity [#4685](https://github.com/tldraw/tldraw/pull/4685) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix icon button width [#4663](https://github.com/tldraw/tldraw/pull/4663) ([@steveruizok](https://github.com/steveruizok))
+- prevent accidental image drops [#4651](https://github.com/tldraw/tldraw/pull/4651) ([@steveruizok](https://github.com/steveruizok))
+- Arrowhead clipping fix [#4646](https://github.com/tldraw/tldraw/pull/4646) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]) [@steveruizok](https://github.com/steveruizok))
+- Fix an issue with nearest point and lines that start and end at the same point [#4650](https://github.com/tldraw/tldraw/pull/4650) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- text: followup to the followup of fix to locking text shapes [#4644](https://github.com/tldraw/tldraw/pull/4644) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- text: followup fix to locking text shapes [#4632](https://github.com/tldraw/tldraw/pull/4632) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- Improve perf for safari [#4636](https://github.com/tldraw/tldraw/pull/4636) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [bugfix] respect camera constraints after switching page + setting constraints [#4628](https://github.com/tldraw/tldraw/pull/4628) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- [sync] Set instance.isReadonly automatically [#4673](https://github.com/tldraw/tldraw/pull/4673) ([@ds300](https://github.com/ds300))
+- Pass through wheel events over non-scrolling user interface elements [#4662](https://github.com/tldraw/tldraw/pull/4662) ([@steveruizok](https://github.com/steveruizok))
+- Add editor option for quick actions placement. [#4666](https://github.com/tldraw/tldraw/pull/4666) ([@steveruizok](https://github.com/steveruizok))
+- selection: allow cmd/ctrl to add to selection [#4570](https://github.com/tldraw/tldraw/pull/4570) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- Prevent some draw shape rerenders when changing the zoom [#4647](https://github.com/tldraw/tldraw/pull/4647) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- text: be able to keep tool locked [#4569](https://github.com/tldraw/tldraw/pull/4569) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 5
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.2.0 (Thu Sep 26 2024)
 
 #### 🐛 Bug Fix

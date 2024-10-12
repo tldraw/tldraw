@@ -1784,8 +1784,6 @@ export interface TextLabelProps {
     // (undocumented)
     fontSize: number;
     // (undocumented)
-    id: TLShapeId;
-    // (undocumented)
     isNote?: boolean;
     // (undocumented)
     isSelected: boolean;
@@ -1797,6 +1795,8 @@ export interface TextLabelProps {
     onKeyDown?(e: React_3.KeyboardEvent<HTMLTextAreaElement>): void;
     // (undocumented)
     padding?: number;
+    // (undocumented)
+    shapeId: TLShapeId;
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
@@ -2072,7 +2072,7 @@ export const TldrawUiButtonPicker: <T extends string>(props: TLUiButtonPickerPro
 export function TldrawUiComponentsProvider({ overrides, children, }: TLUiComponentsProviderProps): JSX_2.Element;
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, components, assetUrls, onUiEvent, forceMobile, mediaMimeTypes, children, }: TLUiContextProviderProps): JSX_2.Element;
+export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderProps>;
 
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
@@ -2186,7 +2186,7 @@ export const TldrawUiToasts: NamedExoticComponent<object>;
 export function TldrawUiToastsProvider({ children }: TLUiToastsProviderProps): JSX_2.Element;
 
 // @internal
-export const TldrawUiTranslationProvider: React_2.NamedExoticComponent<TLUiTranslationProviderProps>;
+export function TldrawUiTranslationProvider({ overrides, locale, children, }: TLUiTranslationProviderProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface TLEditorAssetUrls {
@@ -2570,7 +2570,7 @@ export interface TLUiDropdownMenuTriggerProps {
 }
 
 // @public (undocumented)
-export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>;
+export type TLUiEventContextType = TLUiEventHandler;
 
 // @public (undocumented)
 export type TLUiEventData<K> = K extends null ? {
@@ -2580,7 +2580,7 @@ export type TLUiEventData<K> = K extends null ? {
 } & K;
 
 // @public (undocumented)
-export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (name: T, data: TLUiEventData<TLUiEventMap[T]>) => void;
+export type TLUiEventHandler = <T extends keyof TLUiEventMap>(name: T, data: TLUiEventData<TLUiEventMap[T]>) => void;
 
 // @public (undocumented)
 export interface TLUiEventMap {
@@ -3749,7 +3749,7 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string): {
+export function useEditableText(shapeId: TLShapeId, type: string, text: string): {
     handleBlur: () => void;
     handleChange: (e: React_3.ChangeEvent<HTMLTextAreaElement>) => void;
     handleDoubleClick: (e: any) => any;

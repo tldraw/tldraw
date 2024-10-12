@@ -1,6 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 
 import { Editor, TldrawEditor, createShapeId } from '@tldraw/editor'
+import 'tldraw/tldraw.css'
 import { MiniBoxShapeUtil } from './MiniBoxShape'
 import { MiniSelectTool } from './MiniSelectTool'
 
@@ -54,15 +55,15 @@ export default function OnlyEditorExample() {
 	)
 }
 
-/* 
+/*
 This example shows how to use the TldrawEditor component on its own. This is useful if you want to
 create your own custom UI, shape and tool interactions.
 
 [1]
 We create a custom tool and shape util arrays. These are arrays of classes that extend
-the built-in state node and shape util classes. Check out MiniSelectTool.ts and 
-MiniBoxShapeUtil.tsx to see how they work. Or check out the custom config example for 
-a more in-depth look at how to create custom tools and shapes. 
+the built-in state node and shape util classes. Check out MiniSelectTool.ts and
+MiniBoxShapeUtil.tsx to see how they work. Or check out the custom config example for
+a more in-depth look at how to create custom tools and shapes.
 
 There is an even simpler implementation of the select tool in MicroSelectTool.tsx, but it
 isn't used in this example.

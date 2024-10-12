@@ -10,7 +10,6 @@ import {
 	TLBaseShape,
 	Tldraw,
 } from 'tldraw'
-
 import 'tldraw/tldraw.css'
 
 // There's a guide at the bottom of this file!
@@ -122,15 +121,15 @@ export default function CustomShapeToSvgExample() {
 		</div>
 	)
 }
-/* 
- The "export as SVG/PNG" and "copy as SVG/PNG" actions use the `toSvg` or `toBackgroundSvg` 
- methods of a shape util. If a shape does not have a `toSvg` or `toBackgroundSvg` method 
+/*
+ The "export as SVG/PNG" and "copy as SVG/PNG" actions use the `toSvg` or `toBackgroundSvg`
+ methods of a shape util. If a shape does not have a `toSvg` or `toBackgroundSvg` method
  defined, it will default to an empty box.
 
  For more information on creating a custom shape, check out the custom shape example.
 
  [1]
-    This method should return a React element that represents the shape as an SVG element. 
+    This method should return a React element that represents the shape as an SVG element.
     If your shape is HTML, then you will need to convert it to an SVG representation. In this
     example we've used a `rect` element to represent the shape. Other shapes may require more
     complex work to render them as SVGs, especially if they contain text. Check out [3] for more
@@ -144,7 +143,7 @@ export default function CustomShapeToSvgExample() {
 [3]
 	If your shape contains text, you may need to add a font definition to the SVG. This is done
 	using the `addExportDef` method of the `SvgExportContext`. Your font def must contain a unique
-	key and a function that returns a React element. Check out the `getFontDefForExport` function 
+	key and a function that returns a React element. Check out the `getFontDefForExport` function
 	in the `defaultStyleDefs.tsx` file for an example of how this is done for tldraw fonts.
 
  */

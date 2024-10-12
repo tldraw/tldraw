@@ -30,8 +30,6 @@ import {
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
-import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
-import { LocalMigration } from '../utils/migration/LocalMigration'
 import { SCRATCH_PERSISTENCE_KEY } from '../utils/scratch-persistence-key'
 import { useSharing } from '../utils/sharing'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
@@ -72,7 +70,6 @@ const components: TLComponents = {
 		return (
 			<DefaultDebugMenu>
 				<DefaultDebugMenuContent />
-				<DebugMenuItems />
 			</DefaultDebugMenu>
 		)
 	},
@@ -108,7 +105,6 @@ export function LocalEditor() {
 				components={components}
 				inferDarkMode
 			>
-				<LocalMigration />
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
 				<SneakyLocalSaveWarning />
