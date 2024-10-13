@@ -19,6 +19,7 @@ export const TlaButton = forwardRef<
 		iconRight = '',
 		variant = 'primary',
 		isLoading = false,
+		onClick,
 		...props
 	},
 	ref
@@ -26,6 +27,7 @@ export const TlaButton = forwardRef<
 	return (
 		<button
 			{...props}
+			onClick={isLoading ? undefined : onClick}
 			ref={ref}
 			data-state={isLoading ? 'loading' : 'ready'}
 			className={classNames(
@@ -38,13 +40,16 @@ export const TlaButton = forwardRef<
 				className
 			)}
 		>
-			{icon && <TlaIcon icon={icon} />}
-			{children && <span>{children}</span>}
-			{iconRight && <TlaIcon icon={iconRight} className={styles.iconRight} />}
-			{isLoading && (
+			{isLoading ? (
 				<div className={styles.spinner}>
 					<TlaIcon className="tla-spinner" icon="spinner" />
 				</div>
+			) : (
+				<>
+					{icon && <TlaIcon icon={icon} />}
+					{children && <span>{children}</span>}
+					{iconRight && <TlaIcon icon={iconRight} className={styles.iconRight} />}
+				</>
 			)}
 		</button>
 	)
