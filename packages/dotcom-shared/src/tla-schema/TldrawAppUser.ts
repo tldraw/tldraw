@@ -5,6 +5,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
+import { getDefaultTranslationLocale } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import { TldrawAppFileId } from './TldrawAppFile'
 import { idValidator } from './idValidator'
@@ -27,7 +28,35 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 	flags: {
 		placeholder_feature_flag: boolean
 	}
+	// N.B. These are duplicated from TLUserPreferences.
+	locale?: string | null
+	animationSpeed?: number | null
+	edgeScrollSpeed?: number | null
+	colorScheme?: 'light' | 'dark' | 'system'
+	isSnapMode?: boolean | null
+	isWrapMode?: boolean | null
+	isDynamicSizeMode?: boolean | null
+	isPasteAtCursorMode?: boolean | null
+	isToolLocked?: boolean | null
+	isGridMode?: boolean | null
+	isFocusMode?: boolean | null
+	isDebugMode?: boolean | null
 }
+
+export const UserPreferencesKeys = [
+	'locale',
+	'animationSpeed',
+	'edgeScrollSpeed',
+	'colorScheme',
+	'isSnapMode',
+	'isWrapMode',
+	'isDynamicSizeMode',
+	'isPasteAtCursorMode',
+	'isToolLocked',
+	'isGridMode',
+	'isFocusMode',
+	'isDebugMode',
+] as const
 
 export type TldrawAppUserId = RecordId<TldrawAppUser>
 
@@ -53,6 +82,19 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 		flags: T.object({
 			placeholder_feature_flag: T.boolean,
 		}),
+		// N.B. These are duplicated from TLUserPreferences.
+		locale: T.string.nullable().optional(),
+		animationSpeed: T.number.nullable().optional(),
+		edgeScrollSpeed: T.number.nullable().optional(),
+		colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
+		isSnapMode: T.boolean.nullable().optional(),
+		isWrapMode: T.boolean.nullable().optional(),
+		isDynamicSizeMode: T.boolean.nullable().optional(),
+		isPasteAtCursorMode: T.boolean.nullable().optional(),
+		isToolLocked: T.boolean.nullable().optional(),
+		isGridMode: T.boolean.nullable().optional(),
+		isFocusMode: T.boolean.nullable().optional(),
+		isDebugMode: T.boolean.nullable().optional(),
 	})
 )
 
@@ -85,5 +127,27 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 		flags: {
 			placeholder_feature_flag: false,
 		},
+		// N.B. These are duplicated from TLUserPreferences.
+		locale: getDefaultTranslationLocale(),
+		animationSpeed: userPrefersReducedMotion() ? 0 : 1,
+		edgeScrollSpeed: 1,
+		colorScheme: 'system',
+		isSnapMode: false,
+		isWrapMode: false,
+		isDynamicSizeMode: false,
+		isPasteAtCursorMode: false,
+		isToolLocked: false,
+		isGridMode: false,
+		isFocusMode: false,
+		isDebugMode: false,
 	})
 )
+
+/** @internal */
+export function userPrefersReducedMotion() {
+	if (typeof window !== 'undefined' && 'matchMedia' in window) {
+		return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
+	}
+
+	return false
+}

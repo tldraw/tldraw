@@ -623,7 +623,7 @@ export class Idle extends StateNode {
 
 		const { gridSize } = this.editor.getDocumentSettings()
 
-		const step = this.editor.getInstanceState().isGridMode
+		const step = this.editor.user.getIsGridMode()
 			? shiftKey
 				? gridSize * GRID_INCREMENT
 				: gridSize

@@ -225,3 +225,7 @@
 	width: 100%;
 	height: 100%;
 }
+
+.tla-theme__dark .tla-tldraw-sidebar-icon {
+	filter: invert(1);
+}

@@ -58,7 +58,7 @@ export const router = createRoutesFromElements(
 			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
 		</Route>
 		{/* begin tla */}
-		<Route lazy={() => import('./tla/providers/TlaProvider')}>
+		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 			<Route path="/q" lazy={() => import('./tla/pages/local')} />
 			{/* File view */}
 			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />

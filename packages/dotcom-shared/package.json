@@ -9,6 +9,7 @@
 	"files": [],
 	"dependencies": {
 		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"tldraw": "workspace:*"
 	},

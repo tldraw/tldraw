@@ -13,8 +13,9 @@ const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 export interface TLUserPreferences {
 	id: string
 	name?: string | null
-	locale?: string | null
 	color?: string | null
+	// N.B. These are duplicated in TLdrawAppUser.
+	locale?: string | null
 	animationSpeed?: number | null
 	edgeScrollSpeed?: number | null
 	colorScheme?: 'light' | 'dark' | 'system'
@@ -22,6 +23,10 @@ export interface TLUserPreferences {
 	isWrapMode?: boolean | null
 	isDynamicSizeMode?: boolean | null
 	isPasteAtCursorMode?: boolean | null
+	isToolLocked?: boolean | null
+	isGridMode?: boolean | null
+	isFocusMode?: boolean | null
+	isDebugMode?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -35,18 +40,24 @@ interface UserChangeBroadcastMessage {
 	data: UserDataSnapshot
 }
 
-const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
+/** @public */
+export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
 	id: T.string,
 	name: T.string.nullable().optional(),
-	locale: T.string.nullable().optional(),
 	color: T.string.nullable().optional(),
-	colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
+	// N.B. These are duplicated in TLdrawAppUser.
+	locale: T.string.nullable().optional(),
 	animationSpeed: T.number.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),
+	colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
 	isSnapMode: T.boolean.nullable().optional(),
 	isWrapMode: T.boolean.nullable().optional(),
 	isDynamicSizeMode: T.boolean.nullable().optional(),
 	isPasteAtCursorMode: T.boolean.nullable().optional(),
+	isToolLocked: T.boolean.nullable().optional(),
+	isGridMode: T.boolean.nullable().optional(),
+	isFocusMode: T.boolean.nullable().optional(),
+	isDebugMode: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -58,6 +69,7 @@ const Versions = {
 	AddDynamicSizeMode: 6,
 	AllowSystemColorScheme: 7,
 	AddPasteAtCursor: 8,
+	AddInstanceVars: 9,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -92,6 +104,13 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	}
 	if (data.version < Versions.AddPasteAtCursor) {
 		data.user.isPasteAtCursorMode = false
+	}
+	if (data.version < Versions.AddInstanceVars) {
+		data.user.isPasteAtCursorMode = false
+		data.user.isToolLocked = undefined
+		data.user.isGridMode = undefined
+		data.user.isFocusMode = undefined
+		data.user.isDebugMode = undefined
 	}
 
 	// finally
@@ -132,12 +151,18 @@ export const defaultUserPreferences = Object.freeze({
 	name: 'New User',
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
+
+	// N.B. These are duplicated in TLdrawAppUser.
 	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
 	isWrapMode: false,
 	isDynamicSizeMode: false,
 	isPasteAtCursorMode: false,
+	isToolLocked: false,
+	isGridMode: false,
+	isFocusMode: false,
+	isDebugMode: false,
 	colorScheme: 'system',
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
