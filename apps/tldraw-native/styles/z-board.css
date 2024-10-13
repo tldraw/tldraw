@@ -1,0 +1,194 @@
+/* ------------------ Da Share Zone ----------------- */
+
+.tlui-style-panel__wrapper {
+	margin-top: 4px;
+}
+
+.tlui-share-zone__connection-status {
+	width: 8px;
+	height: 100%;
+	position: relative;
+	display: flex;
+	align-items: center;
+}
+
+.tlui-share-zone__connection-status::after {
+	content: '';
+	width: 8px;
+	height: 8px;
+	background-color: currentColor;
+	border-radius: 100%;
+}
+
+.tlui-share-zone__button-wrapper {
+	all: unset;
+	padding: 2px;
+	position: relative;
+	pointer-events: all;
+	position: relative;
+	cursor: pointer;
+}
+
+.tlui-share-zone__button {
+	font-family: inherit;
+	font-size: inherit;
+	height: 36px;
+	border: 2px solid var(--color-background);
+	border-radius: 8px;
+	background-color: var(--color-selected);
+	color: var(--color-selected-contrast);
+	text-shadow: none;
+	pointer-events: all;
+	position: relative;
+	font-weight: 600;
+}
+
+.tlui-share-zone__button::before {
+	position: absolute;
+	display: block;
+	content: '';
+	inset: 0px;
+	background-color: var(--color-background);
+	border-top-left-radius: var(--radius-3);
+	border-bottom-right-radius: var(--radius-3);
+	border-bottom-left-radius: var(--radius-3);
+	z-index: -1;
+}
+
+.tlui-share-zone__button:active {
+	color: var(--color-selected-contrast);
+}
+
+@media (hover: hover) {
+	.tlui-share-zone__button:hover {
+		color: var(--color-selected-contrast);
+	}
+
+	.tlui-share-zone__button:not(:disabled, :focus-visible):hover {
+		color: var(--color-selected-contrast);
+	}
+}
+
+.tlui-share-zone__popover {
+	font-size: 12px;
+	font-weight: inherit;
+	width: 200px;
+	max-width: 100%;
+	max-height: 100%;
+	position: relative;
+}
+
+.tlui-share-zone__qr-code {
+	width: 200px;
+	height: 200px;
+	cursor: pointer;
+	background: none;
+	background-color: var(--color-muted-2);
+	background-size: cover;
+	border: none;
+}
+
+.tlui-share-zone__spinner {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tlui-share-zone__details {
+	font-size: 11px;
+	font-weight: 400;
+	padding: var(--space-4);
+	color: var(--color-text-1);
+	line-height: 1.5;
+	margin: 0px;
+}
+
+.tlui-share-zone__status {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px;
+	position: relative;
+	left: -4px;
+}
+
+.tlui-share-zone__status > div {
+	width: 8px;
+	height: 8px;
+	border-radius: 100%;
+}
+
+/* ------------------- People Menu ------------------- */
+
+.tlui-layout[data-breakpoint='0'] .tlui-offline-indicator {
+	margin-top: 4px;
+}
+
+/* Document Name */
+
+.tlui-document-name__inner {
+	border-radius: calc(var(--radius-2) + var(--space-2));
+	background-color: var(--color-background);
+	padding: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 36px;
+	margin-top: 4px;
+	padding-left: 4px;
+	max-width: 100%;
+	color: var(--color-text);
+	text-shadow: 1px 1px 0px var(--color-background);
+	pointer-events: all;
+}
+
+.tlui-document-name__input__wrapper {
+	position: relative;
+	max-width: calc(100% - 36px);
+	display: flex;
+	flex: auto;
+}
+
+.tlui-document-name__input,
+.tlui-document-name__text {
+	padding: var(--space-2) var(--space-3);
+	white-space: pre;
+	line-height: 24px;
+	min-width: 62px;
+}
+
+.tlui-document-name__input {
+	position: absolute;
+	padding: var(--space-1) var(--space-3);
+	margin-top: 2px;
+	width: 100%;
+	border-radius: var(--radius-2);
+	color: var(--color-text);
+	background: transparent;
+}
+.tlui-document-name__input:focus {
+	box-shadow: inset 0px 0px 0px 1px var(--color-selected);
+	border: none;
+}
+
+.tlui-document-name__text {
+	width: 100%;
+	color: var(--color-text);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-document-name__text__hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.tlui-document-name__menu {
+	width: 36px;
+	min-width: 36px;
+	height: 36px;
+}

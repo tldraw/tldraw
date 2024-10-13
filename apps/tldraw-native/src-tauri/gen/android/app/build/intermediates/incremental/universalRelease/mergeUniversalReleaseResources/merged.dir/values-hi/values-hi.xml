@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2" xmlns:ns2="http://schemas.android.com/tools">
+    <plurals name="mtrl_badge_content_description">
+    <item quantity="one">%d नई सूचनाएं</item>
+    <item quantity="other">%d नई सूचनाएं</item>
+  </plurals>
+    <string msgid="5976598919945601918" name="abc_action_bar_home_description">"होम पेज पर जाएं"</string>
+    <string msgid="8388173803310557296" name="abc_action_bar_up_description">"वापस जाएं"</string>
+    <string msgid="3937310113216875497" name="abc_action_menu_overflow_description">"ज़्यादा विकल्प"</string>
+    <string msgid="4692188335987374352" name="abc_action_mode_done">"हो गया"</string>
+    <string msgid="1189761859438369441" name="abc_activity_chooser_view_see_all">"सभी देखें"</string>
+    <string msgid="2165779757652331008" name="abc_activitychooserview_choose_application">"कोई ऐप्लिकेशन चुनें"</string>
+    <string msgid="4215997306490295099" name="abc_capital_off">"बंद"</string>
+    <string msgid="884982626291842264" name="abc_capital_on">"चालू"</string>
+    <string msgid="8833365367933412986" name="abc_menu_alt_shortcut_label">"Alt+"</string>
+    <string msgid="2223301931652355242" name="abc_menu_ctrl_shortcut_label">"Ctrl+"</string>
+    <string msgid="838001238306846836" name="abc_menu_delete_shortcut_label">"delete"</string>
+    <string msgid="7986526966204849475" name="abc_menu_enter_shortcut_label">"enter"</string>
+    <string msgid="375214403600139847" name="abc_menu_function_shortcut_label">"Function+"</string>
+    <string msgid="4192209724446364286" name="abc_menu_meta_shortcut_label">"Meta+"</string>
+    <string msgid="4741552369836443843" name="abc_menu_shift_shortcut_label">"Shift+"</string>
+    <string msgid="5473865519181928982" name="abc_menu_space_shortcut_label">"space"</string>
+    <string msgid="6180552449598693998" name="abc_menu_sym_shortcut_label">"Sym+"</string>
+    <string msgid="5520303668377388990" name="abc_prepend_shortcut_label">"Menu+"</string>
+    <string msgid="7208076849092622260" name="abc_search_hint">"खोजें…"</string>
+    <string msgid="3741173234950517107" name="abc_searchview_description_clear">"क्‍वेरी हटाएं"</string>
+    <string msgid="693312494995508443" name="abc_searchview_description_query">"सर्च क्वेरी"</string>
+    <string msgid="3417662926640357176" name="abc_searchview_description_search">"खोजें"</string>
+    <string msgid="1486535517437947103" name="abc_searchview_description_submit">"क्वेरी सबमिट करें"</string>
+    <string msgid="2293578557972875415" name="abc_searchview_description_voice">"बोलकर खोजें"</string>
+    <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"इससे शेयर करें:"</string>
+    <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g> से शेयर करें"</string>
+    <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"छोटा करें"</string>
+    <string name="bottomsheet_action_collapse">बॉटम शीट को छोटा करें</string>
+    <string name="bottomsheet_action_expand">बॉटम शीट को बड़ा करें</string>
+    <string name="bottomsheet_action_expand_halfway">पूरी तरह बड़ा करें</string>
+    <string name="bottomsheet_drag_handle_clicked">खींचकर छोड़ने वाले हैंडल पर दो बार टैप किया गया</string>
+    <string name="bottomsheet_drag_handle_content_description">खींचकर छोड़ने वाला हैंडल</string>
+    <string name="character_counter_content_description">%2$d वर्णों में से %1$d वर्ण दर्ज किए गए</string>
+    <string name="character_counter_overflowed_content_description">अभी %1$d वर्ण हैं जबकि %2$d से ज़्यादा नहीं होने चाहिए</string>
+    <string name="clear_text_end_icon_content_description">टेक्स्ट मिटाएं</string>
+    <string name="error_icon_content_description">गड़बड़ी</string>
+    <string name="exposed_dropdown_menu_content_description">ड्रॉपडाउन मेन्यू दिखाएं</string>
+    <string name="icon_content_description">डायलॉग का आइकॉन</string>
+    <string name="item_view_role_description">टैब</string>
+    <string name="material_clock_toggle_content_description">AM या PM चुनें</string>
+    <string name="material_hour_24h_suffix">%1$s घंटे</string>
+    <string name="material_hour_selection">घंटा चुनें</string>
+    <string name="material_hour_suffix">%1$s बजे</string>
+    <string name="material_minute_selection">मिनट चुनें</string>
+    <string name="material_minute_suffix">%1$s मिनट</string>
+    <string name="material_timepicker_am">पूर्वाह्न</string>
+    <string name="material_timepicker_clock_mode_description">समय इनपुट के लिए घड़ी मोड पर जाएं.</string>
+    <string name="material_timepicker_hour">घंटा</string>
+    <string name="material_timepicker_minute">मिनट</string>
+    <string name="material_timepicker_pm">अपराह्न</string>
+    <string name="material_timepicker_select_time">समय चुनें</string>
+    <string name="material_timepicker_text_input_mode_description">समय इनपुट के लिए लेख इनपुट मोड पर जाएं.</string>
+    <string name="mtrl_badge_numberless_content_description">नई सूचना</string>
+    <string name="mtrl_chip_close_icon_content_description">%1$s हटाएं</string>
+    <string name="mtrl_exceed_max_badge_number_content_description" ns2:ignore="PluralsCandidate">%1$d से ज़्यादा नई सूचनाएं</string>
+    <string name="mtrl_picker_a11y_next_month">अगले महीने पर जाएं</string>
+    <string name="mtrl_picker_a11y_prev_month">पिछले महीने पर जाएं</string>
+    <string name="mtrl_picker_announce_current_selection">फ़िलहाल, यह चुना गया है: %1$s</string>
+    <string name="mtrl_picker_cancel">रद्द करें</string>
+    <string name="mtrl_picker_confirm">ठीक है</string>
+    <string name="mtrl_picker_date_header_selected">%1$s</string>
+    <string name="mtrl_picker_date_header_title">तारीख चुनें</string>
+    <string name="mtrl_picker_date_header_unselected">चुनी गई तारीख</string>
+    <string name="mtrl_picker_day_of_week_column_header">दिनों का कॉलम: %1$s</string>
+    <string name="mtrl_picker_invalid_format">गलत फ़ॉर्मैट.</string>
+    <string name="mtrl_picker_invalid_format_example">उदाहरण: %1$s</string>
+    <string name="mtrl_picker_invalid_format_use">%1$s का इस्तेमाल करें</string>
+    <string name="mtrl_picker_invalid_range">तारीखों की अमान्य सीमा.</string>
+    <string name="mtrl_picker_navigate_to_year_description">साल %1$s पर जाएं</string>
+    <string name="mtrl_picker_out_of_range">तारीख की मान्य सीमा से बाहर: %1$s</string>
+    <string name="mtrl_picker_range_header_only_end_selected">शुरू होने की तारीख – %1$s</string>
+    <string name="mtrl_picker_range_header_only_start_selected">%1$s – खत्म होने की तारीख</string>
+    <string name="mtrl_picker_range_header_selected">%1$s – %2$s</string>
+    <string name="mtrl_picker_range_header_title">रेंज चुनें</string>
+    <string name="mtrl_picker_range_header_unselected">शुरू होने की तारीख – खत्म होने की तारीख</string>
+    <string name="mtrl_picker_save">सेव करें</string>
+    <string name="mtrl_picker_text_input_date_hint">तारीख</string>
+    <string name="mtrl_picker_text_input_date_range_end_hint">खत्म होने की तारीख</string>
+    <string name="mtrl_picker_text_input_date_range_start_hint">शुरू होने की तारीख</string>
+    <string name="mtrl_picker_text_input_day_abbr">d</string>
+    <string name="mtrl_picker_text_input_month_abbr">m</string>
+    <string name="mtrl_picker_text_input_year_abbr">y</string>
+    <string name="mtrl_picker_toggle_to_calendar_input_mode">कैलेंडर के इनपुट मोड पर स्विच करें</string>
+    <string name="mtrl_picker_toggle_to_day_selection">\'दिन चुनना\' पर स्विच करने के लिए टैप करें</string>
+    <string name="mtrl_picker_toggle_to_text_input_mode">टेक्स्ट के इनपुट मोड पर स्विच करें</string>
+    <string name="mtrl_picker_toggle_to_year_selection">\'साल चुनना\' पर स्विच करने के लिए टैप करें</string>
+    <string name="mtrl_timepicker_cancel">रद्द करें</string>
+    <string name="mtrl_timepicker_confirm">ठीक है</string>
+    <string name="password_toggle_content_description">पासवर्ड दिखाएं</string>
+    <string msgid="6264217191555673260" name="search_menu_title">"खोजें"</string>
+    <string msgid="6277540029070332960" name="status_bar_notification_info_overflow">"999+"</string>
+</resources>

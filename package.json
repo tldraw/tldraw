@@ -40,6 +40,7 @@
 		"dev-app": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/dotcom/*' --filter='packages/tldraw'",
 		"dev-docs": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter='apps/docs'",
 		"dev-huppy": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'internal/huppy'",
+		"dev-native": "LAZYREPO_PRETTY_OUTPUT=0 lazy run dev --filter 'apps/tldraw-native' --filter 'apps/dotcom/asset-upload-worker' --filter 'apps/dotcom/image-resize-worker' --filter 'apps/dotcom/sync-worker'",
 		"dev-tools": "yarn tsx internal/scripts/get-pr-numbers.ts && lazy run dev --filter='internal/dev-tools'",
 		"build": "lazy build",
 		"build-app": "lazy run build --filter 'apps/dotcom/client'",

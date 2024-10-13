@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "PROCESSED_RES",
+    "kind": "Directory"
+  },
+  "applicationId": "com.tldraw_native_app",
+  "variantName": "universalRelease",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 1000,
+      "versionName": "0.1.0",
+      "outputFile": "resources-universalRelease.ap_"
+    }
+  ],
+  "elementType": "File"
+}

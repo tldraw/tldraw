@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.tldraw_native_app-mergeUniversalReleaseResources-29:/values-h320dp-port-v13/values-h320dp-port-v13.xml",
+            "map": [
+                {
+                    "source": "/Users/mitja/.gradle/caches/8.9/transforms/17e036bcfb84a96d0c17170159afaa8e/transformed/material-1.8.0/res/values-h320dp-port-v13/values-h320dp-port-v13.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "75",
+                        "endOffsets": "126"
+                    }
+                }
+            ]
+        }
+    ]
+}

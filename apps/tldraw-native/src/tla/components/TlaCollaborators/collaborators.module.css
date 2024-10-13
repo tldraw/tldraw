@@ -1,0 +1,23 @@
+.collaborators {
+	display: flex;
+	flex-direction: row;
+	padding-left: 6px;
+	flex: 0 0 auto;
+}
+
+.collaborators > .collaborator:nth-of-type(n + 1) {
+	margin-left: -6px;
+}
+
+.tla-collaborator {
+	width: 15px;
+	height: 15px;
+	background-color: var(--tla-color-accent-2);
+	border: 2px solid var(--tla-color-panel);
+	text-align: center;
+	color: var(--tla-color-sidebar);
+	border-radius: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}

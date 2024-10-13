@@ -1,0 +1,28 @@
+.section {
+	display: flex;
+	padding: 12px;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.section:nth-of-type(n + 2) {
+	border-top: 1px solid var(--tla-color-border);
+}
+
+.controlGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.controlGroup + .controlGroup {
+	margin-top: 12px;
+}
+
+.control {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 32px;
+	gap: 8px;
+}

@@ -1,0 +1,39 @@
+.button {
+	background: none;
+	border: none;
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	cursor: pointer;
+	display: flex;
+	gap: 0px;
+	align-items: center;
+	justify-content: center;
+	height: 40px;
+	padding: 0px 12px 0px 10px;
+	gap: 10px;
+	z-index: 10000;
+	color: var(--tla-color-text-1);
+	background-color: var(--tla-color-sidebar);
+}
+
+.button > span {
+	position: relative;
+	z-index: 2;
+}
+
+@media (hover: hover) {
+	.button:hover::after {
+		display: block;
+		content: '';
+		position: absolute;
+		top: 4px;
+		left: 4px;
+		right: 4px;
+		bottom: 4px;
+		border-radius: 4px;
+		background-color: var(--tla-color-hover-1);
+		z-index: 0;
+		pointer-events: none;
+	}
+}

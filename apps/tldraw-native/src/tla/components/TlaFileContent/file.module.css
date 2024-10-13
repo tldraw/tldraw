@@ -1,0 +1,158 @@
+.header {
+	height: 48px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0px 8px 0px 0px;
+	position: relative;
+}
+
+.headerFileInfo {
+	position: absolute;
+	/* To counter the menu button, 72px + 36px */
+	padding-left: 40px;
+	padding-right: 160px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	text-align: center;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+}
+
+@media (min-width: 768px) {
+	.headerFileInfo {
+		position: absolute;
+		justify-content: center;
+		/* To counter the menu button, 72px + 36px */
+		padding-left: 36px;
+		padding-right: 0px;
+	}
+}
+
+.headerTitle {
+	all: unset;
+	color: var(--tla-color-text-1);
+	cursor: pointer;
+}
+
+.headerFolder {
+	color: var(--tla-color-text-3);
+}
+
+.content {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 0px;
+	min-height: 1px;
+}
+
+.editorWrapper {
+	position: relative;
+	flex-grow: 2;
+	overflow: hidden;
+	border-top: 1px solid var(--tla-color-border);
+	background-color: var(--tla-color-canvas);
+}
+
+.editorWrapper > .tldraw__editor {
+	width: 100%;
+	height: 100%;
+}
+
+@media (min-width: 768px) {
+	.editorWrapper[data-sidebar='true'] {
+		border-top-left-radius: 9px;
+		border-left: 1px solid var(--tla-color-border);
+	}
+}
+
+.inputWrapper {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: 100%;
+}
+
+.nameWidthSetter {
+	position: relative;
+	z-index: 1;
+	width: fit-content;
+	max-width: 320px;
+	min-width: 0px;
+	white-space: no-wrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	opacity: 0;
+	pointer-events: none;
+	padding-left: 2px;
+}
+
+button.nameWidthSetter {
+	background: none;
+	border: none;
+	padding: none;
+	margin: none;
+	opacity: 1;
+	padding-left: 2px;
+	padding-right: 0px;
+	pointer-events: all;
+}
+
+.inputWrapper > div:nth-of-type(1) {
+	position: absolute;
+	z-index: 2;
+	width: 100%;
+	padding-left: 2px;
+	padding-bottom: 1px;
+}
+
+.inputWrapper input {
+	position: relative;
+	padding-right: 0px;
+}
+
+.inputWrapper:focus-within::after {
+	display: block;
+	position: absolute;
+	content: '';
+	inset: -4px;
+	border-radius: 4px;
+	background-color: var(--color-muted-2);
+}
+
+.linkMenu {
+	background: none;
+	border: none;
+	position: relative;
+	outline: none;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-text-3);
+	flex: 0 0 auto;
+	z-index: 3;
+	padding: 0px;
+	cursor: pointer;
+}
+
+@media (hover: hover) {
+	.linkMenu:hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
+.rightSide {
+	display: flex;
+	gap: 8px;
+}

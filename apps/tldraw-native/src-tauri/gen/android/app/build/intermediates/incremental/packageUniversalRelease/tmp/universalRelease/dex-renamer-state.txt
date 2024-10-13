@@ -1,0 +1,4 @@
+#Fri Oct 04 13:05:54 CEST 2024
+base.0=/Users/mitja/Code/tldraw/apps/tldraw-native/src-tauri/gen/android/app/build/intermediates/dex/universalRelease/minifyUniversalReleaseWithR8/classes.dex
+renamed.0=classes.dex
+path.0=classes.dex

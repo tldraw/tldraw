@@ -1,0 +1,131 @@
+.group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.group + .group {
+	margin-top: 12px;
+}
+
+.item {
+	display: flex;
+	flex-direction: column;
+}
+
+.label {
+	height: 32px;
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.input {
+	height: 32px;
+	background-color: var(--tla-color-panel);
+	color: var(--tla-color-text-1);
+	border: 1px solid var(--tla-color-border);
+	padding: 0px 12px;
+	border-radius: var(--tla-radius-2);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.input::placeholder {
+	color: var(--tla-color-text-3);
+}
+
+.input[type='text']:user-invalid,
+.input[type='password']:user-invalid {
+	border: 1px solid var(--tla-color-warning);
+	transition: border 0s;
+	transition-delay: 0.25s;
+}
+
+/* Checkbox */
+
+.checkbox {
+	position: relative;
+	cursor: pointer;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	--checkbox-size: 20px;
+	--checkbox-gap: 8px;
+}
+
+.label {
+	padding: 0px 0px 0px calc(var(--checkbox-size) + var(--checkbox-gap));
+	pointer-events: none;
+}
+
+.label a {
+	color: var(--tla-color-primary);
+}
+
+.checkbox input {
+	position: absolute;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	inset: 0px;
+	border: none;
+	opacity: 0;
+	cursor: pointer;
+	pointer-events: all;
+}
+
+.checkbox input + .label::after {
+	display: block;
+	content: '';
+	text-align: center;
+	position: absolute;
+	top: calc(50% - (var(--checkbox-size) / 2));
+	left: 0px;
+	width: var(--checkbox-size);
+	height: var(--checkbox-size);
+	color: var(--tla-color-text-1);
+	border: 1px solid var(--tla-color-border);
+	border-radius: 2px;
+}
+
+.checkbox input:checked + .label::after {
+	content: '✔';
+}
+
+.checkbox input:user-invalid + .label::after {
+	border: 1px solid var(--tla-color-warning);
+	transition: border 0s;
+	transition-delay: 0.25s;
+}
+
+/* --------------------- Divider -------------------- */
+
+.divider {
+	position: relative;
+	width: 100%;
+	display: flex;
+	text-align: center;
+	justify-content: center;
+}
+
+.divider::after {
+	content: '';
+	display: block;
+	position: absolute;
+	left: 0px;
+	top: 50%;
+	width: 100%;
+	height: 1px;
+	background-color: var(--tla-color-border);
+}
+
+.divider span {
+	position: relative;
+	z-index: 1;
+	color: var(--tla-color-text-3);
+	background-color: var(--tla-color-panel);
+	padding: 0px 12px;
+}

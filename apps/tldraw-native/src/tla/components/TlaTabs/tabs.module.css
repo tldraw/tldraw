@@ -1,0 +1,63 @@
+.tabs {
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	position: relative;
+	--tab-padding: 12px;
+	--line-height: 2px;
+}
+
+.tab {
+	background: none;
+	border: none;
+	position: relative;
+	cursor: pointer;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	padding: var(--tab-padding);
+	color: var(--tla-color-text-3);
+}
+
+.tab::after {
+	content: '';
+	display: block;
+	position: absolute;
+	bottom: 0px;
+	left: var(--tab-padding);
+	right: var(--tab-padding);
+	height: var(--line-height);
+	z-index: 3;
+	background-color: var(--tla-color-text-1);
+	visibility: hidden;
+}
+
+.tab[data-active='true'] {
+	color: var(--tla-color-text-1);
+	/* active tab in front of peers */
+	z-index: 2;
+}
+
+.tab[data-active='true']::after {
+	visibility: visible;
+}
+
+@media (hover: hover) {
+	.tab:hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
+.tab:nth-of-type(n + 2) {
+	margin-left: calc(var(--tab-padding) * -0.5);
+}
+
+.line {
+	position: absolute;
+	bottom: 0px;
+	left: var(--tab-padding);
+	right: var(--tab-padding);
+	height: var(--line-height);
+	background-color: var(--tla-color-hover-1);
+}

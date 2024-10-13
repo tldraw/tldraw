@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Base.TextAppearance.AppCompat.Widget.ActionBar.Menu" parent="android:TextAppearance.Material.Widget.ActionBar.Menu"/>
+    <style name="Base.TextAppearance.AppCompat.Widget.Button.Inverse" parent="android:TextAppearance.Material.Widget.Button.Inverse"/>
+    <style name="Base.Theme.AppCompat" parent="Base.V23.Theme.AppCompat"/>
+    <style name="Base.Theme.AppCompat.Light" parent="Base.V23.Theme.AppCompat.Light"/>
+    <style name="Base.V23.Theme.AppCompat" parent="Base.V22.Theme.AppCompat">
+        
+        <item name="ratingBarStyleIndicator">?android:attr/ratingBarStyleIndicator</item>
+        <item name="ratingBarStyleSmall">?android:attr/ratingBarStyleSmall</item>
+
+        
+        <item name="actionBarItemBackground">?android:attr/actionBarItemBackground</item>
+        
+        <item name="actionMenuTextColor">?android:attr/actionMenuTextColor</item>
+        <item name="actionMenuTextAppearance">?android:attr/actionMenuTextAppearance</item>
+        <item name="actionOverflowButtonStyle">?android:attr/actionOverflowButtonStyle</item>
+
+        <item name="controlBackground">@drawable/abc_control_background_material</item>
+    </style>
+    <style name="Base.V23.Theme.AppCompat.Light" parent="Base.V22.Theme.AppCompat.Light">
+        
+        <item name="ratingBarStyleIndicator">?android:attr/ratingBarStyleIndicator</item>
+        <item name="ratingBarStyleSmall">?android:attr/ratingBarStyleSmall</item>
+
+        
+        <item name="actionBarItemBackground">?android:attr/actionBarItemBackground</item>
+        
+        <item name="actionMenuTextColor">?android:attr/actionMenuTextColor</item>
+        <item name="actionMenuTextAppearance">?android:attr/actionMenuTextAppearance</item>
+        <item name="actionOverflowButtonStyle">?android:attr/actionOverflowButtonStyle</item>
+
+        <item name="controlBackground">@drawable/abc_control_background_material</item>
+    </style>
+    <style name="Base.Widget.AppCompat.ActionButton.Overflow" parent="android:Widget.Material.ActionButton.Overflow"/>
+    <style name="Base.Widget.AppCompat.Button.Borderless.Colored" parent="android:Widget.Material.Button.Borderless.Colored"/>
+    <style name="Base.Widget.AppCompat.Button.Colored" parent="android:Widget.Material.Button.Colored">
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Widget.Button.Colored</item>
+    </style>
+    <style name="Base.Widget.AppCompat.EditText" parent="android:Widget.Material.EditText">
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="android:breakStrategy">simple</item>
+    </style>
+    <style name="Base.Widget.AppCompat.RatingBar.Indicator" parent="android:Widget.Material.RatingBar.Indicator"/>
+    <style name="Base.Widget.AppCompat.RatingBar.Small" parent="android:Widget.Material.RatingBar.Small"/>
+    <style name="Base.Widget.AppCompat.Spinner.Underlined" parent="android:Widget.Material.Spinner.Underlined"/>
+    <style name="Base.Widget.AppCompat.TextView" parent="android:Widget.Material.TextView">
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="android:breakStrategy">high_quality</item>
+    </style>
+    <style name="CardView" parent="Base.CardView">
+        <item name="cardBackgroundColor">?android:attr/colorBackgroundFloating</item>
+    </style>
+    <style name="ThemeOverlay.Material3.AutoCompleteTextView" parent="Base.ThemeOverlay.Material3.AutoCompleteTextView">
+    <item name="colorControlNormal">@color/m3_textfield_indicator_text_color</item>
+  </style>
+    <style name="ThemeOverlay.Material3.TextInputEditText" parent="Base.ThemeOverlay.Material3.TextInputEditText">
+    <item name="colorControlNormal">@color/m3_textfield_indicator_text_color</item>
+  </style>
+    <style name="Widget.Material3.ActionBar.Solid" parent="Base.Widget.Material3.ActionBar.Solid">
+    <item name="background">@drawable/m3_appbar_background</item>
+    <item name="backgroundStacked">@drawable/m3_appbar_background</item>
+    <item name="backgroundSplit">@drawable/m3_appbar_background</item>
+  </style>
+    <style name="Widget.Material3.ActionMode" parent="Base.Widget.Material3.ActionMode">
+    <item name="background">@drawable/m3_appbar_background</item>
+    <item name="backgroundSplit">@drawable/m3_appbar_background</item>
+  </style>
+    <style name="Widget.Material3.CompoundButton.CheckBox" parent="Base.Widget.Material3.CompoundButton.CheckBox">
+    <item name="android:background">@drawable/m3_selection_control_ripple</item>
+  </style>
+    <style name="Widget.Material3.CompoundButton.RadioButton" parent="Base.Widget.Material3.CompoundButton.RadioButton">
+    <item name="android:background">@drawable/m3_radiobutton_ripple</item>
+  </style>
+    <style name="Widget.Material3.CompoundButton.Switch" parent="Base.Widget.Material3.CompoundButton.Switch">
+    <item name="android:background">@drawable/m3_selection_control_ripple</item>
+  </style>
+    <style name="Widget.Material3.Light.ActionBar.Solid" parent="Base.Widget.Material3.Light.ActionBar.Solid">
+    <item name="background">@drawable/m3_appbar_background</item>
+    <item name="backgroundStacked">@drawable/m3_appbar_background</item>
+    <item name="backgroundSplit">@drawable/m3_appbar_background</item>
+  </style>
+    <style name="Widget.Material3.TabLayout.OnSurface" parent="Base.Widget.Material3.TabLayout.OnSurface">
+    <item name="android:background">@drawable/m3_tabs_transparent_background</item>
+  </style>
+    <style name="Widget.MaterialComponents.PopupMenu.ContextMenu" parent="Base.Widget.MaterialComponents.PopupMenu.ContextMenu">
+    <item name="android:popupBackground">?attr/popupMenuBackground</item>
+    <item name="android:popupElevation">8dp</item>
+  </style>
+    <style name="Widget.MaterialComponents.PopupMenu.ListPopupWindow" parent="Base.Widget.MaterialComponents.PopupMenu.ListPopupWindow">
+    <item name="android:popupBackground">?attr/popupMenuBackground</item>
+    <item name="android:popupElevation">8dp</item>
+  </style>
+</resources>

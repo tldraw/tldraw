@@ -1,0 +1,19 @@
+.page {
+	position: absolute;
+	inset: 0px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.pageCentered {
+	height: 100%;
+	width: 100%;
+	padding: 48px 16px 16px 16px;
+	max-width: 760px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-height: 100%;
+	overflow-y: auto;
+}
