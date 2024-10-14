@@ -9182,6 +9182,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _restoreToolId = 'select'
 
 	/** @internal */
+	private _autoWheelBehavior: 'pan' | 'zoom' = 'pan'
+
+	/** @internal */
 	private _pinchStart = 1
 
 	/** @internal */
@@ -9420,11 +9423,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
 						const { x: dx, y: dy, z: dz = 0 } = info.delta
 
-						let behavior = wheelBehavior
+						// Set _autoWheelBehavior to pan when scrolling horizontally.
+						// Don't set it when ctrl is pressed because ctrl changes the behavior and then we don't want to change the default behavior.
+						// Don't set it when panning because if you're panning by holding down the mouse wheel and the wheel can be tilted to scroll horizontally it's easy to accidentally trigger that.
+						if (dx !== 0 && !inputs.ctrlKey && !inputs.isPanning) {
+							this._autoWheelBehavior = 'pan'
+						}
+
+						const currentBehavior =
+							wheelBehavior === 'auto' ? this._autoWheelBehavior : wheelBehavior
+						let behavior = currentBehavior
 
 						// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
 						// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-						if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
+						if (inputs.ctrlKey) behavior = currentBehavior === 'pan' ? 'zoom' : 'pan'
 
 						switch (behavior) {
 							case 'zoom': {
@@ -9433,7 +9445,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								let delta = dz
 
 								// If we're forcing zoom, then we need to do the wheel normalization math here
-								if (wheelBehavior === 'zoom') {
+								if (currentBehavior === 'zoom') {
 									if (Math.abs(dy) > 10) {
 										delta = (10 * Math.sign(dy)) / 100
 									} else {
@@ -9524,6 +9536,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
 						// Also stop here, we don't want the state chart to receive the event
 						if (this.inputs.isPanning) {
+							this._autoWheelBehavior = 'zoom'
 							this.stopCameraAnimation()
 							this.setCursor({ type: 'grabbing', rotation: 0 })
 							return this
@@ -9542,6 +9555,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							// Handle spacebar / middle mouse button panning
 							const { currentScreenPoint, previousScreenPoint } = this.inputs
 							const { panSpeed } = cameraOptions
+							this._autoWheelBehavior = 'zoom'
 							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
 							this.setCamera(
 								new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
