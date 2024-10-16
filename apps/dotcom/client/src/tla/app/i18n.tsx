@@ -19,10 +19,8 @@ import { isDevelopmentEnv } from '../../utils/env'
 // eslint-disable-next-line
 export * from 'react-intl'
 
-// @ts-ignore ugh, why are the types from react-intl crap right now??
-export const FormattedDate: React.FC<any> = originalFormattedDate
-// @ts-ignore ugh, why are the types from react-intl crap right now??
-export const FormattedNumber: React.FC<any> = originalFormattedNumber
+export const FormattedDate = originalFormattedDate
+export const FormattedNumber = originalFormattedNumber
 
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 
