@@ -2,20 +2,31 @@ import { SignedOut, SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { F } from '../../app/i18n'
+import { defineMessages, F, useIntl } from '../../app/i18n'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import styles from './anon.module.css'
 
+const messages = defineMessages({
+	logo: { defaultMessage: 'the tldraw logo' },
+})
+
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	usePreventAccidentalDrops()
+	const intl = useIntl()
+	const logoAriaLabel = intl.formatMessage(messages.logo)
+
 	return (
 		<div
 			className={classNames('tla tla-theme__light tl-theme-light tl-container', styles.loggedOut)}
 		>
 			<div className={styles.header}>
 				<Link to="/">
-					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />
+					<img
+						src="/tla/tldraw-logo-2.svg"
+						alt={logoAriaLabel}
+						style={{ height: 20, width: 'auto' }}
+					/>
 				</Link>
 				<SignedOut>
 					<SignInButton forceRedirectUrl="/q">
