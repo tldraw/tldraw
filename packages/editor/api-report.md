@@ -608,6 +608,9 @@ export const debugFlags: {
     readonly editOnType: DebugFlag<boolean>;
     readonly forceSrgb: DebugFlag<boolean>;
     readonly hideShapes: DebugFlag<boolean>;
+    readonly langAccented: DebugFlag<boolean>;
+    readonly langHighlightMissing: DebugFlag<boolean>;
+    readonly langLongString: DebugFlag<boolean>;
     readonly logElementRemoves: DebugFlag<boolean>;
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
