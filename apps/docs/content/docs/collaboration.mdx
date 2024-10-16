@@ -15,7 +15,7 @@ keywords:
   - websockets
 ---
 
-The tldraw SDK includes deep support for real-time collaboration. The easiest way to add collaboration to your project is with our [tldraw sync](#tldraw-sync) library. Or you can use our low-level data APIs to integrate [other backends](#Using-other-collaboration-backends).
+The tldraw SDK includes deep support for real-time collaboration. The easiest way to add collaboration to your project is with our [tldraw sync](#tldraw-sync) library. Or you can use our low-level data APIs to integrate [Liveblocks](#Liveblocks) or [other backends](#Using-other-collaboration-backends).
 
 <div className="article__image" style={{ border: 'none' }}>
 	<img
@@ -78,6 +78,32 @@ The sync demo is great for prototyping but you should not use it in production. 
 To use tldraw sync in production, you will need to self-host the tldraw sync server. To learn more, see our article on [tldraw sync](/docs/sync).
 
 > We don't offer a hosted solution for tldraw sync in production, but if you're interested in that please let us know at hello@tldraw.com.
+
+## Liveblocks
+
+[Liveblocks](https://liveblocks.io) is a complete collaboration infrastructure, and its [Realtime APIs](https://liveblocks.io/realtime-apis) product provides a hosted back-end that can be used to synchronize tldraw in production.
+
+Liveblocks offers two different methods for persisting data, [Storage](https://liveblocks.io/docs/products/realtime-apis/liveblocks-storage) and [Yjs](https://liveblocks.io/docs/products/realtime-apis/liveblocks-yjs). Storage is quicker, and is the recommended solution, though if your app is using Liveblocks Yjs already, using this will help you take advantage of the shared undo/redo stack.
+
+### Get started
+
+To get started with tldraw and Liveblocks Storage, view a [live preview](https://liveblocks.io/examples/tldraw-whiteboard/nextjs-tldraw-whiteboard-storage), or run the following command to download a Next.js app featuring collaborative tldraw:
+
+```bash
+npx create-liveblocks-app@latest --example nextjs-tldraw-whiteboard-storage
+```
+
+A similar [live preview](https://liveblocks.io/examples/tldraw-whiteboard/nextjs-tldraw-whiteboard-yjs) and command can be used for Liveblocks Yjs:
+
+```bash
+npx create-liveblocks-app@latest --example nextjs-tldraw-whiteboard-yjs
+```
+
+### Advantages
+
+A major advantage of Liveblocks is that it comes with [a Node.js SDK](https://liveblocks.io/docs/api-reference/liveblocks-node), [REST APIs](https://liveblocks.io/docs/api-reference/rest-api-endpoints), and [webhooks](https://liveblocks.io/docs/platform/webhooks), meaning you can create intial tldraw content from the server, and respond to basic events that occur, such as non-specific canvas updates or users entering rooms.
+
+Other advantages of using Liveblocks include [DevTools](https://liveblocks.io/devtools) for checking tldraw state, [React library](https://liveblocks.io/docs/api-reference/liveblocks-react) for building custom features, and [React components](https://liveblocks.io/docs/api-reference/liveblocks-react-ui) built for adding commenting, notifications, and collaborative text editing to your app.
 
 ## Using other collaboration backends
 
