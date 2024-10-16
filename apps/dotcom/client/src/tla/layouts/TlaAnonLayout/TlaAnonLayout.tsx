@@ -2,13 +2,12 @@ import { SignedOut, SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { F } from '../../app/i18n'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
-import { useRaw } from '../../hooks/useRaw'
 import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
-	const raw = useRaw()
 	usePreventAccidentalDrops()
 	return (
 		<div
@@ -20,16 +19,23 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				</Link>
 				<SignedOut>
 					<SignInButton forceRedirectUrl="/q">
-						<TlaButton>{raw('Sign in')}</TlaButton>
+						<TlaButton>
+							<F defaultMessage="Sign in" />
+						</TlaButton>
 					</SignInButton>
 				</SignedOut>
 			</div>
 			<div className={styles.editorWrapper}>{children}</div>
 			<div className={classNames(styles.footer, 'tla-text_ui__regular')}>
 				<p>
-					<b>{raw('tldraw')}</b> {raw(' is a free online whiteboard for you and your friends. ')}
+					<F
+						defaultMessage="<b>tldraw</b> is a free online whiteboard for you and your friends."
+						values={{ b: (chunks) => <b>{chunks}</b> }}
+					/>{' '}
 					{/* Todo, make the rest of this layout the landing page, learn more should scroll down? */}
-					<Link to="/">{raw('Learn more.')}</Link>
+					<Link to="/">
+						<F defaultMessage="Learn more." />
+					</Link>
 				</p>
 			</div>
 		</div>

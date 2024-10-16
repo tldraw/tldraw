@@ -1,0 +1,22 @@
+{
+  "smartling": {
+    "string_format": "icu",
+    "translate_paths": [
+      {
+        "instruction": "*/description",
+        "key": "{*}/message",
+        "path": "*/message"
+      }
+    ],
+    "variants_enabled": true
+  },
+  "b6d4223e60": {
+    "message": "Sign in"
+  },
+  "b831a0fede": {
+    "message": "<b>tldraw</b> is a free online whiteboard for you and your friends."
+  },
+  "f990e553cd": {
+    "message": "Learn more."
+  }
+}

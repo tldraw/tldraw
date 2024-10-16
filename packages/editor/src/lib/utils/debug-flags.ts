@@ -53,6 +53,9 @@ export const debugFlags = {
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
 	editOnType: createDebugValue('editOnType', { defaults: { all: false } }),
+	langAccented: createDebugValue('langAccented', { defaults: { all: false } }),
+	langLongString: createDebugValue('langLongString', { defaults: { all: false } }),
+	langHighlightMissing: createDebugValue('langHighlightMissing', { defaults: { all: false } }),
 } as const
 
 declare global {
