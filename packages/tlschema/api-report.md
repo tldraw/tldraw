@@ -1261,6 +1261,8 @@ export interface TLNoteShapeProps {
     // (undocumented)
     growY: number;
     // (undocumented)
+    labelColor: TLDefaultColorStyle;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;

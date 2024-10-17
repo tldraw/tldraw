@@ -1,7 +1,11 @@
 import { T } from '@tldraw/validate'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
-import { DefaultColorStyle, TLDefaultColorStyle } from '../styles/TLColorStyle'
+import {
+	DefaultColorStyle,
+	DefaultLabelColorStyle,
+	TLDefaultColorStyle,
+} from '../styles/TLColorStyle'
 import { DefaultFontStyle, TLDefaultFontStyle } from '../styles/TLFontStyle'
 import {
 	DefaultHorizontalAlignStyle,
@@ -17,6 +21,7 @@ import { TLBaseShape } from './TLBaseShape'
 /** @public */
 export interface TLNoteShapeProps {
 	color: TLDefaultColorStyle
+	labelColor: TLDefaultColorStyle
 	size: TLDefaultSizeStyle
 	font: TLDefaultFontStyle
 	fontSizeAdjustment: number
@@ -34,6 +39,7 @@ export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 /** @public */
 export const noteShapeProps: RecordProps<TLNoteShape> = {
 	color: DefaultColorStyle,
+	labelColor: DefaultLabelColorStyle,
 	size: DefaultSizeStyle,
 	font: DefaultFontStyle,
 	fontSizeAdjustment: T.positiveNumber,
@@ -53,6 +59,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	MakeUrlsValid: 5,
 	AddFontSizeAdjustment: 6,
 	AddScale: 7,
+	AddLabelColor: 8,
 })
 
 export { Versions as noteShapeVersions }
@@ -127,6 +134,15 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: Versions.AddLabelColor,
+			up: (props) => {
+				props.labelColor = 'black'
+			},
+			down: (props) => {
+				delete props.labelColor
 			},
 		},
 	],

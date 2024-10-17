@@ -71,6 +71,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			font: 'draw',
 			align: 'middle',
 			verticalAlign: 'middle',
+			labelColor: 'black',
 			growY: 0,
 			fontSizeAdjustment: 0,
 			url: '',
@@ -176,7 +177,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { scale, color, font, size, align, text, verticalAlign, fontSizeAdjustment },
+			props: {
+				labelColor,
+				scale,
+				color,
+				font,
+				size,
+				align,
+				text,
+				verticalAlign,
+				fontSizeAdjustment,
+			},
 		} = shape
 
 		const handleKeyDown = useNoteKeydownHandler(id)
@@ -224,7 +235,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						text={text}
 						isNote
 						isSelected={isSelected}
-						labelColor={theme[color].note.text}
+						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
 						wrap
 						padding={16 * scale}
 						onKeyDown={handleKeyDown}
