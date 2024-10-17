@@ -10,6 +10,7 @@ import { useEffect } from 'react'
 import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
+import { LoginPage } from './components/LoginRedirectPage/LoginRedirectPage'
 
 export const router = createRoutesFromElements(
 	<Route
@@ -28,10 +29,12 @@ export const router = createRoutesFromElements(
 						para1 = 'The file you are looking for does not exist.'
 						break
 					}
-					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
+					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
+						return <LoginPage />
+					}
 					case TLSyncErrorCloseEventReason.FORBIDDEN: {
-						header = 'Unauthorized'
-						para1 = 'You need to be authorized to view this file.'
+						header = 'Forbidden'
+						para1 = 'You are forbidden to view this file.'
 						break
 					}
 				}
