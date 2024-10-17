@@ -115,6 +115,8 @@ async function main() {
 	await generateAutoRcFile()
 	await auto.loadConfig()
 
+	const preTagRef = await exec('git', ['rev-parse', 'HEAD'])
+
 	// this creates a new commit
 	await auto.changelog({
 		useVersion: nextVersion,
@@ -131,7 +133,12 @@ async function main() {
 	if (!isPrerelease) {
 		const { major, minor } = parse(nextVersion)!
 		await exec('git', ['push', 'origin', `${gitTag}:refs/heads/v${major}.${minor}.x`])
-		await publishProductionDocsAndExamplesAndBemo({ gitRef: gitTag })
+		await publishProductionDocsAndExamplesAndBemo({
+			// we use the ref from the HEAD before we created the tag, because auto
+			// adds `[skip ci]` to the commit message when it creates the changelog, and
+			// that will prevent the bemo release from going out.
+			gitRef: preTagRef,
+		})
 	}
 
 	// create a release on github
