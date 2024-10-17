@@ -11,7 +11,7 @@ import { idValidator } from './idValidator'
 
 export interface TldrawAppFile extends BaseRecord<'file', RecordId<TldrawAppFile>> {
 	name: string
-	owner: TldrawAppUserId | 'temporary'
+	ownerId: TldrawAppUserId
 	thumbnail: string
 	shared: boolean
 	sharedLinkType: 'view' | 'edit'
@@ -29,7 +29,7 @@ export const tldrawAppFileValidator: T.Validator<TldrawAppFile> = T.model(
 		typeName: T.literal('file'),
 		id: idValidator<TldrawAppFileId>('file'),
 		name: T.string,
-		owner: T.or(T.literal('temporary'), idValidator<TldrawAppUserId>('user')),
+		ownerId: idValidator<TldrawAppUserId>('user'),
 		shared: T.boolean,
 		sharedLinkType: T.or(T.literal('view'), T.literal('edit')),
 		thumbnail: T.string,
@@ -54,7 +54,7 @@ export const TldrawAppFileRecordType = createRecordType<TldrawAppFile>('file', {
 	validator: tldrawAppFileValidator,
 	scope: 'document',
 }).withDefaultProperties(
-	(): Omit<TldrawAppFile, 'id' | 'typeName' | 'workspaceId' | 'owner'> => ({
+	(): Omit<TldrawAppFile, 'id' | 'typeName' | 'ownerId'> => ({
 		name: '',
 		thumbnail: '',
 		createdAt: Date.now(),

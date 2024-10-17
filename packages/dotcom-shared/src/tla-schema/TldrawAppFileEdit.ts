@@ -11,7 +11,7 @@ import { TldrawAppUserId } from './TldrawAppUser'
 import { idValidator } from './idValidator'
 
 export interface TldrawAppFileEdit extends BaseRecord<'file-edit', RecordId<TldrawAppFileEdit>> {
-	userId: TldrawAppUserId
+	ownerId: TldrawAppUserId
 	fileId: TldrawAppFileId
 	sessionStartedAt: number
 	fileOpenedAt: number
@@ -27,7 +27,7 @@ export const tldrawAppFileEditValidator: T.Validator<TldrawAppFileEdit> = T.mode
 	T.object({
 		typeName: T.literal('file-edit'),
 		id: idValidator<TldrawAppFileEditId>('file-edit'),
-		userId: idValidator<TldrawAppUserId>('user'),
+		ownerId: idValidator<TldrawAppUserId>('user'),
 		fileId: idValidator<TldrawAppFileId>('file'),
 		sessionStartedAt: T.number,
 		fileOpenedAt: T.number,
@@ -37,7 +37,7 @@ export const tldrawAppFileEditValidator: T.Validator<TldrawAppFileEdit> = T.mode
 )
 
 /** @public */
-export const tldrawAppFileEditVersions = createMigrationIds('com.tldraw.file-edit', {} as const)
+export const tldrawAppFileEditVersions = createMigrationIds('com.tldraw-app.file-edit', {} as const)
 
 /** @public */
 export const tldrawAppFileEditMigrations = createRecordMigrationSequence({
@@ -53,7 +53,7 @@ export const TldrawAppFileEditRecordType = createRecordType<TldrawAppFileEdit>('
 }).withDefaultProperties(
 	(): Omit<
 		TldrawAppFileEdit,
-		'id' | 'typeName' | 'workspaceId' | 'userId' | 'fileId' | 'fileOpenedAt' | 'sessionStartedAt'
+		'id' | 'typeName' | 'ownerId' | 'fileId' | 'fileOpenedAt' | 'sessionStartedAt'
 	> => ({
 		createdAt: Date.now(),
 		updatedAt: Date.now(),

@@ -11,7 +11,7 @@ import { TldrawAppUserId } from './TldrawAppUser'
 import { idValidator } from './idValidator'
 
 export interface TldrawAppFileVisit extends BaseRecord<'file-visit', RecordId<TldrawAppFileVisit>> {
-	userId: TldrawAppUserId
+	ownerId: TldrawAppUserId
 	fileId: TldrawAppFileId
 	createdAt: number
 }
@@ -24,14 +24,17 @@ export const tldrawAppFileVisitValidator: T.Validator<TldrawAppFileVisit> = T.mo
 	T.object({
 		typeName: T.literal('file-visit'),
 		id: idValidator<TldrawAppFileVisitId>('file-visit'),
-		userId: idValidator<TldrawAppUserId>('user'),
+		ownerId: idValidator<TldrawAppUserId>('user'),
 		fileId: idValidator<TldrawAppFileId>('file'),
 		createdAt: T.number,
 	})
 )
 
 /** @public */
-export const tldrawAppFileVisitVersions = createMigrationIds('com.tldraw.file-visit', {} as const)
+export const tldrawAppFileVisitVersions = createMigrationIds(
+	'com.tldraw-app.file-visit',
+	{} as const
+)
 
 /** @public */
 export const tldrawAppFileVisitMigrations = createRecordMigrationSequence({
@@ -45,7 +48,7 @@ export const TldrawAppFileVisitRecordType = createRecordType<TldrawAppFileVisit>
 	validator: tldrawAppFileVisitValidator,
 	scope: 'document',
 }).withDefaultProperties(
-	(): Omit<TldrawAppFileVisit, 'id' | 'typeName' | 'workspaceId' | 'userId' | 'fileId'> => ({
+	(): Omit<TldrawAppFileVisit, 'id' | 'typeName' | 'ownerId' | 'fileId'> => ({
 		createdAt: Date.now(),
 	})
 )
