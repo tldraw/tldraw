@@ -43,6 +43,20 @@
 	font-weight: 600;
 }
 
+.tlui-share-zone__export-button {
+	font-family: inherit;
+	font-size: inherit;
+	height: 36px;
+	border: 2px solid var(--color-text);
+	border-radius: 8px;
+	background-color: var(--color-text);
+	color: var(--color-selected-contrast);
+	text-shadow: none;
+	pointer-events: all;
+	position: relative;
+	font-weight: 600;
+}
+
 .tlui-share-zone__button::before {
 	position: absolute;
 	display: block;

@@ -23,6 +23,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState({} as TldrawApp)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
+
 	const raw = useRaw()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {

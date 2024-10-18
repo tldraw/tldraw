@@ -1,4 +1,3 @@
-import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { TlaCloseButton } from '../../components/TlaCloseButton/TlaCloseButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
@@ -13,7 +12,7 @@ export function TlaCenteredLayout({
 }) {
 	usePreventAccidentalDrops()
 	return (
-		<div className={classNames(`tla tla-theme__light tl-container`, styles.container)}>
+		<div className={styles.layout}>
 			{onClose ? <TlaCloseButton onClose={onClose} /> : null}
 			<div className={styles.inner}>
 				<div className={styles.content}>{children}</div>
