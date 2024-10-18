@@ -31,7 +31,7 @@ export function registerDefaultSideEffects(editor: Editor) {
 								shape &&
 								shape.type === 'text' &&
 								editor.isInAny('text.pointing', 'select.resizing') &&
-								editor.user.getIsToolLocked()
+								editor.getInstanceState().isToolLocked
 							) {
 								editor.setCurrentTool('select.editing_shape', {
 									isCreatingTextWhileToolLocked: true,

@@ -187,7 +187,7 @@ function GridWrapper() {
 	const editor = useEditor()
 	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
 	const { x, y, z } = useValue('camera', () => editor.getCamera(), [editor])
-	const isGridMode = useValue('isGridMode', () => editor.user.getIsGridMode(), [editor])
+	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const { Grid } = useEditorComponents()
 
 	if (!(Grid && isGridMode)) return null

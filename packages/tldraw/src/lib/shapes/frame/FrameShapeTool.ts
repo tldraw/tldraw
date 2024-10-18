@@ -33,7 +33,7 @@ export class FrameShapeTool extends BaseBoxShapeTool {
 
 		this.editor.reparentShapes(shapesToAddToFrame, shape.id)
 
-		if (this.editor.user.getIsToolLocked()) {
+		if (this.editor.getInstanceState().isToolLocked) {
 			this.editor.setCurrentTool('frame')
 		} else {
 			this.editor.setCurrentTool('select.idle')

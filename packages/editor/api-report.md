@@ -737,13 +737,9 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "system";
     edgeScrollSpeed: 1;
-    isDebugMode: false;
     isDynamicSizeMode: false;
-    isFocusMode: false;
-    isGridMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
-    isToolLocked: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
@@ -3587,19 +3583,11 @@ export interface TLUserPreferences {
     // (undocumented)
     id: string;
     // (undocumented)
-    isDebugMode?: boolean | null;
-    // (undocumented)
     isDynamicSizeMode?: boolean | null;
-    // (undocumented)
-    isFocusMode?: boolean | null;
-    // (undocumented)
-    isGridMode?: boolean | null;
     // (undocumented)
     isPasteAtCursorMode?: boolean | null;
     // (undocumented)
     isSnapMode?: boolean | null;
-    // (undocumented)
-    isToolLocked?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
     // (undocumented)
@@ -3714,9 +3702,7 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 
 // @public (undocumented)
 export class UserPreferencesManager {
-    constructor(editor: Editor, user: TLUser, inferDarkMode: boolean);
-    // (undocumented)
-    editor: Editor;
+    constructor(user: TLUser, inferDarkMode: boolean);
     // (undocumented)
     getAnimationSpeed(): number;
     // (undocumented)
@@ -3727,19 +3713,11 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsDarkMode(): boolean;
     // (undocumented)
-    getIsDebugMode(): boolean;
-    // (undocumented)
     getIsDynamicResizeMode(): boolean;
-    // (undocumented)
-    getIsFocusMode(): boolean;
-    // (undocumented)
-    getIsGridMode(): boolean;
     // (undocumented)
     getIsPasteAtCursorMode(): boolean;
     // (undocumented)
     getIsSnapMode(): boolean;
-    // (undocumented)
-    getIsToolLocked(): boolean;
     // (undocumented)
     getIsWrapMode(): boolean;
     // (undocumented)

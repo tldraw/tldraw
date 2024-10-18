@@ -208,7 +208,7 @@ export class DraggingHandle extends StateNode {
 		kickoutOccludedShapes(this.editor, [this.shapeId])
 
 		const { onInteractionEnd } = this.info
-		if (this.editor.user.getIsToolLocked() && onInteractionEnd) {
+		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
 			// Return to the tool that was active before this one,
 			// but only if tool lock is turned on!
 			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
