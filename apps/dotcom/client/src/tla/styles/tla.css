@@ -229,3 +229,14 @@
 .tla-theme__dark .tla-tldraw-sidebar-icon {
 	filter: invert(1);
 }
+
+.tla-lang-highlight-missing *:not(.notranslate) {
+  text-shadow: 3px 3px red;
+}
+
+.tla-lang-highlight-missing .notranslate,
+.tla-lang-highlight-missing .notranslate *,
+.tla-lang-highlight-missing .i18n-msg,
+.tla-lang-highlight-missing .i18n-msg * {
+  text-shadow: none;
+}
