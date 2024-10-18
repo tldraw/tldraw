@@ -19,9 +19,6 @@ import { isDevelopmentEnv } from '../../utils/env'
 // eslint-disable-next-line
 export * from 'react-intl'
 
-export const FormattedDate = originalFormattedDate
-export const FormattedNumber = originalFormattedNumber
-
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 
 // This matches the extraction tool pattern:
