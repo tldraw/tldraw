@@ -10,7 +10,7 @@ import { useEffect } from 'react'
 import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
-import { LoginPage } from './components/LoginRedirectPage/LoginRedirectPage'
+import { LoginRedirectPage } from './components/LoginRedirectPage/LoginRedirectPage'
 
 export const router = createRoutesFromElements(
 	<Route
@@ -30,7 +30,7 @@ export const router = createRoutesFromElements(
 						break
 					}
 					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
-						return <LoginPage />
+						return <LoginRedirectPage />
 					}
 					case TLSyncErrorCloseEventReason.FORBIDDEN: {
 						header = 'Forbidden'

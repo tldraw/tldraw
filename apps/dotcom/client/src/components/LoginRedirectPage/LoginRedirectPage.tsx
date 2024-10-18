@@ -8,15 +8,15 @@ if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local')
 }
 
-export function LoginPage() {
+export function LoginRedirectPage() {
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY}>
-			<LoginPageInner />
+			<LoginRedirectPageInner />
 		</ClerkProvider>
 	)
 }
 
-function LoginPageInner() {
+function LoginRedirectPageInner() {
 	const clerk = useClerk()
 
 	useEffect(() => {
