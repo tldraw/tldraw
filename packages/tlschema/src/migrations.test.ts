@@ -2026,7 +2026,7 @@ describe('Adding label color to note shapes', () => {
 	})
 
 	test('down works as expected', () => {
-		expect(up({ props: { labelColor: 'black' } })).toEqual({ props: {} })
+		expect(down({ props: { labelColor: 'black' } })).toEqual({ props: {} })
 	})
 })
 
