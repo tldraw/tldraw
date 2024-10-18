@@ -5,7 +5,7 @@ export function Component() {
 	return (
 		<>
 			<Helmet>
-				<meta name="robots" content="noindex" />
+				<meta name="robots" content="noindex, noimageindex, nofollow" />
 			</Helmet>
 			<Outlet />
 		</>
