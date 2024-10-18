@@ -232,16 +232,16 @@ function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
 				</div>
 			</div>
 			<Link to={getFileUrl(id)} className={styles.linkButton} />
-			<TlaSidebarFileLinkMenu />
+			<TlaSidebarFileLinkMenu fileId={file.id} />
 		</div>
 	)
 }
 
 /* ---------------------- Menu ---------------------- */
 
-function TlaSidebarFileLinkMenu() {
+function TlaSidebarFileLinkMenu({ fileId }: { fileId: TldrawAppFile['id'] }) {
 	return (
-		<TlaFileMenu source="sidebar">
+		<TlaFileMenu fileId={fileId} source="sidebar">
 			<button className={styles.linkMenu}>
 				<TlaIcon icon="dots-vertical-strong" />
 			</button>
