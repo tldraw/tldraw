@@ -11,8 +11,18 @@ import {
 	TldrawAppUser,
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
+	UserPreferencesKeys,
 } from '@tldraw/dotcom-shared'
-import { Store, TLStoreSnapshot, assertExists, computed } from 'tldraw'
+import pick from 'lodash.pick'
+import {
+	Store,
+	TLStoreSnapshot,
+	TLUserPreferences,
+	assertExists,
+	computed,
+	createTLUser,
+	getUserPreferences,
+} from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 
 export class TldrawApp {
@@ -53,6 +63,26 @@ export class TldrawApp {
 	setSessionState(sessionState: TldrawAppSessionState) {
 		return this.store.put([sessionState])
 	}
+
+	tlUser = createTLUser({
+		userPreferences: computed('user prefs', () => {
+			const userId = this.getCurrentUserId()
+			if (!userId) throw Error('no user')
+			const user = this.getUser(userId)
+			return pick(user, UserPreferencesKeys) as TLUserPreferences
+		}),
+		setUserPreferences: (prefs: Partial<TLUserPreferences>) => {
+			const user = this.getCurrentUser()
+			if (!user) throw Error('no user')
+
+			this.store.put([
+				{
+					...user,
+					...(prefs as TldrawAppUser),
+				},
+			])
+		},
+	})
 
 	@computed getTheme() {
 		return this.getSessionState().theme
@@ -176,6 +206,12 @@ export class TldrawApp {
 
 	get<T extends TldrawAppRecord>(id: T['id']): T | undefined {
 		return this.store.get(id) as T | undefined
+	}
+
+	getCurrentUser(): TldrawAppUser | undefined {
+		const userId = this.getCurrentUserId()
+		if (!userId) return
+		return this.get(userId)
 	}
 
 	getUser(userId: TldrawAppUserId): TldrawAppUser | undefined {
@@ -468,7 +504,9 @@ export class TldrawApp {
 			])
 		}
 
-		if (!store.get(userId)) {
+		const user = store.get(userId)
+		if (!user) {
+			const { id: _id, name: _name, color: _color, ...restOfPreferences } = getUserPreferences()
 			store.put([
 				TldrawAppUserRecordType.create({
 					id: userId,
@@ -479,11 +517,13 @@ export class TldrawApp {
 					presence: {
 						fileIds: [],
 					},
+					...restOfPreferences,
 				}),
 			])
 		}
 
-		return { store: new TldrawApp(store), userId }
+		const app = new TldrawApp(store)
+		return { app, userId }
 	}
 
 	static SessionStateId = TldrawAppSessionStateRecordType.createId('session')

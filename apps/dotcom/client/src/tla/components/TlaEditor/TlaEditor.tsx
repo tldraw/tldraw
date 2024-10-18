@@ -7,12 +7,16 @@ import {
 	DefaultMainMenu,
 	DefaultQuickActions,
 	DefaultQuickActionsContent,
+	EditSubmenu,
 	Editor,
+	ExportFileContentSubMenu,
+	ExtrasGroup,
 	OfflineIndicator,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	ViewSubmenu,
 	tltime,
 	useActions,
 	useCollaborationStatus,
@@ -27,15 +31,16 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
-import { TldrawApp } from '../../utils/TldrawApp'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
-const components: TLComponents = {
+/** @internal */
+export const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
@@ -66,7 +71,12 @@ const components: TLComponents = {
 	QuickActions: () => {
 		return (
 			<DefaultQuickActions>
-				<DefaultMainMenu />
+				<DefaultMainMenu>
+					<EditSubmenu />
+					<ViewSubmenu />
+					<ExportFileContentSubMenu />
+					<ExtrasGroup />
+				</DefaultMainMenu>
 				<DefaultQuickActionsContent />
 			</DefaultQuickActions>
 		)
@@ -163,6 +173,7 @@ export function TlaEditor({
 			<Tldraw
 				store={store}
 				assetUrls={assetUrls}
+				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={components}

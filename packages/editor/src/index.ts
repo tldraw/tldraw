@@ -125,6 +125,7 @@ export {
 	getFreshUserPreferences,
 	getUserPreferences,
 	setUserPreferences,
+	userTypeValidator,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export {
@@ -265,7 +266,7 @@ export {
 	type ContainerProviderProps,
 } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditor, useMaybeEditor } from './lib/hooks/useEditor'
+export { EditorContext, useEditor, useMaybeEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useEvent } from './lib/hooks/useEvent'

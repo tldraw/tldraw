@@ -5,6 +5,7 @@
 	border-radius: 50%;
 	overflow: hidden;
 	background-color: var(--tla-color-accent-2);
+	background-size: cover;
 	z-index: 2;
 }
 
