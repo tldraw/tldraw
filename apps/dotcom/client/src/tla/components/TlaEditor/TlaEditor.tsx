@@ -4,19 +4,12 @@ import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
-	DefaultMainMenu,
-	DefaultQuickActions,
-	DefaultQuickActionsContent,
-	EditSubmenu,
 	Editor,
-	ExportFileContentSubMenu,
-	ExtrasGroup,
 	OfflineIndicator,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	ViewSubmenu,
 	tltime,
 	useActions,
 	useCollaborationStatus,
@@ -67,19 +60,6 @@ export const components: TLComponents = {
 		const collaborationStatus = useCollaborationStatus()
 		if (collaborationStatus === 'offline') return null
 		return <OfflineIndicator />
-	},
-	QuickActions: () => {
-		return (
-			<DefaultQuickActions>
-				<DefaultMainMenu>
-					<EditSubmenu />
-					<ViewSubmenu />
-					<ExportFileContentSubMenu />
-					<ExtrasGroup />
-				</DefaultMainMenu>
-				<DefaultQuickActionsContent />
-			</DefaultQuickActions>
-		)
 	},
 }
 
