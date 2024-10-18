@@ -24,6 +24,7 @@ import {
 	getUserPreferences,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { getCurrentEditor } from '../utils/getCurrentEditor'
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -374,15 +375,15 @@ export class TldrawApp {
 			createdAt: Date.now(),
 		})
 
+		const editorStoreSnapshot = getCurrentEditor()?.store.getStoreSnapshot()
 		this.store.put([newFile])
 
-		return newFile
+		return { newFile, editorStoreSnapshot }
 	}
 
 	async deleteFile(_fileId: TldrawAppFileId) {
-		// todo: delete the file from the server
-		console.warn('tldraw file deletes are not implemented yet, but you are in the right place')
-		return new Promise((r) => setTimeout(r, 2000))
+		// TODO we still need to remove the file completely - you can still visit this file if you have the link.
+		this.store.remove([_fileId])
 	}
 
 	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {

@@ -33,18 +33,20 @@ export function Component() {
 
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-			<div
-				ref={setContainer}
-				className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-			>
-				{container && (
-					<ContainerProvider container={container}>
-						<InsideOfContainerContext>
-							<SignedInProvider onThemeChange={handleThemeChange} />
-						</InsideOfContainerContext>
-					</ContainerProvider>
-				)}
-			</div>
+			<SignedInProvider onThemeChange={handleThemeChange}>
+				<div
+					ref={setContainer}
+					className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+				>
+					{container && (
+						<ContainerProvider container={container}>
+							<InsideOfContainerContext>
+								<Outlet />
+							</InsideOfContainerContext>
+						</ContainerProvider>
+					)}
+				</div>
+			</SignedInProvider>
 		</ClerkProvider>
 	)
 }
@@ -74,8 +76,10 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 }
 
 function SignedInProvider({
+	children,
 	onThemeChange,
 }: {
+	children: ReactNode
 	onThemeChange(theme: 'light' | 'dark' | 'system'): void
 }) {
 	const auth = useAuth()
@@ -89,9 +93,7 @@ function SignedInProvider({
 	return (
 		<AppStateProvider>
 			<UserProvider>
-				<ThemeContainer onThemeChange={onThemeChange}>
-					<Outlet />
-				</ThemeContainer>
+				<ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
 			</UserProvider>
 		</AppStateProvider>
 	)

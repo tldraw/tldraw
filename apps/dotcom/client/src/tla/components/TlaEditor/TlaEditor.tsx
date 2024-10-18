@@ -132,6 +132,7 @@ export function TlaEditor({
 		let didEnter = false
 
 		// Only mark as entered after one second
+		// TODO TODO but why though...? b/c it's trying to create the file?
 		const timeout = tltime.setTimeout(
 			'app',
 			() => {
