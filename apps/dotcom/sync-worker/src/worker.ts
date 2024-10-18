@@ -11,13 +11,16 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
+import { deleteRoomSnapshot } from './routes/deleteRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
+import { getRoomSnapshots } from './routes/getRoomSnapshots'
 import { joinExistingRoom } from './routes/joinExistingRoom'
+import { updateRoomSnapshot } from './routes/updateRoomSnapshot'
 import { Environment } from './types'
 import { getAuth } from './utils/getAuth'
 export { TLAppDurableObject } from './TLAppDurableObject'
@@ -31,8 +34,8 @@ const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.post('/new-room', createRoom)
-	.post('/snapshots', createRoomSnapshot)
-	.get('/snapshot/:roomId', getRoomSnapshot)
+	.post('/snapshots', (req, env) => createRoomSnapshot(req, env, false))
+	.get('/snapshot/:roomId', (req, env) => getRoomSnapshot(req, env, false))
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE)
 	)
@@ -59,6 +62,11 @@ const router = createRouter<Environment>()
 
 		return notFound()
 	})
+	.get('/app/snapshots/:roomId', (req, env) => getRoomSnapshots(req, env))
+	.post('/app/snapshots', (req, env) => createRoomSnapshot(req, env, true))
+	.patch('/app/snapshots/:roomId', (req, env) => updateRoomSnapshot(req, env))
+	.get('/app/snapshot/:roomId', (req, env) => getRoomSnapshot(req, env, true))
+	.delete('/app/snapshot/:roomId', (req, env) => deleteRoomSnapshot(req, env))
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
