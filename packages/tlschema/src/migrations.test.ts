@@ -2018,6 +2018,18 @@ describe('Make video asset file size optional', () => {
 	})
 })
 
+describe('Adding label color to note shapes', () => {
+	const { up, down } = getTestMigration(noteShapeVersions.AddLabelColor)
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({ props: { labelColor: 'black' } })
+	})
+
+	test('down works as expected', () => {
+		expect(up({ props: { labelColor: 'black' } })).toEqual({ props: {} })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 // check that all migrator fns were called at least once
