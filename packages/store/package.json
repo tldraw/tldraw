@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/store",
 	"description": "A tiny little drawing app (store).",
-	"version": "3.3.1",
+	"version": "3.3.2",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"

@@ -1,3 +1,23 @@
+# v3.3.2 (Fri Oct 18 2024)
+
+### Release Notes
+
+#### drag/drop: followup to accidental img drop pr (#4704) ([#4727](https://github.com/tldraw/tldraw/pull/4727))
+
+- Fix bug with multiple images being created when dropping it onto the canvas.
+
+---
+
+#### 🐛 Bug Fix
+
+- drag/drop: followup to accidental img drop pr (#4704) [#4727](https://github.com/tldraw/tldraw/pull/4727) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 1
+
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.3.1 (Thu Oct 10 2024)
 
 #### 🐛 Bug Fix
