@@ -1209,7 +1209,7 @@ export function getEmbedInfo(definitions: readonly TLEmbedDefinition[], inputUrl
 export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[];
 
 // @public (undocumented)
-export function getSvgAsImage(_editor: Editor | null, svgString: string, options: {
+export function getSvgAsImage(svgString: string, options: {
     height: number;
     quality: number;
     scale: number;

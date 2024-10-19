@@ -15,7 +15,6 @@ import { TLExportType } from './exportAs'
 
 /** @public */
 export async function getSvgAsImage(
-	_editor: Editor | null,
 	svgString: string,
 	options: {
 		type: 'png' | 'jpeg' | 'webp'
@@ -164,7 +163,7 @@ export async function exportToBlob({
 		case 'webp': {
 			const svgResult = await getSvgString(editor, ids, opts)
 			if (!svgResult) throw new Error('Could not construct image.')
-			const image = await getSvgAsImage(editor, svgResult.svg, {
+			const image = await getSvgAsImage(svgResult.svg, {
 				type: format,
 				quality: 1,
 				scale: 2,
