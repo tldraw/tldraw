@@ -143,7 +143,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 						setUrl(url)
 					}
 				} else if (format === 'png') {
-					const blob = await getSvgAsImage(svgResult.svg, {
+					const blob = await getSvgAsImage(editor, svgResult.svg, {
 						type: format,
 						quality: 1,
 						scale: 2,
