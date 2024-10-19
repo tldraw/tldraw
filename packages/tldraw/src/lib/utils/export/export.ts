@@ -15,7 +15,7 @@ import { TLExportType } from './exportAs'
 
 /** @public */
 export async function getSvgAsImage(
-	editor: Editor,
+	_editor: Editor | null,
 	svgString: string,
 	options: {
 		type: 'png' | 'jpeg' | 'webp'
