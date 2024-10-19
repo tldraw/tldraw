@@ -41,21 +41,30 @@ export const router = createRoutesFromElements(
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" lazy={() => import('./pages/root')} />
-			<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
-			<Route path="/new" lazy={() => import('./pages/new')} />
-			<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
-			<Route path={`/${ROOM_PREFIX}/:roomId`} lazy={() => import('./pages/public-multiplayer')} />
-			<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
-			<Route
-				path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
-				lazy={() => import('./pages/history-snapshot')}
-			/>
-			<Route path={`/${SNAPSHOT_PREFIX}/:roomId`} lazy={() => import('./pages/public-snapshot')} />
-			<Route
-				path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
-				lazy={() => import('./pages/public-readonly-legacy')}
-			/>
-			<Route path={`/${READ_ONLY_PREFIX}/:roomId`} lazy={() => import('./pages/public-readonly')} />
+			{/* We don't want to index multiplayer rooms */}
+			<Route lazy={() => import('./pages/noindex')}>
+				<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
+				<Route path="/new" lazy={() => import('./pages/new')} />
+				<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
+				<Route path={`/${ROOM_PREFIX}/:roomId`} lazy={() => import('./pages/public-multiplayer')} />
+				<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
+				<Route
+					path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
+					lazy={() => import('./pages/history-snapshot')}
+				/>
+				<Route
+					path={`/${SNAPSHOT_PREFIX}/:roomId`}
+					lazy={() => import('./pages/public-snapshot')}
+				/>
+				<Route
+					path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
+					lazy={() => import('./pages/public-readonly-legacy')}
+				/>
+				<Route
+					path={`/${READ_ONLY_PREFIX}/:roomId`}
+					lazy={() => import('./pages/public-readonly')}
+				/>
+			</Route>
 		</Route>
 		{/* begin tla */}
 		<Route lazy={() => import('./tla/providers/TlaProvider')}>

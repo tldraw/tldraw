@@ -1,7 +1,7 @@
 import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
-import { preventDefault } from '../utils/dom'
+import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { isAccelKey } from '../utils/keyboard'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
@@ -27,6 +27,7 @@ export function useDocumentEvents() {
 			// re-dispatched, which would lead to an infinite loop.
 			if ((e as any).isSpecialRedispatchedEvent) return
 			preventDefault(e)
+			stopEventPropagation(e)
 			const cvs = container.querySelector('.tl-canvas')
 			if (!cvs) return
 			const newEvent = new DragEvent('drop', e)
@@ -240,6 +241,7 @@ export function useDocumentEvents() {
 
 		// Prevent wheel events that occur inside of the container
 		const handleWheel = (e: WheelEvent) => {
+			// Ctrl/Meta key indicates a pinch event (funny, eh?)
 			if (container.contains(e.target as Node) && (e.ctrlKey || e.metaKey)) {
 				preventDefault(e)
 			}
