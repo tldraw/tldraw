@@ -998,12 +998,12 @@
 }
 
 .tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
-	border-radius: var(--radius-2);
+	border-radius: var(--radius-1);
 	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
 .tlui-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
-	border-radius: var(--radius-2);
+	border-radius: var(--radius-1);
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
