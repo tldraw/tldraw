@@ -60,7 +60,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 						<TldrawUiInput
 							className="tlui-embed-dialog__input"
 							label="embed-dialog.url"
-							placeholder="http://example.com"
+							placeholder="https://example.com"
 							autoFocus
 							onValueChange={(value) => {
 								// Set the url that the user has typed into the input
@@ -69,7 +69,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								// Set the embed info to either the embed info for the URL (if
 								// that embed info can be found and of a type that matches the
 								// user's selected definition type)
-								const embedInfo = getEmbedDefinition(url)
+								const embedInfo = getEmbedDefinition(value)
 								setEmbedInfoForUrl(
 									embedInfo && embedInfo.definition.type === embedDefinition.type ? embedInfo : null
 								)
@@ -79,6 +79,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 								// has not yet entered a valid URL.
 								setShowError(false)
 								clearTimeout(rShowErrorTimeout.current)
+
 								rShowErrorTimeout.current = editor.timers.setTimeout(
 									() => setShowError(!embedInfo),
 									320

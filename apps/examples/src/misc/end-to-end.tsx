@@ -8,7 +8,7 @@ import {
 	exportAs,
 	useActions,
 	useEditor,
-	useSafeId,
+	useUniqueSafeId,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { EndToEndApi } from './EndToEndApi'
@@ -31,7 +31,7 @@ class HtmlCssShapeUtil extends BaseBoxShapeUtil<HtmlCssShape> {
 }
 function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
 	// eslint-disable-next-line local/no-at-internal
-	const id = useSafeId()
+	const id = useUniqueSafeId()
 
 	useLayoutEffect(() => {
 		const style = document.createElement('style')

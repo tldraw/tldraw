@@ -14,7 +14,6 @@ import {
 } from 'tldraw'
 import { useLegacyUrlParams } from '../hooks/useLegacyUrlParams'
 import { assetUrls } from '../utils/assetUrls'
-import { DebugMenuItems } from '../utils/migration/DebugMenuItems'
 import { useSharing } from '../utils/sharing'
 import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
@@ -85,7 +84,6 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 					editor.updateInstanceState({ isReadonly: true })
 				}}
 				components={components}
-				renderDebugMenuItems={() => <DebugMenuItems />}
 				deepLinks
 				inferDarkMode
 			/>

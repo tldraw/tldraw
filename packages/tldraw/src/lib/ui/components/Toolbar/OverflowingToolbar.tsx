@@ -1,4 +1,4 @@
-import { preventDefault, useEditor, useEvent, useSafeId } from '@tldraw/editor'
+import { preventDefault, useEditor, useEvent, useUniqueSafeId } from '@tldraw/editor'
 import classNames from 'classnames'
 import hotkeys from 'hotkeys-js'
 import { createContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -26,7 +26,7 @@ export interface OverflowingToolbarProps {
 /** @public @react */
 export function OverflowingToolbar({ children }: OverflowingToolbarProps) {
 	const editor = useEditor()
-	const id = useSafeId()
+	const id = useUniqueSafeId()
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 
