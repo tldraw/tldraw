@@ -1317,8 +1317,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     indicator(shape: TLImageShape): JSX_2.Element | null;
     // (undocumented)
-    isAnimated(shape: TLImageShape): boolean;
-    // (undocumented)
     isAspectRatioLocked(): boolean;
     // (undocumented)
     static migrations: TLPropsMigrations;
@@ -1515,6 +1513,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
+            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
@@ -1541,6 +1540,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             font: "draw" | "mono" | "sans" | "serif";
             fontSizeAdjustment: number;
             growY: number;
+            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
@@ -1786,8 +1786,6 @@ export interface TextLabelProps {
     // (undocumented)
     fontSize: number;
     // (undocumented)
-    id: TLShapeId;
-    // (undocumented)
     isNote?: boolean;
     // (undocumented)
     isSelected: boolean;
@@ -1799,6 +1797,8 @@ export interface TextLabelProps {
     onKeyDown?(e: React_3.KeyboardEvent<HTMLTextAreaElement>): void;
     // (undocumented)
     padding?: number;
+    // (undocumented)
+    shapeId: TLShapeId;
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
@@ -2572,7 +2572,7 @@ export interface TLUiDropdownMenuTriggerProps {
 }
 
 // @public (undocumented)
-export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>;
+export type TLUiEventContextType = TLUiEventHandler;
 
 // @public (undocumented)
 export type TLUiEventData<K> = K extends null ? {
@@ -2582,7 +2582,7 @@ export type TLUiEventData<K> = K extends null ? {
 } & K;
 
 // @public (undocumented)
-export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (name: T, data: TLUiEventData<TLUiEventMap[T]>) => void;
+export type TLUiEventHandler = <T extends keyof TLUiEventMap>(name: T, data: TLUiEventData<TLUiEventMap[T]>) => void;
 
 // @public (undocumented)
 export interface TLUiEventMap {
@@ -3680,16 +3680,8 @@ export function unwrapLabel(label?: TLUiActionItem['label'], menuType?: string):
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
-// @public
-export function useAsset(options: {
-    assetId: null | TLAssetId;
-    shapeId: TLShapeId;
-    width: number;
-}): {
-    asset: TLAsset | null | undefined;
-    isPlaceholder: boolean;
-    url: null | string;
-};
+// @public @deprecated (undocumented)
+export const useAsset: typeof useImageOrVideoAsset;
 
 // @internal (undocumented)
 export function useAssetUrls(): TLUiAssetUrls;
@@ -3753,7 +3745,7 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(id: TLShapeId, type: string, text: string): {
+export function useEditableText(shapeId: TLShapeId, type: string, text: string): {
     handleBlur: () => void;
     handleChange: (e: React_3.ChangeEvent<HTMLTextAreaElement>) => void;
     handleDoubleClick: (e: any) => any;
@@ -3768,6 +3760,15 @@ export function useEditableText(id: TLShapeId, type: string, text: string): {
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+
+// @public
+export function useImageOrVideoAsset({ shapeId, assetId, }: {
+    assetId: null | TLAssetId;
+    shapeId: TLShapeId;
+}): {
+    asset: (TLImageAsset | TLVideoAsset) | null;
+    url: null | string;
+};
 
 // @public (undocumented)
 export function useIsToolSelected(tool: TLUiToolItem): boolean;

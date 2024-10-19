@@ -453,7 +453,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		return (
 			<>
-				<SVGContainer id={id}>
+				<SVGContainer>
 					<GeoShapeBody shape={shape} shouldScale={true} forceSolid={isForceSolid} />
 				</SVGContainer>
 				{showHtmlContainer && (
@@ -465,7 +465,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						}}
 					>
 						<TextLabel
-							id={id}
+							shapeId={id}
 							type={type}
 							font={font}
 							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
@@ -481,9 +481,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						/>
 					</HTMLContainer>
 				)}
-				{shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-				)}
+				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
 	}

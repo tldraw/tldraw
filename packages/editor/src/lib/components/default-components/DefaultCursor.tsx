@@ -1,6 +1,7 @@
 import { VecModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { memo, useRef } from 'react'
+import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useTransform } from '../../hooks/useTransform'
 
 /** @public */
@@ -25,12 +26,14 @@ export const DefaultCursor = memo(function DefaultCursor({
 	const rCursor = useRef<HTMLDivElement>(null)
 	useTransform(rCursor, point?.x, point?.y, 1 / zoom)
 
+	const cursorId = useSharedSafeId('cursor')
+
 	if (!point) return null
 
 	return (
 		<div ref={rCursor} className={classNames('tl-overlays__item', className)}>
 			<svg className="tl-cursor">
-				<use href="#cursor" color={color} />
+				<use href={`#${cursorId}`} color={color} />
 			</svg>
 			{chatMessage ? (
 				<>
