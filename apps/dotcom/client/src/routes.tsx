@@ -100,6 +100,7 @@ export const router = createRoutesFromElements(
 		{/* begin tla */}
 		<Route lazy={() => import('./tla/providers/TlaProvider')}>
 			<Route path="/q" lazy={() => import('./tla/pages/local')} />
+			<Route path="/q/signout" lazy={() => import('./tla/pages/signout')} />
 			{/* File view */}
 			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
 			{/* Views that require login */}
