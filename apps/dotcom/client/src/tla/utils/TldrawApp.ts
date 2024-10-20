@@ -327,9 +327,13 @@ export class TldrawApp {
 	}) {
 		const { store } = opts
 
+		// This is an issue: we may have a user record but not in the store.
+		// Could be just old accounts since before the server had a version
+		// of the store... but we should probably identify that better.
+
 		const userId = TldrawAppUserRecordType.createId(opts.userId)
 
-		if (!store.get(userId)) {
+		if (!store.get(userId)?.id) {
 			store.put([
 				TldrawAppUserRecordType.create({
 					id: userId,
