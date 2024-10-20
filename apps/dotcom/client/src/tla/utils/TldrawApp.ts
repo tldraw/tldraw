@@ -87,12 +87,15 @@ export class TldrawApp {
 	}
 
 	getUserRecentFiles(sessionStart: number) {
-		// For now, just the user's files; but generally we also want
-		// to get all files the user has access to, including shared files.
-		const fileRecords = this.getUserOwnFiles()
+		const userId = this.getCurrentUserId()
 
 		// Now look at which files the user has edited
 		const fileEditRecords = this.getUserFileEdits()
+
+		// Incluude any files that the user has edited
+		const fileRecords = fileEditRecords
+			.map((r) => this.get(r.fileId))
+			.filter(Boolean) as TldrawAppFile[]
 
 		// A map of file IDs to the most recent date we have for them
 		// the default date is the file's creation date; but we'll use the
@@ -104,6 +107,7 @@ export class TldrawApp {
 				{
 					file,
 					date: file.createdAt,
+					isOwnFile: file.ownerId === userId,
 				},
 			])
 		)

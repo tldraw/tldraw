@@ -160,72 +160,72 @@ function TlaSidebarRecentFiles() {
 
 	// split the files into today, yesterday, this week, this month, and then by month
 	const day = 1000 * 60 * 60 * 24
-	const todayFiles: TldrawAppFile[] = []
-	const yesterdayFiles: TldrawAppFile[] = []
-	const thisWeekFiles: TldrawAppFile[] = []
-	const thisMonthFiles: TldrawAppFile[] = []
+	const todayFiles: RecentFile[] = []
+	const yesterdayFiles: RecentFile[] = []
+	const thisWeekFiles: RecentFile[] = []
+	const thisMonthFiles: RecentFile[] = []
 
 	// todo: order by month
-	const olderFiles: TldrawAppFile[] = []
+	const olderFiles: RecentFile[] = []
 
 	const now = Date.now()
 
 	for (const item of results) {
-		const { date, file } = item
+		const { date } = item
 		if (date > now - day * 1) {
-			todayFiles.push(file)
+			todayFiles.push(item)
 		} else if (date > now - day * 2) {
-			yesterdayFiles.push(file)
+			yesterdayFiles.push(item)
 		} else if (date > now - day * 7) {
-			thisWeekFiles.push(file)
+			thisWeekFiles.push(item)
 		} else if (date > now - day * 30) {
-			thisMonthFiles.push(file)
+			thisMonthFiles.push(item)
 		} else {
-			olderFiles.push(file)
+			olderFiles.push(item)
 		}
 	}
 
 	return (
 		<>
-			{todayFiles.length ? <TlaSidebarFileSection title={'Today'} files={todayFiles} /> : null}
+			{todayFiles.length ? <TlaSidebarFileSection title={'Today'} items={todayFiles} /> : null}
 			{yesterdayFiles.length ? (
-				<TlaSidebarFileSection title={'Yesterday'} files={yesterdayFiles} />
+				<TlaSidebarFileSection title={'Yesterday'} items={yesterdayFiles} />
 			) : null}
 			{thisWeekFiles.length ? (
-				<TlaSidebarFileSection title={'This week'} files={thisWeekFiles} />
+				<TlaSidebarFileSection title={'This week'} items={thisWeekFiles} />
 			) : null}
 			{thisMonthFiles.length ? (
-				<TlaSidebarFileSection title={'This month'} files={thisMonthFiles} />
+				<TlaSidebarFileSection title={'This month'} items={thisMonthFiles} />
 			) : null}
-			{olderFiles.length ? <TlaSidebarFileSection title={'This year'} files={olderFiles} /> : null}
+			{olderFiles.length ? <TlaSidebarFileSection title={'This year'} items={olderFiles} /> : null}
 		</>
 	)
 }
 
-function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
+function TlaSidebarFileSection({ title, items }: { title: string; items: RecentFile[] }) {
 	return (
 		<div className={styles.section}>
 			<TlaSpacer height="8" />
 			<div className={classNames(styles.sectionTitle, 'tla-text_ui__medium')}>{title}</div>
-			{files.map((file) => (
-				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
+			{items.map((item) => (
+				<TlaSidebarFileLink key={'recent_' + item.file.id} item={item} />
 			))}
 		</div>
 	)
 }
 
-function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
-	const { id } = file
+function TlaSidebarFileLink({ item }: { item: RecentFile }) {
+	const { file, isOwnFile } = item
 	const { fileSlug } = useParams()
-	const isActive = TldrawAppFileRecordType.createId(fileSlug) === id
+	const isActive = TldrawAppFileRecordType.createId(fileSlug) === file.id
 	return (
 		<div className={classNames(styles.link, styles.hoverable)} data-active={isActive}>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
-					{TldrawApp.getFileName(file)}
+					{TldrawApp.getFileName(file)} {isOwnFile ? '' : '(Guest)'}
 				</div>
 			</div>
-			<Link to={getFileUrl(id)} className={styles.linkButton} />
+			<Link to={getFileUrl(file.id)} className={styles.linkButton} />
 			<TlaSidebarFileLinkMenu />
 		</div>
 	)
@@ -267,4 +267,10 @@ export function TlaSidebarToggleMobile() {
 			<TlaIcon icon="sidebar" />
 		</button>
 	)
+}
+
+interface RecentFile {
+	file: TldrawAppFile
+	date: number
+	isOwnFile: boolean
 }
