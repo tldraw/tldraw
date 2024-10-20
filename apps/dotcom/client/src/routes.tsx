@@ -7,7 +7,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { useEffect } from 'react'
-import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
+import { Link, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 
@@ -18,25 +18,56 @@ export const router = createRoutesFromElements(
 			useEffect(() => {
 				captureException(error)
 			}, [error])
-			let header = 'Something went wrong'
-			let para1 =
-				'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.'
+
 			if (error instanceof TLRemoteSyncError) {
 				switch (error.reason) {
 					case TLSyncErrorCloseEventReason.NOT_FOUND: {
-						header = 'Not found'
-						para1 = 'The file you are looking for does not exist.'
-						break
+						return (
+							<ErrorPage
+								messages={{
+									header: 'Not found',
+									para1: 'The file you are looking for does not exist.',
+								}}
+							/>
+						)
 					}
-					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
+					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
+						return (
+							<ErrorPage
+								messages={{
+									header: 'Unauthorized',
+									para1: 'You need to be signed in to view this file.',
+								}}
+							/>
+						)
+					}
 					case TLSyncErrorCloseEventReason.FORBIDDEN: {
-						header = 'Unauthorized'
-						para1 = 'You need to be authorized to view this file.'
-						break
+						return (
+							<ErrorPage
+								messages={{
+									header: 'Unauthorized',
+									para1: 'You need to be authorized to view this file.',
+								}}
+								cta={
+									<Link to={'/q'} target={'_self'}>
+										{'Back to tldraw.'}
+									</Link>
+								}
+							/>
+						)
 					}
 				}
 			}
-			return <ErrorPage messages={{ header, para1 }} />
+
+			return (
+				<ErrorPage
+					messages={{
+						header: 'Something went wrong',
+						para1:
+							'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.',
+					}}
+				/>
+			)
 		}}
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
