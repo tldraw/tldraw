@@ -8,6 +8,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { TldrawApp } from '../../utils/TldrawApp'
+import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { getFileUrl } from '../../utils/urls'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
@@ -16,10 +17,10 @@ import styles from './sidebar.module.css'
 
 export function TlaSidebar() {
 	const app = useApp()
-	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
+	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
 		'sidebar open mobile',
-		() => app.getSessionState().isSidebarOpenMobile,
+		() => getLocalSessionState().isSidebarOpenMobile,
 		[app]
 	)
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -41,8 +42,8 @@ export function TlaSidebar() {
 	}, [sidebarRef])
 
 	const handleOverlayClick = useCallback(() => {
-		app.toggleSidebarMobile()
-	}, [app])
+		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
+	}, [])
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
@@ -101,7 +102,7 @@ function TlaSidebarCreateFileButton() {
 	const navigate = useNavigate()
 
 	const handleSidebarCreate = useCallback(() => {
-		const { auth } = app.getSessionState()
+		const { auth } = getLocalSessionState()
 		if (!auth) return false
 
 		const id = TldrawAppFileRecordType.createId()
@@ -122,7 +123,7 @@ function TlaSidebarUserLink() {
 	const result = useValue(
 		'auth',
 		() => {
-			const { auth } = app.getSessionState()
+			const { auth } = getLocalSessionState()
 			if (!auth) return false
 			return {
 				auth,
@@ -153,7 +154,7 @@ function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const { auth, createdAt: sessionStart } = app.getSessionState()
+			const { auth, createdAt: sessionStart } = getLocalSessionState()
 			if (!auth) return false
 
 			return app.getUserRecentFiles(sessionStart)
@@ -249,18 +250,26 @@ function TlaSidebarFileLinkMenu() {
 }
 
 export function TlaSidebarToggle() {
-	const app = useApp()
 	return (
-		<button className={styles.toggle} data-mobile={false} onClick={() => app.toggleSidebar()}>
+		<button
+			className={styles.toggle}
+			data-mobile={false}
+			onClick={() => updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))}
+		>
 			<TlaIcon icon="sidebar" />
 		</button>
 	)
 }
 
 export function TlaSidebarToggleMobile() {
-	const app = useApp()
 	return (
-		<button className={styles.toggle} data-mobile={true} onClick={() => app.toggleSidebarMobile()}>
+		<button
+			className={styles.toggle}
+			data-mobile={true}
+			onClick={() =>
+				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
+			}
+		>
 			<TlaIcon icon="sidebar" />
 		</button>
 	)

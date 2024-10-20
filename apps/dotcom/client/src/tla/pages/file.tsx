@@ -1,6 +1,7 @@
 import { useLocation, useParams } from 'react-router-dom'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
+import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 
 export function Component() {
@@ -11,7 +12,11 @@ export function Component() {
 	const routeState = useLocation().state
 
 	if (!app) {
-		return <TlaEditor fileSlug={fileSlug} isCreateMode={false} />
+		return (
+			<TlaAnonLayout>
+				<TlaEditor fileSlug={fileSlug} isCreateMode={false} />
+			</TlaAnonLayout>
+		)
 	}
 
 	return (

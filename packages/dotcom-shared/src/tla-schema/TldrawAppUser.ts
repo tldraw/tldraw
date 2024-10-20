@@ -70,7 +70,7 @@ export const tldrawAppUserMigrations = createRecordMigrationSequence({
 
 /** @public */
 export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
-	validator: tldrawAppUserValidator,
+	// validator: tldrawAppUserValidator,
 	scope: 'document',
 }).withDefaultProperties(
 	(): Omit<TldrawAppUser, 'id' | 'typeName' | 'presence' | 'ownerId'> => ({
