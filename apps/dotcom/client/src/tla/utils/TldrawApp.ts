@@ -173,7 +173,9 @@ export class TldrawApp {
 		return users.filter((user) => user.presence.fileIds.includes(fileId)).map((user) => user.id)
 	}
 
-	toggleFileShared(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
+	toggleFileShared(fileId: TldrawAppFileId) {
+		const userId = this.getCurrentUserId()
+
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
@@ -185,10 +187,11 @@ export class TldrawApp {
 	}
 
 	setFileSharedLinkType(
-		userId: TldrawAppUserId,
 		fileId: TldrawAppFileId,
 		sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access'
 	) {
+		const userId = this.getCurrentUserId()
+
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
@@ -204,7 +207,9 @@ export class TldrawApp {
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
-	duplicateFile(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
+	duplicateFile(fileId: TldrawAppFileId) {
+		const userId = this.getCurrentUserId()
+
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
@@ -258,11 +263,11 @@ export class TldrawApp {
 	}
 
 	updateUserExportPreferences(
-		userId: TldrawAppUserId,
 		exportPreferences: Partial<
 			Pick<TldrawAppUser, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
 		>
 	) {
+		const userId = this.getCurrentUserId()
 		const user = this.store.get(userId)
 		if (!user) throw Error('no user')
 		this.store.put([{ ...user, ...exportPreferences }])
