@@ -51,6 +51,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 		let _app: TldrawApp
 
+		// Create the new user
 		TldrawApp.create({
 			userId: auth.userId,
 			fullName: user.fullName || '',

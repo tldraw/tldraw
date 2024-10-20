@@ -143,9 +143,6 @@ function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 	const { addToast } = useToasts()
 
 	const handleCopyLinkClick = useCallback(() => {
-		const { auth } = getLocalSessionState()
-		if (!auth) throw Error('should have auth')
-
 		// todo: implement snapshot link
 		createSnapshotLink(fileId)
 		// Copy the snapshot url to clipboard

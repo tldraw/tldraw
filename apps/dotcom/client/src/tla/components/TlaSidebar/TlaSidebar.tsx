@@ -1,7 +1,7 @@
 import { SignedIn, UserButton } from '@clerk/clerk-react'
 import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useCallback, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { preventDefault, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
@@ -15,7 +15,7 @@ import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSpacer } from '../TlaSpacer/TlaSpacer'
 import styles from './sidebar.module.css'
 
-export function TlaSidebar() {
+export const TlaSidebar = memo(function TlaSidebar() {
 	const app = useApp()
 	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
@@ -82,7 +82,7 @@ export function TlaSidebar() {
 			</div>
 		</div>
 	)
-}
+})
 
 function TlaSidebarWorkspaceLink() {
 	const raw = useRaw()
@@ -102,12 +102,9 @@ function TlaSidebarCreateFileButton() {
 	const navigate = useNavigate()
 
 	const handleSidebarCreate = useCallback(() => {
-		const { auth } = getLocalSessionState()
-		if (!auth) return false
+		const file = app.createFile()
 
-		const id = TldrawAppFileRecordType.createId()
-		app.store.put([TldrawAppFileRecordType.create({ id, ownerId: auth.userId })])
-		navigate(getFileUrl(id), { state: { isCreateMode: true } })
+		navigate(getFileUrl(file.id), { state: { isCreateMode: true } })
 	}, [app, navigate])
 
 	return (
@@ -120,26 +117,23 @@ function TlaSidebarCreateFileButton() {
 function TlaSidebarUserLink() {
 	const app = useApp()
 
-	const result = useValue(
+	const user = useValue(
 		'auth',
 		() => {
-			const { auth } = getLocalSessionState()
-			if (!auth) return false
-			return {
-				auth,
-				user: app.getCurrentUser(),
-			}
+			return app.getCurrentUser()
 		},
 		[app]
 	)
 
 	const location = useLocation()
 
-	if (!result) throw Error('Could not get user')
+	if (!user) {
+		return null
+	}
 
 	return (
 		<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
-			<div className={styles.label}>{result.user.name}</div>
+			<div className={styles.label}>{user.name}</div>
 			{/* <Link className="__link-button" to={getUserUrl(result.auth.userId)} /> */}
 			<Link className={styles.linkButton} to={'/q/profile'} state={{ background: location }} />
 			<Link className={styles.linkMenu} to={'/q/debug'} state={{ background: location }}>

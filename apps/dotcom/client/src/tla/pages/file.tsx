@@ -8,10 +8,9 @@ export function Component() {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	if (!fileSlug) throw Error('File id not found')
 	const app = useMaybeApp()
-
 	const routeState = useLocation().state
 
-	if (!app) {
+	if (!app?.getCurrentUserId()) {
 		return (
 			<TlaAnonLayout>
 				<TlaEditor fileSlug={fileSlug} isCreateMode={false} />

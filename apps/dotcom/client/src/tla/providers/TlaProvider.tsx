@@ -68,6 +68,7 @@ function AppStateOrNotProvider({ children }: { children: ReactNode }) {
 		} else {
 			updateLocalSessionState(() => ({
 				auth: undefined,
+				user: undefined,
 			}))
 		}
 	}, [auth.userId, auth.isSignedIn])
