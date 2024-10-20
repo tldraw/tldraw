@@ -18,13 +18,7 @@ export function Component() {
 	if (file) {
 		return <Navigate to={getFileUrl(file.id)} replace />
 	}
-	return (
-		<Navigate
-			to={getFileUrl(app.createFile('temporary').id)}
-			replace
-			state={{ isCreateMode: true }}
-		/>
-	)
+	return <Navigate to={getFileUrl(app.createFile().id)} replace state={{ isCreateMode: true }} />
 }
 
 function LocalTldraw() {

@@ -1,4 +1,4 @@
-import { TldrawAppFile, TldrawAppFileId, TldrawAppUserId } from '@tldraw/dotcom-shared'
+import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
@@ -57,12 +57,10 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: Tldr
 	const user = useTldrawUser()
 	if (!user) throw Error('should have auth')
 
-	const { id: userId } = user
-
 	const handleToggleShared = useCallback(() => {
 		// todo: if there are other users connected to the project, warn that they'll be removed from the project until the project is shared again
-		app.toggleFileShared(userId, fileId)
-	}, [app, userId, fileId])
+		app.toggleFileShared(fileId)
+	}, [app, fileId])
 
 	return (
 		<TlaMenuControl>
@@ -83,7 +81,6 @@ function TlaSelectSharedLinkType({
 	const user = useTldrawUser()
 	const raw = useRaw()
 	if (!user) throw Error('should have auth')
-	const { id: userId } = user
 
 	const sharedLinkType = useValue(
 		'file',
@@ -97,9 +94,9 @@ function TlaSelectSharedLinkType({
 
 	const handleSelectChange = useCallback(
 		(sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access') => {
-			app.setFileSharedLinkType(userId, fileId, sharedLinkType)
+			app.setFileSharedLinkType(fileId, sharedLinkType)
 		},
-		[app, userId, fileId]
+		[app, fileId]
 	)
 
 	return (
@@ -148,10 +145,9 @@ function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 	const handleCopyLinkClick = useCallback(() => {
 		const { auth } = getLocalSessionState()
 		if (!auth) throw Error('should have auth')
-		const { userId } = auth
 
 		// todo: implement snapshot link
-		createSnapshotLink(userId, fileId)
+		createSnapshotLink(fileId)
 		// Copy the snapshot url to clipboard
 		const url = getSnapshotFileUrl(fileId)
 		copyTextToClipboard(url)
@@ -235,6 +231,6 @@ function _SnapshotHelp() {
 	)
 }
 
-function createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
+function createSnapshotLink(_fileId: TldrawAppFileId) {
 	return
 }
