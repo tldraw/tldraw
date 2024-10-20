@@ -43,9 +43,8 @@ export function TlaShareMenuExportPage() {
 			key: T,
 			value: TldrawAppSessionState['exportSettings'][T]
 		) => {
-			const userId = getLocalSessionState().auth?.userId
-			if (app && userId) {
-				app.updateUserExportPreferences(userId, { [key]: value })
+			if (app) {
+				app.updateUserExportPreferences({ [key]: value })
 			} else {
 				updateLocalSessionState((s) => ({ exportSettings: { ...s.exportSettings, [key]: value } }))
 			}

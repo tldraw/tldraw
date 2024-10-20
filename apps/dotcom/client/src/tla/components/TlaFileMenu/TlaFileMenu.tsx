@@ -15,7 +15,6 @@ import {
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getLocalSessionState } from '../../utils/local-session-state'
 import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
 import { TlaRenameFileDialog } from '../dialogs/TlaRenameFileDialog'
 
@@ -42,11 +41,7 @@ export function TlaFileMenu({ children, source }: { children: ReactNode; source:
 	}, [fileId, addDialog])
 
 	const handleDuplicateLinkClick = useCallback(() => {
-		// duplicate file
-		const { auth } = getLocalSessionState()
-		if (!auth) throw Error('expected auth')
-		const newFile = app.duplicateFile(auth.userId, fileId)
-
+		const newFile = app.duplicateFile(fileId)
 		navigate(getFileUrl(newFile.id))
 	}, [app, navigate, fileId])
 

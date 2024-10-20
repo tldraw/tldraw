@@ -14,17 +14,11 @@ export function Component() {
 	if (!app) return <LocalTldraw />
 	// Navigate to the most recent file (if there is one) or else a new file
 	const { auth, createdAt } = getLocalSessionState()
-	const file = auth?.userId && app.getUserRecentFiles(auth.userId, createdAt)?.[0]?.file
+	const file = auth?.userId && app.getUserRecentFiles(createdAt)?.[0]?.file
 	if (file) {
 		return <Navigate to={getFileUrl(file.id)} replace />
 	}
-	return (
-		<Navigate
-			to={getFileUrl(app.createFile('temporary').id)}
-			replace
-			state={{ isCreateMode: true }}
-		/>
-	)
+	return <Navigate to={getFileUrl(app.createFile().id)} replace state={{ isCreateMode: true }} />
 }
 
 function LocalTldraw() {

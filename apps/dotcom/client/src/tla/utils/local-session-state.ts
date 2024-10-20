@@ -1,6 +1,8 @@
 import { TldrawAppUser, TldrawAppUserId } from '@tldraw/dotcom-shared'
 import { atom, getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
 
+const STORAGE_KEY = 'tldrawapp_session_3'
+
 export interface TldrawAppSessionState {
 	createdAt: number
 	isSidebarOpen: boolean
@@ -43,7 +45,7 @@ let prev: TldrawAppSessionState = {
 }
 
 try {
-	const stored = getFromLocalStorage('tldrawapp_session_2')
+	const stored = getFromLocalStorage(STORAGE_KEY)
 	const prevStored = stored ? JSON.parse(stored) : null
 	if (prevStored) {
 		prev = {
@@ -72,14 +74,16 @@ export function getLocalSessionState() {
 
 export function setLocalSessionState(state: TldrawAppSessionState) {
 	localSessionState.set(state)
-	setInLocalStorage('tldrawapp_session_2', JSON.stringify(localSessionState.get()))
+	setInLocalStorage(STORAGE_KEY, JSON.stringify(localSessionState.get()))
 }
 
 export function updateLocalSessionState(
 	fn: (state: TldrawAppSessionState) => Partial<TldrawAppSessionState>
 ) {
-	localSessionState.update((state) => ({ ...state, ...fn(state) }))
-	setInLocalStorage('tldrawapp_session_2', JSON.stringify(localSessionState.get()))
+	localSessionState.update((state) => {
+		return { ...state, ...fn(state) }
+	})
+	setInLocalStorage(STORAGE_KEY, JSON.stringify(localSessionState.get()))
 }
 
 export function useLocalSessionState() {
