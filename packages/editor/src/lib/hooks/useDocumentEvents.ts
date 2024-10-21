@@ -30,7 +30,7 @@ export function useDocumentEvents() {
 			stopEventPropagation(e)
 			const cvs = container.querySelector('.tl-canvas')
 			if (!cvs) return
-			const newEvent = new DragEvent('drop', e)
+			const newEvent = new DragEvent(e.type, e)
 			;(newEvent as any).isSpecialRedispatchedEvent = true
 			cvs.dispatchEvent(newEvent)
 		}

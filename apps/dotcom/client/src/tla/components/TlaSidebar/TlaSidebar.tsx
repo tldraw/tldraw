@@ -1,25 +1,26 @@
 import { SignedIn, UserButton } from '@clerk/clerk-react'
 import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useCallback, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { preventDefault, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { TldrawApp } from '../../utils/TldrawApp'
+import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { getFileUrl } from '../../utils/urls'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSpacer } from '../TlaSpacer/TlaSpacer'
 import styles from './sidebar.module.css'
 
-export function TlaSidebar() {
+export const TlaSidebar = memo(function TlaSidebar() {
 	const app = useApp()
-	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
+	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
 		'sidebar open mobile',
-		() => app.getSessionState().isSidebarOpenMobile,
+		() => getLocalSessionState().isSidebarOpenMobile,
 		[app]
 	)
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -41,8 +42,8 @@ export function TlaSidebar() {
 	}, [sidebarRef])
 
 	const handleOverlayClick = useCallback(() => {
-		app.toggleSidebarMobile()
-	}, [app])
+		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
+	}, [])
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
@@ -81,7 +82,7 @@ export function TlaSidebar() {
 			</div>
 		</div>
 	)
-}
+})
 
 function TlaSidebarWorkspaceLink() {
 	const raw = useRaw()
@@ -101,17 +102,9 @@ function TlaSidebarCreateFileButton() {
 	const navigate = useNavigate()
 
 	const handleSidebarCreate = useCallback(() => {
-		const { auth } = app.getSessionState()
-		if (!auth) return false
+		const file = app.createFile()
 
-		const id = TldrawAppFileRecordType.createId()
-		app.store.put([
-			TldrawAppFileRecordType.create({
-				id,
-				owner: auth.userId,
-			}),
-		])
-		navigate(getFileUrl(id), { state: { isCreateMode: true } })
+		navigate(getFileUrl(file.id), { state: { isCreateMode: true } })
 	}, [app, navigate])
 
 	return (
@@ -124,27 +117,23 @@ function TlaSidebarCreateFileButton() {
 function TlaSidebarUserLink() {
 	const app = useApp()
 
-	const result = useValue(
+	const user = useValue(
 		'auth',
 		() => {
-			const { auth } = app.getSessionState()
-			if (!auth) return false
-			const user = app.store.get(auth.userId)!
-			return {
-				auth,
-				user,
-			}
+			return app.getCurrentUser()
 		},
 		[app]
 	)
 
 	const location = useLocation()
 
-	if (!result) throw Error('Could not get user')
+	if (!user) {
+		return null
+	}
 
 	return (
 		<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
-			<div className={styles.label}>{result.user.name}</div>
+			<div className={styles.label}>{user.name}</div>
 			{/* <Link className="__link-button" to={getUserUrl(result.auth.userId)} /> */}
 			<Link className={styles.linkButton} to={'/q/profile'} state={{ background: location }} />
 			<Link className={styles.linkMenu} to={'/q/debug'} state={{ background: location }}>
@@ -159,7 +148,7 @@ function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const { auth, createdAt: sessionStart } = app.getSessionState()
+			const { auth, createdAt: sessionStart } = getLocalSessionState()
 			if (!auth) return false
 
 			return app.getUserRecentFiles(sessionStart)
@@ -171,72 +160,72 @@ function TlaSidebarRecentFiles() {
 
 	// split the files into today, yesterday, this week, this month, and then by month
 	const day = 1000 * 60 * 60 * 24
-	const todayFiles: TldrawAppFile[] = []
-	const yesterdayFiles: TldrawAppFile[] = []
-	const thisWeekFiles: TldrawAppFile[] = []
-	const thisMonthFiles: TldrawAppFile[] = []
+	const todayFiles: RecentFile[] = []
+	const yesterdayFiles: RecentFile[] = []
+	const thisWeekFiles: RecentFile[] = []
+	const thisMonthFiles: RecentFile[] = []
 
 	// todo: order by month
-	const olderFiles: TldrawAppFile[] = []
+	const olderFiles: RecentFile[] = []
 
 	const now = Date.now()
 
 	for (const item of results) {
-		const { date, file } = item
+		const { date } = item
 		if (date > now - day * 1) {
-			todayFiles.push(file)
+			todayFiles.push(item)
 		} else if (date > now - day * 2) {
-			yesterdayFiles.push(file)
+			yesterdayFiles.push(item)
 		} else if (date > now - day * 7) {
-			thisWeekFiles.push(file)
+			thisWeekFiles.push(item)
 		} else if (date > now - day * 30) {
-			thisMonthFiles.push(file)
+			thisMonthFiles.push(item)
 		} else {
-			olderFiles.push(file)
+			olderFiles.push(item)
 		}
 	}
 
 	return (
 		<>
-			{todayFiles.length ? <TlaSidebarFileSection title={'Today'} files={todayFiles} /> : null}
+			{todayFiles.length ? <TlaSidebarFileSection title={'Today'} items={todayFiles} /> : null}
 			{yesterdayFiles.length ? (
-				<TlaSidebarFileSection title={'Yesterday'} files={yesterdayFiles} />
+				<TlaSidebarFileSection title={'Yesterday'} items={yesterdayFiles} />
 			) : null}
 			{thisWeekFiles.length ? (
-				<TlaSidebarFileSection title={'This week'} files={thisWeekFiles} />
+				<TlaSidebarFileSection title={'This week'} items={thisWeekFiles} />
 			) : null}
 			{thisMonthFiles.length ? (
-				<TlaSidebarFileSection title={'This month'} files={thisMonthFiles} />
+				<TlaSidebarFileSection title={'This month'} items={thisMonthFiles} />
 			) : null}
-			{olderFiles.length ? <TlaSidebarFileSection title={'This year'} files={olderFiles} /> : null}
+			{olderFiles.length ? <TlaSidebarFileSection title={'This year'} items={olderFiles} /> : null}
 		</>
 	)
 }
 
-function TlaSidebarFileSection({ title, files }: { title: string; files: TldrawAppFile[] }) {
+function TlaSidebarFileSection({ title, items }: { title: string; items: RecentFile[] }) {
 	return (
 		<div className={styles.section}>
 			<TlaSpacer height="8" />
 			<div className={classNames(styles.sectionTitle, 'tla-text_ui__medium')}>{title}</div>
-			{files.map((file) => (
-				<TlaSidebarFileLink key={'recent_' + file.id} file={file} />
+			{items.map((item) => (
+				<TlaSidebarFileLink key={'recent_' + item.file.id} item={item} />
 			))}
 		</div>
 	)
 }
 
-function TlaSidebarFileLink({ file }: { file: TldrawAppFile }) {
-	const { id } = file
+function TlaSidebarFileLink({ item }: { item: RecentFile }) {
+	const { file, isOwnFile } = item
 	const { fileSlug } = useParams()
-	const isActive = TldrawAppFileRecordType.createId(fileSlug) === id
+	const isActive = TldrawAppFileRecordType.createId(fileSlug) === file.id
 	return (
 		<div className={classNames(styles.link, styles.hoverable)} data-active={isActive}>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
-					{TldrawApp.getFileName(file)}
+					{TldrawApp.getFileName(file)} {isOwnFile ? '' : '(Guest)'}
 				</div>
 			</div>
-			<Link to={getFileUrl(id)} className={styles.linkButton} />
+			<Link to={getFileUrl(file.id)} className={styles.linkButton} />
 			<TlaSidebarFileLinkMenu />
 		</div>
 	)
@@ -255,19 +244,33 @@ function TlaSidebarFileLinkMenu() {
 }
 
 export function TlaSidebarToggle() {
-	const app = useApp()
 	return (
-		<button className={styles.toggle} data-mobile={false} onClick={() => app.toggleSidebar()}>
+		<button
+			className={styles.toggle}
+			data-mobile={false}
+			onClick={() => updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))}
+		>
 			<TlaIcon icon="sidebar" />
 		</button>
 	)
 }
 
 export function TlaSidebarToggleMobile() {
-	const app = useApp()
 	return (
-		<button className={styles.toggle} data-mobile={true} onClick={() => app.toggleSidebarMobile()}>
+		<button
+			className={styles.toggle}
+			data-mobile={true}
+			onClick={() =>
+				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
+			}
+		>
 			<TlaIcon icon="sidebar" />
 		</button>
 	)
+}
+
+interface RecentFile {
+	file: TldrawAppFile
+	date: number
+	isOwnFile: boolean
 }

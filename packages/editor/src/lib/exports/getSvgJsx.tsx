@@ -54,7 +54,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		.filter(({ id }) => shapeIdsToInclude.has(id))
 
 	// --- Common bounding box of all shapes
-	let bbox = null
+	let bbox: null | Box = null
 	if (opts.bounds) {
 		bbox = opts.bounds
 	} else {

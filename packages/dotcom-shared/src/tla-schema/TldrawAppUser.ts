@@ -10,6 +10,7 @@ import { TldrawAppFileId } from './TldrawAppFile'
 import { idValidator } from './idValidator'
 
 export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser>> {
+	ownerId: TldrawAppUserId
 	name: string
 	email: string
 	avatar: string
@@ -37,6 +38,7 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 	T.object({
 		typeName: T.literal('user'),
 		id: idValidator<TldrawAppUserId>('user'),
+		ownerId: idValidator<TldrawAppUserId>('user'),
 		name: T.string,
 		email: T.string,
 		avatar: T.string,
@@ -68,10 +70,10 @@ export const tldrawAppUserMigrations = createRecordMigrationSequence({
 
 /** @public */
 export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
-	validator: tldrawAppUserValidator,
+	// validator: tldrawAppUserValidator,
 	scope: 'document',
 }).withDefaultProperties(
-	(): Omit<TldrawAppUser, 'id' | 'typeName' | 'presence'> => ({
+	(): Omit<TldrawAppUser, 'id' | 'typeName' | 'presence' | 'ownerId'> => ({
 		name: 'Steve Ruiz',
 		email: 'steve@tldraw.com',
 		color: 'coral', // coral
