@@ -9,10 +9,11 @@ import {
 	TldrawUiMenuContextProvider,
 	useValue,
 } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
+import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
+import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
 import { TlaPublishPage } from './TlaPublishPage'
@@ -21,34 +22,35 @@ import styles from './file-share-menu.module.css'
 export function TlaFileShareMenu({
 	fileId,
 	source,
+	isAnonUser,
 	children,
 }: {
 	fileId: TldrawAppFileId
 	source: string
+	isAnonUser?: boolean
 	children: ReactNode
 }) {
-	const app = useApp()
 	const { fileSlug } = useParams()
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 	const [snapshotSlug, setSnapshotSlug] = useState<string | null>(null)
+	const app = useMaybeApp()
 
 	const shareMenuActiveTab = useValue(
 		'share menu active tab',
-		() => app.getSessionState().shareMenuActiveTab,
-		[app]
+		() => getLocalSessionState().shareMenuActiveTab,
+		[]
 	)
 
 	const handleTabChange = useCallback(
 		(value: TldrawAppSessionState['shareMenuActiveTab']) => {
-			app.setShareMenuActiveTab(value)
+			updateLocalSessionState(() => ({ shareMenuActiveTab: value }))
 			trackEvent('change-share-menu-tab', { tab: value, source: 'file-share-menu' })
 		},
-		[app, trackEvent]
+		[trackEvent]
 	)
 
 	useEffect(() => {
-		console.log('fetching snapshots')
 		async function getSnapshots() {
 			if (!fileSlug) return
 			const result = await fetch(`/api/app/snapshots/${fileSlug}`, {
@@ -75,20 +77,30 @@ export function TlaFileShareMenu({
 				<TldrawUiDropdownMenuContent
 					className={styles.shareMenu}
 					side="bottom"
-					align="end"
-					alignOffset={-2}
+					align={isAnonUser ? 'start' : 'end'}
+					alignOffset={isAnonUser ? 2 : -2}
 					sideOffset={4}
 				>
-					<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
-						<TlaTabsTabs>
-							<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
-							<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
-							<TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>
-						</TlaTabsTabs>
-						<TlaShareMenuSharePage fileId={fileId} />
+					{app ? (
+						<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
+							<TlaTabsTabs>
+								<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
+								<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
+								<TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>
+							</TlaTabsTabs>
+							<TlaTabsPage id="share">
+								<TlaShareMenuSharePage fileId={fileId} />
+							</TlaTabsPage>
+							<TlaTabsPage id="export">
+								<TlaShareMenuExportPage />
+							</TlaTabsPage>
+							<TlaTabsPage id="publish">
+								<TlaPublishPage snapshotSlug={snapshotSlug} setSnapshotSlug={setSnapshotSlug} />
+							</TlaTabsPage>
+						</TlaTabsRoot>
+					) : (
 						<TlaShareMenuExportPage />
-						<TlaPublishPage snapshotSlug={snapshotSlug} setSnapshotSlug={setSnapshotSlug} />
-					</TlaTabsRoot>
+					)}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>

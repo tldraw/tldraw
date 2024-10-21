@@ -117,6 +117,8 @@ export const ShareMenu = React.memo(function ShareMenu() {
 
 	const [shareState, setShareState] = useState(getFreshShareState)
 
+	const [didCopyReadWriteLink, setDidCopyReadWriteLink] = useState(false)
+	const [didCopyReadonlyLink, setDidCopyReadonlyLink] = useState(false)
 	const [isUploading, setIsUploading] = useState(false)
 	const isReadOnlyLink = shareState.state === SHARE_CURRENT_STATE.SHARED_READ_ONLY
 	const currentShareLinkUrl = isReadOnlyLink ? shareState.readonlyUrl : shareState.url
@@ -217,9 +219,11 @@ export const ShareMenu = React.memo(function ShareMenu() {
 											id="copy-to-clipboard"
 											readonlyOk={false}
 											label="share-menu.copy-link"
-											icon="clipboard-copy"
+											icon={didCopyReadWriteLink ? 'clipboard-copied' : 'clipboard-copy'}
 											onSelect={() => {
 												if (!shareState.url) return
+												setDidCopyReadWriteLink(true)
+												setTimeout(() => setDidCopyReadWriteLink(false), 1000)
 												navigator.clipboard.writeText(shareState.url)
 												toasts.addToast({
 													title: msg('share-menu.copied'),
@@ -232,9 +236,11 @@ export const ShareMenu = React.memo(function ShareMenu() {
 										id="copy-readonly-to-clipboard"
 										readonlyOk
 										label="share-menu.copy-readonly-link"
-										icon="clipboard-copy"
+										icon={didCopyReadonlyLink ? 'clipboard-copied' : 'clipboard-copy'}
 										onSelect={() => {
 											if (!shareState.readonlyUrl) return
+											setDidCopyReadonlyLink(true)
+											setTimeout(() => setDidCopyReadonlyLink(false), 1000)
 											navigator.clipboard.writeText(shareState.readonlyUrl)
 											toasts.addToast({
 												title: msg('share-menu.copied'),

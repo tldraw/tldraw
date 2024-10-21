@@ -1,8 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import {
-	DefaultDebugMenu,
-	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
@@ -19,10 +17,10 @@ import {
 	useCollaborationStatus,
 } from 'tldraw'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
-import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
 import { useSharing } from '../../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
+import { useMaybeApp } from '../../hooks/useAppState'
 import { assetUrls } from '../../providers/TlaProvider'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 
@@ -42,15 +40,8 @@ const components: TLComponents = {
 		)
 	},
 	MenuPanel: () => {
-		return <TlaEditorTopLeftPanel />
-	},
-	DebugMenu: () => {
-		return (
-			<DefaultDebugMenu>
-				<DefaultDebugMenuContent />
-				<DebugMenuItems />
-			</DefaultDebugMenu>
-		)
+		const app = useMaybeApp()
+		return <TlaEditorTopLeftPanel isAnonUser={!app} />
 	},
 	TopPanel: () => {
 		const collaborationStatus = useCollaborationStatus()
@@ -102,7 +93,6 @@ export function TlaSnapshotsEditor({ schema, records }: TlaSnapshotEditorProps) 
 					editor.updateInstanceState({ isReadonly: true })
 				}}
 				components={components}
-				renderDebugMenuItems={() => <DebugMenuItems />}
 				deepLinks
 				inferDarkMode
 			/>

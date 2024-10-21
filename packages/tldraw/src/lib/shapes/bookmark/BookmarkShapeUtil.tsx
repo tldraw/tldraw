@@ -147,9 +147,7 @@ function BookmarkShapeComponent({
 						) : (
 							<div className="tl-bookmark__placeholder" />
 						)}
-						{asset?.props.image && (
-							<HyperlinkButton url={shape.props.url} zoomLevel={util.editor.getZoomLevel()} />
-						)}
+						{asset?.props.image && <HyperlinkButton url={shape.props.url} />}
 					</div>
 				)}
 				<div className="tl-bookmark__copy_container">

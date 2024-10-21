@@ -4128,8 +4128,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getAsset(asset: TLAssetId | TLAsset): TLAsset | undefined {
-		return this.store.get(typeof asset === 'string' ? asset : asset.id) as TLAsset | undefined
+	getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined {
+		return this.store.get(typeof asset === 'string' ? asset : asset.id) as T | undefined
 	}
 
 	async resolveAssetUrl(
@@ -9164,7 +9164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@bind
 	_setMetaKeyTimeout() {
-		this.inputs.shiftKey = false
+		this.inputs.metaKey = false
 		this.dispatch({
 			type: 'keyboard',
 			name: 'key_up',

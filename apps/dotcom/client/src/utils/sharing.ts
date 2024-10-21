@@ -166,8 +166,15 @@ export function useSharing(): TLUiOverrides {
 					label: 'share-menu.create-snapshot-link',
 					readonlyOk: true,
 					onSelect: async (source) => {
-						const result = getSnapshotLink(source, editor, handleUiEvent, addToast, msg, roomId)
-						writeToClipboard(result)
+						const result = await getSnapshotLink(
+							source,
+							editor,
+							handleUiEvent,
+							addToast,
+							msg,
+							roomId
+						)
+						writeToClipboard(new Promise(() => result))
 						addToast({
 							title: msg('share-menu.copied'),
 							severity: 'success',

@@ -53,7 +53,7 @@ function _DropdownPicker<T extends string>({
 		<TldrawUiDropdownMenuRoot id={`style panel ${id}`}>
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton type={type} data-testid={`style.${uiType}`} title={titleStr}>
-					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+					{labelStr && <TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>}
 					<TldrawUiButtonIcon icon={(icon as TLUiIconType) ?? 'mixed'} />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>

@@ -1,4 +1,5 @@
 import { Box, Editor, SVGContainer, TLShape, Tldraw, Vec, isShapeId } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // This function takes a shape and returns a new shape where the x/y origin is within `radius`
 // distance of the center of the page. If the shape is already within `radius` (or isn't parented to

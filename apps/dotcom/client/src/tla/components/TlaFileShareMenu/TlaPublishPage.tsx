@@ -5,6 +5,7 @@ import { useEditor, useToasts } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { copyTextToClipboard } from '../../utils/copy'
+import { getLocalSessionState } from '../../utils/local-session-state'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
@@ -31,7 +32,7 @@ export function TlaPublishPage({
 
 	const uploadSnapshot = useCallback(
 		async (update: boolean) => {
-			const { auth } = app.getSessionState()
+			const { auth } = getLocalSessionState()
 			if (!auth) throw Error('should have auth')
 			const { userId } = auth
 			if (!editor) throw Error('no editor')

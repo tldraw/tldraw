@@ -24,6 +24,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState({} as TldrawApp)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
+
 	const raw = useRaw()
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
@@ -52,17 +53,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		}
 		let _app: TldrawApp
 
+		// Create the new user
 		TldrawApp.create({
 			userId: auth.userId,
 			fullName: user.fullName || '',
 			email: user.emailAddresses[0]?.emailAddress || '',
 			avatar: user.imageUrl || '',
 			store: store.store as any,
-		}).then(({ store, userId }) => {
+		}).then(({ store }) => {
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
 				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-				store.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId), userId)
+				store.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId))
 			}
 			_app = store
 			setApp(store)

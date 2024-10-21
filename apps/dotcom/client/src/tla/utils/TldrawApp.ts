@@ -8,16 +8,15 @@ import {
 	TldrawAppFileRecordType,
 	TldrawAppFileVisitRecordType,
 	TldrawAppRecord,
-	TldrawAppSessionState,
-	TldrawAppSessionStateRecordType,
 	TldrawAppUser,
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
 } from '@tldraw/dotcom-shared'
 import { fetch } from '@tldraw/utils'
-import { Editor, Store, TLStoreSnapshot, assertExists, computed } from 'tldraw'
+import { Editor, Store, TLStoreSnapshot, assertExists } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { getSnapshotData } from '../../utils/sharing'
+import { getLocalSessionStateUnsafe } from './local-session-state'
 const CREATE_AND_UPDATE_APP_SNAPSHOT_ENDPOINT = `/api/app/snapshots`
 
 export class TldrawApp {
@@ -38,135 +37,12 @@ export class TldrawApp {
 				}
 			}
 		})
-
-		this.setSessionState({
-			...this.getSessionState(),
-			createdAt: Date.now(),
-		})
 	}
 
 	store: Store<TldrawAppRecord>
 
 	dispose() {
 		this.store.dispose()
-	}
-
-	getSessionState(): TldrawAppSessionState {
-		return this.store.get(TldrawApp.SessionStateId)!
-	}
-
-	setSessionState(sessionState: TldrawAppSessionState) {
-		return this.store.put([sessionState])
-	}
-
-	@computed getTheme() {
-		return this.getSessionState().theme
-	}
-
-	getSortedFilteredFiles(viewName: string, files: TldrawAppFile[]) {
-		// Get the current view from session state
-		const sessionState = this.getSessionState()
-		const { auth } = sessionState
-
-		if (!auth) return files // can't sort
-
-		const currentView = sessionState.views[viewName] ?? {
-			sort: 'recent',
-			view: 'grid',
-			search: '',
-		}
-
-		let filteredFiles = files
-
-		// If there's a search, filter the files
-		if (currentView.search.length) {
-			const query = currentView.search.toLowerCase()
-			filteredFiles = files.filter((file) =>
-				TldrawApp.getFileName(file).toLowerCase().includes(query)
-			)
-		}
-
-		// Sort the filtered files
-		switch (currentView.sort) {
-			case 'atoz': {
-				// a to z
-				filteredFiles.sort((a, b) => {
-					const nameA = TldrawApp.getFileName(a)
-					const nameB = TldrawApp.getFileName(b)
-					return nameA.localeCompare(nameB)
-				})
-				break
-			}
-			case 'ztoa': {
-				// z to a
-				filteredFiles.sort((a, b) => {
-					const nameA = TldrawApp.getFileName(a)
-					const nameB = TldrawApp.getFileName(b)
-					return nameB.localeCompare(nameA)
-				})
-				break
-			}
-			case 'newest': {
-				// newest created files first
-				filteredFiles.sort((a, b) => b.createdAt - a.createdAt)
-				break
-			}
-			case 'oldest': {
-				// oldest created files first
-				filteredFiles.sort((a, b) => a.createdAt - b.createdAt)
-				break
-			}
-			case 'recent': {
-				// never visited first, then recently visited first
-				return this.getUserRecentFiles(sessionState.createdAt).map((f) => f.file)
-			}
-		}
-
-		return filteredFiles
-	}
-
-	toggleSidebar() {
-		const sessionState = this.getSessionState()
-
-		this.store.put([
-			{
-				...sessionState,
-				isSidebarOpen: !sessionState.isSidebarOpen,
-			},
-		])
-	}
-
-	toggleSidebarMobile() {
-		const sessionState = this.getSessionState()
-
-		this.store.put([
-			{
-				...sessionState,
-				isSidebarOpenMobile: !sessionState.isSidebarOpenMobile,
-			},
-		])
-	}
-
-	setShareMenuActiveTab(tab: TldrawAppSessionState['shareMenuActiveTab']) {
-		const sessionState = this.getSessionState()
-
-		this.store.put([
-			{
-				...sessionState,
-				shareMenuActiveTab: tab,
-			},
-		])
-	}
-
-	setSidebarActiveTab(tab: TldrawAppSessionState['sidebarActiveTab']) {
-		const sessionState = this.getSessionState()
-
-		this.store.put([
-			{
-				...sessionState,
-				sidebarActiveTab: tab,
-			},
-		])
 	}
 
 	// Simple
@@ -188,30 +64,43 @@ export class TldrawApp {
 	}
 
 	getUserOwnFiles() {
-		const userId = this.getCurrentUserId()
-		return Array.from(new Set(this.getAll('file').filter((f) => f.owner === userId)))
+		const user = this.getCurrentUser()
+		if (!user) throw Error('no user')
+		return Array.from(new Set(this.getAll('file').filter((f) => f.ownerId === user.id)))
 	}
 
 	getUserFileEdits() {
-		const userId = this.getCurrentUserId()
+		const user = this.getCurrentUser()
+		if (!user) throw Error('no user')
 		return this.store.allRecords().filter((r) => {
 			if (r.typeName !== 'file-edit') return
-			if (r.userId !== userId) return
+			if (r.ownerId !== user.id) return
 			return true
 		}) as TldrawAppFileEdit[]
 	}
 
 	getCurrentUserId() {
-		return assertExists(this.getSessionState().auth).userId
+		return assertExists(getLocalSessionStateUnsafe().auth).userId
+	}
+
+	getCurrentUser() {
+		const user = this.getUser(this.getCurrentUserId())
+		if (!user?.id) {
+			throw Error('no user')
+		}
+		return assertExists(user, 'no current user')
 	}
 
 	getUserRecentFiles(sessionStart: number) {
-		// For now, just the user's files; but generally we also want
-		// to get all files the user has access to, including shared files.
-		const fileRecords = this.getUserOwnFiles()
+		const userId = this.getCurrentUserId()
 
 		// Now look at which files the user has edited
 		const fileEditRecords = this.getUserFileEdits()
+
+		// Incluude any files that the user has edited
+		const fileRecords = fileEditRecords
+			.map((r) => this.get(r.fileId))
+			.filter(Boolean) as TldrawAppFile[]
 
 		// A map of file IDs to the most recent date we have for them
 		// the default date is the file's creation date; but we'll use the
@@ -223,6 +112,7 @@ export class TldrawApp {
 				{
 					file,
 					date: file.createdAt,
+					isOwnFile: file.ownerId === userId,
 				},
 			])
 		)
@@ -245,16 +135,17 @@ export class TldrawApp {
 		return Object.values(filesToDates).sort((a, b) => b.date - a.date)
 	}
 
-	getUserSharedFiles(userId: TldrawAppUserId) {
+	getUserSharedFiles() {
+		const userId = this.getCurrentUserId()
 		return Array.from(
 			new Set(
 				this.getAll('file-visit')
-					.filter((r) => r.userId === userId)
+					.filter((r) => r.ownerId === userId)
 					.map((s) => {
 						const file = this.get<TldrawAppFile>(s.fileId)
 						if (!file) return
 						// skip files where the owner is the current user
-						if (file.owner === userId) return
+						if (file.ownerId === userId) return
 						return file
 					})
 					.filter(Boolean) as TldrawAppFile[]
@@ -264,7 +155,7 @@ export class TldrawApp {
 
 	createFile(fileId?: TldrawAppFileId) {
 		const file = TldrawAppFileRecordType.create({
-			owner: this.getCurrentUserId(),
+			ownerId: this.getCurrentUserId(),
 			isEmpty: true,
 			id: fileId ?? TldrawAppFileRecordType.createId(),
 		})
@@ -278,20 +169,17 @@ export class TldrawApp {
 		return TldrawApp.getFileName(file)
 	}
 
-	claimTemporaryFile(fileId: TldrawAppFileId, owner: TldrawAppUserId) {
+	claimTemporaryFile(fileId: TldrawAppFileId) {
 		// TODO(david): check that you can't claim someone else's file (the db insert should fail and trigger a resync)
 		this.store.put([
 			TldrawAppFileRecordType.create({
 				id: fileId,
-				owner,
+				ownerId: this.getCurrentUserId(),
 			}),
 		])
 	}
 
 	getFileCollaborators(fileId: TldrawAppFileId): TldrawAppUserId[] {
-		const { auth } = this.getSessionState()
-		if (!auth) throw Error('no auth')
-
 		const file = this.store.get(fileId)
 		if (!file) throw Error('no auth')
 
@@ -300,11 +188,13 @@ export class TldrawApp {
 		return users.filter((user) => user.presence.fileIds.includes(fileId)).map((user) => user.id)
 	}
 
-	toggleFileShared(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
+	toggleFileShared(fileId: TldrawAppFileId) {
+		const userId = this.getCurrentUserId()
+
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
-		if (userId !== file.owner) {
+		if (userId !== file.ownerId) {
 			throw Error('user cannot edit that file')
 		}
 
@@ -312,14 +202,15 @@ export class TldrawApp {
 	}
 
 	setFileSharedLinkType(
-		userId: TldrawAppUserId,
 		fileId: TldrawAppFileId,
 		sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access'
 	) {
+		const userId = this.getCurrentUserId()
+
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
-		if (userId !== file.owner) {
+		if (userId !== file.ownerId) {
 			throw Error('user cannot edit that file')
 		}
 
@@ -331,14 +222,16 @@ export class TldrawApp {
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
-	duplicateFile(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
+	duplicateFile(fileId: TldrawAppFileId) {
+		const userId = this.getCurrentUserId()
+
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
 		const newFile = TldrawAppFileRecordType.create({
 			...file,
 			id: TldrawAppFileRecordType.createId(),
-			owner: userId,
+			ownerId: userId,
 			// todo: maybe iterate the file name
 			createdAt: Date.now(),
 		})
@@ -398,13 +291,12 @@ export class TldrawApp {
 		return response.roomId
 	}
 
-	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
-		const user = this.store.get(userId)
+	onFileEnter(fileId: TldrawAppFileId) {
+		const user = this.getCurrentUser()
 		if (!user) throw Error('no user')
-
 		this.store.put([
 			TldrawAppFileVisitRecordType.create({
-				userId,
+				ownerId: user.id,
 				fileId,
 			}),
 			{
@@ -417,40 +309,23 @@ export class TldrawApp {
 		])
 	}
 
-	setUserExportBackground(userId: TldrawAppUserId, exportBackground: boolean) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportBackground }])
-	}
-
-	setUserExportPadding(userId: TldrawAppUserId, exportPadding: boolean) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportPadding }])
-	}
-
-	setUserExportFormat(userId: TldrawAppUserId, exportFormat: TldrawAppUser['exportFormat']) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportFormat }])
-	}
-
-	setUserExportTheme(userId: TldrawAppUserId, exportTheme: TldrawAppUser['exportTheme']) {
-		const user = this.store.get(userId)
-		if (!user) throw Error('no user')
-		this.store.put([{ ...user, exportTheme }])
-	}
-
-	onFileEdit(
-		userId: TldrawAppUserId,
-		fileId: TldrawAppFileId,
-		sessionStartedAt: number,
-		fileOpenedAt: number
+	updateUserExportPreferences(
+		exportPreferences: Partial<
+			Pick<TldrawAppUser, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
+		>
 	) {
+		const user = this.getCurrentUser()
+		if (!user) throw Error('no user')
+		this.store.put([{ ...user, ...exportPreferences }])
+	}
+
+	onFileEdit(fileId: TldrawAppFileId, sessionStartedAt: number, fileOpenedAt: number) {
+		const user = this.getCurrentUser()
+		if (!user) throw Error('no user')
 		// Find the store's most recent file edit record for this user
 		const fileEdit = this.store
 			.allRecords()
-			.filter((r) => r.typeName === 'file-edit' && r.fileId === fileId && r.userId === userId)
+			.filter((r) => r.typeName === 'file-edit' && r.fileId === fileId && r.ownerId === user.id)
 			.sort((a, b) => b.createdAt - a.createdAt)[0] as TldrawAppFileEdit | undefined
 
 		// If the most recent file edit is part of this session or a later session, ignore it
@@ -461,7 +336,7 @@ export class TldrawApp {
 		// Create the file edit record
 		this.store.put([
 			TldrawAppFileEditRecordType.create({
-				userId,
+				ownerId: user.id,
 				fileId,
 				sessionStartedAt,
 				fileOpenedAt,
@@ -469,9 +344,9 @@ export class TldrawApp {
 		])
 	}
 
-	onFileExit(userId: TldrawAppUserId, fileId: TldrawAppFileId) {
-		const user = this.store.get(userId)
-		if (!user) return
+	onFileExit(fileId: TldrawAppFileId) {
+		const user = this.getCurrentUser()
+		if (!user) throw Error('no user')
 
 		this.store.put([
 			{
@@ -493,22 +368,17 @@ export class TldrawApp {
 	}) {
 		const { store } = opts
 
-		const userId = TldrawAppUserRecordType.createId(opts.userId)
-		if (!store.get(TldrawApp.SessionStateId)) {
-			store.put([
-				TldrawAppSessionStateRecordType.create({
-					id: TldrawApp.SessionStateId,
-					auth: {
-						userId,
-					},
-				}),
-			])
-		}
+		// This is an issue: we may have a user record but not in the store.
+		// Could be just old accounts since before the server had a version
+		// of the store... but we should probably identify that better.
 
-		if (!store.get(userId)) {
+		const userId = TldrawAppUserRecordType.createId(opts.userId)
+
+		if (!store.get(userId)?.id) {
 			store.put([
 				TldrawAppUserRecordType.create({
 					id: userId,
+					ownerId: userId,
 					name: opts.fullName,
 					email: opts.email,
 					color: 'salmon',
@@ -522,8 +392,6 @@ export class TldrawApp {
 
 		return { store: new TldrawApp(store), userId }
 	}
-
-	static SessionStateId = TldrawAppSessionStateRecordType.createId('session')
 
 	static getFileName(file: TldrawAppFile) {
 		return file.name.trim() || new Date(file.createdAt).toLocaleString('en-gb')

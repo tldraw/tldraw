@@ -8,6 +8,8 @@ import { StyleEmbedder } from './StyleEmbedder'
 import { embedMedia } from './embedMedia'
 import { getSvgJsx } from './getSvgJsx'
 
+let idCounter = 1
+
 export async function exportToSvg(
 	editor: Editor,
 	shapeIds: TLShapeId[],
@@ -41,7 +43,7 @@ export async function exportToSvg(
 	container.appendChild(renderTarget)
 
 	// create a react root...
-	const root = createRoot(renderTarget)
+	const root = createRoot(renderTarget, { identifierPrefix: `export_${idCounter++}_` })
 	try {
 		// ...and render the SVG into it.
 		flushSync(() => {
