@@ -1,9 +1,11 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ErrorPage } from './ErrorPage/ErrorPage'
+import LoginRedirectPage from './LoginRedirectPage/LoginRedirectPage'
 
 export function StoreErrorScreen({ error }: { error: Error }) {
 	let header = 'Could not connect to server.'
 	let message = ''
+
 	if (error instanceof TLRemoteSyncError) {
 		switch (error.reason) {
 			case TLSyncErrorCloseEventReason.CLIENT_TOO_OLD: {
@@ -41,10 +43,12 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 				message = 'The room you are trying to connect to does not exist.'
 				break
 			}
-			case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
+			case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
+				return <LoginRedirectPage />
+			}
 			case TLSyncErrorCloseEventReason.FORBIDDEN: {
-				header = 'Unauthorized'
-				message = 'You need to be authorized to view this room.'
+				header = 'Forbidden'
+				message = 'You are forbidden to view this room.'
 				break
 			}
 			default: {

@@ -333,6 +333,9 @@ export class TLDrawDurableObject extends DurableObject {
 			const ownerId = await this.getOwnerId()
 
 			if (ownerId) {
+				if (!auth) {
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+				}
 				if (ownerId !== TldrawAppUserRecordType.createId(auth?.userId)) {
 					const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(APP_ID))
 					const shareType = await ownerDurableObject.getFileShareType(
