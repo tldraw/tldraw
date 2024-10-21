@@ -2119,12 +2119,12 @@ export const runtime: {
     refreshPage(): void;
 };
 
-// @internal
+// @public
 export type SafeId = string & {
     __brand: 'SafeId';
 };
 
-// @internal (undocumented)
+// @public (undocumented)
 export function sanitizeId(id: string): string;
 
 // @public (undocumented)
@@ -2432,7 +2432,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 // @public (undocumented)
 export const stopEventPropagation: (e: any) => any;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function suffixSafeId(id: SafeId, suffix: string): SafeId;
 
 // @public (undocumented)
@@ -3762,7 +3762,7 @@ export function useShallowArrayIdentity<T extends null | readonly any[] | undefi
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
 
-// @internal
+// @public
 export function useSharedSafeId(id: string): SafeId;
 
 export { useStateTracking }
@@ -3785,7 +3785,7 @@ export function useTLStore(opts: TLStoreOptions): TLStore;
 // @public (undocumented)
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
-// @internal
+// @public
 export function useUniqueSafeId(suffix?: string): SafeId;
 
 export { useValue }
