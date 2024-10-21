@@ -16,6 +16,7 @@ module.exports = {
 		'react',
 		'react-hooks',
 		'deprecation',
+		'formatjs',
 	],
 	settings: {
 		next: {
@@ -61,6 +62,7 @@ module.exports = {
 		'local/prefer-class-methods': 'error',
 		'local/tsdoc-param-matching': 'error',
 		'no-only-tests/no-only-tests': 'error',
+		'formatjs/enforce-default-message': ['error', 'literal'],
 		'no-restricted-syntax': [
 			'error',
 			{ selector: "MethodDefinition[kind='set']", message: 'Property setters are not allowed' },

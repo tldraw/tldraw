@@ -15,6 +15,7 @@ import {
 	ExtrasGroup,
 	OfflineIndicator,
 	PeopleMenu,
+	PreferencesGroup,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -82,6 +83,7 @@ export const components: TLComponents = {
 					<ViewSubmenu />
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
+					<PreferencesGroup />
 				</DefaultMainMenu>
 				<DefaultQuickActionsContent />
 			</DefaultQuickActions>
