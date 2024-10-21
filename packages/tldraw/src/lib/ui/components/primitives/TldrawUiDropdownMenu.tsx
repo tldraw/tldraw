@@ -156,7 +156,7 @@ export interface TLUiDropdownMenuSubContentProps {
 export function TldrawUiDropdownMenuSubContent({
 	id,
 	alignOffset = -1,
-	sideOffset = -4,
+	sideOffset = -6,
 	size = 'small',
 	children,
 }: TLUiDropdownMenuSubContentProps) {
