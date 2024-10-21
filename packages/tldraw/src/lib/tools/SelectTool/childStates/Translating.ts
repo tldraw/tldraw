@@ -191,7 +191,7 @@ export class Translating extends StateNode {
 		)
 		this.handleEnd()
 
-		if (this.editor.user.getIsToolLocked() && this.info.onInteractionEnd) {
+		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			if (this.isCreating) {
@@ -436,7 +436,7 @@ export function moveShapesToPoint({
 		averagePagePoint,
 	} = snapshot
 
-	const isGridMode = editor.user.getIsGridMode()
+	const isGridMode = editor.getInstanceState().isGridMode
 
 	const gridSize = editor.getDocumentSettings().gridSize
 

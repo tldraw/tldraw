@@ -36,7 +36,7 @@ const TldrawUiDialog = ({ id, component: ModalContent, onClose }: TLUiDialog) =>
 						if (e.target === e.currentTarget) handleOpenChange(false)
 					}}
 				>
-					<_Dialog.Content dir="ltr" className="tlui-dialog__content">
+					<_Dialog.Content dir="ltr" className="tlui-dialog__content" aria-describedby={undefined}>
 						<ModalContent onClose={() => handleOpenChange(false)} />
 					</_Dialog.Content>
 				</_Dialog.Overlay>

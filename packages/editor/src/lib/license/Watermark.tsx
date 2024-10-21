@@ -36,7 +36,7 @@ export const Watermark = memo(function Watermark() {
 
 const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	const editor = useEditor()
-	const isDebugMode = useValue('debug mode', () => editor.user.getIsDebugMode(), [editor])
+	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
 	const isMenuOpen = useValue('is menu open', () => editor.menus.hasAnyOpenMenus(), [editor])
 	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
 		editor,

@@ -51,9 +51,7 @@ export function TlaFileMenu({
 	}, [fileId, addDialog])
 
 	const handleDuplicateClick = useCallback(() => {
-		const { auth } = app.getSessionState()
-		if (!auth) throw Error('expected auth')
-		const { newFile, editorStoreSnapshot } = app.duplicateFile(auth.userId, fileId)
+		const { newFile, editorStoreSnapshot } = app.duplicateFile(fileId)
 
 		tltime.setTimeout(
 			'app',

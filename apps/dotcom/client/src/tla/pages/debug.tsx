@@ -9,6 +9,7 @@ import { useFlags } from '../hooks/useFlags'
 import { useRaw } from '../hooks/useRaw'
 import { useSessionState } from '../hooks/useSessionState'
 import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
+import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 
 export function Component() {
 	const raw = useRaw()
@@ -64,7 +65,7 @@ function Flags() {
 						type="checkbox"
 						checked={!!value}
 						onChange={() => {
-							const current = app.getSessionState()
+							const current = getLocalSessionState()
 							if (!current.auth) throw Error('No auth')
 							const user = app.store.get(current.auth.userId)
 							if (!user) throw Error('No user')
@@ -85,7 +86,7 @@ function Flags() {
 			<TlaButton
 				onClick={() => {
 					const defaultUser = TldrawAppUserRecordType.createDefaultProperties()
-					const current = app.getSessionState()
+					const current = getLocalSessionState()
 					if (!current.auth) throw Error('No auth')
 					const user = app.store.get(current.auth.userId)
 					if (!user) throw Error('No user')
@@ -124,14 +125,13 @@ function DarkMode() {
 				type="checkbox"
 				checked={isDarkMode}
 				onChange={() => {
-					const current = app.getSessionState()
+					const current = getLocalSessionState()
 					if (!current.auth) throw Error('No auth')
 					const user = app.store.get(current.auth.userId)
 					if (!user) throw Error('No user')
-					app.setSessionState({
-						...app.getSessionState(),
+					updateLocalSessionState(() => ({
 						theme: isDarkMode ? 'light' : 'dark',
-					})
+					}))
 				}}
 			/>
 		</div>

@@ -23,10 +23,6 @@ export interface TLUserPreferences {
 	isWrapMode?: boolean | null
 	isDynamicSizeMode?: boolean | null
 	isPasteAtCursorMode?: boolean | null
-	isToolLocked?: boolean | null
-	isGridMode?: boolean | null
-	isFocusMode?: boolean | null
-	isDebugMode?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -54,10 +50,6 @@ export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUser
 	isWrapMode: T.boolean.nullable().optional(),
 	isDynamicSizeMode: T.boolean.nullable().optional(),
 	isPasteAtCursorMode: T.boolean.nullable().optional(),
-	isToolLocked: T.boolean.nullable().optional(),
-	isGridMode: T.boolean.nullable().optional(),
-	isFocusMode: T.boolean.nullable().optional(),
-	isDebugMode: T.boolean.nullable().optional(),
 })
 
 const Versions = {
@@ -69,7 +61,6 @@ const Versions = {
 	AddDynamicSizeMode: 6,
 	AllowSystemColorScheme: 7,
 	AddPasteAtCursor: 8,
-	AddInstanceVars: 9,
 } as const
 
 const CURRENT_VERSION = Math.max(...Object.values(Versions))
@@ -104,13 +95,6 @@ function migrateSnapshot(data: { version: number; user: any }) {
 	}
 	if (data.version < Versions.AddPasteAtCursor) {
 		data.user.isPasteAtCursorMode = false
-	}
-	if (data.version < Versions.AddInstanceVars) {
-		data.user.isPasteAtCursorMode = false
-		data.user.isToolLocked = undefined
-		data.user.isGridMode = undefined
-		data.user.isFocusMode = undefined
-		data.user.isDebugMode = undefined
 	}
 
 	// finally
@@ -159,10 +143,6 @@ export const defaultUserPreferences = Object.freeze({
 	isWrapMode: false,
 	isDynamicSizeMode: false,
 	isPasteAtCursorMode: false,
-	isToolLocked: false,
-	isGridMode: false,
-	isFocusMode: false,
-	isDebugMode: false,
 	colorScheme: 'system',
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
