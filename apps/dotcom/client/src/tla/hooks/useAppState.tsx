@@ -19,7 +19,6 @@ import { useRaw } from './useRaw'
 const appContext = createContext<TldrawApp | null>(null)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
-	console.log('app state')
 	const [ready, setReady] = useState(false)
 	const [app, setApp] = useState({} as TldrawApp)
 	const auth = useAuth()
@@ -30,7 +29,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaProvider')
 	}
-	console.log('use sync')
 
 	const store = useSync({
 		schema: tldrawAppSchema as any,
