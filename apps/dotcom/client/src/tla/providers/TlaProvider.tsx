@@ -18,6 +18,7 @@ if (!PUBLISHABLE_KEY) {
 }
 
 export function Component() {
+	console.log('provider')
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
 			<TlaRootProviders>

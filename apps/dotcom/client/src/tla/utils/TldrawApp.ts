@@ -1,7 +1,6 @@
 import {
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
-	SNAPSHOT_PREFIX,
 	TldrawAppFile,
 	TldrawAppFileEdit,
 	TldrawAppFileEditRecordType,
@@ -390,16 +389,13 @@ export class TldrawApp {
 			} satisfies CreateSnapshotRequestBody),
 		})
 		const response = (await res.json()) as CreateSnapshotResponseBody
+		console.log(response)
 
 		if (!res.ok || response.error) {
 			console.error(await res.text())
 			return
 		}
-
-		const url = editor.createDeepLink({
-			url: `${window.location.origin}/q/${SNAPSHOT_PREFIX}/${response.roomId}`,
-		})
-		return url.toString()
+		return response.roomId
 	}
 
 	onFileEnter(userId: TldrawAppUserId, fileId: TldrawAppFileId) {

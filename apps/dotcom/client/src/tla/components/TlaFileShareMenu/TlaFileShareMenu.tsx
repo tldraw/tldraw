@@ -1,5 +1,7 @@
 import { TldrawAppFileId, TldrawAppSessionState } from '@tldraw/dotcom-shared'
-import { ReactNode, useCallback } from 'react'
+import { fetch } from '@tldraw/utils'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -26,10 +28,10 @@ export function TlaFileShareMenu({
 	children: ReactNode
 }) {
 	const app = useApp()
+	const { fileSlug } = useParams()
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
-	const storeUser = app.store.get(app.getCurrentUserId())
-	const publish = storeUser?.flags?.publish
+	const [snapshotSlug, setSnapshotSlug] = useState<string | null>(null)
 
 	const shareMenuActiveTab = useValue(
 		'share menu active tab',
@@ -44,6 +46,27 @@ export function TlaFileShareMenu({
 		},
 		[app, trackEvent]
 	)
+
+	useEffect(() => {
+		console.log('fetching snapshots')
+		async function getSnapshots() {
+			if (!fileSlug) return
+			const result = await fetch(`/api/app/snapshots/${fileSlug}`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			})
+			if (!result.ok) {
+				console.log('error fetching snapshots')
+			}
+			const data = await result.json()
+			if (data && data.snapshots?.length) {
+				setSnapshotSlug(data.snapshots[0].id)
+			}
+		}
+		getSnapshots()
+	}, [fileSlug])
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`share-${fileId}-${source}`}>
@@ -60,11 +83,11 @@ export function TlaFileShareMenu({
 						<TlaTabsTabs>
 							<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
 							<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
-							{publish && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
+							<TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>
 						</TlaTabsTabs>
 						<TlaShareMenuSharePage fileId={fileId} />
 						<TlaShareMenuExportPage />
-						{publish && <TlaPublishPage />}
+						<TlaPublishPage snapshotSlug={snapshotSlug} setSnapshotSlug={setSnapshotSlug} />
 					</TlaTabsRoot>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>

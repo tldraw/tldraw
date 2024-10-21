@@ -1,7 +1,5 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
-import { fetch } from '@tldraw/utils'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
@@ -10,7 +8,6 @@ import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import { getShareableFileUrl } from '../../utils/urls'
-import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
@@ -34,8 +31,6 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 		},
 		[app, fileId]
 	)
-	const user = app.getUser(app.getCurrentUserId())
-	const publish = user?.flags?.publish
 	return (
 		<TlaTabsPage id="share">
 			<TlaMenuSection>
@@ -46,11 +41,6 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
 				{isShared && <QrCode fileId={fileId} />}
 			</TlaMenuSection>
-			{!publish && (
-				<TlaMenuSection>
-					<TlaCopySnapshotLinkButton />
-				</TlaMenuSection>
-			)}
 		</TlaTabsPage>
 	)
 }
@@ -143,123 +133,6 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick}>
 			{raw('Copy link')}
 		</TlaShareMenuCopyButton>
-	)
-}
-
-function TlaCopySnapshotLinkButton() {
-	const app = useApp()
-	const { fileSlug } = useParams()
-	const [snapshots, setSnapshots] = useState<{ id: string; uploaded: string }[]>([])
-	const [selectedSnapshot, setSelectedSnapshot] = useState<string | null>(null)
-
-	const editor = getCurrentEditor()
-	const raw = useRaw()
-
-	const { addToast } = useToasts()
-
-	useEffect(() => {
-		async function getSnapshots() {
-			const result = await fetch(`/api/app/snapshots/${fileSlug}`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			})
-			if (!result.ok) {
-				console.log('error fetching snapshots')
-			}
-			const data = await result.json()
-			if (data && data.snapshots) {
-				setSnapshots(data.snapshots)
-				setSelectedSnapshot(data.snapshots[0]?.id)
-			}
-		}
-		getSnapshots()
-	}, [fileSlug])
-
-	const handleCreateSnapshotClick = useCallback(async () => {
-		const { auth } = app.getSessionState()
-		if (!auth) throw Error('should have auth')
-		const { userId } = auth
-		if (!editor) throw Error('no editor')
-		if (!fileSlug) throw Error('no file slug')
-
-		const url = await app.createSnapshotLink(editor, userId, fileSlug, null)
-		if (!url) {
-			addToast({
-				title: 'could not create snapshot',
-				severity: 'success',
-			})
-		} else {
-			copyTextToClipboard(url)
-			const id = url.split('/').pop()?.split('?')[0]
-			if (id) {
-				setSnapshots((prev) => [{ id, uploaded: new Date().toUTCString() }, ...prev])
-				setSelectedSnapshot(id)
-			}
-
-			addToast({
-				title: 'copied',
-				severity: 'success',
-			})
-		}
-	}, [app, addToast, editor, fileSlug])
-
-	const handleSnapshotCopyClick = useCallback(() => {
-		copyTextToClipboard(`${window.location.origin}/q/s/${selectedSnapshot}`)
-		addToast({
-			title: 'copied',
-			severity: 'success',
-		})
-	}, [addToast, selectedSnapshot])
-
-	const handleSnapshotDeleteClick = useCallback(async () => {
-		const result = await fetch(`/api/app/snapshot/${selectedSnapshot}`, {
-			method: 'DELETE',
-		})
-		if (!result.ok) {
-			console.log('error deleting snapshot')
-		} else {
-			const newSnapshots = snapshots.filter((s) => s.id !== selectedSnapshot)
-			setSnapshots(newSnapshots)
-			setSelectedSnapshot(newSnapshots[0]?.id)
-		}
-	}, [selectedSnapshot, snapshots])
-
-	const handleSnapshotOpenClick = useCallback(() => {
-		const url = `${window.location.origin}/q/s/${selectedSnapshot}`
-		window.open(url, '_blank')
-	}, [selectedSnapshot])
-
-	if (!fileSlug) throw Error('no file slug')
-
-	return (
-		<>
-			{snapshots.length > 0 && (
-				<>
-					<div>{raw('Snapshots:')}</div>
-					<select
-						style={{ height: '30px' }}
-						onChange={(el) => setSelectedSnapshot(el.target.value)}
-						value={selectedSnapshot ?? snapshots[0].id}
-					>
-						{snapshots.map((snapshot) => (
-							<option key={snapshot.id} value={snapshot.id}>
-								{new Date(snapshot.uploaded).toLocaleString('en-gb')}
-							</option>
-						))}
-					</select>
-					<div style={{ display: 'flex', gap: '5px', justifyContent: 'end' }}>
-						<TlaButton variant="secondary" onClick={handleSnapshotOpenClick} icon="link" />
-						<TlaButton variant="secondary" onClick={handleSnapshotCopyClick} icon="copy" />
-						<TlaButton variant="secondary" onClick={handleSnapshotDeleteClick} icon="trash" />
-					</div>
-				</>
-			)}
-			<TlaShareMenuCopyButton onClick={handleCreateSnapshotClick} type="secondary">
-				{raw('Create a new snapshot')}
-			</TlaShareMenuCopyButton>
-		</>
 	)
 }
 

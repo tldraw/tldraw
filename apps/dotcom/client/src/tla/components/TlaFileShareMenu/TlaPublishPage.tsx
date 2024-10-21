@@ -1,18 +1,29 @@
 import { fetch } from '@tldraw/utils'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor, useToasts } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { copyTextToClipboard } from '../../utils/copy'
 import { TlaButton } from '../TlaButton/TlaButton'
+import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
-import { TlaMenuControlGroup, TlaMenuSection } from '../tla-menu/tla-menu'
+import {
+	TlaMenuControl,
+	TlaMenuControlGroup,
+	TlaMenuControlLabel,
+	TlaMenuSection,
+} from '../tla-menu/tla-menu'
 import { TlaShareMenuCopyButton } from './file-share-menu-primitives'
 
-export function TlaPublishPage() {
+export function TlaPublishPage({
+	snapshotSlug,
+	setSnapshotSlug,
+}: {
+	snapshotSlug: string | null
+	setSnapshotSlug(slug: string | null): void
+}) {
 	const raw = useRaw()
-	const [snapshot, setSnapshot] = useState<string | null>(null)
 	const { fileSlug } = useParams()
 	const editor = useEditor()
 	const app = useApp()
@@ -26,34 +37,26 @@ export function TlaPublishPage() {
 			if (!editor) throw Error('no editor')
 			if (!fileSlug) throw Error('no file slug')
 
-			return await app.createSnapshotLink(editor, userId, fileSlug, update ? snapshot : null)
+			return await app.createSnapshotLink(editor, userId, fileSlug, update ? snapshotSlug : null)
 		},
-		[editor, app, snapshot, fileSlug]
+		[editor, app, snapshotSlug, fileSlug]
 	)
 
-	const handleCreate = useCallback(async () => {
-		const url = await uploadSnapshot(false)
-		if (!url) {
+	const createSnapshot = useCallback(async () => {
+		const snapshotSlug = await uploadSnapshot(false)
+		if (!snapshotSlug) {
 			addToast({
 				title: 'could not create snapshot',
-				severity: 'success',
+				severity: 'error',
 			})
 		} else {
-			const id = url.split('/').pop()?.split('?')[0]
-			if (id) {
-				setSnapshot(id)
-			}
-
-			addToast({
-				title: 'copied',
-				severity: 'success',
-			})
+			setSnapshotSlug(snapshotSlug)
 		}
-	}, [uploadSnapshot, addToast])
+	}, [uploadSnapshot, addToast, setSnapshotSlug])
 
 	const handleUpdate = useCallback(async () => {
-		const url = await uploadSnapshot(true)
-		if (url) {
+		const snapshotSlug = await uploadSnapshot(true)
+		if (snapshotSlug) {
 			addToast({
 				title: 'updated',
 				severity: 'success',
@@ -61,82 +64,50 @@ export function TlaPublishPage() {
 		} else {
 			addToast({
 				title: 'could not update',
-				severity: 'success',
+				severity: 'error',
 			})
 		}
 	}, [uploadSnapshot, addToast])
 
-	useEffect(() => {
-		async function getSnapshots() {
-			const result = await fetch(`/api/app/snapshots/${fileSlug}`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			})
-			if (!result.ok) {
-				console.log('error fetching snapshots')
-			}
-			const data = await result.json()
-			if (data && data.snapshots?.length) {
-				setSnapshot(data.snapshots[0].id)
-			}
-		}
-		getSnapshots()
-	}, [fileSlug])
-
-	const handleSnapshotDeleteClick = useCallback(async () => {
-		const result = await fetch(`/api/app/snapshot/${snapshot}`, {
+	const deleteSnapshot = useCallback(async () => {
+		const result = await fetch(`/api/app/snapshot/${snapshotSlug}`, {
 			method: 'DELETE',
 		})
 		if (!result.ok) {
 			console.log('error deleting snapshot')
 		} else {
-			setSnapshot(null)
+			setSnapshotSlug(null)
 		}
-	}, [snapshot])
-
-	const handleSnapshotOpenClick = useCallback(() => {
-		if (!snapshot) return
-		const url = `${window.location.origin}/q/s/${snapshot}`
-		window.open(url, '_blank')
-	}, [snapshot])
+	}, [setSnapshotSlug, snapshotSlug])
 
 	const handleSnapshotCopyClick = useCallback(() => {
-		copyTextToClipboard(`${window.location.origin}/q/s/${snapshot}`)
+		copyTextToClipboard(`${window.location.origin}/q/s/${snapshotSlug}`)
 		addToast({
 			title: 'copied',
 			severity: 'success',
 		})
-	}, [snapshot, addToast])
+	}, [snapshotSlug, addToast])
 
 	return (
 		<TlaTabsPage id="publish">
 			<TlaMenuSection>
 				<TlaMenuControlGroup>
-					{snapshot ? (
+					<TlaMenuControl>
+						<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
+						<TlaSwitch
+							checked={!!snapshotSlug}
+							onChange={() => (snapshotSlug ? deleteSnapshot() : createSnapshot())}
+						/>
+					</TlaMenuControl>
+					{snapshotSlug && (
 						<TlaMenuControlGroup>
-							<div>{raw('This project is published. You can find a link to it below.')}</div>
-							<div
-								style={{ display: 'flex', gap: '4px', justifyContent: 'end', marginBottom: '12px' }}
-							>
-								<TlaButton variant="secondary" onClick={handleSnapshotOpenClick} icon="link" />
-								<TlaButton variant="secondary" onClick={handleSnapshotCopyClick} icon="copy" />
-								<TlaButton variant="secondary" onClick={handleSnapshotDeleteClick} icon="trash" />
-							</div>
+							<TlaShareMenuCopyButton onClick={handleSnapshotCopyClick}>
+								{raw('Copy link')}
+							</TlaShareMenuCopyButton>
 							<TlaButton variant="secondary" onClick={handleUpdate}>
 								{raw('Update')}
 							</TlaButton>
 						</TlaMenuControlGroup>
-					) : (
-						<>
-							<div>
-								{raw('This project is not published. Click the button below to publish it.')}
-							</div>
-							<TlaShareMenuCopyButton onClick={handleCreate} type="secondary">
-								{raw('Publish')}
-							</TlaShareMenuCopyButton>
-						</>
 					)}
 				</TlaMenuControlGroup>
 			</TlaMenuSection>

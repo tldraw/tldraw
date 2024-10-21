@@ -13,6 +13,7 @@ export interface R2Snapshot {
 
 export async function updateRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
 	const snapshotSlug = request.params.roomId
+	console.log('snapshotSlug', snapshotSlug)
 	if (!snapshotSlug) return notFound()
 	const data = (await request.json()) as CreateSnapshotRequestBody
 
@@ -41,5 +42,5 @@ export async function updateRoomSnapshot(request: IRequest, env: Environment): P
 		getR2KeyForSnapshot({ parentSlug, snapshotSlug, isApp: true }),
 		JSON.stringify(persistedRoomSnapshot)
 	)
-	return new Response(JSON.stringify({ error: false }))
+	return new Response(JSON.stringify({ error: false, roomId: snapshotSlug }))
 }

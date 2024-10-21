@@ -26,7 +26,6 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 	}
 	flags: {
 		placeholder_feature_flag: boolean
-		publish: boolean
 	}
 }
 
@@ -53,7 +52,6 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 		}),
 		flags: T.object({
 			placeholder_feature_flag: T.boolean,
-			publish: T.boolean,
 		}),
 	})
 )
@@ -61,25 +59,11 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 /** @public */
 export const tldrawAppUserVersions = createMigrationIds('com.tldraw.user', {} as const)
 
-const Versions = createMigrationIds('com.tldraw-app.user', {
-	AddPublishFlag: 1,
-} as const)
-
 /** @public */
 export const tldrawAppUserMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw-app.user',
 	recordType: 'user',
-	sequence: [
-		{
-			id: Versions.AddPublishFlag,
-			up: (user: any) => {
-				user.flags.publish = false
-			},
-			down: (user: any) => {
-				delete user.flags.publish
-			},
-		},
-	],
+	sequence: [],
 })
 
 /** @public */
@@ -100,7 +84,6 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 		updatedAt: Date.now(),
 		flags: {
 			placeholder_feature_flag: false,
-			publish: false,
 		},
 	})
 )
