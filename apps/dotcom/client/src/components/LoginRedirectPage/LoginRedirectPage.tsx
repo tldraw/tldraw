@@ -1,5 +1,4 @@
 import { ClerkProvider, useClerk } from '@clerk/clerk-react'
-import { useEffect } from 'react'
 
 export default function LoginRedirectPage() {
 	// @ts-ignore this is fine
@@ -19,10 +18,8 @@ export default function LoginRedirectPage() {
 function LoginRedirectPageInner() {
 	const clerk = useClerk()
 
-	useEffect(() => {
-		const signInUrl = clerk.buildSignInUrl({ signInForceRedirectUrl: window.location.href })
-		window.location.href = signInUrl
-	}, [clerk])
+	const signInUrl = clerk.buildSignInUrl({ signInForceRedirectUrl: window.location.href })
+	window.location.href = signInUrl
 
 	return null
 }
