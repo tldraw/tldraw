@@ -2,22 +2,6 @@ import { act, render, waitFor } from '@testing-library/react'
 import { TldrawEditor } from '../TldrawEditor'
 import { LicenseManager } from './LicenseManager'
 
-// Mocking useEditor and licenseContext
-jest.mock('../hooks/useEditor', () => ({
-	useEditor: () => ({
-		getViewportScreenBounds: jest.fn().mockReturnValue({ width: 800 }),
-		getInstanceState: jest.fn().mockReturnValue({ isDebugMode: false }),
-		environment: jest.fn().mockReturnValue({
-			isSafari: true,
-			isIos: false,
-			isChromeForIos: false,
-			isFirefox: false,
-			isAndroid: false,
-			isWebview: false,
-		}),
-	}),
-}))
-
 let mockLicenseState = 'unlicensed'
 
 jest.mock('./useLicenseManagerState', () => ({
