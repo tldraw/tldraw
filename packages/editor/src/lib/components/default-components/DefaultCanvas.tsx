@@ -24,6 +24,7 @@ import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
+import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
 
 /** @public */
@@ -172,6 +173,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				</div>
 				<MovingCameraHitTestBlocker />
 			</div>
+			<MenuClickCapture />
 			<InFrontOfTheCanvasWrapper />
 		</>
 	)

@@ -1909,6 +1909,9 @@ export interface MatModel {
     f: number;
 }
 
+// @public
+export function MenuClickCapture(): false | JSX_2.Element;
+
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;

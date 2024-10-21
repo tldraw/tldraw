@@ -55,21 +55,20 @@ export function Component() {
 	return (
 		<IntlProvider defaultLocale={locale} locale={locale} messages={messages}>
 			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-				<div
-					ref={setContainer}
-					className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-				>
-					{container && (
-						<ContainerProvider container={container}>
-							<InsideOfContainerContext>
-								<SignedInProvider
-									onThemeChange={handleThemeChange}
-									onLocaleChange={handleLocaleChange}
-								/>
-							</InsideOfContainerContext>
-						</ContainerProvider>
-					)}
-				</div>
+				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+					<div
+						ref={setContainer}
+						className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+					>
+						{container && (
+							<ContainerProvider container={container}>
+								<InsideOfContainerContext>
+									<Outlet />
+								</InsideOfContainerContext>
+							</ContainerProvider>
+						)}
+					</div>
+				</SignedInProvider>
 			</ClerkProvider>
 		</IntlProvider>
 	)
@@ -100,9 +99,11 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 }
 
 function SignedInProvider({
+	children,
 	onThemeChange,
 	onLocaleChange,
 }: {
+	children: ReactNode
 	onThemeChange(theme: 'light' | 'dark' | 'system'): void
 	onLocaleChange(locale: string): void
 }) {
@@ -143,15 +144,13 @@ function SignedInProvider({
 	return (
 		<AppStateProvider>
 			<UserProvider>
-				<PrefsContainer onThemeChange={onThemeChange}>
-					<Outlet />
-				</PrefsContainer>
+				<ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
 			</UserProvider>
 		</AppStateProvider>
 	)
 }
 
-function PrefsContainer({
+function ThemeContainer({
 	children,
 	onThemeChange,
 }: {
