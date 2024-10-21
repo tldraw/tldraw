@@ -18,11 +18,11 @@ import {
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
+import { assetUrls } from '../../../utils/assetUrls'
 import { useSharing } from '../../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { assetUrls } from '../../providers/TlaProvider'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 

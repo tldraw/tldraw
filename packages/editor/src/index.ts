@@ -52,6 +52,7 @@ export {
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
+export { MenuClickCapture } from './lib/components/MenuClickCapture'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
 export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
@@ -125,6 +126,7 @@ export {
 	getFreshUserPreferences,
 	getUserPreferences,
 	setUserPreferences,
+	userTypeValidator,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export {
@@ -265,7 +267,7 @@ export {
 	type ContainerProviderProps,
 } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditor, useMaybeEditor } from './lib/hooks/useEditor'
+export { EditorContext, useEditor, useMaybeEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useEvent } from './lib/hooks/useEvent'

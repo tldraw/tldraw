@@ -1,4 +1,4 @@
-import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react'
+import { SignedOut, SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
@@ -11,7 +11,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	const raw = useRaw()
 	usePreventAccidentalDrops()
 	return (
-		<div className={styles.layout}>
+		<div className={classNames('tla tla-theme__light tl-theme-light tl-container', styles.layout)}>
 			<div className={styles.header}>
 				<Link to="/">
 					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />
@@ -21,9 +21,6 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 						<TlaButton>{raw('Sign in')}</TlaButton>
 					</SignInButton>
 				</SignedOut>
-				<SignedIn>
-					<UserButton />
-				</SignedIn>
 			</div>
 			<div className={styles.editorWrapper}>{children}</div>
 			<div className={classNames(styles.footer, 'tla-text_ui__regular')}>

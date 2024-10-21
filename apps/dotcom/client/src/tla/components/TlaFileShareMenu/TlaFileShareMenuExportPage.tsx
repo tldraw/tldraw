@@ -12,9 +12,9 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../../utils/globalEditor'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
-import { TldrawApp } from '../../utils/TldrawApp'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import {

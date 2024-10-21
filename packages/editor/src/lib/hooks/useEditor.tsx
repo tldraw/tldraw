@@ -2,7 +2,8 @@ import React, { createContext } from 'react'
 import { Editor } from '../editor/Editor'
 import { IdProvider } from './useSafeId'
 
-const EditorContext = createContext<Editor | null>(null)
+/** @public */
+export const EditorContext = createContext<Editor | null>(null)
 
 /** @public */
 export function useEditor(): Editor {

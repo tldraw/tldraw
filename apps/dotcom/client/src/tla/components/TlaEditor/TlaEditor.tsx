@@ -9,13 +9,17 @@ import {
 	DefaultQuickActions,
 	DefaultQuickActionsContent,
 	DefaultStylePanel,
+	EditSubmenu,
 	Editor,
+	ExportFileContentSubMenu,
+	ExtrasGroup,
 	OfflineIndicator,
 	PeopleMenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	ViewSubmenu,
 	tltime,
 	useActions,
 	useCollaborationStatus,
@@ -38,7 +42,8 @@ import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
-const components: TLComponents = {
+/** @internal */
+export const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
@@ -68,7 +73,12 @@ const components: TLComponents = {
 	QuickActions: () => {
 		return (
 			<DefaultQuickActions>
-				<DefaultMainMenu />
+				<DefaultMainMenu>
+					<EditSubmenu />
+					<ViewSubmenu />
+					<ExportFileContentSubMenu />
+					<ExtrasGroup />
+				</DefaultMainMenu>
 				<DefaultQuickActionsContent />
 			</DefaultQuickActions>
 		)
@@ -142,6 +152,7 @@ export function TlaEditor({
 		let didEnter = false
 
 		// Only mark as entered after one second
+		// TODO TODO but why though...? b/c it's trying to create the file?
 		const timeout = tltime.setTimeout(
 			'app',
 			() => {
@@ -183,6 +194,7 @@ export function TlaEditor({
 			<Tldraw
 				store={store}
 				assetUrls={assetUrls}
+				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={!app ? anonComponents : components}

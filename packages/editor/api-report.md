@@ -42,6 +42,7 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSideEffects } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
+import { T } from '@tldraw/validate';
 import { Timers } from '@tldraw/utils';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
@@ -1310,6 +1311,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
 
+// @public (undocumented)
+export const EditorContext: React_2.Context<Editor | null>;
+
 export { EffectScheduler }
 
 // @public (undocumented)
@@ -1901,6 +1905,9 @@ export interface MatModel {
     // (undocumented)
     f: number;
 }
+
+// @public
+export function MenuClickCapture(): false | JSX_2.Element;
 
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
@@ -3738,6 +3745,9 @@ export class UserPreferencesManager {
     // (undocumented)
     updateUserPreferences(userPreferences: Partial<TLUserPreferences>): void;
 }
+
+// @public (undocumented)
+export const userTypeValidator: T.Validator<TLUserPreferences>;
 
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {

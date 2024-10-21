@@ -37,7 +37,6 @@ export const Watermark = memo(function Watermark() {
 const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	const editor = useEditor()
 	const isDebugMode = useValue('debug mode', () => editor.getInstanceState().isDebugMode, [editor])
-	const isMenuOpen = useValue('is menu open', () => editor.menus.hasAnyOpenMenus(), [editor])
 	const isMobile = useValue('is mobile', () => editor.getViewportScreenBounds().width < 700, [
 		editor,
 	])
@@ -54,7 +53,6 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 			ref={ref}
 			className={LicenseManager.className}
 			data-debug={isDebugMode}
-			data-menu={isMenuOpen}
 			data-mobile={isMobile}
 			draggable={false}
 			{...events}
@@ -115,7 +113,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		padding: 2px;
 		box-sizing: content-box;
 	}
-	
+
 	.${className} > a {
 		position: absolute;
 		width: 96px;
@@ -127,15 +125,10 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		background-color: currentColor;
 	}
 
-	
-	.${className}[data-menu='true'] {
-		pointer-events: none;
-	}
-
 	.${className}[data-debug='true'] {
 		bottom: 46px;
 	}
-	
+
 	.${className}[data-mobile='true'] {
 		border-radius: 4px 0px 0px 4px;
 		right: -2px;
@@ -147,7 +140,7 @@ To remove the watermark, please purchase a license at tldraw.dev.
 		width: 8px;
 		height: 32px;
 	}
-	
+
 	@media (hover: hover) {
 		.${className} > a {
 			pointer-events: none;
@@ -158,13 +151,12 @@ To remove the watermark, please purchase a license at tldraw.dev.
 			transition: background-color 0.2s ease-in-out;
 			transition-delay: 0.32s;
 		}
-			
+
 		.${className}:hover > a {
 			animation: delayed_link 0.2s forwards ease-in-out;
 			animation-delay: 0.32s;
 		}
 	}
-	
 
 	@keyframes delayed_link {
 		0% {
