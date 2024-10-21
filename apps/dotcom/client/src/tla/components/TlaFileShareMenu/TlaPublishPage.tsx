@@ -1,6 +1,6 @@
 import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { fetch } from '@tldraw/utils'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor, useToasts } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
@@ -27,6 +27,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 	const { addToast } = useToasts()
 	const { publishedSlug, published } = file
 	const isOwner = app.isFileOwner(file.id)
+	const [uploading, setUploading] = useState(false)
 
 	const handleUpdate = useCallback(
 		async (update: boolean) => {
@@ -35,7 +36,9 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 			if (!publishedSlug) throw Error('no published slug')
 			if (!isOwner) return
 
+			setUploading(true)
 			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug)
+			setUploading(false)
 			if (result.ok) {
 				if (!published) {
 					app.toggleFilePublished(file.id)
@@ -61,13 +64,13 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 		const result = await fetch(`/api/app/publish/${publishedSlug}`, {
 			method: 'DELETE',
 		})
-		if (!result.ok) {
+		if (result.ok) {
+			app.toggleFilePublished(file.id)
+		} else {
 			addToast({
 				title: 'could not delete',
 				severity: 'error',
 			})
-		} else {
-			app.toggleFilePublished(file.id)
 		}
 	}, [addToast, app, file.id, isOwner, publishedSlug])
 
@@ -101,7 +104,11 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 								{raw('Copy link')}
 							</TlaShareMenuCopyButton>
 							{isOwner && (
-								<TlaButton variant="secondary" onClick={() => handleUpdate(true)}>
+								<TlaButton
+									isLoading={uploading}
+									variant="secondary"
+									onClick={() => handleUpdate(true)}
+								>
 									{raw('Update')}
 								</TlaButton>
 							)}
