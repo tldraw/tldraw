@@ -9,10 +9,21 @@ import {
 	TldrawAppUser,
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
+	UserPreferencesKeys,
 } from '@tldraw/dotcom-shared'
-import { Store, TLStoreSnapshot, assertExists } from 'tldraw'
+import pick from 'lodash.pick'
+import {
+	Store,
+	TLStoreSnapshot,
+	TLUserPreferences,
+	assertExists,
+	computed,
+	createTLUser,
+	getUserPreferences,
+} from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { getLocalSessionStateUnsafe } from './local-session-state'
+import { getCurrentEditor } from '../utils/getCurrentEditor'
+import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -40,7 +51,25 @@ export class TldrawApp {
 		this.store.dispose()
 	}
 
-	// Simple
+	tlUser = createTLUser({
+		userPreferences: computed('user prefs', () => {
+			const userId = this.getCurrentUserId()
+			if (!userId) throw Error('no user')
+			const user = this.getUser(userId)
+			return pick(user, UserPreferencesKeys) as TLUserPreferences
+		}),
+		setUserPreferences: (prefs: Partial<TLUserPreferences>) => {
+			const user = this.getCurrentUser()
+			if (!user) throw Error('no user')
+
+			this.store.put([
+				{
+					...user,
+					...(prefs as TldrawAppUser),
+				},
+			])
+		},
+	})
 
 	getAll<T extends TldrawAppRecord['typeName']>(
 		typeName: T
@@ -231,15 +260,15 @@ export class TldrawApp {
 			createdAt: Date.now(),
 		})
 
+		const editorStoreSnapshot = getCurrentEditor()?.store.getStoreSnapshot()
 		this.store.put([newFile])
 
-		return newFile
+		return { newFile, editorStoreSnapshot }
 	}
 
 	async deleteFile(_fileId: TldrawAppFileId) {
-		// todo: delete the file from the server
-		console.warn('tldraw file deletes are not implemented yet, but you are in the right place')
-		return new Promise((r) => setTimeout(r, 2000))
+		// TODO we still need to remove the file completely - you can still visit this file if you have the link.
+		this.store.remove([_fileId])
 	}
 
 	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {
@@ -334,10 +363,11 @@ export class TldrawApp {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
-
 		const userId = TldrawAppUserRecordType.createId(opts.userId)
 
-		if (!store.get(userId)?.id) {
+		const user = store.get(userId)
+		if (!user) {
+			const { id: _id, name: _name, color: _color, ...restOfPreferences } = getUserPreferences()
 			store.put([
 				TldrawAppUserRecordType.create({
 					id: userId,
@@ -349,11 +379,13 @@ export class TldrawApp {
 					presence: {
 						fileIds: [],
 					},
+					...restOfPreferences,
 				}),
 			])
 		}
 
-		return { store: new TldrawApp(store), userId }
+		const app = new TldrawApp(store)
+		return { app, userId }
 	}
 
 	static getFileName(file: TldrawAppFile) {

@@ -88,7 +88,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<TlaFileNameEditor fileName={fileName ?? 'FIXME'} onChange={handleFileNameChange} />
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
-			<TlaFileMenu source="file-header">
+			<TlaFileMenu fileId={fileId} source="file-header">
 				<button className={styles.linkMenu}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>

@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { useValue } from 'tldraw'
+import { globalEditor } from '../../../utils/globalEditor'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { useApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
@@ -14,14 +15,16 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		() => getLocalSessionState().isSidebarOpenMobile,
 		[app]
 	)
+	const currentEditor = useValue('editor', () => globalEditor.get(), [])
 	usePreventAccidentalDrops()
+
 	return (
 		<div
 			className={styles.layout}
 			data-sidebar={isSidebarOpen}
 			data-sidebarmobile={isSidebarOpenMobile}
 		>
-			<TlaSidebar />
+			{currentEditor && <TlaSidebar />}
 			{children}
 		</div>
 	)

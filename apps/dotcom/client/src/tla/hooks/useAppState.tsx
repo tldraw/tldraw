@@ -9,12 +9,10 @@ import {
 	inlineBase64AssetStore,
 } from 'tldraw'
 import { MULTIPLAYER_SERVER } from '../../utils/config'
+import { TldrawApp } from '../app/TldrawApp'
 import { TlaErrorContent } from '../components/TlaErrorContent/TlaErrorContent'
-import { TlaCenteredLayout } from '../layouts/TlaCenteredLayout/TlaCenteredLayout'
 import { TlaErrorLayout } from '../layouts/TlaErrorLayout/TlaErrorLayout'
-import { TldrawApp } from '../utils/TldrawApp'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
-import { useRaw } from './useRaw'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -24,10 +22,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
 
-	const raw = useRaw()
-
 	if (!auth.isSignedIn || !user || !isLoaded) {
-		throw new Error('should have redirected in TlaProvider')
+		throw new Error('should have redirected in TlaRootProviders')
 	}
 
 	const store = useSync({
@@ -58,14 +54,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			email: user.emailAddresses[0]?.emailAddress || '',
 			avatar: user.imageUrl || '',
 			store: store.store as any,
-		}).then(({ store }) => {
+		}).then(({ app }) => {
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
 				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-				store.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId))
+				app.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId))
 			}
-			_app = store
-			setApp(store)
+			_app = app
+			setApp(app)
 			setReady(true)
 		})
 
@@ -85,7 +81,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	}
 
 	if (store.status === 'loading' || !ready || !app) {
-		return <TlaCenteredLayout>{raw('Loading...')}</TlaCenteredLayout>
+		// We used to show a Loading... here but it was causing too much flickering.
+		return null
 	}
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>
