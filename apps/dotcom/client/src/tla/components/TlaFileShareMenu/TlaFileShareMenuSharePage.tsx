@@ -1,14 +1,11 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
+import { useCallback } from 'react'
+import { useToasts, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { getLocalSessionState } from '../../utils/local-session-state'
-import { createQRCodeImageDataString } from '../../utils/qrcode'
-import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
+import { getShareableFileUrl, getShareableSnapshotFileUrl } from '../../utils/urls'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import {
@@ -17,8 +14,8 @@ import {
 	TlaMenuControlLabel,
 	TlaMenuSection,
 } from '../tla-menu/tla-menu'
+import { QrCode } from './QrCode'
 import { TlaShareMenuCopyButton, TlaShareMenuHelpItem } from './file-share-menu-primitives'
-import styles from './file-share-menu.module.css'
 
 export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
@@ -40,7 +37,7 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 					<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
 				</TlaMenuControlGroup>
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
-				{isShared && <QrCode fileId={fileId} />}
+				{isShared && <QrCode url={getShareableFileUrl(fileId)} />}
 			</TlaMenuSection>
 			<TlaMenuSection>
 				<TlaCopySnapshotLinkButton fileId={fileId} />
@@ -139,6 +136,9 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 
 function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 	const raw = useRaw()
+	const app = useApp()
+	const file = app.get(fileId) as TldrawAppFile
+	const publishedSlug = file?.publishedSlug
 
 	const { addToast } = useToasts()
 
@@ -146,58 +146,19 @@ function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 		// todo: implement snapshot link
 		createSnapshotLink(fileId)
 		// Copy the snapshot url to clipboard
-		const url = getSnapshotFileUrl(fileId)
+		const url = getShareableSnapshotFileUrl(publishedSlug)
 		copyTextToClipboard(url)
 
 		addToast({
 			title: 'copied',
 			severity: 'success',
 		})
-	}, [fileId, addToast])
+	}, [fileId, publishedSlug, addToast])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">
 			{raw('Copy snapshot link')}
 		</TlaShareMenuCopyButton>
-	)
-}
-
-function QrCode({ fileId }: { fileId: TldrawAppFileId }) {
-	const ref = useRef<HTMLImageElement>(null)
-
-	// Save the QR codes in local storage
-	const [qrCode, setQrCode] = useLocalStorageState<string | null>(fileId + 'qr-code-11', null)
-
-	const theme = useValue('is dark mode', () => getLocalSessionState().theme, [])
-
-	useEffect(() => {
-		if (!qrCode) {
-			const editor = getCurrentEditor()
-			if (!editor) return
-
-			const url = getShareableFileUrl(fileId)
-			createQRCodeImageDataString(url).then((svgString) => {
-				const blob = new Blob([svgString], { type: 'image/svg+xml' })
-				FileHelpers.blobToDataUrl(blob).then(setQrCode)
-			})
-		}
-	}, [fileId, setQrCode, qrCode])
-
-	// When qr code is there, set it as src
-	useLayoutEffect(() => {
-		if (!qrCode) return
-		const elm = ref.current
-		if (!elm) return
-		// We want to use an image element here so that a user can right click and copy / save / drag the qr code
-		elm.setAttribute('src', `${qrCode}`)
-	}, [qrCode])
-
-	// todo: click qr code to... copy? big modal?
-
-	return (
-		<div className={styles.qrCode}>
-			<img ref={ref} className={styles.qrCodeInner} data-theme={theme} />
-		</div>
 	)
 }
 

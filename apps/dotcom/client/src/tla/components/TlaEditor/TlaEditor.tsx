@@ -20,7 +20,6 @@ import {
 	useActions,
 	useCollaborationStatus,
 	useEditor,
-	useReactor,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -33,11 +32,8 @@ import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
-import {
-	getLocalSessionState,
-	getLocalSessionStateUnsafe,
-	updateLocalSessionState,
-} from '../../utils/local-session-state'
+import { getLocalSessionState } from '../../utils/local-session-state'
+import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
@@ -201,29 +197,6 @@ export function TlaEditor({
 			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
 		</div>
 	)
-}
-
-function SneakyDarkModeSync() {
-	const app = useMaybeApp()
-	const editor = useEditor()
-
-	useReactor(
-		'dark mode sync',
-		() => {
-			if (!app) return
-			const appIsDark = getLocalSessionStateUnsafe()!.theme === 'dark'
-			const editorIsDark = editor.user.getIsDarkMode()
-
-			if (appIsDark && !editorIsDark) {
-				updateLocalSessionState(() => ({ theme: 'light' }))
-			} else if (!appIsDark && editorIsDark) {
-				updateLocalSessionState(() => ({ theme: 'dark' }))
-			}
-		},
-		[app, editor]
-	)
-
-	return null
 }
 
 function SneakyTldrawFileDropHandler() {

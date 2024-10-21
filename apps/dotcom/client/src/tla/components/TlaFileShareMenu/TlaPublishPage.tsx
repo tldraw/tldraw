@@ -1,3 +1,4 @@
+import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { fetch } from '@tldraw/utils'
 import { useCallback } from 'react'
 import { useParams } from 'react-router-dom'
@@ -6,6 +7,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getLocalSessionState } from '../../utils/local-session-state'
+import { getShareableSnapshotFileUrl } from '../../utils/urls'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
@@ -15,6 +17,7 @@ import {
 	TlaMenuControlLabel,
 	TlaMenuSection,
 } from '../tla-menu/tla-menu'
+import { QrCode } from './QrCode'
 import { TlaShareMenuCopyButton } from './file-share-menu-primitives'
 
 export function TlaPublishPage({
@@ -29,6 +32,8 @@ export function TlaPublishPage({
 	const editor = useEditor()
 	const app = useApp()
 	const { addToast } = useToasts()
+	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+	const isOwner = app.isFileOwner(fileId)
 
 	const uploadSnapshot = useCallback(
 		async (update: boolean) => {
@@ -44,6 +49,7 @@ export function TlaPublishPage({
 	)
 
 	const createSnapshot = useCallback(async () => {
+		if (!isOwner) return
 		const snapshotSlug = await uploadSnapshot(false)
 		if (!snapshotSlug) {
 			addToast({
@@ -53,9 +59,10 @@ export function TlaPublishPage({
 		} else {
 			setSnapshotSlug(snapshotSlug)
 		}
-	}, [uploadSnapshot, addToast, setSnapshotSlug])
+	}, [isOwner, uploadSnapshot, addToast, setSnapshotSlug])
 
 	const handleUpdate = useCallback(async () => {
+		if (!isOwner) return
 		const snapshotSlug = await uploadSnapshot(true)
 		if (snapshotSlug) {
 			addToast({
@@ -68,9 +75,11 @@ export function TlaPublishPage({
 				severity: 'error',
 			})
 		}
-	}, [uploadSnapshot, addToast])
+	}, [isOwner, uploadSnapshot, addToast])
 
 	const deleteSnapshot = useCallback(async () => {
+		if (!isOwner) return
+
 		const result = await fetch(`/api/app/snapshot/${snapshotSlug}`, {
 			method: 'DELETE',
 		})
@@ -79,38 +88,48 @@ export function TlaPublishPage({
 		} else {
 			setSnapshotSlug(null)
 		}
-	}, [setSnapshotSlug, snapshotSlug])
+	}, [isOwner, setSnapshotSlug, snapshotSlug])
+
+	const snapshotShareUrl = snapshotSlug ? getShareableSnapshotFileUrl(snapshotSlug) : null
 
 	const handleSnapshotCopyClick = useCallback(() => {
-		copyTextToClipboard(`${window.location.origin}/q/s/${snapshotSlug}`)
+		if (!snapshotShareUrl) return
+		copyTextToClipboard(snapshotShareUrl)
 		addToast({
 			title: 'copied',
 			severity: 'success',
 		})
-	}, [snapshotSlug, addToast])
+	}, [snapshotShareUrl, addToast])
 
 	return (
 		<TlaTabsPage id="publish">
 			<TlaMenuSection>
 				<TlaMenuControlGroup>
-					<TlaMenuControl>
-						<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
-						<TlaSwitch
-							checked={!!snapshotSlug}
-							onChange={() => (snapshotSlug ? deleteSnapshot() : createSnapshot())}
-						/>
-					</TlaMenuControl>
+					{isOwner && (
+						<TlaMenuControl>
+							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
+							<TlaSwitch
+								checked={!!snapshotSlug}
+								onChange={() => (snapshotSlug ? deleteSnapshot() : createSnapshot())}
+							/>
+						</TlaMenuControl>
+					)}
 					{snapshotSlug && (
 						<TlaMenuControlGroup>
-							<TlaShareMenuCopyButton onClick={handleSnapshotCopyClick}>
-								{raw('Copy link')}
-							</TlaShareMenuCopyButton>
-							<TlaButton variant="secondary" onClick={handleUpdate}>
-								{raw('Update')}
-							</TlaButton>
+							{snapshotSlug && (
+								<TlaShareMenuCopyButton onClick={handleSnapshotCopyClick}>
+									{raw('Copy link')}
+								</TlaShareMenuCopyButton>
+							)}
+							{isOwner && (
+								<TlaButton variant="secondary" onClick={handleUpdate}>
+									{raw('Update')}
+								</TlaButton>
+							)}
 						</TlaMenuControlGroup>
 					)}
 				</TlaMenuControlGroup>
+				{snapshotShareUrl && <QrCode url={snapshotShareUrl} />}
 			</TlaMenuSection>
 		</TlaTabsPage>
 	)

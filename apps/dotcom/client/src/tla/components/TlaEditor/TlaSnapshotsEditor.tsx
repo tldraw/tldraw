@@ -16,12 +16,14 @@ import {
 	useActions,
 	useCollaborationStatus,
 } from 'tldraw'
+import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useSharing } from '../../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { assetUrls } from '../../providers/TlaProvider'
+import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 
 const components: TLComponents = {
@@ -95,7 +97,10 @@ export function TlaSnapshotsEditor({ schema, records }: TlaSnapshotEditorProps) 
 				components={components}
 				deepLinks
 				inferDarkMode
-			/>
+			>
+				<ThemeUpdater />
+				<SneakyDarkModeSync />
+			</Tldraw>
 		</div>
 	)
 }

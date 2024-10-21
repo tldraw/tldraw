@@ -241,6 +241,12 @@ export class TldrawApp {
 		return newFile
 	}
 
+	isFileOwner(fileId: TldrawAppFileId) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) return false
+		return file.ownerId === this.getCurrentUserId()
+	}
+
 	async deleteFile(_fileId: TldrawAppFileId) {
 		// todo: delete the file from the server
 		console.warn('tldraw file deletes are not implemented yet, but you are in the right place')
