@@ -1,6 +1,6 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ErrorPage } from './ErrorPage/ErrorPage'
-import { LoginRedirectPage } from './LoginRedirectPage/LoginRedirectPage'
+import LoginRedirectPage from './LoginRedirectPage/LoginRedirectPage'
 
 export function StoreErrorScreen({ error }: { error: Error }) {
 	let header = 'Could not connect to server.'

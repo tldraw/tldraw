@@ -8,7 +8,7 @@ if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local')
 }
 
-export function LoginRedirectPage() {
+export default function LoginRedirectPage() {
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY}>
 			<LoginRedirectPageInner />

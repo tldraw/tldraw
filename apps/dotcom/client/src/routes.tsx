@@ -6,11 +6,12 @@ import {
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { useEffect } from 'react'
+import { lazy, useEffect } from 'react'
 import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
-import { LoginRedirectPage } from './components/LoginRedirectPage/LoginRedirectPage'
+
+const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
 export const router = createRoutesFromElements(
 	<Route
