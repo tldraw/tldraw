@@ -4,6 +4,7 @@ import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	ExportFileContentSubMenu,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -88,6 +89,7 @@ export function TlaFileMenu({
 				<TldrawUiDropdownMenuTrigger>{children}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<TldrawUiMenuGroup id="file-actions">
+						<ExportFileContentSubMenu />
 						<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
 						<TldrawUiMenuItem label="Rename" id="copy-link" onSelect={handleRenameClick} />
 						<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />

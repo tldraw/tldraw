@@ -34,6 +34,7 @@ export function DefaultToolbarContent() {
 			<HighlightToolbarItem />
 			<LaserToolbarItem />
 			<FrameToolbarItem />
+			<EmbedToolbarItem />
 		</>
 	)
 }
@@ -208,6 +209,11 @@ export function HighlightToolbarItem() {
 /** @public @react */
 export function FrameToolbarItem() {
 	return <ToolbarItem tool="frame" />
+}
+
+/** @public @react */
+export function EmbedToolbarItem() {
+	return <ToolbarItem tool="embed" />
 }
 
 /** @public @react */
