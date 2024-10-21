@@ -1,7 +1,7 @@
 import { PublishRoomRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
-import { getR2KeyForSnapshot } from '../r2'
+import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
 
@@ -34,7 +34,7 @@ export async function createPublishedRoom(request: IRequest, env: Environment): 
 	} satisfies R2Snapshot
 
 	await env.ROOM_SNAPSHOTS.put(
-		getR2KeyForSnapshot({ parentSlug: undefined, snapshotSlug: roomId, isApp: true }),
+		getR2KeyForRoom({ slug: roomId, isApp: true }),
 		JSON.stringify(persistedRoomSnapshot)
 	)
 
