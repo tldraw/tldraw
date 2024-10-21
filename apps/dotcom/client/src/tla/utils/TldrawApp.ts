@@ -189,24 +189,18 @@ export class TldrawApp {
 	}
 
 	toggleFileShared(fileId: TldrawAppFileId) {
-		const userId = this.getCurrentUserId()
-
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
-		if (userId !== file.ownerId) {
-			throw Error('user cannot edit that file')
-		}
+		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
 
 		this.store.put([{ ...file, shared: !file.shared }])
 	}
 
 	toggleFilePublished(fileId: TldrawAppFileId) {
-		const userId = this.getCurrentUserId()
-
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
-		if (userId !== file.ownerId) throw Error('user cannot edit that file')
+		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
 
 		this.store.put([{ ...file, published: !file.published }])
 	}
