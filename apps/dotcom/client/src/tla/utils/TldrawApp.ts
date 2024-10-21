@@ -97,7 +97,7 @@ export class TldrawApp {
 		// Now look at which files the user has edited
 		const fileEditRecords = this.getUserFileEdits()
 
-		// Incluude any files that the user has edited
+		// Include any files that the user has edited
 		const fileRecords = fileEditRecords
 			.map((r) => this.get(r.fileId))
 			.filter(Boolean) as TldrawAppFile[]
