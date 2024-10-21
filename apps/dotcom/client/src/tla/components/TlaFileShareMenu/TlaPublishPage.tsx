@@ -3,6 +3,7 @@ import { fetch } from '@tldraw/utils'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor, useToasts } from 'tldraw'
+import { PUBLISH_ENDPOINT } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { copyTextToClipboard } from '../../utils/copy'
@@ -61,7 +62,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 		if (!isOwner) return
 		if (!publishedSlug) return
 
-		const result = await fetch(`/api/app/publish/${publishedSlug}`, {
+		const result = await fetch(`${PUBLISH_ENDPOINT}/${publishedSlug}`, {
 			method: 'DELETE',
 		})
 		if (result.ok) {

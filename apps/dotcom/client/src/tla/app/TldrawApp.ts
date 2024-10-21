@@ -30,7 +30,7 @@ import { getSnapshotData } from '../../utils/sharing'
 import { getCurrentEditor } from '../utils/getCurrentEditor'
 import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
 
-const PUBLISH_ENDPOINT = `/api/app/publish`
+export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
