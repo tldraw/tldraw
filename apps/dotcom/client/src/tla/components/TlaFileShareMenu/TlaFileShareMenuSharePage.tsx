@@ -31,6 +31,7 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 		},
 		[app, fileId]
 	)
+
 	return (
 		<>
 			<TlaMenuSection>
