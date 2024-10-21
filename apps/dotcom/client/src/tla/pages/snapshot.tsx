@@ -5,7 +5,7 @@ import { TlaSnapshotsEditor } from '../components/TlaEditor/TlaSnapshotsEditor'
 
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
-	const result = await fetch(`/api/app/snapshot/${fileSlug}`)
+	const result = await fetch(`/api/app/publish/${fileSlug}`)
 	if (!result.ok) throw new Error('Room not found')
 
 	const data = await result.json()

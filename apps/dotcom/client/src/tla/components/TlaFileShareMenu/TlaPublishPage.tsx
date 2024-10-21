@@ -1,4 +1,4 @@
-import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { fetch } from '@tldraw/utils'
 import { useCallback } from 'react'
 import { useParams } from 'react-router-dom'
@@ -6,8 +6,7 @@ import { useEditor, useToasts } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getLocalSessionState } from '../../utils/local-session-state'
-import { getShareableSnapshotFileUrl } from '../../utils/urls'
+import { getShareablePublishUrl } from '../../utils/urls'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../TlaTabs/TlaTabs'
@@ -20,86 +19,68 @@ import {
 import { QrCode } from './QrCode'
 import { TlaShareMenuCopyButton } from './file-share-menu-primitives'
 
-export function TlaPublishPage({
-	snapshotSlug,
-	setSnapshotSlug,
-}: {
-	snapshotSlug: string | null
-	setSnapshotSlug(slug: string | null): void
-}) {
+export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 	const raw = useRaw()
 	const { fileSlug } = useParams()
 	const editor = useEditor()
 	const app = useApp()
 	const { addToast } = useToasts()
-	const fileId = TldrawAppFileRecordType.createId(fileSlug)
-	const isOwner = app.isFileOwner(fileId)
+	const { publishedSlug, published } = file
+	const isOwner = app.isFileOwner(file.id)
 
-	const uploadSnapshot = useCallback(
+	const handleUpdate = useCallback(
 		async (update: boolean) => {
-			const { auth } = getLocalSessionState()
-			if (!auth) throw Error('should have auth')
-			const { userId } = auth
 			if (!editor) throw Error('no editor')
 			if (!fileSlug) throw Error('no file slug')
+			if (!publishedSlug) throw Error('no published slug')
+			if (!isOwner) return
 
-			return await app.createSnapshotLink(editor, userId, fileSlug, update ? snapshotSlug : null)
+			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug)
+			if (result.ok) {
+				if (!published) {
+					app.toggleFilePublished(file.id)
+				}
+				addToast({
+					title: update ? 'updated' : 'published',
+					severity: 'success',
+				})
+			} else {
+				addToast({
+					title: update ? 'could not update' : 'could not publish',
+					severity: 'error',
+				})
+			}
 		},
-		[editor, app, snapshotSlug, fileSlug]
+		[editor, fileSlug, publishedSlug, isOwner, app, published, addToast, file.id]
 	)
 
-	const createSnapshot = useCallback(async () => {
+	const unpublish = useCallback(async () => {
 		if (!isOwner) return
-		const snapshotSlug = await uploadSnapshot(false)
-		if (!snapshotSlug) {
-			addToast({
-				title: 'could not create snapshot',
-				severity: 'error',
-			})
-		} else {
-			setSnapshotSlug(snapshotSlug)
-		}
-	}, [isOwner, uploadSnapshot, addToast, setSnapshotSlug])
+		if (!publishedSlug) return
 
-	const handleUpdate = useCallback(async () => {
-		if (!isOwner) return
-		const snapshotSlug = await uploadSnapshot(true)
-		if (snapshotSlug) {
-			addToast({
-				title: 'updated',
-				severity: 'success',
-			})
-		} else {
-			addToast({
-				title: 'could not update',
-				severity: 'error',
-			})
-		}
-	}, [isOwner, uploadSnapshot, addToast])
-
-	const deleteSnapshot = useCallback(async () => {
-		if (!isOwner) return
-
-		const result = await fetch(`/api/app/snapshot/${snapshotSlug}`, {
+		const result = await fetch(`/api/app/publish/${publishedSlug}`, {
 			method: 'DELETE',
 		})
 		if (!result.ok) {
-			console.log('error deleting snapshot')
+			addToast({
+				title: 'could not delete',
+				severity: 'error',
+			})
 		} else {
-			setSnapshotSlug(null)
+			app.toggleFilePublished(file.id)
 		}
-	}, [isOwner, setSnapshotSlug, snapshotSlug])
+	}, [addToast, app, file.id, isOwner, publishedSlug])
 
-	const snapshotShareUrl = snapshotSlug ? getShareableSnapshotFileUrl(snapshotSlug) : null
+	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 
-	const handleSnapshotCopyClick = useCallback(() => {
-		if (!snapshotShareUrl) return
-		copyTextToClipboard(snapshotShareUrl)
+	const handleCopyPublishLink = useCallback(() => {
+		if (!publishShareUrl) return
+		copyTextToClipboard(publishShareUrl)
 		addToast({
 			title: 'copied',
 			severity: 'success',
 		})
-	}, [snapshotShareUrl, addToast])
+	}, [publishShareUrl, addToast])
 
 	return (
 		<TlaTabsPage id="publish">
@@ -109,27 +90,25 @@ export function TlaPublishPage({
 						<TlaMenuControl>
 							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
 							<TlaSwitch
-								checked={!!snapshotSlug}
-								onChange={() => (snapshotSlug ? deleteSnapshot() : createSnapshot())}
+								checked={published}
+								onChange={() => (published ? unpublish() : handleUpdate(false))}
 							/>
 						</TlaMenuControl>
 					)}
-					{snapshotSlug && (
+					{published && (
 						<TlaMenuControlGroup>
-							{snapshotSlug && (
-								<TlaShareMenuCopyButton onClick={handleSnapshotCopyClick}>
-									{raw('Copy link')}
-								</TlaShareMenuCopyButton>
-							)}
+							<TlaShareMenuCopyButton onClick={handleCopyPublishLink}>
+								{raw('Copy link')}
+							</TlaShareMenuCopyButton>
 							{isOwner && (
-								<TlaButton variant="secondary" onClick={handleUpdate}>
+								<TlaButton variant="secondary" onClick={() => handleUpdate(true)}>
 									{raw('Update')}
 								</TlaButton>
 							)}
 						</TlaMenuControlGroup>
 					)}
 				</TlaMenuControlGroup>
-				{snapshotShareUrl && <QrCode url={snapshotShareUrl} />}
+				{published && publishShareUrl && <QrCode url={publishShareUrl} />}
 			</TlaMenuSection>
 		</TlaTabsPage>
 	)

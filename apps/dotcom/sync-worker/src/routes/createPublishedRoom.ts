@@ -1,28 +1,27 @@
-import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
+import { PublishRoomRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
 
 export interface R2Snapshot {
-	parent_slug: CreateSnapshotRequestBody['parent_slug']
 	drawing: RoomSnapshot
 }
 
-export async function createRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
-	const data = (await request.json()) as CreateSnapshotRequestBody
+export async function createPublishedRoom(request: IRequest, env: Environment): Promise<Response> {
+	const roomId = request.params.roomId
+	if (!roomId) {
+		return Response.json({ error: true, message: 'Room ID is required' }, { status: 400 })
+	}
+	const data = (await request.json()) as PublishRoomRequestBody
 
 	const snapshotResult = validateSnapshot(data)
 	if (!snapshotResult.ok) {
 		return Response.json({ error: true, message: snapshotResult.error }, { status: 400 })
 	}
 
-	const roomId = `v2_c_${uniqueId()}`
-
 	const persistedRoomSnapshot = {
-		parent_slug: data.parent_slug,
 		drawing: {
 			schema: data.schema,
 			clock: 0,
@@ -34,14 +33,10 @@ export async function createRoomSnapshot(request: IRequest, env: Environment): P
 		},
 	} satisfies R2Snapshot
 
-	const parentSlug = data.parent_slug
-	if (parentSlug) {
-		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(roomId, parentSlug)
-	}
 	await env.ROOM_SNAPSHOTS.put(
-		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: false }),
+		getR2KeyForSnapshot({ parentSlug: undefined, snapshotSlug: roomId, isApp: true }),
 		JSON.stringify(persistedRoomSnapshot)
 	)
 
-	return new Response(JSON.stringify({ error: false, roomId }))
+	return new Response(JSON.stringify({ error: false }))
 }

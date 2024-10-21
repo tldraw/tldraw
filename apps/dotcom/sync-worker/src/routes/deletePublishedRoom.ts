@@ -3,7 +3,7 @@ import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 
-export async function deleteRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
+export async function deletePublishedRoom(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
 	if (!roomId) return notFound()
 

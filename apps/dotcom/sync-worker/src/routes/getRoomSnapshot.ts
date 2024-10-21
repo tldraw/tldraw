@@ -28,7 +28,6 @@ export async function getRoomSnapshot(
 	isApp: boolean
 ): Promise<Response> {
 	const roomId = request.params.roomId
-	console.log('getRoomSnapshot', roomId)
 	if (!roomId) return notFound()
 
 	// Get the parent slug if it exists

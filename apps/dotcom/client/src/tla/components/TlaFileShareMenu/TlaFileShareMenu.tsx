@@ -1,7 +1,5 @@
-import { TldrawAppFileId, TldrawAppSessionState } from '@tldraw/dotcom-shared'
-import { fetch } from '@tldraw/utils'
-import { ReactNode, useCallback, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { TldrawAppFile, TldrawAppFileId, TldrawAppSessionState } from '@tldraw/dotcom-shared'
+import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -30,10 +28,8 @@ export function TlaFileShareMenu({
 	isAnonUser?: boolean
 	children: ReactNode
 }) {
-	const { fileSlug } = useParams()
 	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
-	const [snapshotSlug, setSnapshotSlug] = useState<string | null>(null)
 	const app = useMaybeApp()
 
 	const shareMenuActiveTab = useValue(
@@ -41,6 +37,10 @@ export function TlaFileShareMenu({
 		() => getLocalSessionState().shareMenuActiveTab,
 		[]
 	)
+
+	const isOwner = !!app?.isFileOwner(fileId)
+	const file = useValue('file', () => app?.get(fileId) as TldrawAppFile | undefined, [app])
+	const isPublished = !!file?.published
 
 	const handleTabChange = useCallback(
 		(value: TldrawAppSessionState['shareMenuActiveTab']) => {
@@ -50,25 +50,7 @@ export function TlaFileShareMenu({
 		[trackEvent]
 	)
 
-	useEffect(() => {
-		async function getSnapshots() {
-			if (!fileSlug) return
-			const result = await fetch(`/api/app/snapshots/${fileSlug}`, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-			})
-			if (!result.ok) {
-				console.log('error fetching snapshots')
-			}
-			const data = await result.json()
-			if (data && data.snapshots?.length) {
-				setSnapshotSlug(data.snapshots[0].id)
-			}
-		}
-		getSnapshots()
-	}, [fileSlug])
+	const showPulishTab = file && (isOwner || isPublished)
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`share-${fileId}-${source}`}>
@@ -86,7 +68,7 @@ export function TlaFileShareMenu({
 							<TlaTabsTabs>
 								<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
 								<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
-								<TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>
+								{showPulishTab && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
 							</TlaTabsTabs>
 							<TlaTabsPage id="share">
 								<TlaShareMenuSharePage fileId={fileId} />
@@ -94,9 +76,11 @@ export function TlaFileShareMenu({
 							<TlaTabsPage id="export">
 								<TlaShareMenuExportPage />
 							</TlaTabsPage>
-							<TlaTabsPage id="publish">
-								<TlaPublishPage snapshotSlug={snapshotSlug} setSnapshotSlug={setSnapshotSlug} />
-							</TlaTabsPage>
+							{showPulishTab && (
+								<TlaTabsPage id="publish">
+									<TlaPublishPage file={file} />
+								</TlaTabsPage>
+							)}
 						</TlaTabsRoot>
 					) : (
 						<TlaShareMenuExportPage />

@@ -9,7 +9,7 @@ export function getShareableFileUrl(fileId: string): string {
 	return `${host}${getFileUrl(fileId)}`
 }
 
-export function getShareableSnapshotFileUrl(snapshotSlug: string): string {
+export function getShareablePublishUrl(snapshotSlug: string): string {
 	const host = isDevelopmentEnv ? 'http://localhost:3000' : 'https://tldraw.com'
 	return `${host}/q/s/${snapshotSlug}`
 }

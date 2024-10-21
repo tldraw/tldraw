@@ -5,7 +5,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getShareableFileUrl, getShareableSnapshotFileUrl } from '../../utils/urls'
+import { getShareableFileUrl, getShareablePublishUrl } from '../../utils/urls'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import {
@@ -146,7 +146,7 @@ function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 		// todo: implement snapshot link
 		createSnapshotLink(fileId)
 		// Copy the snapshot url to clipboard
-		const url = getShareableSnapshotFileUrl(publishedSlug)
+		const url = getShareablePublishUrl(publishedSlug)
 		copyTextToClipboard(url)
 
 		addToast({
