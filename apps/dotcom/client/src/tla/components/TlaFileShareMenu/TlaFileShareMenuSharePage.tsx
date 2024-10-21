@@ -6,11 +6,11 @@ import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { getLocalSessionState } from '../../utils/local-session-state'
 import { createQRCodeImageDataString } from '../../utils/qrcode'
 import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
-import { TlaTabsPage } from '../TlaTabs/TlaTabs'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -33,7 +33,7 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 	)
 
 	return (
-		<TlaTabsPage id="share">
+		<>
 			<TlaMenuSection>
 				<TlaMenuControlGroup>
 					<TlaSharedToggle isShared={isShared} fileId={fileId} />
@@ -45,7 +45,7 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 			<TlaMenuSection>
 				<TlaCopySnapshotLinkButton fileId={fileId} />
 			</TlaMenuSection>
-		</TlaTabsPage>
+		</>
 	)
 }
 
@@ -57,12 +57,10 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: Tldr
 	const user = useTldrawUser()
 	if (!user) throw Error('should have auth')
 
-	const { id: userId } = user
-
 	const handleToggleShared = useCallback(() => {
 		// todo: if there are other users connected to the project, warn that they'll be removed from the project until the project is shared again
-		app.toggleFileShared(userId, fileId)
-	}, [app, userId, fileId])
+		app.toggleFileShared(fileId)
+	}, [app, fileId])
 
 	return (
 		<TlaMenuControl>
@@ -83,7 +81,6 @@ function TlaSelectSharedLinkType({
 	const user = useTldrawUser()
 	const raw = useRaw()
 	if (!user) throw Error('should have auth')
-	const { id: userId } = user
 
 	const sharedLinkType = useValue(
 		'file',
@@ -97,9 +94,9 @@ function TlaSelectSharedLinkType({
 
 	const handleSelectChange = useCallback(
 		(sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access') => {
-			app.setFileSharedLinkType(userId, fileId, sharedLinkType)
+			app.setFileSharedLinkType(fileId, sharedLinkType)
 		},
-		[app, userId, fileId]
+		[app, fileId]
 	)
 
 	return (
@@ -141,18 +138,13 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 }
 
 function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
-	const app = useApp()
 	const raw = useRaw()
 
 	const { addToast } = useToasts()
 
 	const handleCopyLinkClick = useCallback(() => {
-		const { auth } = app.getSessionState()
-		if (!auth) throw Error('should have auth')
-		const { userId } = auth
-
 		// todo: implement snapshot link
-		app.createSnapshotLink(userId, fileId)
+		createSnapshotLink(fileId)
 		// Copy the snapshot url to clipboard
 		const url = getSnapshotFileUrl(fileId)
 		copyTextToClipboard(url)
@@ -161,7 +153,7 @@ function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
 			title: 'copied',
 			severity: 'success',
 		})
-	}, [app, fileId, addToast])
+	}, [fileId, addToast])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">
@@ -176,9 +168,7 @@ function QrCode({ fileId }: { fileId: TldrawAppFileId }) {
 	// Save the QR codes in local storage
 	const [qrCode, setQrCode] = useLocalStorageState<string | null>(fileId + 'qr-code-11', null)
 
-	const app = useApp()
-
-	const theme = useValue('is dark mode', () => app.getSessionState().theme, [app])
+	const theme = useValue('is dark mode', () => getLocalSessionState().theme, [])
 
 	useEffect(() => {
 		if (!qrCode) {
@@ -236,4 +226,8 @@ function _SnapshotHelp() {
 			</p>
 		</TlaShareMenuHelpItem>
 	)
+}
+
+function createSnapshotLink(_fileId: TldrawAppFileId) {
+	return
 }

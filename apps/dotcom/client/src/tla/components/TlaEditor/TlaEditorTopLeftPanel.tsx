@@ -2,30 +2,32 @@ import classNames from 'classnames'
 import { useCallback, useRef, useState } from 'react'
 import {
 	DefaultPageMenu,
+	TldrawUiButton,
+	TldrawUiIcon,
 	TldrawUiInput,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
-import { useApp, useMaybeApp } from '../../hooks/useAppState'
+import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useRaw } from '../../hooks/useRaw'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
+import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
 import styles from './top.module.css'
 
 // There are some styles in tla.css that adjust the regular tlui top panels
 
-export function TlaEditorTopLeftPanel() {
-	const app = useMaybeApp()
+export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 
 	return (
 		<div ref={ref} className={classNames(styles.topPanelLeft)}>
 			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
-				{app ? <TlaEditorTopLeftPanelSignedIn /> : <TlaEditorTopLeftPanelAnonymous />}
+				{isAnonUser ? <TlaEditorTopLeftPanelAnonymous /> : <TlaEditorTopLeftPanelSignedIn />}
 			</div>
 		</div>
 	)
@@ -42,6 +44,11 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 	return (
 		<>
+			<TlaFileShareMenu fileId={'' as any} source="file-header" isAnonUser>
+				<TldrawUiButton type="icon">
+					<TldrawUiIcon icon="share-1" />
+				</TldrawUiButton>
+			</TlaFileShareMenu>
 			<TlaFileNameEditor fileName={fileName} onChange={handleFileNameChange} />
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
@@ -51,9 +58,10 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 export function TlaEditorTopLeftPanelSignedIn() {
 	const raw = useRaw()
+	const editor = useEditor()
+
 	const app = useApp()
 	const fileId = useCurrentFileId()
-	const editor = useEditor()
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
@@ -65,6 +73,9 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
+			// don't allow guests to update the file name
+			const file = app.getFileName(fileId)
+			if (!file) return
 			app.store.update(fileId, (file) => ({ ...file, name }))
 		},
 		[app, fileId]

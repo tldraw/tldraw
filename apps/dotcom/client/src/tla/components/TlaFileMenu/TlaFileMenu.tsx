@@ -41,11 +41,7 @@ export function TlaFileMenu({ children, source }: { children: ReactNode; source:
 	}, [fileId, addDialog])
 
 	const handleDuplicateLinkClick = useCallback(() => {
-		// duplicate file
-		const { auth } = app.getSessionState()
-		if (!auth) throw Error('expected auth')
-		const newFile = app.duplicateFile(auth.userId, fileId)
-
+		const newFile = app.duplicateFile(fileId)
 		navigate(getFileUrl(newFile.id))
 	}, [app, navigate, fileId])
 

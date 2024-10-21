@@ -1,9 +1,8 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
-import { TldrawAppFileRecordType, TldrawAppUser, tldrawAppSchema } from '@tldraw/dotcom-shared'
+import { TldrawAppFileRecordType, tldrawAppSchema } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react'
 import {
-	RecordId,
 	assertExists,
 	deleteFromLocalStorage,
 	getFromLocalStorage,
@@ -47,22 +46,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			return
 		}
 		let _app: TldrawApp
-		let _userId: RecordId<TldrawAppUser>
 
+		// Create the new user
 		TldrawApp.create({
 			userId: auth.userId,
 			fullName: user.fullName || '',
 			email: user.emailAddresses[0]?.emailAddress || '',
 			avatar: user.imageUrl || '',
 			store: store.store as any,
-		}).then(({ app, userId }) => {
+		}).then(({ app }) => {
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
 				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-				app.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId), userId)
+				app.claimTemporaryFile(TldrawAppFileRecordType.createId(claimTemporaryFileId))
 			}
 			_app = app
-			_userId = userId
 			setApp(app)
 			setReady(true)
 		})

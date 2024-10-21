@@ -4,6 +4,7 @@ import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { getLocalSessionState } from '../utils/local-session-state'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 import { getFileUrl } from '../utils/urls'
 
@@ -12,8 +13,8 @@ export function Component() {
 
 	if (!app) return <LocalTldraw />
 	// Navigate to the most recent file (if there is one) or else a new file
-	const { createdAt } = app.getSessionState()
-	const file = app.getUserRecentFiles(createdAt)?.[0]?.file
+	const { auth, createdAt } = getLocalSessionState()
+	const file = auth?.userId && app.getUserRecentFiles(createdAt)?.[0]?.file
 	if (file) {
 		return <Navigate to={getFileUrl(file.id)} replace />
 	}

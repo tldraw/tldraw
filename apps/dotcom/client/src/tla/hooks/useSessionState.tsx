@@ -1,4 +1,5 @@
 import { useValue } from 'tldraw'
+import { getLocalSessionState } from '../utils/local-session-state'
 import { useApp } from './useAppState'
 
 export function useSessionState() {
@@ -6,7 +7,7 @@ export function useSessionState() {
 	return useValue(
 		'session state',
 		() => {
-			return app.getSessionState()
+			return getLocalSessionState()
 		},
 		[app]
 	)
