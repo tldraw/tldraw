@@ -10,10 +10,13 @@ import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 import { APP_ID } from './TLAppDurableObject'
+import { createPublishedRoom } from './routes/createPublishedRoom'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
+import { deletePublishedRoom } from './routes/deletePublishedRoom'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
+import { getPublishedRoom } from './routes/getPublishedRoom'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
@@ -32,8 +35,8 @@ const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
 	.post('/new-room', createRoom)
-	.post('/snapshots', createRoomSnapshot)
-	.get('/snapshot/:roomId', getRoomSnapshot)
+	.post('/snapshots', (req, env) => createRoomSnapshot(req, env))
+	.get('/snapshot/:roomId', (req, env) => getRoomSnapshot(req, env, false))
 	.get(`/${ROOM_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_WRITE)
 	)
@@ -58,6 +61,9 @@ const router = createRouter<Environment>()
 
 		return notFound()
 	})
+	.get('/app/publish/:roomId', (req, env) => getPublishedRoom(req, env))
+	.post('/app/publish/:roomId', (req, env) => createPublishedRoom(req, env))
+	.delete('/app/publish/:roomId', (req, env) => deletePublishedRoom(req, env))
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)

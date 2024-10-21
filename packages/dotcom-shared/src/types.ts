@@ -30,3 +30,8 @@ export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
 }
+
+export interface PublishRoomRequestBody {
+	schema: SerializedSchema
+	snapshot: SerializedStore<TLRecord>
+}

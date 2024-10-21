@@ -1,4 +1,4 @@
-import { TldrawAppFileId, TldrawAppSessionState } from '@tldraw/dotcom-shared'
+import { TldrawAppFile, TldrawAppFileId, TldrawAppSessionState } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiDropdownMenuContent,
@@ -14,6 +14,7 @@ import { getLocalSessionState, updateLocalSessionState } from '../../utils/local
 import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
+import { TlaPublishPage } from './TlaPublishPage'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({
@@ -37,6 +38,10 @@ export function TlaFileShareMenu({
 		[]
 	)
 
+	const isOwner = !!app?.isFileOwner(fileId)
+	const file = useValue('file', () => app?.get(fileId) as TldrawAppFile | undefined, [app])
+	const isPublished = !!file?.published
+
 	const handleTabChange = useCallback(
 		(value: TldrawAppSessionState['shareMenuActiveTab']) => {
 			updateLocalSessionState(() => ({ shareMenuActiveTab: value }))
@@ -44,6 +49,8 @@ export function TlaFileShareMenu({
 		},
 		[trackEvent]
 	)
+
+	const showPulishTab = file && (isOwner || isPublished)
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`share-${fileId}-${source}`}>
@@ -61,6 +68,7 @@ export function TlaFileShareMenu({
 							<TlaTabsTabs>
 								<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
 								<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
+								{showPulishTab && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
 							</TlaTabsTabs>
 							<TlaTabsPage id="share">
 								<TlaShareMenuSharePage fileId={fileId} />
@@ -68,6 +76,11 @@ export function TlaFileShareMenu({
 							<TlaTabsPage id="export">
 								<TlaShareMenuExportPage />
 							</TlaTabsPage>
+							{showPulishTab && (
+								<TlaTabsPage id="publish">
+									<TlaPublishPage file={file} />
+								</TlaTabsPage>
+							)}
 						</TlaTabsRoot>
 					) : (
 						<TlaShareMenuExportPage />

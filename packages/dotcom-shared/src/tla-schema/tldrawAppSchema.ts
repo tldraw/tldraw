@@ -1,5 +1,5 @@
 import { StoreSchema, createMigrationSequence } from '@tldraw/store'
-import { TldrawAppFile, TldrawAppFileRecordType } from './TldrawAppFile'
+import { TldrawAppFile, TldrawAppFileRecordType, tldrawAppFileMigrations } from './TldrawAppFile'
 import { TldrawAppFileEdit, TldrawAppFileEditRecordType } from './TldrawAppFileEdit'
 import { TldrawAppFileVisit, TldrawAppFileVisitRecordType } from './TldrawAppFileVisit'
 import { TldrawAppSessionState, TldrawAppSessionStateRecordType } from './TldrawAppSessionState'
@@ -28,6 +28,6 @@ export const tldrawAppSchema = StoreSchema.create<TldrawAppRecord>(
 		session: TldrawAppSessionStateRecordType,
 	},
 	{
-		migrations: [migrations],
+		migrations: [migrations, tldrawAppFileMigrations],
 	}
 )
