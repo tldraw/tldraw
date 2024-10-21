@@ -84,16 +84,6 @@
 	margin-left: var(--space-2);
 }
 
-.tlui-button[data-state='hinted']::after {
-	background-color: var(--color-hint);
-	opacity: 1;
-}
-
-.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
-	background: var(--color-hint);
-	opacity: 1;
-}
-
 @media (hover: hover) {
 	.tlui-button:not(.tlui-menu__submenu__trigger)::after,
 	.tlui-button.tlui-menu__submenu__trigger[data-highlighted]::after {
@@ -104,6 +94,16 @@
 	.tlui-button:not(:disabled):hover::after {
 		opacity: 1;
 	}
+}
+
+.tlui-button[data-state='hinted']::after {
+	background-color: var(--color-hint);
+	opacity: 1;
+}
+
+.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
+	background: var(--color-hint);
+	opacity: 1;
 }
 
 /* Low button  */
