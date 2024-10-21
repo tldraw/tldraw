@@ -9404,63 +9404,59 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this._updateInputsFromEvent(info)
 
-				if (this.menus.hasAnyOpenMenus()) {
-					// noop
-				} else {
-					const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
+				const { panSpeed, zoomSpeed, wheelBehavior } = cameraOptions
 
-					if (wheelBehavior !== 'none') {
-						// Stop any camera animation
-						this.stopCameraAnimation()
-						// Stop following any following user
-						if (instanceState.followingUserId) {
-							this.stopFollowingUser()
-						}
+				if (wheelBehavior !== 'none') {
+					// Stop any camera animation
+					this.stopCameraAnimation()
+					// Stop following any following user
+					if (instanceState.followingUserId) {
+						this.stopFollowingUser()
+					}
 
-						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
-						const { x: dx, y: dy, z: dz = 0 } = info.delta
+					const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
+					const { x: dx, y: dy, z: dz = 0 } = info.delta
 
-						let behavior = wheelBehavior
+					let behavior = wheelBehavior
 
-						// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
-						// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
-						if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
+					// If the camera behavior is "zoom" and the ctrl key is pressed, then pan;
+					// If the camera behavior is "pan" and the ctrl key is not pressed, then zoom
+					if (inputs.ctrlKey) behavior = wheelBehavior === 'pan' ? 'zoom' : 'pan'
 
-						switch (behavior) {
-							case 'zoom': {
-								// Zoom in on current screen point using the wheel delta
-								const { x, y } = this.inputs.currentScreenPoint
-								let delta = dz
+					switch (behavior) {
+						case 'zoom': {
+							// Zoom in on current screen point using the wheel delta
+							const { x, y } = this.inputs.currentScreenPoint
+							let delta = dz
 
-								// If we're forcing zoom, then we need to do the wheel normalization math here
-								if (wheelBehavior === 'zoom') {
-									if (Math.abs(dy) > 10) {
-										delta = (10 * Math.sign(dy)) / 100
-									} else {
-										delta = dy / 100
-									}
+							// If we're forcing zoom, then we need to do the wheel normalization math here
+							if (wheelBehavior === 'zoom') {
+								if (Math.abs(dy) > 10) {
+									delta = (10 * Math.sign(dy)) / 100
+								} else {
+									delta = dy / 100
 								}
+							}
 
-								const zoom = cz + (delta ?? 0) * zoomSpeed * cz
-								this._setCamera(
-									new Vec(
-										cx + (x / zoom - x) - (x / cz - x),
-										cy + (y / zoom - y) - (y / cz - y),
-										zoom
-									),
-									{ immediate: true }
-								)
-								this.maybeTrackPerformance('Zooming')
-								return
-							}
-							case 'pan': {
-								// Pan the camera based on the wheel delta
-								this._setCamera(new Vec(cx + (dx * panSpeed) / cz, cy + (dy * panSpeed) / cz, cz), {
-									immediate: true,
-								})
-								this.maybeTrackPerformance('Panning')
-								return
-							}
+							const zoom = cz + (delta ?? 0) * zoomSpeed * cz
+							this._setCamera(
+								new Vec(
+									cx + (x / zoom - x) - (x / cz - x),
+									cy + (y / zoom - y) - (y / cz - y),
+									zoom
+								),
+								{ immediate: true }
+							)
+							this.maybeTrackPerformance('Zooming')
+							return
+						}
+						case 'pan': {
+							// Pan the camera based on the wheel delta
+							this._setCamera(new Vec(cx + (dx * panSpeed) / cz, cy + (dy * panSpeed) / cz, cz), {
+								immediate: true,
+							})
+							this.maybeTrackPerformance('Panning')
+							return
 						}
 					}
 				}
@@ -9574,9 +9570,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 						// Remove the button from the buttons set
 						inputs.buttons.delete(info.button)
-
-						// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
-						if (this.menus.hasAnyOpenMenus()) return
 
 						// If we're in pen mode and we're not using a pen, stop here
 						if (instanceState.isPenMode && !isPen) return
