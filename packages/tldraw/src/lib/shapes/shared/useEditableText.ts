@@ -12,17 +12,17 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(id: TLShapeId, type: string, text: string) {
+export function useEditableText(shapeId: TLShapeId, type: string, text: string) {
 	const editor = useEditor()
 	const rInput = useRef<HTMLTextAreaElement>(null)
-	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor])
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
 	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
 		editor,
 	])
 
 	useEffect(() => {
-		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
-			if (shapeId === id) {
+		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
+			if (event.shapeId === shapeId) {
 				rInput.current?.select()
 			}
 		}
@@ -31,7 +31,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 		return () => {
 			editor.off('select-all-text', selectAllIfEditing)
 		}
-	}, [editor, id, isEditing])
+	}, [editor, shapeId, isEditing])
 
 	useEffect(() => {
 		if (!isEditing) return
@@ -55,7 +55,7 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-			if (editor.getEditingShapeId() !== id) return
+			if (editor.getEditingShapeId() !== shapeId) return
 
 			switch (e.key) {
 				case 'Enter': {
@@ -66,13 +66,13 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				}
 			}
 		},
-		[editor, id]
+		[editor, shapeId]
 	)
 
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			if (editor.getEditingShapeId() !== id) return
+			if (editor.getEditingShapeId() !== shapeId) return
 
 			let text = TextHelpers.normalizeText(e.currentTarget.value)
 
@@ -89,12 +89,12 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 			// ----------------------------
 
 			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
-				id,
+				id: shapeId,
 				type,
 				props: { text },
 			})
 		},
-		[editor, id, type]
+		[editor, shapeId, type]
 	)
 
 	const handleInputPointerDown = useCallback(
@@ -114,12 +114,12 @@ export function useEditableText(id: TLShapeId, type: string, text: string) {
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
-				shape: editor.getShape(id)!,
+				shape: editor.getShape(shapeId)!,
 			})
 
 			stopEventPropagation(e) // we need to prevent blurring the input
 		},
-		[editor, id]
+		[editor, shapeId]
 	)
 
 	return {

@@ -3,7 +3,7 @@ import { noop } from '@tldraw/utils'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Editor } from '../../editor/Editor'
-import { EditorContext } from '../../hooks/useEditor'
+import { EditorProvider } from '../../hooks/useEditor'
 import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { hardResetEditor } from '../../utils/hardResetEditor'
 import { refreshPage } from '../../utils/refreshPage'
@@ -142,9 +142,9 @@ My browser: ${navigator.userAgent}`
 				// not a big deal if it doesn't work - in that case we just have
 				// a plain grey background.
 				<ErrorBoundary onError={noop} fallback={() => null}>
-					<EditorContext.Provider value={editor}>
+					<EditorProvider editor={editor}>
 						<div className="tl-overlay tl-error-boundary__canvas">{Canvas ? <Canvas /> : null}</div>
-					</EditorContext.Provider>
+					</EditorProvider>
 				</ErrorBoundary>
 			)}
 			<div

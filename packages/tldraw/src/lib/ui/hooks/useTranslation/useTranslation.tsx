@@ -39,7 +39,7 @@ export function useCurrentTranslation() {
  *
  * @internal
  */
-export const TldrawUiTranslationProvider = function TranslationProvider({
+export function TldrawUiTranslationProvider({
 	overrides,
 	locale,
 	children,

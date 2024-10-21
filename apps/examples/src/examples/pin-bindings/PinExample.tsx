@@ -28,6 +28,7 @@ import {
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
+import 'tldraw/tldraw.css'
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 type PinShape = TLBaseShape<'pin', {}>

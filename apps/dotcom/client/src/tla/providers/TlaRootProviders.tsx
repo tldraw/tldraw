@@ -1,6 +1,7 @@
-import { ClerkProvider } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
-import { ReactNode, useCallback, useState } from 'react'
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
 	ContainerProvider,
@@ -13,7 +14,10 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { useMaybeApp } from '../hooks/useAppState'
+import { AppStateProvider } from '../hooks/useAppState'
+import { UserProvider } from '../hooks/useUser'
+import '../styles/tla.css'
+import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -25,20 +29,20 @@ if (!PUBLISHABLE_KEY) {
 }
 
 export function Component() {
-	const app = useMaybeApp()
-	const theme = useValue('theme', () => app?.getSessionState().theme ?? 'light', [app])
 	const [container, setContainer] = useState<HTMLElement | null>(null)
+	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
+	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 
 	return (
 		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
 			<div
 				ref={setContainer}
-				className={`tla tl-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+				className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
 			>
 				{container && (
 					<ContainerProvider container={container}>
 						<InsideOfContainerContext>
-							<Outlet />
+							<SignedInProvider onThemeChange={handleThemeChange} />
 						</InsideOfContainerContext>
 					</ContainerProvider>
 				)}
@@ -69,4 +73,56 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 			</MaybeUiContextProvider>
 		</MaybeEditorProvider>
 	)
+}
+
+function SignedInProvider({
+	onThemeChange,
+}: {
+	onThemeChange(theme: 'light' | 'dark' | 'system'): void
+}) {
+	const auth = useAuth()
+
+	useEffect(() => {
+		if (auth.isSignedIn && auth.userId) {
+			updateLocalSessionState(() => ({
+				auth: { userId: TldrawAppUserRecordType.createId(auth.userId) },
+			}))
+		} else {
+			updateLocalSessionState(() => ({
+				auth: undefined,
+			}))
+		}
+	}, [auth.userId, auth.isSignedIn])
+
+	if (!auth.isLoaded) return null
+
+	if (!auth.isSignedIn) {
+		return <Outlet />
+	}
+
+	return (
+		<AppStateProvider>
+			<UserProvider>
+				<ThemeContainer onThemeChange={onThemeChange}>
+					<Outlet />
+				</ThemeContainer>
+			</UserProvider>
+		</AppStateProvider>
+	)
+}
+
+function ThemeContainer({
+	children,
+	onThemeChange,
+}: {
+	children: ReactNode
+	onThemeChange(theme: 'light' | 'dark' | 'system'): void
+}) {
+	const theme = useValue('theme', () => getLocalSessionState().theme, [])
+
+	useEffect(() => {
+		onThemeChange(theme)
+	}, [theme, onThemeChange])
+
+	return children
 }

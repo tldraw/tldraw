@@ -1,13 +1,14 @@
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
-	DefaultDebugMenu,
-	DefaultDebugMenuContent,
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
+	DefaultStylePanel,
 	Editor,
 	OfflineIndicator,
+	PeopleMenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -23,15 +24,17 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
-import { DebugMenuItems } from '../../../utils/migration/DebugMenuItems'
-import { LocalMigration } from '../../../utils/migration/LocalMigration'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
+import {
+	getLocalSessionState,
+	getLocalSessionStateUnsafe,
+	updateLocalSessionState,
+} from '../../utils/local-session-state'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
@@ -53,20 +56,11 @@ export const components: TLComponents = {
 		)
 	},
 	MenuPanel: () => {
-		return <TlaEditorTopLeftPanel />
+		const app = useMaybeApp()
+		return <TlaEditorTopLeftPanel isAnonUser={!app} />
 	},
 	SharePanel: () => {
-		const app = useMaybeApp()
-		if (!app) return null
 		return <TlaEditorTopRightPanel />
-	},
-	DebugMenu: () => {
-		return (
-			<DefaultDebugMenu>
-				<DefaultDebugMenuContent />
-				<DebugMenuItems />
-			</DefaultDebugMenu>
-		)
 	},
 	TopPanel: () => {
 		const collaborationStatus = useCollaborationStatus()
@@ -75,14 +69,32 @@ export const components: TLComponents = {
 	},
 }
 
+const anonComponents = {
+	...components,
+	SharePanel: null,
+	StylePanel: () => {
+		// When on a temporary file, we don't want to show the people menu or file share menu, just the regular style panel
+		const { fileSlug } = useParams()
+		if (!fileSlug) return <DefaultStylePanel />
+
+		// ...but when an anonymous user is on a shared file, we do want to show the people menu next to the style panel
+		return (
+			<div className={styles.anonStylePanel}>
+				<PeopleMenu />
+				<DefaultStylePanel />
+			</div>
+		)
+	},
+}
+
 export function TlaEditor({
 	fileSlug,
 	onDocumentChange,
-	temporary,
+	isCreateMode,
 }: {
 	fileSlug: string
 	onDocumentChange?(): void
-	temporary?: boolean
+	isCreateMode?: boolean
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -90,6 +102,15 @@ export function TlaEditor({
 	const [ready, setReady] = useState(false)
 
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+
+	useLayoutEffect(() => {
+		setReady(false)
+		// Set the editor to ready after a short delay
+		const timeout = setTimeout(() => setReady(true), 200)
+		return () => {
+			clearTimeout(timeout)
+		}
+	}, [fileId])
 
 	const handleMount = useCallback((editor: Editor) => {
 		;(window as any).app = editor
@@ -99,16 +120,13 @@ export function TlaEditor({
 
 		// Register the external asset handler
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-
-		// Set the editor to ready after a short delay
-		editor.timers.setTimeout(() => setReady(true), 200)
 	}, [])
 
 	// Handle entering and exiting the file
 	useEffect(() => {
 		if (!app) return
 
-		const { auth } = app.getSessionState()
+		const { auth } = getLocalSessionState()
 		if (!auth) throw Error('Auth not found')
 
 		const user = app.getUser(auth.userId)
@@ -123,7 +141,7 @@ export function TlaEditor({
 			() => {
 				if (cancelled) return
 				didEnter = true
-				app.onFileEnter(auth.userId, fileId)
+				app.onFileEnter(fileId)
 			},
 			1000
 		)
@@ -133,7 +151,7 @@ export function TlaEditor({
 			clearTimeout(timeout)
 
 			if (didEnter) {
-				app.onFileExit(auth.userId, fileId)
+				app.onFileExit(fileId)
 			}
 		}
 	}, [app, fileId])
@@ -146,11 +164,11 @@ export function TlaEditor({
 			if (user) {
 				url.searchParams.set('accessToken', await user.getToken())
 			}
-			if (temporary) {
-				url.searchParams.set('temporary', 'true')
+			if (isCreateMode) {
+				url.searchParams.set('isCreateMode', 'true')
 			}
 			return url.toString()
-		}, [user, fileSlug, temporary]),
+		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
 	})
 
@@ -162,10 +180,9 @@ export function TlaEditor({
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={components}
+				components={!app ? anonComponents : components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
-				<LocalMigration />
 				<ThemeUpdater />
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
@@ -185,14 +202,13 @@ function SneakyDarkModeSync() {
 		'dark mode sync',
 		() => {
 			if (!app) return
-			const appIsDark =
-				app.store.unsafeGetWithoutCapture(TldrawApp.SessionStateId)!.theme === 'dark'
+			const appIsDark = getLocalSessionStateUnsafe()!.theme === 'dark'
 			const editorIsDark = editor.user.getIsDarkMode()
 
 			if (appIsDark && !editorIsDark) {
-				app.setSessionState({ ...app.getSessionState(), theme: 'light' })
+				updateLocalSessionState(() => ({ theme: 'light' }))
 			} else if (!appIsDark && editorIsDark) {
-				app.setSessionState({ ...app.getSessionState(), theme: 'dark' })
+				updateLocalSessionState(() => ({ theme: 'dark' }))
 			}
 		},
 		[app, editor]
@@ -236,11 +252,9 @@ function SneakyFileUpdateHandler({
 		return editor.store.listen(
 			() => {
 				if (!app) return
-				const sessionState = app.getSessionState()
+				const sessionState = getLocalSessionState()
 				if (!sessionState.auth) throw Error('Auth not found')
-				const user = app.getUser(sessionState.auth.userId)
-				if (!user) throw Error('User not found')
-				app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
+				app.onFileEdit(fileId, sessionState.createdAt, fileStartTime)
 				onDocumentChange?.()
 			},
 			{ scope: 'document', source: 'user' }

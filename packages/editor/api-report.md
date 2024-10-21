@@ -737,13 +737,9 @@ export const defaultUserPreferences: Readonly<{
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
     colorScheme: "system";
     edgeScrollSpeed: 1;
-    isDebugMode: false;
     isDynamicSizeMode: false;
-    isFocusMode: false;
-    isGridMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
-    isToolLocked: false;
     isWrapMode: false;
     locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
@@ -952,7 +948,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         focusContainer?: boolean | undefined;
     }): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
-    getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
+    getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getBaseZoom(): number;
@@ -2120,6 +2116,11 @@ export const runtime: {
     refreshPage(): void;
 };
 
+// @internal
+export type SafeId = string & {
+    __brand: 'SafeId';
+};
+
 // @internal (undocumented)
 export function sanitizeId(id: string): string;
 
@@ -2428,11 +2429,14 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 // @public (undocumented)
 export const stopEventPropagation: (e: any) => any;
 
+// @internal (undocumented)
+export function suffixSafeId(id: SafeId, suffix: string): SafeId;
+
 // @public (undocumented)
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
 
 // @public (undocumented)
-export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
+export type SVGContainerProps = React_3.ComponentProps<'svg'>;
 
 // @public (undocumented)
 export interface SvgExportContext {
@@ -3579,19 +3583,11 @@ export interface TLUserPreferences {
     // (undocumented)
     id: string;
     // (undocumented)
-    isDebugMode?: boolean | null;
-    // (undocumented)
     isDynamicSizeMode?: boolean | null;
-    // (undocumented)
-    isFocusMode?: boolean | null;
-    // (undocumented)
-    isGridMode?: boolean | null;
     // (undocumented)
     isPasteAtCursorMode?: boolean | null;
     // (undocumented)
     isSnapMode?: boolean | null;
-    // (undocumented)
-    isToolLocked?: boolean | null;
     // (undocumented)
     isWrapMode?: boolean | null;
     // (undocumented)
@@ -3706,9 +3702,7 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 
 // @public (undocumented)
 export class UserPreferencesManager {
-    constructor(editor: Editor, user: TLUser, inferDarkMode: boolean);
-    // (undocumented)
-    editor: Editor;
+    constructor(user: TLUser, inferDarkMode: boolean);
     // (undocumented)
     getAnimationSpeed(): number;
     // (undocumented)
@@ -3719,19 +3713,11 @@ export class UserPreferencesManager {
     // (undocumented)
     getIsDarkMode(): boolean;
     // (undocumented)
-    getIsDebugMode(): boolean;
-    // (undocumented)
     getIsDynamicResizeMode(): boolean;
-    // (undocumented)
-    getIsFocusMode(): boolean;
-    // (undocumented)
-    getIsGridMode(): boolean;
     // (undocumented)
     getIsPasteAtCursorMode(): boolean;
     // (undocumented)
     getIsSnapMode(): boolean;
-    // (undocumented)
-    getIsToolLocked(): boolean;
     // (undocumented)
     getIsWrapMode(): boolean;
     // (undocumented)
@@ -3760,9 +3746,6 @@ export class UserPreferencesManager {
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUserPreferences>;
 
-// @internal
-export function useSafeId(): string;
-
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {
     onPointerDown: PointerEventHandler<Element>;
@@ -3775,6 +3758,9 @@ export function useShallowArrayIdentity<T extends null | readonly any[] | undefi
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
+
+// @internal
+export function useSharedSafeId(id: string): SafeId;
 
 export { useStateTracking }
 
@@ -3795,6 +3781,9 @@ export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
+
+// @internal
+export function useUniqueSafeId(suffix?: string): SafeId;
 
 export { useValue }
 

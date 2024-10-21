@@ -11,13 +11,13 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	const raw = useRaw()
 	usePreventAccidentalDrops()
 	return (
-		<div className={classNames('tla tla-theme__light tl-container', styles.loggedOut)}>
+		<div className={classNames('tla tla-theme__light tl-theme-light tl-container', styles.layout)}>
 			<div className={styles.header}>
 				<Link to="/">
 					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />
 				</Link>
 				<SignedOut>
-					<SignInButton forceRedirectUrl="/q">
+					<SignInButton mode="modal" forceRedirectUrl="/q">
 						<TlaButton>{raw('Sign in')}</TlaButton>
 					</SignInButton>
 				</SignedOut>

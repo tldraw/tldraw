@@ -219,3 +219,13 @@
 	margin-top: 4px;
 	margin-left: 4px;
 }
+
+.tla-theme-container {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+
+.tla-theme__dark .tla-tldraw-sidebar-icon {
+	filter: invert(1);
+}

@@ -21,6 +21,7 @@ import {
 	useUnlockedSelectedShapesCount,
 } from '../hooks/menu-hooks'
 import { useGetEmbedDefinition } from '../hooks/useGetEmbedDefinition'
+import { useReadonly } from '../hooks/useReadonly'
 import { TldrawUiMenuActionCheckboxItem } from './primitives/menus/TldrawUiMenuActionCheckboxItem'
 import { TldrawUiMenuActionItem } from './primitives/menus/TldrawUiMenuActionItem'
 import { TldrawUiMenuGroup } from './primitives/menus/TldrawUiMenuGroup'
@@ -313,7 +314,9 @@ export function DeleteMenuItem() {
 
 /** @public @react */
 export function EditMenuSubmenu() {
+	const isReadonlyMode = useReadonly()
 	if (!useAnySelectedShapesCount(1)) return null
+	if (isReadonlyMode) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="edit" label="context-menu.edit" size="small">
@@ -335,7 +338,9 @@ export function EditMenuSubmenu() {
 export function ArrangeMenuSubmenu() {
 	const twoSelected = useUnlockedSelectedShapesCount(2)
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
+	const isReadonlyMode = useReadonly()
 
+	if (isReadonlyMode) return null
 	if (!(twoSelected || onlyFlippableShapeSelected)) return null
 
 	return (
@@ -395,7 +400,9 @@ function OrderMenuGroup() {
 }
 /** @public @react */
 export function ReorderMenuSubmenu() {
+	const isReadonlyMode = useReadonly()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
+	if (isReadonlyMode) return null
 	if (!oneSelected) return null
 
 	return (
@@ -416,9 +423,11 @@ export function MoveToPageMenu() {
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 	const { addToast } = useToasts()
 	const trackEvent = useUiEvents()
-
+	const isReadonlyMode = useReadonly()
 	const oneSelected = useUnlockedSelectedShapesCount(1)
+
 	if (!oneSelected) return null
+	if (isReadonlyMode) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="move-to-page" label="context-menu.move-to-page" size="small">
@@ -520,13 +529,13 @@ export function ToggleSnapModeItem() {
 /** @public @react */
 export function ToggleToolLockItem() {
 	const editor = useEditor()
-	const isToolLock = useValue('isToolLock', () => editor.user.getIsToolLocked(), [editor])
+	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
 	return <TldrawUiMenuActionCheckboxItem actionId="toggle-tool-lock" checked={isToolLock} />
 }
 /** @public @react */
 export function ToggleGridItem() {
 	const editor = useEditor()
-	const isGridMode = useValue('isGridMode', () => editor.user.getIsGridMode(), [editor])
+	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	return <TldrawUiMenuActionCheckboxItem actionId="toggle-grid" checked={isGridMode} />
 }
 
@@ -546,7 +555,7 @@ export function ToggleDarkModeItem() {
 /** @public @react */
 export function ToggleFocusModeItem() {
 	const editor = useEditor()
-	const isFocusMode = useValue('isFocusMode', () => editor.user.getIsFocusMode(), [editor])
+	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
 	return <TldrawUiMenuActionCheckboxItem actionId="toggle-focus-mode" checked={isFocusMode} />
 }
 /** @public @react */
@@ -576,7 +585,7 @@ export function ToggleReduceMotionItem() {
 /** @public @react */
 export function ToggleDebugModeItem() {
 	const editor = useEditor()
-	const isDebugMode = useValue('isDebugMode', () => editor.user.getIsDebugMode(), [editor])
+	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
 	return <TldrawUiMenuActionCheckboxItem actionId="toggle-debug-mode" checked={isDebugMode} />
 }
 

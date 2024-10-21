@@ -96,8 +96,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
-	const isFocusMode = useValue('focus', () => editor.user.getIsFocusMode(), [editor])
-	const isDebugMode = useValue('debug', () => editor.user.getIsDebugMode(), [editor])
+	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
+	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
 	const {
 		SharePanel,

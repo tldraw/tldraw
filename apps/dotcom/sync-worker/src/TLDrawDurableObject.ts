@@ -7,7 +7,10 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	TldrawAppFile,
 	TldrawAppFileRecordType,
+	TldrawAppUserId,
+	TldrawAppUserRecordType,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -18,40 +21,47 @@ import {
 	TLSyncRoom,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { TLRecord, createTLSchema } from '@tldraw/tlschema'
+import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
+import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
+import { APP_ID } from './TLAppDurableObject'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
-import { requireAuth } from './utils/getAuth'
+import { getAuth } from './utils/getAuth'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 
 const MAX_CONNECTIONS = 50
 
 // increment this any time you make a change to this type
-const CURRENT_DOCUMENT_INFO_VERSION = 1
+const CURRENT_DOCUMENT_INFO_VERSION = 2
 interface DocumentInfo {
 	version: number
 	slug: string
 	isApp: boolean
-	// if this room loaded as a temporary room this will be true,
-	// even if the room later was claimed by a user (which will be checked every time while still unclaimed)
-	isOrWasTemporary: boolean
+	// Create mode is used by the app to bypass the 'room not found' check.
+	// i.e. if this is a new file it creates the file, even if it wasn't
+	// added to the user's app database yet.
+	isOrWasCreateMode: boolean
 }
 
 const ROOM_NOT_FOUND = Symbol('room_not_found')
 
-export class TLDrawDurableObject {
+interface SessionMeta {
+	storeId: string
+	userId: TldrawAppUserId | null
+}
+
+export class TLDrawDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
-	// For TLSyncRoom
-	_room: Promise<TLSocketRoom<TLRecord, { storeId: string }>> | null = null
+	_room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
 
 	getRoom() {
 		if (!this._documentInfo) {
@@ -62,7 +72,7 @@ export class TLDrawDurableObject {
 			this._room = this.loadFromDatabase(slug).then((result) => {
 				switch (result.type) {
 					case 'room_found': {
-						const room = new TLSocketRoom<TLRecord, { storeId: string }>({
+						const room = new TLSocketRoom<TLRecord, SessionMeta>({
 							initialSnapshot: result.snapshot,
 							onSessionRemoved: async (room, args) => {
 								this.logEvent({
@@ -145,8 +155,9 @@ export class TLDrawDurableObject {
 
 	constructor(
 		private state: DurableObjectState,
-		private env: Environment
+		override env: Environment
 	) {
+		super(state, env)
 		this.id = state.id
 		this.storage = state.storage
 		this.sentryDSN = env.SENTRY_DSN
@@ -169,25 +180,9 @@ export class TLDrawDurableObject {
 		})
 	}
 
-	_isApp: boolean | null = null
-
-	_setIsApp(isApp: boolean) {
-		if (this._isApp === null) {
-			this._isApp = isApp
-		} else if (this._isApp !== isApp) {
-			throw new Error('Cannot change app status')
-		}
-	}
-
 	readonly router = Router()
-		.all('*', (req) => {
-			const pathname = new URL(req.url).pathname
-			const isApp = pathname.startsWith('/app/')
-			this._setIsApp(isApp)
-		})
 		.get(
 			`/${ROOM_PREFIX}/:roomId`,
-			this._setIsApp.bind(this, false),
 			(req) => this.extractDocumentInfoFromRequest(req, ROOM_OPEN_MODE.READ_WRITE),
 			(req) => this.onRequest(req, ROOM_OPEN_MODE.READ_WRITE)
 		)
@@ -226,28 +221,32 @@ export class TLDrawDurableObject {
 	get documentInfo() {
 		return assertExists(this._documentInfo, 'documentInfo must be present')
 	}
+	setDocumentInfo(info: DocumentInfo) {
+		this._documentInfo = info
+		this.storage.put('documentInfo', info)
+	}
 	async extractDocumentInfoFromRequest(req: IRequest, roomOpenMode: RoomOpenMode) {
 		const slug = assertExists(
 			await getSlug(this.env, req.params.roomId, roomOpenMode),
 			'roomId must be present'
 		)
 		const isApp = new URL(req.url).pathname.startsWith('/app/')
-		const isOrWasTemporary = isApp && new URL(req.url).searchParams.get('temporary') === 'true'
+		const isOrWasCreateMode = isApp && new URL(req.url).searchParams.get('isCreateMode') === 'true'
 
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
 		} else {
-			this._documentInfo = {
+			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug,
 				isApp,
-				isOrWasTemporary,
-			}
+				isOrWasCreateMode,
+			})
 		}
 	}
 
 	// Handle a request to the Durable Object.
-	async fetch(req: IRequest) {
+	override async fetch(req: IRequest) {
 		const sentry = createSentry(this.state, this.env, req)
 
 		try {
@@ -263,17 +262,12 @@ export class TLDrawDurableObject {
 		}
 	}
 
-	// eslint-disable-next-line no-restricted-syntax
-	get isApp(): boolean {
-		return assertExists(this._isApp, 'isApp must be present')
-	}
-
 	_isRestoring = false
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
 		try {
 			const roomId = this.documentInfo.slug
-			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.isApp })
+			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
 			const timestamp = ((await req.json()) as any).timestamp
 			if (!timestamp) {
 				return new Response('Missing timestamp', { status: 400 })
@@ -300,12 +294,15 @@ export class TLDrawDurableObject {
 		if (!this._ownerId) {
 			const slug = this.documentInfo.slug
 			const fileId = TldrawAppFileRecordType.createId(slug)
-			const row = await this.env.DB.prepare('SELECT topicId as ownerId FROM records WHERE id = ?')
+			const row = await this.env.DB.prepare('SELECT record FROM records WHERE id = ?')
 				.bind(fileId)
 				.first()
 
 			if (row) {
-				this._ownerId = row.ownerId as string
+				this._ownerId = JSON.parse(row.record as any).ownerId as string
+				if (typeof this._ownerId !== 'string') {
+					throw new Error('ownerId must be a string')
+				}
 			}
 		}
 		return this._ownerId
@@ -331,16 +328,25 @@ export class TLDrawDurableObject {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
-		if (this.isApp) {
+		const auth = await getAuth(req, this.env)
+		if (this.documentInfo.isApp) {
 			const ownerId = await this.getOwnerId()
 
 			if (ownerId) {
-				const auth = await requireAuth(req, this.env)
-				if (ownerId !== auth.userId) {
-					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+				if (ownerId !== TldrawAppUserRecordType.createId(auth?.userId)) {
+					const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(APP_ID))
+					const shareType = await ownerDurableObject.getFileShareType(
+						TldrawAppFileRecordType.createId(this.documentInfo.slug)
+					)
+					if (shareType === 'private') {
+						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+					}
+					if (shareType === 'view') {
+						openMode = ROOM_OPEN_MODE.READ_ONLY
+					}
 				}
-			} else if (!this.documentInfo.isOrWasTemporary) {
-				// If there is no owner that means it's a temporary room, but if they didn't add the temporary
+			} else if (!this.documentInfo.isOrWasCreateMode) {
+				// If there is no owner that means it's a temporary room, but if they didn't add the create
 				// flag don't let them in.
 				// This prevents people from just creating rooms by typing extra chars in the URL because we only
 				// add that flag in temporary rooms.
@@ -360,7 +366,10 @@ export class TLDrawDurableObject {
 			room.handleSocketConnect({
 				sessionId: sessionId,
 				socket: serverWebSocket,
-				meta: { storeId },
+				meta: {
+					storeId,
+					userId: auth?.userId ? TldrawAppUserRecordType.createId(auth.userId) : null,
+				},
 				isReadonly:
 					openMode === ROOM_OPEN_MODE.READ_ONLY || openMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY,
 			})
@@ -435,14 +444,14 @@ export class TLDrawDurableObject {
 	// Load the room's drawing data. First we check the R2 bucket, then we fallback to supabase (legacy).
 	async loadFromDatabase(slug: string): Promise<DBLoadResult> {
 		try {
-			const key = getR2KeyForRoom({ slug, isApp: this.isApp })
+			const key = getR2KeyForRoom({ slug, isApp: this.documentInfo.isApp })
 			// when loading, prefer to fetch documents from the bucket
 			const roomFromBucket = await this.r2.rooms.get(key)
 			if (roomFromBucket) {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
 
-			if (this.isApp) {
+			if (this.documentInfo.isApp) {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({
@@ -491,7 +500,7 @@ export class TLDrawDurableObject {
 
 		const snapshot = JSON.stringify(room.getCurrentSnapshot())
 
-		const key = getR2KeyForRoom({ slug: slug, isApp: this.isApp })
+		const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
 		await Promise.all([
 			this.r2.rooms.put(key, snapshot),
 			this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
@@ -513,7 +522,47 @@ export class TLDrawDurableObject {
 	}
 
 	// Will be called automatically when the alarm ticks.
-	async alarm() {
+	override async alarm() {
 		await this.scheduler.onAlarm()
+	}
+
+	async appFileRecordDidUpdate(file: TldrawAppFile) {
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug: TldrawAppFileRecordType.parseId(file.id),
+				isApp: true,
+				isOrWasCreateMode: false,
+			})
+		}
+		const room = await this.getRoom()
+
+		// if the app file record updated, it might mean that the file name changed
+		const documentRecord = room.getRecord(TLDOCUMENT_ID) as TLDocument
+		if (documentRecord.name !== file.name) {
+			room.updateStore((store) => {
+				store.put({ ...documentRecord, name: file.name })
+			})
+		}
+
+		// if the app file record updated, it might mean that the sharing state was updated
+		// in which case we should kick people out or change their permissions
+		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
+
+		for (const session of room.getSessions()) {
+			// allow the owner to stay connected
+			if (session.meta.userId === (await this.getOwnerId())) continue
+
+			if (!file.shared) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			} else if (
+				// if the file is still shared but the readonly state changed, make them reconnect
+				(session.isReadonly && !roomIsReadOnlyForGuests) ||
+				(!session.isReadonly && roomIsReadOnlyForGuests)
+			) {
+				// not passing a reason means they will try to reconnect
+				room.closeSession(session.sessionId)
+			}
+		}
 	}
 }

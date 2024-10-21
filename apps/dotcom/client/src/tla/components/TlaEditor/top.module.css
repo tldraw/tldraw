@@ -195,3 +195,8 @@ button.nameWidthSetter {
 		color: var(--color-selected-contrast);
 	}
 }
+
+.exportButton {
+	background-color: var(--color-background);
+	border-radius: var(--radius-3);
+}

@@ -11,6 +11,7 @@ import { TldrawAppFileId } from './TldrawAppFile'
 import { idValidator } from './idValidator'
 
 export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser>> {
+	ownerId: TldrawAppUserId
 	name: string
 	email: string
 	avatar: string
@@ -37,10 +38,6 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 	isWrapMode?: boolean | null
 	isDynamicSizeMode?: boolean | null
 	isPasteAtCursorMode?: boolean | null
-	isToolLocked?: boolean | null
-	isGridMode?: boolean | null
-	isFocusMode?: boolean | null
-	isDebugMode?: boolean | null
 }
 
 export const UserPreferencesKeys = [
@@ -52,10 +49,6 @@ export const UserPreferencesKeys = [
 	'isWrapMode',
 	'isDynamicSizeMode',
 	'isPasteAtCursorMode',
-	'isToolLocked',
-	'isGridMode',
-	'isFocusMode',
-	'isDebugMode',
 ] as const
 
 export type TldrawAppUserId = RecordId<TldrawAppUser>
@@ -66,6 +59,7 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 	T.object({
 		typeName: T.literal('user'),
 		id: idValidator<TldrawAppUserId>('user'),
+		ownerId: idValidator<TldrawAppUserId>('user'),
 		name: T.string,
 		email: T.string,
 		avatar: T.string,
@@ -91,10 +85,6 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 		isWrapMode: T.boolean.nullable().optional(),
 		isDynamicSizeMode: T.boolean.nullable().optional(),
 		isPasteAtCursorMode: T.boolean.nullable().optional(),
-		isToolLocked: T.boolean.nullable().optional(),
-		isGridMode: T.boolean.nullable().optional(),
-		isFocusMode: T.boolean.nullable().optional(),
-		isDebugMode: T.boolean.nullable().optional(),
 	})
 )
 
@@ -110,10 +100,10 @@ export const tldrawAppUserMigrations = createRecordMigrationSequence({
 
 /** @public */
 export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
-	validator: tldrawAppUserValidator,
+	// validator: tldrawAppUserValidator,
 	scope: 'document',
 }).withDefaultProperties(
-	(): Omit<TldrawAppUser, 'id' | 'typeName' | 'presence'> => ({
+	(): Omit<TldrawAppUser, 'id' | 'typeName' | 'presence' | 'ownerId'> => ({
 		name: 'Steve Ruiz',
 		email: 'steve@tldraw.com',
 		color: 'coral', // coral
@@ -136,10 +126,6 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 		isWrapMode: false,
 		isDynamicSizeMode: false,
 		isPasteAtCursorMode: false,
-		isToolLocked: false,
-		isGridMode: false,
-		isFocusMode: false,
-		isDebugMode: false,
 	})
 )
 

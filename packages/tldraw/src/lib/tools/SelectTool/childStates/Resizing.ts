@@ -132,7 +132,7 @@ export class Resizing extends StateNode {
 			return
 		}
 
-		if (this.editor.user.getIsToolLocked() && this.info.onInteractionEnd) {
+		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 			return
 		}
@@ -240,7 +240,7 @@ export class Resizing extends StateNode {
 
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
-		if (this.editor.user.getIsGridMode() && !ctrlKey) {
+		if (this.editor.getInstanceState().isGridMode && !ctrlKey) {
 			const { gridSize } = this.editor.getDocumentSettings()
 			currentPagePoint.snapToGrid(gridSize)
 		}

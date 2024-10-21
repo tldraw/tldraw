@@ -1,25 +1,35 @@
-import { useAuth } from '@clerk/clerk-react'
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
+import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { getLocalSessionState } from '../utils/local-session-state'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
+import { getFileUrl } from '../utils/urls'
 
 export function Component() {
+	const app = useMaybeApp()
+
+	if (!app) return <LocalTldraw />
+	// Navigate to the most recent file (if there is one) or else a new file
+	const { auth, createdAt } = getLocalSessionState()
+	const file = auth?.userId && app.getUserRecentFiles(createdAt)?.[0]?.file
+	if (file) {
+		return <Navigate to={getFileUrl(file.id)} replace />
+	}
+	return <Navigate to={getFileUrl(app.createFile().id)} replace state={{ isCreateMode: true }} />
+}
+
+function LocalTldraw() {
 	const [fileSlug] = useState(() => {
 		return getFromLocalStorage(TEMPORARY_FILE_KEY) ?? uniqueId()
 	})
 
-	const auth = useAuth()
-	if (auth.isSignedIn) {
-		return <Navigate to="/q" />
-	}
-
 	return (
 		<TlaAnonLayout>
 			<TlaEditor
-				temporary
+				isCreateMode
 				key={fileSlug}
 				fileSlug={fileSlug}
 				onDocumentChange={() => {

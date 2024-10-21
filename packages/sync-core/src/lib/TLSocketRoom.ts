@@ -330,7 +330,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @param updater - A function that will be called with a store object that can be used to make changes.
 	 * @returns A promise that resolves when the transaction is complete.
 	 */
-	async updateStore(updater: (store: RoomStoreMethods) => void | Promise<void>) {
+	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
 		return this.room.updateStore(updater)
 	}
 
