@@ -190,9 +190,5 @@ function getKeys(key: string) {
 }
 
 export function areShortcutsDisabled(editor: Editor) {
-	return (
-		editor.menus.hasAnyOpenMenus() ||
-		editor.getEditingShapeId() !== null ||
-		editor.getCrashingError()
-	)
+	return editor.getEditingShapeId() !== null || editor.getCrashingError()
 }
