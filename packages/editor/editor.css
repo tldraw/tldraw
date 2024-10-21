@@ -1062,6 +1062,7 @@ input,
 	border: none;
 	outline: none;
 	pointer-events: all;
+	z-index: 1;
 }
 
 .tl-hyperlink-button::after {

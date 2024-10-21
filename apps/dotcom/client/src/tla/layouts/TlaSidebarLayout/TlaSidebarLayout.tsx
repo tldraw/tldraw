@@ -4,14 +4,15 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { useApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
+import { getLocalSessionState } from '../../utils/local-session-state'
 import styles from './sidebar-layout.module.css'
 
 export function TlaSidebarLayout({ children }: { children: ReactNode; collapsible?: boolean }) {
 	const app = useApp()
-	const isSidebarOpen = useValue('sidebar open', () => app.getSessionState().isSidebarOpen, [app])
+	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
 	const isSidebarOpenMobile = useValue(
 		'sidebar open mobile',
-		() => app.getSessionState().isSidebarOpenMobile,
+		() => getLocalSessionState().isSidebarOpenMobile,
 		[app]
 	)
 	const currentEditor = useValue('editor', () => globalEditor.get(), [])

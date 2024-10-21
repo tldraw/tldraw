@@ -1,13 +1,11 @@
 import { atom, computed } from '@tldraw/state'
 import { TLUserPreferences, defaultUserPreferences } from '../../config/TLUserPreferences'
 import { TLUser } from '../../config/createTLUser'
-import { Editor } from '../Editor'
 
 /** @public */
 export class UserPreferencesManager {
 	systemColorScheme = atom<'dark' | 'light'>('systemColorScheme', 'light')
 	constructor(
-		public editor: Editor,
 		private readonly user: TLUser,
 		private readonly inferDarkMode: boolean
 	) {
@@ -105,38 +103,6 @@ export class UserPreferencesManager {
 		return (
 			this.user.userPreferences.get().isPasteAtCursorMode ??
 			defaultUserPreferences.isPasteAtCursorMode
-		)
-	}
-
-	@computed getIsToolLocked() {
-		return (
-			this.user.userPreferences.get().isToolLocked ??
-			this.editor.getInstanceState().isToolLocked ??
-			defaultUserPreferences.isToolLocked
-		)
-	}
-
-	@computed getIsGridMode() {
-		return (
-			this.user.userPreferences.get().isGridMode ??
-			this.editor.getInstanceState().isGridMode ??
-			defaultUserPreferences.isGridMode
-		)
-	}
-
-	@computed getIsFocusMode() {
-		return (
-			this.user.userPreferences.get().isFocusMode ??
-			this.editor.getInstanceState().isFocusMode ??
-			defaultUserPreferences.isFocusMode
-		)
-	}
-
-	@computed getIsDebugMode() {
-		return (
-			this.user.userPreferences.get().isDebugMode ??
-			this.editor.getInstanceState().isDebugMode ??
-			defaultUserPreferences.isDebugMode
 		)
 	}
 }

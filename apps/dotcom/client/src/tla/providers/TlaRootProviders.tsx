@@ -1,5 +1,6 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
@@ -15,9 +16,10 @@ import {
 import { globalEditor } from '../../utils/globalEditor'
 import { IntlProvider, setupCreateIntl } from '../app/i18n'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { AppStateProvider, useApp } from '../hooks/useAppState'
+import { AppStateProvider } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -120,6 +122,18 @@ function SignedInProvider({
 		setCurrentLocale(locale)
 	}, [currentLocale, locale, onLocaleChange])
 
+	useEffect(() => {
+		if (auth.isSignedIn && auth.userId) {
+			updateLocalSessionState(() => ({
+				auth: { userId: TldrawAppUserRecordType.createId(auth.userId) },
+			}))
+		} else {
+			updateLocalSessionState(() => ({
+				auth: undefined,
+			}))
+		}
+	}, [auth.userId, auth.isSignedIn])
+
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn) {
@@ -144,8 +158,7 @@ function PrefsContainer({
 	children: ReactNode
 	onThemeChange(theme: 'light' | 'dark' | 'system'): void
 }) {
-	const app = useApp()
-	const theme = useValue('theme', () => app?.getCurrentUser()?.colorScheme ?? 'light', [app])
+	const theme = useValue('theme', () => getLocalSessionState().theme, [])
 
 	useEffect(() => {
 		onThemeChange(theme)

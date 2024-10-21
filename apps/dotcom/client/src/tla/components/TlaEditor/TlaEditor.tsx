@@ -1,17 +1,20 @@
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
 	DefaultQuickActions,
 	DefaultQuickActionsContent,
+	DefaultStylePanel,
 	EditSubmenu,
 	Editor,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	OfflineIndicator,
+	PeopleMenu,
 	PreferencesGroup,
 	TLComponents,
 	Tldraw,
@@ -32,10 +35,14 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
+import {
+	getLocalSessionState,
+	getLocalSessionStateUnsafe,
+	updateLocalSessionState,
+} from '../../utils/local-session-state'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
@@ -57,11 +64,10 @@ export const components: TLComponents = {
 		)
 	},
 	MenuPanel: () => {
-		return <TlaEditorTopLeftPanel />
+		const app = useMaybeApp()
+		return <TlaEditorTopLeftPanel isAnonUser={!app} />
 	},
 	SharePanel: () => {
-		const app = useMaybeApp()
-		if (!app) return null
 		return <TlaEditorTopRightPanel />
 	},
 	TopPanel: () => {
@@ -81,6 +87,24 @@ export const components: TLComponents = {
 				</DefaultMainMenu>
 				<DefaultQuickActionsContent />
 			</DefaultQuickActions>
+		)
+	},
+}
+
+const anonComponents = {
+	...components,
+	SharePanel: null,
+	StylePanel: () => {
+		// When on a temporary file, we don't want to show the people menu or file share menu, just the regular style panel
+		const { fileSlug } = useParams()
+		if (!fileSlug) return <DefaultStylePanel />
+
+		// ...but when an anonymous user is on a shared file, we do want to show the people menu next to the style panel
+		return (
+			<div className={styles.anonStylePanel}>
+				<PeopleMenu />
+				<DefaultStylePanel />
+			</div>
 		)
 	},
 }
@@ -124,7 +148,7 @@ export function TlaEditor({
 	useEffect(() => {
 		if (!app) return
 
-		const { auth } = app.getSessionState()
+		const { auth } = getLocalSessionState()
 		if (!auth) throw Error('Auth not found')
 
 		const user = app.getUser(auth.userId)
@@ -139,7 +163,7 @@ export function TlaEditor({
 			() => {
 				if (cancelled) return
 				didEnter = true
-				app.onFileEnter(auth.userId, fileId)
+				app.onFileEnter(fileId)
 			},
 			1000
 		)
@@ -149,7 +173,7 @@ export function TlaEditor({
 			clearTimeout(timeout)
 
 			if (didEnter) {
-				app.onFileExit(auth.userId, fileId)
+				app.onFileExit(fileId)
 			}
 		}
 	}, [app, fileId])
@@ -178,7 +202,7 @@ export function TlaEditor({
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={components}
+				components={!app ? anonComponents : components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 			>
 				<ThemeUpdater />
@@ -200,14 +224,13 @@ function SneakyDarkModeSync() {
 		'dark mode sync',
 		() => {
 			if (!app) return
-			const appIsDark =
-				app.store.unsafeGetWithoutCapture(TldrawApp.SessionStateId)!.theme === 'dark'
+			const appIsDark = getLocalSessionStateUnsafe()!.theme === 'dark'
 			const editorIsDark = editor.user.getIsDarkMode()
 
 			if (appIsDark && !editorIsDark) {
-				app.setSessionState({ ...app.getSessionState(), theme: 'light' })
+				updateLocalSessionState(() => ({ theme: 'light' }))
 			} else if (!appIsDark && editorIsDark) {
-				app.setSessionState({ ...app.getSessionState(), theme: 'dark' })
+				updateLocalSessionState(() => ({ theme: 'dark' }))
 			}
 		},
 		[app, editor]
@@ -251,11 +274,9 @@ function SneakyFileUpdateHandler({
 		return editor.store.listen(
 			() => {
 				if (!app) return
-				const sessionState = app.getSessionState()
+				const sessionState = getLocalSessionState()
 				if (!sessionState.auth) throw Error('Auth not found')
-				const user = app.getUser(sessionState.auth.userId)
-				if (!user) throw Error('User not found')
-				app.onFileEdit(user.id, fileId, sessionState.createdAt, fileStartTime)
+				app.onFileEdit(fileId, sessionState.createdAt, fileStartTime)
 				onDocumentChange?.()
 			},
 			{ scope: 'document', source: 'user' }
