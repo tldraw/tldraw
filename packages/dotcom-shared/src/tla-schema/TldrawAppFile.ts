@@ -58,8 +58,7 @@ export const tldrawAppFileMigrations = createRecordMigrationSequence({
 			id: tldrawAppFileVersions.AddPublishing,
 			up: (file: any) => {
 				file.published = false
-				// TODO: use a better slug
-				file.publishedSlug = `v2_c_${uniqueId()}`
+				file.publishedSlug = uniqueId()
 			},
 			down(file: any) {
 				delete file.published
@@ -83,7 +82,6 @@ export const TldrawAppFileRecordType = createRecordType<TldrawAppFile>('file', {
 		shared: false,
 		sharedLinkType: 'edit',
 		published: false,
-		// Todo: use a better slug
-		publishedSlug: `v2_c_${uniqueId()}`,
+		publishedSlug: uniqueId(),
 	})
 )

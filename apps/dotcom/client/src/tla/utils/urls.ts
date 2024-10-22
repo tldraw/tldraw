@@ -11,5 +11,5 @@ export function getShareableFileUrl(fileId: string): string {
 
 export function getShareablePublishUrl(snapshotSlug: string): string {
 	const host = isDevelopmentEnv ? 'http://localhost:3000' : 'https://tldraw.com'
-	return `${host}/q/s/${snapshotSlug}`
+	return `${host}/q/p/${snapshotSlug}`
 }

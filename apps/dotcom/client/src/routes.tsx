@@ -102,7 +102,7 @@ export const router = createRoutesFromElements(
 			<Route path="/q" lazy={() => import('./tla/pages/local')} />
 			{/* File view */}
 			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
-			<Route path="/q/s/:fileSlug" lazy={() => import('./tla/pages/snapshot')} />
+			<Route path="/q/p/:fileSlug" lazy={() => import('./tla/pages/publish')} />
 			{/* Views that require login */}
 			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
 				{/* User settings */}

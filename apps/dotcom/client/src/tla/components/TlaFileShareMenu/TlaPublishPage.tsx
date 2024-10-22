@@ -32,7 +32,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 	const [uploading, setUploading] = useState(false)
 	const auth = useAuth()
 
-	const handleUpdate = useCallback(
+	const publish = useCallback(
 		async (update: boolean) => {
 			if (!editor) throw Error('no editor')
 			if (!fileSlug) throw Error('no file slug')
@@ -104,7 +104,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
 							<TlaSwitch
 								checked={published}
-								onChange={() => (published ? unpublish() : handleUpdate(false))}
+								onChange={() => (published ? unpublish() : publish(false))}
 							/>
 						</TlaMenuControl>
 					)}
@@ -118,7 +118,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 									iconRight="update"
 									isLoading={uploading}
 									variant="secondary"
-									onClick={() => handleUpdate(true)}
+									onClick={() => publish(true)}
 								>
 									{raw('Update')}
 								</TlaButton>
