@@ -2574,6 +2574,7 @@ export interface TLCameraMoveOptions {
 
 // @public (undocumented)
 export interface TLCameraOptions {
+    autoWheelBehavior?: 'pan' | 'zoom';
     constraints?: TLCameraConstraints;
     isLocked: boolean;
     panSpeed: number;
