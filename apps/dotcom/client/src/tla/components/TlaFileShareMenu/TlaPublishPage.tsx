@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { fetch } from '@tldraw/utils'
 import { useCallback, useState } from 'react'
@@ -29,6 +30,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 	const { publishedSlug, published } = file
 	const isOwner = app.isFileOwner(file.id)
 	const [uploading, setUploading] = useState(false)
+	const auth = useAuth()
 
 	const handleUpdate = useCallback(
 		async (update: boolean) => {
@@ -36,9 +38,11 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 			if (!fileSlug) throw Error('no file slug')
 			if (!publishedSlug) throw Error('no published slug')
 			if (!isOwner) return
+			const token = await auth.getToken()
+			if (!token) return
 
 			setUploading(true)
-			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug)
+			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
 			setUploading(false)
 			if (result.ok) {
 				if (!published) {
@@ -55,15 +59,20 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 				})
 			}
 		},
-		[editor, fileSlug, publishedSlug, isOwner, app, published, addToast, file.id]
+		[editor, fileSlug, publishedSlug, isOwner, auth, app, published, addToast, file.id]
 	)
 
 	const unpublish = useCallback(async () => {
 		if (!isOwner) return
 		if (!publishedSlug) return
+		const token = await auth.getToken()
 
 		const result = await fetch(`${PUBLISH_ENDPOINT}/${publishedSlug}`, {
 			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
 		})
 		if (result.ok) {
 			app.toggleFilePublished(file.id)
@@ -73,7 +82,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 				severity: 'error',
 			})
 		}
-	}, [addToast, app, file.id, isOwner, publishedSlug])
+	}, [addToast, app, auth, file.id, isOwner, publishedSlug])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 

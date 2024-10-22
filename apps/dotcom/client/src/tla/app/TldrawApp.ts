@@ -294,7 +294,7 @@ export class TldrawApp {
 		return new Promise((r) => setTimeout(r, 2000))
 	}
 
-	async createSnapshotLink(editor: Editor, parentSlug: string, fileSlug: string) {
+	async createSnapshotLink(editor: Editor, parentSlug: string, fileSlug: string, token: string) {
 		const data = await getSnapshotData(editor)
 
 		if (!data) return Result.err('could not get snapshot data')
@@ -305,6 +305,7 @@ export class TldrawApp {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
 			},
 			body: JSON.stringify({
 				snapshot: data,
