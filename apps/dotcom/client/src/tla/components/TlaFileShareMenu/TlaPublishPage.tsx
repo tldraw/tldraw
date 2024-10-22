@@ -115,6 +115,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 							</TlaShareMenuCopyButton>
 							{isOwner && (
 								<TlaButton
+									iconRight="update"
 									isLoading={uploading}
 									variant="secondary"
 									onClick={() => handleUpdate(true)}
