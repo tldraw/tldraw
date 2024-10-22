@@ -25,10 +25,12 @@ export function TlaFileMenu({
 	children,
 	source,
 	fileId,
+	onRenameAction,
 }: {
 	children: ReactNode
 	source: string
 	fileId: TldrawAppFile['id']
+	onRenameAction?: () => void
 }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
@@ -89,7 +91,11 @@ export function TlaFileMenu({
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<TldrawUiMenuGroup id="file-actions">
 						<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
-						<TldrawUiMenuItem label="Rename" id="copy-link" onSelect={handleRenameClick} />
+						<TldrawUiMenuItem
+							label="Rename"
+							id="copy-link"
+							onSelect={onRenameAction ?? handleRenameClick}
+						/>
 						<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
 						{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
 					</TldrawUiMenuGroup>

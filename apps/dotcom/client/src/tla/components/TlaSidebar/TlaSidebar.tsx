@@ -1,8 +1,8 @@
 import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { memo, useCallback, useEffect, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { preventDefault, useValue } from 'tldraw'
+import { TldrawUiInput, preventDefault, useValue } from 'tldraw'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
@@ -213,6 +213,15 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 	const { file, isOwnFile } = item
 	const { fileSlug } = useParams()
 	const isActive = TldrawAppFileRecordType.createId(fileSlug) === file.id
+	const [isRenaming, setIsRenaming] = useState(false)
+
+	const handleRenameAction = () => setIsRenaming(true)
+	const handleRenameClose = () => setIsRenaming(false)
+
+	if (isRenaming) {
+		return <TlaRenameInline fileId={file.id} onClose={handleRenameClose} />
+	}
+
 	return (
 		<div className={classNames(styles.link, styles.hoverable)} data-active={isActive}>
 			<div className={styles.linkContent}>
@@ -221,16 +230,91 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 				</div>
 			</div>
 			<Link to={getFileUrl(file.id)} className={styles.linkButton} />
-			<TlaSidebarFileLinkMenu fileId={file.id} />
+			<TlaSidebarFileLinkMenu fileId={file.id} onRenameAction={handleRenameAction} />
+		</div>
+	)
+}
+
+function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onClose(): void }) {
+	const app = useApp()
+	const ref = useRef<HTMLInputElement>(null)
+
+	const file = useValue(
+		'file',
+		() => {
+			const file = app.store.get(fileId)
+			if (!file) throw Error('expected a file')
+			return file
+		},
+		[app]
+	)
+
+	const handleSave = useCallback(() => {
+		// rename the file
+		const file = app.store.get(fileId)
+		if (!file) return
+		const elm = ref.current
+		if (!elm) return
+		const name = elm.value.slice(0, 312).trim()
+
+		if (name) {
+			// Only update the name if there is a name there to update
+			app.store.put([{ ...file, name }])
+		}
+
+		onClose()
+	}, [app, fileId, onClose])
+
+	useEffect(() => {
+		// if clicking away from the input, close the rename and save
+		function handleClick(e: MouseEvent) {
+			const target = e.target as HTMLElement
+			if (!target.closest(`.${styles.renameWrapper}`)) {
+				handleSave()
+			}
+		}
+		function handleKeyDown(e: KeyboardEvent) {
+			if (e.key === 'Escape') {
+				onClose()
+			}
+		}
+
+		// We wait a tick because we don't want to immediately close the input.
+		setTimeout(() => {
+			document.addEventListener('click', handleClick, { capture: true })
+			document.addEventListener('keydown', handleKeyDown)
+		}, 0)
+		return () => {
+			document.removeEventListener('click', handleClick, { capture: true })
+			document.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [])
+
+	return (
+		<div className={styles.renameWrapper}>
+			<TldrawUiInput
+				ref={ref}
+				className={classNames(styles.rename, 'tla-text_ui__regular')}
+				defaultValue={TldrawApp.getFileName(file)}
+				onComplete={handleSave}
+				autoSelect
+				autoFocus
+			/>
 		</div>
 	)
 }
 
 /* ---------------------- Menu ---------------------- */
 
-function TlaSidebarFileLinkMenu({ fileId }: { fileId: TldrawAppFile['id'] }) {
+function TlaSidebarFileLinkMenu({
+	fileId,
+	onRenameAction,
+}: {
+	fileId: TldrawAppFile['id']
+	onRenameAction: () => void
+}) {
 	return (
-		<TlaFileMenu fileId={fileId} source="sidebar">
+		<TlaFileMenu fileId={fileId} source="sidebar" onRenameAction={onRenameAction}>
 			<button className={styles.linkMenu}>
 				<TlaIcon icon="dots-vertical-strong" />
 			</button>
