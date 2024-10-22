@@ -2440,6 +2440,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (next.zoomSteps?.length < 1) next.zoomSteps = [1]
 		this._cameraOptions.set(next)
 		this.setCamera(this.getCamera())
+		this.emit('camera-options-change', next)
 		return this
 	}
 

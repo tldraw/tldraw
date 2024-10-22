@@ -2983,6 +2983,8 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 // @public (undocumented)
 export interface TLEventMap {
     // (undocumented)
+    'camera-options-change': [TLCameraOptions];
+    // (undocumented)
     'max-shapes': [{
         count: number;
         name: string;
