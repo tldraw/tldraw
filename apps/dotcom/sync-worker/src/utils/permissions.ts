@@ -1,3 +1,4 @@
+import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import { APP_ID } from '../TLAppDurableObject'
 import { Environment } from '../types'
@@ -11,7 +12,7 @@ export async function isFileOwner(request: IRequest, env: Environment, slug: str
 	return file.ownerId === `user:${auth.userId}`
 }
 
-export async function getFile(env: Environment, slug: string) {
+export async function getFile(env: Environment, slug: string): Promise<TldrawAppFile | null> {
 	const d1Result = await env.DB.prepare('select * from records where topicId = ?1 and id = ?2')
 		.bind(APP_ID, `file:${slug}`)
 		.first()
