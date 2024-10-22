@@ -9,7 +9,7 @@ import { createContext, useContext, useId } from 'react'
  * Use {@link useUniqueSafeId} to generate a unique safe ID. Use {@link useSharedSafeId} to generate
  * the same ID across multiple components, but unique within a single tldraw/editor instance.
  *
- * @internal
+ * @public
  */
 export type SafeId = string & { __brand: 'SafeId' }
 
@@ -24,7 +24,7 @@ declare module 'react' {
 	}
 }
 
-/** @internal */
+/** @public */
 export function suffixSafeId(id: SafeId, suffix: string): SafeId {
 	return sanitizeId(`${id}_${suffix}`) as SafeId
 }
@@ -33,7 +33,7 @@ export function suffixSafeId(id: SafeId, suffix: string): SafeId {
  * React's useId hook returns a unique id for the component. However, it uses a colon in the id,
  * which is not valid for CSS selectors. This hook replaces the colon with an underscore.
  *
- * @internal
+ * @public
  */
 export function useUniqueSafeId(suffix?: string): SafeId {
 	return sanitizeId(`${useId()}${suffix ?? ''}`) as SafeId
@@ -43,14 +43,14 @@ export function useUniqueSafeId(suffix?: string): SafeId {
  * React's useId hook returns a unique id for the component. However, it uses a colon in the id,
  * which is not valid for CSS selectors. This hook replaces the colon with an underscore.
  *
- * @internal
+ * @public
  */
 export function useSharedSafeId(id: string): SafeId {
 	const idScope = assertExists(useContext(IdContext))
 	return sanitizeId(`${idScope}_${id}`) as SafeId
 }
 
-/** @internal */
+/** @public */
 export function sanitizeId(id: string): string {
 	return id.replace(/:/g, '_')
 }
