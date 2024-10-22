@@ -667,7 +667,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.log?.warn?.('Received message from unknown session')
 			return
 		}
-
 		switch (message.type) {
 			case 'connect': {
 				return this.handleConnectRequest(session, message)
@@ -840,6 +839,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								doc.state.id !== session.presenceId
 						)
 					: []
+				const deletedDocsIds = Object.entries(this.state.get().tombstones)
+					.filter(([_id, deletedAtClock]) => deletedAtClock > message.lastServerClock)
+					.map(([id]) => id)
 
 				for (const doc of updatedDocs) {
 					diff[doc.state.id] = [RecordOpType.Put, doc.state]
@@ -848,6 +850,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					diff[doc.state.id] = [RecordOpType.Put, doc.state]
 				}
 
+				for (const docId of deletedDocsIds) {
+					diff[docId] = [RecordOpType.Remove]
+				}
 				const migrated = this.migrateDiffForSession(sessionSchema, diff)
 				if (!migrated.ok) {
 					rollback()
