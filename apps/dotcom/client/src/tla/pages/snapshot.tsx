@@ -3,6 +3,8 @@ import { IFrameProtector, ROOM_CONTEXT } from '../../components/IFrameProtector'
 import { defineLoader } from '../../utils/defineLoader'
 import { PUBLISH_ENDPOINT } from '../app/TldrawApp'
 import { TlaSnapshotsEditor } from '../components/TlaEditor/TlaSnapshotsEditor'
+import { useMaybeApp } from '../hooks/useAppState'
+import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
@@ -23,6 +25,17 @@ export { loader }
 export function Component() {
 	const result = useData()
 	const { roomId, records, schema } = result
+	const app = useMaybeApp()
+	if (!app?.getCurrentUserId()) {
+		return (
+			<TlaAnonLayout>
+				<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
+					<TlaSnapshotsEditor records={records} schema={schema} />
+				</IFrameProtector>
+			</TlaAnonLayout>
+		)
+	}
+
 	return (
 		<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
 			<TlaSnapshotsEditor records={records} schema={schema} />
