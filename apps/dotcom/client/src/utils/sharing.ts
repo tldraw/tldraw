@@ -174,7 +174,7 @@ export function useSharing(): TLUiOverrides {
 							msg,
 							roomId
 						)
-						writeToClipboard(new Promise(() => result))
+						writeToClipboard(new Promise((resolve) => resolve(result)))
 						addToast({
 							title: msg('share-menu.copied'),
 							severity: 'success',
