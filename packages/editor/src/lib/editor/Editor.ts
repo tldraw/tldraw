@@ -9419,10 +9419,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const { x: dx, y: dy, z: dz = 0 } = info.delta
 
 					let autoWheelBehavior = cameraOptions.autoWheelBehavior
-					// Set autoWheelBehavior to pan when scrolling horizontally.
-					// Don't set it when ctrl is pressed because ctrl changes the behavior and then we don't want to change the default behavior.
+					// Set autoWheelBehavior to pan when scrolling horizontally or when scrolling vertically with ctrlKey set to true. The reason for the latter is that pinch to zoom on a touchpad generates vertical scroll events with ctrlKey set to true.
 					// Don't set it when panning because if you're panning by holding down the mouse wheel and the wheel can be tilted to scroll horizontally it's easy to accidentally trigger that.
-					if (autoWheelBehavior !== 'pan' && dx !== 0 && !inputs.ctrlKey && !inputs.isPanning) {
+					if (
+						autoWheelBehavior !== 'pan' &&
+						!inputs.isPanning &&
+						(dx !== 0 || (dy !== 0 && inputs.ctrlKey))
+					) {
 						autoWheelBehavior = 'pan' as const
 						this.setCameraOptions({ autoWheelBehavior })
 					}
