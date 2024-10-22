@@ -18,6 +18,7 @@ interface DropdownPickerProps<T extends string> {
 	id: string
 	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	uiType: string
+	stylePanelType: string
 	style: StyleProp<T>
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
@@ -29,6 +30,7 @@ function DropdownPickerInner<T extends string>({
 	id,
 	label,
 	uiType,
+	stylePanelType,
 	style,
 	items,
 	type,
@@ -43,10 +45,12 @@ function DropdownPickerInner<T extends string>({
 		[items, value]
 	)
 
+	const stylePanelName = msg(`style-panel.${stylePanelType}` as TLUiTranslationKey)
+
 	const titleStr =
 		value.type === 'mixed'
 			? msg('style-panel.mixed')
-			: msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+			: stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
 	const labelStr = label ? msg(label) : ''
 
 	return (
@@ -65,7 +69,11 @@ function DropdownPickerInner<T extends string>({
 								<TldrawUiButton
 									type="icon"
 									data-testid={`style.${uiType}.${item.value}`}
-									title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
+									title={
+										stylePanelName +
+										' — ' +
+										msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
+									}
 									onClick={() => {
 										editor.markHistoryStoppingPoint('select style dropdown item')
 										onValueChange(style, item.value)
