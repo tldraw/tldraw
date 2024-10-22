@@ -437,7 +437,7 @@ export function MoveToPageMenu() {
 						id={page.id}
 						key={page.id}
 						disabled={currentPageId === page.id}
-						label={page.name}
+						label={page.name.length > 30 ? `${page.name.slice(0, 30)}\u2026` : page.name}
 						onSelect={() => {
 							editor.markHistoryStoppingPoint('move_shapes_to_page')
 							editor.moveShapesToPage(editor.getSelectedShapeIds(), page.id as TLPageId)
