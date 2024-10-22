@@ -842,7 +842,7 @@ const ArrowSvg = track(function ArrowSvg({
 		[editor]
 	)
 
-	const clipPathId = useUniqueSafeId()
+	const clipPathId = sanitizeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 
