@@ -437,7 +437,7 @@ function mapExcalidrawColorToTldrawColors(
 }
 
 const colorsToColors: Record<string, TLDefaultColorStyle> = {
-	...mapExcalidrawColorToTldrawColors('gray', 'grey', 'grey'),
+	...mapExcalidrawColorToTldrawColors('gray', 'grey', 'black'),
 	...mapExcalidrawColorToTldrawColors('red', 'light-red', 'red'),
 	...mapExcalidrawColorToTldrawColors('pink', 'light-red', 'red'),
 	...mapExcalidrawColorToTldrawColors('grape', 'light-violet', 'violet'),
