@@ -120,6 +120,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						}
 					}
 				}
+
 				const colorToUse =
 					element.backgroundColor === 'transparent' ? element.strokeColor : element.backgroundColor
 
@@ -410,40 +411,44 @@ const fontFamilyToFontType: Record<number, TLDefaultFontStyle> = {
 	3: 'mono',
 }
 
+const oc = {
+	gray: ['#f8f9fa', '#e9ecef', '#ced4da', '#868e96', '#343a40'],
+	red: ['#fff5f5', '#ffc9c9', '#ff8787', '#fa5252', '#e03131'],
+	pink: ['#fff0f6', '#fcc2d7', '#f783ac', '#e64980', '#c2255c'],
+	grape: ['#f8f0fc', '#eebefa', '#da77f2', '#be4bdb', '#9c36b5'],
+	violet: ['#f3f0ff', '#d0bfff', '#9775fa', '#7950f2', '#6741d9'],
+	indigo: ['#edf2ff', '#bac8ff', '#748ffc', '#4c6ef5', '#3b5bdb'],
+	blue: ['#e7f5ff', '#a5d8ff', '#4dabf7', '#228be6', '#1971c2'],
+	cyan: ['#e3fafc', '#99e9f2', '#3bc9db', '#15aabf', '#0c8599'],
+	teal: ['#e6fcf5', '#96f2d7', '#38d9a9', '#12b886', '#099268'],
+	green: ['#ebfbee', '#b2f2bb', '#69db7c', '#40c057', '#2f9e44'],
+	lime: ['#f4fce3', '#d8f5a2', '#a9e34b', '#82c91e', '#66a80f'],
+	yellow: ['#fff9db', '#ffec99', '#ffd43b', '#fab005', '#f08c00'],
+	orange: ['#fff4e6', '#ffd8a8', '#ffa94d', '#fd7e14', '#e8590c'],
+}
+
+function mapExcalidrawColorToTldrawColors(
+	excalidrawColor: keyof typeof oc,
+	light: TLDefaultColorStyle,
+	dark: TLDefaultColorStyle
+) {
+	const colors = [0, 1, 2, 3, 4].map((index) => oc[excalidrawColor][index])
+	return Object.fromEntries(colors.map((c, i) => [c, i < 3 ? light : dark]))
+}
+
 const colorsToColors: Record<string, TLDefaultColorStyle> = {
-	'#ffffff': 'grey',
-	// Strokes
+	...mapExcalidrawColorToTldrawColors('gray', 'grey', 'black'),
+	...mapExcalidrawColorToTldrawColors('red', 'light-red', 'red'),
+	...mapExcalidrawColorToTldrawColors('pink', 'light-red', 'red'),
+	...mapExcalidrawColorToTldrawColors('grape', 'light-violet', 'violet'),
+	...mapExcalidrawColorToTldrawColors('blue', 'light-blue', 'blue'),
+	...mapExcalidrawColorToTldrawColors('cyan', 'light-blue', 'blue'),
+	...mapExcalidrawColorToTldrawColors('teal', 'light-green', 'green'),
+	...mapExcalidrawColorToTldrawColors('green', 'light-green', 'green'),
+	...mapExcalidrawColorToTldrawColors('yellow', 'yellow', 'orange'),
+	...mapExcalidrawColorToTldrawColors('orange', 'yellow', 'orange'),
+	'#ffffff': 'white',
 	'#000000': 'black',
-	'#343a40': 'black',
-	'#495057': 'grey',
-	'#c92a2a': 'red',
-	'#a61e4d': 'light-red',
-	'#862e9c': 'violet',
-	'#5f3dc4': 'light-violet',
-	'#364fc7': 'blue',
-	'#1864ab': 'light-blue',
-	'#0b7285': 'light-green',
-	'#087f5b': 'light-green',
-	'#2b8a3e': 'green',
-	'#5c940d': 'light-green',
-	'#e67700': 'yellow',
-	'#d9480f': 'orange',
-	// Backgrounds
-	'#ced4da': 'grey',
-	'#868e96': 'grey',
-	'#fa5252': 'light-red',
-	'#e64980': 'red',
-	'#be4bdb': 'light-violet',
-	'#7950f2': 'violet',
-	'#4c6ef5': 'blue',
-	'#228be6': 'light-blue',
-	'#15aabf': 'light-green',
-	'#12b886': 'green',
-	'#40c057': 'green',
-	'#82c91e': 'light-green',
-	'#fab005': 'yellow',
-	'#fd7e14': 'orange',
-	'#212529': 'grey',
 }
 
 const strokeStylesToStrokeTypes: Record<string, TLDefaultDashStyle> = {

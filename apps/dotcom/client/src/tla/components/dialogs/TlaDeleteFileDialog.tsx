@@ -1,5 +1,6 @@
-import { TldrawAppFileId } from '@tldraw/dotcom-shared'
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -21,11 +22,16 @@ export function TlaDeleteFileDialog({
 }) {
 	const app = useApp()
 	const raw = useRaw()
+	const location = useLocation()
+	const navigate = useNavigate()
 
 	const handleDelete = useCallback(() => {
 		app.deleteFile(fileId)
+		if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
+			navigate('/q')
+		}
 		onClose()
-	}, [app, fileId, onClose])
+	}, [app, fileId, location.pathname, navigate, onClose])
 
 	return (
 		<>
