@@ -50,7 +50,11 @@ export function TlaFileShareMenu({
 		[trackEvent]
 	)
 
-	const showPulishTab = file && (isOwner || isPublished)
+	const showPublishTab = file && (isOwner || isPublished)
+	// This handles the case when a non owner is on the publish tab and the owner unpublishes it
+	if (!showPublishTab && shareMenuActiveTab === 'publish') {
+		handleTabChange('share')
+	}
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`share-${fileId}-${source}`}>
@@ -68,7 +72,7 @@ export function TlaFileShareMenu({
 							<TlaTabsTabs>
 								<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
 								<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
-								{showPulishTab && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
+								{showPublishTab && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
 							</TlaTabsTabs>
 							<TlaTabsPage id="share">
 								<TlaShareMenuSharePage fileId={fileId} />
@@ -76,7 +80,7 @@ export function TlaFileShareMenu({
 							<TlaTabsPage id="export">
 								<TlaShareMenuExportPage />
 							</TlaTabsPage>
-							{showPulishTab && (
+							{showPublishTab && (
 								<TlaTabsPage id="publish">
 									<TlaPublishPage file={file} />
 								</TlaTabsPage>
