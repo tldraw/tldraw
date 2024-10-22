@@ -1,14 +1,17 @@
-import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
-import { getR2KeyForRoom } from '../r2'
+import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 
 export async function deletePublishedRoom(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
-	if (!roomId) return notFound()
+	if (!roomId) return new Response('Room ID is required', { status: 400 })
 
-	// Delete the snapshot
-	await env.ROOM_SNAPSHOTS.delete(getR2KeyForRoom({ slug: roomId, isApp: true }))
+	const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
+	if (!parentSlug) return new Response('Parent slug is required', { status: 400 })
+
+	await env.ROOM_SNAPSHOTS.delete(
+		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: true })
+	)
 
 	return new Response('ok', { status: 200 })
 }

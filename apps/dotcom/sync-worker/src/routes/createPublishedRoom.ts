@@ -1,7 +1,7 @@
-import { PublishRoomRequestBody } from '@tldraw/dotcom-shared'
+import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
-import { getR2KeyForRoom } from '../r2'
+import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
 import { validateSnapshot } from '../utils/validateSnapshot'
 
@@ -14,7 +14,10 @@ export async function createPublishedRoom(request: IRequest, env: Environment): 
 	if (!roomId) {
 		return Response.json({ error: true, message: 'Room ID is required' }, { status: 400 })
 	}
-	const data = (await request.json()) as PublishRoomRequestBody
+	const data = (await request.json()) as CreateSnapshotRequestBody
+	const parentSlug = data.parent_slug
+	if (!parentSlug)
+		return Response.json({ error: true, message: 'Parent slug is required' }, { status: 400 })
 
 	const snapshotResult = validateSnapshot(data)
 	if (!snapshotResult.ok) {
@@ -33,8 +36,10 @@ export async function createPublishedRoom(request: IRequest, env: Environment): 
 		},
 	} satisfies R2Snapshot
 
+	await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(roomId, parentSlug)
+
 	await env.ROOM_SNAPSHOTS.put(
-		getR2KeyForRoom({ slug: roomId, isApp: true }),
+		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: true }),
 		JSON.stringify(persistedRoomSnapshot)
 	)
 

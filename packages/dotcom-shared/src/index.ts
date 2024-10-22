@@ -14,7 +14,6 @@ export type {
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
 	GetReadonlySlugResponseBody,
-	PublishRoomRequestBody,
 	Snapshot,
 } from './types'
 
