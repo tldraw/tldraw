@@ -22,11 +22,7 @@ function generateReponse(roomId: string, data: RoomSnapshot) {
 }
 
 // Returns a snapshot of the room at a given point in time
-export async function getRoomSnapshot(
-	request: IRequest,
-	env: Environment,
-	isApp: boolean
-): Promise<Response> {
+export async function getRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
 	if (!roomId) return notFound()
 
@@ -35,7 +31,7 @@ export async function getRoomSnapshot(
 
 	// Get the room snapshot from R2
 	const snapshot = await env.ROOM_SNAPSHOTS.get(
-		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp })
+		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: false })
 	)
 
 	if (snapshot) {
