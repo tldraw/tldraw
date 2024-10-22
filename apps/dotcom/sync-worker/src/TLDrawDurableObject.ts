@@ -333,14 +333,14 @@ export class TLDrawDurableObject extends DurableObject {
 			const ownerId = await this.getOwnerId()
 
 			if (ownerId) {
-				if (!auth) {
+				const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(APP_ID))
+				const shareType = await ownerDurableObject.getFileShareType(
+					TldrawAppFileRecordType.createId(this.documentInfo.slug)
+				)
+				if (!auth && shareType === 'private') {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
 				if (ownerId !== TldrawAppUserRecordType.createId(auth?.userId)) {
-					const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(APP_ID))
-					const shareType = await ownerDurableObject.getFileShareType(
-						TldrawAppFileRecordType.createId(this.documentInfo.slug)
-					)
 					if (shareType === 'private') {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
