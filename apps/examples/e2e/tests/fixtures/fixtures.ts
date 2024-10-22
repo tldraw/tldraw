@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { Page, test as base } from '@playwright/test'
 import { EndToEndApi } from '../../../src/misc/EndToEndApi'
 import { ActionsMenu } from './menus/ActionsMenu'

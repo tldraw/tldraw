@@ -649,7 +649,7 @@ describe('frame shapes', () => {
 	it('children of a frame will not be selected from outside of the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		editor.getOnlySelectedShape()!.id
+		expect(editor.getOnlySelectedShape()!.id).toBeDefined()
 
 		// make a shape inside the frame that extends out of the frame
 		editor.setCurrentTool('geo')
@@ -688,7 +688,7 @@ describe('frame shapes', () => {
 	it('arrows will not bind to parts of shapes outside the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		editor.getOnlySelectedShape()!.id
+		expect(editor.getOnlySelectedShape()!.id).toBeDefined()
 
 		// make a shape inside the frame that extends out of the frame
 		editor.setCurrentTool('geo')

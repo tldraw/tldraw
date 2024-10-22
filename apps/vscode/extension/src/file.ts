@@ -18,7 +18,7 @@ export function loadFile(fileContents: string): TldrawFile {
 	if (!fileContents) return defaultFileContents
 	try {
 		return JSON.parse(fileContents) as TldrawFile
-	} catch (e) {
+	} catch (_e) {
 		return fileContentWithErrors
 	}
 }

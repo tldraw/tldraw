@@ -62,7 +62,7 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 								multiple: false,
 								description: 'tldraw project',
 							})
-						} catch (e) {
+						} catch (_e) {
 							// user cancelled
 							return
 						}
@@ -126,7 +126,7 @@ export function getSaveFileCopyAction(
 					extensions: [TLDRAW_FILE_EXTENSION],
 					description: 'tldraw project',
 				})
-			} catch (e) {
+			} catch (_e) {
 				// user cancelled
 				return
 			}

@@ -87,7 +87,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 
 	try {
 		document.body.focus?.() // weird but necessary
-	} catch (e) {
+	} catch (_e) {
 		// not implemented
 	}
 

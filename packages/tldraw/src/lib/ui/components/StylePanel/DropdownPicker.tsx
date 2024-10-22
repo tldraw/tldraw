@@ -35,9 +35,12 @@ function _DropdownPicker<T extends string>({
 	value,
 	onValueChange,
 }: DropdownPickerProps<T>) {
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const msg = useTranslation()
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const editor = useEditor()
 
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const icon = React.useMemo(
 		() => items.find((item) => value.type === 'shared' && item.value === value.value)?.icon,
 		[items, value]

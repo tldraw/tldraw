@@ -959,11 +959,11 @@ export function literalEnum<const Values extends readonly unknown[]>(
 function parseUrl(str: string) {
 	try {
 		return new URL(str)
-	} catch (error) {
+	} catch (_error) {
 		if (str.startsWith('/') || str.startsWith('./')) {
 			try {
 				return new URL(str, 'http://example.com')
-			} catch (error) {
+			} catch (_error) {
 				throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
 			}
 		}

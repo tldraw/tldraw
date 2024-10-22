@@ -26,7 +26,7 @@ export const ZERO_INDEX_KEY = 'a0' as IndexKey
 export function validateIndexKey(index: string): asserts index is IndexKey {
 	try {
 		generateJitteredKeyBetween(index, null)
-	} catch (e) {
+	} catch (_e) {
 		throw new Error('invalid index: ' + index)
 	}
 }

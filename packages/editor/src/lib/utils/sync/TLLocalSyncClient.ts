@@ -174,7 +174,7 @@ export class TLLocalSyncClient {
 					data.sessionStateSnapshot ?? extractSessionStateFromLegacySnapshot(documentSnapshot)
 				const migrationResult = this.store.schema.migrateStoreSnapshot({
 					store: documentSnapshot,
-					// eslint-disable-next-line deprecation/deprecation
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
 					schema: data.schema ?? this.store.schema.serializeEarliestVersion(),
 				})
 

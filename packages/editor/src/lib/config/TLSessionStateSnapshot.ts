@@ -36,7 +36,7 @@ function iOS() {
 	if (!window) return false
 	return (
 		['iPad Simulator', 'iPhone Simulator', 'iPod Simulator', 'iPad', 'iPhone', 'iPod'].includes(
-			// eslint-disable-next-line deprecation/deprecation
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			window.navigator.platform
 		) ||
 		// iPad on iOS 13 detection
@@ -315,7 +315,7 @@ export function extractSessionStateFromLegacySnapshot(
 	try {
 		sessionStateSnapshotValidator.validate(result)
 		return result
-	} catch (e) {
+	} catch (_e) {
 		return null
 	}
 }

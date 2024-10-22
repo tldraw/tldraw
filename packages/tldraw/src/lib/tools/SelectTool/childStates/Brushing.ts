@@ -166,7 +166,6 @@ export class Brushing extends StateNode {
 				}
 			}
 		}
-		editor.getInstanceState().isCoarsePointer
 
 		const currentBrush = editor.getInstanceState().brush
 		if (!currentBrush || !brush.equals(currentBrush)) {

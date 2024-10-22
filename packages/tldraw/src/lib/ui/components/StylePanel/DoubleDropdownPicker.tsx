@@ -41,14 +41,17 @@ function _DoubleDropdownPicker<T extends string>({
 	valueB,
 	onValueChange,
 }: DoubleDropdownPickerProps<T>) {
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const msg = useTranslation()
 
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const iconA = React.useMemo(
 		() =>
 			itemsA.find((item) => valueA.type === 'shared' && valueA.value === item.value)?.icon ??
 			'mixed',
 		[itemsA, valueA]
 	)
+	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const iconB = React.useMemo(
 		() =>
 			itemsB.find((item) => valueB.type === 'shared' && valueB.value === item.value)?.icon ??

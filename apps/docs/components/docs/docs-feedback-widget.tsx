@@ -77,7 +77,7 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 				setTimeout(() => {
 					setDidSubmit(true)
 				}, 3000)
-			} catch (e) {
+			} catch (_e) {
 				setState('error')
 			}
 		},
