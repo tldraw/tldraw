@@ -7,6 +7,7 @@ import {
 	Group2d,
 	Rectangle2d,
 	SVGContainer,
+	SafeId,
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowBinding,
@@ -33,7 +34,6 @@ import {
 	useEditor,
 	useIsEditing,
 	useSharedSafeId,
-	useUniqueSafeId,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
@@ -842,7 +842,7 @@ const ArrowSvg = track(function ArrowSvg({
 		[editor]
 	)
 
-	const clipPathId = sanitizeId(shape.id + '_clip')
+	const clipPathId = sanitizeId(shape.id + '_clip') as SafeId
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 
