@@ -1,5 +1,13 @@
 import { useLayoutEffect, useRef } from 'react'
-import { TLComponents, Tldraw, approximately, useEditor, useIsDarkMode, useValue } from 'tldraw'
+import {
+	Box,
+	TLComponents,
+	Tldraw,
+	approximately,
+	useEditor,
+	useIsDarkMode,
+	useValue,
+} from 'tldraw'
 import 'tldraw/tldraw.css'
 
 /**
@@ -35,14 +43,34 @@ const components: TLComponents = {
 			// [5]
 			const pageViewportBounds = editor.getViewportPageBounds()
 
-			const startPageX = Math.ceil(pageViewportBounds.minX / size) * size
-			const startPageY = Math.ceil(pageViewportBounds.minY / size) * size
-			const endPageX = Math.floor(pageViewportBounds.maxX / size) * size
-			const endPageY = Math.floor(pageViewportBounds.maxY / size) * size
+			let startPageX = Math.ceil(pageViewportBounds.minX / size) * size
+			let startPageY = Math.ceil(pageViewportBounds.minY / size) * size
+			let endPageX = Math.floor(pageViewportBounds.maxX / size) * size
+			let endPageY = Math.floor(pageViewportBounds.maxY / size) * size
+
+			// constrain the box to be within example box 0,0,1280,1024
+			const BOUNDS = new Box(0, 0, 1280, 1024)
+			startPageX = Math.max(BOUNDS.minX, startPageX)
+			startPageY = Math.max(BOUNDS.minY, startPageY)
+			endPageX = Math.min(BOUNDS.maxX, endPageX)
+			endPageY = Math.min(BOUNDS.maxY, endPageY)
+
+			// don't draw anything if the box is off screen
+
 			const numRows = Math.round((endPageY - startPageY) / size)
 			const numCols = Math.round((endPageX - startPageX) / size)
 
 			ctx.strokeStyle = isDarkMode ? '#555' : '#BBB'
+
+			const canvasStartX = (startPageX + camera.x) * camera.z * devicePixelRatio
+			const canvasStartY = (startPageY + camera.y) * camera.z * devicePixelRatio
+			const canvasEndX = (endPageX + camera.x) * camera.z * devicePixelRatio
+			const canvasEndY = (endPageY + camera.y) * camera.z * devicePixelRatio
+
+			// return early if it's off screen
+			if (canvasEndY < 0 || canvasStartY > canvasH || canvasEndX < 0 || canvasStartX > canvasW) {
+				return
+			}
 
 			// [6]
 			for (let row = 0; row <= numRows; row++) {
@@ -50,14 +78,14 @@ const components: TLComponents = {
 				// convert the page-space Y offset into our canvas' coordinate space
 				const canvasY = (pageY + camera.y) * camera.z * devicePixelRatio
 				const isMajorLine = approximately(pageY % (size * 10), 0)
-				drawLine(ctx, 0, canvasY, canvasW, canvasY, isMajorLine ? 3 : 1)
+				drawLine(ctx, canvasStartX, canvasY, canvasEndX, canvasY, isMajorLine ? 3 : 1)
 			}
 			for (let col = 0; col <= numCols; col++) {
 				const pageX = startPageX + col * size
 				// convert the page-space X offset into our canvas' coordinate space
 				const canvasX = (pageX + camera.x) * camera.z * devicePixelRatio
 				const isMajorLine = approximately(pageX % (size * 10), 0)
-				drawLine(ctx, canvasX, 0, canvasX, canvasH, isMajorLine ? 3 : 1)
+				drawLine(ctx, canvasX, canvasStartY, canvasX, canvasEndY, isMajorLine ? 3 : 1)
 			}
 		}, [screenBounds, camera, size, devicePixelRatio, editor, isDarkMode])
 
