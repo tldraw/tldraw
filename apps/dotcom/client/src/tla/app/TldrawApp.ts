@@ -20,6 +20,7 @@ import {
 	computed,
 	createTLUser,
 	getUserPreferences,
+	uniq,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { getCurrentEditor } from '../utils/getCurrentEditor'
@@ -122,9 +123,13 @@ export class TldrawApp {
 		const fileEditRecords = this.getUserFileEdits()
 
 		// Incluude any files that the user has edited
-		const fileRecords = fileEditRecords
-			.map((r) => this.get(r.fileId))
-			.filter(Boolean) as TldrawAppFile[]
+		const fileRecords = uniq([
+			...this.getUserOwnFiles(),
+			...(fileEditRecords
+				.map((r) => this.get(r.fileId))
+				.concat()
+				.filter(Boolean) as TldrawAppFile[]),
+		])
 
 		// A map of file IDs to the most recent date we have for them
 		// the default date is the file's creation date; but we'll use the
@@ -267,7 +272,6 @@ export class TldrawApp {
 	}
 
 	async deleteFile(_fileId: TldrawAppFileId) {
-		// TODO we still need to remove the file completely - you can still visit this file if you have the link.
 		this.store.remove([_fileId])
 	}
 

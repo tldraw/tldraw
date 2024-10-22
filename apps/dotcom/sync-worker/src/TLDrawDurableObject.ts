@@ -568,4 +568,25 @@ export class TLDrawDurableObject extends DurableObject {
 			}
 		}
 	}
+
+	async appFileRecordDidDelete(slug: string) {
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug,
+				isApp: true,
+				isOrWasCreateMode: false,
+			})
+		}
+		const room = await this.getRoom()
+		for (const session of room.getSessions()) {
+			room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+		}
+		room.close()
+		// setting _room to null will prevent any further persists from going through
+		this._room = null
+		// delete from R2
+		const key = getR2KeyForRoom({ slug, isApp: true })
+		await this.r2.rooms.delete(key)
+	}
 }
