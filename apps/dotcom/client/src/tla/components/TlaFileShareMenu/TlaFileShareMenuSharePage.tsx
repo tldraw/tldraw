@@ -39,9 +39,6 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
 				{isShared && <QrCode url={getShareableFileUrl(fileId)} />}
 			</TlaMenuSection>
-			<TlaMenuSection>
-				<TlaCopySnapshotLinkButton fileId={fileId} />
-			</TlaMenuSection>
 		</>
 	)
 }
