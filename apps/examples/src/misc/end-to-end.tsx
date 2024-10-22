@@ -30,7 +30,6 @@ class HtmlCssShapeUtil extends BaseBoxShapeUtil<HtmlCssShape> {
 	}
 }
 function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
-	// eslint-disable-next-line local/no-at-internal
 	const id = useUniqueSafeId()
 
 	useLayoutEffect(() => {
