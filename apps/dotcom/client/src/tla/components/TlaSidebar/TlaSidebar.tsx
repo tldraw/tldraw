@@ -8,7 +8,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
-import { getFileUrl } from '../../utils/urls'
+import { getFilePath } from '../../utils/urls'
 import { TlaAccountMenu } from '../TlaAccountMenu/TlaAccountMenu'
 import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
@@ -100,7 +100,7 @@ function TlaSidebarCreateFileButton() {
 	const handleSidebarCreate = useCallback(() => {
 		const file = app.createFile()
 
-		navigate(getFileUrl(file.id), { state: { isCreateMode: true } })
+		navigate(getFilePath(file.id), { state: { isCreateMode: true } })
 	}, [app, navigate])
 
 	return (
@@ -229,7 +229,7 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 					{TldrawApp.getFileName(file)} {isOwnFile ? '' : '(Guest)'}
 				</div>
 			</div>
-			<Link to={getFileUrl(file.id)} className={styles.linkButton} />
+			<Link to={getFilePath(file.id)} className={styles.linkButton} />
 			<TlaSidebarFileLinkMenu fileId={file.id} onRenameAction={handleRenameAction} />
 		</div>
 	)
