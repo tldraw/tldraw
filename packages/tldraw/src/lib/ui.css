@@ -4,6 +4,7 @@
 	--layer-above: 1;
 	--layer-focused-input: 10;
 	--layer-panels: 300;
+	--layer-menu-click-capture: 350;
 	--layer-menus: 400;
 	--layer-toasts: 650;
 	--layer-cursor: 700;
@@ -1800,8 +1801,8 @@
 	}
 }
 
-.tlui-menu-overlay {
+.tlui-menu-click-capture {
 	position: fixed;
 	inset: 0;
-	z-index: var(--layer-panels);
+	z-index: var(--layer-menu-click-capture);
 }
