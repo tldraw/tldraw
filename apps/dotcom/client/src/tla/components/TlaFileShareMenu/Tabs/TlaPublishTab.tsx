@@ -42,7 +42,9 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 			if (!token) throw Error('no token')
 
 			setUploading(true)
-			app.setFilePublished(file.id, true)
+			if (!published) {
+				app.setFilePublished(file.id, true)
+			}
 			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
 			setUploading(false)
 			if (result.ok) {
@@ -51,7 +53,10 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 					severity: 'success',
 				})
 			} else {
-				app.setFilePublished(file.id, false)
+				// We should only revert when creating a file, update failure should not revert the published status
+				if (!update) {
+					app.setFilePublished(file.id, false)
+				}
 				addToast({
 					title: update ? 'could not update' : 'could not publish',
 					severity: 'error',
