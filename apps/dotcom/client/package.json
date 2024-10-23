@@ -76,6 +76,9 @@
 		},
 		"setupFiles": [
 			"./setupTests.js"
+		],
+		"testPathIgnorePatterns": [
+			"/e2e/"
 		]
 	}
 }
