@@ -10,7 +10,7 @@ import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
 	const result = await fetch(`${PUBLISH_ENDPOINT}/${fileSlug}`)
-	if (!result.ok) throw new Error('Room not found')
+	if (!result.ok) throw new Response('Room Not Found', { status: 404 })
 
 	const data = await result.json()
 	if (!data || data.error) throw new Error('Room not found')
