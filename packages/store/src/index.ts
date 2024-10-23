@@ -55,7 +55,6 @@ export {
 	createMigrationIds,
 	createMigrationSequence,
 	createRecordMigrationSequence,
-	// eslint-disable-next-line deprecation/deprecation
 	defineMigrations,
 	parseMigrationId,
 	type LegacyBaseMigrationsInfo,

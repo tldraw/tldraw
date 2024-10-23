@@ -257,7 +257,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			)
 		}
 
-		this.presenceType = presenceTypes.values().next()?.value
+		this.presenceType = presenceTypes.values().next()?.value ?? null
 
 		if (!snapshot) {
 			snapshot = {
@@ -310,7 +310,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			store: Object.fromEntries(
 				objectMapEntries(documents).map(([id, { state }]) => [id, state as R])
 			) as Record<IdOf<R>, R>,
-			// eslint-disable-next-line deprecation/deprecation
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			schema: snapshot.schema ?? this.schema.serializeEarliestVersion(),
 		})
 
@@ -501,7 +501,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					session.socket.close()
 				}
 			}
-		} catch (_e) {
+		} catch {
 			// noop
 		}
 
@@ -697,23 +697,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (session.requiresLegacyRejection) {
 			try {
 				if (session.socket.isOpen) {
-					// eslint-disable-next-line deprecation/deprecation
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
 					let legacyReason: TLIncompatibilityReason
 					switch (fatalReason) {
 						case TLSyncErrorCloseEventReason.CLIENT_TOO_OLD:
-							// eslint-disable-next-line deprecation/deprecation
+							// eslint-disable-next-line @typescript-eslint/no-deprecated
 							legacyReason = TLIncompatibilityReason.ClientTooOld
 							break
 						case TLSyncErrorCloseEventReason.SERVER_TOO_OLD:
-							// eslint-disable-next-line deprecation/deprecation
+							// eslint-disable-next-line @typescript-eslint/no-deprecated
 							legacyReason = TLIncompatibilityReason.ServerTooOld
 							break
 						case TLSyncErrorCloseEventReason.INVALID_RECORD:
-							// eslint-disable-next-line deprecation/deprecation
+							// eslint-disable-next-line @typescript-eslint/no-deprecated
 							legacyReason = TLIncompatibilityReason.InvalidRecord
 							break
 						default:
-							// eslint-disable-next-line deprecation/deprecation
+							// eslint-disable-next-line @typescript-eslint/no-deprecated
 							legacyReason = TLIncompatibilityReason.InvalidOperation
 							break
 					}
@@ -722,7 +722,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						reason: legacyReason,
 					})
 				}
-			} catch (e) {
+			} catch {
 				// noop
 			} finally {
 				this.removeSession(sessionId)

@@ -7,7 +7,6 @@ const { log: nicelog } = console
 export async function generateApiContent(): Promise<GeneratedContent> {
 	const articles: Articles = {}
 	const CONTENT_DIRECTORY = path.join(process.cwd(), 'content')
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const sections = require(path.join(CONTENT_DIRECTORY, 'sections.json')) as InputSection[]
 
 	try {

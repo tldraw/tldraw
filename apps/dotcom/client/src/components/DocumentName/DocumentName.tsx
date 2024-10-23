@@ -97,7 +97,9 @@ export const DocumentNameInner = track(function DocumentNameInner() {
 								onClick={async () => {
 									trackEvent('copy-link', { source: 'document-name' })
 									const shareLink = await getShareUrl(window.location.href, editor.getIsReadonly())
-									shareLink && navigator.clipboard.writeText(shareLink)
+									if (shareLink) {
+										navigator.clipboard.writeText(shareLink)
+									}
 									toasts.addToast({
 										title: msg('share-menu.copied'),
 										severity: 'success',

@@ -94,7 +94,7 @@ export class TLDrawDurableObject extends DurableObject {
 								})
 								try {
 									await this.persistToDatabase()
-								} catch (err) {
+								} catch {
 									// already logged
 								}
 								// make sure nobody joined the room while we were persisting
@@ -253,7 +253,7 @@ export class TLDrawDurableObject extends DurableObject {
 			return await this.router.fetch(req)
 		} catch (err) {
 			console.error(err)
-			// eslint-disable-next-line deprecation/deprecation
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			sentry?.captureException(err)
 			return new Response('Something went wrong', {
 				status: 500,

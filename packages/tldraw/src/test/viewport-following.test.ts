@@ -1,10 +1,10 @@
 import { TestEditor } from './TestEditor'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 let editor: TestEditor
 
 beforeEach(() => {
 	editor = new TestEditor()
-	editor
 })
 
 describe('When following a user', () => {

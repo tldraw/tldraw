@@ -58,7 +58,7 @@ try {
 			auth: undefined,
 		}
 	}
-} catch (e) {
+} catch {
 	// noop
 }
 

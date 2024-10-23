@@ -36,7 +36,7 @@ export const isValidHttpURL = (url: string) => {
 	try {
 		const u = new URL(url)
 		return u.protocol === 'http:' || u.protocol === 'https:'
-	} catch (e) {
+	} catch {
 		return false
 	}
 }
@@ -50,7 +50,7 @@ const getValidHttpURLList = (url: string) => {
 			if (!(u.protocol === 'http:' || u.protocol === 'https:')) {
 				return
 			}
-		} catch (e) {
+		} catch {
 			return
 		}
 	}
@@ -358,7 +358,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 										r({ type: 'tldraw', data: json.data })
 										return
 									}
-								} catch (e: any) {
+								} catch {
 									r({
 										type: 'error',
 										data: tldrawHtmlComment,
@@ -389,7 +389,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 										r({ type: 'text', data: text, subtype: 'json' })
 										return
 									}
-								} catch (e) {
+								} catch {
 									// If we could not parse the text as JSON, then it's just text
 									r({ type: 'text', data: text, subtype: 'text' })
 									return
