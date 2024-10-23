@@ -1,10 +1,10 @@
-import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiInput, preventDefault, useValue } from 'tldraw'
-import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
@@ -143,10 +143,10 @@ function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const { auth, createdAt: sessionStart } = getLocalSessionState()
+			const { auth } = getLocalSessionState()
 			if (!auth) return false
 
-			return app.getUserRecentFiles(sessionStart)
+			return app.getUserRecentFiles()
 		},
 		[app]
 	)
@@ -203,34 +203,37 @@ function TlaSidebarFileSection({ title, items }: { title: string; items: RecentF
 			<TlaSpacer height="8" />
 			<div className={classNames(styles.sectionTitle, 'tla-text_ui__medium')}>{title}</div>
 			{items.map((item) => (
-				<TlaSidebarFileLink key={'recent_' + item.file.id} item={item} />
+				<TlaSidebarFileLink key={'recent_' + item.fileId} item={item} />
 			))}
 		</div>
 	)
 }
 
 function TlaSidebarFileLink({ item }: { item: RecentFile }) {
-	const { file, isOwnFile } = item
+	const { fileId } = item
+	const isOwnFile = useIsFileOwner(fileId)
 	const { fileSlug } = useParams()
-	const isActive = TldrawAppFileRecordType.createId(fileSlug) === file.id
+	const isActive = TldrawAppFileRecordType.createId(fileSlug) === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
 
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameClose = () => setIsRenaming(false)
 
+	const app = useApp()
+
 	if (isRenaming) {
-		return <TlaRenameInline fileId={file.id} onClose={handleRenameClose} />
+		return <TlaRenameInline fileId={fileId} onClose={handleRenameClose} />
 	}
 
 	return (
 		<div className={classNames(styles.link, styles.hoverable)} data-active={isActive}>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
-					{TldrawApp.getFileName(file)} {isOwnFile ? '' : '(Guest)'}
+					{app.getFileName(fileId)} {isOwnFile ? '' : '(Guest)'}
 				</div>
 			</div>
-			<Link to={getFilePath(file.id)} className={styles.linkButton} />
-			<TlaSidebarFileLinkMenu fileId={file.id} onRenameAction={handleRenameAction} />
+			<Link to={getFilePath(fileId)} className={styles.linkButton} />
+			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
 	)
 }
@@ -238,16 +241,6 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onClose(): void }) {
 	const app = useApp()
 	const ref = useRef<HTMLInputElement>(null)
-
-	const file = useValue(
-		'file',
-		() => {
-			const file = app.store.get(fileId)
-			if (!file) throw Error('expected a file')
-			return file
-		},
-		[app]
-	)
 
 	const handleSave = useCallback(() => {
 		// rename the file
@@ -295,7 +288,7 @@ function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onC
 			<TldrawUiInput
 				ref={ref}
 				className={classNames(styles.rename, 'tla-text_ui__regular')}
-				defaultValue={TldrawApp.getFileName(file)}
+				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}
 				autoSelect
 				autoFocus
@@ -354,7 +347,6 @@ export function TlaSidebarToggleMobile() {
 }
 
 interface RecentFile {
-	file: TldrawAppFile
+	fileId: TldrawAppFileId
 	date: number
-	isOwnFile: boolean
 }
