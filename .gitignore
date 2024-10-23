@@ -87,6 +87,8 @@ apps/examples/build.esbuild.json
 
 apps/examples/e2e/test-results
 apps/examples/playwright-report
+apps/dotcom/client/test-results
+apps/dotcom/client/playwright-report
 
 apps/docs/content/gen
 apps/docs/content/releases

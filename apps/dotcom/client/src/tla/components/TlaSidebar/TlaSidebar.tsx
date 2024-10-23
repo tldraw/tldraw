@@ -243,6 +243,7 @@ export function TlaSidebarToggle() {
 		<button
 			className={styles.toggle}
 			data-mobile={false}
+			data-testid="tla-sidebar-toggle"
 			onClick={() => updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))}
 		>
 			<TlaIcon icon="sidebar" />
@@ -255,6 +256,7 @@ export function TlaSidebarToggleMobile() {
 		<button
 			className={styles.toggle}
 			data-mobile={true}
+			data-testid="tla-sidebar-toggle-mobile"
 			onClick={() =>
 				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
 			}

@@ -16,7 +16,9 @@
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test-ci": "lazy inherit",
-		"test": "yarn run -T jest"
+		"test": "yarn run -T jest",
+		"e2e": "yarn playwright test",
+		"e2e-ui": "yarn playwright test --ui"
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.9.3",
@@ -42,9 +44,11 @@
 	},
 	"devDependencies": {
 		"@jest/globals": "30.0.0-alpha.2",
+		"@playwright/test": "^1.48.1",
 		"@sentry/cli": "^2.25.0",
 		"@tldraw/validate": "workspace:*",
 		"@types/lodash.pick": "^4.4.9",
+		"@types/node": "^22.7.9",
 		"@types/qrcode": "^1.5.0",
 		"@types/react": "^18.2.0",
 		"@typescript-eslint/utils": "^5.59.0",

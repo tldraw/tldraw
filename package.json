@@ -57,7 +57,8 @@
 		"test-ci": "lazy test-ci",
 		"test": "lazy test",
 		"test-coverage": "lazy test-coverage && node internal/scripts/offer-coverage.mjs",
-		"e2e": "lazy e2e --filter='apps/examples'"
+		"e2e": "lazy e2e --filter='apps/examples'",
+		"e2e-dotcom": "lazy run e2e --filter='apps/dotcom/*'"
 	},
 	"engines": {
 		"npm": ">=7.0.0"
