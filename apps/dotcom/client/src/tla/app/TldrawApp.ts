@@ -1,4 +1,6 @@
 import {
+	CreateSnapshotRequestBody,
+	CreateSnapshotResponseBody,
 	TldrawAppFile,
 	TldrawAppFileEdit,
 	TldrawAppFileEditRecordType,
@@ -11,8 +13,10 @@ import {
 	TldrawAppUserRecordType,
 	UserPreferencesKeys,
 } from '@tldraw/dotcom-shared'
+import { Result, fetch } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
+	Editor,
 	Store,
 	TLStoreSnapshot,
 	TLUserPreferences,
@@ -23,8 +27,11 @@ import {
 	uniq,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { getSnapshotData } from '../../utils/sharing'
 import { getCurrentEditor } from '../utils/getCurrentEditor'
 import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
+
+export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -218,16 +225,22 @@ export class TldrawApp {
 	}
 
 	toggleFileShared(fileId: TldrawAppFileId) {
-		const userId = this.getCurrentUserId()
-
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
-		if (userId !== file.ownerId) {
-			throw Error('user cannot edit that file')
-		}
+		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
 
 		this.store.put([{ ...file, shared: !file.shared }])
+	}
+
+	setFilePublished(fileId: TldrawAppFileId, value: boolean) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
+
+		if (value === file.published) return
+
+		this.store.put([{ ...file, published: value }])
 	}
 
 	setFileSharedLinkType(
@@ -271,6 +284,12 @@ export class TldrawApp {
 		return { newFile, editorStoreSnapshot }
 	}
 
+	isFileOwner(fileId: TldrawAppFileId) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) return false
+		return file.ownerId === this.getCurrentUserId()
+	}
+
 	async deleteFile(_fileId: TldrawAppFileId) {
 		this.store.remove([_fileId])
 	}
@@ -281,10 +300,32 @@ export class TldrawApp {
 		return new Promise((r) => setTimeout(r, 2000))
 	}
 
-	async createSnapshotLink(_userId: TldrawAppUserId, _fileId: TldrawAppFileId) {
-		// todo: create a snapshot link on the server and return the url
-		console.warn('snapshot links are not implemented yet, but you are in the right place')
-		return new Promise((r) => setTimeout(r, 2000))
+	async createSnapshotLink(editor: Editor, parentSlug: string, fileSlug: string, token: string) {
+		const data = await getSnapshotData(editor)
+
+		if (!data) return Result.err('could not get snapshot data')
+
+		const endpoint = `${PUBLISH_ENDPOINT}/${fileSlug}`
+
+		const res = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({
+				snapshot: data,
+				schema: editor.store.schema.serialize(),
+				parent_slug: parentSlug,
+			} satisfies CreateSnapshotRequestBody),
+		})
+		const response = (await res.json()) as CreateSnapshotResponseBody
+
+		if (!res.ok || response.error) {
+			console.error(await res.text())
+			return Result.err('could not create snapshot')
+		}
+		return Result.ok('success')
 	}
 
 	onFileEnter(fileId: TldrawAppFileId) {

@@ -6798,6 +6798,7 @@ __metadata:
   dependencies:
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     tldraw: "workspace:*"
   peerDependencies:

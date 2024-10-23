@@ -10,10 +10,13 @@ import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 import { APP_ID } from './TLAppDurableObject'
+import { createPublishedRoom } from './routes/createPublishedRoom'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
+import { deletePublishedRoom } from './routes/deletePublishedRoom'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
+import { getPublishedRoom } from './routes/getPublishedRoom'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
@@ -58,6 +61,9 @@ const router = createRouter<Environment>()
 
 		return notFound()
 	})
+	.get('/app/publish/:roomId', getPublishedRoom)
+	.post('/app/publish/:roomId', createPublishedRoom)
+	.delete('/app/publish/:roomId', deletePublishedRoom)
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)

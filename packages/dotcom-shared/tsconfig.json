@@ -17,6 +17,9 @@
 			"path": "../tlschema"
 		},
 		{
+			"path": "../utils"
+		},
+		{
 			"path": "../validate"
 		}
 	]
