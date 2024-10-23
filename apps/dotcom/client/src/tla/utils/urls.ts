@@ -1,15 +1,11 @@
-import { isDevelopmentEnv } from '../../utils/env'
-
-export function getFileUrl(fileId: string): string {
+export function getFilePath(fileId: string): string {
 	return `/q/f/${fileId.split(':').pop()}`
 }
 
 export function getShareableFileUrl(fileId: string): string {
-	const host = isDevelopmentEnv ? 'http://localhost:3000' : 'https://tldraw.com'
-	return `${host}${getFileUrl(fileId)}`
+	return `${window.location.origin}${getFilePath(fileId)}`
 }
 
 export function getShareablePublishUrl(publishSlug: string): string {
-	const host = isDevelopmentEnv ? 'http://localhost:3000' : 'https://tldraw.com'
-	return `${host}/q/p/${publishSlug}`
+	return `${window.location.origin}/q/p/${publishSlug}`
 }
