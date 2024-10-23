@@ -288,7 +288,7 @@ function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onC
 			document.removeEventListener('click', handleClick, { capture: true })
 			document.removeEventListener('keydown', handleKeyDown)
 		}
-	}, [])
+	}, [handleSave, onClose])
 
 	return (
 		<div className={styles.renameWrapper}>
@@ -311,7 +311,7 @@ function TlaSidebarFileLinkMenu({
 	onRenameAction,
 }: {
 	fileId: TldrawAppFile['id']
-	onRenameAction: () => void
+	onRenameAction(): void
 }) {
 	return (
 		<TlaFileMenu fileId={fileId} source="sidebar" onRenameAction={onRenameAction}>

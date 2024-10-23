@@ -29,7 +29,7 @@ export function TlaFileMenu({
 	children: ReactNode
 	source: string
 	fileId: TldrawAppFile['id']
-	onRenameAction: () => void
+	onRenameAction(): void
 }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()

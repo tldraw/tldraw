@@ -134,7 +134,7 @@ function TlaFileNameEditor({
 			onChange(name)
 			onEnd?.()
 		},
-		[onChange]
+		[onChange, onEnd]
 	)
 
 	useEffect(() => {
@@ -142,7 +142,7 @@ function TlaFileNameEditor({
 			// Wait a tick, otherwise the blur event immediately exits the input.
 			setTimeout(() => setIsEditing(isRenaming), 0)
 		}
-	}, [isRenaming])
+	}, [isRenaming, isEditing])
 
 	return (
 		<div className={styles.inputWrapper}>
