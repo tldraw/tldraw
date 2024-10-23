@@ -63,7 +63,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 				})
 			}
 		},
-		[editor, fileSlug, publishedSlug, isOwner, auth, app, addToast, file.id]
+		[editor, fileSlug, published, publishedSlug, isOwner, auth, app, addToast, file.id]
 	)
 
 	const unpublish = useCallback(async () => {
