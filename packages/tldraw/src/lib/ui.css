@@ -214,7 +214,7 @@
 }
 
 .tlui-button__tool:focus-visible:not(:hover) {
-	border-radius: var(--radius-4);
+	border-radius: 12px;
 }
 
 .tlui-button__tool:nth-of-type(1) {
