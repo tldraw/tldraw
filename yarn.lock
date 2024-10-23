@@ -3715,17 +3715,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.46.1":
-  version: 1.46.1
-  resolution: "@playwright/test@npm:1.46.1"
-  dependencies:
-    playwright: "npm:1.46.1"
-  bin:
-    playwright: cli.js
-  checksum: 09e2c28574402f14e2d6f6843022c5778382dc7f703bae931dd531fc0fc1b725a862d3b52932bd6912cb13cbaed54822af33eb3d70134d93b0f1c10ec3fb0756
-  languageName: node
-  linkType: hard
-
 "@playwright/test@npm:^1.48.1":
   version: 1.48.1
   resolution: "@playwright/test@npm:1.48.1"
@@ -7647,15 +7636,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.7.9":
-  version: 22.7.9
-  resolution: "@types/node@npm:22.7.9"
-  dependencies:
-    undici-types: "npm:~6.19.2"
-  checksum: c68650a1ca3c65cc02e16166fa7daca9958ecea54bd52b0af31009011c44a33f8d559bf467c681b1f06935a10cafb932cc30e5454ecfc89351d361ab669bdba6
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:~20.11":
   version: 20.11.11
   resolution: "@types/node@npm:20.11.11"
@@ -11340,7 +11320,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/lodash.pick": "npm:^4.4.9"
-    "@types/node": "npm:^22.7.9"
+    "@types/node": "npm:~20.11"
     "@types/qrcode": "npm:^1.5.0"
     "@types/react": "npm:^18.2.0"
     "@typescript-eslint/utils": "npm:^5.59.0"
@@ -12674,7 +12654,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
-    "@playwright/test": "npm:^1.46.1"
+    "@playwright/test": "npm:^1.48.1"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
@@ -19484,36 +19464,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.46.1":
-  version: 1.46.1
-  resolution: "playwright-core@npm:1.46.1"
-  bin:
-    playwright-core: cli.js
-  checksum: 950aa935bba0b67ed289e07f31a52104c2b2ff9e39c46cda70b83f0b327e8114bcbcdeb4e8f94333ec941f9cd49cfac3af4cad91e247206ce927283482f24d91
-  languageName: node
-  linkType: hard
-
 "playwright-core@npm:1.48.1":
   version: 1.48.1
   resolution: "playwright-core@npm:1.48.1"
   bin:
     playwright-core: cli.js
   checksum: 81b51d288be78b75898470eb192ef0bc65594eebfb5f7602d83ba2505e1d2163c9923a0d7bae46779d5f3a16e1daf392acfbccde01d9f302cdf90bf2b21b8988
-  languageName: node
-  linkType: hard
-
-"playwright@npm:1.46.1":
-  version: 1.46.1
-  resolution: "playwright@npm:1.46.1"
-  dependencies:
-    fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.46.1"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    playwright: cli.js
-  checksum: 17b0e7495a663dccbda4baf4953823a133af0b7cd4a5978bd2f40768a23e1a92d3659d7b48289a5160c9fa6269d8b9bbf5e2040aa4a63a3dd5f29475343ad3f2
   languageName: node
   linkType: hard
 
@@ -23120,13 +23076,6 @@ __metadata:
   version: 5.26.5
   resolution: "undici-types@npm:5.26.5"
   checksum: 0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~6.19.2":
-  version: 6.19.8
-  resolution: "undici-types@npm:6.19.8"
-  checksum: cf0b48ed4fc99baf56584afa91aaffa5010c268b8842f62e02f752df209e3dea138b372a60a963b3b2576ed932f32329ce7ddb9cb5f27a6c83040d8cd74b7a70
   languageName: node
   linkType: hard
 
