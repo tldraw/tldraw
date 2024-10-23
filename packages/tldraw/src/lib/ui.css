@@ -3,8 +3,8 @@
 .tl-container {
 	--layer-above: 1;
 	--layer-focused-input: 10;
+	--layer-menu-click-capture: 250;
 	--layer-panels: 300;
-	--layer-menu-click-capture: 350;
 	--layer-menus: 400;
 	--layer-toasts: 650;
 	--layer-cursor: 700;
