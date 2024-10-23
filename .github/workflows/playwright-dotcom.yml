@@ -47,8 +47,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
 
       - name: Run Playwright tests
-        run: 'yarn e2e'
-        working-directory: apps/dotcom/client
+        run: 'yarn e2e-dotcom'
 
       - uses: actions/upload-artifact@v3
         if: always()
