@@ -3,7 +3,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
-import { isFileOwner } from '../utils/permissions'
+import { getFileOwnerStatus, returnFileOwnerStatusErrorResponse } from '../utils/permissions'
 import { validateSnapshot } from '../utils/validateSnapshot'
 
 export interface R2Snapshot {
@@ -37,15 +37,15 @@ export async function createPublishedRoom(request: IRequest, env: Environment): 
 		},
 	} satisfies R2Snapshot
 
-	if (!(await isFileOwner(request, env, parentSlug))) {
-		return new Response('Unauthorized', { status: 401 })
+	const status = await getFileOwnerStatus(request, env, parentSlug)
+	if (!status.ok) {
+		return returnFileOwnerStatusErrorResponse(status.error)
 	}
-
 	await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(roomId, parentSlug)
 	await env.ROOM_SNAPSHOTS.put(
 		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: true }),
 		JSON.stringify(persistedRoomSnapshot)
 	)
 
-	return new Response(JSON.stringify({ error: false }))
+	return new Response(JSON.stringify({ error: false }), { status: 201 })
 }
