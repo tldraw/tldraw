@@ -199,15 +199,6 @@ export class TldrawApp {
 		])
 	}
 
-	getFileCollaborators(fileId: TldrawAppFileId): TldrawAppUserId[] {
-		const file = this.store.get(fileId)
-		if (!file) throw Error('no auth')
-
-		const users = this.getAll('user')
-
-		return users.filter((user) => user.presence.fileIds.includes(fileId)).map((user) => user.id)
-	}
-
 	toggleFileShared(fileId: TldrawAppFileId) {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
@@ -393,9 +384,6 @@ export class TldrawApp {
 					email: opts.email,
 					color: 'salmon',
 					avatar: opts.avatar,
-					presence: {
-						fileIds: [],
-					},
 					...restOfPreferences,
 				}),
 			])

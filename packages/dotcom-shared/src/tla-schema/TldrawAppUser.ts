@@ -7,7 +7,6 @@ import {
 } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
-import { TldrawAppFileId } from './TldrawAppFile'
 import { idValidator } from './idValidator'
 
 export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser>> {
@@ -22,10 +21,6 @@ export interface TldrawAppUser extends BaseRecord<'user', RecordId<TldrawAppUser
 	exportPadding: boolean
 	createdAt: number
 	updatedAt: number
-	// Separate table for user presences?
-	presence: {
-		fileIds: TldrawAppFileId[]
-	}
 	flags: {
 		placeholder_feature_flag: boolean
 	}
@@ -71,9 +66,6 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 		exportPadding: T.boolean,
 		createdAt: T.number,
 		updatedAt: T.number,
-		presence: T.object({
-			fileIds: T.arrayOf(idValidator<TldrawAppFileId>('file')),
-		}),
 		flags: T.object({
 			placeholder_feature_flag: T.boolean,
 		}),
@@ -90,13 +82,22 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 )
 
 /** @public */
-export const tldrawAppUserVersions = createMigrationIds('com.tldraw.user', {} as const)
+export const tldrawAppUserVersions = createMigrationIds('com.tldraw.user', {
+	RemovePresence: 1,
+} as const)
 
 /** @public */
 export const tldrawAppUserMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw-app.user',
 	recordType: 'user',
-	sequence: [],
+	sequence: [
+		{
+			id: tldrawAppUserVersions.RemovePresence,
+			up(record: any) {
+				delete record.presence
+			},
+		},
+	],
 })
 
 /** @public */
@@ -104,7 +105,7 @@ export const TldrawAppUserRecordType = createRecordType<TldrawAppUser>('user', {
 	// validator: tldrawAppUserValidator,
 	scope: 'document',
 }).withDefaultProperties(
-	(): Omit<TldrawAppUser, 'id' | 'typeName' | 'presence' | 'ownerId'> => ({
+	(): Omit<TldrawAppUser, 'id' | 'typeName' | 'ownerId'> => ({
 		name: 'Steve Ruiz',
 		email: 'steve@tldraw.com',
 		color: 'coral', // coral
