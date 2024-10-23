@@ -10,6 +10,8 @@ import { Suspense, lazy, useEffect } from 'react'
 import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
+import { notFound } from './pages/not-found'
+import { TlaNotFoundError } from './tla/utils/notFoundError'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
@@ -44,6 +46,9 @@ export const router = createRoutesFromElements(
 						break
 					}
 				}
+			}
+			if (error instanceof TlaNotFoundError) {
+				return notFound()
 			}
 
 			return (
