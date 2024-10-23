@@ -21,7 +21,7 @@ import {
 import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-export function TlaPublish({ file }: { file: TldrawAppFile }) {
+export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 	const raw = useRaw()
 	const { fileSlug } = useParams()
 	const editor = useEditor()

@@ -31,7 +31,7 @@ import {
 	TlaMenuControlLabel,
 	TlaMenuSection,
 } from '../../tla-menu/tla-menu'
-import styles from './file-share-menu.module.css'
+import styles from '../file-share-menu.module.css'
 
 export function TlaExportTab() {
 	const app = useMaybeApp()
