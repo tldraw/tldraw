@@ -59,7 +59,7 @@ export function TlaShareMenuCopyButton({
 		await onClick()
 		setCopied(true)
 		setIsLoading(false)
-		const timeout = setTimeout(() => setCopied(false), 2500)
+		const timeout = setTimeout(() => setCopied(false), 1000)
 		return () => {
 			setCopied(false)
 			clearTimeout(timeout)
