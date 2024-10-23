@@ -5,8 +5,8 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
+import { uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { uniqueId } from 'tldraw'
 import { TldrawAppUserId } from './TldrawAppUser'
 import { idValidator } from './idValidator'
 
