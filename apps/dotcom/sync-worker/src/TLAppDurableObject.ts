@@ -51,7 +51,7 @@ export class TLAppDurableObject extends DurableObject {
 								if (!this._room) return
 								try {
 									await this.persistToDatabase()
-								} catch (err) {
+								} catch {
 									// already logged
 								}
 								// make sure nobody joined the room while we were persisting
@@ -106,7 +106,7 @@ export class TLAppDurableObject extends DurableObject {
 		this.updateRecord = env.DB.prepare(
 			`insert into records (id, topicId, record, lastModifiedEpoch) values (?1, ?2, ?3, ?4) on conflict (id, topicId) do update set record = ?3, lastModifiedEpoch = ?4`
 		)
-		this.deleteRecord = env.DB.prepare(`delete from records where topicId = ?`)
+		this.deleteRecord = env.DB.prepare(`delete from records where id = ?`)
 	}
 
 	readonly router = Router()
@@ -236,6 +236,17 @@ export class TLAppDurableObject extends DurableObject {
 				)
 				// no need to await, fire and forget
 				docDurableObject.appFileRecordDidUpdate(file)
+			}
+		}
+
+		for (const deletedId of deletedIds) {
+			if (TldrawAppFileRecordType.isId(deletedId)) {
+				const slug = TldrawAppFileRecordType.parseId(deletedId)
+				const docDurableObject = this.env.TLDR_DOC.get(
+					this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${slug}`)
+				)
+				// no need to await, fire and forget
+				docDurableObject.appFileRecordDidDelete(slug)
 			}
 		}
 

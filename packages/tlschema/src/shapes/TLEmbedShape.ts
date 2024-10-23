@@ -294,7 +294,7 @@ export const embedShapeMigrations = createShapePropsMigrationSequence({
 
 					props.tmpOldUrl = props.url
 					props.url = originalUrl ?? ''
-				} catch (e) {
+				} catch {
 					props.url = ''
 					props.tmpOldUrl = props.url
 				}

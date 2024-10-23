@@ -94,7 +94,7 @@ export async function formatWithPrettier(
 			tabWidth: 2,
 			useTabs: false,
 		})
-	} catch (e) {
+	} catch {
 		console.warn(`☢️ Could not format code: ${code}`)
 	}
 

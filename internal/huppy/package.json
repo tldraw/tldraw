@@ -32,8 +32,8 @@
 		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
-		"eslint": "^8.37.0",
-		"eslint-config-next": "13.2.4",
+		"eslint": "^9.13.0",
+		"eslint-config-next": "^15.0.0",
 		"lazyrepo": "0.0.0-alpha.27"
 	}
 }

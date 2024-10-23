@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { PointerEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { PointerEvent, useCallback, useRef, useState } from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useEditor } from '../hooks/useEditor'
 import { Vec } from '../primitives/Vec'
@@ -98,31 +98,11 @@ export function MenuClickCapture() {
 		[canvasEvents]
 	)
 
-	useEffect(() => {
-		function handleKeyEvent(e: KeyboardEvent) {
-			const target = e.target as Element | null
-			// Menus, popovers, and the body should be allowed to receive keyboard events.
-			if (target?.closest('.tlui-menu, .tlui-popover__content') || target === document.body) return
-
-			e.preventDefault()
-			e.stopPropagation()
-		}
-
-		if (isMenuOpen) {
-			document.addEventListener('keydown', handleKeyEvent, { capture: true })
-			document.addEventListener('keyup', handleKeyEvent, { capture: true })
-		}
-
-		return () => {
-			document.removeEventListener('keydown', handleKeyEvent, { capture: true })
-			document.removeEventListener('keyup', handleKeyEvent, { capture: true })
-		}
-	}, [isMenuOpen])
-
 	return (
 		showElement && (
 			<div
-				className="tlui-menu-overlay"
+				className="tlui-menu-click-capture"
+				data-testid="menu-click-capture.content"
 				{...canvasEvents}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
