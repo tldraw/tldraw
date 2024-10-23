@@ -10,7 +10,7 @@ import { useSharing } from '../../../utils/sharing'
 import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { TlaPublishFileShareMenu } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
+import { TlaFileShareMenuPublishPage } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import styles from './editor.module.css'
@@ -24,9 +24,9 @@ const components: TLComponents = {
 		usePassThroughWheelEvents(ref)
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
-				<TlaPublishFileShareMenu>
+				<TlaFileShareMenuPublishPage>
 					<ShareButton title={'share-menu.title'} label={'share-menu.title'} />
-				</TlaPublishFileShareMenu>
+				</TlaFileShareMenuPublishPage>
 			</div>
 		)
 	},

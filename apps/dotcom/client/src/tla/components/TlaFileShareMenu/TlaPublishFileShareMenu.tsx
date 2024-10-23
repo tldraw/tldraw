@@ -7,10 +7,10 @@ import {
 } from 'tldraw'
 import { TlaMenuControlGroup, TlaMenuSection } from '../tla-menu/tla-menu'
 import { QrCode } from './QrCode'
-import { TlaCopyPublishLinkButton } from './TlaPublishPage'
+import { TlaCopyPublishLinkButton } from './TlaFileShareMenuPublishPage'
 import styles from './file-share-menu.module.css'
 
-export function TlaPublishFileShareMenu({
+export function TlaFileShareMenuPublishPage({
 	isAnonUser,
 	children,
 }: {

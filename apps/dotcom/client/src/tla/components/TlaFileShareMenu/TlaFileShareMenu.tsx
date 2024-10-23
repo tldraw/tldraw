@@ -13,8 +13,8 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaShareMenuExportPage } from './TlaFileShareMenuExportPage'
+import { TlaPublishPage } from './TlaFileShareMenuPublishPage'
 import { TlaShareMenuSharePage } from './TlaFileShareMenuSharePage'
-import { TlaPublishPage } from './TlaPublishPage'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({
