@@ -447,7 +447,7 @@ export function registerDefaultExternalContentHandlers(
 				const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
 				if (!bookmarkAsset) throw Error('Could not create an asset')
 				asset = bookmarkAsset
-			} catch (_e) {
+			} catch {
 				toasts.addToast({
 					title: msg('assets.url.failed'),
 					severity: 'error',

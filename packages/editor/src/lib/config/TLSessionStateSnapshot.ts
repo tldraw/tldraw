@@ -315,7 +315,7 @@ export function extractSessionStateFromLegacySnapshot(
 	try {
 		sessionStateSnapshotValidator.validate(result)
 		return result
-	} catch (_e) {
+	} catch {
 		return null
 	}
 }

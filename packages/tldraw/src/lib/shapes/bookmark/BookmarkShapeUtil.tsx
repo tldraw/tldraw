@@ -225,7 +225,7 @@ export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
 		const url = new URL(shape.props.url)
 		// we want the hostname without any www
 		return url.hostname.replace(/^www\./, '')
-	} catch (_e) {
+	} catch {
 		return shape.props.url
 	}
 }

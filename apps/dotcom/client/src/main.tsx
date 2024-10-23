@@ -26,6 +26,6 @@ try {
 	navigator.serviceWorker.register('/sw.js', {
 		scope: '/',
 	})
-} catch (_e) {
+} catch {
 	// ignore
 }

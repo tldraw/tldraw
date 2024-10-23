@@ -147,7 +147,7 @@ export class LicenseManager {
 		let decodedData: any
 		try {
 			decodedData = JSON.parse(atob(encodedData))
-		} catch (_e) {
+		} catch {
 			throw new Error('Could not parse object')
 		}
 		if (decodedData.length > NUMBER_OF_KNOWN_PROPERTIES) {

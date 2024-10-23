@@ -25,7 +25,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 	try {
 		const components = useEditorComponents()
 		Canvas = components.Canvas ?? null
-	} catch (_e) {
+	} catch {
 		// allow this to fail silently
 	}
 

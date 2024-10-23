@@ -164,7 +164,7 @@ export class BemoDO extends DurableObject<Environment> {
 						if (!this._room) return
 						try {
 							await this.persistToDatabase()
-						} catch (_err) {
+						} catch {
 							// already logged
 						}
 						this._room = null

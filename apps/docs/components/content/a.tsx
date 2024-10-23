@@ -5,7 +5,7 @@ export function A(props: React.ComponentProps<'a'>) {
 	let maybeParsedUrl
 	try {
 		maybeParsedUrl = isLocalUrl ? null : props.href ? new URL(props.href) : null
-	} catch (_e) {
+	} catch {
 		console.error(`Invalid URL: ${props.href}`)
 	}
 	const derivedTarget =

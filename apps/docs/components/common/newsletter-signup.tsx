@@ -41,7 +41,7 @@ export function NewsletterSignup({
 					setDidSubmit(true)
 					setTimeout(() => setFormState('idle'), 3000)
 				}, 3000)
-			} catch (_e) {
+			} catch {
 				setFormState('error')
 				// After a pause, we set the form state to idle
 				setTimeout(() => setFormState('idle'), 3000)

@@ -85,7 +85,7 @@ async function getCurrentDocumentFontFaces() {
 		let cssRules
 		try {
 			cssRules = styleSheet.cssRules
-		} catch (_err) {
+		} catch {
 			// some stylesheets don't allow access through the DOM. We'll try to fetch them instead.
 		}
 

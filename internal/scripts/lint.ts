@@ -26,7 +26,7 @@ async function main() {
 			],
 			{ pwd: REPO_ROOT }
 		)
-	} catch (_error) {
+	} catch {
 		process.exit(1)
 	}
 }

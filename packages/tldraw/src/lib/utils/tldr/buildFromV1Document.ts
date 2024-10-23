@@ -648,7 +648,7 @@ async function tryMigrateAsset(editor: Editor, placeholderAsset: TLAsset) {
 				},
 			},
 		])
-	} catch (_err) {
+	} catch {
 		// not a big deal, we'll just keep the placeholder asset
 	}
 }

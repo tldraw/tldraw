@@ -80,7 +80,7 @@ export function isV1File(data: any) {
 			return true
 		}
 		return false
-	} catch (_e) {
+	} catch {
 		return false
 	}
 }
@@ -113,7 +113,7 @@ export function parseTldrawJsonFile({
 			if (isV1File(data)) {
 				return Result.err({ type: 'v1File', data })
 			}
-		} catch (_e) {
+		} catch {
 			// noop
 		}
 

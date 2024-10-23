@@ -259,7 +259,7 @@ exports.rules = {
 				) {
 					try {
 						symbol = tc.getPropertySymbolOfDestructuringAssignment(tsId)
-					} catch (_e) {
+					} catch {
 						// we are in object literal, not destructuring
 						// no obvious easy way to check that in advance
 						symbol = tc.getSymbolAtLocation(tsId)

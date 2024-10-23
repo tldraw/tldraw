@@ -21,7 +21,7 @@ export async function onCreateAssetFromUrl({
 			},
 			meta: {},
 		}
-	} catch (_error) {
+	} catch {
 		// Otherwise, fallback to fetching data from the url
 
 		let meta: { image: string; favicon: string; title: string; description: string }

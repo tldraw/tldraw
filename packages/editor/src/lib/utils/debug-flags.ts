@@ -154,7 +154,7 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 function getStoredInitialValue(name: string) {
 	try {
 		return JSON.parse(getFromSessionStorage(`tldraw_debug:${name}`) ?? 'null')
-	} catch (_err) {
+	} catch {
 		return null
 	}
 }

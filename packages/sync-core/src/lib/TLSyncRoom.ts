@@ -514,7 +514,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					session.socket.close()
 				}
 			}
-		} catch (_e) {
+		} catch {
 			// noop
 		}
 
@@ -736,7 +736,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						reason: legacyReason,
 					})
 				}
-			} catch (_e) {
+			} catch {
 				// noop
 			} finally {
 				this.removeSession(sessionId)

@@ -94,7 +94,7 @@ export class TLDrawDurableObject extends DurableObject {
 								})
 								try {
 									await this.persistToDatabase()
-								} catch (_err) {
+								} catch {
 									// already logged
 								}
 								// make sure nobody joined the room while we were persisting
