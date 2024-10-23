@@ -3,12 +3,14 @@ import { EndToEndApi } from '../../../src/misc/EndToEndApi'
 import { ActionsMenu } from './menus/ActionsMenu'
 import { HelpMenu } from './menus/HelpMenu'
 import { MainMenu } from './menus/MainMenu'
+import { MenuClickCapture } from './menus/MenuClickCapture'
 import { NavigationPanel } from './menus/NavigationPanel'
 import { PageMenu } from './menus/PageMenu'
 import { StylePanel } from './menus/StylePanel'
 import { Toolbar } from './menus/Toolbar'
 
 interface Fixtures {
+	menuClickCapture: MenuClickCapture
 	toolbar: Toolbar
 	stylePanel: StylePanel
 	actionsMenu: ActionsMenu
@@ -43,6 +45,10 @@ function makeApiFixture(keys: { [K in keyof EndToEndApi]: true }, page: Page): A
 }
 
 const test = base.extend<Fixtures>({
+	menuClickCapture: async ({ page }, testUse) => {
+		const toolbar = new MenuClickCapture(page)
+		await testUse(toolbar)
+	},
 	toolbar: async ({ page }, testUse) => {
 		const toolbar = new Toolbar(page)
 		await testUse(toolbar)
