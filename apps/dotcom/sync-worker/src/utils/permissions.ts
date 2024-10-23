@@ -7,7 +7,7 @@ import { getAuth } from './getAuth'
 
 export type FileOwnerStatusError = 'unauthorized' | 'not-found' | 'forbidden'
 
-export function returnFileOwnerStatusErrorResponse(error: FileOwnerStatusError) {
+export function fileOwnerStatusErrorResponse(error: FileOwnerStatusError) {
 	switch (error) {
 		case 'forbidden':
 			return new Response(JSON.stringify({ error: true, message: 'Forbidden' }), { status: 403 })

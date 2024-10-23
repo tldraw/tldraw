@@ -1,7 +1,7 @@
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
-import { getFileOwnerStatus, returnFileOwnerStatusErrorResponse } from '../utils/permissions'
+import { fileOwnerStatusErrorResponse, getFileOwnerStatus } from '../utils/permissions'
 
 export async function deletePublishedRoom(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
@@ -12,7 +12,7 @@ export async function deletePublishedRoom(request: IRequest, env: Environment): 
 
 	const fileOwnerStatus = await getFileOwnerStatus(request, env, parentSlug)
 	if (!fileOwnerStatus.ok) {
-		return returnFileOwnerStatusErrorResponse(fileOwnerStatus.error)
+		return fileOwnerStatusErrorResponse(fileOwnerStatus.error)
 	}
 	await env.ROOM_SNAPSHOTS.delete(
 		getR2KeyForSnapshot({ parentSlug, snapshotSlug: roomId, isApp: true })
