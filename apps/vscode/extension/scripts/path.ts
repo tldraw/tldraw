@@ -10,7 +10,7 @@ export async function exists(targetFolder: string) {
 	try {
 		await fs.promises.access(targetFolder)
 		return true
-	} catch (err) {
+	} catch {
 		return false
 	}
 }

@@ -51,7 +51,7 @@ export class TLAppDurableObject extends DurableObject {
 								if (!this._room) return
 								try {
 									await this.persistToDatabase()
-								} catch (err) {
+								} catch {
 									// already logged
 								}
 								// make sure nobody joined the room while we were persisting

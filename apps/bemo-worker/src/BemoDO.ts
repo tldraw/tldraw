@@ -54,7 +54,7 @@ export class BemoDO extends DurableObject<Environment> {
 	private reportError(e: unknown, request?: Request) {
 		const sentry = createSentry(this.ctx, this.env, request)
 		console.error(e)
-		// eslint-disable-next-line deprecation/deprecation
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		sentry?.captureException(e)
 	}
 
@@ -164,7 +164,7 @@ export class BemoDO extends DurableObject<Environment> {
 						if (!this._room) return
 						try {
 							await this.persistToDatabase()
-						} catch (err) {
+						} catch {
 							// already logged
 						}
 						this._room = null

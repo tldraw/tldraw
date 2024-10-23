@@ -15,7 +15,7 @@ import {
 	TlaMenuSection,
 } from '../../tla-menu/tla-menu'
 import { QrCode } from '../QrCode'
-import { TlaShareMenuCopyButton, TlaShareMenuHelpItem } from '../file-share-menu-primitives'
+import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
 export function TlaShareTab({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
@@ -131,29 +131,29 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 	)
 }
 
-function _ShareHelp() {
-	const raw = useRaw()
-	return (
-		<TlaShareMenuHelpItem>
-			<p>
-				{raw('Invite someone to collaborate by sending them a ')} <b>{raw('link')}</b>
-				{raw(' to your project. You can ')}
-				<b>{raw('turn off')}</b> {raw(' sharing at any time.')}
-			</p>
-		</TlaShareMenuHelpItem>
-	)
-}
+// function _ShareHelp() {
+// 	const raw = useRaw()
+// 	return (
+// 		<TlaShareMenuHelpItem>
+// 			<p>
+// 				{raw('Invite someone to collaborate by sending them a ')} <b>{raw('link')}</b>
+// 				{raw(' to your project. You can ')}
+// 				<b>{raw('turn off')}</b> {raw(' sharing at any time.')}
+// 			</p>
+// 		</TlaShareMenuHelpItem>
+// 	)
+// }
 
-function _SnapshotHelp() {
-	const raw = useRaw()
-	return (
-		<TlaShareMenuHelpItem>
-			<p>
-				{raw('A ')} <b>{raw('snapshot')}</b>{' '}
-				{raw(
-					'is a read-only copy of your project in its current state. Use snapshots to create backups or to share your work in progress.'
-				)}
-			</p>
-		</TlaShareMenuHelpItem>
-	)
-}
+// function _SnapshotHelp() {
+// 	const raw = useRaw()
+// 	return (
+// 		<TlaShareMenuHelpItem>
+// 			<p>
+// 				{raw('A ')} <b>{raw('snapshot')}</b>{' '}
+// 				{raw(
+// 					'is a read-only copy of your project in its current state. Use snapshots to create backups or to share your work in progress.'
+// 				)}
+// 			</p>
+// 		</TlaShareMenuHelpItem>
+// 	)
+// }

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-
 // eslint plugins can't use esm
 
 // @ts-ignore - no import/require
@@ -129,7 +127,9 @@ exports.rules = {
 				}
 
 				// - Inside an import
-				const isInsideImport = context.getAncestors().some((anc) => anc.type.includes('Import'))
+				const isInsideImport = context.sourceCode
+					.getAncestors(id)
+					.some((anc) => anc.type.includes('Import'))
 
 				if (isInsideImport) {
 					return
@@ -152,7 +152,8 @@ exports.rules = {
 				id: TSESTree.Identifier | TSESTree.JSXIdentifier,
 				services: utils.ParserServices
 			) {
-				const tc = services.program.getTypeChecker()
+				const tc = services.program?.getTypeChecker()
+				if (!tc) return undefined
 				const callExpression = getCallExpression(id)
 
 				if (callExpression) {
@@ -199,7 +200,7 @@ exports.rules = {
 			function getCallExpression(
 				id: TSESTree.Node
 			): TSESTree.CallExpression | TSESTree.TaggedTemplateExpression | undefined {
-				const ancestors = context.getAncestors()
+				const ancestors = context.sourceCode.getAncestors(id)
 				let callee = id
 				let parent = ancestors.length > 0 ? ancestors[ancestors.length - 1] : undefined
 
@@ -258,7 +259,7 @@ exports.rules = {
 				) {
 					try {
 						symbol = tc.getPropertySymbolOfDestructuringAssignment(tsId)
-					} catch (e) {
+					} catch {
 						// we are in object literal, not destructuring
 						// no obvious easy way to check that in advance
 						symbol = tc.getSymbolAtLocation(tsId)
@@ -309,7 +310,7 @@ exports.rules = {
 				propsType: ts.TypeNode | undefined
 			) {
 				const declaration = findTopLevelParent(node)
-				const comments = context.getSourceCode().getCommentsBefore(declaration)
+				const comments = context.sourceCode.getCommentsBefore(declaration)
 
 				// we only care about components tagged as public
 				const publicComment = comments.find((comment) => comment.value.includes('@public'))
@@ -446,7 +447,7 @@ exports.rules = {
 								node: member,
 								messageId: 'preferMethod',
 								fix(fixer) {
-									const sourceCode = context.getSourceCode()
+									const sourceCode = context.sourceCode
 									const propertyName = sourceCode.getText(member.key)
 									const params = arrowFunction.params.map((p) => sourceCode.getText(p)).join(', ')
 									const asyncModifier = arrowFunction.async ? 'async ' : ''
@@ -489,7 +490,6 @@ exports.rules = {
 			type: 'problem',
 			docs: {
 				description: 'Ensure TSDoc @param tags match function parameters',
-				recommended: 'error',
 			},
 			schema: [],
 			messages: {
@@ -587,9 +587,7 @@ function getTSDocComment(
 		| TSESTree.MethodDefinition
 		| TSESTree.Property
 ): string | null {
-	const sourceCode = context.getSourceCode()
-
-	const leadingComments = sourceCode.getCommentsBefore(node)
+	const leadingComments = context.sourceCode.getCommentsBefore(node)
 
 	for (let i = leadingComments.length - 1; i >= 0; i--) {
 		const comment = leadingComments[i]

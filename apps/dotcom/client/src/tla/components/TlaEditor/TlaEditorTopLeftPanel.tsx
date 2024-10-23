@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	DefaultPageMenu,
 	TldrawUiButton,
@@ -59,6 +59,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 export function TlaEditorTopLeftPanelSignedIn() {
 	const raw = useRaw()
 	const editor = useEditor()
+	const [isRenaming, setIsRenaming] = useState(false)
 
 	const app = useApp()
 	const fileId = useCurrentFileId()
@@ -73,6 +74,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
+			setIsRenaming(false)
 			// don't allow guests to update the file name
 			const file = app.getFileName(fileId)
 			if (!file) return
@@ -81,14 +83,22 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		[app, fileId]
 	)
 
+	const handleRenameAction = () => setIsRenaming(true)
+	const handleRenameEnd = () => setIsRenaming(false)
+
 	return (
 		<>
 			<TlaSidebarToggle />
 			<TlaSidebarToggleMobile />
-			<TlaFileNameEditor fileName={fileName ?? 'FIXME'} onChange={handleFileNameChange} />
+			<TlaFileNameEditor
+				isRenaming={isRenaming}
+				fileName={fileName ?? 'FIXME'}
+				onChange={handleFileNameChange}
+				onEnd={handleRenameEnd}
+			/>
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
-			<TlaFileMenu fileId={fileId} source="file-header">
+			<TlaFileMenu fileId={fileId} source="file-header" onRenameAction={handleRenameAction}>
 				<button className={styles.linkMenu}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
@@ -100,9 +110,13 @@ export function TlaEditorTopLeftPanelSignedIn() {
 function TlaFileNameEditor({
 	fileName,
 	onChange,
+	onEnd,
+	isRenaming,
 }: {
 	fileName: string
 	onChange(name: string): void
+	onEnd?(): void
+	isRenaming?: boolean
 }) {
 	const [isEditing, setIsEditing] = useState(false)
 
@@ -118,9 +132,17 @@ function TlaFileNameEditor({
 		(name: string) => {
 			setIsEditing(false)
 			onChange(name)
+			onEnd?.()
 		},
-		[onChange]
+		[onChange, onEnd]
 	)
+
+	useEffect(() => {
+		if (isRenaming !== undefined && isRenaming !== isEditing) {
+			// Wait a tick, otherwise the blur event immediately exits the input.
+			setTimeout(() => setIsEditing(isRenaming), 0)
+		}
+	}, [isRenaming, isEditing])
 
 	return (
 		<div className={styles.inputWrapper}>
