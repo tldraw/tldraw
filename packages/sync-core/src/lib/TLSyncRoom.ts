@@ -43,7 +43,6 @@ import {
 } from './diff'
 import { interval } from './interval'
 import {
-	TLConnectRequest,
 	TLIncompatibilityReason,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
@@ -378,18 +377,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		return this.state.get().documents[id]
 	}
 
-	private getTombstoneIds(message?: TLConnectRequest) {
-		let deletedDocs = Object.entries(this.state.get().tombstones)
-		if (message) {
-			deletedDocs = deletedDocs.filter(
-				([_id, deletedAtClock]) => deletedAtClock > message.lastServerClock
-			)
-		}
-
-		const deletedDocsIds = deletedDocs.map(([id]) => id)
-		return deletedDocsIds
-	}
-
 	private addDocument(id: string, state: R, clock: number): Result<void, Error> {
 		let { documents, tombstones } = this.state.get()
 		if (hasOwnProperty(tombstones, id)) {
@@ -680,7 +667,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.log?.warn?.('Received message from unknown session')
 			return
 		}
-
 		switch (message.type) {
 			case 'connect': {
 				return this.handleConnectRequest(session, message)
@@ -813,10 +799,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// or if the server exits/crashes with unpersisted changes
 				message.lastServerClock > this.clock
 			) {
-				const deletedDocsIds = this.getTombstoneIds(message)
 				const diff: NetworkDiff<R> = {}
 				for (const [id, doc] of Object.entries(this.state.get().documents)) {
-					if (id !== session.presenceId && !deletedDocsIds.includes(id)) {
+					if (id !== session.presenceId) {
 						diff[id] = [RecordOpType.Put, doc.state]
 					}
 				}
@@ -854,6 +839,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								doc.state.id !== session.presenceId
 						)
 					: []
+				const deletedDocsIds = Object.entries(this.state.get().tombstones)
+					.filter(([_id, deletedAtClock]) => deletedAtClock > message.lastServerClock)
+					.map(([id]) => id)
 
 				for (const doc of updatedDocs) {
 					diff[doc.state.id] = [RecordOpType.Put, doc.state]
@@ -862,7 +850,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					diff[doc.state.id] = [RecordOpType.Put, doc.state]
 				}
 
-				const deletedDocsIds = this.getTombstoneIds(message)
 				for (const docId of deletedDocsIds) {
 					diff[docId] = [RecordOpType.Remove]
 				}

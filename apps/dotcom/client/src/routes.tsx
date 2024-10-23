@@ -6,10 +6,12 @@ import {
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { useEffect } from 'react'
-import { Link, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
+import { Suspense, lazy, useEffect } from 'react'
+import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
+
+const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
 export const router = createRoutesFromElements(
 	<Route
@@ -19,42 +21,27 @@ export const router = createRoutesFromElements(
 				captureException(error)
 			}, [error])
 
+			let header = 'Something went wrong'
+			let para1 =
+				'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.'
 			if (error instanceof TLRemoteSyncError) {
 				switch (error.reason) {
 					case TLSyncErrorCloseEventReason.NOT_FOUND: {
-						return (
-							<ErrorPage
-								messages={{
-									header: 'Not found',
-									para1: 'The file you are looking for does not exist.',
-								}}
-							/>
-						)
+						header = 'Not found'
+						para1 = 'The file you are looking for does not exist.'
+						break
 					}
 					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
 						return (
-							<ErrorPage
-								messages={{
-									header: 'Unauthorized',
-									para1: 'You need to be signed in to view this file.',
-								}}
-							/>
+							<Suspense>
+								<LoginRedirectPage />
+							</Suspense>
 						)
 					}
 					case TLSyncErrorCloseEventReason.FORBIDDEN: {
-						return (
-							<ErrorPage
-								messages={{
-									header: 'Unauthorized',
-									para1: 'You need to be authorized to view this file.',
-								}}
-								cta={
-									<Link to={'/q'} target={'_self'}>
-										{'Back to tldraw.'}
-									</Link>
-								}
-							/>
-						)
+						header = 'Forbidden'
+						para1 = 'You are forbidden to view this file.'
+						break
 					}
 				}
 			}
@@ -62,9 +49,8 @@ export const router = createRoutesFromElements(
 			return (
 				<ErrorPage
 					messages={{
-						header: 'Something went wrong',
-						para1:
-							'Please try refreshing the page. Still having trouble? Let us know at hello@tldraw.com.',
+						header,
+						para1,
 					}}
 				/>
 			)

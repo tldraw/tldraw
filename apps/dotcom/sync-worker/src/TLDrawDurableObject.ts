@@ -333,11 +333,14 @@ export class TLDrawDurableObject extends DurableObject {
 			const ownerId = await this.getOwnerId()
 
 			if (ownerId) {
+				const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(APP_ID))
+				const shareType = await ownerDurableObject.getFileShareType(
+					TldrawAppFileRecordType.createId(this.documentInfo.slug)
+				)
+				if (!auth && shareType === 'private') {
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+				}
 				if (ownerId !== TldrawAppUserRecordType.createId(auth?.userId)) {
-					const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(APP_ID))
-					const shareType = await ownerDurableObject.getFileShareType(
-						TldrawAppFileRecordType.createId(this.documentInfo.slug)
-					)
 					if (shareType === 'private') {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
@@ -564,5 +567,26 @@ export class TLDrawDurableObject extends DurableObject {
 				room.closeSession(session.sessionId)
 			}
 		}
+	}
+
+	async appFileRecordDidDelete(slug: string) {
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug,
+				isApp: true,
+				isOrWasCreateMode: false,
+			})
+		}
+		const room = await this.getRoom()
+		for (const session of room.getSessions()) {
+			room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+		}
+		room.close()
+		// setting _room to null will prevent any further persists from going through
+		this._room = null
+		// delete from R2
+		const key = getR2KeyForRoom({ slug, isApp: true })
+		await this.r2.rooms.delete(key)
 	}
 }
