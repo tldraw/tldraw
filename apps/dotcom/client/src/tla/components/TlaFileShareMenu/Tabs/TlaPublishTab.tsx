@@ -42,24 +42,23 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 			if (!token) throw Error('no token')
 
 			setUploading(true)
+			app.setFilePublished(file.id, true)
 			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
 			setUploading(false)
 			if (result.ok) {
-				if (!published) {
-					app.toggleFilePublished(file.id)
-				}
 				addToast({
 					title: update ? 'updated' : 'published',
 					severity: 'success',
 				})
 			} else {
+				app.setFilePublished(file.id, false)
 				addToast({
 					title: update ? 'could not update' : 'could not publish',
 					severity: 'error',
 				})
 			}
 		},
-		[editor, fileSlug, publishedSlug, isOwner, auth, app, published, addToast, file.id]
+		[editor, fileSlug, publishedSlug, isOwner, auth, app, addToast, file.id]
 	)
 
 	const unpublish = useCallback(async () => {
@@ -68,6 +67,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 		const token = await auth.getToken()
 		if (!token) throw Error('no token')
 
+		app.setFilePublished(file.id, false)
 		const result = await fetch(`${PUBLISH_ENDPOINT}/${publishedSlug}`, {
 			method: 'DELETE',
 			headers: {
@@ -75,9 +75,8 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 				Authorization: `Bearer ${token}`,
 			},
 		})
-		if (result.ok) {
-			app.toggleFilePublished(file.id)
-		} else {
+		if (!result.ok) {
+			app.setFilePublished(file.id, true)
 			addToast({
 				title: 'could not delete',
 				severity: 'error',

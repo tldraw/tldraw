@@ -233,12 +233,14 @@ export class TldrawApp {
 		this.store.put([{ ...file, shared: !file.shared }])
 	}
 
-	toggleFilePublished(fileId: TldrawAppFileId) {
+	setFilePublished(fileId: TldrawAppFileId, value: boolean) {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
 
-		this.store.put([{ ...file, published: !file.published }])
+		if (value === file.published) return
+
+		this.store.put([{ ...file, published: value }])
 	}
 
 	setFileSharedLinkType(
