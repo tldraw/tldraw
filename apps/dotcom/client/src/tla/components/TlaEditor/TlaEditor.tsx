@@ -32,7 +32,6 @@ import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
-import { getLocalSessionState } from '../../utils/local-session-state'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -151,22 +150,6 @@ export function TlaEditor({
 		[app]
 	)
 
-	// Handle entering and exiting the file
-	useEffect(() => {
-		if (!app) return
-
-		const { auth } = getLocalSessionState()
-		if (!auth) throw Error('Auth not found')
-
-		const user = app.getUser(auth.userId)
-		if (!user) throw Error('User not found')
-
-		app.onFileEnter(fileId)
-		return () => {
-			app.onFileExit(fileId)
-		}
-	}, [app, fileId])
-
 	const user = useTldrawUser()
 
 	const store = useSync({
@@ -182,6 +165,17 @@ export function TlaEditor({
 		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
 	})
+
+	// Handle entering and exiting the file
+	useEffect(() => {
+		if (!app) return
+		if (store.status !== 'synced-remote') return
+
+		app.onFileEnter(fileId)
+		return () => {
+			app.onFileExit(fileId)
+		}
+	}, [app, fileId, store.status])
 
 	return (
 		<div className={styles.editor}>
