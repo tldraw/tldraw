@@ -4,24 +4,24 @@ import { fetch } from '@tldraw/utils'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor, useToasts } from 'tldraw'
-import { PUBLISH_ENDPOINT } from '../../app/TldrawApp'
-import { useApp } from '../../hooks/useAppState'
-import { useRaw } from '../../hooks/useRaw'
-import { copyTextToClipboard } from '../../utils/copy'
-import { getShareablePublishUrl } from '../../utils/urls'
-import { TlaButton } from '../TlaButton/TlaButton'
-import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
-import { TlaTabsPage } from '../TlaTabs/TlaTabs'
+import { PUBLISH_ENDPOINT } from '../../../app/TldrawApp'
+import { useApp } from '../../../hooks/useAppState'
+import { useRaw } from '../../../hooks/useRaw'
+import { copyTextToClipboard } from '../../../utils/copy'
+import { getShareablePublishUrl } from '../../../utils/urls'
+import { TlaButton } from '../../TlaButton/TlaButton'
+import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
+import { TlaTabsPage } from '../../TlaTabs/TlaTabs'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlLabel,
 	TlaMenuSection,
-} from '../tla-menu/tla-menu'
-import { QrCode } from './QrCode'
-import { TlaShareMenuCopyButton } from './file-share-menu-primitives'
+} from '../../tla-menu/tla-menu'
+import { QrCode } from '../QrCode'
+import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
+export function TlaPublish({ file }: { file: TldrawAppFile }) {
 	const raw = useRaw()
 	const { fileSlug } = useParams()
 	const editor = useEditor()

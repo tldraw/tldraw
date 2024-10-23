@@ -1,23 +1,23 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useToasts, useValue } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
-import { useRaw } from '../../hooks/useRaw'
-import { useTldrawUser } from '../../hooks/useUser'
-import { copyTextToClipboard } from '../../utils/copy'
-import { getShareableFileUrl } from '../../utils/urls'
-import { TlaSelect } from '../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
+import { useApp } from '../../../hooks/useAppState'
+import { useRaw } from '../../../hooks/useRaw'
+import { useTldrawUser } from '../../../hooks/useUser'
+import { copyTextToClipboard } from '../../../utils/copy'
+import { getShareableFileUrl } from '../../../utils/urls'
+import { TlaSelect } from '../../TlaSelect/TlaSelect'
+import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlLabel,
 	TlaMenuSection,
-} from '../tla-menu/tla-menu'
-import { QrCode } from './QrCode'
-import { TlaShareMenuCopyButton, TlaShareMenuHelpItem } from './file-share-menu-primitives'
+} from '../../tla-menu/tla-menu'
+import { QrCode } from '../QrCode'
+import { TlaShareMenuCopyButton, TlaShareMenuHelpItem } from '../file-share-menu-primitives'
 
-export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
+export function TlaShareTab({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const isShared = useValue(
 		'file',
