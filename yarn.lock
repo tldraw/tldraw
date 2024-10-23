@@ -11497,7 +11497,6 @@ __metadata:
   dependencies:
     "@clerk/clerk-react": "npm:^5.9.3"
     "@jest/globals": "npm:30.0.0-alpha.2"
-    "@radix-ui/react-popover": "npm:^1.0.7"
     "@sentry/cli": "npm:^2.25.0"
     "@sentry/integrations": "npm:^7.34.0"
     "@sentry/react": "npm:^7.77.0"
