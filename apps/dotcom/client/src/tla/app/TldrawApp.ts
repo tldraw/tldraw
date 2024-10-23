@@ -25,6 +25,7 @@ import {
 	getUserPreferences,
 	objectMapFromEntries,
 	objectMapKeys,
+	transact,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { getSnapshotData } from '../../utils/sharing'
@@ -206,7 +207,16 @@ export class TldrawApp {
 
 		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
 
-		this.store.put([{ ...file, shared: !file.shared }])
+		transact(() => {
+			this.store.put([{ ...file, shared: !file.shared }])
+			// if it was shared, remove all shared links
+			if (file.shared) {
+				const states = this.getAll('file-state').filter(
+					(r) => r.fileId === fileId && r.ownerId !== file.ownerId
+				)
+				this.store.remove(states.map((r) => r.id))
+			}
+		})
 	}
 
 	setFilePublished(fileId: TldrawAppFileId, value: boolean) {
