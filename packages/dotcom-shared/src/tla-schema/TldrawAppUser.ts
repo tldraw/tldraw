@@ -82,7 +82,7 @@ export const tldrawAppUserValidator: T.Validator<TldrawAppUser> = T.model(
 )
 
 /** @public */
-export const tldrawAppUserVersions = createMigrationIds('com.tldraw.user', {
+export const tldrawAppUserVersions = createMigrationIds('com.tldraw-app.user', {
 	RemovePresence: 1,
 } as const)
 
