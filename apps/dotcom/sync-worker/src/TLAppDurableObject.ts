@@ -9,15 +9,16 @@ import {
 	tldrawAppSchema,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
-import { assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import { createPersistQueue } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { AlarmScheduler } from './AlarmScheduler'
 import { Environment } from './types'
 import { throttle } from './utils/throttle'
 
 const PERSIST_INTERVAL = 1000
+
+export const APP_ID = 'tldraw'
 
 export type DBLoadResult =
 	| {
@@ -37,9 +38,6 @@ export class TLAppDurableObject extends DurableObject {
 	_room: Promise<TLSocketRoom<any>> | null = null
 
 	getRoom() {
-		if (!this._userId) {
-			throw new Error('userId must be present when accessing room')
-		}
 		if (!this._room) {
 			this._room = this.loadFromDatabase().then((result) => {
 				switch (result.type) {
@@ -82,8 +80,6 @@ export class TLAppDurableObject extends DurableObject {
 	// For storage
 	storage: DurableObjectStorage
 
-	_userId: string | null = null
-
 	loadTopic: D1PreparedStatement
 	loadRecords: D1PreparedStatement
 	updateTopic: D1PreparedStatement
@@ -110,35 +106,12 @@ export class TLAppDurableObject extends DurableObject {
 		this.updateRecord = env.DB.prepare(
 			`insert into records (id, topicId, record, lastModifiedEpoch) values (?1, ?2, ?3, ?4) on conflict (id, topicId) do update set record = ?3, lastModifiedEpoch = ?4`
 		)
-		this.deleteRecord = env.DB.prepare(`delete from records where topicId = ?`)
+		this.deleteRecord = env.DB.prepare(`delete from records where id = ?`)
 	}
 
 	readonly router = Router()
-		.get(
-			`/app/:userId`,
-			(req) => this.extractUserId(req),
-			(req) => this.onRequest(req)
-		)
+		.get(`/app/:userId`, (req) => this.onRequest(req))
 		.all('*', () => new Response('Not found', { status: 404 }))
-
-	readonly scheduler = new AlarmScheduler({
-		storage: () => this.storage,
-		alarms: {
-			persist: async () => {
-				this.persistToDatabase()
-			},
-		},
-	})
-
-	// eslint-disable-next-line no-restricted-syntax
-	get userId() {
-		return assertExists(this._userId, 'userId must be present')
-	}
-	async extractUserId(req: IRequest) {
-		if (!this._userId) {
-			this._userId = assertExists(req.params.userId, 'userId must be present')
-		}
-	}
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -187,10 +160,7 @@ export class TLAppDurableObject extends DurableObject {
 					results: [topic],
 				},
 				{ results: records },
-			] = await this.env.DB.batch([
-				this.loadTopic.bind(this.userId),
-				this.loadRecords.bind(this.userId),
-			])
+			] = await this.env.DB.batch([this.loadTopic.bind(APP_ID), this.loadRecords.bind(APP_ID)])
 			const snapshot: RoomSnapshot = {
 				clock: 0,
 				documents: records.map(({ record, lastModifiedEpoch }: any) => ({
@@ -231,7 +201,7 @@ export class TLAppDurableObject extends DurableObject {
 
 		await this.env.DB.batch([
 			this.updateTopic.bind(
-				this.userId,
+				APP_ID,
 				JSON.stringify(snapshot.schema),
 				JSON.stringify(snapshot.tombstones),
 				snapshot.clock
@@ -240,7 +210,7 @@ export class TLAppDurableObject extends DurableObject {
 			...updatedRecords.map((doc) =>
 				this.updateRecord.bind(
 					doc.state.id,
-					this.userId,
+					APP_ID,
 					JSON.stringify(doc.state),
 					doc.lastChangedClock
 				)
@@ -265,7 +235,18 @@ export class TLAppDurableObject extends DurableObject {
 					this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${slug}`)
 				)
 				// no need to await, fire and forget
-				docDurableObject.appFileRecordDidUpdate(file, this.userId)
+				docDurableObject.appFileRecordDidUpdate(file)
+			}
+		}
+
+		for (const deletedId of deletedIds) {
+			if (TldrawAppFileRecordType.isId(deletedId)) {
+				const slug = TldrawAppFileRecordType.parseId(deletedId)
+				const docDurableObject = this.env.TLDR_DOC.get(
+					this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${slug}`)
+				)
+				// no need to await, fire and forget
+				docDurableObject.appFileRecordDidDelete(slug)
 			}
 		}
 
@@ -282,15 +263,7 @@ export class TLAppDurableObject extends DurableObject {
 		}
 	}
 
-	async getFileShareType(
-		fileId: TldrawAppFileId,
-		userId: string
-	): Promise<'private' | 'view' | 'edit'> {
-		if (!this._userId) {
-			this._userId = userId
-		} else if (userId !== this._userId) {
-			throw new Error('userId mismatch')
-		}
+	async getFileShareType(fileId: TldrawAppFileId): Promise<'private' | 'view' | 'edit'> {
 		const room = await this.getRoom()
 		const file = room.getRecord(fileId) as TldrawAppFile | undefined
 		if (!file?.shared) return 'private'

@@ -42,6 +42,7 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSideEffects } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
+import { T } from '@tldraw/validate';
 import { Timers } from '@tldraw/utils';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
@@ -947,7 +948,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         focusContainer?: boolean | undefined;
     }): this;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
-    getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
+    getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getAssets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     getBaseZoom(): number;
@@ -1309,6 +1310,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToSelection(opts?: TLCameraMoveOptions): this;
     zoomToUser(userId: string, opts?: TLCameraMoveOptions): this;
 }
+
+// @public (undocumented)
+export const EditorContext: React_2.Context<Editor | null>;
 
 export { EffectScheduler }
 
@@ -1902,6 +1906,9 @@ export interface MatModel {
     f: number;
 }
 
+// @public
+export function MenuClickCapture(): false | JSX_2.Element;
+
 // @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;
@@ -2112,7 +2119,12 @@ export const runtime: {
     refreshPage(): void;
 };
 
-// @internal (undocumented)
+// @public
+export type SafeId = string & {
+    __brand: 'SafeId';
+};
+
+// @public (undocumented)
 export function sanitizeId(id: string): string;
 
 // @public (undocumented)
@@ -2421,10 +2433,13 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 export const stopEventPropagation: (e: any) => any;
 
 // @public (undocumented)
+export function suffixSafeId(id: SafeId, suffix: string): SafeId;
+
+// @public (undocumented)
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX_2.Element;
 
 // @public (undocumented)
-export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
+export type SVGContainerProps = React_3.ComponentProps<'svg'>;
 
 // @public (undocumented)
 export interface SvgExportContext {
@@ -3731,8 +3746,8 @@ export class UserPreferencesManager {
     updateUserPreferences(userPreferences: Partial<TLUserPreferences>): void;
 }
 
-// @internal
-export function useSafeId(): string;
+// @public (undocumented)
+export const userTypeValidator: T.Validator<TLUserPreferences>;
 
 // @public (undocumented)
 export function useSelectionEvents(handle: TLSelectionHandle): {
@@ -3746,6 +3761,9 @@ export function useShallowArrayIdentity<T extends null | readonly any[] | undefi
 
 // @internal (undocumented)
 export function useShallowObjectIdentity<T extends null | object | undefined>(obj: T): T;
+
+// @public
+export function useSharedSafeId(id: string): SafeId;
 
 export { useStateTracking }
 
@@ -3766,6 +3784,9 @@ export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
+
+// @public
+export function useUniqueSafeId(suffix?: string): SafeId;
 
 export { useValue }
 

@@ -14,6 +14,7 @@ import { useEditorComponents } from '../../hooks/useEditorComponents'
 import { useFixSafariDoubleTapZoomPencilEvents } from '../../hooks/useFixSafariDoubleTapZoomPencilEvents'
 import { useGestureEvents } from '../../hooks/useGestureEvents'
 import { useHandleEvents } from '../../hooks/useHandleEvents'
+import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useScreenBounds } from '../../hooks/useScreenBounds'
 import { Box } from '../../primitives/Box'
 import { Mat } from '../../primitives/Mat'
@@ -23,6 +24,7 @@ import { debugFlags } from '../../utils/debug-flags'
 import { setStyleProperty } from '../../utils/dom'
 import { GeometryDebuggingView } from '../GeometryDebuggingView'
 import { LiveCollaborators } from '../LiveCollaborators'
+import { MenuClickCapture } from '../MenuClickCapture'
 import { Shape } from '../Shape'
 
 /** @public */
@@ -171,6 +173,7 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps) {
 				</div>
 				<MovingCameraHitTestBlocker />
 			</div>
+			<MenuClickCapture />
 			<InFrontOfTheCanvasWrapper />
 		</>
 	)
@@ -432,7 +435,7 @@ function HintedShapeIndicator() {
 
 function CursorDef() {
 	return (
-		<g id="cursor">
+		<g id={useSharedSafeId('cursor')}>
 			<g fill="rgba(0,0,0,.2)" transform="translate(-11,-11)">
 				<path d="m12 24.4219v-16.015l11.591 11.619h-6.781l-.411.124z" />
 				<path d="m21.0845 25.0962-3.605 1.535-4.682-11.089 3.686-1.553z" />
@@ -450,7 +453,8 @@ function CursorDef() {
 }
 
 function CollaboratorHintDef() {
-	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
+	const cursorHintId = useSharedSafeId('cursor_hint')
+	return <path id={cursorHintId} fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }
 
 function DebugSvgCopy({ id, mode }: { id: TLShapeId; mode: 'img' | 'iframe' }) {

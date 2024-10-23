@@ -15,19 +15,89 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.2.0](/releases/v3.2.0)
+## Current release: [v3.3.0](/releases/v3.3.0)
 
-Welcome to the `v3.2.0` release of tldraw!
+Welcome to the 3.3.0 release of the tldraw sdk. This release includes a number of new features and bug fixes.
 
-### Oops
+Special thanks to new contributors [@nayounsang](https://github.com/nayounsang) and [@vladh](https://github.com/vladh)!
 
-We accidentally clicked the 'publish new version' button 🤦🏼 so there have been no actual changes in this release.
+## Whats's new
 
-Please refer to the [release notes for `v3.1.0`](https://github.com/tldraw/tldraw/releases/tag/v3.1.0) to see what changed since the `v3.0.x` branch.
+### tldraw sync updates
 
-Sorry pals!
+We've been working on [tldraw sync](https://tldraw.dev/docs/sync) to improve the developer experience and enable common use cases.
+
+#### New 'readonly' mode
+
+When adding a socket to a room, you can now specify whether the client should be in readonly mode.
+
+```ts
+room.handleNewSession({
+	sessionId,
+	socket,
+	isReadonly: !(await canUserEdit(userId, roomId)),
+})
+```
+
+Users in readonly mode:
+
+- Will see a reduced UI, to hide tools and actions they can't make use of.
+- Will not be able to make changes to the document. This is now enforced by the server.
+- Will still send presence updates (cursor position, name, etc) to the server which will be broadcast to other users.
+
+([#4648](https://github.com/tldraw/tldraw/pull/4648)) ([#4673](https://github.com/tldraw/tldraw/pull/4673))
+
+#### New methods on TLSocketRoom
+
+We've added a few new methods to the TLSocketRoom class:
+
+- `closeSession` - for terminating or restarting a client's socket connection.
+- `getRecord` - for getting an individual record.
+- `getSessions` - for getting a list of the active sessions.
+
+([#4677](https://github.com/tldraw/tldraw/pull/4677)) ([#4660](https://github.com/tldraw/tldraw/pull/4660))
+
+## Breaking Changes
+
+No breaking changes in this release 🎉
+
+## Improvements
+
+- Allow wheel events to pass through certain user interface elements like toolbars, to enable scrolling and zooming even when your cursor is not directly over the canvas. ([#4662](https://github.com/tldraw/tldraw/pull/4662))
+- Allow holding `cmd`/`ctrl` modifier keys to add multiple shapes to the selection. Previously only `shift` worked. ([#4570](https://github.com/tldraw/tldraw/pull/4570))
+- Allow the text tool to be locked ([#4569](https://github.com/tldraw/tldraw/pull/4569)) ([#4632](https://github.com/tldraw/tldraw/pull/4632)) ([#4644](https://github.com/tldraw/tldraw/pull/4644))
+- Improve draw shape rendering performance during zoom interactions. ([#4647](https://github.com/tldraw/tldraw/pull/4647))
+- Disable debug mode in development by default. ([#4629](https://github.com/tldraw/tldraw/pull/4629))
+
+## Api Changes
+
+- Adds an editor option to control the placement of quick action shortcuts (undo, redo, delete, etc). ([#4666](https://github.com/tldraw/tldraw/pull/4666))
+- Adds an `editor.getIsReadonly()` helper method. ([#4673](https://github.com/tldraw/tldraw/pull/4673))
+
+## Bug fixes
+
+- Fix icon button width ([#4663](https://github.com/tldraw/tldraw/pull/4663))
+- Fixed a bug where dropping images or other things on user interface elements would navigate away from the canvas ([#4651](https://github.com/tldraw/tldraw/pull/4651))
+- Work around a Safari performance bug affecting arrows at certain zoom levels. ([#4636](https://github.com/tldraw/tldraw/pull/4636))
+- Fix a bug that affected some geometry calculations for lines that start and end at the same point ([#4650](https://github.com/tldraw/tldraw/pull/4650)).
+- Fix layer ordering issue with the watermark. ([#4656](https://github.com/tldraw/tldraw/pull/4656))
+- Fixed a signals transaction bug that was manifesting as `Error('cannot change atoms during reaction cycle')` ([#4645](https://github.com/tldraw/tldraw/pull/4645))
+- Fix a bug where the watermark link would open twice ([#4622](https://github.com/tldraw/tldraw/pull/4622))
+- Fixed a bug where camera constraints were not upheld after switching pages or setting new camera constraints. ([#4628](https://github.com/tldraw/tldraw/pull/4628))
+- Fixes a bug where arrow labels could be edited in readonly mode. ([#4673](https://github.com/tldraw/tldraw/pull/4673))
+
+## Authors
+
+- [@nayounsang](https://github.com/nayounsang)
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Vlad-Stefan Harbuz ([@vladh](https://github.com/vladh))
 
 ## Previous releases
+
+- [v3.2.0](/releases/v3.2.0)
 
 - [v3.1.0](/releases/v3.1.0)
 

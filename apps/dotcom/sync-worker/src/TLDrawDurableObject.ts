@@ -9,6 +9,8 @@ import {
 	ROOM_PREFIX,
 	TldrawAppFile,
 	TldrawAppFileRecordType,
+	TldrawAppUserId,
+	TldrawAppUserRecordType,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -25,6 +27,7 @@ import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
+import { APP_ID } from './TLAppDurableObject'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
@@ -51,7 +54,7 @@ const ROOM_NOT_FOUND = Symbol('room_not_found')
 
 interface SessionMeta {
 	storeId: string
-	userId: string | null
+	userId: TldrawAppUserId | null
 }
 
 export class TLDrawDurableObject extends DurableObject {
@@ -291,12 +294,15 @@ export class TLDrawDurableObject extends DurableObject {
 		if (!this._ownerId) {
 			const slug = this.documentInfo.slug
 			const fileId = TldrawAppFileRecordType.createId(slug)
-			const row = await this.env.DB.prepare('SELECT topicId as ownerId FROM records WHERE id = ?')
+			const row = await this.env.DB.prepare('SELECT record FROM records WHERE id = ?')
 				.bind(fileId)
 				.first()
 
 			if (row) {
-				this._ownerId = row.ownerId as string
+				this._ownerId = JSON.parse(row.record as any).ownerId as string
+				if (typeof this._ownerId !== 'string') {
+					throw new Error('ownerId must be a string')
+				}
 			}
 		}
 		return this._ownerId
@@ -327,12 +333,14 @@ export class TLDrawDurableObject extends DurableObject {
 			const ownerId = await this.getOwnerId()
 
 			if (ownerId) {
-				if (ownerId !== auth?.userId) {
-					const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(ownerId))
-					const shareType = await ownerDurableObject.getFileShareType(
-						TldrawAppFileRecordType.createId(this.documentInfo.slug),
-						ownerId
-					)
+				const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(APP_ID))
+				const shareType = await ownerDurableObject.getFileShareType(
+					TldrawAppFileRecordType.createId(this.documentInfo.slug)
+				)
+				if (!auth && shareType === 'private') {
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+				}
+				if (ownerId !== TldrawAppUserRecordType.createId(auth?.userId)) {
 					if (shareType === 'private') {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
@@ -361,7 +369,10 @@ export class TLDrawDurableObject extends DurableObject {
 			room.handleSocketConnect({
 				sessionId: sessionId,
 				socket: serverWebSocket,
-				meta: { storeId, userId: auth?.userId ?? null },
+				meta: {
+					storeId,
+					userId: auth?.userId ? TldrawAppUserRecordType.createId(auth.userId) : null,
+				},
 				isReadonly:
 					openMode === ROOM_OPEN_MODE.READ_ONLY || openMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY,
 			})
@@ -518,7 +529,7 @@ export class TLDrawDurableObject extends DurableObject {
 		await this.scheduler.onAlarm()
 	}
 
-	async appFileRecordDidUpdate(file: TldrawAppFile, ownerId: string) {
+	async appFileRecordDidUpdate(file: TldrawAppFile) {
 		if (!this._documentInfo) {
 			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
@@ -543,7 +554,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 		for (const session of room.getSessions()) {
 			// allow the owner to stay connected
-			if (session.meta.userId === ownerId) continue
+			if (session.meta.userId === (await this.getOwnerId())) continue
 
 			if (!file.shared) {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -556,5 +567,26 @@ export class TLDrawDurableObject extends DurableObject {
 				room.closeSession(session.sessionId)
 			}
 		}
+	}
+
+	async appFileRecordDidDelete(slug: string) {
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug,
+				isApp: true,
+				isOrWasCreateMode: false,
+			})
+		}
+		const room = await this.getRoom()
+		for (const session of room.getSessions()) {
+			room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+		}
+		room.close()
+		// setting _room to null will prevent any further persists from going through
+		this._room = null
+		// delete from R2
+		const key = getR2KeyForRoom({ slug, isApp: true })
+		await this.r2.rooms.delete(key)
 	}
 }

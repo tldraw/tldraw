@@ -16,7 +16,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
   >
     <defs>
       <mask
-        id="hash_pattern_mask"
+        id="_export_3_r8_"
       >
         <rect
           fill="white"
@@ -51,14 +51,14 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       </mask>
       <pattern
         height="8"
-        id="tldraw_hash_pattern_light_0"
+        id="_export_3_r7__hash_pattern_light_0"
         patternUnits="userSpaceOnUse"
         width="8"
       >
         <rect
           fill="#fcfffe"
           height="8"
-          mask="url(#hash_pattern_mask)"
+          mask="url(#_export_3_r8_)"
           width="8"
           x="0"
           y="0"
@@ -135,7 +135,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       />
       <path
         d="M0, 0L100, 0,100, 100,0, 100Z"
-        fill="url(#tldraw_hash_pattern_light_0)"
+        fill="url(#_export_3_r7__hash_pattern_light_0)"
       />
       <path
         d="M0, 0L100, 0,100, 100,0, 100Z"

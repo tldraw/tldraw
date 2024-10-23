@@ -9,6 +9,7 @@ import {
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
+import { APP_ID } from './TLAppDurableObject'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
@@ -49,12 +50,10 @@ const router = createRouter<Environment>()
 
 		// This needs to be a websocket request!
 		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-			// Set up the durable object for this room
-			const id = env.TLAPP_DO.idFromName(auth.userId)
 			const url = new URL(req.url)
 			url.pathname = `/app/${auth.userId}`
 			// clone the request and add the new url
-			return env.TLAPP_DO.get(id).fetch(new Request(url, req))
+			return env.TLAPP_DO.get(env.TLAPP_DO.idFromName(APP_ID)).fetch(new Request(url, req))
 		}
 
 		return notFound()

@@ -8,6 +8,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'data:',
 		'http://localhost:8788',
 		`https://assets.tldraw.xyz`,
+		`https://cdn.tldraw.com`,
 		`https://*.tldraw.workers.dev`,
 		`https://*.ingest.sentry.io`,
 		// for thumbnail server

@@ -52,6 +52,7 @@ export {
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
+export { MenuClickCapture } from './lib/components/MenuClickCapture'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
 export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
@@ -125,6 +126,7 @@ export {
 	getFreshUserPreferences,
 	getUserPreferences,
 	setUserPreferences,
+	userTypeValidator,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export {
@@ -265,7 +267,7 @@ export {
 	type ContainerProviderProps,
 } from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditor, useMaybeEditor } from './lib/hooks/useEditor'
+export { EditorContext, useEditor, useMaybeEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useEvent } from './lib/hooks/useEvent'
@@ -279,7 +281,13 @@ export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useRefState } from './lib/hooks/useRefState'
-export { sanitizeId, useSafeId } from './lib/hooks/useSafeId'
+export {
+	sanitizeId,
+	suffixSafeId,
+	useSharedSafeId,
+	useUniqueSafeId,
+	type SafeId,
+} from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'

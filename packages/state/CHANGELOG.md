@@ -1,3 +1,32 @@
+# v3.3.0 (Wed Oct 09 2024)
+
+### Release Notes
+
+#### [state] fix error 'cannot change atoms during reaction cycle' bug ([#4645](https://github.com/tldraw/tldraw/pull/4645))
+
+- Fixed a bug that was manifesting as `Error('cannot change atoms during reaction cycle')`
+
+#### Add eslint rule to check that tsdoc params match with function params ([#4615](https://github.com/tldraw/tldraw/pull/4615))
+
+- Add lint rules to check for discrepancies between tsdoc params and function params and fix all the discovered issues.
+
+---
+
+#### 🐛 Bug Fixes
+
+- [state] fix error 'cannot change atoms during reaction cycle' bug [#4645](https://github.com/tldraw/tldraw/pull/4645) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- Add eslint rule to check that tsdoc params match with function params [#4615](https://github.com/tldraw/tldraw/pull/4615) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+---
+
 # v3.1.0 (Wed Sep 25 2024)
 
 #### 🐛 Bug Fix

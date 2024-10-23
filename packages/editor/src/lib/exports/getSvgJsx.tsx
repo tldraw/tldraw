@@ -29,7 +29,7 @@ import {
 import { TLImageExportOptions } from '../editor/types/misc-types'
 import { useEditor } from '../hooks/useEditor'
 import { useEvent } from '../hooks/useEvent'
-import { sanitizeId } from '../hooks/useSafeId'
+import { suffixSafeId, useUniqueSafeId } from '../hooks/useSafeId'
 import { Box } from '../primitives/Box'
 import { Mat } from '../primitives/Mat'
 import { ExportDelay } from './ExportDelay'
@@ -54,7 +54,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 		.filter(({ id }) => shapeIdsToInclude.has(id))
 
 	// --- Common bounding box of all shapes
-	let bbox = null
+	let bbox: null | Box = null
 	if (opts.bounds) {
 		bbox = opts.bounds
 	} else {
@@ -139,6 +139,7 @@ function SvgExport({
 	onMount(): void
 	waitUntil(promise: Promise<void>): void
 }) {
+	const masksId = useUniqueSafeId()
 	const theme = getDefaultColorTheme({ isDarkMode })
 
 	const [defsById, setDefsById] = useState<Record<string, ReactElement>>({})
@@ -205,7 +206,7 @@ function SvgExport({
 						const shapeMask = pageMask
 							? Mat.From(Mat.Inverse(pageTransform)).applyToPoints(pageMask)
 							: null
-						const shapeMaskId = `mask_${sanitizeId(shape.id)}`
+						const shapeMaskId = suffixSafeId(masksId, shape.id)
 						if (shapeMask) {
 							// Create a clip path and add it to defs
 							shapeDefs[shapeMaskId] = (
@@ -294,7 +295,7 @@ function SvgExport({
 				setDefsById((defsById) => ({ ...defsById, ...shapeDefs }))
 			})
 		})()
-	}, [bbox, editor, exportContext, renderingShapes, singleFrameShapeId])
+	}, [bbox, editor, exportContext, masksId, renderingShapes, singleFrameShapeId])
 
 	useEffect(() => {
 		if (shapeElements === null) return

@@ -342,6 +342,7 @@ export type TLUiTranslationKey =
 	| 'home-project-dialog.ok'
 	| 'style-panel.title'
 	| 'style-panel.align'
+	| 'style-panel.label-align'
 	| 'style-panel.vertical-align'
 	| 'style-panel.position'
 	| 'style-panel.arrowheads'

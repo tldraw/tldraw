@@ -1,3 +1,33 @@
+# v3.3.0 (Wed Oct 09 2024)
+
+### Release Notes
+
+#### [sync] Set instance.isReadonly automatically ([#4673](https://github.com/tldraw/tldraw/pull/4673))
+
+- Puts the editor into readonly mode automatically when the tlsync server responds in readonly mode.
+- Adds the `editor.getIsReadonly()` method.
+- Fixes a bug where arrow labels could be edited in readonly mode.
+
+#### Disable debug mode in development by default ([#4629](https://github.com/tldraw/tldraw/pull/4629))
+
+- Turns off debug mode by default in local development.
+
+---
+
+#### 🐛 Bug Fix
+
+- Disable debug mode in development by default [#4629](https://github.com/tldraw/tldraw/pull/4629) ([@ds300](https://github.com/ds300))
+
+#### 💄 Product Improvements
+
+- [sync] Set instance.isReadonly automatically [#4673](https://github.com/tldraw/tldraw/pull/4673) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.1.0 (Wed Sep 25 2024)
 
 #### 🐛 Bug Fix

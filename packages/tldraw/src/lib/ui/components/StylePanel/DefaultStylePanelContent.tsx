@@ -252,7 +252,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 			{labelAlign === undefined ? null : (
 				<div className="tlui-style-panel__row">
 					<TldrawUiButtonPicker
-						title={msg('style-panel.align')}
+						title={msg('style-panel.label-align')}
 						uiType="align"
 						style={DefaultHorizontalAlignStyle}
 						items={STYLES.horizontalAlign}
@@ -276,6 +276,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 								type="icon"
 								id="geo-vertical-alignment"
 								uiType="verticalAlign"
+								stylePanelType="vertical-align"
 								style={DefaultVerticalAlignStyle}
 								items={STYLES.verticalAlign}
 								value={verticalLabelAlign}
@@ -303,6 +304,7 @@ export function GeoStylePickerSet({ styles }: StylePickerSetProps) {
 			type="menu"
 			label={'style-panel.geo'}
 			uiType="geo"
+			stylePanelType="geo"
 			style={GeoShapeGeoStyle}
 			items={STYLES.geo}
 			value={geo}
@@ -325,6 +327,7 @@ export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
 			type="menu"
 			label={'style-panel.spline'}
 			uiType="spline"
+			stylePanelType="spline"
 			style={LineShapeSplineStyle}
 			items={STYLES.spline}
 			value={spline}
