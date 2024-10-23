@@ -19,16 +19,17 @@ import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
-import { TlaRenameFileDialog } from '../dialogs/TlaRenameFileDialog'
 
 export function TlaFileMenu({
 	children,
 	source,
 	fileId,
+	onRenameAction,
 }: {
 	children: ReactNode
 	source: string
 	fileId: TldrawAppFile['id']
+	onRenameAction(): void
 }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
@@ -43,12 +44,6 @@ export function TlaFileMenu({
 			title: 'Copied link',
 		})
 	}, [fileId, addToast])
-
-	const handleRenameClick = useCallback(() => {
-		addDialog({
-			component: ({ onClose }) => <TlaRenameFileDialog fileId={fileId} onClose={onClose} />,
-		})
-	}, [fileId, addDialog])
 
 	const handleDuplicateClick = useCallback(() => {
 		const { newFile, editorStoreSnapshot } = app.duplicateFile(fileId)
@@ -89,7 +84,7 @@ export function TlaFileMenu({
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 					<TldrawUiMenuGroup id="file-actions">
 						<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
-						<TldrawUiMenuItem label="Rename" id="copy-link" onSelect={handleRenameClick} />
+						<TldrawUiMenuItem label="Rename" id="copy-link" onSelect={onRenameAction} />
 						<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
 						{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
 					</TldrawUiMenuGroup>

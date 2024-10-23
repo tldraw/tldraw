@@ -101,7 +101,8 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 			[onValueChange]
 		)
 
-		const handleKeyUp = React.useCallback(
+		// We use keydown capture, because we want to get the escape key event.
+		const handleKeyDownCapture = React.useCallback(
 			(e: React.KeyboardEvent<HTMLInputElement>) => {
 				switch (e.key) {
 					case 'Enter': {
@@ -169,7 +170,7 @@ export const TldrawUiInput = React.forwardRef<HTMLInputElement, TLUiInputProps>(
 					className={classNames('tlui-input', className)}
 					type="text"
 					defaultValue={defaultValue}
-					onKeyUp={handleKeyUp}
+					onKeyDownCapture={handleKeyDownCapture}
 					onChange={handleChange}
 					onFocus={handleFocus}
 					onBlur={handleBlur}
