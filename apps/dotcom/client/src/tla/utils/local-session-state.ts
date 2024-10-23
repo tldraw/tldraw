@@ -53,7 +53,6 @@ try {
 			...(prevStored as TldrawAppSessionState),
 			// forced initial values
 			createdAt: Date.now(),
-			isSidebarOpen: false,
 			isSidebarOpenMobile: false,
 			auth: undefined,
 		}

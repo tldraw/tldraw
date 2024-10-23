@@ -1,5 +1,7 @@
+import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
 	DefaultPageMenu,
 	TldrawUiButton,
@@ -11,6 +13,7 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
@@ -36,6 +39,7 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 export function TlaEditorTopLeftPanelAnonymous() {
 	const raw = useRaw()
 	const editor = useEditor()
+	const isTempFile = !useParams().fileSlug
 	const fileName = useValue('fileName', () => editor.getDocumentSettings().name || 'New board', [])
 	const handleFileNameChange = useCallback(
 		(name: string) => editor.updateDocumentSettings({ name }),
@@ -49,7 +53,10 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					<TldrawUiIcon icon="share-1" />
 				</TldrawUiButton>
 			</TlaFileShareMenu>
-			<TlaFileNameEditor fileName={fileName} onChange={handleFileNameChange} />
+			<TlaFileNameEditor
+				fileName={fileName}
+				onChange={isTempFile ? handleFileNameChange : undefined}
+			/>
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
 		</>
@@ -86,6 +93,9 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameEnd = () => setIsRenaming(false)
 
+	const fileSlug = useParams().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
+	const isOwner = useIsFileOwner(TldrawAppFileRecordType.createId(fileSlug))
+
 	return (
 		<>
 			<TlaSidebarToggle />
@@ -93,7 +103,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<TlaFileNameEditor
 				isRenaming={isRenaming}
 				fileName={fileName ?? 'FIXME'}
-				onChange={handleFileNameChange}
+				onChange={isOwner ? handleFileNameChange : undefined}
 				onEnd={handleRenameEnd}
 			/>
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
@@ -114,22 +124,25 @@ function TlaFileNameEditor({
 	isRenaming,
 }: {
 	fileName: string
-	onChange(name: string): void
+	onChange?(name: string): void
 	onEnd?(): void
 	isRenaming?: boolean
 }) {
 	const [isEditing, setIsEditing] = useState(false)
 
 	const handleEditingStart = useCallback(() => {
+		if (!onChange) return
 		setIsEditing(true)
-	}, [])
+	}, [onChange])
 
 	const handleEditingEnd = useCallback(() => {
+		if (!onChange) return
 		setIsEditing(false)
-	}, [])
+	}, [onChange])
 
 	const handleEditingComplete = useCallback(
 		(name: string) => {
+			if (!onChange) return
 			setIsEditing(false)
 			onChange(name)
 			onEnd?.()
@@ -145,7 +158,7 @@ function TlaFileNameEditor({
 	}, [isRenaming, isEditing])
 
 	return (
-		<div className={styles.inputWrapper}>
+		<div className={classNames(styles.inputWrapper, onChange && styles.inputWrapperEditable)}>
 			{isEditing ? (
 				<TlaFileNameEditorInput
 					fileName={fileName}
@@ -153,7 +166,10 @@ function TlaFileNameEditor({
 					onBlur={handleEditingEnd}
 				/>
 			) : (
-				<button className={styles.nameWidthSetter} onClick={handleEditingStart}>
+				<button
+					className={styles.nameWidthSetter}
+					onClick={onChange ? handleEditingStart : undefined}
+				>
 					{fileName.replace(/ /g, '\u00a0')}
 				</button>
 			)}
