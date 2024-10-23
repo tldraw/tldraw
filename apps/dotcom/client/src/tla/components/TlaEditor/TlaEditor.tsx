@@ -130,7 +130,7 @@ export function TlaEditor({
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
 				app.onFileSessionStateUpdate(fileId, state)
-			})
+			}, 500)
 			// don't want to update if they only open the file and didn't look around
 			let firstTime = true
 			const cleanup = react('update session state', () => {
@@ -147,7 +147,7 @@ export function TlaEditor({
 				updateSessionState.cancel()
 			}
 		},
-		[app]
+		[app, fileId]
 	)
 
 	const user = useTldrawUser()
