@@ -5,7 +5,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawUser } from '../../hooks/useUser'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getShareableFileUrl, getShareablePublishUrl } from '../../utils/urls'
+import { getShareableFileUrl } from '../../utils/urls'
 import { TlaSelect } from '../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
 import {
@@ -131,34 +131,6 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 	)
 }
 
-function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
-	const raw = useRaw()
-	const app = useApp()
-	const file = app.get(fileId) as TldrawAppFile
-	const publishedSlug = file?.publishedSlug
-
-	const { addToast } = useToasts()
-
-	const handleCopyLinkClick = useCallback(() => {
-		// todo: implement snapshot link
-		createSnapshotLink(fileId)
-		// Copy the snapshot url to clipboard
-		const url = getShareablePublishUrl(publishedSlug)
-		copyTextToClipboard(url)
-
-		addToast({
-			title: 'copied',
-			severity: 'success',
-		})
-	}, [fileId, publishedSlug, addToast])
-
-	return (
-		<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">
-			{raw('Copy snapshot link')}
-		</TlaShareMenuCopyButton>
-	)
-}
-
 function _ShareHelp() {
 	const raw = useRaw()
 	return (
@@ -184,8 +156,4 @@ function _SnapshotHelp() {
 			</p>
 		</TlaShareMenuHelpItem>
 	)
-}
-
-function createSnapshotLink(_fileId: TldrawAppFileId) {
-	return
 }
