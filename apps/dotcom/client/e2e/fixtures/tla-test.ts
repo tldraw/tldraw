@@ -6,8 +6,8 @@ interface TlaFixtures {
 }
 
 export const test = base.extend<TlaFixtures>({
-	homePage: async ({ page }, use) => {
-		use(new HomePage(page))
+	homePage: async ({ page }, testUse) => {
+		testUse(new HomePage(page))
 	},
 })
 export { expect } from '@playwright/test'
