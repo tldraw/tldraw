@@ -10,9 +10,13 @@ import {
 	OfflineIndicator,
 	PeopleMenu,
 	TLComponents,
+	TLSessionStateSnapshot,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	createSessionStateSnapshotSignal,
+	react,
+	throttle,
 	useActions,
 	useCollaborationStatus,
 	useEditor,
@@ -109,15 +113,43 @@ export function TlaEditor({
 		}
 	}, [fileId])
 
-	const handleMount = useCallback((editor: Editor) => {
-		;(window as any).app = editor
-		;(window as any).editor = editor
-		// Register the editor globally
-		globalEditor.set(editor)
+	const handleMount = useCallback(
+		(editor: Editor) => {
+			;(window as any).app = app
+			;(window as any).editor = editor
+			// Register the editor globally
+			globalEditor.set(editor)
 
-		// Register the external asset handler
-		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
+			// Register the external asset handler
+			editor.registerExternalAssetHandler('url', createAssetFromUrl)
+
+			if (!app) return
+			const fileState = app.getOrCreateFileState(fileId)
+			if (fileState.lastSessionState) {
+				editor.loadSnapshot({ session: fileState.lastSessionState })
+			}
+			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
+			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
+				app.onFileSessionStateUpdate(fileId, state)
+			})
+			// don't want to update if they only open the file and didn't look around
+			let firstTime = true
+			const cleanup = react('update session state', () => {
+				const state = sessionState$.get()
+				if (!state) return
+				if (firstTime) {
+					firstTime = false
+					return
+				}
+				updateSessionState(state)
+			})
+			return () => {
+				cleanup()
+				updateSessionState.cancel()
+			}
+		},
+		[app]
+	)
 
 	// Handle entering and exiting the file
 	useEffect(() => {

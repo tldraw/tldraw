@@ -16,6 +16,7 @@ import pick from 'lodash.pick'
 import {
 	Editor,
 	Store,
+	TLSessionStateSnapshot,
 	TLStoreSnapshot,
 	TLUserPreferences,
 	assertExists,
@@ -316,12 +317,6 @@ export class TldrawApp {
 		return Result.ok('success')
 	}
 
-	onFileEnter(fileId: TldrawAppFileId) {
-		const fileState = this.getOrCreateFileState(fileId)
-		if (fileState.firstVisitAt) return
-		this.store.put([{ ...fileState, firstVisitAt: Date.now() }])
-	}
-
 	updateUserExportPreferences(
 		exportPreferences: Partial<
 			Pick<TldrawAppUser, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
@@ -347,6 +342,14 @@ export class TldrawApp {
 		return fileState
 	}
 
+	onFileEnter(fileId: TldrawAppFileId) {
+		const fileState = this.getOrCreateFileState(fileId)
+		if (fileState.firstVisitAt) return
+		this.store.put([
+			{ ...fileState, firstVisitAt: fileState.firstVisitAt ?? Date.now(), lastVisitAt: Date.now() },
+		])
+	}
+
 	onFileEdit(fileId: TldrawAppFileId) {
 		// Find the store's most recent file state record for this user
 		const fileState = this.getOrCreateFileState(fileId)
@@ -355,8 +358,14 @@ export class TldrawApp {
 		this.store.put([{ ...fileState, lastEditAt: Date.now() }])
 	}
 
+	onFileSessionStateUpdate(fileId: TldrawAppFileId, sessionState: TLSessionStateSnapshot) {
+		const fileState = this.getOrCreateFileState(fileId)
+		this.store.put([{ ...fileState, lastSessionState: sessionState, lastVisitAt: Date.now() }])
+	}
+
 	onFileExit(fileId: TldrawAppFileId) {
-		// noop?
+		const fileState = this.getOrCreateFileState(fileId)
+		this.store.put([{ ...fileState, lastVisitAt: Date.now() }])
 	}
 
 	static async create(opts: {

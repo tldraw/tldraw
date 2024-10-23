@@ -17,6 +17,7 @@ export interface TldrawAppFileState extends BaseRecord<'file-state', RecordId<Tl
 	firstVisitAt: number | null
 	lastEditAt: number | null
 	lastSessionState: TLSessionStateSnapshot | null
+	lastVisitAt: number | null
 }
 
 export type TldrawAppFileStateId = RecordId<TldrawAppFileState>
@@ -31,6 +32,7 @@ export const tldrawAppFileStateValidator: T.Validator<TldrawAppFileState> = T.mo
 		fileId: idValidator<TldrawAppFileId>('file'),
 		firstVisitAt: T.number.nullable(),
 		lastEditAt: T.number.nullable(),
+		lastVisitAt: T.number.nullable(),
 		lastSessionState: T.jsonValue.nullable() as T.Validator<TLSessionStateSnapshot | null>,
 	})
 )
@@ -57,5 +59,6 @@ export const TldrawAppFileStateRecordType = createRecordType<TldrawAppFileState>
 		firstVisitAt: null,
 		lastEditAt: null,
 		lastSessionState: null,
+		lastVisitAt: null,
 	})
 )
