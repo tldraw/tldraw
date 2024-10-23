@@ -90,5 +90,10 @@ export default defineConfig((env) => ({
 			exportGlobals: true,
 			localsConvention: 'camelCase',
 		},
+		preprocessorOptions: {
+			css: {
+				includePaths: ['node_modules'],
+			},
+		},
 	},
 }))
