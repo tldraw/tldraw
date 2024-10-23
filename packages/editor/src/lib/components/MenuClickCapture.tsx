@@ -102,6 +102,7 @@ export function MenuClickCapture() {
 		showElement && (
 			<div
 				className="tlui-menu-click-capture"
+				data-testid="menu-click-capture.content"
 				{...canvasEvents}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}

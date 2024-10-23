@@ -279,15 +279,10 @@ const INPUTS = ['input', 'select', 'button', 'textarea']
 function areShortcutsDisabled(editor: Editor) {
 	const { activeElement } = document
 
-	if (editor.menus.hasAnyOpenMenus()) return false
-
-	if (
-		activeElement &&
-		(activeElement.getAttribute('contenteditable') ||
-			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
-	) {
-		return true
-	}
-
-	return false
+	return (
+		editor.menus.hasOpenMenus() ||
+		(activeElement &&
+			(activeElement.getAttribute('contenteditable') ||
+				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
+	)
 }
