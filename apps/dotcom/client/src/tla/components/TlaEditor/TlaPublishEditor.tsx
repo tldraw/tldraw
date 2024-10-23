@@ -36,12 +36,12 @@ const components: TLComponents = {
 	},
 }
 
-interface TlaSnapshotEditorProps {
+interface TlaPublishEditorProps {
 	schema: SerializedSchema
 	records: TLRecord[]
 }
 
-export function TlaSnapshotsEditor({ schema, records }: TlaSnapshotEditorProps) {
+export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	// make sure this runs before the editor is instantiated
 	useLegacyUrlParams()
 

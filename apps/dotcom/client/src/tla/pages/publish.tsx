@@ -2,7 +2,7 @@ import { SerializedSchema, TLRecord, fetch } from 'tldraw'
 import { IFrameProtector, ROOM_CONTEXT } from '../../components/IFrameProtector'
 import { defineLoader } from '../../utils/defineLoader'
 import { PUBLISH_ENDPOINT } from '../app/TldrawApp'
-import { TlaSnapshotsEditor } from '../components/TlaEditor/TlaSnapshotsEditor'
+import { TlaPublishEditor } from '../components/TlaEditor/TlaPublishEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
@@ -31,7 +31,7 @@ export function Component() {
 		return (
 			<TlaAnonLayout>
 				<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
-					<TlaSnapshotsEditor records={records} schema={schema} />
+					<TlaPublishEditor records={records} schema={schema} />
 				</IFrameProtector>
 			</TlaAnonLayout>
 		)
@@ -40,7 +40,7 @@ export function Component() {
 	return (
 		<TlaSidebarLayout collapsible>
 			<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
-				<TlaSnapshotsEditor records={records} schema={schema} />
+				<TlaPublishEditor records={records} schema={schema} />
 			</IFrameProtector>
 		</TlaSidebarLayout>
 	)
