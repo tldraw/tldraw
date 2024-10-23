@@ -27,7 +27,7 @@ async function createImage(dataUrl: string | null, cloneAttributesFrom?: HTMLEle
 
 	try {
 		await image.decode()
-	} catch (_err: any) {
+	} catch {
 		// this is fine
 	}
 	return image
@@ -71,7 +71,7 @@ export async function embedMedia(node: HTMLElement) {
 		node.setAttribute('loading', 'eager')
 		try {
 			await node.decode()
-		} catch (_err: any) {
+		} catch {
 			// this is fine
 		}
 		return node

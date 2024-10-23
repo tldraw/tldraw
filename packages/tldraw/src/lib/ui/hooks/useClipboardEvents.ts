@@ -356,7 +356,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 										r({ type: 'tldraw', data: json.data })
 										return
 									}
-								} catch (_e: any) {
+								} catch {
 									r({
 										type: 'error',
 										data: tldrawHtmlComment,
