@@ -314,11 +314,16 @@ function TlaSidebarFileLinkMenu({
 	onRenameAction(): void
 }) {
 	return (
-		<TlaFileMenu fileId={fileId} source="sidebar" onRenameAction={onRenameAction}>
-			<button className={styles.linkMenu}>
-				<TlaIcon icon="dots-vertical-strong" />
-			</button>
-		</TlaFileMenu>
+		<TlaFileMenu
+			fileId={fileId}
+			source="sidebar"
+			onRenameAction={onRenameAction}
+			trigger={
+				<button className={styles.linkMenu}>
+					<TlaIcon icon="dots-vertical-strong" />
+				</button>
+			}
+		/>
 	)
 }
 
