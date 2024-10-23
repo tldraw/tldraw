@@ -37,9 +37,9 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 			if (!editor) throw Error('no editor')
 			if (!fileSlug) throw Error('no file slug')
 			if (!publishedSlug) throw Error('no published slug')
-			if (!isOwner) return
+			if (!isOwner) throw Error('not owner')
 			const token = await auth.getToken()
-			if (!token) return
+			if (!token) throw Error('no token')
 
 			setUploading(true)
 			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
@@ -63,9 +63,10 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 	)
 
 	const unpublish = useCallback(async () => {
-		if (!isOwner) return
-		if (!publishedSlug) return
+		if (!isOwner) throw Error('not owner')
+		if (!publishedSlug) throw Error('no published slug')
 		const token = await auth.getToken()
+		if (!token) throw Error('no token')
 
 		const result = await fetch(`${PUBLISH_ENDPOINT}/${publishedSlug}`, {
 			method: 'DELETE',
