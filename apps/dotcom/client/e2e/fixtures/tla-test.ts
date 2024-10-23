@@ -11,8 +11,3 @@ export const test = base.extend<TlaFixtures>({
 	},
 })
 export { expect } from '@playwright/test'
-
-export function isMobile(browserName: string) {
-	console.log(browserName)
-	return browserName !== 'chromium'
-}
