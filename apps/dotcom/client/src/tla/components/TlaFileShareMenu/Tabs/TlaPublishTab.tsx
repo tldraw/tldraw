@@ -15,10 +15,10 @@ import { TlaTabsPage } from '../../TlaTabs/TlaTabs'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
+	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuSection,
 } from '../../tla-menu/tla-menu'
-import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
 export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
@@ -98,29 +98,36 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 					{isOwner && (
 						<TlaMenuControl>
 							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
+							<TlaMenuControlInfoTooltip
+								href={
+									'https://tldraw.notion.site/Publishing-your-project-1283e4c324c08059a1a1d9ba9833ddc9?pvs=74'
+								}
+							>
+								Learn more about publishing.
+							</TlaMenuControlInfoTooltip>
 							<TlaSwitch
 								checked={published}
 								onChange={() => (published ? unpublish() : publish(false))}
 							/>
 						</TlaMenuControl>
 					)}
-					{published && (
-						<TlaMenuControlGroup>
-							{publishShareUrl && <TlaCopyPublishLinkButton url={publishShareUrl} />}
-							{isOwner && (
-								<TlaButton
-									iconRight="update"
-									isLoading={uploading}
-									variant="secondary"
-									onClick={() => publish(true)}
-								>
-									{raw('Update')}
-								</TlaButton>
-							)}
-						</TlaMenuControlGroup>
-					)}
 				</TlaMenuControlGroup>
-				{published && publishShareUrl && <QrCode url={publishShareUrl} />}
+				{published && (
+					<>
+						{publishShareUrl && <TlaCopyPublishLinkButton url={publishShareUrl} />}
+						{isOwner && (
+							<TlaButton
+								iconRight="update"
+								isLoading={uploading}
+								variant="secondary"
+								onClick={() => publish(true)}
+							>
+								{raw('Update')}
+							</TlaButton>
+						)}
+					</>
+				)}
+				{/* {published && publishShareUrl && <QrCode url={publishShareUrl} />} */}
 			</TlaMenuSection>
 		</TlaTabsPage>
 	)

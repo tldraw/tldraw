@@ -11,13 +11,14 @@ import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
+	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuSection,
 } from '../../tla-menu/tla-menu'
 import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-export function TlaShareTab({ fileId }: { fileId: TldrawAppFileId }) {
+export function TlaInviteTab({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const isShared = useValue(
 		'file',
@@ -59,6 +60,11 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: Tldr
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>{raw('Share this project')}</TlaMenuControlLabel>
+			<TlaMenuControlInfoTooltip
+				href={'https://tldraw.notion.site/Sharing-1283e4c324c080a69618ff37eb3fc98f'}
+			>
+				Learn more about sharing.
+			</TlaMenuControlInfoTooltip>
 			<TlaSwitch checked={!!isShared} onChange={handleToggleShared} />
 		</TlaMenuControl>
 	)

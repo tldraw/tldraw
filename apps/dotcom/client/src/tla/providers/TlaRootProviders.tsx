@@ -1,4 +1,5 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
+import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
@@ -69,7 +70,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				components={components}
 				onUiEvent={handleAppLevelUiEvent}
 			>
-				{children}
+				<TooltipProvider>{children}</TooltipProvider>
 				{currentEditor && <TldrawUiDialogs />}
 				{currentEditor && <TldrawUiToasts />}
 			</MaybeUiContextProvider>

@@ -26,3 +26,55 @@
 	height: 32px;
 	gap: 8px;
 }
+
+.info {
+	flex-grow: 2;
+	width: 32px;
+	color: var(--color-text-3);
+}
+
+.info::after {
+	inset: 6px;
+	border-radius: 100%;
+}
+
+@media (hover: hover) {
+	.info:hover {
+		color: var(--color-text-1);
+		cursor: pointer;
+	}
+}
+
+.label {
+	color: var(--color-text-1);
+}
+
+.popover {
+	padding: 40px 12px 12px 12px;
+	min-width: 160px;
+}
+
+.label + .info {
+	margin-left: -12px;
+}
+
+.popoverClose {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+}
+
+.tooltip {
+	font-size: 12px;
+	padding: 6px 12px;
+	min-width: 160px;
+	border-radius: 8px;
+	background-color: var(--color-text-1);
+	border: 1px solid var(--color-text-1);
+	box-shadow: none;
+	color: var(--color-selected-contrast);
+}
+
+.tooltipArrow {
+	fill: var(--color-text-1);
+}

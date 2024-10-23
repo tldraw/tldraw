@@ -1,4 +1,8 @@
+import * as PopoverPrimitive from '@radix-ui/react-popover'
+import * as TooltipPrimitive from '@radix-ui/react-tooltip'
+import classNames from 'classnames'
 import { ReactNode } from 'react'
+import { TldrawUiButton, TldrawUiIcon, useContainer } from 'tldraw'
 import styles from './menu.module.css'
 
 // Used to section areas of the menu, ie links vs snapshots
@@ -16,7 +20,77 @@ export function TlaMenuControl({ children }: { children: ReactNode }) {
 	return <div className={styles.control}>{children}</div>
 }
 
+// An info button for a single control
+export function TlaMenuControlInfo({ children }: { children: ReactNode }) {
+	const container = useContainer()
+	return (
+		<div className={styles.info}>
+			<PopoverPrimitive.Root>
+				<PopoverPrimitive.Trigger asChild>
+					<TldrawUiButton type="icon" className={styles.info}>
+						<TldrawUiIcon icon="help-circle" small />
+					</TldrawUiButton>
+				</PopoverPrimitive.Trigger>
+				<PopoverPrimitive.Portal container={container}>
+					<PopoverPrimitive.Content className={classNames('tlui-menu', styles.popover)}>
+						{children}
+						<PopoverPrimitive.Close className={styles.popoverClose} asChild>
+							<TldrawUiButton type="icon">
+								<TldrawUiIcon icon="cross-2" small />
+							</TldrawUiButton>
+						</PopoverPrimitive.Close>
+						<PopoverPrimitive.Arrow className={styles.popoverArrow} />
+					</PopoverPrimitive.Content>
+				</PopoverPrimitive.Portal>
+			</PopoverPrimitive.Root>
+		</div>
+	)
+}
+
+// An info button for a single control
+export function TlaMenuControlInfoTooltip({
+	href,
+	children,
+}: {
+	href?: string
+	children: ReactNode
+}) {
+	const container = useContainer()
+	return (
+		<div className={styles.info}>
+			<TooltipPrimitive.Root>
+				<TooltipPrimitive.Trigger dir="ltr" asChild>
+					{href ? (
+						<a
+							href={href}
+							target="_blank nofollow noreferrer"
+							className={classNames('tlui-button tlui-button__icon', styles.info)}
+						>
+							<TldrawUiIcon icon="help-circle" small />
+						</a>
+					) : (
+						<TldrawUiButton type="icon" className={styles.info}>
+							<TldrawUiIcon icon="help-circle" small />
+						</TldrawUiButton>
+					)}
+				</TooltipPrimitive.Trigger>
+				<TooltipPrimitive.Portal container={container}>
+					<TooltipPrimitive.Content
+						avoidCollisions
+						collisionPadding={8}
+						dir="ltr"
+						className={classNames('tlui-menu', styles.tooltip)}
+					>
+						{children}
+						<TooltipPrimitive.Arrow className={styles.tooltipArrow} />
+					</TooltipPrimitive.Content>
+				</TooltipPrimitive.Portal>
+			</TooltipPrimitive.Root>
+		</div>
+	)
+}
+
 // A label for a control
 export function TlaMenuControlLabel({ children }: { children: ReactNode }) {
-	return <div className="tla-text_ui__medium">{children}</div>
+	return <div className={classNames(styles.label, 'tla-text_ui__medium')}>{children}</div>
 }
