@@ -27,7 +27,7 @@ interface DoubleDropdownPickerProps<T extends string> {
 	onValueChange(style: StyleProp<T>, value: T): void
 }
 
-function _DoubleDropdownPicker<T extends string>({
+function DoubleDropdownPickerInner<T extends string>({
 	label,
 	uiTypeA,
 	uiTypeB,
@@ -41,17 +41,14 @@ function _DoubleDropdownPicker<T extends string>({
 	valueB,
 	onValueChange,
 }: DoubleDropdownPickerProps<T>) {
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const msg = useTranslation()
 
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const iconA = React.useMemo(
 		() =>
 			itemsA.find((item) => valueA.type === 'shared' && valueA.value === item.value)?.icon ??
 			'mixed',
 		[itemsA, valueA]
 	)
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const iconB = React.useMemo(
 		() =>
 			itemsB.find((item) => valueB.type === 'shared' && valueB.value === item.value)?.icon ??
@@ -144,5 +141,5 @@ function _DoubleDropdownPicker<T extends string>({
 
 // need to memo like this to get generics
 export const DoubleDropdownPicker = React.memo(
-	_DoubleDropdownPicker
-) as typeof _DoubleDropdownPicker
+	DoubleDropdownPickerInner
+) as typeof DoubleDropdownPickerInner

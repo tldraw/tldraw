@@ -25,7 +25,7 @@ interface DropdownPickerProps<T extends string> {
 	onValueChange(style: StyleProp<T>, value: T): void
 }
 
-function _DropdownPicker<T extends string>({
+function DropdownPickerInner<T extends string>({
 	id,
 	label,
 	uiType,
@@ -35,12 +35,9 @@ function _DropdownPicker<T extends string>({
 	value,
 	onValueChange,
 }: DropdownPickerProps<T>) {
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const msg = useTranslation()
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const editor = useEditor()
 
-	// eslint-disable-next-line react-hooks/rules-of-hooks
 	const icon = React.useMemo(
 		() => items.find((item) => value.type === 'shared' && item.value === value.value)?.icon,
 		[items, value]
@@ -86,4 +83,4 @@ function _DropdownPicker<T extends string>({
 }
 
 // need to export like this to get generics
-export const DropdownPicker = React.memo(_DropdownPicker) as typeof _DropdownPicker
+export const DropdownPicker = React.memo(DropdownPickerInner) as typeof DropdownPickerInner
