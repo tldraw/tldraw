@@ -290,8 +290,19 @@ export class TldrawApp {
 		return file.ownerId === this.getCurrentUserId()
 	}
 
-	async deleteFile(_fileId: TldrawAppFileId) {
-		this.store.remove([_fileId])
+	async deleteOrForgetFile(fileId: TldrawAppFileId) {
+		if (this.isFileOwner(fileId)) {
+			this.store.remove([fileId])
+		} else {
+			const myId = this.getCurrentUserId()
+			const fileVisits = this.getAll('file-visit')
+				.filter((r) => r.fileId === fileId && r.ownerId === myId)
+				.map((r) => r.id)
+			const fileEdits = this.getAll('file-edit')
+				.filter((r) => r.ownerId === myId && r.fileId === fileId)
+				.map((r) => r.id)
+			this.store.remove([...fileVisits, ...fileEdits])
+		}
 	}
 
 	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {

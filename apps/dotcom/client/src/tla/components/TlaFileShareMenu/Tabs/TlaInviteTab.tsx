@@ -2,6 +2,7 @@ import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useToasts, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
+import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useRaw } from '../../../hooks/useRaw'
 import { useTldrawUser } from '../../../hooks/useUser'
 import { copyTextToClipboard } from '../../../utils/copy'
@@ -30,13 +31,17 @@ export function TlaInviteTab({ fileId }: { fileId: TldrawAppFileId }) {
 		[app, fileId]
 	)
 
+	const isOwner = useIsFileOwner(fileId)
+
 	return (
 		<>
 			<TlaMenuSection>
-				<TlaMenuControlGroup>
-					<TlaSharedToggle isShared={isShared} fileId={fileId} />
-					<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
-				</TlaMenuControlGroup>
+				{isOwner && (
+					<TlaMenuControlGroup>
+						<TlaSharedToggle isShared={isShared} fileId={fileId} />
+						<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
+					</TlaMenuControlGroup>
+				)}
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
 				{isShared && <QrCode url={getShareableFileUrl(fileId)} />}
 			</TlaMenuSection>
