@@ -117,7 +117,7 @@ export function fpsThrottle(fn: {
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
-export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
+export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T | undefined;
 
 // @internal
 export function getFromLocalStorage(key: string): null | string;
