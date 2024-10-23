@@ -1,5 +1,6 @@
 import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
+import { Editor } from '../editor/Editor'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { preventDefault, stopEventPropagation } from '../utils/dom'
 import { isAccelKey } from '../utils/keyboard'
@@ -93,7 +94,7 @@ export function useDocumentEvents() {
 				e.altKey &&
 				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?
 				(editor.isIn('zoom') || !editor.getPath().endsWith('.idle')) &&
-				!isFocusingInput()
+				!areShortcutsDisabled(editor)
 			) {
 				// On windows the alt key opens the menu bar.
 				// We want to prevent that if the user is doing something else,
@@ -120,7 +121,7 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Tab': {
-					if (isFocusingInput()) {
+					if (areShortcutsDisabled(editor)) {
 						return
 					}
 					break
@@ -165,7 +166,7 @@ export function useDocumentEvents() {
 					return
 				}
 				default: {
-					if (isFocusingInput()) {
+					if (areShortcutsDisabled(editor)) {
 						return
 					}
 				}
@@ -190,7 +191,7 @@ export function useDocumentEvents() {
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
 
-			if (isFocusingInput()) {
+			if (areShortcutsDisabled(editor)) {
 				return
 			}
 
@@ -275,16 +276,13 @@ export function useDocumentEvents() {
 
 const INPUTS = ['input', 'select', 'button', 'textarea']
 
-function isFocusingInput() {
+function areShortcutsDisabled(editor: Editor) {
 	const { activeElement } = document
 
-	if (
-		activeElement &&
-		(activeElement.getAttribute('contenteditable') ||
-			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
-	) {
-		return true
-	}
-
-	return false
+	return (
+		editor.menus.hasOpenMenus() ||
+		(activeElement &&
+			(activeElement.getAttribute('contenteditable') ||
+				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
+	)
 }
