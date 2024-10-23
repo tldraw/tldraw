@@ -1,62 +1,38 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useMemo } from 'react'
-import {
-	DefaultKeyboardShortcutsDialog,
-	DefaultKeyboardShortcutsDialogContent,
-	DefaultMainMenu,
-	DefaultQuickActions,
-	DefaultQuickActionsContent,
-	OfflineIndicator,
-	SerializedSchema,
-	TLComponents,
-	TLRecord,
-	Tldraw,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-	useActions,
-	useCollaborationStatus,
-} from 'tldraw'
+import { useMemo, useRef } from 'react'
+import { SerializedSchema, TLComponents, TLRecord, Tldraw, usePassThroughWheelEvents } from 'tldraw'
+import { ShareButton } from '../../../components/ShareButton'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
+import { globalEditor } from '../../../utils/globalEditor'
 import { useSharing } from '../../../utils/sharing'
-import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../../../utils/useFileSystem'
+import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { TlaPublishFileShareMenu } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
+import styles from './editor.module.css'
 
 const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
-	KeyboardShortcutsDialog: (props) => {
-		const actions = useActions()
+	SharePanel: () => {
+		const ref = useRef<HTMLDivElement>(null)
+		usePassThroughWheelEvents(ref)
 		return (
-			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
-					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
-				</TldrawUiMenuGroup>
-				<DefaultKeyboardShortcutsDialogContent />
-			</DefaultKeyboardShortcutsDialog>
+			<div ref={ref} className={styles.topRightPanel}>
+				<TlaPublishFileShareMenu>
+					<ShareButton title={'share-menu.title'} label={'share-menu.title'} />
+				</TlaPublishFileShareMenu>
+			</div>
 		)
 	},
 	MenuPanel: () => {
 		const app = useMaybeApp()
 		return <TlaEditorTopLeftPanel isAnonUser={!app} />
-	},
-	TopPanel: () => {
-		const collaborationStatus = useCollaborationStatus()
-		if (collaborationStatus === 'offline') return null
-		return <OfflineIndicator />
-	},
-	QuickActions: () => {
-		return (
-			<DefaultQuickActions>
-				<DefaultMainMenu />
-				<DefaultQuickActionsContent />
-			</DefaultQuickActions>
-		)
 	},
 }
 
@@ -82,7 +58,7 @@ export function TlaSnapshotsEditor({ schema, records }: TlaSnapshotEditorProps) 
 	)
 
 	return (
-		<div className="tldraw__editor">
+		<div className={styles.editor}>
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
@@ -93,6 +69,7 @@ export function TlaSnapshotsEditor({ schema, records }: TlaSnapshotEditorProps) 
 					;(window as any).app = editor
 					;(window as any).editor = editor
 					editor.updateInstanceState({ isReadonly: true })
+					globalEditor.set(editor)
 				}}
 				components={components}
 				deepLinks

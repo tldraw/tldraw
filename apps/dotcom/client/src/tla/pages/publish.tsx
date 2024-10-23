@@ -5,6 +5,7 @@ import { PUBLISH_ENDPOINT } from '../app/TldrawApp'
 import { TlaSnapshotsEditor } from '../components/TlaEditor/TlaSnapshotsEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
+import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 
 const { loader, useData } = defineLoader(async (args) => {
 	const fileSlug = args.params.fileSlug
@@ -37,8 +38,10 @@ export function Component() {
 	}
 
 	return (
-		<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
-			<TlaSnapshotsEditor records={records} schema={schema} />
-		</IFrameProtector>
+		<TlaSidebarLayout collapsible>
+			<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>
+				<TlaSnapshotsEditor records={records} schema={schema} />
+			</IFrameProtector>
+		</TlaSidebarLayout>
 	)
 }

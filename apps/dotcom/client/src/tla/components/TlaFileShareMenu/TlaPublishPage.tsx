@@ -86,15 +86,6 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 
-	const handleCopyPublishLink = useCallback(() => {
-		if (!publishShareUrl) return
-		copyTextToClipboard(publishShareUrl)
-		addToast({
-			title: 'copied',
-			severity: 'success',
-		})
-	}, [publishShareUrl, addToast])
-
 	return (
 		<TlaTabsPage id="publish">
 			<TlaMenuSection>
@@ -110,9 +101,7 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 					)}
 					{published && (
 						<TlaMenuControlGroup>
-							<TlaShareMenuCopyButton onClick={handleCopyPublishLink}>
-								{raw('Copy link')}
-							</TlaShareMenuCopyButton>
+							{publishShareUrl && <TlaCopyPublishLinkButton url={publishShareUrl} />}
 							{isOwner && (
 								<TlaButton
 									iconRight="update"
@@ -129,5 +118,25 @@ export function TlaPublishPage({ file }: { file: TldrawAppFile }) {
 				{published && publishShareUrl && <QrCode url={publishShareUrl} />}
 			</TlaMenuSection>
 		</TlaTabsPage>
+	)
+}
+
+export function TlaCopyPublishLinkButton({ url }: { url: string }) {
+	const raw = useRaw()
+	const { addToast } = useToasts()
+
+	const handleCopyPublishLink = useCallback(() => {
+		if (!url) return
+		copyTextToClipboard(url)
+		addToast({
+			title: 'copied',
+			severity: 'success',
+		})
+	}, [url, addToast])
+
+	return (
+		<TlaShareMenuCopyButton onClick={handleCopyPublishLink}>
+			{raw('Copy link')}
+		</TlaShareMenuCopyButton>
 	)
 }
