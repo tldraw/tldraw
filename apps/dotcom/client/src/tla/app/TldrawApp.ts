@@ -338,10 +338,8 @@ export class TldrawApp {
 	}
 
 	getOrCreateFileState(fileId: TldrawAppFileId) {
+		let fileState = this.getFileState(fileId)
 		const ownerId = this.getCurrentUserId()
-		let fileState = this.getAll('file-state').find(
-			(r) => r.ownerId === ownerId && r.fileId === fileId
-		)
 		if (!fileState) {
 			fileState = TldrawAppFileStateRecordType.create({
 				fileId,
@@ -350,6 +348,11 @@ export class TldrawApp {
 			this.store.put([fileState])
 		}
 		return fileState
+	}
+
+	getFileState(fileId: TldrawAppFileId) {
+		const ownerId = this.getCurrentUserId()
+		return this.getAll('file-state').find((r) => r.ownerId === ownerId && r.fileId === fileId)
 	}
 
 	onFileEnter(fileId: TldrawAppFileId) {
@@ -362,19 +365,22 @@ export class TldrawApp {
 
 	onFileEdit(fileId: TldrawAppFileId) {
 		// Find the store's most recent file state record for this user
-		const fileState = this.getOrCreateFileState(fileId)
+		const fileState = this.getFileState(fileId)
+		if (!fileState) return // file was deleted
 
 		// Create the file edit record
 		this.store.put([{ ...fileState, lastEditAt: Date.now() }])
 	}
 
 	onFileSessionStateUpdate(fileId: TldrawAppFileId, sessionState: TLSessionStateSnapshot) {
-		const fileState = this.getOrCreateFileState(fileId)
+		const fileState = this.getFileState(fileId)
+		if (!fileState) return // file was deleted
 		this.store.put([{ ...fileState, lastSessionState: sessionState, lastVisitAt: Date.now() }])
 	}
 
 	onFileExit(fileId: TldrawAppFileId) {
-		const fileState = this.getOrCreateFileState(fileId)
+		const fileState = this.getFileState(fileId)
+		if (!fileState) return // file was deleted
 		this.store.put([{ ...fileState, lastVisitAt: Date.now() }])
 	}
 

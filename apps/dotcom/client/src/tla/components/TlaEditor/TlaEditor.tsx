@@ -124,8 +124,8 @@ export function TlaEditor({
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
 			if (!app) return
-			const fileState = app.getOrCreateFileState(fileId)
-			if (fileState.lastSessionState) {
+			const fileState = app.getFileState(fileId)
+			if (fileState?.lastSessionState) {
 				editor.loadSnapshot({ session: fileState.lastSessionState })
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
