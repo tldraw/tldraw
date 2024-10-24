@@ -83,7 +83,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 function TlaSidebarWorkspaceLink() {
 	const raw = useRaw()
 	return (
-		<div className={styles.workspace}>
+		<div className={styles.workspace} data-testid="tla-sidebar-logo-icon">
 			<TlaIconWrapper data-size="m">
 				<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" />
 			</TlaIconWrapper>
@@ -104,7 +104,7 @@ function TlaSidebarCreateFileButton() {
 	}, [app, navigate])
 
 	return (
-		<button className={styles.create} onClick={handleSidebarCreate}>
+		<button className={styles.create} onClick={handleSidebarCreate} data-testid="tla-create-file">
 			<TlaIcon icon="edit-strong" />
 		</button>
 	)
@@ -214,7 +214,11 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 	const { fileSlug } = useParams()
 	const isActive = TldrawAppFileRecordType.createId(fileSlug) === file.id
 	return (
-		<div className={classNames(styles.link, styles.hoverable)} data-active={isActive}>
+		<div
+			className={classNames(styles.link, styles.hoverable)}
+			data-active={isActive}
+			data-element="file-link"
+		>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
 					{TldrawApp.getFileName(file)} {isOwnFile ? '' : '(Guest)'}

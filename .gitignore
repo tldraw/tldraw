@@ -89,6 +89,8 @@ apps/examples/e2e/test-results
 apps/examples/playwright-report
 apps/dotcom/client/test-results
 apps/dotcom/client/playwright-report
+apps/dotcom/client/e2e/.auth
+
 
 apps/docs/content/gen
 apps/docs/content/releases
