@@ -17,12 +17,12 @@ export class Sidebar {
 		return this.sidebarLogo.isVisible()
 	}
 
-	expectIsVisible() {
-		expect(this.sidebarLogo).toBeVisible()
+	async expectIsVisible() {
+		await expect(this.sidebarLogo).toBeVisible()
 	}
 
-	expectIsNotVisible() {
-		expect(this.sidebarLogo).not.toBeVisible()
+	async expectIsNotVisible() {
+		await expect(this.sidebarLogo).not.toBeVisible()
 	}
 
 	async createNewDocument() {

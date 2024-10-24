@@ -21,17 +21,17 @@ export class Editor {
 		if (!visible) {
 			await this.sidebarToggle.click()
 		}
-		this.sidebar.expectIsVisible()
+		await this.sidebar.expectIsVisible()
 	}
 	async ensureSidebarClosed() {
 		const visible = await this.sidebar.isVisible()
 		if (visible) {
 			await this.sidebarToggle.click()
 		}
-		this.sidebar.expectIsNotVisible()
+		await this.sidebar.expectIsNotVisible()
 	}
 
 	async isLoaded() {
-		expect(this.sidebarToggle).toBeVisible()
+		await expect(this.sidebarToggle).toBeVisible()
 	}
 }

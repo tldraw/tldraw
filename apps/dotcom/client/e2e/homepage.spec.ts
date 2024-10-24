@@ -4,11 +4,11 @@ test.beforeEach(async ({ homePage }) => {
 	await homePage.goto()
 })
 
-test('can toggle sidebar', async ({ editor, sidebar }) => {
+test('can toggle sidebar', async ({ page, editor, sidebar }) => {
 	await editor.ensureSidebarClosed()
-	expect(sidebar.sidebarLogo).not.toBeVisible()
+	await expect(sidebar.sidebarLogo).not.toBeVisible()
 	await editor.toggleSidebar()
-	expect(sidebar.sidebarLogo).toBeVisible()
+	await expect(sidebar.sidebarLogo).toBeVisible()
 })
 
 test('can create new document', async ({ page, editor, sidebar }) => {
