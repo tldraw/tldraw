@@ -72,3 +72,16 @@
 	position: absolute;
 	right: 8px;
 }
+
+.spinner {
+	animation: tla-spin 1.5s linear infinite;
+}
+
+@keyframes tla-spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}

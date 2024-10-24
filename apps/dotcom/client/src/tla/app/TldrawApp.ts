@@ -270,13 +270,17 @@ export class TldrawApp {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 
-		const newFile = TldrawAppFileRecordType.create({
+		const newFilePartial = {
 			...file,
 			id: TldrawAppFileRecordType.createId(),
 			ownerId: userId,
-			// todo: maybe iterate the file name
-			createdAt: Date.now(),
-		})
+		} as Partial<TldrawAppFile>
+		delete newFilePartial.createdAt
+		delete newFilePartial.lastPublished
+		delete newFilePartial.publishedSlug
+		delete newFilePartial.published
+
+		const newFile = TldrawAppFileRecordType.create(newFilePartial as TldrawAppFile)
 
 		const editorStoreSnapshot = getCurrentEditor()?.store.getStoreSnapshot()
 		this.store.put([newFile])

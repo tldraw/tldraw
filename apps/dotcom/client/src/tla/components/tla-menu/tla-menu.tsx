@@ -66,3 +66,8 @@ export function TlaMenuControlInfoTooltip({
 export function TlaMenuControlLabel({ children }: { children: ReactNode }) {
 	return <div className={classNames(styles.label, 'tla-text_ui__medium')}>{children}</div>
 }
+
+// A detail
+export function TlaMenuDetail({ children }: { children: ReactNode }) {
+	return <div className={classNames(styles.detailCentered, 'tla-text_ui__small')}>{children}</div>
+}

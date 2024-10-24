@@ -78,3 +78,7 @@
 .tooltipArrow {
 	fill: var(--color-text-1);
 }
+
+.detailCentered {
+	text-align: center;
+}
