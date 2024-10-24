@@ -10,7 +10,7 @@ export interface TldrawAppSessionState {
 	auth?: {
 		userId: TldrawAppUserId // null,
 	}
-	shareMenuActiveTab: 'share' | 'export'
+	shareMenuActiveTab: 'share' | 'export' | 'publish'
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
 	theme: 'light' | 'dark'
 	views: {
@@ -53,7 +53,6 @@ try {
 			...(prevStored as TldrawAppSessionState),
 			// forced initial values
 			createdAt: Date.now(),
-			isSidebarOpen: false,
 			isSidebarOpenMobile: false,
 			auth: undefined,
 		}
