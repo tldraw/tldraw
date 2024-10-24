@@ -1,22 +1,24 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { Editor } from './Editor'
 import { Sidebar } from './Sidebar'
 
 export class HomePage {
 	public readonly signInButton: Locator
-	public readonly editor: Locator
+	public readonly tldrawEditor: Locator
 	constructor(
-		public readonly page: Page,
-		public readonly sidebar: Sidebar
+		private readonly page: Page,
+		private readonly sidebar: Sidebar,
+		private readonly editor: Editor
 	) {
 		this.signInButton = this.page.getByTestId('tla-signin-button')
-		this.editor = this.page.getByTestId('tla-editor')
+		this.tldrawEditor = this.page.getByTestId('tla-editor')
 	}
 
 	async login() {
-		const isSideBarVisible = await this.sidebar.isVisible()
+		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
 		// We are already logged in
-		if (isSideBarVisible) return
+		if (isSideBarToggleVisible) return
 		await this.goto()
 		await expect(this.signInButton).toBeVisible()
 		await this.page.click('text=Sign in')
@@ -32,6 +34,6 @@ export class HomePage {
 
 	async isLoaded() {
 		await expect(this.page).toHaveTitle(/tldraw/)
-		await expect(this.editor).toBeVisible()
+		await expect(this.tldrawEditor).toBeVisible()
 	}
 }

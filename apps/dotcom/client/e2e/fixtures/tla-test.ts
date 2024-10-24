@@ -13,11 +13,11 @@ export const test = base.extend<TlaFixtures>({
 	sidebar: async ({ page }, testUse) => {
 		testUse(new Sidebar(page))
 	},
-	homePage: async ({ page, sidebar }, testUse) => {
-		testUse(new HomePage(page, sidebar))
-	},
 	editor: async ({ page, sidebar }, testUse) => {
 		testUse(new Editor(page, sidebar))
+	},
+	homePage: async ({ page, sidebar, editor }, testUse) => {
+		testUse(new HomePage(page, sidebar, editor))
 	},
 })
 export { expect } from '@playwright/test'
