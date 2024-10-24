@@ -1,16 +1,20 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
+import { Sidebar } from './Sidebar'
 
 export class HomePage {
 	public readonly signInButton: Locator
 	public readonly editor: Locator
-	constructor(public readonly page: Page) {
+	constructor(
+		public readonly page: Page,
+		public readonly sidebar: Sidebar
+	) {
 		this.signInButton = this.page.getByTestId('tla-signin-button')
 		this.editor = this.page.getByTestId('tla-editor')
 	}
 
 	async login() {
-		const isSideBarVisible = await this.page.isVisible('[data-testid="tla-sidebar-toggle"]')
+		const isSideBarVisible = await this.sidebar.isVisible()
 		// We are already logged in
 		if (isSideBarVisible) return
 		await this.goto()

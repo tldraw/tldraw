@@ -10,11 +10,11 @@ interface TlaFixtures {
 }
 
 export const test = base.extend<TlaFixtures>({
-	homePage: async ({ page }, testUse) => {
-		testUse(new HomePage(page))
-	},
 	sidebar: async ({ page }, testUse) => {
 		testUse(new Sidebar(page))
+	},
+	homePage: async ({ page, sidebar }, testUse) => {
+		testUse(new HomePage(page, sidebar))
 	},
 	editor: async ({ page, sidebar }, testUse) => {
 		testUse(new Editor(page, sidebar))

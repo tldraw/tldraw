@@ -9,7 +9,6 @@ export class Editor {
 		private readonly sidebar: Sidebar
 	) {
 		this.sidebarToggle = this.page.getByTestId('tla-sidebar-toggle')
-		this.sidebar = sidebar
 	}
 
 	async toggleSidebar() {
