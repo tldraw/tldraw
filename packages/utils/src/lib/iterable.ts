@@ -16,6 +16,6 @@
  * @param value - The iterable Set or Map.
  * @public
  */
-export function getFirstFromIterable<T = unknown>(set: Set<T> | Map<any, T>): T {
+export function getFirstFromIterable<T = unknown>(set: Set<T> | Map<any, T>): T | undefined {
 	return set.values().next().value
 }

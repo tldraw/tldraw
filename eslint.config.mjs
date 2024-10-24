@@ -8,6 +8,7 @@ import _import from 'eslint-plugin-import'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
+import formatjs from 'eslint-plugin-formatjs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import localRules from './.eslintplugin.js'
@@ -80,6 +81,7 @@ export default [
 			'@next/next': nextNext,
 			react,
 			'react-hooks': fixupPluginRules(reactHooks),
+			'formatjs': formatjs
 		},
 
 		languageOptions: {
@@ -146,6 +148,7 @@ export default [
 			'local/prefer-class-methods': 'error',
 			'local/tsdoc-param-matching': 'error',
 			'no-only-tests/no-only-tests': 'error',
+			'formatjs/enforce-default-message': ['error', 'literal'],
 
 			'no-restricted-syntax': [
 				'error',
