@@ -12,7 +12,7 @@ export class HomePage {
 		// We are already logged in
 		if (isSideBarVisible) return
 		await this.goto()
-		expect(this.signInButton).toBeVisible()
+		await expect(this.signInButton).toBeVisible()
 		await this.page.click('text=Sign in')
 		await this.page.getByLabel('Email address').fill('huppy+clerk_test@tldraw.com')
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
@@ -26,6 +26,6 @@ export class HomePage {
 
 	async isLoaded() {
 		await expect(this.page).toHaveTitle(/tldraw/)
-		expect(this.signInButton).toBeVisible()
+		await expect(this.signInButton).toBeVisible()
 	}
 }
