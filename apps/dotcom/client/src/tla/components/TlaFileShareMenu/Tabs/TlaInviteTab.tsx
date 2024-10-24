@@ -1,6 +1,6 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
-import { useValue } from 'tldraw'
+import { useEditor, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useRaw } from '../../../hooks/useRaw'
@@ -123,12 +123,13 @@ function TlaSelectSharedLinkType({
 
 function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
 	const raw = useRaw()
+	const editor = useEditor()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
-		copyTextToClipboard(url)
+		copyTextToClipboard(editor.createDeepLink({ url }).toString())
 		// no toasts please
-	}, [fileId])
+	}, [fileId, editor])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick}>

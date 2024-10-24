@@ -129,7 +129,7 @@ function TlaSidebarUserLink() {
 		<TlaAccountMenu source="sidebar">
 			<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
 				<TlaAvatar img={user.avatar} />
-				<div className={styles.label}>{user.name}</div>
+				<div className={styles.userName}>{user.name}</div>
 				<button className={styles.linkMenu}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>

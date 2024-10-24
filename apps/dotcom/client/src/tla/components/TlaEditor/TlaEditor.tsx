@@ -87,10 +87,12 @@ export function TlaEditor({
 	fileSlug,
 	onDocumentChange,
 	isCreateMode,
+	deepLinks,
 }: {
 	fileSlug: string
 	onDocumentChange?(): void
 	isCreateMode?: boolean
+	deepLinks?: boolean
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -179,6 +181,7 @@ export function TlaEditor({
 				onUiEvent={handleUiEvent}
 				components={!app ? anonComponents : components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
+				deepLinks={deepLinks || undefined}
 			>
 				<ThemeUpdater />
 				{/* <CursorChatBubble /> */}
