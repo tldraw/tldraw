@@ -1,5 +1,11 @@
 import { Editor, TLImageExportOptions, TLShapeId, exhaustiveSwitchError } from '@tldraw/editor'
-import { exportToBlobPromise, exportToString } from './export'
+import {
+	doesClipboardSupportType,
+	exportToBlobPromise,
+	exportToString,
+	getTldrawCustomClipboardType,
+	rewriteMimeType,
+} from './export'
 
 /** @public */
 export type TLCopyType = 'svg' | 'png' | 'jpeg' | 'json'
@@ -33,16 +39,25 @@ export function copyAs(
 			console.error(err)
 		})
 
-		return window.navigator.clipboard
-			.write([new ClipboardItem({ [mimeType]: blobPromise })])
-			.catch((err) => {
-				// Firefox will fail with the above if `dom.events.asyncClipboard.clipboardItem` is enabled.
-				// See <https://github.com/tldraw/tldraw/issues/1325>
-				console.error(err)
-				return blobPromise.then((blob) => {
-					return window.navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })])
-				})
+		const types: Record<string, Promise<Blob>> = { [mimeType]: blobPromise }
+		const customMimeType = getTldrawCustomClipboardType(mimeType)
+		if (customMimeType && doesClipboardSupportType(customMimeType)) {
+			types[customMimeType] = blobPromise.then((blob) => rewriteMimeType(blob, customMimeType))
+		}
+
+		return window.navigator.clipboard.write([new ClipboardItem(types)]).catch((err) => {
+			// Firefox will fail with the above if `dom.events.asyncClipboard.clipboardItem` is enabled.
+			// See <https://github.com/tldraw/tldraw/issues/1325>
+			console.error(err)
+			return blobPromise.then((blob) => {
+				const types: Record<string, Blob> = { [mimeType]: blob }
+				if (customMimeType && doesClipboardSupportType(customMimeType)) {
+					types[customMimeType] = rewriteMimeType(blob, customMimeType)
+				}
+
+				return window.navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })])
 			})
+		})
 	}
 
 	switch (format) {

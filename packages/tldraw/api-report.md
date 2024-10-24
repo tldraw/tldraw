@@ -969,7 +969,9 @@ export function exportToBlob({ editor, ids, format, opts, }: {
     editor: Editor;
     format: TLExportType;
     ids: TLShapeId[];
-    opts?: TLImageExportOptions;
+    opts?: TLImageExportOptions & {
+        bitmapImageScale?: number;
+    };
 }): Promise<Blob>;
 
 // @public (undocumented)

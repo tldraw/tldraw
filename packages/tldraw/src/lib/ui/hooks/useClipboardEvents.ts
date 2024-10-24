@@ -4,6 +4,7 @@ import {
 	TLExternalContentSource,
 	Vec,
 	VecLike,
+	compact,
 	isDefined,
 	preventDefault,
 	stopEventPropagation,
@@ -13,11 +14,26 @@ import {
 } from '@tldraw/editor'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
+import {
+	customTldrawClipboardTypes,
+	getMimeTypeFromTldrawCustomClipboardType,
+	rewriteMimeType,
+} from '../../utils/export/export'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
+
+// Expected paste mime types. The earlier in this array they appear, the higher preference we give
+// them. For example, we prefer the `web image/png+tldraw` type to plain `image/png` as it does not
+// strip some of the extra metadata we write into it.
+const expectedPasteFileMimeTypes = [
+	...Object.values(customTldrawClipboardTypes),
+	'image/png',
+	'image/jpeg',
+	'image/webp',
+] satisfies string[]
 
 /**
  * Strip HTML tags from a string.
@@ -78,15 +94,6 @@ function areShortcutsDisabled(editor: Editor) {
 			(activeElement.getAttribute('contenteditable') ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
 	)
-}
-
-/**
- * Whether a ClipboardItem is a file.
- * @param item - The ClipboardItem to check.
- * @internal
- */
-const isFile = (item: ClipboardItem) => {
-	return item.types.find((i) => i.match(/^image\//))
 }
 
 /**
@@ -182,6 +189,7 @@ const handlePasteFromEventClipboardData = async (
 
 	const things: ClipboardThing[] = []
 
+	debugger
 	for (const item of Object.values(clipboardData.items)) {
 		switch (item.kind) {
 			case 'file': {
@@ -237,11 +245,16 @@ const handlePasteFromClipboardApi = async (
 	const things: ClipboardThing[] = []
 
 	for (const item of clipboardItems) {
-		if (isFile(item)) {
-			for (const type of item.types) {
-				if (type.match(/^image\//)) {
-					things.push({ type: 'blob', source: item.getType(type) })
-				}
+		for (const type of expectedPasteFileMimeTypes) {
+			if (item.types.includes(type)) {
+				const blobPromise = item
+					.getType(type)
+					.then((blob) => rewriteMimeType(blob, getMimeTypeFromTldrawCustomClipboardType(type)))
+				things.push({
+					type: 'blob',
+					source: blobPromise,
+				})
+				break
 			}
 		}
 
@@ -280,6 +293,8 @@ const handlePasteFromClipboardApi = async (
 }
 
 async function handleClipboardThings(editor: Editor, things: ClipboardThing[], point?: VecLike) {
+	console.log('things', things)
+
 	// 1. Handle files
 	//
 	// We need to handle files separately because if we want them to
@@ -294,11 +309,8 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 		if (files.length > editor.options.maxFilesAtOnce) {
 			throw Error('Too many files')
 		}
-		const fileBlobs = await Promise.all(files.map((t) => t.source!))
-		const urls = (fileBlobs.filter(Boolean) as (File | Blob)[]).map((blob) =>
-			URL.createObjectURL(blob)
-		)
-		return await pasteFiles(editor, urls, point)
+		const fileBlobs = compact(await Promise.all(files.map((t) => t.source)))
+		return await pasteFiles(editor, fileBlobs, point)
 	}
 
 	// 2. Generate clipboard results for non-file things
@@ -669,16 +681,27 @@ export function useNativeClipboardEvents() {
 			if (editor.user.getIsPasteAtCursorMode()) pasteAtCursor = !pasteAtCursor
 			if (pasteAtCursor) point = editor.inputs.currentPagePoint
 
-			// First try to use the clipboard data on the event
-			if (e.clipboardData && !editor.inputs.shiftKey) {
-				handlePasteFromEventClipboardData(editor, e.clipboardData, point)
-			} else {
-				// Or else use the clipboard API
-				navigator.clipboard.read().then((clipboardItems) => {
-					if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
-						handlePasteFromClipboardApi(editor, clipboardItems, point)
+			const pasteFromEvent = () => {
+				if (e.clipboardData) {
+					handlePasteFromEventClipboardData(editor, e.clipboardData, point)
+				}
+			}
+
+			// First try to use the clipboard API:
+			if (navigator.clipboard && navigator.clipboard.read) {
+				navigator.clipboard.read().then(
+					(clipboardItems) => {
+						if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
+							handlePasteFromClipboardApi(editor, clipboardItems, point)
+						}
+					},
+					() => {
+						// if reading from the clipboard fails, try to use the event clipboard data
+						pasteFromEvent()
 					}
-				})
+				)
+			} else {
+				pasteFromEvent()
 			}
 
 			preventDefault(e)
