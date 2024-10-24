@@ -2,6 +2,7 @@ import { expect, test } from './fixtures/tla-test'
 
 test.beforeEach(async ({ homePage }) => {
 	await homePage.goto()
+	await homePage.isLoaded()
 })
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {

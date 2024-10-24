@@ -3,8 +3,10 @@ import { expect } from '@playwright/test'
 
 export class HomePage {
 	public readonly signInButton: Locator
+	public readonly editor: Locator
 	constructor(public readonly page: Page) {
 		this.signInButton = this.page.getByTestId('tla-signin-button')
+		this.editor = this.page.getByTestId('tla-editor')
 	}
 
 	async login() {
@@ -26,6 +28,6 @@ export class HomePage {
 
 	async isLoaded() {
 		await expect(this.page).toHaveTitle(/tldraw/)
-		await expect(this.signInButton).toBeVisible()
+		await expect(this.editor).toBeVisible()
 	}
 }
