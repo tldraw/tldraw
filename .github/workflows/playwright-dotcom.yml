@@ -9,6 +9,7 @@ on:
 env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
+  TLDRAW_ENV: 'development'
 
 defaults:
   run:
@@ -17,7 +18,7 @@ defaults:
 jobs:
   build:
     name: 'End to end tests (dotcom)'
-    timeout-minutes: 60
+    timeout-minutes: 20
     runs-on: ubuntu-latest-16-cores-open
     environment: 'e2e-dotcom'
 
