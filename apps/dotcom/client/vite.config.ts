@@ -80,6 +80,9 @@ export default defineConfig((env) => ({
 				// },
 			},
 		},
+		watch: {
+			ignored: ['**/playwright-report/**', '**/test-results/**'],
+		},
 	},
 	css: {
 		modules: {

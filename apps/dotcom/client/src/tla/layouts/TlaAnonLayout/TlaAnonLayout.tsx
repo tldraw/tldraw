@@ -18,7 +18,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				</Link>
 				<SignedOut>
 					<SignInButton mode="modal" forceRedirectUrl="/q">
-						<TlaButton>{raw('Sign in')}</TlaButton>
+						<TlaButton data-testid="tla-signin-button">{raw('Sign in')}</TlaButton>
 					</SignInButton>
 				</SignedOut>
 			</div>
