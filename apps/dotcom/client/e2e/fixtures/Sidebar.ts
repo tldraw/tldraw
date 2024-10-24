@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
-import { expect } from '@playwright/test'
+import { expect } from './tla-test'
 
 export class Sidebar {
 	public readonly sidebarLogo: Locator
@@ -13,8 +13,16 @@ export class Sidebar {
 		await this.page.goto('http://localhost:3000/q')
 	}
 
-	async isLoaded() {
+	async isVisible() {
+		return this.sidebarLogo.isVisible()
+	}
+
+	expectIsVisible() {
 		expect(this.sidebarLogo).toBeVisible()
+	}
+
+	expectIsNotVisible() {
+		expect(this.sidebarLogo).not.toBeVisible()
 	}
 
 	async createNewDocument() {

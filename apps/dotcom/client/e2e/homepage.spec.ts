@@ -5,13 +5,14 @@ test.beforeEach(async ({ homePage }) => {
 })
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {
+	await editor.ensureSidebarClosed()
 	expect(sidebar.sidebarLogo).not.toBeVisible()
 	await editor.toggleSidebar()
 	expect(sidebar.sidebarLogo).toBeVisible()
 })
 
 test('can create new document', async ({ page, editor, sidebar }) => {
-	await editor.toggleSidebar()
+	await editor.ensureSidebarOpen()
 	const currentCount = (await page.$$('[data-element="file-link"]')).length
 	await sidebar.createNewDocument()
 	const newCount = (await page.$$('[data-element="file-link"]')).length
