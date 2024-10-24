@@ -16,6 +16,7 @@ export class HomePage {
 		await this.page.click('text=Sign in')
 		await this.page.getByLabel('Email address').fill('huppy+clerk_test@tldraw.com')
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
+		await this.page.waitForTimeout(1000)
 		await this.page.getByLabel('Enter verification code. Digit').fill('424242')
 	}
 
