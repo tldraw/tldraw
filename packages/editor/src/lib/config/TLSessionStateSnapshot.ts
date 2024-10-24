@@ -19,6 +19,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import isEqual from 'lodash.isequal'
 import { tlenv } from '../globals/environment'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
@@ -163,35 +164,39 @@ export function createSessionStateSnapshotSignal(
 ): Signal<TLSessionStateSnapshot | null> {
 	const $allPageIds = store.query.ids('page')
 
-	return computed<TLSessionStateSnapshot | null>('sessionStateSnapshot', () => {
-		const instanceState = store.get(TLINSTANCE_ID)
-		if (!instanceState) return null
+	return computed<TLSessionStateSnapshot | null>(
+		'sessionStateSnapshot',
+		() => {
+			const instanceState = store.get(TLINSTANCE_ID)
+			if (!instanceState) return null
 
-		const allPageIds = [...$allPageIds.get()]
-		return {
-			version: CURRENT_SESSION_STATE_SNAPSHOT_VERSION,
-			currentPageId: instanceState.currentPageId,
-			exportBackground: instanceState.exportBackground,
-			isFocusMode: instanceState.isFocusMode,
-			isDebugMode: instanceState.isDebugMode,
-			isToolLocked: instanceState.isToolLocked,
-			isGridMode: instanceState.isGridMode,
-			pageStates: allPageIds.map((id) => {
-				const ps = store.get(InstancePageStateRecordType.createId(id))
-				const camera = store.get(CameraRecordType.createId(id))
-				return {
-					pageId: id,
-					camera: {
-						x: camera?.x ?? 0,
-						y: camera?.y ?? 0,
-						z: camera?.z ?? 1,
-					},
-					selectedShapeIds: ps?.selectedShapeIds ?? [],
-					focusedGroupId: ps?.focusedGroupId ?? null,
-				} satisfies NonNullable<TLSessionStateSnapshot['pageStates']>[0]
-			}),
-		} satisfies TLSessionStateSnapshot
-	})
+			const allPageIds = [...$allPageIds.get()]
+			return {
+				version: CURRENT_SESSION_STATE_SNAPSHOT_VERSION,
+				currentPageId: instanceState.currentPageId,
+				exportBackground: instanceState.exportBackground,
+				isFocusMode: instanceState.isFocusMode,
+				isDebugMode: instanceState.isDebugMode,
+				isToolLocked: instanceState.isToolLocked,
+				isGridMode: instanceState.isGridMode,
+				pageStates: allPageIds.map((id) => {
+					const ps = store.get(InstancePageStateRecordType.createId(id))
+					const camera = store.get(CameraRecordType.createId(id))
+					return {
+						pageId: id,
+						camera: {
+							x: camera?.x ?? 0,
+							y: camera?.y ?? 0,
+							z: camera?.z ?? 1,
+						},
+						selectedShapeIds: ps?.selectedShapeIds ?? [],
+						focusedGroupId: ps?.focusedGroupId ?? null,
+					} satisfies NonNullable<TLSessionStateSnapshot['pageStates']>[0]
+				}),
+			} satisfies TLSessionStateSnapshot
+		},
+		{ isEqual }
+	)
 }
 
 /**

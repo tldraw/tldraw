@@ -10,10 +10,13 @@ import {
 	OfflineIndicator,
 	PeopleMenu,
 	TLComponents,
+	TLSessionStateSnapshot,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	tltime,
+	createSessionStateSnapshotSignal,
+	react,
+	throttle,
 	useActions,
 	useCollaborationStatus,
 	useEditor,
@@ -29,7 +32,6 @@ import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
-import { getLocalSessionState } from '../../utils/local-session-state'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -110,50 +112,43 @@ export function TlaEditor({
 		}
 	}, [fileId])
 
-	const handleMount = useCallback((editor: Editor) => {
-		;(window as any).app = editor
-		;(window as any).editor = editor
-		// Register the editor globally
-		globalEditor.set(editor)
+	const handleMount = useCallback(
+		(editor: Editor) => {
+			;(window as any).app = app
+			;(window as any).editor = editor
+			// Register the editor globally
+			globalEditor.set(editor)
 
-		// Register the external asset handler
-		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
+			// Register the external asset handler
+			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
-	// Handle entering and exiting the file
-	useEffect(() => {
-		if (!app) return
-
-		const { auth } = getLocalSessionState()
-		if (!auth) throw Error('Auth not found')
-
-		const user = app.getUser(auth.userId)
-		if (!user) throw Error('User not found')
-
-		let cancelled = false
-		let didEnter = false
-
-		// Only mark as entered after one second
-		// TODO TODO but why though...? b/c it's trying to create the file?
-		const timeout = tltime.setTimeout(
-			'app',
-			() => {
-				if (cancelled) return
-				didEnter = true
-				app.onFileEnter(fileId)
-			},
-			1000
-		)
-
-		return () => {
-			cancelled = true
-			clearTimeout(timeout)
-
-			if (didEnter) {
-				app.onFileExit(fileId)
+			if (!app) return
+			const fileState = app.getFileState(fileId)
+			if (fileState?.lastSessionState) {
+				editor.loadSnapshot({ session: fileState.lastSessionState })
 			}
-		}
-	}, [app, fileId])
+			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
+			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
+				app.onFileSessionStateUpdate(fileId, state)
+			}, 500)
+			// don't want to update if they only open the file and didn't look around
+			let firstTime = true
+			const cleanup = react('update session state', () => {
+				const state = sessionState$.get()
+				if (!state) return
+				if (firstTime) {
+					firstTime = false
+					return
+				}
+				updateSessionState(state)
+			})
+			return () => {
+				cleanup()
+				updateSessionState.cancel()
+			}
+		},
+		[app, fileId]
+	)
 
 	const user = useTldrawUser()
 
@@ -170,6 +165,17 @@ export function TlaEditor({
 		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
 	})
+
+	// Handle entering and exiting the file
+	useEffect(() => {
+		if (!app) return
+		if (store.status !== 'synced-remote') return
+
+		app.onFileEnter(fileId)
+		return () => {
+			app.onFileExit(fileId)
+		}
+	}, [app, fileId, store.status])
 
 	return (
 		<div className={styles.editor}>
@@ -225,13 +231,10 @@ function SneakyFileUpdateHandler({
 	const app = useMaybeApp()
 	const editor = useEditor()
 	useEffect(() => {
-		const fileStartTime = Date.now()
 		return editor.store.listen(
 			() => {
 				if (!app) return
-				const sessionState = getLocalSessionState()
-				if (!sessionState.auth) throw Error('Auth not found')
-				app.onFileEdit(fileId, sessionState.createdAt, fileStartTime)
+				app.onFileEdit(fileId)
 				onDocumentChange?.()
 			},
 			{ scope: 'document', source: 'user' }
