@@ -1,3 +1,15 @@
+# v3.5.0 (Thu Oct 24 2024)
+
+#### 🐛 Bug Fix
+
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 1
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+
+---
+
 # v3.1.0 (Wed Sep 25 2024)
 
 #### 🐛 Bug Fix
