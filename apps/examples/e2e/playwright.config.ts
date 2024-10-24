@@ -102,7 +102,6 @@ const config: PlaywrightTestConfig = {
 	webServer: {
 		command: 'yarn dev',
 		port: 5420,
-		stdout: 'pipe',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../..'),
 	},

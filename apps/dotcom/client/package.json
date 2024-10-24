@@ -44,7 +44,7 @@
 	},
 	"devDependencies": {
 		"@jest/globals": "30.0.0-alpha.2",
-		"@playwright/test": "^1.48.1",
+		"@playwright/test": "^1.46.1",
 		"@sentry/cli": "^2.25.0",
 		"@tldraw/validate": "workspace:*",
 		"@types/lodash.pick": "^4.4.9",
