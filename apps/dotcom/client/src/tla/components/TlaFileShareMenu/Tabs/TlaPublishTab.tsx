@@ -138,7 +138,7 @@ export function TlaCopyPublishLinkButton({ url }: { url: string }) {
 			title: 'copied',
 			severity: 'success',
 		})
-	}, [url, addToast])
+	}, [url, editor, addToast])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyPublishLink}>

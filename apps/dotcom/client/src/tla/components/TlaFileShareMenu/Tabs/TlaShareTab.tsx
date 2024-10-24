@@ -129,7 +129,7 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 			title: 'copied',
 			severity: 'success',
 		})
-	}, [fileId, addToast])
+	}, [fileId, editor, addToast])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick}>
