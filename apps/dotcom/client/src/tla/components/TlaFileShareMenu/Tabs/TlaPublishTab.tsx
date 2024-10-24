@@ -48,10 +48,14 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 			} else {
 				app.updateFileLastPublished(file.id)
 			}
+			const startTime = Date.now()
 			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
 			if (result.ok) {
 				// no toasts please
-				await new Promise((r) => setTimeout(r, 1000))
+				const elapsed = Date.now() - startTime
+				if (elapsed < 1000) {
+					await new Promise((r) => setTimeout(r, elapsed))
+				}
 				setUploadState('success')
 				editor.timers.setTimeout(() => {
 					setUploadState('idle')
