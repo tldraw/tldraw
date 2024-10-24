@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import {
 	BaseBoxShapeTool,
 	BaseBoxShapeUtil,
@@ -122,13 +122,14 @@ describe('<TldrawEditor />', () => {
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
 		const initialStore = createTLStore({ shapeUtils: [] })
 		const onMount = jest.fn()
-		const rendered = render(
+		const rendered = await renderTldrawComponent(
 			<TldrawEditor
 				initialState="select"
 				tools={defaultTools}
 				store={initialStore}
 				onMount={onMount}
-			/>
+			/>,
+			{ waitForPatterns: false }
 		)
 		const initialEditor = onMount.mock.lastCall[0]
 		jest.spyOn(initialEditor, 'dispose')
@@ -333,7 +334,9 @@ describe('<TldrawEditor />', () => {
 			{ waitForPatterns: true }
 		)
 
-		expect(editor.selectAll().getSelectedShapes()).toMatchObject([
+		act(() => editor.selectAll())
+
+		expect(editor.getSelectedShapes()).toMatchObject([
 			{
 				id: 'shape:SxHfVyCVdM4Ryl27eJNRD',
 				type: 'geo',
@@ -373,6 +376,22 @@ describe('<TldrawEditor />', () => {
 		)
 
 		expect(editor.store.props.assets.upload).toBe(myUploadFn)
+	})
+
+	it('will not re-create the editor if re-rendered with identical options', async () => {
+		const onMount = jest.fn()
+
+		const renderer = await renderTldrawComponent(
+			<TldrawEditor onMount={onMount} options={{ maxPages: 1 }} />,
+			{
+				waitForPatterns: false,
+			}
+		)
+
+		expect(onMount).toHaveBeenCalledTimes(1)
+
+		renderer.rerender(<TldrawEditor onMount={onMount} options={{ maxPages: 1 }} />)
+		expect(onMount).toHaveBeenCalledTimes(1)
 	})
 })
 

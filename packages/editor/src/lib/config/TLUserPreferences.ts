@@ -169,7 +169,7 @@ function migrateUserPreferences(userData: unknown): TLUserPreferences {
 
 	try {
 		return userTypeValidator.validate(snapshot.user)
-	} catch (e) {
+	} catch {
 		return getFreshUserPreferences()
 	}
 }

@@ -253,7 +253,6 @@ export {
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
 	type TLImageExportOptions,
-	// eslint-disable-next-line deprecation/deprecation
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'

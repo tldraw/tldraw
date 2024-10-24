@@ -25,7 +25,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 	try {
 		const components = useEditorComponents()
 		Canvas = components.Canvas ?? null
-	} catch (e) {
+	} catch {
 		// allow this to fail silently
 	}
 
@@ -94,7 +94,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 		textarea.value = errorStack ?? errorMessage
 		document.body.appendChild(textarea)
 		textarea.select()
-		// eslint-disable-next-line deprecation/deprecation
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		document.execCommand('copy')
 		textarea.remove()
 		setDidCopy(true)

@@ -226,7 +226,7 @@
 	height: 40px;
 	flex-grow: 2;
 	display: flex;
-	flex-direction: row;
+	gap: 8px;
 	align-items: center;
 	white-space: nowrap;
 	overflow: hidden;
@@ -235,12 +235,12 @@
 }
 
 .user {
-	padding-left: 8px;
-}
-
-.user {
 	padding: 0 4px;
 	cursor: pointer;
+}
+
+.userName {
+	flex-grow: 1;
 }
 
 .main-link {
@@ -288,6 +288,21 @@
 	gap: 4px;
 	position: relative;
 	z-index: 2;
+}
+
+.renameWrapper > div {
+	height: 36px;
+	padding: 0px 8px 0px 8px;
+}
+
+.rename {
+	height: 36px;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	position: relative;
+	z-index: 1;
 }
 
 @media (hover: hover) {

@@ -11,29 +11,29 @@ import {
 	useReactor,
 	useValue,
 } from 'tldraw'
-import { globalEditor } from '../../../utils/globalEditor'
-import { TldrawApp } from '../../app/TldrawApp'
-import { useMaybeApp } from '../../hooks/useAppState'
-import { useRaw } from '../../hooks/useRaw'
-import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { globalEditor } from '../../../../utils/globalEditor'
+import { TldrawApp } from '../../../app/TldrawApp'
+import { useMaybeApp } from '../../../hooks/useAppState'
+import { useRaw } from '../../../hooks/useRaw'
+import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
+import { getCurrentEditor } from '../../../utils/getCurrentEditor'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,
 	updateLocalSessionState,
-} from '../../utils/local-session-state'
-import { TlaButton } from '../TlaButton/TlaButton'
-import { TlaSelect } from '../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
+} from '../../../utils/local-session-state'
+import { TlaButton } from '../../TlaButton/TlaButton'
+import { TlaSelect } from '../../TlaSelect/TlaSelect'
+import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlLabel,
 	TlaMenuSection,
-} from '../tla-menu/tla-menu'
-import styles from './file-share-menu.module.css'
+} from '../../tla-menu/tla-menu'
+import styles from '../file-share-menu.module.css'
 
-export function TlaShareMenuExportPage() {
+export function TlaExportTab() {
 	const app = useMaybeApp()
 
 	const preferences = useValue('preferences', () => getExportPreferences(app), [app])

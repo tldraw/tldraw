@@ -10,6 +10,8 @@ import { Suspense, lazy, useEffect } from 'react'
 import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
+import { notFound } from './pages/not-found'
+import { TlaNotFoundError } from './tla/utils/notFoundError'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
@@ -39,11 +41,14 @@ export const router = createRoutesFromElements(
 						)
 					}
 					case TLSyncErrorCloseEventReason.FORBIDDEN: {
-						header = 'Forbidden'
-						para1 = 'You are forbidden to view this file.'
+						header = 'Not authorized'
+						para1 = 'You do not have permission to view this file.'
 						break
 					}
 				}
+			}
+			if (error instanceof TlaNotFoundError) {
+				return notFound()
 			}
 
 			return (
@@ -88,6 +93,7 @@ export const router = createRoutesFromElements(
 			<Route path="/q" lazy={() => import('./tla/pages/local')} />
 			{/* File view */}
 			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
+			<Route path="/q/p/:fileSlug" lazy={() => import('./tla/pages/publish')} />
 			{/* Views that require login */}
 			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
 				{/* User settings */}

@@ -6,19 +6,19 @@ import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { getLocalSessionState } from '../utils/local-session-state'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
-import { getFileUrl } from '../utils/urls'
+import { getFilePath } from '../utils/urls'
 
 export function Component() {
 	const app = useMaybeApp()
 
 	if (!app) return <LocalTldraw />
 	// Navigate to the most recent file (if there is one) or else a new file
-	const { auth, createdAt } = getLocalSessionState()
-	const file = auth?.userId && app.getUserRecentFiles(createdAt)?.[0]?.file
-	if (file) {
-		return <Navigate to={getFileUrl(file.id)} replace />
+	const { auth } = getLocalSessionState()
+	const fileId = auth?.userId && app.getUserRecentFiles()[0]?.fileId
+	if (fileId) {
+		return <Navigate to={getFilePath(fileId)} replace />
 	}
-	return <Navigate to={getFileUrl(app.createFile().id)} replace state={{ isCreateMode: true }} />
+	return <Navigate to={getFilePath(app.createFile().id)} replace state={{ isCreateMode: true }} />
 }
 
 function LocalTldraw() {

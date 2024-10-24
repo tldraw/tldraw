@@ -263,7 +263,7 @@ const CameraOptionsControlPanel = track(() => {
 							if (val.every((v) => typeof v === 'number' && Number.isFinite(v))) {
 								updateOptions({ zoomSteps: val })
 							}
-						} catch (e) {
+						} catch {
 							// ignore
 						}
 					}}

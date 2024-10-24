@@ -10,7 +10,7 @@ export function useLocalStorageState<T = any>(key: string, defaultValue: T) {
 		if (value) {
 			try {
 				setState(JSON.parse(value))
-			} catch (e) {
+			} catch {
 				console.error(`Could not restore value ${key} from local storage.`)
 			}
 		}

@@ -3,6 +3,7 @@
 .tl-container {
 	--layer-above: 1;
 	--layer-focused-input: 10;
+	--layer-menu-click-capture: 250;
 	--layer-panels: 300;
 	--layer-menus: 400;
 	--layer-toasts: 650;
@@ -213,7 +214,7 @@
 }
 
 .tlui-button__tool:focus-visible:not(:hover) {
-	border-radius: var(--radius-4);
+	border-radius: 12px;
 }
 
 .tlui-button__tool:nth-of-type(1) {
@@ -1800,8 +1801,8 @@
 	}
 }
 
-.tlui-menu-overlay {
+.tlui-menu-click-capture {
 	position: fixed;
 	inset: 0;
-	z-index: var(--layer-panels);
+	z-index: var(--layer-menu-click-capture);
 }
