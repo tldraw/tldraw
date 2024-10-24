@@ -101,7 +101,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 							<TlaMenuControlInfoTooltip
 								href={'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'}
 							>
-								Learn more about publishing.
+								{raw('Learn more about publishing.')}
 							</TlaMenuControlInfoTooltip>
 							<TlaSwitch
 								checked={published}

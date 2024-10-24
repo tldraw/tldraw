@@ -68,7 +68,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: Tldr
 			<TlaMenuControlInfoTooltip
 				href={'https://tldraw.notion.site/Sharing-1283e4c324c080a69618ff37eb3fc98f'}
 			>
-				Learn more about sharing.
+				{raw('Learn more about sharing.')}
 			</TlaMenuControlInfoTooltip>
 			<TlaSwitch checked={!!isShared} onChange={handleToggleShared} />
 		</TlaMenuControl>
