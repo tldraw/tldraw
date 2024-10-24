@@ -413,7 +413,7 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 		// and it will mess up the inline source viewer on sentry errors.
 		const out = tar.x({ cwd: assetsDir, 'keep-existing': true })
 		for await (const chunk of Body?.transformToWebStream() as any as AsyncIterable<Uint8Array>) {
-			out.write(Buffer.from(chunk.buffer))
+			out.write(new Uint8Array(Buffer.from(chunk.buffer)))
 		}
 		out.end()
 	}
