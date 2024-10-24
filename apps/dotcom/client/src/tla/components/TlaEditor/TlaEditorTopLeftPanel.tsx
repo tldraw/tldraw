@@ -4,9 +4,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
 	DefaultPageMenu,
+	EditSubmenu,
+	ExportFileContentSubMenu,
+	ExtrasGroup,
 	TldrawUiButton,
 	TldrawUiIcon,
 	TldrawUiInput,
+	ViewSubmenu,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
@@ -108,10 +112,20 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			/>
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
-			<TlaFileMenu fileId={fileId} source="file-header" onRenameAction={handleRenameAction}>
-				<button className={styles.linkMenu}>
-					<TlaIcon icon="dots-vertical-strong" />
-				</button>
+			<TlaFileMenu
+				fileId={fileId}
+				source="file-header"
+				onRenameAction={handleRenameAction}
+				trigger={
+					<button className={styles.linkMenu}>
+						<TlaIcon icon="dots-vertical-strong" />
+					</button>
+				}
+			>
+				<EditSubmenu />
+				<ViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
 			</TlaFileMenu>
 		</>
 	)
@@ -151,9 +165,9 @@ function TlaFileNameEditor({
 	)
 
 	useEffect(() => {
-		if (isRenaming !== undefined && isRenaming !== isEditing) {
+		if (isRenaming && !isEditing) {
 			// Wait a tick, otherwise the blur event immediately exits the input.
-			setTimeout(() => setIsEditing(isRenaming), 0)
+			setTimeout(() => setIsEditing(true), 0)
 		}
 	}, [isRenaming, isEditing])
 
