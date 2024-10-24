@@ -49,7 +49,8 @@ export const UserPreferencesKeys = [
 	'isWrapMode',
 	'isDynamicSizeMode',
 	'isPasteAtCursorMode',
-] as const
+	'name',
+] as const satisfies Array<keyof TldrawAppUser>
 
 export type TldrawAppUserId = RecordId<TldrawAppUser>
 

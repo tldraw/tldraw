@@ -226,7 +226,7 @@
 	height: 40px;
 	flex-grow: 2;
 	display: flex;
-	flex-direction: row;
+	gap: 8px;
 	align-items: center;
 	white-space: nowrap;
 	overflow: hidden;
@@ -235,12 +235,12 @@
 }
 
 .user {
-	padding-left: 8px;
-}
-
-.user {
 	padding: 0 4px;
 	cursor: pointer;
+}
+
+.userName {
+	flex-grow: 1;
 }
 
 .main-link {
