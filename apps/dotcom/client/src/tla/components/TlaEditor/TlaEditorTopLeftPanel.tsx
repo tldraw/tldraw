@@ -151,9 +151,9 @@ function TlaFileNameEditor({
 	)
 
 	useEffect(() => {
-		if (isRenaming !== undefined && isRenaming !== isEditing) {
+		if (isRenaming && !isEditing) {
 			// Wait a tick, otherwise the blur event immediately exits the input.
-			setTimeout(() => setIsEditing(isRenaming), 0)
+			setTimeout(() => setIsEditing(true), 0)
 		}
 	}, [isRenaming, isEditing])
 
