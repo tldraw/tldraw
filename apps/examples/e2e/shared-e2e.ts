@@ -1,9 +1,10 @@
-import { PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
+import { Locator, Page, PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
 import { Editor } from 'tldraw'
 
 declare const editor: Editor
 
-export async function setup({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
+export async function setup({ page, context }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
+	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 	await setupPage(page)
 }
 
@@ -68,4 +69,26 @@ export async function getAllShapeTypes(page: PlaywrightTestArgs['page']) {
 		.locator('.tl-shape')
 		.elementHandles()
 		.then((handles) => Promise.all(handles.map((h) => h.getAttribute('data-shape-type'))))
+}
+
+export async function withMenu<T>(page: Page, path: string, cb: (item: Locator) => Promise<T>) {
+	const parts = path.split('.')
+	const lastPartIdx = parts.length - 1
+	for (let i = 0; i < lastPartIdx; i++) {
+		const part = parts[i]
+		if (i === 0) {
+			// context menu should already be open
+			if (part !== 'context-menu') {
+				await page.getByTestId(`${part}.button`).click()
+			}
+		} else {
+			await page.getByTestId(`${parts[0]}-sub.${part}-button`).click()
+		}
+	}
+
+	// last part!
+	return await cb(page.getByTestId(`${parts[0]}.${parts[lastPartIdx]}`))
+}
+export async function clickMenu(page: Page, path: string) {
+	await withMenu(page, path, (item) => item.click())
 }

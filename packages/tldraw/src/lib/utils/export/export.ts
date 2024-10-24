@@ -7,11 +7,46 @@ import {
 	TLShapeId,
 	debugFlags,
 	exhaustiveSwitchError,
+	getOwnProperty,
 	sleep,
 	tlenv,
 } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 import { TLExportType } from './exportAs'
+
+export function doesClipboardSupportType(mimeType: string): boolean {
+	return (
+		typeof ClipboardItem !== 'undefined' &&
+		'supports' in ClipboardItem &&
+		(ClipboardItem.supports as (type: string) => boolean)(mimeType)
+	)
+}
+
+export const customTldrawClipboardTypes = {
+	'image/png': formatTldrawCustomClipboardType('image/png'),
+}
+function formatTldrawCustomClipboardType(mimeType: string) {
+	const [a, b] = mimeType.split('/')
+	return `web ${a}/vnd.tldraw+${b}`
+}
+export function getTldrawCustomClipboardType(mimeType: string): string | null {
+	return getOwnProperty(customTldrawClipboardTypes, mimeType) ?? null
+}
+export function getMimeTypeFromTldrawCustomClipboardType(mimeType: string) {
+	const match = mimeType.match(/web (.+)\/vnd.tldraw\+(.+)/)
+	if (!match) return mimeType
+	const [, a, b] = match
+	return `${a}/${b}`
+}
+export function rewriteMimeType(blob: Blob, newMimeType: string): Blob
+export function rewriteMimeType(blob: File, newMimeType: string): File
+export function rewriteMimeType(blob: Blob | File, newMimeType: string): Blob | File {
+	if (blob.type === newMimeType) return blob
+	if (blob instanceof File) {
+		return new File([blob], blob.name, { type: newMimeType })
+	}
+	return new Blob([blob], { type: newMimeType })
+}
 
 /** @public */
 export async function getSvgAsImage(
@@ -152,7 +187,7 @@ export async function exportToBlob({
 	editor: Editor
 	ids: TLShapeId[]
 	format: TLExportType
-	opts?: TLImageExportOptions
+	opts?: TLImageExportOptions & { bitmapImageScale?: number }
 }): Promise<Blob> {
 	switch (format) {
 		case 'svg':
@@ -167,7 +202,7 @@ export async function exportToBlob({
 			const image = await getSvgAsImage(editor, svgResult.svg, {
 				type: format,
 				quality: 1,
-				scale: 2,
+				scale: opts?.bitmapImageScale ?? 2,
 				width: svgResult.width,
 				height: svgResult.height,
 			})
