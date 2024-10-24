@@ -122,8 +122,7 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFil
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
-		const urlWithDeepLink = editor.createDeepLink({ url })
-		copyTextToClipboard(urlWithDeepLink.toString())
+		copyTextToClipboard(editor.createDeepLink({ url }).toString())
 
 		addToast({
 			title: 'copied',
