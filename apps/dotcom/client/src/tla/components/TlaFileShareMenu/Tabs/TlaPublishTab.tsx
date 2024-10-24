@@ -34,7 +34,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
 
 	const publish = useCallback(
-		async (update: boolean) => {
+		async (updating: boolean) => {
 			if (!editor) throw Error('no editor')
 			if (!fileSlug) throw Error('no file slug')
 			if (!publishedSlug) throw Error('no published slug')
@@ -45,9 +45,12 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 			setUploadState('uploading')
 			if (!published) {
 				app.setFilePublished(file.id, true)
+			} else {
+				app.updateFileLastPublished(file.id)
 			}
 			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
 			if (result.ok) {
+				// no toasts please
 				await new Promise((r) => setTimeout(r, 1000))
 				setUploadState('success')
 				editor.timers.setTimeout(() => {
@@ -56,11 +59,11 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 			} else {
 				setUploadState('idle')
 				// We should only revert when creating a file, update failure should not revert the published status
-				if (!update) {
+				if (!updating) {
 					app.setFilePublished(file.id, false)
 				}
 				addToast({
-					title: update ? 'Could not update' : 'Could not publish',
+					title: updating ? 'Could not update' : 'Could not publish',
 					severity: 'error',
 				})
 			}
@@ -85,13 +88,15 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 		if (!result.ok) {
 			app.setFilePublished(file.id, true)
 			addToast({
-				title: 'could not delete',
+				title: 'Could not delete',
 				severity: 'error',
 			})
 		}
 	}, [addToast, app, auth, file.id, isOwner, publishedSlug])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
+
+	const daysSince = Math.floor((Date.now() - file.lastPublished) / (60 * 1000 * 60 * 24))
 
 	return (
 		<TlaTabsPage id="publish">
@@ -126,7 +131,13 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 							</TlaButton>
 						)}
 						{/* todo: make this data actually true based on file.lastPublished */}
-						<TlaMenuDetail>{raw('Last published 3 days ago')}</TlaMenuDetail>
+						<TlaMenuDetail>
+							{raw(
+								daysSince
+									? `Last published ${daysSince} day${daysSince > 1 ? 's' : ''} ago`
+									: `Last published today.`
+							)}
+						</TlaMenuDetail>
 					</>
 				)}
 				{/* {published && publishShareUrl && <QrCode url={publishShareUrl} />} */}

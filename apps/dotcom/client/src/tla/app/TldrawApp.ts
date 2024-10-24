@@ -237,10 +237,15 @@ export class TldrawApp {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
-
 		if (value === file.published) return
+		this.store.put([{ ...file, published: value, lastPublished: Date.now() }])
+	}
 
-		this.store.put([{ ...file, published: value }])
+	updateFileLastPublished(fileId: TldrawAppFileId) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
+		this.store.put([{ ...file, lastPublished: Date.now() }])
 	}
 
 	setFileSharedLinkType(
