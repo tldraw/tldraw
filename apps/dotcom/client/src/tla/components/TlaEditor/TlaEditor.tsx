@@ -5,21 +5,14 @@ import { useParams } from 'react-router-dom'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
-	DefaultMainMenu,
-	DefaultQuickActions,
-	DefaultQuickActionsContent,
 	DefaultStylePanel,
-	EditSubmenu,
 	Editor,
-	ExportFileContentSubMenu,
-	ExtrasGroup,
 	OfflineIndicator,
 	PeopleMenu,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	ViewSubmenu,
 	tltime,
 	useActions,
 	useCollaborationStatus,
@@ -69,19 +62,6 @@ export const components: TLComponents = {
 		const collaborationStatus = useCollaborationStatus()
 		if (collaborationStatus === 'offline') return null
 		return <OfflineIndicator />
-	},
-	QuickActions: () => {
-		return (
-			<DefaultQuickActions>
-				<DefaultMainMenu>
-					<EditSubmenu />
-					<ViewSubmenu />
-					<ExportFileContentSubMenu />
-					<ExtrasGroup />
-				</DefaultMainMenu>
-				<DefaultQuickActionsContent />
-			</DefaultQuickActions>
-		)
 	},
 }
 
