@@ -17,6 +17,7 @@ export interface TldrawAppFile extends BaseRecord<'file', RecordId<TldrawAppFile
 	shared: boolean
 	sharedLinkType: 'view' | 'edit'
 	published: boolean
+	lastPublished: number
 	publishedSlug: string
 	createdAt: number
 	updatedAt: number
@@ -37,6 +38,7 @@ export const tldrawAppFileValidator: T.Validator<TldrawAppFile> = T.model(
 		sharedLinkType: T.or(T.literal('view'), T.literal('edit')),
 		published: T.boolean,
 		publishedSlug: T.string,
+		lastPublished: T.number,
 		thumbnail: T.string,
 		createdAt: T.number,
 		updatedAt: T.number,
@@ -47,6 +49,7 @@ export const tldrawAppFileValidator: T.Validator<TldrawAppFile> = T.model(
 /** @public */
 export const tldrawAppFileVersions = createMigrationIds('com.tldraw.file', {
 	AddPublishing: 1,
+	AddLastPublished: 2,
 } as const)
 
 /** @public */
@@ -63,6 +66,15 @@ export const tldrawAppFileMigrations = createRecordMigrationSequence({
 			down(file: any) {
 				delete file.published
 				delete file.publishedSlug
+			},
+		},
+		{
+			id: tldrawAppFileVersions.AddLastPublished,
+			up: (file: any) => {
+				file.lastPublished = file.published ? Date.now() : 0
+			},
+			down(file: any) {
+				delete file.lastPublished
 			},
 		},
 	],
@@ -83,5 +95,6 @@ export const TldrawAppFileRecordType = createRecordType<TldrawAppFile>('file', {
 		sharedLinkType: 'edit',
 		published: false,
 		publishedSlug: uniqueId(),
+		lastPublished: 0,
 	})
 )

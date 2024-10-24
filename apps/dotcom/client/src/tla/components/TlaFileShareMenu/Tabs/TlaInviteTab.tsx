@@ -1,6 +1,6 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
-import { useEditor, useToasts, useValue } from 'tldraw'
+import { useEditor, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useRaw } from '../../../hooks/useRaw'
@@ -12,13 +12,14 @@ import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
+	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuSection,
 } from '../../tla-menu/tla-menu'
 import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-export function TlaShareTab({ fileId }: { fileId: TldrawAppFileId }) {
+export function TlaInviteTab({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const isShared = useValue(
 		'file',
@@ -64,6 +65,11 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: Tldr
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>{raw('Share this project')}</TlaMenuControlLabel>
+			<TlaMenuControlInfoTooltip
+				href={'https://tldraw.notion.site/Sharing-1283e4c324c080a69618ff37eb3fc98f'}
+			>
+				{raw('Learn more about sharing.')}
+			</TlaMenuControlInfoTooltip>
 			<TlaSwitch checked={!!isShared} onChange={handleToggleShared} />
 		</TlaMenuControl>
 	)
@@ -116,19 +122,14 @@ function TlaSelectSharedLinkType({
 }
 
 function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
-	const { addToast } = useToasts()
 	const raw = useRaw()
 	const editor = useEditor()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
 		copyTextToClipboard(editor.createDeepLink({ url }).toString())
-
-		addToast({
-			title: 'copied',
-			severity: 'success',
-		})
-	}, [fileId, editor, addToast])
+		// no toasts please
+	}, [fileId, editor])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick}>
