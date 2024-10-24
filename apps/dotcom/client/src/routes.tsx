@@ -90,8 +90,8 @@ export const router = createRoutesFromElements(
 			</Route>
 		</Route>
 		{/* begin tla */}
-		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-			<Route element={<NoIndex />}>
+		<Route element={<NoIndex />}>
+			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 				<Route path="/q" lazy={() => import('./tla/pages/local')} />
 				{/* File view */}
 				<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
