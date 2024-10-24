@@ -47,7 +47,7 @@
 		"rimraf": "^4.4.0",
 		"semver": "^7.3.8",
 		"svgo": "^3.0.2",
-		"typescript": "^5.3.3"
+		"typescript": "~5.4.2"
 	},
 	"scripts": {
 		"lint": "yarn run -T tsx lint.ts"
