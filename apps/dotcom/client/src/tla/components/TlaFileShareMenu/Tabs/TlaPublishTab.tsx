@@ -129,10 +129,11 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 export function TlaCopyPublishLinkButton({ url }: { url: string }) {
 	const raw = useRaw()
 	const { addToast } = useToasts()
+	const editor = useEditor()
 
 	const handleCopyPublishLink = useCallback(() => {
 		if (!url) return
-		copyTextToClipboard(url)
+		copyTextToClipboard(editor.createDeepLink({ url }).toString())
 		addToast({
 			title: 'copied',
 			severity: 'success',

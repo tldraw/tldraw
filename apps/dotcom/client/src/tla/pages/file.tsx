@@ -13,14 +13,14 @@ export function Component() {
 	if (!app?.getCurrentUserId()) {
 		return (
 			<TlaAnonLayout>
-				<TlaEditor fileSlug={fileSlug} isCreateMode={false} />
+				<TlaEditor fileSlug={fileSlug} isCreateMode={false} deepLinks />
 			</TlaAnonLayout>
 		)
 	}
 
 	return (
 		<TlaSidebarLayout collapsible>
-			<TlaEditor fileSlug={fileSlug} isCreateMode={!!routeState?.isCreateMode} />
+			<TlaEditor fileSlug={fileSlug} isCreateMode={!!routeState?.isCreateMode} deepLinks />
 		</TlaSidebarLayout>
 	)
 }
