@@ -3707,6 +3707,10 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 export class UserPreferencesManager {
     constructor(user: TLUser, inferDarkMode: boolean);
     // (undocumented)
+    disposables: Set<() => void>;
+    // (undocumented)
+    dispose(): void;
+    // (undocumented)
     getAnimationSpeed(): number;
     // (undocumented)
     getColor(): string;

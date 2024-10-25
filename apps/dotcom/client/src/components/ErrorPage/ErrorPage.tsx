@@ -11,7 +11,7 @@ const GoBackLink = () => {
 	)
 }
 
-const sadFaceIcon = (
+export const sadFaceIcon = (
 	<img width={36} height={36} src="/404-Sad-tldraw.svg" loading="lazy" role="presentation" />
 )
 
