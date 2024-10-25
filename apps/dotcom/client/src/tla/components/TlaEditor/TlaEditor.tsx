@@ -178,7 +178,7 @@ export function TlaEditor({
 	}, [app, fileId, store.status])
 
 	return (
-		<div className={styles.editor}>
+		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
 				store={store}
 				assetUrls={assetUrls}
