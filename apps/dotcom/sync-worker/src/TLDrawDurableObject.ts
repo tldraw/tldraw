@@ -23,7 +23,7 @@ import {
 } from '@tldraw/sync-core'
 import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
-import { createPersistQueue, createSentry } from '@tldraw/worker-shared'
+import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
@@ -492,30 +492,41 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	_lastPersistedClock: number | null = null
-	_persistQueue = createPersistQueue(async () => {
-		// check whether the worker was woken up to persist after having gone to sleep
-		if (!this._room) return
-		const slug = this.documentInfo.slug
-		const room = await this.getRoom()
-		const clock = room.getCurrentDocumentClock()
-		if (this._lastPersistedClock === clock) return
-		if (this._isRestoring) return
 
-		const snapshot = JSON.stringify(room.getCurrentSnapshot())
-
-		const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
-		await Promise.all([
-			this.r2.rooms.put(key, snapshot),
-			this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
-		])
-		this._lastPersistedClock = clock
-		// use a shorter timeout for this 'inner' loop than the 'outer' alarm-scheduled loop
-		// just in case there's any possibility of setting up a neverending queue
-	}, PERSIST_INTERVAL_MS / 2)
+	executionQueue = new ExecutionQueue()
 
 	// Save the room to supabase
 	async persistToDatabase() {
-		await this._persistQueue()
+		try {
+			await this.executionQueue.push(async () => {
+				// check whether the worker was woken up to persist after having gone to sleep
+				if (!this._room) return
+				const slug = this.documentInfo.slug
+				const room = await this.getRoom()
+				const clock = room.getCurrentDocumentClock()
+				if (this._lastPersistedClock === clock) return
+				if (this._isRestoring) return
+
+				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+
+				const key = getR2KeyForRoom({ slug: slug, isApp: this.documentInfo.isApp })
+				await Promise.all([
+					this.r2.rooms.put(key, snapshot),
+					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
+				])
+				this._lastPersistedClock = clock
+			})
+		} catch (e) {
+			this.reportError(e)
+		}
+	}
+	private reportError(e: unknown) {
+		const sentryDSN = this.sentryDSN
+		if (sentryDSN) {
+			const sentry = createSentry(this.state, this.env)
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			sentry?.captureException(e)
+		}
 	}
 
 	async schedulePersist() {
@@ -570,23 +581,26 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	async appFileRecordDidDelete(slug: string) {
-		if (!this._documentInfo) {
-			this.setDocumentInfo({
-				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug,
-				isApp: true,
-				isOrWasCreateMode: false,
-			})
-		}
-		const room = await this.getRoom()
-		for (const session of room.getSessions()) {
-			room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
-		}
-		room.close()
-		// setting _room to null will prevent any further persists from going through
-		this._room = null
-		// delete from R2
-		const key = getR2KeyForRoom({ slug, isApp: true })
-		await this.r2.rooms.delete(key)
+		// force isOrWasCreateMode to be false so next open will check the database
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug,
+			isApp: true,
+			isOrWasCreateMode: false,
+		})
+
+		this.executionQueue.push(async () => {
+			const room = await this.getRoom()
+			for (const session of room.getSessions()) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+			}
+			room.close()
+			// setting _room to null will prevent any further persists from going through
+			this._room = null
+			this._ownerId = null
+			// delete from R2
+			const key = getR2KeyForRoom({ slug, isApp: true })
+			await this.r2.rooms.delete(key)
+		})
 	}
 }
