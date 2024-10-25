@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import { useRaw } from '../../hooks/useRaw'
+import { PATH } from '../../utils/urls'
 import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
@@ -17,7 +18,11 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />
 				</Link>
 				<SignedOut>
-					<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
+					<SignInButton
+						mode="modal"
+						forceRedirectUrl={PATH.root}
+						signUpForceRedirectUrl={PATH.root}
+					>
 						<TlaButton>{raw('Sign in')}</TlaButton>
 					</SignInButton>
 				</SignedOut>

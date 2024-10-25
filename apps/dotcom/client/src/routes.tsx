@@ -14,6 +14,12 @@ import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 
+export const PREFIX = {
+	tla: 'q',
+	file: `f`,
+	publish: `p`,
+}
+
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
 export const router = createRoutesFromElements(
@@ -92,16 +98,22 @@ export const router = createRoutesFromElements(
 		{/* begin tla */}
 		<Route element={<NoIndex />}>
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-				<Route path="/q" lazy={() => import('./tla/pages/local')} />
+				<Route path={PREFIX.tla} lazy={() => import('./tla/pages/local')} />
 				{/* File view */}
-				<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
-				<Route path="/q/p/:fileSlug" lazy={() => import('./tla/pages/publish')} />
+				<Route
+					path={`/${PREFIX.tla}/${PREFIX.file}/:fileSlug`}
+					lazy={() => import('./tla/pages/file')}
+				/>
+				<Route
+					path={`${PREFIX.tla}/${PREFIX.publish}/:fileSlug`}
+					lazy={() => import('./tla/pages/publish')}
+				/>
 				{/* Views that require login */}
 				<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
 					{/* User settings */}
-					<Route path="/q/profile" lazy={() => import('./tla/pages/profile')} />
+					<Route path={`${PREFIX.tla}/profile`} lazy={() => import('./tla/pages/profile')} />
 					{/* Internal */}
-					<Route path="/q/debug" lazy={() => import('./tla/pages/debug')} />
+					<Route path={`${PREFIX.tla}/debug`} lazy={() => import('./tla/pages/debug')} />
 				</Route>
 			</Route>
 		</Route>
