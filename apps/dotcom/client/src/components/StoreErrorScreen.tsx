@@ -47,8 +47,8 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 				return <LoginRedirectPage />
 			}
 			case TLSyncErrorCloseEventReason.FORBIDDEN: {
-				header = 'Not authorized'
-				message = 'You do not have permission to view this room.'
+				header = 'Invite only'
+				message = `You don't have permission to view this room.`
 				break
 			}
 			default: {
