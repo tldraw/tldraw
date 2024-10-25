@@ -23,7 +23,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 						forceRedirectUrl={PATH.root}
 						signUpForceRedirectUrl={PATH.root}
 					>
-						<TlaButton>{raw('Sign in')}</TlaButton>
+						<TlaButton data-testid="tla-signin-button">{raw('Sign in')}</TlaButton>
 					</SignInButton>
 				</SignedOut>
 			</div>
