@@ -234,6 +234,9 @@
   text-shadow: 3px 3px red;
 }
 
+/* TODO: the .tlui-menu rule is too broad, it should be more specific */
+.tla-lang-highlight-missing .tla-editor *,
+.tla-lang-highlight-missing .tlui-menu *,
 .tla-lang-highlight-missing .notranslate,
 .tla-lang-highlight-missing .notranslate *,
 .tla-lang-highlight-missing .i18n-msg,

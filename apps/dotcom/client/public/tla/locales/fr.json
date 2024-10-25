@@ -1,25 +1,18 @@
 {
-  "smartling": {
-    "string_format": "icu",
-    "translate_paths": [
-      {
-        "instruction": "*/description",
-        "key": "{*}/message",
-        "path": "*/message"
-      }
-    ],
-    "variants_enabled": true
-  },
   "10e6cdc8fa": {
-    "message": "le logo tldraw"
+    "translation": "le logo tldraw"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Last published <date></date>"
   },
   "b6d4223e60": {
-    "message": "Se connecter"
+    "translation": "Se connecter"
   },
   "b831a0fede": {
-    "message": "<b>tldraw</b> est un tableau blanc en ligne gratuit pour vous et vos amis."
+    "translation": "<b>tldraw</b> est un tableau blanc en ligne gratuit pour vous et vos amis."
   },
   "f990e553cd": {
-    "message": "Apprendre encore plus."
+    "translation": "Apprendre encore plus."
   }
 }

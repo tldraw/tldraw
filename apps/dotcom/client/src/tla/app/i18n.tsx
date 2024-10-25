@@ -6,14 +6,11 @@ import {
 	createIntlCache,
 	createIntl as originalCreateIntl,
 	defineMessages as originalDefineMessages,
-	FormattedDate as originalFormattedDate,
-	FormattedNumber as originalFormattedNumber,
+	useIntl,
 } from 'react-intl'
 
 import MD5 from 'md5.js'
-import { ComponentPropsWithoutRef, useEffect } from 'react'
-import { debugFlags, useValue } from 'tldraw'
-import { isDevelopmentEnv } from '../../utils/env'
+import { ComponentPropsWithoutRef } from 'react'
 
 // Re-export everything and override below what we want to override.
 // eslint-disable-next-line
@@ -35,25 +32,13 @@ function generateId({ id, description, defaultMessage }: MessageDescriptor) {
 }
 
 export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
+	const intl = useIntl()
 	const id = generateId(props)
 	let internalMessage = (props.defaultMessage || '') as string
-	const isInternalLocale = useValue(
-		'debug lang',
-		() =>
-			debugFlags.langAccented.get() ? 'accented' : debugFlags.langLongString.get() ? 'long' : null,
-		[]
-	)
-	const shouldHighlightMissing = useValue(
-		'debug lang highlight',
-		() => debugFlags.langHighlightMissing.get(),
-		[]
-	)
-	useEffect(() => {
-		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
-	}, [shouldHighlightMissing])
-	if (debugFlags.langAccented.get()) {
+	const isInternalLocale = INTERNAL_LOCALES.includes(intl.locale)
+	if (intl.locale === 'xx-AE') {
 		internalMessage = `${internalMessage.replace(/a/g, 'á').replace(/e/g, 'é').replace(/i/g, 'í').replace(/o/g, 'ó').replace(/u/g, 'ú')}`
-	} else if (debugFlags.langLongString.get()) {
+	} else if (intl.locale === 'xx-LS') {
 		internalMessage = `${internalMessage}looooooooooooooooong`
 	}
 
@@ -76,7 +61,7 @@ export function defineMessages(values: Record<string | number | symbol, MessageD
 }
 
 export function isInternalLocale(locale: string) {
-	return isDevelopmentEnv && INTERNAL_LOCALES.indexOf(locale) !== -1
+	return INTERNAL_LOCALES.indexOf(locale) !== -1
 }
 
 // This is optional but highly recommended since it prevents memory leaks.
@@ -97,6 +82,7 @@ export function setupCreateIntl({ defaultLocale, locale, messages }: IntlConfig)
 	didSetupCreateIntl = true
 }
 
+// createIntl is used in non-React locations.
 export function createIntl(options: IntlShape) {
 	if (options) {
 		return originalCreateIntl(options)

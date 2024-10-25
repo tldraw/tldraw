@@ -34,27 +34,12 @@ if (!PUBLISHABLE_KEY) {
 export function Component() {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const [locale, setLocale] = useState<string>('en')
-	const [messages, setMessages] = useState({})
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
-	const handleLocaleChange = async (locale: string) => {
-		if (locale === 'en') {
-			setMessages({})
-			setLocale(locale)
-			return
-		}
-
-		const res = await fetch(`/tla/locales-compiled/${locale}.json`)
-		const messages = await res.json()
-		setMessages(messages)
-		setLocale(locale)
-	}
-
-	const defaultLocale = 'en'
-	setupCreateIntl({ defaultLocale, locale, messages })
+	const handleLocaleChange = (locale: string) => setLocale(locale)
 
 	return (
-		<IntlProvider defaultLocale={locale} locale={locale} messages={messages}>
+		<IntlWrapper locale={locale}>
 			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
 				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
 					<div
@@ -71,6 +56,34 @@ export function Component() {
 					</div>
 				</SignedInProvider>
 			</ClerkProvider>
+		</IntlWrapper>
+	)
+}
+
+function IntlWrapper({ children, locale }: { children: ReactNode; locale: string }) {
+	const [messages, setMessages] = useState({})
+
+	useEffect(() => {
+		async function fetchMessages() {
+			if (locale === 'en') {
+				setMessages({})
+				return
+			}
+
+			const res = await fetch(`/tla/locales-compiled/${locale}.json`)
+			const messages = await res.json()
+			setMessages(messages)
+		}
+		fetchMessages()
+	}, [locale])
+
+	const defaultLocale = 'en'
+	// createIntl is used in non-React locations.
+	setupCreateIntl({ defaultLocale, locale, messages })
+
+	return (
+		<IntlProvider defaultLocale={locale} locale={locale} messages={messages}>
+			{children}
 		</IntlProvider>
 	)
 }
@@ -139,7 +152,7 @@ function SignedInProvider({
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn) {
-		return <Outlet />
+		return children
 	}
 
 	return (

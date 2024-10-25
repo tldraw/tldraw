@@ -3,7 +3,9 @@ import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { defineMessages, F, useIntl } from '../../app/i18n'
+import { TlaAccountMenu } from '../../components/TlaAccountMenu/TlaAccountMenu'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
+import { TlaIcon } from '../../components/TlaIcon/TlaIcon'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import styles from './anon.module.css'
 
@@ -26,6 +28,12 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 						style={{ height: 20, width: 'auto' }}
 					/>
 				</Link>
+				<TlaAccountMenu source="anon-top-bar" align="start">
+					<button className={styles.linkMenu}>
+						<TlaIcon icon="dots-vertical-strong" />
+					</button>
+				</TlaAccountMenu>
+				<div className={styles.spacer} />
 				<SignedOut>
 					<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
 						<TlaButton>

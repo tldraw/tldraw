@@ -1,25 +1,18 @@
 {
-  "smartling": {
-    "string_format": "icu",
-    "translate_paths": [
-      {
-        "instruction": "*/description",
-        "key": "{*}/message",
-        "path": "*/message"
-      }
-    ],
-    "variants_enabled": true
-  },
   "10e6cdc8fa": {
-    "message": "the tldraw logo"
+    "translation": "the tldraw logo"
+  },
+  "af3dc88931": {
+    "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
+    "translation": "Last published <date></date>"
   },
   "b6d4223e60": {
-    "message": "Sign in"
+    "translation": "Sign in"
   },
   "b831a0fede": {
-    "message": "<b>tldraw</b> is a free online whiteboard for you and your friends."
+    "translation": "<b>tldraw</b> is a free online whiteboard for you and your friends."
   },
   "f990e553cd": {
-    "message": "Learn more."
+    "translation": "Learn more."
   }
 }

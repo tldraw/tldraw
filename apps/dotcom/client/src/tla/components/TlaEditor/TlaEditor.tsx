@@ -180,6 +180,7 @@ export function TlaEditor({
 	return (
 		<div className={styles.editor}>
 			<Tldraw
+				className="tla-editor"
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
