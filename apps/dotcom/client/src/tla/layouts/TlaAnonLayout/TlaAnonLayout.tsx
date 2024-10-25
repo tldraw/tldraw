@@ -27,7 +27,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 					/>
 				</Link>
 				<SignedOut>
-					<SignInButton mode="modal" forceRedirectUrl="/q">
+					<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
 						<TlaButton>
 							<F defaultMessage="Sign in" />
 						</TlaButton>

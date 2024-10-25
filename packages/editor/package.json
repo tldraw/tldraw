@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/editor",
 	"description": "A tiny little drawing app (editor).",
-	"version": "3.3.0",
+	"version": "3.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
@@ -57,7 +57,8 @@
 		"core-js": "^3.31.1",
 		"eventemitter3": "^4.0.7",
 		"idb": "^7.1.1",
-		"is-plain-object": "^5.0.0"
+		"is-plain-object": "^5.0.0",
+		"lodash.isequal": "^4.5.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0",

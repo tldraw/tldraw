@@ -386,10 +386,10 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 	}
 
 	// Always include the assets from the directly previous build, but also if there
-	// have been more deploys in the last two weeks, include those too.
-	const twoWeeks = 1000 * 60 * 60 * 24 * 14
+	// have been more deploys in the last six months, include those too.
+	const oneMonth = 1000 * 60 * 60 * 24 * 30
 	const recentOthers = others.filter(
-		(o) => (o.LastModified?.getTime() ?? 0) > Date.now() - twoWeeks
+		(o) => (o.LastModified?.getTime() ?? 0) > Date.now() - oneMonth
 	)
 	const objectsToFetch = [mostRecent, ...recentOthers]
 

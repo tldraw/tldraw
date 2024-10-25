@@ -1,6 +1,10 @@
 import { ErrorPage } from '../components/ErrorPage/ErrorPage'
 
 export function Component() {
+	return notFound()
+}
+
+export function notFound() {
 	return (
 		<ErrorPage
 			messages={{

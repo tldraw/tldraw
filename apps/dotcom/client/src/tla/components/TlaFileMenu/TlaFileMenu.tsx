@@ -10,14 +10,16 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	TldrawUiMenuSubmenu,
 	tltime,
 	useDialogs,
 	useToasts,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
+import { getFilePath, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 export function TlaFileMenu({
@@ -25,11 +27,13 @@ export function TlaFileMenu({
 	source,
 	fileId,
 	onRenameAction,
+	trigger,
 }: {
-	children: ReactNode
+	children?: ReactNode
 	source: string
 	fileId: TldrawAppFile['id']
 	onRenameAction(): void
+	trigger: ReactNode
 }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
@@ -51,7 +55,7 @@ export function TlaFileMenu({
 		tltime.setTimeout(
 			'app',
 			() => {
-				navigate(getFileUrl(newFile.id))
+				navigate(getFilePath(newFile.id))
 
 				if (editorStoreSnapshot) {
 					tltime.setTimeout(
@@ -77,20 +81,40 @@ export function TlaFileMenu({
 		})
 	}, [fileId, addDialog])
 
+	const isOwner = useIsFileOwner(fileId)
+	const fileItems = (
+		<>
+			<TldrawUiMenuGroup id="file-actions">
+				<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
+				{isOwner && <TldrawUiMenuItem label="Rename" id="copy-link" onSelect={onRenameAction} />}
+				<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
+				{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="file-delete">
+				<TldrawUiMenuItem
+					label={isOwner ? 'Delete' : 'Forget'}
+					id="delete"
+					onSelect={handleDeleteClick}
+				/>
+			</TldrawUiMenuGroup>
+		</>
+	)
+
+	const fileItemsWrapper = children ? (
+		<TldrawUiMenuSubmenu id="file" label="menu.file">
+			{fileItems}
+		</TldrawUiMenuSubmenu>
+	) : (
+		fileItems
+	)
+
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-				<TldrawUiDropdownMenuTrigger>{children}</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-					<TldrawUiMenuGroup id="file-actions">
-						<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
-						<TldrawUiMenuItem label="Rename" id="copy-link" onSelect={onRenameAction} />
-						<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
-						{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
-					</TldrawUiMenuGroup>
-					<TldrawUiMenuGroup id="file-delete">
-						<TldrawUiMenuItem label="Delete" id="delete" onSelect={handleDeleteClick} />
-					</TldrawUiMenuGroup>
+					{fileItemsWrapper}
+					{children}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>

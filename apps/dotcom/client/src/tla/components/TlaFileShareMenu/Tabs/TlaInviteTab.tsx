@@ -1,26 +1,25 @@
 import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
-import { FileHelpers, useLocalStorageState, useToasts, useValue } from 'tldraw'
-import { useApp } from '../../hooks/useAppState'
-import { useRaw } from '../../hooks/useRaw'
-import { useTldrawUser } from '../../hooks/useUser'
-import { copyTextToClipboard } from '../../utils/copy'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { getLocalSessionState } from '../../utils/local-session-state'
-import { createQRCodeImageDataString } from '../../utils/qrcode'
-import { getShareableFileUrl, getSnapshotFileUrl } from '../../utils/urls'
-import { TlaSelect } from '../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
+import { useCallback } from 'react'
+import { useEditor, useValue } from 'tldraw'
+import { useApp } from '../../../hooks/useAppState'
+import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
+import { useRaw } from '../../../hooks/useRaw'
+import { useTldrawUser } from '../../../hooks/useUser'
+import { copyTextToClipboard } from '../../../utils/copy'
+import { getShareableFileUrl } from '../../../utils/urls'
+import { TlaSelect } from '../../TlaSelect/TlaSelect'
+import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
+	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
 	TlaMenuSection,
-} from '../tla-menu/tla-menu'
-import { TlaShareMenuCopyButton } from './file-share-menu-primitives'
-import styles from './file-share-menu.module.css'
+} from '../../tla-menu/tla-menu'
+import { QrCode } from '../QrCode'
+import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
+export function TlaInviteTab({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const isShared = useValue(
 		'file',
@@ -32,18 +31,19 @@ export function TlaShareMenuSharePage({ fileId }: { fileId: TldrawAppFileId }) {
 		[app, fileId]
 	)
 
+	const isOwner = useIsFileOwner(fileId)
+
 	return (
 		<>
 			<TlaMenuSection>
-				<TlaMenuControlGroup>
-					<TlaSharedToggle isShared={isShared} fileId={fileId} />
-					<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
-				</TlaMenuControlGroup>
+				{isOwner && (
+					<TlaMenuControlGroup>
+						<TlaSharedToggle isShared={isShared} fileId={fileId} />
+						<TlaSelectSharedLinkType isShared={isShared} fileId={fileId} />
+					</TlaMenuControlGroup>
+				)}
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
-				{isShared && <QrCode fileId={fileId} />}
-			</TlaMenuSection>
-			<TlaMenuSection>
-				<TlaCopySnapshotLinkButton fileId={fileId} />
+				{isShared && <QrCode url={getShareableFileUrl(fileId)} />}
 			</TlaMenuSection>
 		</>
 	)
@@ -65,6 +65,11 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: Tldr
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>{raw('Share this project')}</TlaMenuControlLabel>
+			<TlaMenuControlInfoTooltip
+				href={'https://tldraw.notion.site/Sharing-1283e4c324c080a69618ff37eb3fc98f'}
+			>
+				{raw('Learn more about sharing.')}
+			</TlaMenuControlInfoTooltip>
 			<TlaSwitch checked={!!isShared} onChange={handleToggleShared} />
 		</TlaMenuControl>
 	)
@@ -117,87 +122,19 @@ function TlaSelectSharedLinkType({
 }
 
 function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
-	const { addToast } = useToasts()
 	const raw = useRaw()
+	const editor = useEditor()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
-		copyTextToClipboard(url)
-
-		addToast({
-			title: 'copied',
-			severity: 'success',
-		})
-	}, [fileId, addToast])
+		copyTextToClipboard(editor.createDeepLink({ url }).toString())
+		// no toasts please
+	}, [fileId, editor])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyLinkClick}>
 			{raw('Copy link')}
 		</TlaShareMenuCopyButton>
-	)
-}
-
-function TlaCopySnapshotLinkButton({ fileId }: { fileId: TldrawAppFileId }) {
-	const raw = useRaw()
-
-	const { addToast } = useToasts()
-
-	const handleCopyLinkClick = useCallback(() => {
-		// todo: implement snapshot link
-		createSnapshotLink(fileId)
-		// Copy the snapshot url to clipboard
-		const url = getSnapshotFileUrl(fileId)
-		copyTextToClipboard(url)
-
-		addToast({
-			title: 'copied',
-			severity: 'success',
-		})
-	}, [fileId, addToast])
-
-	return (
-		<TlaShareMenuCopyButton onClick={handleCopyLinkClick} type="secondary">
-			{raw('Copy snapshot link')}
-		</TlaShareMenuCopyButton>
-	)
-}
-
-function QrCode({ fileId }: { fileId: TldrawAppFileId }) {
-	const ref = useRef<HTMLImageElement>(null)
-
-	// Save the QR codes in local storage
-	const [qrCode, setQrCode] = useLocalStorageState<string | null>(fileId + 'qr-code-11', null)
-
-	const theme = useValue('is dark mode', () => getLocalSessionState().theme, [])
-
-	useEffect(() => {
-		if (!qrCode) {
-			const editor = getCurrentEditor()
-			if (!editor) return
-
-			const url = getShareableFileUrl(fileId)
-			createQRCodeImageDataString(url).then((svgString) => {
-				const blob = new Blob([svgString], { type: 'image/svg+xml' })
-				FileHelpers.blobToDataUrl(blob).then(setQrCode)
-			})
-		}
-	}, [fileId, setQrCode, qrCode])
-
-	// When qr code is there, set it as src
-	useLayoutEffect(() => {
-		if (!qrCode) return
-		const elm = ref.current
-		if (!elm) return
-		// We want to use an image element here so that a user can right click and copy / save / drag the qr code
-		elm.setAttribute('src', `${qrCode}`)
-	}, [qrCode])
-
-	// todo: click qr code to... copy? big modal?
-
-	return (
-		<div className={styles.qrCode}>
-			<img ref={ref} className={styles.qrCodeInner} data-theme={theme} />
-		</div>
 	)
 }
 
@@ -227,7 +164,3 @@ function QrCode({ fileId }: { fileId: TldrawAppFileId }) {
 // 		</TlaShareMenuHelpItem>
 // 	)
 // }
-
-function createSnapshotLink(_fileId: TldrawAppFileId) {
-	return
-}
