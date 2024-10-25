@@ -4,6 +4,6 @@
 export const version = '3.4.0'
 export const publishDates = {
 	major: '2024-09-13T14:36:29.063Z',
-	minor: '2024-10-24T13:52:12.237Z',
-	patch: '2024-10-24T13:52:12.237Z',
+	minor: '2024-10-24T14:44:00.648Z',
+	patch: '2024-10-24T14:44:00.648Z',
 }

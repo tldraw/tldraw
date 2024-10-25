@@ -15,10 +15,11 @@ import { TlaTabsPage } from '../../TlaTabs/TlaTabs'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
+	TlaMenuControlInfoTooltip,
 	TlaMenuControlLabel,
+	TlaMenuDetail,
 	TlaMenuSection,
 } from '../../tla-menu/tla-menu'
-import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
 export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
@@ -29,11 +30,11 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 	const { addToast } = useToasts()
 	const { publishedSlug, published } = file
 	const isOwner = app.isFileOwner(file.id)
-	const [uploading, setUploading] = useState(false)
 	const auth = useAuth()
+	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
 
 	const publish = useCallback(
-		async (update: boolean) => {
+		async (updating: boolean) => {
 			if (!editor) throw Error('no editor')
 			if (!fileSlug) throw Error('no file slug')
 			if (!publishedSlug) throw Error('no published slug')
@@ -41,24 +42,32 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 			const token = await auth.getToken()
 			if (!token) throw Error('no token')
 
-			setUploading(true)
+			setUploadState('uploading')
 			if (!published) {
 				app.setFilePublished(file.id, true)
-			}
-			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
-			setUploading(false)
-			if (result.ok) {
-				addToast({
-					title: update ? 'updated' : 'published',
-					severity: 'success',
-				})
 			} else {
+				app.updateFileLastPublished(file.id)
+			}
+			const startTime = Date.now()
+			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
+			if (result.ok) {
+				// no toasts please
+				const elapsed = Date.now() - startTime
+				if (elapsed < 1000) {
+					await new Promise((r) => setTimeout(r, elapsed))
+				}
+				setUploadState('success')
+				editor.timers.setTimeout(() => {
+					setUploadState('idle')
+				}, 2000)
+			} else {
+				setUploadState('idle')
 				// We should only revert when creating a file, update failure should not revert the published status
-				if (!update) {
+				if (!updating) {
 					app.setFilePublished(file.id, false)
 				}
 				addToast({
-					title: update ? 'could not update' : 'could not publish',
+					title: updating ? 'Could not update' : 'Could not publish',
 					severity: 'error',
 				})
 			}
@@ -83,13 +92,15 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 		if (!result.ok) {
 			app.setFilePublished(file.id, true)
 			addToast({
-				title: 'could not delete',
+				title: 'Could not delete',
 				severity: 'error',
 			})
 		}
 	}, [addToast, app, auth, file.id, isOwner, publishedSlug])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
+
+	const daysSince = Math.floor((Date.now() - file.lastPublished) / (60 * 1000 * 60 * 24))
 
 	return (
 		<TlaTabsPage id="publish">
@@ -98,29 +109,42 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 					{isOwner && (
 						<TlaMenuControl>
 							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
+							<TlaMenuControlInfoTooltip
+								href={'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'}
+							>
+								{raw('Learn more about publishing.')}
+							</TlaMenuControlInfoTooltip>
 							<TlaSwitch
 								checked={published}
 								onChange={() => (published ? unpublish() : publish(false))}
 							/>
 						</TlaMenuControl>
 					)}
-					{published && (
-						<TlaMenuControlGroup>
-							{publishShareUrl && <TlaCopyPublishLinkButton url={publishShareUrl} />}
-							{isOwner && (
-								<TlaButton
-									iconRight="update"
-									isLoading={uploading}
-									variant="secondary"
-									onClick={() => publish(true)}
-								>
-									{raw('Update')}
-								</TlaButton>
-							)}
-						</TlaMenuControlGroup>
-					)}
 				</TlaMenuControlGroup>
-				{published && publishShareUrl && <QrCode url={publishShareUrl} />}
+				{published && (
+					<>
+						{publishShareUrl && <TlaCopyPublishLinkButton url={publishShareUrl} />}
+						{isOwner && (
+							<TlaButton
+								iconRight={uploadState === 'success' ? 'check' : 'update'}
+								isLoading={uploadState === 'uploading'}
+								variant="secondary"
+								onClick={() => publish(true)}
+							>
+								{raw('Publish changes')}
+							</TlaButton>
+						)}
+						{/* todo: make this data actually true based on file.lastPublished */}
+						<TlaMenuDetail>
+							{raw(
+								daysSince
+									? `Last published ${daysSince} day${daysSince > 1 ? 's' : ''} ago`
+									: `Last published today.`
+							)}
+						</TlaMenuDetail>
+					</>
+				)}
+				{/* {published && publishShareUrl && <QrCode url={publishShareUrl} />} */}
 			</TlaMenuSection>
 		</TlaTabsPage>
 	)
@@ -128,17 +152,12 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 
 export function TlaCopyPublishLinkButton({ url }: { url: string }) {
 	const raw = useRaw()
-	const { addToast } = useToasts()
 	const editor = useEditor()
 
 	const handleCopyPublishLink = useCallback(() => {
 		if (!url) return
 		copyTextToClipboard(editor.createDeepLink({ url }).toString())
-		addToast({
-			title: 'copied',
-			severity: 'success',
-		})
-	}, [url, editor, addToast])
+	}, [url, editor])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyPublishLink}>

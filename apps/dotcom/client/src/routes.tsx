@@ -7,7 +7,8 @@ import {
 } from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
-import { Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
+import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
@@ -41,8 +42,8 @@ export const router = createRoutesFromElements(
 						)
 					}
 					case TLSyncErrorCloseEventReason.FORBIDDEN: {
-						header = 'Not authorized'
-						para1 = 'You do not have permission to view this file.'
+						header = 'Invite only'
+						para1 = `You don't have permission to view this room.`
 						break
 					}
 				}
@@ -64,7 +65,7 @@ export const router = createRoutesFromElements(
 		<Route errorElement={<DefaultErrorFallback />}>
 			<Route path="/" lazy={() => import('./pages/root')} />
 			{/* We don't want to index multiplayer rooms */}
-			<Route lazy={() => import('./pages/noindex')}>
+			<Route element={<NoIndex />}>
 				<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
 				<Route path="/new" lazy={() => import('./pages/new')} />
 				<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
@@ -89,20 +90,33 @@ export const router = createRoutesFromElements(
 			</Route>
 		</Route>
 		{/* begin tla */}
-		<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-			<Route path="/q" lazy={() => import('./tla/pages/local')} />
-			{/* File view */}
-			<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
-			<Route path="/q/p/:fileSlug" lazy={() => import('./tla/pages/publish')} />
-			{/* Views that require login */}
-			<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
-				{/* User settings */}
-				<Route path="/q/profile" lazy={() => import('./tla/pages/profile')} />
-				{/* Internal */}
-				<Route path="/q/debug" lazy={() => import('./tla/pages/debug')} />
+		<Route element={<NoIndex />}>
+			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
+				<Route path="/q" lazy={() => import('./tla/pages/local')} />
+				{/* File view */}
+				<Route path="/q/f/:fileSlug" lazy={() => import('./tla/pages/file')} />
+				<Route path="/q/p/:fileSlug" lazy={() => import('./tla/pages/publish')} />
+				{/* Views that require login */}
+				<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
+					{/* User settings */}
+					<Route path="/q/profile" lazy={() => import('./tla/pages/profile')} />
+					{/* Internal */}
+					<Route path="/q/debug" lazy={() => import('./tla/pages/debug')} />
+				</Route>
 			</Route>
 		</Route>
 		{/* end tla */}
 		<Route path="*" lazy={() => import('./pages/not-found')} />
 	</Route>
 )
+
+function NoIndex() {
+	return (
+		<>
+			<Helmet>
+				<meta name="robots" content="noindex, noimageindex, nofollow" />
+			</Helmet>
+			<Outlet />
+		</>
+	)
+}

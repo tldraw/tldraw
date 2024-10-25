@@ -109,6 +109,10 @@ let bbox: null | Box = null
 
 #### 🐛 Bug Fix
 
+- [botcom] Add tooltips / links to Share Menu [#4765](https://github.com/tldraw/tldraw/pull/4765) ([@steveruizok](https://github.com/steveruizok))
+- [infra] limit skew protection to one month [#4781](https://github.com/tldraw/tldraw/pull/4781) ([@ds300](https://github.com/ds300))
+- [infra] trim to fix [#4779](https://github.com/tldraw/tldraw/pull/4779) ([@ds300](https://github.com/ds300))
+- [infra] bump up skew protection time frame [#4774](https://github.com/tldraw/tldraw/pull/4774) ([@ds300](https://github.com/ds300))
 - [botcom] add `yarn reset-db` command [#4778](https://github.com/tldraw/tldraw/pull/4778) ([@ds300](https://github.com/ds300))
 - [botcom] deep links [#4768](https://github.com/tldraw/tldraw/pull/4768) ([@ds300](https://github.com/ds300))
 - [botcom] sync user name with people menu [#4777](https://github.com/tldraw/tldraw/pull/4777) ([@ds300](https://github.com/ds300))
@@ -127,6 +131,11 @@ let bbox: null | Box = null
 - tla: rename icons without equal sign [#4712](https://github.com/tldraw/tldraw/pull/4712) ([@mimecuvalo](https://github.com/mimecuvalo))
 - Fix watermark dark mode on tldraw.dev [#4706](https://github.com/tldraw/tldraw/pull/4706) ([@steveruizok](https://github.com/steveruizok))
 - Remove v1 migration from dotcom [#4693](https://github.com/tldraw/tldraw/pull/4693) ([@steveruizok](https://github.com/steveruizok))
+- `@tldraw/assets`, `@tldraw/editor`, `@tldraw/tldraw`, `@tldraw/state-react`, `@tldraw/state`, `@tldraw/store`, `@tldraw/sync-core`, `@tldraw/sync`, `tldraw`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate`
+  - roll back changes from bad deploy [#4780](https://github.com/tldraw/tldraw/pull/4780) ([@SomeHats](https://github.com/SomeHats))
+- `@tldraw/editor`
+  - [botcom] file state [#4766](https://github.com/tldraw/tldraw/pull/4766) ([@ds300](https://github.com/ds300))
+  - botcom: prevent pinch-zoom on sidebar [#4697](https://github.com/tldraw/tldraw/pull/4697) ([@mimecuvalo](https://github.com/mimecuvalo))
 - `tldraw`
   - botcom: inline rename [#4758](https://github.com/tldraw/tldraw/pull/4758) ([@mimecuvalo](https://github.com/mimecuvalo))
   - [botcom] local session state, logged out view of files [#4711](https://github.com/tldraw/tldraw/pull/4711) ([@steveruizok](https://github.com/steveruizok))
@@ -137,8 +146,6 @@ let bbox: null | Box = null
   - botcom: redirect to intended room when signing in [#4725](https://github.com/tldraw/tldraw/pull/4725) ([@mimecuvalo](https://github.com/mimecuvalo))
 - `@tldraw/editor`, `@tldraw/sync-core`
   - botcom: account menu [bk] [#4683](https://github.com/tldraw/tldraw/pull/4683) ([@mimecuvalo](https://github.com/mimecuvalo))
-- `@tldraw/editor`
-  - botcom: prevent pinch-zoom on sidebar [#4697](https://github.com/tldraw/tldraw/pull/4697) ([@mimecuvalo](https://github.com/mimecuvalo))
 
 #### 🐛 Bug Fixes
 

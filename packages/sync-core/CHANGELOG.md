@@ -10,6 +10,8 @@
 
 #### 🐛 Bug Fix
 
+- roll back changes from bad deploy [#4780](https://github.com/tldraw/tldraw/pull/4780) ([@SomeHats](https://github.com/SomeHats))
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
 - [botcom] Fix file deletion and creation [#4751](https://github.com/tldraw/tldraw/pull/4751) ([@ds300](https://github.com/ds300))
 - botcom: account menu [bk] [#4683](https://github.com/tldraw/tldraw/pull/4683) ([@mimecuvalo](https://github.com/mimecuvalo))
 
@@ -17,8 +19,9 @@
 
 - npm: upgrade eslint v8 → v9 [#4757](https://github.com/tldraw/tldraw/pull/4757) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
 
-#### Authors: 5
+#### Authors: 6
 
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
 - alex ([@SomeHats](https://github.com/SomeHats))
 - David Sheldrick ([@ds300](https://github.com/ds300))
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))

@@ -8,7 +8,7 @@ import {
 import { TLRecord } from '@tldraw/tlschema'
 import { throttle } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { createPersistQueue, createSentry, parseRequestQuery } from '@tldraw/worker-shared'
+import { ExecutionQueue, createSentry, parseRequestQuery } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { makePermissiveSchema } from './makePermissiveSchema'
@@ -200,26 +200,30 @@ export class BemoDO extends DurableObject<Environment> {
 	}
 
 	_lastPersistedClock: number | null = null
-	_persistQueue = createPersistQueue(async () => {
-		// check whether the worker was woken up to persist after having gone to sleep
-		if (!this._room) return
-		const slug = this.getSlug()
-		const room = await this.getRoom()
-		const clock = room.getCurrentDocumentClock()
-		if (this._lastPersistedClock === clock) return
-
-		const snapshot = JSON.stringify(room.getCurrentSnapshot())
-
-		const key = getR2KeyForSlug(slug)
-		await Promise.all([this.r2.put(key, snapshot)])
-		this._lastPersistedClock = clock
-		// use a shorter timeout for this 'inner' loop than the 'outer' alarm-scheduled loop
-		// just in case there's any possibility of setting up a neverending queue
-	}, PERSIST_INTERVAL_MS / 2)
+	executionQueue = new ExecutionQueue()
 
 	// Save the room to supabase
 	async persistToDatabase() {
-		await this._persistQueue()
+		this.executionQueue
+			.push(async () => {
+				// check whether the worker was woken up to persist after having gone to sleep
+				if (!this._room) return
+				const slug = this.getSlug()
+				const room = await this.getRoom()
+				const clock = room.getCurrentDocumentClock()
+				if (this._lastPersistedClock === clock) return
+
+				const snapshot = JSON.stringify(room.getCurrentSnapshot())
+
+				const key = getR2KeyForSlug(slug)
+				await Promise.all([this.r2.put(key, snapshot)])
+				this._lastPersistedClock = clock
+				// use a shorter timeout for this 'inner' loop than the 'outer' alarm-scheduled loop
+				// just in case there's any possibility of setting up a neverending queue
+			})
+			.catch((e) => {
+				this.reportError(e)
+			})
 	}
 
 	async schedulePersist() {

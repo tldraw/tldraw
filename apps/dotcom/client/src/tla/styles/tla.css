@@ -193,18 +193,32 @@
 	display: flex;
 	flex-direction: row;
 	height: fit-content;
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .tlui-layout__top__left {
-	flex-grow: 2;
+	flex: 2 1;
+	height: auto;
+	width: fit-content;
+	overflow: hidden;
 }
 
 .tlui-layout__top__center {
 	display: none;
 }
 
+.tlui-layout__top__right {
+	flex: 1 1;
+	height: auto;
+	width: fit-content;
+	overflow: hidden;
+}
+
 .tlui-page-menu__trigger {
 	width: fit-content;
+	flex-shrink: 0;
 }
 
 /* Hide the icon on the page menu trigger button */

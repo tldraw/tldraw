@@ -13,8 +13,8 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaExportTab } from './Tabs/TlaExportTab'
+import { TlaInviteTab } from './Tabs/TlaInviteTab'
 import { TlaPublishTab } from './Tabs/TlaPublishTab'
-import { TlaShareTab } from './Tabs/TlaShareTab'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({
@@ -75,7 +75,7 @@ export function TlaFileShareMenu({
 								{showPublishTab && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
 							</TlaTabsTabs>
 							<TlaTabsPage id="share">
-								<TlaShareTab fileId={fileId} />
+								<TlaInviteTab fileId={fileId} />
 							</TlaTabsPage>
 							<TlaTabsPage id="export">
 								<TlaExportTab />

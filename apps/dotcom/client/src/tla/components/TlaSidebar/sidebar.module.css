@@ -130,6 +130,7 @@
 	align-items: center;
 	justify-content: center;
 	pointer-events: all;
+	flex-shrink: 0;
 }
 
 .toggle::after {
