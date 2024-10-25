@@ -42,8 +42,8 @@ export const router = createRoutesFromElements(
 						)
 					}
 					case TLSyncErrorCloseEventReason.FORBIDDEN: {
-						header = 'Not authorized'
-						para1 = 'You do not have permission to view this file.'
+						header = 'Invite only'
+						para1 = `You don't have permission to view this room.`
 						break
 					}
 				}

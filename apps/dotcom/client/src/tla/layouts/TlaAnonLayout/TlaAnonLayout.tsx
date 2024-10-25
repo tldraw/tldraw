@@ -36,7 +36,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				<div className={styles.spacer} />
 				<SignedOut>
 					<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
-						<TlaButton>
+						<TlaButton data-testid="tla-signin-button">
 							<F defaultMessage="Sign in" />
 						</TlaButton>
 					</SignInButton>
