@@ -48,7 +48,7 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 			}
 			case TLSyncErrorCloseEventReason.FORBIDDEN: {
 				header = 'Invite only'
-				message = `Your account doesn't have permission to view this room.`
+				message = `You don't have permission to view this room.`
 				break
 			}
 			default: {
