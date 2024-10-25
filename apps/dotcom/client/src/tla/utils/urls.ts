@@ -5,10 +5,10 @@ export const PATH = {
 	debug: `/${PREFIX.tla}/debug`,
 	profile: `/${PREFIX.tla}/profile`,
 	getFilePath(fileId: string): string {
-		return `${PREFIX.tla}/${PREFIX.file}/${fileId.split(':').pop()}`
+		return `/${PREFIX.tla}/${PREFIX.file}/${fileId.split(':').pop()}`
 	},
 	getPublishPath(publishSlug: string): string {
-		return `${PREFIX.tla}/${PREFIX.publish}/${publishSlug}`
+		return `/${PREFIX.tla}/${PREFIX.publish}/${publishSlug}`
 	},
 }
 
@@ -17,5 +17,5 @@ export function getShareableFileUrl(fileId: string): string {
 }
 
 export function getShareablePublishUrl(publishSlug: string): string {
-	return `${window.location.origin}/${PATH.getPublishPath(publishSlug)}`
+	return `${window.location.origin}${PATH.getPublishPath(publishSlug)}`
 }
