@@ -1330,10 +1330,8 @@
 	}
 }
 
-.tlui-page-menu__item__button::after {
-	display: none;
-}
-
+/* Since we're adding an after hover effect to the page menu item, we want to hide the hovers on the individual buttons in the page menu item */
+.tlui-page-menu__item__button::after,
 .tlui-page_menu__item__submenu > .tlui-button::after {
 	display: none;
 }
