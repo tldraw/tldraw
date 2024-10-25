@@ -245,7 +245,7 @@
 }
 
 .tla-lang-highlight-missing *:not(.notranslate) {
-  text-shadow: 3px 3px red;
+	text-shadow: 3px 3px red;
 }
 
 /* TODO: the .tlui-menu rule is too broad, it should be more specific */
@@ -255,5 +255,5 @@
 .tla-lang-highlight-missing .notranslate *,
 .tla-lang-highlight-missing .i18n-msg,
 .tla-lang-highlight-missing .i18n-msg * {
-  text-shadow: none;
+	text-shadow: none;
 }

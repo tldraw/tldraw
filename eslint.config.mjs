@@ -4,11 +4,11 @@ import js from '@eslint/js'
 import nextNext from '@next/eslint-plugin-next'
 import typescriptEslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
+import formatjs from 'eslint-plugin-formatjs'
 import _import from 'eslint-plugin-import'
 import noOnlyTests from 'eslint-plugin-no-only-tests'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
-import formatjs from 'eslint-plugin-formatjs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import localRules from './.eslintplugin.js'
@@ -81,7 +81,7 @@ export default [
 			'@next/next': nextNext,
 			react,
 			'react-hooks': fixupPluginRules(reactHooks),
-			'formatjs': formatjs
+			formatjs: formatjs,
 		},
 
 		languageOptions: {
