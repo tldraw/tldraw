@@ -43,7 +43,7 @@ export const router = createRoutesFromElements(
 					}
 					case TLSyncErrorCloseEventReason.FORBIDDEN: {
 						header = 'Invite only'
-						para1 = `Your account doesn't have permission to view this room.`
+						para1 = `You don't have permission to view this room.`
 						break
 					}
 				}
