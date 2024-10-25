@@ -98,22 +98,22 @@ export const router = createRoutesFromElements(
 		{/* begin tla */}
 		<Route element={<NoIndex />}>
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-				<Route path={PREFIX.tla} lazy={() => import('./tla/pages/local')} />
+				<Route path={`/${PREFIX.tla}`} lazy={() => import('./tla/pages/local')} />
 				{/* File view */}
 				<Route
 					path={`/${PREFIX.tla}/${PREFIX.file}/:fileSlug`}
 					lazy={() => import('./tla/pages/file')}
 				/>
 				<Route
-					path={`${PREFIX.tla}/${PREFIX.publish}/:fileSlug`}
+					path={`/${PREFIX.tla}/${PREFIX.publish}/:fileSlug`}
 					lazy={() => import('./tla/pages/publish')}
 				/>
 				{/* Views that require login */}
 				<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
 					{/* User settings */}
-					<Route path={`${PREFIX.tla}/profile`} lazy={() => import('./tla/pages/profile')} />
+					<Route path={`/${PREFIX.tla}/profile`} lazy={() => import('./tla/pages/profile')} />
 					{/* Internal */}
-					<Route path={`${PREFIX.tla}/debug`} lazy={() => import('./tla/pages/debug')} />
+					<Route path={`/${PREFIX.tla}/debug`} lazy={() => import('./tla/pages/debug')} />
 				</Route>
 			</Route>
 		</Route>
