@@ -154,7 +154,6 @@ button.nameWidthSetter {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 2px 4px 0px 6px;
 	pointer-events: all;
 }
 

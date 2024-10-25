@@ -193,14 +193,22 @@
 	display: flex;
 	flex-direction: row;
 	height: fit-content;
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .tlui-layout__top__left {
-	flex-grow: 2;
+	flex-grow: 1;
 }
 
 .tlui-layout__top__center {
 	display: none;
+}
+
+.tlui-layout__top__right {
+	flex-shrink: 0;
+	flex-grow: 0;
 }
 
 .tlui-page-menu__trigger {
