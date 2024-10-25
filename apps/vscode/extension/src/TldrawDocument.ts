@@ -116,7 +116,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 
 	private async writeToResource(targetResource: vscode.Uri) {
 		const fileContents = Buffer.from(JSON.stringify(this.documentData, null, '\t'), 'utf8')
-		await vscode.workspace.fs.writeFile(targetResource, new Uint8Array(fileContents))
+		await vscode.workspace.fs.writeFile(targetResource, fileContents)
 	}
 
 	/** Called by VS Code when the user calls `revert` on a document. */

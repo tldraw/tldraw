@@ -17,7 +17,7 @@ async function hasPackageChanged(pkg: PackageDetails) {
 			throw new Error(`Package not found at url ${url}: ${res.status}`)
 		}
 		const publishedTarballPath = `${dirPath}/published-package.tgz`
-		writeFileSync(publishedTarballPath, new Uint8Array(Buffer.from(await res.arrayBuffer())))
+		writeFileSync(publishedTarballPath, Buffer.from(await res.arrayBuffer()))
 		const publishedManifest = getTarballManifestSync(publishedTarballPath)
 
 		const localTarballPath = `${dirPath}/local-package.tgz`
@@ -41,7 +41,7 @@ function manifestsAreEqual(a: Record<string, Buffer>, b: Record<string, Buffer>)
 		if (!bKeys.includes(key)) {
 			return false
 		}
-		if (!a[key].equals(new Uint8Array(b[key]))) {
+		if (!a[key].equals(b[key])) {
 			return false
 		}
 	}
@@ -57,7 +57,7 @@ function getTarballManifestSync(tarballPath: string) {
 				// we could hash these to reduce memory but it's probably fine
 				const existing = manifest[entry.path]
 				if (existing) {
-					manifest[entry.path] = Buffer.concat([new Uint8Array(existing), new Uint8Array(data)])
+					manifest[entry.path] = Buffer.concat([existing, data])
 				} else {
 					manifest[entry.path] = data
 				}

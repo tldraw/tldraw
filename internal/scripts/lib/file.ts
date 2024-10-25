@@ -64,7 +64,6 @@ export async function writeStringFile(filePath: string, contents: string) {
 }
 
 export async function writeFile(filePath: string, contents: Buffer) {
-	const contentsArray = new Uint8Array(contents)
 	if (process.env.CI && !process.env.ALLOW_REFRESH_ASSETS_CHANGES) {
 		let existingContents: Buffer | null = null
 		try {
@@ -72,7 +71,7 @@ export async function writeFile(filePath: string, contents: Buffer) {
 		} catch {
 			// Ignore
 		}
-		if (existingContents && !existingContents.equals(contentsArray)) {
+		if (existingContents && !existingContents.equals(contents)) {
 			nicelog(
 				`Asset file ${relative(
 					REPO_ROOT,
@@ -87,7 +86,7 @@ export async function writeFile(filePath: string, contents: Buffer) {
 			process.exit(1)
 		}
 	}
-	await writeFileUnchecked(filePath, contentsArray, 'utf-8')
+	await writeFileUnchecked(filePath, contents, 'utf-8')
 }
 
 export async function writeJsonFile(filePath: string, contents: unknown) {
