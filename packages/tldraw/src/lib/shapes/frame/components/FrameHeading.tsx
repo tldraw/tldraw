@@ -38,6 +38,8 @@ export const FrameHeading = function FrameHeading({
 			const event = getPointerInfo(e)
 			e.preventDefault()
 
+			e.currentTarget.setPointerCapture(e.pointerId)
+
 			// If we're editing the frame label, we shouldn't hijack the pointer event
 			if (editor.getEditingShapeId() === id) return
 
@@ -51,6 +53,10 @@ export const FrameHeading = function FrameHeading({
 		},
 		[editor, id]
 	)
+
+	const handlePointerUp = useCallback((e: React.PointerEvent) => {
+		e.currentTarget.releasePointerCapture(e.pointerId)
+	}, [])
 
 	useEffect(() => {
 		const el = rInput.current
@@ -98,6 +104,7 @@ export const FrameHeading = function FrameHeading({
 				transform: `${labelTranslate} scale(var(--tl-scale)) translateX(calc(-1 * var(--space-3))`,
 			}}
 			onPointerDown={handlePointerDown}
+			onPointerUp={handlePointerUp}
 		>
 			<div className="tl-frame-heading-hit-area">
 				<FrameLabelInput ref={rInput} id={id} name={name} isEditing={isEditing} />
