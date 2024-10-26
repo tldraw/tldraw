@@ -1213,7 +1213,6 @@ export function getSvgAsImage(editor: Editor, svgString: string, options: {
     height: number;
     pixelRatio?: number;
     quality?: number;
-    scale?: number;
     type: 'jpeg' | 'png' | 'webp';
     width: number;
 }): Promise<Blob | null>;
