@@ -164,6 +164,7 @@ export class MediaHelpers {
 						const physData = PngHelpers.parsePhys(view, physChunk.dataOffset)
 						if (physData.unit === 0 && physData.ppux === physData.ppuy) {
 							const pixelRatio = Math.max(physData.ppux / 2834.5, 1)
+							console.log(pixelRatio)
 							return {
 								w: Math.round(image.naturalWidth / pixelRatio),
 								h: Math.round(image.naturalHeight / pixelRatio),

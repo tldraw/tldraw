@@ -19,17 +19,17 @@ export async function getSvgAsImage(
 	svgString: string,
 	options: {
 		type: 'png' | 'jpeg' | 'webp'
-		quality: number
-		scale: number
 		width: number
 		height: number
+		quality?: number
+		bitmapScale?: number
 	}
 ) {
-	const { type, quality, scale, width, height } = options
+	const { type, width, height, quality = 1, bitmapScale = 2 } = options
 
 	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
-		width * scale * 2,
-		height * scale * 2
+		width * bitmapScale,
+		height * bitmapScale
 	)
 	clampedWidth = Math.floor(clampedWidth)
 	clampedHeight = Math.floor(clampedHeight)
@@ -166,8 +166,8 @@ export async function exportToBlob({
 			if (!svgResult) throw new Error('Could not construct image.')
 			const image = await getSvgAsImage(editor, svgResult.svg, {
 				type: format,
-				quality: 1,
-				scale: opts.scale ?? 1,
+				quality: opts.quality,
+				bitmapScale: opts.bitmapScale,
 				width: svgResult.width,
 				height: svgResult.height,
 			})

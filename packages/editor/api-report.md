@@ -3143,6 +3143,8 @@ export interface TLImageExportOptions {
     // (undocumented)
     background?: boolean;
     // (undocumented)
+    bitmapScale?: number;
+    // (undocumented)
     bounds?: Box;
     // (undocumented)
     darkMode?: boolean;
@@ -3150,6 +3152,8 @@ export interface TLImageExportOptions {
     padding?: number;
     // (undocumented)
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    // (undocumented)
+    quality?: number;
     // (undocumented)
     scale?: number;
 }
