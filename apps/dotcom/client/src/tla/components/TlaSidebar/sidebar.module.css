@@ -15,7 +15,7 @@
 
 .sidebar[data-dragging='true']::after {
 	position: absolute;
-	inset: 0px;
+	inset: 2px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -25,7 +25,8 @@
 	background-color: var(--tla-color-panel);
 	content: 'Upload .tldr files';
 	opacity: 0;
-	animation: 0.2s fade-in 0.25s forwards;
+	animation: 0.2s fade-in 0.16s forwards;
+	border: 2px solid var(--color-primary);
 }
 
 @keyframes fade-in {
@@ -378,6 +379,7 @@
 .dragOverlay {
 	position: absolute;
 	inset: 0px;
-	border: 2px solid var(--color-primary);
+	z-index: 2000;
 	pointer-events: none;
+	border: 2px solid var(--color-primary);
 }

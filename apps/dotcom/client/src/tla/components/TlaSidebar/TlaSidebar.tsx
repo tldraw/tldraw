@@ -60,6 +60,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					className={styles.sidebar}
 					data-visible={isSidebarOpen}
 					data-visiblemobile={isSidebarOpenMobile}
+					data-dragging={isDraggingOver}
 					{...fileDropEvents}
 				>
 					<div className={styles.top}>
@@ -74,7 +75,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					</div>
 				</div>
 			</div>
-			{isDraggingOver && <div className={styles.dragOverlay} />}
 		</>
 	)
 })
