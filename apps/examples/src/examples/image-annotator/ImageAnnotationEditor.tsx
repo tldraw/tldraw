@@ -230,7 +230,7 @@ function DoneButton({
 						background: true,
 						bounds: editor.getShapePageBounds(imageShapeId)!,
 						padding: 0,
-						scale: 1,
+						scale: 2,
 					},
 				})
 

@@ -167,7 +167,7 @@ export async function exportToBlob({
 			const image = await getSvgAsImage(editor, svgResult.svg, {
 				type: format,
 				quality: 1,
-				scale: 2,
+				scale: opts.scale ?? 2,
 				width: svgResult.width,
 				height: svgResult.height,
 			})
