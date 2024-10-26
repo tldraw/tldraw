@@ -375,11 +375,3 @@
 	align-items: center;
 	justify-content: center;
 }
-
-.dragOverlay {
-	position: absolute;
-	inset: 0px;
-	z-index: 2000;
-	pointer-events: none;
-	border: 2px solid var(--color-primary);
-}
