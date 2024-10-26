@@ -253,7 +253,7 @@ export function TldrawUiMenuItem<
 		case 'toolbar-overflow': {
 			if (draggable && onDragStart) {
 				return (
-					<DraggableOverflowToolbarButton
+					<DraggableToolbarButton
 						id={id}
 						icon={icon}
 						onSelect={onSelect}
@@ -262,6 +262,7 @@ export function TldrawUiMenuItem<
 						titleStr={titleStr}
 						disabled={disabled}
 						isSelected={isSelected}
+						overflow
 					/>
 				)
 			}
@@ -401,6 +402,7 @@ function DraggableToolbarButton({
 	icon,
 	onSelect,
 	onDragStart,
+	overflow,
 }: {
 	id: string
 	disabled: boolean
@@ -410,8 +412,29 @@ function DraggableToolbarButton({
 	icon: TLUiMenuItemProps['icon']
 	onSelect: TLUiMenuItemProps['onSelect']
 	onDragStart: TLUiMenuItemProps['onDragStart']
+	overflow?: boolean
 }) {
 	const events = useDraggableEvents(onDragStart, onSelect)
+
+	if (overflow) {
+		return (
+			<TldrawUiDropdownMenuItem aria-label={labelToUse}>
+				<TldrawUiButton
+					type="icon"
+					className="tlui-button-grid__button"
+					data-testid={`tools.more.${id}`}
+					data-value={id}
+					title={titleStr}
+					disabled={disabled}
+					role="radio"
+					aria-checked={isSelected ? 'true' : 'false'}
+					{...events}
+				>
+					<TldrawUiButtonIcon icon={icon!} />
+				</TldrawUiButton>
+			</TldrawUiDropdownMenuItem>
+		)
+	}
 
 	return (
 		<TldrawUiButton
@@ -432,45 +455,5 @@ function DraggableToolbarButton({
 		>
 			<TldrawUiButtonIcon icon={icon!} />
 		</TldrawUiButton>
-	)
-}
-
-function DraggableOverflowToolbarButton({
-	id,
-	labelToUse,
-	titleStr,
-	disabled,
-	isSelected,
-	icon,
-	onSelect,
-	onDragStart,
-}: {
-	id: string
-	disabled: boolean
-	labelToUse?: string
-	titleStr?: string
-	isSelected?: boolean
-	icon: TLUiMenuItemProps['icon']
-	onSelect: TLUiMenuItemProps['onSelect']
-	onDragStart: TLUiMenuItemProps['onDragStart']
-}) {
-	const events = useDraggableEvents(onDragStart, onSelect)
-
-	return (
-		<TldrawUiDropdownMenuItem aria-label={labelToUse}>
-			<TldrawUiButton
-				type="icon"
-				className="tlui-button-grid__button"
-				data-testid={`tools.more.${id}`}
-				data-value={id}
-				title={titleStr}
-				disabled={disabled}
-				role="radio"
-				aria-checked={isSelected ? 'true' : 'false'}
-				{...events}
-			>
-				<TldrawUiButtonIcon icon={icon!} />
-			</TldrawUiButton>
-		</TldrawUiDropdownMenuItem>
 	)
 }
