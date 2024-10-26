@@ -15,9 +15,6 @@ export function useCanvasEvents() {
 
 	const events = useMemo(
 		function canvasEvents() {
-			// Track the last screen point
-			let lastX: number, lastY: number
-
 			function onPointerDown(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 
@@ -43,24 +40,9 @@ export function useCanvasEvents() {
 				})
 			}
 
-			function onPointerMove(e: React.PointerEvent) {
-				// if ((e as any).isKilled) return
-				// if (e.clientX === lastX && e.clientY === lastY) return
-				// lastX = e.clientX
-				// lastY = e.clientY
-				// editor.dispatch({
-				// 	type: 'pointer',
-				// 	target: 'canvas',
-				// 	name: 'pointer_move',
-				// 	...getPointerInfo(e),
-				// })
-			}
-
 			function onPointerUp(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
-				lastX = e.clientX
-				lastY = e.clientY
 
 				releasePointerCapture(e.currentTarget, e)
 
@@ -134,7 +116,6 @@ export function useCanvasEvents() {
 
 			return {
 				onPointerDown,
-				onPointerMove,
 				onPointerUp,
 				onPointerEnter,
 				onPointerLeave,
@@ -173,7 +154,7 @@ export function useCanvasEvents() {
 		return () => {
 			container.removeEventListener('pointermove', onPointerMove)
 		}
-	}, [editor])
+	}, [editor, container])
 
 	return events
 }
