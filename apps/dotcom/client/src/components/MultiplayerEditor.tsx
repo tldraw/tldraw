@@ -163,7 +163,6 @@ export function MultiplayerEditor({
 				onUiEvent={handleUiEvent}
 				components={components}
 				deepLinks
-				inferDarkMode
 			>
 				<SneakyOnDropOverride isMultiplayer />
 				<ThemeUpdater />

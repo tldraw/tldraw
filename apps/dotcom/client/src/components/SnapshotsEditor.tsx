@@ -85,7 +85,6 @@ export function SnapshotsEditor({ schema, records }: SnapshotEditorProps) {
 				}}
 				components={components}
 				deepLinks
-				inferDarkMode
 			/>
 		</div>
 	)

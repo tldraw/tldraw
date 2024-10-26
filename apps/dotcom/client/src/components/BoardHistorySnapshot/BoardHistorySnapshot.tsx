@@ -62,7 +62,6 @@ export function BoardHistorySnapshot({
 						})
 					}}
 					overrides={[fileSystemUiOverrides]}
-					inferDarkMode
 				/>
 			</div>
 			<div className="board-history__restore">
