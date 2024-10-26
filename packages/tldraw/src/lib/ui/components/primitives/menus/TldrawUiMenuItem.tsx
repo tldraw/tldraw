@@ -4,7 +4,6 @@ import {
 	getPointerInfo,
 	preventDefault,
 	TLPointerEventInfo,
-	useContainer,
 	useEditor,
 	Vec,
 } from '@tldraw/editor'
@@ -301,7 +300,6 @@ function useDraggableEvents(
 	onSelect: TLUiToolItem['onSelect']
 ) {
 	const editor = useEditor()
-	const container = useContainer()
 	const events = useMemo(() => {
 		let state = { name: 'idle' } as
 			| {
@@ -393,7 +391,7 @@ function useDraggableEvents(
 			onPointerUp: handlePointerUp,
 			onClick: handleClick,
 		}
-	}, [onDragStart, container, editor])
+	}, [onDragStart, editor, onSelect])
 
 	return events
 }
