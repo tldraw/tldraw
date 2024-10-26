@@ -374,3 +374,10 @@
 	align-items: center;
 	justify-content: center;
 }
+
+.dragOverlay {
+	position: absolute;
+	inset: 0px;
+	border: 2px solid var(--color-primary);
+	pointer-events: none;
+}

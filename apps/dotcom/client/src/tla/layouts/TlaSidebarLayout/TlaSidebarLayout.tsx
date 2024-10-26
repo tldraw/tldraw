@@ -16,6 +16,7 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		[app]
 	)
 	const currentEditor = useValue('editor', () => globalEditor.get(), [])
+
 	usePreventAccidentalDrops()
 
 	return (

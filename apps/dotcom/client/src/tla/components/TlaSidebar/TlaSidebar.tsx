@@ -46,37 +46,36 @@ export const TlaSidebar = memo(function TlaSidebar() {
 		updateLocalSessionState(() => ({ isSidebarOpenMobile: false }))
 	}, [])
 
-	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
+	const { isDraggingOver, ...fileDropEvents } = useTldrFileDrop()
 
 	return (
-		<div ref={sidebarRef}>
-			<button
-				className={styles.sidebarOverlayMobile}
-				data-visiblemobile={isSidebarOpenMobile}
-				onClick={handleOverlayClick}
-			/>
-			<div
-				className={styles.sidebar}
-				data-visible={isSidebarOpen}
-				data-visiblemobile={isSidebarOpenMobile}
-				onDropCapture={onDrop}
-				onDragOver={onDragOver}
-				onDragEnter={onDragEnter}
-				onDragLeave={onDragLeave}
-				data-dragging={isDraggingOver}
-			>
-				<div className={styles.top}>
-					<TlaSidebarWorkspaceLink />
-					<TlaSidebarCreateFileButton />
-				</div>
-				<div className={styles.content}>
-					<TlaSidebarRecentFiles />
-				</div>
-				<div className={styles.bottom}>
-					<TlaSidebarUserLink />
+		<>
+			<div ref={sidebarRef}>
+				<button
+					className={styles.sidebarOverlayMobile}
+					data-visiblemobile={isSidebarOpenMobile}
+					onClick={handleOverlayClick}
+				/>
+				<div
+					className={styles.sidebar}
+					data-visible={isSidebarOpen}
+					data-visiblemobile={isSidebarOpenMobile}
+					{...fileDropEvents}
+				>
+					<div className={styles.top}>
+						<TlaSidebarWorkspaceLink />
+						<TlaSidebarCreateFileButton />
+					</div>
+					<div className={styles.content}>
+						<TlaSidebarRecentFiles />
+					</div>
+					<div className={styles.bottom}>
+						<TlaSidebarUserLink />
+					</div>
 				</div>
 			</div>
-		</div>
+			{isDraggingOver && <div className={styles.dragOverlay} />}
+		</>
 	)
 })
 
