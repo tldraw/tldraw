@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { RIGHT_MOUSE_BUTTON } from '../constants'
 import {
 	preventDefault,
@@ -7,6 +7,7 @@ import {
 	stopEventPropagation,
 } from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
+import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
@@ -43,18 +44,16 @@ export function useCanvasEvents() {
 			}
 
 			function onPointerMove(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
-
-				if (e.clientX === lastX && e.clientY === lastY) return
-				lastX = e.clientX
-				lastY = e.clientY
-
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_move',
-					...getPointerInfo(e),
-				})
+				// if ((e as any).isKilled) return
+				// if (e.clientX === lastX && e.clientY === lastY) return
+				// lastX = e.clientX
+				// lastY = e.clientY
+				// editor.dispatch({
+				// 	type: 'pointer',
+				// 	target: 'canvas',
+				// 	name: 'pointer_move',
+				// 	...getPointerInfo(e),
+				// })
 			}
 
 			function onPointerUp(e: React.PointerEvent) {
@@ -148,6 +147,33 @@ export function useCanvasEvents() {
 		},
 		[editor]
 	)
+
+	const container = useContainer()
+
+	useEffect(() => {
+		let lastX: number, lastY: number
+
+		function onPointerMove(e: PointerEvent) {
+			if ((e as any).isKilled) return
+			;(e as any).isKilled = true
+
+			if (e.clientX === lastX && e.clientY === lastY) return
+			lastX = e.clientX
+			lastY = e.clientY
+
+			editor.dispatch({
+				type: 'pointer',
+				target: 'canvas',
+				name: 'pointer_move',
+				...getPointerInfo(e),
+			})
+		}
+
+		container.addEventListener('pointermove', onPointerMove)
+		return () => {
+			container.removeEventListener('pointermove', onPointerMove)
+		}
+	}, [editor])
 
 	return events
 }

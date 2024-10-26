@@ -11,6 +11,7 @@ export type TLPointerEventTarget =
 	| { target: 'selection'; handle?: TLSelectionHandle; shape?: undefined }
 	| { target: 'shape'; shape: TLShape }
 	| { target: 'handle'; shape: TLShape; handle: TLHandle }
+	| { target: 'item'; item: string }
 
 /** @public */
 export type TLPointerEventName =

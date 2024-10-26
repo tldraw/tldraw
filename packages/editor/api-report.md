@@ -3280,6 +3280,9 @@ export type TLPointerEventTarget = {
     shape?: undefined;
     target: 'selection';
 } | {
+    item: string;
+    target: 'item';
+} | {
     shape: TLShape;
     target: 'shape';
 } | {

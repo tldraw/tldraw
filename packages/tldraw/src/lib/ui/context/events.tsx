@@ -111,6 +111,7 @@ export interface TLUiEventMap {
 	'flatten-to-image': null
 	'open-url': { url: string }
 	'copy-link': null
+	'drag-tool': { id: string }
 }
 
 /** @public */
