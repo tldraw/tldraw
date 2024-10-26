@@ -12,14 +12,16 @@ export class UserPreferencesManager {
 		if (typeof window === 'undefined' || !('matchMedia' in window)) return
 
 		const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-		if (darkModeMediaQuery?.matches) {
+		if (this.getUserPreferences().colorScheme === 'system' && darkModeMediaQuery?.matches) {
 			this.systemColorScheme.set('dark')
 		}
 		darkModeMediaQuery?.addEventListener('change', (e) => {
-			if (e.matches) {
-				this.systemColorScheme.set('dark')
-			} else {
-				this.systemColorScheme.set('light')
+			if (this.getUserPreferences().colorScheme === 'system') {
+				if (e.matches) {
+					this.systemColorScheme.set('dark')
+				} else {
+					this.systemColorScheme.set('light')
+				}
 			}
 		})
 	}
