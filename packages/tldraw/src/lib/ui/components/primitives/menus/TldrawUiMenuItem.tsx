@@ -7,7 +7,7 @@ import {
 	useEditor,
 	Vec,
 } from '@tldraw/editor'
-import { forwardRef, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
@@ -253,22 +253,18 @@ export function TldrawUiMenuItem<
 		case 'toolbar-overflow': {
 			if (draggable && onDragStart) {
 				return (
-					<TldrawUiDropdownMenuItem aria-label={label}>
-						<DraggableToolbarButton
-							id={id}
-							icon={icon}
-							onSelect={onSelect}
-							onDragStart={onDragStart}
-							labelToUse={labelToUse}
-							titleStr={titleStr}
-							disabled={disabled}
-							isSelected={isSelected}
-							isOverflow
-						/>
-					</TldrawUiDropdownMenuItem>
+					<DraggableOverflowToolbarButton
+						id={id}
+						icon={icon}
+						onSelect={onSelect}
+						onDragStart={onDragStart}
+						labelToUse={labelToUse}
+						titleStr={titleStr}
+						disabled={disabled}
+						isSelected={isSelected}
+					/>
 				)
 			}
-
 			return (
 				<TldrawUiDropdownMenuItem aria-label={label}>
 					<TldrawUiButton
@@ -278,11 +274,11 @@ export function TldrawUiMenuItem<
 							onSelect('toolbar')
 						}}
 						data-testid={`tools.more.${id}`}
+						data-value={id}
 						title={titleStr}
 						disabled={disabled}
 						role="radio"
 						aria-checked={isSelected ? 'true' : 'false'}
-						data-value={id}
 					>
 						<TldrawUiButtonIcon icon={icon!} />
 					</TldrawUiButton>
@@ -396,40 +392,31 @@ function useDraggableEvents(
 	return events
 }
 
-const DraggableToolbarButton = forwardRef<
-	HTMLButtonElement,
-	{
-		id: string
-		disabled: boolean
-		labelToUse?: string
-		titleStr?: string
-		isSelected?: boolean
-		icon: TLUiMenuItemProps['icon']
-		onSelect: TLUiMenuItemProps['onSelect']
-		onDragStart: TLUiMenuItemProps['onDragStart']
-		isOverflow?: boolean
-	}
->(function DraggableToolbarButton(
-	{
-		id,
-		labelToUse,
-		titleStr,
-		disabled,
-		isSelected,
-		icon,
-		onSelect,
-		onDragStart,
-		isOverflow = false,
-	},
-	ref
-) {
+function DraggableToolbarButton({
+	id,
+	labelToUse,
+	titleStr,
+	disabled,
+	isSelected,
+	icon,
+	onSelect,
+	onDragStart,
+}: {
+	id: string
+	disabled: boolean
+	labelToUse?: string
+	titleStr?: string
+	isSelected?: boolean
+	icon: TLUiMenuItemProps['icon']
+	onSelect: TLUiMenuItemProps['onSelect']
+	onDragStart: TLUiMenuItemProps['onDragStart']
+}) {
 	const events = useDraggableEvents(onDragStart, onSelect)
 
 	return (
 		<TldrawUiButton
-			ref={ref}
-			type={isOverflow ? 'icon' : 'tool'}
-			className={isOverflow ? 'tlui-button-grid__button' : ''}
+			type="tool"
+			className="tlui-button-grid__button"
 			data-testid={`tools.${id}`}
 			aria-label={labelToUse}
 			data-value={id}
@@ -446,4 +433,44 @@ const DraggableToolbarButton = forwardRef<
 			<TldrawUiButtonIcon icon={icon!} />
 		</TldrawUiButton>
 	)
-})
+}
+
+function DraggableOverflowToolbarButton({
+	id,
+	labelToUse,
+	titleStr,
+	disabled,
+	isSelected,
+	icon,
+	onSelect,
+	onDragStart,
+}: {
+	id: string
+	disabled: boolean
+	labelToUse?: string
+	titleStr?: string
+	isSelected?: boolean
+	icon: TLUiMenuItemProps['icon']
+	onSelect: TLUiMenuItemProps['onSelect']
+	onDragStart: TLUiMenuItemProps['onDragStart']
+}) {
+	const events = useDraggableEvents(onDragStart, onSelect)
+
+	return (
+		<TldrawUiDropdownMenuItem aria-label={labelToUse}>
+			<TldrawUiButton
+				type="icon"
+				className="tlui-button-grid__button"
+				data-testid={`tools.more.${id}`}
+				data-value={id}
+				title={titleStr}
+				disabled={disabled}
+				role="radio"
+				aria-checked={isSelected ? 'true' : 'false'}
+				{...events}
+			>
+				<TldrawUiButtonIcon icon={icon!} />
+			</TldrawUiButton>
+		</TldrawUiDropdownMenuItem>
+	)
+}
