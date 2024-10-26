@@ -8,7 +8,7 @@ import {
 	useEditor,
 	Vec,
 } from '@tldraw/editor'
-import { useMemo, useState } from 'react'
+import { forwardRef, useMemo, useState } from 'react'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
@@ -398,31 +398,38 @@ function useDraggableEvents(
 	return events
 }
 
-function DraggableToolbarButton({
-	id,
-	labelToUse,
-	titleStr,
-	disabled,
-	isSelected,
-	icon,
-	onSelect,
-	onDragStart,
-	isOverflow = false,
-}: {
-	id: string
-	disabled: boolean
-	labelToUse?: string
-	titleStr?: string
-	isSelected?: boolean
-	icon: TLUiMenuItemProps['icon']
-	onSelect: TLUiMenuItemProps['onSelect']
-	onDragStart: TLUiMenuItemProps['onDragStart']
-	isOverflow?: boolean
-}) {
+const DraggableToolbarButton = forwardRef<
+	HTMLButtonElement,
+	{
+		id: string
+		disabled: boolean
+		labelToUse?: string
+		titleStr?: string
+		isSelected?: boolean
+		icon: TLUiMenuItemProps['icon']
+		onSelect: TLUiMenuItemProps['onSelect']
+		onDragStart: TLUiMenuItemProps['onDragStart']
+		isOverflow?: boolean
+	}
+>(function DraggableToolbarButton(
+	{
+		id,
+		labelToUse,
+		titleStr,
+		disabled,
+		isSelected,
+		icon,
+		onSelect,
+		onDragStart,
+		isOverflow = false,
+	},
+	ref
+) {
 	const events = useDraggableEvents(onDragStart, onSelect)
 
 	return (
 		<TldrawUiButton
+			ref={ref}
 			type={isOverflow ? 'icon' : 'tool'}
 			className={isOverflow ? 'tlui-button-grid__button' : ''}
 			data-testid={`tools.${id}`}
@@ -441,4 +448,4 @@ function DraggableToolbarButton({
 			<TldrawUiButtonIcon icon={icon!} />
 		</TldrawUiButton>
 	)
-}
+})

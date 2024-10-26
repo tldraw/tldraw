@@ -150,6 +150,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 								editor.select(id)
 							},
 						})
+						editor.getCurrentTool().setCurrentToolIdMask('geo')
 					})
 					trackEvent('drag-tool', { source, id: 'geo' })
 				},
@@ -162,6 +163,38 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source) {
 					editor.setCurrentTool('arrow')
 					trackEvent('select-tool', { source, id: 'arrow' })
+				},
+				draggable: true,
+				onDragStart(source: TLUiEventSource, info: TLPointerEventInfo) {
+					editor.run(() => {
+						editor.markHistoryStoppingPoint('drag arrow tool')
+						editor.setCurrentTool('select.translating')
+						const { x, y } = editor.inputs.currentPagePoint.clone()
+						const id = createShapeId()
+						editor.createShape({
+							id,
+							type: 'arrow',
+							x,
+							y,
+							props: { start: { x: 0, y: 0 }, end: { x: 200, y: 0 } },
+						})
+						const { w, h } = editor.getShapePageBounds(id)!
+						editor.updateShape({ id, type: 'arrow', x: x - w / 2, y: y - h / 2 })
+						editor.select(id)
+						editor.setCurrentTool('select.translating', {
+							...info,
+							target: 'shape',
+							shape: editor.getShape(id),
+							isCreating: true,
+							creatingMarkId: 'drag arrow tool',
+							onCreate() {
+								editor.setCurrentTool('select.idle')
+								editor.select(id)
+							},
+						})
+						editor.getCurrentTool().setCurrentToolIdMask('arrow')
+					})
+					trackEvent('drag-tool', { source, id: 'arrow' })
 				},
 			},
 			{
@@ -206,6 +239,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 							},
 						})
 					})
+					editor.getCurrentTool().setCurrentToolIdMask('frame')
 					trackEvent('drag-tool', { source, id: 'frame' })
 				},
 			},
@@ -242,6 +276,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 							},
 						})
 					})
+					editor.getCurrentTool().setCurrentToolIdMask('text')
 					trackEvent('drag-tool', { source, id: 'text' })
 				},
 			},
@@ -288,6 +323,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 							},
 						})
 					})
+					editor.getCurrentTool().setCurrentToolIdMask('note')
 					trackEvent('drag-tool', { source, id: 'note' })
 				},
 			},
