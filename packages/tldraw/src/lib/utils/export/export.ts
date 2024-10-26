@@ -22,14 +22,16 @@ export async function getSvgAsImage(
 		width: number
 		height: number
 		quality?: number
+		// @deprecated use pixelRatio instead
+		scale?: number
 		pixelRatio?: number
 	}
 ) {
-	const { type, width, height, quality = 1, pixelRatio = 2 } = options
+	const { type, width, height, quality = 1, scale, pixelRatio = 2 } = options
 
 	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
-		width * pixelRatio,
-		height * pixelRatio
+		width * (scale ?? pixelRatio),
+		height * (scale ?? pixelRatio)
 	)
 	clampedWidth = Math.floor(clampedWidth)
 	clampedHeight = Math.floor(clampedHeight)
