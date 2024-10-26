@@ -14,6 +14,7 @@ import { createPublishedRoom } from './routes/createPublishedRoom'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { deletePublishedRoom } from './routes/deletePublishedRoom'
+import { duplicateRoom } from './routes/duplicateRoom'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
 import { getPublishedRoom } from './routes/getPublishedRoom'
@@ -64,6 +65,7 @@ const router = createRouter<Environment>()
 	.get('/app/publish/:roomId', getPublishedRoom)
 	.post('/app/publish/:roomId', createPublishedRoom)
 	.delete('/app/publish/:roomId', deletePublishedRoom)
+	.post('/app/duplicate/:roomId', duplicateRoom)
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)

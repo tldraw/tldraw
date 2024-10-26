@@ -10,6 +10,20 @@ export interface CreateRoomRequestBody {
 	snapshot: Snapshot
 }
 
+export interface DuplicateRoomRequestBody {
+	parent_slug?: string | undefined
+}
+
+export type DuplicateRoomResponseBody =
+	| {
+			error: false
+			slug: string
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
 export interface CreateSnapshotRequestBody {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>

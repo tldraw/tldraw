@@ -1,6 +1,8 @@
 import {
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
+	DuplicateRoomRequestBody,
+	DuplicateRoomResponseBody,
 	TldrawAppFile,
 	TldrawAppFileId,
 	TldrawAppFileRecordType,
@@ -11,7 +13,7 @@ import {
 	TldrawAppUserRecordType,
 	UserPreferencesKeys,
 } from '@tldraw/dotcom-shared'
-import { Result, fetch } from '@tldraw/utils'
+import { Result, fetch, sleep } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
 	Editor,
@@ -29,10 +31,10 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { getSnapshotData } from '../../utils/sharing'
-import { getCurrentEditor } from '../utils/getCurrentEditor'
 import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
 
 export const PUBLISH_ENDPOINT = `/api/app/publish`
+export const DUPLICATE_ENDPOINT = `/api/app/duplicate`
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -255,28 +257,46 @@ export class TldrawApp {
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
-	duplicateFile(fileId: TldrawAppFileId) {
+	async duplicateFile(fileSlug: string, token: string) {
 		const userId = this.getCurrentUserId()
 
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
+		// We don't want to duplicate the file based on what the user has
+		// in their store. We want to instead fetch the file on the server,
+		// duplicate that, and then navigate to the new file.
 
-		const newFilePartial = {
-			...file,
-			id: TldrawAppFileRecordType.createId(),
+		const endpoint = `${DUPLICATE_ENDPOINT}/${fileSlug}`
+
+		const res = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({
+				parent_slug: fileSlug,
+			} satisfies DuplicateRoomRequestBody),
+		})
+
+		const response = (await res.json()) as DuplicateRoomResponseBody
+
+		if (!res.ok || response.error) {
+			console.error(await res.text())
+			return Result.err('could not duplicate file')
+		}
+
+		// todo: However!
+		// This part should happen on the server, and should already be there
+		// when the response comes back. But since we're doing it on the client,
+		// we need to wait shittily for the file to be created locally and then
+		// sync to the server.
+		const newFile = TldrawAppFileRecordType.create({
+			id: TldrawAppFileRecordType.createId(response.slug),
 			ownerId: userId,
-		} as Partial<TldrawAppFile>
-		delete newFilePartial.createdAt
-		delete newFilePartial.lastPublished
-		delete newFilePartial.publishedSlug
-		delete newFilePartial.published
-
-		const newFile = TldrawAppFileRecordType.create(newFilePartial as TldrawAppFile)
-
-		const editorStoreSnapshot = getCurrentEditor()?.store.getStoreSnapshot()
+		})
 		this.store.put([newFile])
+		await sleep(1000) // yawn
 
-		return { newFile, editorStoreSnapshot }
+		return Result.ok({ slug: response.slug })
 	}
 
 	isFileOwner(fileId: TldrawAppFileId) {

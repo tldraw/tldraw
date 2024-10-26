@@ -13,6 +13,8 @@ export type {
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
+	DuplicateRoomRequestBody,
+	DuplicateRoomResponseBody,
 	GetReadonlySlugResponseBody,
 	Snapshot,
 } from './types'
