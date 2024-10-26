@@ -93,7 +93,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		pageId,
 		bounds,
 		scale,
-		bitmapScale,
+		pixelRatio,
 		background,
 		padding,
 		darkMode,
@@ -148,7 +148,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 						type: format,
 						width: svgResult.width,
 						height: svgResult.height,
-						bitmapScale,
+						pixelRatio,
 					})
 					if (blob && !isCancelled) {
 						const url = URL.createObjectURL(blob)
@@ -181,7 +181,7 @@ export const TldrawImage = memo(function TldrawImage(props: TldrawImageProps) {
 		preloadingComplete,
 		preloadingError,
 		licenseKey,
-		bitmapScale,
+		pixelRatio,
 	])
 
 	if (preloadingError) {

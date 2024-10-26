@@ -22,14 +22,14 @@ export async function getSvgAsImage(
 		width: number
 		height: number
 		quality?: number
-		bitmapScale?: number
+		pixelRatio?: number
 	}
 ) {
-	const { type, width, height, quality = 1, bitmapScale = 2 } = options
+	const { type, width, height, quality = 1, pixelRatio = 2 } = options
 
 	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
-		width * bitmapScale,
-		height * bitmapScale
+		width * pixelRatio,
+		height * pixelRatio
 	)
 	clampedWidth = Math.floor(clampedWidth)
 	clampedHeight = Math.floor(clampedHeight)
@@ -167,7 +167,7 @@ export async function exportToBlob({
 			const image = await getSvgAsImage(editor, svgResult.svg, {
 				type: format,
 				quality: opts.quality,
-				bitmapScale: opts.bitmapScale,
+				pixelRatio: opts.pixelRatio,
 				width: svgResult.width,
 				height: svgResult.height,
 			})

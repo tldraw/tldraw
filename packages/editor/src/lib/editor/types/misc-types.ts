@@ -12,7 +12,7 @@ export interface TLImageExportOptions {
 	bounds?: Box
 	scale?: number
 	quality?: number
-	bitmapScale?: number
+	pixelRatio?: number
 	background?: boolean
 	padding?: number
 	darkMode?: boolean
