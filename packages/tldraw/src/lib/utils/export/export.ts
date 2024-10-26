@@ -28,8 +28,8 @@ export async function getSvgAsImage(
 	const { type, quality, scale, width, height } = options
 
 	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
-		width * scale,
-		height * scale
+		width * scale * 2,
+		height * scale * 2
 	)
 	clampedWidth = Math.floor(clampedWidth)
 	clampedHeight = Math.floor(clampedHeight)
@@ -104,7 +104,7 @@ export async function getSvgAsImage(
 
 async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions) {
 	const svg = await editor.getSvgString(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
-		scale: 1,
+		scale: opts.scale ?? 1,
 		background: editor.getInstanceState().exportBackground,
 		...opts,
 	})
@@ -167,7 +167,7 @@ export async function exportToBlob({
 			const image = await getSvgAsImage(editor, svgResult.svg, {
 				type: format,
 				quality: 1,
-				scale: opts.scale ?? 2,
+				scale: opts.scale ?? 1,
 				width: svgResult.width,
 				height: svgResult.height,
 			})
