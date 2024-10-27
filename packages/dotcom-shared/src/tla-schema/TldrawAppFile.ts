@@ -91,7 +91,7 @@ export const TldrawAppFileRecordType = createRecordType<TldrawAppFile>('file', {
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
 		isEmpty: false,
-		shared: true,
+		shared: false,
 		sharedLinkType: 'edit',
 		published: false,
 		publishedSlug: uniqueId(),
