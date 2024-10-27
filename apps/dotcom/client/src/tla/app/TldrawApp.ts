@@ -319,8 +319,11 @@ export class TldrawApp {
 		if (!file) throw Error(`No file with that id`)
 		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
 
+		// We're going to bake the name of the file, if it's undefined
+		const name = this.getFileName(fileId)!
+
 		// Optimistic update
-		this.store.put([{ ...file, published: true, lastPublished: Date.now() }])
+		this.store.put([{ ...file, name, published: true, lastPublished: Date.now() }])
 
 		const fileSlug = fileId.split(':')[1]
 
