@@ -53,7 +53,7 @@ const router = createRouter<Environment>()
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
-	// app
+	/* ----------------------- App ---------------------- */
 	.get('/app', async (req, env) => {
 		const auth = await getAuth(req, env)
 		if (!auth?.userId) return notFound()

@@ -10,10 +10,6 @@ export interface CreateRoomRequestBody {
 	snapshot: Snapshot
 }
 
-export interface DuplicateRoomRequestBody {
-	parent_slug?: string | undefined
-}
-
 export type DuplicateRoomResponseBody =
 	| {
 			error: false

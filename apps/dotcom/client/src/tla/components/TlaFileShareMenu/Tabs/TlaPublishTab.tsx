@@ -39,19 +39,13 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 			const token = await auth.getToken()
 			if (!token) throw Error('no token')
 
-			const fileBefore = app.store.get(file.id)!
-
-			// optimistic update, we will revert if the request fails
-			if (!published) app.setFilePublished(file.id, true)
-			app.updateFileLastPublished(file.id)
-
 			const startTime = Date.now()
 
 			if (isPublishingChanges) {
 				setUploadState('uploading')
 			}
 
-			const result = await app.publishFile(editor, fileSlug, token)
+			const result = await app.publishFile(file.id, token)
 
 			if (result.ok) {
 				const elapsed = Date.now() - startTime
@@ -76,52 +70,29 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 					title: isPublishingChanges ? 'Could not publish changes' : 'Could not publish file',
 					severity: 'error',
 				})
-
-				// Get the fresh file from the store
-				const currentFile = app.store.get(file.id)!
-				if (!currentFile) return // oh it's gone
-
-				// revert optimistic updates by putting back properties from the file before the optimistic updates
-				const { published, lastPublished } = fileBefore
-				app.store.put([
-					{
-						...currentFile,
-						published,
-						lastPublished,
-					},
-				])
 			}
 		},
-		[editor, fileSlug, published, isOwner, auth, app, addToast, file.id]
+		[editor, fileSlug, isOwner, auth, app, addToast, file.id]
 	)
 
 	const unpublish = useCallback(async () => {
 		if (!isOwner) throw Error('not owner')
-		if (!published) throw Error('not published')
-		if (!fileSlug) throw Error('no file slug')
 
 		const token = await auth.getToken()
 		if (!token) throw Error('no token')
 
-		// optimistic update
-		app.setFilePublished(file.id, false)
-
-		// request to unpublish on the server
-		const result = await app.unpublishFile(fileSlug, token)
+		const result = await app.unpublishFile(file.id, token)
 
 		if (result.ok) {
 			// noop, all good
 		} else {
-			// revert optimistic update
-			app.setFilePublished(file.id, true)
-
 			// show error toast
 			addToast({
 				title: 'Could not delete',
 				severity: 'error',
 			})
 		}
-	}, [addToast, app, auth, file.id, isOwner, published, fileSlug])
+	}, [addToast, app, auth, file.id, isOwner])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 

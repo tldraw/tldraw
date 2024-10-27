@@ -1,6 +1,4 @@
 import {
-	CreateSnapshotResponseBody,
-	DuplicateRoomRequestBody,
 	DuplicateRoomResponseBody,
 	TldrawAppFile,
 	TldrawAppFileId,
@@ -15,7 +13,6 @@ import {
 import { Result, fetch } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
-	Editor,
 	Store,
 	TLSessionStateSnapshot,
 	TLStoreSnapshot,
@@ -220,8 +217,24 @@ export class TldrawApp {
 		})
 	}
 
-	async publishFile(editor: Editor, slug: string, token: string) {
-		const endpoint = `${PUBLISH_ENDPOINT}/${slug}`
+	/**
+	 * Publish a file or re-publish changes.
+	 *
+	 * @param fileId - The file id to unpublish.
+	 * @param token - The user's token.
+	 * @returns A result indicating success or failure.
+	 */
+	async publishFile(fileId: TldrawAppFileId, token: string) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
+
+		// Optimistic update
+		this.store.put([{ ...file, published: true, lastPublished: Date.now() }])
+
+		const fileSlug = fileId.split(':')[1]
+
+		const endpoint = `${PUBLISH_ENDPOINT}/${fileSlug}`
 
 		const res = await fetch(endpoint, {
 			method: 'POST',
@@ -230,15 +243,39 @@ export class TldrawApp {
 				Authorization: `Bearer ${token}`,
 			},
 		})
-		const response = (await res.json()) as CreateSnapshotResponseBody
+		const response = await res.json()
 
 		if (!res.ok || response.error) {
+			// Revert optimistic update
+			const latestFile = this.get(fileId) as TldrawAppFile
+			const { published, lastPublished } = file
+			this.store.put([{ ...latestFile, published, lastPublished }])
+
 			return Result.err('could not create snapshot')
 		}
+
 		return Result.ok('success')
 	}
 
-	async unpublishFile(fileSlug: string, token: string) {
+	/**
+	 * Unpublish a file.
+	 *
+	 * @param fileId - The file id to unpublish.
+	 * @param token - The user's token.
+	 * @returns A result indicating success or failure.
+	 */
+	async unpublishFile(fileId: TldrawAppFileId, token: string) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
+
+		if (!file.published) return Result.ok('success')
+
+		// Optimistic update
+		this.store.put([{ ...file, published: false }])
+
+		const fileSlug = fileId.split(':')[1]
+
 		const res = await fetch(`${PUBLISH_ENDPOINT}/${fileSlug}`, {
 			method: 'DELETE',
 			headers: {
@@ -248,25 +285,12 @@ export class TldrawApp {
 		})
 
 		if (!res.ok) {
+			// Revert optimistic update
+			this.store.put([{ ...file, published: true }])
 			return Result.err('could not unpublish')
 		}
 
 		return Result.ok('success')
-	}
-
-	setFilePublished(fileId: TldrawAppFileId, value: boolean) {
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
-		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
-		if (value === file.published) return
-		this.store.put([{ ...file, published: value, lastPublished: Date.now() }])
-	}
-
-	updateFileLastPublished(fileId: TldrawAppFileId) {
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
-		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
-		this.store.put([{ ...file, lastPublished: Date.now() }])
 	}
 
 	setFileSharedLinkType(
@@ -303,9 +327,6 @@ export class TldrawApp {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${token}`,
 			},
-			body: JSON.stringify({
-				parent_slug: fileSlug,
-			} satisfies DuplicateRoomRequestBody),
 		})
 
 		const response = (await res.json()) as DuplicateRoomResponseBody
