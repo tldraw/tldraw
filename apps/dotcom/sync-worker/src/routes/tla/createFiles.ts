@@ -2,12 +2,14 @@ import { CreateFilesRequestBody } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
-import { Environment } from '../types'
-import { getTldrawAppDurableObject } from '../utils/tla/getTldrawAppDurableObject'
-import { getUserIdFromRequest } from '../utils/tla/permissions'
-import { validateSnapshot } from '../utils/validateSnapshot'
+import { Environment } from '../../types'
+import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
+import { getUserIdFromRequest } from '../../utils/tla/permissions'
+import { validateSnapshot } from '../../utils/validateSnapshot'
 
-// Sets up a new room based on a provided snapshot, e.g. when a user clicks the "Share" buttons or the "Fork project" buttons.
+// Create new files based on snapshots.
+// This is used when dropping .tldr files onto the app.
+
 export async function createFiles(request: IRequest, env: Environment): Promise<Response> {
 	// The data sent from the client will include the data for the new room
 	const data = (await request.json()) as CreateFilesRequestBody

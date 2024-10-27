@@ -1,8 +1,8 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
-import { Environment } from '../types'
-import { getTldrawAppDurableObject } from '../utils/tla/getTldrawAppDurableObject'
-import { getUserIdFromRequest } from '../utils/tla/permissions'
+import { Environment } from '../../types'
+import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
+import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
 export interface R2Snapshot {
 	drawing: RoomSnapshot

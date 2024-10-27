@@ -279,18 +279,28 @@ export class TLAppDurableObject extends DurableObject {
 		}
 	}
 
+	/**
+	 * Create a new file or update in the app durable object.
+	 *
+	 * @param file - The file to create or update
+	 */
+	private async createNewFile(file: TldrawAppFile) {
+		const room = await this.getRoom()
+		return await room.updateStore((store) => {
+			store.put(file)
+		})
+	}
+
+	/**
+	 * Get whether a file is shared and what type of share it is.
+	 *
+	 * @param fileId - The file ID to check
+	 */
 	async getFileShareType(fileId: TldrawAppFileId): Promise<'private' | 'view' | 'edit'> {
 		const room = await this.getRoom()
 		const file = room.getRecord(fileId) as TldrawAppFile | undefined
 		if (!file?.shared) return 'private'
 		return file.sharedLinkType
-	}
-
-	async createNewFile(file: TldrawAppFile) {
-		const room = await this.getRoom()
-		return await room.updateStore((store) => {
-			store.put(file)
-		})
 	}
 
 	/**

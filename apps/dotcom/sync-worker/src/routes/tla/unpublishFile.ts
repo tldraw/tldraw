@@ -1,7 +1,7 @@
 import { IRequest } from 'itty-router'
-import { Environment } from '../types'
-import { getTldrawAppDurableObject } from '../utils/tla/getTldrawAppDurableObject'
-import { getUserIdFromRequest } from '../utils/tla/permissions'
+import { Environment } from '../../types'
+import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
+import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
 export async function unpublishFile(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId } = request.params

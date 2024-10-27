@@ -1,7 +1,7 @@
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
-import { Environment } from '../types'
-import { getTldrawAppDurableObject } from '../utils/tla/getTldrawAppDurableObject'
+import { Environment } from '../../types'
+import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 
 export async function getPublishedFile(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId } = request.params
