@@ -7,6 +7,7 @@ import { useEditor, useToasts } from 'tldraw'
 import { PUBLISH_ENDPOINT } from '../../../app/TldrawApp'
 import { useApp } from '../../../hooks/useAppState'
 import { useRaw } from '../../../hooks/useRaw'
+import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { getShareablePublishUrl } from '../../../utils/urls'
 import { TlaButton } from '../../TlaButton/TlaButton'
@@ -31,6 +32,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 	const { publishedSlug, published } = file
 	const isOwner = app.isFileOwner(file.id)
 	const auth = useAuth()
+	const trackEvent = useTldrawAppUiEvents()
 	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
 
 	const publish = useCallback(
@@ -71,8 +73,9 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 					severity: 'error',
 				})
 			}
+			trackEvent('publish-file', { result, source: 'file-share-menu' })
 		},
-		[editor, fileSlug, published, publishedSlug, isOwner, auth, app, addToast, file.id]
+		[editor, fileSlug, published, publishedSlug, isOwner, auth, app, addToast, file.id, trackEvent]
 	)
 
 	const unpublish = useCallback(async () => {
@@ -96,7 +99,8 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 				severity: 'error',
 			})
 		}
-	}, [addToast, app, auth, file.id, isOwner, publishedSlug])
+		trackEvent('unpublish-file', { result, source: 'file-share-menu' })
+	}, [addToast, app, auth, file.id, isOwner, publishedSlug, trackEvent])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 
@@ -110,6 +114,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 						<TlaMenuControl>
 							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip
+								onClick={() => trackEvent('learn-more-publishing', { source: 'file-share-menu' })}
 								href={'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'}
 							>
 								{raw('Learn more about publishing.')}
@@ -153,11 +158,13 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 export function TlaCopyPublishLinkButton({ url }: { url: string }) {
 	const raw = useRaw()
 	const editor = useEditor()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleCopyPublishLink = useCallback(() => {
 		if (!url) return
 		copyTextToClipboard(editor.createDeepLink({ url }).toString())
-	}, [url, editor])
+		trackEvent('copy-publish-link', { source: 'file-share-menu' })
+	}, [url, editor, trackEvent])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyPublishLink}>

@@ -1,5 +1,6 @@
 import { TldrawAppFile, TldrawAppSessionState, TldrawAppUser } from '@tldraw/dotcom-shared'
 import { ReactNode, createContext, useContext } from 'react'
+import { Result } from 'tldraw'
 
 /** @public */
 export type TLAppUiEventSource =
@@ -36,6 +37,10 @@ export interface TLAppUiEventMap {
 	}
 	'set-shared-link-type': { type: TldrawAppFile['sharedLinkType'] | 'no-access' }
 	'learn-more-sharing-link': null
+	'learn-more-publishing': null
+	'publish-file': { result: Result<string, string> }
+	'unpublish-file': { result: Response }
+	'copy-publish-link': null
 }
 
 /** @public */
