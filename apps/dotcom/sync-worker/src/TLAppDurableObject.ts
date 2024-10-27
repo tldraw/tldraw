@@ -455,6 +455,8 @@ export class TLAppDurableObject extends DurableObject {
 	 * Get a published file by its slug.
 	 *
 	 * @param publishedSlug - The slug of the published file
+	 *
+	 * @returns The published file snapshot
 	 */
 	async getPublishedFile(publishedSlug: string) {
 		const slug = await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(publishedSlug)
