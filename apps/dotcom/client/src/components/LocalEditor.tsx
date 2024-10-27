@@ -103,7 +103,6 @@ export function LocalEditor() {
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
 				components={components}
-				inferDarkMode
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
