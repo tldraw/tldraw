@@ -7,14 +7,18 @@ import {
 	TldrawAppFileId,
 	TldrawAppFileRecordType,
 	tldrawAppSchema,
+	TldrawAppUserId,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
-import { exhaustiveSwitchError } from '@tldraw/utils'
+import { exhaustiveSwitchError, uniqueId } from '@tldraw/utils'
 import { ExecutionQueue } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
+import { getR2KeyForRoom } from './r2'
 import { Environment } from './types'
 import { throttle } from './utils/throttle'
+import { getRoomCurrentSnapshot } from './utils/tla/getRoomCurrentSnapshot'
+import { getTldrawAppFileRecord } from './utils/tla/getTldrawAppFileRecord'
 
 const PERSIST_INTERVAL = 1000
 
@@ -284,9 +288,53 @@ export class TLAppDurableObject extends DurableObject {
 
 	async createNewFile(file: TldrawAppFile) {
 		const room = await this.getRoom()
-		await room.updateStore((store) => {
+		return await room.updateStore((store) => {
 			store.put(file)
 		})
-		return
+	}
+
+	/**
+	 * Duplicate a file for a given user.
+	 *
+	 * @params slug - The slug of the file to duplicate
+	 * @params userId - The user ID of the user duplicating the file, who will be the new owner of the file
+	 */
+	async duplicateFile(slug: string, userId: TldrawAppUserId) {
+		const file = await getTldrawAppFileRecord(slug, this.env)
+
+		if (!file) {
+			throw Error('not-found')
+		}
+
+		// A user can duplicate other users' files only if they are shared
+		if (file.ownerId !== userId) {
+			if (!file.shared) {
+				throw Error('forbidden')
+			}
+		}
+
+		// Get the current serialized snapshot of the room (by waking up the worker,
+		// if we have to). Why not grab from the database directly? Because the worker
+		// only persists every ~30s while users are actively editing the room. If we
+		// knew whether the room was active or not (either by checking whether the
+		// worker was awake or somehow recording which rooms have active users in them,
+		// or when the room was last edited) we could make a better decision.
+		const serializedSnapshot = await getRoomCurrentSnapshot(slug, this.env)
+
+		// Create a new slug for the duplicated room
+		const newSlug = uniqueId()
+
+		// Bang the snapshot into the database under a different slug
+		await this.env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
+
+		// Now create a new file in the app durable object belonging to the user
+		await this.createNewFile(
+			TldrawAppFileRecordType.create({
+				id: TldrawAppFileRecordType.createId(newSlug),
+				ownerId: userId,
+			})
+		)
+
+		return { slug: newSlug }
 	}
 }
