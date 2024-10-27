@@ -9,6 +9,7 @@ export type TLAppUiEventSource =
 	| 'file-rename-dialog'
 	| 'file-menu'
 	| 'file-share-menu'
+	| 'file-header'
 	| 'anon-landing-page'
 
 /** @public */
@@ -23,6 +24,7 @@ export interface TLAppUiEventMap {
 	'click-watermark': null
 	'change-share-menu-tab': { tab: TldrawAppSessionState['shareMenuActiveTab'] }
 	'copy-share-link': null
+	'copy-file-link': null
 	'toggle-shared': { shared: boolean }
 	'set-theme': { theme: 'dark' | 'light' | 'auto' }
 	'toggle-export-padding': { padding: boolean }
@@ -45,6 +47,8 @@ export interface TLAppUiEventMap {
 	'sign-in-button': null
 	'sign-out-button': null
 	'learn-more-button': null
+	'sidebar-toggle': null
+	'click-file-link': null
 }
 
 /** @public */

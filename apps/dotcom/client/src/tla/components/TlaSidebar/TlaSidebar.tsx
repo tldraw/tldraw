@@ -7,6 +7,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { getFilePath } from '../../utils/urls'
 import { TlaAccountMenu } from '../TlaAccountMenu/TlaAccountMenu'
@@ -96,12 +97,13 @@ function TlaSidebarWorkspaceLink() {
 function TlaSidebarCreateFileButton() {
 	const app = useApp()
 	const navigate = useNavigate()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleSidebarCreate = useCallback(() => {
 		const file = app.createFile()
-
 		navigate(getFilePath(file.id), { state: { isCreateMode: true } })
-	}, [app, navigate])
+		trackEvent('create-file', { source: 'sidebar' })
+	}, [app, navigate, trackEvent])
 
 	return (
 		<button className={styles.create} onClick={handleSidebarCreate} data-testid="tla-create-file">
@@ -215,8 +217,12 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 	const { fileSlug } = useParams()
 	const isActive = TldrawAppFileRecordType.createId(fileSlug) === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
+	const trackEvent = useTldrawAppUiEvents()
 
-	const handleRenameAction = () => setIsRenaming(true)
+	const handleRenameAction = () => {
+		setIsRenaming(true)
+		trackEvent('rename-file', { source: 'sidebar' })
+	}
 	const handleRenameClose = () => setIsRenaming(false)
 
 	const app = useApp()
@@ -237,7 +243,11 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 					{app.getFileName(fileId)} {isOwnFile ? '' : '(Guest)'}
 				</div>
 			</div>
-			<Link to={getFilePath(fileId)} className={styles.linkButton} />
+			<Link
+				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
+				to={getFilePath(fileId)}
+				className={styles.linkButton}
+			/>
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
 	)
@@ -321,12 +331,16 @@ function TlaSidebarFileLinkMenu({
 }
 
 export function TlaSidebarToggle() {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<button
 			className={styles.toggle}
 			data-mobile={false}
 			data-testid="tla-sidebar-toggle"
-			onClick={() => updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))}
+			onClick={() => {
+				updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))
+				trackEvent('sidebar-toggle', { source: 'sidebar' })
+			}}
 		>
 			<TlaIcon icon="sidebar" />
 		</button>
@@ -334,14 +348,16 @@ export function TlaSidebarToggle() {
 }
 
 export function TlaSidebarToggleMobile() {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<button
 			className={styles.toggle}
 			data-mobile={true}
 			data-testid="tla-sidebar-toggle-mobile"
-			onClick={() =>
+			onClick={() => {
 				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
-			}
+				trackEvent('sidebar-toggle', { source: 'sidebar' })
+			}}
 		>
 			<TlaIcon icon="sidebar" />
 		</button>
