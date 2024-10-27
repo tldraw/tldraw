@@ -9,6 +9,7 @@ export type TLAppUiEventSource =
 	| 'file-rename-dialog'
 	| 'file-menu'
 	| 'file-share-menu'
+	| 'anon-landing-page'
 
 /** @public */
 export interface TLAppUiEventMap {
@@ -41,6 +42,9 @@ export interface TLAppUiEventMap {
 	'publish-file': { result: Result<string, string> }
 	'unpublish-file': { result: Response }
 	'copy-publish-link': null
+	'sign-in-button': null
+	'sign-out-button': null
+	'learn-more-button': null
 }
 
 /** @public */

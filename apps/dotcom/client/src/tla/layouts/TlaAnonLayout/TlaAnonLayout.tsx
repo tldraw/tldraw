@@ -5,11 +5,13 @@ import { Link } from 'react-router-dom'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import { useRaw } from '../../hooks/useRaw'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	const raw = useRaw()
 	usePreventAccidentalDrops()
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<div className={classNames('tla tla-theme__light tl-theme-light tl-container', styles.layout)}>
 			<div className={styles.header}>
@@ -18,7 +20,12 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				</Link>
 				<SignedOut>
 					<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
-						<TlaButton data-testid="tla-signin-button">{raw('Sign in')}</TlaButton>
+						<TlaButton
+							onClick={() => trackEvent('sign-in-button', { source: 'anon-landing-page' })}
+							data-testid="tla-signin-button"
+						>
+							{raw('Sign in')}
+						</TlaButton>
 					</SignInButton>
 				</SignedOut>
 			</div>
@@ -27,7 +34,12 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				<p>
 					<b>{raw('tldraw')}</b> {raw(' is a free online whiteboard for you and your friends. ')}
 					{/* Todo, make the rest of this layout the landing page, learn more should scroll down? */}
-					<Link to="/">{raw('Learn more.')}</Link>
+					<Link
+						onClick={() => trackEvent('learn-more-button', { source: 'anon-landing-page' })}
+						to="/"
+					>
+						{raw('Learn more.')}
+					</Link>
 				</p>
 			</div>
 		</div>

@@ -11,13 +11,21 @@ import {
 	TldrawUiMenuSubmenu,
 } from 'tldraw'
 import { Links } from '../../../components/Links'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 
-export function TlaAccountMenu({ children, source }: { children: ReactNode; source: string }) {
+export function TlaAccountMenu({
+	children,
+	source,
+}: {
+	children: ReactNode
+	source: TLAppUiEventSource
+}) {
 	const auth = useAuth()
-
+	const trackEvent = useTldrawAppUiEvents()
 	const handleSignout = useCallback(() => {
 		auth.signOut()
-	}, [auth])
+		trackEvent('sign-out-button', { source })
+	}, [auth, trackEvent, source])
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`account-menu-${source}`}>
