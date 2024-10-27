@@ -133,11 +133,6 @@ export class TLDrawDurableObject extends DurableObject {
 		return this._room
 	}
 
-	async getCurrentSerializedSnapshot() {
-		const room = await this.getRoom()
-		return room.getCurrentSerializedSnapshot()
-	}
-
 	// For storage
 	storage: DurableObjectStorage
 
@@ -607,5 +602,10 @@ export class TLDrawDurableObject extends DurableObject {
 			const key = getR2KeyForRoom({ slug, isApp: true })
 			await this.r2.rooms.delete(key)
 		})
+	}
+
+	async getCurrentSerializedSnapshot() {
+		const room = await this.getRoom()
+		return room.getCurrentSerializedSnapshot()
 	}
 }
