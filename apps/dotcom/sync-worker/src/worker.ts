@@ -10,6 +10,7 @@ import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 import { APP_ID } from './TLAppDurableObject'
+import { createFiles } from './routes/createFiles'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { duplicateRoom } from './routes/duplicateFile'
@@ -68,6 +69,7 @@ const router = createRouter<Environment>()
 
 		return notFound()
 	})
+	.post('/app/tldr', createFiles)
 	.get('/app/file/:roomId', forwardRoomRequest)
 	.post('/app/duplicate/:roomId', duplicateRoom)
 	.get('/app/publish/:roomId', getPublishedFile)

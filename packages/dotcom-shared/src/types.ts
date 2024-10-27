@@ -10,16 +10,6 @@ export interface CreateRoomRequestBody {
 	snapshot: Snapshot
 }
 
-export type DuplicateRoomResponseBody =
-	| {
-			error: false
-			slug: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
-
 export interface CreateSnapshotRequestBody {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
@@ -40,3 +30,28 @@ export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
 }
+
+export interface CreateFilesRequestBody {
+	origin: string
+	snapshots: Snapshot[]
+}
+
+export type CreateFilesResponseBody =
+	| {
+			error: false
+			slugs: string[]
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type DuplicateRoomResponseBody =
+	| {
+			error: false
+			slug: string
+	  }
+	| {
+			error: true
+			message: string
+	  }

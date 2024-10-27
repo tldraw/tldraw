@@ -294,6 +294,34 @@ export class TLAppDurableObject extends DurableObject {
 	}
 
 	/**
+	 * Create a new file for a given user.
+	 *
+	 * @param snapshot - The snapshot of the room to create
+	 * @param userId - The user ID of the user creating the file
+	 *
+	 * @returns The new file's slug
+	 */
+	async createFile(snapshot: RoomSnapshot, userId: TldrawAppUserId) {
+		const serializedSnapshot = JSON.stringify(snapshot)
+
+		// Create a new slug for the room
+		const newSlug = uniqueId()
+
+		// Bang the snapshot into the database
+		await this.env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
+
+		// Now create a new file in the app durable object belonging to the user
+		await this.createNewFile(
+			TldrawAppFileRecordType.create({
+				id: TldrawAppFileRecordType.createId(newSlug),
+				ownerId: userId,
+			})
+		)
+
+		return { slug: newSlug }
+	}
+
+	/**
 	 * Duplicate a file for a given user.
 	 *
 	 * @params slug - The slug of the file to duplicate
@@ -326,7 +354,7 @@ export class TLAppDurableObject extends DurableObject {
 		// Create a new slug for the duplicated room
 		const newSlug = uniqueId()
 
-		// Bang the snapshot into the database under a different slug
+		// Bang the snapshot into the database
 		await this.env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
 
 		// Now create a new file in the app durable object belonging to the user

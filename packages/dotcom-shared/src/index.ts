@@ -10,6 +10,8 @@ export {
 	type RoomOpenMode,
 } from './routes'
 export type {
+	CreateFilesRequestBody,
+	CreateFilesResponseBody,
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,

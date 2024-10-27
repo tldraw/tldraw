@@ -1,4 +1,5 @@
 import {
+	CreateFilesResponseBody,
 	DuplicateRoomResponseBody,
 	TldrawAppFile,
 	TldrawAppFileId,
@@ -28,6 +29,7 @@ import {
 import { globalEditor } from '../../utils/globalEditor'
 import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
 
+export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
 export const DUPLICATE_ENDPOINT = `/api/app/duplicate`
@@ -218,6 +220,39 @@ export class TldrawApp {
 	}
 
 	/**
+	 * Create files from tldr files.
+	 *
+	 * @param snapshots - The snapshots to create files from.
+	 * @param token - The user's token.
+	 *
+	 * @returns The slugs of the created files.
+	 */
+	async createFilesFromTldrFiles(snapshots: TLStoreSnapshot[], token: string) {
+		const res = await fetch(TLDR_FILE_ENDPOINT, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({
+				// convert to the annoyingly similar format that the server expects
+				snapshots: snapshots.map((s) => ({
+					snapshot: s.store,
+					schema: s.schema,
+				})),
+			}),
+		})
+
+		const response = (await res.json()) as CreateFilesResponseBody
+
+		if (!res.ok || response.error) {
+			throw Error('could not create files')
+		}
+
+		return { slugs: response.slugs }
+	}
+
+	/**
 	 * Publish a file or re-publish changes.
 	 *
 	 * @param fileId - The file id to unpublish.
@@ -376,12 +411,6 @@ export class TldrawApp {
 				.map((r) => r.id)
 			this.store.remove(fileStates)
 		}
-	}
-
-	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {
-		// todo: upload the files to the server and create files locally
-		console.warn('tldraw file uploads are not implemented yet, but you are in the right place')
-		return new Promise((r) => setTimeout(r, 2000))
 	}
 
 	updateUserExportPreferences(
