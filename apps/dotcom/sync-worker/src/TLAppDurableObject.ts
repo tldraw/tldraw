@@ -419,8 +419,6 @@ export class TLAppDurableObject extends DurableObject {
 		)
 
 		// todo: save the snapshot somewhere else? ie to view history of saved snapshots
-
-		return { slug: file.publishedSlug }
 	}
 
 	/**

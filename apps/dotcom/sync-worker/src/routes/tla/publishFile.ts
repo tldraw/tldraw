@@ -18,8 +18,8 @@ export async function publishFile(request: IRequest, env: Environment): Promise<
 	const app = getTldrawAppDurableObject(env)
 
 	try {
-		const { slug } = await app.publishFile(roomId, userId)
-		return new Response(JSON.stringify({ error: false, slug }))
+		await app.publishFile(roomId, userId)
+		return new Response(JSON.stringify({ error: false }))
 	} catch (e: any) {
 		return new Response(JSON.stringify({ error: true, message: e.message }), { status: 500 })
 	}

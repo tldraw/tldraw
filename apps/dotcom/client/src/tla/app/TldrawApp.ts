@@ -1,6 +1,7 @@
 import {
 	CreateFilesResponseBody,
 	DuplicateRoomResponseBody,
+	PublishFileResponseBody,
 	TldrawAppFile,
 	TldrawAppFileId,
 	TldrawAppFileRecordType,
@@ -266,6 +267,46 @@ export class TldrawApp {
 	}
 
 	/**
+	 * Duplicate a file.
+	 *
+	 * @param fileSlug - The file slug to duplicate.
+	 * @param token - The user's token.
+	 *
+	 * @returns A result indicating success or failure.
+	 */
+	async duplicateFile(fileSlug: string, token: string) {
+		const endpoint = `${DUPLICATE_ENDPOINT}/${fileSlug}`
+
+		const res = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+
+		const response = (await res.json()) as DuplicateRoomResponseBody
+
+		if (!res.ok || response.error) {
+			return Result.err('could not duplicate file')
+		}
+
+		// Also create a file state record for the new file
+
+		this.store.put([
+			TldrawAppFileStateRecordType.create({
+				fileId: TldrawAppFileRecordType.createId(response.slug),
+				ownerId: this.getCurrentUserId(),
+				firstVisitAt: Date.now(),
+				lastVisitAt: Date.now(),
+				lastEditAt: Date.now(),
+			}),
+		])
+
+		return Result.ok({ slug: response.slug })
+	}
+
+	/**
 	 * Publish a file or re-publish changes.
 	 *
 	 * @param fileId - The file id to unpublish.
@@ -291,7 +332,8 @@ export class TldrawApp {
 				Authorization: `Bearer ${token}`,
 			},
 		})
-		const response = await res.json()
+
+		const response = (await res.json()) as PublishFileResponseBody
 
 		if (!res.ok || response.error) {
 			// Revert optimistic update
@@ -360,42 +402,6 @@ export class TldrawApp {
 		}
 
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
-	}
-
-	async duplicateFile(fileSlug: string, token: string) {
-		// We don't want to duplicate the file based on what the user has
-		// in their store. We want to instead fetch the file on the server,
-		// duplicate that, and then navigate to the new file.
-
-		const endpoint = `${DUPLICATE_ENDPOINT}/${fileSlug}`
-
-		const res = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-			},
-		})
-
-		const response = (await res.json()) as DuplicateRoomResponseBody
-
-		if (!res.ok || response.error) {
-			return Result.err('could not duplicate file')
-		}
-
-		// Also create a file state record for the new file
-
-		this.store.put([
-			TldrawAppFileStateRecordType.create({
-				fileId: TldrawAppFileRecordType.createId(response.slug),
-				ownerId: this.getCurrentUserId(),
-				firstVisitAt: Date.now(),
-				lastVisitAt: Date.now(),
-				lastEditAt: Date.now(),
-			}),
-		])
-
-		return Result.ok({ slug: response.slug })
 	}
 
 	isFileOwner(fileId: TldrawAppFileId) {

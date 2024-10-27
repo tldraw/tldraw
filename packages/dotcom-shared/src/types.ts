@@ -31,6 +31,8 @@ export interface GetReadonlySlugResponseBody {
 	isLegacy: boolean
 }
 
+/* ----------------------- App ---------------------- */
+
 export interface CreateFilesRequestBody {
 	origin: string
 	snapshots: Snapshot[]
@@ -50,6 +52,15 @@ export type DuplicateRoomResponseBody =
 	| {
 			error: false
 			slug: string
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type PublishFileResponseBody =
+	| {
+			error: false
 	  }
 	| {
 			error: true
