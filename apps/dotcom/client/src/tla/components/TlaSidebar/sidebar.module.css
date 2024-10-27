@@ -291,6 +291,11 @@
 	z-index: 2;
 }
 
+.renameWrapper {
+	outline: 1px solid var(--color-primary);
+	outline-offset: -2px;
+}
+
 .renameWrapper > div {
 	height: 36px;
 	padding: 0px 8px 0px 8px;
