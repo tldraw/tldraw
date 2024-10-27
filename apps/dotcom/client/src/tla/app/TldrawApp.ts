@@ -356,6 +356,11 @@ export class TldrawApp {
 		return file.ownerId === this.getCurrentUserId()
 	}
 
+	/**
+	 * Remove a user's file states for a file.
+	 *
+	 * @param fileId - The file id.
+	 */
 	async deleteOrForgetFile(fileId: TldrawAppFileId) {
 		if (this.isFileOwner(fileId)) {
 			this.store.remove([
