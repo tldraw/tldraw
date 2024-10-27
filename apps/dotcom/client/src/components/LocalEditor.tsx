@@ -135,7 +135,14 @@ function SneakyLocalSaveWarning() {
 							</TldrawUiDialogTitle>
 							<TldrawUiDialogCloseButton />
 						</TldrawUiDialogHeader>
-						<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+						<TldrawUiDialogBody
+							style={{
+								maxWidth: 350,
+								display: 'flex',
+								flexDirection: 'column',
+								gap: 'var(--space-4)',
+							}}
+						>
 							<p>
 								Did you know that your tldraw project is being saved to your own computer? This
 								means that if you clear your browser cache, you will also lose your project here.
