@@ -39,62 +39,17 @@ export class TLAppDurableObject extends DurableObject {
 	id: DurableObjectId
 
 	// For TLSyncRoom
-	_room: Promise<TLSocketRoom<any>> | null = null
-
-	getRoom() {
-		if (!this._room) {
-			this._room = this.loadFromDatabase().then((result) => {
-				switch (result.type) {
-					case 'snapshot_found': {
-						this._lastPersistedClock = result.snapshot.clock
-						const room = new TLSocketRoom<any>({
-							initialSnapshot: result.snapshot,
-							schema: tldrawAppSchema,
-							onSessionRemoved: async (room, args) => {
-								if (args.numSessionsRemaining > 0) return
-								if (!this._room) return
-								try {
-									await this.persistToDatabase()
-								} catch {
-									// already logged
-								}
-								// make sure nobody joined the room while we were persisting
-								if (room.getNumActiveSessions() > 0) return
-								this._room = null
-								room.close()
-							},
-							onDataChange: () => {
-								this.triggerPersistSchedule()
-							},
-						})
-						return room
-					}
-					case 'error': {
-						throw result.error
-					}
-					default: {
-						exhaustiveSwitchError(result)
-					}
-				}
-			})
-		}
-		return this._room
-	}
-
-	async getCurrentSerializedSnapshot() {
-		const room = await this.getRoom()
-		return room.getCurrentSerializedSnapshot()
-	}
+	private _room: Promise<TLSocketRoom<any>> | null = null
 
 	// For storage
-	storage: DurableObjectStorage
+	private storage: DurableObjectStorage
+	private loadTopic: D1PreparedStatement
+	private loadRecords: D1PreparedStatement
+	private updateTopic: D1PreparedStatement
+	private updateTopicClock: D1PreparedStatement
+	private updateRecord: D1PreparedStatement
+	private deleteRecord: D1PreparedStatement
 
-	loadTopic: D1PreparedStatement
-	loadRecords: D1PreparedStatement
-	updateTopic: D1PreparedStatement
-	updateTopicClock: D1PreparedStatement
-	updateRecord: D1PreparedStatement
-	deleteRecord: D1PreparedStatement
 	constructor(
 		private state: DurableObjectState,
 		override env: Environment
@@ -161,8 +116,49 @@ export class TLAppDurableObject extends DurableObject {
 		this.persistToDatabase()
 	}, PERSIST_INTERVAL)
 
+	// Get (or create) the TLSyncRoom instance
+	private getRoom() {
+		if (!this._room) {
+			this._room = this.loadFromDatabase().then((result) => {
+				switch (result.type) {
+					case 'snapshot_found': {
+						this._lastPersistedClock = result.snapshot.clock
+						const room = new TLSocketRoom<any>({
+							initialSnapshot: result.snapshot,
+							schema: tldrawAppSchema,
+							onSessionRemoved: async (room, args) => {
+								if (args.numSessionsRemaining > 0) return
+								if (!this._room) return
+								try {
+									await this.persistToDatabase()
+								} catch {
+									// already logged
+								}
+								// make sure nobody joined the room while we were persisting
+								if (room.getNumActiveSessions() > 0) return
+								this._room = null
+								room.close()
+							},
+							onDataChange: () => {
+								this.triggerPersistSchedule()
+							},
+						})
+						return room
+					}
+					case 'error': {
+						throw result.error
+					}
+					default: {
+						exhaustiveSwitchError(result)
+					}
+				}
+			})
+		}
+		return this._room
+	}
+
 	// Load the room's drawing data from D1
-	async loadFromDatabase(): Promise<DBLoadResult> {
+	private async loadFromDatabase(): Promise<DBLoadResult> {
 		try {
 			const [
 				{
@@ -196,10 +192,10 @@ export class TLAppDurableObject extends DurableObject {
 		}
 	}
 
-	_lastPersistedClock: number | null = null
-	executionQueue = new ExecutionQueue()
+	private _lastPersistedClock: number | null = null
+	private executionQueue = new ExecutionQueue()
 
-	async persistToDatabase() {
+	private async persistToDatabase() {
 		try {
 			await this.executionQueue.push(async () => {
 				// check whether the worker was woken up to persist after having gone to sleep
@@ -289,6 +285,18 @@ export class TLAppDurableObject extends DurableObject {
 		return await room.updateStore((store) => {
 			store.put(file)
 		})
+	}
+
+	/* ------------------ Public stuff ------------------ */
+
+	/**
+	 * Get the current serialized snapshot of the room.
+	 *
+	 * @returns The current serialized snapshot of the room
+	 */
+	async getCurrentSerializedSnapshot() {
+		const room = await this.getRoom()
+		return room.getCurrentSerializedSnapshot()
 	}
 
 	/**
