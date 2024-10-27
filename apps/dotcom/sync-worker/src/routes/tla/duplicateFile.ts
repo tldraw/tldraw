@@ -3,7 +3,8 @@ import { Environment } from '../../types'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
-export async function duplicateRoom(request: IRequest, env: Environment): Promise<Response> {
+// Duplicates a file based on the freshest data available on the server.
+export async function duplicateFile(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId } = request.params
 	if (!roomId) {
 		return Response.json({ error: true, message: 'Room ID is required' }, { status: 400 })

@@ -1,13 +1,9 @@
-import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
-export interface R2Snapshot {
-	drawing: RoomSnapshot
-}
-
+// Publish a file or replace the published file.
 export async function publishFile(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId } = request.params
 	if (!roomId) {

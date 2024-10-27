@@ -3,6 +3,7 @@ import { Environment } from '../../types'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
+// Unpublish a file.
 export async function unpublishFile(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId } = request.params
 	if (!roomId) {

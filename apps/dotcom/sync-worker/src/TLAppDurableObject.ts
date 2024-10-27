@@ -462,6 +462,11 @@ export class TLAppDurableObject extends DurableObject {
 		const slug = await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(publishedSlug)
 		if (!slug) throw Error('not found')
 
+		const file = await getTldrawAppFileRecord(slug, this.env)
+		if (!file) throw Error('not found')
+
+		if (!file.published) throw Error('not published')
+
 		const publishedRoomSnapshot = await this.env.ROOM_SNAPSHOTS.get(
 			getR2KeyForRoom({ slug: `${slug}/${publishedSlug}`, isApp: true })
 		).then((r) => r?.json())

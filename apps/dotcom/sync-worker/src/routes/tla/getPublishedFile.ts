@@ -3,6 +3,7 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 
+// Get a published file from a file's publishedSlug, if there is one.
 export async function getPublishedFile(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId } = request.params
 	if (!roomId) {
