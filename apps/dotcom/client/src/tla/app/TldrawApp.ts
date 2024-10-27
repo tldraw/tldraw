@@ -249,6 +249,19 @@ export class TldrawApp {
 			throw Error('could not create files')
 		}
 
+		// Also create a file state record for the new file
+		this.store.put(
+			response.slugs.map((slug) =>
+				TldrawAppFileStateRecordType.create({
+					fileId: TldrawAppFileRecordType.createId(slug),
+					ownerId: this.getCurrentUserId(),
+					firstVisitAt: Date.now(),
+					lastVisitAt: Date.now(),
+					lastEditAt: Date.now(),
+				})
+			)
+		)
+
 		return { slugs: response.slugs }
 	}
 
