@@ -1,4 +1,4 @@
-import { TldrawAppSessionState, TldrawAppUser } from '@tldraw/dotcom-shared'
+import { TldrawAppFile, TldrawAppSessionState, TldrawAppUser } from '@tldraw/dotcom-shared'
 import { ReactNode, createContext, useContext } from 'react'
 
 /** @public */
@@ -34,6 +34,8 @@ export interface TLAppUiEventMap {
 		padding: TldrawAppUser['exportPadding']
 		background: TldrawAppUser['exportBackground']
 	}
+	'set-shared-link-type': { type: TldrawAppFile['sharedLinkType'] | 'no-access' }
+	'learn-more-sharing-link': null
 }
 
 /** @public */
