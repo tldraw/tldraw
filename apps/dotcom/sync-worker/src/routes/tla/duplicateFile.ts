@@ -1,6 +1,11 @@
+import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
+import { getCurrentSerializedRoomSnapshot } from '../../utils/tla/getCurrentSerializedRoomSnapshot'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
+import { getTldrawAppFileRecord } from '../../utils/tla/getTldrawAppFileRecord'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
 // Duplicates a file based on the freshest data available on the server.
@@ -15,11 +20,44 @@ export async function duplicateFile(request: IRequest, env: Environment): Promis
 		return Response.json({ error: true, message: 'No user' }, { status: 401 })
 	}
 
-	const app = getTldrawAppDurableObject(env)
-
 	try {
-		const { slug } = await app.duplicateFile(roomId, userId)
-		return new Response(JSON.stringify({ error: false, slug }))
+		const file = await getTldrawAppFileRecord(roomId, env)
+
+		if (!file) {
+			throw Error('not-found')
+		}
+
+		// A user can duplicate other users' files only if they are shared
+		if (file.ownerId !== userId) {
+			if (!file.shared) {
+				throw Error('forbidden')
+			}
+		}
+
+		// Get the current serialized snapshot of the room (by waking up the worker,
+		// if we have to). Why not grab from the database directly? Because the worker
+		// only persists every ~30s while users are actively editing the room. If we
+		// knew whether the room was active or not (either by checking whether the
+		// worker was awake or somehow recording which rooms have active users in them,
+		// or when the room was last edited) we could make a better decision.
+		const serializedSnapshot = await getCurrentSerializedRoomSnapshot(roomId, env)
+
+		// Create a new slug for the duplicated room
+		const newSlug = uniqueId()
+
+		// Bang the snapshot into the database
+		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
+
+		// Now create a new file in the app durable object belonging to the user
+		const app = getTldrawAppDurableObject(env)
+		await app.createNewFile(
+			TldrawAppFileRecordType.create({
+				id: TldrawAppFileRecordType.createId(newSlug),
+				ownerId: userId,
+			})
+		)
+
+		return new Response(JSON.stringify({ error: false, slug: newSlug }))
 	} catch (e: any) {
 		return new Response(JSON.stringify({ error: true, message: e.message }), { status: 500 })
 	}

@@ -1,7 +1,9 @@
-import { CreateFilesRequestBody } from '@tldraw/dotcom-shared'
+import { CreateFilesRequestBody, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
+import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
@@ -16,8 +18,6 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 	if (!userId) {
 		return Response.json({ error: true, message: 'No user' }, { status: 401 })
 	}
-
-	const app = getTldrawAppDurableObject(env)
 
 	const slugs: string[] = []
 
@@ -40,8 +40,24 @@ export async function createFiles(request: IRequest, env: Environment): Promise<
 				tombstones: {},
 			}
 
-			const { slug } = await app.createFile(snapshot, userId)
-			slugs.push(slug)
+			const serializedSnapshot = JSON.stringify(snapshot)
+
+			// Create a new slug for the room
+			const newSlug = uniqueId()
+
+			// Bang the snapshot into the database
+			await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
+
+			// Now create a new file in the app durable object belonging to the user
+			const app = getTldrawAppDurableObject(env)
+			await app.createNewFile(
+				TldrawAppFileRecordType.create({
+					id: TldrawAppFileRecordType.createId(newSlug),
+					ownerId: userId,
+				})
+			)
+
+			slugs.push(newSlug)
 		} catch (e: any) {
 			return new Response(JSON.stringify({ error: true, message: e.message }), { status: 500 })
 		}

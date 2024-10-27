@@ -7,18 +7,14 @@ import {
 	TldrawAppFileId,
 	TldrawAppFileRecordType,
 	tldrawAppSchema,
-	TldrawAppUserId,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
-import { exhaustiveSwitchError, uniqueId } from '@tldraw/utils'
+import { exhaustiveSwitchError } from '@tldraw/utils'
 import { ExecutionQueue } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
-import { getR2KeyForRoom } from './r2'
 import { Environment } from './types'
 import { throttle } from './utils/throttle'
-import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
-import { getTldrawAppFileRecord } from './utils/tla/getTldrawAppFileRecord'
 
 const PERSIST_INTERVAL = 1000
 
@@ -275,19 +271,19 @@ export class TLAppDurableObject extends DurableObject {
 		}
 	}
 
+	/* ------------------ Public stuff ------------------ */
+
 	/**
 	 * Create a new file or update in the app durable object.
 	 *
 	 * @param file - The file to create or update
 	 */
-	private async createNewFile(file: TldrawAppFile) {
+	async createNewFile(file: TldrawAppFile) {
 		const room = await this.getRoom()
 		return await room.updateStore((store) => {
 			store.put(file)
 		})
 	}
-
-	/* ------------------ Public stuff ------------------ */
 
 	/**
 	 * Get the current serialized snapshot of the room.
@@ -309,167 +305,5 @@ export class TLAppDurableObject extends DurableObject {
 		const file = room.getRecord(fileId) as TldrawAppFile | undefined
 		if (!file?.shared) return 'private'
 		return file.sharedLinkType
-	}
-
-	/**
-	 * Create a new file for a given user.
-	 *
-	 * @param snapshot - The snapshot of the room to create
-	 * @param userId - The user ID of the user creating the file
-	 *
-	 * @returns The new file's slug
-	 */
-	async createFile(snapshot: RoomSnapshot, userId: TldrawAppUserId) {
-		const serializedSnapshot = JSON.stringify(snapshot)
-
-		// Create a new slug for the room
-		const newSlug = uniqueId()
-
-		// Bang the snapshot into the database
-		await this.env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
-
-		// Now create a new file in the app durable object belonging to the user
-		await this.createNewFile(
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId(newSlug),
-				ownerId: userId,
-			})
-		)
-
-		return { slug: newSlug }
-	}
-
-	/**
-	 * Duplicate a file for a given user.
-	 *
-	 * @params slug - The slug of the file to duplicate
-	 * @params userId - The user ID of the user duplicating the file, who will be the new owner of the file
-	 *
-	 * @returns The new file's slug
-	 */
-	async duplicateFile(slug: string, userId: TldrawAppUserId) {
-		const file = await getTldrawAppFileRecord(slug, this.env)
-
-		if (!file) {
-			throw Error('not-found')
-		}
-
-		// A user can duplicate other users' files only if they are shared
-		if (file.ownerId !== userId) {
-			if (!file.shared) {
-				throw Error('forbidden')
-			}
-		}
-
-		// Get the current serialized snapshot of the room (by waking up the worker,
-		// if we have to). Why not grab from the database directly? Because the worker
-		// only persists every ~30s while users are actively editing the room. If we
-		// knew whether the room was active or not (either by checking whether the
-		// worker was awake or somehow recording which rooms have active users in them,
-		// or when the room was last edited) we could make a better decision.
-		const serializedSnapshot = await getCurrentSerializedRoomSnapshot(slug, this.env)
-
-		// Create a new slug for the duplicated room
-		const newSlug = uniqueId()
-
-		// Bang the snapshot into the database
-		await this.env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
-
-		// Now create a new file in the app durable object belonging to the user
-		await this.createNewFile(
-			TldrawAppFileRecordType.create({
-				id: TldrawAppFileRecordType.createId(newSlug),
-				ownerId: userId,
-			})
-		)
-
-		return { slug: newSlug }
-	}
-
-	/**
-	 * Publish a file. The file must be owned by the user.
-	 *
-	 * @param slug - The slug of the file to publish
-	 * @param userId - The user ID of the user publishing the file
-	 *
-	 * @returns The published slug
-	 */
-	async publishFile(slug: string, userId: TldrawAppUserId) {
-		const file = await getTldrawAppFileRecord(slug, this.env)
-
-		if (!file) {
-			throw Error('not-found')
-		}
-
-		// A user can only publish their own files
-		if (file.ownerId !== userId) {
-			throw Error('forbidden')
-		}
-
-		// Get the current snapshot of the room (by waking up the worker, if we have to)
-		const serializedSnapshot = await getCurrentSerializedRoomSnapshot(slug, this.env)
-
-		// Create a new slug for the published room
-		await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(file.publishedSlug, slug)
-
-		// Bang the snapshot into the database
-		await this.env.ROOM_SNAPSHOTS.put(
-			getR2KeyForRoom({ slug: `${slug}/${file.publishedSlug}`, isApp: true }),
-			serializedSnapshot
-		)
-
-		// todo: save the snapshot somewhere else? ie to view history of saved snapshots
-	}
-
-	/**
-	 * Unpublish a file. The room must be owned by the user.
-	 *
-	 * @param slug - The slug of the room to unpublish
-	 * @param userId - The user ID of the user unpublishing the room
-	 *
-	 */
-	async unpublishFile(slug: string, userId: TldrawAppUserId) {
-		const file = await getTldrawAppFileRecord(slug, this.env)
-
-		if (!file) {
-			throw Error('not-found')
-		}
-
-		// A user can only publish their own files
-		if (file.ownerId !== userId) {
-			throw Error('forbidden')
-		}
-
-		// Create a new slug for the published room
-		await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
-
-		// Bang the snapshot into the database
-		await this.env.ROOM_SNAPSHOTS.delete(
-			getR2KeyForRoom({ slug: `${slug}/${file.publishedSlug}`, isApp: true })
-		)
-	}
-
-	/**
-	 * Get a published file by its slug.
-	 *
-	 * @param publishedSlug - The slug of the published file
-	 *
-	 * @returns The published file snapshot
-	 */
-	async getPublishedFile(publishedSlug: string) {
-		const slug = await this.env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(publishedSlug)
-		if (!slug) throw Error('not found')
-
-		const file = await getTldrawAppFileRecord(slug, this.env)
-		if (!file) throw Error('not found')
-
-		if (!file.published) throw Error('not published')
-
-		const publishedRoomSnapshot = await this.env.ROOM_SNAPSHOTS.get(
-			getR2KeyForRoom({ slug: `${slug}/${publishedSlug}`, isApp: true })
-		).then((r) => r?.json())
-		if (!publishedRoomSnapshot) throw Error('not found')
-
-		return publishedRoomSnapshot
 	}
 }
