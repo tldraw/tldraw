@@ -5,6 +5,7 @@ import {
 	TldrawAppFile,
 	TldrawAppFileId,
 	TldrawAppFileRecordType,
+	TldrawAppFileState,
 	TldrawAppFileStateRecordType,
 	TldrawAppRecord,
 	TldrawAppUser,
@@ -35,6 +36,7 @@ export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
 export const DUPLICATE_ENDPOINT = `/api/app/duplicate`
+export const FILE_ENDPOINT = `/api/app/file`
 
 export class TldrawApp {
 	private constructor(store: Store<TldrawAppRecord>) {
@@ -389,6 +391,51 @@ export class TldrawApp {
 		return Result.ok('success')
 	}
 
+	/**
+	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
+	 *
+	 * @param fileId - The file id.
+	 * @param token - The user's token.
+	 */
+	async deleteOrForgetFile(fileId: TldrawAppFileId, token: string) {
+		// Stash these so that we can restore them later
+		let fileStates: TldrawAppFileState[]
+		const file = this.get(fileId) as TldrawAppFile
+
+		if (this.isFileOwner(fileId)) {
+			// Optimistic update, remove file and file states
+			const userId = this.getCurrentUserId()
+			fileStates = this.getAll('file-state').filter(
+				(r) => r.fileId === fileId && r.ownerId === userId
+			)
+			this.store.remove([fileId, ...fileStates.map((s) => s.id)])
+		} else {
+			// If not the owner, just remove the file state
+			fileStates = this.getAll('file-state').filter((r) => r.fileId === fileId)
+			this.store.remove(fileStates.map((s) => s.id))
+		}
+
+		const fileSlug = fileId.split(':')[1]
+
+		const res = await fetch(`${FILE_ENDPOINT}/${fileSlug}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+
+		const response = (await res.json()) as UnpublishFileResponseBody
+
+		if (!res.ok || response.error) {
+			// Revert optimistic update
+			this.store.put([file, ...fileStates])
+			return Result.err('could not delete')
+		}
+
+		return Result.ok('success')
+	}
+
 	setFileSharedLinkType(
 		fileId: TldrawAppFileId,
 		sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access'
@@ -414,28 +461,6 @@ export class TldrawApp {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) return false
 		return file.ownerId === this.getCurrentUserId()
-	}
-
-	/**
-	 * Remove a user's file states for a file.
-	 *
-	 * @param fileId - The file id.
-	 */
-	async deleteOrForgetFile(fileId: TldrawAppFileId) {
-		if (this.isFileOwner(fileId)) {
-			this.store.remove([
-				fileId,
-				...this.getAll('file-state')
-					.filter((r) => r.fileId === fileId)
-					.map((r) => r.id),
-			])
-		} else {
-			const ownerId = this.getCurrentUserId()
-			const fileStates = this.getAll('file-state')
-				.filter((r) => r.fileId === fileId && r.ownerId === ownerId)
-				.map((r) => r.id)
-			this.store.remove(fileStates)
-		}
 	}
 
 	updateUserExportPreferences(

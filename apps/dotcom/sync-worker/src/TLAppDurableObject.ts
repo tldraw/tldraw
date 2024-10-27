@@ -6,7 +6,9 @@ import {
 	TldrawAppFile,
 	TldrawAppFileId,
 	TldrawAppFileRecordType,
+	TldrawAppRecord,
 	tldrawAppSchema,
+	TldrawAppUserId,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot, TLSocketRoom } from '@tldraw/sync-core'
 import { exhaustiveSwitchError } from '@tldraw/utils'
@@ -282,6 +284,41 @@ export class TLAppDurableObject extends DurableObject {
 		const room = await this.getRoom()
 		return await room.updateStore((store) => {
 			store.put(file)
+		})
+	}
+
+	/**
+	 * Delete a file and all associated states.
+	 *
+	 * @param file - The file to create or update
+	 */
+	async deleteFileAndStates(file: TldrawAppFile) {
+		const room = await this.getRoom()
+		return await room.updateStore((store) => {
+			store.delete(file)
+			store
+				.getAll()
+				.filter((s: TldrawAppRecord) => s.typeName === 'file-state' && s.fileId === file.id)
+				.forEach((file) => store.delete(file))
+		})
+	}
+
+	/**
+	 * Delete a user's associated file states for a room.
+	 *
+	 * @param file - The file to create or update
+	 * @param userId - The user ID of the user deleting the file
+	 */
+	async forgetFile(file: TldrawAppFile, userId: TldrawAppUserId) {
+		const room = await this.getRoom()
+		return await room.updateStore((store) => {
+			store
+				.getAll()
+				.filter(
+					(s: TldrawAppRecord) =>
+						s.typeName === 'file-state' && s.fileId === file.id && s.ownerId === userId
+				)
+				.forEach((file) => store.delete(file))
 		})
 	}
 

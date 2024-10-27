@@ -19,6 +19,7 @@ import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { createFiles } from './routes/tla/createFiles'
+import { deleteFile } from './routes/tla/deleteFile'
 import { duplicateFile } from './routes/tla/duplicateFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
@@ -75,6 +76,7 @@ const router = createRouter<Environment>()
 	.get('/app/publish/:roomId', getPublishedFile)
 	.post('/app/publish/:roomId', publishFile)
 	.delete('/app/publish/:roomId', unpublishFile)
+	.delete('/app/file/:roomId', deleteFile)
 	// end app
 	.all('*', notFound)
 
