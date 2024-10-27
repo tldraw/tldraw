@@ -66,3 +66,12 @@ export type PublishFileResponseBody =
 			error: true
 			message: string
 	  }
+
+export type UnpublishFileResponseBody =
+	| {
+			error: false
+	  }
+	| {
+			error: true
+			message: string
+	  }

@@ -10,6 +10,7 @@ import {
 	TldrawAppUser,
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
+	UnpublishFileResponseBody,
 	UserPreferencesKeys,
 } from '@tldraw/dotcom-shared'
 import { Result, fetch } from '@tldraw/utils'
@@ -374,7 +375,9 @@ export class TldrawApp {
 			},
 		})
 
-		if (!res.ok) {
+		const response = (await res.json()) as UnpublishFileResponseBody
+
+		if (!res.ok || response.error) {
 			// Revert optimistic update
 			this.store.put([{ ...file, published: true }])
 			return Result.err('could not unpublish')

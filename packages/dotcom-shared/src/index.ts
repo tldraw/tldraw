@@ -19,6 +19,7 @@ export type {
 	GetReadonlySlugResponseBody,
 	PublishFileResponseBody,
 	Snapshot,
+	UnpublishFileResponseBody,
 } from './types'
 
 export * from './tla-schema/TldrawAppFile'
