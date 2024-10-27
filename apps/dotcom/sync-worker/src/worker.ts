@@ -10,19 +10,19 @@ import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
 import { APP_ID } from './TLAppDurableObject'
-import { createPublishedRoom } from './routes/createPublishedRoom'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
-import { deletePublishedRoom } from './routes/deletePublishedRoom'
-import { duplicateRoom } from './routes/duplicateRoom'
+import { duplicateRoom } from './routes/duplicateFile'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
 import { forwardRoomRequest } from './routes/forwardRoomRequest'
-import { getPublishedRoom } from './routes/getPublishedRoom'
+import { getPublishedFile } from './routes/getPublishedFile'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
+import { publishFile } from './routes/publishFile'
+import { unpublishFile } from './routes/unpublishFile'
 import { Environment } from './types'
 import { getAuth } from './utils/tla/getAuth'
 export { TLAppDurableObject } from './TLAppDurableObject'
@@ -47,7 +47,13 @@ const router = createRouter<Environment>()
 	.get(`/${READ_ONLY_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
-	.get('/app/file/:roomId', forwardRoomRequest)
+	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
+	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
+	.get('/readonly-slug/:roomId', getReadonlySlug)
+	.get('/unfurl', extractBookmarkMetadata)
+	.post('/unfurl', extractBookmarkMetadata)
+	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
+	// app
 	.get('/app', async (req, env) => {
 		const auth = await getAuth(req, env)
 		if (!auth?.userId) return notFound()
@@ -62,16 +68,12 @@ const router = createRouter<Environment>()
 
 		return notFound()
 	})
-	.get('/app/publish/:roomId', getPublishedRoom)
-	.post('/app/publish/:roomId', createPublishedRoom)
-	.delete('/app/publish/:roomId', deletePublishedRoom)
+	.get('/app/file/:roomId', forwardRoomRequest)
 	.post('/app/duplicate/:roomId', duplicateRoom)
-	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
-	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
-	.get('/readonly-slug/:roomId', getReadonlySlug)
-	.get('/unfurl', extractBookmarkMetadata)
-	.post('/unfurl', extractBookmarkMetadata)
-	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
+	.get('/app/publish/:roomId', getPublishedFile)
+	.post('/app/publish/:roomId', publishFile)
+	.delete('/app/publish/:roomId', unpublishFile)
+	// end app
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {

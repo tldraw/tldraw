@@ -1,10 +1,8 @@
 import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFile } from '@tldraw/dotcom-shared'
-import { fetch } from '@tldraw/utils'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor, useToasts } from 'tldraw'
-import { PUBLISH_ENDPOINT } from '../../../app/TldrawApp'
 import { useApp } from '../../../hooks/useAppState'
 import { useRaw } from '../../../hooks/useRaw'
 import { copyTextToClipboard } from '../../../utils/copy'
@@ -34,69 +32,96 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
 
 	const publish = useCallback(
-		async (updating: boolean) => {
+		async (isPublishingChanges: boolean) => {
 			if (!editor) throw Error('no editor')
 			if (!fileSlug) throw Error('no file slug')
-			if (!publishedSlug) throw Error('no published slug')
 			if (!isOwner) throw Error('not owner')
 			const token = await auth.getToken()
 			if (!token) throw Error('no token')
 
-			setUploadState('uploading')
-			if (!published) {
-				app.setFilePublished(file.id, true)
-			} else {
-				app.updateFileLastPublished(file.id)
-			}
+			const fileBefore = app.store.get(file.id)!
+
+			// optimistic update, we will revert if the request fails
+			if (!published) app.setFilePublished(file.id, true)
+			app.updateFileLastPublished(file.id)
+
 			const startTime = Date.now()
-			const result = await app.createSnapshotLink(editor, fileSlug, publishedSlug, token)
+
+			if (isPublishingChanges) {
+				setUploadState('uploading')
+			}
+
+			const result = await app.publishFile(editor, fileSlug, token)
+
 			if (result.ok) {
-				// no toasts please
 				const elapsed = Date.now() - startTime
+				// uploading should always take at least 1 second
 				if (elapsed < 1000) {
-					await new Promise((r) => setTimeout(r, elapsed))
+					await new Promise((r) => setTimeout(r, 1000 - elapsed))
 				}
-				setUploadState('success')
-				editor.timers.setTimeout(() => {
-					setUploadState('idle')
-				}, 2000)
+
+				// Show the check and then hide it again after 2s
+				if (isPublishingChanges) {
+					setUploadState('success')
+					editor.timers.setTimeout(() => {
+						setUploadState('idle')
+					}, 2000)
+				}
 			} else {
-				setUploadState('idle')
-				// We should only revert when creating a file, update failure should not revert the published status
-				if (!updating) {
-					app.setFilePublished(file.id, false)
+				if (isPublishingChanges) {
+					setUploadState('idle')
 				}
+
 				addToast({
-					title: updating ? 'Could not update' : 'Could not publish',
+					title: isPublishingChanges ? 'Could not publish changes' : 'Could not publish file',
 					severity: 'error',
 				})
+
+				// Get the fresh file from the store
+				const currentFile = app.store.get(file.id)!
+				if (!currentFile) return // oh it's gone
+
+				// revert optimistic updates by putting back properties from the file before the optimistic updates
+				const { published, lastPublished } = fileBefore
+				app.store.put([
+					{
+						...currentFile,
+						published,
+						lastPublished,
+					},
+				])
 			}
 		},
-		[editor, fileSlug, published, publishedSlug, isOwner, auth, app, addToast, file.id]
+		[editor, fileSlug, published, isOwner, auth, app, addToast, file.id]
 	)
 
 	const unpublish = useCallback(async () => {
 		if (!isOwner) throw Error('not owner')
-		if (!publishedSlug) throw Error('no published slug')
+		if (!published) throw Error('not published')
+		if (!fileSlug) throw Error('no file slug')
+
 		const token = await auth.getToken()
 		if (!token) throw Error('no token')
 
+		// optimistic update
 		app.setFilePublished(file.id, false)
-		const result = await fetch(`${PUBLISH_ENDPOINT}/${publishedSlug}`, {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-			},
-		})
-		if (!result.ok) {
+
+		// request to unpublish on the server
+		const result = await app.unpublishFile(fileSlug, token)
+
+		if (result.ok) {
+			// noop, all good
+		} else {
+			// revert optimistic update
 			app.setFilePublished(file.id, true)
+
+			// show error toast
 			addToast({
 				title: 'Could not delete',
 				severity: 'error',
 			})
 		}
-	}, [addToast, app, auth, file.id, isOwner, publishedSlug])
+	}, [addToast, app, auth, file.id, isOwner, published, fileSlug])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 

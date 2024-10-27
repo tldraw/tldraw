@@ -1,5 +1,4 @@
 import {
-	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
 	DuplicateRoomRequestBody,
 	DuplicateRoomResponseBody,
@@ -30,10 +29,10 @@ import {
 	transact,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { getSnapshotData } from '../../utils/sharing'
 import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
 
 export const PUBLISH_ENDPOINT = `/api/app/publish`
+export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
 export const DUPLICATE_ENDPOINT = `/api/app/duplicate`
 
 export class TldrawApp {
@@ -221,6 +220,40 @@ export class TldrawApp {
 		})
 	}
 
+	async publishFile(editor: Editor, slug: string, token: string) {
+		const endpoint = `${PUBLISH_ENDPOINT}/${slug}`
+
+		const res = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+		const response = (await res.json()) as CreateSnapshotResponseBody
+
+		if (!res.ok || response.error) {
+			return Result.err('could not create snapshot')
+		}
+		return Result.ok('success')
+	}
+
+	async unpublishFile(fileSlug: string, token: string) {
+		const res = await fetch(`${PUBLISH_ENDPOINT}/${fileSlug}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+
+		if (!res.ok) {
+			return Result.err('could not unpublish')
+		}
+
+		return Result.ok('success')
+	}
+
 	setFilePublished(fileId: TldrawAppFileId, value: boolean) {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
@@ -323,34 +356,6 @@ export class TldrawApp {
 		// todo: upload the files to the server and create files locally
 		console.warn('tldraw file uploads are not implemented yet, but you are in the right place')
 		return new Promise((r) => setTimeout(r, 2000))
-	}
-
-	async createSnapshotLink(editor: Editor, parentSlug: string, fileSlug: string, token: string) {
-		const data = await getSnapshotData(editor)
-
-		if (!data) return Result.err('could not get snapshot data')
-
-		const endpoint = `${PUBLISH_ENDPOINT}/${fileSlug}`
-
-		const res = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-			},
-			body: JSON.stringify({
-				snapshot: data,
-				schema: editor.store.schema.serialize(),
-				parent_slug: parentSlug,
-			} satisfies CreateSnapshotRequestBody),
-		})
-		const response = (await res.json()) as CreateSnapshotResponseBody
-
-		if (!res.ok || response.error) {
-			console.error(await res.text())
-			return Result.err('could not create snapshot')
-		}
-		return Result.ok('success')
 	}
 
 	updateUserExportPreferences(
