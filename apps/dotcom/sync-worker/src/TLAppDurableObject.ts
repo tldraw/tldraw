@@ -283,7 +283,6 @@ export class TLAppDurableObject extends DurableObject {
 	}
 
 	async createNewFile(file: TldrawAppFile) {
-		throw Error()
 		const room = await this.getRoom()
 		await room.updateStore((store) => {
 			store.put(file)
