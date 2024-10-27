@@ -17,7 +17,7 @@ import { IRequest, Router } from 'itty-router'
 import { getR2KeyForRoom } from './r2'
 import { Environment } from './types'
 import { throttle } from './utils/throttle'
-import { getCurrentSerializedRoomSnapshot } from './utils/tla/getRoomCurrentSnapshot'
+import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
 import { getTldrawAppFileRecord } from './utils/tla/getTldrawAppFileRecord'
 
 const PERSIST_INTERVAL = 1000
