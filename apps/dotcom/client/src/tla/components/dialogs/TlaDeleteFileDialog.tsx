@@ -13,6 +13,7 @@ import {
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 
 export function TlaDeleteFileDialog({
 	fileId,
@@ -25,6 +26,7 @@ export function TlaDeleteFileDialog({
 	const raw = useRaw()
 	const location = useLocation()
 	const navigate = useNavigate()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const isOwner = useIsFileOwner(fileId)
 
@@ -33,8 +35,9 @@ export function TlaDeleteFileDialog({
 		if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
 			navigate('/q')
 		}
+		trackEvent('delete-file', { source: 'file-menu' })
 		onClose()
-	}, [app, fileId, location.pathname, navigate, onClose])
+	}, [app, fileId, location.pathname, navigate, onClose, trackEvent])
 
 	return (
 		<>
