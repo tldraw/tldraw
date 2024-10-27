@@ -294,6 +294,7 @@
 .renameWrapper {
 	outline: 1px solid var(--color-primary);
 	outline-offset: -2px;
+	border-radius: 6px;
 }
 
 .renameWrapper > div {
