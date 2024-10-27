@@ -50,10 +50,15 @@ export async function duplicateFile(request: IRequest, env: Environment): Promis
 
 		// Now create a new file in the app durable object belonging to the user
 		const app = getTldrawAppDurableObject(env)
+
+		// We're going to bake the name, even if it's blank
+		const fileName = file.name.trim() || new Date(file.createdAt).toLocaleString('en-gb')
+
 		await app.createNewFile(
 			TldrawAppFileRecordType.create({
 				id: TldrawAppFileRecordType.createId(newSlug),
 				ownerId: userId,
+				name: fileName + ' Copy',
 			})
 		)
 

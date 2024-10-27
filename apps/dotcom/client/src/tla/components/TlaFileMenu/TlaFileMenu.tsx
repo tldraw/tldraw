@@ -56,7 +56,12 @@ export function TlaFileMenu({
 		const res = await app.duplicateFile(fileId.split(':')[1], token)
 
 		if (res.ok) {
-			navigate(getFilePath(res.value.slug))
+			// If the user just duplicated their current file, navigate to the new file
+			if (location.pathname.endsWith(fileId)) {
+				navigate(getFilePath(res.value.slug))
+			} else {
+				// ...otherwise, stay where they are
+			}
 		} else {
 			// do something to indicate failure
 			console.error('Failed to duplicate file')
