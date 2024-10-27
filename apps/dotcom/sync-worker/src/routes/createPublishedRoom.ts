@@ -3,7 +3,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
-import { fileOwnerStatusErrorResponse, getFileOwnerStatus } from '../utils/permissions'
+import { fileOwnerStatusErrorResponse, getFileOwnerStatus } from '../utils/tla/permissions'
 import { validateSnapshot } from '../utils/validateSnapshot'
 
 export interface R2Snapshot {

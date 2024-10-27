@@ -1,9 +1,9 @@
-import { TldrawAppFile } from '@tldraw/dotcom-shared'
+import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { Result } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
-import { APP_ID } from '../TLAppDurableObject'
-import { Environment } from '../types'
+import { Environment } from '../../types'
 import { getAuth } from './getAuth'
+import { getTldrawAppFileRecord } from './getTldrawAppFileRecord'
 
 export type FileOwnerStatusError = 'unauthorized' | 'not-found' | 'forbidden'
 
@@ -18,21 +18,19 @@ export function fileOwnerStatusErrorResponse(error: FileOwnerStatusError) {
 	}
 }
 
-export async function getFileOwnerStatus(request: IRequest, env: Environment, slug: string) {
+export async function getUserIdFromRequest(request: IRequest, env: Environment) {
 	const auth = await getAuth(request, env)
-	if (!auth?.userId) return Result.err<FileOwnerStatusError>('unauthorized')
-	const file = await getFile(env, slug)
+	if (!auth) return null
+	return TldrawAppUserRecordType.createId(auth.userId)
+}
+
+export async function getFileOwnerStatus(request: IRequest, env: Environment, slug: string) {
+	const file = await getTldrawAppFileRecord(slug, env)
 	if (!file) return Result.err<FileOwnerStatusError>('not-found')
-	if (file.ownerId === `user:${auth.userId}`) {
+	const userId = await getUserIdFromRequest(request, env)
+	if (!userId) return Result.err<FileOwnerStatusError>('unauthorized')
+	if (file.ownerId === userId) {
 		return Result.ok(true)
 	}
 	return Result.err<FileOwnerStatusError>('forbidden')
-}
-
-export async function getFile(env: Environment, slug: string): Promise<TldrawAppFile | null> {
-	const d1Result = await env.DB.prepare('select * from records where topicId = ?1 and id = ?2')
-		.bind(APP_ID, `file:${slug}`)
-		.first()
-	if (!d1Result) return null
-	return JSON.parse((d1Result as any).record)
 }

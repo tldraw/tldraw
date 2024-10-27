@@ -77,6 +77,11 @@ export class TLAppDurableObject extends DurableObject {
 		return this._room
 	}
 
+	async getCurrentSerializedSnapshot() {
+		const room = await this.getRoom()
+		return room.getCurrentSerializedSnapshot()
+	}
+
 	// For storage
 	storage: DurableObjectStorage
 
@@ -275,5 +280,14 @@ export class TLAppDurableObject extends DurableObject {
 		const file = room.getRecord(fileId) as TldrawAppFile | undefined
 		if (!file?.shared) return 'private'
 		return file.sharedLinkType
+	}
+
+	async createNewFile(file: TldrawAppFile) {
+		throw Error()
+		const room = await this.getRoom()
+		await room.updateStore((store) => {
+			store.put(file)
+		})
+		return
 	}
 }

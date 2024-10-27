@@ -24,7 +24,7 @@ import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { Environment } from './types'
-import { getAuth } from './utils/getAuth'
+import { getAuth } from './utils/tla/getAuth'
 export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 

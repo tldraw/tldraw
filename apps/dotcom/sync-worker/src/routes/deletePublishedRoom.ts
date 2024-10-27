@@ -1,7 +1,7 @@
 import { IRequest } from 'itty-router'
 import { getR2KeyForSnapshot } from '../r2'
 import { Environment } from '../types'
-import { fileOwnerStatusErrorResponse, getFileOwnerStatus } from '../utils/permissions'
+import { fileOwnerStatusErrorResponse, getFileOwnerStatus } from '../utils/tla/permissions'
 
 export async function deletePublishedRoom(request: IRequest, env: Environment): Promise<Response> {
 	const roomId = request.params.roomId
