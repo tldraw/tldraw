@@ -21,7 +21,7 @@ export class HomePage {
 		if (isSideBarToggleVisible) return
 		await this.goto()
 		await expect(this.signInButton).toBeVisible()
-		await this.page.click('text=Sign in')
+		await this.page.click('text=Sign up')
 		await this.page.getByLabel('Email address').fill('huppy+clerk_test@tldraw.com')
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)

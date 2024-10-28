@@ -9,6 +9,7 @@ export const TlaButton = forwardRef<
 		isLoading?: boolean
 		icon?: string
 		iconRight?: string
+		ghost?: boolean
 		variant?: 'primary' | 'secondary' | 'warning'
 	}
 >(function TlaButton(
@@ -17,6 +18,7 @@ export const TlaButton = forwardRef<
 		className = '',
 		icon = '',
 		iconRight = '',
+		ghost = false,
 		variant = 'primary',
 		isLoading = false,
 		onClick,
@@ -36,6 +38,7 @@ export const TlaButton = forwardRef<
 				{
 					[styles.primary]: variant === 'primary',
 					[styles.secondary]: variant === 'secondary',
+					[styles.ghost]: ghost,
 				},
 				className
 			)}
