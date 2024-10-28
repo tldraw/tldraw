@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import React, { PropsWithChildren, useCallback, useContext, useEffect } from 'react'
-import { Spinner, sleep } from 'tldraw'
+import { Spinner } from 'tldraw'
 import styles from './useIsReady.module.css'
 
 /*
@@ -24,7 +24,6 @@ export function ReadyWrapper({ children }: PropsWithChildren) {
 	const [isReady, _setIsReady] = React.useState(false)
 	const [showSpinner, setShowSpinner] = React.useState(false)
 	const setIsReady = useCallback(async () => {
-		await sleep(2000)
 		_setIsReady(true)
 	}, [])
 	useEffect(() => {
