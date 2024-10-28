@@ -3,7 +3,7 @@ import { Result } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { getAuth } from './getAuth'
-import { getTldrawAppFileRecord } from './getTldrawAppFileRecord'
+import { getTldrawAppDurableObject } from './getTldrawAppDurableObject'
 
 export type FileOwnerStatusError = 'unauthorized' | 'not-found' | 'forbidden'
 
@@ -25,7 +25,8 @@ export async function getUserIdFromRequest(request: IRequest, env: Environment) 
 }
 
 export async function getFileOwnerStatus(request: IRequest, env: Environment, slug: string) {
-	const file = await getTldrawAppFileRecord(slug, env)
+	const app = getTldrawAppDurableObject(env)
+	const file = await app.getFileBySlug(slug)
 	if (!file) return Result.err<FileOwnerStatusError>('not-found')
 	const userId = await getUserIdFromRequest(request, env)
 	if (!userId) return Result.err<FileOwnerStatusError>('unauthorized')

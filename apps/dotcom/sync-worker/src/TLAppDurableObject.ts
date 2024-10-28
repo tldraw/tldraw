@@ -326,10 +326,33 @@ export class TLAppDurableObject extends DurableObject {
 	 * Get the current serialized snapshot of the room.
 	 *
 	 * @returns The current serialized snapshot of the room
+	 * @internal
 	 */
 	async getCurrentSerializedSnapshot() {
 		const room = await this.getRoom()
 		return room.getCurrentSerializedSnapshot()
+	}
+
+	/**
+	 * Get a file by its id.
+	 *
+	 * @param fileId - The id of the file to get.
+	 * @returns The file with the given ID, or undefined if it doesn't exist
+	 */
+	async getFile(fileId: TldrawAppFileId) {
+		const room = await this.getRoom()
+		const file = room.getRecord(fileId)
+		return file as TldrawAppFile | undefined
+	}
+
+	/**
+	 * Get a file by its slug.
+	 *
+	 * @param slug - The slug of the file to get.
+	 * @returns The file with the given slug, or undefined if it doesn't exist
+	 */
+	async getFileBySlug(slug: string) {
+		return this.getFile(TldrawAppFileRecordType.createId(slug))
 	}
 
 	/**
@@ -338,8 +361,7 @@ export class TLAppDurableObject extends DurableObject {
 	 * @param fileId - The file ID to check
 	 */
 	async getFileShareType(fileId: TldrawAppFileId): Promise<'private' | 'view' | 'edit'> {
-		const room = await this.getRoom()
-		const file = room.getRecord(fileId) as TldrawAppFile | undefined
+		const file = await this.getFile(fileId)
 		if (!file?.shared) return 'private'
 		return file.sharedLinkType
 	}

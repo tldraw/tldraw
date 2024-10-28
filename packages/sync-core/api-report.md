@@ -328,6 +328,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
+    // @internal
     getCurrentSerializedSnapshot(): string;
     getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;

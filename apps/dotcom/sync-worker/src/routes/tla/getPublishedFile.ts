@@ -2,7 +2,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
-import { getTldrawAppFileRecord } from '../../utils/tla/getTldrawAppFileRecord'
+import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 
 // Get a published file from a file's publishedSlug, if there is one.
 export async function getPublishedFile(request: IRequest, env: Environment): Promise<Response> {
@@ -12,10 +12,12 @@ export async function getPublishedFile(request: IRequest, env: Environment): Pro
 	}
 
 	try {
+		const app = getTldrawAppDurableObject(env)
+
 		const slug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
 		if (!slug) throw Error('not found')
 
-		const file = await getTldrawAppFileRecord(slug, env)
+		const file = await app.getFileBySlug(roomId)
 		if (!file) throw Error('not found')
 
 		if (!file.published) throw Error('not published')

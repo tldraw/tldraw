@@ -5,7 +5,6 @@ import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 import { getCurrentSerializedRoomSnapshot } from '../../utils/tla/getCurrentSerializedRoomSnapshot'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
-import { getTldrawAppFileRecord } from '../../utils/tla/getTldrawAppFileRecord'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
 // Duplicates a file based on the freshest data available on the server.
@@ -21,7 +20,9 @@ export async function duplicateFile(request: IRequest, env: Environment): Promis
 	}
 
 	try {
-		const file = await getTldrawAppFileRecord(roomId, env)
+		const app = getTldrawAppDurableObject(env)
+
+		const file = await app.getFileBySlug(roomId)
 
 		if (!file) {
 			throw Error('not-found')
@@ -47,9 +48,6 @@ export async function duplicateFile(request: IRequest, env: Environment): Promis
 
 		// Bang the snapshot into the database
 		await env.ROOMS.put(getR2KeyForRoom({ slug: newSlug, isApp: true }), serializedSnapshot)
-
-		// Now create a new file in the app durable object belonging to the user
-		const app = getTldrawAppDurableObject(env)
 
 		// We're going to bake the name, even if it's blank
 		const fileName = file.name.trim() || new Date(file.createdAt).toLocaleString('en-gb')

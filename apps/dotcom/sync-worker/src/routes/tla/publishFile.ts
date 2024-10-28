@@ -2,7 +2,7 @@ import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 import { getCurrentSerializedRoomSnapshot } from '../../utils/tla/getCurrentSerializedRoomSnapshot'
-import { getTldrawAppFileRecord } from '../../utils/tla/getTldrawAppFileRecord'
+import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
 // Publish a file or replace the published file.
@@ -18,7 +18,9 @@ export async function publishFile(request: IRequest, env: Environment): Promise<
 	}
 
 	try {
-		const file = await getTldrawAppFileRecord(roomId, env)
+		const app = getTldrawAppDurableObject(env)
+
+		const file = await app.getFileBySlug(roomId)
 
 		if (!file) {
 			throw Error('not-found')

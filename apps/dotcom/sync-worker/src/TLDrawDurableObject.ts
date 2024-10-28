@@ -604,6 +604,9 @@ export class TLDrawDurableObject extends DurableObject {
 		})
 	}
 
+	/**
+	 * @internal
+	 */
 	async getCurrentSerializedSnapshot() {
 		const room = await this.getRoom()
 		return room.getCurrentSerializedSnapshot()

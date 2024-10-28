@@ -1,7 +1,7 @@
 import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
-import { getTldrawAppFileRecord } from '../../utils/tla/getTldrawAppFileRecord'
+import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
 // Unpublish a file.
@@ -17,7 +17,9 @@ export async function unpublishFile(request: IRequest, env: Environment): Promis
 	}
 
 	try {
-		const file = await getTldrawAppFileRecord(roomId, env)
+		const app = getTldrawAppDurableObject(env)
+
+		const file = await app.getFileBySlug(roomId)
 
 		if (!file) {
 			throw Error('not-found')

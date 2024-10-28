@@ -2,7 +2,6 @@ import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
-import { getTldrawAppFileRecord } from '../../utils/tla/getTldrawAppFileRecord'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
 // Create new files based on snapshots. This is used when dropping .tldr files onto the app.
@@ -18,13 +17,13 @@ export async function deleteFile(request: IRequest, env: Environment): Promise<R
 	}
 
 	try {
-		const file = await getTldrawAppFileRecord(roomId, env)
+		const app = getTldrawAppDurableObject(env)
+
+		const file = await app.getFileBySlug(roomId)
 
 		if (!file) {
 			throw Error('not-found')
 		}
-
-		const app = getTldrawAppDurableObject(env)
 
 		// A user can only delete files that they own
 		if (file.ownerId !== userId) {
