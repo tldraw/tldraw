@@ -60,7 +60,7 @@ export default function Develop() {
 				overrides={[performanceOverrides, debuggingOverrides]}
 				persistenceKey="example"
 				onMount={(editor) => {
-					console.log('editor mounted 2')
+					console.log('editor mounted 3')
 					;(window as any).app = editor
 					;(window as any).editor = editor
 					const dispose = editor.store.sideEffects.registerAfterChangeHandler(
