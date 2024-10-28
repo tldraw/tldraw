@@ -74,7 +74,7 @@
 }
 
 .spinner {
-	animation: tla-spin 1.5s linear infinite;
+	animation: tla-spin 1.2s linear infinite;
 }
 
 @keyframes tla-spin {
@@ -83,5 +83,38 @@
 	}
 	100% {
 		transform: rotate(360deg);
+	}
+}
+
+/* Ghost */
+
+.ghost {
+	position: relative;
+}
+
+.primary.ghost {
+	color: var(--tla-color-primary);
+	background-color: transparent;
+}
+
+.secondary.ghost {
+	color: var(--tla-color-secondary);
+	background-color: transparent;
+	border: none;
+}
+
+.warning.ghost {
+	color: var(--tla-color-warning);
+	background-color: transparent;
+}
+
+@media (hover: hover) {
+	.ghost:hover::after {
+		display: block;
+		content: '';
+		position: absolute;
+		inset: 0px 4px;
+		border-radius: 6px;
+		background-color: var(--color-muted-2);
 	}
 }
