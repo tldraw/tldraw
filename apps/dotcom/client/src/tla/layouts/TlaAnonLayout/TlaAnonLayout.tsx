@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { TlaButton } from '../../components/TlaButton/TlaButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import { useRaw } from '../../hooks/useRaw'
+import { getRootPath } from '../../utils/urls'
 import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
@@ -18,12 +19,20 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				</Link>
 				<div className={styles.signInButtons}>
 					<SignedOut>
-						<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
+						<SignInButton
+							mode="modal"
+							forceRedirectUrl={getRootPath()}
+							signUpForceRedirectUrl={getRootPath()}
+						>
 							<TlaButton data-testid="tla-signin-button" variant="primary" ghost>
 								{raw('Log in')}
 							</TlaButton>
 						</SignInButton>
-						<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
+						<SignInButton
+							mode="modal"
+							forceRedirectUrl={getRootPath()}
+							signUpForceRedirectUrl={getRootPath()}
+						>
 							<TlaButton data-testid="tla-signup-button">{raw('Sign up')}</TlaButton>
 						</SignInButton>
 					</SignedOut>

@@ -14,6 +14,7 @@ import {
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
+import { getRootPath } from '../../utils/urls'
 
 export function TlaDeleteFileDialog({
 	fileId,
@@ -36,7 +37,7 @@ export function TlaDeleteFileDialog({
 		const result = await app.deleteOrForgetFile(fileId, token)
 		if (result.ok) {
 			if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
-				navigate('/q')
+				navigate(getRootPath())
 			}
 			onClose()
 		} else {
