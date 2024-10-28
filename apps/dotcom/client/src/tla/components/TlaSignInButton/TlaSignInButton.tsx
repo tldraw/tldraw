@@ -10,11 +10,12 @@ export function TlaSignInButton({ children, ...props }: ComponentProps<typeof Tl
 	return (
 		<SignInButton
 			mode="modal"
-			data-testid="tla-signin-button"
 			forceRedirectUrl={location.pathname + location.search}
 			signUpForceRedirectUrl={location.pathname + location.search}
 		>
-			<TlaButton {...props}>{children ?? raw('Sign in')}</TlaButton>
+			<TlaButton data-testid="tla-signin-button" {...props}>
+				{children ?? raw('Sign in')}
+			</TlaButton>
 		</SignInButton>
 	)
 }
