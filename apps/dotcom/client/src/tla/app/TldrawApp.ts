@@ -404,14 +404,14 @@ export class TldrawApp {
 
 		if (this.isFileOwner(fileId)) {
 			// Optimistic update, remove file and file states
-			const userId = this.getCurrentUserId()
-			fileStates = this.getAll('file-state').filter(
-				(r) => r.fileId === fileId
-			)
+			fileStates = this.getAll('file-state').filter((r) => r.fileId === fileId)
 			this.store.remove([fileId, ...fileStates.map((s) => s.id)])
 		} else {
+			const userId = this.getCurrentUserId()
 			// If not the owner, just remove the file state
-			fileStates = this.getAll('file-state').filter((r) => r.fileId === fileId && r.ownerId === userId)
+			fileStates = this.getAll('file-state').filter(
+				(r) => r.fileId === fileId && r.ownerId === userId
+			)
 			this.store.remove(fileStates.map((s) => s.id))
 		}
 
