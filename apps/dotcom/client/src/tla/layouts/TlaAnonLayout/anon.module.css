@@ -18,6 +18,10 @@
 	flex-grow: 1;
 }
 
+.signInButtons {
+	display: flex;
+}
+
 .editorWrapper {
 	position: relative;
 	flex-grow: 2;
@@ -30,7 +34,6 @@
 }
 
 .footer {
-	height: 64px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -58,4 +61,42 @@
 	z-index: 3;
 	padding-right: 0px;
 	cursor: pointer;
+}
+
+.footerDesktop {
+	height: 64px;
+	display: flex;
+}
+
+.footerMobile {
+	height: 40px;
+	display: none;
+}
+
+@media (max-width: 768px) {
+	.header {
+		height: 48px;
+		padding-right: 8px;
+	}
+
+	.layout {
+		padding: 0px;
+	}
+
+	.editorWrapper {
+		border-top-left-radius: 0px;
+		border-top-right-radius: 0px;
+		border-bottom-left-radius: 0px;
+		border-bottom-right-radius: 0px;
+		border-left: none;
+		border-right: none;
+	}
+
+	.footerDesktop {
+		display: none;
+	}
+
+	.footerMobile {
+		display: none;
+	}
 }

@@ -19,7 +19,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	const logoAriaLabel = intl.formatMessage(messages.logo)
 
 	return (
-		<div className={classNames('tla tla-theme__light tl-theme-light tl-container', styles.layout)}>
+		<div className={classNames('tla tla-theme__light tl-theme__light tl-container', styles.layout)}>
 			<div className={styles.header}>
 				<Link to="/">
 					<img
@@ -34,21 +34,36 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 					</button>
 				</TlaAccountMenu>
 				<div className={styles.spacer} />
-				<SignedOut>
-					<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
-						<TlaButton data-testid="tla-signin-button">
-							<F defaultMessage="Sign in" />
-						</TlaButton>
-					</SignInButton>
-				</SignedOut>
+				<div className={styles.signInButtons}>
+					<SignedOut>
+						<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
+							<TlaButton data-testid="tla-signin-button" variant="primary" ghost>
+								<F defaultMessage="Sign in" />
+							</TlaButton>
+						</SignInButton>
+						<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
+							<TlaButton data-testid="tla-signup-button">
+								<F defaultMessage="Sign up" />
+							</TlaButton>
+						</SignInButton>
+					</SignedOut>
+				</div>
 			</div>
 			<div className={styles.editorWrapper}>{children}</div>
-			<div className={classNames(styles.footer, 'tla-text_ui__regular')}>
+			<div className={classNames(styles.footer, styles.footerDesktop, 'tla-text_ui__regular')}>
 				<p>
 					<F
 						defaultMessage="<b>tldraw</b> is a free online whiteboard for you and your friends."
 						values={{ b: (chunks) => <b>{chunks}</b> }}
 					/>{' '}
+					{/* Todo, make the rest of this layout the landing page, learn more should scroll down? */}
+					<Link to="/">
+						<F defaultMessage="Learn more." />
+					</Link>
+				</p>
+			</div>
+			<div className={classNames(styles.footer, styles.footerMobile, 'tla-text_ui__regular')}>
+				<p>
 					{/* Todo, make the rest of this layout the landing page, learn more should scroll down? */}
 					<Link to="/">
 						<F defaultMessage="Learn more." />
