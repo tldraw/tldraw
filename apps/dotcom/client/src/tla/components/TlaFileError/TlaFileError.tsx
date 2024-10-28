@@ -36,17 +36,14 @@ export function TlaFileError({ error }: { error: unknown }) {
 			return (
 				<TlaFileErrorContent
 					header="Private file"
-					para1="Contact the file owner to request access."
+					para1="Contact the owner to request access."
 					cta={<TlaSignInButton />}
 				/>
 			)
 		}
 		case TLSyncErrorCloseEventReason.FORBIDDEN: {
 			return (
-				<TlaFileErrorContent
-					header="Private file"
-					para1={`Contact the file owner to request access.`}
-				/>
+				<TlaFileErrorContent header="Private file" para1={`Contact the owner to request access.`} />
 			)
 		}
 		default:
