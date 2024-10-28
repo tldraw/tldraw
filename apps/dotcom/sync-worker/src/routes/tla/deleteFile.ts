@@ -26,7 +26,7 @@ export async function deleteFile(request: IRequest, env: Environment): Promise<R
 
 		const app = getTldrawAppDurableObject(env)
 
-		// A user can only duplicate files that they own
+		// A user can only delete files that they own
 		if (file.ownerId !== userId) {
 			app.forgetFile(file, userId)
 		} else {
