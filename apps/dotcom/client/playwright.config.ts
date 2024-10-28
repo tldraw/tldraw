@@ -82,7 +82,6 @@ export default defineConfig({
 	webServer: {
 		command: 'yarn dev-app',
 		url: 'http://localhost:3000',
-		stdout: 'pipe',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
 	},
