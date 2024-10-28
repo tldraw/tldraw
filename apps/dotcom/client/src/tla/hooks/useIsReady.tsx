@@ -1,5 +1,7 @@
+import classNames from 'classnames'
 import React, { PropsWithChildren, useCallback, useContext, useEffect } from 'react'
-import { Spinner } from 'tldraw'
+import { Spinner, sleep } from 'tldraw'
+import styles from './useIsReady.module.css'
 
 /*
  * This file implements an optional 'shroud' for initial page loads to fade
@@ -22,6 +24,7 @@ export function ReadyWrapper({ children }: PropsWithChildren) {
 	const [isReady, _setIsReady] = React.useState(false)
 	const [showSpinner, setShowSpinner] = React.useState(false)
 	const setIsReady = useCallback(async () => {
+		await sleep(2000)
 		_setIsReady(true)
 	}, [])
 	useEffect(() => {
@@ -36,40 +39,15 @@ export function ReadyWrapper({ children }: PropsWithChildren) {
 		// already wrapped at a higher level
 		return children
 	}
+
 	return (
 		<ReadyContext.Provider value={{ isReady, setIsReady, isRoot: false }}>
-			<div
-				style={{
-					flex: 1,
-					display: 'flex',
-					position: 'relative',
-					width: '100%',
-					height: '100%',
-					pointerEvents: isReady ? 'all' : 'none',
-				}}
-			>
-				<div
-					style={{
-						flexGrow: 1,
-						height: '100%',
-						opacity: isReady ? 1 : 0,
-						transition: 'opacity 0.12s ease-in',
-					}}
-				>
+			<div className={classNames(styles.container, isReady && styles.isReady)}>
+				<div className={classNames(styles.innerContainer, isReady && styles.isReady)}>
 					{children}
 				</div>
 				{!isReady && (
-					<div
-						style={{
-							opacity: showSpinner ? 1 : 0,
-							transition: 'opacity 1s ease-in',
-							position: 'absolute',
-							inset: 0,
-							display: 'flex',
-							justifyContent: 'center',
-							alignItems: 'center',
-						}}
-					>
+					<div className={classNames(styles.spinner, showSpinner && styles.showSpinner)}>
 						<Spinner />
 					</div>
 				)}
