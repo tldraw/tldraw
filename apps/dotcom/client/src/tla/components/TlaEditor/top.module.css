@@ -99,6 +99,12 @@ button.nameWidthSetter {
 	color: var(--color-text-1);
 }
 
+.inputWrapper input:focus-visible {
+	outline: 1px solid var(--color-primary);
+	border-radius: 10px;
+	outline-offset: -5px;
+}
+
 .inputWrapperEditable::after {
 	display: block;
 	content: '';
@@ -113,7 +119,7 @@ button.nameWidthSetter {
 }
 
 @media (hover: hover) {
-	.inputWrapperEditable:hover::after {
+	.inputWrapperEditable:hover:not(:focus-within)::after {
 		background-color: var(--color-muted-2);
 	}
 }
