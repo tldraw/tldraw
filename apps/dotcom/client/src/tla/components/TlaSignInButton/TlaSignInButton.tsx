@@ -10,6 +10,7 @@ export function TlaSignInButton({ children, ...props }: ComponentProps<typeof Tl
 	return (
 		<SignInButton
 			mode="modal"
+			data-testid="tla-signin-button"
 			forceRedirectUrl={location.pathname + location.search}
 			signUpForceRedirectUrl={location.pathname + location.search}
 		>
