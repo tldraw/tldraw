@@ -819,10 +819,7 @@ input,
 	text-transform: none;
 	white-space: pre-wrap;
 	line-break: normal;
-	/* XXX: This resolves an issue where Chrome doesn't accurately render the text bounds
-	 * correctly. See https://github.com/tldraw/tldraw/issues/4804
-	 */
-	word-spacing: 0.0001px;
+	word-spacing: 0px;
 	word-wrap: break-word;
 	writing-mode: horizontal-tb !important;
 }
@@ -850,8 +847,6 @@ input,
 .tl-text-content {
 	position: absolute;
 	inset: 0px;
-	height: 100%;
-	width: 100%;
 	min-width: 1px;
 	min-height: 1px;
 	overflow: visible;
@@ -1140,9 +1135,13 @@ input,
 .tl-text-label__inner > .tl-text-input {
 	position: absolute;
 	inset: 0px;
-	height: 100%;
-	width: 100%;
 	padding: inherit;
+
+	/* XXX: This resolves an issue where Chrome doesn't accurately render the text bounds
+	 * correctly. See https://github.com/tldraw/tldraw/issues/4804
+	 */
+	 height: calc(100% + 0.5px);
+	 width: calc(100% + 0.5px);
 }
 
 .tl-text-wrapper[data-isselected='true'] .tl-text-input {
