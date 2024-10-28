@@ -406,12 +406,12 @@ export class TldrawApp {
 			// Optimistic update, remove file and file states
 			const userId = this.getCurrentUserId()
 			fileStates = this.getAll('file-state').filter(
-				(r) => r.fileId === fileId && r.ownerId === userId
+				(r) => r.fileId === fileId
 			)
 			this.store.remove([fileId, ...fileStates.map((s) => s.id)])
 		} else {
 			// If not the owner, just remove the file state
-			fileStates = this.getAll('file-state').filter((r) => r.fileId === fileId)
+			fileStates = this.getAll('file-state').filter((r) => r.fileId === fileId && r.ownerId === userId)
 			this.store.remove(fileStates.map((s) => s.id))
 		}
 
