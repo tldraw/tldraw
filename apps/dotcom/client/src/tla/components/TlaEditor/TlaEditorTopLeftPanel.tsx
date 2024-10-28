@@ -19,6 +19,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -71,6 +72,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const raw = useRaw()
 	const editor = useEditor()
 	const [isRenaming, setIsRenaming] = useState(false)
+	const trackEvent = useTldrawAppUiEvents()
 
 	const app = useApp()
 	const fileId = useCurrentFileId()
@@ -94,7 +96,10 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		[app, fileId]
 	)
 
-	const handleRenameAction = () => setIsRenaming(true)
+	const handleRenameAction = () => {
+		setIsRenaming(true)
+		trackEvent('rename-file', { source: 'file-menu' })
+	}
 	const handleRenameEnd = () => setIsRenaming(false)
 
 	const fileSlug = useParams().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
