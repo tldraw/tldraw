@@ -33,6 +33,7 @@ if (!PUBLISHABLE_KEY) {
 
 export function Component() {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
+	// TODO: this needs to default to the global setting of whatever the last chosen locale was, not 'en'
 	const [locale, setLocale] = useState<string>('en')
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
