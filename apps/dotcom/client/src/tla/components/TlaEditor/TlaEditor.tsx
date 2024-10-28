@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import {
 	DefaultKeyboardShortcutsDialog,
@@ -31,6 +31,7 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
@@ -86,32 +87,28 @@ const anonComponents = {
 	},
 }
 
-export function TlaEditor({
-	fileSlug,
-	onDocumentChange,
-	isCreateMode,
-	deepLinks,
-}: {
+interface TlaEditorProps {
 	fileSlug: string
 	onDocumentChange?(): void
 	isCreateMode?: boolean
 	deepLinks?: boolean
-}) {
+}
+export function TlaEditor(props: TlaEditorProps) {
+	// force re-mount when the file slug changes to prevent state from leaking between files
+	return (
+		<ReadyWrapper key={props.fileSlug}>
+			<TlaEditorInner {...props} key={props.fileSlug} />
+		</ReadyWrapper>
+	)
+}
+
+function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
-	const [ready, setReady] = useState(false)
-
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
 
-	useLayoutEffect(() => {
-		setReady(false)
-		// Set the editor to ready after a short delay
-		const timeout = setTimeout(() => setReady(true), 200)
-		return () => {
-			clearTimeout(timeout)
-		}
-	}, [fileId])
+	const setIsReady = useSetIsReady()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -119,6 +116,7 @@ export function TlaEditor({
 			;(window as any).editor = editor
 			// Register the editor globally
 			globalEditor.set(editor)
+			setIsReady()
 
 			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
@@ -148,7 +146,7 @@ export function TlaEditor({
 				updateSessionState.cancel()
 			}
 		},
-		[app, fileId]
+		[app, fileId, setIsReady]
 	)
 
 	const user = useTldrawUser()
@@ -196,7 +194,6 @@ export function TlaEditor({
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} onDocumentChange={onDocumentChange} />
 			</Tldraw>
-			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
 		</div>
 	)
 }

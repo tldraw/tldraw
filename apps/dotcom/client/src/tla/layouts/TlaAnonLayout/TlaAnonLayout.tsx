@@ -1,40 +1,27 @@
-import { SignedOut, SignInButton } from '@clerk/clerk-react'
+import { SignedOut } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { TlaButton } from '../../components/TlaButton/TlaButton'
+import { TlaSignInButton } from '../../components/TlaSignInButton/TlaSignInButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import { useRaw } from '../../hooks/useRaw'
-import { getRootPath } from '../../utils/urls'
 import styles from './anon.module.css'
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	const raw = useRaw()
 	usePreventAccidentalDrops()
 	return (
-		<div className={classNames('tla tla-theme__light tl-theme__light tl-container', styles.layout)}>
+		<div className={styles.layout}>
 			<div className={styles.header}>
 				<Link to="/">
 					<img src="/tla/tldraw-logo-2.svg" style={{ height: 20, width: 'auto' }} />
 				</Link>
 				<div className={styles.signInButtons}>
 					<SignedOut>
-						<SignInButton
-							mode="modal"
-							forceRedirectUrl={getRootPath()}
-							signUpForceRedirectUrl={getRootPath()}
-						>
-							<TlaButton data-testid="tla-signin-button" variant="primary" ghost>
-								{raw('Log in')}
-							</TlaButton>
-						</SignInButton>
-						<SignInButton
-							mode="modal"
-							forceRedirectUrl={getRootPath()}
-							signUpForceRedirectUrl={getRootPath()}
-						>
-							<TlaButton data-testid="tla-signup-button">{raw('Sign up')}</TlaButton>
-						</SignInButton>
+						<TlaSignInButton variant="primary" ghost>
+							{raw('Log in')}
+						</TlaSignInButton>
+						<TlaSignInButton data-testid="tla-signup-button">{raw('Sign up')}</TlaSignInButton>
 					</SignedOut>
 				</div>
 			</div>
