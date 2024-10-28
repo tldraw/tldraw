@@ -1303,11 +1303,39 @@
 }
 
 .tlui-page-menu__item {
+	position: relative;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
 	gap: 0px;
+}
+
+@media (hover: hover) {
+	.tlui-page-menu__item::after {
+		display: block;
+		content: '';
+		background-color: var(--color-muted-2);
+		position: absolute;
+		inset: 4px;
+		border-radius: 6px;
+		pointer-events: none;
+		opacity: 0;
+	}
+
+	.tlui-page-menu__item:hover::after {
+		opacity: 1;
+	}
+
+	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+}
+
+/* Since we're adding an after hover effect to the page menu item, we want to hide the hovers on the individual buttons in the page menu item */
+.tlui-page-menu__item__button::after,
+.tlui-page_menu__item__submenu > .tlui-button::after {
+	display: none;
 }
 
 .tlui-page-menu__item:nth-of-type(n + 2) {
