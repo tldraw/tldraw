@@ -7,7 +7,7 @@ export async function getCurrentSerializedRoomSnapshot(
 ): Promise<string> {
 	const id = env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${roomId}`)
 	const worker = env.TLDR_DOC.get(id)
-	const snapshot = worker.getCurrentSerializedSnapshot()
+	const snapshot = await worker.getCurrentSerializedSnapshot()
 	if (!snapshot) {
 		throw Error('Room not found')
 	}
