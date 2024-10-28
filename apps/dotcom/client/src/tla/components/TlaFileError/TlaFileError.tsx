@@ -37,7 +37,6 @@ export function TlaFileError({ error }: { error: unknown }) {
 				<TlaFileErrorContent
 					header="Private file"
 					para1="Contact the file owner to request access."
-					para2="Or sign in if you are the file owner."
 					cta={<TlaSignInButton />}
 				/>
 			)
