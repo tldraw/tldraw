@@ -25,16 +25,15 @@ export function TlaFileError({ error }: { error: unknown }) {
 				break
 			}
 			case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
-				header = 'Invite only'
-				para1 = 'You do not have permission to view this file.'
-				para2 = 'You might need to sign in, or ask the file owner for access.'
+				header = 'Private file'
+				para1 = 'Contact the file owner to request access.'
+				para2 = 'Or sign in if you are the file owner.'
 				cta = <TlaSignInButton />
 				break
 			}
 			case TLSyncErrorCloseEventReason.FORBIDDEN: {
-				header = 'Invite only'
-				para1 = 'You do not have permission to view this file.'
-				para2 = 'You might need to contact the file owner to request access.'
+				header = 'Private file'
+				para1 = 'Contact the file owner to request access.'
 				break
 			}
 		}
