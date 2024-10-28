@@ -80,7 +80,9 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		// We update the name in the document record on it's DO when the file record changes.
 		// We should figure out a way to have a single source of truth for the file name.
 		// And to allow guests to 'subscribe' to file metadata updates somehow.
-		() => app.getFileName(fileId) ?? editor.getDocumentSettings().name,
+		() => {
+			return app.getFileName(fileId) ?? editor.getDocumentSettings().name
+		},
 		[app, editor, fileId]
 	)
 	const handleFileNameChange = useCallback(

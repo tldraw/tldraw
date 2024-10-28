@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
@@ -192,7 +193,7 @@ export function TlaEditor({
 				<ThemeUpdater />
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
-				<SneakyTldrawFileDropHandler />
+				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} onDocumentChange={onDocumentChange} />
 			</Tldraw>
 			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
@@ -203,7 +204,9 @@ export function TlaEditor({
 function SneakyTldrawFileDropHandler() {
 	const editor = useEditor()
 	const app = useMaybeApp()
+	const auth = useAuth()
 	useEffect(() => {
+		if (!auth) return
 		if (!app) return
 		const defaultOnDrop = editor.externalContentHandlers['files']
 		editor.registerExternalContentHandler('files', async (content) => {
@@ -212,12 +215,14 @@ function SneakyTldrawFileDropHandler() {
 			if (tldrawFiles.length > 0) {
 				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
 				if (!snapshots.length) return
-				await app.createFilesFromTldrFiles(snapshots)
+				const token = await auth.getToken()
+				if (!token) return
+				await app.createFilesFromTldrFiles(snapshots, token)
 			} else {
 				defaultOnDrop?.(content)
 			}
 		})
-	}, [editor, app])
+	}, [editor, app, auth])
 	return null
 }
 

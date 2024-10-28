@@ -10,11 +10,16 @@ export {
 	type RoomOpenMode,
 } from './routes'
 export type {
+	CreateFilesRequestBody,
+	CreateFilesResponseBody,
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
+	DuplicateRoomResponseBody,
 	GetReadonlySlugResponseBody,
+	PublishFileResponseBody,
 	Snapshot,
+	UnpublishFileResponseBody,
 } from './types'
 
 export * from './tla-schema/TldrawAppFile'

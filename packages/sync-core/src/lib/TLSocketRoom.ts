@@ -269,6 +269,15 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
+	 * Return a serialized snapshot of the document state, including clock-related bookkeeping.
+	 * @returns The serialized snapshot
+	 * @internal
+	 */
+	getCurrentSerializedSnapshot() {
+		return JSON.stringify(this.room.getSnapshot())
+	}
+
+	/**
 	 * Load a snapshot of the document state, overwriting the current state.
 	 * @param snapshot - The snapshot to load
 	 */
