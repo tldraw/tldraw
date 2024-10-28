@@ -1,20 +1,22 @@
 import {
-	CreateSnapshotRequestBody,
-	CreateSnapshotResponseBody,
+	CreateFilesResponseBody,
+	DuplicateRoomResponseBody,
+	PublishFileResponseBody,
 	TldrawAppFile,
 	TldrawAppFileId,
 	TldrawAppFileRecordType,
+	TldrawAppFileState,
 	TldrawAppFileStateRecordType,
 	TldrawAppRecord,
 	TldrawAppUser,
 	TldrawAppUserId,
 	TldrawAppUserRecordType,
+	UnpublishFileResponseBody,
 	UserPreferencesKeys,
 } from '@tldraw/dotcom-shared'
 import { Result, fetch } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
-	Editor,
 	Store,
 	TLSessionStateSnapshot,
 	TLStoreSnapshot,
@@ -28,13 +30,19 @@ import {
 	transact,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { getSnapshotData } from '../../utils/sharing'
-import { getCurrentEditor } from '../utils/getCurrentEditor'
 import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
 
+export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
+export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
+export const DUPLICATE_ENDPOINT = `/api/app/duplicate`
+export const FILE_ENDPOINT = `/api/app/file`
 
 export class TldrawApp {
+	config = {
+		maxNumberOfFiles: 100,
+	}
+
 	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
 
@@ -175,14 +183,27 @@ export class TldrawApp {
 		)
 	}
 
-	createFile(fileId?: TldrawAppFileId) {
+	private canCreateNewFile() {
+		const userId = this.getCurrentUserId()
+		const numberOfFiles = this.getAll('file').filter((f) => f.ownerId === userId).length
+		return numberOfFiles < this.config.maxNumberOfFiles
+	}
+
+	createFile(
+		fileId?: TldrawAppFileId
+	): Result<{ file: TldrawAppFile }, 'max number of files reached'> {
+		if (!this.canCreateNewFile()) {
+			return Result.err('max number of files reached')
+		}
+
 		const file = TldrawAppFileRecordType.create({
 			ownerId: this.getCurrentUserId(),
 			isEmpty: true,
 			id: fileId ?? TldrawAppFileRecordType.createId(),
 		})
 		this.store.put([file])
-		return file
+
+		return Result.ok({ file })
 	}
 
 	getFileName(fileId: TldrawAppFileId) {
@@ -219,19 +240,217 @@ export class TldrawApp {
 		})
 	}
 
-	setFilePublished(fileId: TldrawAppFileId, value: boolean) {
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
-		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
-		if (value === file.published) return
-		this.store.put([{ ...file, published: value, lastPublished: Date.now() }])
+	/**
+	 * Create files from tldr files.
+	 *
+	 * @param snapshots - The snapshots to create files from.
+	 * @param token - The user's token.
+	 *
+	 * @returns The slugs of the created files.
+	 */
+	async createFilesFromTldrFiles(snapshots: TLStoreSnapshot[], token: string) {
+		const res = await fetch(TLDR_FILE_ENDPOINT, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({
+				// convert to the annoyingly similar format that the server expects
+				snapshots: snapshots.map((s) => ({
+					snapshot: s.store,
+					schema: s.schema,
+				})),
+			}),
+		})
+
+		const response = (await res.json()) as CreateFilesResponseBody
+
+		if (!res.ok || response.error) {
+			throw Error('could not create files')
+		}
+
+		// Also create a file state record for the new file
+		this.store.put(
+			response.slugs.map((slug) =>
+				TldrawAppFileStateRecordType.create({
+					fileId: TldrawAppFileRecordType.createId(slug),
+					ownerId: this.getCurrentUserId(),
+					firstVisitAt: Date.now(),
+					lastVisitAt: Date.now(),
+					lastEditAt: Date.now(),
+				})
+			)
+		)
+
+		return { slugs: response.slugs }
 	}
 
-	updateFileLastPublished(fileId: TldrawAppFileId) {
+	/**
+	 * Duplicate a file.
+	 *
+	 * @param fileSlug - The file slug to duplicate.
+	 * @param token - The user's token.
+	 *
+	 * @returns A result indicating success or failure.
+	 */
+	async duplicateFile(fileSlug: string, token: string) {
+		const endpoint = `${DUPLICATE_ENDPOINT}/${fileSlug}`
+
+		const res = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+
+		const response = (await res.json()) as DuplicateRoomResponseBody
+
+		if (!res.ok || response.error) {
+			return Result.err('could not duplicate file')
+		}
+
+		// Also create a file state record for the new file
+
+		this.store.put([
+			TldrawAppFileStateRecordType.create({
+				fileId: TldrawAppFileRecordType.createId(response.slug),
+				ownerId: this.getCurrentUserId(),
+				firstVisitAt: Date.now(),
+				lastVisitAt: Date.now(),
+				lastEditAt: Date.now(),
+			}),
+		])
+
+		return Result.ok({ slug: response.slug })
+	}
+
+	/**
+	 * Publish a file or re-publish changes.
+	 *
+	 * @param fileId - The file id to unpublish.
+	 * @param token - The user's token.
+	 * @returns A result indicating success or failure.
+	 */
+	async publishFile(fileId: TldrawAppFileId, token: string) {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) throw Error(`No file with that id`)
 		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
-		this.store.put([{ ...file, lastPublished: Date.now() }])
+
+		// We're going to bake the name of the file, if it's undefined
+		const name = this.getFileName(fileId)!
+
+		// Optimistic update
+		this.store.put([{ ...file, name, published: true, lastPublished: Date.now() }])
+
+		const fileSlug = fileId.split(':')[1]
+
+		const endpoint = `${PUBLISH_ENDPOINT}/${fileSlug}`
+
+		const res = await fetch(endpoint, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+
+		const response = (await res.json()) as PublishFileResponseBody
+
+		if (!res.ok || response.error) {
+			// Revert optimistic update
+			const latestFile = this.get(fileId) as TldrawAppFile
+			const { published, lastPublished } = file
+			this.store.put([{ ...latestFile, published, lastPublished }])
+
+			return Result.err('could not create snapshot')
+		}
+
+		return Result.ok('success')
+	}
+
+	/**
+	 * Unpublish a file.
+	 *
+	 * @param fileId - The file id to unpublish.
+	 * @param token - The user's token.
+	 * @returns A result indicating success or failure.
+	 */
+	async unpublishFile(fileId: TldrawAppFileId, token: string) {
+		const file = this.get(fileId) as TldrawAppFile
+		if (!file) throw Error(`No file with that id`)
+		if (!this.isFileOwner(fileId)) throw Error('user cannot edit that file')
+
+		if (!file.published) return Result.ok('success')
+
+		// Optimistic update
+		this.store.put([{ ...file, published: false }])
+
+		const fileSlug = fileId.split(':')[1]
+
+		const res = await fetch(`${PUBLISH_ENDPOINT}/${fileSlug}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+
+		const response = (await res.json()) as UnpublishFileResponseBody
+
+		if (!res.ok || response.error) {
+			// Revert optimistic update
+			this.store.put([{ ...file, published: true }])
+			return Result.err('could not unpublish')
+		}
+
+		return Result.ok('success')
+	}
+
+	/**
+	 * Remove a user's file states for a file and delete the file if the user is the owner of the file.
+	 *
+	 * @param fileId - The file id.
+	 * @param token - The user's token.
+	 */
+	async deleteOrForgetFile(fileId: TldrawAppFileId, token: string) {
+		// Stash these so that we can restore them later
+		let fileStates: TldrawAppFileState[]
+		const file = this.get(fileId) as TldrawAppFile
+
+		if (this.isFileOwner(fileId)) {
+			// Optimistic update, remove file and file states
+			fileStates = this.getAll('file-state').filter((r) => r.fileId === fileId)
+			this.store.remove([fileId, ...fileStates.map((s) => s.id)])
+		} else {
+			// If not the owner, just remove the file state
+			const userId = this.getCurrentUserId()
+			fileStates = this.getAll('file-state').filter(
+				(r) => r.fileId === fileId && r.ownerId === userId
+			)
+			this.store.remove(fileStates.map((s) => s.id))
+		}
+
+		const fileSlug = fileId.split(':')[1]
+
+		const res = await fetch(`${FILE_ENDPOINT}/${fileSlug}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
+		})
+
+		const response = (await res.json()) as UnpublishFileResponseBody
+
+		if (!res.ok || response.error) {
+			// Revert optimistic update
+			this.store.put([file, ...fileStates])
+			return Result.err('could not delete')
+		}
+
+		return Result.ok('success')
 	}
 
 	setFileSharedLinkType(
@@ -255,85 +474,10 @@ export class TldrawApp {
 		this.store.put([{ ...file, sharedLinkType, shared: true }])
 	}
 
-	duplicateFile(fileId: TldrawAppFileId) {
-		const userId = this.getCurrentUserId()
-
-		const file = this.get(fileId) as TldrawAppFile
-		if (!file) throw Error(`No file with that id`)
-
-		const newFilePartial = {
-			...file,
-			id: TldrawAppFileRecordType.createId(),
-			ownerId: userId,
-		} as Partial<TldrawAppFile>
-		delete newFilePartial.createdAt
-		delete newFilePartial.lastPublished
-		delete newFilePartial.publishedSlug
-		delete newFilePartial.published
-
-		const newFile = TldrawAppFileRecordType.create(newFilePartial as TldrawAppFile)
-
-		const editorStoreSnapshot = getCurrentEditor()?.store.getStoreSnapshot()
-		this.store.put([newFile])
-
-		return { newFile, editorStoreSnapshot }
-	}
-
 	isFileOwner(fileId: TldrawAppFileId) {
 		const file = this.get(fileId) as TldrawAppFile
 		if (!file) return false
 		return file.ownerId === this.getCurrentUserId()
-	}
-
-	async deleteOrForgetFile(fileId: TldrawAppFileId) {
-		if (this.isFileOwner(fileId)) {
-			this.store.remove([
-				fileId,
-				...this.getAll('file-state')
-					.filter((r) => r.fileId === fileId)
-					.map((r) => r.id),
-			])
-		} else {
-			const ownerId = this.getCurrentUserId()
-			const fileStates = this.getAll('file-state')
-				.filter((r) => r.fileId === fileId && r.ownerId === ownerId)
-				.map((r) => r.id)
-			this.store.remove(fileStates)
-		}
-	}
-
-	async createFilesFromTldrFiles(_snapshots: TLStoreSnapshot[]) {
-		// todo: upload the files to the server and create files locally
-		console.warn('tldraw file uploads are not implemented yet, but you are in the right place')
-		return new Promise((r) => setTimeout(r, 2000))
-	}
-
-	async createSnapshotLink(editor: Editor, parentSlug: string, fileSlug: string, token: string) {
-		const data = await getSnapshotData(editor)
-
-		if (!data) return Result.err('could not get snapshot data')
-
-		const endpoint = `${PUBLISH_ENDPOINT}/${fileSlug}`
-
-		const res = await fetch(endpoint, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${token}`,
-			},
-			body: JSON.stringify({
-				snapshot: data,
-				schema: editor.store.schema.serialize(),
-				parent_slug: parentSlug,
-			} satisfies CreateSnapshotRequestBody),
-		})
-		const response = (await res.json()) as CreateSnapshotResponseBody
-
-		if (!res.ok || response.error) {
-			console.error(await res.text())
-			return Result.err('could not create snapshot')
-		}
-		return Result.ok('success')
 	}
 
 	updateUserExportPreferences(

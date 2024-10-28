@@ -73,7 +73,6 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 				}}
 				components={components}
 				deepLinks
-				inferDarkMode
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />

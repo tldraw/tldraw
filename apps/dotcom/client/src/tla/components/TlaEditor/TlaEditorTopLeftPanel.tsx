@@ -43,7 +43,7 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 export function TlaEditorTopLeftPanelAnonymous() {
 	const raw = useRaw()
 	const editor = useEditor()
-	const isTempFile = !useParams().fileSlug
+	const isTempFile = !useParams<{ fileSlug: string }>().fileSlug
 	const fileName = useValue('fileName', () => editor.getDocumentSettings().name || 'New board', [])
 	const handleFileNameChange = useCallback(
 		(name: string) => editor.updateDocumentSettings({ name }),
@@ -80,7 +80,9 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		// We update the name in the document record on it's DO when the file record changes.
 		// We should figure out a way to have a single source of truth for the file name.
 		// And to allow guests to 'subscribe' to file metadata updates somehow.
-		() => app.getFileName(fileId) ?? editor.getDocumentSettings().name,
+		() => {
+			return app.getFileName(fileId) ?? editor.getDocumentSettings().name
+		},
 		[app, editor, fileId]
 	)
 	const handleFileNameChange = useCallback(
@@ -97,7 +99,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameEnd = () => setIsRenaming(false)
 
-	const fileSlug = useParams().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
+	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
 	const isOwner = useIsFileOwner(TldrawAppFileRecordType.createId(fileSlug))
 
 	return (

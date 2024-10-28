@@ -98,9 +98,11 @@ function TlaSidebarCreateFileButton() {
 	const navigate = useNavigate()
 
 	const handleSidebarCreate = useCallback(() => {
-		const file = app.createFile()
-
-		navigate(getFilePath(file.id), { state: { isCreateMode: true } })
+		const res = app.createFile()
+		if (res.ok) {
+			const { file } = res.value
+			navigate(getFilePath(file.id), { state: { isCreateMode: true } })
+		}
 	}, [app, navigate])
 
 	return (
@@ -212,7 +214,7 @@ function TlaSidebarFileSection({ title, items }: { title: string; items: RecentF
 function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
-	const { fileSlug } = useParams()
+	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const isActive = TldrawAppFileRecordType.createId(fileSlug) === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
 
@@ -230,6 +232,7 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 			className={classNames(styles.link, styles.hoverable)}
 			data-active={isActive}
 			data-element="file-link"
+			onDoubleClick={handleRenameAction}
 		>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
@@ -270,20 +273,14 @@ function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onC
 				handleSave()
 			}
 		}
-		function handleKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') {
-				onClose()
-			}
-		}
 
 		// We wait a tick because we don't want to immediately close the input.
 		setTimeout(() => {
 			document.addEventListener('click', handleClick, { capture: true })
-			document.addEventListener('keydown', handleKeyDown)
 		}, 0)
+
 		return () => {
 			document.removeEventListener('click', handleClick, { capture: true })
-			document.removeEventListener('keydown', handleKeyDown)
 		}
 	}, [handleSave, onClose])
 
@@ -294,6 +291,7 @@ function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onC
 				className={classNames(styles.rename, 'tla-text_ui__regular')}
 				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}
+				onCancel={onClose}
 				autoSelect
 				autoFocus
 			/>

@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -26,16 +27,23 @@ export function TlaDeleteFileDialog({
 	const raw = useRaw()
 	const location = useLocation()
 	const navigate = useNavigate()
+	const auth = useAuth()
 
 	const isOwner = useIsFileOwner(fileId)
 
-	const handleDelete = useCallback(() => {
-		app.deleteOrForgetFile(fileId)
-		if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
-			navigate(getRootPath())
+	const handleDelete = useCallback(async () => {
+		const token = await auth.getToken()
+		if (!token) throw new Error('No token')
+		const result = await app.deleteOrForgetFile(fileId, token)
+		if (result.ok) {
+			if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
+				navigate(getRootPath())
+			}
+			onClose()
+		} else {
+			// ...um, show a error line in the dialog? try again?
 		}
-		onClose()
-	}, [app, fileId, location.pathname, navigate, onClose])
+	}, [app, fileId, location.pathname, navigate, onClose, auth])
 
 	return (
 		<>

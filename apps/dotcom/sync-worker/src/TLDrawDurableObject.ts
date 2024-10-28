@@ -32,9 +32,9 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
-import { getAuth } from './utils/getAuth'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
+import { getAuth } from './utils/tla/getAuth'
 
 const MAX_CONNECTIONS = 50
 
@@ -602,5 +602,13 @@ export class TLDrawDurableObject extends DurableObject {
 			const key = getR2KeyForRoom({ slug, isApp: true })
 			await this.r2.rooms.delete(key)
 		})
+	}
+
+	/**
+	 * @internal
+	 */
+	async getCurrentSerializedSnapshot() {
+		const room = await this.getRoom()
+		return room.getCurrentSerializedSnapshot()
 	}
 }

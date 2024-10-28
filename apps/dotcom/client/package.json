@@ -60,7 +60,7 @@
 		"identity-obj-proxy": "^3.0.0",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
-		"vite": "^5.4.2",
+		"vite": "^5.4.10",
 		"ws": "^8.16.0"
 	},
 	"jest": {
