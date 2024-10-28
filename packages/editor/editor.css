@@ -819,7 +819,10 @@ input,
 	text-transform: none;
 	white-space: pre-wrap;
 	line-break: normal;
-	word-spacing: 0px;
+	/* XXX: This resolves an issue where Chrome doesn't accurately render the text bounds
+	 * correctly. See https://github.com/tldraw/tldraw/issues/4804
+	 */
+	word-spacing: 0.0001px;
 	word-wrap: break-word;
 	writing-mode: horizontal-tb !important;
 }
