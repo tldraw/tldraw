@@ -809,9 +809,6 @@
 	color: var(--color-text-1);
 	user-select: all;
 	-webkit-user-select: text;
-	display: flex;
-	flex-direction: column;
-	gap: var(--space-4);
 }
 .tlui-dialog__body a {
 	color: var(--color-selected);
@@ -1092,8 +1089,13 @@
 .tlui-toast__content {
 	padding: var(--space-4);
 	display: flex;
+	line-height: 1.4;
 	flex-direction: column;
 	gap: var(--space-3);
+}
+
+.tlui-toast__main[data-actions='true'] .tlui-toast__content {
+	padding-bottom: var(--space-2);
 }
 
 .tlui-toast__title {
