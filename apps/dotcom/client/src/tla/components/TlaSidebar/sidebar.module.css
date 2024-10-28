@@ -236,7 +236,7 @@
 }
 
 .user {
-	padding: 0 4px;
+	padding: 0px 8px;
 	cursor: pointer;
 }
 
@@ -289,6 +289,12 @@
 	gap: 4px;
 	position: relative;
 	z-index: 2;
+}
+
+.renameWrapper {
+	outline: 1px solid var(--color-primary);
+	outline-offset: -2px;
+	border-radius: 6px;
 }
 
 .renameWrapper > div {

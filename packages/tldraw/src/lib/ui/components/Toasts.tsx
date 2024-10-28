@@ -44,7 +44,12 @@ function TldrawUiToast({ toast }: { toast: TLUiToast }) {
 					<TldrawUiIcon icon={icon} />
 				</div>
 			)}
-			<div className="tlui-toast__main">
+			<div
+				className="tlui-toast__main"
+				data-title={!!toast.title}
+				data-description={!!toast.description}
+				data-actions={!!toast.actions}
+			>
 				<div className="tlui-toast__content">
 					{toast.title && <T.Title className="tlui-toast__title">{toast.title}</T.Title>}
 					{toast.description && (
