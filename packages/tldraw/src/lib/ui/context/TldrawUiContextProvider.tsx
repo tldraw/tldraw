@@ -61,6 +61,9 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	mediaMimeTypes,
 	children,
 }: TLUiContextProviderProps) {
+	// To allow mounting the sidebar without an editor running, we use a 'maybe' editor here
+	// The sidebar makes use of toasts and dialogs etc, which typically require an editor to be present
+	// but we are overriding the providers to allow them to be used without an editor.
 	const editor = useMaybeEditor()
 	return (
 		<MimeTypeContext.Provider value={mediaMimeTypes}>
@@ -75,6 +78,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 								<BreakPointProvider forceMobile={forceMobile}>
 									<TldrawUiComponentsProvider overrides={components}>
 										{editor ? (
+											// the internal providers are only valid when an editor is present
 											<InternalProviders overrides={overrides}>{children}</InternalProviders>
 										) : (
 											children
