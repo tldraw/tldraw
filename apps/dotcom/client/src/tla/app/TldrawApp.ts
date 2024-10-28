@@ -35,6 +35,10 @@ import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
 export const PUBLISH_ENDPOINT = `/api/app/publish`
 
 export class TldrawApp {
+	config = {
+		maxNumberOfFiles: 100,
+	}
+
 	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
 
@@ -175,14 +179,27 @@ export class TldrawApp {
 		)
 	}
 
-	createFile(fileId?: TldrawAppFileId) {
+	private canCreateNewFile() {
+		const userId = this.getCurrentUserId()
+		const numberOfFiles = this.getAll('file').filter((f) => f.ownerId === userId).length
+		return numberOfFiles < this.config.maxNumberOfFiles
+	}
+
+	createFile(
+		fileId?: TldrawAppFileId
+	): Result<{ file: TldrawAppFile }, 'max number of files reached'> {
+		if (!this.canCreateNewFile()) {
+			return Result.err('max number of files reached')
+		}
+
 		const file = TldrawAppFileRecordType.create({
 			ownerId: this.getCurrentUserId(),
 			isEmpty: true,
 			id: fileId ?? TldrawAppFileRecordType.createId(),
 		})
 		this.store.put([file])
-		return file
+
+		return Result.ok({ file })
 	}
 
 	getFileName(fileId: TldrawAppFileId) {

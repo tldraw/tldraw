@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
+import { notFound } from '../../pages/not-found'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
@@ -18,7 +19,15 @@ export function Component() {
 	if (fileId) {
 		return <Navigate to={getFilePath(fileId)} replace />
 	}
-	return <Navigate to={getFilePath(app.createFile().id)} replace state={{ isCreateMode: true }} />
+
+	const fileRes = app.createFile()
+	if (fileRes.ok) {
+		const { file } = fileRes.value
+		return <Navigate to={getFilePath(file.id)} replace state={{ isCreateMode: true }} />
+	} else {
+		// todo: something went wrong creating the file, handle this better
+		return notFound()
+	}
 }
 
 function LocalTldraw() {

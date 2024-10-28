@@ -43,7 +43,7 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 export function TlaEditorTopLeftPanelAnonymous() {
 	const raw = useRaw()
 	const editor = useEditor()
-	const isTempFile = !useParams().fileSlug
+	const isTempFile = !useParams<{ fileSlug: string }>().fileSlug
 	const fileName = useValue('fileName', () => editor.getDocumentSettings().name || 'New board', [])
 	const handleFileNameChange = useCallback(
 		(name: string) => editor.updateDocumentSettings({ name }),
@@ -97,7 +97,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameEnd = () => setIsRenaming(false)
 
-	const fileSlug = useParams().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
+	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
 	const isOwner = useIsFileOwner(TldrawAppFileRecordType.createId(fileSlug))
 
 	return (

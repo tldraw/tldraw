@@ -98,9 +98,11 @@ function TlaSidebarCreateFileButton() {
 	const navigate = useNavigate()
 
 	const handleSidebarCreate = useCallback(() => {
-		const file = app.createFile()
-
-		navigate(getFilePath(file.id), { state: { isCreateMode: true } })
+		const res = app.createFile()
+		if (res.ok) {
+			const { file } = res.value
+			navigate(getFilePath(file.id), { state: { isCreateMode: true } })
+		}
 	}, [app, navigate])
 
 	return (
@@ -212,7 +214,7 @@ function TlaSidebarFileSection({ title, items }: { title: string; items: RecentF
 function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
-	const { fileSlug } = useParams()
+	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const isActive = TldrawAppFileRecordType.createId(fileSlug) === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
 
