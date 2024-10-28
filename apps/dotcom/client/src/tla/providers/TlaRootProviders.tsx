@@ -19,7 +19,7 @@ import { AppStateProvider } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
-import { PATH } from '../utils/urls'
+import { getRootPath } from '../utils/urls'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -36,7 +36,7 @@ export function Component() {
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
 
 	return (
-		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={PATH.root}>
+		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
 			<SignedInProvider onThemeChange={handleThemeChange}>
 				<div
 					ref={setContainer}

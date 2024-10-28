@@ -10,7 +10,7 @@ import { useRaw } from '../hooks/useRaw'
 import { useSessionState } from '../hooks/useSessionState'
 import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
-import { PATH } from '../utils/urls'
+import { getRootPath } from '../utils/urls'
 
 export function Component() {
 	const raw = useRaw()
@@ -23,7 +23,7 @@ export function Component() {
 			<h2>{raw('Users')}</h2>
 			<TlaSpacer height={20} />
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 'fit-content' }}>
-				<SignOutButton redirectUrl={PATH.root}>
+				<SignOutButton redirectUrl={getRootPath()}>
 					<TlaButton variant="warning">{raw('Sign out')}</TlaButton>
 				</SignOutButton>
 			</div>

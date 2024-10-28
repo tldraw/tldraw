@@ -6,7 +6,7 @@ import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { getLocalSessionState } from '../utils/local-session-state'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
-import { PATH } from '../utils/urls'
+import { getFilePath } from '../utils/urls'
 
 export function Component() {
 	const app = useMaybeApp()
@@ -16,11 +16,9 @@ export function Component() {
 	const { auth } = getLocalSessionState()
 	const fileId = auth?.userId && app.getUserRecentFiles()[0]?.fileId
 	if (fileId) {
-		return <Navigate to={PATH.getFilePath(fileId)} replace />
+		return <Navigate to={getFilePath(fileId)} replace />
 	}
-	return (
-		<Navigate to={PATH.getFilePath(app.createFile().id)} replace state={{ isCreateMode: true }} />
-	)
+	return <Navigate to={getFilePath(app.createFile().id)} replace state={{ isCreateMode: true }} />
 }
 
 function LocalTldraw() {

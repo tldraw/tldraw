@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { Link } from 'react-router-dom'
 import { useRaw } from '../../hooks/useRaw'
-import { PATH } from '../../utils/urls'
+import { getRootPath } from '../../utils/urls'
 import styles from './error.module.css'
 
 type TlaPageErrorType =
@@ -13,7 +13,7 @@ type TlaPageErrorType =
 function ErrorLinkHome() {
 	const raw = useRaw()
 	return (
-		<Link className={classNames(styles.link, 'tla-text_ui__regular')} to={PATH.root}>
+		<Link className={classNames(styles.link, 'tla-text_ui__regular')} to={getRootPath()}>
 			{raw('Take me home')}
 		</Link>
 	)

@@ -19,7 +19,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { PATH, getShareableFileUrl } from '../../utils/urls'
+import { getFilePath, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 export function TlaFileMenu({
@@ -55,7 +55,7 @@ export function TlaFileMenu({
 		tltime.setTimeout(
 			'app',
 			() => {
-				navigate(PATH.getFilePath(newFile.id))
+				navigate(getFilePath(newFile.id))
 
 				if (editorStoreSnapshot) {
 					tltime.setTimeout(

@@ -1,21 +1,37 @@
 import { PREFIX } from '../../routes'
 
-export const PATH = {
-	root: `/${PREFIX.tla}`,
-	debug: `/${PREFIX.tla}/debug`,
-	profile: `/${PREFIX.tla}/profile`,
-	getFilePath(fileId: string): string {
-		return `/${PREFIX.tla}/${PREFIX.file}/${fileId.split(':').pop()}`
-	},
-	getPublishPath(publishSlug: string): string {
-		return `/${PREFIX.tla}/${PREFIX.publish}/${publishSlug}`
-	},
+export function buildUrl({ pathname }: { pathname: string }): string {
+	return `/${PREFIX.tla}${pathname}`
+}
+
+export function getRootPath() {
+	return buildUrl({ pathname: '/' })
+}
+
+export function getDebugPath() {
+	return buildUrl({ pathname: '/debug' })
+}
+
+export function getProfilePath() {
+	return buildUrl({ pathname: '/profile' })
+}
+
+export function getFilePath(fileId: string) {
+	return buildUrl({ pathname: `/${PREFIX.file}/${fileId.split(':').pop()}` })
+}
+
+export function getPublishPath(publishSlug: string) {
+	return buildUrl({ pathname: `/${PREFIX.publish}/${publishSlug}` })
+}
+
+function absoluteUrl(path: string) {
+	return `${window.location.origin}${path}`
 }
 
 export function getShareableFileUrl(fileId: string): string {
-	return `${window.location.origin}${PATH.getFilePath(fileId)}`
+	return absoluteUrl(getFilePath(fileId))
 }
 
 export function getShareablePublishUrl(publishSlug: string): string {
-	return `${window.location.origin}${PATH.getPublishPath(publishSlug)}`
+	return absoluteUrl(getPublishPath(publishSlug))
 }
