@@ -13,12 +13,7 @@ import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultE
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
-
-export const PREFIX = {
-	tla: 'q',
-	file: `f`,
-	publish: `p`,
-}
+import { PREFIX } from './tla/utils/urls'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 

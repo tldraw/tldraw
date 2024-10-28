@@ -1,4 +1,8 @@
-import { PREFIX } from '../../routes'
+export const PREFIX = {
+	tla: 'q',
+	file: 'f',
+	publish: 'p',
+}
 
 export function buildUrl({ pathname }: { pathname: string }): string {
 	return `/${PREFIX.tla}${pathname}`
