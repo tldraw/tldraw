@@ -100,7 +100,7 @@ function SignedInProvider({
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn) {
-		return <Outlet />
+		return children
 	}
 
 	return (

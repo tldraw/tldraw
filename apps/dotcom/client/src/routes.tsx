@@ -6,7 +6,6 @@ import {
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import classNames from 'classnames'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-router-dom'
@@ -124,10 +123,7 @@ function NoIndex() {
 			<Helmet>
 				<meta name="robots" content="noindex, noimageindex, nofollow" />
 			</Helmet>
-
-			<div className={classNames('tla tla-theme__light tl-container')}>
-				<Outlet />
-			</div>
+			<Outlet />
 		</>
 	)
 }
