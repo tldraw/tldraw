@@ -40,8 +40,7 @@ export interface TLAppUiEventMap {
 		background: TldrawAppUser['exportBackground']
 	}
 	'set-shared-link-type': { type: TldrawAppFile['sharedLinkType'] | 'no-access' }
-	'learn-more-sharing-link': null
-	'learn-more-publishing': null
+	'open-url': { url: string }
 	'publish-file': { result: Result<string, string> }
 	'unpublish-file': { result: Result<string, string> }
 	'copy-publish-link': null

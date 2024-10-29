@@ -64,13 +64,13 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: Tldr
 		app.toggleFileShared(fileId)
 		trackEvent('toggle-shared', { shared: !isShared, source: 'file-share-menu' })
 	}, [app, fileId, trackEvent, isShared])
-
+	const learnMoreUrl = 'https://tldraw.notion.site/Sharing-1283e4c324c080a69618ff37eb3fc98f'
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>{raw('Share this project')}</TlaMenuControlLabel>
 			<TlaMenuControlInfoTooltip
-				onClick={() => trackEvent('learn-more-sharing-link', { source: 'file-share-menu' })}
-				href={'https://tldraw.notion.site/Sharing-1283e4c324c080a69618ff37eb3fc98f'}
+				onClick={() => trackEvent('open-url', { url: learnMoreUrl, source: 'file-share-menu' })}
+				href={learnMoreUrl}
 			>
 				{raw('Learn more about sharing.')}
 			</TlaMenuControlInfoTooltip>

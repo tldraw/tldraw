@@ -101,7 +101,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 
 	const daysSince = Math.floor((Date.now() - file.lastPublished) / (60 * 1000 * 60 * 24))
-
+	const learnMoreUrl = 'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'
 	return (
 		<TlaTabsPage id="publish">
 			<TlaMenuSection>
@@ -110,8 +110,10 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 						<TlaMenuControl>
 							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip
-								onClick={() => trackEvent('learn-more-publishing', { source: 'file-share-menu' })}
-								href={'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'}
+								onClick={() =>
+									trackEvent('open-url', { url: learnMoreUrl, source: 'file-share-menu' })
+								}
+								href={learnMoreUrl}
 							>
 								{raw('Learn more about publishing.')}
 							</TlaMenuControlInfoTooltip>
