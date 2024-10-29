@@ -14,16 +14,16 @@ export async function getPublishedFile(request: IRequest, env: Environment): Pro
 	try {
 		const app = getTldrawAppDurableObject(env)
 
-		const slug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
-		if (!slug) throw Error('not found')
+		const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
+		if (!parentSlug) throw Error('not found')
 
-		const file = await app.getFileBySlug(roomId)
+		const file = await app.getFileBySlug(parentSlug)
 		if (!file) throw Error('not found')
 
 		if (!file.published) throw Error('not published')
 
 		const publishedRoomSnapshot = (await env.ROOM_SNAPSHOTS.get(
-			getR2KeyForRoom({ slug: `${slug}/${roomId}`, isApp: true })
+			getR2KeyForRoom({ slug: `${parentSlug}/${roomId}`, isApp: true })
 		).then((r) => r?.json())) as RoomSnapshot | undefined
 
 		if (!publishedRoomSnapshot) throw Error('not found')
