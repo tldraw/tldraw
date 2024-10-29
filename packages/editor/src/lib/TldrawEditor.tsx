@@ -1,5 +1,5 @@
 import { MigrationSequence, Store } from '@tldraw/store'
-import { TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
+import { TLShape, TLStore, TLStoreSnapshot } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	ReactNode,
@@ -9,6 +9,7 @@ import React, {
 	useLayoutEffect,
 	useMemo,
 	useRef,
+	useState,
 	useSyncExternalStore,
 } from 'react'
 
@@ -28,7 +29,7 @@ import { TLCameraOptions } from './editor/types/misc-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
-import { EditorContext, useEditor } from './hooks/useEditor'
+import { EditorProvider, useEditor } from './hooks/useEditor'
 import {
 	EditorComponentsProvider,
 	TLEditorComponents,
@@ -180,6 +181,15 @@ export interface TldrawEditorBaseProps {
 	 * Options for syncing the editor's camera state with the URL.
 	 */
 	deepLinks?: true | TLDeepLinkOptions
+
+	/**
+	 * Predicate for whether or not a shape should be hidden.
+	 *
+	 * Hidden shapes will not render in the editor, and they will not be eligible for hit test via
+	 * {@link Editor#getShapeAtPoint} and {@link Editor#getShapesAtPoint}. But otherwise they will
+	 * remain in the store and participate in all other operations.
+	 */
+	isShapeHidden?(shape: TLShape, editor: Editor): boolean
 }
 
 /**
@@ -212,9 +222,10 @@ export const TldrawEditor = memo(function TldrawEditor({
 	components,
 	className,
 	user: _user,
+	options: _options,
 	...rest
 }: TldrawEditorProps) {
-	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
+	const [container, setContainer] = useState<HTMLElement | null>(null)
 	const user = useMemo(() => _user ?? createTLUser(), [_user])
 
 	const ErrorFallback =
@@ -229,6 +240,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
+		options: useShallowObjectIdentity(_options),
 	}
 
 	return (
@@ -361,6 +373,7 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	deepLinks: _deepLinks,
+	isShapeHidden,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -417,6 +430,7 @@ function TldrawEditorWithReadyStore({
 				cameraOptions,
 				options,
 				licenseKey,
+				isShapeHidden,
 			})
 
 			editor.updateViewportScreenBounds(canvasRef.current ?? container)
@@ -440,7 +454,18 @@ function TldrawEditorWithReadyStore({
 			}
 		},
 		// if any of these change, we need to recreate the editor.
-		[bindingUtils, container, options, shapeUtils, store, tools, user, setEditor, licenseKey]
+		[
+			bindingUtils,
+			container,
+			options,
+			shapeUtils,
+			store,
+			tools,
+			user,
+			setEditor,
+			licenseKey,
+			isShapeHidden,
+		]
 	)
 
 	useLayoutEffect(() => {
@@ -527,12 +552,12 @@ function TldrawEditorWithReadyStore({
 			{crashingError ? (
 				<Crash crashingError={crashingError} />
 			) : (
-				<EditorContext.Provider value={editor}>
+				<EditorProvider editor={editor}>
 					<Layout onMount={onMount}>
 						{children ?? (Canvas ? <Canvas /> : null)}
 						<Watermark />
 					</Layout>
-				</EditorContext.Provider>
+				</EditorProvider>
 			)}
 		</OptionalErrorBoundary>
 	)

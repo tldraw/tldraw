@@ -22,6 +22,7 @@ describe('pasteExcalidrawContent test fixtures', () => {
 		const fileContent = JSON.parse(await readFile(filePath, 'utf-8'))
 
 		const editor = new TestEditor()
+
 		pasteExcalidrawContent(editor, fileContent)
 
 		expect(editor.store.serialize()).toMatchSnapshot()

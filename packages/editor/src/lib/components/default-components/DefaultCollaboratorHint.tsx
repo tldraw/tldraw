@@ -1,6 +1,7 @@
 import { VecModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { useRef } from 'react'
+import { useSharedSafeId } from '../../hooks/useSafeId'
 import { useTransform } from '../../hooks/useTransform'
 import { Box } from '../../primitives/Box'
 import { Vec } from '../../primitives/Vec'
@@ -34,11 +35,17 @@ export function DefaultCollaboratorHint({
 		1 / zoom,
 		Vec.Angle(viewport.center, point)
 	)
+	const cursorHintId = useSharedSafeId('cursor_hint')
 
 	return (
 		<svg ref={rSvg} className={classNames('tl-overlays__item', className)}>
-			<use href="#cursor_hint" color={color} strokeWidth={3} stroke="var(--color-background)" />
-			<use href="#cursor_hint" color={color} opacity={opacity} />
+			<use
+				href={`#${cursorHintId}`}
+				color={color}
+				strokeWidth={3}
+				stroke="var(--color-background)"
+			/>
+			<use href={`#${cursorHintId}`} color={color} opacity={opacity} />
 		</svg>
 	)
 }

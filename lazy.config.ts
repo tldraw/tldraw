@@ -6,8 +6,9 @@ const config = {
 			'<rootDir>/package.json',
 			'<rootDir>/yarn.lock',
 			'<rootDir>/lazy.config.ts',
-			'<rootDir>/config/**/*',
-			'<rootDir>/scripts/**/*',
+			'<rootDir>/internal/config/**/*',
+			'<rootDir>/internal/scripts/**/*',
+			'package.json',
 		],
 		exclude: [
 			'<allWorkspaceDirs>/coverage/**/*',
@@ -81,11 +82,11 @@ const config = {
 		},
 		'refresh-assets': {
 			execution: 'top-level',
-			baseCommand: `tsx <rootDir>/scripts/refresh-assets.ts`,
+			baseCommand: `tsx <rootDir>/internal/scripts/refresh-assets.ts`,
 			cache: {
 				inputs: [
 					'package.json',
-					`<rootDir>/scripts/refresh-assets.ts`,
+					`<rootDir>/internal/scripts/refresh-assets.ts`,
 					`<rootDir>/assets/**/*`,
 					`<rootDir>/packages/*/package.json`,
 				],
@@ -93,7 +94,7 @@ const config = {
 		},
 		'build-types': {
 			execution: 'top-level',
-			baseCommand: `tsx <rootDir>/scripts/typecheck.ts`,
+			baseCommand: `tsx <rootDir>/internal/scripts/typecheck.ts`,
 			cache: {
 				inputs: {
 					include: ['<allWorkspaceDirs>/**/*.{ts,tsx}', '<allWorkspaceDirs>/tsconfig.json'],
@@ -124,7 +125,7 @@ const config = {
 		},
 		'api-check': {
 			execution: 'top-level',
-			baseCommand: `tsx <rootDir>/scripts/api-check.ts`,
+			baseCommand: `tsx <rootDir>/internal/scripts/api-check.ts`,
 			runsAfter: { 'build-api': {} },
 			cache: {
 				inputs: [`<rootDir>/packages/*/api/public.d.ts`],

@@ -30,3 +30,48 @@ export interface GetReadonlySlugResponseBody {
 	slug: string
 	isLegacy: boolean
 }
+
+/* ----------------------- App ---------------------- */
+
+export interface CreateFilesRequestBody {
+	origin: string
+	snapshots: Snapshot[]
+}
+
+export type CreateFilesResponseBody =
+	| {
+			error: false
+			slugs: string[]
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type DuplicateRoomResponseBody =
+	| {
+			error: false
+			slug: string
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type PublishFileResponseBody =
+	| {
+			error: false
+	  }
+	| {
+			error: true
+			message: string
+	  }
+
+export type UnpublishFileResponseBody =
+	| {
+			error: false
+	  }
+	| {
+			error: true
+			message: string
+	  }

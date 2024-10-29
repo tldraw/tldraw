@@ -84,7 +84,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const strokeWidth = getStrokeWidth(shape)
 
 		return (
-			<SVGContainer id={shape.id}>
+			<SVGContainer>
 				<HighlightRenderer
 					shape={shape}
 					forceSolid={forceSolid}
@@ -99,7 +99,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const forceSolid = useHighlightForceSolid(this.editor, shape)
 		const strokeWidth = getStrokeWidth(shape)
 		return (
-			<SVGContainer id={shape.id}>
+			<SVGContainer>
 				<HighlightRenderer
 					shape={shape}
 					forceSolid={forceSolid}

@@ -1,6 +1,6 @@
 ---
 title: Minimal
-component: ./OnlyEditor.tsx
+component: ./OnlyEditorExample.tsx
 category: editor-api
 priority: 3
 keywords: [select, tool, editor, bare, bones]

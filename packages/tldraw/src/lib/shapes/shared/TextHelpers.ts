@@ -43,7 +43,7 @@ export class TextHelpers {
 			field.focus()
 		}
 
-		// eslint-disable-next-line deprecation/deprecation
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		if (!document.execCommand('insertText', false, text)) {
 			TextHelpers.insertTextFirefox(field, text)
 		}

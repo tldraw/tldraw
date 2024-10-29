@@ -3,9 +3,9 @@
 .tl-container {
 	--layer-above: 1;
 	--layer-focused-input: 10;
+	--layer-menu-click-capture: 250;
 	--layer-panels: 300;
 	--layer-menus: 400;
-	--layer-canvas-overlays: 500;
 	--layer-toasts: 650;
 	--layer-cursor: 700;
 	--layer-header-footer: 999;
@@ -56,6 +56,7 @@
 }
 
 .tlui-button__label {
+	font-size: 12px;
 	flex-grow: 2;
 	text-align: left;
 }
@@ -84,6 +85,18 @@
 	margin-left: var(--space-2);
 }
 
+@media (hover: hover) {
+	.tlui-button:not(.tlui-menu__submenu__trigger)::after,
+	.tlui-button.tlui-menu__submenu__trigger[data-highlighted]::after {
+		background-color: var(--color-muted-2);
+		opacity: 0;
+	}
+
+	.tlui-button:not(:disabled):hover::after {
+		opacity: 1;
+	}
+}
+
 .tlui-button[data-state='hinted']::after {
 	background-color: var(--color-hint);
 	opacity: 1;
@@ -92,17 +105,6 @@
 .tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active:after {
 	background: var(--color-hint);
 	opacity: 1;
-}
-
-@media (hover: hover) {
-	.tlui-button::after {
-		background-color: var(--color-muted-2);
-		opacity: 0;
-	}
-
-	.tlui-button:not(:disabled):hover::after {
-		opacity: 1;
-	}
 }
 
 /* Low button  */
@@ -211,6 +213,10 @@
 	margin-right: -2px;
 }
 
+.tlui-button__tool:focus-visible:not(:hover) {
+	border-radius: 12px;
+}
+
 .tlui-button__tool:nth-of-type(1) {
 	margin-left: 0px;
 }
@@ -245,7 +251,7 @@
 
 .tlui-layout__mobile .tlui-button__tool {
 	height: 48px;
-	width: 44px;
+	width: 43px;
 }
 
 .tlui-layout__mobile .tlui-button__tool > .tlui-icon {
@@ -288,9 +294,6 @@
 }
 .tlui-buttons__horizontal > *:nth-last-child(1) {
 	margin-right: 0px;
-}
-.tlui-buttons__horizontal > *:only-child {
-	width: 56px;
 }
 
 /* Button Grid */
@@ -807,6 +810,17 @@
 	user-select: all;
 	-webkit-user-select: text;
 }
+.tlui-dialog__body a {
+	color: var(--color-selected);
+}
+
+.tlui-dialog__body ul,
+.tlui-dialog__body ol {
+	padding-left: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+}
 
 .tlui-dialog__footer {
 	position: relative;
@@ -982,12 +996,12 @@
 }
 
 .tlui-menu__submenu__trigger[data-state='open']:not(:hover)::after {
-	border-radius: var(--radius-1);
+	border-radius: 0px;
 	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
 .tlui-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
-	border-radius: var(--radius-1);
+	border-radius: 0px;
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
@@ -1075,8 +1089,13 @@
 .tlui-toast__content {
 	padding: var(--space-4);
 	display: flex;
+	line-height: 1.4;
 	flex-direction: column;
 	gap: var(--space-3);
+}
+
+.tlui-toast__main[data-actions='true'] .tlui-toast__content {
+	padding-bottom: var(--space-2);
 }
 
 .tlui-toast__title {
@@ -1310,11 +1329,39 @@
 }
 
 .tlui-page-menu__item {
+	position: relative;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
 	gap: 0px;
+}
+
+@media (hover: hover) {
+	.tlui-page-menu__item::after {
+		display: block;
+		content: '';
+		background-color: var(--color-muted-2);
+		position: absolute;
+		inset: 4px;
+		border-radius: 6px;
+		pointer-events: none;
+		opacity: 0;
+	}
+
+	.tlui-page-menu__item:hover::after {
+		opacity: 1;
+	}
+
+	.tlui-page-menu__item:hover > .tlui-page_menu__item__submenu > .tlui-button {
+		opacity: 1;
+	}
+}
+
+/* Since we're adding an after hover effect to the page menu item, we want to hide the hovers on the individual buttons in the page menu item */
+.tlui-page-menu__item__button::after,
+.tlui-page_menu__item__submenu > .tlui-button::after {
+	display: none;
 }
 
 .tlui-page-menu__item:nth-of-type(n + 2) {
@@ -1425,6 +1472,10 @@
 	.tlui-page_menu__item__submenu > .tlui-button {
 		opacity: 1;
 	}
+}
+
+.tlui-button__icon {
+	padding: 0px;
 }
 
 .tlui-page-menu__item__button .tlui-button__icon {
@@ -1804,4 +1855,10 @@
 	.tlui-people-menu__item__follow:hover .tlui-icon {
 		opacity: 1;
 	}
+}
+
+.tlui-menu-click-capture {
+	position: fixed;
+	inset: 0;
+	z-index: var(--layer-menu-click-capture);
 }

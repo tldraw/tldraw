@@ -1,8 +1,8 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
-export { handleUnfurlRequest } from 'cloudflare-workers-unfurl'
-export { createPersistQueue } from './createPersistQueue'
+export { ExecutionQueue } from './ExecutionQueue'
+export { handleExtractBookmarkMetadataRequest } from './bookmarks'
 export { notFound } from './errors'
 export {
 	createRouter,

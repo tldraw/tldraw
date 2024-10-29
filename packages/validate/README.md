@@ -1,10 +1,34 @@
-## @tldraw/tlvalidate
+## @tldraw/validate
 
-This package contains validation functions used by tldraw.
+Validation functions used by tldraw.
 
-## Distributions
+These are especially useful when used in conjunction with our shapes to validate their [schemas](https://github.com/tldraw/tldraw/tree/main/packages/tlschema).
 
-You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
+For example, for [TLImageShape](https://github.com/tldraw/tldraw/blob/main/packages/tlschema/src/shapes/TLImageShape.ts) we have the following to help make sure the properties on a shape are consistent:
+
+```tsx
+export const imageShapeProps: RecordProps<TLImageShape> = {
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	playing: T.boolean,
+	url: T.linkUrl,
+	assetId: assetIdValidator.nullable(),
+	crop: ImageShapeCrop.nullable(),
+	flipX: T.boolean,
+	flipY: T.boolean,
+}
+```
+
+We also use the validation functions for API requests. For example, to check that the query is valid:
+
+```tsx
+const queryValidator = T.object({
+	w: T.string.optional(),
+	q: T.string.optional(),
+})
+
+queryValidator.validate(request.query)
+```
 
 ## Contribution
 
@@ -12,7 +36,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 
 ## License
 
-The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use. To purchase a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+This project is licensed under the MIT License found [here](https://github.com/tldraw/tldraw/blob/main/packages/utils/LICENSE.md). The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
 
 ## Trademarks
 
@@ -24,4 +48,4 @@ Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
 
 ## Community
 
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, check out our [Substack](https://tldraw.substack.com/).
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).

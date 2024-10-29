@@ -4,10 +4,9 @@ import { BackToTopButton } from '@/components/common/back-to-top-button'
 import { ShareButton } from '@/components/common/share-button'
 import { HeadingsMenu } from '@/components/navigation/headings-menu'
 import { Article } from '@/types/content-types'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 
-export const BlogTableOfContents: React.FC<{ article: Article }> = async ({ article }) => {
-	const db = await getDb()
+export async function BlogTableOfContents({ article }: { article: Article }) {
 	const headings = await db.getArticleHeadings(article.id)
 
 	return (

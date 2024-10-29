@@ -36,7 +36,7 @@ jobs:
         run: yarn get-info
 
       - name: Publish extension
-        run: yarn tsx ./scripts/publish-vscode-extension.ts
+        run: yarn tsx ./internal/scripts/publish-vscode-extension.ts
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           TLDRAW_ENV: ${{ (github.ref == 'refs/heads/production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') }}

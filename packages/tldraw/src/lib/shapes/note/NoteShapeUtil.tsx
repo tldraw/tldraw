@@ -71,6 +71,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			font: 'draw',
 			align: 'middle',
 			verticalAlign: 'middle',
+			labelColor: 'black',
 			growY: 0,
 			fontSizeAdjustment: 0,
 			url: '',
@@ -176,7 +177,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { scale, color, font, size, align, text, verticalAlign, fontSizeAdjustment },
+			props: {
+				labelColor,
+				scale,
+				color,
+				font,
+				size,
+				align,
+				text,
+				verticalAlign,
+				fontSizeAdjustment,
+			},
 		} = shape
 
 		const handleKeyDown = useNoteKeydownHandler(id)
@@ -214,7 +225,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					}}
 				>
 					<TextLabel
-						id={id}
+						shapeId={id}
 						type={type}
 						font={font}
 						fontSize={(fontSizeAdjustment || LABEL_FONT_SIZES[size]) * scale}
@@ -224,15 +235,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						text={text}
 						isNote
 						isSelected={isSelected}
-						labelColor={theme[color].note.text}
+						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
 						wrap
 						padding={16 * scale}
 						onKeyDown={handleKeyDown}
 					/>
 				</div>
-				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-				)}
+				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
 	}

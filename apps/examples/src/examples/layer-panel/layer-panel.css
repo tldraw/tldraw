@@ -1,0 +1,53 @@
+.layer-panel {
+	position: absolute;
+	left: 0;
+	top: 42px;
+	width: 200px;
+	height: calc(100% - 42px);
+	background: white;
+	display: flex;
+	flex-direction: column;
+}
+.shape-tree {
+	display: flex;
+	flex-direction: column;
+}
+.shape-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 6px 10px;
+}
+
+.shape-visibility-toggle {
+	padding: 3px 6px;
+	border-radius: 3px;
+	outline: none;
+	border: none;
+	background: none;
+	flex-shrink: 0;
+}
+.shape-visibility-toggle:hover {
+	cursor: pointer;
+	background-color: #0000000b;
+}
+
+.layer-panel-title {
+	padding: 10px;
+	font-size: smaller;
+	font-weight: bolder;
+}
+
+.shape-name-input {
+	border: none;
+	background: none;
+	width: 0;
+	flex-grow: 1;
+	padding: 0;
+}
+
+.shape-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-wrap: nowrap;
+}
