@@ -12,8 +12,10 @@ import { Button } from '../common/button'
 
 export function Demo() {
 	const [showCanvas, setShowCanvas] = useState<boolean>(false)
+	const [isLoading, setIsLoading] = useState<boolean>(false)
 
 	const onClick = () => {
+		setIsLoading(true)
 		setShowCanvas(true)
 	}
 
@@ -50,7 +52,12 @@ export function Demo() {
 				className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[350px] h-auto sm:hidden"
 			/>
 			<div className="absolute inset-0 bg-[#FBFCFE]/50 flex items-center justify-center">
-				<Button onClick={onClick} caption={'Try it'} icon="play" className="shadow" />
+				<Button
+					onClick={onClick}
+					caption={isLoading ? 'Loading…' : 'Try it'}
+					icon="play"
+					className="shadow"
+				/>
 			</div>
 		</div>
 	)
@@ -58,7 +65,7 @@ export function Demo() {
 	return (
 		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden">
 			<Suspense fallback={skeletonTldraw}>
-				<DemoTldraw hidden={false} />
+				<DemoTldraw hidden={!showCanvas} />
 			</Suspense>
 			{!showCanvas && skeletonTldraw}
 		</div>
