@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test'
+import type { ElementHandle, Locator, Page } from '@playwright/test'
 import { expect } from './tla-test'
 
 export class Sidebar {
@@ -30,6 +30,24 @@ export class Sidebar {
 		await this.createFileButton.click()
 	}
 
+	async getFileLink() {
+		const fileLink = await this.page.$('[data-element="file-link"]')
+		if (!fileLink) {
+			throw new Error('No file links found')
+		}
+		return fileLink
+	}
+
+	async openFileMenu(fileLink: ElementHandle<SVGElement | HTMLElement>) {
+		await fileLink?.hover()
+		const button = await fileLink?.$('button')
+		await button?.click()
+	}
+
+	async deleteFromFileMenu() {
+		// expect(this.page.getByTestId('file-menu')).toBeVisible()
+		await this.page.getByRole('menuitem', { name: 'Delete' }).click()
+	}
 	async getNumberOfFiles() {
 		return (await this.page.$$(this.fileLink)).length
 	}
