@@ -5,8 +5,8 @@ test.beforeEach(async ({ homePage }) => {
 	await homePage.isLoaded()
 })
 
-test.afterEach(async ({ store }) => {
-	await store.reset()
+test.afterEach(async ({ database }) => {
+	await database.reset()
 })
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {

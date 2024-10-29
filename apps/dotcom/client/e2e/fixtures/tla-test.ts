@@ -1,14 +1,14 @@
 import { test as base } from '@playwright/test'
+import { Database } from './Database'
 import { Editor } from './Editor'
 import { HomePage } from './HomePage'
 import { Sidebar } from './Sidebar'
-import { Store } from './Store'
 
 interface TlaFixtures {
 	homePage: HomePage
 	editor: Editor
 	sidebar: Sidebar
-	store: Store
+	database: Database
 }
 
 export const test = base.extend<TlaFixtures>({
@@ -21,8 +21,8 @@ export const test = base.extend<TlaFixtures>({
 	homePage: async ({ page, sidebar, editor }, testUse) => {
 		testUse(new HomePage(page, sidebar, editor))
 	},
-	store: async ({ page: _page }, testUse) => {
-		testUse(new Store())
+	database: async ({ page: _page }, testUse) => {
+		testUse(new Database())
 	},
 })
 export { expect } from '@playwright/test'

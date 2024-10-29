@@ -1,7 +1,7 @@
 import { execSync } from 'child_process'
 import path from 'path'
 
-export class Store {
+export class Database {
 	constructor() {}
 
 	async reset() {
