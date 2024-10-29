@@ -21,8 +21,8 @@ export const test = base.extend<TlaFixtures>({
 	homePage: async ({ page, sidebar, editor }, testUse) => {
 		testUse(new HomePage(page, sidebar, editor))
 	},
-	database: async ({ page: _page }, testUse) => {
-		testUse(new Database())
+	database: async ({ page }, testUse) => {
+		testUse(new Database(page))
 	},
 })
 export { expect } from '@playwright/test'
