@@ -1,14 +1,12 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { Editor } from './Editor'
-import { Sidebar } from './Sidebar'
 
 export class HomePage {
 	public readonly signInButton: Locator
 	public readonly tldrawEditor: Locator
 	constructor(
 		private readonly page: Page,
-		private readonly sidebar: Sidebar,
 		private readonly editor: Editor
 	) {
 		this.signInButton = this.page.getByTestId('tla-signin-button')

@@ -20,8 +20,8 @@ export const test = base.extend<TlaFixtures>({
 	editor: async ({ page, sidebar }, testUse) => {
 		testUse(new Editor(page, sidebar))
 	},
-	homePage: async ({ page, sidebar, editor }, testUse) => {
-		testUse(new HomePage(page, sidebar, editor))
+	homePage: async ({ page, editor }, testUse) => {
+		testUse(new HomePage(page, editor))
 	},
 	database: async ({ page }, testUse) => {
 		testUse(new Database(page))

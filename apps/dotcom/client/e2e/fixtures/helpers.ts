@@ -10,7 +10,7 @@ export async function openNewIncognitoPage(browser: Browser, url?: string) {
 	if (url) await newPage.goto(url)
 	const newSidebar = new Sidebar(newPage)
 	const newEditor = new Editor(newPage, newSidebar)
-	const newHomePage = new HomePage(newPage, newSidebar, newEditor)
+	const newHomePage = new HomePage(newPage, newEditor)
 	const errorPage = new ErrorPage(newPage)
 	return { newPage, newContext, newHomePage, newEditor, errorPage }
 }
