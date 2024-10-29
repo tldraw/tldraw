@@ -3,17 +3,17 @@ import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { Button } from '../common/button'
 
-export const InstallationSection = () => {
+export function InstallationSection() {
 	return (
 		<Section>
 			<SectionHeading
-				subheading="Features"
+				subheading="show me code"
 				heading="Installation"
 				description="Install the tldraw package, import the styles, and render the component in your React app."
 			/>
-			<div className="flex flex-col items-center gap-8 mt-8 md:max-w-2xl mx-auto">
-				<CodeFiles files={[code.terminal]} hideTabs className="my-0 w-full" />
-				<CodeFiles files={[code.app]} className="my-0 w-full" />
+			<div className="flex flex-col items-center gap-8 mx-auto mt-8 md:max-w-2xl">
+				<CodeFiles files={[code.terminal]} hideTabs className="w-full my-0" />
+				<CodeFiles files={[code.app]} className="w-full my-0" />
 				<Button href="/quick-start" caption="Read our Quick Start guide" />
 			</div>
 		</Section>

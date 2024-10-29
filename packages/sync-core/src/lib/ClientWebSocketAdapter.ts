@@ -4,9 +4,11 @@ import { assert, warnOnce } from '@tldraw/utils'
 import { chunk } from './chunk'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from './protocol'
 import {
-	TLCloseEventCode,
 	TLPersistentClientSocket,
 	TLPersistentClientSocketStatus,
+	TLSocketStatusListener,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
 } from './TLSyncClient'
 
 function listenTo<T extends EventTarget>(target: T, event: string, handler: () => void) {
@@ -39,7 +41,6 @@ function debug(...args: any[]) {
 //       they don't seem to be surfaced in browser APIs and can't be relied on. Therefore,
 //       pings need to be implemented one level up, on the application API side, which for our
 //       codebase means whatever code that uses ClientWebSocketAdapter.
-
 /** @internal */
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord> {
 	_ws: WebSocket | null = null
@@ -66,16 +67,19 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		debug('handleConnect')
 
 		this._connectionStatus.set('online')
-		this.statusListeners.forEach((cb) => cb('online'))
+		this.statusListeners.forEach((cb) => cb({ status: 'online' }))
 
 		this._reconnectManager.connected()
 	}
 
 	private _handleDisconnect(
-		reason: 'closed' | 'error' | 'manual',
+		reason: 'closed' | 'manual',
 		closeCode?: number,
-		didOpen?: boolean
+		didOpen?: boolean,
+		closeReason?: string
 	) {
+		closeReason = closeReason || TLSyncErrorCloseEventReason.UNKNOWN_ERROR
+
 		debug('handleDisconnect', {
 			currentStatus: this.connectionStatus,
 			closeCode,
@@ -85,14 +89,11 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		let newStatus: 'offline' | 'error'
 		switch (reason) {
 			case 'closed':
-				if (closeCode === TLCloseEventCode.NOT_FOUND) {
+				if (closeCode === TLSyncErrorCloseEventCode) {
 					newStatus = 'error'
-					break
+				} else {
+					newStatus = 'offline'
 				}
-				newStatus = 'offline'
-				break
-			case 'error':
-				newStatus = 'error'
 				break
 			case 'manual':
 				newStatus = 'offline'
@@ -112,7 +113,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 			!(newStatus === 'error' && this.connectionStatus === 'offline')
 		) {
 			this._connectionStatus.set(newStatus)
-			this.statusListeners.forEach((cb) => cb(newStatus, closeCode))
+			this.statusListeners.forEach((cb) =>
+				cb(newStatus === 'error' ? { status: 'error', reason: closeReason } : { status: newStatus })
+			)
 		}
 
 		this._reconnectManager.disconnected()
@@ -145,7 +148,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		ws.onclose = (event: CloseEvent) => {
 			debug('ws.onclose', event)
 			if (this._ws === ws) {
-				this._handleDisconnect('closed', event.code, didOpen)
+				this._handleDisconnect('closed', event.code, didOpen, event.reason)
 			} else {
 				debug('ignoring onclose for an orphaned socket')
 			}
@@ -153,7 +156,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		ws.onerror = (event) => {
 			debug('ws.onerror', event)
 			if (this._ws === ws) {
-				this._handleDisconnect('error')
+				this._handleDisconnect('closed')
 			} else {
 				debug('ignoring onerror for an orphaned socket')
 			}
@@ -216,10 +219,8 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		}
 	}
 
-	private statusListeners = new Set<
-		(status: TLPersistentClientSocketStatus, closeCode?: number) => void
-	>()
-	onStatusChange(cb: (val: TLPersistentClientSocketStatus, closeCode?: number) => void) {
+	private statusListeners = new Set<TLSocketStatusListener>()
+	onStatusChange(cb: TLSocketStatusListener) {
 		assert(!this.isDisposed, 'Tried to add status listener on a disposed socket')
 
 		this.statusListeners.add(cb)

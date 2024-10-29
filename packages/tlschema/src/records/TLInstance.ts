@@ -109,12 +109,13 @@ export const shouldKeyBePreservedBetweenSessions = {
 } as const satisfies { [K in keyof TLInstance]: boolean }
 
 /** @internal */
-export const pluckPreservingValues = (val?: TLInstance | null): null | Partial<TLInstance> =>
-	val
+export function pluckPreservingValues(val?: TLInstance | null): null | Partial<TLInstance> {
+	return val
 		? (filterEntries(val, (key) => {
 				return shouldKeyBePreservedBetweenSessions[key as keyof TLInstance]
 			}) as Partial<TLInstance>)
 		: null
+}
 
 /** @public */
 export type TLInstanceId = RecordId<TLInstance>
@@ -217,7 +218,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			},
 			isFocusMode: false,
 			exportBackground: false,
-			isDebugMode: process.env.NODE_ENV === 'development',
+			isDebugMode: false,
 			isToolLocked: false,
 			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 			insets: [false, false, false, false],

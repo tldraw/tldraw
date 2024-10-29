@@ -50,6 +50,7 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 	/** Collaboration options for the store. */
 	collaboration?: {
 		status: Signal<'online' | 'offline'> | null
+		mode?: Signal<'readonly' | 'readwrite'> | null
 	}
 } & TLStoreSchemaOptions
 

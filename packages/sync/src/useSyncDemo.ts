@@ -194,7 +194,7 @@ async function createAssetFromUrlUsingDemoServer(host: string, url: string): Pro
 		const fetchUrl = new URL(`${host}/bookmarks/unfurl`)
 		fetchUrl.searchParams.set('url', url)
 
-		const meta = (await (await fetch(fetchUrl)).json()) as {
+		const meta = (await (await fetch(fetchUrl, { method: 'POST' })).json()) as {
 			description?: string
 			image?: string
 			favicon?: string

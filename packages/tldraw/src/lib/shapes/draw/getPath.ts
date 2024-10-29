@@ -122,14 +122,12 @@ export function getPointsFromSegments(segments: TLDrawShapeSegment[]) {
 export function getDrawShapeStrokeDashArray(
 	shape: TLDrawShape,
 	strokeWidth: number,
-	zoomLevel: number
+	dotAdjustment: number
 ) {
 	return {
 		draw: 'none',
 		solid: `none`,
-		// If we're zoomed way out (10%), then we need to make the dotted line go to 9 instead 0.1
-		// Chrome doesn't render anything otherwise.
-		dotted: `${zoomLevel < 0.2 ? 0 : 0.1} ${strokeWidth * 2}`,
+		dotted: `${dotAdjustment} ${strokeWidth * 2}`,
 		dashed: `${strokeWidth * 2} ${strokeWidth * 2}`,
 	}[shape.props.dash]
 }

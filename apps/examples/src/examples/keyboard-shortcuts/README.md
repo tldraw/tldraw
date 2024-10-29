@@ -1,6 +1,6 @@
 ---
 title: Keyboard shortcuts
-component: ./KeyboardShortcuts.tsx
+component: ./KeyboardShortcutsExample.tsx
 category: ui
 priority: 2
 keywords: [dialog, overrides, actions, tools]

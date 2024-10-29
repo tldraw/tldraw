@@ -1,37 +1,47 @@
 'use client'
 
 import { Button } from '@/components/common/button'
+import { submitNewsletterSignup } from '@/scripts/submit-newsletter-signup'
 import { cn } from '@/utils/cn'
 import { useLocalStorageState } from '@/utils/storage'
 import { Field, Input, Label } from '@headlessui/react'
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/20/solid'
-import { FC, FormEventHandler, useCallback, useState } from 'react'
+import { FormEventHandler, useCallback, useState } from 'react'
 
 // when debugging is true, the form will always show (even if the user has submitted)
 const DEBUGGING = false
 
-export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'large' }) => {
+export function NewsletterSignup({
+	bg = true,
+	size = 'large',
+	hideAfterSubmit = true,
+}: {
+	bg?: boolean
+	size?: 'small' | 'large'
+	hideAfterSubmit?: boolean
+}) {
 	// If the user has submitted their email, we don't show the form anymore
 	const [didSubmit, setDidSubmit] = useLocalStorageState('dev_did_submit_newsletter', false)
 
 	// Todo: replace with react query or something to handle the async work
-	const [formState, setFormState] = useState<'idle' | 'success' | 'error'>('idle')
+	const [formState, setFormState] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
 	const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
-		(e) => {
+		async (e) => {
 			if (formState !== 'idle') return
-
 			e.preventDefault()
+			setFormState('loading')
 			try {
 				const _email = new FormData(e.currentTarget)?.get('email') as string
-				// todo: submit email to backend...
+				const { error } = await submitNewsletterSignup(_email)
+				if (error) throw error
 				setFormState('success')
 				// After a pause, we locally save that the user has submitted the form
 				setTimeout(() => {
 					setDidSubmit(true)
 					setTimeout(() => setFormState('idle'), 3000)
 				}, 3000)
-			} catch (e) {
+			} catch {
 				setFormState('error')
 				// After a pause, we set the form state to idle
 				setTimeout(() => setFormState('idle'), 3000)
@@ -42,12 +52,14 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 
 	// If the user has already submitted the form, we don't show it anymore,
 	// unless we're both in development mode AND the debug flag is enabled.
-	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null
+	if (hideAfterSubmit && didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) {
+		return null
+	}
 
 	return (
 		<div
 			className={cn(
-				'bg-zinc-50 dark:bg-zinc-900',
+				bg ? 'bg-zinc-50 dark:bg-zinc-900' : 'bg-transparent',
 				size === 'small'
 					? 'mt-12 rounded-lg text-xs xl:-ml-4 p-4 pb-1'
 					: 'rounded-xl p-8 sm:p-12 text-center'
@@ -95,9 +107,10 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 					arrow="right"
 					size={size === 'small' ? 'xs' : 'base'}
 					className={cn('justify-center', size === 'small' && 'w-full mt-2')}
+					loading={formState === 'loading'}
 				/>
 			</form>
-			{formState === 'idle' && size === 'large' && (
+			{(formState === 'idle' || formState === 'loading') && size === 'large' && (
 				<p className="mb-3 text-sm">Join 1,000+ subscribers</p>
 			)}
 			{formState === 'success' && (
@@ -125,3 +138,13 @@ export const NewsletterSignup: FC<{ size?: 'small' | 'large' }> = ({ size = 'lar
 		</div>
 	)
 }
+
+// Sendgrid List
+// {
+//     "name": "Tldraw Blog Newsletter",
+//     "id": "f6dff24d-dbfb-4ceb-a76b-2cde94ac241b",
+//     "contact_count": 0,
+//     "_metadata": {
+//         "self": "https://api.sendgrid.com/v3/marketing/lists/f6dff24d-dbfb-4ceb-a76b-2cde94ac241b"
+//     }
+// }

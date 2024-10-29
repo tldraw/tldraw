@@ -14,6 +14,8 @@ function parseSvg({ svg }: { svg: string } = { svg: '' }) {
 	return parser.parseFromString(svg, 'image/svg+xml').firstElementChild as SVGSVGElement
 }
 
+jest.useRealTimers()
+
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.setStyleForNextShapes(DefaultDashStyle, 'solid')

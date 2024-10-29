@@ -27,7 +27,6 @@ export class WebViewMessageHandler {
 	) {}
 
 	isLoaded = false
-	firstChangeDone = false
 
 	// eslint-disable-next-line local/prefer-class-methods
 	handle = async (e: VscodeMessage) => {
@@ -124,11 +123,6 @@ export class WebViewMessageHandler {
 			}
 			case 'vscode:editor-updated': {
 				if (!this.isLoaded) return
-
-				if (!this.firstChangeDone) {
-					this.firstChangeDone = true
-					return
-				}
 
 				const raw = e.data.fileContents
 				if (!raw) return

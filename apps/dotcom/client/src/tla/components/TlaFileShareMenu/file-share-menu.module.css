@@ -1,0 +1,115 @@
+.shareMenu {
+	width: 240px;
+}
+
+/* Copy button */
+
+.copyButtonIcon {
+	position: absolute;
+	right: 10px;
+}
+
+/* QR Code */
+
+.qrCode {
+	position: relative;
+	width: 100%;
+	height: 216px;
+	overflow: hidden;
+	border-radius: 4px;
+	padding: 8px;
+	border: 1px solid var(--tla-color-border);
+	background-color: var(--tla-color-panel);
+}
+
+.qrCodeInner {
+	width: 100%;
+	height: auto;
+	border-radius: 3px;
+	pointer-events: all;
+}
+
+.qrCodeInner[data-theme='dark'] {
+	filter: invert(100%);
+}
+
+/* Export preview */
+
+.exportPreview {
+	position: relative;
+	width: 100%;
+	height: 216px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	overflow: hidden;
+	border-radius: 4px;
+	border: 1px solid var(--tla-color-border);
+	background-color: var(--tla-color-panel);
+}
+
+.exportPreviewInner {
+	width: auto;
+	height: auto;
+	max-height: 216px;
+	pointer-events: all;
+	border: 1px solid var(--tla-color-border);
+	box-sizing: content-box;
+}
+
+.exportPreviewSize {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	background-color: var(--tla-color-panel);
+	padding: 1px 4px;
+	text-align: right;
+	border-top-left-radius: 4px;
+}
+
+/* Help state toggle */
+
+.helpButton {
+	all: unset;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--tla-color-text-3);
+	cursor: pointer;
+}
+
+.helpButton[data-active='true'] {
+	color: var(--tla-color-text-1);
+}
+
+@media (hover: hover) {
+	.helpButton:hover {
+		color: var(--tla-color-text-1);
+	}
+}
+
+/* Help item */
+
+.helpItem {
+	position: relative;
+	color: var(--tla-color-text-1);
+	font-weight: 400;
+	background-color: var(--tla-color-low);
+	border: 1px solid var(--tla-color-border);
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 16px;
+	display: flex;
+	flex-direction: column;
+}
+
+.helpItem p {
+	margin: 0px;
+	padding: 12px;
+}

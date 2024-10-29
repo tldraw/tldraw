@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react'
 import { TLUiEventSource } from '../../../context/events'
 
 /** @public */
-export type TldrawUiMenuContextType =
+export type TLUiMenuContextType =
 	| 'panel'
 	| 'menu'
 	| 'small-icons'
@@ -14,7 +14,7 @@ export type TldrawUiMenuContextType =
 	| 'toolbar-overflow'
 
 const menuContext = createContext<{
-	type: TldrawUiMenuContextType
+	type: TLUiMenuContextType
 	sourceId: TLUiEventSource
 } | null>(null)
 
@@ -29,7 +29,7 @@ export function useTldrawUiMenuContext() {
 
 /** @public */
 export interface TLUiMenuContextProviderProps {
-	type: TldrawUiMenuContextType
+	type: TLUiMenuContextType
 	sourceId: TLUiEventSource
 	children: React.ReactNode
 }

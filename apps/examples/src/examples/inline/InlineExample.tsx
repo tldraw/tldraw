@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from 'react'
-import { Editor, Tldraw } from 'tldraw'
+import { Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 const FocusedEditorContext = createContext(
@@ -37,15 +37,11 @@ function InlineEditor({ width, height }: { width: number; height: number }) {
 
 	const title = `${width} x ${height}`
 
-	const handleMount = (editor: Editor) => {
-		editor.updateInstanceState({ isDebugMode: false })
-	}
-
 	return (
 		<div>
 			<h2>{title}</h2>
 			<div style={{ width, height }} onFocus={() => setFocusedEditor(title)}>
-				<Tldraw onMount={handleMount} autoFocus={focusedEditor === title} />
+				<Tldraw autoFocus={focusedEditor === title} />
 			</div>
 		</div>
 	)

@@ -14,7 +14,7 @@ import PlaygroundLogo from '../../public/images/case-studies/playground-logo.png
 import Playground from '../../public/images/case-studies/playground.jpg'
 import { Card } from './card'
 
-export const CaseStudiesSection = () => {
+export function CaseStudiesSection() {
 	return (
 		<Section>
 			<SectionHeading

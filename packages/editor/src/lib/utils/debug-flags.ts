@@ -8,11 +8,7 @@ import { deleteFromSessionStorage, getFromSessionStorage, setInSessionStorage } 
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags: Record<string, DebugFlag<boolean>> = {
-	enableLicensing: createFeatureFlag('enableLicensing', {
-		defaults: { all: true, production: false },
-	}),
-}
+export const featureFlags: Record<string, DebugFlag<boolean>> = {}
 
 /** @internal */
 export const pointerCaptureTrackingObject = createDebugValue(
@@ -108,19 +104,19 @@ function createDebugValue<T>(
 	})
 }
 
-function createFeatureFlag<T>(
-	name: string,
-	{
-		defaults,
-		shouldStoreForSession = true,
-	}: { defaults: DebugFlagDefaults<T>; shouldStoreForSession?: boolean }
-) {
-	return createDebugValueBase({
-		name,
-		defaults,
-		shouldStoreForSession,
-	})
-}
+// function createFeatureFlag<T>(
+// 	name: string,
+// 	{
+// 		defaults,
+// 		shouldStoreForSession = true,
+// 	}: { defaults: DebugFlagDefaults<T>; shouldStoreForSession?: boolean }
+// ) {
+// 	return createDebugValueBase({
+// 		name,
+// 		defaults,
+// 		shouldStoreForSession,
+// 	})
+// }
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
@@ -158,7 +154,7 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 function getStoredInitialValue(name: string) {
 	try {
 		return JSON.parse(getFromSessionStorage(`tldraw_debug:${name}`) ?? 'null')
-	} catch (err) {
+	} catch {
 		return null
 	}
 }

@@ -36,6 +36,12 @@ export function UserPresenceEditor() {
 		rOriginalName.current = rCurrentName.current
 	}, [trackEvent])
 
+	const handleCancel = useCallback(() => {
+		setIsEditingName(false)
+		editor.user.updateUserPreferences({ name: rOriginalName.current })
+		editor.menus.clearOpenMenus()
+	}, [editor])
+
 	return (
 		<div className="tlui-people-menu__user">
 			<UserPresenceColorPicker />
@@ -45,7 +51,7 @@ export function UserPresenceEditor() {
 					defaultValue={userName}
 					onValueChange={handleValueChange}
 					onComplete={toggleEditingName}
-					onCancel={toggleEditingName}
+					onCancel={handleCancel}
 					onBlur={handleBlur}
 					shouldManuallyMaintainScrollPositionWhenFocused
 					autoFocus

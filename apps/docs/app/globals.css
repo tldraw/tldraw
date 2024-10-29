@@ -1,6 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('./demo.css');
+
+html {
+	scroll-padding-top: 72px;
+}
 
 @layer base {
 	.prose h2 a,
@@ -27,5 +32,15 @@
 	input[type='search']::-webkit-search-results-button,
 	input[type='search']::-webkit-search-results-decoration {
 		-webkit-appearance: none;
+	}
+
+	@media (max-width: 768px) {
+		.prose table {
+			table-layout: fixed;
+		}
+
+		.prose td {
+			word-break: break-word;
+		}
 	}
 }

@@ -59,7 +59,9 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 	if (schema.schemaVersion === 2) return Result.ok(schema as SerializedSchemaV2)
 	const result: SerializedSchemaV2 = {
 		schemaVersion: 2,
-		sequences: {},
+		sequences: {
+			'com.tldraw.store': schema.storeVersion,
+		},
 	}
 
 	for (const [typeName, recordVersion] of Object.entries(schema.recordVersions)) {
@@ -74,16 +76,19 @@ export function upgradeSchema(schema: SerializedSchema): Result<SerializedSchema
 }
 
 /** @public */
+export interface StoreValidationFailure<R extends UnknownRecord> {
+	error: unknown
+	store: Store<R>
+	record: R
+	phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
+	recordBefore: R | null
+}
+
+/** @public */
 export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 	migrations?: MigrationSequence[]
 	/** @public */
-	onValidationFailure?(data: {
-		error: unknown
-		store: Store<R>
-		record: R
-		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
-		recordBefore: R | null
-	}): R
+	onValidationFailure?(data: StoreValidationFailure<R>): R
 	/** @internal */
 	createIntegrityChecker?(store: Store<R, P>): void
 }

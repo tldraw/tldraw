@@ -47,18 +47,13 @@ export class Drawing extends StateNode {
 	mergeNextPoint = false
 	currentLineLength = 0
 
-	canDraw = false
-
 	markId = null as null | string
 
 	override onEnter(info: TLPointerEventInfo) {
 		this.markId = null
 		this.info = info
-		this.canDraw = !this.editor.getIsMenuOpen()
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
-		if (this.canDraw) {
-			this.startShape()
-		}
+		this.startShape()
 	}
 
 	override onPointerMove() {
@@ -73,32 +68,24 @@ export class Drawing extends StateNode {
 				this.startShape()
 				return
 			}
-		} else {
-			// If we came in from a menu but have no started dragging...
-			if (!this.canDraw && inputs.isDragging) {
-				this.startShape()
-				this.canDraw = true // bad name
-			}
 		}
 
-		if (this.canDraw) {
-			if (this.isPenOrStylus) {
-				// Don't update the shape if we haven't moved far enough from the last time we recorded a point
-				if (
-					Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
-					1 / this.editor.getZoomLevel()
-				) {
-					this.lastRecordedPoint = inputs.currentPagePoint.clone()
-					this.mergeNextPoint = false
-				} else {
-					this.mergeNextPoint = true
-				}
-			} else {
+		if (this.isPenOrStylus) {
+			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
+			if (
+				Vec.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
+				1 / this.editor.getZoomLevel()
+			) {
+				this.lastRecordedPoint = inputs.currentPagePoint.clone()
 				this.mergeNextPoint = false
+			} else {
+				this.mergeNextPoint = true
 			}
-
-			this.updateDrawingShape()
+		} else {
+			this.mergeNextPoint = false
 		}
+
+		this.updateDrawingShape()
 	}
 
 	override onKeyDown(info: TLKeyboardEventInfo) {
@@ -716,15 +703,6 @@ export class Drawing extends StateNode {
 	}
 
 	complete() {
-		// If we weren't focused when the drawing shape started, and if
-		// we haven't dragged far enough to start dragging, then don't do
-		// anything here. Most likely we clicked back into the canvas from
-		// a menu or other UI element.
-		if (!this.canDraw) {
-			this.cancel()
-			return
-		}
-
 		const { initialShape } = this
 		if (!initialShape) return
 		this.editor.updateShapes([

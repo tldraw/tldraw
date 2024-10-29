@@ -25,12 +25,12 @@ jobs:
     concurrency: bemo-${{ github.ref == 'refs/heads/bemo-production' && 'bemo-production' || github.ref }}
 
     steps:
-      - name: Notify initial start
-        uses: MineBartekSA/discord-webhook@v2
-        if: github.ref == 'refs/heads/bemo-production'
-        with:
-          webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
-          content: 'Preparing ${{ env.TLDRAW_ENV }} bemo deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
+      # - name: Notify initial start
+      #   uses: MineBartekSA/discord-webhook@v2
+      #   if: github.ref == 'refs/heads/bemo-production'
+      #   with:
+      #     webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+      #     content: 'Preparing ${{ env.TLDRAW_ENV }} bemo deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
 
       - name: Check out code
         uses: actions/checkout@v3
@@ -43,7 +43,7 @@ jobs:
         run: yarn build-types
 
       - name: Deploy
-        run: yarn tsx scripts/deploy-bemo.ts
+        run: yarn tsx internal/scripts/deploy-bemo.ts
         env:
           RELEASE_COMMIT_HASH: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
