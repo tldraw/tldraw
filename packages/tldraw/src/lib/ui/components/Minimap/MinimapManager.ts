@@ -9,6 +9,7 @@ import {
 	clamp,
 	computed,
 	react,
+	tlenv,
 	uniqueId,
 } from '@tldraw/editor'
 import { getRgba } from './getRgba'
@@ -277,7 +278,7 @@ export class MinimapManager {
 		this.gl.prepareTriangles(this.gl.viewport, len)
 		this.gl.setFillColor(this.colors.viewportFill)
 		this.gl.drawTrianglesTransparently(len)
-		if (this.editor.environment.isSafari) {
+		if (tlenv.isSafari) {
 			this.gl.drawTrianglesTransparently(len)
 			this.gl.drawTrianglesTransparently(len)
 			this.gl.drawTrianglesTransparently(len)

@@ -36,9 +36,9 @@ export interface NetworkDiff<R extends UnknownRecord> {
  *
  *@internal
  */
-export const getNetworkDiff = <R extends UnknownRecord>(
+export function getNetworkDiff<R extends UnknownRecord>(
 	diff: RecordsDiff<R>
-): NetworkDiff<R> | null => {
+): NetworkDiff<R> | null {
 	let res: NetworkDiff<R> | null = null
 
 	for (const [k, v] of objectMapEntries(diff.added)) {

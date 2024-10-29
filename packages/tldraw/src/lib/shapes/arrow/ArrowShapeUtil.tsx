@@ -7,6 +7,7 @@ import {
 	Group2d,
 	Rectangle2d,
 	SVGContainer,
+	SafeId,
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowBinding,
@@ -26,19 +27,21 @@ import {
 	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
+	sanitizeId,
 	structuredClone,
 	toDomPrecision,
 	track,
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
+	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
 	getFillDefForExport,
@@ -61,8 +64,6 @@ import {
 	getArrowTerminalsInArrowSpace,
 	removeArrowBinding,
 } from './shared'
-
-let globalRenderIndex = 0
 
 enum ARROW_HANDLES {
 	START = 'start',
@@ -597,7 +598,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'select.dragging_handle',
 				'select.translating',
 				'arrow.dragging'
-			) && !this.editor.getInstanceState().isReadonly
+			) && !this.editor.getIsReadonly()
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const { TextLabel } = useEditorComponents()
@@ -612,7 +613,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		return (
 			<>
-				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
+				<SVGContainer style={{ minWidth: 50, minHeight: 50 }}>
 					<ArrowSvg
 						shape={shape}
 						shouldDisplayHandles={shouldDisplayHandles && onlySelectedShape?.id === shape.id}
@@ -620,7 +621,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				</SVGContainer>
 				{showArrowLabel && (
 					<TextLabel
-						id={shape.id}
+						shapeId={shape.id}
 						classNamePrefix="tl-arrow"
 						type="arrow"
 						font={shape.props.font}
@@ -630,7 +631,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						verticalAlign="middle"
 						text={shape.props.text}
 						labelColor={theme[shape.props.labelColor].solid}
-						textWidth={labelPosition.box.w}
+						textWidth={labelPosition.box.w - ARROW_LABEL_PADDING * 2 * shape.props.scale}
 						isSelected={isSelected}
 						padding={0}
 						style={{
@@ -664,12 +665,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const path = info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info)
 
-		const includeMask =
+		const includeClipPath =
 			(as && info.start.arrowhead !== 'arrow') ||
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
 
-		const maskId = (shape.id + '_clip').replace(':', '_')
+		const clipPathId = sanitizeId(shape.id + '_clip')
 
 		if (isEditing && labelGeometry) {
 			return (
@@ -683,51 +684,32 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				/>
 			)
 		}
+		const clipStartArrowhead = !(
+			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
+		)
+		const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
 		return (
 			<g>
-				{includeMask && (
+				{includeClipPath && (
 					<defs>
-						<mask id={maskId}>
-							<rect
-								x={bounds.minX - 100}
-								y={bounds.minY - 100}
-								width={bounds.w + 200}
-								height={bounds.h + 200}
-								fill="white"
-							/>
-							{labelGeometry && (
-								<rect
-									x={toDomPrecision(labelGeometry.x)}
-									y={toDomPrecision(labelGeometry.y)}
-									width={labelGeometry.w}
-									height={labelGeometry.h}
-									fill="black"
-									rx={3.5 * shape.props.scale}
-									ry={3.5 * shape.props.scale}
-								/>
-							)}
-							{as && (
-								<path
-									d={as}
-									fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'}
-									stroke="none"
-								/>
-							)}
-							{ae && (
-								<path
-									d={ae}
-									fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'}
-									stroke="none"
-								/>
-							)}
-						</mask>
+						<ArrowClipPath
+							hasText={shape.props.text.trim().length > 0}
+							bounds={bounds}
+							labelBounds={labelGeometry ? labelGeometry.getBounds() : new Box(0, 0, 0, 0)}
+							as={clipStartArrowhead && as ? as : ''}
+							ae={clipEndArrowhead && ae ? ae : ''}
+						/>
 					</defs>
 				)}
-				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
-				<g {...(includeMask ? { mask: `url(#${maskId})` } : undefined)}>
+				<g
+					style={{
+						clipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
+						WebkitClipPath: includeClipPath ? `url(#${clipPathId})` : undefined,
+					}}
+				>
 					{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
-					{includeMask && (
+					{includeClipPath && (
 						<rect
 							x={bounds.minX - 100}
 							y={bounds.minY - 100}
@@ -791,8 +773,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					verticalAlign="middle"
 					text={shape.props.text}
 					labelColor={theme[shape.props.labelColor].solid}
-					bounds={getArrowLabelPosition(this.editor, shape).box}
-					padding={4 * shape.props.scale}
+					bounds={getArrowLabelPosition(this.editor, shape)
+						.box.clone()
+						.expandBy(-ARROW_LABEL_PADDING * shape.props.scale)}
+					padding={0}
 				/>
 			</g>
 		)
@@ -861,10 +845,9 @@ const ArrowSvg = track(function ArrowSvg({
 		[editor]
 	)
 
-	const changeIndex = React.useMemo<number>(() => {
-		return editor.environment.isSafari ? (globalRenderIndex += 1) : 0
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [shape])
+	const clipPathId = sanitizeId(shape.id + '_clip') as SafeId
+	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
+	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 
 	if (!info?.isValid) return null
 
@@ -902,8 +885,8 @@ const ArrowSvg = track(function ArrowSvg({
 							? bindings.start.props.isExact
 								? ''
 								: bindings.start.props.isPrecise
-									? 'url(#arrowhead-cross)'
-									: 'url(#arrowhead-dot)'
+									? `url(#${arrowheadCrossId})`
+									: `url(#${arrowheadDotId})`
 							: ''
 					}
 					markerEnd={
@@ -911,8 +894,8 @@ const ArrowSvg = track(function ArrowSvg({
 							? bindings.end.props.isExact
 								? ''
 								: bindings.end.props.isPrecise
-									? 'url(#arrowhead-cross)'
-									: 'url(#arrowhead-dot)'
+									? `url(#${arrowheadCrossId})`
+									: `url(#${arrowheadDotId})`
 							: ''
 					}
 					opacity={0.16}
@@ -931,43 +914,22 @@ const ArrowSvg = track(function ArrowSvg({
 
 	const labelPosition = getArrowLabelPosition(editor, shape)
 
-	const maskStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
-	const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
-
-	// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
-	// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
-	const maskId = (shape.id + '_clip_' + changeIndex).replace(':', '_')
+	const clipStartArrowhead = !(info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow')
+	const clipEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
 
 	return (
 		<>
 			{/* Yep */}
 			<defs>
-				<mask id={maskId}>
-					<rect
-						x={toDomPrecision(-100 + bounds.minX)}
-						y={toDomPrecision(-100 + bounds.minY)}
-						width={toDomPrecision(bounds.width + 200)}
-						height={toDomPrecision(bounds.height + 200)}
-						fill="white"
+				<clipPath id={clipPathId}>
+					<ArrowClipPath
+						hasText={shape.props.text.trim().length > 0}
+						bounds={bounds}
+						labelBounds={labelPosition.box}
+						as={clipStartArrowhead && as ? as : ''}
+						ae={clipEndArrowhead && ae ? ae : ''}
 					/>
-					{shape.props.text.trim() && (
-						<rect
-							x={labelPosition.box.x}
-							y={labelPosition.box.y}
-							width={labelPosition.box.w}
-							height={labelPosition.box.h}
-							fill="black"
-							rx={4}
-							ry={4}
-						/>
-					)}
-					{as && maskStartArrowhead && (
-						<path d={as} fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
-					)}
-					{ae && maskEndArrowhead && (
-						<path d={ae} fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'} stroke="none" />
-					)}
-				</mask>
+				</clipPath>
 			</defs>
 			<g
 				fill="none"
@@ -978,8 +940,12 @@ const ArrowSvg = track(function ArrowSvg({
 				pointerEvents="none"
 			>
 				{handlePath}
-				{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
-				<g mask={`url(#${maskId})`}>
+				<g
+					style={{
+						clipPath: `url(#${clipPathId})`,
+						WebkitClipPath: `url(#${clipPathId})`,
+					}}
+				>
 					<rect
 						x={toDomPrecision(bounds.minX - 100)}
 						y={toDomPrecision(bounds.minY - 100)}
@@ -989,7 +955,7 @@ const ArrowSvg = track(function ArrowSvg({
 					/>
 					<path d={path} strokeDasharray={strokeDasharray} strokeDashoffset={strokeDashoffset} />
 				</g>
-				{as && maskStartArrowhead && shape.props.fill !== 'none' && (
+				{as && clipStartArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
 						theme={theme}
 						d={as}
@@ -998,7 +964,7 @@ const ArrowSvg = track(function ArrowSvg({
 						scale={shape.props.scale}
 					/>
 				)}
-				{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
+				{ae && clipEndArrowhead && shape.props.fill !== 'none' && (
 					<ShapeFill
 						theme={theme}
 						d={ae}
@@ -1013,6 +979,30 @@ const ArrowSvg = track(function ArrowSvg({
 		</>
 	)
 })
+
+function ArrowClipPath({
+	hasText,
+	bounds,
+	labelBounds,
+	as,
+	ae,
+}: {
+	hasText: boolean
+	bounds: Box
+	labelBounds: Box
+	as: string
+	ae: string
+}) {
+	// The direction in which we create the different path parts is important, as it determines what gets clipped.
+	// See the description on the directions in the non-zero fill rule example:
+	// https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/fill-rule#nonzero
+	// We create this one in the clockwise direction
+	const boundingBoxPath = `M${toDomPrecision(bounds.minX - 100)},${toDomPrecision(bounds.minY - 100)} h${bounds.width + 200} v${bounds.height + 200} h-${bounds.width + 200} Z`
+	// We create this one in the counter-clockwise direction, which cuts out the label box
+	const labelBoxPath = `M${toDomPrecision(labelBounds.minX)},${toDomPrecision(labelBounds.minY)} v${labelBounds.height} h${labelBounds.width} v-${labelBounds.height} Z`
+	// We also append the arrowhead paths to the clip path, so that we also clip the arrowheads
+	return <path d={`${boundingBoxPath}${hasText ? labelBoxPath : ''}${as}${ae}`} />
+}
 
 const shapeAtTranslationStart = new WeakMap<
 	TLArrowShape,
@@ -1030,16 +1020,18 @@ const shapeAtTranslationStart = new WeakMap<
 >()
 
 function ArrowheadDotDef() {
+	const id = useSharedSafeId('arrowhead-dot')
 	return (
-		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
+		<marker id={id} className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
 			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
 		</marker>
 	)
 }
 
 function ArrowheadCrossDef() {
+	const id = useSharedSafeId('arrowhead-cross')
 	return (
-		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
+		<marker id={id} className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
 			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>

@@ -7,12 +7,12 @@ import {
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
 
-export const DetailsSection = () => {
+export function DetailsSection() {
 	return (
 		<Section>
 			<SectionHeading
-				subheading="Features"
-				heading="Fine-tuned details"
+				subheading="details"
+				heading="Beautiful software"
 				description="Carefully considered details that turn table-stakes features into best-in-class user experience."
 			/>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-5">

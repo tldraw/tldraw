@@ -436,7 +436,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { fill, font, align, verticalAlign, size, text } = props
 		const theme = useDefaultColorTheme()
 		const { editor } = this
-		const isSelected = shape.id === editor.getOnlySelectedShapeId()
+		const isOnlySelected = useValue(
+			'isGeoOnlySelected',
+			() => shape.id === editor.getOnlySelectedShapeId(),
+			[]
+		)
 		const isEditingAnything = editor.getEditingShapeId() !== null
 		const showHtmlContainer = isEditingAnything || shape.props.text
 		const isForceSolid = useValue(
@@ -451,7 +455,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		return (
 			<>
-				<SVGContainer id={id}>
+				<SVGContainer>
 					<GeoShapeBody shape={shape} shouldScale={true} forceSolid={isForceSolid} />
 				</SVGContainer>
 				{showHtmlContainer && (
@@ -464,7 +468,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					>
 						{TextLabel && (
 							<TextLabel
-								id={id}
+								shapeId={id}
 								type={type}
 								font={font}
 								fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
@@ -474,16 +478,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 								align={align}
 								verticalAlign={verticalAlign}
 								text={text}
-								isSelected={isSelected}
+								isSelected={isOnlySelected}
 								labelColor={theme[props.labelColor].solid}
 								wrap
 							/>
 						)}
 					</HTMLContainer>
 				)}
-				{shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-				)}
+				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
 	}

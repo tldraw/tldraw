@@ -1,5 +1,5 @@
 {
-	"extends": "../../config/tsconfig.base.json",
+	"extends": "../../internal/config/tsconfig.base.json",
 	"include": ["src"],
 	"exclude": ["node_modules", ".tsbuild*"],
 	"compilerOptions": {
@@ -8,7 +8,19 @@
 	},
 	"references": [
 		{
+			"path": "../store"
+		},
+		{
 			"path": "../tldraw"
+		},
+		{
+			"path": "../tlschema"
+		},
+		{
+			"path": "../utils"
+		},
+		{
+			"path": "../validate"
 		}
 	]
 }

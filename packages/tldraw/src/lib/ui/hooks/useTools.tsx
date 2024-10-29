@@ -57,6 +57,17 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'v',
 				readonlyOk: true,
 				onSelect(source) {
+					if (editor.isIn('select')) {
+						// There's a quirk of select mode, where editing a shape is a sub-state of select.
+						// Because the text tool can be locked/sticky, we need to make sure we exit the
+						// text tool.
+						//
+						// psst, if you're changing this code, also change the code
+						// in strange-tools.test.ts! Sadly it's duplicated there.
+						const currentNode = editor.root.getCurrent()!
+						currentNode.exit({}, currentNode.id)
+						currentNode.enter({}, currentNode.id)
+					}
 					editor.setCurrentTool('select')
 					trackEvent('select-tool', { source, id: 'select' })
 				},

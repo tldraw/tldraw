@@ -1,7 +1,9 @@
 import { useValue } from '@tldraw/state-react'
 import { useEffect } from 'react'
+import { Editor } from '../editor/Editor'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
-import { preventDefault } from '../utils/dom'
+import { preventDefault, stopEventPropagation } from '../utils/dom'
+import { isAccelKey } from '../utils/keyboard'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
@@ -10,6 +12,37 @@ export function useDocumentEvents() {
 	const container = useContainer()
 
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
+
+	// Prevent the browser's default drag and drop behavior on our container (UI, etc)
+	useEffect(() => {
+		if (!container) return
+
+		function onDrop(e: DragEvent) {
+			// this is tricky: we don't want the event to do anything
+			// here, but we do want it to make its way to the canvas,
+			// even if the drop is over some other element (like a toolbar),
+			// so we're going to flag the event and then dispatch
+			// it to the canvas; the canvas will handle it and try to
+			// stop it from propagating back, but in case we do see it again,
+			// we'll look for the flag so we know to stop it from being
+			// re-dispatched, which would lead to an infinite loop.
+			if ((e as any).isSpecialRedispatchedEvent) return
+			preventDefault(e)
+			stopEventPropagation(e)
+			const cvs = container.querySelector('.tl-canvas')
+			if (!cvs) return
+			const newEvent = new DragEvent(e.type, e)
+			;(newEvent as any).isSpecialRedispatchedEvent = true
+			cvs.dispatchEvent(newEvent)
+		}
+
+		container.addEventListener('dragover', onDrop)
+		container.addEventListener('drop', onDrop)
+		return () => {
+			container.removeEventListener('dragover', onDrop)
+			container.removeEventListener('drop', onDrop)
+		}
+	}, [container])
 
 	useEffect(() => {
 		if (typeof window === 'undefined' || !('matchMedia' in window)) return
@@ -31,17 +64,17 @@ export function useDocumentEvents() {
 			}
 			if (media.addEventListener) {
 				media.addEventListener('change', updatePixelRatio)
-				// eslint-disable-next-line deprecation/deprecation
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 			} else if (media.addListener) {
-				// eslint-disable-next-line deprecation/deprecation
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				media.addListener(safariCb)
 			}
 			remove = () => {
 				if (media.removeEventListener) {
 					media.removeEventListener('change', updatePixelRatio)
-					// eslint-disable-next-line deprecation/deprecation
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
 				} else if (media.removeListener) {
-					// eslint-disable-next-line deprecation/deprecation
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
 					media.removeListener(safariCb)
 				}
 			}
@@ -61,7 +94,7 @@ export function useDocumentEvents() {
 				e.altKey &&
 				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?
 				(editor.isIn('zoom') || !editor.getPath().endsWith('.idle')) &&
-				!isFocusingInput()
+				!areShortcutsDisabled(editor)
 			) {
 				// On windows the alt key opens the menu bar.
 				// We want to prevent that if the user is doing something else,
@@ -88,7 +121,7 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Tab': {
-					if (isFocusingInput() || editor.getIsMenuOpen()) {
+					if (areShortcutsDisabled(editor)) {
 						return
 					}
 					break
@@ -111,13 +144,15 @@ export function useDocumentEvents() {
 					// should we allow escape to do its normal thing.
 
 					if (editor.getEditingShape() || editor.getSelectedShapeIds().length > 0) {
-						e.preventDefault()
+						preventDefault(e)
 					}
 
 					// Don't do anything if we open menus open
-					if (editor.getOpenMenus().length > 0) return
+					if (editor.menus.getOpenMenus().length > 0) return
 
-					if (!editor.inputs.keys.has('Escape')) {
+					if (editor.inputs.keys.has('Escape')) {
+						// noop
+					} else {
 						editor.inputs.keys.add('Escape')
 
 						editor.cancel()
@@ -126,12 +161,12 @@ export function useDocumentEvents() {
 						// will break additional shortcuts. We need to
 						// refocus the container in order to keep these
 						// shortcuts working.
-						editor.focus()
+						container.focus()
 					}
 					return
 				}
 				default: {
-					if (isFocusingInput() || editor.getIsMenuOpen()) {
+					if (areShortcutsDisabled(editor)) {
 						return
 					}
 				}
@@ -145,6 +180,8 @@ export function useDocumentEvents() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 			}
 
 			editor.dispatch(info)
@@ -154,7 +191,7 @@ export function useDocumentEvents() {
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
 
-			if (isFocusingInput() || editor.getIsMenuOpen()) {
+			if (areShortcutsDisabled(editor)) {
 				return
 			}
 
@@ -170,6 +207,8 @@ export function useDocumentEvents() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 			}
 
 			editor.dispatch(info)
@@ -203,6 +242,7 @@ export function useDocumentEvents() {
 
 		// Prevent wheel events that occur inside of the container
 		const handleWheel = (e: WheelEvent) => {
+			// Ctrl/Meta key indicates a pinch event (funny, eh?)
 			if (container.contains(e.target as Node) && (e.ctrlKey || e.metaKey)) {
 				preventDefault(e)
 			}
@@ -236,16 +276,13 @@ export function useDocumentEvents() {
 
 const INPUTS = ['input', 'select', 'button', 'textarea']
 
-function isFocusingInput() {
+function areShortcutsDisabled(editor: Editor) {
 	const { activeElement } = document
 
-	if (
-		activeElement &&
-		(activeElement.getAttribute('contenteditable') ||
-			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
-	) {
-		return true
-	}
-
-	return false
+	return (
+		editor.menus.hasOpenMenus() ||
+		(activeElement &&
+			(activeElement.getAttribute('contenteditable') ||
+				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
+	)
 }

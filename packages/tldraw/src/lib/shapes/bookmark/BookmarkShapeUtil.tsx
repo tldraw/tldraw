@@ -14,8 +14,11 @@ import {
 	getHashForString,
 	lerp,
 	stopEventPropagation,
+	tlenv,
 	toDomPrecision,
+	useSvgExportContext,
 } from '@tldraw/editor'
+import classNames from 'classnames'
 import { useState } from 'react'
 import { convertCommonTitleHTMLEntities } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -55,86 +58,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override component(shape: TLBookmarkShape) {
-		const asset = (
-			shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
-		) as TLBookmarkAsset
-
-		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
-
-		const address = getHumanReadableAddress(shape)
-
-		/* eslint-disable-next-line react-hooks/rules-of-hooks */
-		const [isFaviconValid, setIsFaviconValid] = useState(true)
-		const onFaviconError = () => setIsFaviconValid(false)
-
-		return (
-			<HTMLContainer>
-				<div
-					className="tl-bookmark__container"
-					style={{
-						boxShadow: getRotatedBoxShadow(pageRotation),
-						maxHeight: shape.props.h,
-					}}
-				>
-					{(!asset || asset.props.image) && (
-						<div className="tl-bookmark__image_container">
-							{asset ? (
-								<img
-									className="tl-bookmark__image"
-									draggable={false}
-									referrerPolicy="strict-origin-when-cross-origin"
-									src={asset?.props.image}
-									alt={asset?.props.title || ''}
-								/>
-							) : (
-								<div className="tl-bookmark__placeholder" />
-							)}
-							{asset?.props.image && (
-								<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-							)}
-						</div>
-					)}
-					<div className="tl-bookmark__copy_container">
-						{asset?.props.title ? (
-							<h2 className="tl-bookmark__heading">
-								{convertCommonTitleHTMLEntities(asset.props.title)}
-							</h2>
-						) : null}
-						{asset?.props.description && asset?.props.image ? (
-							<p className="tl-bookmark__description">{asset.props.description}</p>
-						) : null}
-						<a
-							className="tl-bookmark__link"
-							href={shape.props.url || ''}
-							target="_blank"
-							rel="noopener noreferrer"
-							onPointerDown={stopEventPropagation}
-							onPointerUp={stopEventPropagation}
-							onClick={stopEventPropagation}
-						>
-							{isFaviconValid && asset?.props.favicon ? (
-								<img
-									className="tl-bookmark__favicon"
-									src={asset?.props.favicon}
-									referrerPolicy="strict-origin-when-cross-origin"
-									onError={onFaviconError}
-									alt={`favicon of ${address}`}
-								/>
-							) : (
-								<div
-									className="tl-hyperlink__icon"
-									style={{
-										mask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
-										WebkitMask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
-									}}
-								/>
-							)}
-							<span>{address}</span>
-						</a>
-					</div>
-				</div>
-			</HTMLContainer>
-		)
+		return <BookmarkShapeComponent shape={shape} util={this} />
 	}
 
 	override indicator(shape: TLBookmarkShape) {
@@ -178,6 +102,97 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 }
 
+function BookmarkShapeComponent({
+	shape,
+	util,
+}: {
+	shape: TLBookmarkShape
+	util: BookmarkShapeUtil
+}) {
+	const asset = (
+		shape.props.assetId ? util.editor.getAsset(shape.props.assetId) : null
+	) as TLBookmarkAsset
+
+	const isSafariExport = !!useSvgExportContext() && tlenv.isSafari
+
+	const pageRotation = util.editor.getShapePageTransform(shape)!.rotation()
+
+	const address = getHumanReadableAddress(shape)
+
+	const [isFaviconValid, setIsFaviconValid] = useState(true)
+	const onFaviconError = () => setIsFaviconValid(false)
+
+	return (
+		<HTMLContainer>
+			<div
+				className={classNames(
+					'tl-bookmark__container',
+					isSafariExport && 'tl-bookmark__container--safariExport'
+				)}
+				style={{
+					boxShadow: isSafariExport ? undefined : getRotatedBoxShadow(pageRotation),
+					maxHeight: shape.props.h,
+				}}
+			>
+				{(!asset || asset.props.image) && (
+					<div className="tl-bookmark__image_container">
+						{asset ? (
+							<img
+								className="tl-bookmark__image"
+								draggable={false}
+								referrerPolicy="strict-origin-when-cross-origin"
+								src={asset?.props.image}
+								alt={asset?.props.title || ''}
+							/>
+						) : (
+							<div className="tl-bookmark__placeholder" />
+						)}
+						{asset?.props.image && <HyperlinkButton url={shape.props.url} />}
+					</div>
+				)}
+				<div className="tl-bookmark__copy_container">
+					{asset?.props.title ? (
+						<h2 className="tl-bookmark__heading">
+							{convertCommonTitleHTMLEntities(asset.props.title)}
+						</h2>
+					) : null}
+					{asset?.props.description && asset?.props.image ? (
+						<p className="tl-bookmark__description">{asset.props.description}</p>
+					) : null}
+					<a
+						className="tl-bookmark__link"
+						href={shape.props.url || ''}
+						target="_blank"
+						rel="noopener noreferrer"
+						onPointerDown={stopEventPropagation}
+						onPointerUp={stopEventPropagation}
+						onClick={stopEventPropagation}
+					>
+						{isFaviconValid && asset?.props.favicon ? (
+							<img
+								className="tl-bookmark__favicon"
+								src={asset?.props.favicon}
+								referrerPolicy="strict-origin-when-cross-origin"
+								onError={onFaviconError}
+								alt={`favicon of ${address}`}
+							/>
+						) : (
+							<div
+								className="tl-hyperlink__icon"
+								style={{
+									mask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
+									WebkitMask: `url("${LINK_ICON}") center 100% / 100% no-repeat`,
+								}}
+							/>
+						)}
+						<span>{address}</span>
+					</a>
+				</div>
+			</div>
+		</HTMLContainer>
+	)
+}
+
 function getBookmarkSize(editor: Editor, shape: TLBookmarkShape) {
 	const asset = (
 		shape.props.assetId ? editor.getAsset(shape.props.assetId) : null
@@ -210,7 +225,7 @@ export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
 		const url = new URL(shape.props.url)
 		// we want the hostname without any www
 		return url.hostname.replace(/^www\./, '')
-	} catch (e) {
+	} catch {
 		return shape.props.url
 	}
 }

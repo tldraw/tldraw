@@ -18,6 +18,7 @@ interface DropdownPickerProps<T extends string> {
 	id: string
 	label?: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	uiType: string
+	stylePanelType: string
 	style: StyleProp<T>
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
@@ -25,10 +26,11 @@ interface DropdownPickerProps<T extends string> {
 	onValueChange(style: StyleProp<T>, value: T): void
 }
 
-function _DropdownPicker<T extends string>({
+function DropdownPickerInner<T extends string>({
 	id,
 	label,
 	uiType,
+	stylePanelType,
 	style,
 	items,
 	type,
@@ -43,17 +45,19 @@ function _DropdownPicker<T extends string>({
 		[items, value]
 	)
 
+	const stylePanelName = msg(`style-panel.${stylePanelType}` as TLUiTranslationKey)
+
 	const titleStr =
 		value.type === 'mixed'
 			? msg('style-panel.mixed')
-			: msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
+			: stylePanelName + ' — ' + msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
 	const labelStr = label ? msg(label) : ''
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`style panel ${id}`}>
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton type={type} data-testid={`style.${uiType}`} title={titleStr}>
-					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
+					{labelStr && <TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>}
 					<TldrawUiButtonIcon icon={(icon as TLUiIconType) ?? 'mixed'} />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
@@ -65,7 +69,11 @@ function _DropdownPicker<T extends string>({
 								<TldrawUiButton
 									type="icon"
 									data-testid={`style.${uiType}.${item.value}`}
-									title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
+									title={
+										stylePanelName +
+										' — ' +
+										msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
+									}
 									onClick={() => {
 										editor.markHistoryStoppingPoint('select style dropdown item')
 										onValueChange(style, item.value)
@@ -83,4 +91,4 @@ function _DropdownPicker<T extends string>({
 }
 
 // need to export like this to get generics
-export const DropdownPicker = React.memo(_DropdownPicker) as typeof _DropdownPicker
+export const DropdownPicker = React.memo(DropdownPickerInner) as typeof DropdownPickerInner

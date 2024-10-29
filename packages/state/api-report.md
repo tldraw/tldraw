@@ -128,7 +128,7 @@ export function isAtom(value: unknown): value is Atom<unknown>;
 export function isSignal(value: any): value is Signal<any>;
 
 // @public
-export const isUninitialized: (value: any) => value is typeof UNINITIALIZED;
+export function isUninitialized(value: any): value is UNINITIALIZED;
 
 // @public
 export function react(name: string, fn: (lastReactedEpoch: number) => any, options?: EffectSchedulerOptions): () => void;

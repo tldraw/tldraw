@@ -11,7 +11,7 @@ import { Box } from '../../primitives/Box'
 
 /** @public */
 export interface TextLabelProps {
-	id: TLShapeId
+	shapeId: TLShapeId
 	type: string
 	font: TLDefaultFontStyle
 	fontSize: number

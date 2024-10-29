@@ -64,3 +64,9 @@ export function promiseWithResolve<T>(): Promise<T> & {
 		reject: reject!,
 	})
 }
+
+/** @internal */
+export function sleep(ms: number): Promise<void> {
+	// eslint-disable-next-line no-restricted-globals
+	return new Promise((resolve) => setTimeout(resolve, ms))
+}

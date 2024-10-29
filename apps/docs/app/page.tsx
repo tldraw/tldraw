@@ -1,3 +1,4 @@
+import { NewsletterSignup } from '@/components/common/newsletter-signup'
 import { CTASection } from '@/components/marketing/cta-section'
 import { DetailsSection } from '@/components/marketing/details-section'
 import { FeaturesSection } from '@/components/marketing/features-section'
@@ -20,6 +21,9 @@ export default function Page() {
 			{/* <FAQSection /> */}
 			<div className="flex flex-col items-center justify-center gap-4">
 				<CTASection />
+			</div>
+			<div className="pb-24">
+				<NewsletterSignup bg={false} hideAfterSubmit={false} />
 			</div>
 		</>
 	)

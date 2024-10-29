@@ -1,4 +1,4 @@
-import { MarkdownWriter } from '@/scripts/utils'
+import { MarkdownWriter } from '@/scripts/lib/utils'
 import {
 	ApiDocumentedItem,
 	ApiFunction,

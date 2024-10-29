@@ -6,7 +6,9 @@ module.exports = {
 		extend: {
 			fontFamily: {
 				sans: ['var(--font-geist-sans)'],
-				mono: ['var(--font-geist-mono)'],
+				mono: [
+					'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
+				],
 				hand: ['var(--font-shantell-sans)'],
 			},
 		},

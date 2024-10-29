@@ -129,6 +129,7 @@ export function EditorComponentsProvider({
 		}),
 		[_overrides]
 	)
+
 	return (
 		<EditorComponentsContext.Provider value={value}>{children}</EditorComponentsContext.Provider>
 	)

@@ -4,7 +4,7 @@ import 'tldraw/tldraw.css'
 import Tiptap, { TipTapMeasure } from '../../shared/TipTap'
 
 const CustomRichText: TLTextLabel = React.memo(function CustomRichText({
-	id,
+	shapeId,
 	type,
 	text,
 	labelColor,
@@ -18,7 +18,7 @@ const CustomRichText: TLTextLabel = React.memo(function CustomRichText({
 }) {
 	return (
 		<Tiptap
-			id={id}
+			id={shapeId}
 			type={type}
 			labelColor={labelColor}
 			font={font}

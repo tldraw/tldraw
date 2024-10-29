@@ -2,7 +2,7 @@ import { useClose } from '@headlessui/react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
-export const CloseOnNavigation = () => {
+export function CloseOnNavigation() {
 	const pathname = usePathname()
 	const searchParams = useSearchParams()
 	const close = useClose()

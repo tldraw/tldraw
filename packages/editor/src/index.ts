@@ -4,17 +4,6 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-import { featureFlags } from './lib/utils/debug-flags'
-
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/store'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/tlschema'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/utils'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/validate'
-
 export {
 	EMPTY_ARRAY,
 	EffectScheduler,
@@ -29,12 +18,21 @@ export {
 } from '@tldraw/state'
 export {
 	track,
+	useAtom,
 	useComputed,
 	useQuickReactor,
 	useReactor,
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/store'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/tlschema'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/utils'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/validate'
 export {
 	ErrorScreen,
 	LoadingScreen,
@@ -54,6 +52,7 @@ export {
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
+export { MenuClickCapture } from './lib/components/MenuClickCapture'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { DefaultBackground } from './lib/components/default-components/DefaultBackground'
 export { DefaultBrush, type TLBrushProps } from './lib/components/default-components/DefaultBrush'
@@ -132,6 +131,7 @@ export {
 	getFreshUserPreferences,
 	getUserPreferences,
 	setUserPreferences,
+	userTypeValidator,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export {
@@ -151,6 +151,7 @@ export {
 	Editor,
 	type TLEditorOptions,
 	type TLEditorRunOptions,
+	type TLRenderingShape,
 	type TLResizeShapeOptions,
 } from './lib/editor/Editor'
 export {
@@ -165,7 +166,6 @@ export {
 } from './lib/editor/bindings/BindingUtil'
 export { ClickManager, type TLClickState } from './lib/editor/managers/ClickManager'
 export { EdgeScrollManager } from './lib/editor/managers/EdgeScrollManager'
-export { EnvironmentManager } from './lib/editor/managers/EnvironmentManager'
 export { HistoryManager } from './lib/editor/managers/HistoryManager'
 export { ScribbleManager, type ScribbleItem } from './lib/editor/managers/ScribbleManager'
 export {
@@ -203,6 +203,7 @@ export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/res
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export {
+	useDelaySvgExport,
 	useSvgExportContext,
 	type SvgExportContext,
 	type SvgExportDef,
@@ -260,24 +261,41 @@ export {
 	type TLCameraConstraints,
 	type TLCameraMoveOptions,
 	type TLCameraOptions,
+	type TLImageExportOptions,
 	type TLSvgOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { ContainerProvider, useContainer } from './lib/hooks/useContainer'
+export { tlenv } from './lib/globals/environment'
+export { tlmenus } from './lib/globals/menus'
+export { tltime } from './lib/globals/time'
+export {
+	ContainerProvider,
+	useContainer,
+	useContainerIfExists,
+	type ContainerProviderProps,
+} from './lib/hooks/useContainer'
 export { getCursor } from './lib/hooks/useCursor'
-export { useEditor } from './lib/hooks/useEditor'
+export { EditorContext, useEditor, useMaybeEditor } from './lib/hooks/useEditor'
 export { useEditorComponents } from './lib/hooks/useEditorComponents'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useEvent } from './lib/hooks/useEvent'
+export { useGlobalMenuIsOpen } from './lib/hooks/useGlobalMenuIsOpen'
 export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/useIdentity'
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
+export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useRefState } from './lib/hooks/useRefState'
-export { useSafeId } from './lib/hooks/useSafeId'
+export {
+	sanitizeId,
+	suffixSafeId,
+	useSharedSafeId,
+	useUniqueSafeId,
+	type SafeId,
+} from './lib/hooks/useSafeId'
 export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLSchemaFromUtils, useTLStore } from './lib/hooks/useTLStore'
 export { useTransform } from './lib/hooks/useTransform'
@@ -394,6 +412,7 @@ export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
+export { isAccelKey } from './lib/utils/keyboard'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
 export {
@@ -407,12 +426,12 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'
 export { openWindow } from './lib/utils/window-open'
 
-/** @public */
+/**
+ * @deprecated Licensing is now enabled in the tldraw SDK.
+ * @public */
 export function debugEnableLicensing() {
-	featureFlags.enableLicensing.set(true)
-	return () => {
-		featureFlags.enableLicensing.set(false)
-	}
+	// noop
+	return
 }
 
 registerTldrawLibraryVersion(

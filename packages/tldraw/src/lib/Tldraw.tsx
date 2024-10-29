@@ -124,6 +124,18 @@ export function Tldraw(props: TldrawProps) {
 		[_tools]
 	)
 
+	const _imageMimeTypes = useShallowArrayIdentity(
+		acceptedImageMimeTypes ?? DEFAULT_SUPPORTED_IMAGE_TYPES
+	)
+	const _videoMimeTypes = useShallowArrayIdentity(
+		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
+	)
+
+	const mediaMimeTypes = useMemo(
+		() => [..._imageMimeTypes, ..._videoMimeTypes],
+		[_imageMimeTypes, _videoMimeTypes]
+	)
+
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 	if (preloadingError) {
@@ -146,12 +158,12 @@ export function Tldraw(props: TldrawProps) {
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
 		>
-			<TldrawUi {...rest} components={componentsWithDefault}>
+			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
 				<InsideOfEditorAndUiContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
-					acceptedImageMimeTypes={acceptedImageMimeTypes}
-					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
+					acceptedImageMimeTypes={_imageMimeTypes}
+					acceptedVideoMimeTypes={_videoMimeTypes}
 					onMount={onMount}
 					embeds={embeds}
 				/>

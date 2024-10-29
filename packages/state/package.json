@@ -1,13 +1,13 @@
 {
 	"name": "@tldraw/state",
 	"description": "A tiny little drawing app (state).",
-	"version": "2.4.0",
+	"version": "3.4.0",
 	"author": {
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "SEE LICENSE IN LICENSE.md",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -33,15 +33,15 @@
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
-		"build": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
-		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
-		"postpack": "../../scripts/postpack.sh",
+		"build": "yarn run -T tsx ../../internal/scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../internal/scripts/build-api.ts",
+		"prepack": "yarn run -T tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
-		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"jest": {
-		"preset": "config/jest/node",
+		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"setupFiles": [
 			"raf/polyfill"
 		],

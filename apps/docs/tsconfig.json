@@ -1,5 +1,5 @@
 {
-	"extends": "../../config/tsconfig.base.json",
+	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"paths": {
@@ -15,6 +15,7 @@
 		"emitDeclarationOnly": false,
 		"noEmit": true,
 		"isolatedModules": true,
+		"experimentalDecorators": true,
 		"jsx": "preserve"
 	},
 	"include": [
@@ -27,6 +28,12 @@
 	],
 	"exclude": ["node_modules", ".next", "postcss.config.js", "tailwind.config.js"],
 	"references": [
+		{
+			"path": "../../packages/assets"
+		},
+		{
+			"path": "../../packages/tldraw"
+		},
 		{
 			"path": "../../packages/utils"
 		}

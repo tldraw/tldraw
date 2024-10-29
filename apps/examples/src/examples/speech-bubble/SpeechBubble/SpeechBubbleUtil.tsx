@@ -197,7 +197,7 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 				</svg>
 				{TextLabel && (
 					<TextLabel
-						id={id}
+						shapeId={id}
 						type={type}
 						font={font}
 						textWidth={shape.props.w}
