@@ -44,7 +44,7 @@ test('can share a file', async ({ page, sidebar, editor, browser, shareMenu }) =
 test('can unshare a file', async ({ page, browser, sidebar, editor, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
 
-	const { newContext, newPage, newHomePage } = await openNewIncognitoPage(
+	const { newContext, newHomePage, errorPage } = await openNewIncognitoPage(
 		browser,
 		editor,
 		sidebar,
@@ -53,8 +53,7 @@ test('can unshare a file', async ({ page, browser, sidebar, editor, shareMenu })
 	await newHomePage.isLoaded()
 
 	await shareMenu.unshareFile()
-
-	await expect(newPage.getByRole('heading', { name: 'Private file' })).toBeVisible()
+	await errorPage.expectPrivateFileVisible()
 	await newContext.close()
 })
 
@@ -62,31 +61,65 @@ test('can publish a file', async ({ page, browser, editor, sidebar, shareMenu })
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
 	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	const { newContext, newPage, newHomePage } = await openNewIncognitoPage(
+	const { newContext, newHomePage, errorPage } = await openNewIncognitoPage(
 		browser,
 		editor,
 		sidebar,
 		url
 	)
 	await newHomePage.isLoaded()
-	await expect(newPage.getByRole('heading', { name: 'Not found' })).not.toBeVisible()
+	await errorPage.expectNotFoundNotVisible()
 	await newContext.close()
 })
 
-test.only('can unpublish a file', async ({ page, browser, editor, sidebar, shareMenu }) => {
+test('can unpublish a file', async ({ page, browser, editor, sidebar, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
 	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	const { newContext, newPage, newHomePage } = await openNewIncognitoPage(
+	const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(
 		browser,
 		editor,
 		sidebar,
 		url
 	)
 	await newHomePage.isLoaded()
-	await expect(newPage.getByRole('heading', { name: 'Page not found' })).not.toBeVisible()
+	await errorPage.expectNotFoundNotVisible()
 	await shareMenu.unpublishFile()
 	await newPage.reload()
-	await expect(newPage.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+	await errorPage.expectNotFoundVisible()
+	await newContext.close()
+})
+
+test('can update published file', async ({ page, browser, editor, sidebar, shareMenu }) => {
+	await page.getByTestId('tools.rectangle').click()
+	await page.locator('.tl-background').click()
+	expect(await editor.getNumberOfShapes()).toBe(1)
+	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
+	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
+
+	const { newContext, newPage, newHomePage, newEditor } = await openNewIncognitoPage(
+		browser,
+		editor,
+		sidebar,
+		url
+	)
+	await newHomePage.isLoaded()
+	expect(await newEditor.getNumberOfShapes()).toBe(1)
+
+	await page.getByTestId('quick-actions.duplicate').click()
+
+	// lets reload to make sure the change would have time to propagate
+	await newPage.reload()
+	await newHomePage.isLoaded()
+	// The main editor should have two shapes
+	expect(await editor.getNumberOfShapes()).toBe(2)
+	// We haven't published changes yet, so the new page should still only see one shape
+	expect(await newEditor.getNumberOfShapes()).toBe(1)
+
+	await shareMenu.open()
+	await shareMenu.updateChanges()
+	await newPage.reload()
+	await newHomePage.isLoaded()
+	expect(await newEditor.getNumberOfShapes()).toBe(2)
 	await newContext.close()
 })

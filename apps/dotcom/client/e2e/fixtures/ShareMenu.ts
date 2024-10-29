@@ -6,6 +6,7 @@ export class ShareMenu {
 	public readonly shareButton: Locator
 	public readonly inviteButton: Locator
 	public readonly publishButton: Locator
+	public readonly publishChangesButton: Locator
 	public readonly copyLinkButton: Locator
 	public readonly tabs: { invite: Locator; publish: Locator }
 
@@ -13,6 +14,10 @@ export class ShareMenu {
 		this.shareButton = this.page.getByRole('button', { name: 'Share' })
 		this.inviteButton = this.page.getByRole('button', { name: 'Invite' })
 		this.publishButton = this.page.getByRole('button', { name: 'Publish', exact: true })
+		this.publishChangesButton = this.page.getByRole('button', {
+			name: 'Publish changes',
+			exact: true,
+		})
 		this.copyLinkButton = this.page.getByRole('button', { name: 'Copy link' })
 		this.tabs = {
 			invite: this.inviteButton,
@@ -79,5 +84,10 @@ export class ShareMenu {
 		if (await this.isTabSelected(tab)) return
 		const locator = this.tabs[tab]
 		await locator.click()
+	}
+
+	async updateChanges() {
+		await this.ensureTabSelected('publish')
+		await this.publishChangesButton.click()
 	}
 }

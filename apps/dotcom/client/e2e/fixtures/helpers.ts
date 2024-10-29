@@ -1,5 +1,6 @@
 import { Browser } from '@playwright/test'
 import { Editor } from './Editor'
+import { ErrorPage } from './ErrorPages'
 import { HomePage } from './HomePage'
 import { Sidebar } from './Sidebar'
 
@@ -13,5 +14,7 @@ export async function openNewIncognitoPage(
 	const newPage = await newContext.newPage()
 	if (url) await newPage.goto(url)
 	const newHomePage = new HomePage(newPage, sidebar, editor)
-	return { newPage, newContext, newHomePage }
+	const errorPage = new ErrorPage(newPage)
+	const newEditor = new Editor(newPage, sidebar)
+	return { newPage, newContext, newHomePage, newEditor, errorPage }
 }
