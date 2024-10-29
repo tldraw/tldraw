@@ -1,3 +1,4 @@
+import { Zero } from '@rocicorp/zero'
 import {
 	CreateFilesResponseBody,
 	DuplicateRoomResponseBody,
@@ -31,6 +32,7 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
+import { Schema, schema } from './schema'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -43,8 +45,22 @@ export class TldrawApp {
 		maxNumberOfFiles: 100,
 	}
 
-	private constructor(store: Store<TldrawAppRecord>) {
-		this.store = store
+	readonly z: Zero<Schema>
+
+	private constructor(
+		public store: Store<TldrawAppRecord>,
+		public readonly userId: string,
+		encodedJWT: string
+	) {
+		this.z = new Zero({
+			userID: userId,
+			auth: encodedJWT,
+			server: 'http://localhost:4848',
+			schema,
+			// This is often easier to develop with if you're frequently changing
+			// the schema. Switch to 'idb' for local-persistence.
+			kvStore: 'mem',
+		})
 
 		// todo: replace this when we have application-level user preferences
 		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
@@ -61,8 +77,6 @@ export class TldrawApp {
 			}
 		})
 	}
-
-	store: Store<TldrawAppRecord>
 
 	dispose() {
 		this.store.dispose()
@@ -546,6 +560,7 @@ export class TldrawApp {
 		email: string
 		avatar: string
 		store: Store<TldrawAppRecord>
+		jwt: string
 	}) {
 		const { store } = opts
 
@@ -570,7 +585,7 @@ export class TldrawApp {
 			])
 		}
 
-		const app = new TldrawApp(store)
+		const app = new TldrawApp(store, userId, opts.jwt)
 		return { app, userId }
 	}
 }

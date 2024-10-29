@@ -5,6 +5,7 @@ import { ReactNode, createContext, useCallback, useContext, useEffect, useState 
 import {
 	assertExists,
 	deleteFromLocalStorage,
+	fetch,
 	getFromLocalStorage,
 	inlineBase64AssetStore,
 } from 'tldraw'
@@ -21,6 +22,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState({} as TldrawApp)
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
+	const [zeroJwt, setZeroJwt] = useState<string | null>(null)
+
+	useEffect(() => {
+		if (!auth.isSignedIn || !user || !isLoaded) {
+			return
+		}
+
+		auth.getToken().then(async (token) => {
+			const res = await fetch(`/api/app/zero-login`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			})
+			if (!res.ok) {
+				// todo: handle error
+				throw new Error('failed to get zero login token')
+			}
+			setZeroJwt(await res.text())
+		})
+	})
 
 	if (!auth.isSignedIn || !user || !isLoaded) {
 		throw new Error('should have redirected in TlaRootProviders')
@@ -45,6 +66,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		if (store.status !== 'synced-remote') {
 			return
 		}
+		if (!zeroJwt) {
+			return
+		}
 		let _app: TldrawApp
 
 		// Create the new user
@@ -54,6 +78,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			email: user.emailAddresses[0]?.emailAddress || '',
 			avatar: user.imageUrl || '',
 			store: store.store as any,
+			jwt: zeroJwt,
 		}).then(({ app }) => {
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
@@ -70,7 +95,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				_app.dispose()
 			}
 		}
-	}, [store.status, store.store, auth.userId, user])
+	}, [store.status, store.store, auth.userId, user, zeroJwt])
 
 	if (store.status === 'error') {
 		return (

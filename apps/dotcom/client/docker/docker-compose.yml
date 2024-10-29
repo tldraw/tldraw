@@ -1,0 +1,54 @@
+x-postgres-common: &postgres-common
+  image: postgres:16.2-alpine
+  shm_size: 1g
+  user: postgres
+  restart: always
+  healthcheck:
+    test: 'pg_isready -U user --dbname=postgres'
+    interval: 10s
+    timeout: 5s
+    retries: 5
+
+services:
+  zstart_postgres_user:
+    <<: *postgres-common
+    ports:
+      - ${UPSTREAM_DB_PORT}:5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: password
+    command: |
+      postgres 
+      -c wal_level=logical
+      -c max_wal_senders=10 
+      -c max_replication_slots=5 
+      -c hot_standby=on 
+      -c hot_standby_feedback=on
+    volumes:
+      - zstart_pgdata_user:/var/lib/postgresql/data
+      - ./:/docker-entrypoint-initdb.d
+
+  zstart_postgres_zero:
+    <<: *postgres-common
+    ports:
+      - ${ZERO_DB_PORT}:5432
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: password
+    command: |
+      postgres 
+      -c wal_level=logical
+      -c max_wal_senders=10 
+      -c max_replication_slots=5 
+      -c hot_standby=on 
+      -c hot_standby_feedback=on
+    volumes:
+      - zstart_pgdata_zero:/var/lib/postgresql/data
+
+volumes:
+  zstart_pgdata_user:
+    driver: local
+  zstart_pgdata_zero:
+    driver: local

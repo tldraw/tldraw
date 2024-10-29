@@ -63,6 +63,7 @@
 	"engines": {
 		"npm": ">=7.0.0"
 	},
+	"type": "module",
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [

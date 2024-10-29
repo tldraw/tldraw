@@ -31,6 +31,7 @@
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^5.0.17",
+		"jose": "^5.9.6",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},

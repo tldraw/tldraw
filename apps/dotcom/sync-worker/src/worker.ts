@@ -8,7 +8,8 @@ import {
 } from '@tldraw/dotcom-shared'
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
-import { cors } from 'itty-router'
+import { cors, json } from 'itty-router'
+import { SignJWT } from 'jose'
 import { APP_ID } from './TLAppDurableObject'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -77,6 +78,23 @@ const router = createRouter<Environment>()
 	.post('/app/publish/:roomId', publishFile)
 	.delete('/app/publish/:roomId', unpublishFile)
 	.delete('/app/file/:roomId', deleteFile)
+	.get('/app/zero-login', async (req, env) => {
+		const auth = await getAuth(req, env)
+		if (!auth?.userId) return notFound()
+
+		const jwtPayload = {
+			sub: auth.userId,
+			iat: Math.floor(Date.now() / 1000),
+		}
+
+		const jwt = await new SignJWT(jwtPayload)
+			.setProtectedHeader({ alg: 'HS256' })
+			.setExpirationTime('30days')
+			// TODO: use a real secret key
+			.sign(new TextEncoder().encode('secretkey'))
+
+		return json({ jwt })
+	})
 	// end app
 	.all('*', notFound)
 
