@@ -33,7 +33,6 @@ export function PdfEditor({ pdf }: { pdf: Pdf }) {
 	return (
 		<Tldraw
 			onMount={(editor) => {
-				editor.updateInstanceState({ isDebugMode: false })
 				editor.createAssets(
 					pdf.pages.map((page) => ({
 						id: page.assetId,

@@ -61,11 +61,17 @@ export function registerTldrawLibraryVersion(name?: string, version?: string, mo
 	info.versions.push({ name, version, modules })
 
 	if (!info.scheduledNotice) {
-		// eslint-disable-next-line no-restricted-globals
-		info.scheduledNotice = setTimeout(() => {
-			info.scheduledNotice = null
+		try {
+			// eslint-disable-next-line no-restricted-globals
+			info.scheduledNotice = setTimeout(() => {
+				info.scheduledNotice = null
+				checkLibraryVersions(info)
+			}, 100)
+		} catch {
+			// some environments (e.g. cloudflare workers) don't support setTimeout immediately, only in a handler.
+			// in this case, we'll just check immediately.
 			checkLibraryVersions(info)
-		}, 100)
+		}
 	}
 }
 

@@ -209,7 +209,12 @@ describe('When in the select.idle state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageA, ids.imageB)
-			.pointerDown(500, 550, { target: 'selection', handle: 'bottom', ctrlKey: true })
+			.pointerDown(500, 550, {
+				target: 'selection',
+				handle: 'bottom',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.brushing')
 
 		// two shapes / corner
@@ -217,7 +222,12 @@ describe('When in the select.idle state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageA, ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.pointerDown(500, 600, {
+				target: 'selection',
+				handle: 'bottom_left',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.brushing')
 
 		// one shape / edge
@@ -225,7 +235,12 @@ describe('When in the select.idle state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 550, { target: 'selection', handle: 'bottom', ctrlKey: true })
+			.pointerDown(500, 550, {
+				target: 'selection',
+				handle: 'bottom',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.crop.pointing_crop_handle')
 
 		// one shape / corner
@@ -233,7 +248,12 @@ describe('When in the select.idle state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.pointerDown(500, 600, {
+				target: 'selection',
+				handle: 'bottom_left',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.crop.pointing_crop_handle')
 	})
 })
@@ -536,7 +556,12 @@ describe('When in the select.crop.pointing_crop_handle state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.pointerDown(500, 600, {
+				target: 'selection',
+				handle: 'bottom_left',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.crop.pointing_crop_handle')
 			.pointerMove(510, 590)
 			.expectToBeIn('select.crop.cropping')
@@ -548,7 +573,12 @@ describe('When in the select.crop.pointing_crop_handle state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.pointerDown(500, 600, {
+				target: 'selection',
+				handle: 'bottom_left',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.crop.pointing_crop_handle')
 			.cancel()
 			.expectToBeIn('select.idle')
@@ -580,7 +610,12 @@ describe('When in the select.crop.cropping state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.pointerDown(500, 600, {
+				target: 'selection',
+				handle: 'bottom_left',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.crop.pointing_crop_handle')
 			.pointerMove(510, 590)
 			.expectToBeIn('select.crop.cropping')
@@ -595,7 +630,12 @@ describe('When in the select.crop.cropping state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.pointerDown(500, 600, {
+				target: 'selection',
+				handle: 'bottom_left',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.crop.pointing_crop_handle')
 			.pointerMove(510, 590)
 			.expectToBeIn('select.crop.cropping')
@@ -652,7 +692,12 @@ describe('When in the select.crop.cropping state', () => {
 			.cancel()
 			.expectToBeIn('select.idle')
 			.select(ids.imageB)
-			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
+			.pointerDown(500, 600, {
+				target: 'selection',
+				handle: 'bottom_left',
+				ctrlKey: true,
+				accelKey: true,
+			})
 			.expectToBeIn('select.crop.pointing_crop_handle')
 			.pointerMove(510, 590)
 			.expectToBeIn('select.crop.cropping')

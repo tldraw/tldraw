@@ -7,6 +7,7 @@ import {
 	getPointerInfo,
 	noop,
 	stopEventPropagation,
+	tlenv,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -17,7 +18,7 @@ const DefaultTextTriggerHook = () => ({ onKeyDown: async () => false })
 
 /** @public */
 export function useEditableText(
-	id: TLShapeId,
+	shapeId: TLShapeId,
 	type: string,
 	text: string,
 	options: {
@@ -29,17 +30,17 @@ export function useEditableText(
 	const useTextTriggerCharacter = options.useTextTriggerCharacter || DefaultTextTriggerHook
 	const { onKeyDown: onCustomKeyDown } = useTextTriggerCharacter(rInput.current, (text: string) => {
 		editor.updateShapes<TLUnknownShape & { props: { text: string } }>([
-			{ id, type, props: { text } },
+			{ id: shapeId, type, props: { text } },
 		])
 	})
-	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor])
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
 	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
 		editor,
 	])
 
 	useEffect(() => {
-		function selectAllIfEditing({ shapeId }: { shapeId: TLShapeId }) {
-			if (shapeId === id) {
+		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
+			if (event.shapeId === shapeId) {
 				rInput.current?.select()
 			}
 		}
@@ -48,7 +49,7 @@ export function useEditableText(
 		return () => {
 			editor.off('select-all-text', selectAllIfEditing)
 		}
-	}, [editor, id, isEditing])
+	}, [editor, shapeId, isEditing])
 
 	useEffect(() => {
 		if (!isEditing) return
@@ -63,7 +64,7 @@ export function useEditableText(
 
 		// XXX(mime): This fixes iOS not showing the cursor sometimes.
 		// This "shakes" the cursor awake.
-		if (editor.environment.isSafari) {
+		if (tlenv.isSafari) {
 			rInput.current?.blur()
 			rInput.current?.focus()
 		}
@@ -72,7 +73,7 @@ export function useEditableText(
 	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
 		async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-			if (editor.getEditingShapeId() !== id) return
+			if (editor.getEditingShapeId() !== shapeId) return
 
 			const inputEl = e.target as HTMLTextAreaElement
 			// Here we possibly pass control to a custom text handling component passed in by the user, if present.
@@ -93,13 +94,13 @@ export function useEditableText(
 				}
 			}
 		},
-		[editor, id, onCustomKeyDown]
+		[editor, shapeId, onCustomKeyDown]
 	)
 
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			if (editor.getEditingShapeId() !== id) return
+			if (editor.getEditingShapeId() !== shapeId) return
 
 			let text = TextHelpers.normalizeTextForDom(e.currentTarget.value)
 
@@ -116,12 +117,12 @@ export function useEditableText(
 			// ----------------------------
 
 			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
-				id,
+				id: shapeId,
 				type,
 				props: { text },
 			})
 		},
-		[editor, id, type]
+		[editor, shapeId, type]
 	)
 
 	const handleInputPointerDown = useCallback(
@@ -141,12 +142,12 @@ export function useEditableText(
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',
-				shape: editor.getShape(id)!,
+				shape: editor.getShape(shapeId)!,
 			})
 
 			stopEventPropagation(e) // we need to prevent blurring the input
 		},
-		[editor, id]
+		[editor, shapeId]
 	)
 
 	return {

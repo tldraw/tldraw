@@ -3,7 +3,7 @@ import { compact } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 import { Mat } from '../primitives/Mat'
 import { canonicalizeRotation } from '../primitives/utils'
-import { Vec } from '../primitives/Vec'
+import { Vec, VecLike } from '../primitives/Vec'
 
 /** @internal */
 export function getRotationSnapshot({
@@ -58,11 +58,13 @@ export function applyRotationToSnapshotShapes({
 	editor,
 	snapshot,
 	stage,
+	centerOverride,
 }: {
 	delta: number
 	snapshot: TLRotationSnapshot
 	editor: Editor
 	stage: 'start' | 'update' | 'end' | 'one-off'
+	centerOverride?: VecLike
 }) {
 	const { pageCenter, shapeSnapshots } = snapshot
 
@@ -75,7 +77,7 @@ export function applyRotationToSnapshotShapes({
 				? editor.getShapePageTransform(shape.parentId)!
 				: Mat.Identity()
 
-			const newPagePoint = Vec.RotWith(initialPagePoint, pageCenter, delta)
+			const newPagePoint = Vec.RotWith(initialPagePoint, centerOverride ?? pageCenter, delta)
 
 			const newLocalPoint = Mat.applyToPoint(
 				// use the current parent transform in case it has moved/resized since the start

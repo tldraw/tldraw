@@ -1,4 +1,4 @@
-export const replaceMarkdownLinks = (text: string) => {
+export function replaceMarkdownLinks(text: string) {
 	const links = text.match(/\[.*?\)/g)
 	if (links !== null && links.length > 0) {
 		for (const link of links) {

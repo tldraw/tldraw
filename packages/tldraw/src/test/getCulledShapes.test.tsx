@@ -42,9 +42,10 @@ it('lists shapes in viewport', () => {
 	// We don't cull selected shapes
 	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.C, ids.D]))
 
+	editor.selectNone()
 	editor.setEditingShape(ids.C)
 	// or shapes being edited
-	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.D]))
+	expect(editor.getCulledShapes()).toStrictEqual(new Set([ids.A, ids.B, ids.D]))
 })
 
 const shapeSize = 100

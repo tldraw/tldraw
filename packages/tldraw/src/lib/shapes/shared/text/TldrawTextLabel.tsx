@@ -13,7 +13,7 @@ import { useEditableText } from '../useEditableText'
  * This is an _experimental_ component that we are still exploring.
  */
 export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
-	id,
+	shapeId,
 	type,
 	text,
 	labelColor,
@@ -33,7 +33,7 @@ export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
 	useTextTriggerCharacter,
 }) {
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
-		id,
+		shapeId,
 		type,
 		text,
 		{ useTextTriggerCharacter }

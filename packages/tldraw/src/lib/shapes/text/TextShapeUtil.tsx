@@ -90,7 +90,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return (
 			TextLabel && (
 				<TextLabel
-					id={id}
+					shapeId={id}
 					classNamePrefix="tl-text-shape"
 					type="text"
 					font={font}

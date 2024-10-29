@@ -40,7 +40,7 @@ export type UNINITIALIZED = typeof UNINITIALIZED
  * @param value - The value to check.
  * @public
  */
-export const isUninitialized = (value: any): value is UNINITIALIZED => {
+export function isUninitialized(value: any): value is UNINITIALIZED {
 	return value === UNINITIALIZED
 }
 

@@ -5,12 +5,12 @@ import test from './fixtures/fixtures'
 test.describe('actions menu', () => {
 	test.beforeEach(setup)
 
-	test('you can open and close the actions menu', async ({ actionsMenu }) => {
+	test('you can open and close the actions menu', async ({ actionsMenu, menuClickCapture }) => {
 		const { actionsMenuButton, actionsMenuContent } = actionsMenu
 		await expect(actionsMenuContent).toBeHidden()
 		await actionsMenuButton.click()
 		await expect(actionsMenuContent).toBeVisible()
-		await actionsMenuButton.click()
+		await menuClickCapture.content.click()
 		await expect(actionsMenuContent).toBeHidden()
 	})
 

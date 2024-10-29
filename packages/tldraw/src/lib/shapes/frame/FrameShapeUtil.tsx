@@ -146,6 +146,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			fontWeight: 'normal',
 			overflow: 'truncate-ellipsis' as const,
 			verticalTextAlign: 'middle' as const,
+			fill: theme.text,
 		}
 
 		const spans = this.editor.textMeasure.measureTextSpans(

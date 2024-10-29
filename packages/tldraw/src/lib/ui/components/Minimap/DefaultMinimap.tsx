@@ -3,6 +3,7 @@ import {
 	TLPointerEventInfo,
 	Vec,
 	getPointerInfo,
+	isAccelKey,
 	normalizeWheel,
 	releasePointerCapture,
 	setPointerCapture,
@@ -178,6 +179,8 @@ export function DefaultMinimap() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 			})
 		},
 		[editor]
@@ -204,7 +207,7 @@ export function DefaultMinimap() {
 				onDoubleClick={onDoubleClick}
 				onPointerMove={onPointerMove}
 				onPointerDown={onPointerDown}
-				onWheel={onWheel}
+				onWheelCapture={onWheel}
 			/>
 		</div>
 	)

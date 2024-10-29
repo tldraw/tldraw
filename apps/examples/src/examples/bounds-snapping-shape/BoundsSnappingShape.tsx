@@ -1,4 +1,5 @@
 import { Editor, TLStoreSnapshot, Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
 import { PlayingCardTool } from './PlayingCardShape/playing-card-tool'
 import { PlayingCardUtil } from './PlayingCardShape/playing-card-util'
 import snapshot from './snapshot.json'
@@ -36,11 +37,11 @@ export default function BoundsSnappingShapeExample() {
 /*
 Introduction:
 
-This example shows how to create a shape with custom snapping geometry. 
-When shapes are moved around in snap mode, they will snap to the bounds 
+This example shows how to create a shape with custom snapping geometry.
+When shapes are moved around in snap mode, they will snap to the bounds
 of other shapes by default. However a shape can return custom snapping
-geometry to snap to instead. This example creates a playing card shape. 
-The cards are designed to snap together so that the top-left icon 
+geometry to snap to instead. This example creates a playing card shape.
+The cards are designed to snap together so that the top-left icon
 remains visible when stacked, similar to a hand of cards in a game.
 The most relevant code for this customisation is in playing-card-util.tsx.
 
@@ -52,24 +53,24 @@ change on every render.
 
 This is where we define the Tldraw component and pass in all our customisations.
 
-[2] 
+[2]
 We define a handleMount function that will be called when the editor mounts.
-We're using it to set the snap mode to true in the user preferences. This is 
-just to help demonstrate the custom snapping geometry feature. Without snap 
-mode being set in this way the user can still enter it by holding cmd/ctrl 
+We're using it to set the snap mode to true in the user preferences. This is
+just to help demonstrate the custom snapping geometry feature. Without snap
+mode being set in this way the user can still enter it by holding cmd/ctrl
 while dragging.
 
 [3]
 This is where we're passing in all our customisations to the Tldraw component.
 Check out the associated files for more information on what's being passed in.
-		
+
 	[a] Firstly our custom shape (playing-card-util.tsx) and tool (playing-card-tool.tsx)
 		This tells the editor about our custom shape and tool.
-	[b] Then our the uiOverrides and custom keyboard shortcuts component (ui-overrides.tsx), 
-		this makes sure that an icon for our tool appears in the toolbar and the shortcut 
-		for it appears in the dialog. 
+	[b] Then our the uiOverrides and custom keyboard shortcuts component (ui-overrides.tsx),
+		this makes sure that an icon for our tool appears in the toolbar and the shortcut
+		for it appears in the dialog.
 	[c] We pass in our handleMount function so that it's called when the editor mounts.
-	
-	[d] Finally we pass in a snapshot so that the editor starts with some shapes in it. 
+
+	[d] Finally we pass in a snapshot so that the editor starts with some shapes in it.
 		This isn't necessary, it just makes the example clearer on first glance.
 */

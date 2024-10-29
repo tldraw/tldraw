@@ -1,8 +1,10 @@
 import type { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { TLStoreSnapshot, createTLSchema } from '@tldraw/tlschema'
-import { objectMapValues } from '@tldraw/utils'
+import { objectMapValues, structuredClone } from '@tldraw/utils'
+import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
-import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { TLSyncErrorCloseEventReason } from './TLSyncClient'
+import { RoomSnapshot, RoomStoreMethods, TLSyncRoom } from './TLSyncRoom'
 import { JsonChunkAssembler } from './chunk'
 import { TLSocketServerSentEvent } from './protocol'
 
@@ -62,15 +64,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				? convertStoreSnapshotToRoomSnapshot(opts.initialSnapshot!)
 				: opts.initialSnapshot
 
-		const initialClock = initialSnapshot?.clock ?? 0
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			schema: opts.schema ?? (createTLSchema() as any),
 			snapshot: initialSnapshot,
+			onDataChange: opts.onDataChange,
 			log: opts.log,
 		})
-		if (this.room.clock !== initialClock) {
-			this.opts?.onDataChange?.()
-		}
 		this.room.events.on('session_removed', (args) => {
 			this.sessions.delete(args.sessionId)
 			if (this.opts.onSessionRemoved) {
@@ -100,14 +99,19 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *
 	 * - `sessionId` is a unique ID for a browser tab. This is passed as a query param by the useSync hook.
 	 * - `socket` is a WebSocket-like object that the server uses to communicate with the client.
+	 * - `isReadonly` is an optional boolean that can be set to true if the client should not be able to make changes to the document. They will still be able to send presence updates.
 	 * - `meta` is an optional object that can be used to store additional information about the session.
 	 *
 	 * @param opts - The options object
 	 */
 	handleSocketConnect(
-		opts: OmitVoid<{ sessionId: string; socket: WebSocketMinimal; meta: SessionMeta }>
+		opts: {
+			sessionId: string
+			socket: WebSocketMinimal
+			isReadonly?: boolean
+		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket } = opts
+		const { sessionId, socket, isReadonly = false } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data)
 		const handleSocketError = this.handleSocketError.bind(this, sessionId)
@@ -123,9 +127,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			},
 		})
 
-		this.room.handleNewSession(
+		this.room.handleNewSession({
 			sessionId,
-			new ServerSocketAdapter({
+			isReadonly,
+			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
 					? (message, stringified) =>
@@ -137,8 +142,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 							})
 					: undefined,
 			}),
-			'meta' in opts ? (opts.meta as any) : undefined
-		)
+			meta: 'meta' in opts ? (opts.meta as any) : undefined,
+		})
 
 		socket.addEventListener?.('message', handleSocketMessage)
 		socket.addEventListener?.('close', handleSocketClose)
@@ -154,7 +159,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @param message - The message received from the client.
 	 */
 	handleSocketMessage(sessionId: string, message: string | AllowSharedBufferSource) {
-		const documentClockAtStart = this.room.documentClock
 		const assembler = this.sessions.get(sessionId)?.assembler
 		if (!assembler) {
 			this.log?.warn?.('Received message from unknown session', sessionId)
@@ -191,20 +195,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			}
 		} catch (e) {
 			this.log?.error?.(e)
-			const socket = this.sessions.get(sessionId)?.socket
-			if (socket) {
-				socket.send(
-					JSON.stringify({
-						type: 'error',
-						error: typeof e?.toString === 'function' ? e.toString() : e,
-					} satisfies TLSocketServerSentEvent<R>)
-				)
-				socket.close()
-			}
-		} finally {
-			if (this.room.documentClock !== documentClockAtStart) {
-				this.opts.onDataChange?.()
-			}
+			// here we use rejectSession rather than removeSession to support legacy clients
+			// that use the old incompatibility_error close event
+			this.room.rejectSession(sessionId, TLSyncErrorCloseEventReason.UNKNOWN_ERROR)
 		}
 	}
 
@@ -238,6 +231,34 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
+	 * Returns a deeply cloned record from the store, if available.
+	 * @param id - The id of the record
+	 * @returns the cloned record
+	 */
+	getRecord(id: string) {
+		return structuredClone(this.room.state.get().documents[id]?.state)
+	}
+
+	/**
+	 * Returns a list of the sessions in the room.
+	 */
+	getSessions(): Array<{
+		sessionId: string
+		isConnected: boolean
+		isReadonly: boolean
+		meta: SessionMeta
+	}> {
+		return [...this.room.sessions.values()].map((session) => {
+			return {
+				sessionId: session.sessionId,
+				isConnected: session.state === RoomSessionState.Connected,
+				isReadonly: session.isReadonly,
+				meta: session.meta,
+			}
+		})
+	}
+
+	/**
 	 * Return a snapshot of the document state, including clock-related bookkeeping.
 	 * You can store this and load it later on when initializing a TLSocketRoom.
 	 * You can also pass a snapshot to {@link TLSocketRoom#loadSnapshot} if you need to revert to a previous state.
@@ -245,6 +266,15 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	getCurrentSnapshot() {
 		return this.room.getSnapshot()
+	}
+
+	/**
+	 * Return a serialized snapshot of the document state, including clock-related bookkeeping.
+	 * @returns The serialized snapshot
+	 * @internal
+	 */
+	getCurrentSerializedSnapshot() {
+		return JSON.stringify(this.room.getSnapshot())
 	}
 
 	/**
@@ -285,6 +315,46 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		// replace room with new one and kick out all the clients
 		this.room = newRoom
 		oldRoom.close()
+	}
+
+	/**
+	 * Allow applying changes to the store inside of a transaction.
+	 *
+	 * You can get values from the store by id with `store.get(id)`.
+	 * These values are safe to mutate, but to commit the changes you must call `store.put(...)` with the updated value.
+	 * You can get all values in the store with `store.getAll()`.
+	 * You can also delete values with `store.delete(id)`.
+	 *
+	 * @example
+	 * ```ts
+	 * room.updateStore(store => {
+	 *   const shape = store.get('shape:abc123')
+	 *   shape.meta.approved = true
+	 *   store.put(shape)
+	 * })
+	 * ```
+	 *
+	 * Changes to the store inside the callback are isolated from changes made by other clients until the transaction commits.
+	 *
+	 * @param updater - A function that will be called with a store object that can be used to make changes.
+	 * @returns A promise that resolves when the transaction is complete.
+	 */
+	async updateStore(updater: (store: RoomStoreMethods<R>) => void | Promise<void>) {
+		return this.room.updateStore(updater)
+	}
+
+	/**
+	 * Immediately remove a session from the room, and close its socket if not already closed.
+	 *
+	 * The client will attempt to reconnect unless you provide a `fatalReason` parameter.
+	 *
+	 * The `fatalReason` parameter will be available in the return value of the `useSync` hook as `useSync().error.reason`.
+	 *
+	 * @param sessionId - The id of the session to remove
+	 * @param fatalReason - The reason message to use when calling .close on the underlying websocket
+	 */
+	closeSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
+		this.room.rejectSession(sessionId, fatalReason)
 	}
 
 	/**

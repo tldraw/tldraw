@@ -13,7 +13,7 @@ const icons = {
 	'all-posts': RectangleStackIcon,
 }
 
-export const BlogCategoryMenu = ({ categories }: { categories: Category[] }) => {
+export function BlogCategoryMenu({ categories }: { categories: Category[] }) {
 	const pathname = usePathname()
 
 	return (

@@ -78,7 +78,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 
 		return (
-			<SVGContainer id={shape.id}>
+			<SVGContainer>
 				<DashedOutlineBox className="tl-group" bounds={bounds} />
 			</SVGContainer>
 		)

@@ -19,8 +19,6 @@ export class Pointing extends StateNode {
 
 	info = {} as TLPointerEventInfo
 
-	wasFocusedOnEnter = false
-
 	markId = ''
 
 	shape = {} as TLNoteShape
@@ -28,42 +26,24 @@ export class Pointing extends StateNode {
 	override onEnter() {
 		const { editor } = this
 
-		this.wasFocusedOnEnter = !editor.getIsMenuOpen()
+		const id = createShapeId()
+		this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
 
-		if (this.wasFocusedOnEnter) {
-			const id = createShapeId()
-			this.markId = editor.markHistoryStoppingPoint(`creating_note:${id}`)
-
-			// Check for note pits; if the pointer is close to one, place the note centered on the pit
-			const center = this.editor.inputs.originPagePoint.clone()
-			const offset = getNoteShapeAdjacentPositionOffset(
-				this.editor,
-				center,
-				this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
-			)
-			if (offset) {
-				center.sub(offset)
-			}
-			this.shape = createNoteShape(this.editor, id, center)
+		// Check for note pits; if the pointer is close to one, place the note centered on the pit
+		const center = this.editor.inputs.originPagePoint.clone()
+		const offset = getNoteShapeAdjacentPositionOffset(
+			this.editor,
+			center,
+			this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
+		)
+		if (offset) {
+			center.sub(offset)
 		}
+		this.shape = createNoteShape(this.editor, id, center)
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
-			if (!this.wasFocusedOnEnter) {
-				const id = createShapeId()
-				const center = this.editor.inputs.originPagePoint.clone()
-				const offset = getNoteShapeAdjacentPositionOffset(
-					this.editor,
-					center,
-					this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1
-				)
-				if (offset) {
-					center.sub(offset)
-				}
-				this.shape = createNoteShape(this.editor, id, center)
-			}
-
 			this.editor.setCurrentTool('select.translating', {
 				...info,
 				target: 'shape',
@@ -96,17 +76,15 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
-		if (this.wasFocusedOnEnter) {
-			if (this.editor.getInstanceState().isToolLocked) {
-				this.parent.transition('idle')
-			} else {
-				this.editor.setEditingShape(this.shape.id)
-				this.editor.setCurrentTool('select.editing_shape', {
-					...this.info,
-					target: 'shape',
-					shape: this.shape,
-				})
-			}
+		if (this.editor.getInstanceState().isToolLocked) {
+			this.parent.transition('idle')
+		} else {
+			this.editor.setEditingShape(this.shape.id)
+			this.editor.setCurrentTool('select.editing_shape', {
+				...this.info,
+				target: 'shape',
+				shape: this.shape,
+			})
 		}
 	}
 

@@ -1,5 +1,5 @@
-import { useEditor, useValue } from '@tldraw/editor'
-import { ReactNode, memo } from 'react'
+import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -25,8 +25,10 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 }: TLUiActionsMenuProps) {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-
 	const isReadonlyMode = useReadonly()
+
+	const ref = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(ref)
 
 	const editor = useEditor()
 	const isInAcceptableReadonlyState = useValue(
@@ -57,7 +59,11 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				side={breakpoint >= PORTRAIT_BREAKPOINT.TABLET ? 'bottom' : 'top'}
 				sideOffset={6}
 			>
-				<div className="tlui-actions-menu tlui-buttons__grid" data-testid="actions-menu.content">
+				<div
+					ref={ref}
+					className="tlui-actions-menu tlui-buttons__grid"
+					data-testid="actions-menu.content"
+				>
 					<TldrawUiMenuContextProvider type="icons" sourceId="actions-menu">
 						{content}
 					</TldrawUiMenuContextProvider>

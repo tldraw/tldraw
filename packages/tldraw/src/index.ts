@@ -1,6 +1,8 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
+export { TldrawUiToasts } from './lib/ui/components/Toasts'
 export {
 	TldrawUiMenuActionCheckboxItem,
 	type TLUiMenuActionCheckboxItemProps,
@@ -13,7 +15,9 @@ export {
 	TldrawUiMenuToolItem,
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
-
+export { TldrawUiDialogsProvider, type TLUiDialogsProviderProps } from './lib/ui/context/dialogs'
+export { TldrawUiToastsProvider, type TLUiToastsProviderProps } from './lib/ui/context/toasts'
+export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
@@ -80,6 +84,7 @@ export {
 } from './lib/shapes/shared/text/TldrawTextLabel'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
+export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -355,7 +360,7 @@ export {
 export {
 	TldrawUiMenuContextProvider,
 	type TLUiMenuContextProviderProps,
-	type TldrawUiMenuContextType,
+	type TLUiMenuContextType,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuContext'
 export {
 	TldrawUiMenuGroup,
@@ -372,7 +377,7 @@ export {
 export { PORTRAIT_BREAKPOINT } from './lib/ui/constants'
 export {
 	TldrawUiContextProvider,
-	type TldrawUiContextProviderProps,
+	type TLUiContextProviderProps,
 } from './lib/ui/context/TldrawUiContextProvider'
 export {
 	unwrapLabel,
@@ -400,7 +405,7 @@ export {
 	type TLUiDialogsContextType,
 } from './lib/ui/context/dialogs'
 export {
-	UiEventsProvider,
+	TldrawUiEventsProvider,
 	useUiEvents,
 	type EventsProviderProps,
 	type TLUiEventContextType,
