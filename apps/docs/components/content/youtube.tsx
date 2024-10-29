@@ -1,4 +1,4 @@
-export const YouTube: React.FC<{ src: string; caption?: string }> = ({ src, caption }) => {
+export function YouTube({ src, caption }: { src: string; caption?: string }) {
 	return (
 		<span className="block mb-5">
 			<span className="block bg-zinc-100 dark:bg-zinc-800 py-1 md:rounded-2xl -mx-5 md:mx-0 md:px-1">

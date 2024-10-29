@@ -103,7 +103,6 @@ function InlineBlock({ persistenceKey }: { persistenceKey: string }) {
 					setEditor(editor)
 					editor.setCurrentTool('hand')
 					editor.user.updateUserPreferences({ edgeScrollSpeed: 0 })
-					editor.updateInstanceState({ isDebugMode: false })
 				}}
 			/>
 		</div>

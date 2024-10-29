@@ -130,15 +130,17 @@ const Collaborator = track(function Collaborator({
 				</>
 			) : null}
 			{CollaboratorShapeIndicator &&
-				selectedShapeIds.map((shapeId) => (
-					<CollaboratorShapeIndicator
-						className="tl-collaborator__shape-indicator"
-						key={userId + '_' + shapeId}
-						shapeId={shapeId}
-						color={color}
-						opacity={0.5}
-					/>
-				))}
+				selectedShapeIds
+					.filter((id) => !editor.isShapeHidden(id))
+					.map((shapeId) => (
+						<CollaboratorShapeIndicator
+							className="tl-collaborator__shape-indicator"
+							key={userId + '_' + shapeId}
+							shapeId={shapeId}
+							color={color}
+							opacity={0.5}
+						/>
+					))}
 		</>
 	)
 })

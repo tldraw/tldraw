@@ -5,6 +5,10 @@ import { TLUser } from '../../config/createTLUser'
 /** @public */
 export class UserPreferencesManager {
 	systemColorScheme = atom<'dark' | 'light'>('systemColorScheme', 'light')
+	disposables = new Set<() => void>()
+	dispose() {
+		this.disposables.forEach((d) => d())
+	}
 	constructor(
 		private readonly user: TLUser,
 		private readonly inferDarkMode: boolean
@@ -15,13 +19,15 @@ export class UserPreferencesManager {
 		if (darkModeMediaQuery?.matches) {
 			this.systemColorScheme.set('dark')
 		}
-		darkModeMediaQuery?.addEventListener('change', (e) => {
+		const handleChange = (e: MediaQueryListEvent) => {
 			if (e.matches) {
 				this.systemColorScheme.set('dark')
 			} else {
 				this.systemColorScheme.set('light')
 			}
-		})
+		}
+		darkModeMediaQuery?.addEventListener('change', handleChange)
+		this.disposables.add(() => darkModeMediaQuery?.removeEventListener('change', handleChange))
 	}
 
 	updateUserPreferences(userPreferences: Partial<TLUserPreferences>) {

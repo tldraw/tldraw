@@ -1,9 +1,9 @@
-import { TLIncompatibilityReason } from './protocol'
+import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 
-/** @internal */
+/** @public */
 export class TLRemoteSyncError extends Error {
 	override name = 'RemoteSyncError'
-	constructor(public readonly reason: TLIncompatibilityReason) {
-		super(`remote sync error: ${reason}`)
+	constructor(public readonly reason: TLSyncErrorCloseEventReason | string) {
+		super(`sync error: ${reason}`)
 	}
 }

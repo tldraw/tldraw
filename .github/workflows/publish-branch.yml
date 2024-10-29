@@ -1,0 +1,54 @@
+name: Publish branch packages
+
+on:
+  pull_request:
+    types: [labeled]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  deploy:
+    name: 'Publish branch packages'
+    environment: npm deploy
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-open
+    if: github.event.label.name == 'publish-packages'
+
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Remove the publish-packages label
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: publish-packages
+
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Publish Canary Packages
+        run: yarn tsx ./internal/scripts/publish-prerelease.ts internal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_ACCESS_KEY_SECRET: ${{ secrets.R2_ACCESS_KEY_SECRET }}
+          TLDRAW_BEMO_URL: https://canary-demo.tldraw.xyz
+
+      - name: Extract published version
+        id: extract_version
+        run: echo "version=$(node -e 'console.log(require("./packages/tldraw/package.json").version)')" >> $GITHUB_OUTPUT
+
+      - name: Tell user released version
+        uses: actions-ecosystem/action-create-comment@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          body: |
+            Published version ${{ steps.extract_version.outputs.version }} to npm.

@@ -1,7 +1,7 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
 	Box,
+	Editor,
 	FileHelpers,
 	Group2d,
 	HTMLContainer,
@@ -22,9 +22,12 @@ import {
 	resizeBox,
 	structuredClone,
 	toDomPrecision,
+	useEditor,
+	useUniqueSafeId,
+	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useEffect, useState } from 'react'
+import { ReactElement, memo, useEffect, useState } from 'react'
 
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -37,8 +40,8 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
-import { useAsset } from '../shared/useAsset'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
+import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 async function getDataURIFromURL(url: string): Promise<string> {
@@ -162,175 +165,8 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return resized
 	}
 
-	isAnimated(shape: TLImageShape) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
-
-		if (!asset) return false
-
-		return (
-			('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
-			('isAnimated' in asset.props && asset.props.isAnimated)
-		)
-	}
-
 	component(shape: TLImageShape) {
-		const isCropping = this.editor.getCroppingShapeId() === shape.id
-		const prefersReducedMotion = usePrefersReducedMotion()
-		const [staticFrameSrc, setStaticFrameSrc] = useState('')
-		const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
-		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
-		const theme = useDefaultColorTheme()
-
-		useEffect(() => {
-			if (url && this.isAnimated(shape)) {
-				let cancelled = false
-
-				const image = Image()
-				image.onload = () => {
-					if (cancelled) return
-
-					const canvas = document.createElement('canvas')
-					canvas.width = image.width
-					canvas.height = image.height
-
-					const ctx = canvas.getContext('2d')
-					if (!ctx) return
-
-					ctx.drawImage(image, 0, 0)
-					setStaticFrameSrc(canvas.toDataURL())
-					setLoadedUrl(url)
-				}
-				image.crossOrigin = 'anonymous'
-				image.src = url
-
-				return () => {
-					cancelled = true
-				}
-			}
-		}, [prefersReducedMotion, url, shape])
-
-		if (asset?.type === 'bookmark') {
-			throw Error("Bookmark assets can't be rendered as images")
-		}
-
-		const showCropPreview = isSelected && isCropping && this.editor.isIn('select.crop')
-
-		// We only want to reduce motion for mimeTypes that have motion
-		const reduceMotion =
-			prefersReducedMotion && (asset?.props.mimeType?.includes('video') || this.isAnimated(shape))
-
-		const containerStyle = getCroppedContainerStyle(shape)
-
-		const nextSrc = url === loadedUrl ? null : url
-		const loadedSrc = !shape.props.playing || reduceMotion ? staticFrameSrc : loadedUrl
-
-		// This logic path is for when it's broken/missing asset.
-		if (!url && !asset?.props.src) {
-			return (
-				<HTMLContainer
-					id={shape.id}
-					style={{
-						overflow: 'hidden',
-						width: shape.props.w,
-						height: shape.props.h,
-						color: 'var(--color-text-3)',
-						backgroundColor: 'var(--color-low)',
-						border: '1px solid var(--color-low-border)',
-					}}
-				>
-					<div
-						className={classNames('tl-image-container', asset && 'tl-image-container-loading')}
-						style={containerStyle}
-					>
-						{asset ? null : <BrokenAssetIcon />}
-					</div>
-					{'url' in shape.props && shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-					)}
-				</HTMLContainer>
-			)
-		}
-
-		// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
-		// have that set up.
-		const crossOrigin = this.isAnimated(shape) ? 'anonymous' : undefined
-		const { fill, font, align, verticalAlign, size, text, color: labelColor } = shape.props
-
-		return (
-			<>
-				{showCropPreview && loadedSrc && (
-					<div style={containerStyle}>
-						<img
-							className="tl-image"
-							style={{ ...getFlipStyle(shape), opacity: 0.1 }}
-							crossOrigin={crossOrigin}
-							src={loadedSrc}
-							referrerPolicy="strict-origin-when-cross-origin"
-							draggable={false}
-						/>
-					</div>
-				)}
-				<HTMLContainer
-					id={shape.id}
-					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
-				>
-					<div className={classNames('tl-image-container')} style={containerStyle}>
-						{/* We have two images: the currently loaded image, and the next image that
-						we're waiting to load. we keep the loaded image mounted while we're waiting
-						for the next one by storing the loaded URL in state. We use `key` props with
-						the src of the image so that when the next image is ready, the previous one will
-						be unmounted and the next will be shown with the browser having to remount a
-						fresh image and decoded it again from the cache. */}
-						{loadedSrc && (
-							<img
-								key={loadedSrc}
-								className="tl-image"
-								style={getFlipStyle(shape)}
-								crossOrigin={crossOrigin}
-								src={loadedSrc}
-								referrerPolicy="strict-origin-when-cross-origin"
-								draggable={false}
-							/>
-						)}
-						{nextSrc && (
-							<img
-								key={nextSrc}
-								className="tl-image"
-								style={getFlipStyle(shape)}
-								crossOrigin={crossOrigin}
-								src={nextSrc}
-								referrerPolicy="strict-origin-when-cross-origin"
-								draggable={false}
-								onLoad={() => setLoadedUrl(nextSrc)}
-							/>
-						)}
-						{this.isAnimated(shape) && !shape.props.playing && (
-							<div className="tl-image__tg">GIF</div>
-						)}
-					</div>
-					{shape.props.url && (
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.getZoomLevel()} />
-					)}
-				</HTMLContainer>
-
-				<TextLabel
-					id={shape.id}
-					type={shape.type}
-					font={font}
-					fontSize={LABEL_FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
-					padding={LABEL_PADDING}
-					fill={fill}
-					align={align}
-					verticalAlign={verticalAlign}
-					text={text}
-					isSelected={isSelected}
-					labelColor={theme[labelColor].solid}
-					wrap
-				/>
-			</>
-		)
+		return <ImageShape shape={shape} />
 	}
 
 	indicator(shape: TLImageShape) {
@@ -387,79 +223,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 			)
 		}
 
-		const containerStyle = getCroppedContainerStyle(shape)
-		const crop = shape.props.crop
-		if (containerStyle.transform && crop) {
-			const { transform: cropTransform, width, height } = containerStyle
-			const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
-			const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
-
-			const points = [
-				new Vec(0, 0),
-				new Vec(croppedWidth, 0),
-				new Vec(croppedWidth, croppedHeight),
-				new Vec(0, croppedHeight),
-			]
-
-			const cropClipId = `cropClipPath_${shape.id.replace(':', '_')}`
-
-			const flip = getFlipStyle(shape, { width, height })
-
-			return (
-				<>
-					<defs>
-						<clipPath id={cropClipId}>
-							<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
-						</clipPath>
-					</defs>
-					<g clipPath={`url(#${cropClipId})`}>
-						<image
-							href={src}
-							width={width}
-							height={height}
-							style={
-								flip
-									? { ...flip, transform: `${cropTransform} ${flip.transform}` }
-									: { transform: cropTransform }
-							}
-						/>
-					</g>
-					{textEl}
-				</>
-			)
-		} else {
-			return (
-				<>
-					<image
-						href={src}
-						width={shape.props.w}
-						height={shape.props.h}
-						style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
-					/>
-					{textEl}
-				</>
-			)
-		}
-	}
-
-	override onDoubleClick(shape: TLImageShape) {
-		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
-
-		if (!asset) return
-
-		const canPlay = asset.props.src && this.isAnimated(shape)
-
-		if (!canPlay) return
-
-		this.editor.updateShapes([
-			{
-				type: 'image',
-				id: shape.id,
-				props: {
-					playing: !shape.props.playing,
-				},
-			},
-		])
+		return <SvgImage shape={shape} src={src} textEl={textEl} />
 	}
 
 	override onDoubleClickEdge(shape: TLImageShape) {
@@ -529,6 +293,179 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 }
 
+const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) {
+	const editor = useEditor()
+	const theme = useDefaultColorTheme()
+
+	const { asset, url } = useImageOrVideoAsset({
+		shapeId: shape.id,
+		assetId: shape.props.assetId,
+	})
+
+	const prefersReducedMotion = usePrefersReducedMotion()
+	const [staticFrameSrc, setStaticFrameSrc] = useState('')
+	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
+	const isSelected = shape.id === editor.getOnlySelectedShapeId()
+	const isAnimated = getIsAnimated(editor, shape)
+
+	useEffect(() => {
+		if (url && isAnimated) {
+			let cancelled = false
+
+			const image = Image()
+			image.onload = () => {
+				if (cancelled) return
+
+				const canvas = document.createElement('canvas')
+				canvas.width = image.width
+				canvas.height = image.height
+
+				const ctx = canvas.getContext('2d')
+				if (!ctx) return
+
+				ctx.drawImage(image, 0, 0)
+				setStaticFrameSrc(canvas.toDataURL())
+				setLoadedUrl(url)
+			}
+			image.crossOrigin = 'anonymous'
+			image.src = url
+
+			return () => {
+				cancelled = true
+			}
+		}
+	}, [editor, isAnimated, prefersReducedMotion, url])
+
+	const showCropPreview = useValue(
+		'show crop preview',
+		() =>
+			shape.id === editor.getOnlySelectedShapeId() &&
+			editor.getCroppingShapeId() === shape.id &&
+			editor.isIn('select.crop'),
+		[editor, shape.id]
+	)
+
+	// We only want to reduce motion for mimeTypes that have motion
+	const reduceMotion =
+		prefersReducedMotion && (asset?.props.mimeType?.includes('video') || isAnimated)
+
+	const containerStyle = getCroppedContainerStyle(shape)
+
+	const nextSrc = url === loadedUrl ? null : url
+	const loadedSrc = reduceMotion ? staticFrameSrc : loadedUrl
+
+	// This logic path is for when it's broken/missing asset.
+	if (!url && !asset?.props.src) {
+		return (
+			<HTMLContainer
+				id={shape.id}
+				style={{
+					overflow: 'hidden',
+					width: shape.props.w,
+					height: shape.props.h,
+					color: 'var(--color-text-3)',
+					backgroundColor: 'var(--color-low)',
+					border: '1px solid var(--color-low-border)',
+				}}
+			>
+				<div
+					className={classNames('tl-image-container', asset && 'tl-image-container-loading')}
+					style={containerStyle}
+				>
+					{asset ? null : <BrokenAssetIcon />}
+				</div>
+				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
+			</HTMLContainer>
+		)
+	}
+
+	// We don't set crossOrigin for non-animated images because for Cloudflare we don't currently
+	// have that set up.
+	const crossOrigin = isAnimated ? 'anonymous' : undefined
+	const { fill, font, align, verticalAlign, size, text, color: labelColor } = shape.props
+
+	return (
+		<>
+			{showCropPreview && loadedSrc && (
+				<div style={containerStyle}>
+					<img
+						className="tl-image"
+						style={{ ...getFlipStyle(shape), opacity: 0.1 }}
+						crossOrigin={crossOrigin}
+						src={loadedSrc}
+						referrerPolicy="strict-origin-when-cross-origin"
+						draggable={false}
+					/>
+				</div>
+			)}
+			<HTMLContainer
+				id={shape.id}
+				style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+			>
+				<div className={classNames('tl-image-container')} style={containerStyle}>
+					{/* We have two images: the currently loaded image, and the next image that
+					we're waiting to load. we keep the loaded image mounted while we're waiting
+					for the next one by storing the loaded URL in state. We use `key` props with
+					the src of the image so that when the next image is ready, the previous one will
+					be unmounted and the next will be shown with the browser having to remount a
+					fresh image and decoded it again from the cache. */}
+					{loadedSrc && (
+						<img
+							key={loadedSrc}
+							className="tl-image"
+							style={getFlipStyle(shape)}
+							crossOrigin={crossOrigin}
+							src={loadedSrc}
+							referrerPolicy="strict-origin-when-cross-origin"
+							draggable={false}
+						/>
+					)}
+					{nextSrc && (
+						<img
+							key={nextSrc}
+							className="tl-image"
+							style={getFlipStyle(shape)}
+							crossOrigin={crossOrigin}
+							src={nextSrc}
+							referrerPolicy="strict-origin-when-cross-origin"
+							draggable={false}
+							onLoad={() => setLoadedUrl(nextSrc)}
+						/>
+					)}
+				</div>
+				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
+			</HTMLContainer>
+
+			<TextLabel
+				shapeId={shape.id}
+				type={shape.type}
+				font={font}
+				fontSize={LABEL_FONT_SIZES[size]}
+				lineHeight={TEXT_PROPS.lineHeight}
+				padding={LABEL_PADDING}
+				fill={fill}
+				align={align}
+				verticalAlign={verticalAlign}
+				text={text}
+				isSelected={isSelected}
+				labelColor={theme[labelColor].solid}
+				wrap
+			/>
+		</>
+	)
+})
+
+function getIsAnimated(editor: Editor, shape: TLImageShape) {
+	const asset = shape.props.assetId ? editor.getAsset(shape.props.assetId) : undefined
+
+	if (!asset) return false
+
+	return (
+		('mimeType' in asset.props && MediaHelpers.isAnimatedImageType(asset?.props.mimeType)) ||
+		('isAnimated' in asset.props && asset.props.isAnimated)
+	)
+}
+
 /**
  * When an image is cropped we need to translate the image to show the portion withing the cropped
  * area. We do this by translating the image by the negative of the top left corner of the crop
@@ -572,5 +509,68 @@ function getFlipStyle(shape: TLImageShape, size?: { width: number; height: numbe
 		transform: `${translate} ${scale}`,
 		// in SVG, flipping around the center doesn't work so we use explicit width/height
 		transformOrigin: size ? '0 0' : 'center center',
+	}
+}
+
+function SvgImage({
+	shape,
+	src,
+	textEl,
+}: {
+	shape: TLImageShape
+	src: string
+	textEl: ReactElement | undefined
+}) {
+	const cropClipId = useUniqueSafeId()
+	const containerStyle = getCroppedContainerStyle(shape)
+	const crop = shape.props.crop
+	if (containerStyle.transform && crop) {
+		const { transform: cropTransform, width, height } = containerStyle
+		const croppedWidth = (crop.bottomRight.x - crop.topLeft.x) * width
+		const croppedHeight = (crop.bottomRight.y - crop.topLeft.y) * height
+
+		const points = [
+			new Vec(0, 0),
+			new Vec(croppedWidth, 0),
+			new Vec(croppedWidth, croppedHeight),
+			new Vec(0, croppedHeight),
+		]
+
+		const flip = getFlipStyle(shape, { width, height })
+
+		return (
+			<>
+				<defs>
+					<clipPath id={cropClipId}>
+						<polygon points={points.map((p) => `${p.x},${p.y}`).join(' ')} />
+					</clipPath>
+				</defs>
+				<g clipPath={`url(#${cropClipId})`}>
+					<image
+						href={src}
+						width={width}
+						height={height}
+						style={
+							flip
+								? { ...flip, transform: `${cropTransform} ${flip.transform}` }
+								: { transform: cropTransform }
+						}
+					/>
+				</g>
+				{textEl}
+			</>
+		)
+	} else {
+		return (
+			<>
+				<image
+					href={src}
+					width={shape.props.w}
+					height={shape.props.h}
+					style={getFlipStyle(shape, { width: shape.props.w, height: shape.props.h })}
+				/>
+				{textEl}
+			</>
+		)
 	}
 }

@@ -1,4 +1,4 @@
-name: Publish new packages from main
+name: Publish new SDK release from main (minor version bump)
 # This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
 
 # Prevent more than one non-canary npm publishing job from running at the same time
@@ -61,9 +61,9 @@ jobs:
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
           if [[ "${{ inputs.bump_type }}" == "override" ]]; then
-            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.version_override }}
+            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.version_override }}
           else
-            yarn tsx ./scripts/publish-new.ts --bump ${{ inputs.bump_type }}
+            yarn tsx ./internal/scripts/publish-new.ts --bump ${{ inputs.bump_type }}
           fi
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}

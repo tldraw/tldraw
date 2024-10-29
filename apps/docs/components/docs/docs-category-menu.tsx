@@ -1,7 +1,7 @@
 'use client'
 
 import { NavigationLink } from '@/components/navigation/link'
-import { AcademicCapIcon, BookOpenIcon, PlayIcon } from '@heroicons/react/20/solid'
+import { AcademicCapIcon, CommandLineIcon, PlayIcon } from '@heroicons/react/20/solid'
 import { usePathname } from 'next/navigation'
 
 const categoryLinks = [
@@ -16,7 +16,7 @@ const categoryLinks = [
 	},
 	{
 		caption: 'Reference',
-		icon: BookOpenIcon,
+		icon: CommandLineIcon,
 		href: '/reference/editor/Editor',
 		active: (pathname: string) => pathname.startsWith('/reference'),
 	},
@@ -28,10 +28,10 @@ const categoryLinks = [
 	},
 ]
 
-export const DocsCategoryMenu = () => {
+export function DocsCategoryMenu() {
 	const pathname = usePathname()
 	return (
-		<ul className="shrink-0 flex flex-col gap-3">
+		<ul className="flex flex-col gap-3 shrink-0">
 			{categoryLinks.map((item, index) => (
 				<li key={index}>
 					<NavigationLink {...item} active={item.active(pathname)} />

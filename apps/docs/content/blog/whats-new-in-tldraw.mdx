@@ -2,7 +2,7 @@
 title: What's new in tldraw
 category: product
 description: New arrows, new ink, new selection, new frames, new docs, new shapes, and more.
-hero: https://substackcdn.com/image/fetch/w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1e4fadb9-7d5b-440f-97a0-7225700628eb_1200x675.png
+hero: /images/blog/1e4fadb9-7d5b-440f-97a0-7225700628eb_1200x675.png
 date: 12/15/2023
 status: published
 author:
@@ -12,7 +12,7 @@ author:
 
 A lot has happened over the past 5 months.
 
-We raised [another $2M](https://tldraw.substack.com/p/tldraw-raised-another-2m), made [Make Real](https://tldraw.substack.com/p/make-real-the-story-so-far), and commissioned a [theme song](https://www.youtube.com/watch?v=V5BtxSxUAsI). During all that time, we’ve been updating tldraw non-stop.
+We raised [another $2M](https://tldraw.dev/blog/announcements/tldraw-raised-another-2m), made [Make Real](https://tldraw.dev/blog/product/make-real-the-story-so-far), and commissioned a [theme song](https://www.youtube.com/watch?v=V5BtxSxUAsI). During all that time, we’ve been updating tldraw non-stop.
 
 Tons of new features, fixes, tweaks, reworks, and more, have landed on [tldraw.com](https://tldraw.com). These are all in place for the upcoming 2.0 release of [our library](https://tldraw.dev/) (stay tuned).
 
@@ -22,29 +22,29 @@ Tons of new features, fixes, tweaks, reworks, and more, have landed on [tldraw.c
 
 We completely rebuilt how **arrows** work. They look and feel better than ever. We finally figured out all those [edge cases](https://twitter.com/steveruizok/status/1707139579332137084).
 
-![Arrows rework](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb3a3688d-9428-452a-9b9b-758c9e80ab2c_960x540.gif)
+![Arrows rework](/images/blog/b3a3688d-9428-452a-9b9b-758c9e80ab2c_960x540.gif)
 
 Short arrows move smoothly from shape to shape. There’s no more jumping around.
 
-![Short arrows](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F916fb9b3-bb77-4689-be77-8b9d06d509ac_960x540.gif)
+![Short arrows](/images/blog/916fb9b3-bb77-4689-be77-8b9d06d509ac_960x540.gif)
 
 Curved arrows intersect at the right place on your freehand strokes.
 
-![Curved arrows](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F58b91193-b544-48e3-9415-79ef3f495720_960x540.gif)
+![Curved arrows](/images/blog/58b91193-b544-48e3-9415-79ef3f495720_960x540.gif)
 
 Arrows can even point to and from a shape they’re inside of.
 
-![Nested arrows](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F21573e21-edc8-4029-a1da-654cba6b6448_960x540.gif)
+![Nested arrows](/images/blog/21573e21-edc8-4029-a1da-654cba6b6448_960x540.gif)
 
 ## New ink
 
 We completely rebuilt how our **virtual ink** works. We use a brand new approach, separating brush strokes into smaller pieces.
 
-![New virtual ink](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ffb7c3149-f7e8-4cf7-bbad-9d3d68de4252_960x540.gif)
+![New virtual ink](/images/blog/fb7c3149-f7e8-4cf7-bbad-9d3d68de4252_960x540.gif)
 
 It looks much better, especially on corners. And it’s better for performance too, with SVG exports now 13% smaller.
 
-![Virtual ink corners](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd798e7ae-2a35-40ea-a489-5043a18bcd0a_960x540.gif)
+![Virtual ink corners](/images/blog/d798e7ae-2a35-40ea-a489-5043a18bcd0a_960x540.gif)
 
 ## Selection overhaul
 
@@ -52,75 +52,75 @@ We completely rebuilt how **selection** works.
 
 The library now “sees” the geometry of every shape and uses that information to handle all your clicking, dragging, stretching, and scribbling.
 
-![Shape geometry](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F7e449c5c-a566-4046-a82c-78ad375e80b0_960x540.gif)
+![Shape geometry](/images/blog/7e449c5c-a566-4046-a82c-78ad375e80b0_960x540.gif)
 
 We now handle those inputs ourselves in code instead of relying on individual HTML elements for hit-testing. This means that we’ve been able to drastically cut down on the number of elements on screen, many of which existed only for the hit-testing. Everything runs quicker.
 
-![Input handling](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6c741f27-5139-432a-b01b-e6a7cfd30f92_960x540.gif)
+![Input handling](/images/blog/6c741f27-5139-432a-b01b-e6a7cfd30f92_960x540.gif)
 
 This new approach also gives us more control over how selection works. We can now make better decisions about you hit when you click, especially when working with “unfilled” shapes.
 
-![Click selection](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fccb21a14-a59b-4208-bca5-66fe8e540a91_960x540.gif)
+![Click selection](/images/blog/ccb21a14-a59b-4208-bca5-66fe8e540a91_960x540.gif)
 
 The new hit testing is even better with arrows, with much smarter decision-tree for identifying pointed-to shapes.
 
-![New hit testing](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F79e13ff8-4942-4b8e-b75e-344221f747e1_722x406.gif)
+![New hit testing](/images/blog/79e13ff8-4942-4b8e-b75e-344221f747e1_722x406.gif)
 
 ## The cloud
 
 We added a **cloud shape**! It’s so fluffy. And it looks good at any size.
 
-![Cloud shape](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F4322245e-f649-43a1-bbeb-a9b49e441e18_960x540.gif)
+![Cloud shape](/images/blog/4322245e-f649-43a1-bbeb-a9b49e441e18_960x540.gif)
 
 ## Powered up frames
 
 _We_ _completely rebuilt…_ how **frames** work. You can now frame your shapes by drawing around them with the frame tool.
 
-![Rebuilt frames](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb7963670-ed11-4164-94f8-00ad9c50f64f_960x540.gif)
+![Rebuilt frames](/images/blog/b7963670-ed11-4164-94f8-00ad9c50f64f_960x540.gif)
 
 You can remove a frame without deleting its contents. Just right-click (or long press), then click the **Remove frame** button.
 
-![Remove frame](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1a76d995-eb41-44dc-99c3-738d67609c61_960x540.gif)
+![Remove frame](/images/blog/1a76d995-eb41-44dc-99c3-738d67609c61_960x540.gif)
 
 You can now crop a frame from the top-left by holding command (or control).
 
-![Crop frame](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fac319347-5f2e-4715-a655-29497276eb5b_960x540.gif)
+![Crop frame](/images/blog/ac319347-5f2e-4715-a655-29497276eb5b_960x540.gif)
 
 Soon, you’ll be able to auto-size frames too.
 
-![Auto-size frames](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F8ea56034-6fc5-4e0f-b9d4-4f9eac5518ad_960x540.gif)
+![Auto-size frames](/images/blog/8ea56034-6fc5-4e0f-b9d4-4f9eac5518ad_960x540.gif)
 
 ## Multi-laser
 
 We improved how the **laser pointer** works. You can now draw multiple laser trails at the same time.
 
-![Improved laser pointer](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F13eb85a0-47b7-47e4-bc44-9e4271202d8b_960x540.gif)
+![Improved laser pointer](/images/blog/13eb85a0-47b7-47e4-bc44-9e4271202d8b_960x540.gif)
 
 This change also comes to the eraser and selection tools.
 
-![Eraser and selection tools](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fee381579-a9fd-4867-949d-052852f289ff_960x540.gif)
+![Eraser and selection tools](/images/blog/ee381579-a9fd-4867-949d-052852f289ff_960x540.gif)
 
 ## Revamped locked shapes
 
 **Locked shapes** now behave better. They don’t show a hover indicator. You can right-click them more easily. And you can select multiple things on top of them.
 
-![Locked shapes](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F5f3dc9f0-bfaa-4915-b0ab-14ed082ba6f9_960x540.gif)
+![Locked shapes](/images/blog/5f3dc9f0-bfaa-4915-b0ab-14ed082ba6f9_960x540.gif)
 
 We’ve also added an **Unlock all** button. It unlocks all locked shapes on your current page. No more right clicking everything.
 
-![Unlock all](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F98375e5a-e137-4b2d-9817-17a891a9e81a_960x540.gif)
+![Unlock all](/images/blog/98375e5a-e137-4b2d-9817-17a891a9e81a_960x540.gif)
 
 ## Docs makeover
 
 We made a **new docs site**. Go check it out at [tldraw.dev](https://tldraw.dev/).
 
-![New docs site](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F2bb46138-fd1d-4338-b384-973ab51315e4_3248x2112.png)
+![New docs site](/images/blog/2bb46138-fd1d-4338-b384-973ab51315e4_3248x2112.png)
 
 ## More improvements
 
 There’s more! We tightened up our **user interface**, and fine-tuned some colors.
 
-![Updated UI](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fac4e3a05-8e40-4fbf-ac12-16e3e7093219_960x540.gif)
+![Updated UI](/images/blog/ac4e3a05-8e40-4fbf-ac12-16e3e7093219_960x540.gif)
 
 We added an **offline indicator** to let you know when your connection drops.
 
@@ -134,7 +134,7 @@ We updated our **translations** for Spanish, Japanese, German, Galician, Romania
 
 We finally added a **404 page**. Still no landing page or login though. Just go to [tldraw.com](https://www.tldraw.com/) and start drawing.
 
-![404 page](https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fb364cd94-efb8-4f61-bd74-9b830abd099f_996x562.gif)
+![404 page](/images/blog/b364cd94-efb8-4f61-bd74-9b830abd099f_996x562.gif)
 
 ## Fixes
 

@@ -1,66 +1,29 @@
-import { useEditor, useValue } from '@tldraw/editor'
-import { useCallback, useEffect, useRef } from 'react'
-import { useUiEvents } from '../context/events'
+import { useGlobalMenuIsOpen, useMaybeEditor } from '@tldraw/editor'
+import { useCallback } from 'react'
+import { TLUiEventMap, useUiEvents } from '../context/events'
 
 /** @public */
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
-	const editor = useEditor()
-	const rIsOpen = useRef(false)
-	const trackEvent = useUiEvents()
+	const editor = useMaybeEditor()
 
-	const onOpenChange = useCallback(
+	const onChange = useCallback(
 		(isOpen: boolean) => {
-			rIsOpen.current = isOpen
-
-			editor.run(() => {
-				if (isOpen) {
-					editor.complete()
-					editor.addOpenMenu(id)
-				} else {
-					editor.updateInstanceState({
-						openMenus: editor.getOpenMenus().filter((m) => !m.startsWith(id)),
-					})
-				}
-
-				cb?.(isOpen)
-			})
+			if (isOpen) {
+				editor?.complete()
+			}
+			cb?.(isOpen)
 		},
-		[editor, id, cb]
+		[editor, cb]
 	)
 
-	const isOpen = useValue('is menu open', () => editor.getOpenMenus().includes(id), [editor, id])
+	const trackEvent = useUiEvents()
 
-	useEffect(() => {
-		// When the effect runs, if the menu is open then
-		// add it to the open menus list.
+	const onEvent = useCallback(
+		(eventName: string) => {
+			trackEvent(eventName as keyof TLUiEventMap, { source: 'unknown', id })
+		},
+		[id, trackEvent]
+	)
 
-		// This is necessary for cases where the user closes
-		// the parent of a submenu before closing the submenu.
-		// There is some duplication between this and `onOpenChange`
-		// hook but it's necessary to handle the case where the
-		// this effect runs twice or re-runs.
-		if (rIsOpen.current) {
-			trackEvent('open-menu', { source: 'unknown', id })
-			editor.addOpenMenu(id)
-		}
-
-		return () => {
-			if (rIsOpen.current) {
-				// Close menu on unmount
-				editor.deleteOpenMenu(id)
-
-				// Close menu and all submenus when the parent is closed
-				editor.getOpenMenus().forEach((menuId) => {
-					if (menuId.startsWith(id)) {
-						trackEvent('close-menu', { source: 'unknown', id })
-						editor.deleteOpenMenu(menuId)
-					}
-				})
-
-				rIsOpen.current = false
-			}
-		}
-	}, [editor, id, trackEvent])
-
-	return [isOpen, onOpenChange] as const
+	return useGlobalMenuIsOpen(editor ? `${id}-${editor.contextId}` : id, onChange, onEvent)
 }

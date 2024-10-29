@@ -98,6 +98,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/workers-types@npm:^4.20240909.0":
+  version: 4.20240909.0
+  resolution: "@cloudflare/workers-types@npm:4.20240909.0"
+  checksum: 35ed9e1f51f2e1ae0c754b75462429cb421bb71b28d700807a8c630f3d0f76d45c897b8d44895ecaf1af7e4f5fda82dd93db5b565d118cf82d623c81c6bc8a24
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:0.8.1":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -4628,6 +4635,7 @@ __metadata:
   resolution: "tldraw-sync-cloudflare@workspace:."
   dependencies:
     "@cloudflare/types": "npm:^6.29.0"
+    "@cloudflare/workers-types": "npm:^4.20240909.0"
     "@tldraw/sync": "npm:latest"
     "@tldraw/sync-core": "npm:latest"
     "@tldraw/tlschema": "npm:latest"

@@ -26,7 +26,7 @@ export class FileHelpers {
 	 * const A = FileHelpers.toDataUrl(myImageFile)
 	 * ```
 	 *
-	 * @param value - The file as a blob.
+	 * @param file - The file as a blob.
 	 */
 	static async blobToDataUrl(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {
@@ -49,7 +49,7 @@ export class FileHelpers {
 	 * const A = FileHelpers.fileToDataUrl(myTextFile)
 	 * ```
 	 *
-	 * @param value - The file as a blob.
+	 * @param file - The file as a blob.
 	 */
 	static async blobToText(file: Blob): Promise<string> {
 		return await new Promise((resolve, reject) => {

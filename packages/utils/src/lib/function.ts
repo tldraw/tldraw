@@ -29,5 +29,4 @@ export function omitFromStackTrace<Args extends Array<unknown>, Return>(
  * Does nothing, but it's really really good at it.
  * @internal
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-function
 export const noop: () => void = () => {}

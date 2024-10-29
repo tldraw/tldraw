@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { tlenv } from '../globals/environment'
 import { useEditor } from './useEditor'
 
 /** @internal */
@@ -37,8 +38,7 @@ export function useCoarsePointer() {
 		// This is a workaround for a Firefox bug where we don't correctly
 		// detect coarse VS fine pointer. For now, let's assume that you have a fine
 		// pointer if you're on Firefox on desktop.
-		const isForcedFinePointer =
-			editor.environment.isFirefox && !editor.environment.isAndroid && !editor.environment.isIos
+		const isForcedFinePointer = tlenv.isFirefox && !tlenv.isAndroid && !tlenv.isIos
 
 		const handleMediaQueryChange = () => {
 			const next = isForcedFinePointer ? false : mql.matches // get the value from the media query

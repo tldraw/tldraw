@@ -50,7 +50,7 @@ Make sure you also read the section below about [deployment concerns](#deploymen
 
 The `@tldraw/sync-core` library can be used to integrate tldraw sync into any JavaScript server environment that supports WebSockets.
 
-We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/apps/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
+We have a [simple server example](https://github.com/tldraw/tldraw/tree/main/templates/simple-server-example), supporting both NodeJS and Bun, to use as a reference for how things should be stitched together.
 
 ## What does a tldraw sync backend do?
 
@@ -99,7 +99,7 @@ function registerUrlHandler(editor: Editor) {
 }
 ```
 
-And [here's a full working example](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/client/App.tsx) of the client-side code.
+And [here's a full working example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx) of the client-side code.
 
 ### WebSocket server
 
@@ -111,14 +111,14 @@ The `@tldraw/sync-core` package exports a class called [`TLSocketRoom`](?) that 
 - Transparently set up communication between multiple sync clients via WebSockets.
 - Provide hooks for persisting the document state when it changes.
 
-<Callout icon="💡">
+<Callout type="info">
 	You should make sure that there's only ever one `TLSocketRoom` globally for each room in your app.
 	If there's more than one, users won't see each other and will overwrite others' changes. We use
 	[Durable Objects](https://developers.cloudflare.com/durable-objects/) to achieve this on
 	tldraw.com.
 </Callout>
 
-Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/rooms.ts).
+Read the reference docs for [`TLSocketRoom`](?), and see an example of how to use it in the [simple server example](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/rooms.ts).
 
 ### Asset storage
 
@@ -149,7 +149,7 @@ This should be registered with the [`Editor`](?) when it loads.
 />
 ```
 
-Refer to the simple server example for example [client](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/client/App.tsx) and [server](https://github.com/tldraw/tldraw/blob/main/apps/simple-server-example/src/server/unfurl.ts) code.
+Refer to the simple server example for example [client](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/client/App.tsx) and [server](https://github.com/tldraw/tldraw/blob/main/templates/simple-server-example/src/server/unfurl.ts) code.
 
 ## Using tldraw sync in your app
 
@@ -223,7 +223,7 @@ clients on different versions won't be able to collaborate without errors.
 
 ### Deployment concerns
 
-<Callout icon="⚠️">
+<Callout type="warning">
 	You must make sure that the tldraw version in your client matches the version on the server. We
 	don't guarantee server backwards compatibility forever, and very occasionally we might release a
 	version where the backend cannot meaningfully support older clients, in which case tldraw will

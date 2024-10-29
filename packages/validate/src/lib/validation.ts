@@ -959,11 +959,11 @@ export function literalEnum<const Values extends readonly unknown[]>(
 function parseUrl(str: string) {
 	try {
 		return new URL(str)
-	} catch (error) {
+	} catch {
 		if (str.startsWith('/') || str.startsWith('./')) {
 			try {
 				return new URL(str, 'http://example.com')
-			} catch (error) {
+			} catch {
 				throw new ValidationError(`Expected a valid url, got ${JSON.stringify(str)}`)
 			}
 		}
@@ -1036,3 +1036,18 @@ export const indexKey = string.refine<IndexKey>((key) => {
 		throw new ValidationError(`Expected an index key, got ${JSON.stringify(key)}`)
 	}
 })
+
+/**
+ * Validate a value against one of two types.
+ *
+ * @public
+ */
+export function or<T1, T2>(v1: Validatable<T1>, v2: Validatable<T2>): Validator<T1 | T2> {
+	return new Validator((value) => {
+		try {
+			return v1.validate(value)
+		} catch {
+			return v2.validate(value)
+		}
+	})
+}

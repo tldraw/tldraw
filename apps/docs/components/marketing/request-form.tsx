@@ -7,7 +7,7 @@ import { XMarkIcon } from '@heroicons/react/16/solid'
 import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid'
 import { useFormState } from 'react-dom'
 
-export const RequestForm = () => {
+export function RequestForm() {
 	const formState = { error: '', success: false }
 	const [state, action] = useFormState(submitLicenseForm, formState)
 
@@ -16,15 +16,13 @@ export const RequestForm = () => {
 			action={action}
 			className="pt-6 mt-6 border-t border-zinc-700/50 grid grid-cols-1 sm:grid-cols-2 gap-4"
 		>
-			<h3 className="text-white font-semibold sm:col-span-2 pb-2">
-				Request your Commercial License
-			</h3>
+			<h3 className="text-white font-semibold sm:col-span-2 pb-2">Request your Business License</h3>
 			<Field>
-				<Label className="sr-only">Email-Address</Label>
+				<Label className="sr-only">Email</Label>
 				<Input
 					name="email"
 					type="email"
-					placeholder="Your Email-Address *"
+					placeholder="Your email *"
 					required
 					className="w-full h-9 px-4 rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900"
 				/>
@@ -34,7 +32,7 @@ export const RequestForm = () => {
 				<Input
 					name="name"
 					type="text"
-					placeholder="Your Name"
+					placeholder="Your name"
 					className="w-full h-9 px-4 rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900"
 				/>
 			</Field>
@@ -53,17 +51,17 @@ export const RequestForm = () => {
 				<Input
 					name="company"
 					type="text"
-					placeholder="Company Name"
+					placeholder="Company name"
 					className="w-full h-9 px-4 rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900"
 				/>
 			</Field>
 			<Field className="relative">
-				<Label className="sr-only">Your Role</Label>
+				<Label className="sr-only">Your role</Label>
 				<Select
 					name="role"
 					className="w-full h-9 px-4 appearance-none rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900"
 				>
-					<option value="">Your Role...</option>
+					<option value="">Your role...</option>
 					<option>CEO</option>
 					<option>CTO</option>
 					<option>Developer</option>
@@ -73,12 +71,12 @@ export const RequestForm = () => {
 				<ChevronDownIcon className="size-5 text-zinc-300 absolute right-2 top-2 pointer-events-none" />
 			</Field>
 			<Field className="relative">
-				<Label className="sr-only">Company Size</Label>
+				<Label className="sr-only">Company size</Label>
 				<Select
 					name="size"
 					className="w-full h-9 px-4 appearance-none rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900"
 				>
-					<option value="">Company Size...</option>
+					<option value="">Company size...</option>
 					<option>1</option>
 					<option>2 – 10</option>
 					<option>11 – 50</option>
@@ -97,12 +95,12 @@ export const RequestForm = () => {
 				/>
 			</Field>
 			<Field className="relative sm:col-span-2">
-				<Label className="sr-only">Project Type</Label>
+				<Label className="sr-only">Project type</Label>
 				<Select
 					name="type"
 					className="w-full h-9 px-4 appearance-none rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900"
 				>
-					<option value="">Type of Project...</option>
+					<option value="">Type of project...</option>
 					<option>Customer-facing product</option>
 					<option>Internal product</option>
 					<option>Project for a client</option>
@@ -125,7 +123,7 @@ export const RequestForm = () => {
 						</p>
 					)}
 				</div>
-				<Button submit caption="Request commercial license" arrow="right" darkRingOffset />
+				<Button submit caption="Request business license" arrow="right" darkRingOffset />
 			</div>
 		</form>
 	)

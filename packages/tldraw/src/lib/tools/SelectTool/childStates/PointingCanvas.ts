@@ -4,10 +4,10 @@ import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPoi
 export class PointingCanvas extends StateNode {
 	static override id = 'pointing_canvas'
 
-	override onEnter() {
-		const { inputs } = this.editor
+	override onEnter(info: TLPointerEventInfo & { target: 'canvas' }) {
+		const additiveSelectionKey = info.shiftKey || info.accelKey
 
-		if (!inputs.shiftKey) {
+		if (!additiveSelectionKey) {
 			if (this.editor.getSelectedShapeIds().length > 0) {
 				this.editor.markHistoryStoppingPoint('selecting none')
 				this.editor.selectNone()
@@ -21,9 +21,9 @@ export class PointingCanvas extends StateNode {
 		}
 	}
 
-	override onPointerUp() {
+	override onPointerUp(info: TLPointerEventInfo) {
 		// todo: also make this deselect
-		selectOnCanvasPointerUp(this.editor)
+		selectOnCanvasPointerUp(this.editor, info)
 		this.complete()
 	}
 

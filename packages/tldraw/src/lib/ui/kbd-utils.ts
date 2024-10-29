@@ -1,9 +1,7 @@
-const isDarwin =
-	typeof window === 'undefined'
-		? false
-		: window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
-const cmdKey = isDarwin ? '⌘' : 'Ctrl'
-const altKey = isDarwin ? '⌥' : 'Alt'
+import { tlenv } from '@tldraw/editor'
+
+const cmdKey = tlenv.isDarwin ? '⌘' : 'Ctrl'
+const altKey = tlenv.isDarwin ? '⌥' : 'Alt'
 
 /** @public */
 export function kbd(str: string) {

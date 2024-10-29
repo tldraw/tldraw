@@ -5,8 +5,7 @@ Welcome to the public monorepo for [tldraw](https://github.com/tldraw/tldraw). t
 - Read the docs and learn more at [tldraw.dev](https://tldraw.dev).
 - Learn about [our license](https://github.com/tldraw/tldraw#License).
 
-> 🤵 Interested in purchasing a commercial license for the tldraw SDK?
-> Fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+> 🤵 Interested in using tldraw in your product? [Click here](https://tldraw.dev/#pricing) to learn about our license and pricing.
 
 ## Installation
 
@@ -59,23 +58,25 @@ Open the example project at `localhost:5420`.
 
 ## License
 
-The tldraw source code and its distributions are provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). This license does not permit commercial use. To purchase a commercial license or learn more, please fill out [this form](https://forms.gle/PmS4wNzngnbD3fb89).
+The tldraw SDK is provided under the [tldraw license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md).
+
+You can use the tldraw SDK in commercial or non-commercial projects so long as you preserve the "Made with tldraw" watermark on the canvas. To remove the watermark, you can purchase a [business license](https://tldraw.dev/#pricing). Visit [tldraw.dev](https://tldraw.dev) to learn more.
 
 ## Trademarks
 
 Copyright (c) 2024-present tldraw Inc. The tldraw name and logo are trademarks of tldraw. Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main/TRADEMARKS.md) for info on acceptable usage.
 
-## Contact
+## Distributions
 
-Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw).
-
-## Community
-
-Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, check out our [Substack](https://tldraw.substack.com/).
+You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
 
 ## Contribution
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+
+## Community
+
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new). For the latest news and release notes, visit [tldraw.dev](https://tldraw.dev).
 
 ## Contributors
 
@@ -98,3 +99,7 @@ Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/C
 	  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
 	</picture>
 </a>
+
+## Contact
+
+Find us on Twitter/X at [@tldraw](https://twitter.com/tldraw). You can contact us at by email at [hello@tldraw.com](mailto:hello@tldraw.com).

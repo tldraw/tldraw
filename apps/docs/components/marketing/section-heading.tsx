@@ -1,10 +1,14 @@
 import { cn } from '@/utils/cn'
 
-export const SectionHeading: React.FC<{
+export function SectionHeading({
+	heading,
+	subheading,
+	description,
+}: {
 	heading: string
 	subheading?: string
 	description?: React.ReactNode
-}> = ({ heading, subheading, description }) => {
+}) {
 	return (
 		<>
 			{subheading && (

@@ -233,6 +233,310 @@ const snapshots: Snapshots = {
 			),
 		},
 	},
+	Bookmarks: {
+		'not rotated': {
+			full: (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/man.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			long: (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="Add a tldraw canvas to your React app in just 5 minutes. You can use the tldraw SDK to craft infinite canvas experiences for the web. It's perfect for collaborative whiteboards but you can use it for lots of other things, too."
+							description="At this point, you have a complete working single-user whiteboard. To add support for multiple users collaborating in realtime, you can use the tldraw sync extension library."
+							image="/man.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'no image': (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image=""
+							favicon="/man.png"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'no favicon': (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/man.png"
+							favicon=""
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'no meta': (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title=""
+							description=""
+							image="/man.png"
+							favicon="/man.png"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			empty: (
+				<TL.bookmark
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title=""
+							description=""
+							image=""
+							favicon=""
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+		},
+		'rotated (note shadow)': {
+			'30°': (
+				<TL.bookmark
+					rotation={degreesToRadians(30)}
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/tldraw.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'135°': (
+				<TL.bookmark
+					rotation={degreesToRadians(135)}
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/tldraw.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+			'255°': (
+				<TL.bookmark
+					rotation={degreesToRadians(255)}
+					url="https://www.tldraw.com"
+					assetId={
+						<TL.asset.bookmark
+							title="title"
+							description="description"
+							image="/tldraw.png"
+							favicon="/heart-icon.svg"
+							src="https://www.tldraw.com"
+						/>
+					}
+				/>
+			),
+		},
+	},
+	'Foreign objects': {
+		'HTML & CSS': {
+			simple: (
+				<TL.html
+					html="Hello, <span>world</span>!"
+					css="#self {color: green;} #self span { color: red; }"
+				/>
+			),
+			pseudos: (
+				<TL.html
+					html="Hello, <span>world</span>!"
+					css={`
+						#self {
+							color: green;
+						}
+						#self span {
+							color: red;
+						}
+						#self::before {
+							content: 'before ';
+							color: blue;
+						}
+						#self::after {
+							content: ' after';
+							color: purple;
+						}
+					`}
+				/>
+			),
+			transforms: (
+				<TL.html
+					html="Hello, <span>world</span>!"
+					css={`
+						#self {
+							color: green;
+							transform: rotate(30deg) scale(1.5);
+						}
+						#self span {
+							color: red;
+							display: inline-block;
+							transform: rotate(-30deg) scale(0.5);
+						}
+					`}
+				/>
+			),
+			'@font-face': (
+				<TL.html
+					html="Hello, <span>world</span>!"
+					css={`
+						@font-face {
+							font-family: 'font_#self';
+							src: url('/ComicMono.woff');
+						}
+						#self span {
+							color: red;
+							font-family: 'font_#self';
+							font-size: 20px;
+						}
+					`}
+				/>
+			),
+			'custom elements': (
+				<TL.html
+					w={200}
+					h={200}
+					html={`
+						Hello!
+						<custom-element>
+							<ul slot="list">
+								<li class="selected">Apples</li>
+								<li>Pears</li>
+								<li>Bananas</li>
+							</ul>
+
+							<p slot="choice" data-name="Apples">
+								A common, sweet, crunchy fruit, usually green or yellow in color.
+							</p>
+							<p data-name="Pears">
+								A fairly common, sweet, usually green fruit, usually softer than Apples.
+							</p>
+							<p data-name="Bananas">A long, curved, yellow fruit, with a fairly gentle flavor.</p>
+						</custom-element>
+					`}
+					css={`
+						#self {
+							background-color: lightcoral;
+						}
+						#self custom-element {
+							background-color: plum;
+						}
+						#self .selected {
+							font-size: 20px;
+						}
+					`}
+				/>
+			),
+		},
+		Embeds: {
+			Video: <TL.html w={300} h={169} html='<video src="/bonk.webm" width="300" height="169" />' />,
+			Image: <TL.html w={100} h={200} html='<img src="/man.png" width="100" />' />,
+			Background: (
+				<TL.html
+					w={200}
+					h={200}
+					html="Hello, world!"
+					css={`
+						#self {
+							width: 100%;
+							height: 100%;
+							background: url('/man.png') repeat center center / 15px 30px;
+							display: flex;
+							justify-content: center;
+							align-items: center;
+						}
+					`}
+				/>
+			),
+		},
+	},
+	Arrows: {
+		'': {
+			Arrow1: (
+				<TL.arrow
+					start={{ x: 200, y: 0 }}
+					end={{ x: 200, y: 300 }}
+					size="xl"
+					arrowheadStart="arrow"
+					arrowheadEnd="triangle"
+				/>
+			),
+			Arrow2: (
+				<TL.arrow
+					start={{ x: 250, y: 0 }}
+					end={{ x: 250, y: 300 }}
+					size="xl"
+					arrowheadStart="square"
+					arrowheadEnd="dot"
+				/>
+			),
+			Arrow3: (
+				<TL.arrow
+					start={{ x: 300, y: 0 }}
+					end={{ x: 300, y: 300 }}
+					size="xl"
+					arrowheadStart="pipe"
+					arrowheadEnd="diamond"
+					text="with text"
+				/>
+			),
+			Arrow4: (
+				<TL.arrow
+					start={{ x: 350, y: 0 }}
+					end={{ x: 350, y: 300 }}
+					size="xl"
+					arrowheadStart="inverted"
+					arrowheadEnd="bar"
+				/>
+			),
+			Arrow5: (
+				<TL.arrow
+					start={{ x: 400, y: 0 }}
+					end={{ x: 400, y: 300 }}
+					size="xl"
+					arrowheadStart="none"
+					arrowheadEnd="none"
+				/>
+			),
+		},
+	},
 }
 
 interface SnapshotWithoutJsx {

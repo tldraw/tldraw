@@ -114,4 +114,18 @@ describe('editor.rotateShapesBy', () => {
 			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI })
 			.expectShapeToMatch({ id: ids.box2, rotation: Math.PI / 2 })
 	})
+
+	it('allows to customize the rotation center', () => {
+		editor.select(ids.box1, ids.box2)
+
+		editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI, { center: { x: 0, y: 0 } })
+
+		editor
+			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI })
+			.expectShapeToMatch({ id: ids.box2, rotation: Math.PI })
+
+		// Are the centers the same?
+		expect(editor.getShapePageBounds(ids.box1)).toCloselyMatchObject({ x: -110, y: -110 })
+		expect(editor.getShapePageBounds(ids.box2)).toCloselyMatchObject({ x: -300, y: -300 })
+	})
 })

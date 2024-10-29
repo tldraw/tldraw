@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn'
 
-export const DiscordIcon: React.FC<{ className: string }> = ({ className }) => {
+export function DiscordIcon({ className }: { className: string }) {
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

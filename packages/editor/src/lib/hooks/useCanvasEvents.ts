@@ -116,6 +116,7 @@ export function useCanvasEvents() {
 
 			async function onDrop(e: React.DragEvent<Element>) {
 				preventDefault(e)
+				stopEventPropagation(e)
 				if (!e.dataTransfer?.files?.length) return
 
 				const files = Array.from(e.dataTransfer.files)

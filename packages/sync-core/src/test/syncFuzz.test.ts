@@ -83,9 +83,6 @@ class FuzzTestInstance extends RandomSource {
 			onLoad: () => {
 				this.editor = new FuzzEditor(this.id, this.seed, this.store)
 			},
-			onLoadError: (e) => {
-				throw new Error('onLoadError', e)
-			},
 			presence: createPresenceStateDerivation(
 				computed('', () => ({
 					id: this.id,
