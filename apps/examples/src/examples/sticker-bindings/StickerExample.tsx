@@ -23,8 +23,9 @@ import {
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
+import 'tldraw/tldraw.css'
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type StickerShape = TLBaseShape<'sticker', {}>
 
 const offsetX = -16

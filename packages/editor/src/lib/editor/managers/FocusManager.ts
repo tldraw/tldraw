@@ -20,7 +20,6 @@ export class FocusManager {
 			'instance',
 			(prev, next) => {
 				if (prev.isFocused !== next.isFocused) {
-					next.isFocused ? this.focus() : this.blur()
 					this.updateContainerClass()
 				}
 			}

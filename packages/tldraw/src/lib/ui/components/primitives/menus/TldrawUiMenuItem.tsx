@@ -154,7 +154,7 @@ export function TldrawUiMenuItem<
 					onClick={() => onSelect(sourceId)}
 				>
 					<TldrawUiButtonLabel>{labelStr}</TldrawUiButtonLabel>
-					{icon && <TldrawUiButtonIcon icon={icon} />}
+					{spinner ? <Spinner /> : icon && <TldrawUiButtonIcon icon={icon} />}
 				</TldrawUiButton>
 			)
 		}

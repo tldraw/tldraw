@@ -3,8 +3,8 @@ import {
 	SerializedStore,
 	Store,
 	StoreSchema,
-	StoreSchemaOptions,
 	StoreSnapshot,
+	StoreValidationFailure,
 } from '@tldraw/store'
 import { IndexKey, annotateError, structuredClone } from '@tldraw/utils'
 import { TLAsset } from './records/TLAsset'
@@ -101,6 +101,7 @@ export interface TLStoreProps {
 	onMount(editor: unknown): void | (() => void)
 	collaboration?: {
 		status: Signal<'online' | 'offline'> | null
+		mode?: Signal<'readonly' | 'readwrite'> | null
 	}
 }
 
@@ -108,10 +109,12 @@ export interface TLStoreProps {
 export type TLStore = Store<TLRecord, TLStoreProps>
 
 /** @public */
-export const onValidationFailure: StoreSchemaOptions<
-	TLRecord,
-	TLStoreProps
->['onValidationFailure'] = ({ error, phase, record, recordBefore }): TLRecord => {
+export function onValidationFailure({
+	error,
+	phase,
+	record,
+	recordBefore,
+}: StoreValidationFailure<TLRecord>): TLRecord {
 	const isExistingValidationIssue =
 		// if we're initializing the store for the first time, we should
 		// allow invalid records so people can load old buggy data:

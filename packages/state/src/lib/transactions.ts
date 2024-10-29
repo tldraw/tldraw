@@ -24,7 +24,13 @@ class Transaction {
 	 * @public
 	 */
 	commit() {
-		if (this.isRoot) {
+		if (inst.globalIsReacting) {
+			// if we're committing during a reaction we actually need to
+			// use the 'cleanup' reactors set to ensure we re-run effects if necessary
+			for (const atom of this.initialAtomValues.keys()) {
+				traverseAtomForCleanup(atom)
+			}
+		} else if (this.isRoot) {
 			// For root transactions, flush changed atoms
 			flushChanges(this.initialAtomValues.keys())
 		} else {
@@ -96,14 +102,17 @@ function traverse(reactors: Set<EffectScheduler<unknown>>, child: Child) {
 /**
  * Collect all of the reactors that need to run for an atom and run them.
  *
- * @param atom The atom to flush changes for.
+ * @param atoms - The atoms to flush changes for.
  */
 function flushChanges(atoms: Iterable<_Atom>) {
 	if (inst.globalIsReacting) {
-		throw new Error('cannot change atoms during reaction cycle')
+		throw new Error('flushChanges cannot be called during a reaction')
 	}
 
+	const outerTxn = inst.currentTransaction
 	try {
+		// clear the transaction stack
+		inst.currentTransaction = null
 		inst.globalIsReacting = true
 		inst.reactionEpoch = inst.globalEpoch
 
@@ -133,6 +142,7 @@ function flushChanges(atoms: Iterable<_Atom>) {
 	} finally {
 		inst.cleanupReactors = null
 		inst.globalIsReacting = false
+		inst.currentTransaction = outerTxn
 	}
 }
 
@@ -145,21 +155,28 @@ function flushChanges(atoms: Iterable<_Atom>) {
  * @internal
  */
 export function atomDidChange(atom: _Atom, previousValue: any) {
-	if (inst.globalIsReacting) {
-		// If the atom changed during the reaction phase of flushChanges
-		// then we are past the point where a transaction can be aborted
-		// so we don't need to note down the previousValue.
-		const rs = (inst.cleanupReactors ??= new Set())
-		atom.children.visit((child) => traverse(rs, child))
-	} else if (!inst.currentTransaction) {
-		// If there is no transaction, flush the changes immediately.
-		flushChanges([atom])
-	} else if (!inst.currentTransaction.initialAtomValues.has(atom)) {
+	if (inst.currentTransaction) {
 		// If we are in a transaction, then all we have to do is preserve
 		// the value of the atom at the start of the transaction in case
 		// we need to roll back.
-		inst.currentTransaction.initialAtomValues.set(atom, previousValue)
+		if (!inst.currentTransaction.initialAtomValues.has(atom)) {
+			inst.currentTransaction.initialAtomValues.set(atom, previousValue)
+		}
+	} else if (inst.globalIsReacting) {
+		// If the atom changed during the reaction phase of flushChanges
+		// (and there are no transactions started inside the reaction phase)
+		// then we are past the point where a transaction can be aborted
+		// so we don't need to note down the previousValue.
+		traverseAtomForCleanup(atom)
+	} else {
+		// If there is no transaction, flush the changes immediately.
+		flushChanges([atom])
 	}
+}
+
+function traverseAtomForCleanup(atom: _Atom) {
+	const rs = (inst.cleanupReactors ??= new Set())
+	atom.children.visit((child) => traverse(rs, child))
 }
 
 export function advanceGlobalEpoch() {

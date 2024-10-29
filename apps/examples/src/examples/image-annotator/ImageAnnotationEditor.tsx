@@ -34,9 +34,6 @@ export function ImageAnnotationEditor({
 	useEffect(() => {
 		if (!editor) return
 
-		// Turn off debug mode
-		editor.updateInstanceState({ isDebugMode: false })
-
 		// Create the asset and image shape
 		const assetId = AssetRecordType.createId()
 		editor.createAssets([

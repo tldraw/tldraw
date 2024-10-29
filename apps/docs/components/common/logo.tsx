@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn'
 
-export const Logo: React.FC<{ className: string }> = ({ className }) => {
+export function Logo({ className }: { className: string }) {
 	return (
 		<svg
 			viewBox="0 0 96 24"

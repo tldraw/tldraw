@@ -93,6 +93,8 @@ export const ImageToolbar = track(function ImageToolbar() {
 		currentCamera,
 	])
 
+	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
+
 	const handleZoomChange = useCallback(
 		(value: number) => {
 			if (!selectedShape) return
@@ -223,6 +225,7 @@ export const ImageToolbar = track(function ImageToolbar() {
 					value={(selectedShape as TLImageShape).props.zoom * 100}
 					label="tool.image-zoom"
 					onValueChange={handleZoomChange}
+					onHistoryMark={onHistoryMark}
 					min={100}
 					steps={300}
 					title={msg('tool.image-zoom')}

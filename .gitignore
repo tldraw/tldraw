@@ -59,6 +59,7 @@ packages/assets/embed-icons
 packages/assets/fonts
 packages/assets/icons
 packages/assets/translations
+packages/assets/watermarks
 apps/examples/www/embed-icons
 apps/examples/www/fonts
 apps/examples/www/icons
@@ -86,6 +87,10 @@ apps/examples/build.esbuild.json
 
 apps/examples/e2e/test-results
 apps/examples/playwright-report
+apps/dotcom/client/test-results
+apps/dotcom/client/playwright-report
+apps/dotcom/client/e2e/.auth
+
 
 apps/docs/content/gen
 apps/docs/content/releases
@@ -102,3 +107,4 @@ license-report-prod.html
 license-report.html
 
 .bundle-meta.json
+.zed

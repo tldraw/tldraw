@@ -1,4 +1,11 @@
-import { Editor, TLPointerEventInfo, preventDefault, useEditor, useValue } from '@tldraw/editor'
+import {
+	Editor,
+	TLPointerEventInfo,
+	isAccelKey,
+	preventDefault,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from '../context/actions'
@@ -56,7 +63,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.getInstanceState().isReadonly)) {
+			if (!tool.kbd || (!tool.readonlyOk && editor.getIsReadonly())) {
 				continue
 			}
 
@@ -91,6 +98,8 @@ export function useKeyboardShortcuts() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 				pointerId: 0,
 				button: 0,
 				isPen: editor.getInstanceState().isPenMode,
@@ -114,6 +123,8 @@ export function useKeyboardShortcuts() {
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,
+				metaKey: e.metaKey,
+				accelKey: isAccelKey(e),
 				pointerId: 0,
 				button: 0,
 				isPen: editor.getInstanceState().isPenMode,
@@ -179,5 +190,9 @@ function getKeys(key: string) {
 }
 
 export function areShortcutsDisabled(editor: Editor) {
-	return editor.getIsMenuOpen() || editor.getEditingShapeId() !== null || editor.getCrashingError()
+	return (
+		editor.menus.hasAnyOpenMenus() ||
+		editor.getEditingShapeId() !== null ||
+		editor.getCrashingError()
+	)
 }

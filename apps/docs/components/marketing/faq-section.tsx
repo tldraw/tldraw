@@ -4,7 +4,7 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react
 import { MinusIcon, PlusIcon } from '@heroicons/react/20/solid'
 import Link from 'next/link'
 
-export const FAQSection = () => {
+export function FAQSection() {
 	return (
 		<Section id="faq">
 			<SectionHeading

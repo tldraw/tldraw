@@ -1,10 +1,6 @@
 import { PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
 import { Editor } from 'tldraw'
 
-export function sleep(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 declare const editor: Editor
 
 export async function setup({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {

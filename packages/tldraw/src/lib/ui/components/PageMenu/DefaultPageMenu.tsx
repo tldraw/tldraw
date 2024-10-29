@@ -3,6 +3,7 @@ import {
 	TLPageId,
 	releasePointerCapture,
 	setPointerCapture,
+	tlenv,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -291,7 +292,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 					<TldrawUiButtonIcon icon="chevron-down" small />
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
-			<TldrawUiPopoverContent side="bottom" align="start" sideOffset={6}>
+			<TldrawUiPopoverContent
+				side="bottom"
+				align="start"
+				sideOffset={6}
+				disableEscapeKeyDown={isEditing}
+			>
 				<div className="tlui-page-menu__wrapper">
 					<div className="tlui-page-menu__header">
 						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
@@ -384,6 +390,10 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												id={page.id}
 												name={page.name}
 												isCurrentPage={page.id === currentPage.id}
+												onCancel={() => {
+													setIsEditing(false)
+													editor.menus.clearOpenMenus()
+												}}
 											/>
 										</div>
 									)}
@@ -412,7 +422,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 												item={page}
 												listSize={pages.length}
 												onRename={() => {
-													if (editor.environment.isIos) {
+													if (tlenv.isIos) {
 														const name = window.prompt('Rename page', page.name)
 														if (name && name !== page.name) {
 															renamePage(page.id, name)

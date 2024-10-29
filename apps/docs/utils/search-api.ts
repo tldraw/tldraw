@@ -3,7 +3,9 @@ export const SEARCH_RESULTS = {
 	apiDocs: [],
 	examples: [],
 }
-export const searchBucket = (sectionId: string) =>
-	sectionId === 'examples' ? 'examples' : sectionId === 'reference' ? 'apiDocs' : 'articles'
-export const sectionTypeBucket = (sectionId: string) =>
-	['examples', 'reference'].includes(sectionId) ? sectionId : 'docs'
+export function searchBucket(sectionId: string) {
+	return sectionId === 'examples' ? 'examples' : sectionId === 'reference' ? 'apiDocs' : 'articles'
+}
+export function sectionTypeBucket(sectionId: string) {
+	return ['examples', 'reference'].includes(sectionId) ? sectionId : 'docs'
+}

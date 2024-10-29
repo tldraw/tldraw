@@ -21,7 +21,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Publish Canary Packages
-        run: yarn tsx ./scripts/publish-canary.ts
+        run: yarn tsx ./internal/scripts/publish-prerelease.ts canary
         env:
           GH_TOKEN: ${{ github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -8,7 +8,7 @@ export type RequiredKeys<T, K extends keyof T> = Required<Pick<T, K>> & Omit<T, 
 export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
 /** @public */
-export interface TLSvgOptions {
+export interface TLImageExportOptions {
 	bounds?: Box
 	scale?: number
 	background?: boolean
@@ -16,6 +16,12 @@ export interface TLSvgOptions {
 	darkMode?: boolean
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
 }
+
+/**
+ * @public
+ * @deprecated use {@link TLImageExportOptions} instead
+ */
+export type TLSvgOptions = TLImageExportOptions
 
 /** @public */
 export interface TLCameraMoveOptions {

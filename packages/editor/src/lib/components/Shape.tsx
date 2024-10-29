@@ -145,6 +145,7 @@ export const Shape = memo(function Shape({
 					ref={bgContainerRef}
 					className="tl-shape tl-shape-background"
 					data-shape-type={shape.type}
+					data-shape-id={shape.id}
 					draggable={false}
 				>
 					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
@@ -157,6 +158,7 @@ export const Shape = memo(function Shape({
 				className="tl-shape"
 				data-shape-type={shape.type}
 				data-shape-is-filled={isFilledShape}
+				data-shape-id={shape.id}
 				draggable={false}
 			>
 				<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
@@ -167,7 +169,7 @@ export const Shape = memo(function Shape({
 	)
 })
 
-const InnerShape = memo(
+export const InnerShape = memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		return useStateTracking('InnerShape:' + shape.type, () =>
 			// always fetch the latest shape from the store even if the props/meta have not changed, to avoid
@@ -178,7 +180,7 @@ const InnerShape = memo(
 	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
 
-const InnerShapeBackground = memo(
+export const InnerShapeBackground = memo(
 	function InnerShapeBackground<T extends TLShape>({
 		shape,
 		util,

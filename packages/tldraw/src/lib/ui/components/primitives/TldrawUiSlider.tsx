@@ -1,5 +1,4 @@
 import { Range, Root, Thumb, Track } from '@radix-ui/react-slider'
-import { useEditor } from '@tldraw/editor'
 import { memo, useCallback } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -12,13 +11,21 @@ export interface TLUiSliderProps {
 	label: string
 	title: string
 	onValueChange(value: number): void
+	onHistoryMark(id: string): void
 	'data-testid'?: string
 }
 
 /** @public @react */
-export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
-	const { title, min, steps, value, label, onValueChange } = props
-	const editor = useEditor()
+export const TldrawUiSlider = memo(function Slider({
+	onHistoryMark,
+	title,
+	min,
+	steps,
+	value,
+	label,
+	onValueChange,
+	['data-testid']: testId,
+}: TLUiSliderProps) {
 	const msg = useTranslation()
 
 	const handleValueChange = useCallback(
@@ -29,8 +36,8 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 	)
 
 	const handlePointerDown = useCallback(() => {
-		editor.markHistoryStoppingPoint('click slider')
-	}, [editor])
+		onHistoryMark('click slider')
+	}, [onHistoryMark])
 
 	const handlePointerUp = useCallback(() => {
 		if (!value) return
@@ -40,7 +47,7 @@ export const TldrawUiSlider = memo(function Slider(props: TLUiSliderProps) {
 	return (
 		<div className="tlui-slider__container">
 			<Root
-				data-testid={props['data-testid']}
+				data-testid={testId}
 				className="tlui-slider"
 				area-label="Opacity"
 				dir="ltr"

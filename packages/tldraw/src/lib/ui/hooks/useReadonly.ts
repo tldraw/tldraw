@@ -1,7 +1,7 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { useMaybeEditor, useValue } from '@tldraw/editor'
 
 /** @public */
 export function useReadonly() {
-	const editor = useEditor()
-	return useValue('isReadonlyMode', () => editor.getInstanceState().isReadonly, [editor])
+	const editor = useMaybeEditor()
+	return useValue('isReadonlyMode', () => !!editor?.getIsReadonly(), [editor])
 }

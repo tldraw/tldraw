@@ -13,8 +13,9 @@ const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 export interface TLUserPreferences {
 	id: string
 	name?: string | null
-	locale?: string | null
 	color?: string | null
+	// N.B. These are duplicated in TLdrawAppUser.
+	locale?: string | null
 	animationSpeed?: number | null
 	edgeScrollSpeed?: number | null
 	colorScheme?: 'light' | 'dark' | 'system'
@@ -35,14 +36,16 @@ interface UserChangeBroadcastMessage {
 	data: UserDataSnapshot
 }
 
-const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
+/** @public */
+export const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
 	id: T.string,
 	name: T.string.nullable().optional(),
-	locale: T.string.nullable().optional(),
 	color: T.string.nullable().optional(),
-	colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
+	// N.B. These are duplicated in TLdrawAppUser.
+	locale: T.string.nullable().optional(),
 	animationSpeed: T.number.nullable().optional(),
 	edgeScrollSpeed: T.number.nullable().optional(),
+	colorScheme: T.literalEnum('light', 'dark', 'system').optional(),
 	isSnapMode: T.boolean.nullable().optional(),
 	isWrapMode: T.boolean.nullable().optional(),
 	isDynamicSizeMode: T.boolean.nullable().optional(),
@@ -132,13 +135,15 @@ export const defaultUserPreferences = Object.freeze({
 	name: 'New User',
 	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
+
+	// N.B. These are duplicated in TLdrawAppUser.
 	edgeScrollSpeed: 1,
 	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
 	isWrapMode: false,
 	isDynamicSizeMode: false,
 	isPasteAtCursorMode: false,
-	colorScheme: 'system',
+	colorScheme: 'light',
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
 /** @public */
@@ -164,7 +169,7 @@ function migrateUserPreferences(userData: unknown): TLUserPreferences {
 
 	try {
 		return userTypeValidator.validate(snapshot.user)
-	} catch (e) {
+	} catch {
 		return getFreshUserPreferences()
 	}
 }

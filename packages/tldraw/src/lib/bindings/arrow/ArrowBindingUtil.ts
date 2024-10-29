@@ -43,12 +43,16 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 
 	// when the binding itself changes
 	override onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void {
-		arrowDidUpdate(this.editor, this.editor.getShape(binding.fromId) as TLArrowShape)
+		const arrow = this.editor.getShape(binding.fromId) as TLArrowShape | undefined
+		if (!arrow) return
+		arrowDidUpdate(this.editor, arrow)
 	}
 
 	// when the binding itself changes
 	override onAfterChange({ bindingAfter }: BindingOnChangeOptions<TLArrowBinding>): void {
-		arrowDidUpdate(this.editor, this.editor.getShape(bindingAfter.fromId) as TLArrowShape)
+		const arrow = this.editor.getShape(bindingAfter.fromId) as TLArrowShape | undefined
+		if (!arrow) return
+		arrowDidUpdate(this.editor, arrow)
 	}
 
 	// when the arrow itself changes

@@ -5,6 +5,7 @@ import { useLocalStorageState } from '@/utils/storage'
 import { Field, Label, Textarea } from '@headlessui/react'
 import { ArrowLongRightIcon, CheckCircleIcon, HandThumbDownIcon } from '@heroicons/react/20/solid'
 import { HandThumbUpIcon } from '@heroicons/react/24/solid'
+import { track } from '@vercel/analytics'
 import { usePathname } from 'next/navigation'
 import { FormEventHandler, useCallback, useState } from 'react'
 
@@ -16,12 +17,13 @@ async function submitFeedback(
 	_feedback: 1 | -1 | 0,
 	_note: string
 ) {
-	// todo
-	await new Promise((resolve) => setTimeout(resolve, 2000))
+	const feedback: { value: number; message?: string } = { value: _feedback }
+	if (_note !== '') feedback.message = _note
+	track('Feedback', feedback)
 	return
 }
 
-export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className }) => {
+export function DocsFeedbackWidget({ className }: { className?: string }) {
 	const pathname = usePathname()
 
 	const [didSubmit, setDidSubmit] = useLocalStorageState(pathname + '-feedback-submitted', false)
@@ -36,46 +38,28 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 	>('idle')
 
 	const handleThumbsDown = useCallback(async () => {
-		if (state === 'loading') return
-		if (state === 'thumbs-down') {
-			setState('idle')
-			try {
-				await submitFeedback(sessionId, pathname, 0, '')
-			} catch (e) {
-				setState('error')
+		setState((s) => {
+			if (s === 'loading') {
+				return s
+			} else if (s === 'thumbs-down') {
+				return 'idle'
+			} else {
+				return 'thumbs-down'
 			}
-			return
-		}
-
-		// todo: send feedback to endpoint
-		setState('thumbs-down')
-		try {
-			await submitFeedback(sessionId, pathname, -1, '')
-		} catch (e) {
-			setState('error')
-		}
-	}, [pathname, sessionId, state])
+		})
+	}, [])
 
 	const handleThumbsUp = useCallback(() => {
-		if (state === 'loading') return
-		if (state === 'thumbs-up') {
-			setState('idle')
-			try {
-				submitFeedback(sessionId, pathname, 0, '')
-			} catch (e) {
-				setState('error')
+		setState((s) => {
+			if (s === 'loading') {
+				return s
+			} else if (s === 'thumbs-up') {
+				return 'idle'
+			} else {
+				return 'thumbs-up'
 			}
-			return
-		}
-
-		// todo: send feedback to endpoint
-		setState('thumbs-up')
-		try {
-			submitFeedback(sessionId, pathname, 1, '')
-		} catch (e) {
-			setState('error')
-		}
-	}, [pathname, sessionId, state])
+		})
+	}, [])
 
 	const handleSubmit = useCallback<FormEventHandler<HTMLFormElement>>(
 		async (e) => {
@@ -93,19 +77,20 @@ export const DocsFeedbackWidget: React.FC<{ className?: string }> = ({ className
 				setTimeout(() => {
 					setDidSubmit(true)
 				}, 3000)
-			} catch (e) {
+			} catch {
 				setState('error')
 			}
 		},
 		[state, sessionId, pathname, setDidSubmit]
 	)
 
+	// todo, improve this so that thumbs ups and thumbs downs are also captured
 	if (didSubmit && !(DEBUGGING && process.env.NODE_ENV === 'development')) return null
 
 	return (
 		<div
 			className={cn(
-				'-ml-4 px-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg shrink-0 mt-12 text-xs h-auto',
+				'-ml-4 px-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg shrink-0 text-xs h-auto',
 				className
 			)}
 		>

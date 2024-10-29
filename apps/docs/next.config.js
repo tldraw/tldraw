@@ -85,6 +85,22 @@ const nextConfig = {
 				destination: '/reference/:slug*',
 				permanent: true,
 			},
+			// redirects at the top level
+			{
+				source: '/examples',
+				destination: '/examples/basic/basic',
+				permanent: true,
+			},
+			{
+				source: '/reference',
+				destination: '/reference/editor/Editor',
+				permanent: true,
+			},
+			{
+				source: '/docs',
+				destination: '/quick-start',
+				permanent: true,
+			},
 		]
 	},
 }

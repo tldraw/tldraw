@@ -9,7 +9,12 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 	}
 
 	connect(socketPair: TestSocketPair<R>): void {
-		this.room.handleNewSession(socketPair.id, socketPair.roomSocket, undefined)
+		this.room.handleNewSession({
+			sessionId: socketPair.id,
+			socket: socketPair.roomSocket,
+			meta: undefined,
+			isReadonly: false,
+		})
 
 		socketPair.clientSocket.connectionStatus = 'online'
 		socketPair.didReceiveFromClient = (msg) => {
@@ -19,7 +24,7 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 			this.room.handleClose(socketPair.id)
 		}
 
-		socketPair.callbacks.onStatusChange?.('online')
+		socketPair.callbacks.onStatusChange?.({ status: 'online' })
 	}
 
 	flushDebouncingMessages() {

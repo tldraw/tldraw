@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap');
+
+:root {
+	--background: white;
+	--text: hsl(0, 0%, 11%);
+	--focus: hsl(214, 84%, 56%);
+}
+
+html,
+body {
+	padding: 0;
+	margin: 0;
+	font-family: 'Inter', sans-serif;
+	min-height: 100vh;
+	/* mobile viewport bug fix */
+	min-height: -webkit-fill-available;
+	height: 100%;
+	/* prevent two-finger swipe to go back */
+	overscroll-behavior-x: none;
+	background-color: var(--background);
+	color: var(--text);
+}
+@media screen and (max-width: 600px) {
+	html,
+	body {
+		font-size: 14px;
+	}
+}
+
+html,
+* {
+	box-sizing: border-box;
+}
+
+a {
+	text-decoration: none;
+}
+
+.mono {
+	font-family: monospace;
+}
+
+/* ------------------- Bisect ------------------- */
+
+.bisect__wrapper {
+	display: flex;
+	gap: 10px;
+	flex-direction: column;
+	padding: 10px;
+	font-size: 16px;
+}
+
+.bisect__button-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.bisect__item {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.bisect__button {
+	border: none;
+	cursor: pointer;
+	width: fit-content;
+}
+
+.bisect__button-regular {
+	background-color: #3182ed;
+	color: white;
+	padding: 10px;
+	border-radius: 6px;
+}
+
+.bisect__button-emoji {
+	background-color: transparent;
+	color: black;
+	padding: 0;
+}
+
+.bisect__good-bad-wrapper {
+	margin-left: 6px;
+	display: flex;
+	gap: 6px;
+}
