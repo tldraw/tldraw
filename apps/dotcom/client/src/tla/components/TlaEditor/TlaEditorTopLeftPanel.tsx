@@ -19,7 +19,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
-import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -59,6 +59,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 				</TldrawUiButton>
 			</TlaFileShareMenu>
 			<TlaFileNameEditor
+				source="file-header"
 				fileName={fileName}
 				onChange={isTempFile ? handleFileNameChange : undefined}
 			/>
@@ -72,7 +73,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const raw = useRaw()
 	const editor = useEditor()
 	const [isRenaming, setIsRenaming] = useState(false)
-	const trackEvent = useTldrawAppUiEvents()
 
 	const app = useApp()
 	const fileId = useCurrentFileId()
@@ -98,10 +98,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		[app, fileId]
 	)
 
-	const handleRenameAction = () => {
-		setIsRenaming(true)
-		trackEvent('rename-file', { source: 'file-menu' })
-	}
+	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameEnd = () => setIsRenaming(false)
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
@@ -112,6 +109,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			<TlaSidebarToggle />
 			<TlaSidebarToggleMobile />
 			<TlaFileNameEditor
+				source="file-header"
 				isRenaming={isRenaming}
 				fileName={fileName ?? 'FIXME'}
 				onChange={isOwner ? handleFileNameChange : undefined}
@@ -143,14 +141,16 @@ function TlaFileNameEditor({
 	onChange,
 	onEnd,
 	isRenaming,
+	source,
 }: {
 	fileName: string
 	onChange?(name: string): void
 	onEnd?(): void
 	isRenaming?: boolean
+	source: TLAppUiEventSource
 }) {
 	const [isEditing, setIsEditing] = useState(false)
-
+	const trackEvent = useTldrawAppUiEvents()
 	const handleEditingStart = useCallback(() => {
 		if (!onChange) return
 		setIsEditing(true)
@@ -167,8 +167,9 @@ function TlaFileNameEditor({
 			setIsEditing(false)
 			onChange(name)
 			onEnd?.()
+			trackEvent('rename-file', { name, source })
 		},
-		[onChange, onEnd]
+		[onChange, onEnd, trackEvent, source]
 	)
 
 	useEffect(() => {

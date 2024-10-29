@@ -21,14 +21,14 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				<div className={styles.signInButtons}>
 					<SignedOut>
 						<TlaSignInButton
-							onClick={() => trackEvent('sign-in-button', { source: 'anon-landing-page' })}
+							onClick={() => trackEvent('sign-in-clicked', { source: 'anon-landing-page' })}
 							variant="primary"
 							ghost
 						>
 							{raw('Log in')}
 						</TlaSignInButton>
 						<TlaSignInButton
-							onClick={() => trackEvent('sign-up-button', { source: 'anon-landing-page' })}
+							onClick={() => trackEvent('sign-up-clicked', { source: 'anon-landing-page' })}
 							data-testid="tla-signup-button"
 						>
 							{raw('Sign up')}

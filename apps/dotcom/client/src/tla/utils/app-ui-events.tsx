@@ -16,7 +16,7 @@ export type TLAppUiEventSource =
 export interface TLAppUiEventMap {
 	'create-file': null
 	'delete-file': null
-	'rename-file': null
+	'rename-file': { name: string }
 	'duplicate-file': null
 	'drop-tldr-file': null
 	'import-tldr-file': null
@@ -44,11 +44,11 @@ export interface TLAppUiEventMap {
 	'publish-file': { result: Result<string, string> }
 	'unpublish-file': { result: Result<string, string> }
 	'copy-publish-link': null
-	'sign-in-button': null
-	'sign-up-button': null
-	'sign-out-button': null
+	'sign-in-clicked': null
+	'sign-up-clicked': null
+	'sign-out-clicked': null
 	'learn-more-button': null
-	'sidebar-toggle': null
+	'sidebar-toggle': { value: boolean }
 	'click-file-link': null
 }
 

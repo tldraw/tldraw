@@ -26,7 +26,7 @@ export function TlaAccountMenu({
 	const trackEvent = useTldrawAppUiEvents()
 	const handleSignout = useCallback(() => {
 		auth.signOut()
-		trackEvent('sign-out-button', { source })
+		trackEvent('sign-out-clicked', { source })
 	}, [auth, trackEvent, source])
 
 	const currentEditor = useValue('editor', () => globalEditor.get(), [])
