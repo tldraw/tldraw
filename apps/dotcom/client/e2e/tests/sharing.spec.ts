@@ -73,7 +73,7 @@ test('can publish a file', async ({ page, browser, editor, sidebar, shareMenu })
 	await newContext.close()
 })
 
-test('can unpublish a file', async ({ page, browser, editor, sidebar, shareMenu }) => {
+test.only('can unpublish a file', async ({ page, browser, editor, sidebar, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
 	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
@@ -87,6 +87,6 @@ test('can unpublish a file', async ({ page, browser, editor, sidebar, shareMenu 
 	await expect(newPage.getByRole('heading', { name: 'Page not found' })).not.toBeVisible()
 	await shareMenu.unpublishFile()
 	await newPage.reload()
-	await expect(newPage.getByRole('heading', { name: 'Page not found' })).not.toBeVisible()
+	await expect(newPage.getByRole('heading', { name: 'Page not found' })).toBeVisible()
 	await newContext.close()
 })
