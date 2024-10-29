@@ -2,6 +2,7 @@ import { test as base } from '@playwright/test'
 import { Database } from './Database'
 import { Editor } from './Editor'
 import { HomePage } from './HomePage'
+import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
 
 interface TlaFixtures {
@@ -9,6 +10,7 @@ interface TlaFixtures {
 	editor: Editor
 	sidebar: Sidebar
 	database: Database
+	shareMenu: ShareMenu
 }
 
 export const test = base.extend<TlaFixtures>({
@@ -23,6 +25,9 @@ export const test = base.extend<TlaFixtures>({
 	},
 	database: async ({ page }, testUse) => {
 		testUse(new Database(page))
+	},
+	shareMenu: async ({ page }, testUse) => {
+		testUse(new ShareMenu(page))
 	},
 })
 export { expect } from '@playwright/test'
