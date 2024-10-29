@@ -26,14 +26,9 @@ async function shareFileAndCopyLink(
 	return await handle.jsonValue()
 }
 
-test('can share a file', async ({ page, sidebar, editor, browser, shareMenu }) => {
+test('can share a file', async ({ page, browser, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
-	const { newContext, newPage, newHomePage } = await openNewIncognitoPage(
-		browser,
-		editor,
-		sidebar,
-		url
-	)
+	const { newContext, newPage, newHomePage } = await openNewIncognitoPage(browser, url)
 	await newHomePage.isLoaded()
 	// We are in a multiplayer room with another person
 	await expect(page.getByRole('button', { name: 'People' })).toBeVisible()
@@ -41,15 +36,10 @@ test('can share a file', async ({ page, sidebar, editor, browser, shareMenu }) =
 	await newContext.close()
 })
 
-test('can unshare a file', async ({ page, browser, sidebar, editor, shareMenu }) => {
+test('can unshare a file', async ({ page, browser, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
 
-	const { newContext, newHomePage, errorPage } = await openNewIncognitoPage(
-		browser,
-		editor,
-		sidebar,
-		url
-	)
+	const { newContext, newHomePage, errorPage } = await openNewIncognitoPage(browser, url)
 	await newHomePage.isLoaded()
 
 	await shareMenu.unshareFile()
@@ -57,31 +47,21 @@ test('can unshare a file', async ({ page, browser, sidebar, editor, shareMenu })
 	await newContext.close()
 })
 
-test('can publish a file', async ({ page, browser, editor, sidebar, shareMenu }) => {
+test('can publish a file', async ({ page, browser, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
 	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	const { newContext, newHomePage, errorPage } = await openNewIncognitoPage(
-		browser,
-		editor,
-		sidebar,
-		url
-	)
+	const { newContext, newHomePage, errorPage } = await openNewIncognitoPage(browser, url)
 	await newHomePage.isLoaded()
 	await errorPage.expectNotFoundNotVisible()
 	await newContext.close()
 })
 
-test('can unpublish a file', async ({ page, browser, editor, sidebar, shareMenu }) => {
+test('can unpublish a file', async ({ page, browser, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
 	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(
-		browser,
-		editor,
-		sidebar,
-		url
-	)
+	const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(browser, url)
 	await newHomePage.isLoaded()
 	await errorPage.expectNotFoundNotVisible()
 	await shareMenu.unpublishFile()
@@ -90,19 +70,14 @@ test('can unpublish a file', async ({ page, browser, editor, sidebar, shareMenu 
 	await newContext.close()
 })
 
-test('can update published file', async ({ page, browser, editor, sidebar, shareMenu }) => {
+test('can update published file', async ({ page, browser, editor, shareMenu }) => {
 	await page.getByTestId('tools.rectangle').click()
 	await page.locator('.tl-background').click()
 	expect(await editor.getNumberOfShapes()).toBe(1)
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
 	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	const { newContext, newPage, newHomePage, newEditor } = await openNewIncognitoPage(
-		browser,
-		editor,
-		sidebar,
-		url
-	)
+	const { newContext, newPage, newHomePage, newEditor } = await openNewIncognitoPage(browser, url)
 	await newHomePage.isLoaded()
 	expect(await newEditor.getNumberOfShapes()).toBe(1)
 
