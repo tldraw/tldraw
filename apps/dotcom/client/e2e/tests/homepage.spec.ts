@@ -1,4 +1,3 @@
-import { sleep } from 'tldraw'
 import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ homePage }) => {
@@ -40,10 +39,10 @@ test('sidebar file operations', async ({ page, sidebar, deleteFileDialog }) => {
 	})
 
 	await test.step('duplicate the document', async () => {
-		const fileName = await sidebar.getFileLink()
-		await sidebar.openFileMenu(fileName)
+		const fileLink = await sidebar.getFileLink()
+		const fileName = await fileLink?.innerText()
+		await sidebar.openFileMenu(fileLink)
 		await page.getByRole('menuitem', { name: 'Duplicate' }).click()
-		await sleep(1000)
 		const copiedFileLink = page.getByRole('link').getByText(`${fileName} Copy`)
 		expect(copiedFileLink).toBeVisible()
 	})
