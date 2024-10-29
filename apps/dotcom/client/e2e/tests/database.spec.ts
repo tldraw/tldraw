@@ -4,7 +4,7 @@ test.beforeEach(async ({ homePage }) => {
 	await homePage.isLoaded()
 })
 
-test('correctly clears db', async ({ editor, sidebar, database }) => {
+test('correctly clears db', async ({ editor, homePage, sidebar, database }) => {
 	await editor.ensureSidebarOpen()
 	const currentCount = await sidebar.getNumberOfFiles()
 	const documentsToAdd = 3
@@ -15,6 +15,8 @@ test('correctly clears db', async ({ editor, sidebar, database }) => {
 	expect(newCount).toBe(currentCount + documentsToAdd)
 
 	await database.reset()
+	await homePage.goto()
+	await homePage.isLoaded()
 	const afterReset = await sidebar.getNumberOfFiles()
-	expect(afterReset).toBe(0)
+	expect(afterReset).toBe(1)
 })
