@@ -73,7 +73,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 	}
 
 	private _handleDisconnect(
-		reason: 'closed' | 'error' | 'manual',
+		reason: 'closed' | 'manual',
 		closeCode?: number,
 		didOpen?: boolean,
 		closeReason?: string
@@ -94,9 +94,6 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 				} else {
 					newStatus = 'offline'
 				}
-				break
-			case 'error':
-				newStatus = 'error'
 				break
 			case 'manual':
 				newStatus = 'offline'
@@ -159,7 +156,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLRecord
 		ws.onerror = (event) => {
 			debug('ws.onerror', event)
 			if (this._ws === ws) {
-				this._handleDisconnect('error')
+				this._handleDisconnect('closed')
 			} else {
 				debug('ignoring onerror for an orphaned socket')
 			}
