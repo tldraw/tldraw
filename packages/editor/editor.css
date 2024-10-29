@@ -26,6 +26,7 @@
 	--layer-canvas-hidden: -999999;
 	--layer-canvas-background: 100;
 	--layer-canvas-grid: 150;
+	--layer-watermark: 200;
 	--layer-canvas-shapes: 300;
 	--layer-canvas-overlays: 500;
 	--layer-canvas-blocker: 10000;
@@ -123,6 +124,7 @@
 	height: 100%;
 	width: 100%;
 	overflow: clip;
+	color: var(--color-text);
 }
 
 .tl-theme__light {
@@ -910,6 +912,7 @@ input,
 	text-shadow: inherit;
 	text-transform: none;
 	white-space: pre-wrap;
+	line-break: normal;
 	word-spacing: 0px;
 	word-wrap: break-word;
 	writing-mode: horizontal-tb !important;
@@ -924,7 +927,6 @@ input,
 	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
-	line-break: normal;
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
@@ -1018,6 +1020,10 @@ input,
 	overflow: hidden;
 }
 
+.tl-bookmark__container--safariExport {
+	border: 1px solid var(--color-divider);
+}
+
 .tl-bookmark__image_container {
 	flex: 1 1 100%;
 	overflow: hidden;
@@ -1076,6 +1082,7 @@ input,
 	max-height: calc((16px * 1.5) * 2);
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
+	line-clamp: 2;
 	text-overflow: ellipsis;
 	display: -webkit-box;
 }
@@ -1087,6 +1094,7 @@ input,
 	max-height: calc((12px * 1.5) * 3);
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 3;
+	line-clamp: 3;
 	text-overflow: ellipsis;
 	display: -webkit-box;
 	color: var(--color-text-2);
@@ -1148,6 +1156,7 @@ input,
 	border: none;
 	outline: none;
 	pointer-events: all;
+	z-index: 1;
 }
 
 .tl-hyperlink-button::after {

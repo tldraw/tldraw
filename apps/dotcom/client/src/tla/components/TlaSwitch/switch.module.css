@@ -1,0 +1,53 @@
+.container {
+	position: relative;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.container input[type='checkbox'] {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	cursor: pointer;
+	pointer-events: all;
+}
+
+.switch {
+	--switch-h: 20px;
+	--switch-w: calc(var(--switch-h) * 1.618);
+	height: var(--switch-h);
+	width: var(--switch-w);
+	position: relative;
+	border-radius: 99px;
+	background-color: var(--tla-color-text-3);
+	transition: all 0.12s;
+}
+
+.switch::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	right: initial;
+	border-radius: 100%;
+	height: calc(var(--switch-h) - 4px);
+	width: calc(var(--switch-h) - 4px);
+	background-color: var(--tla-color-panel);
+	pointer-events: none;
+	transition: all 0.12s;
+}
+
+.switch[data-checked='true'] {
+	background-color: var(--tla-color-primary);
+}
+
+.switch[data-checked='true']::after {
+	background-color: var(--tla-color-contrast);
+	left: calc(var(--switch-w) - (var(--switch-h) - 4px) - 2px);
+}

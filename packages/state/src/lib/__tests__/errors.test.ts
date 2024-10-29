@@ -75,7 +75,7 @@ describe('derivations that error', () => {
 		react('', () => {
 			try {
 				b.get()
-			} catch (e) {
+			} catch {
 				// ignore
 			}
 			numReactions++

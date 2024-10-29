@@ -124,6 +124,21 @@ export function Tldraw(props: TldrawProps) {
 		[_tools]
 	)
 
+	const _imageMimeTypes = useShallowArrayIdentity(
+		acceptedImageMimeTypes ?? DEFAULT_SUPPORTED_IMAGE_TYPES
+	)
+	const _videoMimeTypes = useShallowArrayIdentity(
+		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
+	)
+	const _audioMimeTypes = useShallowArrayIdentity(
+		acceptedAudioMimeTypes ?? DEFAULT_SUPPORT_AUDIO_TYPES
+	)
+
+	const mediaMimeTypes = useMemo(
+		() => [..._imageMimeTypes, ..._videoMimeTypes, ..._audioMimeTypes],
+		[_imageMimeTypes, _videoMimeTypes, _audioMimeTypes]
+	)
+
 	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 	if (preloadingError) {
@@ -146,13 +161,13 @@ export function Tldraw(props: TldrawProps) {
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
 		>
-			<TldrawUi {...rest} components={componentsWithDefault}>
+			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
 				<InsideOfEditorAndUiContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
-					acceptedImageMimeTypes={acceptedImageMimeTypes}
-					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
-					acceptedAudioMimeTypes={acceptedAudioMimeTypes}
+					acceptedImageMimeTypes={_imageMimeTypes}
+					acceptedVideoMimeTypes={_videoMimeTypes}
+					acceptedAudioMimeTypes={_audioMimeTypes}
 					onMount={onMount}
 					embeds={embeds}
 				/>

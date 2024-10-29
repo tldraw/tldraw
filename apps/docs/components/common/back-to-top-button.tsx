@@ -3,7 +3,7 @@
 import { ArrowLongUpIcon } from '@heroicons/react/20/solid'
 import { useEffect, useState } from 'react'
 
-export const BackToTopButton = () => {
+export function BackToTopButton() {
 	const [showButton, setShowButton] = useState<boolean>(false)
 
 	useEffect(() => {

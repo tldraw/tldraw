@@ -14,7 +14,7 @@ import { ReactEventHandler, useCallback, useEffect, useRef, useState } from 'rea
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { FULL_CONTROLS_WIDTH, MediaControls } from '../shared/MediaControls'
-import { useAsset } from '../shared/useAsset'
+import { useMediaAsset } from '../shared/useMediaAsset'
 
 /** @public */
 export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
@@ -43,7 +43,10 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 
 	component(shape: TLAudioShape) {
 		const { editor } = this
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const { asset, url } = useMediaAsset({
+			shapeId: shape.id,
+			assetId: shape.props.assetId,
+		})
 		const isEditing = useIsEditing(shape.id)
 
 		const rAudio = useRef<HTMLAudioElement>(null!)
@@ -119,9 +122,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 						</div>
 					</div>
 				</HTMLContainer>
-				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
-				)}
+				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
 	}

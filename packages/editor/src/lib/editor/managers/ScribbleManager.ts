@@ -65,7 +65,10 @@ export class ScribbleManager {
 	/**
 	 * Set the scribble's next point.
 	 *
-	 * @param point - The point to add.
+	 * @param id - The id of the scribble to add a point to.
+	 * @param x - The x coordinate of the point.
+	 * @param y - The y coordinate of the point.
+	 * @param z - The z coordinate of the point.
 	 * @public
 	 */
 	addPoint(id: ScribbleItem['id'], x: number, y: number, z = 0.5) {

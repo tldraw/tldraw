@@ -3,10 +3,9 @@ import { DocsArticleInfo } from '@/components/docs/docs-article-info'
 import { DocsFeedbackWidget } from '@/components/docs/docs-feedback-widget'
 import { HeadingsMenu } from '@/components/navigation/headings-menu'
 import { Article } from '@/types/content-types'
-import { getDb } from '@/utils/ContentDatabase'
+import { db } from '@/utils/ContentDatabase'
 
-export const DocsTableOfContents: React.FC<{ article: Article }> = async ({ article }) => {
-	const db = await getDb()
+export async function DocsTableOfContents({ article }: { article: Article }) {
 	const headings = await db.getArticleHeadings(article.id)
 
 	return (

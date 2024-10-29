@@ -19,7 +19,7 @@ it('opens on right-click', async () => {
 	await screen.findByTestId('context-menu')
 	await screen.findByTestId('context-menu.select-all')
 
-	fireEvent.keyDown(canvas, { key: 'Escape' })
+	fireEvent.keyDown(document.body, { key: 'Escape' })
 	expect(screen.queryByTestId('context-menu')).toBeNull()
 })
 

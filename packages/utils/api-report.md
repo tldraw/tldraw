@@ -165,6 +165,9 @@ export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, 
 export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
+export function groupBy<K extends string, V>(array: ReadonlyArray<V>, keySelector: (value: V) => K): Record<K, V[]>;
+
+// @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
 
 // @internal
@@ -242,6 +245,8 @@ export class MediaHelpers {
         h: number;
         w: number;
     }>;
+    // (undocumented)
+    static getVideoFrameAsDataUrl(video: HTMLVideoElement, time?: number): Promise<string>;
     static getVideoSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -388,13 +393,16 @@ export function rng(seed?: string): () => number;
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public (undocumented)
-export const safeParseUrl: (url: string) => undefined | URL;
+export const safeParseUrl: (url: string, baseUrl?: string | URL) => undefined | URL;
 
 // @internal
 export function setInLocalStorage(key: string, value: string): void;
 
 // @internal
 export function setInSessionStorage(key: string, value: string): void;
+
+// @internal (undocumented)
+export function sleep(ms: number): Promise<void>;
 
 // @public (undocumented)
 export function sortById<T extends {
@@ -420,14 +428,24 @@ export function throttleToNextFrame(fn: () => void): () => void;
 
 // @public (undocumented)
 export class Timers {
+    constructor();
     // (undocumented)
-    dispose(): void;
+    dispose(contextId: string): void;
     // (undocumented)
-    requestAnimationFrame(callback: FrameRequestCallback): number;
+    disposeAll(): void;
     // (undocumented)
-    setInterval(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    forContext(contextId: string): {
+        dispose: () => void;
+        requestAnimationFrame: (callback: FrameRequestCallback) => number;
+        setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+        setTimeout: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
+    };
     // (undocumented)
-    setTimeout(handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    requestAnimationFrame(contextId: string, callback: FrameRequestCallback): number;
+    // (undocumented)
+    setInterval(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
+    // (undocumented)
+    setTimeout(contextId: string, handler: TimerHandler, timeout?: number, ...args: any[]): number;
 }
 
 export { uniq }

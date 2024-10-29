@@ -1,3 +1,4 @@
+import { promiseWithResolve } from '../control'
 import { Image } from '../network'
 import { isApngAnimated } from './apng'
 import { isAvifAnimated } from './avif'
@@ -74,6 +75,60 @@ export class MediaHelpers {
 		})
 	}
 
+	static async getVideoFrameAsDataUrl(video: HTMLVideoElement, time = 0): Promise<string> {
+		const promise = promiseWithResolve<string>()
+		let didSetTime = false
+
+		const onReadyStateChanged = () => {
+			if (!didSetTime) {
+				if (video.readyState >= video.HAVE_METADATA) {
+					didSetTime = true
+					video.currentTime = time
+				} else {
+					return
+				}
+			}
+
+			if (video.readyState >= video.HAVE_CURRENT_DATA) {
+				const canvas = document.createElement('canvas')
+				canvas.width = video.videoWidth
+				canvas.height = video.videoHeight
+				const ctx = canvas.getContext('2d')
+				if (!ctx) {
+					throw new Error('Could not get 2d context')
+				}
+				ctx.drawImage(video, 0, 0)
+				promise.resolve(canvas.toDataURL())
+			}
+		}
+		const onError = (e: Event) => {
+			console.error(e)
+			promise.reject(new Error('Could not get video frame'))
+		}
+
+		video.addEventListener('loadedmetadata', onReadyStateChanged)
+		video.addEventListener('loadeddata', onReadyStateChanged)
+		video.addEventListener('canplay', onReadyStateChanged)
+		video.addEventListener('seeked', onReadyStateChanged)
+
+		video.addEventListener('error', onError)
+		video.addEventListener('stalled', onError)
+
+		onReadyStateChanged()
+
+		try {
+			return await promise
+		} finally {
+			video.removeEventListener('loadedmetadata', onReadyStateChanged)
+			video.removeEventListener('loadeddata', onReadyStateChanged)
+			video.removeEventListener('canplay', onReadyStateChanged)
+			video.removeEventListener('seeked', onReadyStateChanged)
+
+			video.removeEventListener('error', onError)
+			video.removeEventListener('stalled', onError)
+		}
+	}
+
 	/**
 	 * Load an audio file from a url.
 	 * @public
@@ -112,7 +167,7 @@ export class MediaHelpers {
 	/**
 	 * Get the size of a video blob
 	 *
-	 * @param src - A SharedBlob containing the video
+	 * @param blob - A SharedBlob containing the video
 	 * @public
 	 */
 	static async getVideoSize(blob: Blob): Promise<{ w: number; h: number }> {
@@ -155,7 +210,7 @@ export class MediaHelpers {
 	/**
 	 * Get the size of an image blob
 	 *
-	 * @param dataURL - A Blob containing the image.
+	 * @param blob - A Blob containing the image.
 	 * @public
 	 */
 	static async getImageSize(blob: Blob): Promise<{ w: number; h: number }> {

@@ -288,3 +288,116 @@ describe('setting atoms during a reaction', () => {
 		expect(dValue).toBe(4)
 	})
 })
+
+test('it should be possible to run a transaction during a reaction', () => {
+	const a = atom('', 0)
+	const b = atom('', 0)
+
+	react('', () => {
+		transaction(() => {
+			b.set(a.get() + 1)
+		})
+	})
+
+	expect(a.get()).toBe(0)
+	expect(b.get()).toBe(1)
+
+	a.set(1)
+
+	expect(b.get()).toBe(2)
+
+	transaction(() => {
+		a.set(2)
+		expect(b.get()).toBe(2)
+	})
+
+	expect(b.get()).toBe(3)
+})
+
+test('it should be possible to abort a transaction during a reaction', () => {
+	const a = atom('', 0)
+	const b = atom('', 0)
+
+	const unsub = react('', () => {
+		transaction((rollback) => {
+			b.set(a.get() + 1)
+			rollback()
+		})
+		expect(b.get()).toBe(0)
+	})
+
+	expect(a.get()).toBe(0)
+	expect(b.get()).toBe(0)
+
+	unsub()
+
+	react('', () => {
+		transaction(() => {
+			b.set(3)
+			try {
+				transaction(() => {
+					b.set(a.get() + 1)
+					throw new Error('oops')
+				})
+			} catch (e: any) {
+				expect(e.message).toBe('oops')
+			} finally {
+				expect(b.get()).toBe(3)
+			}
+		})
+		expect(b.get()).toBe(3)
+	})
+
+	expect(a.get()).toBe(0)
+	expect(b.get()).toBe(3)
+
+	expect.assertions(8)
+})
+
+it('should defer all side effects until the end of the outer transaction', () => {
+	const a = atom('', 0)
+	const b = atom('', 0)
+	const c = atom('', 0)
+
+	const aChanged = jest.fn()
+	const bChanged = jest.fn()
+	const cChanged = jest.fn()
+
+	react('', () => {
+		a.get()
+		aChanged()
+	})
+
+	react('', () => {
+		transaction(() => {
+			a.set(b.get() + 1)
+		})
+		bChanged()
+	})
+
+	react('', () => {
+		transaction(() => {
+			b.set(c.get() + 1)
+		})
+		cChanged()
+	})
+
+	expect(aChanged).toHaveBeenCalledTimes(3)
+	expect(bChanged).toHaveBeenCalledTimes(2)
+	expect(cChanged).toHaveBeenCalledTimes(1)
+
+	expect(a.__unsafe__getWithoutCapture()).toBe(2)
+
+	cChanged.mockImplementationOnce(() => {
+		// b was .set() during c's reaction
+		expect(b.__unsafe__getWithoutCapture()).toBe(2)
+		// a was not yet set because the effect was deferred
+		// util the end of the reaction
+		expect(a.__unsafe__getWithoutCapture()).toBe(2)
+	})
+
+	c.set(1)
+
+	expect(a.__unsafe__getWithoutCapture()).toBe(3)
+	expect(cChanged).toHaveBeenCalledTimes(2)
+})

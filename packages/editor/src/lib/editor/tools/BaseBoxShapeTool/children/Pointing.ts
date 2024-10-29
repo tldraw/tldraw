@@ -9,12 +9,6 @@ import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	wasFocusedOnEnter = false
-
-	override onEnter() {
-		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
-	}
-
 	override onPointerMove(info: TLPointerEventInfo) {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
@@ -77,10 +71,6 @@ export class Pointing extends StateNode {
 
 	complete() {
 		const { originPagePoint } = this.editor.inputs
-
-		if (!this.wasFocusedOnEnter) {
-			return
-		}
 
 		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBaseBoxShape['type']
 

@@ -36,7 +36,7 @@ export function haveParentsChanged(child: Child) {
  * @param parent The parent to detach from.
  * @param child The child to detach.
  */
-export const detach = (parent: Signal<any>, child: Child) => {
+export function detach(parent: Signal<any>, child: Child) {
 	// If the child is not attached to the parent, do nothing.
 	if (!parent.children.remove(child)) {
 		return
@@ -56,7 +56,7 @@ export const detach = (parent: Signal<any>, child: Child) => {
  * @param parent The parent to attach to.
  * @param child The child to attach.
  */
-export const attach = (parent: Signal<any>, child: Child) => {
+export function attach(parent: Signal<any>, child: Child) {
 	// If the child is already attached to the parent, do nothing.
 	if (!parent.children.add(child)) {
 		return

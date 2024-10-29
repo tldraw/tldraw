@@ -1,6 +1,6 @@
+import { act, render, RenderResult } from '@testing-library/react'
 import { Atom, Computed } from '@tldraw/state'
 import { useState } from 'react'
-import ReactTestRenderer from 'react-test-renderer'
 import { useAtom } from './useAtom'
 import { useComputed } from './useComputed'
 import { useValue } from './useValue'
@@ -16,20 +16,20 @@ test('useComputed returns a computed value', async () => {
 		return <>{useValue(b)}</>
 	}
 
-	let view: ReactTestRenderer.ReactTestRenderer
-	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Component />)
+	let view: RenderResult
+	await act(() => {
+		view = render(<Component />)
 	})
 
 	expect(theComputed).not.toBeNull()
 	expect(theComputed?.get()).toBe(2)
 	expect(theComputed?.name).toBe('useComputed(a+1)')
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"2"`)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		theAtom?.set(5)
 	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"6"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"6"`)
 })
 
 test('useComputed has a dependencies array that allows creating a new computed', async () => {
@@ -46,9 +46,9 @@ test('useComputed has a dependencies array that allows creating a new computed',
 		return <>{useValue(b)}</>
 	}
 
-	let view: ReactTestRenderer.ReactTestRenderer
-	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Component />)
+	let view: RenderResult
+	await act(() => {
+		view = render(<Component />)
 	})
 
 	const initialComputed = theComputed
@@ -56,16 +56,16 @@ test('useComputed has a dependencies array that allows creating a new computed',
 	expect(theComputed).not.toBeNull()
 	expect(theComputed?.get()).toBe(2)
 	expect(theComputed?.name).toBe('useComputed(a+1)')
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"2"`)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		theAtom?.set(5)
 	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"6"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"6"`)
 
 	expect(initialComputed).toBe(theComputed)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		setCount?.(2)
 	})
 
@@ -87,9 +87,9 @@ test('useComputed allows optionally passing options', async () => {
 		return <>{useValue(b)}</>
 	}
 
-	let view: ReactTestRenderer.ReactTestRenderer
-	await ReactTestRenderer.act(() => {
-		view = ReactTestRenderer.create(<Component />)
+	let view: RenderResult
+	await act(() => {
+		view = render(<Component />)
 	})
 
 	const initialComputed = theComputed
@@ -97,16 +97,16 @@ test('useComputed allows optionally passing options', async () => {
 	expect(theComputed).not.toBeNull()
 	expect(theComputed?.get()).toBe(2)
 	expect(theComputed?.name).toBe('useComputed(a+1)')
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"2"`)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		theAtom?.set(5)
 	})
-	expect(view!.toJSON()).toMatchInlineSnapshot(`"6"`)
+	expect(view!.asFragment().textContent).toMatchInlineSnapshot(`"6"`)
 
 	expect(initialComputed).toBe(theComputed)
 
-	await ReactTestRenderer.act(() => {
+	await act(() => {
 		setCount?.(2)
 	})
 

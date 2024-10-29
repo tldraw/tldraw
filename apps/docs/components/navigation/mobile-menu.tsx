@@ -9,7 +9,10 @@ import { usePathname } from 'next/navigation'
 import { ThemeSwitch } from '../common/theme-switch'
 import { CloseOnNavigation } from './close-on-navigation'
 
-export const MobileMenu: React.FC<{
+export function MobileMenu({
+	main,
+	social,
+}: {
 	main: {
 		caption: string
 		href?: string
@@ -17,7 +20,7 @@ export const MobileMenu: React.FC<{
 		active(pathname: string): boolean
 	}[]
 	social: { caption: string; icon: IconName; href: string }[]
-}> = ({ main, social }) => {
+}) {
 	const pathname = usePathname()
 
 	return (

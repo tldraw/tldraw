@@ -536,13 +536,7 @@ export interface StoreSchemaOptions<R extends UnknownRecord, P> {
     // (undocumented)
     migrations?: MigrationSequence[];
     // (undocumented)
-    onValidationFailure?(data: {
-        error: unknown;
-        phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
-        record: R;
-        recordBefore: null | R;
-        store: Store<R>;
-    }): R;
+    onValidationFailure?(data: StoreValidationFailure<R>): R;
 }
 
 // @public
@@ -604,6 +598,20 @@ export interface StoreSnapshot<R extends UnknownRecord> {
     schema: SerializedSchema;
     // (undocumented)
     store: SerializedStore<R>;
+}
+
+// @public (undocumented)
+export interface StoreValidationFailure<R extends UnknownRecord> {
+    // (undocumented)
+    error: unknown;
+    // (undocumented)
+    phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
+    // (undocumented)
+    record: R;
+    // (undocumented)
+    recordBefore: null | R;
+    // (undocumented)
+    store: Store<R>;
 }
 
 // @public (undocumented)

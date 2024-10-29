@@ -1,4 +1,4 @@
-import { TLAudioShape, TLVideoShape } from '@tldraw/editor'
+import { TLAudioShape, TLVideoShape, useEditor } from '@tldraw/editor'
 import { Children, ReactElement, cloneElement, useCallback, useRef, useState } from 'react'
 import { TldrawUiButton } from '../../ui/components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../../ui/components/primitives/Button/TldrawUiButtonIcon'
@@ -21,6 +21,7 @@ export function MediaControls({
 	widthScaled: number
 	isMutedInitially?: boolean
 }) {
+	const editor = useEditor()
 	const [isPlaying, setIsPlaying] = useState(false)
 	const [isMuted, setIsMuted] = useState(!!isMutedInitially)
 	const [newSeekTime, setNewSeekTime] = useState<number | null>(null)
@@ -66,6 +67,8 @@ export function MediaControls({
 		onTimeUpdate: handleSetCurrentTime,
 	})
 
+	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
+
 	return (
 		<>
 			{mediaElement}
@@ -92,6 +95,7 @@ export function MediaControls({
 						value={newSeekTime ?? currentTime}
 						label={secondsToTime(newSeekTime ?? currentTime)}
 						onValueChange={handleSeek}
+						onHistoryMark={onHistoryMark}
 						onPointerUp={handleSliderPointerUp}
 						steps={rMedia.current?.duration || 0}
 						title={msg('media.seek')}

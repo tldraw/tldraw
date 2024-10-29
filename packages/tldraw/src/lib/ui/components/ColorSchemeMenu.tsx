@@ -24,13 +24,14 @@ export function ColorSchemeMenu() {
 
 	return (
 		<TldrawUiMenuSubmenu id="help menu color-scheme" label="menu.theme">
-			<TldrawUiMenuGroup id="languages">
+			<TldrawUiMenuGroup id="theme">
 				{COLOR_SCHEMES.map(({ colorScheme, label }) => (
 					<TldrawUiMenuCheckboxItem
 						id={`color-scheme-${colorScheme}`}
 						key={colorScheme}
 						label={label}
 						checked={colorScheme === currentColorScheme}
+						readonlyOk
 						onSelect={() => {
 							editor.user.updateUserPreferences({ colorScheme })
 							trackEvent('color-scheme', { source: 'menu', value: colorScheme })

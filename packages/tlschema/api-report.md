@@ -135,11 +135,11 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
 }): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseBinding<Type, Props>>]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseBinding<Type, Props>>]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
 
 // @public
-export const createPresenceStateDerivation: ($user: Signal<{
+export function createPresenceStateDerivation($user: Signal<{
     color: string;
     id: string;
     name: string;
-}>, instanceId?: TLInstancePresence['id']) => (store: TLStore) => Signal<null | TLInstancePresence>;
+}>, instanceId?: TLInstancePresence['id']): (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export function createShapeId(id?: string): TLShapeId;
@@ -511,7 +511,7 @@ export const PageRecordType: RecordType<TLPage, "index" | "name">;
 export const parentIdValidator: T.Validator<TLParentId>;
 
 // @internal (undocumented)
-export const pluckPreservingValues: (val?: null | TLInstance) => null | Partial<TLInstance>;
+export function pluckPreservingValues(val?: null | TLInstance): null | Partial<TLInstance>;
 
 // @public (undocumented)
 export const PointerRecordType: RecordType<TLPointer, never>;
@@ -1303,6 +1303,8 @@ export interface TLNoteShapeProps {
     // (undocumented)
     growY: number;
     // (undocumented)
+    labelColor: TLDefaultColorStyle;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
@@ -1422,6 +1424,7 @@ export interface TLStoreProps {
     assets: Required<TLAssetStore>;
     // (undocumented)
     collaboration?: {
+        mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
     // (undocumented)
