@@ -18,6 +18,7 @@
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"e2e": "yarn playwright test",
+		"e2e-debug": "yarn playwright test --debug",
 		"e2e-ui": "yarn playwright test --ui"
 	},
 	"dependencies": {
