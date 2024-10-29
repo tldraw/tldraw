@@ -5,6 +5,10 @@ test.beforeEach(async ({ homePage }) => {
 	await homePage.isLoaded()
 })
 
+test.afterEach(async ({ store }) => {
+	await store.reset()
+})
+
 test('can toggle sidebar', async ({ editor, sidebar }) => {
 	await editor.ensureSidebarClosed()
 	await expect(sidebar.sidebarLogo).not.toBeVisible()
