@@ -847,6 +847,8 @@ input,
 .tl-text-content {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	min-width: 1px;
 	min-height: 1px;
 	overflow: visible;
@@ -1135,9 +1137,14 @@ input,
 .tl-text-label__inner > .tl-text-input {
 	position: absolute;
 	inset: 0px;
+	height: 100%;
+	width: 100%;
 	padding: inherit;
+}
 
-	/* XXX: This resolves an issue where Chrome doesn't accurately render the text bounds
+.tl-text-wrapper[data-font='draw'] .tl-text-label__inner > .tl-text-input {
+	/**
+	 * XXX: This resolves an issue where Chrome doesn't accurately render the text bounds
 	 * correctly. See https://github.com/tldraw/tldraw/issues/4804
 	 */
 	 height: calc(100% + 0.5px);
