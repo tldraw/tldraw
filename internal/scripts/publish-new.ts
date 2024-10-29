@@ -115,7 +115,7 @@ async function main() {
 	await generateAutoRcFile()
 	await auto.loadConfig()
 
-	const preTagRef = await exec('git', ['rev-parse', 'HEAD'])
+	const preTagRef = (await exec('git', ['rev-parse', 'HEAD'])).trim()
 
 	// this creates a new commit
 	await auto.changelog({

@@ -1,3 +1,19 @@
+# v3.4.0 (Thu Oct 24 2024)
+
+#### 🐛 Bug Fix
+
+- roll back changes from bad deploy [#4780](https://github.com/tldraw/tldraw/pull/4780) ([@SomeHats](https://github.com/SomeHats))
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- botcom: redirect to intended room when signing in [#4725](https://github.com/tldraw/tldraw/pull/4725) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.3.0 (Wed Oct 09 2024)
 
 ### Release Notes

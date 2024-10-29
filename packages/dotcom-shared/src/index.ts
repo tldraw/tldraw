@@ -10,16 +10,20 @@ export {
 	type RoomOpenMode,
 } from './routes'
 export type {
+	CreateFilesRequestBody,
+	CreateFilesResponseBody,
 	CreateRoomRequestBody,
 	CreateSnapshotRequestBody,
 	CreateSnapshotResponseBody,
+	DuplicateRoomResponseBody,
 	GetReadonlySlugResponseBody,
+	PublishFileResponseBody,
 	Snapshot,
+	UnpublishFileResponseBody,
 } from './types'
 
 export * from './tla-schema/TldrawAppFile'
-export * from './tla-schema/TldrawAppFileEdit'
-export * from './tla-schema/TldrawAppFileVisit'
+export * from './tla-schema/TldrawAppFileState'
 export * from './tla-schema/TldrawAppSessionState'
 export * from './tla-schema/TldrawAppUser'
 export * from './tla-schema/tldrawAppSchema'

@@ -24,7 +24,6 @@ export const TLIncompatibilityReason = {
  * @deprecated replaced by websocket .close status/reason
  */
 export type TLIncompatibilityReason =
-	// eslint-disable-next-line deprecation/deprecation
 	(typeof TLIncompatibilityReason)[keyof typeof TLIncompatibilityReason]
 
 /** @internal */
@@ -41,7 +40,7 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 	  }
 	| {
 			type: 'incompatibility_error'
-			// eslint-disable-next-line deprecation/deprecation
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			reason: TLIncompatibilityReason
 	  }
 	| {

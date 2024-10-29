@@ -1,30 +1,26 @@
+import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
-	DefaultMainMenu,
-	DefaultQuickActions,
-	DefaultQuickActionsContent,
 	DefaultStylePanel,
-	EditSubmenu,
 	Editor,
-	ExportFileContentSubMenu,
-	ExtrasGroup,
 	OfflineIndicator,
 	PeopleMenu,
 	TLComponents,
+	TLSessionStateSnapshot,
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	ViewSubmenu,
-	tltime,
+	createSessionStateSnapshotSignal,
+	react,
+	throttle,
 	useActions,
 	useCollaborationStatus,
 	useEditor,
-	useReactor,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -35,13 +31,10 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
-import {
-	getLocalSessionState,
-	getLocalSessionStateUnsafe,
-	updateLocalSessionState,
-} from '../../utils/local-session-state'
+import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
@@ -74,19 +67,6 @@ export const components: TLComponents = {
 		if (collaborationStatus === 'offline') return null
 		return <OfflineIndicator />
 	},
-	QuickActions: () => {
-		return (
-			<DefaultQuickActions>
-				<DefaultMainMenu>
-					<EditSubmenu />
-					<ViewSubmenu />
-					<ExportFileContentSubMenu />
-					<ExtrasGroup />
-				</DefaultMainMenu>
-				<DefaultQuickActionsContent />
-			</DefaultQuickActions>
-		)
-	},
 }
 
 const anonComponents = {
@@ -107,75 +87,67 @@ const anonComponents = {
 	},
 }
 
-export function TlaEditor({
-	fileSlug,
-	onDocumentChange,
-	isCreateMode,
-}: {
+interface TlaEditorProps {
 	fileSlug: string
 	onDocumentChange?(): void
 	isCreateMode?: boolean
-}) {
+	deepLinks?: boolean
+}
+export function TlaEditor(props: TlaEditorProps) {
+	// force re-mount when the file slug changes to prevent state from leaking between files
+	return (
+		<ReadyWrapper key={props.fileSlug}>
+			<TlaEditorInner {...props} key={props.fileSlug} />
+		</ReadyWrapper>
+	)
+}
+
+function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
-	const [ready, setReady] = useState(false)
-
 	const fileId = TldrawAppFileRecordType.createId(fileSlug)
 
-	useLayoutEffect(() => {
-		setReady(false)
-		// Set the editor to ready after a short delay
-		const timeout = setTimeout(() => setReady(true), 200)
-		return () => {
-			clearTimeout(timeout)
-		}
-	}, [fileId])
+	const setIsReady = useSetIsReady()
 
-	const handleMount = useCallback((editor: Editor) => {
-		;(window as any).app = editor
-		;(window as any).editor = editor
-		// Register the editor globally
-		globalEditor.set(editor)
+	const handleMount = useCallback(
+		(editor: Editor) => {
+			;(window as any).app = app
+			;(window as any).editor = editor
+			// Register the editor globally
+			globalEditor.set(editor)
+			setIsReady()
 
-		// Register the external asset handler
-		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
+			// Register the external asset handler
+			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
-	// Handle entering and exiting the file
-	useEffect(() => {
-		if (!app) return
-
-		const { auth } = getLocalSessionState()
-		if (!auth) throw Error('Auth not found')
-
-		const user = app.getUser(auth.userId)
-		if (!user) throw Error('User not found')
-
-		let cancelled = false
-		let didEnter = false
-
-		// Only mark as entered after one second
-		// TODO TODO but why though...? b/c it's trying to create the file?
-		const timeout = tltime.setTimeout(
-			'app',
-			() => {
-				if (cancelled) return
-				didEnter = true
-				app.onFileEnter(fileId)
-			},
-			1000
-		)
-
-		return () => {
-			cancelled = true
-			clearTimeout(timeout)
-
-			if (didEnter) {
-				app.onFileExit(fileId)
+			if (!app) return
+			const fileState = app.getFileState(fileId)
+			if (fileState?.lastSessionState) {
+				editor.loadSnapshot({ session: fileState.lastSessionState })
 			}
-		}
-	}, [app, fileId])
+			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
+			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
+				app.onFileSessionStateUpdate(fileId, state)
+			}, 500)
+			// don't want to update if they only open the file and didn't look around
+			let firstTime = true
+			const cleanup = react('update session state', () => {
+				const state = sessionState$.get()
+				if (!state) return
+				if (firstTime) {
+					firstTime = false
+					return
+				}
+				updateSessionState(state)
+			})
+			return () => {
+				cleanup()
+				updateSessionState.cancel()
+			}
+		},
+		[app, fileId, setIsReady]
+	)
 
 	const user = useTldrawUser()
 
@@ -191,10 +163,22 @@ export function TlaEditor({
 			return url.toString()
 		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
+		userInfo: app?.tlUser.userPreferences,
 	})
 
+	// Handle entering and exiting the file
+	useEffect(() => {
+		if (!app) return
+		if (store.status !== 'synced-remote') return
+
+		app.onFileEnter(fileId)
+		return () => {
+			app.onFileExit(fileId)
+		}
+	}, [app, fileId, store.status])
+
 	return (
-		<div className={styles.editor}>
+		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
 				store={store}
 				assetUrls={assetUrls}
@@ -203,45 +187,24 @@ export function TlaEditor({
 				onUiEvent={handleUiEvent}
 				components={!app ? anonComponents : components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
+				deepLinks={deepLinks || undefined}
 			>
 				<ThemeUpdater />
 				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
-				<SneakyTldrawFileDropHandler />
+				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} onDocumentChange={onDocumentChange} />
 			</Tldraw>
-			{ready ? null : <div key={fileId + 'overlay'} className={styles.overlay} />}
 		</div>
 	)
-}
-
-function SneakyDarkModeSync() {
-	const app = useMaybeApp()
-	const editor = useEditor()
-
-	useReactor(
-		'dark mode sync',
-		() => {
-			if (!app) return
-			const appIsDark = getLocalSessionStateUnsafe()!.theme === 'dark'
-			const editorIsDark = editor.user.getIsDarkMode()
-
-			if (appIsDark && !editorIsDark) {
-				updateLocalSessionState(() => ({ theme: 'light' }))
-			} else if (!appIsDark && editorIsDark) {
-				updateLocalSessionState(() => ({ theme: 'dark' }))
-			}
-		},
-		[app, editor]
-	)
-
-	return null
 }
 
 function SneakyTldrawFileDropHandler() {
 	const editor = useEditor()
 	const app = useMaybeApp()
+	const auth = useAuth()
 	useEffect(() => {
+		if (!auth) return
 		if (!app) return
 		const defaultOnDrop = editor.externalContentHandlers['files']
 		editor.registerExternalContentHandler('files', async (content) => {
@@ -250,12 +213,14 @@ function SneakyTldrawFileDropHandler() {
 			if (tldrawFiles.length > 0) {
 				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
 				if (!snapshots.length) return
-				await app.createFilesFromTldrFiles(snapshots)
+				const token = await auth.getToken()
+				if (!token) return
+				await app.createFilesFromTldrFiles(snapshots, token)
 			} else {
 				defaultOnDrop?.(content)
 			}
 		})
-	}, [editor, app])
+	}, [editor, app, auth])
 	return null
 }
 
@@ -269,13 +234,10 @@ function SneakyFileUpdateHandler({
 	const app = useMaybeApp()
 	const editor = useEditor()
 	useEffect(() => {
-		const fileStartTime = Date.now()
 		return editor.store.listen(
 			() => {
 				if (!app) return
-				const sessionState = getLocalSessionState()
-				if (!sessionState.auth) throw Error('Auth not found')
-				app.onFileEdit(fileId, sessionState.createdAt, fileStartTime)
+				app.onFileEdit(fileId)
 				onDocumentChange?.()
 			},
 			{ scope: 'document', source: 'user' }

@@ -1,8 +1,8 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 
+export { ExecutionQueue } from './ExecutionQueue'
 export { handleExtractBookmarkMetadataRequest } from './bookmarks'
-export { createPersistQueue } from './createPersistQueue'
 export { notFound } from './errors'
 export {
 	createRouter,

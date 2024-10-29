@@ -735,7 +735,7 @@ export const defaultTldrawOptions: {
 export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
-    colorScheme: "system";
+    colorScheme: "light";
     edgeScrollSpeed: 1;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
@@ -3706,6 +3706,10 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 // @public (undocumented)
 export class UserPreferencesManager {
     constructor(user: TLUser, inferDarkMode: boolean);
+    // (undocumented)
+    disposables: Set<() => void>;
+    // (undocumented)
+    dispose(): void;
     // (undocumented)
     getAnimationSpeed(): number;
     // (undocumented)

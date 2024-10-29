@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
@@ -10,9 +11,16 @@ export function useTldrFileDrop() {
 
 	const { addToast, removeToast } = useToasts()
 
+	const auth = useAuth()
+
 	const onDrop = useCallback(
 		async (e: DragEvent) => {
 			setIsDraggingOver(false)
+
+			const token = await auth.getToken()
+			if (!token) {
+				return
+			}
 
 			if (!e.dataTransfer?.files?.length) return
 			const files = Array.from(e.dataTransfer.files)
@@ -32,7 +40,7 @@ export function useTldrFileDrop() {
 					title: `Uploading .tldr file${snapshots.length > 1 ? 's' : ''}...`,
 				})
 
-				await app.createFilesFromTldrFiles(snapshots)
+				await app.createFilesFromTldrFiles(snapshots, token)
 
 				removeToast(id)
 				addToast({
@@ -42,7 +50,7 @@ export function useTldrFileDrop() {
 				})
 			}
 		},
-		[app, addToast, removeToast]
+		[app, addToast, removeToast, auth]
 	)
 
 	const onDragOver = useCallback((e: DragEvent) => {

@@ -9,8 +9,10 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	useValue,
 } from 'tldraw'
 import { Links } from '../../../components/Links'
+import { globalEditor } from '../../../utils/globalEditor'
 
 export function TlaAccountMenu({ children, source }: { children: ReactNode; source: string }) {
 	const auth = useAuth()
@@ -18,6 +20,8 @@ export function TlaAccountMenu({ children, source }: { children: ReactNode; sour
 	const handleSignout = useCallback(() => {
 		auth.signOut()
 	}, [auth])
+
+	const currentEditor = useValue('editor', () => globalEditor.get(), [])
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`account-menu-${source}`}>
@@ -32,7 +36,7 @@ export function TlaAccountMenu({ children, source }: { children: ReactNode; sour
 							<Links />
 						</TldrawUiMenuSubmenu>
 					</TldrawUiMenuGroup>
-					<PreferencesGroup />
+					{currentEditor && <PreferencesGroup />}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>

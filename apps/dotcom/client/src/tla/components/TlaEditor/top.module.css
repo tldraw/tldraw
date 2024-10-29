@@ -5,25 +5,32 @@
 	height: 44px;
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	pointer-events: all;
 	white-space: nowrap;
 	background-color: var(--color-background);
 	border-bottom-right-radius: 11px;
 	padding-left: 2px;
+	width: 100%;
+	min-width: 0px;
+	overflow: hidden;
 	color: var(--color-text-1);
 }
 
 .topPanelLeftButtons {
 	position: relative;
+	flex-shrink: 0;
 	z-index: 1;
 	display: flex;
+	width: 100%;
+	overflow: hidden;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 }
 
 .topPanelLeft > button:nth-last-of-type(1) {
 	position: relative;
+	flex-shrink: 0;
 	z-index: 2;
 }
 
@@ -39,7 +46,14 @@
 	align-items: center;
 	justify-content: center;
 	max-width: 100%;
+	min-width: 0px;
 	height: 40px;
+	flex-shrink: 2;
+}
+
+.inputWrapper > * {
+	width: 100%;
+	overflow: hidden;
 }
 
 .nameWidthSetter {
@@ -66,7 +80,7 @@ button.nameWidthSetter {
 	padding: 0px 12px;
 	pointer-events: all;
 	height: 100%;
-	cursor: pointer;
+	min-width: 0px;
 	color: var(--color-text-1);
 }
 
@@ -85,7 +99,13 @@ button.nameWidthSetter {
 	color: var(--color-text-1);
 }
 
-.inputWrapper::after {
+.inputWrapper input:focus-visible {
+	outline: 1px solid var(--color-primary);
+	border-radius: 10px;
+	outline-offset: -5px;
+}
+
+.inputWrapperEditable::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -94,8 +114,12 @@ button.nameWidthSetter {
 	border-radius: var(--radius-2);
 }
 
+.inputWrapperEditable button {
+	cursor: pointer;
+}
+
 @media (hover: hover) {
-	.inputWrapper:hover::after {
+	.inputWrapperEditable:hover:not(:focus-within)::after {
 		background-color: var(--color-muted-2);
 	}
 }
@@ -151,7 +175,6 @@ button.nameWidthSetter {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	padding: 2px 4px 0px 6px;
 	pointer-events: all;
 }
 

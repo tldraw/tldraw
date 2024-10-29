@@ -11,29 +11,29 @@ import {
 	useReactor,
 	useValue,
 } from 'tldraw'
-import { globalEditor } from '../../../utils/globalEditor'
-import { TldrawApp } from '../../app/TldrawApp'
-import { useMaybeApp } from '../../hooks/useAppState'
-import { useRaw } from '../../hooks/useRaw'
-import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
+import { globalEditor } from '../../../../utils/globalEditor'
+import { TldrawApp } from '../../../app/TldrawApp'
+import { useMaybeApp } from '../../../hooks/useAppState'
+import { useRaw } from '../../../hooks/useRaw'
+import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
+import { getCurrentEditor } from '../../../utils/getCurrentEditor'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,
 	updateLocalSessionState,
-} from '../../utils/local-session-state'
-import { TlaButton } from '../TlaButton/TlaButton'
-import { TlaSelect } from '../TlaSelect/TlaSelect'
-import { TlaSwitch } from '../TlaSwitch/TlaSwitch'
+} from '../../../utils/local-session-state'
+import { TlaButton } from '../../TlaButton/TlaButton'
+import { TlaSelect } from '../../TlaSelect/TlaSelect'
+import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
 	TlaMenuControlLabel,
 	TlaMenuSection,
-} from '../tla-menu/tla-menu'
-import styles from './file-share-menu.module.css'
+} from '../../tla-menu/tla-menu'
+import styles from '../file-share-menu.module.css'
 
-export function TlaShareMenuExportPage() {
+export function TlaExportTab() {
 	const app = useMaybeApp()
 
 	const preferences = useValue('preferences', () => getExportPreferences(app), [app])
@@ -246,10 +246,9 @@ function ExportImageButton() {
 
 function ExportPreviewImage() {
 	const app = useMaybeApp()
-	const raw = useRaw()
 	const ref = useRef<HTMLImageElement>(null)
 
-	const [exportPreviewSize, setExportPreviewSize] = useState<null | string[]>(null)
+	const rImagePreviewSize = useRef<HTMLDivElement>(null)
 
 	useReactor(
 		'update preview',
@@ -275,7 +274,8 @@ function ExportPreviewImage() {
 				const elm = ref.current
 				if (!elm) return
 				elm.setAttribute('src', '')
-				setExportPreviewSize(null)
+				const sizeElm = rImagePreviewSize.current
+				if (sizeElm) sizeElm.textContent = ''
 				return
 			}
 
@@ -288,7 +288,8 @@ function ExportPreviewImage() {
 				if (!elm) return
 				// We want to use an image element here so that a user can right click and copy / save / drag the qr code
 				elm.setAttribute('src', src)
-				setExportPreviewSize([width.toFixed(), height.toFixed()])
+				const sizeElm = rImagePreviewSize.current
+				if (sizeElm) sizeElm.textContent = `${width.toFixed()}×${height.toFixed()}`
 			})
 
 			return () => {
@@ -301,11 +302,10 @@ function ExportPreviewImage() {
 	return (
 		<div className={styles.exportPreview}>
 			<img ref={ref} className={styles.exportPreviewInner} />
-			{exportPreviewSize && (
-				<div className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}>
-					{raw(`${exportPreviewSize[0]}×${exportPreviewSize[1]}`)}
-				</div>
-			)}
+			<div
+				ref={rImagePreviewSize}
+				className={classNames(styles.exportPreviewSize, 'tla-text_ui__small')}
+			/>
 		</div>
 	)
 }

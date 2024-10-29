@@ -1,5 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
+import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -10,14 +11,14 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	tltime,
+	TldrawUiMenuSubmenu,
 	useDialogs,
 	useToasts,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { getFileUrl, getShareableFileUrl } from '../../utils/urls'
+import { getFilePath, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 export function TlaFileMenu({
@@ -25,16 +26,19 @@ export function TlaFileMenu({
 	source,
 	fileId,
 	onRenameAction,
+	trigger,
 }: {
-	children: ReactNode
+	children?: ReactNode
 	source: string
 	fileId: TldrawAppFile['id']
 	onRenameAction(): void
+	trigger: ReactNode
 }) {
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
+	const auth = useAuth()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
@@ -45,31 +49,25 @@ export function TlaFileMenu({
 		})
 	}, [fileId, addToast])
 
-	const handleDuplicateClick = useCallback(() => {
-		const { newFile, editorStoreSnapshot } = app.duplicateFile(fileId)
+	const handleDuplicateClick = useCallback(async () => {
+		const token = await auth.getToken()
+		if (!token) throw Error('no token')
 
-		tltime.setTimeout(
-			'app',
-			() => {
-				navigate(getFileUrl(newFile.id))
+		const res = await app.duplicateFile(fileId.split(':')[1], token)
 
-				if (editorStoreSnapshot) {
-					tltime.setTimeout(
-						'app',
-						() => {
-							// TODO: this is very BK, we should do this server-side
-							// this is the same in TlaEditor...we need to fix this
-							getCurrentEditor()?.store.loadStoreSnapshot(editorStoreSnapshot)
-						},
-						1000
-					)
-				}
-				// TODO: we need to get a better indicator of when this operation is ready
-				// this is the same in TlaEditor...we need to fix this
-			},
-			1000
-		)
-	}, [app, navigate, fileId])
+		if (res.ok) {
+			// If the user just duplicated their current file, navigate to the new file
+			if (location.pathname.endsWith(fileId)) {
+				navigate(getFilePath(res.value.slug))
+			} else {
+				// ...otherwise, stay where they are
+			}
+		} else {
+			// do something to indicate failure
+			console.error('Failed to duplicate file')
+			console.error(res.error)
+		}
+	}, [app, auth, navigate, fileId])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
@@ -77,20 +75,42 @@ export function TlaFileMenu({
 		})
 	}, [fileId, addDialog])
 
+	const isOwner = useIsFileOwner(fileId)
+	const fileItems = (
+		<>
+			<TldrawUiMenuGroup id="file-actions">
+				{/* todo: in published rooms, support copying link */}
+				<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
+				{isOwner && <TldrawUiMenuItem label="Rename" id="copy-link" onSelect={onRenameAction} />}
+				{/* todo: in published rooms, support duplication / forking */}
+				<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
+				{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="file-delete">
+				<TldrawUiMenuItem
+					label={isOwner ? 'Delete' : 'Forget'}
+					id="delete"
+					onSelect={handleDeleteClick}
+				/>
+			</TldrawUiMenuGroup>
+		</>
+	)
+
+	const fileItemsWrapper = children ? (
+		<TldrawUiMenuSubmenu id="file" label="menu.file">
+			{fileItems}
+		</TldrawUiMenuSubmenu>
+	) : (
+		fileItems
+	)
+
 	return (
 		<TldrawUiDropdownMenuRoot id={`file-menu-${fileId}-${source}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-				<TldrawUiDropdownMenuTrigger>{children}</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuTrigger>{trigger}</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-					<TldrawUiMenuGroup id="file-actions">
-						<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
-						<TldrawUiMenuItem label="Rename" id="copy-link" onSelect={onRenameAction} />
-						<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
-						{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
-					</TldrawUiMenuGroup>
-					<TldrawUiMenuGroup id="file-delete">
-						<TldrawUiMenuItem label="Delete" id="delete" onSelect={handleDeleteClick} />
-					</TldrawUiMenuGroup>
+					{fileItemsWrapper}
+					{children}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
