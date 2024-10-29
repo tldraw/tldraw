@@ -80,13 +80,4 @@ export class ShareMenu {
 		const locator = this.tabs[tab]
 		await locator.click()
 	}
-
-	async selectTab(tab: ShareMenuTab) {
-		if (await this.isTabSelected(tab)) return
-		await this.tabs[tab].click()
-	}
-
-	async selectPublishTab() {
-		await this.selectTab('publish')
-	}
 }
