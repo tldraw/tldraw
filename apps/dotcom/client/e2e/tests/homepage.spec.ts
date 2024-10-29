@@ -1,3 +1,4 @@
+import { sleep } from 'tldraw'
 import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ homePage }) => {
@@ -24,37 +25,51 @@ test('sidebar file operations', async ({ page, editor, sidebar, deleteFileDialog
 	})
 
 	await test.step('rename the document via double click', async () => {
-		const firstFileLink = await sidebar.getFirstFileLink()
-		await firstFileLink?.dblclick()
+		const fileLink = await sidebar.getFileLink()
+		await fileLink?.dblclick()
 		const input = page.getByRole('textbox')
 		await input?.fill(randomString)
 		await page.keyboard.press('Enter')
-		const newFirstFileLink = await sidebar.getFirstFileLink()
-		const newName = await newFirstFileLink?.innerText()
+		const newFileLink = await sidebar.getFileLink()
+		const newName = await newFileLink?.innerText()
 		expect(newName).toBe(randomString)
 	})
 
 	await test.step('duplicate the document', async () => {
-		const firstFileName = await sidebar.getFirstFileLink()
-		await sidebar.openFileMenu(firstFileName)
+		const fileName = await sidebar.getFileLink()
+		await sidebar.openFileMenu(fileName)
 		await page.getByRole('menuitem', { name: 'Duplicate' }).click()
-		expect(page.getByText(`${firstFileName} Copy`)).toBeVisible()
+		const copiedFileLink = page.getByRole('link').getByText(`${fileName} Copy`)
+		expect(copiedFileLink).toBeVisible()
 	})
 
 	await test.step('delete the document', async () => {
-		const initialCount = await sidebar.getFileCount()
-		const firstFileLink = await sidebar.getFirstFileLink()
-		await sidebar.openFileMenu(firstFileLink)
+		const fileLink = await sidebar.getFileLink()
+		const fileName = await fileLink?.innerText()
+		await sidebar.openFileMenu(fileLink)
 		await sidebar.deleteFromFileMenu()
 		await deleteFileDialog.expectIsVisible()
 		await deleteFileDialog.confirmDeletion()
 		await deleteFileDialog.expectIsNotVisible()
-		const newCount = await sidebar.getFileCount()
-		expect(newCount).toBe(initialCount - 1)
+		const deletedFileLink = page.getByRole('link').getByText(`${fileName}`)
+		expect(deletedFileLink).toBeNull()
 	})
 
 	await test.step('change files', async () => {
-		const firstFileLink = await sidebar.getFirstFileLink()
-		await firstFileLink?.click()
+		const fileLink = await sidebar.getFileLink()
+		await fileLink?.click()
 	})
+})
+
+test('delete file', async ({ page, sidebar, deleteFileDialog }) => {
+	const numberOfFiles = await sidebar.getFileCount()
+	for (let i = 0; i < numberOfFiles - 1; i++) {
+		const fileLink = await sidebar.getFileLink()
+		await sidebar.openFileMenu(fileLink)
+		await sidebar.deleteFromFileMenu()
+		await deleteFileDialog.expectIsVisible()
+		await deleteFileDialog.confirmDeletion()
+		await deleteFileDialog.expectIsNotVisible()
+		await sleep(1000)
+	}
 })

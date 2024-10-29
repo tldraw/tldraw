@@ -34,7 +34,7 @@ export class Sidebar {
 		return fileLinks.length
 	}
 
-	async getFirstFileLink() {
+	async getFileLink() {
 		const fileLink = await this.page.$('[data-element="file-link"]')
 		if (!fileLink) {
 			throw new Error('No file links found')
@@ -44,6 +44,7 @@ export class Sidebar {
 
 	async openFileMenu(fileLink: ElementHandle<SVGElement | HTMLElement>) {
 		await fileLink?.hover()
+		console.log('fileLink', await fileLink.innerText())
 		const button = await fileLink?.$('button')
 		await button?.click()
 	}
