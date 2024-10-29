@@ -9,13 +9,13 @@ import FeaturesShapes from '@/public/images/features/shapes.png'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export const FeaturesSection = () => {
+export function FeaturesSection() {
 	return (
 		<Section id="features">
 			<SectionHeading
 				subheading="Features"
-				heading="Good technology"
-				description="We've designed the tldraw SDK to be a solid foundation for developers: built for the web, packed with table-stakes features, and designed for extension."
+				heading="Made for developers"
+				description="We've designed the tldraw SDK to be a solid foundation for developers: built for the web, packed with table-stakes features, and designed for extensibility."
 			/>
 			<div className="grid grid-cols-6 gap-x-8 sm:gap-y-8">
 				<Card className="col-span-6 md:col-span-3">

@@ -1,5 +1,6 @@
 name: Close inactive issues
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 0 1 * *'
 
@@ -13,11 +14,16 @@ jobs:
       - uses: actions/stale@v5
         with:
           days-before-issue-stale: 150
-          days-before-issue-close: 180
+          days-before-issue-close: 30
           stale-issue-label: 'stale'
-          stale-issue-message: 'This issue is stale because it has been open for 180 days with no activity.'
-          close-issue-message: 'This issue was closed because it has been inactive for 150 days since being marked as stale.'
+          stale-issue-message: >
+            This issue has been marked as stale because it has been open for 150 days with no activity.
+            If there's no further discussion, it'll be closed in 30 days time.
+            If you would like to ensure it stays open, you can comment on the issue and revive the discussion.
+            Or, you can add the 'keep' label to prevent it from being closed.
+          close-issue-message: 'This issue was closed because it has been inactive for 30 days since being marked as stale.'
           days-before-pr-stale: -1
           days-before-pr-close: -1
-          operations-per-run: 100
+          operations-per-run: 1000
+          exempt-issue-labels: keep
           repo-token: ${{ secrets.GITHUB_TOKEN }}

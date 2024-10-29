@@ -72,7 +72,7 @@ export function registerDefaultExternalContentHandlers(
 	{ toasts, msg }: { toasts: TLUiToastsContextType; msg: ReturnType<typeof useTranslation> }
 ) {
 	// files -> asset
-	editor.registerExternalAssetHandler('file', async ({ file }) => {
+	editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
 		const isImageType = acceptedImageMimeTypes.includes(file.type)
 		const isVideoType = acceptedVideoMimeTypes.includes(file.type)
 		const isAudioType = acceptedAudioMimeTypes.includes(file.type)
@@ -97,7 +97,7 @@ export function registerDefaultExternalContentHandlers(
 		)
 
 		const hash = getHashForBuffer(await file.arrayBuffer())
-		const assetId: TLAssetId = AssetRecordType.createId(hash)
+		assetId = assetId ?? AssetRecordType.createId(hash)
 		const assetInfo = await getMediaAssetInfoPartial(
 			file,
 			assetId,
@@ -474,7 +474,7 @@ export function registerDefaultExternalContentHandlers(
 				const bookmarkAsset = await editor.getAssetForExternalContent({ type: 'url', url })
 				if (!bookmarkAsset) throw Error('Could not create an asset')
 				asset = bookmarkAsset
-			} catch (e) {
+			} catch {
 				toasts.addToast({
 					title: msg('assets.url.failed'),
 					severity: 'error',
@@ -654,7 +654,7 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	// Zoom out to fit the shapes, if necessary
 	selectionPageBounds = editor.getSelectionPageBounds()
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		editor.zoomToSelection()
+		editor.zoomToSelection({ animation: { duration: editor.options.animationMediumMs } })
 	}
 }
 

@@ -2,10 +2,6 @@ import test, { Page, expect } from '@playwright/test'
 import { BoxModel, Editor, TLNoteShape, TLShapeId } from 'tldraw'
 import { setupPage } from '../shared-e2e'
 
-export function sleep(ms: number) {
-	return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 const measureTextOptions = {
 	maxWidth: null,
 	fontFamily: 'var(--tl-font-draw)',

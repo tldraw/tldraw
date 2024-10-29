@@ -7,8 +7,8 @@
 		"name": "tldraw Inc.",
 		"email": "hello@tldraw.com"
 	},
+	"license": "MIT",
 	"homepage": "https://tldraw.dev",
-	"license": "SEE LICENSE IN LICENSE.md",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tldraw/tldraw"
@@ -126,7 +126,7 @@
 		"get-info": "vsce show tldraw-org.tldraw-vscode --json > extension.json",
 		"package": "yarn build && tsx scripts/package.ts",
 		"publish": "tsx scripts/publish.ts",
-		"lint": "yarn run -T tsx ../../../scripts/lint.ts",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn"
 	},
 	"devDependencies": {
@@ -134,11 +134,11 @@
 		"@types/fs-extra": "^11.0.1",
 		"@types/node-fetch": "^2.6.2",
 		"@types/vscode": "^1.75.1",
-		"@typescript-eslint/eslint-plugin": "^5.57.0",
-		"@typescript-eslint/parser": "^5.57.0",
+		"@typescript-eslint/eslint-plugin": "^8.11.0",
+		"@typescript-eslint/parser": "^8.11.0",
 		"assert": "^2.0.0",
 		"esbuild": "^0.21.5",
-		"eslint": "^8.37.0",
+		"eslint": "^9.13.0",
 		"fs-extra": "^11.1.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
@@ -158,7 +158,7 @@
 		"node-fetch": "^2.0.0"
 	},
 	"peerDependencies": {
-		"react": "^18",
-		"react-dom": "^18"
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	}
 }

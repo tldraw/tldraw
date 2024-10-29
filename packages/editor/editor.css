@@ -26,6 +26,7 @@
 	--layer-canvas-hidden: -999999;
 	--layer-canvas-background: 100;
 	--layer-canvas-grid: 150;
+	--layer-watermark: 200;
 	--layer-canvas-shapes: 300;
 	--layer-canvas-overlays: 500;
 	--layer-canvas-blocker: 10000;
@@ -905,6 +906,7 @@ input,
 	text-shadow: inherit;
 	text-transform: none;
 	white-space: pre-wrap;
+	line-break: normal;
 	word-spacing: 0px;
 	word-wrap: break-word;
 	writing-mode: horizontal-tb !important;
@@ -919,7 +921,6 @@ input,
 	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
-	line-break: normal;
 	white-space: pre-wrap;
 	word-wrap: break-word;
 	overflow-wrap: break-word;
@@ -1149,6 +1150,7 @@ input,
 	border: none;
 	outline: none;
 	pointer-events: all;
+	z-index: 1;
 }
 
 .tl-hyperlink-button::after {

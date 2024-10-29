@@ -39,7 +39,7 @@ export function UserPresenceEditor() {
 	const handleCancel = useCallback(() => {
 		setIsEditingName(false)
 		editor.user.updateUserPreferences({ name: rOriginalName.current })
-		editor.clearOpenMenus()
+		editor.menus.clearOpenMenus()
 	}, [editor])
 
 	return (

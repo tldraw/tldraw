@@ -5,13 +5,22 @@ export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
 export { TLRemoteSyncError } from './lib/TLRemoteSyncError'
 export { TLSocketRoom, type OmitVoid, type TLSyncLog } from './lib/TLSocketRoom'
 export {
-	TLCloseEventCode,
 	TLSyncClient,
+	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
 	type SubscribingFn,
 	type TLPersistentClientSocket,
 	type TLPersistentClientSocketStatus,
+	type TLSocketStatusListener,
+	type TlSocketStatusChangeEvent,
 } from './lib/TLSyncClient'
-export { DocumentState, TLSyncRoom, type RoomSnapshot, type TLRoomSocket } from './lib/TLSyncRoom'
+export {
+	DocumentState,
+	TLSyncRoom,
+	type RoomSnapshot,
+	type RoomStoreMethods,
+	type TLRoomSocket,
+} from './lib/TLSyncRoom'
 export { chunk } from './lib/chunk'
 export {
 	RecordOpType,

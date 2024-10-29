@@ -129,6 +129,9 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 function optional<T>(validator: Validatable<T>): Validator<T | undefined>;
 
 // @public
+function or<T1, T2>(v1: Validatable<T1>, v2: Validatable<T2>): Validator<T1 | T2>;
+
+// @public
 const positiveInteger: Validator<number>;
 
 // @public
@@ -157,6 +160,7 @@ declare namespace T {
         optional,
         nullable,
         literalEnum,
+        or,
         ValidatorFn,
         ValidatorUsingKnownGoodVersionFn,
         Validatable,

@@ -18,10 +18,14 @@ import { startEditingShapeWithLabel } from '../selectHelpers'
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
 
+	didCtrlOnEnter = false
+
 	info = {} as TLPointerEventInfo & { target: 'handle' }
 
 	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
+
+		this.didCtrlOnEnter = info.accelKey
 
 		const { shape } = info
 		if (this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
@@ -55,10 +59,14 @@ export class PointingHandle extends StateNode {
 		this.parent.transition('idle', this.info)
 	}
 
-	override onPointerMove() {
+	override onPointerMove(info: TLPointerEventInfo) {
 		const { editor } = this
 		if (editor.inputs.isDragging) {
-			this.startDraggingHandle()
+			if (this.didCtrlOnEnter) {
+				this.parent.transition('brushing', info)
+			} else {
+				this.startDraggingHandle()
+			}
 		}
 	}
 
@@ -68,7 +76,7 @@ export class PointingHandle extends StateNode {
 
 	private startDraggingHandle() {
 		const { editor } = this
-		if (editor.getInstanceState().isReadonly) return
+		if (editor.getIsReadonly()) return
 		const { shape, handle } = this.info
 
 		if (editor.isShapeOfType<TLNoteShape>(shape, 'note')) {

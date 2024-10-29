@@ -21,7 +21,7 @@ import {
 	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { STYLES } from '../../../styles'
 import { kickoutOccludedShapes } from '../../../tools/SelectTool/selectHelpers'
 import { useUiEvents } from '../../context/events'
@@ -110,6 +110,8 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 	const msg = useTranslation()
 	const editor = useEditor()
 
+	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
+
 	const handleValueChange = useStyleChangeCallback()
 
 	const color = styles.get(DefaultColorStyle)
@@ -136,6 +138,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 						value={color}
 						onValueChange={handleValueChange}
 						theme={theme}
+						onHistoryMark={onHistoryMark}
 					/>
 				)}
 				<OpacitySlider />
@@ -151,6 +154,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 							value={fill}
 							onValueChange={handleValueChange}
 							theme={theme}
+							onHistoryMark={onHistoryMark}
 						/>
 					)}
 					{dash === undefined ? null : (
@@ -162,6 +166,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 							value={dash}
 							onValueChange={handleValueChange}
 							theme={theme}
+							onHistoryMark={onHistoryMark}
 						/>
 					)}
 					{size === undefined ? null : (
@@ -179,6 +184,7 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 								}
 							}}
 							theme={theme}
+							onHistoryMark={onHistoryMark}
 						/>
 					)}
 				</div>
@@ -191,6 +197,9 @@ export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps
 export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) {
 	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
+
+	const editor = useEditor()
+	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
 
 	const font = styles.get(DefaultFontStyle)
 	const textAlign = styles.get(DefaultTextAlignStyle)
@@ -211,6 +220,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 					value={font}
 					onValueChange={handleValueChange}
 					theme={theme}
+					onHistoryMark={onHistoryMark}
 				/>
 			)}
 
@@ -224,6 +234,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 						value={textAlign}
 						onValueChange={handleValueChange}
 						theme={theme}
+						onHistoryMark={onHistoryMark}
 					/>
 					<div className="tlui-style-panel__row__extra-button">
 						<TldrawUiButton
@@ -241,13 +252,14 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 			{labelAlign === undefined ? null : (
 				<div className="tlui-style-panel__row">
 					<TldrawUiButtonPicker
-						title={msg('style-panel.align')}
+						title={msg('style-panel.label-align')}
 						uiType="align"
 						style={DefaultHorizontalAlignStyle}
 						items={STYLES.horizontalAlign}
 						value={labelAlign}
 						onValueChange={handleValueChange}
 						theme={theme}
+						onHistoryMark={onHistoryMark}
 					/>
 					<div className="tlui-style-panel__row__extra-button">
 						{verticalLabelAlign === undefined ? (
@@ -264,6 +276,7 @@ export function TextStylePickerSet({ theme, styles }: ThemeStylePickerSetProps) 
 								type="icon"
 								id="geo-vertical-alignment"
 								uiType="verticalAlign"
+								stylePanelType="vertical-align"
 								style={DefaultVerticalAlignStyle}
 								items={STYLES.verticalAlign}
 								value={verticalLabelAlign}
@@ -291,6 +304,7 @@ export function GeoStylePickerSet({ styles }: StylePickerSetProps) {
 			type="menu"
 			label={'style-panel.geo'}
 			uiType="geo"
+			stylePanelType="geo"
 			style={GeoShapeGeoStyle}
 			items={STYLES.geo}
 			value={geo}
@@ -313,6 +327,7 @@ export function SplineStylePickerSet({ styles }: StylePickerSetProps) {
 			type="menu"
 			label={'style-panel.spline'}
 			uiType="spline"
+			stylePanelType="spline"
 			style={LineShapeSplineStyle}
 			items={STYLES.spline}
 			value={spline}
@@ -353,6 +368,9 @@ const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 /** @public @react */
 export function OpacitySlider() {
 	const editor = useEditor()
+
+	const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
+
 	const opacity = useValue('opacity', () => editor.getSharedOpacity(), [editor])
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
@@ -392,6 +410,7 @@ export function OpacitySlider() {
 			onValueChange={handleOpacityValueChange}
 			steps={tldrawSupportedOpacities.length - 1}
 			title={msg('style-panel.opacity')}
+			onHistoryMark={onHistoryMark}
 		/>
 	)
 }

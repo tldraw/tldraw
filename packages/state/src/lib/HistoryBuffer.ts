@@ -52,7 +52,7 @@ export class HistoryBuffer<Diff> {
 	/**
 	 * Get the diffs since the given epoch.
 	 *
-	 * @param epoch - The epoch to get diffs since.
+	 * @param sinceEpoch - The epoch to get diffs since.
 	 * @returns An array of diffs or a flag to reset the history buffer.
 	 */
 	getChangesSince(sinceEpoch: number): RESET_VALUE | Diff[] {

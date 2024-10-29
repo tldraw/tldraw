@@ -7,6 +7,8 @@ import {
 	TLShapeId,
 	debugFlags,
 	exhaustiveSwitchError,
+	sleep,
+	tlenv,
 } from '@tldraw/editor'
 import { clampToBrowserMaxCanvasSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
 import { TLExportType } from './exportAs'
@@ -47,8 +49,8 @@ export async function getSvgAsImage(
 			// actually loaded. just waiting around a while is brittle, but
 			// there doesn't seem to be any better solution for now :( see
 			// https://bugs.webkit.org/show_bug.cgi?id=219770
-			if (editor.environment.isSafari) {
-				await new Promise((resolve) => editor.timers.setTimeout(resolve, 250))
+			if (tlenv.isSafari) {
+				await sleep(250)
 			}
 
 			const canvas = document.createElement('canvas') as HTMLCanvasElement

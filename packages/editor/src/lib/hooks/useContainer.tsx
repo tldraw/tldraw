@@ -3,14 +3,17 @@ import { createContext, useContext } from 'react'
 
 const ContainerContext = createContext<HTMLElement | null>(null)
 
-/** @internal */
-export function ContainerProvider({
-	container,
-	children,
-}: {
+/** @public */
+export interface ContainerProviderProps {
 	container: HTMLElement
 	children: React.ReactNode
-}) {
+}
+
+/**
+ * @public
+ * @react
+ */
+export function ContainerProvider({ container, children }: ContainerProviderProps) {
 	return <ContainerContext.Provider value={container}>{children}</ContainerContext.Provider>
 }
 
@@ -19,6 +22,7 @@ export function useContainer(): HTMLElement {
 	return assertExists(useContext(ContainerContext), 'useContainer used outside of <Tldraw />')
 }
 
+/** @public */
 export function useContainerIfExists(): HTMLElement | null {
 	return useContext(ContainerContext)
 }

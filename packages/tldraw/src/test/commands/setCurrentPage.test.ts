@@ -103,4 +103,23 @@ describe('setCurrentPage', () => {
 		editor.setCurrentPage(page2Id)
 		expect(editor.isIn('select.idle')).toBe(true)
 	})
+
+	it('applies camera constraints', () => {
+		const spy = jest.spyOn(editor, 'setCamera')
+
+		let currentPageId = editor.getCurrentPageId()
+		expect(currentPageId).toMatchInlineSnapshot(`"page:page"`)
+		spy.mockImplementation(() => {
+			currentPageId = editor.getCurrentPageId()
+			return editor
+		})
+
+		editor.createPage({ name: 'New Page 2', id: PageRecordType.createId('page2') })
+		expect(spy).toHaveBeenCalledTimes(0)
+		editor.setCurrentPage(PageRecordType.createId('page2'))
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(currentPageId).toMatchInlineSnapshot(`"page:page2"`)
+
+		expect(spy)
+	})
 })

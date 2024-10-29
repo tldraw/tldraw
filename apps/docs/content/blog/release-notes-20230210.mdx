@@ -2,7 +2,7 @@
 title: Release Notes – February 10th 2023
 category: release-notes
 description: Velocity-based arrow binding, fancy text editing, and a brand new X Box.
-hero: https://substackcdn.com/image/fetch/w_720,h_406,c_fill,f_webp,q_auto:good,fl_progressive:steep,g_center/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe9e91f92-7652-4f3e-956b-0cfee2af28d1_720x406.gif
+hero: /images/blog/e9e91f92-7652-4f3e-956b-0cfee2af28d1_720x406.gif
 date: 2/10/2023
 status: published
 author:
@@ -20,53 +20,53 @@ Please let us know what you think about these changes! If you have any feedback,
 
 This week we launched some **velocity-based precision arrow snapping**. To bind an arrow to a shape, drag one of its handle over the shape. If you’re dragging the handle quickly, the arrow will bind to the shape's center. Drag slowly to make the arrow bind “precisely” to your cursor location; or hold the Alt or Option key to make the arrow bind “exactly” to the point under your cursor.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe9e91f92-7652-4f3e-956b-0cfee2af28d1_720x406.gif)
+![](/images/blog/e9e91f92-7652-4f3e-956b-0cfee2af28d1_720x406.gif)
 
 To make this feature work, we now keep track of how quickly your cursor is moving. This **pointer velocity** information has let us create and improve several other interactions, too. Keep an eye out for more below!
 
 We’ve also added new **hint markers** when an arrow is binding to a shape: a dot for arrows that are bound to the center and a cross for arrows that are bound precisely.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F192a6905-aece-479b-acad-a2609b260018_720x406.gif)
+![](/images/blog/192a6905-aece-479b-acad-a2609b260018_720x406.gif)
 
 > Would you believe that over 50% of the code in tldraw is related to arrows? Not true but it sure feels like it.
 
 We’ve also **reworked our text editing interactions**. When editing a text shape or a shape with a label, you can now click into another text field to start editing it immediately.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F01ac6c28-eced-4ede-9547-5e28f828e84d_720x406.gif)
+![](/images/blog/01ac6c28-eced-4ede-9547-5e28f828e84d_720x406.gif)
 
 And you can now **change a shape’s style** without de-selecting its text or label.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F1eba6160-9815-432e-9fd4-e17477a4f83d_720x406.gif)
+![](/images/blog/1eba6160-9815-432e-9fd4-e17477a4f83d_720x406.gif)
 
 We’ve also added (well, restored and improved) the shift-click feature for the line tool.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6c3e3912-5416-459c-9f8a-3f505da460ee_720x406.gif)
+![](/images/blog/6c3e3912-5416-459c-9f8a-3f505da460ee_720x406.gif)
 
 Finally, we’ve added the **X Box shape** —very handy for sketching wireframes. You can choose it from the tool bar (it’s in the “oops, too many shapes” dropdown).
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Ffd64515e-de3f-4d68-bb98-496568c2fd2f_720x406.gif)
+![](/images/blog/fd64515e-de3f-4d68-bb98-496568c2fd2f_720x406.gif)
 
 ## Improvements
 
 Now that we have velocity in the app, we’ve brought over the **inertial glide** from our hand tool and brought it to “spacebar” and “middle-mouse button” panning. To try it out: hold the spacebar, then click and drag on the canvas.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fcf16d225-29e3-480a-98c4-1a1754a213bf_720x406.gif)
+![](/images/blog/cf16d225-29e3-480a-98c4-1a1754a213bf_720x406.gif)
 
 We’ve used our new velocity feature to **turn off snapping while you’re moving a shape quickly**. This helps speed up dragging performance, especially when dragging lots of shapes at once.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F3a5f1c1f-da5e-41cb-908e-0c9538546706_720x406.gif)
+![](/images/blog/3a5f1c1f-da5e-41cb-908e-0c9538546706_720x406.gif)
 
 We’ve also used velocity to **improve reparenting shapes into frames**. Dragging a shape slowly over a frame will now correctly reparent the shape to the frame.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F909f363d-bd7e-4a6b-a234-17c4524393ba_720x406.gif)
+![](/images/blog/909f363d-bd7e-4a6b-a234-17c4524393ba_720x406.gif)
 
 We made our **arrowheads much more consistent**. The “dot” arrowhead is also styled to match the rest of our arrowheads.
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe9f8547a-c57b-419d-bb4e-a2a38dd4d291_720x406.gif)
+![](/images/blog/e9f8547a-c57b-419d-bb4e-a2a38dd4d291_720x406.gif)
 
 Finally, our **error screen** is much more user-friendly! (Not that you should ever see it.)
 
-![](https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F0250ab8b-925f-4375-976c-bd0305a9a3f0_2696x1806.png)
+![](/images/blog/0250ab8b-925f-4375-976c-bd0305a9a3f0_2696x1806.png)
 
 We’ve also:
 

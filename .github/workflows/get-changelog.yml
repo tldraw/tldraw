@@ -1,0 +1,34 @@
+name: Get draft changelog
+
+on: workflow_dispatch
+
+jobs:
+  deploy:
+    name: 'Get draft changlog'
+    environment: npm deploy
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-open
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Prepare repository
+        # Fetch full git history and tags for auto
+        run: git fetch --unshallow --tags
+
+      - name: Run our setup
+        uses: ./.github/actions/setup
+
+      - name: Generate changelog
+        run: |
+          yarn auto changelog --dry-run
+          yarn auto changelog --dry-run > changelog.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Upload changelog.md to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog-output
+          path: changelog.md

@@ -648,7 +648,7 @@ async function tryMigrateAsset(editor: Editor, placeholderAsset: TLAsset) {
 				},
 			},
 		])
-	} catch (err) {
+	} catch {
 		// not a big deal, we'll just keep the placeholder asset
 	}
 }
@@ -703,7 +703,7 @@ function migrate(document: TLV1Document, newVersion: number): TLV1Document {
 					.filter((shape) => shape.type === TLV1ShapeType.Text)
 					.forEach((shape) => {
 						if ((shape as TLV1TextShape).style.font === undefined) {
-							;(shape as TLV1TextShape).style.font === TLV1FontStyle.Script
+							;(shape as TLV1TextShape).style.font = TLV1FontStyle.Script
 						}
 					})
 			})

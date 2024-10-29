@@ -7,7 +7,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
-import { getHashPatternZoomName } from './defaultStyleDefs'
+import { useGetHashPatternZoomName } from './defaultStyleDefs'
 
 interface ShapeFillProps {
 	d: string
@@ -47,6 +47,7 @@ export function PatternFill({ d, color, theme }: ShapeFillProps) {
 	const editor = useEditor()
 	const svgExport = useSvgExportContext()
 	const zoomLevel = useValue('zoomLevel', () => editor.getZoomLevel(), [editor])
+	const getHashPatternZoomName = useGetHashPatternZoomName()
 
 	const teenyTiny = editor.getZoomLevel() <= 0.18
 

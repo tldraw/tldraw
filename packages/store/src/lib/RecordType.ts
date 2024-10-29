@@ -190,7 +190,7 @@ export class RecordType<
 	 * const deadAuthorType = authorType.withDefaultProperties({ living: false })
 	 * ```
 	 *
-	 * @param fn - A function that returns the default properties of the new RecordType.
+	 * @param createDefaultProperties - A function that returns the default properties of the new RecordType.
 	 * @returns The new RecordType.
 	 */
 	withDefaultProperties<DefaultProps extends Omit<Partial<R>, 'typeName' | 'id'>>(

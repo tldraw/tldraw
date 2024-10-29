@@ -52,6 +52,12 @@ export interface TldrawOptions {
 	readonly flattenImageBoundsPadding: number
 	readonly laserDelayMs: number
 	readonly maxExportDelayMs: number
+	/**
+	 * How long should previews created by {@link Editor.createTemporaryAssetPreview} last before
+	 * they expire? Defaults to 3 minutes.
+	 */
+	readonly temporaryAssetPreviewLifetimeMs: number
+	readonly actionShortcutsLocation: 'menu' | 'toolbar' | 'swap'
 }
 
 /** @public */
@@ -93,4 +99,6 @@ export const defaultTldrawOptions = {
 	flattenImageBoundsPadding: 16,
 	laserDelayMs: 1200,
 	maxExportDelayMs: 5000,
+	temporaryAssetPreviewLifetimeMs: 180000,
+	actionShortcutsLocation: 'swap',
 } as const satisfies TldrawOptions

@@ -28,8 +28,9 @@ import {
 	useIsToolSelected,
 	useTools,
 } from 'tldraw'
+import 'tldraw/tldraw.css'
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type PinShape = TLBaseShape<'pin', {}>
 
 const offsetX = -16

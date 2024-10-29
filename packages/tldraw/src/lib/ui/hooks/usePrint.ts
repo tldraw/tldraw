@@ -1,4 +1,4 @@
-import { uniqueId, useEditor } from '@tldraw/editor'
+import { tlenv, uniqueId, useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 
 /** @internal */
@@ -161,12 +161,12 @@ export function usePrint() {
 			}
 
 			function triggerPrint() {
-				if (editor.environment.isChromeForIos) {
+				if (tlenv.isChromeForIos) {
 					beforePrintHandler()
 					window.print()
-				} else if (editor.environment.isSafari) {
+				} else if (tlenv.isSafari) {
 					beforePrintHandler()
-					// eslint-disable-next-line deprecation/deprecation
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
 					document.execCommand('print', false)
 				} else {
 					window.print()

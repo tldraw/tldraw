@@ -17,7 +17,7 @@ import { TldrawUiSlider } from '../../ui/components/primitives/TldrawUiSlider'
 import { useTranslation } from '../../ui/hooks/useTranslation/useTranslation'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useAsset } from '../shared/useAsset'
+import { useMediaAsset } from '../shared/useMediaAsset'
 
 /** @public */
 export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
@@ -46,7 +46,10 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 
 	component(shape: TLAudioShape) {
 		const { editor } = this
-		const { asset, url } = useAsset(shape.id, shape.props.assetId, shape.props.w)
+		const { asset, url } = useMediaAsset({
+			shapeId: shape.id,
+			assetId: shape.props.assetId,
+		})
 		const isEditing = useIsEditing(shape.id)
 		const [isPlaying, setIsPlaying] = useState(false)
 		const [isMuted, setIsMuted] = useState(false)
@@ -105,6 +108,8 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 			rAudio.current.muted = !isMuted
 			setIsMuted(!isMuted)
 		}
+
+		const onHistoryMark = useCallback((id: string) => editor.markHistoryStoppingPoint(id), [editor])
 
 		const audioAsset = asset as TLAudioAsset | undefined
 		const coverArt = audioAsset?.props.coverArt
@@ -174,6 +179,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 												value={newSeekTime ?? currentTime}
 												label={secondsToTime(newSeekTime ?? currentTime)}
 												onValueChange={handleSeek}
+												onHistoryMark={onHistoryMark}
 												onPointerUp={handleSliderPointerUp}
 												steps={rAudio.current?.duration || 0}
 												title={msg('audio.seek')}
@@ -197,9 +203,7 @@ export class AudioShapeUtil extends BaseBoxShapeUtil<TLAudioShape> {
 						</div>
 					</div>
 				</HTMLContainer>
-				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={editor.getZoomLevel()} />
-				)}
+				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
 	}

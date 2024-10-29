@@ -14,6 +14,7 @@ import {
 	getHashForString,
 	lerp,
 	stopEventPropagation,
+	tlenv,
 	toDomPrecision,
 	useSvgExportContext,
 } from '@tldraw/editor'
@@ -112,7 +113,7 @@ function BookmarkShapeComponent({
 		shape.props.assetId ? util.editor.getAsset(shape.props.assetId) : null
 	) as TLBookmarkAsset
 
-	const isSafariExport = !!useSvgExportContext() && util.editor.environment.isSafari
+	const isSafariExport = !!useSvgExportContext() && tlenv.isSafari
 
 	const pageRotation = util.editor.getShapePageTransform(shape)!.rotation()
 
@@ -146,9 +147,7 @@ function BookmarkShapeComponent({
 						) : (
 							<div className="tl-bookmark__placeholder" />
 						)}
-						{asset?.props.image && (
-							<HyperlinkButton url={shape.props.url} zoomLevel={util.editor.getZoomLevel()} />
-						)}
+						{asset?.props.image && <HyperlinkButton url={shape.props.url} />}
 					</div>
 				)}
 				<div className="tl-bookmark__copy_container">
@@ -226,7 +225,7 @@ export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
 		const url = new URL(shape.props.url)
 		// we want the hostname without any www
 		return url.hostname.replace(/^www\./, '')
-	} catch (e) {
+	} catch {
 		return shape.props.url
 	}
 }

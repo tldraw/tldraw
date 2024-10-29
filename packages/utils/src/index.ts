@@ -20,6 +20,7 @@ export {
 	assertExists,
 	exhaustiveSwitchError,
 	promiseWithResolve,
+	sleep,
 	type ErrorResult,
 	type OkResult,
 } from './lib/control'
@@ -45,6 +46,7 @@ export {
 	areObjectsShallowEqual,
 	filterEntries,
 	getOwnProperty,
+	groupBy,
 	hasOwnProperty,
 	mapObjectMapValues,
 	objectMapEntries,
