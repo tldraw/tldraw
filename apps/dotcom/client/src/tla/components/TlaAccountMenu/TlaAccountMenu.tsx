@@ -9,8 +9,10 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	useValue,
 } from 'tldraw'
 import { Links } from '../../../components/Links'
+import { globalEditor } from '../../../utils/globalEditor'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 
 export function TlaAccountMenu({
@@ -27,6 +29,8 @@ export function TlaAccountMenu({
 		trackEvent('sign-out-button', { source })
 	}, [auth, trackEvent, source])
 
+	const currentEditor = useValue('editor', () => globalEditor.get(), [])
+
 	return (
 		<TldrawUiDropdownMenuRoot id={`account-menu-${source}`}>
 			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
@@ -40,7 +44,7 @@ export function TlaAccountMenu({
 							<Links />
 						</TldrawUiMenuSubmenu>
 					</TldrawUiMenuGroup>
-					<PreferencesGroup />
+					{currentEditor && <PreferencesGroup />}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>

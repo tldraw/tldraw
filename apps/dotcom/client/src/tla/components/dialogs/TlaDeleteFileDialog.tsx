@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -14,6 +15,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { getRootPath } from '../../utils/urls'
 
 export function TlaDeleteFileDialog({
 	fileId,
@@ -27,17 +29,24 @@ export function TlaDeleteFileDialog({
 	const location = useLocation()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
+	const auth = useAuth()
 
 	const isOwner = useIsFileOwner(fileId)
 
-	const handleDelete = useCallback(() => {
-		app.deleteOrForgetFile(fileId)
-		if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
-			navigate('/q')
+	const handleDelete = useCallback(async () => {
+		const token = await auth.getToken()
+		if (!token) throw new Error('No token')
+		const result = await app.deleteOrForgetFile(fileId, token)
+		if (result.ok) {
+			if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
+				navigate(getRootPath())
+			}
+			trackEvent('delete-file', { source: 'file-menu' })
+			onClose()
+		} else {
+			// ...um, show a error line in the dialog? try again?
 		}
-		trackEvent('delete-file', { source: 'file-menu' })
-		onClose()
-	}, [app, fileId, location.pathname, navigate, onClose, trackEvent])
+	}, [app, fileId, location.pathname, navigate, onClose, auth, trackEvent])
 
 	return (
 		<>

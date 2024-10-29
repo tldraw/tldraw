@@ -1,11 +1,41 @@
-export function getFilePath(fileId: string): string {
-	return `/q/f/${fileId.split(':').pop()}`
+export const PREFIX = {
+	tla: 'q',
+	file: 'f',
+	publish: 'p',
+}
+
+export function buildUrl({ pathname }: { pathname: string }): string {
+	return `/${PREFIX.tla}${pathname}`
+}
+
+export function getRootPath() {
+	return buildUrl({ pathname: '/' })
+}
+
+export function getDebugPath() {
+	return buildUrl({ pathname: '/debug' })
+}
+
+export function getProfilePath() {
+	return buildUrl({ pathname: '/profile' })
+}
+
+export function getFilePath(fileId: string) {
+	return buildUrl({ pathname: `/${PREFIX.file}/${fileId.split(':').pop()}` })
+}
+
+export function getPublishPath(publishSlug: string) {
+	return buildUrl({ pathname: `/${PREFIX.publish}/${publishSlug}` })
+}
+
+function absoluteUrl(path: string) {
+	return `${window.location.origin}${path}`
 }
 
 export function getShareableFileUrl(fileId: string): string {
-	return `${window.location.origin}${getFilePath(fileId)}`
+	return absoluteUrl(getFilePath(fileId))
 }
 
 export function getShareablePublishUrl(publishSlug: string): string {
-	return `${window.location.origin}/q/p/${publishSlug}`
+	return absoluteUrl(getPublishPath(publishSlug))
 }

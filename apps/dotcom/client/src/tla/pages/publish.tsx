@@ -28,6 +28,9 @@ export function Component() {
 	const result = useData()
 	const { roomId, records, schema } = result
 	const app = useMaybeApp()
+
+	// todo: only show the anon layout for published files?
+
 	if (!app?.getCurrentUserId()) {
 		return (
 			<TlaAnonLayout>

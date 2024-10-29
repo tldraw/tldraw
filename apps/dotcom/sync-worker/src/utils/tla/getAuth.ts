@@ -1,6 +1,6 @@
 import { ClerkClient, createClerkClient } from '@clerk/backend'
 import { IRequest, StatusError } from 'itty-router'
-import { Environment } from '../types'
+import { Environment } from '../../types'
 
 export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
 	const auth = await getAuth(request, env)

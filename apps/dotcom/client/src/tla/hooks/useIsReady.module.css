@@ -1,0 +1,34 @@
+.container {
+	flex: 1;
+	display: flex;
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.container:not(.isReady) {
+	pointer-events: none;
+}
+
+.innerContainer {
+	flex-grow: 1;
+	height: 100%;
+	transition: opacity 0.12s ease-in;
+}
+
+.innerContainer:not(.isReady) {
+	opacity: 0;
+}
+
+.spinner {
+	transition: opacity 1s ease-in;
+	position: absolute;
+	inset: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.spinner:not(.showSpinner) {
+	opacity: 0;
+}
