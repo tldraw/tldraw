@@ -163,6 +163,7 @@ function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }:
 			return url.toString()
 		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
+		userInfo: app?.tlUser.userPreferences,
 	})
 
 	// Handle entering and exiting the file
