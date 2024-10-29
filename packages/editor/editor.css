@@ -1147,8 +1147,8 @@ input,
 	 * XXX: This resolves an issue where Chrome doesn't accurately render the text bounds
 	 * correctly. See https://github.com/tldraw/tldraw/issues/4804
 	 */
-	 height: calc(100% + 0.5px);
-	 width: calc(100% + 0.5px);
+	height: calc(100% + 0.5px);
+	width: calc(100% + 0.5px);
 }
 
 .tl-text-wrapper[data-isselected='true'] .tl-text-input {
