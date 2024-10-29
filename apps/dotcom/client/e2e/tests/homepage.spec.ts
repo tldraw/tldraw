@@ -16,10 +16,10 @@ test('can toggle sidebar', async ({ editor, sidebar }) => {
 	await expect(sidebar.sidebarLogo).toBeVisible()
 })
 
-test('can create new document', async ({ page, editor, sidebar }) => {
+test('can create new document', async ({ editor, sidebar }) => {
 	await editor.ensureSidebarOpen()
-	const currentCount = (await page.$$('[data-element="file-link"]')).length
+	const currentCount = await sidebar.getNumberOfFiles()
 	await sidebar.createNewDocument()
-	const newCount = (await page.$$('[data-element="file-link"]')).length
+	const newCount = await sidebar.getNumberOfFiles()
 	expect(newCount).toBe(currentCount + 1)
 })
