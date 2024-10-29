@@ -2,6 +2,7 @@ import type { ElementHandle, Locator, Page } from '@playwright/test'
 import { expect } from './tla-test'
 
 export class Sidebar {
+	public readonly fileLink = '[data-element="file-link"]'
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
 	constructor(public readonly page: Page) {
@@ -29,11 +30,6 @@ export class Sidebar {
 		await this.createFileButton.click()
 	}
 
-	async getFileCount() {
-		const fileLinks = await this.page.$$('[data-element="file-link"]')
-		return fileLinks.length
-	}
-
 	async getFileLink() {
 		const fileLink = await this.page.$('[data-element="file-link"]')
 		if (!fileLink) {
@@ -44,7 +40,6 @@ export class Sidebar {
 
 	async openFileMenu(fileLink: ElementHandle<SVGElement | HTMLElement>) {
 		await fileLink?.hover()
-		console.log('fileLink', await fileLink.innerText())
 		const button = await fileLink?.$('button')
 		await button?.click()
 	}
@@ -52,5 +47,8 @@ export class Sidebar {
 	async deleteFromFileMenu() {
 		// expect(this.page.getByTestId('file-menu')).toBeVisible()
 		await this.page.getByRole('menuitem', { name: 'Delete' }).click()
+	}
+	async getNumberOfFiles() {
+		return (await this.page.$$(this.fileLink)).length
 	}
 }

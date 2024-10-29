@@ -1,4 +1,5 @@
 import { test as base } from '@playwright/test'
+import { Database } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
 import { HomePage } from './HomePage'
@@ -9,6 +10,7 @@ interface TlaFixtures {
 	editor: Editor
 	sidebar: Sidebar
 	deleteFileDialog: DeleteFileDialog
+	database: Database
 }
 
 export const test = base.extend<TlaFixtures>({
@@ -23,6 +25,9 @@ export const test = base.extend<TlaFixtures>({
 	},
 	deleteFileDialog: async ({ page }, testUse) => {
 		testUse(new DeleteFileDialog(page))
+	},
+	database: async ({ page }, testUse) => {
+		testUse(new Database(page))
 	},
 })
 export { expect } from '@playwright/test'

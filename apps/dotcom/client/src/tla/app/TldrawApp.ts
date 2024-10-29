@@ -29,6 +29,7 @@ import {
 	objectMapKeys,
 	transact,
 } from 'tldraw'
+import { isDevelopmentEnv } from '../../utils/env'
 import { globalEditor } from '../../utils/globalEditor'
 import { getLocalSessionStateUnsafe } from '../utils/local-session-state'
 
@@ -45,6 +46,9 @@ export class TldrawApp {
 
 	private constructor(store: Store<TldrawAppRecord>) {
 		this.store = store
+		if (isDevelopmentEnv) {
+			;(window as any).tla_dev_clear = () => this.store.clear()
+		}
 
 		// todo: replace this when we have application-level user preferences
 		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {

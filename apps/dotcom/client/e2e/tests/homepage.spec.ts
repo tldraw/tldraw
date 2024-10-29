@@ -1,9 +1,12 @@
-import { sleep } from 'tldraw'
 import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ homePage }) => {
 	await homePage.goto()
 	await homePage.isLoaded()
+})
+
+test.afterEach(async ({ database }) => {
+	await database.reset()
 })
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {
@@ -18,9 +21,9 @@ test('sidebar file operations', async ({ page, editor, sidebar, deleteFileDialog
 
 	await test.step('Create a new document', async () => {
 		await editor.ensureSidebarOpen()
-		const currentCount = await sidebar.getFileCount()
+		const currentCount = await sidebar.getNumberOfFiles()
 		await sidebar.createNewDocument()
-		const newCount = await sidebar.getFileCount()
+		const newCount = await sidebar.getNumberOfFiles()
 		expect(newCount).toBe(currentCount + 1)
 	})
 
@@ -61,15 +64,15 @@ test('sidebar file operations', async ({ page, editor, sidebar, deleteFileDialog
 	})
 })
 
-test('delete file', async ({ page, sidebar, deleteFileDialog }) => {
-	const numberOfFiles = await sidebar.getFileCount()
-	for (let i = 0; i < numberOfFiles - 1; i++) {
-		const fileLink = await sidebar.getFileLink()
-		await sidebar.openFileMenu(fileLink)
-		await sidebar.deleteFromFileMenu()
-		await deleteFileDialog.expectIsVisible()
-		await deleteFileDialog.confirmDeletion()
-		await deleteFileDialog.expectIsNotVisible()
-		await sleep(1000)
-	}
-})
+// test('delete file', async ({ page, sidebar, deleteFileDialog }) => {
+// 	const numberOfFiles = await sidebar.getNumberOfFiles()
+// 	for (let i = 0; i < numberOfFiles - 1; i++) {
+// 		const fileLink = await sidebar.getFileLink()
+// 		await sidebar.openFileMenu(fileLink)
+// 		await sidebar.deleteFromFileMenu()
+// 		await deleteFileDialog.expectIsVisible()
+// 		await deleteFileDialog.confirmDeletion()
+// 		await deleteFileDialog.expectIsNotVisible()
+// 		await sleep(1000)
+// 	}
+// })
