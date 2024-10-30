@@ -82,7 +82,6 @@ export function TlaFileMenu({
 	const fileItems = (
 		<>
 			<TldrawUiMenuGroup id="file-actions">
-				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem
 					label="Copy link"
 					id="copy-link"
@@ -92,7 +91,6 @@ export function TlaFileMenu({
 				{isOwner && (
 					<TldrawUiMenuItem label="Rename" id="copy-link" readonlyOk onSelect={onRenameAction} />
 				)}
-				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
 					label="Duplicate"
 					id="copy-link"
