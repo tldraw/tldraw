@@ -54,7 +54,12 @@ export function TlaAccountMenu({
 				>
 					{auth.isSignedIn && (
 						<TldrawUiMenuGroup id="account-actions">
-							<TldrawUiMenuItem id="sign-out" label="Sign out" onSelect={handleSignout} />
+							<TldrawUiMenuItem
+								id="sign-out"
+								label="Sign out"
+								readonlyOk
+								onSelect={handleSignout}
+							/>
 						</TldrawUiMenuGroup>
 					)}
 					<TldrawUiMenuGroup id="account-links">
