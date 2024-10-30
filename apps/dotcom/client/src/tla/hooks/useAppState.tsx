@@ -39,7 +39,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				// todo: handle error
 				throw new Error('failed to get zero login token')
 			}
-			setZeroJwt(await res.text())
+			setZeroJwt((await res.json()).jwt)
 		})
 	})
 

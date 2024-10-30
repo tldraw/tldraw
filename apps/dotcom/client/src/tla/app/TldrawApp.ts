@@ -60,7 +60,11 @@ export class TldrawApp {
 			// This is often easier to develop with if you're frequently changing
 			// the schema. Switch to 'idb' for local-persistence.
 			kvStore: 'mem',
+
 		})
+
+		const result = this.z.query.user.one().run()
+
 
 		// todo: replace this when we have application-level user preferences
 		this.store.sideEffects.registerAfterChangeHandler('session', (prev, next) => {
@@ -585,7 +589,7 @@ export class TldrawApp {
 			])
 		}
 
-		const app = new TldrawApp(store, userId, opts.jwt)
+		const app = new TldrawApp(store, opts.userId, opts.jwt)
 		return { app, userId }
 	}
 }

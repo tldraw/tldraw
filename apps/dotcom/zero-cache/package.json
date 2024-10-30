@@ -1,0 +1,26 @@
+{
+	"name": "@tldraw/zero-cache",
+	"description": "The production app for tldraw.",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"browserslist": [
+		"defaults"
+	],
+	"scripts": {
+		"dev": "concurrently 'yarn docker-up' './zero.sh'",
+		"docker-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
+		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down"
+	},
+	"type": "module",
+	"dependencies": {
+		"@rocicorp/zero": "/Users/davidsheldrick/code/rocicorp/packages/zero/rocicorp-zero-0.4.2024103000+b2617e.tgz",
+		"concurrently": "^9.0.1"
+	},
+	"devDependencies": {
+		"lazyrepo": "0.0.0-alpha.27"
+	}
+}

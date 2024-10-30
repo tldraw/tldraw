@@ -61,9 +61,9 @@
 		"e2e-dotcom": "lazy e2e --filter='apps/dotcom/*'"
 	},
 	"engines": {
-		"npm": ">=7.0.0"
+		"npm": ">=7.0.0",
+		"node": ">=20.0.0"
 	},
-	"type": "module",
 	"packageManager": "yarn@4.0.2",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,json}": [

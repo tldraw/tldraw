@@ -1,5 +1,5 @@
 import { defineConfig } from '@rocicorp/zero/config'
-import { schema, type Schema } from './src/tla/app/schema.js'
+import { schema, type Schema } from './zero.schema'
 
 // The contents of your decoded JWT.
 interface AuthData {
@@ -10,11 +10,12 @@ export default defineConfig<AuthData, Schema>(schema, (query) => {
 	const allowIfLoggedIn = (authData: AuthData) => query.user.where('id', '=', authData.sub)
 
 	return {
-		upstreamDBConnStr: must(process.env.UPSTREAM_DB),
-		cvrDBConnStr: must(process.env.ZERO_DB),
-		changeDBConnStr: must(process.env.ZERO_DB),
-		replicaDBFile: must(process.env.ZERO_REPLICA_DB_FILE),
-		jwtSecret: must(process.env.JWT_SECRET),
+    upstreamDBConnStr: must(process.env.ZSTART_DB),
+    cvrDBConnStr: must(process.env.ZSTART_DB),
+    changeDBConnStr: must(process.env.ZSTART_DB),
+    replicaDBFile: must(process.env.ZSTART_REPLICA_DB_FILE),
+    jwtSecret: must(process.env.JWT_SECRET),
+		
 
 		numSyncWorkers: undefined, // this means numCores - 1
 
