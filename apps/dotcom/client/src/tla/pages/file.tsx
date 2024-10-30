@@ -20,7 +20,7 @@ export function ErrorBoundary() {
 export function Component({ error }: { error?: unknown }) {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	if (!fileSlug) throw Error('File id not found')
-	const userId = useMaybeApp()?.getCurrentUserId()
+	const userId = useMaybeApp()?.userId
 	const routeState = useLocation().state
 
 	const errorElem = error ? <TlaFileError error={error} /> : null

@@ -1,5 +1,6 @@
-import { TldrawAppSessionState, TldrawAppUser } from '@tldraw/dotcom-shared'
 import { ReactNode, createContext, useContext } from 'react'
+import { User } from '../app/schema'
+import { TldrawAppSessionState } from './local-session-state'
 
 /** @public */
 export type TLAppUiEventSource =
@@ -24,15 +25,15 @@ export interface TLAppUiEventMap {
 	'toggle-shared': { shared: boolean }
 	'set-theme': { theme: 'dark' | 'light' | 'auto' }
 	'toggle-export-padding': { padding: boolean }
-	'toggle-export-background': { background: TldrawAppUser['exportBackground'] }
-	'set-export-format': { format: TldrawAppUser['exportFormat'] }
-	'set-export-theme': { theme: TldrawAppUser['exportTheme'] }
+	'toggle-export-background': { background: User['exportBackground'] }
+	'set-export-format': { format: User['exportFormat'] }
+	'set-export-theme': { theme: User['exportTheme'] }
 	'export-image': {
 		fullPage: boolean
-		theme: TldrawAppUser['exportTheme']
-		format: TldrawAppUser['exportFormat']
-		padding: TldrawAppUser['exportPadding']
-		background: TldrawAppUser['exportBackground']
+		theme: User['exportTheme']
+		format: User['exportFormat']
+		padding: User['exportPadding']
+		background: User['exportBackground']
 	}
 }
 

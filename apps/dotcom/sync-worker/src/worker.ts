@@ -10,7 +10,7 @@ import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, json } from 'itty-router'
 import { SignJWT } from 'jose'
-import { APP_ID } from './TLAppDurableObject'
+// import { APP_ID } from './TLAppDurableObject'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
@@ -28,7 +28,7 @@ import { publishFile } from './routes/tla/publishFile'
 import { unpublishFile } from './routes/tla/unpublishFile'
 import { Environment } from './types'
 import { getAuth } from './utils/tla/getAuth'
-export { TLAppDurableObject } from './TLAppDurableObject'
+// export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 
 const { preflight, corsify } = cors({
@@ -57,20 +57,20 @@ const router = createRouter<Environment>()
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	/* ----------------------- App ---------------------- */
-	.get('/app', async (req, env) => {
-		const auth = await getAuth(req, env)
-		if (!auth?.userId) return notFound()
+	// .get('/app', async (req, env) => {
+	// 	const auth = await getAuth(req, env)
+	// 	if (!auth?.userId) return notFound()
 
-		// This needs to be a websocket request!
-		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-			const url = new URL(req.url)
-			url.pathname = `/app/${auth.userId}`
-			// clone the request and add the new url
-			return env.TLAPP_DO.get(env.TLAPP_DO.idFromName(APP_ID)).fetch(new Request(url, req))
-		}
+	// 	// This needs to be a websocket request!
+	// 	if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
+	// 		const url = new URL(req.url)
+	// 		url.pathname = `/app/${auth.userId}`
+	// 		// clone the request and add the new url
+	// 		return env.TLAPP_DO.get(env.TLAPP_DO.idFromName(APP_ID)).fetch(new Request(url, req))
+	// 	}
 
-		return notFound()
-	})
+	// 	return notFound()
+	// })
 	.post('/app/tldr', createFiles)
 	.get('/app/file/:roomId', forwardRoomRequest)
 	.post('/app/duplicate/:roomId', duplicateFile)

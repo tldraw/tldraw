@@ -1,8 +1,6 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
-import { Zero } from '@rocicorp/zero'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
-import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
@@ -89,7 +87,7 @@ function SignedInProvider({
 	useEffect(() => {
 		if (auth.isSignedIn && auth.userId) {
 			updateLocalSessionState(() => ({
-				auth: { userId: TldrawAppUserRecordType.createId(auth.userId) },
+				auth: { userId: auth.userId },
 			}))
 		} else {
 			updateLocalSessionState(() => ({

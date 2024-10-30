@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/clerk-react'
-import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
@@ -106,7 +105,7 @@ function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }:
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
-	const fileId = TldrawAppFileRecordType.createId(fileSlug)
+	const fileId = fileSlug
 
 	const setIsReady = useSetIsReady()
 
@@ -124,7 +123,7 @@ function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }:
 			if (!app) return
 			const fileState = app.getFileState(fileId)
 			if (fileState?.lastSessionState) {
-				editor.loadSnapshot({ session: fileState.lastSessionState })
+				editor.loadSnapshot({ session: JSON.parse(fileState.lastSessionState.trim() || 'null') })
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
@@ -229,7 +228,7 @@ function SneakyFileUpdateHandler({
 	fileId,
 }: {
 	onDocumentChange?(): void
-	fileId: TldrawAppFileId
+	fileId: string
 }) {
 	const app = useMaybeApp()
 	const editor = useEditor()

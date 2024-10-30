@@ -1,5 +1,4 @@
 import { SignOutButton } from '@clerk/clerk-react'
-import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { Fragment } from 'react'
 import { TlaButton } from '../components/TlaButton/TlaButton'
 import { TlaSpacer } from '../components/TlaSpacer/TlaSpacer'
@@ -9,7 +8,7 @@ import { useFlags } from '../hooks/useFlags'
 import { useRaw } from '../hooks/useRaw'
 import { useSessionState } from '../hooks/useSessionState'
 import { TlaPageLayout } from '../layouts/TlaPageLayout/TlaPageLayout'
-import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
+import { updateLocalSessionState } from '../utils/local-session-state'
 import { getRootPath } from '../utils/urls'
 
 export function Component() {
@@ -66,38 +65,21 @@ function Flags() {
 						type="checkbox"
 						checked={!!value}
 						onChange={() => {
-							const current = getLocalSessionState()
-							if (!current.auth) throw Error('No auth')
-							const user = app.store.get(current.auth.userId)
-							if (!user) throw Error('No user')
-
-							app.store.put([
-								{
-									...user,
-									flags: {
-										...user.flags,
-										[key]: !value,
-									},
-								},
-							])
+							// todo: do this properly
+							app.updateUser((user) => ({
+								...user,
+								flags: value ? user.flags.replace(key, '') : user.flags + ' ' + key,
+							}))
 						}}
 					/>
 				</Fragment>
 			))}
 			<TlaButton
 				onClick={() => {
-					const defaultUser = TldrawAppUserRecordType.createDefaultProperties()
-					const current = getLocalSessionState()
-					if (!current.auth) throw Error('No auth')
-					const user = app.store.get(current.auth.userId)
-					if (!user) throw Error('No user')
-
-					app.store.put([
-						{
-							...user,
-							flags: defaultUser.flags,
-						},
-					])
+					app.updateUser((user) => ({
+						...user,
+						flags: '',
+					}))
 				}}
 			>
 				{raw('Reset defaults')}
@@ -107,7 +89,6 @@ function Flags() {
 }
 
 function DarkMode() {
-	const app = useApp()
 	const raw = useRaw()
 	const isDarkMode = useSessionState().theme === 'dark'
 	return (
@@ -126,10 +107,6 @@ function DarkMode() {
 				type="checkbox"
 				checked={isDarkMode}
 				onChange={() => {
-					const current = getLocalSessionState()
-					if (!current.auth) throw Error('No auth')
-					const user = app.store.get(current.auth.userId)
-					if (!user) throw Error('No user')
 					updateLocalSessionState(() => ({
 						theme: isDarkMode ? 'light' : 'dark',
 					}))

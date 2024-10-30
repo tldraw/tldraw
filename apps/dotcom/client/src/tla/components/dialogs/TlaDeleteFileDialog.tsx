@@ -1,5 +1,4 @@
 import { useAuth } from '@clerk/clerk-react'
-import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -16,13 +15,7 @@ import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
 import { getRootPath } from '../../utils/urls'
 
-export function TlaDeleteFileDialog({
-	fileId,
-	onClose,
-}: {
-	fileId: TldrawAppFileId
-	onClose(): void
-}) {
+export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClose(): void }) {
 	const app = useApp()
 	const raw = useRaw()
 	const location = useLocation()
@@ -36,7 +29,7 @@ export function TlaDeleteFileDialog({
 		if (!token) throw new Error('No token')
 		const result = await app.deleteOrForgetFile(fileId, token)
 		if (result.ok) {
-			if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
+			if (location.pathname.endsWith(fileId)) {
 				navigate(getRootPath())
 			}
 			onClose()

@@ -21,9 +21,3 @@ export type {
 	Snapshot,
 	UnpublishFileResponseBody,
 } from './types'
-
-export * from './tla-schema/TldrawAppFile'
-export * from './tla-schema/TldrawAppFileState'
-export * from './tla-schema/TldrawAppSessionState'
-export * from './tla-schema/TldrawAppUser'
-export * from './tla-schema/tldrawAppSchema'

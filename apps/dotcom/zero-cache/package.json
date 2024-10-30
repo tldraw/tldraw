@@ -11,9 +11,10 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "concurrently 'yarn docker-up' './zero.sh'",
+		"dev": "concurrently --kill-others 'yarn docker-up' './zero.sh'",
 		"docker-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
-		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down"
+		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
+		"clean": "./clean.sh"
 	},
 	"type": "module",
 	"dependencies": {

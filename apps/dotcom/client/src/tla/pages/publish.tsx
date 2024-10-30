@@ -31,7 +31,7 @@ export function Component() {
 
 	// todo: only show the anon layout for published files?
 
-	if (!app?.getCurrentUserId()) {
+	if (!app?.userId) {
 		return (
 			<TlaAnonLayout>
 				<IFrameProtector slug={roomId} context={ROOM_CONTEXT.PUBLIC_SNAPSHOT}>

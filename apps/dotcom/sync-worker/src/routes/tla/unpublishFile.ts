@@ -1,7 +1,5 @@
 import { IRequest } from 'itty-router'
-import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
-import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
 // Unpublish a file.
@@ -17,26 +15,27 @@ export async function unpublishFile(request: IRequest, env: Environment): Promis
 	}
 
 	try {
-		const app = getTldrawAppDurableObject(env)
+		// TODO: make the backend talk to zero
+		// const app = getTldrawAppDurableObject(env)
 
-		const file = await app.getFileBySlug(roomId)
+		// const file = await app.getFileBySlug(roomId)
 
-		if (!file) {
-			throw Error('not-found')
-		}
+		// if (!file) {
+		// 	throw Error('not-found')
+		// }
 
-		// A user can only publish their own files
-		if (file.ownerId !== userId) {
-			throw Error('forbidden')
-		}
+		// // A user can only publish their own files
+		// if (file.ownerId !== userId) {
+		// 	throw Error('forbidden')
+		// }
 
-		// Create a new slug for the published room
-		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
+		// // Create a new slug for the published room
+		// await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
 
-		// Bang the snapshot into the database
-		await env.ROOM_SNAPSHOTS.delete(
-			getR2KeyForRoom({ slug: `${roomId}/${file.publishedSlug}`, isApp: true })
-		)
+		// // Bang the snapshot into the database
+		// await env.ROOM_SNAPSHOTS.delete(
+		// 	getR2KeyForRoom({ slug: `${roomId}/${file.publishedSlug}`, isApp: true })
+		// )
 
 		return new Response(JSON.stringify({ error: false }))
 	} catch (e: any) {

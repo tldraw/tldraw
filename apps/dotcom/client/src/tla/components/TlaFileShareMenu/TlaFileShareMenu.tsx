@@ -1,4 +1,3 @@
-import { TldrawAppFile, TldrawAppFileId, TldrawAppSessionState } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiDropdownMenuContent,
@@ -8,6 +7,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
@@ -23,7 +23,7 @@ export function TlaFileShareMenu({
 	isAnonUser,
 	children,
 }: {
-	fileId: TldrawAppFileId
+	fileId: string
 	source: string
 	isAnonUser?: boolean
 	children: ReactNode
@@ -38,12 +38,12 @@ export function TlaFileShareMenu({
 		[]
 	)
 
-	const isOwner = !!app?.isFileOwner(fileId)
-	const file = useValue('file', () => app?.get(fileId) as TldrawAppFile | undefined, [app])
+	const isOwner = useIsFileOwner(fileId)
+	const file = useValue('file', () => app?.getFile(fileId), [app])
 	const isPublished = !!file?.published
 
 	const handleTabChange = useCallback(
-		(value: TldrawAppSessionState['shareMenuActiveTab']) => {
+		(value: 'share' | 'export' | 'publish') => {
 			updateLocalSessionState(() => ({ shareMenuActiveTab: value }))
 			trackEvent('change-share-menu-tab', { tab: value, source: 'file-share-menu' })
 		},

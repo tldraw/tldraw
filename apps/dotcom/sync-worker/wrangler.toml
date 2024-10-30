@@ -24,6 +24,10 @@ deleted_classes = ["TLProWorkspaceDurableObject"]
 tag = "v4"
 new_classes = ["TLAppDurableObject"]
 
+[[migrations]]
+tag = "v5"
+deleted_classes = ["TLAppDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
@@ -68,31 +72,26 @@ pattern = "sync.tldraw.xyz"
 [env.dev.durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 [durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 [env.preview.durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 [env.staging.durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 [env.production.durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 #################### Analytics engine ####################

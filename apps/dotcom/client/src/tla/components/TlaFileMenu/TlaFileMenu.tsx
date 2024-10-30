@@ -1,7 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
 import { useAuth } from '@clerk/clerk-react'
-import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -30,7 +29,7 @@ export function TlaFileMenu({
 }: {
 	children?: ReactNode
 	source: string
-	fileId: TldrawAppFile['id']
+	fileId: string
 	onRenameAction(): void
 	trigger: ReactNode
 }) {
