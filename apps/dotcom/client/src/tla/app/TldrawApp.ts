@@ -77,16 +77,19 @@ export class TldrawApp {
 			const userId = this.getCurrentUserId()
 			if (!userId) throw Error('no user')
 			const user = this.getUser(userId)
-			return pick(user, UserPreferencesKeys) as TLUserPreferences
+			return {
+				...(pick(user, UserPreferencesKeys) as TLUserPreferences),
+				id: TldrawAppUserRecordType.parseId(userId),
+			}
 		}),
-		setUserPreferences: (prefs: Partial<TLUserPreferences>) => {
+		setUserPreferences: ({ id: _, ...others }: Partial<TLUserPreferences>) => {
 			const user = this.getCurrentUser()
 			if (!user) throw Error('no user')
 
 			this.store.put([
 				{
 					...user,
-					...(prefs as TldrawAppUser),
+					...(others as TldrawAppUser),
 				},
 			])
 		},

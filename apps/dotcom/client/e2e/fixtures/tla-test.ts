@@ -9,8 +9,8 @@ interface TlaFixtures {
 	homePage: HomePage
 	editor: Editor
 	sidebar: Sidebar
-	database: Database
 	shareMenu: ShareMenu
+	database: Database
 }
 
 export const test = base.extend<TlaFixtures>({

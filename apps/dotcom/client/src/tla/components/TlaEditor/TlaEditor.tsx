@@ -163,6 +163,7 @@ function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }:
 			return url.toString()
 		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
+		userInfo: app?.tlUser.userPreferences,
 	})
 
 	// Handle entering and exiting the file
@@ -179,6 +180,7 @@ function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }:
 	return (
 		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
+				className="tla-editor"
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}
