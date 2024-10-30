@@ -234,9 +234,12 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 			data-element="file-link"
 			onDoubleClick={handleRenameAction}
 		>
-			<Link to={getFilePath(fileId)}>
-				{app.getFileName(fileId)} {isOwnFile ? '' : '(Guest)'}
-			</Link>
+			<div className={styles.linkContent}>
+				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
+					{app.getFileName(fileId)} {isOwnFile ? '' : '(Guest)'}
+				</div>
+			</div>
+			<Link to={getFilePath(fileId)} className={styles.linkButton} />
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
 	)

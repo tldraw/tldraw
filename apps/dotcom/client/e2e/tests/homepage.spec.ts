@@ -43,7 +43,7 @@ test('sidebar file operations', async ({ page, sidebar, deleteFileDialog }) => {
 		const fileName = await fileLink?.innerText()
 		await sidebar.openFileMenu(fileLink)
 		await page.getByRole('menuitem', { name: 'Duplicate' }).click()
-		const copiedFileLink = page.getByRole('link').getByText(`${fileName} Copy`)
+		const copiedFileLink = page.getByText(`${fileName} Copy`)
 		expect(copiedFileLink).toBeVisible()
 	})
 
