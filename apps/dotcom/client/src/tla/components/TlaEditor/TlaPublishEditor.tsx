@@ -58,7 +58,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	)
 
 	return (
-		<div className={styles.editor}>
+		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
