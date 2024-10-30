@@ -86,7 +86,7 @@ export class ShareMenu {
 		await locator.click()
 	}
 
-	async updateChanges() {
+	async publishChanges() {
 		await this.ensureTabSelected('publish')
 		await this.publishChangesButton.click()
 	}

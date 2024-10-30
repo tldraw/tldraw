@@ -92,7 +92,7 @@ test('can update published file', async ({ page, browser, editor, shareMenu }) =
 	expect(await newEditor.getNumberOfShapes()).toBe(1)
 
 	await shareMenu.open()
-	await shareMenu.updateChanges()
+	await shareMenu.publishChanges()
 	await newPage.reload()
 	await newHomePage.isLoaded()
 	expect(await newEditor.getNumberOfShapes()).toBe(2)
