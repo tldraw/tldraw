@@ -203,6 +203,7 @@ exports[`pasteExcalidrawContent test fixtures image.json 1`] = `
       "url": "",
       "verticalAlign": "middle",
       "w": 1,
+      "zoom": 1,
     },
     "rotation": 0,
     "type": "image",
