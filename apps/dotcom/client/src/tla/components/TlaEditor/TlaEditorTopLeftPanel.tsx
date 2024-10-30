@@ -8,8 +8,12 @@ import {
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	TldrawUiInput,
+	TldrawUiMenuContextProvider,
 	ViewSubmenu,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -65,6 +69,21 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			/>
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
+			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
+				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+					<TldrawUiDropdownMenuTrigger>
+						<button className={styles.linkMenu}>
+							<TlaIcon icon="dots-vertical-strong" />
+						</button>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+						<EditSubmenu />
+						<ViewSubmenu />
+						<ExportFileContentSubMenu />
+						<ExtrasGroup />
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiMenuContextProvider>
+			</TldrawUiDropdownMenuRoot>
 		</>
 	)
 }

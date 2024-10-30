@@ -3,6 +3,7 @@ import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor, useToasts } from 'tldraw'
+import { F, FormattedRelativeTime } from '../../../app/i18n'
 import { useApp } from '../../../hooks/useAppState'
 import { useRaw } from '../../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -100,7 +101,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 
-	const daysSince = Math.floor((Date.now() - file.lastPublished) / (60 * 1000 * 60 * 24))
+	const secondsSince = Math.min(0, Math.floor((Date.now() - file.lastPublished) / 1000))
 	const learnMoreUrl = 'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'
 	return (
 		<TlaTabsPage id="publish">
@@ -139,11 +140,19 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 						)}
 						{/* todo: make this data actually true based on file.lastPublished */}
 						<TlaMenuDetail>
-							{raw(
-								daysSince
-									? `Last published ${daysSince} day${daysSince > 1 ? 's' : ''} ago`
-									: `Last published today.`
-							)}
+							<F
+								defaultMessage="Last published <date></date>"
+								description="This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'."
+								values={{
+									date: () => (
+										<FormattedRelativeTime
+											value={secondsSince}
+											numeric="auto"
+											updateIntervalInSeconds={15}
+										/>
+									),
+								}}
+							/>
 						</TlaMenuDetail>
 					</>
 				)}
