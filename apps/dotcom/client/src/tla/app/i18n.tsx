@@ -44,7 +44,11 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 	return (
 		<span className="i18n-msg">
 			{/* eslint-disable-next-line formatjs/enforce-default-message */}
-			{isInternalLocale(intl.locale) ? <>{internalMessage}</> : <FormattedMessage id={id} {...props} />}
+			{isInternalLocale(intl.locale) ? (
+				<>{internalMessage}</>
+			) : (
+				<FormattedMessage id={id} {...props} />
+			)}
 		</span>
 	)
 }
