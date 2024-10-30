@@ -19,7 +19,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				<div className={styles.signInButtons}>
 					<SignedOut>
 						<TlaSignInButton variant="primary" ghost>
-							{raw('Log in')}
+							{raw('Sign in')}
 						</TlaSignInButton>
 						<TlaSignInButton data-testid="tla-signup-button">{raw('Sign up')}</TlaSignInButton>
 					</SignedOut>

@@ -36,7 +36,7 @@ export function TlaFileError({ error }: { error: unknown }) {
 			return (
 				<TlaFileErrorContent
 					header="Sign in"
-					para1="You are currently logged out and need sign in to view this file."
+					para1="You need to sign in to view this file."
 					cta={<TlaSignInButton />}
 				/>
 			)
