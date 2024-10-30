@@ -14,7 +14,9 @@ import {
 	useValue,
 } from 'tldraw'
 import { Links } from '../../../components/Links'
+import { globalEditor } from '../../../utils/globalEditor'
 import { useRaw } from '../../hooks/useRaw'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 
 export function TlaAccountMenu({
 	children,
@@ -22,7 +24,7 @@ export function TlaAccountMenu({
 	align,
 }: {
 	children: ReactNode
-	source: string
+	source: TLAppUiEventSource
 	align?: 'end' | 'start' | 'center'
 }) {
 	const auth = useAuth()
@@ -30,10 +32,14 @@ export function TlaAccountMenu({
 	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [
 		maybeEditor,
 	])
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleSignout = useCallback(() => {
 		auth.signOut()
-	}, [auth])
+		trackEvent('sign-out-clicked', { source })
+	}, [auth, trackEvent, source])
+
+	const currentEditor = useValue('editor', () => globalEditor.get(), [])
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`account-menu-${source}`}>
@@ -48,7 +54,7 @@ export function TlaAccountMenu({
 				>
 					{auth.isSignedIn && (
 						<TldrawUiMenuGroup id="account-actions">
-							<TldrawUiMenuItem label="Sign out" id="sign-out" onSelect={handleSignout} />
+							<TldrawUiMenuItem id="sign-out" label="Sign out" onSelect={handleSignout} />
 						</TldrawUiMenuGroup>
 					)}
 					<TldrawUiMenuGroup id="account-links">
@@ -56,7 +62,7 @@ export function TlaAccountMenu({
 							<Links />
 						</TldrawUiMenuSubmenu>
 					</TldrawUiMenuGroup>
-					<PreferencesGroup />
+					{currentEditor && <PreferencesGroup />}
 					{isDebugMode && <AppDebugMenu />}
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>

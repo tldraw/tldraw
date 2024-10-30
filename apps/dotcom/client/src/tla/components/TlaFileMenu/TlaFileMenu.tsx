@@ -1,5 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
+import { useAuth } from '@clerk/clerk-react'
 import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -11,14 +12,13 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
-	tltime,
 	useDialogs,
 	useToasts,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
-import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { getFilePath, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
@@ -30,7 +30,7 @@ export function TlaFileMenu({
 	trigger,
 }: {
 	children?: ReactNode
-	source: string
+	source: TLAppUiEventSource
 	fileId: TldrawAppFile['id']
 	onRenameAction(): void
 	trigger: ReactNode
@@ -39,6 +39,8 @@ export function TlaFileMenu({
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
+	const trackEvent = useTldrawAppUiEvents()
+	const auth = useAuth()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
@@ -47,33 +49,28 @@ export function TlaFileMenu({
 			id: 'copied-link',
 			title: 'Copied link',
 		})
-	}, [fileId, addToast])
+		trackEvent('copy-file-link', { source })
+	}, [fileId, addToast, trackEvent, source])
 
-	const handleDuplicateClick = useCallback(() => {
-		const { newFile, editorStoreSnapshot } = app.duplicateFile(fileId)
+	const handleDuplicateClick = useCallback(async () => {
+		const token = await auth.getToken()
+		if (!token) throw Error('no token')
 
-		tltime.setTimeout(
-			'app',
-			() => {
-				navigate(getFilePath(newFile.id))
+		const res = await app.duplicateFile(fileId.split(':')[1], token)
 
-				if (editorStoreSnapshot) {
-					tltime.setTimeout(
-						'app',
-						() => {
-							// TODO: this is very BK, we should do this server-side
-							// this is the same in TlaEditor...we need to fix this
-							getCurrentEditor()?.store.loadStoreSnapshot(editorStoreSnapshot)
-						},
-						1000
-					)
-				}
-				// TODO: we need to get a better indicator of when this operation is ready
-				// this is the same in TlaEditor...we need to fix this
-			},
-			1000
-		)
-	}, [app, navigate, fileId])
+		if (res.ok) {
+			// If the user just duplicated their current file, navigate to the new file
+			if (location.pathname.endsWith(fileId)) {
+				navigate(getFilePath(res.value.slug))
+			} else {
+				// ...otherwise, stay where they are
+			}
+		} else {
+			// do something to indicate failure
+			console.error('Failed to duplicate file')
+			console.error(res.error)
+		}
+	}, [app, auth, navigate, fileId])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
@@ -85,8 +82,10 @@ export function TlaFileMenu({
 	const fileItems = (
 		<>
 			<TldrawUiMenuGroup id="file-actions">
+				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
 				{isOwner && <TldrawUiMenuItem label="Rename" id="copy-link" onSelect={onRenameAction} />}
+				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
 				{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
 			</TldrawUiMenuGroup>

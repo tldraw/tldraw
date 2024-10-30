@@ -1,12 +1,13 @@
-import { SignedOut, SignInButton } from '@clerk/clerk-react'
+import { SignedOut } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { defineMessages, F, useIntl } from '../../app/i18n'
 import { TlaAccountMenu } from '../../components/TlaAccountMenu/TlaAccountMenu'
-import { TlaButton } from '../../components/TlaButton/TlaButton'
 import { TlaIcon } from '../../components/TlaIcon/TlaIcon'
+import { TlaSignInButton } from '../../components/TlaSignInButton/TlaSignInButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import styles from './anon.module.css'
 
 const messages = defineMessages({
@@ -17,9 +18,10 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	usePreventAccidentalDrops()
 	const intl = useIntl()
 	const logoAriaLabel = intl.formatMessage(messages.logo)
+	const trackEvent = useTldrawAppUiEvents()
 
 	return (
-		<div className={classNames('tla tla-theme__light tl-theme__light tl-container', styles.layout)}>
+		<div className={styles.layout}>
 			<div className={styles.header}>
 				<Link to="/">
 					<img
@@ -36,16 +38,19 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 				<div className={styles.spacer} />
 				<div className={styles.signInButtons}>
 					<SignedOut>
-						<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
-							<TlaButton data-testid="tla-signin-button" variant="primary" ghost>
-								<F defaultMessage="Sign in" />
-							</TlaButton>
-						</SignInButton>
-						<SignInButton mode="modal" forceRedirectUrl="/q" signUpForceRedirectUrl="/q">
-							<TlaButton data-testid="tla-signup-button">
-								<F defaultMessage="Sign up" />
-							</TlaButton>
-						</SignInButton>
+						<TlaSignInButton
+							onClick={() => trackEvent('sign-in-clicked', { source: 'anon-landing-page' })}
+							variant="primary"
+							ghost
+						>
+							<F defaultMessage="Sign in" />
+						</TlaSignInButton>
+						<TlaSignInButton
+							onClick={() => trackEvent('sign-up-clicked', { source: 'anon-landing-page' })}
+							data-testid="tla-signup-button"
+						>
+							<F defaultMessage="Sign up" />
+						</TlaSignInButton>
 					</SignedOut>
 				</div>
 			</div>
@@ -57,7 +62,10 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 						values={{ b: (chunks) => <b>{chunks}</b> }}
 					/>{' '}
 					{/* Todo, make the rest of this layout the landing page, learn more should scroll down? */}
-					<Link to="/">
+					<Link
+						onClick={() => trackEvent('learn-more-button', { source: 'anon-landing-page' })}
+						to="/"
+					>
 						<F defaultMessage="Learn more." />
 					</Link>
 				</p>

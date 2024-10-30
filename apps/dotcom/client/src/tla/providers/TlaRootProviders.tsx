@@ -21,6 +21,7 @@ import { AppStateProvider } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
+import { getRootPath } from '../utils/urls'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -41,7 +42,7 @@ export function Component() {
 
 	return (
 		<IntlWrapper locale={locale}>
-			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
+			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
 				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
 					<div
 						ref={setContainer}
@@ -94,22 +95,19 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 		// todo, implement handling ui events at the application layer
 	}, [])
 	const currentEditor = useValue('editor', () => globalEditor.get(), [])
-	const FakeProvider = ({ children }: { children: ReactNode }) => children
-	const MaybeEditorProvider = currentEditor ? EditorContext.Provider : FakeProvider
-	const MaybeUiContextProvider = currentEditor ? TldrawUiContextProvider : FakeProvider
 
 	return (
-		<MaybeEditorProvider value={currentEditor}>
-			<MaybeUiContextProvider
+		<EditorContext.Provider value={currentEditor}>
+			<TldrawUiContextProvider
 				assetUrls={assetUrls}
 				components={components}
 				onUiEvent={handleAppLevelUiEvent}
 			>
 				<TooltipProvider>{children}</TooltipProvider>
-				{currentEditor && <TldrawUiDialogs />}
-				{currentEditor && <TldrawUiToasts />}
-			</MaybeUiContextProvider>
-		</MaybeEditorProvider>
+				<TldrawUiDialogs />
+				<TldrawUiToasts />
+			</TldrawUiContextProvider>
+		</EditorContext.Provider>
 	)
 }
 

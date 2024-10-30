@@ -288,6 +288,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
+		this.disposables.add(() => this.user.dispose())
 
 		this.getContainer = getContainer
 

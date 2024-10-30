@@ -12,7 +12,8 @@ export function DocsSidebarMenus({ menus }: { menus: any }) {
 
 	useEffect(() => {
 		container.current?.scrollTo(0, scrollPosition)
-		const element = document.querySelector('.sidebar-link[data-active=true]') as HTMLElement
+		const element = document.querySelector('.sidebar-link[data-active=true]') as HTMLElement | null
+		if (!element) return
 		const aboveView = container.current && element.offsetTop < container.current.scrollTop
 		const belowView =
 			container.current &&
