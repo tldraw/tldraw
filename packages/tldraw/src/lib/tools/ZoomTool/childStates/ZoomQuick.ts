@@ -31,7 +31,9 @@ export class ZoomQuick extends StateNode {
 				immediate: true,
 			})
 			this.initialViewport = this.viewportInFlightFromPreviousQuickZoom
-			this.previousZoomTimeout && clearTimeout(this.previousZoomTimeout)
+			if (this.previousZoomTimeout) {
+				clearTimeout(this.previousZoomTimeout)
+			}
 			this.viewportInFlightFromPreviousQuickZoom = null
 		} else {
 			this.initialViewport = this.editor.getViewportPageBounds()
