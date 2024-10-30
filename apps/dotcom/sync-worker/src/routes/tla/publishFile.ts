@@ -44,7 +44,7 @@ export async function publishFile(request: IRequest, env: Environment): Promise<
 		)
 		const currentTime = new Date().toISOString()
 		await env.ROOM_SNAPSHOTS.put(
-			getR2KeyForRoom({ slug: `${roomId}/${file.publishedSlug}-${currentTime}`, isApp: true }),
+			getR2KeyForRoom({ slug: `${roomId}/${file.publishedSlug}|${currentTime}`, isApp: true }),
 			serializedSnapshot
 		)
 
