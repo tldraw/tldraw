@@ -35,7 +35,6 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 	const intl = useIntl()
 	const id = generateId(props)
 	let internalMessage = (props.defaultMessage || '') as string
-	const isInternalLocale = INTERNAL_LOCALES.includes(intl.locale)
 	if (intl.locale === 'xx-AE') {
 		internalMessage = `${internalMessage.replace(/a/g, 'á').replace(/e/g, 'é').replace(/i/g, 'í').replace(/o/g, 'ó').replace(/u/g, 'ú')}`
 	} else if (intl.locale === 'xx-LS') {
@@ -45,7 +44,7 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 	return (
 		<span className="i18n-msg">
 			{/* eslint-disable-next-line formatjs/enforce-default-message */}
-			{isInternalLocale ? <>{internalMessage}</> : <FormattedMessage id={id} {...props} />}
+			{isInternalLocale(intl.locale) ? <>{internalMessage}</> : <FormattedMessage id={id} {...props} />}
 		</span>
 	)
 }
