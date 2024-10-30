@@ -43,10 +43,10 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 
 	return (
 		<span className="i18n-msg">
-			{/* eslint-disable-next-line formatjs/enforce-default-message */}
 			{isInternalLocale(intl.locale) ? (
 				<>{internalMessage}</>
 			) : (
+				/* eslint-disable-next-line formatjs/enforce-default-message */
 				<FormattedMessage id={id} {...props} />
 			)}
 		</span>
