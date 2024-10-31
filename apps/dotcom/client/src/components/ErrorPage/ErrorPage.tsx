@@ -1,12 +1,13 @@
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { F, IntlProvider } from '../../tla/app/i18n'
 import { isInIframe } from '../../utils/iFrame'
 
 const GoBackLink = () => {
 	const inIframe = isInIframe()
 	return (
 		<Link to={'/'} target={inIframe ? '_blank' : '_self'}>
-			{inIframe ? 'Open tldraw.' : 'Back to tldraw.'}
+			{inIframe ? <F defaultMessage="Open tldraw." /> : <F defaultMessage="Back to tldraw." />}
 		</Link>
 	)
 }
@@ -25,16 +26,19 @@ export function ErrorPage({
 	cta?: ReactNode
 }) {
 	return (
-		<div className="error-page">
-			<div className="error-page__container">
-				{icon}
-				<div className="error-page__content">
-					<h1>{messages.header}</h1>
-					<p>{messages.para1}</p>
-					{messages.para2 && <p>{messages.para2}</p>}
+		// This sits outside the regular providers, it needs to be able to have the intl object in the app context.
+		<IntlProvider defaultLocale="en" locale="en" messages={{}}>
+			<div className="error-page">
+				<div className="error-page__container">
+					{icon}
+					<div className="error-page__content">
+						<h1>{messages.header}</h1>
+						<p>{messages.para1}</p>
+						{messages.para2 && <p>{messages.para2}</p>}
+					</div>
+					{cta}
 				</div>
-				{cta}
 			</div>
-		</div>
+		</IntlProvider>
 	)
 }

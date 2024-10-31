@@ -95,12 +95,13 @@ export function isInternalLocale(locale: string) {
 }
 
 function makeAccented(str: string) {
-	return str
-		.replace(/a/g, 'á')
-		.replace(/e/g, 'é')
-		.replace(/i/g, 'í')
-		.replace(/o/g, 'ó')
-		.replace(/u/g, 'ú')
+	const accents = 'áƃçđéƒǵȟíǰķłɱñóƥɋřšťúṽẃẍýž'
+	return str.replace(/[a-zA-Z]/g, (char) => {
+		const isUpper = char === char.toUpperCase()
+		const index = char.toLowerCase().charCodeAt(0) - 97
+		const accentedChar = accents[index] || char
+		return isUpper ? accentedChar.toUpperCase() : accentedChar
+	})
 }
 
 function makeLong(str: string) {
