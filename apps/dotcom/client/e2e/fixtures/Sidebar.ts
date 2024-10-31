@@ -1,4 +1,4 @@
-import type { ElementHandle, Locator, Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect } from './tla-test'
 
 export class Sidebar {
@@ -30,25 +30,43 @@ export class Sidebar {
 		await this.createFileButton.click()
 	}
 
-	async getFileLink() {
-		const fileLink = await this.page.$('[data-element="file-link"]')
+	async getFileLink(fileName?: string) {
+		const fileLink = fileName
+			? this.page.getByTestId(fileName)
+			: this.page.locator('[data-element="file-link"]')
 		if (!fileLink) {
 			throw new Error('No file links found')
 		}
 		return fileLink
 	}
 
-	async openFileMenu(fileLink: ElementHandle<SVGElement | HTMLElement>) {
+	async openFileMenu(fileLink: Locator) {
 		await fileLink?.hover()
-		const button = await fileLink?.$('button')
+		const button = await fileLink.getByRole('button')
 		await button?.click()
 	}
 
 	async deleteFromFileMenu() {
-		// expect(this.page.getByTestId('file-menu')).toBeVisible()
 		await this.page.getByRole('menuitem', { name: 'Delete' }).click()
 	}
+
+	async renameFromFileMenu(name: string) {
+		await this.page.getByRole('menuitem', { name: 'Rename' }).click()
+		const input = this.page.getByRole('textbox')
+		await input.fill(name)
+		await this.page.keyboard.press('Enter')
+	}
+
+	async duplicateFromFileMenu() {
+		await this.page.getByRole('menuitem', { name: 'Duplicate' }).click()
+	}
+
 	async getNumberOfFiles() {
 		return (await this.page.$$(this.fileLink)).length
+	}
+	async getAfterElementStyle(element: Locator, property: string): Promise<string> {
+		return element.evaluate((el, property) => {
+			return window.getComputedStyle(el, '::after').getPropertyValue(property)
+		}, property)
 	}
 }

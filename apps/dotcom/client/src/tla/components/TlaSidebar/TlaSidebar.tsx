@@ -226,6 +226,7 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 	if (isRenaming) {
 		return <TlaRenameInline fileId={fileId} onClose={handleRenameClose} />
 	}
+	const fileName = app.getFileName(fileId)
 
 	return (
 		<div
@@ -236,10 +237,10 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 		>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
-					{app.getFileName(fileId)} {isOwnFile ? '' : '(Guest)'}
+					{fileName} {isOwnFile ? '' : '(Guest)'}
 				</div>
 			</div>
-			<Link to={getFilePath(fileId)} className={styles.linkButton} />
+			<Link data-testid={fileName} to={getFilePath(fileId)} className={styles.linkButton} />
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
 	)

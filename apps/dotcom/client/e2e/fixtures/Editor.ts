@@ -33,4 +33,13 @@ export class Editor {
 	async isLoaded() {
 		await expect(this.sidebarToggle).toBeVisible()
 	}
+
+	async createRect() {
+		await this.page.getByTestId('tools.rectangle').click()
+		await this.page.locator('.tl-background').click()
+	}
+
+	async getNumberOfShapes() {
+		return (await this.page.$$('.tl-shape')).length
+	}
 }
