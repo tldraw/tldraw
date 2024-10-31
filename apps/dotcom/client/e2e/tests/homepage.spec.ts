@@ -29,14 +29,13 @@ test('sidebar file operations', async ({ editor, page, sidebar, deleteFileDialog
 
 	await test.step('delete the document via the file menu', async () => {
 		const fileLink = await sidebar.getFileLink()
+		const fileName = await fileLink.innerText()
 		await sidebar.openFileMenu(fileLink)
-		const currentCount = await sidebar.getNumberOfFiles()
 		await sidebar.deleteFromFileMenu()
 		await deleteFileDialog.expectIsVisible()
 		await deleteFileDialog.confirmDeletion()
 		await deleteFileDialog.expectIsNotVisible()
-		const newCount = await sidebar.getNumberOfFiles()
-		expect(newCount).toBe(currentCount - 1)
+		await expect(page.getByText(fileName)).not.toBeVisible()
 	})
 
 	await test.step('rename the document via double click', async () => {
