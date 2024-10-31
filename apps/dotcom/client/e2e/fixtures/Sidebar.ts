@@ -42,7 +42,7 @@ export class Sidebar {
 
 	async openFileMenu(fileLink: Locator) {
 		await fileLink?.hover()
-		const button = await fileLink.getByRole('button')
+		const button = fileLink.getByRole('button')
 		await button?.click()
 	}
 
