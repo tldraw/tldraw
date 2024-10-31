@@ -7,7 +7,7 @@ const GoBackLink = () => {
 	const inIframe = isInIframe()
 	return (
 		<Link to={'/'} target={inIframe ? '_blank' : '_self'}>
-			{inIframe ? <F defaultMessage="Open tldraw." /> : <F defaultMessage="Back to tldraw." />}
+			{inIframe ? <F defaultMessage="Open tldraw." /> : <F defaultMessage="Back to blah." />}
 		</Link>
 	)
 }

@@ -13,6 +13,7 @@
 	"scripts": {
 		"dev": "yarn run -T tsx scripts/dev-app.ts",
 		"build": "yarn run -T tsx scripts/build.ts",
+		"build-i18n": "yarn i18n:extract && yarn i18n:compile",
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test-ci": "lazy inherit",

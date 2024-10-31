@@ -2,6 +2,9 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 yarn install --immutable
-npx lazy run build-api
+# npx lazy run build-api
 git add packages/*/api-report.md
+npx lazy run build-i18n
+git add apps/*/locales/*.json
+git add apps/*/locales-compiled/*.json
 npx lint-staged

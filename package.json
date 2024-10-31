@@ -46,6 +46,7 @@
 		"build-docs": "lazy run build --filter 'apps/docs'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
+		"build-i18n": "lazy build-i18n",
 		"build-package": "lazy build-package",
 		"preview-app": "VITE_PREVIEW=1 yarn dev-app",
 		"lint": "lazy lint",
