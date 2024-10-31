@@ -27,6 +27,18 @@ test('can create new document', async ({ editor, sidebar }) => {
 test('sidebar file operations', async ({ editor, page, sidebar, deleteFileDialog }) => {
 	const fileName = Math.random().toString(36).substring(7)
 
+	await test.step('delete the document via the file menu', async () => {
+		const fileLink = await sidebar.getFileLink()
+		await sidebar.openFileMenu(fileLink)
+		const currentCount = await sidebar.getNumberOfFiles()
+		await sidebar.deleteFromFileMenu()
+		await deleteFileDialog.expectIsVisible()
+		await deleteFileDialog.confirmDeletion()
+		await deleteFileDialog.expectIsNotVisible()
+		const newCount = await sidebar.getNumberOfFiles()
+		expect(newCount).toBe(currentCount - 1)
+	})
+
 	await test.step('rename the document via double click', async () => {
 		const initialRandomName = Math.random().toString(36).substring(7)
 		const fileLink = await sidebar.getFileLink()
@@ -58,42 +70,21 @@ test('sidebar file operations', async ({ editor, page, sidebar, deleteFileDialog
 		const copyFileLink = await sidebar.getFileLink(`${fileName} Copy`)
 
 		await originalFileLink.click()
-
 		expect(page.locator('.tl-background')).toBeVisible()
 
-		const inactiveStyle = await sidebar.getAfterElementStyle(
-			page.locator(sidebar.fileLink).filter({ hasText: `${fileName} Copy` }),
-			'background-color'
-		)
-		expect(inactiveStyle).toBe('rgba(9, 11, 12, 0.03)')
+		const copyFileLinkLocator = page
+			.locator(sidebar.fileLink)
+			.filter({ hasText: `${fileName} Copy` })
+		expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(false)
 
 		await page.getByTestId('tools.rectangle').click()
 		await page.locator('.tl-background').click()
 		expect(await editor.getNumberOfShapes()).toBe(1)
 
 		await copyFileLink.click()
-
 		expect(page.locator('.tl-background')).toBeVisible()
-
-		const activeStyle = await sidebar.getAfterElementStyle(
-			page.locator(sidebar.fileLink).filter({ hasText: `${fileName} Copy` }),
-			'background-color'
-		)
-		expect(activeStyle).toBe('rgba(9, 11, 12, 0.043)')
+		expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(true)
 
 		expect(await editor.getNumberOfShapes()).toBe(0)
 	})
-
-	// await test.step('delete the document via the file menu', async () => {
-	// 	await page.waitForTimeout(1000)
-	// 	const fileLink = await sidebar.getFileLink(fileName)
-	// 	await sidebar.openFileMenu(fileLink)
-	// 	const currentCount = await sidebar.getNumberOfFiles()
-	// 	await sidebar.deleteFromFileMenu()
-	// 	await deleteFileDialog.expectIsVisible()
-	// 	await deleteFileDialog.confirmDeletion()
-	// 	await deleteFileDialog.expectIsNotVisible()
-	// 	const newCount = await sidebar.getNumberOfFiles()
-	// 	expect(newCount).toBe(currentCount - 1)
-	// })
 })

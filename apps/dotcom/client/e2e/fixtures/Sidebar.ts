@@ -64,9 +64,15 @@ export class Sidebar {
 	async getNumberOfFiles() {
 		return (await this.page.$$(this.fileLink)).length
 	}
+
 	async getAfterElementStyle(element: Locator, property: string): Promise<string> {
 		return element.evaluate((el, property) => {
 			return window.getComputedStyle(el, '::after').getPropertyValue(property)
 		}, property)
+	}
+
+	async isHinted(fileLink: Locator): Promise<boolean> {
+		const backgroundColor = await this.getAfterElementStyle(fileLink, 'background-color')
+		return backgroundColor === 'rgba(9, 11, 12, 0.043)'
 	}
 }
