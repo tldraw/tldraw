@@ -1,6 +1,6 @@
+import { TlaFile } from '@tldraw/zero-schema'
 import { useCallback } from 'react'
 import { useEditor, useValue } from 'tldraw'
-import { File } from '../../../app/schema'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useRaw } from '../../../hooks/useRaw'
@@ -88,7 +88,7 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 	)
 
 	const handleSelectChange = useCallback(
-		(sharedLinkType: File['sharedLinkType'] | 'no-access') => {
+		(sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') => {
 			app.setFileSharedLinkType(fileId, sharedLinkType)
 		},
 		[app, fileId]

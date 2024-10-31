@@ -1,0 +1,64 @@
+diff --git a/cf/polyfills.js b/cf/polyfills.js
+index 53c5203dd5b057d741d14d708ba83b27751b527c..1d5bc2f0ae79c66e285b4d5e92e054ac50ecf3be 100644
+--- a/cf/polyfills.js
++++ b/cf/polyfills.js
+@@ -139,9 +139,13 @@ function Socket() {
+     write,
+     end,
+     destroy,
+-    read
++    read,
++    pause,
++    resume
+   })
+ 
++  let pauseState = null
++
+   return tcp
+ 
+   async function connect(port, host) {
+@@ -183,6 +187,7 @@ function Socket() {
+     return true
+   }
+ 
++
+   function end(data) {
+     return data
+       ? tcp.write(data, () => tcp.raw.close())
+@@ -198,8 +203,12 @@ function Socket() {
+     try {
+       let done
+         , value
+-      while (({ done, value } = await tcp.reader.read(), !done))
++      while (({ done, value } = await tcp.reader.read(), !done)) {
++        if (pauseState) {
++          await pauseState.promise
++        }
+         tcp.emit('data', Buffer.from(value))
++      }
+     } catch (err) {
+       error(err)
+     }
+@@ -210,6 +219,22 @@ function Socket() {
+     tcp.emit('data', Buffer.from(value))
+   }
+ 
++
++  function pause() {
++    if (pauseState) return
++    pauseState = { }
++    pauseState.promise = new Promise((resolve) => {
++      pauseState.resolve = resolve
++    })
++  }
++  
++  function resume() {
++    if (!pauseState) return
++    const s = pauseState
++    pauseState = null
++    s.resolve()
++  }
++
+   function error(err) {
+     tcp.emit('error', err)
+     tcp.emit('close')

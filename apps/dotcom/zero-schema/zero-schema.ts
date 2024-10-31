@@ -60,7 +60,7 @@ const fileSchema = createTableSchema({
 				field: 'id',
 			},
 		},
-	}
+	},
 })
 
 const fileStateSchema = createTableSchema({
@@ -101,7 +101,7 @@ export const schema = createSchema({
 	},
 })
 
-export type Schema = typeof schema
-export type File = SchemaToRow<typeof fileSchema>
-export type FileState = SchemaToRow<typeof fileStateSchema>
-export type User = SchemaToRow<typeof schema.tables.user>
+export type TlaSchema = typeof schema
+export type TlaFile = SchemaToRow<typeof fileSchema>
+export type TlaFileState = SchemaToRow<typeof fileStateSchema>
+export type TlaUser = SchemaToRow<typeof schema.tables.user>

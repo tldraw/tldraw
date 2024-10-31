@@ -6,6 +6,7 @@ import {
 	UnpublishFileResponseBody,
 } from '@tldraw/dotcom-shared'
 import { Result, assert, fetch, uniqueId } from '@tldraw/utils'
+import { TlaFile, TlaFileState, TlaSchema, TlaUser, schema } from '@tldraw/zero-schema'
 import pick from 'lodash.pick'
 import {
 	Signal,
@@ -19,8 +20,8 @@ import {
 	getUserPreferences,
 	objectMapFromEntries,
 	objectMapKeys,
+	react,
 } from 'tldraw'
-import { File, FileState, Schema, User, schema } from './schema'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
 export const PUBLISH_ENDPOINT = `/api/app/publish`
@@ -28,12 +29,20 @@ export const UNPUBLISH_ENDPOINT = `/api/app/unpublish`
 export const DUPLICATE_ENDPOINT = `/api/app/duplicate`
 export const FILE_ENDPOINT = `/api/app/file`
 
+let appId = 0
+
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: 100,
 	}
 
-	readonly z: Zero<Schema>
+	readonly id = appId++
+
+	readonly z: Zero<TlaSchema>
+
+	private readonly user$: Signal<TlaUser | undefined>
+	private readonly files$: Signal<TlaFile[]>
+	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
 
 	readonly disposables: (() => void)[] = []
 
@@ -45,9 +54,17 @@ export class TldrawApp {
 		const name = query.toString()
 		const val$ = atom(name, view.data)
 		view.addListener((res) => {
-			val$.set(res as any)
+			console.log('update', this.id)
+			val$.set(structuredClone(res) as any)
 		})
-		this.disposables.push(() => view.destroy())
+		react('blah', () => {
+			console.log('get', this.id)
+			val$.get()
+		})
+		this.disposables.push(() => {
+			console.log('destroy', this.id)
+			view.destroy()
+		})
 		return val$
 	}
 
@@ -64,9 +81,15 @@ export class TldrawApp {
 			// the schema. Switch to 'idb' for local-persistence.
 			kvStore: 'mem',
 		})
+
+		this.user$ = this.signalizeQuery(this.z.query.user.where('id', this.userId).one())
+		this.files$ = this.signalizeQuery(this.z.query.file.where('ownerId', this.userId))
+		this.fileStates$ = this.signalizeQuery(
+			this.z.query.file_state.where('userId', this.userId).related('file', (q) => q.one())
+		) as any
 	}
 
-	async preload(initialUserData: User) {
+	async preload(initialUserData: TlaUser) {
 		await this.z.query.user.where('id', this.userId).preload().complete
 		if (!this._getUser().get()) {
 			await this.z.mutate.user.create(initialUserData)
@@ -107,7 +130,7 @@ export class TldrawApp {
 				tx.user.update({
 					...user,
 					// TODO: remove nulls
-					...(others as User),
+					...(others as TlaUser),
 				})
 			})
 		},
@@ -119,30 +142,17 @@ export class TldrawApp {
 	// 	return this.z.query[typeName].run()
 	// }
 
-	@computed
-	private _geUserOwnFiles() {
-		return this.signalizeQuery(this.z.query.file.where('ownerId', this.userId))
-	}
 	getUserOwnFiles() {
-		return this._geUserOwnFiles().get()
+		return this.files$.get()
 	}
 
-	@computed
-	private _getUserFileStates() {
-		return this.signalizeQuery(
-			this.z.query.file_state
-				.where('userId', this.userId)
-				.related('file', (q) => q.one())
-				.orderBy('fileId', 'asc')
-				.orderBy('userId', 'asc')
-		)
-	}
 	getUserFileStates() {
-		return this._getUserFileStates().get()
+		return this.fileStates$.get()
 	}
 
 	lastRecentFileOrdering = null as null | Array<{ fileId: string; date: number }>
 
+	@computed
 	getUserRecentFiles() {
 		const myFiles = objectMapFromEntries(this.getUserOwnFiles().map((f) => [f.id, f]))
 		const myStates = objectMapFromEntries(this.getUserFileStates().map((f) => [f.fileId, f]))
@@ -180,7 +190,7 @@ export class TldrawApp {
 						if (s.file!.ownerId === this.userId) return
 						return s.file
 					})
-					.filter(Boolean) as File[]
+					.filter(Boolean) as TlaFile[]
 			)
 		)
 	}
@@ -192,12 +202,12 @@ export class TldrawApp {
 
 	async createFile(
 		fileId?: string
-	): Promise<Result<{ file: File }, 'max number of files reached'>> {
+	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
 		if (!this.canCreateNewFile()) {
 			return Result.err('max number of files reached')
 		}
 
-		const file: File = {
+		const file: TlaFile = {
 			id: fileId ?? uniqueId(),
 			ownerId: this.userId,
 			isEmpty: true,
@@ -217,7 +227,7 @@ export class TldrawApp {
 		return Result.ok({ file })
 	}
 
-	getFileName(file: File | string | null) {
+	getFileName(file: TlaFile | string | null) {
 		if (typeof file === 'string') {
 			file = this.getFile(file)
 		}
@@ -402,7 +412,7 @@ export class TldrawApp {
 		return Result.ok('success')
 	}
 
-	getFile(fileId: string): File | null {
+	getFile(fileId: string): TlaFile | null {
 		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
 	}
 
@@ -411,11 +421,11 @@ export class TldrawApp {
 		return file && file.ownerId === this.userId
 	}
 
-	requireFile(fileId: string): File {
+	requireFile(fileId: string): TlaFile {
 		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
 	}
 
-	updateFile(fileId: string, cb: (file: File) => File) {
+	updateFile(fileId: string, cb: (file: TlaFile) => TlaFile) {
 		const file = this.requireFile(fileId)
 		this.z.mutate.file.update(cb(file))
 	}
@@ -472,7 +482,7 @@ export class TldrawApp {
 	 */
 	async deleteOrForgetFile(fileId: string, token: string) {
 		// Stash these so that we can restore them later
-		let fileStates: FileState[]
+		let fileStates: TlaFileState[]
 		const file = this.getFile(fileId)
 		if (!file) return Result.err('no file with id ' + fileId)
 
@@ -526,7 +536,7 @@ export class TldrawApp {
 		return Result.ok('success')
 	}
 
-	setFileSharedLinkType(fileId: string, sharedLinkType: File['sharedLinkType'] | 'no-access') {
+	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
 		const file = this.requireFile(fileId)
 
 		if (this.userId !== file.ownerId) {
@@ -540,14 +550,14 @@ export class TldrawApp {
 		this.z.mutate.file.update({ ...file, shared: true, sharedLinkType })
 	}
 
-	updateUser(cb: (user: User) => User) {
+	updateUser(cb: (user: TlaUser) => TlaUser) {
 		const user = this.getUser()
 		this.z.mutate.user.update(cb(user))
 	}
 
 	updateUserExportPreferences(
 		exportPreferences: Partial<
-			Pick<User, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
+			Pick<TlaUser, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
 		>
 	) {
 		this.updateUser((user) => ({
@@ -580,7 +590,7 @@ export class TldrawApp {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
 	}
 
-	updateFileState(fileId: string, cb: (fileState: FileState) => FileState) {
+	updateFileState(fileId: string, cb: (fileState: TlaFileState) => TlaFileState) {
 		const fileState = this.getFileState(fileId)
 		if (!fileState) return
 		// remove relationship because zero complains

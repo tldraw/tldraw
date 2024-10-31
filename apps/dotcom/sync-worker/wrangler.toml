@@ -1,6 +1,7 @@
 main = "src/worker.ts"
-compatibility_date = "2024-06-19"
+compatibility_date = "2024-10-30"
 workers_dev = true
+compatibility_flags=["nodejs_compat"]
 
 [dev]
 port = 8787

@@ -48,3 +48,6 @@ CREATE TABLE "file_state" (
   FOREIGN KEY ("userId") REFERENCES "user" ("id"),
   FOREIGN KEY ("fileId") REFERENCES "file" ("id")
 );
+
+CREATE PUBLICATION alltables FOR ALL TABLES;
+

@@ -5639,6 +5639,43 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rocicorp/zero@file:/Users/davidsheldrick/code/rocicorp/packages/zero/rocicorp-zero-0.4.2024103000+b2617e.tgz::locator=%40tldraw%2Fzero-schema%40workspace%3Aapps%2Fdotcom%2Fzero-schema":
+  version: 0.4.2024103000+b2617e
+  resolution: "@rocicorp/zero@file:/Users/davidsheldrick/code/rocicorp/packages/zero/rocicorp-zero-0.4.2024103000+b2617e.tgz#/Users/davidsheldrick/code/rocicorp/packages/zero/rocicorp-zero-0.4.2024103000+b2617e.tgz::hash=2e611a&locator=%40tldraw%2Fzero-schema%40workspace%3Aapps%2Fdotcom%2Fzero-schema"
+  dependencies:
+    "@badrap/valita": "npm:^0.3.11"
+    "@databases/escape-identifier": "npm:^1.0.3"
+    "@databases/sql": "npm:^3.3.0"
+    "@drdgvhbh/postgres-error-codes": "npm:^0.0.6"
+    "@fastify/cors": "npm:^10.0.0"
+    "@fastify/websocket": "npm:^11.0.0"
+    "@google-cloud/precise-date": "npm:^4.0.0"
+    "@postgresql-typed/oids": "npm:^0.2.0"
+    "@rocicorp/lock": "npm:^1.0.4"
+    "@rocicorp/logger": "npm:^5.3.0"
+    "@rocicorp/resolver": "npm:^1.0.2"
+    better-sqlite3-bedrock: "npm:^1.0.3"
+    compare-utf8: "npm:^0.1.1"
+    dotenv: "npm:^16.4.5"
+    eventemitter3: "npm:^5.0.1"
+    fastify: "npm:^5.0.0"
+    jose: "npm:^5.9.3"
+    json-custom-numbers: "npm:^3.1.1"
+    pg: "npm:^8.11.3"
+    pg-format: "npm:pg-format-fix@^1.0.5"
+    pg-logical-replication: "npm:^2.0.7"
+    postgres: "npm:^3.4.4"
+    postgres-array: "npm:^3.0.2"
+    semver: "npm:^7.5.4"
+    tsx: "npm:^4.19.1"
+    ws: "npm:^8.18.0"
+    xxhash-wasm: "npm:^1.0.2"
+  bin:
+    zero-cache: ./out/zero/src/cli.js
+  checksum: e9406f0c97391277ca4e599852fc744200e95178cb91639103dfbba3638b1c0abe05b8ed2f8236b6f94e83baf06e4a0c840e5a5d8216acf03dcc6dd7e849971e
+  languageName: node
+  linkType: hard
+
 "@rocicorp/zero@npm:^0.4.2024103000":
   version: 0.4.2024103000
   resolution: "@rocicorp/zero@npm:0.4.2024103000"
@@ -7320,10 +7357,12 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@tldraw/worker-shared": "workspace:*"
+    "@tldraw/zero-schema": "workspace:*"
     esbuild: "npm:^0.21.5"
     itty-router: "npm:^5.0.17"
     jose: "npm:^5.9.6"
     lazyrepo: "npm:0.0.0-alpha.27"
+    postgres: "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     typescript: "npm:^5.3.3"
@@ -7634,6 +7673,17 @@ __metadata:
 "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache":
   version: 0.0.0-use.local
   resolution: "@tldraw/zero-cache@workspace:apps/dotcom/zero-cache"
+  dependencies:
+    "@rocicorp/zero": /Users/davidsheldrick/code/rocicorp/packages/zero/rocicorp-zero-0.4.2024103000+b2617e.tgz
+    "@tldraw/zero-schema": "workspace:*"
+    concurrently: "npm:^9.0.1"
+    lazyrepo: "npm:0.0.0-alpha.27"
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/zero-schema@workspace:*, @tldraw/zero-schema@workspace:apps/dotcom/zero-schema":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/zero-schema@workspace:apps/dotcom/zero-schema"
   dependencies:
     "@rocicorp/zero": /Users/davidsheldrick/code/rocicorp/packages/zero/rocicorp-zero-0.4.2024103000+b2617e.tgz
     concurrently: "npm:^9.0.1"
@@ -11940,6 +11990,7 @@ __metadata:
     "@tldraw/sync-core": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
+    "@tldraw/zero-schema": "workspace:*"
     "@types/lodash.pick": "npm:^4.4.9"
     "@types/node": "npm:~20.11"
     "@types/qrcode": "npm:^1.5.0"
@@ -20640,10 +20691,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postgres@npm:^3.4.4":
+"postgres@npm:3.4.5":
   version: 3.4.5
   resolution: "postgres@npm:3.4.5"
   checksum: b51341a8640bd63c42caf2a866c8b6bcac0d4cc1b85985f01eb3fd941eb7bf3fe5200bcf6983eaa1d42ae7555d85f4ff51d35916b5543b95aecfe98b76213611
+  languageName: node
+  linkType: hard
+
+"postgres@patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch":
+  version: 3.4.5
+  resolution: "postgres@patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch::version=3.4.5&hash=9e042f"
+  checksum: d81965029c385b1876d149136e8b5d47d5684b88fc9a7d7a7e38cc548b8b2d5fd2f937f6dab90dab3720127c4a17f4d0a773b924c08458950548aa29d2f032a7
   languageName: node
   linkType: hard
 

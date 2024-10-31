@@ -1,8 +1,8 @@
 import { useAuth } from '@clerk/clerk-react'
+import { TlaFile } from '@tldraw/zero-schema'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor, useToasts } from 'tldraw'
-import { File } from '../../../app/schema'
 import { useApp } from '../../../hooks/useAppState'
 import { useRaw } from '../../../hooks/useRaw'
 import { copyTextToClipboard } from '../../../utils/copy'
@@ -20,7 +20,7 @@ import {
 } from '../../tla-menu/tla-menu'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-export function TlaPublishTab({ file }: { file: File }) {
+export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const raw = useRaw()
 	const { fileSlug } = useParams()
 	const editor = useEditor()

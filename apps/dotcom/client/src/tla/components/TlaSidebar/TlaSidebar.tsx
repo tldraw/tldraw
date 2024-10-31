@@ -144,9 +144,6 @@ function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const { auth } = getLocalSessionState()
-			if (!auth) return false
-
 			return app.getUserRecentFiles()
 		},
 		[app]

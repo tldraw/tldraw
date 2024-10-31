@@ -17,9 +17,10 @@ import {
 	TLSyncRoom,
 	type PersistedRoomSnapshotForSupabase,
 } from '@tldraw/sync-core'
-import { TLRecord, createTLSchema } from '@tldraw/tlschema'
+import { TLDOCUMENT_ID, TLDocument, TLRecord, createTLSchema } from '@tldraw/tlschema'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
+import { TlaFile } from '@tldraw/zero-schema'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
@@ -29,6 +30,7 @@ import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
+import { createSql, listenForFileChanges } from './utils/tla/db'
 import { getAuth } from './utils/tla/getAuth'
 
 const MAX_CONNECTIONS = 50
@@ -58,13 +60,18 @@ export class TLDrawDurableObject extends DurableObject {
 
 	_room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
 
+	_file: TlaFile | null = null
+	_unsubscribe: (() => void) | null = null
+
+	sql = createSql()
+
 	getRoom() {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
 		const slug = this._documentInfo.slug
 		if (!this._room) {
-			this._room = this.loadFromDatabase(slug).then((result) => {
+			this._room = this.loadFromDatabase(slug).then(async (result) => {
 				switch (result.type) {
 					case 'room_found': {
 						const room = new TLSocketRoom<TLRecord, SessionMeta>({
@@ -97,6 +104,7 @@ export class TLDrawDurableObject extends DurableObject {
 								this._room = null
 								this.logEvent({ type: 'room', roomId: slug, name: 'room_empty' })
 								room.close()
+								this._unsubscribe?.()
 							},
 							onDataChange: () => {
 								this.triggerPersistSchedule()
@@ -110,6 +118,24 @@ export class TLDrawDurableObject extends DurableObject {
 								})
 							},
 						})
+						if (this.documentInfo.isApp) {
+							const { file, unsubscribe } = await listenForFileChanges(
+								this.sql,
+								slug,
+								(file, type) => {
+									console.log('CHANGE', file, type)
+									this._file = file
+									if (type === 'delete') {
+										this.appFileRecordDidDelete()
+									} else {
+										this.appFileRecordDidUpdate()
+									}
+								}
+							)
+							this._file = file
+							this._unsubscribe = unsubscribe
+						}
+
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
 						return room
 					}
@@ -282,25 +308,6 @@ export class TLDrawDurableObject extends DurableObject {
 		} finally {
 			this._isRestoring = false
 		}
-	}
-
-	_ownerId: string | null = null
-	async getOwnerId() {
-		if (!this._ownerId) {
-			const slug = this.documentInfo.slug
-			const fileId = slug
-			const row = await this.env.DB.prepare('SELECT record FROM records WHERE id = ?')
-				.bind(fileId)
-				.first()
-
-			if (row) {
-				this._ownerId = JSON.parse(row.record as any).ownerId as string
-				if (typeof this._ownerId !== 'string') {
-					throw new Error('ownerId must be a string')
-				}
-			}
-		}
-		return this._ownerId
 	}
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
@@ -536,69 +543,75 @@ export class TLDrawDurableObject extends DurableObject {
 		await this.scheduler.onAlarm()
 	}
 
-	// async appFileRecordDidUpdate(file: any) {
-	// if (!this._documentInfo) {
-	// 	this.setDocumentInfo({
-	// 		version: CURRENT_DOCUMENT_INFO_VERSION,
-	// 		slug: file.id,
-	// 		isApp: true,
-	// 		isOrWasCreateMode: false,
-	// 	})
-	// }
-	// const room = await this.getRoom()
+	async appFileRecordDidUpdate() {
+		const file = this._file
+		if (!file) {
+			console.error('file record updated but no file found')
+			return
+		}
+		if (!this._documentInfo) {
+			this.setDocumentInfo({
+				version: CURRENT_DOCUMENT_INFO_VERSION,
+				slug: file.id,
+				isApp: true,
+				isOrWasCreateMode: false,
+			})
+		}
+		const room = await this.getRoom()
 
-	// // if the app file record updated, it might mean that the file name changed
-	// const documentRecord = room.getRecord(TLDOCUMENT_ID) as TLDocument
-	// if (documentRecord.name !== file.name) {
-	// 	room.updateStore((store) => {
-	// 		store.put({ ...documentRecord, name: file.name })
-	// 	})
-	// }
+		// if the app file record updated, it might mean that the file name changed
+		const documentRecord = room.getRecord(TLDOCUMENT_ID) as TLDocument
+		if (documentRecord.name !== file.name) {
+			room.updateStore((store) => {
+				store.put({ ...documentRecord, name: file.name })
+			})
+		}
 
-	// // if the app file record updated, it might mean that the sharing state was updated
-	// // in which case we should kick people out or change their permissions
-	// const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
+		// if the app file record updated, it might mean that the sharing state was updated
+		// in which case we should kick people out or change their permissions
+		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
 
-	// for (const session of room.getSessions()) {
-	// 	// allow the owner to stay connected
-	// 	if (session.meta.userId === (await this.getOwnerId())) continue
+		for (const session of room.getSessions()) {
+			// allow the owner to stay connected
+			if (session.meta.userId === this._file?.ownerId) continue
 
-	// 	if (!file.shared) {
-	// 		room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
-	// 	} else if (
-	// 		// if the file is still shared but the readonly state changed, make them reconnect
-	// 		(session.isReadonly && !roomIsReadOnlyForGuests) ||
-	// 		(!session.isReadonly && roomIsReadOnlyForGuests)
-	// 	) {
-	// 		// not passing a reason means they will try to reconnect
-	// 		room.closeSession(session.sessionId)
-	// 	}
-	// }
-	// }
+			if (!file.shared) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			} else if (
+				// if the file is still shared but the readonly state changed, make them reconnect
+				(session.isReadonly && !roomIsReadOnlyForGuests) ||
+				(!session.isReadonly && roomIsReadOnlyForGuests)
+			) {
+				// not passing a reason means they will try to reconnect
+				room.closeSession(session.sessionId)
+			}
+		}
+	}
 
-	// async appFileRecordDidDelete(slug: string) {
-	// 	// force isOrWasCreateMode to be false so next open will check the database
-	// 	this.setDocumentInfo({
-	// 		version: CURRENT_DOCUMENT_INFO_VERSION,
-	// 		slug,
-	// 		isApp: true,
-	// 		isOrWasCreateMode: false,
-	// 	})
+	async appFileRecordDidDelete() {
+		// force isOrWasCreateMode to be false so next open will check the database
+		this.setDocumentInfo({
+			version: CURRENT_DOCUMENT_INFO_VERSION,
+			slug: this.documentInfo.slug,
+			isApp: true,
+			isOrWasCreateMode: false,
+		})
 
-	// 	this.executionQueue.push(async () => {
-	// 		const room = await this.getRoom()
-	// 		for (const session of room.getSessions()) {
-	// 			room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
-	// 		}
-	// 		room.close()
-	// 		// setting _room to null will prevent any further persists from going through
-	// 		this._room = null
-	// 		this._ownerId = null
-	// 		// delete from R2
-	// 		const key = getR2KeyForRoom({ slug, isApp: true })
-	// 		await this.r2.rooms.delete(key)
-	// 	})
-	// }
+		this.executionQueue.push(async () => {
+			const room = await this.getRoom()
+			for (const session of room.getSessions()) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+			}
+			room.close()
+			// setting _room to null will prevent any further persists from going through
+			this._room = null
+			// delete should be handled by the delete endpoint now
+
+			// delete from R2
+			// const key = getR2KeyForRoom({ slug, isApp: true })
+			// await this.r2.rooms.delete(key)
+		})
+	}
 
 	/**
 	 * @internal

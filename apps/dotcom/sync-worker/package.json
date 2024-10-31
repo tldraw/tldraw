@@ -30,8 +30,10 @@
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
+		"@tldraw/zero-schema": "workspace:*",
 		"itty-router": "^5.0.17",
 		"jose": "^5.9.6",
+		"postgres": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},

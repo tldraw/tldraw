@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/zero-cache",
+	"name": "@tldraw/zero-schema",
 	"description": "The production app for tldraw.",
 	"version": "0.0.0",
 	"private": true,
@@ -7,23 +7,19 @@
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
 	},
+	"main": "./zero-schema.ts",
 	"browserslist": [
 		"defaults"
 	],
-	"scripts": {
-		"dev": "concurrently --kill-others 'yarn docker-up' './zero.sh'",
-		"docker-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
-		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
-		"clean": "./clean.sh",
-		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
-	},
 	"type": "module",
 	"dependencies": {
 		"@rocicorp/zero": "/Users/davidsheldrick/code/rocicorp/packages/zero/rocicorp-zero-0.4.2024103000+b2617e.tgz",
-		"@tldraw/zero-schema": "workspace:*",
 		"concurrently": "^9.0.1"
 	},
 	"devDependencies": {
 		"lazyrepo": "0.0.0-alpha.27"
+	},
+	"scripts": {
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	}
 }

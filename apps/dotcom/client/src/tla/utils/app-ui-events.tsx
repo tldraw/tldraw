@@ -1,5 +1,5 @@
+import { TlaUser } from '@tldraw/zero-schema'
 import { ReactNode, createContext, useContext } from 'react'
-import { User } from '../app/schema'
 import { TldrawAppSessionState } from './local-session-state'
 
 /** @public */
@@ -25,15 +25,15 @@ export interface TLAppUiEventMap {
 	'toggle-shared': { shared: boolean }
 	'set-theme': { theme: 'dark' | 'light' | 'auto' }
 	'toggle-export-padding': { padding: boolean }
-	'toggle-export-background': { background: User['exportBackground'] }
-	'set-export-format': { format: User['exportFormat'] }
-	'set-export-theme': { theme: User['exportTheme'] }
+	'toggle-export-background': { background: TlaUser['exportBackground'] }
+	'set-export-format': { format: TlaUser['exportFormat'] }
+	'set-export-theme': { theme: TlaUser['exportTheme'] }
 	'export-image': {
 		fullPage: boolean
-		theme: User['exportTheme']
-		format: User['exportFormat']
-		padding: User['exportPadding']
-		background: User['exportBackground']
+		theme: TlaUser['exportTheme']
+		format: TlaUser['exportFormat']
+		padding: TlaUser['exportPadding']
+		background: TlaUser['exportBackground']
 	}
 }
 

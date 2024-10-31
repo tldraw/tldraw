@@ -1,5 +1,5 @@
+import { TlaUser } from '@tldraw/zero-schema'
 import { atom, getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
-import { User } from '../app/schema'
 
 const STORAGE_KEY = 'tldrawapp_session_3'
 
@@ -21,7 +21,10 @@ export interface TldrawAppSessionState {
 		}
 	}
 	flags: { [key: string]: boolean }
-	exportSettings: Pick<User, 'exportFormat' | 'exportTheme' | 'exportBackground' | 'exportPadding'>
+	exportSettings: Pick<
+		TlaUser,
+		'exportFormat' | 'exportTheme' | 'exportBackground' | 'exportPadding'
+	>
 }
 
 let prev: TldrawAppSessionState = {

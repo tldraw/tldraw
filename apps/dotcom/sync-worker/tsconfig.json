@@ -27,6 +27,9 @@
 		},
 		{
 			"path": "../../../packages/worker-shared"
+		},
+		{
+			"path": "../zero-schema"
 		}
 	]
 }

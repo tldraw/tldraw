@@ -1,6 +1,6 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
-import { assertExists, deleteFromLocalStorage, fetch, getFromLocalStorage } from 'tldraw'
+import { assertExists, deleteFromLocalStorage, fetch, getFromLocalStorage, react } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
@@ -40,8 +40,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			return
 		}
 		let _app: TldrawApp
+		let butts
 
 		// Create the new user
+		let didCancel = false
+		console.log('ok making app')
 		TldrawApp.create({
 			userId: auth.userId,
 			fullName: user.fullName || '',
@@ -49,6 +52,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			avatar: user.imageUrl || '',
 			jwt: zeroJwt,
 		}).then(({ app }) => {
+			console.log('ok got app', app.id)
+			if (didCancel) {
+				app.dispose()
+				return
+			}
 			const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
 			if (claimTemporaryFileId) {
 				deleteFromLocalStorage(TEMPORARY_FILE_KEY)
@@ -56,9 +64,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			}
 			_app = app
 			setApp(app)
+			butts = react('banana', () => {
+				_app.getUserFileStates()
+				console.log('changes', _app.id)
+			})
 		})
 
 		return () => {
+			didCancel = true
+			// butts?.()
 			if (_app) {
 				_app.dispose()
 			}
@@ -69,6 +83,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		// We used to show a Loading... here but it was causing too much flickering.
 		return null
 	}
+
+	console.log('render', app.id)
 
 	return <appContext.Provider value={app}>{children}</appContext.Provider>
 }

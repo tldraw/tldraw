@@ -25,25 +25,7 @@
 	"exclude": ["node_modules", "_archive"],
 	"references": [
 		{
-			"path": "../../../packages/assets"
-		},
-		{
-			"path": "../../../packages/dotcom-shared"
-		},
-		{
-			"path": "../../../packages/sync"
-		},
-		{
-			"path": "../../../packages/sync-core"
-		},
-		{
-			"path": "../../../packages/tldraw"
-		},
-		{
-			"path": "../../../packages/utils"
-		},
-		{
-			"path": "../../../packages/validate"
+			"path": "../zero-schema"
 		}
 	]
 }
