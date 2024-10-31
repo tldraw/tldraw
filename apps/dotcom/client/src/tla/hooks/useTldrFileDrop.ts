@@ -2,7 +2,13 @@ import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { defineMessages, useIntl } from '../app/i18n'
 import { useApp } from './useAppState'
+
+const messages = defineMessages({
+	uploading: { defaultMessage: 'Uploading .tldr {count, plural, one {# file} other {# files}}…' },
+	adding: { defaultMessage: 'Added .tldr {count, plural, one {# file} other {# files}}' },
+})
 
 export function useTldrFileDrop() {
 	const app = useApp()
@@ -12,6 +18,7 @@ export function useTldrFileDrop() {
 	const { addToast, removeToast } = useToasts()
 
 	const auth = useAuth()
+	const intl = useIntl()
 
 	const onDrop = useCallback(
 		async (e: DragEvent) => {
@@ -35,9 +42,14 @@ export function useTldrFileDrop() {
 				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
 				if (!snapshots.length) return
 
+				const uploadingTitle = intl.formatMessage(messages.uploadingTitle, {
+					count: snapshots.length,
+				})
+				const addedTitle = intl.formatMessage(messages.addedTitle, { count: snapshots.length })
+
 				const id = addToast({
 					severity: 'info',
-					title: `Uploading .tldr file${snapshots.length > 1 ? 's' : ''}...`,
+					title: uploadingTitle,
 				})
 
 				await app.createFilesFromTldrFiles(snapshots, token)
@@ -45,12 +57,12 @@ export function useTldrFileDrop() {
 				removeToast(id)
 				addToast({
 					severity: 'success',
-					title: `Added .tldr file${snapshots.length > 1 ? 's' : ''}`,
+					title: addedTitle,
 					keepOpen: true,
 				})
 			}
 		},
-		[app, addToast, removeToast, auth]
+		[app, addToast, removeToast, auth, intl]
 	)
 
 	const onDragOver = useCallback((e: DragEvent) => {
