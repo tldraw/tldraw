@@ -7,6 +7,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { getFilePath } from '../../utils/urls'
 import { TlaAccountMenu } from '../TlaAccountMenu/TlaAccountMenu'
@@ -96,14 +97,16 @@ function TlaSidebarWorkspaceLink() {
 function TlaSidebarCreateFileButton() {
 	const app = useApp()
 	const navigate = useNavigate()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleSidebarCreate = useCallback(() => {
 		const res = app.createFile()
 		if (res.ok) {
 			const { file } = res.value
 			navigate(getFilePath(file.id), { state: { isCreateMode: true } })
+			trackEvent('create-file', { source: 'sidebar' })
 		}
-	}, [app, navigate])
+	}, [app, navigate, trackEvent])
 
 	return (
 		<button className={styles.create} onClick={handleSidebarCreate} data-testid="tla-create-file">
@@ -217,14 +220,16 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const isActive = TldrawAppFileRecordType.createId(fileSlug) === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleRenameAction = () => setIsRenaming(true)
+
 	const handleRenameClose = () => setIsRenaming(false)
 
 	const app = useApp()
 
 	if (isRenaming) {
-		return <TlaRenameInline fileId={fileId} onClose={handleRenameClose} />
+		return <TlaRenameInline source="sidebar" fileId={fileId} onClose={handleRenameClose} />
 	}
 	const fileName = app.getFileName(fileId)
 
@@ -240,15 +245,29 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 					{fileName} {isOwnFile ? '' : '(Guest)'}
 				</div>
 			</div>
-			<Link data-testid={fileName} to={getFilePath(fileId)} className={styles.linkButton} />
+			<Link
+				data-testid={fileName}
+				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
+				to={getFilePath(fileId)}
+				className={styles.linkButton}
+			/>
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
 	)
 }
 
-function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onClose(): void }) {
+function TlaRenameInline({
+	fileId,
+	onClose,
+	source,
+}: {
+	fileId: TldrawAppFile['id']
+	onClose(): void
+	source: TLAppUiEventSource
+}) {
 	const app = useApp()
 	const ref = useRef<HTMLInputElement>(null)
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleSave = useCallback(() => {
 		// rename the file
@@ -262,9 +281,9 @@ function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onC
 			// Only update the name if there is a name there to update
 			app.store.put([{ ...file, name }])
 		}
-
+		trackEvent('rename-file', { name, source })
 		onClose()
-	}, [app, fileId, onClose])
+	}, [app, fileId, onClose, trackEvent, source])
 
 	useEffect(() => {
 		// if clicking away from the input, close the rename and save
@@ -324,12 +343,19 @@ function TlaSidebarFileLinkMenu({
 }
 
 export function TlaSidebarToggle() {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<button
 			className={styles.toggle}
 			data-mobile={false}
 			data-testid="tla-sidebar-toggle"
-			onClick={() => updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))}
+			onClick={() => {
+				updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))
+				trackEvent('sidebar-toggle', {
+					value: getLocalSessionState().isSidebarOpen,
+					source: 'sidebar',
+				})
+			}}
 		>
 			<TlaIcon icon="sidebar" />
 		</button>
@@ -337,14 +363,19 @@ export function TlaSidebarToggle() {
 }
 
 export function TlaSidebarToggleMobile() {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<button
 			className={styles.toggle}
 			data-mobile={true}
 			data-testid="tla-sidebar-toggle-mobile"
-			onClick={() =>
+			onClick={() => {
 				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
-			}
+				trackEvent('sidebar-toggle', {
+					value: getLocalSessionState().isSidebarOpenMobile,
+					source: 'sidebar',
+				})
+			}}
 		>
 			<TlaIcon icon="sidebar" />
 		</button>
