@@ -1,0 +1,7 @@
+.tl-shape.with-padlet-border::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 6px;
+  border: 2px dashed palevioletred;
+}
