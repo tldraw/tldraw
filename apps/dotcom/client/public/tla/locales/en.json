@@ -183,9 +183,6 @@
   "d721757161": {
     "translation": "Theme"
   },
-  "d81a8b6693": {
-    "translation": "Back to blah."
-  },
   "d9776f0775": {
     "translation": "Sign up"
   },
@@ -224,6 +221,9 @@
   },
   "f2a6c498fb": {
     "translation": "Delete"
+  },
+  "f43fb62093": {
+    "translation": "Back to tldraw."
   },
   "f990e553cd": {
     "translation": "Learn more."

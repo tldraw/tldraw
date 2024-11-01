@@ -59,7 +59,9 @@
 		"test": "lazy test",
 		"test-coverage": "lazy test-coverage && node internal/scripts/offer-coverage.mjs",
 		"e2e": "lazy e2e --filter='apps/examples'",
-		"e2e-dotcom": "lazy e2e --filter='apps/dotcom/*'"
+		"e2e-dotcom": "lazy e2e --filter='apps/dotcom/*'",
+		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
+		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts"
 	},
 	"engines": {
 		"npm": ">=7.0.0"
