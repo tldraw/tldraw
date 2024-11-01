@@ -1,3 +1,29 @@
+# v3.3.3 (Fri Nov 01 2024)
+
+### Release Notes
+
+#### drag/drop: followup to accidental img drop pr (#4704) ([#4727](https://github.com/tldraw/tldraw/pull/4727))
+
+- Fix bug with multiple images being created when dropping it onto the canvas.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `@tldraw/store`, `@tldraw/sync-core`
+  - v3.3.3 [#4843](https://github.com/tldraw/tldraw/pull/4843) ([@ds300](https://github.com/ds300))
+- `@tldraw/editor`
+  - drag/drop: followup to accidental img drop pr (#4704) [#4727](https://github.com/tldraw/tldraw/pull/4727) ([@mimecuvalo](https://github.com/mimecuvalo))
+  - [fix] Meta key bug (#4701) [#4703](https://github.com/tldraw/tldraw/pull/4703) ([@steveruizok](https://github.com/steveruizok) [@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 3
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.3.2 (Fri Oct 18 2024)
 
 ### Release Notes

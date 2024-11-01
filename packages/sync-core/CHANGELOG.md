@@ -1,3 +1,17 @@
+# v3.3.3 (Fri Nov 01 2024)
+
+#### 🐛 Bug Fix
+
+- v3.3.3 [#4843](https://github.com/tldraw/tldraw/pull/4843) ([@ds300](https://github.com/ds300))
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+
+#### Authors: 2
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.3.0 (Wed Oct 09 2024)
 
 ### Release Notes
