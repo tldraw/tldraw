@@ -82,17 +82,28 @@ export function TlaFileMenu({
 	const fileItems = (
 		<>
 			<TldrawUiMenuGroup id="file-actions">
-				{/* todo: in published rooms, support copying link */}
-				<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
-				{isOwner && <TldrawUiMenuItem label="Rename" id="copy-link" onSelect={onRenameAction} />}
-				{/* todo: in published rooms, support duplication / forking */}
-				<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
+				<TldrawUiMenuItem
+					label="Copy link"
+					id="copy-link"
+					readonlyOk
+					onSelect={handleCopyLinkClick}
+				/>
+				{isOwner && (
+					<TldrawUiMenuItem label="Rename" id="copy-link" readonlyOk onSelect={onRenameAction} />
+				)}
+				<TldrawUiMenuItem
+					label="Duplicate"
+					id="copy-link"
+					readonlyOk
+					onSelect={handleDuplicateClick}
+				/>
 				{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				<TldrawUiMenuItem
 					label={isOwner ? 'Delete' : 'Forget'}
 					id="delete"
+					readonlyOk
 					onSelect={handleDeleteClick}
 				/>
 			</TldrawUiMenuGroup>
