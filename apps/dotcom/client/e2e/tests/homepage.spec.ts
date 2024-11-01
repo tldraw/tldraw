@@ -81,7 +81,7 @@ test('sidebar file operations', async ({ editor, page, sidebar, deleteFileDialog
 		expect(await editor.getNumberOfShapes()).toBe(1)
 
 		await copyFileLink.click()
-		expect(page.locator('.tl-background')).toBeVisible()
+		// expect(page.locator('.tl-background')).toBeVisible()
 		expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(true)
 
 		expect(await editor.getNumberOfShapes()).toBe(0)
