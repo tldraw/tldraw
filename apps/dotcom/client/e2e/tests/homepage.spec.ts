@@ -65,26 +65,26 @@ test('sidebar file operations', async ({ editor, page, sidebar, deleteFileDialog
 	})
 
 	// todo: turn this back on after optimistic update fixes
-	test.skip('switch between files', async () => {
-		const originalFileLink = await sidebar.getFileLink(fileName)
-		const copyFileLink = await sidebar.getFileLink(`${fileName} Copy`)
+	// test('switch between files', async () => {
+	// 	const originalFileLink = await sidebar.getFileLink(fileName)
+	// 	const copyFileLink = await sidebar.getFileLink(`${fileName} Copy`)
 
-		await originalFileLink.click()
-		expect(page.locator('.tl-background')).toBeVisible()
+	// 	await originalFileLink.click()
+	// 	expect(page.locator('.tl-background')).toBeVisible()
 
-		const copyFileLinkLocator = page
-			.locator(sidebar.fileLink)
-			.filter({ hasText: `${fileName} Copy` })
-		expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(false)
+	// 	const copyFileLinkLocator = page
+	// 		.locator(sidebar.fileLink)
+	// 		.filter({ hasText: `${fileName} Copy` })
+	// 	expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(false)
 
-		await page.getByTestId('tools.rectangle').click()
-		await page.locator('.tl-background').click()
-		expect(await editor.getNumberOfShapes()).toBe(1)
+	// 	await page.getByTestId('tools.rectangle').click()
+	// 	await page.locator('.tl-background').click()
+	// 	expect(await editor.getNumberOfShapes()).toBe(1)
 
-		await copyFileLink.click()
-		expect(page.locator('.tl-background')).toBeVisible()
-		expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(true)
+	// 	await copyFileLink.click()
+	// 	expect(page.locator('.tl-background')).toBeVisible()
+	// 	expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(true)
 
-		expect(await editor.getNumberOfShapes()).toBe(0)
-	})
+	// 	expect(await editor.getNumberOfShapes()).toBe(0)
+	// })
 })
