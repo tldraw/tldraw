@@ -99,12 +99,14 @@ export function TlaFileMenu({
 				<TldrawUiMenuItem
 					label={intl.formatMessage(messages.copyLink)}
 					id="copy-link"
+					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
 				{isOwner && (
 					<TldrawUiMenuItem
 						label={intl.formatMessage(messages.rename)}
 						id="copy-link"
+						readonlyOk
 						onSelect={onRenameAction}
 					/>
 				)}
@@ -112,9 +114,10 @@ export function TlaFileMenu({
 				<TldrawUiMenuItem
 					label={intl.formatMessage(messages.duplicate)}
 					id="copy-link"
+					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
-				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.star)} id="copy-link" onSelect={handleStarLinkClick} /> */}
+				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.star)} id="copy-link" readonlyOk onSelect={handleStarLinkClick} /> */}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				<TldrawUiMenuItem
@@ -122,6 +125,7 @@ export function TlaFileMenu({
 						isOwner ? intl.formatMessage(messages.delete) : intl.formatMessage(messages.forget)
 					}
 					id="delete"
+					readonlyOk
 					onSelect={handleDeleteClick}
 				/>
 			</TldrawUiMenuGroup>
