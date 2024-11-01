@@ -690,6 +690,7 @@ export const defaultTldrawOptions: {
     readonly collaboratorCheckIntervalMs: 1200;
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
+    readonly createTextOnCanvasDoubleClick: true;
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
@@ -2766,6 +2767,8 @@ export interface TldrawOptions {
     readonly collaboratorIdleTimeoutMs: number;
     // (undocumented)
     readonly collaboratorInactiveTimeoutMs: number;
+    // (undocumented)
+    readonly createTextOnCanvasDoubleClick: boolean;
     // (undocumented)
     readonly defaultSvgPadding: number;
     // (undocumented)

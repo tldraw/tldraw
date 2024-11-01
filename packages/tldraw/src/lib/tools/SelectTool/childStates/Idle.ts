@@ -562,6 +562,8 @@ export class Idle extends StateNode {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getIsReadonly()) return
 
+		if (!this.editor.options.createTextOnCanvasDoubleClick) return
+
 		this.editor.markHistoryStoppingPoint('creating text shape')
 
 		const id = createShapeId()
