@@ -24,7 +24,7 @@ test('can create new document', async ({ editor, sidebar }) => {
 	expect(newCount).toBe(currentCount + 1)
 })
 
-test('sidebar file operations', async ({ editor, page, sidebar, deleteFileDialog }) => {
+test('sidebar file operations', async ({ page, sidebar, deleteFileDialog }) => {
 	const fileName = Math.random().toString(36).substring(7)
 
 	await test.step('delete the document via the file menu', async () => {
