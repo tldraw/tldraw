@@ -67,6 +67,7 @@ export function TlaAccountMenu({
 							<TldrawUiMenuItem
 								id="sign-out"
 								label={intl.formatMessage(messages.signOut)}
+								readonlyOk
 								onSelect={handleSignout}
 							/>
 						</TldrawUiMenuGroup>
