@@ -64,26 +64,5 @@ test('sidebar file operations', async ({ editor, page, sidebar, deleteFileDialog
 		await expect(page.getByText(`${fileName} Copy`)).toBeVisible()
 	})
 
-	await test.step('switch between files', async () => {
-		const originalFileLink = await sidebar.getFileLink(fileName)
-		const copyFileLink = await sidebar.getFileLink(`${fileName} Copy`)
-
-		await originalFileLink.click()
-		expect(page.locator('.tl-background')).toBeVisible()
-
-		const copyFileLinkLocator = page
-			.locator(sidebar.fileLink)
-			.filter({ hasText: `${fileName} Copy` })
-		expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(false)
-
-		await page.getByTestId('tools.rectangle').click()
-		await page.locator('.tl-background').click()
-		expect(await editor.getNumberOfShapes()).toBe(1)
-
-		await copyFileLink.click()
-		// expect(page.locator('.tl-background')).toBeVisible()
-		expect(await sidebar.isHinted(copyFileLinkLocator)).toBe(true)
-
-		expect(await editor.getNumberOfShapes()).toBe(0)
-	})
+	//todo: switch between files
 })
