@@ -5,7 +5,7 @@ import {
 	PublishFileResponseBody,
 	UnpublishFileResponseBody,
 } from '@tldraw/dotcom-shared'
-import { Result, assert, fetch, uniqueId } from '@tldraw/utils'
+import { Result, assert, fetch, structuredClone, uniqueId } from '@tldraw/utils'
 import { TlaFile, TlaFileState, TlaSchema, TlaUser, schema } from '@tldraw/zero-schema'
 import pick from 'lodash.pick'
 import {
@@ -54,15 +54,12 @@ export class TldrawApp {
 		const name = query.toString()
 		const val$ = atom(name, view.data)
 		view.addListener((res) => {
-			console.log('update', this.id)
 			val$.set(structuredClone(res) as any)
 		})
 		react('blah', () => {
-			console.log('get', this.id)
 			val$.get()
 		})
 		this.disposables.push(() => {
-			console.log('destroy', this.id)
 			view.destroy()
 		})
 		return val$
@@ -91,10 +88,10 @@ export class TldrawApp {
 
 	async preload(initialUserData: TlaUser) {
 		await this.z.query.user.where('id', this.userId).preload().complete
-		if (!this._getUser().get()) {
+		if (!this.user$.get()) {
 			await this.z.mutate.user.create(initialUserData)
 		}
-		if (!this._getUser().get()) {
+		if (!this.user$.get()) {
 			throw Error('could not create user')
 		}
 		await this.z.query.file_state.where('userId', this.userId).preload().complete
@@ -106,13 +103,8 @@ export class TldrawApp {
 		// this.store.dispose()
 	}
 
-	@computed
-	private _getUser() {
-		return this.signalizeQuery(this.z.query.user.where('id', this.userId).one())
-	}
-
 	getUser() {
-		return assertExists(this._getUser().get(), 'no user')
+		return assertExists(this.user$.get(), 'no user')
 	}
 
 	tlUser = createTLUser({
@@ -222,7 +214,7 @@ export class TldrawApp {
 			updatedAt: Date.now(),
 		}
 
-		await this.z.mutate.file.create(file)
+		await this.z.mutate.file.update(file)
 
 		return Result.ok({ file })
 	}
