@@ -391,7 +391,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
-			this.store.ensureStoreIsUsable()
 			this.onAfterConnect?.(this, { isReadonly: event.isReadonly })
 		})
 
@@ -645,7 +644,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					this.resetConnection()
 				}
 			})
-			this.store.ensureStoreIsUsable()
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
 		} catch (e) {
 			console.error(e)
