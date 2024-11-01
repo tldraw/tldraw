@@ -23,8 +23,10 @@ export function TlaMenuControl({ children }: { children: ReactNode }) {
 export function TlaMenuControlInfoTooltip({
 	href,
 	children,
+	onClick,
 }: {
 	href?: string
+	onClick?(): void
 	children: ReactNode
 }) {
 	const container = useContainer()
@@ -34,6 +36,7 @@ export function TlaMenuControlInfoTooltip({
 				<TooltipPrimitive.Trigger dir="ltr" asChild>
 					{href ? (
 						<a
+							onClick={onClick}
 							href={href}
 							target="_blank nofollow noreferrer"
 							className={classNames('tlui-button tlui-button__icon', styles.info)}

@@ -2,6 +2,7 @@ import { forwardRef, useRef } from 'react'
 import { PeopleMenu, usePassThroughWheelEvents, useTranslation } from 'tldraw'
 import { ShareButtonProps } from '../../../components/ShareButton'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import styles from './top.module.css'
 
@@ -29,6 +30,7 @@ export const ShareButton = forwardRef<HTMLButtonElement, ShareButtonProps>(funct
 	const msg = useTranslation()
 	const titleStr = msg(title)
 	const labelStr = msg(label)
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<button
 			ref={ref}
@@ -37,6 +39,7 @@ export const ShareButton = forwardRef<HTMLButtonElement, ShareButtonProps>(funct
 			title={titleStr}
 			className="tlui-share-zone__button-wrapper"
 			{...props}
+			onClick={() => trackEvent('open-share-menu', { source: 'file-header' })}
 		>
 			<div className="tlui-button tlui-button__normal tlui-share-zone__button">
 				<span className="tlui-button__label" draggable={false}>

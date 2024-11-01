@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import { expect } from './tla-test'
 
 export class Sidebar {
+	public readonly fileLink = '[data-element="file-link"]'
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
 	constructor(public readonly page: Page) {
@@ -27,5 +28,9 @@ export class Sidebar {
 
 	async createNewDocument() {
 		await this.createFileButton.click()
+	}
+
+	async getNumberOfFiles() {
+		return (await this.page.$$(this.fileLink)).length
 	}
 }

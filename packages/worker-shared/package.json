@@ -15,7 +15,7 @@
 		"itty-router": "^5.0.17",
 		"lazyrepo": "0.0.0-alpha.27",
 		"toucan-js": "^3.4.0",
-		"typescript": "^5.3.3"
+		"typescript": "~5.4.2"
 	},
 	"scripts": {
 		"test-ci": "lazy inherit",

@@ -42,6 +42,11 @@ export async function publishFile(request: IRequest, env: Environment): Promise<
 			getR2KeyForRoom({ slug: `${roomId}/${file.publishedSlug}`, isApp: true }),
 			serializedSnapshot
 		)
+		const currentTime = new Date().toISOString()
+		await env.ROOM_SNAPSHOTS.put(
+			getR2KeyForRoom({ slug: `${roomId}/${file.publishedSlug}|${currentTime}`, isApp: true }),
+			serializedSnapshot
+		)
 
 		return new Response(JSON.stringify({ error: false }))
 	} catch (e: any) {
