@@ -9,15 +9,13 @@ async function i18nDownloadStrings() {
 	console.log('Downloading files...')
 
 	const lokaliseApi = new LokaliseApi({ apiKey: process.env.LOKALISE_API_KEY })
-	const downloadResult = await lokaliseApi
-		.files()
-		.download(projectId, {
-			format: 'json_structured',
-			original_filenames: true,
-			include_comments: true,
-			include_description: true,
-			export_empty_as: 'skip',
-		})
+	const downloadResult = await lokaliseApi.files().download(projectId, {
+		format: 'json_structured',
+		original_filenames: true,
+		include_comments: true,
+		include_description: true,
+		export_empty_as: 'skip',
+	})
 
 	if (downloadResult.bundle_url) {
 		const bundleZip = await fetch(downloadResult.bundle_url)

@@ -24,7 +24,7 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Download i18n strings
-        run: "yarn i18n-download-strings"
+        run: 'yarn i18n-download-strings'
         env:
           LOKALISE_API_TOKEN: ${{ secrets.LOKALISE_API_TOKEN }}
           LOKALISE_PROJECT_ID: ${{ secrets.LOKALISE_PROJECT_ID }}

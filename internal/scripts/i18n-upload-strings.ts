@@ -9,15 +9,13 @@ async function i18nUploadStrings() {
 	console.log('Uploading files...')
 
 	const lokaliseApi = new LokaliseApi({ apiKey: process.env.LOKALISE_API_KEY })
-	const uploadResult = await lokaliseApi
-		.files()
-		.upload(projectId, {
-			data: Buffer.from(file).toString('base64'),
-			filename: 'en.json',
-			lang_iso: 'en',
-			detect_icu_plurals: true,
-			cleanup_mode: true,
-		})
+	const uploadResult = await lokaliseApi.files().upload(projectId, {
+		data: Buffer.from(file).toString('base64'),
+		filename: 'en.json',
+		lang_iso: 'en',
+		detect_icu_plurals: true,
+		cleanup_mode: true,
+	})
 
 	if (uploadResult.status === 'queued') {
 		console.log('Uploaded files successfully!')
