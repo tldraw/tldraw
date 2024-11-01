@@ -1,34 +1,77 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
 	<head>
 		<meta charset="UTF-8" />
 
 		<link rel="manifest" href="/manifest.webmanifest" />
+		<link rel="canonical" href="https://www.tldraw.com/" />
+		<meta
+			name="keywords"
+			content="whiteboard, canvas, collaborative whiteboard, online drawing, team collaboration tool, free whiteboard app"
+		/>
+		<script type="application/ld+json">
+			{
+				"@context": "https://schema.org",
+				"@type": "SoftwareApplication",
+				"name": "tldraw",
+				"url": "https://www.tldraw.com/",
+				"applicationCategory": "BusinessApplication",
+				"operatingSystem": "WEB",
+				"description": "A free and instant collaborative whiteboarding tool.",
+				"creator": {
+					"@type": "Organization",
+					"name": "tldraw"
+				}
+			}
+		</script>
+		<style>
+			#root {
+				position: relative;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
 
+			.visually-hidden {
+				position: absolute !important;
+				clip: rect(1px, 1px, 1px, 1px);
+				height: 1px;
+				width: 1px;
+				overflow: hidden;
+				white-space: nowrap;
+				pointer-events: none;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+		</style>
 		<meta name="referrer" content="strict-origin-when-cross-origin" />
 		<meta name="theme-color" content="#FFFFFF" data-rh="true" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="application-name" content="tldraw" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.svg" />
+		<link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167x167.svg" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.svg" />
+
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 		<meta name="apple-mobile-web-app-title" content="tldraw" />
 
+		<meta name="application-name" content="tldraw" />
+		<meta name="title" content="tldraw" />
 		<meta name="description" content="A free and instant collaborative whiteboarding tool." />
+		<meta name="image" content="https://www.tldraw.com/social-twitter.png" />
+
 		<meta name="format-detection" content="telephone=no" />
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="msapplication-config" content="browserconfig.xml" />
 		<meta name="msapplication-TileColor" content="#FFFFFF" />
 		<meta name="msapplication-tap-highlight" content="no" />
 
-		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-		<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.svg" />
-		<link rel="apple-touch-icon" sizes="167x167" href="/apple-touch-icon-167x167.svg" />
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.svg" />
-
 		<!-- $PRELOADED_FONTS -->
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 
 		<meta name="twitter:card" content="summary" />
 		<meta name="twitter:url" content="https://www.tldraw.com/" />
@@ -38,6 +81,7 @@
 			content="A free and instant collaborative whiteboarding tool."
 		/>
 		<meta name="twitter:image" content="https://www.tldraw.com/social-twitter.png" />
+		<meta name="twitter:image:alt" content="A collaborative whiteboarding tool interface" />
 		<meta name="twitter:creator" content="@tldraw" />
 		<meta property="og:type" content="website" />
 		<meta property="og:title" content="tldraw" />
@@ -48,12 +92,18 @@
 		<meta property="og:site_name" content="tldraw" />
 		<meta property="og:url" content="https://www.tldraw.com/" />
 		<meta property="og:image" content="https://www.tldraw.com/social-og.png" />
+		<meta property="og:image:alt" content="A collaborative whiteboarding tool interface" />
+
 		<title>tldraw</title>
 	</head>
 
 	<body>
-		<div id="root" class="site-wrapper"></div>
-		<script type="module" src="./src/main.tsx"></script>
 		<noscript>You need to enable JavaScript to run tldraw. ✌️</noscript>
+		<header>
+			<h1 class="visually-hidden">tldraw</h1>
+			<p class="visually-hidden">A free and instant collaborative whiteboarding tool.</p>
+		</header>
+		<div id="root"></div>
+		<script type="module" src="./src/main.tsx"></script>
 	</body>
 </html>
