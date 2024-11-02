@@ -1,6 +1,3 @@
-/* NB: If we did position: fixed, Safari on iOS 18 and MacOS 15 would
- * have several rendering issues. This must stay position: absolute. 
- */
 .tldraw__editor {
 	height: 100%;
 	position: relative;
