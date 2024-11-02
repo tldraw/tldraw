@@ -52,38 +52,6 @@ todo('can delete a file', async () => {
 	// ...
 })
 
-// Share menu
-
-todo('can share a file', async () => {
-	// ...
-})
-
-todo('can unshare a file', async () => {
-	// ...
-})
-
-todo('can copy a file link', async () => {
-	// ...
-})
-
-// Publish menu
-
-todo('can publish a file', async () => {
-	// ...
-})
-
-todo('can unpublish a file', async () => {
-	// ...
-})
-
-todo('can copy a published file link', async () => {
-	// ...
-})
-
-todo('can publish changes', async () => {
-	// ...
-})
-
 // Menu bar
 
 todo('can rename a file name by clicking the name', async () => {
