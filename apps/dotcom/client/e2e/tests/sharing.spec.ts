@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test'
 import { ShareMenu } from '../fixtures/ShareMenu'
 import { openNewIncognitoPage } from '../fixtures/helpers'
-import { expect, test, todo } from '../fixtures/tla-test'
+import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ homePage, context }) => {
 	await homePage.goto()
@@ -49,7 +49,7 @@ test('can unshare a file', async ({ page, browser, shareMenu }) => {
 	await newContext.close()
 })
 
-todo('can copy a shared file link', async () => {
+test.fixme('can copy a shared file link', async () => {
 	// ...
 })
 
@@ -107,6 +107,6 @@ test('can update published file', async ({ page, browser, editor, shareMenu }) =
 	await newContext.close()
 })
 
-todo('can copy a published file link', async () => {
+test.fixme('can copy a published file link', async () => {
 	// ...
 })

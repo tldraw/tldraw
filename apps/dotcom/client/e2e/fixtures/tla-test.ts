@@ -32,6 +32,3 @@ export const test = base.extend<TlaFixtures>({
 })
 
 export { expect } from '@playwright/test'
-
-const { fixme } = base
-export const todo = fixme
