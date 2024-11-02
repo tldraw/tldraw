@@ -697,6 +697,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			transact(fn)
 		} finally {
 			this.isMergingRemoteChanges = false
+			this.ensureStoreIsUsable()
 		}
 	}
 
