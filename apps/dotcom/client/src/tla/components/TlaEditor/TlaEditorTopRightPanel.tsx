@@ -21,7 +21,7 @@ export function TlaEditorTopRightPanel() {
 	)
 }
 
-// todo, move styles from z-board.css to top.module.css
+// todo, move styles from globals.css to top.module.css
 
 export const ShareButton = forwardRef<HTMLButtonElement, ShareButtonProps>(function ShareButton(
 	{ label, title, ...props },
