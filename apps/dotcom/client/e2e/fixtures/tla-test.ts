@@ -13,8 +13,6 @@ interface TlaFixtures {
 	database: Database
 }
 
-export const todo = base.fixme
-
 export const test = base.extend<TlaFixtures>({
 	sidebar: async ({ page }, testUse) => {
 		testUse(new Sidebar(page))
@@ -34,3 +32,6 @@ export const test = base.extend<TlaFixtures>({
 })
 
 export { expect } from '@playwright/test'
+
+const { fixme } = base
+export const todo = fixme
