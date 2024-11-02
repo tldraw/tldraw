@@ -34,10 +34,6 @@ todo('can toggle dark mode', async () => {
 	// ...
 })
 
-todo('can toggle dark mode', async () => {
-	// ...
-})
-
 // File menu in sidebar
 
 todo('can duplicate a file', async () => {
