@@ -44,7 +44,7 @@ todo('can duplicate a file', async () => {
 	// ...
 })
 
-todo('can copy a file link', async () => {
+todo('can copy a file link from the file menu', async () => {
 	// ...
 })
 
