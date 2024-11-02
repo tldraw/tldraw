@@ -26,6 +26,10 @@ async function shareFileAndCopyLink(
 	return await handle.jsonValue()
 }
 
+test('can even work at all', async ({ page, browser, shareMenu }) => {
+	expect(true).toBe(true)
+})
+
 test('can share a file', async ({ page, browser, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
 	const { newContext, newPage, newHomePage } = await openNewIncognitoPage(browser, url)

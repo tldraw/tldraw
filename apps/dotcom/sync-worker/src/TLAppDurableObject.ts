@@ -117,40 +117,45 @@ export class TLAppDurableObject extends DurableObject {
 	// Get (or create) the TLSyncRoom instance
 	private getRoom() {
 		if (!this._room) {
-			this._room = this.loadFromDatabase().then((result) => {
-				switch (result.type) {
-					case 'snapshot_found': {
-						this._lastPersistedClock = result.snapshot.clock
-						const room = new TLSocketRoom<any>({
-							initialSnapshot: result.snapshot,
-							schema: tldrawAppSchema,
-							onSessionRemoved: async (room, args) => {
-								if (args.numSessionsRemaining > 0) return
-								if (!this._room) return
-								try {
-									await this.persistToDatabase()
-								} catch {
-									// already logged
-								}
-								// make sure nobody joined the room while we were persisting
-								if (room.getNumActiveSessions() > 0) return
-								this._room = null
-								room.close()
-							},
-							onDataChange: () => {
-								this.triggerPersistSchedule()
-							},
-						})
-						return room
+			try {
+				this._room = this.loadFromDatabase().then((result) => {
+					switch (result.type) {
+						case 'snapshot_found': {
+							this._lastPersistedClock = result.snapshot.clock
+							const room = new TLSocketRoom<any>({
+								initialSnapshot: result.snapshot,
+								schema: tldrawAppSchema,
+								onSessionRemoved: async (room, args) => {
+									if (args.numSessionsRemaining > 0) return
+									if (!this._room) return
+									try {
+										await this.persistToDatabase()
+									} catch {
+										// already logged
+									}
+									// make sure nobody joined the room while we were persisting
+									if (room.getNumActiveSessions() > 0) return
+									this._room = null
+									room.close()
+								},
+								onDataChange: () => {
+									this.triggerPersistSchedule()
+								},
+							})
+							return room
+						}
+						case 'error': {
+							throw result.error
+						}
+						default: {
+							exhaustiveSwitchError(result)
+						}
 					}
-					case 'error': {
-						throw result.error
-					}
-					default: {
-						exhaustiveSwitchError(result)
-					}
-				}
-			})
+				})
+			} catch (e: any) {
+				console.log(e.message)
+				throw Error('failed to load room')
+			}
 		}
 		return this._room
 	}
