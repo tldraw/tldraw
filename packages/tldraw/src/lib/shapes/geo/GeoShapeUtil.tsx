@@ -2,6 +2,7 @@
 import {
 	BaseBoxShapeUtil,
 	Box,
+	BoxModel,
 	Editor,
 	Ellipse2d,
 	Geometry2d,
@@ -321,7 +322,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		const unscaledlabelSize = getUnscaledLabelSize(this.editor, shape)
 		// unscaled w and h
 		const unscaledW = w / shape.props.scale
 		const unscaledH = h / shape.props.scale
@@ -331,6 +331,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			unscaledH / 2
 		)
 
+		const unscaledlabelSize = getUnscaledLabelSize(this.editor, shape)
 		const unscaledLabelWidth = Math.min(
 			unscaledW,
 			Math.max(unscaledlabelSize.w, Math.min(unscaledminWidth, Math.max(1, unscaledW - 8)))
@@ -339,8 +340,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			unscaledH,
 			Math.max(unscaledlabelSize.h, Math.min(unscaledMinHeight, Math.max(1, unscaledH - 8)))
 		)
-
-		// not sure if bug
 
 		const lines = getLines(shape.props, STROKE_SIZES[shape.props.size] * shape.props.scale)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
@@ -451,12 +450,15 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			[editor]
 		)
 
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+		const labelSize = geometry.children.find((c) => c.isLabel)?.bounds
+
 		return (
 			<>
 				<SVGContainer>
 					<GeoShapeBody shape={shape} shouldScale={true} forceSolid={isForceSolid} />
 				</SVGContainer>
-				{showHtmlContainer && (
+				{showHtmlContainer && labelSize && (
 					<HTMLContainer
 						style={{
 							overflow: 'hidden',
@@ -477,6 +479,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							text={text}
 							isSelected={isOnlySelected}
 							labelColor={theme[props.labelColor].solid}
+							textWidth={Math.ceil(labelSize.w - LABEL_PADDING * 2 * shape.props.scale)}
+							textHeight={Math.ceil(labelSize.h - LABEL_PADDING * 2 * shape.props.scale)}
 							wrap
 						/>
 					</HTMLContainer>
@@ -848,6 +852,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 }
 
+const scaledLabelSizes: Record<
+	string,
+	Record<
+		string,
+		BoxModel & {
+			scrollWidth: number
+		}
+	>
+> = {}
+
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { text, font, size, w } = shape.props
 
@@ -855,19 +869,18 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 		return { w: 0, h: 0 }
 	}
 
-	const minSize = editor.textMeasure.measureText('w', {
-		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font],
-		fontSize: LABEL_FONT_SIZES[size],
-		maxWidth: 100, // ?
-	})
-
-	// TODO: Can I get these from somewhere?
-	const sizes = {
-		s: 2,
-		m: 3.5,
-		l: 5,
-		xl: 10,
+	let minSize = scaledLabelSizes[font]?.[size]
+	if (!minSize) {
+		if (!scaledLabelSizes[font]) {
+			scaledLabelSizes[font] = {}
+		}
+		minSize = editor.textMeasure.measureText('W', {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[font],
+			fontSize: LABEL_FONT_SIZES[size],
+			maxWidth: 100, // ?
+		})
+		scaledLabelSizes[font][size] = minSize
 	}
 
 	const textSize = editor.textMeasure.measureText(text, {
@@ -875,13 +888,15 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: LABEL_FONT_SIZES[size],
 		minWidth: minSize.w,
-		maxWidth: Math.max(
-			// Guard because a DOM nodes can't be less 0
-			0,
-			// A 'w' width that we're setting as the min-width
-			Math.ceil(minSize.w + sizes[size]),
-			// The actual text size
-			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
+		maxWidth: Math.ceil(
+			Math.max(
+				// Guard because a DOM nodes can't be less 0
+				0,
+				// A 'w' width that we're setting as the min-width
+				Math.ceil(minSize.w), // + sizes[size]),
+				// The actual text size
+				Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
+			)
 		),
 	})
 
