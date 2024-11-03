@@ -222,8 +222,6 @@ export class TextManager {
 			spans.push(currentSpan)
 		}
 
-		console.log(spans)
-
 		return { spans, didTruncate }
 	}
 
