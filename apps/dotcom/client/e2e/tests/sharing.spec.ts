@@ -13,6 +13,8 @@ test.afterEach(async ({ database }) => {
 	await database.reset()
 })
 
+/* --------------------- Sharing -------------------- */
+
 async function shareFileAndCopyLink(
 	page: Page,
 	shareMenu: ShareMenu,
@@ -46,6 +48,12 @@ test('can unshare a file', async ({ page, browser, shareMenu }) => {
 	await errorPage.expectPrivateFileVisible()
 	await newContext.close()
 })
+
+test.fixme('can copy a shared file link', async () => {
+	// ...
+})
+
+/* ------------------- Publishing ------------------- */
 
 test('can publish a file', async ({ page, browser, shareMenu }) => {
 	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
@@ -97,4 +105,8 @@ test('can update published file', async ({ page, browser, editor, shareMenu }) =
 	await newHomePage.isLoaded()
 	expect(await newEditor.getNumberOfShapes()).toBe(2)
 	await newContext.close()
+})
+
+test.fixme('can copy a published file link', async () => {
+	// ...
 })
