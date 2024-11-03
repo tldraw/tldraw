@@ -58,6 +58,7 @@ export interface TldrawOptions {
 	 */
 	readonly temporaryAssetPreviewLifetimeMs: number
 	readonly actionShortcutsLocation: 'menu' | 'toolbar' | 'swap'
+	readonly createTextOnCanvasDoubleClick: boolean
 }
 
 /** @public */
@@ -101,4 +102,5 @@ export const defaultTldrawOptions = {
 	maxExportDelayMs: 5000,
 	temporaryAssetPreviewLifetimeMs: 180000,
 	actionShortcutsLocation: 'swap',
+	createTextOnCanvasDoubleClick: true,
 } as const satisfies TldrawOptions
