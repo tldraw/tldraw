@@ -863,8 +863,6 @@ const scaledLabelSizes: Record<
 	>
 > = {}
 
-function getLabelMinSize(font: string, size: string) {}
-
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { text, font, size, w } = shape.props
 
