@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import '../../../styles/core.css'
 
 // todo: remove tailwind
 

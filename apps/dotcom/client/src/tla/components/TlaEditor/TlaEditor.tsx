@@ -180,6 +180,7 @@ function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }:
 	return (
 		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
+				className="tla-editor"
 				store={store}
 				assetUrls={assetUrls}
 				user={app?.tlUser}

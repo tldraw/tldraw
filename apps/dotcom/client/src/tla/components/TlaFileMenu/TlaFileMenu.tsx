@@ -17,6 +17,7 @@ import {
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getFilePath, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
@@ -29,7 +30,7 @@ export function TlaFileMenu({
 	trigger,
 }: {
 	children?: ReactNode
-	source: string
+	source: TLAppUiEventSource
 	fileId: TldrawAppFile['id']
 	onRenameAction(): void
 	trigger: ReactNode
@@ -38,6 +39,7 @@ export function TlaFileMenu({
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
+	const trackEvent = useTldrawAppUiEvents()
 	const auth = useAuth()
 
 	const handleCopyLinkClick = useCallback(() => {
@@ -47,7 +49,8 @@ export function TlaFileMenu({
 			id: 'copied-link',
 			title: 'Copied link',
 		})
-	}, [fileId, addToast])
+		trackEvent('copy-file-link', { source })
+	}, [fileId, addToast, trackEvent, source])
 
 	const handleDuplicateClick = useCallback(async () => {
 		const token = await auth.getToken()
@@ -79,17 +82,28 @@ export function TlaFileMenu({
 	const fileItems = (
 		<>
 			<TldrawUiMenuGroup id="file-actions">
-				{/* todo: in published rooms, support copying link */}
-				<TldrawUiMenuItem label="Copy link" id="copy-link" onSelect={handleCopyLinkClick} />
-				{isOwner && <TldrawUiMenuItem label="Rename" id="copy-link" onSelect={onRenameAction} />}
-				{/* todo: in published rooms, support duplication / forking */}
-				<TldrawUiMenuItem label="Duplicate" id="copy-link" onSelect={handleDuplicateClick} />
+				<TldrawUiMenuItem
+					label="Copy link"
+					id="copy-link"
+					readonlyOk
+					onSelect={handleCopyLinkClick}
+				/>
+				{isOwner && (
+					<TldrawUiMenuItem label="Rename" id="copy-link" readonlyOk onSelect={onRenameAction} />
+				)}
+				<TldrawUiMenuItem
+					label="Duplicate"
+					id="copy-link"
+					readonlyOk
+					onSelect={handleDuplicateClick}
+				/>
 				{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				<TldrawUiMenuItem
 					label={isOwner ? 'Delete' : 'Forget'}
 					id="delete"
+					readonlyOk
 					onSelect={handleDeleteClick}
 				/>
 			</TldrawUiMenuGroup>
