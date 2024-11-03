@@ -28,15 +28,15 @@ export function Demo() {
 
 	return (
 		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden">
-			<Suspense fallback={<FakeTldrawEditor isLoading={isLoading} onClick={handleSkeletonClick} />}>
+			<Suspense fallback={<FakeTldraw isLoading={isLoading} onClick={handleSkeletonClick} />}>
 				<DemoTldraw hidden={!showCanvas} />
 			</Suspense>
-			{!showCanvas && <FakeTldrawEditor isLoading={isLoading} onClick={handleSkeletonClick} />}
+			{!showCanvas && <FakeTldraw isLoading={isLoading} onClick={handleSkeletonClick} />}
 		</div>
 	)
 }
 
-function FakeTldrawEditor({ onClick, isLoading }: { onClick(): void; isLoading: boolean }) {
+function FakeTldraw({ onClick, isLoading }: { onClick(): void; isLoading: boolean }) {
 	return (
 		<div className="absolute inset-0 z-20 bg-[#FBFCFE] cursor-pointer" onClick={onClick}>
 			<Image
