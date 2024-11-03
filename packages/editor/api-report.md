@@ -3149,7 +3149,11 @@ export interface TLImageExportOptions {
     // (undocumented)
     padding?: number;
     // (undocumented)
+    pixelRatio?: number;
+    // (undocumented)
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    // (undocumented)
+    quality?: number;
     // (undocumented)
     scale?: number;
 }
