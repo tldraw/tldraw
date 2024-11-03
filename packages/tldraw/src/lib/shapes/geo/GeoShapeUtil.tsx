@@ -895,7 +895,7 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 				// Guard because a DOM nodes can't be less 0
 				0,
 				// A 'w' width that we're setting as the min-width
-				Math.ceil(minSize.w),
+				Math.ceil(minSize.w + sizes[size]),
 				// The actual text size
 				Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 			)
@@ -906,4 +906,11 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 		w: textSize.w + LABEL_PADDING * 2,
 		h: textSize.h + LABEL_PADDING * 2,
 	}
+}
+
+const sizes = {
+	s: 2,
+	m: 3.5,
+	l: 5,
+	xl: 10,
 }
