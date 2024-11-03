@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useCallback, useState } from 'react'
 import LgBc from '../../public/images/ui-placeholder/lg-bc.jpg'
 import LgBl from '../../public/images/ui-placeholder/lg-bl.jpg'
 import LgTl from '../../public/images/ui-placeholder/lg-tl.jpg'
@@ -10,16 +10,34 @@ import SmBc from '../../public/images/ui-placeholder/sm-bc.jpg'
 import SmTl from '../../public/images/ui-placeholder/sm-tl.jpg'
 import { Button } from '../common/button'
 
+// We start loading the editor immediately (lazily), but display a fake
+// view first and require the user to click on it before we actually
+// display the real editor. This is to prevent accidental interactions
+// with the editor. If the user clicks the fake editor button before
+// the canvas is completely loaded, then we display the fake editor
+// with a loading state until it's ready.
+
 export function Demo() {
 	const [showCanvas, setShowCanvas] = useState<boolean>(false)
 	const [isLoading, setIsLoading] = useState<boolean>(false)
 
-	const onClick = () => {
+	const handleSkeletonClick = useCallback(() => {
 		setIsLoading(true)
 		setShowCanvas(true)
-	}
+	}, [])
 
-	const skeletonTldraw = (
+	return (
+		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden">
+			<Suspense fallback={<FakeTldrawEditor isLoading={isLoading} onClick={handleSkeletonClick} />}>
+				<DemoTldraw hidden={!showCanvas} />
+			</Suspense>
+			{!showCanvas && <FakeTldrawEditor isLoading={isLoading} onClick={handleSkeletonClick} />}
+		</div>
+	)
+}
+
+function FakeTldrawEditor({ onClick, isLoading }: { onClick(): void; isLoading: boolean }) {
+	return (
 		<div className="absolute inset-0 z-20 bg-[#FBFCFE] cursor-pointer" onClick={onClick}>
 			<Image
 				src={LgTl}
@@ -59,15 +77,6 @@ export function Demo() {
 					className="shadow"
 				/>
 			</div>
-		</div>
-	)
-
-	return (
-		<div className="relative w-full border-t-[4px] border-b-[4px] md:border-[4px] border-blue-500 h-96 md:rounded-br-[16px] md:rounded-bl-[16px] md:rounded-tl-[16px] md:rounded-tr-[20px] sm:h-[40rem] max-h-[80vh] overflow-hidden">
-			<Suspense fallback={skeletonTldraw}>
-				<DemoTldraw hidden={!showCanvas} />
-			</Suspense>
-			{!showCanvas && skeletonTldraw}
 		</div>
 	)
 }
