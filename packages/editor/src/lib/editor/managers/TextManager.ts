@@ -39,8 +39,9 @@ const spaceCharacterRegex = /\s/
 /** @public */
 export class TextManager {
 	baseElm: HTMLDivElement
+
 	prevElm?: HTMLDivElement
-	debug = true
+	debug = false
 
 	constructor(public editor: Editor) {
 		const container = this.editor.getContainer()

@@ -783,7 +783,7 @@ input,
 }
 
 .tl-text-wrapper[data-isediting='true'] .tl-text-content {
-	opacity: 1;
+	opacity: 0;
 }
 
 .tl-text {
@@ -1182,7 +1182,7 @@ input,
 }
 
 .tl-text-label[data-isediting='true'] p {
-	opacity: 1;
+	opacity: 0;
 }
 
 .tl-arrow-hint {

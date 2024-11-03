@@ -54,7 +54,6 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
 			// starting a drag over the textarea will restart a selection drag instead of a shape drag.
 			// This prevents that default behavior in FF.
 			onDragStart={preventDefault}
-			style={{ backgroundColor: 'rgb(255,255, 0, .25)', padding: 0 }}
 		/>
 	)
 })

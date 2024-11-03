@@ -479,6 +479,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							text={text}
 							isSelected={isOnlySelected}
 							labelColor={theme[props.labelColor].solid}
+							// The label includes (scaled) padding, so we need to remove that for the actual label
 							textWidth={Math.ceil(labelSize.w - LABEL_PADDING * 2 * shape.props.scale)}
 							textHeight={Math.ceil(labelSize.h - LABEL_PADDING * 2 * shape.props.scale)}
 							wrap
@@ -862,6 +863,8 @@ const scaledLabelSizes: Record<
 	>
 > = {}
 
+function getLabelMinSize(font: string, size: string) {}
+
 function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 	const { text, font, size, w } = shape.props
 
@@ -869,6 +872,7 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 		return { w: 0, h: 0 }
 	}
 
+	// Cache the minimum size for each font/size combo
 	let minSize = scaledLabelSizes[font]?.[size]
 	if (!minSize) {
 		if (!scaledLabelSizes[font]) {
@@ -893,7 +897,7 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 				// Guard because a DOM nodes can't be less 0
 				0,
 				// A 'w' width that we're setting as the min-width
-				Math.ceil(minSize.w), // + sizes[size]),
+				Math.ceil(minSize.w),
 				// The actual text size
 				Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 			)
