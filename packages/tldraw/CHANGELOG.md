@@ -1,3 +1,23 @@
+# v3.4.1 (Mon Nov 04 2024)
+
+### Release Notes
+
+#### fix id regression ([#4849](https://github.com/tldraw/tldraw/pull/4849))
+
+- Prevent arrows being clipped incorrectly when multiple tldraw instances or exports are present in the dom.
+
+---
+
+#### 🐛 Bug Fixes
+
+- fix id regression [#4849](https://github.com/tldraw/tldraw/pull/4849) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 1
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 ### Release Notes
