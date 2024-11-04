@@ -193,18 +193,32 @@
 	display: flex;
 	flex-direction: row;
 	height: fit-content;
+	max-width: 100%;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .tlui-layout__top__left {
-	flex-grow: 2;
+	flex: 2 1;
+	height: auto;
+	width: fit-content;
+	overflow: hidden;
 }
 
 .tlui-layout__top__center {
 	display: none;
 }
 
+.tlui-layout__top__right {
+	flex: 1 1;
+	height: auto;
+	width: fit-content;
+	overflow: hidden;
+}
+
 .tlui-page-menu__trigger {
 	width: fit-content;
+	flex-shrink: 0;
 }
 
 /* Hide the icon on the page menu trigger button */
@@ -228,4 +242,18 @@
 
 .tla-theme__dark .tla-tldraw-sidebar-icon {
 	filter: invert(1);
+}
+
+.tla-lang-highlight-missing *:not(.notranslate) {
+	text-shadow: 3px 3px red;
+}
+
+/* TODO: the .tlui-menu rule is too broad, it should be more specific */
+.tla-lang-highlight-missing .tla-editor *,
+.tla-lang-highlight-missing .tlui-menu *,
+.tla-lang-highlight-missing .notranslate,
+.tla-lang-highlight-missing .notranslate *,
+.tla-lang-highlight-missing .i18n-msg,
+.tla-lang-highlight-missing .i18n-msg * {
+	text-shadow: none;
 }

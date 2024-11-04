@@ -21,7 +21,6 @@ const commonSecurityHeaders = {
 // react-router config works fine in our test environment, but is tricky to get running in this
 // build script environment for various reasons (no global React, tsx being weird about decorators, etc).
 function loadSpaRoutes() {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const routesJson = require('../src/__snapshots__/routes.test.tsx.snap')['the_routes 1']
 	const routes = T.arrayOf(
 		T.object({

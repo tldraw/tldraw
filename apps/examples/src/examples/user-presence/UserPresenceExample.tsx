@@ -1,4 +1,3 @@
-/* eslint-disable no-inner-declarations */
 import { useRef } from 'react'
 import { InstancePresenceRecordType, Tldraw } from 'tldraw'
 import 'tldraw/tldraw.css'

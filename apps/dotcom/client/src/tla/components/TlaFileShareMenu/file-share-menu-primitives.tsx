@@ -47,21 +47,32 @@ export function TlaShareMenuCopyButton({
 	onClick,
 }: {
 	children: ReactNode
-	onClick(): void
+	onClick(): void | Promise<void>
 	type?: 'primary' | 'secondary' | 'warning'
 }) {
 	const [copied, setCopied] = useState(false)
+	const [isLoading, setIsLoading] = useState(false)
 
-	const handleCopyLinkClick = useCallback(() => {
+	const handleCopyLinkClick = useCallback(async () => {
 		if (copied) return
-		onClick()
+		setIsLoading(true)
+		await onClick()
 		setCopied(true)
-		setTimeout(() => setCopied(false), 2500)
-		return () => setCopied(false)
+		setIsLoading(false)
+		const timeout = setTimeout(() => setCopied(false), 1000)
+		return () => {
+			setCopied(false)
+			clearTimeout(timeout)
+		}
 	}, [copied, onClick])
 
 	return (
-		<TlaButton variant={type} onClick={handleCopyLinkClick} iconRight={copied ? 'check' : 'copy'}>
+		<TlaButton
+			variant={type}
+			onClick={handleCopyLinkClick}
+			iconRight={copied ? 'check' : 'copy'}
+			isLoading={isLoading}
+		>
 			{children}
 		</TlaButton>
 	)

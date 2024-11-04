@@ -174,7 +174,7 @@ export class TLLocalSyncClient {
 					data.sessionStateSnapshot ?? extractSessionStateFromLegacySnapshot(documentSnapshot)
 				const migrationResult = this.store.schema.migrateStoreSnapshot({
 					store: documentSnapshot,
-					// eslint-disable-next-line deprecation/deprecation
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
 					schema: data.schema ?? this.store.schema.serializeEarliestVersion(),
 				})
 
@@ -184,14 +184,16 @@ export class TLLocalSyncClient {
 					return
 				}
 
-				// 3. Merge the changes into the REAL STORE
-				this.store.mergeRemoteChanges(() => {
-					// Calling put will validate the records!
-					this.store.put(
-						Object.values(migrationResult.value).filter((r) => this.documentTypes.has(r.typeName)),
-						'initialize'
-					)
-				})
+				const records = Object.values(migrationResult.value).filter((r) =>
+					this.documentTypes.has(r.typeName)
+				)
+				if (records.length > 0) {
+					// 3. Merge the changes into the REAL STORE
+					this.store.mergeRemoteChanges(() => {
+						// Calling put will validate the records!
+						this.store.put(records, 'initialize')
+					})
+				}
 
 				if (sessionStateSnapshot) {
 					loadSessionStateSnapshotIntoStore(this.store, sessionStateSnapshot)
@@ -237,7 +239,6 @@ export class TLLocalSyncClient {
 					transact(() => {
 						this.store.mergeRemoteChanges(() => {
 							this.store.applyDiff(msg.changes as any)
-							this.store.ensureStoreIsUsable()
 						})
 					})
 				}

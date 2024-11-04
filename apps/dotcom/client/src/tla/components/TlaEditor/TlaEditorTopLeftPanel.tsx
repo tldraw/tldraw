@@ -1,17 +1,29 @@
+import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import {
 	DefaultPageMenu,
+	EditSubmenu,
+	ExportFileContentSubMenu,
+	ExtrasGroup,
 	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	TldrawUiInput,
+	TldrawUiMenuContextProvider,
+	ViewSubmenu,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -36,6 +48,7 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 export function TlaEditorTopLeftPanelAnonymous() {
 	const raw = useRaw()
 	const editor = useEditor()
+	const isTempFile = !useParams<{ fileSlug: string }>().fileSlug
 	const fileName = useValue('fileName', () => editor.getDocumentSettings().name || 'New board', [])
 	const handleFileNameChange = useCallback(
 		(name: string) => editor.updateDocumentSettings({ name }),
@@ -49,9 +62,28 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					<TldrawUiIcon icon="share-1" />
 				</TldrawUiButton>
 			</TlaFileShareMenu>
-			<TlaFileNameEditor fileName={fileName} onChange={handleFileNameChange} />
+			<TlaFileNameEditor
+				source="file-header"
+				fileName={fileName}
+				onChange={isTempFile ? handleFileNameChange : undefined}
+			/>
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
+			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
+				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+					<TldrawUiDropdownMenuTrigger>
+						<button className={styles.linkMenu}>
+							<TlaIcon icon="dots-vertical-strong" />
+						</button>
+					</TldrawUiDropdownMenuTrigger>
+					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+						<EditSubmenu />
+						<ViewSubmenu />
+						<ExportFileContentSubMenu />
+						<ExtrasGroup />
+					</TldrawUiDropdownMenuContent>
+				</TldrawUiMenuContextProvider>
+			</TldrawUiDropdownMenuRoot>
 		</>
 	)
 }
@@ -69,7 +101,9 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		// We update the name in the document record on it's DO when the file record changes.
 		// We should figure out a way to have a single source of truth for the file name.
 		// And to allow guests to 'subscribe' to file metadata updates somehow.
-		() => app.getFileName(fileId) ?? editor.getDocumentSettings().name,
+		() => {
+			return app.getFileName(fileId) ?? editor.getDocumentSettings().name
+		},
 		[app, editor, fileId]
 	)
 	const handleFileNameChange = useCallback(
@@ -86,22 +120,36 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameEnd = () => setIsRenaming(false)
 
+	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
+	const isOwner = useIsFileOwner(TldrawAppFileRecordType.createId(fileSlug))
+
 	return (
 		<>
 			<TlaSidebarToggle />
 			<TlaSidebarToggleMobile />
 			<TlaFileNameEditor
+				source="file-header"
 				isRenaming={isRenaming}
 				fileName={fileName ?? 'FIXME'}
-				onChange={handleFileNameChange}
+				onChange={isOwner ? handleFileNameChange : undefined}
 				onEnd={handleRenameEnd}
 			/>
 			<span className={styles.topPanelSeparator}>{raw('/')}</span>
 			<DefaultPageMenu />
-			<TlaFileMenu fileId={fileId} source="file-header" onRenameAction={handleRenameAction}>
-				<button className={styles.linkMenu}>
-					<TlaIcon icon="dots-vertical-strong" />
-				</button>
+			<TlaFileMenu
+				fileId={fileId}
+				source="file-header"
+				onRenameAction={handleRenameAction}
+				trigger={
+					<button className={styles.linkMenu}>
+						<TlaIcon icon="dots-vertical-strong" />
+					</button>
+				}
+			>
+				<EditSubmenu />
+				<ViewSubmenu />
+				<ExportFileContentSubMenu />
+				<ExtrasGroup />
 			</TlaFileMenu>
 		</>
 	)
@@ -112,40 +160,46 @@ function TlaFileNameEditor({
 	onChange,
 	onEnd,
 	isRenaming,
+	source,
 }: {
 	fileName: string
-	onChange(name: string): void
+	onChange?(name: string): void
 	onEnd?(): void
 	isRenaming?: boolean
+	source: TLAppUiEventSource
 }) {
 	const [isEditing, setIsEditing] = useState(false)
-
+	const trackEvent = useTldrawAppUiEvents()
 	const handleEditingStart = useCallback(() => {
+		if (!onChange) return
 		setIsEditing(true)
-	}, [])
+	}, [onChange])
 
 	const handleEditingEnd = useCallback(() => {
+		if (!onChange) return
 		setIsEditing(false)
-	}, [])
+	}, [onChange])
 
 	const handleEditingComplete = useCallback(
 		(name: string) => {
+			if (!onChange) return
 			setIsEditing(false)
 			onChange(name)
 			onEnd?.()
+			trackEvent('rename-file', { name, source })
 		},
-		[onChange, onEnd]
+		[onChange, onEnd, trackEvent, source]
 	)
 
 	useEffect(() => {
-		if (isRenaming !== undefined && isRenaming !== isEditing) {
+		if (isRenaming && !isEditing) {
 			// Wait a tick, otherwise the blur event immediately exits the input.
-			setTimeout(() => setIsEditing(isRenaming), 0)
+			setTimeout(() => setIsEditing(true), 0)
 		}
 	}, [isRenaming, isEditing])
 
 	return (
-		<div className={styles.inputWrapper}>
+		<div className={classNames(styles.inputWrapper, onChange && styles.inputWrapperEditable)}>
 			{isEditing ? (
 				<TlaFileNameEditorInput
 					fileName={fileName}
@@ -153,7 +207,10 @@ function TlaFileNameEditor({
 					onBlur={handleEditingEnd}
 				/>
 			) : (
-				<button className={styles.nameWidthSetter} onClick={handleEditingStart}>
+				<button
+					className={styles.nameWidthSetter}
+					onClick={onChange ? handleEditingStart : undefined}
+				>
 					{fileName.replace(/ /g, '\u00a0')}
 				</button>
 			)}

@@ -54,17 +54,17 @@ export async function getSvgAsImage(
 	svgString: string,
 	options: {
 		type: 'png' | 'jpeg' | 'webp'
-		quality: number
-		scale: number
 		width: number
 		height: number
+		quality?: number
+		pixelRatio?: number
 	}
 ) {
-	const { type, quality, scale, width, height } = options
+	const { type, width, height, quality = 1, pixelRatio = 2 } = options
 
 	let [clampedWidth, clampedHeight] = await clampToBrowserMaxCanvasSize(
-		width * scale,
-		height * scale
+		width * pixelRatio,
+		height * pixelRatio
 	)
 	clampedWidth = Math.floor(clampedWidth)
 	clampedHeight = Math.floor(clampedHeight)
@@ -139,7 +139,7 @@ export async function getSvgAsImage(
 
 async function getSvgString(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions) {
 	const svg = await editor.getSvgString(ids?.length ? ids : [...editor.getCurrentPageShapeIds()], {
-		scale: 1,
+		scale: opts.scale ?? 1,
 		background: editor.getInstanceState().exportBackground,
 		...opts,
 	})
@@ -187,7 +187,7 @@ export async function exportToBlob({
 	editor: Editor
 	ids: TLShapeId[]
 	format: TLExportType
-	opts?: TLImageExportOptions & { bitmapImageScale?: number }
+	opts?: TLImageExportOptions
 }): Promise<Blob> {
 	switch (format) {
 		case 'svg':
@@ -201,8 +201,8 @@ export async function exportToBlob({
 			if (!svgResult) throw new Error('Could not construct image.')
 			const image = await getSvgAsImage(editor, svgResult.svg, {
 				type: format,
-				quality: 1,
-				scale: opts?.bitmapImageScale ?? 2,
+				quality: opts.quality,
+				pixelRatio: opts.pixelRatio,
 				width: svgResult.width,
 				height: svgResult.height,
 			})

@@ -5,6 +5,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
+import { uniqueId } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TldrawAppUserId } from './TldrawAppUser'
 import { idValidator } from './idValidator'
@@ -15,6 +16,9 @@ export interface TldrawAppFile extends BaseRecord<'file', RecordId<TldrawAppFile
 	thumbnail: string
 	shared: boolean
 	sharedLinkType: 'view' | 'edit'
+	published: boolean
+	lastPublished: number
+	publishedSlug: string
 	createdAt: number
 	updatedAt: number
 	isEmpty: boolean
@@ -32,6 +36,9 @@ export const tldrawAppFileValidator: T.Validator<TldrawAppFile> = T.model(
 		ownerId: idValidator<TldrawAppUserId>('user'),
 		shared: T.boolean,
 		sharedLinkType: T.or(T.literal('view'), T.literal('edit')),
+		published: T.boolean,
+		publishedSlug: T.string,
+		lastPublished: T.number,
 		thumbnail: T.string,
 		createdAt: T.number,
 		updatedAt: T.number,
@@ -40,13 +47,37 @@ export const tldrawAppFileValidator: T.Validator<TldrawAppFile> = T.model(
 )
 
 /** @public */
-export const tldrawAppFileVersions = createMigrationIds('com.tldraw.file', {} as const)
+export const tldrawAppFileVersions = createMigrationIds('com.tldraw.file', {
+	AddPublishing: 1,
+	AddLastPublished: 2,
+} as const)
 
 /** @public */
 export const tldrawAppFileMigrations = createRecordMigrationSequence({
-	sequenceId: 'com.tldraw-app.file',
-	recordType: 'user',
-	sequence: [],
+	sequenceId: 'com.tldraw.file',
+	recordType: 'file',
+	sequence: [
+		{
+			id: tldrawAppFileVersions.AddPublishing,
+			up: (file: any) => {
+				file.published = false
+				file.publishedSlug = uniqueId()
+			},
+			down(file: any) {
+				delete file.published
+				delete file.publishedSlug
+			},
+		},
+		{
+			id: tldrawAppFileVersions.AddLastPublished,
+			up: (file: any) => {
+				file.lastPublished = file.published ? Date.now() : 0
+			},
+			down(file: any) {
+				delete file.lastPublished
+			},
+		},
+	],
 })
 
 /** @public */
@@ -60,7 +91,10 @@ export const TldrawAppFileRecordType = createRecordType<TldrawAppFile>('file', {
 		createdAt: Date.now(),
 		updatedAt: Date.now(),
 		isEmpty: false,
-		shared: false,
+		shared: true,
 		sharedLinkType: 'edit',
+		published: false,
+		publishedSlug: uniqueId(),
+		lastPublished: 0,
 	})
 )

@@ -1,14 +1,15 @@
-import { TldrawAppFile, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiInput, preventDefault, useValue } from 'tldraw'
-import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useRaw } from '../../hooks/useRaw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
+import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
-import { getFileUrl } from '../../utils/urls'
+import { getFilePath } from '../../utils/urls'
 import { TlaAccountMenu } from '../TlaAccountMenu/TlaAccountMenu'
 import { TlaAvatar } from '../TlaAvatar/TlaAvatar'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
@@ -83,7 +84,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 function TlaSidebarWorkspaceLink() {
 	const raw = useRaw()
 	return (
-		<div className={styles.workspace}>
+		<div className={styles.workspace} data-testid="tla-sidebar-logo-icon">
 			<TlaIconWrapper data-size="m">
 				<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" />
 			</TlaIconWrapper>
@@ -96,15 +97,19 @@ function TlaSidebarWorkspaceLink() {
 function TlaSidebarCreateFileButton() {
 	const app = useApp()
 	const navigate = useNavigate()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleSidebarCreate = useCallback(() => {
-		const file = app.createFile()
-
-		navigate(getFileUrl(file.id), { state: { isCreateMode: true } })
-	}, [app, navigate])
+		const res = app.createFile()
+		if (res.ok) {
+			const { file } = res.value
+			navigate(getFilePath(file.id), { state: { isCreateMode: true } })
+			trackEvent('create-file', { source: 'sidebar' })
+		}
+	}, [app, navigate, trackEvent])
 
 	return (
-		<button className={styles.create} onClick={handleSidebarCreate}>
+		<button className={styles.create} onClick={handleSidebarCreate} data-testid="tla-create-file">
 			<TlaIcon icon="edit-strong" />
 		</button>
 	)
@@ -129,7 +134,7 @@ function TlaSidebarUserLink() {
 		<TlaAccountMenu source="sidebar">
 			<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
 				<TlaAvatar img={user.avatar} />
-				<div className={styles.label}>{user.name}</div>
+				<div className={styles.userName}>{user.name}</div>
 				<button className={styles.linkMenu}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
@@ -143,10 +148,10 @@ function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
-			const { auth, createdAt: sessionStart } = getLocalSessionState()
+			const { auth } = getLocalSessionState()
 			if (!auth) return false
 
-			return app.getUserRecentFiles(sessionStart)
+			return app.getUserRecentFiles()
 		},
 		[app]
 	)
@@ -203,51 +208,64 @@ function TlaSidebarFileSection({ title, items }: { title: string; items: RecentF
 			<TlaSpacer height="8" />
 			<div className={classNames(styles.sectionTitle, 'tla-text_ui__medium')}>{title}</div>
 			{items.map((item) => (
-				<TlaSidebarFileLink key={'recent_' + item.file.id} item={item} />
+				<TlaSidebarFileLink key={'recent_' + item.fileId} item={item} />
 			))}
 		</div>
 	)
 }
 
 function TlaSidebarFileLink({ item }: { item: RecentFile }) {
-	const { file, isOwnFile } = item
-	const { fileSlug } = useParams()
-	const isActive = TldrawAppFileRecordType.createId(fileSlug) === file.id
+	const { fileId } = item
+	const isOwnFile = useIsFileOwner(fileId)
+	const { fileSlug } = useParams<{ fileSlug: string }>()
+	const isActive = TldrawAppFileRecordType.createId(fileSlug) === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleRenameAction = () => setIsRenaming(true)
+
 	const handleRenameClose = () => setIsRenaming(false)
 
+	const app = useApp()
+
 	if (isRenaming) {
-		return <TlaRenameInline fileId={file.id} onClose={handleRenameClose} />
+		return <TlaRenameInline source="sidebar" fileId={fileId} onClose={handleRenameClose} />
 	}
 
 	return (
-		<div className={classNames(styles.link, styles.hoverable)} data-active={isActive}>
+		<div
+			className={classNames(styles.link, styles.hoverable)}
+			data-active={isActive}
+			data-element="file-link"
+			onDoubleClick={handleRenameAction}
+		>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
-					{TldrawApp.getFileName(file)} {isOwnFile ? '' : '(Guest)'}
+					{app.getFileName(fileId)} {isOwnFile ? '' : '(Guest)'}
 				</div>
 			</div>
-			<Link to={getFileUrl(file.id)} className={styles.linkButton} />
-			<TlaSidebarFileLinkMenu fileId={file.id} onRenameAction={handleRenameAction} />
+			<Link
+				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
+				to={getFilePath(fileId)}
+				className={styles.linkButton}
+			/>
+			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
 	)
 }
 
-function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onClose(): void }) {
+function TlaRenameInline({
+	fileId,
+	onClose,
+	source,
+}: {
+	fileId: TldrawAppFile['id']
+	onClose(): void
+	source: TLAppUiEventSource
+}) {
 	const app = useApp()
 	const ref = useRef<HTMLInputElement>(null)
-
-	const file = useValue(
-		'file',
-		() => {
-			const file = app.store.get(fileId)
-			if (!file) throw Error('expected a file')
-			return file
-		},
-		[app]
-	)
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleSave = useCallback(() => {
 		// rename the file
@@ -261,9 +279,9 @@ function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onC
 			// Only update the name if there is a name there to update
 			app.store.put([{ ...file, name }])
 		}
-
+		trackEvent('rename-file', { name, source })
 		onClose()
-	}, [app, fileId, onClose])
+	}, [app, fileId, onClose, trackEvent, source])
 
 	useEffect(() => {
 		// if clicking away from the input, close the rename and save
@@ -273,20 +291,14 @@ function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onC
 				handleSave()
 			}
 		}
-		function handleKeyDown(e: KeyboardEvent) {
-			if (e.key === 'Escape') {
-				onClose()
-			}
-		}
 
 		// We wait a tick because we don't want to immediately close the input.
 		setTimeout(() => {
 			document.addEventListener('click', handleClick, { capture: true })
-			document.addEventListener('keydown', handleKeyDown)
 		}, 0)
+
 		return () => {
 			document.removeEventListener('click', handleClick, { capture: true })
-			document.removeEventListener('keydown', handleKeyDown)
 		}
 	}, [handleSave, onClose])
 
@@ -295,8 +307,9 @@ function TlaRenameInline({ fileId, onClose }: { fileId: TldrawAppFile['id']; onC
 			<TldrawUiInput
 				ref={ref}
 				className={classNames(styles.rename, 'tla-text_ui__regular')}
-				defaultValue={TldrawApp.getFileName(file)}
+				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}
+				onCancel={onClose}
 				autoSelect
 				autoFocus
 			/>
@@ -314,20 +327,33 @@ function TlaSidebarFileLinkMenu({
 	onRenameAction(): void
 }) {
 	return (
-		<TlaFileMenu fileId={fileId} source="sidebar" onRenameAction={onRenameAction}>
-			<button className={styles.linkMenu}>
-				<TlaIcon icon="dots-vertical-strong" />
-			</button>
-		</TlaFileMenu>
+		<TlaFileMenu
+			fileId={fileId}
+			source="sidebar"
+			onRenameAction={onRenameAction}
+			trigger={
+				<button className={styles.linkMenu}>
+					<TlaIcon icon="dots-vertical-strong" />
+				</button>
+			}
+		/>
 	)
 }
 
 export function TlaSidebarToggle() {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<button
 			className={styles.toggle}
 			data-mobile={false}
-			onClick={() => updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))}
+			data-testid="tla-sidebar-toggle"
+			onClick={() => {
+				updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))
+				trackEvent('sidebar-toggle', {
+					value: getLocalSessionState().isSidebarOpen,
+					source: 'sidebar',
+				})
+			}}
 		>
 			<TlaIcon icon="sidebar" />
 		</button>
@@ -335,13 +361,19 @@ export function TlaSidebarToggle() {
 }
 
 export function TlaSidebarToggleMobile() {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
 		<button
 			className={styles.toggle}
 			data-mobile={true}
-			onClick={() =>
+			data-testid="tla-sidebar-toggle-mobile"
+			onClick={() => {
 				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
-			}
+				trackEvent('sidebar-toggle', {
+					value: getLocalSessionState().isSidebarOpenMobile,
+					source: 'sidebar',
+				})
+			}}
 		>
 			<TlaIcon icon="sidebar" />
 		</button>
@@ -349,7 +381,6 @@ export function TlaSidebarToggleMobile() {
 }
 
 interface RecentFile {
-	file: TldrawAppFile
+	fileId: TldrawAppFileId
 	date: number
-	isOwnFile: boolean
 }

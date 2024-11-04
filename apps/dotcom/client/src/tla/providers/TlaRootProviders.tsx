@@ -1,4 +1,5 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
+import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
@@ -10,14 +11,17 @@ import {
 	TldrawUiContextProvider,
 	TldrawUiDialogs,
 	TldrawUiToasts,
+	fetch,
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { IntlProvider, setupCreateIntl } from '../app/i18n'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
+import { getRootPath } from '../utils/urls'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -30,26 +34,59 @@ if (!PUBLISHABLE_KEY) {
 
 export function Component() {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
+	// TODO: this needs to default to the global setting of whatever the last chosen locale was, not 'en'
+	const [locale, setLocale] = useState<string>('en')
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('light')
 	const handleThemeChange = (theme: 'light' | 'dark' | 'system') => setTheme(theme)
+	const handleLocaleChange = (locale: string) => setLocale(locale)
 
 	return (
-		<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/q">
-			<SignedInProvider onThemeChange={handleThemeChange}>
-				<div
-					ref={setContainer}
-					className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-				>
-					{container && (
-						<ContainerProvider container={container}>
-							<InsideOfContainerContext>
-								<Outlet />
-							</InsideOfContainerContext>
-						</ContainerProvider>
-					)}
-				</div>
-			</SignedInProvider>
-		</ClerkProvider>
+		<IntlWrapper locale={locale}>
+			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
+				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+					<div
+						ref={setContainer}
+						className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+					>
+						{container && (
+							<ContainerProvider container={container}>
+								<InsideOfContainerContext>
+									<Outlet />
+								</InsideOfContainerContext>
+							</ContainerProvider>
+						)}
+					</div>
+				</SignedInProvider>
+			</ClerkProvider>
+		</IntlWrapper>
+	)
+}
+
+function IntlWrapper({ children, locale }: { children: ReactNode; locale: string }) {
+	const [messages, setMessages] = useState({})
+
+	useEffect(() => {
+		async function fetchMessages() {
+			if (locale === 'en') {
+				setMessages({})
+				return
+			}
+
+			const res = await fetch(`/tla/locales-compiled/${locale}.json`)
+			const messages = await res.json()
+			setMessages(messages)
+		}
+		fetchMessages()
+	}, [locale])
+
+	const defaultLocale = 'en'
+	// createIntl is used in non-React locations.
+	setupCreateIntl({ defaultLocale, locale, messages })
+
+	return (
+		<IntlProvider defaultLocale={locale} locale={locale} messages={messages}>
+			{children}
+		</IntlProvider>
 	)
 }
 
@@ -58,33 +95,46 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 		// todo, implement handling ui events at the application layer
 	}, [])
 	const currentEditor = useValue('editor', () => globalEditor.get(), [])
-	const FakeProvider = ({ children }: { children: ReactNode }) => children
-	const MaybeEditorProvider = currentEditor ? EditorContext.Provider : FakeProvider
-	const MaybeUiContextProvider = currentEditor ? TldrawUiContextProvider : FakeProvider
 
 	return (
-		<MaybeEditorProvider value={currentEditor}>
-			<MaybeUiContextProvider
+		<EditorContext.Provider value={currentEditor}>
+			<TldrawUiContextProvider
 				assetUrls={assetUrls}
 				components={components}
 				onUiEvent={handleAppLevelUiEvent}
 			>
-				{children}
-				{currentEditor && <TldrawUiDialogs />}
-				{currentEditor && <TldrawUiToasts />}
-			</MaybeUiContextProvider>
-		</MaybeEditorProvider>
+				<TooltipProvider>{children}</TooltipProvider>
+				<TldrawUiDialogs />
+				<TldrawUiToasts />
+			</TldrawUiContextProvider>
+		</EditorContext.Provider>
 	)
 }
 
 function SignedInProvider({
 	children,
 	onThemeChange,
+	onLocaleChange,
 }: {
 	children: ReactNode
 	onThemeChange(theme: 'light' | 'dark' | 'system'): void
+	onLocaleChange(locale: string): void
 }) {
 	const auth = useAuth()
+	const [currentLocale, setCurrentLocale] = useState<string>(
+		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
+	)
+	const locale = useValue(
+		'locale',
+		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
+		[]
+	)
+
+	useEffect(() => {
+		if (locale === currentLocale) return
+		onLocaleChange(locale)
+		setCurrentLocale(locale)
+	}, [currentLocale, locale, onLocaleChange])
 
 	useEffect(() => {
 		if (auth.isSignedIn && auth.userId) {
@@ -101,7 +151,7 @@ function SignedInProvider({
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn) {
-		return <Outlet />
+		return children
 	}
 
 	return (

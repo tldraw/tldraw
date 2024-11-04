@@ -26,7 +26,7 @@
 		"concurrently": "^8.2.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"tsx": "^4.19.1",
-		"typescript": "^5.3.3"
+		"typescript": "~5.4.2"
 	},
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",
@@ -47,7 +47,7 @@
 		"react-router-dom": "^6.24.1",
 		"tldraw": "latest",
 		"unfurl.js": "^6.4.0",
-		"vite": "^5.4.2",
+		"vite": "^5.4.10",
 		"ws": "^8.16.0"
 	}
 }

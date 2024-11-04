@@ -10,7 +10,7 @@
 	flex: 0 0 auto;
 	padding: 2px 12px 2px 12px;
 	background: var(--tla-color-sidebar);
-	border-right: 1px solid var(--color-low);
+	border-right: 1px solid transparent;
 }
 
 .sidebar[data-dragging='true']::after {
@@ -50,6 +50,9 @@
 }
 
 @media (min-width: 768px) {
+	.sidebar {
+		border-right: 1px solid var(--color-low);
+	}
 	.sidebar[data-visible='true'] {
 		display: flex;
 	}
@@ -130,6 +133,7 @@
 	align-items: center;
 	justify-content: center;
 	pointer-events: all;
+	flex-shrink: 0;
 }
 
 .toggle::after {
@@ -226,7 +230,7 @@
 	height: 40px;
 	flex-grow: 2;
 	display: flex;
-	flex-direction: row;
+	gap: 8px;
 	align-items: center;
 	white-space: nowrap;
 	overflow: hidden;
@@ -235,12 +239,12 @@
 }
 
 .user {
-	padding-left: 8px;
+	padding: 0px 8px;
+	cursor: pointer;
 }
 
-.user {
-	padding: 0 4px;
-	cursor: pointer;
+.userName {
+	flex-grow: 1;
 }
 
 .main-link {
@@ -288,6 +292,12 @@
 	gap: 4px;
 	position: relative;
 	z-index: 2;
+}
+
+.renameWrapper {
+	outline: 1px solid var(--color-primary);
+	outline-offset: -2px;
+	border-radius: 6px;
 }
 
 .renameWrapper > div {

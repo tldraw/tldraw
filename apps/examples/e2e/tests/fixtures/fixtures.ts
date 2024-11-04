@@ -46,39 +46,39 @@ function makeApiFixture(keys: { [K in keyof EndToEndApi]: true }, page: Page): A
 }
 
 const test = base.extend<Fixtures>({
-	menuClickCapture: async ({ page }, use) => {
+	menuClickCapture: async ({ page }, testUse) => {
 		const toolbar = new MenuClickCapture(page)
-		await use(toolbar)
+		await testUse(toolbar)
 	},
-	toolbar: async ({ page }, use) => {
+	toolbar: async ({ page }, testUse) => {
 		const toolbar = new Toolbar(page)
-		await use(toolbar)
+		await testUse(toolbar)
 	},
-	stylePanel: async ({ page }, use) => {
+	stylePanel: async ({ page }, testUse) => {
 		const stylePanel = new StylePanel(page)
-		await use(stylePanel)
+		await testUse(stylePanel)
 	},
-	actionsMenu: async ({ page }, use) => {
+	actionsMenu: async ({ page }, testUse) => {
 		const actionsMenu = new ActionsMenu(page)
-		await use(actionsMenu)
+		await testUse(actionsMenu)
 	},
-	helpMenu: async ({ page }, use) => {
+	helpMenu: async ({ page }, testUse) => {
 		const helpMenu = new HelpMenu(page)
-		await use(helpMenu)
+		await testUse(helpMenu)
 	},
-	mainMenu: async ({ page }, use) => {
+	mainMenu: async ({ page }, testUse) => {
 		const mainMenu = new MainMenu(page)
-		await use(mainMenu)
+		await testUse(mainMenu)
 	},
-	pageMenu: async ({ page }, use) => {
+	pageMenu: async ({ page }, testUse) => {
 		const pagemenu = new PageMenu(page)
-		await use(pagemenu)
+		await testUse(pagemenu)
 	},
-	navigationPanel: async ({ page }, use) => {
+	navigationPanel: async ({ page }, testUse) => {
 		const navigationPanel = new NavigationPanel(page)
-		await use(navigationPanel)
+		await testUse(navigationPanel)
 	},
-	api: async ({ page }, use) => {
+	api: async ({ page }, testUse) => {
 		const api = makeApiFixture(
 			{
 				exportAsSvg: true,
@@ -87,7 +87,7 @@ const test = base.extend<Fixtures>({
 			},
 			page
 		)
-		await use(api)
+		await testUse(api)
 	},
 	isMac: async ({ page: _ }, use) => {
 		await use(process.platform === 'darwin')

@@ -1617,7 +1617,7 @@ describe('bindings', () => {
 		const arrow = onlySelectedShape() as TLArrowShape
 		const bindings = getArrowBindings(editor, arrow)
 
-		expect(bindings.start).toBeUndefined
+		expect(bindings.start).toBeUndefined()
 		expect(bindings.end).toMatchObject({ toId: ids.boxE })
 	})
 	it('can be made from a shape within a group to some shape outside of the group', () => {

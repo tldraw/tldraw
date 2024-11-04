@@ -16,6 +16,7 @@
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
 		"check-bundle-size": "yarn run -T tsx ../../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 450000",
+		"reset-db": "./reset-db.sh",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
@@ -37,7 +38,7 @@
 		"@cloudflare/workers-types": "^4.20240620.0",
 		"esbuild": "^0.21.5",
 		"lazyrepo": "0.0.0-alpha.27",
-		"typescript": "^5.3.3",
+		"typescript": "~5.4.2",
 		"wrangler": "3.62.0"
 	},
 	"jest": {

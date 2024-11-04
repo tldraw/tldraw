@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync-core",
 	"description": "A tiny little drawing app (multiplayer sync).",
-	"version": "3.3.0",
+	"version": "3.4.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -43,7 +43,7 @@
 	"devDependencies": {
 		"@types/uuid-readable": "^0.0.3",
 		"tldraw": "workspace:*",
-		"typescript": "^5.3.3",
+		"typescript": "~5.4.2",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2"
 	},
