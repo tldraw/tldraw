@@ -89,8 +89,8 @@ const test = base.extend<Fixtures>({
 		)
 		await testUse(api)
 	},
-	isMac: async ({ page: _ }, use) => {
-		await use(process.platform === 'darwin')
+	isMac: async ({ page: _ }, testUse) => {
+		await testUse(process.platform === 'darwin')
 	},
 })
 
