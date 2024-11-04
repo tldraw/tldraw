@@ -156,7 +156,7 @@ function getVerticesInPageSpace(editor: Editor, shape: TLShape) {
 	return pageTransform.applyToPoints(geo.vertices)
 }
 
-function filterOverlappingShapes(editor: Editor, moving: Set<TLShape>, children: TLShape[]) {
+function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
 	const movingVertices = Array.from(moving)
 		.map((shape) => {
 			const vertices = getVerticesInPageSpace(editor, shape)
@@ -165,14 +165,15 @@ function filterOverlappingShapes(editor: Editor, moving: Set<TLShape>, children:
 		})
 		.filter(Boolean) as { shape: TLShape; vertices: Vec[] }[]
 
-	// only keep overlapping shapes
-	return children.filter((child) => {
+	const isOverlapping = (child: TLShape) => {
 		const vertices = getVerticesInPageSpace(editor, child)
 		if (!vertices) return false
 		return movingVertices.some((other) => {
 			return polygonsIntersect(other.vertices, vertices)
 		})
-	})
+	}
+
+	return isOverlapping
 }
 
 /**
@@ -189,7 +190,7 @@ function reorderForward(
 	children: TLShape[],
 	changes: TLShapePartial[]
 ) {
-	children = filterOverlappingShapes(editor, moving, children)
+	const isOverlapping = getOverlapChecker(editor, moving)
 
 	const len = children.length
 
@@ -213,11 +214,17 @@ function reorderForward(
 			}
 			case 'selecting': {
 				if (isMoving) continue
-				// if we find a non-moving shape while selecting, move all selected
+				if (!isOverlapping(children[i])) continue
+				// if we find a non-moving and overlapping shape while selecting, move all selected
 				// shapes in front of the not moving shape; and start skipping
 				const { selectIndex } = state
 				getIndicesBetween(children[i].index, children[i + 1]?.index, i - selectIndex).forEach(
-					(index, k) => changes.push({ ...children[selectIndex + k], index })
+					(index, k) => {
+						const child = children[selectIndex + k]
+						// If the shape is not moving (therefore also not overlapping), skip it
+						if (!moving.has(child)) return
+						changes.push({ ...child, index })
+					}
 				)
 				state = { name: 'skipping' }
 				break
@@ -240,7 +247,7 @@ function reorderBackward(
 	children: TLShape[],
 	changes: TLShapePartial[]
 ) {
-	children = filterOverlappingShapes(editor, moving, children)
+	const isOverlapping = getOverlapChecker(editor, moving)
 
 	const len = children.length
 
@@ -263,11 +270,15 @@ function reorderBackward(
 			}
 			case 'selecting': {
 				if (isMoving) continue
-				// if we find a non-moving shape while selecting, move all selected
+				if (!isOverlapping(children[i])) continue
+				// if we find a non-moving and overlapping shape while selecting, move all selected
 				// shapes in behind of the not moving shape; and start skipping
 				getIndicesBetween(children[i - 1]?.index, children[i].index, state.selectIndex - i).forEach(
 					(index, k) => {
-						changes.push({ ...children[i + k + 1], index })
+						const child = children[i + k + 1]
+						// If the shape is not moving (therefore also not overlapping), skip it
+						if (!moving.has(child)) return
+						changes.push({ ...child, index })
 					}
 				)
 				state = { name: 'skipping' }
