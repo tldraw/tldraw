@@ -19,7 +19,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "/Users/davidsheldrick/code/rocicorp/packages/zero/rocicorp-zero-0.4.2024103000+b2617e.tgz",
+		"@rocicorp/zero": "^0.4.2024103000",
 		"@tldraw/zero-schema": "workspace:*",
 		"concurrently": "^9.0.1"
 	},
