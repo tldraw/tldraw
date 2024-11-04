@@ -949,7 +949,7 @@ test('When only two shapes exist', () => {
 	expectShapesInOrder(editor, ids['A'], ids['B'])
 })
 
-test.only("bringForward ignores shapes that don't overlap", () => {
+test("bringForward ignores shapes that don't overlap", () => {
 	editor = new TestEditor()
 
 	// a and c overlap but a and b do not and neither do a and d

@@ -178,6 +178,7 @@ function filterOverlappingShapes(editor: Editor, moving: Set<TLShape>, children:
 /**
  * Reorders the moving shapes forward in the parent's children.
  *
+ * @param editor The editor
  * @param moving The set of shapes that are moving
  * @param children The parent's children
  * @param changes The changes array to push changes to
@@ -228,6 +229,7 @@ function reorderForward(
 /**
  * Reorders the moving shapes backward in the parent's children.
  *
+ * @param editor The editor
  * @param moving The set of shapes that are moving
  * @param children The parent's children
  * @param changes The changes array to push changes to
