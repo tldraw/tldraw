@@ -1,6 +1,8 @@
 import { TLParentId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { IndexKey, compact, getIndicesBetween, sortByIndex } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { Vec } from '../primitives/Vec'
+import { polygonsIntersect } from '../primitives/intersect'
 
 export function getReorderingShapesChanges(
 	editor: Editor,
@@ -37,11 +39,11 @@ export function getReorderingShapesChanges(
 			break
 		}
 		case 'forward': {
-			parents.forEach(({ moving, children }) => reorderForward(moving, children, changes))
+			parents.forEach(({ moving, children }) => reorderForward(editor, moving, children, changes))
 			break
 		}
 		case 'backward': {
-			parents.forEach(({ moving, children }) => reorderBackward(moving, children, changes))
+			parents.forEach(({ moving, children }) => reorderBackward(editor, moving, children, changes))
 			break
 		}
 	}
@@ -147,6 +149,32 @@ function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLSh
 	}
 }
 
+function getVerticesInPageSpace(editor: Editor, shape: TLShape) {
+	const geo = editor.getShapeGeometry(shape)
+	const pageTransform = editor.getShapePageTransform(shape)
+	if (!geo || !pageTransform) return null
+	return pageTransform.applyToPoints(geo.vertices)
+}
+
+function filterOverlappingShapes(editor: Editor, moving: Set<TLShape>, children: TLShape[]) {
+	const movingVertices = Array.from(moving)
+		.map((shape) => {
+			const vertices = getVerticesInPageSpace(editor, shape)
+			if (!vertices) return null
+			return { shape, vertices }
+		})
+		.filter(Boolean) as { shape: TLShape; vertices: Vec[] }[]
+
+	// only keep overlapping shapes
+	return children.filter((child) => {
+		const vertices = getVerticesInPageSpace(editor, child)
+		if (!vertices) return false
+		return movingVertices.some((other) => {
+			return polygonsIntersect(other.vertices, vertices)
+		})
+	})
+}
+
 /**
  * Reorders the moving shapes forward in the parent's children.
  *
@@ -154,7 +182,14 @@ function reorderToFront(moving: Set<TLShape>, children: TLShape[], changes: TLSh
  * @param children The parent's children
  * @param changes The changes array to push changes to
  */
-function reorderForward(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
+function reorderForward(
+	editor: Editor,
+	moving: Set<TLShape>,
+	children: TLShape[],
+	changes: TLShapePartial[]
+) {
+	children = filterOverlappingShapes(editor, moving, children)
+
 	const len = children.length
 
 	// If all of the children are moving, there's nothing to do
@@ -197,7 +232,14 @@ function reorderForward(moving: Set<TLShape>, children: TLShape[], changes: TLSh
  * @param children The parent's children
  * @param changes The changes array to push changes to
  */
-function reorderBackward(moving: Set<TLShape>, children: TLShape[], changes: TLShapePartial[]) {
+function reorderBackward(
+	editor: Editor,
+	moving: Set<TLShape>,
+	children: TLShape[],
+	changes: TLShapePartial[]
+) {
+	children = filterOverlappingShapes(editor, moving, children)
+
 	const len = children.length
 
 	if (moving.size === len) return
