@@ -2493,7 +2493,6 @@ export class TextManager {
         lineHeight: number;
         minWidth?: null | number;
         padding: string;
-        scale?: number;
     }): BoxModel & {
         scrollWidth: number;
     };
