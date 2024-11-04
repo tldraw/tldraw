@@ -49,8 +49,12 @@ test('can unshare a file', async ({ page, browser, shareMenu }) => {
 	await newContext.close()
 })
 
-test.fixme('can copy a shared file link', async () => {
-	// ...
+test('can copy a shared file link', async ({ page, shareMenu }) => {
+	// we have to wait a bit for the search params to get populated
+	await page.waitForTimeout(500)
+	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
+	const currentUrl = await page.evaluate('window.location.href')
+	expect(url).toBe(currentUrl)
 })
 
 /* ------------------- Publishing ------------------- */
@@ -107,6 +111,7 @@ test('can update published file', async ({ page, browser, editor, shareMenu }) =
 	await newContext.close()
 })
 
-test.fixme('can copy a published file link', async () => {
-	// ...
+test('can copy a published file link', async ({ page, shareMenu }) => {
+	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
+	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 })
