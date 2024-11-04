@@ -95,6 +95,10 @@ export class FileHelpers {
     static blobToText(file: Blob): Promise<string>;
     // (undocumented)
     static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
+    // (undocumented)
+    static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
+    // (undocumented)
+    static rewriteMimeType(blob: File, newMimeType: string): File;
 }
 
 // @internal
@@ -174,6 +178,11 @@ export { Image_2 as Image }
 // @public
 export type IndexKey = string & {
     __brand: 'indexKey';
+};
+
+// @internal (undocumented)
+export function invertObject<O extends Record<PropertyKey, PropertyKey>>(object: O): {
+    [K in keyof O as O[K]]: K;
 };
 
 // @public

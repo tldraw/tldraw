@@ -14,11 +14,7 @@ import {
 } from '@tldraw/editor'
 import lz from 'lz-string'
 import { useCallback, useEffect } from 'react'
-import {
-	customTldrawClipboardTypes,
-	getMimeTypeFromTldrawCustomClipboardType,
-	rewriteMimeType,
-} from '../../utils/export/export'
+import { TLDRAW_CUSTOM_PNG_MIME_TYPE, getCanonicalClipboardReadType } from '../../utils/clipboard'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
@@ -29,10 +25,11 @@ import { pasteUrl } from './clipboard/pasteUrl'
 // them. For example, we prefer the `web image/png+tldraw` type to plain `image/png` as it does not
 // strip some of the extra metadata we write into it.
 const expectedPasteFileMimeTypes = [
-	...Object.values(customTldrawClipboardTypes),
+	TLDRAW_CUSTOM_PNG_MIME_TYPE,
 	'image/png',
 	'image/jpeg',
 	'image/webp',
+	'image/svg+xml',
 ] satisfies string[]
 
 /**
@@ -249,7 +246,7 @@ const handlePasteFromClipboardApi = async (
 			if (item.types.includes(type)) {
 				const blobPromise = item
 					.getType(type)
-					.then((blob) => rewriteMimeType(blob, getMimeTypeFromTldrawCustomClipboardType(type)))
+					.then((blob) => FileHelpers.rewriteMimeType(blob, getCanonicalClipboardReadType(type)))
 				things.push({
 					type: 'blob',
 					source: blobPromise,

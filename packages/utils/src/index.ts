@@ -47,6 +47,7 @@ export {
 	getOwnProperty,
 	groupBy,
 	hasOwnProperty,
+	invertObject,
 	mapObjectMapValues,
 	objectMapEntries,
 	objectMapFromEntries,

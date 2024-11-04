@@ -1,11 +1,16 @@
-import { Editor, TLImageExportOptions, TLShapeId, exhaustiveSwitchError } from '@tldraw/editor'
 import {
+	Editor,
+	FileHelpers,
+	TLImageExportOptions,
+	TLShapeId,
+	exhaustiveSwitchError,
+} from '@tldraw/editor'
+import {
+	clipboardWrite,
 	doesClipboardSupportType,
-	exportToBlobPromise,
-	exportToString,
-	getTldrawCustomClipboardType,
-	rewriteMimeType,
-} from './export'
+	getAdditionalClipboardWriteType,
+} from '../clipboard'
+import { exportToBlobPromise, exportToString } from './export'
 
 /** @public */
 export type TLCopyType = 'svg' | 'png' | 'jpeg' | 'json'
@@ -32,32 +37,18 @@ export function copyAs(
 	// https://bugs.webkit.org/show_bug.cgi?id=222262
 
 	if (!window.navigator.clipboard) return Promise.reject(new Error('Copy not supported'))
-	if (window.navigator.clipboard.write) {
+	if (window.navigator.clipboard.write as any) {
 		const { blobPromise, mimeType } = exportToBlobPromise(editor, ids, format, opts)
 
-		blobPromise.catch((err) => {
-			console.error(err)
-		})
-
 		const types: Record<string, Promise<Blob>> = { [mimeType]: blobPromise }
-		const customMimeType = getTldrawCustomClipboardType(mimeType)
-		if (customMimeType && doesClipboardSupportType(customMimeType)) {
-			types[customMimeType] = blobPromise.then((blob) => rewriteMimeType(blob, customMimeType))
+		const additionalMimeType = getAdditionalClipboardWriteType(mimeType)
+		if (additionalMimeType && doesClipboardSupportType(additionalMimeType)) {
+			types[additionalMimeType] = blobPromise.then((blob) =>
+				FileHelpers.rewriteMimeType(blob, additionalMimeType)
+			)
 		}
 
-		return window.navigator.clipboard.write([new ClipboardItem(types)]).catch((err) => {
-			// Firefox will fail with the above if `dom.events.asyncClipboard.clipboardItem` is enabled.
-			// See <https://github.com/tldraw/tldraw/issues/1325>
-			console.error(err)
-			return blobPromise.then((blob) => {
-				const types: Record<string, Blob> = { [mimeType]: blob }
-				if (customMimeType && doesClipboardSupportType(customMimeType)) {
-					types[customMimeType] = rewriteMimeType(blob, customMimeType)
-				}
-
-				return window.navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })])
-			})
-		})
+		return clipboardWrite(types)
 	}
 
 	switch (format) {
