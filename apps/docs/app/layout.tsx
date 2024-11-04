@@ -36,6 +36,9 @@ export const metadata: Metadata = {
 		{ rel: 'apple-touch-icon', url: '/apple-touch-icon-180x180.svg', sizes: '180x180' },
 		{ rel: 'apple-touch-icon', url: '/apple-touch-icon-167x167.svg', sizes: '167x167' },
 	],
+	verification: {
+		google: 'QpNUTL4RIFwSTWsmLnGFtQLbXLbND3jMZxFMHtXcTdY',
+	},
 }
 
 export const viewport: Viewport = {
