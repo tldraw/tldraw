@@ -130,14 +130,3 @@ export function groupBy<K extends string, V>(
 	}
 	return result
 }
-
-/** @internal */
-export function invertObject<O extends Record<PropertyKey, PropertyKey>>(
-	object: O
-): { [K in keyof O as O[K]]: K } {
-	const result: any = {}
-	for (const key in object) {
-		result[object[key]] = key
-	}
-	return result
-}

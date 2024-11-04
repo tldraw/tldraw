@@ -290,8 +290,6 @@ const handlePasteFromClipboardApi = async (
 }
 
 async function handleClipboardThings(editor: Editor, things: ClipboardThing[], point?: VecLike) {
-	console.log('things', things)
-
 	// 1. Handle files
 	//
 	// We need to handle files separately because if we want them to

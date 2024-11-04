@@ -180,11 +180,6 @@ export type IndexKey = string & {
     __brand: 'indexKey';
 };
 
-// @internal (undocumented)
-export function invertObject<O extends Record<PropertyKey, PropertyKey>>(object: O): {
-    [K in keyof O as O[K]]: K;
-};
-
 // @public
 export function invLerp(a: number, b: number, t: number): number;
 
