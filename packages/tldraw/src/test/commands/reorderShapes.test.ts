@@ -948,3 +948,89 @@ test('When only two shapes exist', () => {
 
 	expectShapesInOrder(editor, ids['A'], ids['B'])
 })
+
+test.only("bringForward ignores shapes that don't overlap", () => {
+	editor = new TestEditor()
+
+	// a and c overlap but a and b do not and neither do a and d
+	editor.createShapes([
+		{
+			id: ids['A'],
+			type: 'geo',
+			x: 0,
+			y: 0,
+			props: { w: 100, h: 100 },
+		},
+		{
+			id: ids['B'],
+			type: 'geo',
+			x: 200,
+			y: 200,
+			props: { w: 100, h: 100 },
+		},
+		{
+			id: ids['C'],
+			type: 'geo',
+			x: 50,
+			y: 50,
+			props: { w: 100, h: 100 },
+		},
+		{
+			id: ids['D'],
+			type: 'geo',
+			x: 110,
+			y: 110,
+			props: { w: 100, h: 100 },
+		},
+	])
+
+	expectShapesInOrder(editor, ids['A'], ids['B'], ids['C'], ids['D'])
+
+	editor.bringForward([ids['A']])
+
+	// a should now be in front of c but behind d
+	expectShapesInOrder(editor, ids['B'], ids['C'], ids['A'], ids['D'])
+})
+
+test("sendBackwards ignores shapes that don't overlap", () => {
+	editor = new TestEditor()
+
+	// d overlaps with b but not a or c
+	editor.createShapes([
+		{
+			id: ids['A'],
+			type: 'geo',
+			x: -110,
+			y: -110,
+			props: { w: 100, h: 100 },
+		},
+		{
+			id: ids['B'],
+			type: 'geo',
+			x: 0,
+			y: 0,
+			props: { w: 100, h: 100 },
+		},
+		{
+			id: ids['C'],
+			type: 'geo',
+			x: 200,
+			y: 200,
+			props: { w: 100, h: 100 },
+		},
+		{
+			id: ids['D'],
+			type: 'geo',
+			x: 50,
+			y: 50,
+			props: { w: 100, h: 100 },
+		},
+	])
+
+	expectShapesInOrder(editor, ids['A'], ids['B'], ids['C'], ids['D'])
+
+	editor.sendBackward([ids['D']])
+
+	// d should now be behind b
+	expectShapesInOrder(editor, ids['A'], ids['D'], ids['B'], ids['C'])
+})
