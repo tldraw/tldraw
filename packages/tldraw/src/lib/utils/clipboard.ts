@@ -8,7 +8,7 @@ import { getOwnProperty, objectMapFromEntries } from '@tldraw/editor'
 // size. To work around this, we write 2 version of the image to the clipboard - the normal png, and
 // the same blob with a custom mime type. When pasting, we check first for the custom mime type, and
 // if it's there, use that instead of the normal png.
-export const TLDRAW_CUSTOM_PNG_MIME_TYPE = 'image/vnd.tldraw+png' as const
+export const TLDRAW_CUSTOM_PNG_MIME_TYPE = 'web image/vnd.tldraw+png' as const
 
 const additionalClipboardWriteTypes = {
 	'image/png': TLDRAW_CUSTOM_PNG_MIME_TYPE,
@@ -39,6 +39,8 @@ export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<vo
 	// https://bugs.webkit.org/show_bug.cgi?id=222262
 
 	const entries = Object.entries(types)
+
+	console.log('clipboardWrite', entries)
 
 	// clipboard.write will swallow errors if any of the promises reject. we log them here so we can
 	// understand what might have gone wrong.
