@@ -1,4 +1,5 @@
 import { Page } from '@playwright/test'
+import { USER_2 } from '../consts'
 import { ShareMenu } from '../fixtures/ShareMenu'
 import { openNewIncognitoPage } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
@@ -28,90 +29,170 @@ async function shareFileAndCopyLink(
 	return await handle.jsonValue()
 }
 
-test('can share a file', async ({ page, browser, shareMenu }) => {
-	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
-	const { newContext, newPage, newHomePage } = await openNewIncognitoPage(browser, url)
-	await newHomePage.isLoaded()
-	// We are in a multiplayer room with another person
-	await expect(page.getByRole('button', { name: 'People' })).toBeVisible()
-	await expect(newPage.getByRole('heading', { name: 'Not found' })).not.toBeVisible()
-	await newContext.close()
-})
+const users = [
+	{ email: USER_2, sameFileName: true },
+	{ email: undefined, sameFileName: false },
+]
 
-test('can unshare a file', async ({ page, browser, shareMenu }) => {
-	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
+function getUserDescription(email: string | undefined) {
+	return email ? 'logged in users' : 'anon users'
+}
 
-	const { newContext, newHomePage, errorPage } = await openNewIncognitoPage(browser, url)
-	await newHomePage.isLoaded()
+test.describe('shared files', () => {
+	users.map((user) => {
+		test(`can be seen by ${getUserDescription(user.email)}`, async ({
+			page,
+			browser,
+			shareMenu,
+			editor,
+		}) => {
+			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
+			const fileName = await editor.getCurrentFileName()
+			const { newContext, newPage, newEditor } = await openNewIncognitoPage(browser, {
+				url,
+				asUser: user.email,
+			})
+			// We are in a multiplayer room with another person
+			await expect(page.getByRole('button', { name: 'People' })).toBeVisible()
+			await expect(newPage.getByRole('button', { name: 'People' })).toBeVisible()
 
-	await shareMenu.unshareFile()
-	await errorPage.expectPrivateFileVisible()
-	await newContext.close()
-})
+			await expect(newPage.getByRole('heading', { name: 'Not found' })).not.toBeVisible()
+			expect(await newEditor.getCurrentFileName()).toBe(user.sameFileName ? fileName : 'New board')
+			await newContext.close()
+		})
 
-test('can copy a shared file link', async ({ page, shareMenu }) => {
-	// we have to wait a bit for the search params to get populated
-	await page.waitForTimeout(500)
-	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
-	const currentUrl = await page.evaluate('window.location.href')
-	expect(url).toBe(currentUrl)
+		test(`can be unshared for ${getUserDescription(user.email)}`, async ({
+			page,
+			browser,
+			shareMenu,
+		}) => {
+			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
+
+			const { newContext, errorPage } = await openNewIncognitoPage(browser, {
+				url,
+				asUser: user.email,
+			})
+
+			await shareMenu.unshareFile()
+			await errorPage.expectPrivateFileVisible()
+			await newContext.close()
+		})
+	})
+	test('logged in users can copy shared links', async ({ page, browser, shareMenu }) => {
+		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
+
+		const { newPage, newShareMenu } = await openNewIncognitoPage(browser, {
+			url,
+			asUser: USER_2,
+			allowClipboard: true,
+		})
+		// we have to wait a bit for the search params to get populated
+		await newPage.waitForTimeout(500)
+		const otherUserUrl = await newShareMenu.openMenuCopyLinkAndReturnUrl()
+		expect(otherUserUrl).toBe(newPage.url())
+	})
+
+	test('anon users can copy shared links', async ({ page, browser, shareMenu }) => {
+		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
+
+		const { newShareMenu } = await openNewIncognitoPage(browser, {
+			url,
+			allowClipboard: true,
+		})
+		await expect(newShareMenu.shareButton).not.toBeVisible()
+	})
 })
 
 /* ------------------- Publishing ------------------- */
 
-test('can publish a file', async ({ page, browser, shareMenu }) => {
-	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
+test.describe('published files', () => {
+	users.map((user) => {
+		test(`can be seen by ${getUserDescription(user.email)}`, async ({
+			page,
+			browser,
+			shareMenu,
+		}) => {
+			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
+			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	const { newContext, newHomePage, errorPage } = await openNewIncognitoPage(browser, url)
-	await newHomePage.isLoaded()
-	await errorPage.expectNotFoundNotVisible()
-	await newContext.close()
-})
+			const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(browser, {
+				url,
+				asUser: user.email,
+			})
+			await errorPage.expectNotFoundNotVisible()
+			if (!user.email) await newHomePage.expectSignInButtonVisible()
+			expect(newPage.url()).toBe(url)
+			await newContext.close()
+		})
 
-test('can unpublish a file', async ({ page, browser, shareMenu }) => {
-	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
+		test(`can be unpublished for ${getUserDescription(user.email)}`, async ({
+			page,
+			browser,
+			shareMenu,
+		}) => {
+			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
+			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(browser, url)
-	await newHomePage.isLoaded()
-	await errorPage.expectNotFoundNotVisible()
-	await shareMenu.unpublishFile()
-	await newPage.reload()
-	await errorPage.expectNotFoundVisible()
-	await newContext.close()
-})
+			const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(browser, {
+				url,
+				asUser: user.email,
+			})
+			if (!user.email) await newHomePage.expectSignInButtonVisible()
+			await errorPage.expectNotFoundNotVisible()
+			await shareMenu.unpublishFile()
+			await newPage.reload()
+			await errorPage.expectNotFoundVisible()
+			await newContext.close()
+		})
 
-test('can update published file', async ({ page, browser, editor, shareMenu }) => {
-	await page.getByTestId('tools.rectangle').click()
-	await page.locator('.tl-background').click()
-	expect(await editor.getNumberOfShapes()).toBe(1)
-	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
+		test(`${getUserDescription(user.email)} can copy a published file link`, async ({
+			page,
+			browser,
+			shareMenu,
+		}) => {
+			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
+			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	const { newContext, newPage, newHomePage, newEditor } = await openNewIncognitoPage(browser, url)
-	await newHomePage.isLoaded()
-	expect(await newEditor.getNumberOfShapes()).toBe(1)
+			const { newPage, newShareMenu } = await openNewIncognitoPage(browser, {
+				url,
+				asUser: user.email,
+				allowClipboard: true,
+			})
+			// we have to wait a bit for the search params to get populated
+			await newPage.waitForTimeout(500)
+			const otherUserUrl = await newShareMenu.openMenuCopyLinkAndReturnUrl()
+			expect(otherUserUrl).toBe(newPage.url())
+		})
+	})
 
-	await page.getByTestId('quick-actions.duplicate').click()
+	test('can be updated', async ({ page, browser, editor, shareMenu }) => {
+		await page.getByTestId('tools.rectangle').click()
+		await page.locator('.tl-background').click()
+		expect(await editor.getNumberOfShapes()).toBe(1)
+		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
+		expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
 
-	// lets reload to make sure the change would have time to propagate
-	await newPage.reload()
-	await newHomePage.isLoaded()
-	// The main editor should have two shapes
-	expect(await editor.getNumberOfShapes()).toBe(2)
-	// We haven't published changes yet, so the new page should still only see one shape
-	expect(await newEditor.getNumberOfShapes()).toBe(1)
+		const { newContext, newPage, newHomePage, newEditor } = await openNewIncognitoPage(browser, {
+			url,
+			asUser: USER_2,
+		})
+		expect(await newEditor.getNumberOfShapes()).toBe(1)
 
-	await shareMenu.open()
-	await shareMenu.publishChanges()
-	await newPage.reload()
-	await newHomePage.isLoaded()
-	expect(await newEditor.getNumberOfShapes()).toBe(2)
-	await newContext.close()
-})
+		await page.getByTestId('quick-actions.duplicate').click()
 
-test('can copy a published file link', async ({ page, shareMenu }) => {
-	const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-	expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
+		// lets reload to make sure the change would have time to propagate
+		await newPage.reload()
+		await newHomePage.isLoaded()
+		// The main editor should have two shapes
+		expect(await editor.getNumberOfShapes()).toBe(2)
+		// We haven't published changes yet, so the new page should still only see one shape
+		expect(await newEditor.getNumberOfShapes()).toBe(1)
+
+		await shareMenu.open()
+		await shareMenu.publishChanges()
+		await newPage.reload()
+		await newHomePage.isLoaded()
+		expect(await newEditor.getNumberOfShapes()).toBe(2)
+		await newContext.close()
+	})
 })

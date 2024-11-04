@@ -75,6 +75,14 @@ export class ShareMenu {
 		await this.copyLinkButton.click()
 	}
 
+	async openMenuCopyLinkAndReturnUrl() {
+		await this.page.waitForTimeout(500)
+		await this.open()
+		await this.copyLink()
+		const handle = await this.page.evaluateHandle(() => navigator.clipboard.readText())
+		return await handle.jsonValue()
+	}
+
 	async isTabSelected(tab: ShareMenuTab) {
 		const attr = await this.tabs[tab].getAttribute('data-active')
 		return attr === 'true'

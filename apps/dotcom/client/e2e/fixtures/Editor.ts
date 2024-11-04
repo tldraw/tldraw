@@ -4,11 +4,14 @@ import { Sidebar } from './Sidebar'
 
 export class Editor {
 	public readonly sidebarToggle: Locator
+	private readonly fileName: Locator
+
 	constructor(
 		public readonly page: Page,
 		private readonly sidebar: Sidebar
 	) {
 		this.sidebarToggle = this.page.getByTestId('tla-sidebar-toggle')
+		this.fileName = this.page.getByTestId('tla-file-name')
 	}
 
 	async toggleSidebar() {
@@ -36,5 +39,9 @@ export class Editor {
 
 	async getNumberOfShapes() {
 		return (await this.page.$$('.tl-shape')).length
+	}
+
+	async getCurrentFileName() {
+		return await this.fileName.innerText()
 	}
 }
