@@ -7,7 +7,6 @@ import {
 	Group2d,
 	Rectangle2d,
 	SVGContainer,
-	SafeId,
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowBinding,
@@ -27,7 +26,6 @@ import {
 	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
-	sanitizeId,
 	structuredClone,
 	toDomPrecision,
 	track,
@@ -643,6 +641,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	indicator(shape: TLArrowShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const clipPathId = useSharedSafeId(shape.id + '_clip')
 
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return null
@@ -666,8 +666,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			(as && info.start.arrowhead !== 'arrow') ||
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
-
-		const clipPathId = sanitizeId(shape.id + '_clip')
 
 		if (isEditing && labelGeometry) {
 			return (
@@ -842,7 +840,7 @@ const ArrowSvg = track(function ArrowSvg({
 		[editor]
 	)
 
-	const clipPathId = sanitizeId(shape.id + '_clip') as SafeId
+	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 
