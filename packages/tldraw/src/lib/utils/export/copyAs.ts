@@ -42,7 +42,6 @@ export function copyAs(
 
 		const types: Record<string, Promise<Blob>> = { [mimeType]: blobPromise }
 		const additionalMimeType = getAdditionalClipboardWriteType(mimeType)
-		console.log(mimeType, additionalMimeType)
 		if (additionalMimeType && doesClipboardSupportType(additionalMimeType)) {
 			types[additionalMimeType] = blobPromise.then((blob) =>
 				FileHelpers.rewriteMimeType(blob, additionalMimeType)

@@ -186,7 +186,6 @@ const handlePasteFromEventClipboardData = async (
 
 	const things: ClipboardThing[] = []
 
-	debugger
 	for (const item of Object.values(clipboardData.items)) {
 		switch (item.kind) {
 			case 'file': {

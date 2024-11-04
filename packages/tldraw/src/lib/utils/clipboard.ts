@@ -40,8 +40,6 @@ export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<vo
 
 	const entries = Object.entries(types)
 
-	console.log('clipboardWrite', entries)
-
 	// clipboard.write will swallow errors if any of the promises reject. we log them here so we can
 	// understand what might have gone wrong.
 	for (const [_, promise] of entries) promise.catch((err) => console.error(err))
