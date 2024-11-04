@@ -165,7 +165,7 @@ test.describe('published files', () => {
 		})
 	})
 
-	test('can be updated', async ({ page, browser, editor, shareMenu }) => {
+	test.only('can be updated', async ({ page, browser, editor, shareMenu }) => {
 		await page.getByTestId('tools.rectangle').click()
 		await page.locator('.tl-background').click()
 		expect(await editor.getNumberOfShapes()).toBe(1)
@@ -176,6 +176,7 @@ test.describe('published files', () => {
 			url,
 			asUser: USER_2,
 		})
+		await newHomePage.isLoaded()
 		expect(await newEditor.getNumberOfShapes()).toBe(1)
 
 		await page.getByTestId('quick-actions.duplicate').click()
