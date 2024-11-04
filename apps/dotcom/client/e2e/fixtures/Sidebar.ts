@@ -5,9 +5,17 @@ export class Sidebar {
 	public readonly fileLink = '[data-element="file-link"]'
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
+	public readonly sidebarBottom: Locator
+	public readonly preferencesButton: Locator
+	public readonly themeButton: Locator
+	public readonly darkModeButton: Locator
 	constructor(public readonly page: Page) {
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
+		this.sidebarBottom = this.page.getByTestId('tla-sidebar-bottom')
+		this.preferencesButton = this.page.getByText('Preferences')
+		this.themeButton = this.page.getByText('Theme')
+		this.darkModeButton = this.page.getByText('Dark')
 	}
 
 	async goto() {
@@ -32,5 +40,16 @@ export class Sidebar {
 
 	async getNumberOfFiles() {
 		return (await this.page.$$(this.fileLink)).length
+	}
+
+	async openPreferences() {
+		await this.sidebarBottom.hover()
+	}
+
+	async setDarkMode() {
+		await this.sidebarBottom.getByRole('button').click()
+		await this.preferencesButton.hover()
+		await this.themeButton.hover()
+		await this.darkModeButton.click()
 	}
 }

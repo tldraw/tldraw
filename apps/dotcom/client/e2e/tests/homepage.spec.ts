@@ -30,8 +30,27 @@ test.fixme('can can double click file name to rename it', async () => {
 
 // Preferences
 
-test.fixme('can toggle dark mode', async () => {
-	// ...
+test('can toggle dark mode', async ({ page, editor, sidebar }) => {
+	await expect(page.locator('div.tla-theme__light.tl-theme__light')).toBeVisible()
+	await expect(page.locator('div.tla-theme__dark.tl-theme__dark')).not.toBeVisible()
+	await expect(page.locator('div.tl-background')).toHaveCSS(
+		'background-color',
+		'rgb(249, 250, 251)'
+	)
+	await expect(page.locator('div.tla-theme-container')).toHaveCSS(
+		'background-color',
+		'rgb(252, 252, 252)'
+	)
+	await editor.ensureSidebarOpen()
+	await sidebar.openPreferences()
+	await sidebar.setDarkMode()
+	await expect(page.locator('div.tla-theme__light.tl-theme__light')).not.toBeVisible()
+	await expect(page.locator('div.tla-theme__dark.tl-theme__dark')).toBeVisible()
+	await expect(page.locator('div.tl-background')).toHaveCSS('background-color', 'rgb(16, 16, 17)')
+	await expect(page.locator('div.tla-theme-container')).toHaveCSS(
+		'background-color',
+		'rgb(13, 13, 13)'
+	)
 })
 
 // File menu in sidebar

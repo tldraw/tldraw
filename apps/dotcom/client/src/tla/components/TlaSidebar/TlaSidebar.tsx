@@ -73,7 +73,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.content}>
 					<TlaSidebarRecentFiles />
 				</div>
-				<div className={styles.bottom}>
+				<div className={styles.bottom} data-testid="tla-sidebar-bottom">
 					<TlaSidebarUserLink />
 				</div>
 			</div>
