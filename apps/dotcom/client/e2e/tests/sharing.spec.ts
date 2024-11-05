@@ -174,7 +174,6 @@ test.describe('published files', () => {
 
 		const { newContext, newPage, newHomePage, newEditor } = await openNewIncognitoPage(browser, {
 			url,
-			asUser: USER_2,
 		})
 		await newHomePage.isLoaded()
 		expect(await newEditor.getNumberOfShapes()).toBe(1)
