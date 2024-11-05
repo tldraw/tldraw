@@ -165,7 +165,7 @@ test.describe('published files', () => {
 		})
 	})
 
-	test.only('can be updated', async ({ page, browser, editor, shareMenu }) => {
+	test('can be updated', async ({ page, browser, editor, shareMenu }) => {
 		await page.getByTestId('tools.rectangle').click()
 		await page.locator('.tl-background').click()
 		expect(await editor.getNumberOfShapes()).toBe(1)
