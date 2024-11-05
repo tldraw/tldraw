@@ -3,9 +3,11 @@ import {
 	Editor,
 	Geometry2d,
 	Mat,
+	SelectionEdge,
 	TLShape,
 	TLShapeId,
 	Vec,
+	canonicalizeRotation,
 	compact,
 	pointInPolygon,
 	polygonIntersectsPolyline,
@@ -162,13 +164,54 @@ function zoomToLabelPosition(editor: Editor) {
 	const shape = editor.getEditingShape()!
 	const transform = editor.getShapePageTransform(shape)
 	if (shape.type === 'frame') {
-		const frameGeometry = editor.getShapePageBounds(shape)!
+		console.log('lo')
+		const FRAME_HEADING_HEIGHT = 32
+		const frameBounds = editor.getShapePageBounds(shape)!
+		const frameGeometry = editor.getShapeGeometry(shape)!
+		//todo : make a function that both frameheading component and this function use
 
-		// where is the frame label
+		// which side is the frame heading on?
+		const pageRotation = canonicalizeRotation(transform.rotation())
+		const offsetRotation = pageRotation + Math.PI / 4
+		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
+		const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
+			Math.floor(scaledRotation)
+		]
 
-		labelBox = frameGeometry
+		// scale with zoom
+		const height = FRAME_HEADING_HEIGHT * editor.getZoomLevel()
 
-		// account for page rotation and position
+		// assume it's the full length of that side
+		const width =
+			labelSide === 'top' || labelSide === 'bottom' ? frameBounds.width : frameBounds.height
+		// account for page rotation
+		const [one, two, three, four] = frameGeometry.getVertices()
+
+		let angle: Vec
+		let startPoint: Vec
+		switch (labelSide) {
+			case 'top':
+				angle = Vec.Sub(one, four).uni()
+				startPoint = one
+				break
+			case 'left':
+				angle = Vec.Sub(four, three).uni()
+				startPoint = four
+				break
+			case 'bottom':
+				angle = Vec.Sub(three, two).uni()
+				startPoint = three
+				break
+			case 'right':
+				angle = Vec.Sub(two, one).uni()
+				startPoint = two
+				break
+		}
+		const frameHeadingPoint = Vec.Add(startPoint, angle.mul(height))
+
+		const inPageSpace = transform.applyToPoint(frameHeadingPoint)
+
+		labelBox = new Box(inPageSpace.x, inPageSpace.y, 4, 4)
 	} else {
 		const labelGeometry = editor
 			.getShapeGeometry(shape)
