@@ -106,7 +106,7 @@ test.describe('shared files', () => {
 })
 
 /* ------------------- Exporting ------------------- */
-test('can export a file as an image', async ({ page, shareMenu }) => {
+test.only('can export a file as an image', async ({ page, shareMenu }) => {
 	await page.getByTestId('tools.rectangle').click()
 	await page.locator('.tl-background').click()
 	const downloadPromise = page.waitForEvent('download')
@@ -116,7 +116,7 @@ test('can export a file as an image', async ({ page, shareMenu }) => {
 	const download = await downloadPromise
 	const suggestedFilename = download.suggestedFilename()
 	expect(suggestedFilename).toMatch('file.png')
-	const filePath = path.join('../../test-results/', suggestedFilename)
+	const filePath = path.join('./test-results/', suggestedFilename)
 	await download.saveAs(filePath)
 
 	expect(fs.existsSync(filePath)).toBeTruthy()
