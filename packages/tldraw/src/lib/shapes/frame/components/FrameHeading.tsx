@@ -67,13 +67,7 @@ export const FrameHeading = function FrameHeading({
 		}
 	}, [rInput, isEditing])
 
-	// rotate right 45 deg
-	const offsetRotation = pageRotation + Math.PI / 4
-	const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-	const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
-		Math.floor(scaledRotation)
-	]
-
+	const labelSide = getLabelSide(pageRotation)
 	let labelTranslate: string
 	switch (labelSide) {
 		case 'top':
@@ -111,4 +105,14 @@ export const FrameHeading = function FrameHeading({
 			</div>
 		</div>
 	)
+}
+
+export function getLabelSide(pageRotation: number) {
+	// rotate right 45 deg
+	const offsetRotation = pageRotation + Math.PI / 4
+	const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
+	const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
+		Math.floor(scaledRotation)
+	]
+	return labelSide
 }

@@ -3,7 +3,6 @@ import {
 	Editor,
 	Geometry2d,
 	Mat,
-	SelectionEdge,
 	TLShape,
 	TLShapeId,
 	Vec,
@@ -13,6 +12,7 @@ import {
 	polygonIntersectsPolyline,
 	polygonsIntersect,
 } from '@tldraw/editor'
+import { getLabelSide } from '../../shapes/frame/components/FrameHeading'
 
 /** @internal */
 export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]) {
@@ -164,27 +164,17 @@ function zoomToLabelPosition(editor: Editor) {
 	const shape = editor.getEditingShape()!
 	const transform = editor.getShapePageTransform(shape)
 	if (shape.type === 'frame') {
-		console.log('lo')
 		const FRAME_HEADING_HEIGHT = 32
-		const frameBounds = editor.getShapePageBounds(shape)!
 		const frameGeometry = editor.getShapeGeometry(shape)!
 		//todo : make a function that both frameheading component and this function use
 
 		// which side is the frame heading on?
 		const pageRotation = canonicalizeRotation(transform.rotation())
-		const offsetRotation = pageRotation + Math.PI / 4
-		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-		const labelSide: SelectionEdge = (['top', 'left', 'bottom', 'right'] as const)[
-			Math.floor(scaledRotation)
-		]
+		const labelSide = getLabelSide(pageRotation)
 
 		// scale with zoom
-		const height = FRAME_HEADING_HEIGHT * editor.getZoomLevel()
+		const zoomAdjustedHeight = FRAME_HEADING_HEIGHT * editor.getZoomLevel()
 
-		// assume it's the full length of that side
-		const width =
-			labelSide === 'top' || labelSide === 'bottom' ? frameBounds.width : frameBounds.height
-		// account for page rotation
 		const [one, two, three, four] = frameGeometry.getVertices()
 
 		let angle: Vec
@@ -207,7 +197,7 @@ function zoomToLabelPosition(editor: Editor) {
 				startPoint = two
 				break
 		}
-		const frameHeadingPoint = Vec.Add(startPoint, angle.mul(height))
+		const frameHeadingPoint = Vec.Add(startPoint, angle.mul(zoomAdjustedHeight))
 
 		const inPageSpace = transform.applyToPoint(frameHeadingPoint)
 
@@ -228,13 +218,10 @@ function zoomToLabelPosition(editor: Editor) {
 		)
 	}
 
-	// get writing direction
-
 	// zoom to the start of the label
 	const viewportPageBounds = editor.getViewportPageBounds()
 	if (labelBox && !viewportPageBounds.contains(labelBox)) {
-		// todo: Avoid collisions with menus
-		// also when zooming to things at the bottom of the screen it should contain the whole label
+		// todo: Avoid collisions with menus also when zooming to things at the bottom of the screen it should contain the whole label
 		const eb = labelBox
 			.clone()
 			// Expand the bounds by the padding
