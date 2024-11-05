@@ -3,8 +3,10 @@ import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor, useToasts } from 'tldraw'
+import { F, FormattedRelativeTime } from '../../../app/i18n'
 import { useApp } from '../../../hooks/useAppState'
 import { useRaw } from '../../../hooks/useRaw'
+import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { getShareablePublishUrl } from '../../../utils/urls'
 import { TlaButton } from '../../TlaButton/TlaButton'
@@ -29,6 +31,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 	const { publishedSlug, published } = file
 	const isOwner = app.isFileOwner(file.id)
 	const auth = useAuth()
+	const trackEvent = useTldrawAppUiEvents()
 	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
 
 	const publish = useCallback(
@@ -71,8 +74,9 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 					severity: 'error',
 				})
 			}
+			trackEvent('publish-file', { result, source: 'file-share-menu' })
 		},
-		[editor, fileSlug, isOwner, auth, app, addToast, file.id]
+		[editor, fileSlug, isOwner, auth, app, addToast, file.id, trackEvent]
 	)
 
 	const unpublish = useCallback(async () => {
@@ -92,12 +96,13 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 				severity: 'error',
 			})
 		}
-	}, [addToast, app, auth, file.id, isOwner])
+		trackEvent('unpublish-file', { result, source: 'file-share-menu' })
+	}, [addToast, app, auth, file.id, isOwner, trackEvent])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 
-	const daysSince = Math.floor((Date.now() - file.lastPublished) / (60 * 1000 * 60 * 24))
-
+	const secondsSince = Math.min(0, Math.floor((Date.now() - file.lastPublished) / 1000))
+	const learnMoreUrl = 'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'
 	return (
 		<TlaTabsPage id="publish">
 			<TlaMenuSection>
@@ -106,7 +111,10 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 						<TlaMenuControl>
 							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip
-								href={'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'}
+								onClick={() =>
+									trackEvent('open-url', { url: learnMoreUrl, source: 'file-share-menu' })
+								}
+								href={learnMoreUrl}
 							>
 								{raw('Learn more about publishing.')}
 							</TlaMenuControlInfoTooltip>
@@ -132,11 +140,19 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 						)}
 						{/* todo: make this data actually true based on file.lastPublished */}
 						<TlaMenuDetail>
-							{raw(
-								daysSince
-									? `Last published ${daysSince} day${daysSince > 1 ? 's' : ''} ago`
-									: `Last published today.`
-							)}
+							<F
+								defaultMessage="Last published <date></date>"
+								description="This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'."
+								values={{
+									date: () => (
+										<FormattedRelativeTime
+											value={secondsSince}
+											numeric="auto"
+											updateIntervalInSeconds={15}
+										/>
+									),
+								}}
+							/>
 						</TlaMenuDetail>
 					</>
 				)}
@@ -149,11 +165,13 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 export function TlaCopyPublishLinkButton({ url }: { url: string }) {
 	const raw = useRaw()
 	const editor = useEditor()
+	const trackEvent = useTldrawAppUiEvents()
 
 	const handleCopyPublishLink = useCallback(() => {
 		if (!url) return
 		copyTextToClipboard(editor.createDeepLink({ url }).toString())
-	}, [url, editor])
+		trackEvent('copy-publish-link', { source: 'file-share-menu' })
+	}, [url, editor, trackEvent])
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyPublishLink}>

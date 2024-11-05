@@ -690,6 +690,7 @@ export const defaultTldrawOptions: {
     readonly collaboratorCheckIntervalMs: 1200;
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
+    readonly createTextOnCanvasDoubleClick: true;
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
@@ -2767,6 +2768,8 @@ export interface TldrawOptions {
     // (undocumented)
     readonly collaboratorInactiveTimeoutMs: number;
     // (undocumented)
+    readonly createTextOnCanvasDoubleClick: boolean;
+    // (undocumented)
     readonly defaultSvgPadding: number;
     // (undocumented)
     readonly doubleClickDurationMs: number;
@@ -3149,7 +3152,11 @@ export interface TLImageExportOptions {
     // (undocumented)
     padding?: number;
     // (undocumented)
+    pixelRatio?: number;
+    // (undocumented)
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    // (undocumented)
+    quality?: number;
     // (undocumented)
     scale?: number;
 }

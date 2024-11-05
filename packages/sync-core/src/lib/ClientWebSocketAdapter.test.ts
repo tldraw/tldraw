@@ -2,7 +2,6 @@ import { TLRecord, sleep } from 'tldraw'
 import { ClientWebSocketAdapter, INACTIVE_MIN_DELAY } from './ClientWebSocketAdapter'
 // NOTE: there is a hack in apps/dotcom/jestResolver.js to make this import work
 import { WebSocketServer, WebSocket as WsWebSocket } from 'ws'
-import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 import { TLSocketClientSentEvent, getTlsyncProtocolVersion } from './protocol'
 
 async function waitFor(predicate: () => boolean) {
@@ -54,10 +53,10 @@ describe(ClientWebSocketAdapter, () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(adapter.connectionStatus).toBe('online')
 	})
-	it('should respond to onerror events by setting connectionStatus=error', async () => {
+	it('should respond to onerror events by setting connectionStatus=offline', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		adapter._ws?.onerror?.({} as any)
-		expect(adapter.connectionStatus).toBe('error')
+		expect(adapter.connectionStatus).toBe('offline')
 	})
 	it('should try to reopen the connection if there was an error', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
@@ -172,10 +171,7 @@ describe(ClientWebSocketAdapter, () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		expect(onStatusChange).toHaveBeenCalledWith({ status: 'online' })
 		adapter._ws?.onerror?.({} as any)
-		expect(onStatusChange).toHaveBeenCalledWith({
-			status: 'error',
-			reason: TLSyncErrorCloseEventReason.UNKNOWN_ERROR,
-		})
+		expect(onStatusChange).toHaveBeenCalledWith({ status: 'offline' })
 	})
 
 	it('signals the correct closeCode when a room is not found', async () => {

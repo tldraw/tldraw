@@ -110,7 +110,7 @@
 	--tl-font-sans: 'tldraw_sans', sans-serif;
 	--tl-font-serif: 'tldraw_serif', serif;
 	--tl-font-mono: 'tldraw_mono', monospace;
-	/* fext outline */
+	/* text outline */
 	--a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
 	--b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
 	--tl-text-outline-reference: 0 var(--b) 0 var(--color-background),

@@ -11,6 +11,8 @@ export type OptionalKeys<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>
 export interface TLImageExportOptions {
 	bounds?: Box
 	scale?: number
+	quality?: number
+	pixelRatio?: number
 	background?: boolean
 	padding?: number
 	darkMode?: boolean

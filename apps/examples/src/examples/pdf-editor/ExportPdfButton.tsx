@@ -68,7 +68,7 @@ async function exportPdf(
 			editor,
 			ids: allIds,
 			format: 'png',
-			opts: { background: false, bounds: page.bounds, padding: 0, scale: 2 },
+			opts: { background: false, bounds: page.bounds, padding: 0, scale: 1 },
 		})
 		tickProgress()
 

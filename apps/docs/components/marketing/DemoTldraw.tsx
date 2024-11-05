@@ -48,11 +48,13 @@ export default function DemoTldraw({ hidden }: { hidden: boolean }) {
 		editor.focus({ focusContainer: false })
 	}, [editor])
 
-	if (hidden) return null
-
 	return (
 		<>
-			<div ref={wrapper} className={cn('z-10 h-full w-full')} onFocus={handleEditorFocus}>
+			<div
+				ref={wrapper}
+				className={cn('z-10 h-full w-full', hidden ? 'hidden' : '')}
+				onFocus={handleEditorFocus}
+			>
 				<Tldraw
 					initialState="draw"
 					assetUrls={assetUrls}

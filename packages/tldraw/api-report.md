@@ -1211,8 +1211,8 @@ export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[
 // @public (undocumented)
 export function getSvgAsImage(editor: Editor, svgString: string, options: {
     height: number;
-    quality: number;
-    scale: number;
+    pixelRatio?: number;
+    quality?: number;
     type: 'jpeg' | 'png' | 'webp';
     width: number;
 }): Promise<Blob | null>;

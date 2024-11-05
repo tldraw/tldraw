@@ -33,4 +33,8 @@ export class Editor {
 	async isLoaded() {
 		await expect(this.sidebarToggle).toBeVisible()
 	}
+
+	async getNumberOfShapes() {
+		return (await this.page.$$('.tl-shape')).length
+	}
 }
