@@ -1,4 +1,6 @@
 import { Page } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
 import { USER_2 } from '../consts'
 import { ShareMenu } from '../fixtures/ShareMenu'
 import { openNewIncognitoPage } from '../fixtures/helpers'
@@ -101,6 +103,25 @@ test.describe('shared files', () => {
 		})
 		await expect(newShareMenu.shareButton).not.toBeVisible()
 	})
+})
+
+/* ------------------- Exporting ------------------- */
+test('can export a file as an image', async ({ page, shareMenu }) => {
+	await page.getByTestId('tools.rectangle').click()
+	await page.locator('.tl-background').click()
+	const downloadPromise = page.waitForEvent('download')
+
+	await shareMenu.open()
+	await shareMenu.exportFile()
+	const download = await downloadPromise
+	const suggestedFilename = download.suggestedFilename()
+	expect(suggestedFilename).toMatch('file.png')
+	const filePath = path.join('../../test-results/', suggestedFilename)
+	await download.saveAs(filePath)
+
+	expect(fs.existsSync(filePath)).toBeTruthy()
+	const stats = fs.statSync(filePath)
+	expect(stats.size).toBeGreaterThan(0)
 })
 
 /* ------------------- Publishing ------------------- */

@@ -1,17 +1,20 @@
 import type { Locator, Page } from '@playwright/test'
 
-type ShareMenuTab = 'invite' | 'publish'
+type ShareMenuTab = 'invite' | 'export' | 'publish'
 
 export class ShareMenu {
 	public readonly shareButton: Locator
+	public readonly exportButton: Locator
 	public readonly inviteButton: Locator
 	public readonly publishButton: Locator
 	public readonly publishChangesButton: Locator
 	public readonly copyLinkButton: Locator
-	public readonly tabs: { invite: Locator; publish: Locator }
+	public readonly exportImageButton: Locator
+	public readonly tabs: { invite: Locator; export: Locator; publish: Locator }
 
 	constructor(public readonly page: Page) {
 		this.shareButton = this.page.getByRole('button', { name: 'Share' })
+		this.exportButton = this.page.getByRole('button', { name: 'Export', exact: true })
 		this.inviteButton = this.page.getByRole('button', { name: 'Invite' })
 		this.publishButton = this.page.getByRole('button', { name: 'Publish', exact: true })
 		this.publishChangesButton = this.page.getByRole('button', {
@@ -19,8 +22,10 @@ export class ShareMenu {
 			exact: true,
 		})
 		this.copyLinkButton = this.page.getByRole('button', { name: 'Copy link' })
+		this.exportImageButton = this.page.getByRole('button', { name: 'Export image' })
 		this.tabs = {
 			invite: this.inviteButton,
+			export: this.exportButton,
 			publish: this.publishButton,
 		}
 		this.shareFile = this.shareFile.bind(this)
@@ -81,6 +86,11 @@ export class ShareMenu {
 		await this.copyLink()
 		const handle = await this.page.evaluateHandle(() => navigator.clipboard.readText())
 		return await handle.jsonValue()
+	}
+
+	async exportFile() {
+		await this.ensureTabSelected('export')
+		await this.exportImageButton.click()
 	}
 
 	async isTabSelected(tab: ShareMenuTab) {
