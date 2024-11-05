@@ -3,6 +3,7 @@ import {
 	Editor,
 	Geometry2d,
 	Mat,
+	TLFrameShape,
 	TLShape,
 	TLShapeId,
 	Vec,
@@ -137,102 +138,103 @@ const ZOOM_TO_SHAPE_PADDING = 16
 export function zoomToShapeIfOffscreen(editor: Editor) {
 	const selectionPageBounds = editor.getSelectionPageBounds()
 	const viewportPageBounds = editor.getViewportPageBounds()
-	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		const eb = selectionPageBounds
-			.clone()
-			// Expand the bounds by the padding
-			.expandBy(ZOOM_TO_SHAPE_PADDING / editor.getZoomLevel())
-			// then expand the bounds to include the viewport bounds
-			.expand(viewportPageBounds)
-
-		// then use the difference between the centers to calculate the offset
-		const nextBounds = viewportPageBounds.clone().translate({
-			x: (eb.center.x - viewportPageBounds.center.x) * 2,
-			y: (eb.center.y - viewportPageBounds.center.y) * 2,
-		})
-		editor.zoomToBounds(nextBounds, {
-			animation: {
-				duration: editor.options.animationMediumMs,
-			},
-			inset: 0,
-		})
-	}
+	zoomToBoxIfOffScreen(selectionPageBounds, viewportPageBounds, editor)
 }
+
 function zoomToLabelPosition(editor: Editor) {
-	// get the geometry of the label
-	let labelBox: Box
+	const viewportPageBounds = editor.getViewportPageBounds()
 	const shape = editor.getEditingShape()!
 	const transform = editor.getShapePageTransform(shape)
-	if (shape.type === 'frame') {
-		const FRAME_HEADING_HEIGHT = 32
-		const frameGeometry = editor.getShapeGeometry(shape)!
-		//todo : make a function that both frameheading component and this function use
 
-		// which side is the frame heading on?
-		const pageRotation = canonicalizeRotation(transform.rotation())
-		const labelSide = getLabelSide(pageRotation)
+	const labelBox =
+		shape.type === 'frame'
+			? getFrameLabelBox(editor, shape as TLFrameShape, transform)
+			: getShapeLabelBox(editor, shape, transform)
 
-		// scale with zoom
-		const zoomAdjustedHeight = FRAME_HEADING_HEIGHT * editor.getZoomLevel()
+	if (labelBox) {
+		zoomToBoxIfOffScreen(labelBox, viewportPageBounds, editor)
+	}
+}
 
-		const [one, two, three, four] = frameGeometry.getVertices()
+function getFrameLabelBox(editor: Editor, shape: TLFrameShape, transform: Mat) {
+	const FRAME_HEADING_HEIGHT = 32
+	const frameGeometry = editor.getShapeGeometry(shape)!
+	//todo : when zoomed in, double clicking on the label makes the camera go flying off
 
-		let angle: Vec
-		let startPoint: Vec
-		switch (labelSide) {
-			case 'top':
-				angle = Vec.Sub(one, four).uni()
-				startPoint = one
-				break
-			case 'left':
-				angle = Vec.Sub(four, three).uni()
-				startPoint = four
-				break
-			case 'bottom':
-				angle = Vec.Sub(three, two).uni()
-				startPoint = three
-				break
-			case 'right':
-				angle = Vec.Sub(two, one).uni()
-				startPoint = two
-				break
-		}
-		const frameHeadingPoint = Vec.Add(startPoint, angle.mul(zoomAdjustedHeight))
+	// which side is the frame heading on?
+	const pageRotation = canonicalizeRotation(transform.rotation())
+	const labelSide = getLabelSide(pageRotation)
 
-		const inPageSpace = transform.applyToPoint(frameHeadingPoint)
+	// scale with zoom
+	const zoomAdjustedHeight = FRAME_HEADING_HEIGHT * editor.getZoomLevel()
 
-		labelBox = new Box(inPageSpace.x, inPageSpace.y, 4, 4)
+	const [one, two, three, four] = frameGeometry.getVertices()
+
+	let angle: Vec
+	let startPoint: Vec
+	switch (labelSide) {
+		case 'top':
+			angle = Vec.Sub(one, four).uni()
+			startPoint = one
+			break
+		case 'left':
+			angle = Vec.Sub(four, three).uni()
+			startPoint = four
+			break
+		case 'bottom':
+			angle = Vec.Sub(three, two).uni()
+			startPoint = three
+			break
+		case 'right':
+			angle = Vec.Sub(two, one).uni()
+			startPoint = two
+			break
+	}
+	const frameHeadingPoint = Vec.Add(startPoint, angle.mul(zoomAdjustedHeight))
+
+	const inPageSpace = transform.applyToPoint(frameHeadingPoint)
+
+	// make a small box around this point
+	return new Box(inPageSpace.x, inPageSpace.y, 4, 4)
+}
+
+function getShapeLabelBox(editor: Editor, shape: TLShape, transform: Mat) {
+	const labelGeometry = editor
+		.getShapeGeometry(shape)
+		// @ts-ignore
+		.children.filter((g: Geometry2d) => g.isLabel === true)[0]
+	//arrows with no label text return undefined, so let's just get the center of the shape
+	if (!labelGeometry) {
+		// todo : arrows with no label that have had the label position changed, remember the old position in props We can use that to get the place we should pan to
+		const shapeBounds = editor.getShapePageBounds(shape)
+		if (!shapeBounds) throw new Error('no shape bounds found')
+		return new Box(shapeBounds.center.x, shapeBounds.center.y, 40, 40)
 	} else {
-		const labelGeometry = editor
-			.getShapeGeometry(shape)
-			// @ts-ignore
-			.children.filter((g: Geometry2d) => g.isLabel === true)[0]
 		const pagePoint = transform.applyToPoint(
 			new Vec(labelGeometry.bounds.minX, labelGeometry.bounds.minY)
 		)
-		labelBox = new Box(
+		return new Box(
 			pagePoint.x,
 			pagePoint.y,
 			labelGeometry.bounds.width,
 			labelGeometry.bounds.height
 		)
 	}
+}
 
-	// zoom to the start of the label
-	const viewportPageBounds = editor.getViewportPageBounds()
-	if (labelBox && !viewportPageBounds.contains(labelBox)) {
-		// todo: Avoid collisions with menus also when zooming to things at the bottom of the screen it should contain the whole label
-		const eb = labelBox
+function zoomToBoxIfOffScreen(box: Box | null, viewport: Box, editor: Editor) {
+	if (box && !viewport.contains(box)) {
+		const eb = box
 			.clone()
 			// Expand the bounds by the padding
 			.expandBy(ZOOM_TO_SHAPE_PADDING / editor.getZoomLevel())
 			// then expand the bounds to include the viewport bounds
-			.expand(viewportPageBounds)
+			.expand(viewport)
 
 		// then use the difference between the centers to calculate the offset
-		const nextBounds = viewportPageBounds.clone().translate({
-			x: (eb.center.x - viewportPageBounds.center.x) * 2,
-			y: (eb.center.y - viewportPageBounds.center.y) * 2,
+		const nextBounds = viewport.clone().translate({
+			x: (eb.center.x - viewport.center.x) * 2,
+			y: (eb.center.y - viewport.center.y) * 2,
 		})
 		editor.zoomToBounds(nextBounds, {
 			animation: {
