@@ -62,7 +62,9 @@
 }
 
 .tlui-button:focus-visible:not(:hover) {
-	outline: 1px solid var(--color-selected);
+	/* todo: fix the indicator errors in radix dropdown menus before restoring */
+	/* outline: 1px solid var(--color-selected); */
+	outline: none;
 	outline-offset: -4px;
 	border-radius: var(--radius-3);
 }
