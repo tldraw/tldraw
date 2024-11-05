@@ -98,9 +98,7 @@ async function build() {
 					// cache static assets immutably
 					{
 						src: '^/assets/(.*)$',
-						check: true,
 						headers: {
-							'Cache-Control': 'public, max-age=31536000, immutable',
 							'X-Content-Type-Options': 'nosniff',
 						},
 					},
@@ -125,7 +123,7 @@ async function build() {
 						src: '.*',
 						dest: '/index.html',
 						status: 404,
-						headers: { ...commonSecurityHeaders, 'Cache-Control': 'no-store, no-cache, max-age=0' },
+						headers: commonSecurityHeaders,
 					},
 				],
 				overrides: {},
