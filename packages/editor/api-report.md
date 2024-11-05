@@ -1120,6 +1120,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         originPagePoint: Vec;
         currentScreenPoint: Vec;
         currentPagePoint: Vec;
+        downPointerId: null | number;
         previousScreenPoint: Vec;
         previousPagePoint: Vec;
         pointerVelocity: Vec;

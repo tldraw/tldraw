@@ -8625,6 +8625,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isSpacebarPanning: false,
 		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec(),
+		/** The pointer ID that the other pointer-related properties here refer to. Will be null if no pointer is currently down. */
+		downPointerId: null as number | null,
 	}
 
 	/**

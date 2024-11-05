@@ -35,6 +35,7 @@
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
+		"@vercel/edge": "^1.1.2",
 		"browser-fs-access": "^0.35.0",
 		"classnames": "^2.3.2",
 		"idb": "^7.1.1",

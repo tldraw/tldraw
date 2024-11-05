@@ -8565,6 +8565,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/edge@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@vercel/edge@npm:1.1.2"
+  checksum: abe25ccb317f6b882e0880b2ba8ec6f6d9b27ed65b5ddf5ced59cf47dd1984f257545325cdf38ab0ebcac19009d17199ff10d3144d5a54e47c12ae2652429234
+  languageName: node
+  linkType: hard
+
 "@vercel/error-utils@npm:2.0.2":
   version: 2.0.2
   resolution: "@vercel/error-utils@npm:2.0.2"
@@ -11700,6 +11707,7 @@ __metadata:
     "@types/react": "npm:^18.2.0"
     "@typescript-eslint/utils": "npm:^8.11.0"
     "@vercel/analytics": "npm:^1.1.1"
+    "@vercel/edge": "npm:^1.1.2"
     "@vitejs/plugin-react-swc": "npm:^3.7.0"
     browser-fs-access: "npm:^0.35.0"
     classnames: "npm:^2.3.2"
