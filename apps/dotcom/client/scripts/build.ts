@@ -51,7 +51,6 @@ async function build() {
 	// Clear output static folder (in case we are running locally and have already built the app once before)
 	await exec('rm', ['-rf', '.vercel/output'])
 	mkdirSync('.vercel/output', { recursive: true })
-	await exec('cp', ['-r', 'vercel', '.vercel/output'])
 	await exec('cp', ['-r', 'dist', '.vercel/output/static'])
 	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
 
@@ -101,8 +100,8 @@ async function build() {
 						src: '^/assets/(.*)$',
 						headers: {
 							'X-Content-Type-Options': 'nosniff',
+							'Cache-Control': 'public, max-age=31536000, immutable',
 						},
-						middlewarePath: '_assetMiddleware',
 					},
 					// server up index.html specifically because we want to include
 					// security headers. otherwise, it goes to the handle: 'miss'
@@ -125,7 +124,7 @@ async function build() {
 						src: '.*',
 						dest: '/index.html',
 						status: 404,
-						headers: commonSecurityHeaders,
+						headers: { ...commonSecurityHeaders, 'Cache-Control': 'no-store, no-cache, max-age=0' },
 					},
 				],
 				overrides: {},
