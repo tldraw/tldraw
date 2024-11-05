@@ -42,7 +42,6 @@ test('can toggle dark mode', async ({ page, editor, sidebar }) => {
 		'rgb(252, 252, 252)'
 	)
 	await editor.ensureSidebarOpen()
-	await sidebar.openPreferences()
 	await sidebar.setDarkMode()
 	await expect(page.locator('div.tla-theme__light.tl-theme__light')).not.toBeVisible()
 	await expect(page.locator('div.tla-theme__dark.tl-theme__dark')).toBeVisible()
@@ -51,6 +50,17 @@ test('can toggle dark mode', async ({ page, editor, sidebar }) => {
 		'background-color',
 		'rgb(13, 13, 13)'
 	)
+})
+
+test('can sign out', async ({ homePage, editor, sidebar }) => {
+	await homePage.expectSignInButtonNotVisible()
+	await editor.ensureSidebarOpen()
+	await sidebar.signOut()
+	await homePage.expectSignInButtonVisible()
+})
+
+test.fixme('can change language', async () => {
+	// ...
 })
 
 // File menu in sidebar
@@ -69,6 +79,17 @@ test.fixme('can delete a file', async () => {
 
 // Menu bar
 
-test.fixme('can rename a file name by clicking the name', async () => {
-	// ...
+test('can rename a file name by clicking the name', async ({ editor, sidebar }) => {
+	const originalName = await editor.getCurrentFileName()
+	const newName = 'NewFileName'
+	await sidebar.expectToContainText(originalName)
+	await sidebar.expectNotToContainText(newName)
+
+	await editor.rename(newName)
+
+	const currentName = await editor.getCurrentFileName()
+	expect(currentName).toBe(newName)
+	expect(currentName).not.toBe(originalName)
+	await sidebar.expectToContainText(newName)
+	await sidebar.expectNotToContainText(originalName)
 })

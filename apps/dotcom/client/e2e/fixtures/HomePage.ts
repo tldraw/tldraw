@@ -35,6 +35,10 @@ export class HomePage {
 		await expect(this.signInButton).toBeVisible()
 	}
 
+	async expectSignInButtonNotVisible() {
+		await expect(this.signInButton).not.toBeVisible()
+	}
+
 	async goto() {
 		await this.page.goto('http://localhost:3000/q')
 	}
