@@ -98,9 +98,10 @@ async function build() {
 					// cache static assets immutably
 					{
 						src: '^/assets/(.*)$',
+						check: true,
 						headers: {
-							'X-Content-Type-Options': 'nosniff',
 							'Cache-Control': 'public, max-age=31536000, immutable',
+							'X-Content-Type-Options': 'nosniff',
 						},
 					},
 					// server up index.html specifically because we want to include
