@@ -1,4 +1,5 @@
 import {
+	Box,
 	Editor,
 	Geometry2d,
 	Mat,
@@ -126,7 +127,8 @@ export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selec
 	if (selectAll) {
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}
-	zoomToShapeIfOffscreen(editor)
+	// zoomToShapeIfOffscreen(editor)
+	zoomToLabelPosition(editor)
 }
 
 const ZOOM_TO_SHAPE_PADDING = 16
@@ -135,6 +137,62 @@ export function zoomToShapeIfOffscreen(editor: Editor) {
 	const viewportPageBounds = editor.getViewportPageBounds()
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 		const eb = selectionPageBounds
+			.clone()
+			// Expand the bounds by the padding
+			.expandBy(ZOOM_TO_SHAPE_PADDING / editor.getZoomLevel())
+			// then expand the bounds to include the viewport bounds
+			.expand(viewportPageBounds)
+
+		// then use the difference between the centers to calculate the offset
+		const nextBounds = viewportPageBounds.clone().translate({
+			x: (eb.center.x - viewportPageBounds.center.x) * 2,
+			y: (eb.center.y - viewportPageBounds.center.y) * 2,
+		})
+		editor.zoomToBounds(nextBounds, {
+			animation: {
+				duration: editor.options.animationMediumMs,
+			},
+			inset: 0,
+		})
+	}
+}
+function zoomToLabelPosition(editor: Editor) {
+	// get the geometry of the label
+	let labelBox: Box
+	const shape = editor.getEditingShape()!
+	const transform = editor.getShapePageTransform(shape)
+	if (shape.type === 'frame') {
+		const frameGeometry = editor.getShapePageBounds(shape)!
+
+		// where is the frame label
+
+		labelBox = frameGeometry
+
+		// account for page rotation and position
+	} else {
+		const labelGeometry = editor
+			.getShapeGeometry(shape)
+			// @ts-ignore
+			.children.filter((g: Geometry2d) => g.isLabel === true)[0]
+		const pagePoint = transform.applyToPoint(
+			new Vec(labelGeometry.bounds.minX, labelGeometry.bounds.minY)
+		)
+		labelBox = new Box(
+			pagePoint.x,
+			pagePoint.y,
+			labelGeometry.bounds.width,
+			labelGeometry.bounds.height
+		)
+	}
+
+	// get writing direction
+
+	// zoom to the start of the label
+	const viewportPageBounds = editor.getViewportPageBounds()
+	if (labelBox && !viewportPageBounds.contains(labelBox)) {
+		// todo: Avoid collisions with menus
+		// also when zooming to things at the bottom of the screen it should contain the whole label
+		const eb = labelBox
 			.clone()
 			// Expand the bounds by the padding
 			.expandBy(ZOOM_TO_SHAPE_PADDING / editor.getZoomLevel())
