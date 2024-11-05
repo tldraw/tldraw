@@ -52,13 +52,6 @@ test('can toggle dark mode', async ({ page, editor, sidebar }) => {
 	)
 })
 
-test('can sign out', async ({ homePage, editor, sidebar }) => {
-	await homePage.expectSignInButtonNotVisible()
-	await editor.ensureSidebarOpen()
-	await sidebar.signOut()
-	await homePage.expectSignInButtonVisible()
-})
-
 test.fixme('can change language', async () => {
 	// ...
 })

@@ -10,6 +10,15 @@ test('can login', async ({ homePage, editor }) => {
 	await expect(editor.sidebarToggle).toBeVisible()
 })
 
+test('can sign out', async ({ homePage, editor, sidebar }) => {
+	await homePage.login()
+	await expect(homePage.signInButton).not.toBeVisible()
+	await homePage.expectSignInButtonNotVisible()
+	await editor.ensureSidebarOpen()
+	await sidebar.signOut()
+	await homePage.expectSignInButtonVisible()
+})
+
 test.fixme('can scroll down to see landing page content', async () => {
 	// ...
 })
