@@ -34,7 +34,7 @@ jobs:
         run: |
           git config --global user.name 'huppy-bot[bot]'
           git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
-          git add -A
+          git add "*.json"
           git commit --no-verify -m '[automated] update i18n strings'
           git pull --rebase
           git push
