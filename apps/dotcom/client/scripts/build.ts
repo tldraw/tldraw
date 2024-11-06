@@ -100,6 +100,7 @@ async function build() {
 					},
 					{
 						src: '^/assets/(.*)$',
+						continue: true,
 						headers: {
 							'X-Content-Type-Options': 'nosniff',
 						},
