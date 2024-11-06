@@ -158,39 +158,28 @@ function zoomToLabelPosition(editor: Editor) {
 
 function getFrameLabelBox(editor: Editor, shape: TLFrameShape, transform: Mat) {
 	const FRAME_HEADING_HEIGHT = 32
-	const frameGeometry = editor.getShapeGeometry(shape)!
-	//todo : when zoomed in, double clicking on the label makes the camera go flying off
-
 	// which side is the frame heading on?
 	const pageRotation = canonicalizeRotation(transform.rotation())
 	const labelSide = getLabelSide(pageRotation)
 
-	// scale with zoom
-	const zoomAdjustedHeight = FRAME_HEADING_HEIGHT * editor.getZoomLevel()
+	// The frame heading scales with the zoom
+	const zoomAdjustedHeight = FRAME_HEADING_HEIGHT / editor.getZoomLevel()
 
-	const [one, two, three, four] = frameGeometry.getVertices()
-
-	let angle: Vec
-	let startPoint: Vec
+	let frameHeadingPoint: Vec
 	switch (labelSide) {
 		case 'top':
-			angle = Vec.Sub(one, four).uni()
-			startPoint = one
+			frameHeadingPoint = new Vec(0, -zoomAdjustedHeight)
 			break
 		case 'left':
-			angle = Vec.Sub(four, three).uni()
-			startPoint = four
+			frameHeadingPoint = new Vec(-zoomAdjustedHeight, shape.props.h)
 			break
 		case 'bottom':
-			angle = Vec.Sub(three, two).uni()
-			startPoint = three
+			frameHeadingPoint = new Vec(shape.props.w, shape.props.h + zoomAdjustedHeight)
 			break
 		case 'right':
-			angle = Vec.Sub(two, one).uni()
-			startPoint = two
+			frameHeadingPoint = new Vec(shape.props.w + zoomAdjustedHeight, 0)
 			break
 	}
-	const frameHeadingPoint = Vec.Add(startPoint, angle.mul(zoomAdjustedHeight))
 
 	const inPageSpace = transform.applyToPoint(frameHeadingPoint)
 
