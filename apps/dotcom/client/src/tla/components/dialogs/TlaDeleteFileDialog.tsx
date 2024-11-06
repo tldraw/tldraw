@@ -11,9 +11,9 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
+import { F } from '../../app/i18n'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
-import { useRaw } from '../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getRootPath } from '../../utils/urls'
 
@@ -25,7 +25,6 @@ export function TlaDeleteFileDialog({
 	onClose(): void
 }) {
 	const app = useApp()
-	const raw = useRaw()
 	const location = useLocation()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
@@ -51,18 +50,30 @@ export function TlaDeleteFileDialog({
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>{raw(isOwner ? 'Delete file' : 'Forget file')}</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>
+					{isOwner ? <F defaultMessage="Delete file" /> : <F defaultMessage="Forget file" />}
+				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<>{raw(`Are you sure you want to ${isOwner ? 'delete' : 'forget'} this file?`)}</>
+				<>
+					{isOwner ? (
+						<F defaultMessage="Are you sure you want to delete this file?" />
+					) : (
+						<F defaultMessage="Are you sure you want to forget this file?" />
+					)}
+				</>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
-					<TldrawUiButtonLabel>{raw('Cancel')}</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>
+						<F defaultMessage="Cancel" />
+					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				<TldrawUiButton type="danger" onClick={handleDelete}>
-					<TldrawUiButtonLabel>{raw(isOwner ? 'Delete' : 'Forget')}</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>
+						{isOwner ? <F defaultMessage="Delete" /> : <F defaultMessage="Forget" />}
+					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
 		</>

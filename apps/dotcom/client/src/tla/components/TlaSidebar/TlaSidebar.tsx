@@ -1,11 +1,11 @@
 import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { ReactElement, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TldrawUiInput, preventDefault, useValue } from 'tldraw'
+import { F, defineMessages, useIntl } from '../../app/i18n'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
-import { useRaw } from '../../hooks/useRaw'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
@@ -16,6 +16,13 @@ import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSpacer } from '../TlaSpacer/TlaSpacer'
 import styles from './sidebar.module.css'
+
+const messages = defineMessages({
+	create: { defaultMessage: 'Create file' },
+	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
+	accountMenu: { defaultMessage: 'Account menu' },
+	fileMenu: { defaultMessage: 'File menu' },
+})
 
 export const TlaSidebar = memo(function TlaSidebar() {
 	const app = useApp()
@@ -82,14 +89,17 @@ export const TlaSidebar = memo(function TlaSidebar() {
 })
 
 function TlaSidebarWorkspaceLink() {
-	const raw = useRaw()
+	const brandName = 'tldraw'
+
 	return (
 		<div className={styles.workspace} data-testid="tla-sidebar-logo-icon">
 			<TlaIconWrapper data-size="m">
 				<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" />
 			</TlaIconWrapper>
-			<div className={classNames(styles.label, 'tla-text_ui__title')}>{raw('tldraw')}</div>
-			<button className={styles.linkButton} />
+			<div className={classNames(styles.label, 'tla-text_ui__title', 'notranslate')}>
+				{brandName}
+			</div>
+			{/* <button className={styles.linkButton} title={homeLbl} /> */}
 		</div>
 	)
 }
@@ -98,6 +108,8 @@ function TlaSidebarCreateFileButton() {
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
+	const intl = useIntl()
+	const createTitle = intl.formatMessage(messages.create)
 
 	const handleSidebarCreate = useCallback(() => {
 		const res = app.createFile()
@@ -109,7 +121,12 @@ function TlaSidebarCreateFileButton() {
 	}, [app, navigate, trackEvent])
 
 	return (
-		<button className={styles.create} onClick={handleSidebarCreate} data-testid="tla-create-file">
+		<button
+			className={styles.create}
+			onClick={handleSidebarCreate}
+			data-testid="tla-create-file"
+			title={createTitle}
+		>
 			<TlaIcon icon="edit-strong" />
 		</button>
 	)
@@ -117,6 +134,8 @@ function TlaSidebarCreateFileButton() {
 
 function TlaSidebarUserLink() {
 	const app = useApp()
+	const intl = useIntl()
+	const accountMenuLbl = intl.formatMessage(messages.accountMenu)
 
 	const user = useValue(
 		'auth',
@@ -134,8 +153,8 @@ function TlaSidebarUserLink() {
 		<TlaAccountMenu source="sidebar">
 			<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
 				<TlaAvatar img={user.avatar} />
-				<div className={styles.userName}>{user.name}</div>
-				<button className={styles.linkMenu}>
+				<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
+				<button className={styles.linkMenu} title={accountMenuLbl}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
 			</div>
@@ -187,22 +206,26 @@ function TlaSidebarRecentFiles() {
 
 	return (
 		<>
-			{todayFiles.length ? <TlaSidebarFileSection title={'Today'} items={todayFiles} /> : null}
+			{todayFiles.length ? (
+				<TlaSidebarFileSection title={<F defaultMessage="Today" />} items={todayFiles} />
+			) : null}
 			{yesterdayFiles.length ? (
-				<TlaSidebarFileSection title={'Yesterday'} items={yesterdayFiles} />
+				<TlaSidebarFileSection title={<F defaultMessage="Yesterday" />} items={yesterdayFiles} />
 			) : null}
 			{thisWeekFiles.length ? (
-				<TlaSidebarFileSection title={'This week'} items={thisWeekFiles} />
+				<TlaSidebarFileSection title={<F defaultMessage="This week" />} items={thisWeekFiles} />
 			) : null}
 			{thisMonthFiles.length ? (
-				<TlaSidebarFileSection title={'This month'} items={thisMonthFiles} />
+				<TlaSidebarFileSection title={<F defaultMessage="This month" />} items={thisMonthFiles} />
 			) : null}
-			{olderFiles.length ? <TlaSidebarFileSection title={'This year'} items={olderFiles} /> : null}
+			{olderFiles.length ? (
+				<TlaSidebarFileSection title={<F defaultMessage="This year" />} items={olderFiles} />
+			) : null}
 		</>
 	)
 }
 
-function TlaSidebarFileSection({ title, items }: { title: string; items: RecentFile[] }) {
+function TlaSidebarFileSection({ title, items }: { title: ReactElement; items: RecentFile[] }) {
 	return (
 		<div className={styles.section}>
 			<TlaSpacer height="8" />
@@ -240,8 +263,8 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 			onDoubleClick={handleRenameAction}
 		>
 			<div className={styles.linkContent}>
-				<div className={classNames(styles.label, 'tla-text_ui__regular')}>
-					{app.getFileName(fileId)} {isOwnFile ? '' : '(Guest)'}
+				<div className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}>
+					{app.getFileName(fileId)} {isOwnFile ? null : <F defaultMessage="(Guest)" />}
 				</div>
 			</div>
 			<Link
@@ -326,13 +349,16 @@ function TlaSidebarFileLinkMenu({
 	fileId: TldrawAppFile['id']
 	onRenameAction(): void
 }) {
+	const intl = useIntl()
+	const fileMenuLbl = intl.formatMessage(messages.fileMenu)
+
 	return (
 		<TlaFileMenu
 			fileId={fileId}
 			source="sidebar"
 			onRenameAction={onRenameAction}
 			trigger={
-				<button className={styles.linkMenu}>
+				<button className={styles.linkMenu} title={fileMenuLbl}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
 			}
@@ -342,11 +368,15 @@ function TlaSidebarFileLinkMenu({
 
 export function TlaSidebarToggle() {
 	const trackEvent = useTldrawAppUiEvents()
+	const intl = useIntl()
+	const toggleLbl = intl.formatMessage(messages.toggleSidebar)
+
 	return (
 		<button
 			className={styles.toggle}
 			data-mobile={false}
 			data-testid="tla-sidebar-toggle"
+			title={toggleLbl}
 			onClick={() => {
 				updateLocalSessionState((s) => ({ isSidebarOpen: !s.isSidebarOpen }))
 				trackEvent('sidebar-toggle', {
@@ -362,11 +392,15 @@ export function TlaSidebarToggle() {
 
 export function TlaSidebarToggleMobile() {
 	const trackEvent = useTldrawAppUiEvents()
+	const intl = useIntl()
+	const toggleSidebarLbl = intl.formatMessage(messages.toggleSidebar)
+
 	return (
 		<button
 			className={styles.toggle}
 			data-mobile={true}
 			data-testid="tla-sidebar-toggle-mobile"
+			title={toggleSidebarLbl}
 			onClick={() => {
 				updateLocalSessionState((s) => ({ isSidebarOpenMobile: !s.isSidebarOpenMobile }))
 				trackEvent('sidebar-toggle', {

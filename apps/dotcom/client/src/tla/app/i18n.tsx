@@ -3,12 +3,14 @@ import {
 	IntlConfig,
 	IntlShape,
 	MessageDescriptor,
+	PrimitiveType,
 	createIntlCache,
 	createIntl as originalCreateIntl,
 	defineMessages as originalDefineMessages,
-	useIntl,
+	useIntl as originalUseIntl,
 } from 'react-intl'
 
+import { FormatXMLElementFn, Options } from 'intl-messageformat'
 import MD5 from 'md5.js'
 import { ComponentPropsWithoutRef } from 'react'
 
@@ -31,14 +33,39 @@ function generateId({ id, description, defaultMessage }: MessageDescriptor) {
 		.slice(0, 10)
 }
 
+let originalFormatMessage: IntlShape['formatMessage'] | null = null
+export function useIntl() {
+	const intl = originalUseIntl()
+
+	if (!originalFormatMessage) {
+		originalFormatMessage = intl.formatMessage
+	}
+
+	intl.formatMessage = (
+		descriptor: MessageDescriptor,
+		values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>,
+		opts?: Options
+	) => {
+		let formattedMessage = originalFormatMessage!(descriptor, values, opts)
+		if (intl.locale === 'xx-AE') {
+			formattedMessage = makeAccented(formattedMessage)
+		} else if (intl.locale === 'xx-LS') {
+			formattedMessage = makeLong(formattedMessage)
+		}
+		return formattedMessage
+	}
+
+	return intl
+}
+
 export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 	const intl = useIntl()
 	const id = generateId(props)
 	let internalMessage = (props.defaultMessage || '') as string
 	if (intl.locale === 'xx-AE') {
-		internalMessage = `${internalMessage.replace(/a/g, 'á').replace(/e/g, 'é').replace(/i/g, 'í').replace(/o/g, 'ó').replace(/u/g, 'ú')}`
+		internalMessage = makeAccented(internalMessage)
 	} else if (intl.locale === 'xx-LS') {
-		internalMessage = `${internalMessage}looooooooooooooooong`
+		internalMessage = makeLong(internalMessage)
 	}
 
 	return (
@@ -65,6 +92,20 @@ export function defineMessages(values: Record<string | number | symbol, MessageD
 
 export function isInternalLocale(locale: string) {
 	return INTERNAL_LOCALES.indexOf(locale) !== -1
+}
+
+function makeAccented(str: string) {
+	const accents = 'áƃçđéƒǵȟíǰķłɱñóƥɋřšťúṽẃẍýž'
+	return str.replace(/[a-zA-Z]/g, (char) => {
+		const isUpper = char === char.toUpperCase()
+		const index = char.toLowerCase().charCodeAt(0) - 97
+		const accentedChar = accents[index] || char
+		return isUpper ? accentedChar.toUpperCase() : accentedChar
+	})
+}
+
+function makeLong(str: string) {
+	return `${str}looooooooooooooooong`
 }
 
 // This is optional but highly recommended since it prevents memory leaks.

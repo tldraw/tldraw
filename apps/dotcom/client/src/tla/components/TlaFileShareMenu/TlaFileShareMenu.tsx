@@ -7,8 +7,8 @@ import {
 	TldrawUiMenuContextProvider,
 	useValue,
 } from 'tldraw'
+import { F } from '../../app/i18n'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useRaw } from '../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
@@ -28,7 +28,6 @@ export function TlaFileShareMenu({
 	isAnonUser?: boolean
 	children: ReactNode
 }) {
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
 
@@ -70,9 +69,17 @@ export function TlaFileShareMenu({
 					{app ? (
 						<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
 							<TlaTabsTabs>
-								<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
-								<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
-								{showPublishTab && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
+								<TlaTabsTab id="share">
+									<F defaultMessage="Invite" />
+								</TlaTabsTab>
+								<TlaTabsTab id="export">
+									<F defaultMessage="Export" />
+								</TlaTabsTab>
+								{showPublishTab && (
+									<TlaTabsTab id="publish">
+										<F defaultMessage="Publish" />
+									</TlaTabsTab>
+								)}
 							</TlaTabsTabs>
 							<TlaTabsPage id="share">
 								<TlaInviteTab fileId={fileId} />
