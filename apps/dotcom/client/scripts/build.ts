@@ -1,8 +1,9 @@
 import { T } from '@tldraw/validate'
 import { config } from 'dotenv'
 import glob from 'fast-glob'
-import { mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import json5 from 'json5'
+import regexgen from 'regexgen'
 import { exec } from '../../../../internal/scripts/lib/exec'
 import { nicelog } from '../../../../internal/scripts/lib/nicelog'
 import { csp } from '../src/utils/csp'
@@ -55,7 +56,7 @@ async function build() {
 	await exec('rm', ['-rf', ...glob.sync('.vercel/output/static/**/*.js.map')])
 
 	// Add fonts to preload into index.html
-	const assetsList = (await exec('ls', ['-1', 'dist/assets'])).split('\n').filter(Boolean)
+	const assetsList = readdirSync('dist/assets')
 	const fontsToPreload = [
 		'Shantell_Sans-Tldrawish',
 		'IBMPlexSerif-Medium',
@@ -82,6 +83,8 @@ async function build() {
 	)
 
 	const multiplayerServerUrl = getMultiplayerServerURL() ?? 'http://localhost:8787'
+	const assetsToCache = assetsList.filter((f) => !f.endsWith('.js.map')).map((f) => `/assets/${f}`)
+	const assetsToCacheRegex = `^${regexgen(assetsToCache).source}$`
 
 	writeFileSync(
 		'.vercel/output/config.json',
@@ -95,11 +98,18 @@ async function build() {
 						dest: `${multiplayerServerUrl}$1`,
 						check: true,
 					},
-					// cache static assets immutably
 					{
 						src: '^/assets/(.*)$',
 						headers: {
 							'X-Content-Type-Options': 'nosniff',
+						},
+					},
+					// cache static assets immutably. we use a regex here to match all assets we
+					// know exist so we don't apply caching headers to 404 pages.
+					{
+						src: assetsToCacheRegex,
+						headers: {
+							'Cache-Control': 'public, max-age=31536000, immutable',
 						},
 					},
 					// server up index.html specifically because we want to include
