@@ -22,7 +22,6 @@ const messages = defineMessages({
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	accountMenu: { defaultMessage: 'Account menu' },
 	fileMenu: { defaultMessage: 'File menu' },
-	home: { defaultMessage: 'Home' },
 })
 
 export const TlaSidebar = memo(function TlaSidebar() {
@@ -91,8 +90,6 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 function TlaSidebarWorkspaceLink() {
 	const brandName = 'tldraw'
-	// const intl = useIntl()
-	// const homeLbl = intl.formatMessage(messages.home)
 
 	return (
 		<div className={styles.workspace} data-testid="tla-sidebar-logo-icon">
