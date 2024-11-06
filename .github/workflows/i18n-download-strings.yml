@@ -1,0 +1,40 @@
+name: i18n download strings
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 13 * * *'
+
+jobs:
+  download:
+    name: 'Download latest strings'
+    runs-on: ubuntu-latest
+    environment: 'deploy-production'
+
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Download i18n strings
+        run: 'yarn i18n-download-strings'
+        env:
+          LOKALISE_API_TOKEN: ${{ secrets.LOKALISE_API_TOKEN }}
+          LOKALISE_PROJECT_ID: ${{ secrets.LOKALISE_PROJECT_ID }}
+
+      - name: Commit and push changes
+        if: always()
+        run: |
+          git config --global user.name 'huppy-bot[bot]'
+          git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+          git add "*.json"
+          git commit --no-verify -m '[automated] update i18n strings'
+          git pull --rebase
+          git push

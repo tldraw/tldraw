@@ -5,6 +5,9 @@
   "01c32a1e98": {
     "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
   },
+  "05596b840b": {
+    "translation": "Open tldraw."
+  },
   "06b9281e39": {
     "translation": "Auto"
   },
@@ -94,9 +97,6 @@
   },
   "827aedd218": {
     "translation": "Added .tldr {count, plural, one {# file} other {# files}}"
-  },
-  "8cf04a9734": {
-    "translation": "Home"
   },
   "904a830405": {
     "translation": "Rename"
@@ -218,6 +218,9 @@
   },
   "f2a6c498fb": {
     "translation": "Delete"
+  },
+  "f43fb62093": {
+    "translation": "Back to tldraw."
   },
   "f990e553cd": {
     "translation": "Learn more."
