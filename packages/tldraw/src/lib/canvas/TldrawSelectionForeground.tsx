@@ -1,6 +1,7 @@
 import {
 	RotateCorner,
 	TLEmbedShape,
+	TLEventInfo,
 	TLSelectionForegroundProps,
 	TLTextShape,
 	getCursor,
@@ -13,7 +14,8 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { getShouldEnterCropMode } from '../tools/selection-logic/getShouldEnterCropModeOnPointerDown'
 import { useReadonly } from '../ui/hooks/useReadonly'
 import { TldrawCropHandles } from './TldrawCropHandles'
 
@@ -24,6 +26,7 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 }: TLSelectionForegroundProps) {
 	const editor = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)
+	const [isCtrlKeyPressed, setIsCtrlKeyPressed] = useState(false)
 
 	const isReadonlyMode = useReadonly()
 	const topEvents = useSelectionEvents('top')
@@ -34,6 +37,22 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	const topRightEvents = useSelectionEvents('top_right')
 	const bottomRightEvents = useSelectionEvents('bottom_right')
 	const bottomLeftEvents = useSelectionEvents('bottom_left')
+
+	useEffect(() => {
+		function handleEvent(info: TLEventInfo) {
+			if (info.type === 'keyboard') {
+				if (info.ctrlKey !== isCtrlKeyPressed) {
+					setIsCtrlKeyPressed(info.ctrlKey)
+				}
+			}
+		}
+		editor.addListener('event', handleEvent)
+		return () => {
+			editor.removeListener('event', handleEvent)
+		}
+	}, [editor, isCtrlKeyPressed])
+
+	const canEnterCropMode = isCtrlKeyPressed && getShouldEnterCropMode(editor)
 
 	const isDefaultCursor = editor.getInstanceState().cursor.type === 'default'
 	const isCoarsePointer = editor.getInstanceState().isCoarsePointer
@@ -107,11 +126,12 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	}
 
 	const showCropHandles =
-		editor.isInAny(
+		(editor.isInAny(
 			'select.crop.idle',
 			'select.crop.pointing_crop',
 			'select.crop.pointing_crop_handle'
-		) &&
+		) ||
+			canEnterCropMode) &&
 		!isChangingStyle &&
 		!isReadonlyMode
 
@@ -128,14 +148,16 @@ export const TldrawSelectionForeground = track(function TldrawSelectionForegroun
 	const showCornerRotateHandles =
 		!isCoarsePointer &&
 		!(isTinyX || isTinyY) &&
-		(shouldDisplayControls || showCropHandles) &&
+		shouldDisplayControls &&
+		!showCropHandles &&
 		(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true) &&
 		!isLockedShape
 
 	const showMobileRotateHandle =
 		isCoarsePointer &&
 		(!isSmallX || !isSmallY) &&
-		(shouldDisplayControls || showCropHandles) &&
+		shouldDisplayControls &&
+		!showCropHandles &&
 		(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true) &&
 		!isLockedShape
 
