@@ -8,7 +8,7 @@ async function i18nDownloadStrings() {
 	const dirPath = path.resolve(__dirname, '../../apps/dotcom/client/public/tla/locales')
 	console.log('Downloading files...')
 
-	const lokaliseApi = new LokaliseApi({ apiKey: process.env.LOKALISE_API_KEY })
+	const lokaliseApi = new LokaliseApi({ apiKey: process.env.LOKALISE_API_TOKEN })
 	const downloadResult = await lokaliseApi.files().download(projectId, {
 		format: 'json_structured',
 		original_filenames: true,
