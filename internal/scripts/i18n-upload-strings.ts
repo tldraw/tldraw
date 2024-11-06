@@ -8,7 +8,7 @@ async function i18nUploadStrings() {
 	const file = fs.readFileSync(filePath, 'utf8')
 	console.log('Uploading files...')
 
-	const lokaliseApi = new LokaliseApi({ apiKey: process.env.LOKALISE_API_KEY })
+	const lokaliseApi = new LokaliseApi({ apiKey: process.env.LOKALISE_API_TOKEN })
 	const uploadResult = await lokaliseApi.files().upload(projectId, {
 		data: Buffer.from(file).toString('base64'),
 		filename: 'en.json',
