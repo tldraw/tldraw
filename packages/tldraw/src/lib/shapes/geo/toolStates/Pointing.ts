@@ -22,14 +22,14 @@ export class Pointing extends StateNode {
 			const id = createShapeId()
 
 			const creatingMarkId = this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
-
+			const newPoint = maybeSnapToGrid(originPagePoint, this.editor)
 			this.editor
 				.createShapes<TLGeoShape>([
 					{
 						id,
 						type: 'geo',
-						x: originPagePoint.x,
-						y: originPagePoint.y,
+						x: newPoint.x,
+						y: newPoint.y,
 						props: {
 							w: 1,
 							h: 1,
