@@ -1,6 +1,4 @@
 import {
-	Box,
-	Editor,
 	StateNode,
 	TLPointerEventInfo,
 	TLShapeId,
@@ -9,6 +7,7 @@ import {
 	createShapeId,
 	isShapeId,
 } from '@tldraw/editor'
+import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -170,7 +169,7 @@ export class Pointing extends StateNode {
 			const transform = this.editor.getShapeParentTransform(shape)
 			delta.rot(-transform.rotation())
 		}
-		const newPoint = maybeSnapTextToGrid(new Vec(shape.x, shape.y), this.editor, bounds)
+		const newPoint = maybeSnapToGrid(new Vec(shape.x, shape.y), this.editor)
 		this.editor.updateShape({
 			...shape,
 			x: newPoint.x,
@@ -179,23 +178,4 @@ export class Pointing extends StateNode {
 
 		return shape
 	}
-}
-
-function maybeSnapTextToGrid(point: Vec, editor: Editor, bounds: Box) {
-	const isGridMode = editor.getInstanceState().isGridMode
-	const gridSize = editor.getDocumentSettings().gridSize
-	const topLeft = new Vec(bounds.x, bounds.y)
-	editor.createShape({ type: 'geo', x: topLeft.x, y: topLeft.y, props: { h: 1, w: 1 } })
-	if (isGridMode) {
-		const snappedPoint = topLeft.clone().snapToGrid(gridSize)
-
-		const deltaX = snappedPoint.x - topLeft.x
-		const deltaY = snappedPoint.y - topLeft.y
-
-		const adjustedPoint = new Vec(point.x + deltaX, point.y + deltaY)
-		console.log({ deltaX, deltaY })
-		return adjustedPoint
-	}
-
-	return point
 }
