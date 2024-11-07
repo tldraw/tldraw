@@ -835,7 +835,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     blur({ blurContainer }?: {
         blurContainer?: boolean | undefined;
     }): this;
-    bringForward(shapes: TLShape[] | TLShapeId[]): this;
+    bringForward(shapes: TLShape[] | TLShapeId[], opts?: {
+        considerAllShapes?: boolean;
+    }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     // (undocumented)
     canBindShapes({ fromShape, toShape, binding, }: {
@@ -1215,7 +1217,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
     selectNone(): this;
-    sendBackward(shapes: TLShape[] | TLShapeId[]): this;
+    sendBackward(shapes: TLShape[] | TLShapeId[], opts?: {
+        considerAllShapes?: boolean;
+    }): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
     _setAltKeyTimeout(): void;
