@@ -188,6 +188,7 @@ function getOverlapChecker(editor: Editor, moving: Set<TLShape>) {
  * @param moving The set of shapes that are moving
  * @param children The parent's children
  * @param changes The changes array to push changes to
+ * @param opts The options
  */
 function reorderForward(
 	editor: Editor,
@@ -246,6 +247,7 @@ function reorderForward(
  * @param moving The set of shapes that are moving
  * @param children The parent's children
  * @param changes The changes array to push changes to
+ * @param opts The options
  */
 function reorderBackward(
 	editor: Editor,
