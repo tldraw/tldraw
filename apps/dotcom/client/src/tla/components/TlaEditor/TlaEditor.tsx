@@ -30,6 +30,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
+import { defineMessages, useIntl } from '../../app/i18n'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
@@ -39,6 +40,10 @@ import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
+const messages = defineMessages({
+	file: { defaultMessage: 'File' },
+})
+
 /** @internal */
 export const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
@@ -46,9 +51,10 @@ export const components: TLComponents = {
 	},
 	KeyboardShortcutsDialog: (props) => {
 		const actions = useActions()
+		const intl = useIntl()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup label="shortcuts-dialog.file" id="file">
+				<TldrawUiMenuGroup label={intl.formatMessage(messages.file)} id="file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />

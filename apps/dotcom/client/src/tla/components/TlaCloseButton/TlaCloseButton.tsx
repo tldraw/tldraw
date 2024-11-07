@@ -1,14 +1,26 @@
 import classNames from 'classnames'
-import { useRaw } from '../../hooks/useRaw'
+import { defineMessages, F, useIntl } from '../../app/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './close.module.css'
 
+const messages = defineMessages({
+	close: { defaultMessage: 'Close' },
+})
+
 export function TlaCloseButton({ onClose }: { onClose(): void }) {
-	const raw = useRaw()
+	const intl = useIntl()
+	const closeLbl = intl.formatMessage(messages.close)
+
 	return (
-		<button className={classNames(styles.button, 'tla-text_ui__regular')} onClick={onClose}>
+		<button
+			className={classNames(styles.button, 'tla-text_ui__regular')}
+			onClick={onClose}
+			title={closeLbl}
+		>
 			<TlaIcon icon="close-strong" />
-			<span>{raw('Close')}</span>
+			<span>
+				<F defaultMessage="Close" />
+			</span>
 		</button>
 	)
 }
