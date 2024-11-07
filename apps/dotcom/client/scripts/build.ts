@@ -100,6 +100,8 @@ async function build() {
 					},
 					{
 						src: '^/assets/(.*)$',
+						// we need `continue: true` here because we also want to apply the headers
+						// from the rule below if it matches.
 						continue: true,
 						headers: {
 							'X-Content-Type-Options': 'nosniff',
