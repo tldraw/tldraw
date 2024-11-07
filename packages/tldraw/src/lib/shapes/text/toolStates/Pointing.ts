@@ -7,7 +7,6 @@ import {
 	createShapeId,
 	isShapeId,
 } from '@tldraw/editor'
-import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -169,12 +168,22 @@ export class Pointing extends StateNode {
 			const transform = this.editor.getShapeParentTransform(shape)
 			delta.rot(-transform.rotation())
 		}
-		const newPoint = maybeSnapToGrid(new Vec(shape.x, shape.y), this.editor)
-		this.editor.updateShape({
-			...shape,
-			x: newPoint.x,
-			y: newPoint.y,
-		})
+		const isGridMode = this.editor.getInstanceState().isGridMode
+		if (isGridMode) {
+			const gridSize = this.editor.getDocumentSettings().gridSize
+			const newPoint = new Vec(shape.x, shape.y).snapToGrid(gridSize)
+			this.editor.updateShape({
+				...shape,
+				x: newPoint.x,
+				y: newPoint.y,
+			})
+		} else {
+			this.editor.updateShape({
+				...shape,
+				x: shape.x + delta.x,
+				y: shape.y + delta.y,
+			})
+		}
 
 		return shape
 	}

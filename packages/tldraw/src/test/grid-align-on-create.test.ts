@@ -1,4 +1,11 @@
-import { TLArrowShape, TLFrameShape, TLGeoShape, TLLineShape, TLNoteShape } from '@tldraw/editor'
+import {
+	TLArrowShape,
+	TLFrameShape,
+	TLGeoShape,
+	TLLineShape,
+	TLNoteShape,
+	TLTextShape,
+} from '@tldraw/editor'
 import { NOTE_SIZE } from '../lib/shapes/note/noteHelpers'
 import { TestEditor } from './TestEditor'
 
@@ -73,5 +80,10 @@ describe('when creating a shape...', () => {
 		editor.setCurrentTool('note').pointerDown(4, 4).pointerUp()
 		const shape = editor.selectAll().getOnlySelectedShape() as TLNoteShape
 		expect({ x: shape.x, y: shape.y }).toMatchObject({ x: -NOTE_SIZE / 2, y: -NOTE_SIZE / 2 })
+	})
+	it('aligns text shapes with the grid', () => {
+		editor.setCurrentTool('text').pointerDown(4, 4).pointerUp()
+		const shape = editor.selectAll().getOnlySelectedShape() as TLTextShape
+		expect({ x: shape.x, y: shape.y }).toMatchObject({ x: 0, y: 0 })
 	})
 })
