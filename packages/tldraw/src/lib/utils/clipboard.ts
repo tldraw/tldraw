@@ -34,7 +34,7 @@ export function doesClipboardSupportType(mimeType: string): boolean {
 
 export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<void> {
 	// Note:  it's important that this function itself isn't async and doesn't really use promises -
-	// we need to create the relevant `ClipboardItem`s and call window.navigator.clipboard.write
+	// we need to create the relevant `ClipboardItem`s and call navigator.clipboard.write
 	// synchronously to make sure safari knows that the user _wants_ to copy See
 	// https://bugs.webkit.org/show_bug.cgi?id=222262
 
@@ -44,7 +44,7 @@ export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<vo
 	// understand what might have gone wrong.
 	for (const [_, promise] of entries) promise.catch((err) => console.error(err))
 
-	return window.navigator.clipboard.write([new ClipboardItem(types)]).catch((err) => {
+	return navigator.clipboard.write([new ClipboardItem(types)]).catch((err) => {
 		// Firefox will fail with the above if `dom.events.asyncClipboard.clipboardItem` is enabled.
 		// See <https://github.com/tldraw/tldraw/issues/1325>
 		console.error(err)
@@ -55,7 +55,7 @@ export function clipboardWrite(types: Record<string, Promise<Blob>>): Promise<vo
 			})
 		).then((entries) => {
 			const resolvedTypes = objectMapFromEntries(entries)
-			return window.navigator.clipboard.write([new ClipboardItem(resolvedTypes)])
+			return navigator.clipboard.write([new ClipboardItem(resolvedTypes)])
 		})
 	})
 }

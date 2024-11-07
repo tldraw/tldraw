@@ -32,12 +32,12 @@ export function copyAs(
 	opts: TLImageExportOptions = {}
 ): Promise<void> {
 	// Note:  it's important that this function itself isn't async and doesn't really use promises -
-	// we need to create the relevant `ClipboardItem`s and call window.navigator.clipboard.write
+	// we need to create the relevant `ClipboardItem`s and call navigator.clipboard.write
 	// synchronously to make sure safari knows that the user _wants_ to copy See
 	// https://bugs.webkit.org/show_bug.cgi?id=222262
 
-	if (!window.navigator.clipboard) return Promise.reject(new Error('Copy not supported'))
-	if (window.navigator.clipboard.write as any) {
+	if (!navigator.clipboard) return Promise.reject(new Error('Copy not supported'))
+	if (navigator.clipboard.write as any) {
 		const { blobPromise, mimeType } = exportToBlobPromise(editor, ids, format, opts)
 
 		const types: Record<string, Promise<Blob>> = { [mimeType]: blobPromise }

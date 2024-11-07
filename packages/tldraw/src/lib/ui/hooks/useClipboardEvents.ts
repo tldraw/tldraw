@@ -682,7 +682,7 @@ export function useNativeClipboardEvents() {
 			}
 
 			// First try to use the clipboard API:
-			if (navigator.clipboard && navigator.clipboard.read) {
+			if (navigator.clipboard?.read) {
 				navigator.clipboard.read().then(
 					(clipboardItems) => {
 						if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
