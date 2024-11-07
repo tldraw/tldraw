@@ -7,7 +7,8 @@ import { polygonsIntersect } from '../primitives/intersect'
 export function getReorderingShapesChanges(
 	editor: Editor,
 	operation: 'toBack' | 'toFront' | 'forward' | 'backward',
-	ids: TLShapeId[]
+	ids: TLShapeId[],
+	opts?: { considerAllShapes?: boolean }
 ) {
 	if (ids.length === 0) return []
 
@@ -39,11 +40,15 @@ export function getReorderingShapesChanges(
 			break
 		}
 		case 'forward': {
-			parents.forEach(({ moving, children }) => reorderForward(editor, moving, children, changes))
+			parents.forEach(({ moving, children }) =>
+				reorderForward(editor, moving, children, changes, opts)
+			)
 			break
 		}
 		case 'backward': {
-			parents.forEach(({ moving, children }) => reorderBackward(editor, moving, children, changes))
+			parents.forEach(({ moving, children }) =>
+				reorderBackward(editor, moving, children, changes, opts)
+			)
 			break
 		}
 	}
@@ -188,7 +193,8 @@ function reorderForward(
 	editor: Editor,
 	moving: Set<TLShape>,
 	children: TLShape[],
-	changes: TLShapePartial[]
+	changes: TLShapePartial[],
+	opts?: { considerAllShapes?: boolean }
 ) {
 	const isOverlapping = getOverlapChecker(editor, moving)
 
@@ -214,7 +220,7 @@ function reorderForward(
 			}
 			case 'selecting': {
 				if (isMoving) continue
-				if (!isOverlapping(children[i])) continue
+				if (!opts?.considerAllShapes && !isOverlapping(children[i])) continue
 				// if we find a non-moving and overlapping shape while selecting, move all selected
 				// shapes in front of the not moving shape; and start skipping
 				const { selectIndex } = state
@@ -245,7 +251,8 @@ function reorderBackward(
 	editor: Editor,
 	moving: Set<TLShape>,
 	children: TLShape[],
-	changes: TLShapePartial[]
+	changes: TLShapePartial[],
+	opts?: { considerAllShapes?: boolean }
 ) {
 	const isOverlapping = getOverlapChecker(editor, moving)
 
@@ -270,7 +277,7 @@ function reorderBackward(
 			}
 			case 'selecting': {
 				if (isMoving) continue
-				if (!isOverlapping(children[i])) continue
+				if (!opts?.considerAllShapes && !isOverlapping(children[i])) continue
 				// if we find a non-moving and overlapping shape while selecting, move all selected
 				// shapes in behind of the not moving shape; and start skipping
 				getIndicesBetween(children[i - 1]?.index, children[i].index, state.selectIndex - i).forEach(
