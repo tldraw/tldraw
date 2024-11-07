@@ -126,7 +126,7 @@ const Tiptap = ({
 					lineHeight: fontSize * lineHeight + 'px',
 					minHeight: lineHeight + 32,
 					minWidth: 0,
-					color: theme[labelColor as TLDefaultColorStyle].solid,
+					color: theme[labelColor as TLDefaultColorStyle]?.solid,
 				}}
 				onPointerDown={handleInputPointerDown}
 			>
