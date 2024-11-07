@@ -7,6 +7,7 @@ import {
 	Vec,
 	createShapeId,
 } from '@tldraw/editor'
+import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	getAvailableNoteAdjacentPositions,
@@ -110,12 +111,13 @@ export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: Vec, 
 }
 
 export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
+	const newPoint = maybeSnapToGrid(center, editor)
 	editor
 		.createShape({
 			id,
 			type: 'note',
-			x: center.x,
-			y: center.y,
+			x: newPoint.x,
+			y: newPoint.y,
 			props: {
 				scale: editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1,
 			},

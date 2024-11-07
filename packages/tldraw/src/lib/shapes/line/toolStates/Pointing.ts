@@ -10,6 +10,7 @@ import {
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
+import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
 
 const MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES = 2
 
@@ -45,8 +46,8 @@ export class Pointing extends StateNode {
 				this.editor.getShapeParentTransform(this.shape)!,
 				new Vec(this.shape.x, this.shape.y)
 			)
-
-			const nextPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
+			const nudgedPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
+			const nextPoint = maybeSnapToGrid(nudgedPoint, this.editor)
 			const points = structuredClone(this.shape.props.points)
 
 			if (
@@ -85,12 +86,13 @@ export class Pointing extends StateNode {
 
 			this.markId = this.editor.markHistoryStoppingPoint(`creating_line:${id}`)
 
+			const newPoint = maybeSnapToGrid(currentPagePoint, this.editor)
 			this.editor.createShapes<TLLineShape>([
 				{
 					id,
 					type: 'line',
-					x: currentPagePoint.x,
-					y: currentPagePoint.y,
+					x: newPoint.x,
+					y: newPoint.y,
 					props: {
 						scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 					},

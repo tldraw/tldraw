@@ -7,6 +7,7 @@ import {
 	createShapeId,
 	isShapeId,
 } from '@tldraw/editor'
+import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -120,11 +121,12 @@ export class Pointing extends StateNode {
 	}
 
 	private createTextShape(id: TLShapeId, point: Vec, autoSize: boolean, width: number) {
+		const newPoint = maybeSnapToGrid(point, this.editor)
 		this.editor.createShape<TLTextShape>({
 			id,
 			type: 'text',
-			x: point.x,
-			y: point.y,
+			x: newPoint.x,
+			y: newPoint.y,
 			props: {
 				text: '',
 				autoSize,

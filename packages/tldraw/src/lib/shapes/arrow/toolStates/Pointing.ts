@@ -1,4 +1,5 @@
 import { StateNode, TLArrowShape, createShapeId } from '@tldraw/editor'
+import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -90,12 +91,12 @@ export class Pointing extends StateNode {
 		const id = createShapeId()
 
 		this.markId = this.editor.markHistoryStoppingPoint(`creating_arrow:${id}`)
-
+		const newPoint = maybeSnapToGrid(originPagePoint, this.editor)
 		this.editor.createShape<TLArrowShape>({
 			id,
 			type: 'arrow',
-			x: originPagePoint.x,
-			y: originPagePoint.y,
+			x: newPoint.x,
+			y: newPoint.y,
 			props: {
 				scale: this.editor.user.getIsDynamicResizeMode() ? 1 / this.editor.getZoomLevel() : 1,
 			},

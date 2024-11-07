@@ -1,6 +1,7 @@
 import { TLShape, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Vec } from '../../../../primitives/Vec'
+import { Editor } from '../../../Editor'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
@@ -108,8 +109,9 @@ export class Pointing extends StateNode {
 		}
 
 		const next = structuredClone(shape)
-		next.x = shape.x - delta.x
-		next.y = shape.y - delta.y
+		const newPoint = maybeSnapToGrid(new Vec(shape.x - delta.x, shape.y - delta.y), this.editor)
+		next.x = newPoint.x
+		next.y = newPoint.y
 		next.props.w = w
 		next.props.h = h
 
@@ -131,4 +133,11 @@ export class Pointing extends StateNode {
 	cancel() {
 		this.parent.transition('idle')
 	}
+}
+
+function maybeSnapToGrid(point: Vec, editor: Editor): Vec {
+	const isGridMode = editor.getInstanceState().isGridMode
+	const gridSize = editor.getDocumentSettings().gridSize
+	if (isGridMode) return point.snapToGrid(gridSize)
+	return point
 }

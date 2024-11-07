@@ -24,6 +24,7 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 
+import { maybeSnapToGrid } from '../../utils/shapes/shapes'
 import { STROKE_SIZES } from '../arrow/shared'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
@@ -147,14 +148,14 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override onHandleDrag(shape: TLLineShape, { handle }: TLHandleDragInfo<TLLineShape>) {
 		// we should only ever be dragging vertex handles
 		if (handle.type !== 'vertex') return
-
+		const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
 		return {
 			...shape,
 			props: {
 				...shape.props,
 				points: {
 					...shape.props.points,
-					[handle.id]: { id: handle.id, index: handle.index, x: handle.x, y: handle.y },
+					[handle.id]: { id: handle.id, index: handle.index, x: newPoint.x, y: newPoint.y },
 				},
 			},
 		}
