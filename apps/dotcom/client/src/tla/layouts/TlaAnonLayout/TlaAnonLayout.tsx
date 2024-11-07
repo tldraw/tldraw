@@ -12,12 +12,14 @@ import styles from './anon.module.css'
 
 const messages = defineMessages({
 	logo: { defaultMessage: 'the tldraw logo' },
+	accountMenu: { defaultMessage: 'Account menu' },
 })
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	usePreventAccidentalDrops()
 	const intl = useIntl()
 	const logoAriaLabel = intl.formatMessage(messages.logo)
+	const accountMenuLabel = intl.formatMessage(messages.accountMenu)
 	const trackEvent = useTldrawAppUiEvents()
 
 	return (
@@ -31,7 +33,7 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 					/>
 				</Link>
 				<TlaAccountMenu source="anon-top-bar" align="start">
-					<button className={styles.linkMenu}>
+					<button className={styles.linkMenu} title={accountMenuLabel}>
 						<TlaIcon icon="dots-vertical-strong" />
 					</button>
 				</TlaAccountMenu>

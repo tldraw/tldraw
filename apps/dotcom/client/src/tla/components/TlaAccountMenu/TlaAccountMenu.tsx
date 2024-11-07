@@ -15,8 +15,17 @@ import {
 } from 'tldraw'
 import { Links } from '../../../components/Links'
 import { globalEditor } from '../../../utils/globalEditor'
-import { useRaw } from '../../hooks/useRaw'
+import { defineMessages, useIntl } from '../../app/i18n'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
+
+const messages = defineMessages({
+	appDebugFlags: { defaultMessage: 'App debug flags' },
+	signOut: { defaultMessage: 'Sign out' },
+	help: { defaultMessage: 'Help' },
+	langAccented: { defaultMessage: 'i18n: Accented' },
+	langLongString: { defaultMessage: 'i18n: Long String' },
+	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
+})
 
 export function TlaAccountMenu({
 	children,
@@ -33,6 +42,7 @@ export function TlaAccountMenu({
 		maybeEditor,
 	])
 	const trackEvent = useTldrawAppUiEvents()
+	const intl = useIntl()
 
 	const handleSignout = useCallback(() => {
 		auth.signOut()
@@ -56,14 +66,14 @@ export function TlaAccountMenu({
 						<TldrawUiMenuGroup id="account-actions">
 							<TldrawUiMenuItem
 								id="sign-out"
-								label="Sign out"
+								label={intl.formatMessage(messages.signOut)}
 								readonlyOk
 								onSelect={handleSignout}
 							/>
 						</TldrawUiMenuGroup>
 					)}
 					<TldrawUiMenuGroup id="account-links">
-						<TldrawUiMenuSubmenu id="help" label="menu.help">
+						<TldrawUiMenuSubmenu id="help" label={intl.formatMessage(messages.help)}>
 							<Links />
 						</TldrawUiMenuSubmenu>
 					</TldrawUiMenuGroup>
@@ -76,13 +86,15 @@ export function TlaAccountMenu({
 }
 
 function AppDebugMenu() {
-	const raw = useRaw()
 	const editor = useMaybeEditor()
+	const intl = useIntl()
+	const appFlagsLbl = intl.formatMessage(messages.appDebugFlags)
+
 	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(false)
 	const debugLanguageFlags = [
-		{ name: 'langAccented', locale: 'xx-AE' },
-		{ name: 'langLongString', locale: 'xx-LS' },
-		{ name: 'langHighlightMissing', locale: 'xx-MS' },
+		{ name: intl.formatMessage(messages.langAccented), locale: 'xx-AE' },
+		{ name: intl.formatMessage(messages.langLongString), locale: 'xx-LS' },
+		{ name: intl.formatMessage(messages.langHighlightMissing), locale: 'xx-MS' },
 	]
 
 	useEffect(() => {
@@ -91,7 +103,7 @@ function AppDebugMenu() {
 
 	return (
 		<TldrawUiMenuGroup id="debug">
-			<TldrawUiMenuSubmenu id="debug" label={raw('App debug flags')}>
+			<TldrawUiMenuSubmenu id="debug" label={appFlagsLbl}>
 				<TldrawUiMenuGroup id="debug app flags">
 					{debugLanguageFlags.map((flag) => (
 						<TldrawUiMenuCheckboxItem

@@ -15,12 +15,23 @@ import {
 	useDialogs,
 	useToasts,
 } from 'tldraw'
+import { defineMessages, useIntl } from '../../app/i18n'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getFilePath, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
+
+const messages = defineMessages({
+	copied: { defaultMessage: 'Copied link' },
+	copyLink: { defaultMessage: 'Copy link' },
+	delete: { defaultMessage: 'Delete' },
+	duplicate: { defaultMessage: 'Duplicate' },
+	file: { defaultMessage: 'File' },
+	forget: { defaultMessage: 'Forget' },
+	rename: { defaultMessage: 'Rename' },
+})
 
 export function TlaFileMenu({
 	children,
@@ -39,18 +50,20 @@ export function TlaFileMenu({
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
+	const intl = useIntl()
 	const trackEvent = useTldrawAppUiEvents()
 	const auth = useAuth()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
 		copyTextToClipboard(url)
+		const copiedMsg = intl.formatMessage(messages.copied)
 		addToast({
 			id: 'copied-link',
-			title: 'Copied link',
+			title: copiedMsg,
 		})
 		trackEvent('copy-file-link', { source })
-	}, [fileId, addToast, trackEvent, source])
+	}, [fileId, addToast, intl, trackEvent, source])
 
 	const handleDuplicateClick = useCallback(async () => {
 		const token = await auth.getToken()
@@ -82,26 +95,35 @@ export function TlaFileMenu({
 	const fileItems = (
 		<>
 			<TldrawUiMenuGroup id="file-actions">
+				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem
-					label="Copy link"
+					label={intl.formatMessage(messages.copyLink)}
 					id="copy-link"
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
 				{isOwner && (
-					<TldrawUiMenuItem label="Rename" id="copy-link" readonlyOk onSelect={onRenameAction} />
+					<TldrawUiMenuItem
+						label={intl.formatMessage(messages.rename)}
+						id="copy-link"
+						readonlyOk
+						onSelect={onRenameAction}
+					/>
 				)}
+				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
-					label="Duplicate"
+					label={intl.formatMessage(messages.duplicate)}
 					id="copy-link"
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
-				{/* <TldrawUiMenuItem label="Star" id="copy-link" onSelect={handleStarLinkClick} /> */}
+				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.star)} id="copy-link" readonlyOk onSelect={handleStarLinkClick} /> */}
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				<TldrawUiMenuItem
-					label={isOwner ? 'Delete' : 'Forget'}
+					label={
+						isOwner ? intl.formatMessage(messages.delete) : intl.formatMessage(messages.forget)
+					}
 					id="delete"
 					readonlyOk
 					onSelect={handleDeleteClick}
@@ -111,7 +133,7 @@ export function TlaFileMenu({
 	)
 
 	const fileItemsWrapper = children ? (
-		<TldrawUiMenuSubmenu id="file" label="menu.file">
+		<TldrawUiMenuSubmenu id="file" label={intl.formatMessage(messages.file)}>
 			{fileItems}
 		</TldrawUiMenuSubmenu>
 	) : (

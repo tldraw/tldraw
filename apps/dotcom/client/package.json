@@ -13,6 +13,7 @@
 	"scripts": {
 		"dev": "yarn run -T tsx scripts/dev-app.ts",
 		"build": "yarn run -T tsx scripts/build.ts",
+		"build-i18n": "yarn i18n:extract && yarn i18n:compile",
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts",
 		"test-ci": "lazy inherit",
@@ -39,6 +40,7 @@
 		"browser-fs-access": "^0.35.0",
 		"classnames": "^2.3.2",
 		"idb": "^7.1.1",
+		"intl-messageformat": "^10.7.3",
 		"lodash.pick": "^4.4.0",
 		"md5.js": "^1.3.5",
 		"qrcode": "^1.5.1",
