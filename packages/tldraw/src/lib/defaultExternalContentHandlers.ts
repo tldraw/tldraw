@@ -622,7 +622,25 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 			})
 		)
 	}
-
+	selectionPageBounds = editor.getSelectionPageBounds()
+	// align selection with the grid if necessary
+	if (selectionPageBounds && editor.getInstanceState().isGridMode) {
+		const gridSize = editor.getDocumentSettings().gridSize
+		const topLeft = new Vec(selectionPageBounds.minX, selectionPageBounds.minY)
+		const gridSnappedPoint = topLeft.clone().snapToGrid(gridSize)
+		const delta = Vec.Sub(topLeft, gridSnappedPoint)
+		editor.updateShapes(
+			editor.getSelectedShapes().map((shape) => {
+				const newPoint = { x: shape.x! - delta.x, y: shape.y! - delta.y }
+				return {
+					id: shape.id,
+					type: shape.type,
+					x: newPoint.x,
+					y: newPoint.y,
+				}
+			})
+		)
+	}
 	// Zoom out to fit the shapes, if necessary
 	selectionPageBounds = editor.getSelectionPageBounds()
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {

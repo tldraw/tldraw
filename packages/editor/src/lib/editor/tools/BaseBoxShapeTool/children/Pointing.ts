@@ -143,6 +143,6 @@ export class Pointing extends StateNode {
 export function maybeSnapToGrid(point: Vec, editor: Editor): Vec {
 	const isGridMode = editor.getInstanceState().isGridMode
 	const gridSize = editor.getDocumentSettings().gridSize
-	if (isGridMode) return point.snapToGrid(gridSize)
-	return point
+	if (isGridMode) return point.clone().snapToGrid(gridSize)
+	return point.clone()
 }
