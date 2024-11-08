@@ -459,6 +459,7 @@ export function moveShapesToPoint({
 
 	// If the user isn't moving super quick
 	const isSnapping = editor.user.getIsSnapMode() ? !inputs.ctrlKey : inputs.ctrlKey
+	let snappedToPit = false
 	if (isSnapping && editor.inputs.pointerVelocity.len() < 0.5) {
 		// snapping
 		const { nudge } = editor.snaps.shapeBounds.snapTranslateShapes({
@@ -487,6 +488,8 @@ export function moveShapesToPoint({
 				const deltaToPit = Vec.Sub(pageCenter, pit)
 				const dist = deltaToPit.len()
 				if (dist < min) {
+					console.log('in a pit')
+					snappedToPit = true
 					min = dist
 					offset = deltaToPit
 				}
@@ -498,7 +501,7 @@ export function moveShapesToPoint({
 
 	const averageSnappedPoint = Vec.Add(averagePagePoint, delta)
 
-	if (isGridMode && !inputs.ctrlKey) {
+	if (isGridMode && !inputs.ctrlKey && !snappedToPit) {
 		averageSnappedPoint.snapToGrid(gridSize)
 	}
 
