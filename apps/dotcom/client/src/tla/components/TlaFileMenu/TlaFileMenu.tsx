@@ -1,7 +1,5 @@
 /* ---------------------- Menu ---------------------- */
 
-import { useAuth } from '@clerk/clerk-react'
-import { TldrawAppFile } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -12,6 +10,7 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	uniqueId,
 	useDialogs,
 	useToasts,
 } from 'tldraw'
@@ -42,7 +41,7 @@ export function TlaFileMenu({
 }: {
 	children?: ReactNode
 	source: TLAppUiEventSource
-	fileId: TldrawAppFile['id']
+	fileId: string
 	onRenameAction(): void
 	trigger: ReactNode
 }) {
@@ -52,7 +51,6 @@ export function TlaFileMenu({
 	const { addToast } = useToasts()
 	const intl = useIntl()
 	const trackEvent = useTldrawAppUiEvents()
-	const auth = useAuth()
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
@@ -66,24 +64,11 @@ export function TlaFileMenu({
 	}, [fileId, addToast, intl, trackEvent, source])
 
 	const handleDuplicateClick = useCallback(async () => {
-		const token = await auth.getToken()
-		if (!token) throw Error('no token')
-
-		const res = await app.duplicateFile(fileId.split(':')[1], token)
-
-		if (res.ok) {
-			// If the user just duplicated their current file, navigate to the new file
-			if (location.pathname.endsWith(fileId)) {
-				navigate(getFilePath(res.value.slug))
-			} else {
-				// ...otherwise, stay where they are
-			}
-		} else {
-			// do something to indicate failure
-			console.error('Failed to duplicate file')
-			console.error(res.error)
-		}
-	}, [app, auth, navigate, fileId])
+		const newFileId = uniqueId()
+		const name = app.getFileName(fileId)
+		app.createFile({ id: newFileId, name })
+		navigate(getFilePath(newFileId), { state: { mode: 'duplicate', duplicateId: fileId } })
+	}, [fileId, navigate, app])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
