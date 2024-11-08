@@ -502,7 +502,6 @@ export function moveShapesToPoint({
 
 	// we don't want to snap to the grid if we're holding the ctrl key, if we've already snapped into a pit, or if we're showing snapping indicators
 	const snapIndicators = editor.snaps.getIndicators()
-	console.log(snapIndicators)
 	if (isGridMode && !inputs.ctrlKey && !snappedToPit && snapIndicators.length === 0) {
 		averageSnappedPoint.snapToGrid(gridSize)
 	}
