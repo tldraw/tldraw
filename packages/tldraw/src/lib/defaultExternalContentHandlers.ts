@@ -19,7 +19,6 @@ import {
 	fetch,
 	getHashForBuffer,
 	getHashForString,
-	maybeSnapToGrid,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
@@ -587,7 +586,6 @@ export async function createShapesForAssets(
 
 		// Re-position shapes so that the center of the group is at the provided point
 		centerSelectionAroundPoint(editor, position)
-		maybeSnapSelectionToGrid(editor)
 	})
 
 	return partials.map((p) => p.id)
@@ -630,29 +628,6 @@ export function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 		editor.zoomToSelection({ animation: { duration: editor.options.animationMediumMs } })
 	}
-}
-
-function maybeSnapSelectionToGrid(editor: Editor) {
-	const selectionPageBounds = editor.getSelectionPageBounds()
-	if (!selectionPageBounds) return
-	const topLeft = new Vec(selectionPageBounds.minX, selectionPageBounds.minY)
-	const newPoint = maybeSnapToGrid(topLeft, editor)
-	const delta = topLeft.sub(newPoint)
-
-	if (delta.equals(new Vec(0, 0))) return
-
-	editor.updateShapes(
-		editor.getSelectedShapes().map((shape) => {
-			const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
-			const localDelta = Vec.Rot(delta, -localRotation)
-			return {
-				id: shape.id,
-				type: shape.type,
-				x: shape.x! - localDelta.x,
-				y: shape.y! - localDelta.y,
-			}
-		})
-	)
 }
 
 export function createEmptyBookmarkShape(
