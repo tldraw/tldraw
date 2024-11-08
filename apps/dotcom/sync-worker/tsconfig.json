@@ -11,9 +11,6 @@
 			"path": "../../../packages/dotcom-shared"
 		},
 		{
-			"path": "../../../packages/state"
-		},
-		{
 			"path": "../../../packages/store"
 		},
 		{
