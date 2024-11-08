@@ -1908,6 +1908,9 @@ export interface MatModel {
 }
 
 // @public
+export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
+
+// @public
 export function MenuClickCapture(): false | JSX_2.Element;
 
 // @internal (undocumented)

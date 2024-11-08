@@ -135,7 +135,12 @@ export class Pointing extends StateNode {
 	}
 }
 
-function maybeSnapToGrid(point: Vec, editor: Editor): Vec {
+/**
+ * Checks if grid mode is enabled and snaps a point to the grid if so
+ *
+ * @public
+ */
+export function maybeSnapToGrid(point: Vec, editor: Editor): Vec {
 	const isGridMode = editor.getInstanceState().isGridMode
 	const gridSize = editor.getDocumentSettings().gridSize
 	if (isGridMode) return point.snapToGrid(gridSize)

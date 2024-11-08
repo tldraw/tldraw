@@ -6,8 +6,9 @@ import {
 	TLShapeId,
 	Vec,
 	createShapeId,
+	maybeSnapToGrid,
 } from '@tldraw/editor'
-import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
+
 import {
 	NOTE_ADJACENT_POSITION_SNAP_RADIUS,
 	getAvailableNoteAdjacentPositions,

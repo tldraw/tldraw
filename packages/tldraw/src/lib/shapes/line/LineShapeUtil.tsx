@@ -21,10 +21,10 @@ import {
 	lineShapeMigrations,
 	lineShapeProps,
 	mapObjectMapValues,
+	maybeSnapToGrid,
 	sortByIndex,
 } from '@tldraw/editor'
 
-import { maybeSnapToGrid } from '../../utils/shapes/shapes'
 import { STROKE_SIZES } from '../arrow/shared'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'

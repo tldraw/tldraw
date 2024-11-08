@@ -1,5 +1,4 @@
-import { StateNode, TLArrowShape, createShapeId } from '@tldraw/editor'
-import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
+import { StateNode, TLArrowShape, createShapeId, maybeSnapToGrid } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

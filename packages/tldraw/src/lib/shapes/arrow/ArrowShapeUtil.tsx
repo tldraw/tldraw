@@ -26,6 +26,7 @@ import {
 	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
+	maybeSnapToGrid,
 	structuredClone,
 	toDomPrecision,
 	track,
@@ -36,7 +37,7 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
-import { maybeSnapToGrid } from '../../utils/shapes/shapes'
+
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'

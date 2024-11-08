@@ -5,8 +5,8 @@ import {
 	TLPointerEventInfo,
 	Vec,
 	createShapeId,
+	maybeSnapToGrid,
 } from '@tldraw/editor'
-import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

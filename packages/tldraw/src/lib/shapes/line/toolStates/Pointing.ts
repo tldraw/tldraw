@@ -7,10 +7,10 @@ import {
 	createShapeId,
 	getIndexAbove,
 	last,
+	maybeSnapToGrid,
 	sortByIndex,
 	structuredClone,
 } from '@tldraw/editor'
-import { maybeSnapToGrid } from '../../../utils/shapes/shapes'
 
 const MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES = 2
 
@@ -46,6 +46,7 @@ export class Pointing extends StateNode {
 				this.editor.getShapeParentTransform(this.shape)!,
 				new Vec(this.shape.x, this.shape.y)
 			)
+			// nudge the point slightly to avoid zero-length lines
 			const nudgedPoint = Vec.Sub(currentPagePoint, shapePagePoint).addXY(0.1, 0.1)
 			const nextPoint = maybeSnapToGrid(nudgedPoint, this.editor)
 			const points = structuredClone(this.shape.props.points)
