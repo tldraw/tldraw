@@ -168,20 +168,23 @@ export class Pointing extends StateNode {
 			const transform = this.editor.getShapeParentTransform(shape)
 			delta.rot(-transform.rotation())
 		}
-		const isGridMode = this.editor.getInstanceState().isGridMode
-		if (isGridMode) {
+
+		this.editor.updateShape({
+			...shape,
+			x: shape.x + delta.x,
+			y: shape.y + delta.y,
+		})
+
+		if (this.editor.getInstanceState().isGridMode) {
+			const newShape = this.editor.getShape(shape) as TLTextShape
 			const gridSize = this.editor.getDocumentSettings().gridSize
-			const newPoint = new Vec(shape.x, shape.y).snapToGrid(gridSize)
+			const topLeft = new Vec(newShape.x, newShape.y)
+			const gridSnappedPoint = topLeft.clone().snapToGrid(gridSize)
+			const gridDelta = Vec.Sub(topLeft, gridSnappedPoint)
 			this.editor.updateShape({
-				...shape,
-				x: newPoint.x,
-				y: newPoint.y,
-			})
-		} else {
-			this.editor.updateShape({
-				...shape,
-				x: shape.x + delta.x,
-				y: shape.y + delta.y,
+				...newShape,
+				x: newShape.x - gridDelta.x,
+				y: newShape.y - gridDelta.y,
 			})
 		}
 
