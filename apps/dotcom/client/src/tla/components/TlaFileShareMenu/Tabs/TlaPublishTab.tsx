@@ -2,8 +2,8 @@ import { useAuth } from '@clerk/clerk-react'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useEditor, useToasts } from 'tldraw'
-import { F, FormattedRelativeTime, defineMessages, useIntl } from '../../../app/i18n'
+import { useEditor } from 'tldraw'
+import { F, FormattedRelativeTime } from '../../../app/i18n'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
@@ -21,19 +21,17 @@ import {
 } from '../../tla-menu/tla-menu'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-const messages = defineMessages({
-	// add errors to zero-polyfill toasts
-	publishChangesError: { defaultMessage: 'Could not publish changes' },
-	publishFileError: { defaultMessage: 'Could not publish file' },
-	deleteError: { defaultMessage: 'Could not delete' },
-})
+// add errors to zero-polyfill toasts
+// const messages = defineMessages({
+// 	publishChangesError: { defaultMessage: 'Could not publish changes' },
+// 	publishFileError: { defaultMessage: 'Could not publish file' },
+// 	deleteError: { defaultMessage: 'Could not delete' },
+// })
 
 export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const { fileSlug } = useParams()
 	const editor = useEditor()
 	const app = useApp()
-	const { addToast } = useToasts()
-	const intl = useIntl()
 	const { publishedSlug, published } = file
 	const isOwner = app.isFileOwner(file.id)
 	const auth = useAuth()
@@ -48,8 +46,6 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 			const token = await auth.getToken()
 			if (!token) throw Error('no token')
 
-			const startTime = Date.now()
-
 			if (isPublishingChanges) {
 				setUploadState('success')
 			}
@@ -58,7 +54,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 
 			trackEvent('publish-file', { source: 'file-share-menu' })
 		},
-		[editor, fileSlug, isOwner, auth, intl, app, addToast, file.id, trackEvent]
+		[editor, fileSlug, isOwner, auth, app, file.id, trackEvent]
 	)
 
 	const unpublish = useCallback(async () => {
@@ -69,7 +65,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 
 		app.unpublishFile(file.id)
 		trackEvent('unpublish-file', { source: 'file-share-menu' })
-	}, [addToast, app, auth, intl, file.id, isOwner, trackEvent])
+	}, [app, auth, file.id, isOwner, trackEvent])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 

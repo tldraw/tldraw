@@ -40,7 +40,7 @@ export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClo
 			navigate(getFilePath(recentFiles[0].fileId))
 		}
 		onClose()
-	}, [auth, app, fileId, onClose, navigate])
+	}, [auth, app, fileId, onClose, navigate, trackEvent])
 
 	return (
 		<>
