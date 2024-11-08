@@ -488,7 +488,6 @@ export function moveShapesToPoint({
 				const deltaToPit = Vec.Sub(pageCenter, pit)
 				const dist = deltaToPit.len()
 				if (dist < min) {
-					console.log('in a pit')
 					snappedToPit = true
 					min = dist
 					offset = deltaToPit
