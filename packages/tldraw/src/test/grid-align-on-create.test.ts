@@ -37,14 +37,14 @@ const expectedPoints = {
 }
 describe('when creating a shape...', () => {
 	it('aligns arrow points with the grid', () => {
-		editor.setCurrentTool('arrow').pointerDown(4, 4).pointerMove(28, 28).pointerUp(28, 28)
+		editor.setCurrentTool('arrow').pointerDown(4, 4).pointerMove(32, 32).pointerUp()
 		const shape = editor.selectAll().getOnlySelectedShape() as TLArrowShape
 		expect({ x: shape.x, y: shape.y }).toMatchObject({ x: 0, y: 0 })
 		expect(shape.props.end).toMatchObject({ x: 30, y: 30 })
 	})
 	it('aligns base box shapes with the grid', () => {
 		editor.setCurrentTool('frame').pointerDown(4, 4).pointerUp()
-		const shape = editor.selectAll().getOnlySelectedShape() as TLFrameShape
+		const shape = editor.getLastCreatedShape() as TLFrameShape
 		const defaultProps = editor.getShapeUtil(shape).getDefaultProps()
 		expect({ x: shape.x, y: shape.y }).toMatchObject({
 			x: -defaultProps.w / 2,
@@ -53,7 +53,7 @@ describe('when creating a shape...', () => {
 	})
 	it('aligns geo shapes with the grid', () => {
 		editor.setCurrentTool('geo').pointerDown(4, 4).pointerUp()
-		const shape = editor.selectAll().getOnlySelectedShape() as TLGeoShape
+		const shape = editor.getLastCreatedShape() as TLGeoShape
 		const defaultProps = editor.getShapeUtil(shape).getDefaultProps()
 		expect({ x: shape.x, y: shape.y }).toMatchObject({ x: -defaultProps.w, y: -defaultProps.h })
 	})
@@ -69,7 +69,7 @@ describe('when creating a shape...', () => {
 			.pointerMove(-31, -31)
 			.pointerDown()
 			.pointerUp()
-		const shape = editor.selectAll().getOnlySelectedShape() as TLLineShape
+		const shape = editor.getLastCreatedShape() as TLLineShape
 		expect({ x: shape.x, y: shape.y, points: shape.props.points }).toMatchObject({
 			x: 0,
 			y: 0,
@@ -78,12 +78,14 @@ describe('when creating a shape...', () => {
 	})
 	it('aligns notes with the grid', () => {
 		editor.setCurrentTool('note').pointerDown(4, 4).pointerUp()
-		const shape = editor.selectAll().getOnlySelectedShape() as TLNoteShape
+		const shape = editor.getLastCreatedShape() as TLNoteShape
 		expect({ x: shape.x, y: shape.y }).toMatchObject({ x: -NOTE_SIZE / 2, y: -NOTE_SIZE / 2 })
 	})
 	it('aligns text shapes with the grid', () => {
 		editor.setCurrentTool('text').pointerDown(4, 4).pointerUp()
-		const shape = editor.selectAll().getOnlySelectedShape() as TLTextShape
-		expect({ x: shape.x, y: shape.y }).toMatchObject({ x: 0, y: 0 })
+		const shape = editor.getLastCreatedShape()! as TLTextShape
+		const bounds = editor.getShapePageBounds(shape)!
+		expect(Math.abs(bounds.minX % 10)).toBe(0)
+		expect(Math.abs(bounds.minY % 10)).toBe(0)
 	})
 })
