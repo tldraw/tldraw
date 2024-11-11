@@ -203,6 +203,8 @@ export class Zero {
 		console.log('apply local optimistic updates', mutationId, updates)
 		this.store.updateOptimisticData(updates, mutationId)
 
+		if (this.socket.isDisposed) return
+
 		this.socket.sendMessage({
 			type: 'mutate',
 			mutationId,
