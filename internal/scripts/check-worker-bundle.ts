@@ -29,7 +29,16 @@ interface Meta {
 	}
 }
 
-const EXTERNAL_DEPS = ['cloudflare:workers', 'crypto', 'tls', 'net', 'stream', 'fs', 'os', 'perf_hooks']
+const EXTERNAL_DEPS = [
+	'cloudflare:workers',
+	'crypto',
+	'tls',
+	'net',
+	'stream',
+	'fs',
+	'os',
+	'perf_hooks',
+]
 
 async function checkBundleSize() {
 	rmSync(bundleMetaFileName, { force: true })
