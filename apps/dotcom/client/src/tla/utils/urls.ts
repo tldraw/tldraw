@@ -20,8 +20,8 @@ export function getProfilePath() {
 	return buildUrl({ pathname: '/profile' })
 }
 
-export function getFilePath(fileId: string) {
-	return buildUrl({ pathname: `/${PREFIX.file}/${fileId.split(':').pop()}` })
+export function getFilePath(fileSlug: string) {
+	return buildUrl({ pathname: `/${PREFIX.file}/${fileSlug}` })
 }
 
 export function getPublishPath(publishSlug: string) {
