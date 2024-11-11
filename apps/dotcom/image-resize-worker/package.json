@@ -21,9 +21,9 @@
 		"itty-router": "^5.0.17"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20241022.0",
+		"@cloudflare/workers-types": "^4.20240620.0",
 		"lazyrepo": "0.0.0-alpha.27",
-		"wrangler": "^3.84.1"
+		"wrangler": "3.62.0"
 	},
 	"jest": {
 		"preset": "../../../internal/config/jest/node/jest-preset.js",

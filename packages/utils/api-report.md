@@ -405,11 +405,6 @@ export function sortByIndex<T extends {
     index: IndexKey;
 }>(a: T, b: T): -1 | 0 | 1;
 
-// @internal (undocumented)
-export function stringEnum<T extends string>(...values: T[]): {
-    [K in T]: K;
-};
-
 // @internal
 export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;
 

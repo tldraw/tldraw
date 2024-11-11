@@ -1,13 +1,13 @@
+import { TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useValue } from 'tldraw'
 import { useMaybeApp } from './useAppState'
 
-export function useIsFileOwner(fileId: string): boolean {
+export function useIsFileOwner(fileId: TldrawAppFileId): boolean {
 	const app = useMaybeApp()
 	return useValue(
 		'isOwner',
 		() => {
-			const ownerId = app?.getFile(fileId)?.ownerId
-			return ownerId ? ownerId === app.userId : false
+			return app?.isFileOwner(fileId) ?? false
 		},
 		[app, fileId]
 	)

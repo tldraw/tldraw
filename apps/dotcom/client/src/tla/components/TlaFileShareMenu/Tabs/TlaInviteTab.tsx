@@ -1,4 +1,4 @@
-import { TlaFile } from '@tldraw/dotcom-shared'
+import { TldrawAppFile, TldrawAppFileId } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import { F, defineMessages, useIntl } from '../../../app/i18n'
@@ -26,12 +26,14 @@ const messages = defineMessages({
 	noAccess: { defaultMessage: 'No access' },
 })
 
-export function TlaInviteTab({ fileId }: { fileId: string }) {
+export function TlaInviteTab({ fileId }: { fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const isShared = useValue(
 		'file',
 		() => {
-			return app.requireFile(fileId).shared
+			const file = app.store.get(fileId)
+			if (!file) throw Error('no file')
+			return file.shared
 		},
 		[app, fileId]
 	)
@@ -56,7 +58,7 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 
 /* ---------------------- Share --------------------- */
 
-function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: string }) {
+function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
 	const app = useApp()
 	const user = useTldrawUser()
 	const trackEvent = useTldrawAppUiEvents()
@@ -84,7 +86,13 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 	)
 }
 
-function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; fileId: string }) {
+function TlaSelectSharedLinkType({
+	isShared,
+	fileId,
+}: {
+	isShared: boolean
+	fileId: TldrawAppFileId
+}) {
 	const app = useApp()
 	const user = useTldrawUser()
 	const intl = useIntl()
@@ -94,13 +102,15 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 	const sharedLinkType = useValue(
 		'file',
 		() => {
-			return app.getFile(fileId)?.sharedLinkType
+			const file = app.store.get(fileId)
+			if (!file) throw Error('could not get that file')
+			return file.sharedLinkType
 		},
 		[app, fileId]
 	)
 
 	const handleSelectChange = useCallback(
-		(sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') => {
+		(sharedLinkType: TldrawAppFile['sharedLinkType'] | 'no-access') => {
 			app.setFileSharedLinkType(fileId, sharedLinkType)
 			trackEvent('set-shared-link-type', { type: sharedLinkType, source: 'file-share-menu' })
 		},
@@ -120,7 +130,7 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 							: intl.formatMessage(messages.viewer)
 						: intl.formatMessage(messages.noAccess)
 				}
-				value={sharedLinkType!}
+				value={sharedLinkType}
 				disabled={!isShared}
 				onChange={handleSelectChange}
 			>
@@ -136,7 +146,7 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 	)
 }
 
-function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: string }) {
+function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: TldrawAppFileId }) {
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 

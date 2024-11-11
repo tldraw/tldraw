@@ -1,3 +1,4 @@
+import { TldrawAppFile, TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ReactElement, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -110,11 +111,11 @@ function TlaSidebarCreateFileButton() {
 	const intl = useIntl()
 	const createTitle = intl.formatMessage(messages.create)
 
-	const handleSidebarCreate = useCallback(async () => {
-		const res = await app.createFile()
+	const handleSidebarCreate = useCallback(() => {
+		const res = app.createFile()
 		if (res.ok) {
 			const { file } = res.value
-			navigate(getFilePath(file.id), { state: { mode: 'create' } })
+			navigate(getFilePath(file.id), { state: { isCreateMode: true } })
 			trackEvent('create-file', { source: 'sidebar' })
 		}
 	}, [app, navigate, trackEvent])
@@ -139,7 +140,7 @@ function TlaSidebarUserLink() {
 	const user = useValue(
 		'auth',
 		() => {
-			return app.getUser()
+			return app.getCurrentUser()
 		},
 		[app]
 	)
@@ -166,6 +167,9 @@ function TlaSidebarRecentFiles() {
 	const results = useValue(
 		'recent user files',
 		() => {
+			const { auth } = getLocalSessionState()
+			if (!auth) return false
+
 			return app.getUserRecentFiles()
 		},
 		[app]
@@ -237,7 +241,7 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
 	const { fileSlug } = useParams<{ fileSlug: string }>()
-	const isActive = fileSlug === fileId
+	const isActive = TldrawAppFileRecordType.createId(fileSlug) === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -278,7 +282,7 @@ function TlaRenameInline({
 	onClose,
 	source,
 }: {
-	fileId: string
+	fileId: TldrawAppFile['id']
 	onClose(): void
 	source: TLAppUiEventSource
 }) {
@@ -288,16 +292,15 @@ function TlaRenameInline({
 
 	const handleSave = useCallback(() => {
 		// rename the file
+		const file = app.store.get(fileId)
+		if (!file) return
 		const elm = ref.current
 		if (!elm) return
 		const name = elm.value.slice(0, 312).trim()
 
 		if (name) {
 			// Only update the name if there is a name there to update
-			app.updateFile(fileId, (file) => ({
-				...file,
-				name,
-			}))
+			app.store.put([{ ...file, name }])
 		}
 		trackEvent('rename-file', { name, source })
 		onClose()
@@ -343,7 +346,7 @@ function TlaSidebarFileLinkMenu({
 	fileId,
 	onRenameAction,
 }: {
-	fileId: string
+	fileId: TldrawAppFile['id']
 	onRenameAction(): void
 }) {
 	const intl = useIntl()
@@ -412,6 +415,6 @@ export function TlaSidebarToggleMobile() {
 }
 
 interface RecentFile {
-	fileId: string
+	fileId: TldrawAppFileId
 	date: number
 }

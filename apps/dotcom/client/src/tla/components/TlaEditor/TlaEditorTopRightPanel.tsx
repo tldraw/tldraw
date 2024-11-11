@@ -14,7 +14,7 @@ export function TlaEditorTopRightPanel() {
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
-			<TlaFileShareMenu fileId={fileId!} source="file-header">
+			<TlaFileShareMenu fileId={fileId} source="file-header">
 				<ShareButton />
 			</TlaFileShareMenu>
 		</div>

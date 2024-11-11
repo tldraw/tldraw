@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-react'
-import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
+import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
@@ -15,7 +15,6 @@ import {
 	Tldraw,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
-	assert,
 	createSessionStateSnapshotSignal,
 	react,
 	throttle,
@@ -97,17 +96,10 @@ const anonComponents = {
 interface TlaEditorProps {
 	fileSlug: string
 	onDocumentChange?(): void
-	mode?: TlaFileOpenMode
-	duplicateId?: string
+	isCreateMode?: boolean
 	deepLinks?: boolean
 }
-
 export function TlaEditor(props: TlaEditorProps) {
-	if (props.mode === 'duplicate') {
-		assert(props.duplicateId, 'duplicateId is required when mode is duplicate')
-	} else {
-		assert(!props.duplicateId, 'duplicateId is not allowed when mode is not duplicate')
-	}
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
 		<ReadyWrapper key={props.fileSlug}>
@@ -116,17 +108,11 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
-function TlaEditorInner({
-	fileSlug,
-	onDocumentChange,
-	mode,
-	deepLinks,
-	duplicateId,
-}: TlaEditorProps) {
+function TlaEditorInner({ fileSlug, onDocumentChange, isCreateMode, deepLinks }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
-	const fileId = fileSlug
+	const fileId = TldrawAppFileRecordType.createId(fileSlug)
 
 	const setIsReady = useSetIsReady()
 
@@ -144,12 +130,12 @@ function TlaEditorInner({
 			if (!app) return
 			const fileState = app.getFileState(fileId)
 			if (fileState?.lastSessionState) {
-				editor.loadSnapshot({ session: JSON.parse(fileState.lastSessionState.trim() || 'null') })
+				editor.loadSnapshot({ session: fileState.lastSessionState })
 			}
 			const sessionState$ = createSessionStateSnapshotSignal(editor.store)
 			const updateSessionState = throttle((state: TLSessionStateSnapshot) => {
 				app.onFileSessionStateUpdate(fileId, state)
-			}, 1000)
+			}, 500)
 			// don't want to update if they only open the file and didn't look around
 			let firstTime = true
 			const cleanup = react('update session state', () => {
@@ -177,15 +163,11 @@ function TlaEditorInner({
 			if (user) {
 				url.searchParams.set('accessToken', await user.getToken())
 			}
-			if (mode) {
-				url.searchParams.set('mode', mode)
-				if (mode === 'duplicate') {
-					assert(duplicateId, 'duplicateId is required when mode is duplicate')
-					url.searchParams.set('duplicateId', duplicateId)
-				}
+			if (isCreateMode) {
+				url.searchParams.set('isCreateMode', 'true')
 			}
 			return url.toString()
-		}, [fileSlug, user, mode, duplicateId]),
+		}, [user, fileSlug, isCreateMode]),
 		assets: multiplayerAssetStore,
 		userInfo: app?.tlUser.userPreferences,
 	})
@@ -254,27 +236,19 @@ function SneakyFileUpdateHandler({
 	fileId,
 }: {
 	onDocumentChange?(): void
-	fileId: string
+	fileId: TldrawAppFileId
 }) {
 	const app = useMaybeApp()
 	const editor = useEditor()
 	useEffect(() => {
-		const onChange = throttle(
+		return editor.store.listen(
 			() => {
 				if (!app) return
 				app.onFileEdit(fileId)
 				onDocumentChange?.()
 			},
-			// This is used to update the lastEditAt time in the database, and to let the local
-			// room know that an edit ahs been made.
-			// It doesn't need to be super fast or accurate so we can throttle it a lot
-			5000
+			{ scope: 'document', source: 'user' }
 		)
-		const unsub = editor.store.listen(onChange, { scope: 'document', source: 'user' })
-		return () => {
-			unsub()
-			onChange.cancel()
-		}
 	}, [app, onDocumentChange, fileId, editor])
 
 	return null
