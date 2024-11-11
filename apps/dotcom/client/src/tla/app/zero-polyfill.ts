@@ -15,7 +15,7 @@ export class Zero {
 	socket: ClientWebSocketAdapter
 	store = new OptimisticAppStore()
 	pendingUpdates: ZRowUpdate[] = []
-	timeout: NodeJS.Timeout | null = null
+	timeout: NodeJS.Timeout | undefined = undefined
 	currentMutationId = uniqueId()
 
 	constructor(
@@ -49,9 +49,7 @@ export class Zero {
 	}
 
 	dispose() {
-		if (this.timeout) {
-			clearTimeout(this.timeout)
-		}
+		clearTimeout(this.timeout)
 		if (this.pendingUpdates.length) {
 			this.sendPendingUpdates()
 		}
@@ -215,7 +213,7 @@ export class Zero {
 
 		this.pendingUpdates = []
 		this.currentMutationId = uniqueId()
-		this.timeout = null
+		this.timeout = undefined
 	}
 
 	makeOptimistic(updates: ZRowUpdate[]) {
