@@ -1,8 +1,9 @@
-/* eslint-disable no-console */
 import { ROOM_PREFIX, TlaFile, TlaFileState, TlaUser } from '@tldraw/dotcom-shared'
 import { assert, compact, uniq } from '@tldraw/utils'
+import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
+import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLUserDurableObject } from './TLUserDurableObject'
 import { Environment } from './types'
 
@@ -36,8 +37,17 @@ CREATE TABLE file_state (
 export class TLPostgresReplicator extends DurableObject<Environment> {
 	sql: SqlStorage
 	db: ReturnType<typeof postgres>
+	sentry
+	captureException(exception: unknown, eventHint?: EventHint) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		this.sentry?.captureException(exception, eventHint) as any
+		if (!this.sentry) {
+			console.error(exception)
+		}
+	}
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
+		this.sentry = createSentry(ctx, env)
 
 		this.db = postgres(env.BOTCOM_POSTGRES_CONNECTION_STRING, {
 			types: {
@@ -52,8 +62,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		this.ctx.blockConcurrencyWhile(async () => {
 			let didFetchInitialData = false
+			// TODO: time how long this takes
 			await new Promise((resolve, reject) => {
-				console.error('replication start')
 				this.db
 					.subscribe(
 						'*',
@@ -62,16 +72,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 								return
 							}
 							try {
-								const result = await this.db`SELECT count(*) AS active_wal_senders
-FROM pg_stat_replication;`
-								console.log('number of active wal senders', result[0].active_wal_senders)
 								await this.handleEvent(row, info)
 							} catch (e) {
-								console.error(e)
+								this.captureException(e)
 							}
 						},
 						async () => {
-							console.error('replication start succeeded')
 							try {
 								const users = await this.db`SELECT * FROM public.user`
 								const files = await this.db`SELECT * FROM file`
@@ -81,26 +87,25 @@ FROM pg_stat_replication;`
 								files.forEach((file) => this.insertRow(file, 'file'))
 								fileStates.forEach((fileState) => this.insertRow(fileState, 'file_state'))
 							} catch (e) {
-								console.error(e)
+								this.captureException(e)
 								reject(e)
 							}
 							didFetchInitialData = true
 							resolve(null)
 						},
 						() => {
-							console.error('replication start failed')
+							// TODO: ping team if this fails
+							this.captureException(new Error('replication start failed'))
 							reject(null)
 						}
 					)
-					.then(() => {
-						console.log('a')
-					})
 					.catch((err) => {
-						console.log('b', err)
+						// TODO: ping team if this fails
+						this.captureException(new Error('replication start failed (catch)'))
+						this.captureException(err)
 					})
 			})
 		})
-		console.log('finished booting up replicator')
 		this.sql = this.ctx.storage.sql
 	}
 
@@ -143,8 +148,6 @@ FROM pg_stat_replication;`
 				console.error(`Unhandled event: ${event}`)
 		}
 		if (row) {
-			console.log('impacted user ids', userIds, row)
-
 			for (const userId of userIds) {
 				// get user DO and send update message
 				const stub = this.env.TL_USER.get(
@@ -251,7 +254,6 @@ FROM pg_stat_replication;`
 				assert(row.fileId, 'file id is required')
 				return [row.userId as string]
 		}
-		console.error('no impacted user ids')
 		return []
 	}
 

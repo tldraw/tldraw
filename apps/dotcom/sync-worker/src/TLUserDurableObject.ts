@@ -16,6 +16,7 @@ import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import postgres from 'postgres'
+import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { getR2KeyForRoom } from './r2'
 import { Environment } from './types'
@@ -25,9 +26,20 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	db: ReturnType<typeof postgres>
 	replicator: TLPostgresReplicator
 	store = new OptimisticAppStore()
+
+	sentry
+	captureException(exception: unknown, eventHint?: EventHint) {
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		this.sentry?.captureException(exception, eventHint) as any
+		if (!this.sentry) {
+			console.error(exception)
+		}
+	}
+
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
 
+		this.sentry = createSentry(ctx, env)
 		this.replicator = this.env.TL_PG_REPLICATOR.get(
 			this.env.TL_PG_REPLICATOR.idFromName('0')
 		) as any as TLPostgresReplicator
@@ -54,9 +66,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		try {
 			return await this.router.fetch(req)
 		} catch (err) {
-			console.error(err)
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
-			sentry?.captureException(err)
+			if (sentry) {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				sentry?.captureException(err)
+			} else {
+				console.error(err)
+			}
 			return new Response('Something went wrong', {
 				status: 500,
 				statusText: 'Internal Server Error',
@@ -72,7 +87,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const { sessionId } = params
 
 		if (!this.userId) {
-			console.error('User data not initialized', this.userId)
 			throw new Error('User data not initialized')
 		}
 		if (!sessionId) {
@@ -105,7 +119,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				await this.handleMutate(msg)
 				break
 			default:
-				console.error('Unhandled message', msg)
+				this.captureException(new Error('Unhandled message'), { data: { message } })
 		}
 	}
 
@@ -126,7 +140,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
-		console.error('rejecting mutation', mutationId)
 		this.store.rejectMutation(mutationId)
 		for (const socket of this.ctx.getWebSockets()) {
 			socket.send(
@@ -202,8 +215,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async handleMutate(msg: ZClientSentMessage) {
-		// eslint-disable-next-line no-console
-		console.log('handleMutate', JSON.stringify(msg, null, 2))
 		try {
 			;(await this.db.begin(async (sql) => {
 				for (const update of msg.updates) {
@@ -277,10 +288,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
 			)
 			this.mutations.push({ mutationNumber, mutationId: msg.mutationId })
-		} catch (_e) {
-			// TODO: report to sentry
-			console.error('Mutation failed', _e)
-			const code = _e instanceof ZMutationError ? _e.errorCode : ZErrorCode.unknown_error
+		} catch (e) {
+			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
+			this.captureException(e, {
+				data: { errorCode: code, reason: 'mutation failed' },
+			})
 			this.rejectMutation(msg.mutationId, code)
 		}
 	}
@@ -306,7 +318,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const room = this.env.TLDR_DOC.get(this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${id}`))
 		await room.appFileRecordDidDelete()
 		if (!fileRecord) {
-			console.error('file record not found', id)
 			throw new Error('file record not found')
 		}
 		const publishedSlug = fileRecord.publishedSlug
