@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
@@ -11,12 +11,14 @@ import { getFilePath } from '../utils/urls'
 export function Component() {
 	const app = useMaybeApp()
 	const navigate = useNavigate()
+	const creatingFile = useRef(false)
 
 	useEffect(() => {
 		if (!app) return
 		if (app.getUserRecentFiles().length === 0) {
 			app.createFile().then((res) => {
 				if (res.ok) {
+					creatingFile.current = true
 					navigate(getFilePath(res.value.file.id), { state: { mode: 'create' } })
 				}
 			})
@@ -24,6 +26,7 @@ export function Component() {
 	}, [app, navigate])
 
 	if (!app) return <LocalTldraw />
+	if (creatingFile.current) return null
 	// Navigate to the most recent file (if there is one) or else a new file
 	const { auth } = getLocalSessionState()
 	const fileId = auth?.userId && app.getUserRecentFiles()[0]?.fileId
