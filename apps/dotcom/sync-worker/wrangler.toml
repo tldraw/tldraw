@@ -27,14 +27,7 @@ new_classes = ["TLAppDurableObject"]
 
 [[migrations]]
 tag = "v5"
-deleted_classes = ["TLAppDurableObject"]
-
-[[migrations]]
-tag = "v6"
 new_sqlite_classes = ["TLPostgresReplicator"]
-
-[[migrations]]
-tag = "v7"
 new_classes = ["TLUserDurableObject"]
 
 [[analytics_engine_datasets]]
