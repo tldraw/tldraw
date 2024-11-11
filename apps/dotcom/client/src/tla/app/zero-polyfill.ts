@@ -49,11 +49,11 @@ export class Zero {
 	}
 
 	dispose() {
-		if (this.pendingUpdates.length) {
-			this.sendPendingUpdates()
-		}
 		if (this.timeout) {
 			clearTimeout(this.timeout)
+		}
+		if (this.pendingUpdates.length) {
+			this.sendPendingUpdates()
 		}
 		this.socket.close()
 	}
