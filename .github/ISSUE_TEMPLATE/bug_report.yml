@@ -39,6 +39,7 @@ body:
       options:
         - The developer package
         - The tldraw.com website
+        - The tldraw.dev website
         - The makereal.tldraw.com website
     validations:
       required: true
