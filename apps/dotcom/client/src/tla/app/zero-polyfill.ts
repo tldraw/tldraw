@@ -15,6 +15,9 @@ import { Signal, computed, react, transact, uniqueId } from 'tldraw'
 export class Zero {
 	socket: ClientWebSocketAdapter
 	store = new OptimisticAppStore()
+	pendingUpdates: ZRowUpdate[] = []
+	timeout: NodeJS.Timeout | null = null
+	currentMutationId = uniqueId()
 
 	constructor(
 		private opts: { getUri(): Promise<string>; onMutationRejected(errorCode: ZErrorCode): void }
@@ -47,6 +50,12 @@ export class Zero {
 	}
 
 	dispose() {
+		if (this.pendingUpdates.length) {
+			this.sendPendingUpdates()
+		}
+		if (this.timeout) {
+			clearTimeout(this.timeout)
+		}
 		this.socket.close()
 	}
 
@@ -198,17 +207,29 @@ export class Zero {
 		})
 	}, this.____mutators)
 
+	private sendPendingUpdates() {
+		this.socket.sendMessage({
+			type: 'mutate',
+			mutationId: this.currentMutationId,
+			updates: this.pendingUpdates,
+		} satisfies ZClientSentMessage as any)
+
+		this.pendingUpdates = []
+		this.currentMutationId = uniqueId()
+		this.timeout = null
+	}
+
 	makeOptimistic(updates: ZRowUpdate[]) {
 		const mutationId = uniqueId()
-		console.log('apply local optimistic updates', mutationId, updates)
 		this.store.updateOptimisticData(updates, mutationId)
 
 		if (this.socket.isDisposed) return
 
-		this.socket.sendMessage({
-			type: 'mutate',
-			mutationId,
-			updates,
-		} satisfies ZClientSentMessage as any)
+		this.pendingUpdates.push(...updates)
+		if (!this.timeout) {
+			this.timeout = setTimeout(() => {
+				this.sendPendingUpdates()
+			}, 50)
+		}
 	}
 }
