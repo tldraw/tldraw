@@ -205,6 +205,8 @@ export class Zero {
 	}, this.____mutators)
 
 	private sendPendingUpdates() {
+		if (this.socket.isDisposed) return
+
 		this.socket.sendMessage({
 			type: 'mutate',
 			mutationId: this.currentMutationId,
@@ -219,8 +221,6 @@ export class Zero {
 	makeOptimistic(updates: ZRowUpdate[]) {
 		const mutationId = uniqueId()
 		this.store.updateOptimisticData(updates, mutationId)
-
-		if (this.socket.isDisposed) return
 
 		this.pendingUpdates.push(...updates)
 		if (!this.timeout) {
