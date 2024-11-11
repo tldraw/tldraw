@@ -65,6 +65,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 
 		this.ctx.blockConcurrencyWhile(async () => {
+			/**
+			 * BOOTUP SEQUENCE
+			 * 1. Generate a unique boot id
+			 * 2. Subscribe to all changes
+			 * 3. Fetch all data and write the boot id in a transaction
+			 * 4. If we receive events before the boot id update comes through, ignore them
+			 * 5. If we receive events after the boot id comes through but before we've finished
+			 *    fetching all data, buffer them and apply them after we've finished fetching all data.
+			 *    (not sure this is possible, but just in case)
+			 * 6. Once we've finished fetching all data, apply any buffered events
+			 */
 			let didFetchInitialData = false
 			let didGetBootIdInSubscription = false
 			const myId = this.ctx.id.toString()
@@ -94,32 +105,38 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 								(row as any)?.bootId === bootId
 							) {
 								didGetBootIdInSubscription = true
+							} else {
+								// ignore events until we get the boot id
 							}
 						},
 						async () => {
 							try {
 								const sql = getFetchEverythingSql(myId, bootId)
 								this.ctx.storage.sql.exec(seed)
-								await this.db
-									.unsafe(sql, [], { prepare: false })
-									.simple()
-									.forEach((row: any) => {
-										this.insertRow(
-											parseResultRow(
-												row.table === 'user'
-													? userKeys
-													: row.table === 'file'
-														? fileKeys
-														: fileStateKeys,
-												row
-											),
-											row.table
-										)
-									})
+								// ok
+								await this.db.begin(async (db) => {
+									return db
+										.unsafe(sql, [], { prepare: false })
+										.simple()
+										.forEach((row: any) => {
+											this.insertRow(
+												parseResultRow(
+													row.table === 'user'
+														? userKeys
+														: row.table === 'file'
+															? fileKeys
+															: fileStateKeys,
+													row
+												),
+												row.table
+											)
+										})
+								})
 								while (initialUpdateBuffer.length) {
 									const { row, info } = initialUpdateBuffer.shift()!
 									this.handleEvent(row, info)
 								}
+								// this will prevent more events from being added to the buffer
 								didFetchInitialData = true
 							} catch (e) {
 								this.captureException(e)
