@@ -8,7 +8,7 @@
 	"/* GOTCHA */": "files will include ./dist and index.d.ts by default, add any others you want to include in here",
 	"files": [],
 	"dependencies": {
-		"@cloudflare/workers-types": "^4.20240620.0",
+		"@cloudflare/workers-types": "^4.20241022.0",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"cloudflare-workers-unfurl": "^0.0.7",

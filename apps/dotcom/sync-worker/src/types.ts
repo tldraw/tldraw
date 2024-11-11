@@ -1,8 +1,10 @@
 // https://developers.cloudflare.com/analytics/analytics-engine/
 
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { TLAppDurableObject } from './TLAppDurableObject'
+// import { TLAppDurableObject } from './TLAppDurableObject'
 import { TLDrawDurableObject } from './TLDrawDurableObject'
+import { TLPostgresReplicator } from './TLPostgresReplicator'
+import { TLUserDurableObject } from './TLUserDurableObject'
 
 // This type isn't available in @cloudflare/workers-types yet
 export interface Analytics {
@@ -16,7 +18,10 @@ export interface Analytics {
 export interface Environment {
 	// bindings
 	TLDR_DOC: DurableObjectNamespace<TLDrawDurableObject>
-	TLAPP_DO: DurableObjectNamespace<TLAppDurableObject>
+	// TLAPP_DO: DurableObjectNamespace<TLAppDurableObject>
+	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
+	TL_USER: DurableObjectNamespace<TLUserDurableObject>
+	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	MEASURE: Analytics | undefined
 
 	DB: D1Database

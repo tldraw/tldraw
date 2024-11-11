@@ -20,7 +20,7 @@ export function ErrorBoundary() {
 export function Component({ error }: { error?: unknown }) {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	if (!fileSlug) throw Error('File id not found')
-	const userId = useMaybeApp()?.getCurrentUserId()
+	const userId = useMaybeApp()?.userId
 	const routeState = useLocation().state
 
 	const errorElem = error ? <TlaFileError error={error} /> : null
@@ -39,7 +39,7 @@ export function Component({ error }: { error?: unknown }) {
 			<ReadyWrapper>
 				{errorElem ?? (
 					<TlaAnonLayout>
-						<TlaEditor fileSlug={fileSlug} isCreateMode={false} deepLinks />
+						<TlaEditor fileSlug={fileSlug} deepLinks />
 					</TlaAnonLayout>
 				)}
 			</ReadyWrapper>
@@ -49,7 +49,12 @@ export function Component({ error }: { error?: unknown }) {
 	return (
 		<TlaSidebarLayout collapsible>
 			{errorElem ?? (
-				<TlaEditor fileSlug={fileSlug} isCreateMode={!!routeState?.isCreateMode} deepLinks />
+				<TlaEditor
+					fileSlug={fileSlug}
+					mode={routeState?.mode}
+					duplicateId={routeState?.duplicateId}
+					deepLinks
+				/>
 			)}
 		</TlaSidebarLayout>
 	)

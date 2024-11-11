@@ -1,3 +1,4 @@
+import { stringEnum } from '@tldraw/utils'
 import { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 
 export interface Snapshot {
@@ -48,16 +49,6 @@ export type CreateFilesResponseBody =
 			message: string
 	  }
 
-export type DuplicateRoomResponseBody =
-	| {
-			error: false
-			slug: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
-
 export type PublishFileResponseBody =
 	| {
 			error: false
@@ -75,3 +66,114 @@ export type UnpublishFileResponseBody =
 			error: true
 			message: string
 	  }
+
+// fake zero
+
+export interface TlaFile {
+	id: string
+	name: string
+	ownerId: string
+	thumbnail: string
+	shared: boolean
+	sharedLinkType: 'edit' | 'view'
+	published: boolean
+	lastPublished: number
+	publishedSlug: string
+	createdAt: number
+	updatedAt: number
+	isEmpty: boolean
+}
+export interface TlaFileState {
+	userId: string
+	fileId: string
+	firstVisitAt?: number
+	lastEditAt?: number
+	lastSessionState?: string
+	lastVisitAt?: number
+}
+export interface TlaUser {
+	id: string
+	name: string
+	email: string
+	avatar: string
+	color: string
+	exportFormat: string
+	exportTheme: string
+	exportBackground: boolean
+	exportPadding: boolean
+	createdAt: number
+	updatedAt: number
+	flags: string
+	locale?: string
+	animationSpeed?: number
+	edgeScrollSpeed?: number
+	colorScheme?: string
+	isSnapMode?: boolean
+	isWrapMode?: boolean
+	isDynamicSizeMode?: boolean
+	isPasteAtCursorMode?: boolean
+}
+
+export interface ZStoreData {
+	files: TlaFile[]
+	fileStates: TlaFileState[]
+	user: TlaUser
+}
+
+export interface ZRowUpdate {
+	row: object
+	table: 'file' | 'file_state' | 'user'
+	event: 'insert' | 'update' | 'delete'
+}
+
+export type ZTable = 'file' | 'file_state' | 'user'
+export type ZEvent = 'insert' | 'update' | 'delete'
+
+export const ZErrorCode = stringEnum(
+	'publish_failed',
+	'unpublish_failed',
+	'republish_failed',
+	'unknown_error',
+	'forbidden',
+	'bad_request'
+)
+export type ZErrorCode = keyof typeof ZErrorCode
+
+export type ZServerSentMessage =
+	| {
+			type: 'initial_data'
+			initialData: ZStoreData
+	  }
+	| {
+			type: 'update'
+			update: ZRowUpdate
+	  }
+	| {
+			type: 'commit'
+			mutationIds: string[]
+	  }
+	| {
+			type: 'reject'
+			mutationId: string
+			errorCode: ZErrorCode
+	  }
+
+export interface ZClientSentMessage {
+	type: 'mutate'
+	mutationId: string
+	updates: ZRowUpdate[]
+}
+
+export type TlaFileOpenMode = 'create' | 'duplicate' | null | undefined
+
+export const UserPreferencesKeys = [
+	'locale',
+	'animationSpeed',
+	'edgeScrollSpeed',
+	'colorScheme',
+	'isSnapMode',
+	'isWrapMode',
+	'isDynamicSizeMode',
+	'isPasteAtCursorMode',
+	'name',
+] as const satisfies Array<keyof TlaUser>
