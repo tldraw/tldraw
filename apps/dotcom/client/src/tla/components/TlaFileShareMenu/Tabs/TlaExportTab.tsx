@@ -233,7 +233,7 @@ function ExportImageButton() {
 			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 		}
 
-		exportAs(editor, ids, exportFormat, 'file', opts)
+		exportAs(editor, ids, exportFormat as any, 'file', opts)
 
 		trackEvent('export-image', {
 			source: 'file-share-menu',
@@ -359,7 +359,7 @@ function getExportPreferences(app: TldrawApp | null) {
 	let { exportPadding, exportBackground, exportTheme, exportFormat } = sessionState.exportSettings
 
 	if (app && sessionState.auth) {
-		const user = app.getUser(sessionState.auth.userId)
+		const user = app.getUser()
 		if (user) {
 			exportPadding = user.exportPadding
 			exportBackground = user.exportBackground
