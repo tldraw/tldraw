@@ -1,13 +1,12 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import type { UserResource } from '@clerk/types'
-import { TldrawAppUserId, TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import assert from 'assert'
 import { ReactNode, createContext, useContext, useMemo } from 'react'
 import { DefaultSpinner, LoadingScreen } from 'tldraw'
 import { useApp } from './useAppState'
 
 export interface TldrawUser {
-	id: TldrawAppUserId
+	id: string
 	clerkUser: UserResource
 	isTldraw: boolean
 	getToken(): Promise<string>
@@ -22,7 +21,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	const value = useMemo(() => {
 		if (!user || !auth.isSignedIn) return null
 
-		const storeUser = app.store.get(TldrawAppUserRecordType.createId(user.id))
+		const storeUser = app.getUser()
 		if (!storeUser) throw new Error('User not found in app store')
 
 		return {
@@ -37,7 +36,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 				return token
 			},
 		}
-	}, [auth, user, app.store])
+	}, [auth, user, app])
 
 	if (!isLoaded || !auth.isLoaded) {
 		return (

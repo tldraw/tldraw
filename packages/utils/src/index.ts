@@ -78,6 +78,7 @@ export {
 	setInLocalStorage,
 	setInSessionStorage,
 } from './lib/storage'
+export { stringEnum } from './lib/stringEnum'
 export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export { Timers } from './lib/timers'
 export type { Expand, RecursivePartial, Required } from './lib/types'
