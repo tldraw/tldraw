@@ -29,8 +29,6 @@ const assetUpload = path.relative(
 )
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 
-const { previewId, sha } = getDeployInfo()
-
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
 const env = makeEnv([
@@ -62,7 +60,6 @@ const env = makeEnv([
 	'VERCEL_TOKEN',
 	'VITE_CLERK_PUBLISHABLE_KEY',
 	'WORKER_SENTRY_DSN',
-	previewId ? 'BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
 ])
 
 const discord = new Discord({
@@ -71,6 +68,7 @@ const discord = new Discord({
 	totalSteps: 8,
 })
 
+const { previewId, sha } = getDeployInfo()
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
 
 if (previewId) {
@@ -218,8 +216,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
-			BOTCOM_POSTGRES_CONNECTION_STRING:
-				env.BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW || env.BOTCOM_POSTGRES_CONNECTION_STRING,
 		},
 		sentry: {
 			project: 'tldraw-sync',

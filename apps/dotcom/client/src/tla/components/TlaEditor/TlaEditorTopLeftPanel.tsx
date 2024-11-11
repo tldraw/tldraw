@@ -1,3 +1,4 @@
+import { TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -100,7 +101,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const pageMenuLbl = intl.formatMessage(messages.pageMenu)
 
 	const app = useApp()
-	const fileId = useCurrentFileId()!
+	const fileId = useCurrentFileId()
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
@@ -116,7 +117,9 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		(name: string) => {
 			setIsRenaming(false)
 			// don't allow guests to update the file name
-			app.updateFile(fileId, (file) => ({ ...file, name }))
+			const file = app.getFileName(fileId)
+			if (!file) return
+			app.store.update(fileId, (file) => ({ ...file, name }))
 		},
 		[app, fileId]
 	)
@@ -125,7 +128,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const handleRenameEnd = () => setIsRenaming(false)
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useIsFileOwner(fileSlug)
+	const isOwner = useIsFileOwner(TldrawAppFileRecordType.createId(fileSlug))
 
 	const separator = '/'
 	return (

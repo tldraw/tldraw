@@ -1,7 +1,6 @@
 main = "src/worker.ts"
-compatibility_date = "2024-10-30"
+compatibility_date = "2024-06-19"
 workers_dev = true
-compatibility_flags=["nodejs_compat"]
 
 [dev]
 port = 8787
@@ -24,18 +23,6 @@ deleted_classes = ["TLProWorkspaceDurableObject"]
 [[migrations]]
 tag = "v4"
 new_classes = ["TLAppDurableObject"]
-
-[[migrations]]
-tag = "v5"
-deleted_classes = ["TLAppDurableObject"]
-
-[[migrations]]
-tag = "v6"
-new_sqlite_classes = ["TLPostgresReplicator"]
-
-[[migrations]]
-tag = "v7"
-new_classes = ["TLUserDurableObject"]
 
 [[analytics_engine_datasets]]
 binding = "MEASURE"
@@ -81,36 +68,31 @@ pattern = "sync.tldraw.xyz"
 [env.dev.durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 [durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 [env.preview.durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 [env.staging.durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 [env.production.durable_objects]
 bindings = [
   { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+  { name = "TLAPP_DO", class_name = "TLAppDurableObject" }  
 ]
 
 #################### Analytics engine ####################

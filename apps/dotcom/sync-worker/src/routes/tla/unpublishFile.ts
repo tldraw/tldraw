@@ -4,8 +4,8 @@ import { Environment } from '../../types'
 import { getTldrawAppDurableObject } from '../../utils/tla/getTldrawAppDurableObject'
 import { getUserIdFromRequest } from '../../utils/tla/permissions'
 
-// Create new files based on snapshots. This is used when dropping .tldr files onto the app.
-export async function deleteFile(request: IRequest, env: Environment): Promise<Response> {
+// Unpublish a file.
+export async function unpublishFile(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId } = request.params
 	if (!roomId) {
 		return Response.json({ error: true, message: 'Room ID is required' }, { status: 400 })
@@ -25,23 +25,18 @@ export async function deleteFile(request: IRequest, env: Environment): Promise<R
 			throw Error('not-found')
 		}
 
-		// A user can only delete files that they own
+		// A user can only publish their own files
 		if (file.ownerId !== userId) {
-			app.forgetFile(file, userId)
-		} else {
-			// Delete the file and all associated states
-			app.deleteFileAndStates(file)
-
-			if (file.published) {
-				// Delete the mapping of the published slug to the parent slug
-				await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
-
-				// Delete the published file from the database, if any
-				await env.ROOM_SNAPSHOTS.delete(
-					getR2KeyForRoom({ slug: `${roomId}/${file.publishedSlug}`, isApp: true })
-				)
-			}
+			throw Error('forbidden')
 		}
+
+		// Create a new slug for the published room
+		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.delete(file.publishedSlug)
+
+		// Bang the snapshot into the database
+		await env.ROOM_SNAPSHOTS.delete(
+			getR2KeyForRoom({ slug: `${roomId}/${file.publishedSlug}`, isApp: true })
+		)
 
 		return new Response(JSON.stringify({ error: false }))
 	} catch (e: any) {

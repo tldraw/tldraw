@@ -1,4 +1,4 @@
-import { TlaUser } from '@tldraw/dotcom-shared'
+import { TldrawAppUser, TldrawAppUserId } from '@tldraw/dotcom-shared'
 import { atom, getFromLocalStorage, setInLocalStorage, useValue } from 'tldraw'
 
 const STORAGE_KEY = 'tldrawapp_session_3'
@@ -8,7 +8,7 @@ export interface TldrawAppSessionState {
 	isSidebarOpen: boolean
 	isSidebarOpenMobile: boolean
 	auth?: {
-		userId: string
+		userId: TldrawAppUserId // null,
 	}
 	shareMenuActiveTab: 'share' | 'export' | 'publish'
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
@@ -22,7 +22,7 @@ export interface TldrawAppSessionState {
 	}
 	flags: { [key: string]: boolean }
 	exportSettings: Pick<
-		TlaUser,
+		TldrawAppUser,
 		'exportFormat' | 'exportTheme' | 'exportBackground' | 'exportPadding'
 	>
 }
