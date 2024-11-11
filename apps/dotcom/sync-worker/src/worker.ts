@@ -7,7 +7,7 @@ import {
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
-import { WorkerEntrypoint } from 'cloudflare:workers'
+import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { cors, json } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
 import { createRoom } from './routes/createRoom'
@@ -28,6 +28,7 @@ import { getAuth } from './utils/tla/getAuth'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
 export { TLPostgresReplicator } from './TLPostgresReplicator'
 export { TLUserDurableObject } from './TLUserDurableObject'
+export class TLAppDurableObject extends DurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
