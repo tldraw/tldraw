@@ -219,8 +219,7 @@ export class Zero {
 	}
 
 	makeOptimistic(updates: ZRowUpdate[]) {
-		const mutationId = uniqueId()
-		this.store.updateOptimisticData(updates, mutationId)
+		this.store.updateOptimisticData(updates, this.currentMutationId)
 
 		this.pendingUpdates.push(...updates)
 		if (!this.timeout) {
