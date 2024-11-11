@@ -10,4 +10,5 @@ export {
 	SNAPSHOT_PREFIX,
 	type RoomOpenMode,
 } from './routes'
+export * from './tlaSchema'
 export * from './types'

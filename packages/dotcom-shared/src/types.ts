@@ -1,5 +1,6 @@
 import { stringEnum } from '@tldraw/utils'
 import { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
+import { TlaFile, TlaFileState, TlaUser } from './tlaSchema'
 
 export interface Snapshot {
 	schema: SerializedSchema
@@ -66,53 +67,6 @@ export type UnpublishFileResponseBody =
 			error: true
 			message: string
 	  }
-
-// fake zero
-
-export interface TlaFile {
-	id: string
-	name: string
-	ownerId: string
-	thumbnail: string
-	shared: boolean
-	sharedLinkType: 'edit' | 'view'
-	published: boolean
-	lastPublished: number
-	publishedSlug: string
-	createdAt: number
-	updatedAt: number
-	isEmpty: boolean
-}
-export interface TlaFileState {
-	userId: string
-	fileId: string
-	firstVisitAt?: number
-	lastEditAt?: number
-	lastSessionState?: string
-	lastVisitAt?: number
-}
-export interface TlaUser {
-	id: string
-	name: string
-	email: string
-	avatar: string
-	color: string
-	exportFormat: string
-	exportTheme: string
-	exportBackground: boolean
-	exportPadding: boolean
-	createdAt: number
-	updatedAt: number
-	flags: string
-	locale?: string
-	animationSpeed?: number
-	edgeScrollSpeed?: number
-	colorScheme?: string
-	isSnapMode?: boolean
-	isWrapMode?: boolean
-	isDynamicSizeMode?: boolean
-	isPasteAtCursorMode?: boolean
-}
 
 export interface ZStoreData {
 	files: TlaFile[]

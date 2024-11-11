@@ -1,7 +1,8 @@
 import { atom, computed } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
-import { TlaFile, TlaFileState, TlaUser, ZRowUpdate, ZStoreData } from './types'
+import { TlaFile, TlaFileState, TlaUser } from './tlaSchema'
+import { ZRowUpdate, ZStoreData } from './types'
 
 export class OptimisticAppStore {
 	private _gold_store = atom('zero store', null as null | ZStoreData, {

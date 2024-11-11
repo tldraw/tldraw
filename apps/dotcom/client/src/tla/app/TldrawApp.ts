@@ -316,9 +316,9 @@ export class TldrawApp {
 					userId: this.userId,
 					fileId: slug,
 					firstVisitAt: Date.now(),
-					lastEditAt: undefined,
-					lastSessionState: undefined,
-					lastVisitAt: undefined,
+					lastEditAt: null,
+					lastSessionState: null,
+					lastVisitAt: null,
 				})
 			}
 		})
@@ -465,9 +465,9 @@ export class TldrawApp {
 				fileId,
 				userId: this.userId,
 				firstVisitAt: Date.now(),
-				lastEditAt: undefined,
-				lastSessionState: undefined,
-				lastVisitAt: undefined,
+				lastEditAt: null,
+				lastSessionState: null,
+				lastVisitAt: null,
 			})
 		}
 		fileState = this.getFileState(fileId)
@@ -545,14 +545,14 @@ export class TldrawApp {
 			updatedAt: Date.now(),
 			flags: '',
 			...restOfPreferences,
-			locale: restOfPreferences.locale ?? undefined,
-			animationSpeed: restOfPreferences.animationSpeed ?? undefined,
-			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? undefined,
-			colorScheme: restOfPreferences.colorScheme ?? undefined,
-			isSnapMode: restOfPreferences.isSnapMode ?? undefined,
-			isWrapMode: restOfPreferences.isWrapMode ?? undefined,
-			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? undefined,
-			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? undefined,
+			locale: restOfPreferences.locale ?? null,
+			animationSpeed: restOfPreferences.animationSpeed ?? null,
+			edgeScrollSpeed: restOfPreferences.edgeScrollSpeed ?? null,
+			colorScheme: restOfPreferences.colorScheme ?? null,
+			isSnapMode: restOfPreferences.isSnapMode ?? null,
+			isWrapMode: restOfPreferences.isWrapMode ?? null,
+			isDynamicSizeMode: restOfPreferences.isDynamicSizeMode ?? null,
+			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
 		})
 		return { app, userId: opts.userId }
 	}

@@ -1,10 +1,17 @@
 import { ROOM_PREFIX, TlaFile, TlaFileState, TlaUser } from '@tldraw/dotcom-shared'
-import { assert, compact, uniq } from '@tldraw/utils'
+import { assert, compact, uniq, uniqueId } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLUserDurableObject } from './TLUserDurableObject'
+import {
+	fileKeys,
+	fileStateKeys,
+	getFetchEverythingSql,
+	parseResultRow,
+	userKeys,
+} from './getFetchEverythingSql'
 import { Environment } from './types'
 
 const seed = `
@@ -20,17 +27,14 @@ CREATE TABLE user (
 CREATE TABLE file (
 	id TEXT PRIMARY KEY,
 	ownerId TEXT NOT NULL,
-	json TEXT NOT NULL,
-	FOREIGN KEY (ownerId) REFERENCES user (id) ON DELETE CASCADE
+	json TEXT NOT NULL
 );
 
 CREATE TABLE file_state (
 	userId TEXT NOT NULL,
 	fileId TEXT NOT NULL,
 	json TEXT NOT NULL,
-	PRIMARY KEY (userId, fileId),
-	FOREIGN KEY (userId) REFERENCES user (id) ON DELETE CASCADE,
-	FOREIGN KEY (fileId) REFERENCES file (id) ON DELETE CASCADE
+	PRIMARY KEY (userId, fileId)
 );
 `
 
@@ -62,35 +66,65 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		this.ctx.blockConcurrencyWhile(async () => {
 			let didFetchInitialData = false
+			let didGetBootIdInSubscription = false
+			const myId = this.ctx.id.toString()
+			const bootId = uniqueId()
 			// TODO: time how long this takes
 			await new Promise((resolve, reject) => {
+				const initialUpdateBuffer: Array<{
+					row: postgres.Row | null
+					info: postgres.ReplicationEvent
+				}> = []
 				this.db
 					.subscribe(
 						'*',
 						async (row, info) => {
-							if (!didFetchInitialData) {
-								return
-							}
-							try {
-								await this.handleEvent(row, info)
-							} catch (e) {
-								this.captureException(e)
+							if (didGetBootIdInSubscription) {
+								if (!didFetchInitialData) {
+									initialUpdateBuffer.push({ row, info })
+								} else {
+									try {
+										this.handleEvent(row, info)
+									} catch (e) {
+										this.captureException(e)
+									}
+								}
+							} else if (
+								info.relation.table === 'replicator_boot_id' &&
+								(row as any)?.bootId === bootId
+							) {
+								didGetBootIdInSubscription = true
 							}
 						},
 						async () => {
 							try {
-								const users = await this.db`SELECT * FROM public.user`
-								const files = await this.db`SELECT * FROM file`
-								const fileStates = await this.db`SELECT * FROM file_state`
+								const sql = getFetchEverythingSql(myId, bootId)
 								this.ctx.storage.sql.exec(seed)
-								users.forEach((user) => this.insertRow(user, 'user'))
-								files.forEach((file) => this.insertRow(file, 'file'))
-								fileStates.forEach((fileState) => this.insertRow(fileState, 'file_state'))
+								await this.db
+									.unsafe(sql, [], { prepare: false })
+									.simple()
+									.forEach((row: any) => {
+										this.insertRow(
+											parseResultRow(
+												row.table === 'user'
+													? userKeys
+													: row.table === 'file'
+														? fileKeys
+														: fileStateKeys,
+												row
+											),
+											row.table
+										)
+									})
+								while (initialUpdateBuffer.length) {
+									const { row, info } = initialUpdateBuffer.shift()!
+									this.handleEvent(row, info)
+								}
+								didFetchInitialData = true
 							} catch (e) {
 								this.captureException(e)
 								reject(e)
 							}
-							didFetchInitialData = true
 							resolve(null)
 						},
 						() => {
@@ -109,7 +143,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql = this.ctx.storage.sql
 	}
 
-	async handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+	// It is important that this method is synchronous!!!!
+	// We need to make sure that events are handled in-order.
+	// If we make this asynchronous for whatever reason we should
+	// make sure to uphold this invariant.
+	handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		if (event.relation.table === 'replicator_boot_id') {
+			assert(
+				(row as any)?.replicatorId && (row as any)?.replicatorId !== this.ctx.id.toString(),
+				'we should only get boot id events for other replicators: ' + (row as any)?.replicatorId
+			)
+			return
+		}
 		if (event.relation.table === 'user_mutation_number') {
 			if (!row) throw new Error('Row is required for delete event')
 			const stub = this.env.TL_USER.get(
