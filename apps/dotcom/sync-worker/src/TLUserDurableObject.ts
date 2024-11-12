@@ -62,6 +62,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			await this.ctx.blockConcurrencyWhile(async () => {
 				this.store.initialize(await this.replicator.fetchDataForUser(this.userId!))
+				this.replicator.registerUser(this.userId!)
 			})
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
@@ -325,7 +326,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	onRowChange(row: object, table: ZTable, event: ZEvent) {
+	onRowChange(row: object, table: ZTable, event: ZEvent, userId: string) {
 		this.store.updateCommittedData({ table, event, row })
 		for (const socket of this.ctx.getWebSockets()) {
 			socket.send(
@@ -338,6 +339,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					},
 				} satisfies ZServerSentMessage)
 			)
+		}
+		// If we don't have a userId then we don't have an active user connection
+		if (!this.userId) {
+			this.replicator.unregisterUser(userId)
 		}
 	}
 
