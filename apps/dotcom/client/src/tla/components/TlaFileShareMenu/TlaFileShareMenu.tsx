@@ -1,4 +1,3 @@
-import { TldrawAppFile, TldrawAppFileId, TldrawAppSessionState } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import {
 	TldrawUiDropdownMenuContent,
@@ -7,8 +6,9 @@ import {
 	TldrawUiMenuContextProvider,
 	useValue,
 } from 'tldraw'
+import { F } from '../../app/i18n'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useRaw } from '../../hooks/useRaw'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
@@ -23,12 +23,11 @@ export function TlaFileShareMenu({
 	isAnonUser,
 	children,
 }: {
-	fileId: TldrawAppFileId
+	fileId: string
 	source: string
 	isAnonUser?: boolean
 	children: ReactNode
 }) {
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
 
@@ -38,12 +37,12 @@ export function TlaFileShareMenu({
 		[]
 	)
 
-	const isOwner = !!app?.isFileOwner(fileId)
-	const file = useValue('file', () => app?.get(fileId) as TldrawAppFile | undefined, [app])
+	const isOwner = useIsFileOwner(fileId)
+	const file = useValue('file', () => app?.getFile(fileId), [app])
 	const isPublished = !!file?.published
 
 	const handleTabChange = useCallback(
-		(value: TldrawAppSessionState['shareMenuActiveTab']) => {
+		(value: 'share' | 'export' | 'publish') => {
 			updateLocalSessionState(() => ({ shareMenuActiveTab: value }))
 			trackEvent('change-share-menu-tab', { tab: value, source: 'file-share-menu' })
 		},
@@ -70,9 +69,17 @@ export function TlaFileShareMenu({
 					{app ? (
 						<TlaTabsRoot activeTab={shareMenuActiveTab} onTabChange={handleTabChange}>
 							<TlaTabsTabs>
-								<TlaTabsTab id="share">{raw('Invite')}</TlaTabsTab>
-								<TlaTabsTab id="export">{raw('Export')}</TlaTabsTab>
-								{showPublishTab && <TlaTabsTab id="publish">{raw('Publish')}</TlaTabsTab>}
+								<TlaTabsTab id="share">
+									<F defaultMessage="Invite" />
+								</TlaTabsTab>
+								<TlaTabsTab id="export">
+									<F defaultMessage="Export" />
+								</TlaTabsTab>
+								{showPublishTab && (
+									<TlaTabsTab id="publish">
+										<F defaultMessage="Publish" />
+									</TlaTabsTab>
+								)}
 							</TlaTabsTabs>
 							<TlaTabsPage id="share">
 								<TlaInviteTab fileId={fileId} />

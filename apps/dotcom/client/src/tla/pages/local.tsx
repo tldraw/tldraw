@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
-import { notFound } from '../../pages/not-found'
 import { TlaEditor } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
@@ -11,8 +10,23 @@ import { getFilePath } from '../utils/urls'
 
 export function Component() {
 	const app = useMaybeApp()
+	const navigate = useNavigate()
+	const creatingFile = useRef(false)
+
+	useEffect(() => {
+		if (!app) return
+		if (app.getUserRecentFiles().length === 0) {
+			creatingFile.current = true
+			app.createFile().then((res) => {
+				if (res.ok) {
+					navigate(getFilePath(res.value.file.id), { state: { mode: 'create' } })
+				}
+			})
+		}
+	}, [app, navigate])
 
 	if (!app) return <LocalTldraw />
+	if (creatingFile.current) return null
 	// Navigate to the most recent file (if there is one) or else a new file
 	const { auth } = getLocalSessionState()
 	const fileId = auth?.userId && app.getUserRecentFiles()[0]?.fileId
@@ -20,14 +34,7 @@ export function Component() {
 		return <Navigate to={getFilePath(fileId)} replace />
 	}
 
-	const fileRes = app.createFile()
-	if (fileRes.ok) {
-		const { file } = fileRes.value
-		return <Navigate to={getFilePath(file.id)} replace state={{ isCreateMode: true }} />
-	} else {
-		// todo: something went wrong creating the file, handle this better
-		return notFound()
-	}
+	return null
 }
 
 function LocalTldraw() {
@@ -38,7 +45,7 @@ function LocalTldraw() {
 	return (
 		<TlaAnonLayout>
 			<TlaEditor
-				isCreateMode
+				mode={'create'}
 				key={fileSlug}
 				fileSlug={fileSlug}
 				onDocumentChange={() => {

@@ -1,14 +1,13 @@
 import * as github from '@actions/github'
 import { readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import { env } from 'process'
 import { exec } from './exec'
 
 export function getDeployInfo() {
 	const githubPrNumber = process.env.GITHUB_REF?.match(/refs\/pull\/(\d+)\/merge/)?.[1]
 
 	let previewId = process.env.TLDRAW_PREVIEW_ID
-	if (!previewId && env.TLDRAW_ENV === 'preview') {
+	if (!previewId && process.env.TLDRAW_ENV === 'preview') {
 		if (githubPrNumber) {
 			previewId = `pr-${githubPrNumber}`
 		} else {

@@ -13,8 +13,8 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../../../utils/globalEditor'
 import { TldrawApp } from '../../../app/TldrawApp'
+import { F, defineMessages, useIntl } from '../../../app/i18n'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { useRaw } from '../../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getCurrentEditor } from '../../../utils/getCurrentEditor'
 import {
@@ -78,7 +78,6 @@ function ExportPaddingToggle({
 		value: TldrawAppSessionState['exportSettings']['exportPadding']
 	): void
 }) {
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(() => {
@@ -89,7 +88,9 @@ function ExportPaddingToggle({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>{raw('Padding')}</TlaMenuControlLabel>
+			<TlaMenuControlLabel>
+				<F defaultMessage="Padding" />
+			</TlaMenuControlLabel>
 			<TlaSwitch checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
@@ -105,7 +106,6 @@ function ExportBackgroundToggle({
 		value: TldrawAppSessionState['exportSettings']['exportBackground']
 	): void
 }) {
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(() => {
@@ -116,7 +116,9 @@ function ExportBackgroundToggle({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>{raw('Background')}</TlaMenuControlLabel>
+			<TlaMenuControlLabel>
+				<F defaultMessage="Background" />
+			</TlaMenuControlLabel>
 			<TlaSwitch checked={value} onChange={handleChange} />
 		</TlaMenuControl>
 	)
@@ -132,7 +134,6 @@ function ExportFormatSelect({
 		value: TldrawAppSessionState['exportSettings']['exportFormat']
 	): void
 }) {
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleChange = useCallback(
@@ -145,14 +146,26 @@ function ExportFormatSelect({
 
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>{raw('Export as')}</TlaMenuControlLabel>
+			<TlaMenuControlLabel>
+				<F defaultMessage="Export as" />
+			</TlaMenuControlLabel>
 			<TlaSelect value={value} label={value === 'svg' ? 'SVG' : 'PNG'} onChange={handleChange}>
-				<option value="svg">{raw('SVG')}</option>
-				<option value="png">{raw('PNG')}</option>
+				<option value="svg">
+					<F defaultMessage="SVG" />
+				</option>
+				<option value="png">
+					<F defaultMessage="PNG" />
+				</option>
 			</TlaSelect>
 		</TlaMenuControl>
 	)
 }
+
+const messages = defineMessages({
+	auto: { defaultMessage: 'Auto' },
+	light: { defaultMessage: 'Light' },
+	dark: { defaultMessage: 'Dark' },
+})
 
 function ExportThemeSelect({
 	value,
@@ -161,7 +174,7 @@ function ExportThemeSelect({
 	value: TldrawAppSessionState['exportSettings']['exportTheme']
 	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
-	const raw = useRaw()
+	const intl = useIntl()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = useCallback(
 		(value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
@@ -171,17 +184,22 @@ function ExportThemeSelect({
 		[onChange, trackEvent]
 	)
 
+	const label = intl.formatMessage(messages[value])
 	return (
 		<TlaMenuControl>
-			<TlaMenuControlLabel>{raw('Theme')}</TlaMenuControlLabel>
-			<TlaSelect
-				value={value}
-				label={value[0].toLocaleUpperCase() + value.slice(1)}
-				onChange={handleChange}
-			>
-				<option value="auto">{raw('Auto')}</option>
-				<option value="light">{raw('Light')}</option>
-				<option value="dark">{raw('Dark')}</option>
+			<TlaMenuControlLabel>
+				<F defaultMessage="Theme" />
+			</TlaMenuControlLabel>
+			<TlaSelect value={value} label={label} onChange={handleChange}>
+				<option value="auto">
+					<F defaultMessage="Auto" />
+				</option>
+				<option value="light">
+					<F defaultMessage="Light" />
+				</option>
+				<option value="dark">
+					<F defaultMessage="Dark" />
+				</option>
 			</TlaSelect>
 		</TlaMenuControl>
 	)
@@ -189,7 +207,6 @@ function ExportThemeSelect({
 
 function ExportImageButton() {
 	const app = useMaybeApp()
-	const raw = useRaw()
 	const trackEvent = useTldrawAppUiEvents()
 
 	const [exported, setExported] = useState(false)
@@ -216,7 +233,7 @@ function ExportImageButton() {
 			darkMode: exportTheme === 'auto' ? undefined : exportTheme === 'dark',
 		}
 
-		exportAs(editor, ids, exportFormat, 'file', opts)
+		exportAs(editor, ids, exportFormat as any, 'file', opts)
 
 		trackEvent('export-image', {
 			source: 'file-share-menu',
@@ -238,7 +255,7 @@ function ExportImageButton() {
 	return (
 		<>
 			<TlaButton className="tla-share-menu__copy-button" onClick={handleClick} iconRight="export">
-				{raw('Export image')}
+				<F defaultMessage="Export image" />
 			</TlaButton>
 		</>
 	)
@@ -342,7 +359,7 @@ function getExportPreferences(app: TldrawApp | null) {
 	let { exportPadding, exportBackground, exportTheme, exportFormat } = sessionState.exportSettings
 
 	if (app && sessionState.auth) {
-		const user = app.getUser(sessionState.auth.userId)
+		const user = app.getUser()
 		if (user) {
 			exportPadding = user.exportPadding
 			exportBackground = user.exportBackground

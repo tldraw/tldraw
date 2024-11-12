@@ -1,7 +1,6 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
-import { TldrawAppUserRecordType } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import {
@@ -12,12 +11,13 @@ import {
 	TldrawUiDialogs,
 	TldrawUiToasts,
 	fetch,
+	useToasts,
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import { IntlProvider, setupCreateIntl } from '../app/i18n'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { AppStateProvider } from '../hooks/useAppState'
+import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
@@ -106,9 +106,17 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				<TooltipProvider>{children}</TooltipProvider>
 				<TldrawUiDialogs />
 				<TldrawUiToasts />
+				<PutToastsInApp />
 			</TldrawUiContextProvider>
 		</EditorContext.Provider>
 	)
+}
+
+function PutToastsInApp() {
+	const toasts = useToasts()
+	const app = useMaybeApp()
+	if (app) app.toasts = toasts
+	return null
 }
 
 function SignedInProvider({
@@ -139,7 +147,7 @@ function SignedInProvider({
 	useEffect(() => {
 		if (auth.isSignedIn && auth.userId) {
 			updateLocalSessionState(() => ({
-				auth: { userId: TldrawAppUserRecordType.createId(auth.userId) },
+				auth: { userId: auth.userId },
 			}))
 		} else {
 			updateLocalSessionState(() => ({
