@@ -57,6 +57,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			await this.ctx.blockConcurrencyWhile(async () => {
 				this.store.initialize(await this.replicator.fetchDataForUser(this.userId!))
+				this.replicator.registerUser(this.userId!)
 			})
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
@@ -123,22 +124,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				break
 			default:
 				this.captureException(new Error('Unhandled message'), { data: { message } })
-		}
-	}
-
-	async commitMutation(mutationNumber: number) {
-		const mutationIds = this.mutations
-			.filter((m) => m.mutationNumber <= mutationNumber)
-			.map((m) => m.mutationId)
-		this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
-		this.store.commitMutations(mutationIds)
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.send(
-				JSON.stringify({
-					type: 'commit',
-					mutationIds,
-				} satisfies ZServerSentMessage)
-			)
 		}
 	}
 
@@ -309,21 +294,53 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	onRowChange(row: object, table: ZTable, event: ZEvent) {
-		this.store.updateCommittedData({ table, event, row })
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.send(
-				JSON.stringify({
-					type: 'update',
-					update: {
-						table,
-						event,
-						row,
-					},
-				} satisfies ZServerSentMessage)
-			)
+	/* ------- RPCs -------  */
+
+	requireUserId(cb: () => void, userId: string) {
+		if (!this.userId) {
+			this.replicator.unregisterUser(userId)
+			return
 		}
+		cb()
 	}
+
+	onRowChange(row: object, table: ZTable, event: ZEvent, userId: string) {
+		this.requireUserId(() => {
+			this.store.updateCommittedData({ table, event, row })
+			for (const socket of this.ctx.getWebSockets()) {
+				socket.send(
+					JSON.stringify({
+						type: 'update',
+						update: {
+							table,
+							event,
+							row,
+						},
+					} satisfies ZServerSentMessage)
+				)
+			}
+		}, userId)
+	}
+
+	commitMutation(mutationNumber: number, userId: string) {
+		this.requireUserId(() => {
+			const mutationIds = this.mutations
+				.filter((m) => m.mutationNumber <= mutationNumber)
+				.map((m) => m.mutationId)
+			this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
+			this.store.commitMutations(mutationIds)
+			for (const socket of this.ctx.getWebSockets()) {
+				socket.send(
+					JSON.stringify({
+						type: 'commit',
+						mutationIds,
+					} satisfies ZServerSentMessage)
+				)
+			}
+		}, userId)
+	}
+
+	/* --------------  */
 
 	async deleteFileStuff(id: string) {
 		const fileRecord = await this.replicator.getFileRecord(id)
