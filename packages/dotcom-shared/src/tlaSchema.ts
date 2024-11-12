@@ -8,7 +8,6 @@ interface TableSchema {
 export interface ZColumn {
 	optional?: boolean
 	type: 'string' | 'number' | 'boolean'
-	canUpdate: boolean
 }
 
 interface Columns {
@@ -18,47 +17,46 @@ interface Columns {
 export const tlaUserSchema = {
 	tableName: 'user',
 	columns: {
-		id: { type: 'string', canUpdate: false },
-		name: { type: 'string', canUpdate: true },
-		email: { type: 'string', canUpdate: false },
-		avatar: { type: 'string', canUpdate: true },
-		color: { type: 'string', canUpdate: true },
-		exportFormat: { type: 'string', canUpdate: true },
-		exportTheme: { type: 'string', canUpdate: true },
-		exportBackground: { type: 'boolean', canUpdate: true },
-		exportPadding: { type: 'boolean', canUpdate: true },
-		createdAt: { type: 'number', canUpdate: false },
-		updatedAt: { type: 'number', canUpdate: true },
-		flags: { type: 'string', canUpdate: true },
-		locale: { type: 'string', optional: true, canUpdate: true },
-		animationSpeed: { type: 'number', optional: true, canUpdate: true },
-		edgeScrollSpeed: { type: 'number', optional: true, canUpdate: true },
-		colorScheme: { type: 'string', optional: true, canUpdate: true },
-		isSnapMode: { type: 'boolean', optional: true, canUpdate: true },
-		isWrapMode: { type: 'boolean', optional: true, canUpdate: true },
-		isDynamicSizeMode: { type: 'boolean', optional: true, canUpdate: true },
-		isPasteAtCursorMode: { type: 'boolean', optional: true, canUpdate: true },
+		id: { type: 'string' },
+		name: { type: 'string' },
+		email: { type: 'string' },
+		avatar: { type: 'string' },
+		color: { type: 'string' },
+		exportFormat: { type: 'string' },
+		exportTheme: { type: 'string' },
+		exportBackground: { type: 'boolean' },
+		exportPadding: { type: 'boolean' },
+		createdAt: { type: 'number' },
+		updatedAt: { type: 'number' },
+		flags: { type: 'string' },
+		locale: { type: 'string', optional: true },
+		animationSpeed: { type: 'number', optional: true },
+		edgeScrollSpeed: { type: 'number', optional: true },
+		colorScheme: { type: 'string', optional: true },
+		isSnapMode: { type: 'boolean', optional: true },
+		isWrapMode: { type: 'boolean', optional: true },
+		isDynamicSizeMode: { type: 'boolean', optional: true },
+		isPasteAtCursorMode: { type: 'boolean', optional: true },
 	},
 	primaryKey: ['id'],
 	relationships: {},
 } as const satisfies TableSchema
-export type TlaUserColumn = keyof (typeof tlaUserSchema)['columns']
 
 export const tlaFileSchema = {
 	tableName: 'file',
 	columns: {
-		id: { type: 'string', canUpdate: false },
-		name: { type: 'string', canUpdate: true },
-		ownerId: { type: 'string', canUpdate: false },
-		thumbnail: { type: 'string', canUpdate: true },
-		shared: { type: 'boolean', canUpdate: true },
-		sharedLinkType: { type: 'string', canUpdate: true },
-		published: { type: 'boolean', canUpdate: true },
-		lastPublished: { type: 'number', canUpdate: true },
-		publishedSlug: { type: 'string', canUpdate: true },
-		createdAt: { type: 'number', canUpdate: false },
-		updatedAt: { type: 'number', canUpdate: true },
-		isEmpty: { type: 'boolean', canUpdate: true },
+		id: { type: 'string' },
+		name: { type: 'string' },
+		ownerId: { type: 'string' },
+		thumbnail: { type: 'string' },
+		shared: { type: 'boolean' },
+		sharedLinkType: { type: 'string' },
+		published: { type: 'boolean' },
+		lastPublished: { type: 'number' },
+		publishedSlug: { type: 'string' },
+		createdAt: { type: 'number' },
+		updatedAt: { type: 'number' },
+		isEmpty: { type: 'boolean' },
 	},
 	primaryKey: ['id'],
 	relationships: {
@@ -71,17 +69,16 @@ export const tlaFileSchema = {
 		},
 	},
 } as const satisfies TableSchema
-export type TlaFileColumn = keyof (typeof tlaFileSchema)['columns']
 
 export const tlaFileStateSchema = {
 	tableName: 'file_state',
 	columns: {
-		userId: { type: 'string', canUpdate: false },
-		fileId: { type: 'string', canUpdate: true },
-		firstVisitAt: { type: 'number', optional: true, canUpdate: false },
-		lastEditAt: { type: 'number', optional: true, canUpdate: true },
-		lastSessionState: { type: 'string', optional: true, canUpdate: true },
-		lastVisitAt: { type: 'number', optional: true, canUpdate: true },
+		userId: { type: 'string' },
+		fileId: { type: 'string' },
+		firstVisitAt: { type: 'number', optional: true },
+		lastEditAt: { type: 'number', optional: true },
+		lastSessionState: { type: 'string', optional: true },
+		lastVisitAt: { type: 'number', optional: true },
 	},
 	primaryKey: ['userId', 'fileId'],
 	relationships: {
@@ -101,7 +98,6 @@ export const tlaFileStateSchema = {
 		},
 	},
 } as const satisfies TableSchema
-export type TlaFileStateColumn = keyof (typeof tlaFileStateSchema)['columns']
 
 // export const schema = {
 // 	version: 1,
