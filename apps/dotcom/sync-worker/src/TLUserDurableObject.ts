@@ -327,6 +327,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	onRowChange(row: object, table: ZTable, event: ZEvent, userId: string) {
+		// If we don't have a userId then we don't have an active user connection
+		if (!this.userId) {
+			this.replicator.unregisterUser(userId)
+			return
+		}
 		this.store.updateCommittedData({ table, event, row })
 		for (const socket of this.ctx.getWebSockets()) {
 			socket.send(
@@ -339,10 +344,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					},
 				} satisfies ZServerSentMessage)
 			)
-		}
-		// If we don't have a userId then we don't have an active user connection
-		if (!this.userId) {
-			this.replicator.unregisterUser(userId)
 		}
 	}
 
