@@ -1,0 +1,26 @@
+diff --git a/dist/Marks/Bold.js b/dist/Marks/Bold.js
+index 2b3bb299f664ca1010f73c10e295337f173f68c2..22ae10ac829da8d1716a4376dff917db7a5903d7 100644
+--- a/dist/Marks/Bold.js
++++ b/dist/Marks/Bold.js
+@@ -19,7 +19,7 @@ var Bold = /** @class */ (function (_super) {
+     __extends(Bold, _super);
+     function Bold() {
+         var _this = _super !== null && _super.apply(this, arguments) || this;
+-        _this.name = 'bold';
++        _this.name = 'strong';
+         return _this;
+     }
+     Bold.prototype.matching = function () {
+diff --git a/dist/Marks/Italic.js b/dist/Marks/Italic.js
+index a11334267785f394746c71522d5c3e1bd7c358bf..8689b4748adb7954f748923a6767e8c6469159ac 100644
+--- a/dist/Marks/Italic.js
++++ b/dist/Marks/Italic.js
+@@ -19,7 +19,7 @@ var Italic = /** @class */ (function (_super) {
+     __extends(Italic, _super);
+     function Italic() {
+         var _this = _super !== null && _super.apply(this, arguments) || this;
+-        _this.name = 'italic';
++        _this.name = 'em';
+         return _this;
+     }
+     Italic.prototype.matching = function () {

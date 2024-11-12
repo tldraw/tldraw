@@ -34,6 +34,7 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
+	TLNoteShape,
 	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
@@ -4726,9 +4727,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Check labels first
 			if (
 				this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
+				this.isShapeOfType<TLNoteShape>(shape, 'note') ||
 				(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')
 			) {
-				if (shape.props.text.trim()) {
+				if (shape.props.text.trim() || (shape as TLGeoShape).props.richText) {
 					// let's check whether the shape has a label and check that
 					for (const childGeometry of (geometry as Group2d).children) {
 						if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {

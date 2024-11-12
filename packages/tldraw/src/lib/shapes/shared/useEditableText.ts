@@ -9,12 +9,12 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { INDENT, TextHelpers } from './TextHelpers'
+import { TextHelpers } from './TextHelpers'
 
 /** @public */
-export function useEditableText(shapeId: TLShapeId, type: string, text: string) {
+export function useEditableText(shapeId: TLShapeId, type: string, text: string, richText?: string) {
 	const editor = useEditor()
-	const rInput = useRef<HTMLTextAreaElement>(null)
+	const rInput = useRef<HTMLDivElement | HTMLTextAreaElement>(null)
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === shapeId, [editor])
 	const isEditingAnything = useValue('isEditingAnything', () => !!editor.getEditingShapeId(), [
 		editor,
@@ -22,8 +22,8 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 
 	useEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
-			if (event.shapeId === shapeId) {
-				rInput.current?.select()
+			if (event.shapeId === shapeId && rInput.current instanceof HTMLTextAreaElement) {
+				rInput.current?.select?.()
 			}
 		}
 
@@ -40,7 +40,10 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 			rInput.current?.focus()
 		}
 
-		if (editor.getInstanceState().isCoarsePointer) {
+		if (
+			editor.getInstanceState().isCoarsePointer &&
+			rInput.current instanceof HTMLTextAreaElement
+		) {
 			rInput.current?.select()
 		}
 
@@ -71,27 +74,15 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
-		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		({ plaintext, richText }: { plaintext?: string; richText?: string }) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
-			let text = TextHelpers.normalizeText(e.currentTarget.value)
+			const normalizedPlaintext = TextHelpers.normalizeText(plaintext ?? '')
 
-			// ------- Bug fix ------------
-			// Replace tabs with spaces when pasting
-			const untabbedText = text.replace(/\t/g, INDENT)
-			if (untabbedText !== text) {
-				const selectionStart = e.currentTarget.selectionStart
-				e.currentTarget.value = untabbedText
-				e.currentTarget.selectionStart = selectionStart + (untabbedText.length - text.length)
-				e.currentTarget.selectionEnd = selectionStart + (untabbedText.length - text.length)
-				text = untabbedText
-			}
-			// ----------------------------
-
-			editor.updateShape<TLUnknownShape & { props: { text: string } }>({
+			editor.updateShape<TLUnknownShape & { props: { text: string; richText?: string } }>({
 				id: shapeId,
 				type,
-				props: { text },
+				props: { text: normalizedPlaintext, richText: richText ?? '' },
 			})
 		},
 		[editor, shapeId, type]
@@ -130,7 +121,7 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 		handleChange,
 		handleInputPointerDown,
 		handleDoubleClick: stopEventPropagation,
-		isEmpty: text.trim().length === 0,
+		isEmpty: text.trim().length === 0 && !richText,
 		isEditing,
 		isEditingAnything,
 	}

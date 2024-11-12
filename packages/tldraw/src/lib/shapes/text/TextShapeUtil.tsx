@@ -20,9 +20,14 @@ import {
 import { useCallback } from 'react'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextHelpers } from '../shared/TextHelpers'
-import { TextLabel } from '../shared/TextLabel'
+import {
+	RichTextSVG,
+	TextLabel,
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 
@@ -63,6 +68,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override getText(shape: TLTextShape) {
+		if (shape.props.richText) return renderPlaintextFromRichText(shape.props.richText)
 		return shape.props.text
 	}
 
@@ -77,7 +83,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	component(shape: TLTextShape) {
 		const {
 			id,
-			props: { font, size, text, color, scale, textAlign },
+			props: { font, size, text, richText, color, scale, textAlign },
 		} = shape
 
 		const { width, height } = this.getMinDimensions(shape)
@@ -95,7 +101,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 				lineHeight={TEXT_PROPS.lineHeight}
 				align={textAlign}
 				verticalAlign="middle"
+				enableRichText
 				text={text}
+				richText={richText}
 				labelColor={theme[color].solid}
 				isSelected={isSelected}
 				textWidth={width}
@@ -118,7 +126,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
-		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
+		if (shape.props.text || shape.props.richText)
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
 
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const width = bounds.width / (shape.props.scale ?? 1)
@@ -126,18 +135,35 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const theme = getDefaultColorTheme(ctx)
 
-		return (
-			<SvgTextLabel
-				fontSize={FONT_SIZES[shape.props.size]}
-				font={shape.props.font}
-				align={shape.props.textAlign}
-				verticalAlign="middle"
-				text={shape.props.text}
-				labelColor={theme[shape.props.color].solid}
-				bounds={new Box(0, 0, width, height)}
-				padding={0}
-			/>
-		)
+		const exportBounds = new Box(0, 0, width, height)
+		if (shape.props.richText) {
+			ctx.addExportDef(getRichTextStylesExport())
+			return (
+				<RichTextSVG
+					fontSize={FONT_SIZES[shape.props.size]}
+					font={shape.props.font}
+					align={shape.props.textAlign}
+					verticalAlign="middle"
+					richText={shape.props.richText}
+					labelColor={theme[shape.props.color].solid}
+					bounds={exportBounds}
+					padding={0}
+				/>
+			)
+		} else {
+			return (
+				<SvgTextLabel
+					fontSize={FONT_SIZES[shape.props.size]}
+					font={shape.props.font}
+					align={shape.props.textAlign}
+					verticalAlign="middle"
+					text={shape.props.text}
+					labelColor={theme[shape.props.color].solid}
+					bounds={exportBounds}
+					padding={0}
+				/>
+			)
+		}
 	}
 
 	override onResize(shape: TLTextShape, info: TLResizeInfo<TLTextShape>) {
@@ -171,8 +197,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const {
 			id,
 			type,
-			props: { text },
+			props: { text, richText },
 		} = shape
+
+		if (richText) return
 
 		const trimmedText = shape.props.text.trimEnd()
 
@@ -202,7 +230,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			prev.props.font !== next.props.font ||
 			(prev.props.scale !== 1 && next.props.scale === 1)
 
-		const textDidChange = prev.props.text !== next.props.text
+		const textDidChange =
+			prev.props.text !== next.props.text || prev.props.richText !== next.props.richText
 
 		// Only update position if either changed
 		if (!styleDidChange && !textDidChange) return
@@ -282,7 +311,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
-	const { font, text, autoSize, size, w } = props
+	const { font, text, richText, autoSize, size, w } = props
 
 	const minWidth = autoSize ? 16 : Math.max(16, w)
 	const fontSize = FONT_SIZES[size]
@@ -297,6 +326,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
 		maxWidth: cw,
+		renderMethod: richText ? () => renderHtmlFromRichTextForMeasurement(richText) : undefined,
 	})
 
 	// If we're autosizing the measureText will essentially `Math.floor`

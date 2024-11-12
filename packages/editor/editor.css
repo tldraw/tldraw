@@ -783,6 +783,7 @@ input,
 
 .tl-text-wrapper[data-isediting='true'] .tl-text-content {
 	opacity: 0;
+	display: none; /* todo */
 }
 
 .tl-text {

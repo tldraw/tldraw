@@ -72,6 +72,7 @@ export class TextManager {
 			minWidth?: null | number
 			padding: string
 			disableOverflowWrapBreaking?: boolean
+			renderMethod?(): string
 		}
 	): BoxModel & { scrollWidth: number } {
 		// Duplicate our base element; we don't need to clone deep
@@ -95,7 +96,11 @@ export class TextManager {
 			opts.disableOverflowWrapBreaking ? 'normal' : 'break-word'
 		)
 
-		elm.textContent = normalizeTextForDom(textToMeasure)
+		if (opts.renderMethod) {
+			elm.innerHTML = opts.renderMethod()
+		} else {
+			elm.textContent = normalizeTextForDom(textToMeasure)
+		}
 		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
 		elm.remove()

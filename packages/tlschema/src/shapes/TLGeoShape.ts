@@ -67,6 +67,7 @@ export interface TLGeoShapeProps {
 	h: number
 	growY: number
 	text: string
+	richText?: string
 	scale: number
 }
 
@@ -89,6 +90,7 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
 	text: T.string,
+	richText: T.string.optional(),
 	scale: T.nonZeroNumber,
 }
 
@@ -102,6 +104,7 @@ const geoShapeVersions = createShapePropsMigrationIds('geo', {
 	AddCloud: 7,
 	MakeUrlsValid: 8,
 	AddScale: 9,
+	AddRichText: 10,
 })
 
 export { geoShapeVersions as geoShapeVersions }
@@ -190,6 +193,13 @@ export const geoShapeMigrations = createShapePropsMigrationSequence({
 			},
 			down: (props) => {
 				delete props.scale
+			},
+		},
+		{
+			id: geoShapeVersions.AddRichText,
+			up: () => {},
+			down: (props) => {
+				delete props.richText
 			},
 		},
 	],

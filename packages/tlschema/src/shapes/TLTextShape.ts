@@ -15,6 +15,7 @@ export interface TLTextShapeProps {
 	textAlign: TLDefaultTextAlignStyle
 	w: number
 	text: string
+	richText?: string
 	scale: number
 	autoSize: boolean
 }
@@ -30,6 +31,7 @@ export const textShapeProps: RecordProps<TLTextShape> = {
 	textAlign: DefaultTextAlignStyle,
 	w: T.nonZeroNumber,
 	text: T.string,
+	richText: T.string.optional(),
 	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
 }
@@ -37,6 +39,7 @@ export const textShapeProps: RecordProps<TLTextShape> = {
 const Versions = createShapePropsMigrationIds('text', {
 	RemoveJustify: 1,
 	AddTextAlign: 2,
+	AddRichText: 3,
 })
 
 export { Versions as textShapeVersions }
@@ -62,6 +65,13 @@ export const textShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				props.align = props.textAlign
 				delete props.textAlign
+			},
+		},
+		{
+			id: Versions.AddRichText,
+			up: () => {},
+			down: (props) => {
+				delete props.richText
 			},
 		},
 	],
