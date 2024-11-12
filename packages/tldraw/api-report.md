@@ -1085,7 +1085,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            url: string;
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             dash: "dashed" | "dotted" | "draw" | "solid";
@@ -1099,6 +1098,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
+            url: string;
             verticalAlign: "end" | "middle" | "start";
             w: number;
         };
@@ -1117,7 +1117,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         opacity: number;
         parentId: TLParentId;
         props: {
-            url: string;
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             dash: "dashed" | "dotted" | "draw" | "solid";
@@ -1131,6 +1130,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             scale: number;
             size: "l" | "m" | "s" | "xl";
             text: string;
+            url: string;
             verticalAlign: "end" | "middle" | "start";
             w: number;
         };
