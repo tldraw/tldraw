@@ -348,6 +348,11 @@ export class TLDrawDurableObject extends DurableObject {
 					if (rateLimited) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
+				} else {
+					const rateLimited = await isRateLimited(this.env, sessionId)
+					if (rateLimited) {
+						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+					}
 				}
 				if (file.ownerId !== auth?.userId) {
 					if (!file.shared) {
