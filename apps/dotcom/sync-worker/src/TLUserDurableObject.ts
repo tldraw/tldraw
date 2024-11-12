@@ -21,6 +21,7 @@ import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Environment } from './types'
+import { isRateLimited } from './utils/rateLimit'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
@@ -50,18 +51,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	userId: string | null = null
 
-	async isRateLimited() {
-		const { success } = await this.env.RATE_LIMITER.limit({ key: this.userId! })
-		return !success
-	}
-
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
 				this.userId = req.params.userId
 			}
-			const isRateLimited = await this.isRateLimited()
-			if (isRateLimited) {
+			const rateLimited = await isRateLimited(this.env, this.userId!)
+			if (rateLimited) {
 				throw new Error('Rate limited')
 			}
 
@@ -127,11 +123,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	override async webSocketMessage(_ws: WebSocket, message: string) {
-		const isRateLimited = await this.isRateLimited()
+		const rateLimited = await isRateLimited(this.env, this.userId!)
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
-				if (isRateLimited) {
+				if (rateLimited) {
 					this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
 				} else {
 					await this.handleMutate(msg)
