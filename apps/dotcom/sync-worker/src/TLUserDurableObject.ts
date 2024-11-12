@@ -1,4 +1,5 @@
 import {
+	isColumnMutable,
 	OptimisticAppStore,
 	ROOM_PREFIX,
 	TlaFile,
@@ -242,10 +243,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							}
 						}
 						case 'update': {
-							const updatableKeys = this.getUpdatableKeys(update.table, update.row)
-							if (updatableKeys.length === 0) continue
+							const mutableColumns = Object.keys(update.row).filter((k) =>
+								isColumnMutable(update.table, k)
+							)
+							if (mutableColumns.length === 0) continue
 							const updates = Object.fromEntries(
-								updatableKeys.map((k) => [k, (update.row as any)[k]])
+								mutableColumns.map((k) => [k, (update.row as any)[k]])
 							)
 							if (update.table === 'file_state') {
 								const { fileId, userId } = update.row as any
