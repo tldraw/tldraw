@@ -73,12 +73,9 @@ export const TextLabel = React.memo(function TextLabel({
 	)
 
 	useEffect(() => {
-		async function processMarkdown(richText: string) {
-			const html = await renderHtmlFromRichText(richText)
-			setHtmlFromMarkdown(html)
-		}
 		if (enableRichText && richText) {
-			processMarkdown(richText)
+			const html = renderHtmlFromRichText(richText)
+			setHtmlFromMarkdown(html)
 		} else {
 			// This is the 'short-circuit' path. If it's just plaintext, we don't need to do anything fancy.
 			if (htmlFromMarkdown) {

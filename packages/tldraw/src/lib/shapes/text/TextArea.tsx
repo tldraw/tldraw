@@ -6,7 +6,6 @@ import { addListNodes } from 'prosemirror-schema-list'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { forwardRef, useEffect, useState } from 'react'
-import './rich-text.css'
 
 interface TextAreaProps {
 	isEditing: boolean
