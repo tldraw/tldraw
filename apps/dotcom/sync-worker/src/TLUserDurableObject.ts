@@ -50,11 +50,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	userId: string | null = null
 
+	async isRateLimited() {
+		const { success } = await this.env.RATE_LIMITER.limit({ key: this.userId! })
+		return !success
+	}
+
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
 				this.userId = req.params.userId
 			}
+			const isRateLimited = await this.isRateLimited()
+			if (isRateLimited) {
+				throw new Error('Rate limited')
+			}
+
 			await this.ctx.blockConcurrencyWhile(async () => {
 				this.store.initialize(await this.replicator.fetchDataForUser(this.userId!))
 				this.replicator.registerUser(this.userId!)
@@ -117,10 +127,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	override async webSocketMessage(_ws: WebSocket, message: string) {
+		const isRateLimited = await this.isRateLimited()
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
-				await this.handleMutate(msg)
+				if (isRateLimited) {
+					this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
+				} else {
+					await this.handleMutate(msg)
+				}
 				break
 			default:
 				this.captureException(new Error('Unhandled message'), { data: { message } })

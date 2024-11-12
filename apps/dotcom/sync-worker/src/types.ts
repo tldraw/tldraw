@@ -51,6 +51,8 @@ export interface Environment {
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 	ASSET_UPLOAD_ORIGIN: string | undefined
+
+	RATE_LIMITER: RateLimit
 }
 
 export type DBLoadResult =
