@@ -3,14 +3,8 @@ import {
 	OptimisticAppStore,
 	ROOM_PREFIX,
 	TlaFile,
-	TlaFileColumn,
-	tlaFileSchema,
 	TlaFileState,
-	TlaFileStateColumn,
-	tlaFileStateSchema,
 	TlaUser,
-	TlaUserColumn,
-	tlaUserSchema,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZEvent,
@@ -205,19 +199,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					"Cannot update file state of file we don't own and is not shared"
 				)
 			}
-		}
-	}
-
-	getUpdatableKeys(table: ZTable, row: object) {
-		switch (table) {
-			case 'user':
-				return Object.keys(row).filter((k) => tlaUserSchema.columns[k as TlaUserColumn]?.canUpdate)
-			case 'file':
-				return Object.keys(row).filter((k) => tlaFileSchema.columns[k as TlaFileColumn]?.canUpdate)
-			case 'file_state':
-				return Object.keys(row).filter(
-					(k) => tlaFileStateSchema.columns[k as TlaFileStateColumn]?.canUpdate
-				)
 		}
 	}
 
