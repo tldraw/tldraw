@@ -1,15 +1,10 @@
 import {
+	isColumnMutable,
 	OptimisticAppStore,
 	ROOM_PREFIX,
 	TlaFile,
-	TlaFileColumn,
-	tlaFileSchema,
 	TlaFileState,
-	TlaFileStateColumn,
-	tlaFileStateSchema,
 	TlaUser,
-	TlaUserColumn,
-	tlaUserSchema,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZEvent,
@@ -222,19 +217,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	getUpdatableKeys(table: ZTable, row: object) {
-		switch (table) {
-			case 'user':
-				return Object.keys(row).filter((k) => tlaUserSchema.columns[k as TlaUserColumn]?.canUpdate)
-			case 'file':
-				return Object.keys(row).filter((k) => tlaFileSchema.columns[k as TlaFileColumn]?.canUpdate)
-			case 'file_state':
-				return Object.keys(row).filter(
-					(k) => tlaFileStateSchema.columns[k as TlaFileStateColumn]?.canUpdate
-				)
-		}
-	}
-
 	async handleMutate(msg: ZClientSentMessage) {
 		try {
 			;(await this.db.begin(async (sql) => {
@@ -257,10 +239,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							}
 						}
 						case 'update': {
-							const updatableKeys = this.getUpdatableKeys(update.table, update.row)
-							if (updatableKeys.length === 0) continue
+							const mutableColumns = Object.keys(update.row).filter((k) =>
+								isColumnMutable(update.table, k)
+							)
+							if (mutableColumns.length === 0) continue
 							const updates = Object.fromEntries(
-								updatableKeys.map((k) => [k, (update.row as any)[k]])
+								mutableColumns.map((k) => [k, (update.row as any)[k]])
 							)
 							if (update.table === 'file_state') {
 								const { fileId, userId } = update.row as any
