@@ -259,13 +259,16 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						case 'update': {
 							const updatableKeys = this.getUpdatableKeys(update.table, update.row)
 							if (updatableKeys.length === 0) continue
+							const updates = Object.fromEntries(
+								updatableKeys.map((k) => [k, (update.row as any)[k]])
+							)
 							if (update.table === 'file_state') {
 								const { fileId, userId } = update.row as any
-								await sql`update public.file_state set ${sql(updatableKeys)} where "fileId" = ${fileId} and "userId" = ${userId}`
+								await sql`update public.file_state set ${sql(updates)} where "fileId" = ${fileId} and "userId" = ${userId}`
 							} else {
 								const { id, ...rest } = update.row as any
 
-								await sql`update ${sql('public.' + update.table)} set ${sql(updatableKeys)} where id = ${id}`
+								await sql`update ${sql('public.' + update.table)} set ${sql(updates)} where id = ${id}`
 								if (update.table === 'file') {
 									const currentFile = this.store.getFullData()?.files.find((f) => f.id === id)
 									if (currentFile && currentFile.published !== rest.published) {
