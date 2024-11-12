@@ -259,10 +259,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						case 'update': {
 							const updatableKeys = this.getUpdatableKeys(update.table, update.row)
 							if (updatableKeys.length === 0) continue
-
 							if (update.table === 'file_state') {
 								const { fileId, userId } = update.row as any
-
 								await sql`update public.file_state set ${sql(updatableKeys)} where "fileId" = ${fileId} and "userId" = ${userId}`
 							} else {
 								const { id, ...rest } = update.row as any
