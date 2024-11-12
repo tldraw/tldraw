@@ -179,7 +179,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 		if (event.relation.table === 'user_mutation_number') {
 			if (!row) throw new Error('Row is required for delete event')
-			this.getStubForUser(row.userId).commitMutation(row.mutationNumber)
+			this.getStubForUser(row.userId).commitMutation(row.mutationNumber, row.userId)
 			return
 		}
 		if (

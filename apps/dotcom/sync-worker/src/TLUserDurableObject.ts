@@ -132,35 +132,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	async commitMutation(mutationNumber: number) {
-		const mutationIds = this.mutations
-			.filter((m) => m.mutationNumber <= mutationNumber)
-			.map((m) => m.mutationId)
-		this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
-		this.store.commitMutations(mutationIds)
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.send(
-				JSON.stringify({
-					type: 'commit',
-					mutationIds,
-				} satisfies ZServerSentMessage)
-			)
-		}
-	}
-
-	async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
-		this.store.rejectMutation(mutationId)
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.send(
-				JSON.stringify({
-					type: 'reject',
-					mutationId,
-					errorCode,
-				} satisfies ZServerSentMessage)
-			)
-		}
-	}
-
 	mutations: { mutationNumber: number; mutationId: string }[] = []
 
 	async assertValidMutation(update: ZRowUpdate) {
@@ -326,26 +297,66 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	onRowChange(row: object, table: ZTable, event: ZEvent, userId: string) {
-		// If we don't have a userId then we don't have an active user connection
-		if (!this.userId) {
-			this.replicator.unregisterUser(userId)
-			return
-		}
-		this.store.updateCommittedData({ table, event, row })
+	async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
+		this.store.rejectMutation(mutationId)
 		for (const socket of this.ctx.getWebSockets()) {
 			socket.send(
 				JSON.stringify({
-					type: 'update',
-					update: {
-						table,
-						event,
-						row,
-					},
+					type: 'reject',
+					mutationId,
+					errorCode,
 				} satisfies ZServerSentMessage)
 			)
 		}
 	}
+
+	/* ------- RPCs -------  */
+
+	requireUserId(cb: () => void, userId: string) {
+		if (!this.userId) {
+			this.replicator.unregisterUser(userId)
+			return
+		}
+		cb()
+	}
+
+	onRowChange(row: object, table: ZTable, event: ZEvent, userId: string) {
+		this.requireUserId(() => {
+			this.store.updateCommittedData({ table, event, row })
+			for (const socket of this.ctx.getWebSockets()) {
+				socket.send(
+					JSON.stringify({
+						type: 'update',
+						update: {
+							table,
+							event,
+							row,
+						},
+					} satisfies ZServerSentMessage)
+				)
+			}
+		}, userId)
+	}
+
+	async commitMutation(mutationNumber: number, userId: string) {
+		this.requireUserId(() => {
+			const mutationIds = this.mutations
+				.filter((m) => m.mutationNumber <= mutationNumber)
+				.map((m) => m.mutationId)
+			this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
+			this.store.commitMutations(mutationIds)
+			for (const socket of this.ctx.getWebSockets()) {
+				socket.send(
+					JSON.stringify({
+						type: 'commit',
+						mutationIds,
+					} satisfies ZServerSentMessage)
+				)
+			}
+		}, userId)
+	}
+
+	/* --------------  */
 
 	async deleteFileStuff(id: string) {
 		const fileRecord = await this.replicator.getFileRecord(id)
