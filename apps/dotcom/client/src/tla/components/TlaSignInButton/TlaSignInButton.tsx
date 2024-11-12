@@ -1,11 +1,10 @@
 import { SignInButton } from '@clerk/clerk-react'
 import { ComponentProps } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useRaw } from '../../hooks/useRaw'
+import { F } from '../../app/i18n'
 import { TlaButton } from '../TlaButton/TlaButton'
 
 export function TlaSignInButton({ children, ...props }: ComponentProps<typeof TlaButton>) {
-	const raw = useRaw()
 	const location = useLocation()
 	return (
 		<SignInButton
@@ -14,7 +13,7 @@ export function TlaSignInButton({ children, ...props }: ComponentProps<typeof Tl
 			signUpForceRedirectUrl={location.pathname + location.search}
 		>
 			<TlaButton data-testid="tla-signin-button" {...props}>
-				{children ?? raw('Sign in')}
+				{children ?? <F defaultMessage="Sign in" />}
 			</TlaButton>
 		</SignInButton>
 	)

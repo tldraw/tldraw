@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { Link } from 'react-router-dom'
-import { useRaw } from '../../hooks/useRaw'
+import { F } from '../../app/i18n'
 import { getRootPath } from '../../utils/urls'
 import styles from './error.module.css'
 
@@ -11,21 +11,21 @@ type TlaPageErrorType =
 	| 'no-user-access'
 
 function ErrorLinkHome() {
-	const raw = useRaw()
 	return (
 		<Link className={classNames(styles.link, 'tla-text_ui__regular')} to={getRootPath()}>
-			{raw('Take me home')}
+			<F defaultMessage="Take me home" />
 		</Link>
 	)
 }
 
 export function TlaErrorContent({ error }: { error: TlaPageErrorType }) {
-	const raw = useRaw()
 	switch (error) {
 		case 'file-not-found': {
 			return (
 				<div className={styles.container}>
-					<p className="tla-text_ui__regular">{raw('Sorry, that file doesn’t exist.')}</p>
+					<p className="tla-text_ui__regular">
+						<F defaultMessage="Sorry, that file doesn’t exist." />
+					</p>
 					<ErrorLinkHome />
 				</div>
 			)
@@ -34,9 +34,7 @@ export function TlaErrorContent({ error }: { error: TlaPageErrorType }) {
 			return (
 				<div className={styles.container}>
 					<p className="tla-text_ui__regular">
-						{raw(
-							'Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link.'
-						)}
+						<F defaultMessage="Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link." />
 					</p>
 					<ErrorLinkHome />
 				</div>
@@ -46,7 +44,7 @@ export function TlaErrorContent({ error }: { error: TlaPageErrorType }) {
 			return (
 				<div className={styles.container}>
 					<p className="tla-text_ui__regular">
-						{raw('Sorry, you don’t have access to that workspace.')}
+						<F defaultMessage="Sorry, you don’t have access to that workspace." />
 					</p>
 					<ErrorLinkHome />
 				</div>
@@ -56,7 +54,7 @@ export function TlaErrorContent({ error }: { error: TlaPageErrorType }) {
 			return (
 				<div className={styles.container}>
 					<p className="tla-text_ui__regular">
-						{raw('Sorry, you don’t have access to that user.')}
+						<F defaultMessage="Sorry, you don’t have access to that user." />
 					</p>
 					<ErrorLinkHome />
 				</div>
