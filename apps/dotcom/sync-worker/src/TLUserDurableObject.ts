@@ -1,4 +1,5 @@
 import {
+	isColumnMutable,
 	OptimisticAppStore,
 	ROOM_PREFIX,
 	TlaFile,
@@ -17,8 +18,8 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
-import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { getR2KeyForRoom } from './r2'
+import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Environment } from './types'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
 
@@ -237,13 +238,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								break
 							}
 						}
-						case 'update':
+						case 'update': {
+							const mutableColumns = Object.keys(update.row).filter((k) =>
+								isColumnMutable(update.table, k)
+							)
+							if (mutableColumns.length === 0) continue
+							const updates = Object.fromEntries(
+								mutableColumns.map((k) => [k, (update.row as any)[k]])
+							)
 							if (update.table === 'file_state') {
-								const { fileId, userId, ...rest } = update.row as any
-								await sql`update public.file_state set ${sql(rest)} where "fileId" = ${fileId} and "userId" = ${userId}`
+								const { fileId, userId } = update.row as any
+								await sql`update public.file_state set ${sql(updates)} where "fileId" = ${fileId} and "userId" = ${userId}`
 							} else {
 								const { id, ...rest } = update.row as any
-								await sql`update ${sql('public.' + update.table)} set ${sql(rest)} where id = ${id}`
+
+								await sql`update ${sql('public.' + update.table)} set ${sql(updates)} where id = ${id}`
 								if (update.table === 'file') {
 									const currentFile = this.store.getFullData()?.files.find((f) => f.id === id)
 									if (currentFile && currentFile.published !== rest.published) {
@@ -262,6 +271,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								}
 							}
 							break
+						}
 						case 'delete':
 							if (update.table === 'file_state') {
 								const { fileId, userId } = update.row as any

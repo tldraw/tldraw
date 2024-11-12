@@ -10,7 +10,11 @@ const ourTypeToPostgresType: Record<ZColumn['type'], string> = {
 	number: 'bigint',
 	boolean: 'boolean',
 }
-function makeColumnStuff(table: string, column: string, details: ZColumn): ColumnStuff {
+function makeColumnStuff(
+	table: string,
+	column: string,
+	details: Omit<ZColumn, 'canUpdate'>
+): ColumnStuff {
 	return {
 		name: column,
 		type: details.type,
@@ -27,11 +31,11 @@ export const fileKeys = Object.entries(tlaFileSchema.columns).map(
 export const fileStateKeys = Object.entries(tlaFileStateSchema.columns).map(
 	([name, { type }]): ColumnStuff => makeColumnStuff('file_state', name, { type })
 )
-const nulls = (table: string, ns: ColumnStuff[]) =>
+const nulls = (ns: ColumnStuff[]) =>
 	ns.map((n) => `null::${ourTypeToPostgresType[n.type]} as "${n.alias}"`)
-const userNulls = nulls('user', userKeys)
-const fileNulls = nulls('file', fileKeys)
-const fileStateNulls = nulls('file_state', fileStateKeys)
+const userNulls = nulls(userKeys)
+const fileNulls = nulls(fileKeys)
+const fileStateNulls = nulls(fileStateKeys)
 const userColumns = userKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileColumns = fileKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileStateColumns = fileStateKeys.map((c) => `${c.reference} as "${c.alias}"`)
