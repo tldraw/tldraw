@@ -112,7 +112,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
-	override async webSocketMessage(ws: WebSocket, message: string) {
+	override async webSocketMessage(_ws: WebSocket, message: string) {
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
