@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {
 	OptimisticAppStore,
 	TlaFile,
@@ -15,6 +14,9 @@ import { Signal, computed, react, transact, uniqueId } from 'tldraw'
 export class Zero {
 	socket: ClientWebSocketAdapter
 	store = new OptimisticAppStore()
+	pendingUpdates: ZRowUpdate[] = []
+	timeout: NodeJS.Timeout | undefined = undefined
+	currentMutationId = uniqueId()
 
 	constructor(
 		private opts: { getUri(): Promise<string>; onMutationRejected(errorCode: ZErrorCode): void }
@@ -47,6 +49,10 @@ export class Zero {
 	}
 
 	dispose() {
+		clearTimeout(this.timeout)
+		if (this.pendingUpdates.length) {
+			this.sendPendingUpdates()
+		}
 		this.socket.close()
 	}
 
@@ -198,15 +204,28 @@ export class Zero {
 		})
 	}, this.____mutators)
 
-	makeOptimistic(updates: ZRowUpdate[]) {
-		const mutationId = uniqueId()
-		console.log('apply local optimistic updates', mutationId, updates)
-		this.store.updateOptimisticData(updates, mutationId)
+	private sendPendingUpdates() {
+		if (this.socket.isDisposed) return
 
 		this.socket.sendMessage({
 			type: 'mutate',
-			mutationId,
-			updates,
+			mutationId: this.currentMutationId,
+			updates: this.pendingUpdates,
 		} satisfies ZClientSentMessage as any)
+
+		this.pendingUpdates = []
+		this.currentMutationId = uniqueId()
+		this.timeout = undefined
+	}
+
+	makeOptimistic(updates: ZRowUpdate[]) {
+		this.store.updateOptimisticData(updates, this.currentMutationId)
+
+		this.pendingUpdates.push(...updates)
+		if (!this.timeout) {
+			this.timeout = setTimeout(() => {
+				this.sendPendingUpdates()
+			}, 50)
+		}
 	}
 }

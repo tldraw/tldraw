@@ -174,10 +174,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 		if (event.relation.table === 'user_mutation_number') {
 			if (!row) throw new Error('Row is required for delete event')
-			const stub = this.env.TL_USER.get(
-				this.env.TL_USER.idFromName(row.userId)
-			) as any as TLUserDurableObject
-			stub.commitMutation(row.mutationNumber)
+			this.getStubForUser(row.userId).commitMutation(row.mutationNumber)
 			return
 		}
 		if (
@@ -212,10 +209,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		if (row) {
 			for (const userId of userIds) {
 				// get user DO and send update message
-				const stub = this.env.TL_USER.get(
-					this.env.TL_USER.idFromName(userId)
-				) as any as TLUserDurableObject
-				stub.onRowChange(row, event.relation.table as 'user' | 'file' | 'file_state', event.command)
+				this.getStubForUser(userId).onRowChange(
+					row,
+					event.relation.table as 'user' | 'file' | 'file_state',
+					event.command
+				)
 			}
 		}
 	}
@@ -241,10 +239,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				if (!files.length) break
 				const file = files[0] as any
 				if (row.userId !== file.ownerId) {
-					const stub = this.env.TL_USER.get(
-						this.env.TL_USER.idFromName(row.userId)
-					) as any as TLUserDurableObject
-					stub.onRowChange(JSON.parse(file.json), 'file', 'delete')
+					this.getStubForUser(row.userId).onRowChange(JSON.parse(file.json), 'file', 'delete')
 				}
 
 				break
@@ -278,10 +273,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				} | null
 				if (!file) break
 				if (file.ownerId !== row.userId) {
-					const stub = this.env.TL_USER.get(
-						this.env.TL_USER.idFromName(row.userId)
-					) as any as TLUserDurableObject
-					stub.onRowChange(JSON.parse(file.json), 'file', 'insert')
+					this.getStubForUser(row.userId).onRowChange(JSON.parse(file.json), 'file', 'insert')
 				}
 				break
 			}
@@ -385,5 +377,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		} catch (_e) {
 			return null
 		}
+	}
+
+	private getStubForUser(userId: string) {
+		const id = this.env.TL_USER.idFromName(userId)
+		return this.env.TL_USER.get(id) as any as TLUserDurableObject
 	}
 }
