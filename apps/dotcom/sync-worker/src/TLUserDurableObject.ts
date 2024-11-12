@@ -132,6 +132,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
+		this.store.rejectMutation(mutationId)
+		for (const socket of this.ctx.getWebSockets()) {
+			socket.send(
+				JSON.stringify({
+					type: 'reject',
+					mutationId,
+					errorCode,
+				} satisfies ZServerSentMessage)
+			)
+		}
+	}
+
 	mutations: { mutationNumber: number; mutationId: string }[] = []
 
 	async assertValidMutation(update: ZRowUpdate) {
@@ -294,19 +307,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				data: { errorCode: code, reason: 'mutation failed' },
 			})
 			this.rejectMutation(msg.mutationId, code)
-		}
-	}
-
-	async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
-		this.store.rejectMutation(mutationId)
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.send(
-				JSON.stringify({
-					type: 'reject',
-					mutationId,
-					errorCode,
-				} satisfies ZServerSentMessage)
-			)
 		}
 	}
 
