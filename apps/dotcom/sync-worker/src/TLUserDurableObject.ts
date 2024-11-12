@@ -64,6 +64,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	override async fetch(req: IRequest) {
 		const sentry = createSentry(this.ctx, this.env, req)
 		try {
+			// Using storage pins the location of the DO
+			this.ctx.storage.get('pin-the-do')
 			return await this.router.fetch(req)
 		} catch (err) {
 			if (sentry) {
