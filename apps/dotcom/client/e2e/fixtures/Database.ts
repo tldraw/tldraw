@@ -3,13 +3,13 @@ import { execSync } from 'child_process'
 import path from 'path'
 
 export class Database {
-	constructor(private readonly page: Page) {}
+	constructor(readonly _page: Page) {}
 
 	async reset() {
-		await this.page.evaluate(() => {
-			;(window as any).tla_dev_clear()
-		})
-		const scriptPath = path.resolve(__dirname, '../../../sync-worker/')
-		execSync(`${scriptPath}/reset-db.sh > /dev/null 2>&1`, { cwd: scriptPath })
+		const scriptLocation = path.join(__dirname, 'delete-test-user-data.sql')
+		execSync(
+			`PGPASSWORD=password psql -U user -d postgres -h 127.0.0.1 -p 6543 -f ${scriptLocation}`,
+			{ stdio: 'ignore' }
+		)
 	}
 }
