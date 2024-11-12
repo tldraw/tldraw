@@ -19,6 +19,7 @@ interface Fixtures {
 	pageMenu: PageMenu
 	navigationPanel: NavigationPanel
 	api: ReturnType<typeof makeApiFixture>
+	isMac: boolean
 }
 
 export type ApiFixture = {
@@ -87,6 +88,9 @@ const test = base.extend<Fixtures>({
 			page
 		)
 		await testUse(api)
+	},
+	isMac: async ({ page: _ }, testUse) => {
+		await testUse(process.platform === 'darwin')
 	},
 })
 
