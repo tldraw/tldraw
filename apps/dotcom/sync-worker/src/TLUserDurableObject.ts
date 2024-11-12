@@ -338,7 +338,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}, userId)
 	}
 
-	async commitMutation(mutationNumber: number, userId: string) {
+	commitMutation(mutationNumber: number, userId: string) {
 		this.requireUserId(() => {
 			const mutationIds = this.mutations
 				.filter((m) => m.mutationNumber <= mutationNumber)
