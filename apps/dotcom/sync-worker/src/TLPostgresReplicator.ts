@@ -193,7 +193,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		let userIds: string[] = []
 		if (row) {
-			userIds = this.getImpactedUserIds(row, event)
+			userIds = this.getActiveImpactedUserIds(row, event)
 		}
 		switch (event.command) {
 			case 'delete':
@@ -296,7 +296,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	getImpactedUserIds(row: postgres.Row, event: postgres.ReplicationEvent): string[] {
+	getActiveImpactedUserIds(row: postgres.Row, event: postgres.ReplicationEvent): string[] {
 		let result: string[] = []
 
 		switch (event.relation.table) {
