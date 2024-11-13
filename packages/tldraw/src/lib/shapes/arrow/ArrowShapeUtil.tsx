@@ -26,6 +26,7 @@ import {
 	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
+	maybeSnapToGrid,
 	structuredClone,
 	toDomPrecision,
 	track,
@@ -36,6 +37,7 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
+
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
@@ -253,10 +255,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!target) {
 			// todo: maybe double check that this isn't equal to the other handle too?
 			removeArrowBinding(this.editor, shape, handleId)
-
+			const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
 			update.props![handleId] = {
-				x: handle.x,
-				y: handle.y,
+				x: newPoint.x,
+				y: newPoint.y,
 			}
 			return update
 		}
