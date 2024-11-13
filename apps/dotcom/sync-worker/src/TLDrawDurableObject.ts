@@ -32,7 +32,7 @@ import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth } from './utils/tla/getAuth'
-import { getPostgresReplicatorStub } from './utils/tla/getPostgresReplicatorStub'
+import { getPostgresReplicator } from './utils/tla/getPostgresReplicator'
 
 const MAX_CONNECTIONS = 50
 
@@ -298,7 +298,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		const stub = getPostgresReplicatorStub(this.env)
+		const stub = getPostgresReplicator(this.env)
 		try {
 			return await stub.getFileRecord(this.documentInfo.slug)
 		} catch (_e) {
