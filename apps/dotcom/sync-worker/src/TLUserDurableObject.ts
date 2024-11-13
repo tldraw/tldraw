@@ -50,15 +50,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	userId: string | null = null
 
+	lastReplicatorBootId: string | null = null
+
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
 				this.userId = req.params.userId
 			}
-			await this.ctx.blockConcurrencyWhile(async () => {
-				this.store.initialize(await this.replicator.fetchDataForUser(this.userId!))
-				this.replicator.registerUser(this.userId!)
-			})
+			if (this.lastReplicatorBootId === null) {
+				await this.ctx.blockConcurrencyWhile(async () => {
+					const { data, bootId } = await this.replicator.fetchDataForUser(this.userId!)
+					this.lastReplicatorBootId = bootId
+					this.store.initialize(data)
+					this.replicator.registerUser(this.userId!)
+				})
+			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
 
@@ -100,18 +106,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		this.ctx.acceptWebSocket(serverWebSocket)
-		const initialData = this.store.getCommitedData()
+		const initialData = this.store.getCommittedData()
 		if (!initialData) {
 			throw new Error('Initial data not fetched')
 		}
 
-		// todo: sync
 		serverWebSocket.send(
 			JSON.stringify({
 				type: 'initial_data',
 				initialData,
 			} satisfies ZServerSentMessage)
 		)
+
+		this.alarm()
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
@@ -304,8 +311,26 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		cb()
 	}
 
-	onRowChange(row: object, table: ZTable, event: ZEvent, userId: string) {
+	// to make sure the replicator wakes up if it went to sleep for whatever
+	// reason, we ping it every every once in a while from every actively connected user DO
+	override async alarm() {
+		this.replicator.ping()
+		const alarm = await this.ctx.storage.getAlarm()
+		if ((!alarm || alarm <= Date.now()) && this.ctx.getWebSockets().length > 0) {
+			this.ctx.storage.setAlarm(Date.now() + 1000 * 10)
+		}
+	}
+
+	onRowChange(bootId: string, row: object, table: ZTable, event: ZEvent, userId: string) {
 		this.requireUserId(() => {
+			if (bootId !== this.lastReplicatorBootId) {
+				// replicator rebooted, reset the state and force clients to reconnect
+				this.lastReplicatorBootId = null
+				for (const socket of this.ctx.getWebSockets()) {
+					socket.close()
+				}
+				return
+			}
 			this.store.updateCommittedData({ table, event, row })
 			for (const socket of this.ctx.getWebSockets()) {
 				socket.send(
@@ -330,6 +355,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
 			this.store.commitMutations(mutationIds)
 			for (const socket of this.ctx.getWebSockets()) {
+				if (socket.readyState !== WebSocket.OPEN) continue
 				socket.send(
 					JSON.stringify({
 						type: 'commit',
