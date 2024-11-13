@@ -46,6 +46,11 @@ export class Zero {
 				}
 			}
 		})
+		this.socket.onStatusChange((params) => {
+			if (params.status === 'online') {
+				this.sendPendingUpdates()
+			}
+		})
 	}
 
 	dispose() {
@@ -205,7 +210,12 @@ export class Zero {
 	}, this.____mutators)
 
 	private sendPendingUpdates() {
-		if (this.socket.isDisposed) return
+		if (
+			this.socket.isDisposed ||
+			this.socket.connectionStatus === 'offline' ||
+			this.pendingUpdates.length === 0
+		)
+			return
 
 		this.socket.sendMessage({
 			type: 'mutate',
