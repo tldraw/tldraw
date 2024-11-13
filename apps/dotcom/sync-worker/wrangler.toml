@@ -280,6 +280,12 @@ type = "ratelimit"
 namespace_id = 1001
 simple = { limit = 300, period = 60 }
 
+[[env.preview.unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = 1001
+simple = { limit = 300, period = 60 }
+
 [[env.staging.unsafe.bindings]]
 name = "RATE_LIMITER"
 type = "ratelimit"
