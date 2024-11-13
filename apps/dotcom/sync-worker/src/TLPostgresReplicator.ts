@@ -101,6 +101,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	private queue = new ExecutionQueue()
 
 	private async reboot(delay = true) {
+		// TODO: set up analytics and alerts for this
 		this.debug('rebooting')
 		await this.queue.push(async () => {
 			if (delay) {
@@ -251,7 +252,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					// on error
 					() => {
 						this.debug('on error')
-						// TODO: ping team if this fails repeatedly
 						const e = new Error('replication start failed')
 						this.captureException(e)
 						if (this.state.type === 'connecting') {
@@ -270,7 +270,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				})
 				.catch((err) => {
 					this.debug('caught error')
-					// TODO: ping team if this fails
 					this.captureException(new Error('replication start failed (catch)'))
 					this.captureException(err)
 					resolve('error')
