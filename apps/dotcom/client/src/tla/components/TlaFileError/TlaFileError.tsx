@@ -50,6 +50,14 @@ export function TlaFileError({ error }: { error: unknown }) {
 				/>
 			)
 		}
+		case TLSyncErrorCloseEventReason.RATE_LIMITED: {
+			return (
+				<TlaFileErrorContent
+					header={<F defaultMessage="Rate limited" />}
+					para1={<F defaultMessage="Please slow down." />}
+				/>
+			)
+		}
 		default:
 			return <DefaultError />
 	}

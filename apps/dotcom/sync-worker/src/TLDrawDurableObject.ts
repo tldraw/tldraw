@@ -346,12 +346,12 @@ export class TLDrawDurableObject extends DurableObject {
 				if (auth?.userId) {
 					const rateLimited = await isRateLimited(this.env, auth?.userId)
 					if (rateLimited) {
-						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				} else {
 					const rateLimited = await isRateLimited(this.env, sessionId)
 					if (rateLimited) {
-						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
+						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				}
 				if (file.ownerId !== auth?.userId) {

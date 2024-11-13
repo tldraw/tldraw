@@ -65,6 +65,9 @@
   "517bb809d9": {
     "translation": "Page menu"
   },
+  "54d240fa41": {
+    "translation": "Please slow down."
+  },
   "55505ba281": {
     "translation": "PNG"
   },
@@ -94,6 +97,9 @@
   },
   "827aedd218": {
     "translation": "Added .tldr {count, plural, one {# file} other {# files}}"
+  },
+  "8ff3d0a705": {
+    "translation": "Rate limited"
   },
   "904a830405": {
     "translation": "Rename"
