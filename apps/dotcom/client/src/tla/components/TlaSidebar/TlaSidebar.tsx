@@ -146,7 +146,7 @@ function TlaSidebarUserLink() {
 		() => {
 			return app.getUser()
 		},
-		[]
+		[app]
 	)
 
 	if (!user) {
