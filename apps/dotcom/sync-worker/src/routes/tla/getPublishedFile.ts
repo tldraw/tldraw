@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
-import { TLPostgresReplicator } from '../../TLPostgresReplicator'
 import { getR2KeyForRoom } from '../../r2'
 import { Environment } from '../../types'
+import { getPostgresReplicatorStub } from '../../utils/tla/getPostgresReplicatorStub'
 
 // Get a published file from a file's publishedSlug, if there is one.
 export async function getPublishedFile(request: IRequest, env: Environment): Promise<Response> {
@@ -17,10 +17,7 @@ export async function getPublishedFile(request: IRequest, env: Environment): Pro
 		if (!parentSlug) throw Error('not found')
 
 		console.log('parentSlug', parentSlug)
-
-		const replicator = env.TL_PG_REPLICATOR.get(
-			env.TL_PG_REPLICATOR.idFromName('0')
-		) as any as TLPostgresReplicator
+		const replicator = getPostgresReplicatorStub(env)
 		const file = await replicator.getFileRecord(parentSlug)
 		console.log('roomId', roomId)
 

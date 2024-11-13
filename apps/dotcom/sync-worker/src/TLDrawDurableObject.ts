@@ -25,7 +25,6 @@ import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
-import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
@@ -33,6 +32,7 @@ import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth } from './utils/tla/getAuth'
+import { getPostgresReplicatorStub } from './utils/tla/getPostgresReplicatorStub'
 
 const MAX_CONNECTIONS = 50
 
@@ -298,9 +298,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		const stub = this.env.TL_PG_REPLICATOR.get(
-			this.env.TL_PG_REPLICATOR.idFromName('0')
-		) as any as TLPostgresReplicator
+		const stub = getPostgresReplicatorStub(this.env)
 		try {
 			return await stub.getFileRecord(this.documentInfo.slug)
 		} catch (_e) {

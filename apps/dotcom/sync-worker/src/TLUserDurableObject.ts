@@ -22,6 +22,7 @@ import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Environment } from './types'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
+import { getPostgresReplicatorStub } from './utils/tla/getPostgresReplicatorStub'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	db: ReturnType<typeof postgres>
@@ -41,9 +42,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		super(ctx, env)
 
 		this.sentry = createSentry(ctx, env)
-		this.replicator = this.env.TL_PG_REPLICATOR.get(
-			this.env.TL_PG_REPLICATOR.idFromName('0')
-		) as any as TLPostgresReplicator
+		this.replicator = getPostgresReplicatorStub(env)
 
 		this.db = postgres(env.BOTCOM_POSTGRES_CONNECTION_STRING)
 	}
