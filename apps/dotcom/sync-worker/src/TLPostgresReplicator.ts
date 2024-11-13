@@ -155,7 +155,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		const promise = this.state.promise
 
-		// TODO: time how long this takes
+		const start = Date.now()
 		const result = await new Promise<'error' | 'success'>((resolve) => {
 			let didFetchInitialData = false
 			let didGetBootIdInSubscription = false
@@ -219,7 +219,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 						try {
 							assert(this.state.type === 'connecting', 'state should be connecting')
 							const sql = getFetchEverythingSql(myId, bootId)
-							this.ctx.storage.sql.exec(seed)
+							this.sql.exec(seed)
 							// ok
 							await this.state.db.begin(async (db) => {
 								return db
@@ -239,6 +239,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 										)
 									})
 							})
+							this.debug('database size (mb)', (this.sql.databaseSize / 1024 / 1024).toFixed(2))
 							// this will prevent more events from being added to the buffer
 							didFetchInitialData = true
 							updateState()
@@ -275,6 +276,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					resolve('error')
 				})
 		})
+
+		const end = Date.now()
+		this.debug('boot time', end - start, 'ms')
 
 		if (result === 'error') {
 			this.reboot()

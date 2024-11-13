@@ -355,6 +355,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
 			this.store.commitMutations(mutationIds)
 			for (const socket of this.ctx.getWebSockets()) {
+				if (socket.readyState !== WebSocket.OPEN) continue
 				socket.send(
 					JSON.stringify({
 						type: 'commit',
