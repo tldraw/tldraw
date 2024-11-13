@@ -1,6 +1,6 @@
 import { ROOM_PREFIX, TlaFile, TlaFileState, TlaUser } from '@tldraw/dotcom-shared'
-import { assert, compact, uniq, uniqueId } from '@tldraw/utils'
-import { createSentry } from '@tldraw/worker-shared'
+import { assert, compact, promiseWithResolve, sleep, uniq, uniqueId } from '@tldraw/utils'
+import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
@@ -18,7 +18,6 @@ const seed = `
 DROP TABLE IF EXISTS file_state;
 DROP TABLE IF EXISTS file;
 DROP TABLE IF EXISTS user;
-DROP TABLE IF EXISTS active_user;
 
 CREATE TABLE user (
 	id TEXT PRIMARY KEY,
@@ -38,131 +37,254 @@ CREATE TABLE file_state (
 	PRIMARY KEY (userId, fileId)
 );
 
-CREATE TABLE active_user (
+-- we keep the active_user data between reboots to 
+-- make sure users don't miss updates.
+CREATE TABLE IF NOT EXISTS active_user (
 	id TEXT PRIMARY KEY
 );
 `
 
+type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
+
+type BootState =
+	| {
+			type: 'init'
+			promise: PromiseWithResolve
+	  }
+	| {
+			type: 'connecting'
+			db: postgres.Sql
+			bootId: string
+			promise: PromiseWithResolve
+	  }
+	| {
+			type: 'connected'
+			db: postgres.Sql
+			bootId: string
+			subscription: postgres.SubscriptionHandle
+	  }
+
 export class TLPostgresReplicator extends DurableObject<Environment> {
 	sql: SqlStorage
-	db: ReturnType<typeof postgres>
+	state: BootState = {
+		type: 'init',
+		promise: promiseWithResolve(),
+	}
+
 	sentry
-	captureException(exception: unknown, eventHint?: EventHint) {
+	// eslint-disable-next-line local/prefer-class-methods
+	private captureException = (exception: unknown, eventHint?: EventHint) => {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
 			console.error(exception)
 		}
 	}
+
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
 		this.sentry = createSentry(ctx, env)
+		this.sql = this.ctx.storage.sql
+		this.reboot(false)
+	}
+	private debug(...args: any[]) {
+		// uncomment for dev time debugging
+		// console.log(...args)
+		if (this.sentry) {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry.addBreadcrumb({
+				message: args.join(' '),
+			})
+		}
+	}
 
-		this.db = postgres(env.BOTCOM_POSTGRES_CONNECTION_STRING, {
-			types: {
-				bigint: {
-					from: [20], // PostgreSQL OID for BIGINT
-					parse: (value: string) => Number(value), // Convert string to number
-					to: 20,
-					serialize: (value: number) => String(value), // Convert number to string
-				},
-			},
+	private queue = new ExecutionQueue()
+
+	private async reboot(delay = true) {
+		// TODO: set up analytics and alerts for this
+		this.debug('rebooting')
+		await this.queue.push(async () => {
+			if (delay) {
+				await sleep(1000)
+			}
+			await this.boot()
 		})
+	}
 
-		this.ctx.blockConcurrencyWhile(async () => {
-			/**
-			 * BOOTUP SEQUENCE
-			 * 1. Generate a unique boot id
-			 * 2. Subscribe to all changes
-			 * 3. Fetch all data and write the boot id in a transaction
-			 * 4. If we receive events before the boot id update comes through, ignore them
-			 * 5. If we receive events after the boot id comes through but before we've finished
-			 *    fetching all data, buffer them and apply them after we've finished fetching all data.
-			 *    (not sure this is possible, but just in case)
-			 * 6. Once we've finished fetching all data, apply any buffered events
-			 */
+	private async boot() {
+		this.debug('booting')
+		// clean up old resources if necessary
+		if (this.state.type === 'connected') {
+			this.state.subscription.unsubscribe()
+			this.state.db.end().catch(this.captureException)
+		} else if (this.state.type === 'connecting') {
+			this.state.db.end().catch(this.captureException)
+		}
+		this.state = {
+			type: 'connecting',
+			// preserve the promise so any awaiters do eventually get resolved
+			// TODO: set a timeout on the promise?
+			promise: 'promise' in this.state ? this.state.promise : promiseWithResolve(),
+			db: postgres(this.env.BOTCOM_POSTGRES_CONNECTION_STRING, {
+				types: {
+					bigint: {
+						from: [20], // PostgreSQL OID for BIGINT
+						parse: (value: string) => Number(value), // Convert string to number
+						to: 20,
+						serialize: (value: number) => String(value), // Convert number to string
+					},
+				},
+			}),
+			bootId: uniqueId(),
+		}
+		/**
+		 * BOOTUP SEQUENCE
+		 * 1. Generate a unique boot id
+		 * 2. Subscribe to all changes
+		 * 3. Fetch all data and write the boot id in a transaction
+		 * 4. If we receive events before the boot id update comes through, ignore them
+		 * 5. If we receive events after the boot id comes through but before we've finished
+		 *    fetching all data, buffer them and apply them after we've finished fetching all data.
+		 *    (not sure this is possible, but just in case)
+		 * 6. Once we've finished fetching all data, apply any buffered events
+		 */
+
+		const myId = this.ctx.id.toString()
+		// if the bootId changes during the boot process, we should stop silently
+		const bootId = this.state.bootId
+
+		const promise = this.state.promise
+
+		const start = Date.now()
+		const result = await new Promise<'error' | 'success'>((resolve) => {
 			let didFetchInitialData = false
 			let didGetBootIdInSubscription = false
-			const myId = this.ctx.id.toString()
-			const bootId = uniqueId()
-			// TODO: time how long this takes
-			await new Promise((resolve, reject) => {
-				const initialUpdateBuffer: Array<{
-					row: postgres.Row | null
-					info: postgres.ReplicationEvent
-				}> = []
-				this.db
-					.subscribe(
-						'*',
-						async (row, info) => {
-							if (didGetBootIdInSubscription) {
-								if (!didFetchInitialData) {
-									initialUpdateBuffer.push({ row, info })
-								} else {
-									try {
-										this.handleEvent(row, info)
-									} catch (e) {
-										this.captureException(e)
-									}
-								}
-							} else if (
-								info.relation.table === 'replicator_boot_id' &&
-								(row as any)?.bootId === bootId
-							) {
-								didGetBootIdInSubscription = true
-							} else {
-								// ignore events until we get the boot id
-							}
-						},
-						async () => {
-							try {
-								const sql = getFetchEverythingSql(myId, bootId)
-								this.ctx.storage.sql.exec(seed)
-								// ok
-								await this.db.begin(async (db) => {
-									return db
-										.unsafe(sql, [], { prepare: false })
-										.simple()
-										.forEach((row: any) => {
-											this.insertRow(
-												parseResultRow(
-													row.table === 'user'
-														? userKeys
-														: row.table === 'file'
-															? fileKeys
-															: fileStateKeys,
-													row
-												),
-												row.table
-											)
-										})
-								})
-								while (initialUpdateBuffer.length) {
-									const { row, info } = initialUpdateBuffer.shift()!
-									this.handleEvent(row, info)
-								}
-								// this will prevent more events from being added to the buffer
-								didFetchInitialData = true
-							} catch (e) {
-								this.captureException(e)
-								reject(e)
-							}
-							resolve(null)
-						},
-						() => {
-							// TODO: ping team if this fails
-							this.captureException(new Error('replication start failed'))
-							reject(null)
+			let subscription: postgres.SubscriptionHandle | undefined
+
+			const initialUpdateBuffer: Array<{
+				row: postgres.Row | null
+				info: postgres.ReplicationEvent
+			}> = []
+
+			const updateState = () => {
+				if (didFetchInitialData && didGetBootIdInSubscription && subscription) {
+					// we got everything, so we can set the state to connected and apply any buffered events
+					assert(this.state.type === 'connecting', 'state should be connecting')
+					this.state = {
+						type: 'connected',
+						db: this.state.db,
+						bootId: this.state.bootId,
+						subscription,
+					}
+					this.debug('num updates pending after pg sync:', initialUpdateBuffer.length)
+					if (initialUpdateBuffer.length) {
+						while (initialUpdateBuffer.length) {
+							const { row, info } = initialUpdateBuffer.shift()!
+							this.handleEvent(row, info)
 						}
-					)
-					.catch((err) => {
-						// TODO: ping team if this fails
-						this.captureException(new Error('replication start failed (catch)'))
-						this.captureException(err)
-					})
-			})
+					}
+					resolve('success')
+				}
+			}
+
+			assert(this.state.type === 'connecting', 'state should be connecting')
+			this.debug('subscribing')
+			this.state.db
+				.subscribe(
+					'*',
+					// on message
+					async (row, info) => {
+						if (this.state.type === 'connected') {
+							this.handleEvent(row, info)
+							return
+						}
+						if (this.state.type !== 'connecting') return
+
+						if (didGetBootIdInSubscription) {
+							// we've already got the boot id, so just shove things into
+							// a buffer until the state is set to 'connecting'
+							initialUpdateBuffer.push({ row, info })
+						} else if (
+							info.relation.table === 'replicator_boot_id' &&
+							(row as any)?.bootId === this.state.bootId
+						) {
+							didGetBootIdInSubscription = true
+							updateState()
+						}
+						// ignore other events until we get the boot id
+					},
+					// on connect
+					async () => {
+						this.debug('on connect')
+						try {
+							assert(this.state.type === 'connecting', 'state should be connecting')
+							const sql = getFetchEverythingSql(myId, bootId)
+							this.sql.exec(seed)
+							// ok
+							await this.state.db.begin(async (db) => {
+								return db
+									.unsafe(sql, [], { prepare: false })
+									.simple()
+									.forEach((row: any) => {
+										this._insertRow(
+											parseResultRow(
+												row.table === 'user'
+													? userKeys
+													: row.table === 'file'
+														? fileKeys
+														: fileStateKeys,
+												row
+											),
+											row.table
+										)
+									})
+							})
+							this.debug('database size (mb)', (this.sql.databaseSize / 1024 / 1024).toFixed(2))
+							// this will prevent more events from being added to the buffer
+							didFetchInitialData = true
+							updateState()
+						} catch (e) {
+							this.debug('init failed')
+							this.captureException(e)
+							resolve('error')
+							return
+						}
+					},
+					// on error
+					() => {
+						this.debug('on error')
+						const e = new Error('replication start failed')
+						this.captureException(e)
+						if (this.state.type === 'connecting') {
+							resolve('error')
+						} else {
+							// This happens when the connection is lost, e.g. when the database is restarted
+							// or network conditions get weird.
+							this.reboot()
+						}
+					}
+				)
+				.then((handle) => {
+					this.debug('got handle')
+					subscription = handle
+					updateState()
+				})
+				.catch((err) => {
+					this.debug('caught error')
+					this.captureException(new Error('replication start failed (catch)'))
+					this.captureException(err)
+					resolve('error')
+				})
 		})
-		this.sql = this.ctx.storage.sql
+
+		const end = Date.now()
+		this.debug('boot time', end - start, 'ms')
+
+		if (result === 'error') {
+			this.reboot()
+		} else {
+			promise.resolve(null)
+		}
 	}
 
 	// It is important that this method is synchronous!!!!
@@ -170,61 +292,68 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	// If we make this asynchronous for whatever reason we should
 	// make sure to uphold this invariant.
 	handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
-		if (event.relation.table === 'replicator_boot_id') {
-			assert(
-				(row as any)?.replicatorId && (row as any)?.replicatorId !== this.ctx.id.toString(),
-				'we should only get boot id events for other replicators: ' + (row as any)?.replicatorId
-			)
-			return
-		}
-		if (event.relation.table === 'user_mutation_number') {
-			if (!row) throw new Error('Row is required for delete event')
-			this.getStubForUser(row.userId).commitMutation(row.mutationNumber, row.userId)
-			return
-		}
-		if (
-			event.relation.table !== 'user' &&
-			event.relation.table !== 'file' &&
-			event.relation.table !== 'file_state'
-		) {
-			console.error(`Unhandled table: ${event.relation.table}`)
-			return
-		}
-
-		let userIds: string[] = []
-		if (row) {
-			userIds = this.getActiveImpactedUserIds(row, event)
-		}
-		switch (event.command) {
-			case 'delete':
-				if (!row) throw new Error('Row is required for delete event')
-				this.deleteRow(row, event)
-				break
-			case 'insert':
-				if (!row) throw new Error('Row is required for delete event')
-				this.insertRow(row, event.relation.table as 'user' | 'file' | 'file_state')
-				break
-			case 'update':
-				if (!row) throw new Error('Row is required for delete event')
-				this.updateRow(row, event)
-				break
-			default:
-				console.error(`Unhandled event: ${event}`)
-		}
-		if (row) {
-			for (const userId of userIds) {
-				// get user DO and send update message
-				this.getStubForUser(userId).onRowChange(
-					row,
-					event.relation.table as 'user' | 'file' | 'file_state',
-					event.command,
-					userId
+		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
+		try {
+			if (event.relation.table === 'replicator_boot_id') {
+				assert(
+					(row as any)?.replicatorId && (row as any)?.replicatorId !== this.ctx.id.toString(),
+					'we should only get boot id events for other replicators: ' + (row as any)?.replicatorId
 				)
+				return
 			}
+			if (event.relation.table === 'user_mutation_number') {
+				if (!row) throw new Error('Row is required for delete event')
+				this.getStubForUser(row.userId).commitMutation(row.mutationNumber, row.userId)
+				return
+			}
+			if (
+				event.relation.table !== 'user' &&
+				event.relation.table !== 'file' &&
+				event.relation.table !== 'file_state'
+			) {
+				console.error(`Unhandled table: ${event.relation.table}`)
+				return
+			}
+
+			let userIds: string[] = []
+			if (row) {
+				userIds = this.getActiveImpactedUserIds(row, event)
+			}
+			switch (event.command) {
+				case 'delete':
+					if (!row) throw new Error('Row is required for delete event')
+					this.deleteRow(row, event)
+					break
+				case 'insert':
+					if (!row) throw new Error('Row is required for delete event')
+					this.insertRow(row, event.relation.table as 'user' | 'file' | 'file_state')
+					break
+				case 'update':
+					if (!row) throw new Error('Row is required for delete event')
+					this.updateRow(row, event)
+					break
+				default:
+					console.error(`Unhandled event: ${event}`)
+			}
+			if (row) {
+				for (const userId of userIds) {
+					// get user DO and send update message
+					this.getStubForUser(userId).onRowChange(
+						this.state.bootId,
+						row,
+						event.relation.table as 'user' | 'file' | 'file_state',
+						event.command,
+						userId
+					)
+				}
+			}
+		} catch (e) {
+			this.captureException(e)
 		}
 	}
 
-	deleteRow(row: postgres.Row, event: postgres.ReplicationEvent) {
+	private deleteRow(row: postgres.Row, event: postgres.ReplicationEvent) {
+		assert(this.state.type === 'connected', 'state should be connected in deleteRow')
 		switch (event.relation.table) {
 			case 'user':
 				this.sql.exec(`DELETE FROM user WHERE id = ?`, row.id)
@@ -246,6 +375,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				const file = files[0] as any
 				if (row.userId !== file.ownerId) {
 					this.getStubForUser(row.userId).onRowChange(
+						this.state.bootId,
 						JSON.parse(file.json),
 						'file',
 						'delete',
@@ -257,8 +387,35 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 		}
 	}
+	private insertRow(_row: object, table: 'user' | 'file' | 'file_state') {
+		assert(this.state.type === 'connected', 'state should be connected in insertRow')
+		this._insertRow(_row, table)
 
-	insertRow(_row: object, table: 'user' | 'file' | 'file_state') {
+		// If a user just added a file state for a shared file for the first time, they won't
+		// have access to the file. We need to send them the file.
+		if (table !== 'file_state') return
+		const fileState = _row as TlaFileState
+		const fileRow = this.sql
+			.exec(`SELECT * FROM file WHERE id = ?`, fileState.fileId)
+			.toArray()[0] as {
+			json: string
+		} | null
+		if (!fileRow) return
+		const file = JSON.parse(fileRow.json) as TlaFile
+		if (file.shared && file.ownerId !== fileState.userId) {
+			this.getStubForUser(fileState.userId).onRowChange(
+				this.state.bootId,
+				file,
+				'file',
+				'insert',
+				fileState.userId
+			)
+		}
+		// todo: if the file is no longer shared (i.e. it was unshared between the time that the mutation was validated and now)
+		// then we should probably remove the fileState somehow?
+	}
+
+	private _insertRow(_row: object, table: 'user' | 'file' | 'file_state') {
 		switch (table) {
 			case 'user': {
 				const row = _row as TlaUser
@@ -278,25 +435,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					row.fileId,
 					JSON.stringify(row)
 				)
-				const file = this.sql.exec(`SELECT * FROM file WHERE id = ?`, row.fileId).toArray()[0] as {
-					json: string
-					ownerId: string
-				} | null
-				if (!file) break
-				if (file.ownerId !== row.userId) {
-					this.getStubForUser(row.userId).onRowChange(
-						JSON.parse(file.json),
-						'file',
-						'insert',
-						row.userId
-					)
-				}
 				break
 			}
 		}
 	}
 
-	getActiveImpactedUserIds(row: postgres.Row, event: postgres.ReplicationEvent): string[] {
+	private getActiveImpactedUserIds(row: postgres.Row, event: postgres.ReplicationEvent): string[] {
 		let result: string[] = []
 
 		switch (event.relation.table) {
@@ -338,7 +482,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.map((x) => x.id as string)
 	}
 
-	updateRow(_row: postgres.Row, event: postgres.ReplicationEvent) {
+	private updateRow(_row: postgres.Row, event: postgres.ReplicationEvent) {
+		assert(this.state.type === 'connected', 'state should be connected in updateRow')
 		switch (event.relation.table) {
 			case 'user': {
 				const row = _row as TlaUser
@@ -373,7 +518,20 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	async ping() {
+		return 'pong'
+	}
+
+	async waitUntilConnected() {
+		while (this.state.type !== 'connected') {
+			await this.state.promise
+		}
+	}
+
 	async fetchDataForUser(userId: string) {
+		await this.waitUntilConnected()
+		assert(this.state.type === 'connected', 'state should be connected in fetchDataForUser')
+
 		const files = this.sql
 			.exec(
 				`SELECT json FROM file WHERE ownerId = ? OR EXISTS(SELECT 1 from file_state WHERE userId = ? AND file_state.fileId = file.id) `,
@@ -390,14 +548,19 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			.exec(`SELECT json FROM user WHERE id = ?`, userId)
 			.toArray()
 			.map((x) => JSON.parse(x.json as string))[0]
+
 		return {
-			files: files as TlaFile[],
-			fileStates: fileStates as TlaFileState[],
-			user: user as TlaUser,
+			bootId: this.state.bootId,
+			data: {
+				files: files as TlaFile[],
+				fileStates: fileStates as TlaFileState[],
+				user: user as TlaUser,
+			},
 		}
 	}
 
 	async getFileRecord(fileId: string) {
+		await this.waitUntilConnected()
 		try {
 			const { json } = this.sql.exec(`SELECT json FROM file WHERE id = ?`, fileId).one()
 			return JSON.parse(json as string) as TlaFile
