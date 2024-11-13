@@ -78,35 +78,35 @@ pattern = "sync.tldraw.xyz"
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 [durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 [env.preview.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 [env.staging.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 [env.production.durable_objects]
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
 	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
-	{ name = "TL_USER", class_name = "TLUserDurableObject" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 #################### Analytics engine ####################
