@@ -62,4 +62,14 @@ export class FileHelpers {
 			}
 		})
 	}
+
+	static rewriteMimeType(blob: Blob, newMimeType: string): Blob
+	static rewriteMimeType(blob: File, newMimeType: string): File
+	static rewriteMimeType(blob: Blob | File, newMimeType: string): Blob | File {
+		if (blob.type === newMimeType) return blob
+		if (blob instanceof File) {
+			return new File([blob], blob.name, { type: newMimeType })
+		}
+		return new Blob([blob], { type: newMimeType })
+	}
 }

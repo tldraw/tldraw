@@ -24,8 +24,6 @@ export interface Environment {
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	MEASURE: Analytics | undefined
 
-	DB: D1Database
-
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
 
