@@ -190,6 +190,9 @@
 	color: var(--tla-color-text-1);
 	z-index: 10;
 }
+.create:disabled {
+	color: var(--tla-color-text-3);
+}
 
 .create::after {
 	display: block;

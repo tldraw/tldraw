@@ -13,6 +13,7 @@ import {
 	uniqueId,
 	useDialogs,
 	useToasts,
+	useValue,
 } from 'tldraw'
 import { defineMessages, useIntl } from '../../app/i18n'
 import { useApp } from '../../hooks/useAppState'
@@ -51,6 +52,7 @@ export function TlaFileMenu({
 	const { addToast } = useToasts()
 	const intl = useIntl()
 	const trackEvent = useTldrawAppUiEvents()
+	const isOffline = useValue('is offline', () => app.getIsOffline(), [app])
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = getShareableFileUrl(fileId)
@@ -98,9 +100,10 @@ export function TlaFileMenu({
 				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
 					label={intl.formatMessage(messages.duplicate)}
-					id="copy-link"
+					id="file-duplicate"
 					readonlyOk
 					onSelect={handleDuplicateClick}
+					disabled={isOffline}
 				/>
 				{/* <TldrawUiMenuItem label={intl.formatMessage(messages.star)} id="copy-link" readonlyOk onSelect={handleStarLinkClick} /> */}
 			</TldrawUiMenuGroup>

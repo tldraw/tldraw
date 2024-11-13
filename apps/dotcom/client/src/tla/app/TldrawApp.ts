@@ -150,6 +150,10 @@ export class TldrawApp {
 		},
 	})
 
+	getIsOffline() {
+		return this.z.getIsOffline()
+	}
+
 	// getAll<T extends keyof Schema['tables']>(
 	// 	typeName: T
 	// ): SchemaToRow<Schema['tables'][T]>[] {

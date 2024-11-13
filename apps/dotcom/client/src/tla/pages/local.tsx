@@ -16,9 +16,9 @@ export function Component() {
 	useEffect(() => {
 		if (!app) return
 		if (app.getUserRecentFiles().length === 0) {
-			creatingFile.current = true
 			app.createFile().then((res) => {
 				if (res.ok) {
+					creatingFile.current = true
 					navigate(getFilePath(res.value.file.id), { state: { mode: 'create' } })
 				}
 			})

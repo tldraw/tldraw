@@ -21,6 +21,7 @@ const messages = defineMessages({
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	accountMenu: { defaultMessage: 'Account menu' },
 	fileMenu: { defaultMessage: 'File menu' },
+	offline: { defaultMessage: 'You are offline' },
 })
 
 export const TlaSidebar = memo(function TlaSidebar() {
@@ -105,10 +106,13 @@ function TlaSidebarWorkspaceLink() {
 
 function TlaSidebarCreateFileButton() {
 	const app = useApp()
+	const isOffline = useValue('is offline', () => app.getIsOffline(), [app])
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
 	const intl = useIntl()
-	const createTitle = intl.formatMessage(messages.create)
+	const createTitle = isOffline
+		? intl.formatMessage(messages.offline)
+		: intl.formatMessage(messages.create)
 
 	const handleSidebarCreate = useCallback(async () => {
 		const res = await app.createFile()
@@ -125,6 +129,7 @@ function TlaSidebarCreateFileButton() {
 			onClick={handleSidebarCreate}
 			data-testid="tla-create-file"
 			title={createTitle}
+			disabled={isOffline}
 		>
 			<TlaIcon icon="edit-strong" />
 		</button>
@@ -141,7 +146,7 @@ function TlaSidebarUserLink() {
 		() => {
 			return app.getUser()
 		},
-		[app]
+		[]
 	)
 
 	if (!user) {
