@@ -21,7 +21,7 @@ const messages = defineMessages({
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	accountMenu: { defaultMessage: 'Account menu' },
 	fileMenu: { defaultMessage: 'File menu' },
-	offline: { defaultMessage: 'You are offline' },
+	offline: { defaultMessage: 'Cannot create files when offline' },
 })
 
 export const TlaSidebar = memo(function TlaSidebar() {
