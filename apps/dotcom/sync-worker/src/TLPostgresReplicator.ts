@@ -333,7 +333,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		const placeholders = result.map(() => '?').join(', ')
 		return this.sql
-			.exec(`SELECT * FROM active_users WHERE id IN (${placeholders})`, ...result)
+			.exec(`SELECT * FROM active_user WHERE id IN (${placeholders})`, ...result)
 			.toArray()
 			.map((x) => x.id as string)
 	}
@@ -412,10 +412,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	registerUser(userId: string) {
-		this.sql.exec(`INSERT INTO active_users (id) VALUES (?) ON CONFLICT (id) DO NOTHING`, userId)
+		this.sql.exec(`INSERT INTO active_user (id) VALUES (?) ON CONFLICT (id) DO NOTHING`, userId)
 	}
 
 	unregisterUser(userId: string) {
-		this.sql.exec(`DELETE FROM active_users WHERE id = ?`, userId)
+		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 	}
 }
