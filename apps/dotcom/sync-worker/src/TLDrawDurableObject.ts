@@ -30,6 +30,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth } from './utils/tla/getAuth'
@@ -341,6 +342,17 @@ export class TLDrawDurableObject extends DurableObject {
 			if (file) {
 				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
+				}
+				if (auth?.userId) {
+					const rateLimited = await isRateLimited(this.env, auth?.userId)
+					if (rateLimited) {
+						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+					}
+				} else {
+					const rateLimited = await isRateLimited(this.env, sessionId)
+					if (rateLimited) {
+						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+					}
 				}
 				if (file.ownerId !== auth?.userId) {
 					if (!file.shared) {

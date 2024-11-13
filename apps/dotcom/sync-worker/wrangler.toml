@@ -1,7 +1,7 @@
 main = "src/worker.ts"
 compatibility_date = "2024-10-30"
 workers_dev = true
-compatibility_flags=["nodejs_compat"]
+compatibility_flags = ["nodejs_compat"]
 
 [dev]
 port = 8787
@@ -76,37 +76,37 @@ pattern = "sync.tldraw.xyz"
 # durable objects have the same configuration in all environments:
 [env.dev.durable_objects]
 bindings = [
-  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 [durable_objects]
 bindings = [
-  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 [env.preview.durable_objects]
 bindings = [
-  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 [env.staging.durable_objects]
 bindings = [
-  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 [env.production.durable_objects]
 bindings = [
-  { name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
-  { name = "TL_PG_REPLICATOR",  class_name = "TLPostgresReplicator" },
-  { name = "TL_USER", class_name = "TLUserDurableObject" }
+	{ name = "TLDR_DOC", class_name = "TLDrawDurableObject" },
+	{ name = "TL_PG_REPLICATOR", class_name = "TLPostgresReplicator" },
+	{ name = "TL_USER", class_name = "TLUserDurableObject" }
 ]
 
 #################### Analytics engine ####################
@@ -251,3 +251,28 @@ binding = "CF_VERSION_METADATA"
 
 [env.production.version_metadata]
 binding = "CF_VERSION_METADATA"
+
+#################### Rate limiting ####################
+[[env.dev.unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 300, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 300, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1003"
+simple = { limit = 300, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1004"
+simple = { limit = 300, period = 60 }

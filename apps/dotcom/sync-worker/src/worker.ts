@@ -8,7 +8,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
 import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
-import { cors, json } from 'itty-router'
+import { cors } from 'itty-router'
 // import { APP_ID } from './TLAppDurableObject'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
@@ -37,10 +37,6 @@ const { preflight, corsify } = cors({
 const router = createRouter<Environment>()
 	.all('*', preflight)
 	.all('*', blockUnknownOrigins)
-	.get('/hello', async (req, env) => {
-		const replicator = env.TL_PG_REPLICATOR.get(env.TL_PG_REPLICATOR.idFromName('0'))
-		return json(await replicator.fetchDataForUser('user_2n6c0vr6VFOd97J217TA77m8eV5'))
-	})
 	.post('/new-room', createRoom)
 	.post('/snapshots', createRoomSnapshot)
 	.get('/snapshot/:roomId', getRoomSnapshot)
@@ -59,21 +55,6 @@ const router = createRouter<Environment>()
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
-	/* ----------------------- App ---------------------- */
-	// .get('/app', async (req, env) => {
-	// 	const auth = await getAuth(req, env)
-	// 	if (!auth?.userId) return notFound()
-
-	// 	// This needs to be a websocket request!
-	// 	if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-	// 		const url = new URL(req.url)
-	// 		url.pathname = `/app/${auth.userId}`
-	// 		// clone the request and add the new url
-	// 		return env.TLAPP_DO.get(env.TLAPP_DO.idFromName(APP_ID)).fetch(new Request(url, req))
-	// 	}
-
-	// 	return notFound()
-	// })
 	.get('/app/:userId/connect', async (req, env) => {
 		// forward req to the user durable object
 		const auth = await getAuth(req, env)
