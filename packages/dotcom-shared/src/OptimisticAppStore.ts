@@ -33,7 +33,7 @@ export class OptimisticAppStore {
 		return data
 	})
 
-	getCommitedData() {
+	getCommittedData() {
 		return this._gold_store.get()
 	}
 
