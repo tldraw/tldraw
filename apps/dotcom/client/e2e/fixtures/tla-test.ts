@@ -1,5 +1,5 @@
 import { clerkSetup } from '@clerk/testing/playwright'
-import { test as base } from '@playwright/test'
+import { test as base, expect } from '@playwright/test'
 import fs from 'fs'
 import { OTHER_USERS, USERS } from '../consts'
 import { Database } from './Database'
@@ -81,6 +81,7 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 				await page.getByRole('button', { name: 'Continue', exact: true }).click()
 				await page.waitForTimeout(1000)
 				await page.getByLabel('Enter verification code. Digit').fill('424242')
+				await expect(page.getByTestId('tla-sidebar-layout')).toBeVisible()
 
 				await page.context().storageState({ path: fileName })
 				await page.close()
