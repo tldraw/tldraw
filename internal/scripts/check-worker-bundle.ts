@@ -29,17 +29,29 @@ interface Meta {
 	}
 }
 
+const EXTERNAL_DEPS = [
+	'cloudflare:workers',
+	'crypto',
+	'tls',
+	'net',
+	'stream',
+	'fs',
+	'os',
+	'perf_hooks',
+]
+
 async function checkBundleSize() {
 	rmSync(bundleMetaFileName, { force: true })
 
+	console.log('checking bundle size')
 	await exec('yarn', [
 		'esbuild',
 		entry,
 		'--bundle',
 		'--outfile=/dev/null',
 		'--minify',
-		'--external:cloudflare:workers',
 		'--metafile=' + bundleMetaFileName,
+		...EXTERNAL_DEPS.map((dep) => '--external:' + dep),
 	])
 
 	console.log(kleur.cyan().bold('Checking bundle size'), 'of', resolve(entry) + '\n')

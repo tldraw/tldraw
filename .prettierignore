@@ -30,3 +30,5 @@ apps/docs/content/reference/**/*
 apps/dotcom/client/public/**/*.*
 
 **/.clasp.json
+
+apps/dotcom/zero-cache/docker/docker-compose.yml

@@ -167,6 +167,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED:
 						track?.(MULTIPLAYER_EVENT_NAME, { name: 'not-authenticated', roomId })
 						break
+					case TLSyncErrorCloseEventReason.RATE_LIMITED:
+						track?.(MULTIPLAYER_EVENT_NAME, { name: 'rate-limited', roomId })
+						break
 					default:
 						track?.(MULTIPLAYER_EVENT_NAME, { name: 'sync-error:' + reason, roomId })
 						break

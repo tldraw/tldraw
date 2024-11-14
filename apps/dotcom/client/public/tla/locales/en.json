@@ -65,14 +65,14 @@
   "517bb809d9": {
     "translation": "Page menu"
   },
+  "54d240fa41": {
+    "translation": "Please slow down."
+  },
   "55505ba281": {
     "translation": "PNG"
   },
   "5a95a425f7": {
     "translation": "Share"
-  },
-  "5f8e8f8446": {
-    "translation": "Could not publish changes"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -97,6 +97,9 @@
   },
   "827aedd218": {
     "translation": "Added .tldr {count, plural, one {# file} other {# files}}"
+  },
+  "8ff3d0a705": {
+    "translation": "Rate limited"
   },
   "904a830405": {
     "translation": "Rename"
@@ -130,9 +133,6 @@
   },
   "a9ded1e5ce": {
     "translation": "Background"
-  },
-  "ac76341376": {
-    "translation": "Could not publish file"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -191,9 +191,6 @@
   },
   "e2cd8064c2": {
     "translation": "Sorry, you don’t have access to that user."
-  },
-  "e8a5c576a4": {
-    "translation": "Could not delete"
   },
   "ea4788705e": {
     "translation": "Cancel"

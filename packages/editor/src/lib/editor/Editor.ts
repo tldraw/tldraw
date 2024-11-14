@@ -6005,7 +6005,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
-		const changes = getReorderingShapesChanges(this, 'toBack', ids as TLShapeId[])
+		const changes = getReorderingShapesChanges(this, 'toBack', ids as TLShapeId[], {
+			considerAllShapes: true,
+		})
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -6019,16 +6021,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.sendBackward([box1, box2])
 	 * ```
 	 *
+	 * By default, the operation will only consider overlapping shapes.
+	 * To consider all shapes, pass `{ considerAllShapes: true }` in the options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.sendBackward(['id1', 'id2'], { considerAllShapes: true })
+	 * ```
+	 *
 	 * @param shapes - The shapes (or shape ids) to move.
+	 * @param opts - The options for the backward operation.
 	 *
 	 * @public
 	 */
-	sendBackward(shapes: TLShapeId[] | TLShape[]): this {
+	sendBackward(shapes: TLShapeId[] | TLShape[], opts: { considerAllShapes?: boolean } = {}): this {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
-		const changes = getReorderingShapesChanges(this, 'backward', ids as TLShapeId[])
+		const changes = getReorderingShapesChanges(this, 'backward', ids as TLShapeId[], opts)
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -6042,16 +6053,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.bringForward(box1,  box2)
 	 * ```
 	 *
+	 * By default, the operation will only consider overlapping shapes.
+	 * To consider all shapes, pass `{ considerAllShapes: true }` in the options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.bringForward(['id1', 'id2'], { considerAllShapes: true })
+	 * ```
+	 *
 	 * @param shapes - The shapes (or shape ids) to move.
+	 * @param opts - The options for the forward operation.
 	 *
 	 * @public
 	 */
-	bringForward(shapes: TLShapeId[] | TLShape[]): this {
+	bringForward(shapes: TLShapeId[] | TLShape[], opts: { considerAllShapes?: boolean } = {}): this {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
-		const changes = getReorderingShapesChanges(this, 'forward', ids as TLShapeId[])
+		const changes = getReorderingShapesChanges(this, 'forward', ids as TLShapeId[], opts)
 		if (changes) this.updateShapes(changes)
 		return this
 	}
