@@ -39,8 +39,8 @@ export class Editor {
 		await expect(this.sidebarToggle).toBeVisible()
 	}
 
-	async getNumberOfShapes() {
-		return this.shapes.count()
+	async expectShapesCount(expected: number) {
+		await expect(this.shapes).toHaveCount(expected)
 	}
 
 	async getCurrentFileName() {

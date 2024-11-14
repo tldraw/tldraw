@@ -180,35 +180,44 @@ test.describe('published files', () => {
 		})
 	})
 
-	test('can be updated', async ({ page, browser, editor, shareMenu }) => {
-		await page.getByTestId('tools.rectangle').click()
-		await page.locator('.tl-background').click()
-		expect(await editor.getNumberOfShapes()).toBe(1)
-		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-		expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
-
-		const { newContext, newPage, newHomePage, newEditor } = await openNewIncognitoPage(browser, {
-			url,
-			userProps: undefined,
+	test.only('can be updated', async ({ page, browser, editor, shareMenu }) => {
+		const url = await test.step('Create a shape and publish file', async () => {
+			await page.getByTestId('tools.rectangle').click()
+			await page.locator('.tl-background').click()
+			await editor.expectShapesCount(1)
+			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
+			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
+			return url
 		})
-		await newHomePage.isLoaded()
-		expect(await newEditor.getNumberOfShapes()).toBe(1)
 
-		await page.getByTestId('quick-actions.duplicate').click()
+		const { newContext, newPage, newHomePage, newEditor } =
+			await test.step('Open the page in another window', async () => {
+				const result = await openNewIncognitoPage(browser, {
+					url,
+					userProps: undefined,
+				})
+				await result.newHomePage.isLoaded()
+				await result.newEditor.expectShapesCount(1)
+				return result
+			})
 
-		// lets reload to make sure the change would have time to propagate
-		await newPage.reload()
-		await newHomePage.isLoaded()
-		// The main editor should have two shapes
-		expect(await editor.getNumberOfShapes()).toBe(2)
-		// We haven't published changes yet, so the new page should still only see one shape
-		expect(await newEditor.getNumberOfShapes()).toBe(1)
+		await test.step('Update the document (duplicate the shape)', async () => {
+			await page.getByTestId('quick-actions.duplicate').click()
 
-		await shareMenu.open()
-		await shareMenu.publishChanges()
-		await newPage.reload()
-		await newHomePage.isLoaded()
-		expect(await newEditor.getNumberOfShapes()).toBe(2)
-		await newContext.close()
+			// lets reload to make sure the change would have time to propagate
+			await newPage.reload()
+			await newHomePage.isLoaded()
+			// We haven't published changes yet, so the new page should still only see one shape
+			await newEditor.expectShapesCount(1)
+		})
+
+		await test.step('Publish the changes and check for updates', async () => {
+			await shareMenu.open()
+			await shareMenu.publishChanges()
+			await newPage.reload()
+			await newHomePage.isLoaded()
+			await newEditor.expectShapesCount(2)
+			await newContext.close()
+		})
 	})
 })
