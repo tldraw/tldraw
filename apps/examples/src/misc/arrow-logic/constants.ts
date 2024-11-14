@@ -1,4 +1,5 @@
-export const MINIMUM_LEG_LENGTH = 10
+export const EXPAND_LEG_LENGTH = 32
+export const MINIMUM_LEG_LENGTH = 24
 
 export const DIRS = [
 	// right

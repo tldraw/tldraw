@@ -40,6 +40,28 @@ export function getSArrow(
 			g.B.e.l,
 			g.B.l,
 		]
+
+		if (Math.abs(g.B.l.y - g.A.r.y) < MINIMUM_LEG_LENGTH) {
+			// Short outside leg, try an i arrow
+			const midY = (g.A.r.y + g.B.l.y) / 2
+			path = [new Vec(g.A.r.x, midY), new Vec(g.B.l.x, midY)]
+		} else if (g.C.c.x - g.A.r.x < MINIMUM_LEG_LENGTH) {
+			// Short middle leg, try an l arrow
+			if (yDir === 'down' && g.A.r.y > g.B.e.t.y) {
+				// u arrow, start from top of A and go around to top of B
+				path = [g.A.t, g.A.e.t, g.D.tcr, g.B.e.t, g.B.t]
+			} else if (yDir === 'up' && g.A.r.y < g.B.e.b.y) {
+				// u arrow, start from bottom of A and go around to bottom of B
+			} else {
+				path = [
+					g.A.r,
+					g.A.e.r,
+					yDir === 'down' ? g.C.tr : g.C.tl,
+					yDir === 'down' ? g.B.e.t : g.B.e.b,
+					yDir === 'down' ? g.B.t : g.B.b,
+				]
+			}
+		}
 	} else if (brokenEdgeA.dir === DIRS[1]) {
 		// down
 		path = [
@@ -72,31 +94,70 @@ export function getSArrow(
 		]
 	}
 
-	// if (
-	// 	Vec.Dist(path[0], path[1]) < MINIMUM_LEG_LENGTH ||
-	// 	Vec.Dist(path[2], path[3]) < MINIMUM_LEG_LENGTH
-	// ) {
-	// 	return { error: true, reason: sArrowErrors.SHORT_OUTSIDE_LEGS }
+	// if (Vec.Dist(path[2], path[3]) < MINIMUM_LEG_LENGTH) {
+	// 	// Check for a short middle section
+	// 	if (brokenEdgeA.dir === DIRS[0]) {
+	// 		// right
+	// 		const midY = (g.A.r.y + g.B.l.y) / 2
+	// 		path = [new Vec(g.A.r.x, midY), new Vec(g.B.l.x, midY)]
+	// 	} else if (brokenEdgeA.dir === DIRS[1]) {
+	// 		// down
+	// 		const midX = (g.A.b.x + g.B.t.x) / 2
+	// 		path = [new Vec(midX, g.A.b.y), new Vec(midX, g.B.t.y)]
+	// 	} else if (brokenEdgeA.dir === DIRS[2]) {
+	// 		// left
+	// 		const midY = (g.A.l.y + g.B.r.y) / 2
+	// 		path = [new Vec(g.A.l.x, midY), new Vec(g.B.r.x, midY)]
+	// 	} else if (brokenEdgeA.dir === DIRS[3]) {
+	// 		// up
+	// 		const midX = (g.A.t.x + g.B.b.x) / 2
+	// 		path = [new Vec(midX, g.A.t.y), new Vec(midX, g.B.b.y)]
+	// 	}
+	// } else {
+	// 	// Check for short first and last sections
+	// 	if (
+	// 		Vec.Dist(path[0], path[1]) < MINIMUM_LEG_LENGTH ||
+	// 		Vec.Dist(path[4], path[5]) < MINIMUM_LEG_LENGTH
+	// 	) {
+	// 		if (brokenEdgeA.dir === DIRS[0]) {
+	// 			// right
+	// 			path = [
+	// 				g.A.r,
+	// 				g.A.e.r,
+	// 				yDir === 'down' ? g.C.tr : g.C.tl,
+	// 				yDir === 'down' ? g.B.e.t : g.B.e.b,
+	// 				yDir === 'down' ? g.B.t : g.B.b,
+	// 			]
+	// 		} else if (brokenEdgeA.dir === DIRS[1]) {
+	// 			// down
+	// 			path = [
+	// 				g.A.b,
+	// 				g.A.e.b,
+	// 				xDir === 'right' ? g.C.bl : g.C.br,
+	// 				xDir === 'right' ? g.B.e.l : g.B.e.r,
+	// 				xDir === 'right' ? g.B.l : g.B.r,
+	// 			]
+	// 		} else if (brokenEdgeA.dir === DIRS[2]) {
+	// 			// left
+	// 			path = [
+	// 				g.A.l,
+	// 				g.A.e.l,
+	// 				yDir === 'down' ? g.C.tl : g.C.tr,
+	// 				yDir === 'down' ? g.B.e.t : g.B.e.b,
+	// 				yDir === 'down' ? g.B.t : g.B.b,
+	// 			]
+	// 		} else if (brokenEdgeA.dir === DIRS[3]) {
+	// 			// up
+	// 			path = [
+	// 				g.A.t,
+	// 				g.A.e.t,
+	// 				xDir === 'right' ? g.C.tl : g.C.tr,
+	// 				xDir === 'right' ? g.B.e.l : g.B.e.r,
+	// 				xDir === 'right' ? g.B.l : g.B.r,
+	// 			]
+	// 		}
+	// 	}
 	// }
-
-	if (brokenEdgeA.dir === DIRS[0] && g.C.b.y - g.C.t.y < MINIMUM_LEG_LENGTH * 2) {
-		// right
-		const midY = (g.A.r.y + g.B.l.y) / 2
-		path = [new Vec(g.A.r.x, midY), new Vec(g.B.l.x, midY)]
-	} else if (brokenEdgeA.dir === DIRS[1] && g.C.r.x - g.C.l.x < MINIMUM_LEG_LENGTH * 2) {
-		console.log(g.C.r.y - g.C.l.y)
-		// down
-		const midX = (g.A.b.x + g.B.t.x) / 2
-		path = [new Vec(midX, g.A.b.y), new Vec(midX, g.B.t.y)]
-	} else if (brokenEdgeA.dir === DIRS[2] && g.C.b.y - g.C.t.y < MINIMUM_LEG_LENGTH * 2) {
-		// left
-		const midY = (g.A.l.y + g.B.r.y) / 2
-		path = [new Vec(g.A.l.x, midY), new Vec(g.B.r.x, midY)]
-	} else if (brokenEdgeA.dir === DIRS[3] && g.C.r.x - g.C.l.x < MINIMUM_LEG_LENGTH * 2) {
-		// up
-		const midX = (g.A.t.x + g.B.b.x) / 2
-		path = [new Vec(midX, g.A.t.y), new Vec(midX, g.B.b.y)]
-	}
 
 	return { error: false, path }
 }

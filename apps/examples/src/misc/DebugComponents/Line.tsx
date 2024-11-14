@@ -13,19 +13,24 @@ export function Line({
 	width?: number
 	color: string
 }) {
+	const isHorizontal = p1.y === p2.y
+
 	return (
 		<div
 			style={{
 				width: Math.abs(p2.x - p1.x),
 				height: Math.abs(p2.y - p1.y),
-				borderLeft: Math.abs(p2.y - p1.y) ? `${width}px ${style} ${color}` : 'none',
-				borderBottom: Math.abs(p2.x - p1.x) ? `${width}px ${style} ${color}` : 'none',
+				borderTop: isHorizontal ? `${width / 2}px ${style} ${color}` : 'none',
+				borderRight: isHorizontal ? 'none' : `${width / 2}px ${style} ${color}`,
+				borderBottom: isHorizontal ? `${width / 2}px ${style} ${color}` : 'none',
+				borderLeft: isHorizontal ? 'none' : `${width / 2}px ${style} ${color}`,
 				position: 'absolute',
-				transform: `translate(${Math.min(p1.x, p2.x)}px, ${Math.min(p1.y, p2.y)}px)`,
+				transform: `translate(${Math.min(p1.x, p2.x) - (isHorizontal ? 0 : width / 2)}px, ${Math.min(p1.y, p2.y) - (isHorizontal ? width / 2 : 0)}px)`,
 				background: '#ccc',
 				opacity: 0.6,
 				zIndex: 99998,
 				pointerEvents: 'none',
+				boxSizing: 'border-box',
 			}}
 		/>
 	)

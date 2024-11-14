@@ -1,4 +1,5 @@
 import { Box, TLArrowBinding, TLArrowShape, useEditor, useValue, Vec } from 'tldraw'
+import { EXPAND_LEG_LENGTH } from './arrow-logic/constants'
 import { ArrowNavigationGrid, getArrowNavigationGrid } from './arrow-logic/getArrowNavigationGrid'
 import { getBrokenEdge } from './arrow-logic/getBrokenEdge'
 import { getSArrow } from './arrow-logic/s-arrow'
@@ -6,12 +7,9 @@ import { Dot } from './DebugComponents/Dot'
 import { Line } from './DebugComponents/Line'
 import { Rect } from './DebugComponents/Rect'
 
-const MINIMUM_LEG_LENGTH = 20
-
 interface ArrowDebugInfo {
 	startBounds: Box
 	endBounds: Box
-	expandedBounds: Box
 	centerBounds: Box
 }
 
@@ -44,13 +42,11 @@ export function AllArrowsDebugDisplay() {
 					const endBounds = editor.getShapePageBounds(endShape)
 					if (!endBounds) return
 
-					const expandedBounds = Box.Common([startBounds, endBounds]).expandBy(MINIMUM_LEG_LENGTH)
 					const centerBounds = Box.FromPoints([startBounds.center, endBounds.center])
 
 					results.push({
 						startBounds,
 						endBounds,
-						expandedBounds,
 						centerBounds,
 					})
 				})
@@ -68,7 +64,7 @@ export function AllArrowsDebugDisplay() {
 function ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
 	const { startBounds: boxA, endBounds: boxB } = info
 
-	const grid = getArrowNavigationGrid(boxA, boxB, 20)
+	const grid = getArrowNavigationGrid(boxA, boxB, EXPAND_LEG_LENGTH)
 
 	// // try S arrow
 
