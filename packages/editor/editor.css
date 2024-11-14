@@ -912,20 +912,20 @@ input,
 	padding-left: 30px;
 }
 
-.tl-text-label[data-align="start"] .ProseMirror ul,
-.tl-text-label[data-align="start"] .ProseMirror ol {
+.tl-text-label[data-align='start'] .ProseMirror ul,
+.tl-text-label[data-align='start'] .ProseMirror ol {
 	display: flex;
 	justify-content: flex-start;
 }
 
-.tl-text-label[data-align="middle"] .ProseMirror ul,
-.tl-text-label[data-align="middle"] .ProseMirror ol {
+.tl-text-label[data-align='middle'] .ProseMirror ul,
+.tl-text-label[data-align='middle'] .ProseMirror ol {
 	display: flex;
 	justify-content: center;
 }
 
-.tl-text-label[data-align="end"] .ProseMirror ul,
-.tl-text-label[data-align="end"] .ProseMirror ol {
+.tl-text-label[data-align='end'] .ProseMirror ul,
+.tl-text-label[data-align='end'] .ProseMirror ol {
 	display: flex;
 	justify-content: flex-end;
 }
