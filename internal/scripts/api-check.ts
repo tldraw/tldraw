@@ -13,7 +13,7 @@ const packagesOurTypesCanDependOn = [
 	'eventemitter3',
 	'nanoevents',
 	'prosemirror-model',
-	'prosemirror-state'
+	'prosemirror-state',
 ]
 
 main()
