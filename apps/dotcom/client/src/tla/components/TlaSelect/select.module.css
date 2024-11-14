@@ -1,4 +1,5 @@
-.container {
+.trigger {
+	all: unset;
 	position: relative;
 	display: flex;
 	align-items: center;
@@ -6,15 +7,16 @@
 	justify-content: flex-end;
 }
 
-.select {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	opacity: 0;
-	cursor: pointer;
-	pointer-events: all;
+/* need to target the parent div, ugh, can't target via a className */
+div:has(> .content) {
+	/* right: 0; */
+	z-index: 2 !important;
+}
+
+.content {
+	border-radius: var(--radius-3);
+	background-color: var(--color-panel);
+	box-shadow: var(--shadow-3);
 }
 
 .label {
@@ -38,8 +40,14 @@
 	visibility: hidden;
 }
 
+.option {
+	display: flex;
+	align-items: center;
+	padding: 8px;
+}
+
 @media (hover: hover) {
-	.container[data-disabled='false']:hover > .label::after {
+	.trigger[data-disabled='false']:hover > .label::after {
 		visibility: visible;
 	}
 }
@@ -48,10 +56,14 @@
 	cursor: default;
 }
 
-.container[data-disabled='true'] .label {
+.trigger[data-disabled='true'] .label {
 	color: var(--tla-color-text-3);
 }
 
-.container[data-disabled='true'] .chevron {
+.trigger[data-disabled='true'] .chevron {
 	display: none;
+}
+
+[data-radix-focus-guard] {
+	inset: 0;
 }

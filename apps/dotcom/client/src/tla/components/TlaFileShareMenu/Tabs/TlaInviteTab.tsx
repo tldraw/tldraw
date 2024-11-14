@@ -123,15 +123,12 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 				value={sharedLinkType!}
 				disabled={!isShared}
 				onChange={handleSelectChange}
-			>
-				{/* <option value="no-access">No access</option> */}
-				<option value="edit">
-					<F defaultMessage="Editor" />
-				</option>
-				<option value="view">
-					<F defaultMessage="Viewer" />
-				</option>
-			</TlaSelect>
+				options={[
+					{ value: 'edit', label: <F defaultMessage="Editor" /> },
+					{ value: 'view', label: <F defaultMessage="Viewer" /> },
+					// { value: 'no-access', label: <F defaultMessage="No access" /> },
+				]}
+			/>
 		</TlaMenuControl>
 	)
 }
