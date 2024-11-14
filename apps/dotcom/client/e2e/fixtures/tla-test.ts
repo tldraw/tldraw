@@ -66,7 +66,6 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 				return
 			}
 			for (const user of ['huppy' as const, 'suppy' as const]) {
-				console.log('user', user)
 				const fileName = getStorageStateFileName(id, user)
 				// Important: make sure we authenticate in a clean environment by unsetting storage state.
 				const page = await browser.newPage({ storageState: undefined })

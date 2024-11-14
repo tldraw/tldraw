@@ -62,7 +62,7 @@ jobs:
         run: |
           echo "CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}" > apps/dotcom/sync-worker/.dev.vars
           echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> apps/dotcom/sync-worker/.dev.vars
-          yarn e2e-dotcom --repeat-each=10
+          yarn e2e-dotcom-x10
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
