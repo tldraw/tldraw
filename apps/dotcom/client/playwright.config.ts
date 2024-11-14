@@ -24,7 +24,7 @@ export default defineConfig({
 	retries: process.env.CI ? 1 : 0,
 	// For now we need to use 1 worker for dev as well, otherwise clearing the db fails since there might
 	// an open connection to the db when we are trying to clear it.
-	workers: process.env.CI ? 1 : 3,
+	workers: process.env.CI ? 3 : 3,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	reporter: process.env.CI ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
