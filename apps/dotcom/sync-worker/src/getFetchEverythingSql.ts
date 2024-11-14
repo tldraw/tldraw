@@ -40,14 +40,15 @@ const userColumns = userKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileColumns = fileKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileStateColumns = fileStateKeys.map((c) => `${c.reference} as "${c.alias}"`)
 
-export function getFetchEverythingSql(replicatorId: string, bootId: string) {
+//
+export function getFetchUserDataSql(replicatorId: string, userId: string, bootId: string) {
 	return `
-insert into public.replicator_boot_id ("replicatorId", "bootId") values ('${replicatorId}', '${bootId}') ON CONFLICT ("replicatorId") DO UPDATE SET "bootId" = '${bootId}';
-select 'user' as "table", ${userColumns.concat(fileNulls).concat(fileStateNulls)} from public.user
-union
-select 'file' as "table", ${userNulls.concat(fileColumns).concat(fileStateNulls)} from public.file
-union
-select 'file_state' as "table", ${userNulls.concat(fileNulls).concat(fileStateColumns)} from public.file_state;
+INSERT INTO public.replicator_user_boot_id ("replicatorId", "userId", "bootId") VALUES ('${replicatorId}', '${userId}', '${bootId}') ON CONFLICT ("replicatorId", "userId") DO UPDATE SET "bootId" = '${bootId}';
+SELECT 'user' AS "table", ${userColumns.concat(fileNulls).concat(fileStateNulls)} FROM public.user WHERE "id" = '${userId}'
+UNION
+SELECT 'file' AS "table", ${userNulls.concat(fileColumns).concat(fileStateNulls)} FROM public.file WHERE "ownerId" = '${userId}' OR EXISTS(SELECT 1 FROM public.file_state WHERE "userId" = '${userId}' AND public.file_state."fileId" = public.file.id) 
+UNION
+SELECT 'file_state' AS "table", ${userNulls.concat(fileNulls).concat(fileStateColumns)} FROM public.file_state WHERE "userId" = '${userId}';
 `
 }
 

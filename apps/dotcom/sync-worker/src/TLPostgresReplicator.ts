@@ -8,7 +8,7 @@ import type { TLUserDurableObject } from './TLUserDurableObject'
 import {
 	fileKeys,
 	fileStateKeys,
-	getFetchEverythingSql,
+	getFetchUserDataSql,
 	parseResultRow,
 	userKeys,
 } from './getFetchEverythingSql'
@@ -111,6 +111,8 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
+	eventBuffer: null | Array<{ row: postgres.Row | null; info: postgres.ReplicationEvent }> = null
+
 	private async boot() {
 		this.debug('booting')
 		// clean up old resources if necessary
@@ -137,19 +139,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}),
 			bootId: uniqueId(),
 		}
-		/**
-		 * BOOTUP SEQUENCE
-		 * 1. Generate a unique boot id
-		 * 2. Subscribe to all changes
-		 * 3. Fetch all data and write the boot id in a transaction
-		 * 4. If we receive events before the boot id update comes through, ignore them
-		 * 5. If we receive events after the boot id comes through but before we've finished
-		 *    fetching all data, buffer them and apply them after we've finished fetching all data.
-		 *    (not sure this is possible, but just in case)
-		 * 6. Once we've finished fetching all data, apply any buffered events
-		 */
 
-		const myId = this.ctx.id.toString()
 		// if the bootId changes during the boot process, we should stop silently
 		const bootId = this.state.bootId
 
@@ -157,35 +147,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 		const start = Date.now()
 		const result = await new Promise<'error' | 'success'>((resolve) => {
-			let didFetchInitialData = false
-			let didGetBootIdInSubscription = false
 			let subscription: postgres.SubscriptionHandle | undefined
-
-			const initialUpdateBuffer: Array<{
-				row: postgres.Row | null
-				info: postgres.ReplicationEvent
-			}> = []
-
-			const updateState = () => {
-				if (didFetchInitialData && didGetBootIdInSubscription && subscription) {
-					// we got everything, so we can set the state to connected and apply any buffered events
-					assert(this.state.type === 'connecting', 'state should be connecting')
-					this.state = {
-						type: 'connected',
-						db: this.state.db,
-						bootId: this.state.bootId,
-						subscription,
-					}
-					this.debug('num updates pending after pg sync:', initialUpdateBuffer.length)
-					if (initialUpdateBuffer.length) {
-						while (initialUpdateBuffer.length) {
-							const { row, info } = initialUpdateBuffer.shift()!
-							this.handleEvent(row, info)
-						}
-					}
-					resolve('success')
-				}
-			}
 
 			assert(this.state.type === 'connecting', 'state should be connecting')
 			this.debug('subscribing')
@@ -194,61 +156,25 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					'*',
 					// on message
 					async (row, info) => {
-						if (this.state.type === 'connected') {
-							this.handleEvent(row, info)
+						if (this.eventBuffer) {
+							this.eventBuffer.push({ row, info })
 							return
 						}
-						if (this.state.type !== 'connecting') return
-
-						if (didGetBootIdInSubscription) {
-							// we've already got the boot id, so just shove things into
-							// a buffer until the state is set to 'connecting'
-							initialUpdateBuffer.push({ row, info })
-						} else if (
-							info.relation.table === 'replicator_boot_id' &&
-							(row as any)?.bootId === this.state.bootId
-						) {
-							didGetBootIdInSubscription = true
-							updateState()
-						}
+						this.handleEvent(row, info)
 						// ignore other events until we get the boot id
 					},
 					// on connect
 					async () => {
+						assert(this.state.type === 'connecting', 'state should be connecting')
 						this.debug('on connect')
-						try {
-							assert(this.state.type === 'connecting', 'state should be connecting')
-							const sql = getFetchEverythingSql(myId, bootId)
-							this.sql.exec(seed)
-							// ok
-							await this.state.db.begin(async (db) => {
-								return db
-									.unsafe(sql, [], { prepare: false })
-									.simple()
-									.forEach((row: any) => {
-										this._insertRow(
-											parseResultRow(
-												row.table === 'user'
-													? userKeys
-													: row.table === 'file'
-														? fileKeys
-														: fileStateKeys,
-												row
-											),
-											row.table
-										)
-									})
-							})
-							this.debug('database size (mb)', (this.sql.databaseSize / 1024 / 1024).toFixed(2))
-							// this will prevent more events from being added to the buffer
-							didFetchInitialData = true
-							updateState()
-						} catch (e) {
-							this.debug('init failed')
-							this.captureException(e)
-							resolve('error')
-							return
+						this.sql.exec(seed)
+						this.state = {
+							type: 'connected',
+							db: this.state.db,
+							bootId,
+							subscription: subscription!,
 						}
+						resolve('success')
 					},
 					// on error
 					() => {
@@ -266,8 +192,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				)
 				.then((handle) => {
 					this.debug('got handle')
-					subscription = handle
-					updateState()
+					if (this.state.type === 'connected') {
+						this.state.subscription = handle
+					} else {
+						subscription = handle
+					}
 				})
 				.catch((err) => {
 					this.debug('caught error')
@@ -528,9 +457,64 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	private async pauseEvents(fn: () => Promise<void>) {
+		assert(this.eventBuffer === null, 'event buffer should be null')
+		this.eventBuffer = []
+		try {
+			await fn()
+		} finally {
+			const buf = this.eventBuffer
+			this.eventBuffer = null
+			for (const { row, info } of buf) {
+				this.handleEvent(row, info)
+			}
+		}
+	}
+
+	private async preloadUserData(userId: string) {
+		const start = Date.now()
+		await this.queue.push(async () => {
+			await this.pauseEvents(async () => {
+				assert(this.state.type === 'connected', 'state should be connected in preloadUserData')
+				const replicatorId = this.ctx.id.toString()
+				const bootId = this.state.bootId
+				const sql = getFetchUserDataSql(replicatorId, userId, bootId)
+				this.debug('preloading user data')
+				await this.state.db.begin(async (db) => {
+					return db
+						.unsafe(sql, [], { prepare: false })
+						.simple()
+						.forEach((row: any) => {
+							this._insertRow(
+								parseResultRow(
+									row.table === 'user' ? userKeys : row.table === 'file' ? fileKeys : fileStateKeys,
+									row
+								),
+								row.table
+							)
+						})
+				})
+			})
+		})
+
+		const end = Date.now()
+		this.debug('preload time', end - start, 'ms')
+	}
+
 	async fetchDataForUser(userId: string) {
 		await this.waitUntilConnected()
 		assert(this.state.type === 'connected', 'state should be connected in fetchDataForUser')
+		// check if we have the user data in the database
+
+		const res = this.sql
+			.exec(`SELECT count(*) as count FROM user WHERE id = ?`, userId)
+			.toArray()[0]
+		if (res.count === 0) {
+			this.debug("user doesn't exist in database, preloading")
+			await this.preloadUserData(userId)
+		} else {
+			this.debug('user exists in database')
+		}
 
 		const files = this.sql
 			.exec(

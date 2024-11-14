@@ -63,15 +63,20 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				throw new Error('Rate limited')
 			}
 			if (this.lastReplicatorBootId === null) {
-				await this.ctx.blockConcurrencyWhile(async () => {
-					const { data, bootId } = await this.replicator.fetchDataForUser(this.userId!)
-					this.lastReplicatorBootId = bootId
-					this.store.initialize(data)
-					this.replicator.registerUser(this.userId!)
-				})
+				await this.init()
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
+
+	async init() {
+		assert(this.userId, 'User ID not set')
+		await this.ctx.blockConcurrencyWhile(async () => {
+			const { data, bootId } = await this.replicator.fetchDataForUser(this.userId!)
+			this.lastReplicatorBootId = bootId
+			this.store.initialize(data)
+			this.replicator.registerUser(this.userId!)
+		})
+	}
 
 	// Handle a request to the Durable Object.
 	override async fetch(req: IRequest) {
@@ -95,22 +100,18 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async onRequest(req: IRequest) {
+		assert(this.userId, 'User ID not set')
 		// handle legacy param names
 
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
 		const { sessionId } = params
 
-		if (!this.userId) {
-			throw new Error('User data not initialized')
-		}
-		if (!sessionId) {
-			throw new Error('Session ID is required')
-		}
+		assert(sessionId, 'Session ID is required')
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
-		this.ctx.acceptWebSocket(serverWebSocket)
+		this.ctx.acceptWebSocket(serverWebSocket, [this.userId])
 		const initialData = this.store.getCommittedData()
 		if (!initialData) {
 			throw new Error('Initial data not fetched')
@@ -128,8 +129,32 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
-	override async webSocketMessage(_ws: WebSocket, message: string) {
+	private debug(...args: any[]) {
+		// uncomment for dev time debugging
+		// console.log(...args)
+		if (this.sentry) {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry.addBreadcrumb({
+				message: args.join(' '),
+			})
+		}
+	}
+
+	override async webSocketMessage(ws: WebSocket, message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
+		if (!this.userId) {
+			this.debug('User ID not set, setting it')
+			const [userId] = this.ctx.getTags(ws)
+			assert(userId, 'User ID not set')
+			this.userId = userId
+			// force a re-fetch of the data
+			this.lastReplicatorBootId = null
+		}
+
+		if (this.lastReplicatorBootId === null) {
+			this.debug('Replicator boot id not set, initializing')
+			await this.init()
+		}
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
