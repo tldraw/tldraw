@@ -473,6 +473,7 @@ export const TLSyncErrorCloseEventReason: {
     readonly INVALID_RECORD: "INVALID_RECORD";
     readonly NOT_AUTHENTICATED: "NOT_AUTHENTICATED";
     readonly NOT_FOUND: "NOT_FOUND";
+    readonly RATE_LIMITED: "RATE_LIMITED";
     readonly SERVER_TOO_OLD: "SERVER_TOO_OLD";
     readonly UNKNOWN_ERROR: "UNKNOWN_ERROR";
 };

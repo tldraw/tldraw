@@ -24,8 +24,6 @@ export interface Environment {
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
 	MEASURE: Analytics | undefined
 
-	DB: D1Database
-
 	ROOMS: R2Bucket
 	ROOMS_HISTORY_EPHEMERAL: R2Bucket
 
@@ -51,6 +49,8 @@ export interface Environment {
 	IS_LOCAL: string | undefined
 	WORKER_NAME: string | undefined
 	ASSET_UPLOAD_ORIGIN: string | undefined
+
+	RATE_LIMITER: RateLimit
 }
 
 export type DBLoadResult =

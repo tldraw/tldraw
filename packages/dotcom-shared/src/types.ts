@@ -89,7 +89,8 @@ export const ZErrorCode = stringEnum(
 	'republish_failed',
 	'unknown_error',
 	'forbidden',
-	'bad_request'
+	'bad_request',
+	'rate_limit_exceeded'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
 
