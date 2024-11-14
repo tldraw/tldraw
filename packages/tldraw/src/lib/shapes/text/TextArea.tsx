@@ -4,6 +4,7 @@ import { Node } from 'prosemirror-model'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { forwardRef, useEffect, useState } from 'react'
+import { renderPlaintextFromRichText } from '../../utils/text/richText'
 
 interface TextAreaProps {
 	isEditing: boolean
@@ -81,8 +82,9 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 				// This is a quick and dirty way to determine if the text is just plaintext or if it's rich text.
 				const isPlaintext = !json.includes(`"marks"`) && !json.includes(`"list_item"`)
 				if (isPlaintext) {
+					const plaintext = renderPlaintextFromRichText(editor, json)
 					// There is a 'short-circuit' path here. If it's just plaintext, we don't need to do anything fancy.
-					handleChange({ plaintext: newState.doc.textContent })
+					handleChange({ plaintext })
 				} else {
 					handleChange({ richText: json })
 				}

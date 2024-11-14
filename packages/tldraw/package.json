@@ -45,7 +45,6 @@
 		"tldraw.css"
 	],
 	"dependencies": {
-		"@cristata/prosemirror-to-html-js": "patch:@cristata/prosemirror-to-html-js@npm%3A3.1.1#~/.yarn/patches/@cristata-prosemirror-to-html-js-npm-3.1.1-aa9829ec19.patch",
 		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@radix-ui/react-context-menu": "^2.1.5",
 		"@radix-ui/react-dialog": "^1.0.5",

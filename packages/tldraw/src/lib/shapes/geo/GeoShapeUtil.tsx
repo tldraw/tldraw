@@ -909,7 +909,9 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 			// The actual text size
 			Math.ceil(w / shape.props.scale - LABEL_PADDING * 2)
 		),
-		renderMethod: richText ? () => renderHtmlFromRichTextForMeasurement(richText) : undefined,
+		renderMethod: richText
+			? () => renderHtmlFromRichTextForMeasurement(editor, richText)
+			: undefined,
 	})
 
 	return {

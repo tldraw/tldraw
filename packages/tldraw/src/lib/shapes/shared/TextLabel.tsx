@@ -6,6 +6,7 @@ import {
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
+	useEditor,
 } from '@tldraw/editor'
 import React, { useEffect, useState } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
@@ -63,6 +64,7 @@ export const TextLabel = React.memo(function TextLabel({
 	textWidth,
 	textHeight,
 }: TextLabelProps) {
+	const editor = useEditor()
 	const [htmlFromMarkdown, setHtmlFromMarkdown] = useState<string | null>(null)
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		shapeId,
@@ -73,7 +75,7 @@ export const TextLabel = React.memo(function TextLabel({
 
 	useEffect(() => {
 		if (enableRichText && richText) {
-			const html = renderHtmlFromRichText(richText)
+			const html = renderHtmlFromRichText(editor, richText)
 			setHtmlFromMarkdown(html)
 		} else {
 			// This is the 'short-circuit' path. If it's just plaintext, we don't need to do anything fancy.
@@ -81,7 +83,7 @@ export const TextLabel = React.memo(function TextLabel({
 				setHtmlFromMarkdown(null)
 			}
 		}
-	}, [plaintext, enableRichText, richText, htmlFromMarkdown])
+	}, [plaintext, editor, enableRichText, richText, htmlFromMarkdown])
 
 	const currentText = richText || plaintext
 	const [initialText, setInitialText] = useState(currentText)
@@ -185,7 +187,8 @@ export function RichTextSVG({
 	labelColor: string
 	padding: number
 }) {
-	const html = renderHtmlFromRichText(richText)
+	const editor = useEditor()
+	const html = renderHtmlFromRichText(editor, richText)
 	const textAlign =
 		align === 'middle'
 			? ('center' as const)

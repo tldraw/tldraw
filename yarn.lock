@@ -1553,20 +1553,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cristata/prosemirror-to-html-js@npm:3.1.1":
-  version: 3.1.1
-  resolution: "@cristata/prosemirror-to-html-js@npm:3.1.1"
-  checksum: c8203bd96567ca5506fb1e0a11fb4cd6f0203912ad4165cc5437a738ec63928f4f909cd39fc32fe3dddbb967bb5ac2822dac599f27e568769b2ecc8f7636b237
-  languageName: node
-  linkType: hard
-
-"@cristata/prosemirror-to-html-js@patch:@cristata/prosemirror-to-html-js@npm%3A3.1.1#~/.yarn/patches/@cristata-prosemirror-to-html-js-npm-3.1.1-aa9829ec19.patch":
-  version: 3.1.1
-  resolution: "@cristata/prosemirror-to-html-js@patch:@cristata/prosemirror-to-html-js@npm%3A3.1.1#~/.yarn/patches/@cristata-prosemirror-to-html-js-npm-3.1.1-aa9829ec19.patch::version=3.1.1&hash=d20ca9"
-  checksum: efea9982be3c6a914ce448e15c1141046b3ea5337d3f0ab2dbfc8f220520258cab5e29bb7d7a5fc509738d48078551b9b549a08904d5dd0f68daaef7319de7f8
-  languageName: node
-  linkType: hard
-
 "@cspotcode/source-map-support@npm:0.8.1, @cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -23260,7 +23246,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "tldraw@workspace:packages/tldraw"
   dependencies:
-    "@cristata/prosemirror-to-html-js": "patch:@cristata/prosemirror-to-html-js@npm%3A3.1.1#~/.yarn/patches/@cristata-prosemirror-to-html-js-npm-3.1.1-aa9829ec19.patch"
     "@peculiar/webcrypto": "npm:^1.4.0"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@radix-ui/react-context-menu": "npm:^2.1.5"

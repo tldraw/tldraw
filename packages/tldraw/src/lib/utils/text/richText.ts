@@ -1,4 +1,3 @@
-import { Renderer } from '@cristata/prosemirror-to-html-js'
 import { Editor } from '@tldraw/editor'
 import { DOMSerializer, Node, Schema } from 'prosemirror-model'
 import { schema } from 'prosemirror-schema-basic'
@@ -13,15 +12,15 @@ export const tldrawProseMirrorSchema = new Schema({
 })
 
 /** @public */
-export function renderHtmlFromRichText(richText: string) {
-	const renderer = new Renderer()
+export function renderHtmlFromRichText(editor: Editor, richText: string) {
+	const node = renderDOMNodeFromRichTextForMeasurement(editor, richText)
 	// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
-	return renderer.render(JSON.parse(richText)).replaceAll('<p></p>', '<p><br /></p>')
+	return node?.innerHTML.replaceAll('<p></p>', '<p><br /></p>') ?? ''
 }
 
 /** @public */
-export function renderHtmlFromRichTextForMeasurement(richText: string) {
-	const html = renderHtmlFromRichText(richText)
+export function renderHtmlFromRichTextForMeasurement(editor: Editor, richText: string) {
+	const html = renderHtmlFromRichText(editor, richText)
 	return `<div class="ProseMirror">${html}</div>`
 }
 
