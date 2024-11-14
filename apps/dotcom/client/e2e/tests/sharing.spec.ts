@@ -180,7 +180,7 @@ test.describe('published files', () => {
 		})
 	})
 
-	test.only('can be updated', async ({ page, browser, editor, shareMenu }) => {
+	test('can be updated', async ({ page, browser, editor, shareMenu }) => {
 		const url = await test.step('Create a shape and publish file', async () => {
 			await page.getByTestId('tools.rectangle').click()
 			await page.locator('.tl-background').click()
