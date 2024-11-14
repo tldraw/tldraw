@@ -38,6 +38,7 @@ import { useToasts } from './ui/context/toasts'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
+import { tldrawProseMirrorSchema } from './utils/text/richText'
 
 /**
  * Override the default react components used by the editor and UI. Set components to null to
@@ -87,6 +88,7 @@ export function Tldraw(props: TldrawProps) {
 		bindingUtils = [],
 		tools = [],
 		embeds,
+		textOptions,
 		...rest
 	} = props
 
@@ -129,6 +131,17 @@ export function Tldraw(props: TldrawProps) {
 		acceptedVideoMimeTypes ?? DEFAULT_SUPPORT_VIDEO_TYPES
 	)
 
+	const textOptionsWithDefaults = useMemo(
+		() => ({
+			proseMirrorConfig: {
+				schema: tldrawProseMirrorSchema,
+				...textOptions?.proseMirrorConfig,
+			},
+			...textOptions,
+		}),
+		[textOptions]
+	)
+
 	const mediaMimeTypes = useMemo(
 		() => [..._imageMimeTypes, ..._videoMimeTypes],
 		[_imageMimeTypes, _videoMimeTypes]
@@ -155,6 +168,7 @@ export function Tldraw(props: TldrawProps) {
 			shapeUtils={shapeUtilsWithDefaults}
 			bindingUtils={bindingUtilsWithDefaults}
 			tools={toolsWithDefaults}
+			textOptions={textOptionsWithDefaults}
 		>
 			<TldrawUi {...rest} components={componentsWithDefault} mediaMimeTypes={mediaMimeTypes}>
 				<InsideOfEditorAndUiContext

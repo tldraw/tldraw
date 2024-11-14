@@ -1378,12 +1378,12 @@ describe('Add rich text', () => {
 		['note shape', getTestMigration(noteShapeVersions.AddRichText)],
 	] as const
 
-	for (const [shapeName, { up, down }] of migrations) {
+	for (const [shapeName, { up }] of migrations) {
 		it(`works for ${shapeName}`, () => {
-			const originalShape = { props: { richText: 'somethin' } }
 			const shape = { props: { richText: undefined } }
 			expect(up(shape)).toEqual(shape)
-			expect(down(originalShape)).toEqual(shape)
+			// N.B. Explicitly no down state so that we force clients to update.
+			// expect(down(originalShape)).toEqual(shape)
 		})
 	}
 })

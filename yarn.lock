@@ -1552,8 +1552,8 @@ __metadata:
 
 "@cristata/prosemirror-to-html-js@patch:@cristata/prosemirror-to-html-js@npm%3A3.1.1#~/.yarn/patches/@cristata-prosemirror-to-html-js-npm-3.1.1-aa9829ec19.patch":
   version: 3.1.1
-  resolution: "@cristata/prosemirror-to-html-js@patch:@cristata/prosemirror-to-html-js@npm%3A3.1.1#~/.yarn/patches/@cristata-prosemirror-to-html-js-npm-3.1.1-aa9829ec19.patch::version=3.1.1&hash=448ff3"
-  checksum: a9e4fb6e8777362a9bf2ad9ed6ef18694c891df108a0219b8c532e45b275dd92933503f3340feb5442c55c2e9b7c600119548febb6fbe8983961845ab5183bdc
+  resolution: "@cristata/prosemirror-to-html-js@patch:@cristata/prosemirror-to-html-js@npm%3A3.1.1#~/.yarn/patches/@cristata-prosemirror-to-html-js-npm-3.1.1-aa9829ec19.patch::version=3.1.1&hash=d20ca9"
+  checksum: efea9982be3c6a914ce448e15c1141046b3ea5337d3f0ab2dbfc8f220520258cab5e29bb7d7a5fc509738d48078551b9b549a08904d5dd0f68daaef7319de7f8
   languageName: node
   linkType: hard
 
@@ -7203,6 +7203,8 @@ __metadata:
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.isequal: "npm:^4.5.0"
+    prosemirror-model: "npm:^1.23.0"
+    prosemirror-state: "npm:^1.4.3"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:
     react: ^18.2.0

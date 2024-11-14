@@ -18,14 +18,13 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
-import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextHelpers } from '../shared/TextHelpers'
 import {
-	RichTextSVG,
-	TextLabel,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
-} from '../shared/TextLabel'
+} from '../../utils/text/richText'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
+import { TextHelpers } from '../shared/TextHelpers'
+import { RichTextSVG, TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
@@ -68,7 +67,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	override getText(shape: TLTextShape) {
-		if (shape.props.richText) return renderPlaintextFromRichText(shape.props.richText)
+		if (shape.props.richText) return renderPlaintextFromRichText(this.editor, shape.props.richText)
 		return shape.props.text
 	}
 

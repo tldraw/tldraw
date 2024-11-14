@@ -254,6 +254,7 @@ export {
 	type TLCameraOptions,
 	type TLImageExportOptions,
 	type TLSvgOptions,
+	type TLTextOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { tlenv } from './lib/globals/environment'

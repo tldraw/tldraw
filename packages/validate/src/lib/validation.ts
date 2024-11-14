@@ -671,6 +671,27 @@ export function arrayOf<T>(itemValidator: Validatable<T>): ArrayOfValidator<T> {
 	return new ArrayOfValidator(itemValidator)
 }
 
+/**
+ * Prose Mirror document format, one-level deep check, not a deep check.
+ *
+ * @public
+ */
+export const proseMirrorDoc = new Validator((value): any => {
+	if (value === '') return value
+
+	const json = JSON.parse(value as string)
+	if (typeof json !== 'object' || json === null) {
+		throw new ValidationError('Expected ProseMirror document format')
+	}
+	if (typeof json.type !== 'string') {
+		throw new ValidationError('Expected ProseMirror document format')
+	}
+	if (!Array.isArray(json.content)) {
+		throw new ValidationError('Expected ProseMirror document format')
+	}
+	return value
+})
+
 /** @public */
 export const unknownObject = new Validator<Record<string, unknown>>((value) => {
 	if (typeof value !== 'object' || value === null) {

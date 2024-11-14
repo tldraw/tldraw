@@ -31,7 +31,7 @@ export const textShapeProps: RecordProps<TLTextShape> = {
 	textAlign: DefaultTextAlignStyle,
 	w: T.nonZeroNumber,
 	text: T.string,
-	richText: T.string.optional(),
+	richText: T.proseMirrorDoc.optional(),
 	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
 }
@@ -70,9 +70,10 @@ export const textShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.AddRichText,
 			up: () => {},
-			down: (props) => {
-				delete props.richText
-			},
+			// N.B. Explicitly no down state so that we force clients to update.
+			// down: (props) => {
+			// 	delete props.richText
+			// },
 		},
 	],
 })

@@ -1,4 +1,3 @@
-import { Renderer } from '@cristata/prosemirror-to-html-js'
 import {
 	Box,
 	DefaultFontFamilies,
@@ -8,9 +7,9 @@ import {
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
 } from '@tldraw/editor'
-import { Node } from 'prosemirror-model'
 import React, { useEffect, useState } from 'react'
-import { PlainTextArea, RichTextArea, tldrawProseMirrorSchema } from '../text/TextArea'
+import { renderHtmlFromRichText } from '../../utils/text/richText'
+import { PlainTextArea, RichTextArea } from '../text/TextArea'
 import { TextHelpers } from './TextHelpers'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
@@ -164,22 +163,6 @@ export const TextLabel = React.memo(function TextLabel({
 		</div>
 	)
 })
-
-export function renderHtmlFromRichText(richText: string) {
-	const renderer = new Renderer()
-	// We replace empty paragraphs with a single line break to prevent the browser from collapsing them.
-	return renderer.render(JSON.parse(richText)).replaceAll('<p></p>', '<p><br /></p>')
-}
-
-export function renderHtmlFromRichTextForMeasurement(richText: string) {
-	const html = renderHtmlFromRichText(richText)
-	return `<div class="ProseMirror">${html}</div>`
-}
-
-export function renderPlaintextFromRichText(richText: string) {
-	const node = Node.fromJSON(tldrawProseMirrorSchema, JSON.parse(richText))
-	return node.textBetween(0, node.nodeSize - 2, '\n')
-}
 
 export function RichTextSVG({
 	bounds,

@@ -24,3 +24,42 @@ index a11334267785f394746c71522d5c3e1bd7c358bf..8689b4748adb7954f748923a6767e8c6
          return _this;
      }
      Italic.prototype.matching = function () {
+diff --git a/dist/Nodes/BulletList.js b/dist/Nodes/BulletList.js
+index f1993f15ccd965671dffa20463cc28c6bdcb9032..d3736e58b7e499451141d5afe3f51eb37f15b1d6 100644
+--- a/dist/Nodes/BulletList.js
++++ b/dist/Nodes/BulletList.js
+@@ -19,7 +19,7 @@ var BulletList = /** @class */ (function (_super) {
+     __extends(BulletList, _super);
+     function BulletList() {
+         var _this = _super !== null && _super.apply(this, arguments) || this;
+-        _this.name = 'bulletList';
++        _this.name = 'bullet_list';
+         return _this;
+     }
+     BulletList.prototype.matching = function () {
+diff --git a/dist/Nodes/ListItem.js b/dist/Nodes/ListItem.js
+index 1f24256d4f94099df6e0a92e7cc798693b93cff3..db9d909a7f56e6f4195ccf6b95e508266adad4a3 100644
+--- a/dist/Nodes/ListItem.js
++++ b/dist/Nodes/ListItem.js
+@@ -19,7 +19,7 @@ var ItemList = /** @class */ (function (_super) {
+     __extends(ItemList, _super);
+     function ItemList() {
+         var _this = _super !== null && _super.apply(this, arguments) || this;
+-        _this.name = 'listItem';
++        _this.name = 'list_item';
+         return _this;
+     }
+     ItemList.prototype.matching = function () {
+diff --git a/dist/Nodes/OrderedList.js b/dist/Nodes/OrderedList.js
+index df3a06f688e43043144b1f7a12b98fdbbca76dfb..b8456fab7e790950741d42f776c7dcb1754e89a0 100644
+--- a/dist/Nodes/OrderedList.js
++++ b/dist/Nodes/OrderedList.js
+@@ -19,7 +19,7 @@ var OrderedList = /** @class */ (function (_super) {
+     __extends(OrderedList, _super);
+     function OrderedList() {
+         var _this = _super !== null && _super.apply(this, arguments) || this;
+-        _this.name = 'orderedList';
++        _this.name = 'ordered_list';
+         return _this;
+     }
+     OrderedList.prototype.matching = function () {

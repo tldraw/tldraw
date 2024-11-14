@@ -49,7 +49,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
-	richText: T.string.optional(),
+	richText: T.proseMirrorDoc.optional(),
 	scale: T.nonZeroNumber,
 }
 
@@ -151,9 +151,10 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 		{
 			id: Versions.AddRichText,
 			up: () => {},
-			down: (props) => {
-				delete props.richText
-			},
+			// N.B. Explicitly no down state so that we force clients to update.
+			// down: (props) => {
+			// 	delete props.richText
+			// },
 		},
 	],
 })

@@ -24,6 +24,7 @@ import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { PerformanceTracker } from '@tldraw/utils';
+import { Plugin as Plugin_2 } from 'prosemirror-state';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
@@ -33,6 +34,7 @@ import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { RefObject } from 'react';
+import { Schema } from 'prosemirror-model';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { SetStateAction } from 'react';
@@ -812,7 +814,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, tools, getContainer, cameraOptions, textOptions, initialState, autoFocus, inferDarkMode, options, isShapeHidden, }: TLEditorOptions);
     // @deprecated (undocumented)
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
@@ -1094,6 +1096,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         width: number;
     } | undefined>;
     getTemporaryAssetPreview(assetId: TLAssetId): string | undefined;
+    getTextOptions(): TLTextOptions;
     // @internal (undocumented)
     getUnorderedRenderingShapes(useEditorState: boolean): TLRenderingShape[];
     getViewportPageBounds(): Box;
@@ -2490,7 +2493,7 @@ export class TextManager {
         lineHeight: number;
         minWidth?: null | number;
         padding: string;
-        renderMethod?(): string;
+        renderMethod?(): Node | string;
     }): BoxModel & {
         scrollWidth: number;
     };
@@ -2718,6 +2721,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    textOptions?: Partial<TLTextOptions>;
     tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -2894,6 +2898,8 @@ export interface TLEditorOptions {
     options?: Partial<TldrawOptions>;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
+    // (undocumented)
+    textOptions?: Partial<TLTextOptions>;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
@@ -3556,6 +3562,15 @@ export type TLStoreWithStatus = {
 
 // @public @deprecated (undocumented)
 export type TLSvgOptions = TLImageExportOptions;
+
+// @public (undocumented)
+export interface TLTextOptions {
+    // (undocumented)
+    proseMirrorConfig?: {
+        plugins?: readonly Plugin_2[];
+        schema?: Schema;
+    };
+}
 
 // @public (undocumented)
 export type TLTickEvent = (info: TLTickEventInfo) => void;

@@ -162,6 +162,7 @@ import {
 	TLCameraMoveOptions,
 	TLCameraOptions,
 	TLImageExportOptions,
+	TLTextOptions,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -222,6 +223,7 @@ export interface TLEditorOptions {
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
+	textOptions?: Partial<TLTextOptions>
 	options?: Partial<TldrawOptions>
 	licenseKey?: string
 	/**
@@ -260,6 +262,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools,
 		getContainer,
 		cameraOptions,
+		textOptions,
 		initialState,
 		autoFocus,
 		inferDarkMode,
@@ -287,6 +290,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.add(this.timers.dispose)
 
 		this._cameraOptions.set({ ...DEFAULT_CAMERA_OPTIONS, ...cameraOptions })
+
+		this._textOptions.set({ ...textOptions })
 
 		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 		this.disposables.add(() => this.user.dispose())
@@ -2232,6 +2237,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 		return this
+	}
+
+	private _textOptions = atom('text options', {} as TLTextOptions)
+
+	/**
+	 * Get the current text options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getTextOptions()
+	 * ```
+	 *
+	 *  @public */
+	getTextOptions() {
+		return this._textOptions.get()
 	}
 
 	/* --------------------- Camera --------------------- */

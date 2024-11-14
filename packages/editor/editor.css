@@ -897,8 +897,10 @@ input,
 	min-width: 64px;
 	outline: none;
 	word-wrap: break-word;
-	white-space: pre-wrap;
-	white-space: break-spaces;
+}
+
+.tl-text-shape-label .ProseMirror {
+	min-width: 0;
 }
 
 .ProseMirror p {
@@ -908,6 +910,24 @@ input,
 .ProseMirror ul,
 .ProseMirror ol {
 	padding-left: 30px;
+}
+
+.tl-text-label[data-align="start"] .ProseMirror ul,
+.tl-text-label[data-align="start"] .ProseMirror ol {
+	display: flex;
+	justify-content: flex-start;
+}
+
+.tl-text-label[data-align="middle"] .ProseMirror ul,
+.tl-text-label[data-align="middle"] .ProseMirror ol {
+	display: flex;
+	justify-content: center;
+}
+
+.tl-text-label[data-align="end"] .ProseMirror ul,
+.tl-text-label[data-align="end"] .ProseMirror ol {
+	display: flex;
+	justify-content: flex-end;
 }
 
 .ProseMirror h1:first-child,

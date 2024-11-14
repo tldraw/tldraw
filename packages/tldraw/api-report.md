@@ -1071,7 +1071,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
-    getText(shape: TLGeoShape): string;
+    getText(shape: TLGeoShape): string | undefined;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -1492,7 +1492,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLNoteShape, endShape: TLNoteShape, t: number): TLNoteShapeProps;
     // (undocumented)
-    getText(shape: TLNoteShape): string;
+    getText(shape: TLNoteShape): string | undefined;
     // (undocumented)
     hideResizeHandles(): boolean;
     // (undocumented)
@@ -1851,7 +1851,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         width: number;
     };
     // (undocumented)
-    getText(shape: TLTextShape): string;
+    getText(shape: TLTextShape): string | undefined;
     // (undocumented)
     indicator(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)

@@ -28,12 +28,7 @@ import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslat
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import {
-	RichTextSVG,
-	TextLabel,
-	renderHtmlFromRichTextForMeasurement,
-	renderPlaintextFromRichText,
-} from '../shared/TextLabel'
+import { RichTextSVG, TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -44,6 +39,10 @@ import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultS
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 
+import {
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,
@@ -175,7 +174,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getText(shape: TLNoteShape) {
-		if (shape.props.richText) return renderPlaintextFromRichText(shape.props.richText)
+		if (shape.props.richText) return renderPlaintextFromRichText(this.editor, shape.props.richText)
 		return shape.props.text
 	}
 

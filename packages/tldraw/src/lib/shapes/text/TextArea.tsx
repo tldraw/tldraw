@@ -1,8 +1,6 @@
-import { preventDefault, stopEventPropagation, useUniqueSafeId } from '@tldraw/editor'
+import { preventDefault, stopEventPropagation, useEditor, useUniqueSafeId } from '@tldraw/editor'
 import { exampleSetup } from 'prosemirror-example-setup'
-import { Node, Schema } from 'prosemirror-model'
-import { schema } from 'prosemirror-schema-basic'
-import { addListNodes } from 'prosemirror-schema-list'
+import { Node } from 'prosemirror-model'
 import { EditorState } from 'prosemirror-state'
 import { EditorView } from 'prosemirror-view'
 import { forwardRef, useEffect, useState } from 'react'
@@ -18,14 +16,6 @@ interface TextAreaProps {
 	handleInputPointerDown(e: React.PointerEvent<HTMLTextAreaElement>): void
 	handleDoubleClick(e: any): any
 }
-
-// Mix the nodes from prosemirror-schema-list into the basic schema to
-// create a schema with list support.
-/** @internal */
-export const tldrawProseMirrorSchema = new Schema({
-	nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block'),
-	marks: schema.spec.marks,
-})
 
 export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function TextArea(
 	{
@@ -44,6 +34,7 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 ) {
 	const [view, setView] = useState<EditorView | null>(null)
 	const proseMirrorId = useUniqueSafeId('prose-mirror-editor')
+	const editor = useEditor()
 
 	useEffect(() => {
 		if (!isEditing) {
@@ -54,20 +45,20 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 			return
 		}
 
+		const proseMirrorConfig = editor.getTextOptions().proseMirrorConfig
+		const schema = proseMirrorConfig?.schema
+		if (!schema) return
 		const newView = new EditorView(document.querySelector(`#${proseMirrorId}`), {
 			editable: () => isEditing,
 			state: EditorState.create({
-				schema: tldrawProseMirrorSchema,
+				schema,
 				doc: richText
-					? Node.fromJSON(tldrawProseMirrorSchema, JSON.parse(richText))
+					? Node.fromJSON(schema, JSON.parse(richText))
 					: plaintext
-						? tldrawProseMirrorSchema.node('doc', {}, [
-								tldrawProseMirrorSchema.node('paragraph', {}, [
-									tldrawProseMirrorSchema.text(plaintext),
-								]),
-							])
+						? schema.node('doc', {}, [schema.node('paragraph', {}, [schema.text(plaintext)])])
 						: undefined,
-				plugins: exampleSetup({ schema: tldrawProseMirrorSchema, menuBar: false }),
+				plugins: exampleSetup({ schema: schema, menuBar: false }),
+				...proseMirrorConfig?.plugins,
 			}),
 			handleDOMEvents: {
 				handleBlur: () => {
@@ -87,7 +78,8 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 				const newState = newView.state.apply(transaction)
 				newView.updateState(newState)
 				const json = JSON.stringify(newState.doc.toJSON())
-				const isPlaintext = !json.includes(`"marks"`)
+				// This is a quick and dirty way to determine if the text is just plaintext or if it's rich text.
+				const isPlaintext = !json.includes(`"marks"`) && !json.includes(`"list_item"`)
 				if (isPlaintext) {
 					// There is a 'short-circuit' path here. If it's just plaintext, we don't need to do anything fancy.
 					handleChange({ plaintext: newState.doc.textContent })

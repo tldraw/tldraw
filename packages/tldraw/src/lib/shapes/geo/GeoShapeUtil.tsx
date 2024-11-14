@@ -30,14 +30,13 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
-import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { SvgTextLabel } from '../shared/SvgTextLabel'
 import {
-	RichTextSVG,
-	TextLabel,
 	renderHtmlFromRichTextForMeasurement,
 	renderPlaintextFromRichText,
-} from '../shared/TextLabel'
+} from '../../utils/text/richText'
+import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { SvgTextLabel } from '../shared/SvgTextLabel'
+import { RichTextSVG, TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -414,7 +413,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override getText(shape: TLGeoShape) {
-		if (shape.props.richText) return renderPlaintextFromRichText(shape.props.richText)
+		if (shape.props.richText) return renderPlaintextFromRichText(this.editor, shape.props.richText)
 		return shape.props.text
 	}
 
