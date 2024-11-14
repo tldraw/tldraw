@@ -56,6 +56,17 @@ jobs:
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        if: ${{!contains(github.event.pull_request.labels.*.name, 'e2e-x10')}}
+
+      - name: Run Playwright tests (x10)
+        run: |
+          echo "CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}" > apps/dotcom/sync-worker/.dev.vars
+          echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" >> apps/dotcom/sync-worker/.dev.vars
+          yarn e2e-dotcom --repeat-each=10
+        env:
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+        if: contains(github.event.pull_request.labels.*.name, 'e2e-x10')
 
       - uses: actions/upload-artifact@v3
         if: always()

@@ -1,16 +1,29 @@
-import { Browser } from '@playwright/test'
+import { Browser, BrowserContext } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
 import { Editor } from './Editor'
 import { ErrorPage } from './ErrorPages'
 import { HomePage } from './HomePage'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
 
+type UserName = 'huppy' | 'suppy'
+type UserProps = { user: UserName; index: number } | undefined
+
 export async function openNewIncognitoPage(
 	browser: Browser,
-	opts: { url?: string; asUser?: string; allowClipboard?: boolean }
+	opts: { url?: string; userProps: UserProps; allowClipboard?: boolean }
 ) {
-	const { url, asUser, allowClipboard } = opts
-	const newContext = await browser.newContext({ storageState: undefined })
+	const { url, userProps, allowClipboard } = opts
+	let newContext: BrowserContext
+	if (userProps === undefined) {
+		newContext = await browser.newContext({ storageState: undefined })
+	} else {
+		const storageStateFileName = getStorageStateFileName(userProps.index, userProps.user)
+		const storageState = JSON.parse(fs.readFileSync(storageStateFileName, 'utf-8'))
+		newContext = await browser.newContext({ storageState })
+	}
+
 	if (allowClipboard) {
 		await newContext.grantPermissions(['clipboard-read', 'clipboard-write'])
 	}
@@ -20,7 +33,6 @@ export async function openNewIncognitoPage(
 	const newHomePage = new HomePage(newPage, newEditor)
 	const newShareMenu = new ShareMenu(newPage)
 	const errorPage = new ErrorPage(newPage)
-	if (asUser) await newHomePage.loginAs(asUser)
 	if (url) {
 		await newPage.goto(url)
 	} else {
@@ -29,4 +41,8 @@ export async function openNewIncognitoPage(
 
 	await newHomePage.isLoaded()
 	return { newPage, newContext, newHomePage, newEditor, newShareMenu, errorPage }
+}
+
+export function getStorageStateFileName(index: number, user: UserName) {
+	return path.join(__dirname, `../.auth/${user}${index + 1}.json`)
 }

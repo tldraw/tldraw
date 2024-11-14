@@ -52,7 +52,7 @@ export class Sidebar {
 
 	async setDarkMode() {
 		await this.openPreferences()
-		await this.sidebarBottom.getByRole('button').click()
+		await this.page.getByRole('button', { name: 'Account menu' }).click()
 		await this.preferencesButton.hover()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()

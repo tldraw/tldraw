@@ -1,3 +1,4 @@
+import { USERS } from '../consts'
 import { expect, test } from '../fixtures/tla-test'
 
 // Don't use stored credentials
@@ -5,14 +6,17 @@ test.use({ storageState: { cookies: [], origins: [] } })
 
 test('can login', async ({ homePage, editor }) => {
 	expect(homePage.signInButton).toBeVisible()
-	await homePage.login()
+	const user = USERS[test.info().parallelIndex]
+	await homePage.loginAs(user)
 	await expect(homePage.signInButton).not.toBeVisible()
 	await expect(editor.sidebarToggle).toBeVisible()
 })
 
 test('can sign out', async ({ homePage, editor, sidebar }) => {
-	await homePage.login()
-	await expect(homePage.signInButton).not.toBeVisible()
+	await test.step('Login', async () => {
+		const user = USERS[test.info().parallelIndex]
+		await homePage.loginAs(user)
+	})
 	await homePage.expectSignInButtonNotVisible()
 	await editor.ensureSidebarOpen()
 	await sidebar.signOut()

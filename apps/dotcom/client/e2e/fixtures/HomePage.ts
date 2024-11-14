@@ -1,6 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { USER_1 } from '../consts'
 import { Editor } from './Editor'
 
 export class HomePage {
@@ -14,10 +13,6 @@ export class HomePage {
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
 	}
 
-	async login() {
-		await this.loginAs(USER_1)
-	}
-
 	async loginAs(email: string) {
 		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
 		// We are already logged in
@@ -29,6 +24,7 @@ export class HomePage {
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)
 		await this.page.getByLabel('Enter verification code. Digit').fill('424242')
+		await expect(this.page.getByRole('button', { name: 'Share' })).toBeVisible()
 	}
 
 	async expectSignInButtonVisible() {
@@ -40,7 +36,7 @@ export class HomePage {
 	}
 
 	async goto() {
-		await this.page.goto('http://localhost:3000/q')
+		await this.page.goto('http://localhost:3000/q', { waitUntil: 'load' })
 	}
 
 	async isLoaded() {

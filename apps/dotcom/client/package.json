@@ -53,6 +53,7 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
+		"@clerk/testing": "^1.3.25",
 		"@formatjs/cli": "^6.2.15",
 		"@jest/globals": "30.0.0-alpha.2",
 		"@playwright/test": "^1.46.1",
@@ -71,6 +72,7 @@
 		"identity-obj-proxy": "^3.0.0",
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
+		"postgres": "^3.4.5",
 		"regexgen": "^1.3.0",
 		"vite": "^5.4.10",
 		"ws": "^8.16.0"
