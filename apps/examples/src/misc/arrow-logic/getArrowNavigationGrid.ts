@@ -105,6 +105,25 @@ export interface ArrowNavigationGrid {
 		o: Box
 		c: Vec
 	}
+	overlap: boolean
+	hDir: 'left' | 'right' | 'exact'
+	vDir: 'up' | 'down' | 'exact'
+	hPos:
+		| 'a-left-of-b'
+		| 'a-right-of-b'
+		| 'a-overlaps-b-left'
+		| 'a-overlaps-b-right'
+		| 'a-overlaps-b-exact'
+		| 'a-contains-b'
+		| 'a-inside-b'
+	vPos:
+		| 'a-above-b'
+		| 'a-below-b'
+		| 'a-overlaps-b-top'
+		| 'a-overlaps-b-bottom'
+		| 'a-overlaps-b-exact'
+		| 'a-contains-b'
+		| 'a-inside-b'
 }
 
 export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNavigationGrid {
@@ -115,63 +134,95 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 
 	// are A and B disjoint on the x axis, and if so, what's min and max?
 
-	let gapX: number, gapY: number, mx: number, my: number
+	let gapX: number,
+		gapY: number,
+		mx: number,
+		my: number,
+		hPos: ArrowNavigationGrid['hPos'],
+		vPos: ArrowNavigationGrid['vPos'],
+		overlap = false
 
 	if (A.maxX < B.minX) {
 		// range a is to the left of range b
 		gapX = B.minX - A.maxX
 		mx = A.maxX + gapX / 2
+		hPos = 'a-left-of-b'
 	} else if (A.minX > B.maxX) {
 		// range a is to the right of range b
 		gapX = A.minX - B.maxX
 		mx = B.maxX + gapX / 2
+		hPos = 'a-right-of-b'
 	} else if (A.maxX > B.maxX && A.minX < B.minX) {
 		// a contains whole B range
 		gapX = Math.abs(B.maxX - B.minX)
 		mx = B.center.x
+		hPos = 'a-contains-b'
 	} else if (B.maxX >= A.maxX && B.minX <= A.minX) {
 		// b contains whole A range
 		gapX = Math.abs(A.maxX - A.minX)
 		mx = A.center.x
+		hPos = 'a-inside-b'
 	} else if (B.maxX >= A.maxX && B.minX <= A.maxX) {
 		// b overlaps A right
 		gapX = A.maxX - B.minX
 		mx = B.minX + gapX / 2
+		hPos = 'a-overlaps-b-right'
 	} else if (B.minX <= A.minX && B.maxX >= A.minX) {
 		// b overlaps A left
 		gapX = B.maxX - A.minX
 		mx = A.minX + gapX / 2
+		hPos = 'a-overlaps-b-left'
 	} else {
-		throw Error()
+		// a overlaps b exactly
+		gapX = B.maxX - B.minX
+		mx = B.center.x
+		hPos = 'a-overlaps-b-exact'
 	}
 
 	if (A.maxY < B.minY) {
 		// range a is above range b
 		gapY = B.minY - A.maxY
 		my = A.maxY + gapY / 2
+		vPos = 'a-above-b'
 	} else if (A.minY > B.maxY) {
 		// range a is below range b
 		gapY = A.minY - B.maxY
 		my = B.maxY + gapY / 2
+		vPos = 'a-below-b'
 	} else if (A.maxY > B.maxY && A.minY < B.minY) {
 		// a contains whole B range
 		gapY = Math.abs(B.maxY - B.minY)
 		my = B.center.y
+		vPos = 'a-contains-b'
 	} else if (B.maxY >= A.maxY && B.minY <= A.minY) {
 		// b contains whole A range
 		gapY = Math.abs(A.maxY - A.minY)
 		my = A.center.y
+		vPos = 'a-inside-b'
 	} else if (B.maxY >= A.maxY && B.minY <= A.maxY) {
 		// b overlaps A bottom
 		gapY = A.maxY - B.minY
 		my = B.minY + gapY / 2
+		vPos = 'a-overlaps-b-bottom'
 	} else if (B.minY <= A.minY && B.maxY >= A.minY) {
 		// b overlaps A top
 		gapY = B.maxY - A.minY
 		my = A.minY + gapY / 2
+		vPos = 'a-overlaps-b-top'
 	} else {
-		throw Error()
+		// a overlaps b exactly
+		gapY = B.maxY - B.minY
+		my = B.center.y
+		vPos = 'a-overlaps-b-exact'
 	}
+
+	// The shapes overlap if neither of the x or y ranges are disjoint
+	overlap = !(
+		hPos === 'a-left-of-b' ||
+		hPos === 'a-right-of-b' ||
+		vPos === 'a-above-b' ||
+		vPos === 'a-below-b'
+	)
 
 	const g = {
 		A: {
@@ -249,9 +300,19 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 			]),
 			c: new Vec(mx, my),
 		},
-
-		// edge to start from
-
+		overlap,
+		vPos,
+		hPos,
+		hDir: (A.midX === B.midX
+			? 'exact'
+			: A.midX > B.midX
+				? 'left'
+				: 'right') as ArrowNavigationGrid['hDir'],
+		vDir: (A.midY === B.midY
+			? 'exact'
+			: A.midY > B.midY
+				? 'up'
+				: 'down') as ArrowNavigationGrid['vDir'],
 		// set of banned vectors (points on C or D that are contained in Ae or Be)
 	}
 

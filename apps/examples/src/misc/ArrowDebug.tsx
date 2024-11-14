@@ -1,8 +1,7 @@
 import { Box, TLArrowBinding, TLArrowShape, useEditor, useValue, Vec } from 'tldraw'
 import { EXPAND_LEG_LENGTH } from './arrow-logic/constants'
 import { ArrowNavigationGrid, getArrowNavigationGrid } from './arrow-logic/getArrowNavigationGrid'
-import { getBrokenEdge } from './arrow-logic/getBrokenEdge'
-import { getSArrow } from './arrow-logic/s-arrow'
+import { getArrowPath } from './arrow-logic/getArrowPath'
 import { Dot } from './DebugComponents/Dot'
 import { Line } from './DebugComponents/Line'
 import { Rect } from './DebugComponents/Rect'
@@ -66,49 +65,33 @@ function ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
 
 	const grid = getArrowNavigationGrid(boxA, boxB, EXPAND_LEG_LENGTH)
 
-	// // try S arrow
-
-	// let arrowPath: Vec[] | undefined
-
-	// const dirResult = getStartingDirectionForArrow(boxA, boxB)
-
-	// if (dirResult.error !== false) {
-	// 	throw Error('no direction')
-	// }
-
-	// const { dir } = dirResult
-
-	// const sArrowResult = getSArrow(boxA, boxB, dir)
-	// if (sArrowResult.error === false) {
-	// 	arrowPath = sArrowResult.path
-	// } else if (
-	// 	sArrowResult.error === sArrowErrors.SHORT_OUTSIDE_LEGS ||
-	// 	sArrowResult.error === sArrowErrors.POINT_BOX_OVERLAP
-	// ) {
-	// 	const lResult = getLArrow(boxA, boxB)
-	// 	if (lResult.error === false) {
-	// 		arrowPath = lResult.path
-	// 	} else {
-	// 		// Whatever the error, we go with a C arrow
-	// 	}
-	// 	// ...
-	// } else if (sArrowResult.error === sArrowErrors.SHORT_MIDDLE_LEG) {
-	// 	const dir = Vec.Sub(sArrowResult.path[1], sArrowResult.path[0]).uni()
-	// 	const iResult = getIArrow(dir, boxA, boxB)
-	// 	if (iResult.error === false) {
-	// 		arrowPath = iResult.path
-	// 	}
-	// }
-
 	const showGrid = true
+
+	let path: Vec[] | undefined
+
+	const sArrow = getArrowPath(grid)
+
+	if (!sArrow.error) {
+		path = sArrow.path
+	}
 
 	return (
 		<>
-			{showGrid && (
-				<>
-					<GridDisplay grid={grid} />
-				</>
-			)}
+			<div style={{ position: 'absolute', top: 0, left: 0, zIndex: 99991 }}>
+				{showGrid && (
+					<>
+						<GridDisplay grid={grid} />
+					</>
+				)}
+			</div>
+			<div style={{ position: 'absolute', top: 0, left: 0, zIndex: 99992 }}>
+				{path &&
+					path
+						.slice(1)
+						.map((r, i) => (
+							<Line key={i} p1={path[i]} p2={r} color="black" style="solid" width={4} />
+						))}
+			</div>
 			{/* {arrowPath &&
 				arrowPath.map((r, i) => {
 					if (i === 0) {
@@ -134,16 +117,7 @@ function ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
 }
 
 function GridDisplay({ grid: g }: { grid: ArrowNavigationGrid }) {
-	const brokenEdgeA = getBrokenEdge(g, g.A.box)
-	const brokenEdgeB = getBrokenEdge(g, g.B.box)
-
-	let path: Vec[] | undefined
-
-	const sArrow = getSArrow(g)
-
-	if (!sArrow.error) {
-		path = sArrow.path
-	}
+	// const brokenEdges = getBrokenEdges(g)
 
 	return (
 		<>
@@ -250,17 +224,10 @@ function GridDisplay({ grid: g }: { grid: ArrowNavigationGrid }) {
 			<Line p1={g.C.br} p2={g.D.rcb} color="orange" />
 
 			{/* Broken edges */}
-			{brokenEdgeA.error === false && (
-				<Line p1={brokenEdgeA.p1} p2={brokenEdgeA.p2} color="red" style="solid" width={4} />
-			)}
-			{brokenEdgeB.error === false && (
+			{/* {brokenEdges.error === false && (
+				<><Line p1={brokenEdgeA.p1} p2={brokenEdgeA.p2} color="red" style="solid" width={4} />
 				<Line p1={brokenEdgeB.p1} p2={brokenEdgeB.p2} color="red" style="solid" width={4} />
-			)}
-
-			{path &&
-				path
-					.slice(1)
-					.map((r, i) => <Line key={i} p1={path[i]} p2={r} color="red" style="solid" width={4} />)}
+			)} */}
 		</>
 	)
 }
