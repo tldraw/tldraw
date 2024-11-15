@@ -40,11 +40,13 @@ export default defineConfig({
 
 	/* Configure projects for major browsers */
 	projects: [
+		{ name: 'app-loads', testMatch: /app-loads.setup\.ts/ },
 		{
 			name: 'chromium',
 			use: {
 				...devices['Desktop Chrome'],
 			},
+			dependencies: ['app-loads'],
 		},
 
 		// {
@@ -85,5 +87,7 @@ export default defineConfig({
 		url: 'http://localhost:3000',
 		reuseExistingServer: !process.env.CI,
 		cwd: path.join(__dirname, '../../../'),
+		// remove comment if you wish to see the output of the server
+		// stdout: 'pipe',
 	},
 })
