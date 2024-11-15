@@ -16,7 +16,7 @@ test('can create new file', async ({ editor, sidebar }) => {
 	expect(newCount).toBe(currentCount + 1)
 })
 
-test.describe('Preferences', () => {
+test.describe('preferences', () => {
 	test('can toggle dark mode', async ({ page, editor, sidebar }) => {
 		await test.step('is light mode by default', async () => {
 			await expect(page.locator('div.tla-theme__light.tl-theme__light')).toBeVisible()
@@ -50,7 +50,7 @@ test.describe('Preferences', () => {
 	test.fixme('can change language', () => {})
 })
 
-test.describe('Sidebar actions', () => {
+test.describe('sidebar actions', () => {
 	test('rename the document via double click', async ({ sidebar, page }) => {
 		let fileLink: Locator
 		await page.pause()
