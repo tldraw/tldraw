@@ -39,7 +39,7 @@ export class ShareMenu {
 	}
 
 	async isVisible() {
-		return this.inviteButton.isVisible()
+		return await this.inviteButton.isVisible()
 	}
 
 	async share(tab: ShareMenuTab) {

@@ -6,6 +6,7 @@ export class Editor {
 	public readonly sidebarToggle: Locator
 	private readonly fileName: Locator
 	private readonly shapes: Locator
+	private readonly pageMenu: Locator
 
 	constructor(
 		public readonly page: Page,
@@ -14,6 +15,7 @@ export class Editor {
 		this.sidebarToggle = this.page.getByTestId('tla-sidebar-toggle')
 		this.fileName = this.page.getByTestId('tla-file-name')
 		this.shapes = this.page.locator('.tl-shape')
+		this.pageMenu = this.page.getByRole('button', { name: 'Page menu' })
 	}
 
 	async toggleSidebar() {
@@ -51,5 +53,9 @@ export class Editor {
 		await this.fileName.click()
 		await this.page.getByRole('textbox').fill(newName)
 		await this.page.keyboard.press('Enter')
+	}
+
+	async openPageMenu() {
+		await this.pageMenu.click()
 	}
 }

@@ -2,7 +2,7 @@ import { Page } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 import { ShareMenu } from '../fixtures/ShareMenu'
-import { openNewIncognitoPage } from '../fixtures/helpers'
+import { areUrlsEqual, openNewIncognitoPage } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ context }) => {
@@ -20,7 +20,7 @@ async function shareFileAndCopyLink(
 	expect(await shareMenu.isVisible()).toBe(true)
 	await shareAction()
 	await shareMenu.copyLink()
-	const handle = await page.evaluateHandle(() => navigator.clipboard.readText())
+	const handle = await page.evaluateHandle(async () => await navigator.clipboard.readText())
 	return await handle.jsonValue()
 }
 
@@ -84,7 +84,7 @@ test.describe('shared files', () => {
 		// we have to wait a bit for the search params to get populated
 		await newPage.waitForTimeout(500)
 		const otherUserUrl = await newShareMenu.openMenuCopyLinkAndReturnUrl()
-		expect(otherUserUrl).toBe(newPage.url())
+		expect(areUrlsEqual(otherUserUrl, url)).toBe(true)
 		await newContext.close()
 	})
 
@@ -137,8 +137,7 @@ test.describe('published files', () => {
 			})
 			await errorPage.expectNotFoundNotVisible()
 			if (!userProps) await newHomePage.expectSignInButtonVisible()
-			// compare the urls without the search params
-			expect(newPage.url().split('?')[0]).toBe(url.split('?')[0])
+			expect(areUrlsEqual(url, newPage.url())).toBe(true)
 			await newContext.close()
 		})
 
@@ -178,7 +177,7 @@ test.describe('published files', () => {
 			// we have to wait a bit for the search params to get populated
 			await newPage.waitForTimeout(500)
 			const otherUserUrl = await newShareMenu.openMenuCopyLinkAndReturnUrl()
-			expect(otherUserUrl).toBe(newPage.url())
+			expect(areUrlsEqual(otherUserUrl, url)).toBe(true)
 			await newContext.close()
 		})
 	})

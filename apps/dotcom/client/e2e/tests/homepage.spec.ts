@@ -1,4 +1,5 @@
 import { Locator } from '@playwright/test'
+import { areUrlsEqual } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {
@@ -47,7 +48,23 @@ test.describe('preferences', () => {
 			)
 		})
 	})
-	test.fixme('can change language', () => {})
+
+	test('can change language', async ({ sidebar, page, editor }) => {
+		await editor.ensureSidebarOpen()
+		await test.step('English by default', async () => {
+			await sidebar.expectLanguageToBe('Language', 'English')
+		})
+		await test.step('change language', async () => {
+			await sidebar.setLanguage('Language', 'Français')
+		})
+
+		await test.step('changed to French', async () => {
+			await sidebar.expectLanguageToBe('Langue', 'Français')
+			await editor.openPageMenu()
+			// Make sure the file / page menu is using the correct language
+			await expect(page.getByText('Charger un média')).toBeVisible()
+		})
+	})
 })
 
 test.describe('sidebar actions', () => {
@@ -84,6 +101,7 @@ test.describe('sidebar actions', () => {
 	})
 
 	test('delete the document via the file menu', async ({ sidebar, deleteFileDialog, page }) => {
+		const url = page.url()
 		let fileLink: Locator
 		const current = 'delete me'
 		await test.step('rename the file', async () => {
@@ -101,6 +119,8 @@ test.describe('sidebar actions', () => {
 
 		await test.step('verify the file is deleted', async () => {
 			await expect(page.getByText(current)).not.toBeVisible()
+			await page.goto(url)
+			await expect(page.getByText('Not found')).toBeVisible()
 		})
 	})
 
@@ -115,7 +135,8 @@ test.describe('sidebar actions', () => {
 		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 		const url = page.url()
 		const copiedUrl = await sidebar.copyFileLink(0)
-		expect(copiedUrl).toBe(url)
+
+		expect(areUrlsEqual(url, copiedUrl)).toBe(true)
 	})
 })
 

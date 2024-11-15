@@ -11,7 +11,9 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "yarn docker-up",
+		"dev": "./dev.sh",
+		"e2e": "yarn docker-up > /dev/null 2>&1",
+		"e2e-x10": "yarn docker-up > /dev/null 2>&1",
 		"docker-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
 		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
 		"clean": "yarn docker-down && ./clean.sh",

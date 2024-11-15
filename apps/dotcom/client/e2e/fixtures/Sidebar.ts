@@ -3,6 +3,7 @@ import { expect } from './tla-test'
 
 export class Sidebar {
 	public readonly fileLink = '[data-element="file-link"]'
+
 	public readonly sidebarLayout: Locator
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
@@ -58,6 +59,26 @@ export class Sidebar {
 		await this.preferencesButton.hover()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
+	}
+
+	async openLanguageMenu(languageButtonText: string) {
+		await this.openPreferences()
+		await this.page.getByRole('button', { name: 'Account menu' }).click()
+		await this.page.getByText(languageButtonText).hover()
+	}
+
+	async expectLanguageToBe(languageButtonText: string, language: string) {
+		await this.openLanguageMenu(languageButtonText)
+		const checkedAttribute = await this.page
+			.getByRole('menuitemcheckbox', { name: language })
+			.getAttribute('data-state')
+		expect(checkedAttribute).toBe('checked')
+		await this.sidebarBottom.click()
+	}
+
+	async setLanguage(languageButtonText: string, language: string) {
+		await this.openLanguageMenu(languageButtonText)
+		await this.page.getByRole('menuitemcheckbox', { name: language }).click()
 	}
 
 	async signOut() {

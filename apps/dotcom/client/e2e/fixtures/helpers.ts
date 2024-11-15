@@ -46,3 +46,16 @@ export async function openNewIncognitoPage(
 export function getStorageStateFileName(index: number, user: UserName) {
 	return path.join(__dirname, `../.auth/${user}${index + 1}.json`)
 }
+
+export function areUrlsEqual(
+	url1: string,
+	url2: string,
+	opts: { ignoreSearch?: boolean } = { ignoreSearch: true }
+) {
+	if (opts.ignoreSearch) {
+		const url1Obj = new URL(url1)
+		const url2Obj = new URL(url2)
+		return url1Obj.origin === url2Obj.origin && url1Obj.pathname === url2Obj.pathname
+	}
+	return url1 === url2
+}
