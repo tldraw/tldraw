@@ -3,6 +3,7 @@ import { test as base, expect } from '@playwright/test'
 import fs from 'fs'
 import { OTHER_USERS, USERS } from '../consts'
 import { Database } from './Database'
+import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
 import { HomePage } from './HomePage'
 import { ShareMenu } from './ShareMenu'
@@ -15,6 +16,7 @@ interface TlaFixtures {
 	sidebar: Sidebar
 	shareMenu: ShareMenu
 	database: Database
+	deleteFileDialog: DeleteFileDialog
 	setupAndCleanup: void
 }
 
@@ -37,6 +39,9 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 	},
 	shareMenu: async ({ page }, testUse) => {
 		await testUse(new ShareMenu(page))
+	},
+	deleteFileDialog: async ({ page }, testUse) => {
+		await testUse(new DeleteFileDialog(page))
 	},
 	setupAndCleanup: [
 		async ({ page, homePage, database }, testUse) => {
