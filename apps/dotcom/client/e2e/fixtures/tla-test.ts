@@ -1,4 +1,4 @@
-import { clerkSetup } from '@clerk/testing/playwright'
+import { setupClerkTestingToken } from '@clerk/testing/playwright'
 import { test as base, expect } from '@playwright/test'
 import fs from 'fs'
 import { OTHER_USERS, USERS } from '../consts'
@@ -43,17 +43,22 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 	deleteFileDialog: async ({ page }, testUse) => {
 		await testUse(new DeleteFileDialog(page))
 	},
+	// This is an auto fixture which makes sure that we are on the home page when the test starts
+	// and that we clean up when the tests completes
 	setupAndCleanup: [
 		async ({ page, homePage, database }, testUse) => {
+			// All the code before testUse is run before each test
+
 			// Make sure we don't get marked as a bot
 			// https://clerk.com/docs/testing/playwright/overview
-			// save the user info
-			await clerkSetup()
+			await setupClerkTestingToken({ page })
 
 			await homePage.goto()
 			await homePage.isLoaded()
 
 			await testUse()
+
+			// All the code after testUse is run after each test
 			await page.close()
 			await database.reset()
 		},
@@ -80,12 +85,10 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 				} else {
 					email = OTHER_USERS[id]
 				}
-				await page.goto('http://localhost:3000/q')
-				await page.click('text=Sign up')
-				await page.getByLabel('Email address').fill(email)
-				await page.getByRole('button', { name: 'Continue', exact: true }).click()
-				await page.waitForTimeout(1000)
-				await page.getByLabel('Enter verification code. Digit').fill('424242')
+				const sidebar = new Sidebar(page)
+				const editor = new Editor(page, sidebar)
+				const homePage = new HomePage(page, editor)
+				homePage.loginAs(email)
 				await expect(page.getByTestId('tla-sidebar-layout')).toBeVisible()
 
 				await page.context().storageState({ path: fileName })
