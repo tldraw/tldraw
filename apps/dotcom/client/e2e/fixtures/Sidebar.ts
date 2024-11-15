@@ -131,8 +131,7 @@ export class Sidebar {
 		const fileLink = this.getFileLink(index)
 		await this.openFileMenu(fileLink)
 		await this.copyFileLinkFromFileMenu()
-		const url = await this.page.evaluate(() => navigator.clipboard.readText())
-		return
+		return await this.page.evaluate(() => navigator.clipboard.readText())
 	}
 
 	async getAfterElementStyle(element: Locator, property: string): Promise<string> {
