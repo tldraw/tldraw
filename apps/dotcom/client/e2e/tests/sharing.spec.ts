@@ -73,7 +73,7 @@ test.describe('shared files', () => {
 		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
 		const index = test.info().parallelIndex
 
-		const { newPage, newShareMenu } = await openNewIncognitoPage(browser, {
+		const { newPage, newShareMenu, newContext } = await openNewIncognitoPage(browser, {
 			url,
 			userProps: {
 				user: 'huppy' as const,
@@ -85,17 +85,19 @@ test.describe('shared files', () => {
 		await newPage.waitForTimeout(500)
 		const otherUserUrl = await newShareMenu.openMenuCopyLinkAndReturnUrl()
 		expect(otherUserUrl).toBe(newPage.url())
+		await newContext.close()
 	})
 
 	test('anon users can copy shared links', async ({ page, browser, shareMenu }) => {
 		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
 
-		const { newShareMenu } = await openNewIncognitoPage(browser, {
+		const { newShareMenu, newContext } = await openNewIncognitoPage(browser, {
 			url,
 			allowClipboard: true,
 			userProps: undefined,
 		})
 		await expect(newShareMenu.shareButton).not.toBeVisible()
+		await newContext.close()
 	})
 })
 
@@ -168,7 +170,7 @@ test.describe('published files', () => {
 
 			const index = test.info().parallelIndex
 			const userProps = u.user ? { user: u.user, index } : undefined
-			const { newPage, newShareMenu } = await openNewIncognitoPage(browser, {
+			const { newPage, newShareMenu, newContext } = await openNewIncognitoPage(browser, {
 				url,
 				userProps,
 				allowClipboard: true,
@@ -177,6 +179,7 @@ test.describe('published files', () => {
 			await newPage.waitForTimeout(500)
 			const otherUserUrl = await newShareMenu.openMenuCopyLinkAndReturnUrl()
 			expect(otherUserUrl).toBe(newPage.url())
+			await newContext.close()
 		})
 	})
 
