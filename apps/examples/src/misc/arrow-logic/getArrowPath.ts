@@ -363,3 +363,28 @@ function getSArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection) {
 		}
 	}
 }
+
+function _cleverlyGetArrowPath(_grid: ArrowNavigationGrid) {
+	// let's try an algorithm instead
+	// we want to find a "valid" path that goes from a terminal on A to a terminal on B
+	// a terminal is the top, right, bottom, or left point on box A or B
+	// We want to start at g.A.t, g.A.r, g.A.b, or g.A.l
+	// Next, we want to go to the corresponding point on the expanded box: g.A.e.t, g.A.e.r, g.A.e.b, or g.A.e.l
+	// From there, we want to find the shortest path to any one of the expanded terminals on B: g.B.e.t, g.B.e.r, g.B.e.b, or g.B.e.l
+	// And finally, we want to end at the corresponding point on B's box: g.B.t, g.B.r, g.B.b, or g.B.l
+	// For example, a path from the top terminal of A to the bottom terminal of B would look like [g.A.t, g.A.e.t, ...pointsInBetween, g.B.e.b, g.B.b]
+	// To complicate things, we'll need to add some rules about which points are valid
+	// - any point on g.A or g.A.e that is inside of box B's expanded bounds is invalid
+	// - any point on g.B or g.B.e that is inside of box A's expanded bounds is invalid
+	// - any other point is valid only if it is inside of neither box's expanded bounds
+	// We'll also want to add some rules about the path itself
+	// - A path can never visit an invalid point
+	// - A path can never revisit a point
+	// - A path can only move to an adjacent point
+	// - A path can only move in the same direction as its previous move, or at a right angle
+	// - A path can never reverse direction, i.e. assuming points P-J-Q-R on a horizontal line, J-Q-R is valid, but J-Q-P is invalid
+	// If the only "next move" would break a rule, then the path itself is invalid
+	// Of all possible paths, we want to choose the path with...
+	// - the fewest points
+	// - the fewest turns
+}
