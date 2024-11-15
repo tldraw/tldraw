@@ -2,6 +2,8 @@ import { Page } from '@playwright/test'
 import postgres from 'postgres'
 import { OTHER_USERS, USERS } from '../consts'
 
+const sql = postgres('postgresql://user:password@127.0.0.1:6543/postgres')
+
 const defaultUser = {
 	color: 'salmon',
 	avatar: '',
@@ -23,7 +25,6 @@ const defaultUser = {
 }
 
 export class Database {
-	sql = postgres('postgresql://user:password@127.0.0.1:6543/postgres')
 	constructor(
 		readonly page: Page,
 		private parallelIndex: number
@@ -36,17 +37,17 @@ export class Database {
 
 	private async cleanUpUser(user: string) {
 		if (!user) return
-		const dbUser = await this.sql`SELECT id FROM public.user WHERE email = ${user}`.execute()
+		const dbUser = await sql`SELECT id FROM public.user WHERE email = ${user}`.execute()
 		if (!dbUser[0]) return
 		const id = dbUser[0].id
 		try {
-			await this.sql`
+			await sql`
   UPDATE public.user
-  SET ${this.sql(defaultUser)}
+  SET ${sql(defaultUser)}
   WHERE id = ${id}
 `.execute()
 
-			await this.sql`DELETE FROM public.file WHERE "ownerId" = ${id}`.execute()
+			await sql`DELETE FROM public.file WHERE "ownerId" = ${id}`.execute()
 		} catch (e) {
 			console.error('Error', e)
 		}

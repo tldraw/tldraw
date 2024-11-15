@@ -59,7 +59,6 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 			await testUse()
 
 			// All the code after testUse is run after each test
-			await page.close()
 			await database.reset()
 		},
 		{ auto: true },
