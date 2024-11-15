@@ -47,9 +47,7 @@ test.describe('Preferences', () => {
 			)
 		})
 	})
-	test.only('can change language', async ({ editor, sidebar, page }) => {
-		await editor.ensureSidebarOpen()
-	})
+	test.fixme('can change language', () => {})
 })
 
 test.describe('Sidebar actions', () => {
