@@ -88,7 +88,7 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 				const sidebar = new Sidebar(page)
 				const editor = new Editor(page, sidebar)
 				const homePage = new HomePage(page, editor)
-				homePage.loginAs(email)
+				await homePage.loginAs(email)
 				await expect(page.getByTestId('tla-sidebar-layout')).toBeVisible()
 
 				await page.context().storageState({ path: fileName })
