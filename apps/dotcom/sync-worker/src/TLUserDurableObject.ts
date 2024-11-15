@@ -1,16 +1,13 @@
 import {
 	isColumnMutable,
-	OptimisticAppStore,
 	ROOM_PREFIX,
 	TlaFile,
 	TlaFileState,
 	TlaUser,
 	ZClientSentMessage,
 	ZErrorCode,
-	ZEvent,
 	ZRowUpdate,
 	ZServerSentMessage,
-	ZTable,
 } from '@tldraw/dotcom-shared'
 import { assert } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
@@ -21,13 +18,13 @@ import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Environment } from './types'
+import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { isRateLimited } from './utils/rateLimit'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	db: ReturnType<typeof postgres>
 	replicator: TLPostgresReplicator
-	store = new OptimisticAppStore()
 
 	sentry
 	captureException(exception: unknown, eventHint?: EventHint) {
@@ -38,6 +35,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	cache: UserDataSyncer | null = null
+
 	constructor(ctx: DurableObjectState, env: Environment) {
 		super(ctx, env)
 
@@ -47,11 +46,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		) as any as TLPostgresReplicator
 
 		this.db = postgres(env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		this.debug('created')
 	}
 
 	userId: string | null = null
-
-	lastReplicatorBootId: string | null = null
 
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
@@ -62,20 +60,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			if (rateLimited) {
 				throw new Error('Rate limited')
 			}
-			if (this.lastReplicatorBootId === null) {
+			while (this.cache === null) {
 				await this.init()
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
 
-	async init() {
+	private async init() {
 		assert(this.userId, 'User ID not set')
-		await this.ctx.blockConcurrencyWhile(async () => {
-			const { data, bootId } = await this.replicator.fetchDataForUser(this.userId!)
-			this.lastReplicatorBootId = bootId
-			this.store.initialize(data)
-			this.replicator.registerUser(this.userId!)
-		})
+		this.debug('init')
+		this.cache = new UserDataSyncer(this.ctx, this.env, this.userId, (message) =>
+			this.broadcast(message)
+		)
+		this.debug('cache', !!this.cache)
+		await this.cache.waitUntilConnected()
+		this.replicator.registerUser(this.userId!)
 	}
 
 	// Handle a request to the Durable Object.
@@ -99,6 +98,26 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	assertCache(): asserts this is { cache: UserDataSyncer } {
+		assert(this.cache, 'no cache')
+	}
+
+	sockets = new Set<WebSocket>()
+
+	broadcast(message: ZServerSentMessage) {
+		const msg = JSON.stringify(message)
+		for (const socket of this.sockets) {
+			if (socket.readyState === WebSocket.OPEN) {
+				socket.send(msg)
+			} else if (
+				socket.readyState === WebSocket.CLOSED ||
+				socket.readyState === WebSocket.CLOSING
+			) {
+				this.sockets.delete(socket)
+			}
+		}
+	}
+
 	async onRequest(req: IRequest) {
 		assert(this.userId, 'User ID not set')
 		// handle legacy param names
@@ -109,13 +128,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		assert(sessionId, 'Session ID is required')
 
+		this.assertCache()
+
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
-		this.ctx.acceptWebSocket(serverWebSocket, [this.userId])
-		const initialData = this.store.getCommittedData()
-		if (!initialData) {
-			throw new Error('Initial data not fetched')
-		}
+		serverWebSocket.accept()
+		serverWebSocket.addEventListener('message', (e) => this.handleSocketMessage(e.data.toString()))
+		serverWebSocket.addEventListener('close', () => {
+			this.sockets.delete(serverWebSocket)
+		})
+		serverWebSocket.addEventListener('error', (e) => {
+			this.captureException(e)
+			this.sockets.delete(serverWebSocket)
+		})
+		const initialData = this.cache.store.getCommittedData()
+		assert(initialData, 'Initial data not fetched')
 
 		serverWebSocket.send(
 			JSON.stringify({
@@ -123,6 +150,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				initialData,
 			} satisfies ZServerSentMessage)
 		)
+
+		this.sockets.add(serverWebSocket)
 
 		this.alarm()
 
@@ -140,21 +169,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	override async webSocketMessage(ws: WebSocket, message: string) {
+	async handleSocketMessage(message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
-		if (!this.userId) {
-			this.debug('User ID not set, setting it')
-			const [userId] = this.ctx.getTags(ws)
-			assert(userId, 'User ID not set')
-			this.userId = userId
-			// force a re-fetch of the data
-			this.lastReplicatorBootId = null
-		}
+		await this.cache!.waitUntilConnected()
+		this.assertCache()
 
-		if (this.lastReplicatorBootId === null) {
-			this.debug('Replicator boot id not set, initializing')
-			await this.init()
-		}
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
@@ -170,7 +189,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
-		this.store.rejectMutation(mutationId)
+		await this.cache?.waitUntilConnected()
+		this.assertCache()
+		this.cache.store.rejectMutation(mutationId)
 		for (const socket of this.ctx.getWebSockets()) {
 			socket.send(
 				JSON.stringify({
@@ -184,11 +205,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	mutations: { mutationNumber: number; mutationId: string }[] = []
 
-	async assertValidMutation(update: ZRowUpdate) {
+	private async assertValidMutation(update: ZRowUpdate) {
 		// s is the entire set of data that the user has access to
 		// and is up to date with all committed mutations so far.
 		// we commit each mutation one at a time before handling the next.
-		const s = this.store.getFullData()
+		const s = this.cache!.store.getFullData()
 		if (!s) {
 			// This should never happen
 			throw new ZMutationError(ZErrorCode.unknown_error, 'Store data not fetched')
@@ -244,7 +265,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	async handleMutate(msg: ZClientSentMessage) {
+	private async handleMutate(msg: ZClientSentMessage) {
+		this.assertCache()
 		try {
 			;(await this.db.begin(async (sql) => {
 				for (const update of msg.updates) {
@@ -281,7 +303,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 								await sql`update ${sql('public.' + update.table)} set ${sql(updates)} where id = ${id}`
 								if (update.table === 'file') {
-									const currentFile = this.store.getFullData()?.files.find((f) => f.id === id)
+									const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
 									if (currentFile && currentFile.published !== rest.published) {
 										if (rest.published) {
 											await this.publishSnapshot(currentFile)
@@ -313,7 +335,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 							}
 							break
 					}
-					this.store.updateOptimisticData([update], msg.mutationId)
+					this.cache.store.updateOptimisticData([update], msg.mutationId)
 				}
 			})) as any
 
@@ -338,14 +360,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	/* ------- RPCs -------  */
 
-	requireUserId(cb: () => void, userId: string) {
-		if (!this.userId) {
-			this.replicator.unregisterUser(userId)
-			return
-		}
-		cb()
-	}
-
 	// to make sure the replicator wakes up if it went to sleep for whatever
 	// reason, we ping it every every once in a while from every actively connected user DO
 	override async alarm() {
@@ -356,54 +370,29 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	onRowChange(bootId: string, row: object, table: ZTable, event: ZEvent, userId: string) {
-		this.requireUserId(() => {
-			if (bootId !== this.lastReplicatorBootId) {
-				// replicator rebooted, reset the state and force clients to reconnect
-				this.lastReplicatorBootId = null
-				for (const socket of this.ctx.getWebSockets()) {
-					socket.close()
-				}
-				return
-			}
-			this.store.updateCommittedData({ table, event, row })
-			for (const socket of this.ctx.getWebSockets()) {
-				socket.send(
-					JSON.stringify({
-						type: 'update',
-						update: {
-							table,
-							event,
-							row,
-						},
-					} satisfies ZServerSentMessage)
-				)
-			}
-		}, userId)
-	}
+	async handleReplicationEvent(event: ZReplicationEvent) {
+		this.debug('replication event', event, !!this.cache)
+		if (!this.cache) {
+			this.replicator.unregisterUser(this.userId!)
+			return
+		}
 
-	commitMutation(mutationNumber: number, userId: string) {
-		this.requireUserId(() => {
+		if (event.type === 'mutation_commit') {
+			// todo: move this into user syncer somehow
 			const mutationIds = this.mutations
-				.filter((m) => m.mutationNumber <= mutationNumber)
+				.filter((m) => m.mutationNumber <= event.mutationNumber)
 				.map((m) => m.mutationId)
-			this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
-			this.store.commitMutations(mutationIds)
-			for (const socket of this.ctx.getWebSockets()) {
-				if (socket.readyState !== WebSocket.OPEN) continue
-				socket.send(
-					JSON.stringify({
-						type: 'commit',
-						mutationIds,
-					} satisfies ZServerSentMessage)
-				)
-			}
-		}, userId)
+			this.mutations = this.mutations.filter((m) => m.mutationNumber > event.mutationNumber)
+			this.broadcast({ type: 'commit', mutationIds: mutationIds })
+			this.cache.store.commitMutations(mutationIds)
+		} else {
+			this.cache.handleReplicationEvent(event)
+		}
 	}
 
 	/* --------------  */
 
-	async deleteFileStuff(id: string) {
+	private async deleteFileStuff(id: string) {
 		const fileRecord = await this.replicator.getFileRecord(id)
 		const room = this.env.TLDR_DOC.get(this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${id}`))
 		await room.appFileRecordDidDelete()
@@ -430,7 +419,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		await this.env.ROOMS.delete(r2Key)
 	}
 
-	async publishSnapshot(file: TlaFile) {
+	private async publishSnapshot(file: TlaFile) {
 		if (file.ownerId !== this.userId) {
 			throw new ZMutationError(ZErrorCode.forbidden, 'Cannot publish file that is not our own')
 		}
@@ -456,7 +445,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	async unpublishSnapshot(file: TlaFile) {
+	private async unpublishSnapshot(file: TlaFile) {
 		if (file.ownerId !== this.userId) {
 			throw new ZMutationError(ZErrorCode.forbidden, 'Cannot unpublish file that is not our own')
 		}

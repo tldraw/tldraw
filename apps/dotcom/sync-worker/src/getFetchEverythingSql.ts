@@ -40,10 +40,9 @@ const userColumns = userKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileColumns = fileKeys.map((c) => `${c.reference} as "${c.alias}"`)
 const fileStateColumns = fileStateKeys.map((c) => `${c.reference} as "${c.alias}"`)
 
-//
-export function getFetchUserDataSql(replicatorId: string, userId: string, bootId: string) {
+export function getFetchUserDataSql(userId: string, bootId: string) {
 	return `
-INSERT INTO public.replicator_user_boot_id ("replicatorId", "userId", "bootId") VALUES ('${replicatorId}', '${userId}', '${bootId}') ON CONFLICT ("replicatorId", "userId") DO UPDATE SET "bootId" = '${bootId}';
+INSERT INTO public.user_boot_id ("userId", "bootId") VALUES ('${userId}', '${bootId}') ON CONFLICT ("userId") DO UPDATE SET "bootId" = '${bootId}';
 SELECT 'user' AS "table", ${userColumns.concat(fileNulls).concat(fileStateNulls)} FROM public.user WHERE "id" = '${userId}'
 UNION
 SELECT 'file' AS "table", ${userNulls.concat(fileColumns).concat(fileStateNulls)} FROM public.file WHERE "ownerId" = '${userId}' OR EXISTS(SELECT 1 FROM public.file_state WHERE "userId" = '${userId}' AND public.file_state."fileId" = public.file.id) 

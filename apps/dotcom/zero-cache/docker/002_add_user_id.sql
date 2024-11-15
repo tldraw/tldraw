@@ -1,8 +1,6 @@
-CREATE TABLE "replicator_user_boot_id" (
-	"replicatorId" VARCHAR NOT NULL,
-  "userId" VARCHAR NOT NULL,
-	"bootId" VARCHAR NOT NULL,
-  PRIMARY KEY ("replicatorId", "userId")
+CREATE TABLE "user_boot_id" (
+  "userId" VARCHAR NOT NULL PRIMARY KEY,
+	"bootId" VARCHAR NOT NULL
 );
 
--- drop the old table later
+-- drop the replicator_boot table later

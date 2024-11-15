@@ -325,7 +325,6 @@ export class TLDrawDurableObject extends DurableObject {
 		serverWebSocket.accept()
 
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
-			console.error('CLOSING SOCKET', reason, new Error().stack)
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}

@@ -130,6 +130,8 @@ export type TlaFile = SchemaToRow<typeof tlaFileSchema>
 export type TlaFileState = SchemaToRow<typeof tlaFileStateSchema>
 export type TlaUser = SchemaToRow<typeof tlaUserSchema>
 
+export type TlaRow = TlaFile | TlaFileState | TlaUser
+
 const immutableColumns: Record<string, Set<string>> = {
 	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt']),
 	file: new Set<keyof TlaFile>(['id', 'ownerId', 'createdAt']),
