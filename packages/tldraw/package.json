@@ -60,11 +60,13 @@
 		"hotkeys-js": "^3.11.2",
 		"idb": "^7.1.1",
 		"lz-string": "^1.4.4",
+		"prosemirror-commands": "^1.6.2",
 		"prosemirror-example-setup": "^1.2.3",
 		"prosemirror-model": "^1.23.0",
 		"prosemirror-schema-basic": "^1.2.3",
 		"prosemirror-schema-list": "^1.4.1",
 		"prosemirror-state": "^1.4.3",
+		"prosemirror-utils": "^1.2.2",
 		"prosemirror-view": "^1.36.0"
 	},
 	"peerDependencies": {

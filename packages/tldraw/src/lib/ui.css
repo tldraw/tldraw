@@ -925,6 +925,21 @@
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
+/* --------------- Contextual Toolbar --------------- */
+
+.tl-rich-text__toolbar {
+	position: absolute;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	pointer-events: all;
+}
+
+.tl-rich-text__toolbar [data-isactive='true']::after {
+	background-color: var(--color-muted-1);
+	opacity: 1;
+}
+
 /* -------------------- Help Zone ------------------- */
 
 .tlui-help-menu {

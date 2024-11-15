@@ -42,6 +42,7 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 			if (view) {
 				view.destroy()
 				setView(null)
+				editor.setEditingShapeTextEditor(null)
 			}
 			return
 		}
@@ -78,6 +79,9 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 			dispatchTransaction(transaction) {
 				const newState = newView.state.apply(transaction)
 				newView.updateState(newState)
+				editor.emit('rich-text-transaction', {
+					state: newState,
+				})
 				const json = JSON.stringify(newState.doc.toJSON())
 				// This is a quick and dirty way to determine if the text is just plaintext or if it's rich text.
 				const isPlaintext = !json.includes(`"marks"`) && !json.includes(`"list_item"`)
@@ -91,6 +95,11 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 			},
 		})
 		setView(newView)
+		editor.setEditingShapeTextEditor(newView)
+
+		editor.emit('rich-text-transaction', {
+			state: newView.state,
+		})
 
 		return () => newView.destroy()
 		// eslint-disable-next-line react-hooks/exhaustive-deps

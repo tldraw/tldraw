@@ -929,13 +929,16 @@ input,
 	justify-content: flex-end;
 }
 
-.ProseMirror h1:first-child,
-.ProseMirror h2:first-child,
-.ProseMirror h3:first-child,
-.ProseMirror h4:first-child,
-.ProseMirror h5:first-child,
-.ProseMirror h6:first-child {
-	margin-top: 10px;
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6,
+.ProseMirror ul,
+.ProseMirror ol {
+	margin-top: 5px;
+	margin-bottom: 10px;
 }
 
 .ProseMirror pre {
@@ -944,6 +947,10 @@ input,
 
 .ProseMirror li {
 	position: relative;
+}
+
+.ProseMirror strong {
+	text-shadow: 1px 1px 2px var(--color-text-3);
 }
 
 .ProseMirror-hideselection *::selection {

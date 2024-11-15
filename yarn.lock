@@ -20407,7 +20407,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-commands@npm:^1.0.0":
+"prosemirror-commands@npm:^1.0.0, prosemirror-commands@npm:^1.6.2":
   version: 1.6.2
   resolution: "prosemirror-commands@npm:1.6.2"
   dependencies:
@@ -20548,6 +20548,16 @@ __metadata:
   dependencies:
     prosemirror-model: "npm:^1.21.0"
   checksum: be0feb6ec2a775cf00cfb251f7a261c919c8a4ba6d3217e21679631ee27a9f52757417a72301703e01b635513793019c9ad58752dd4a48929bf4a234dc094a53
+  languageName: node
+  linkType: hard
+
+"prosemirror-utils@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "prosemirror-utils@npm:1.2.2"
+  peerDependencies:
+    prosemirror-model: ^1.19.2
+    prosemirror-state: ^1.4.3
+  checksum: d09e26c4567d920ad5dd8ff271e92c8b7965896793ec1deea84bd488bd1c16b6e545bd2265a6fbf2a93b7ea2cc7e4f7adcae0c2dec287385937c522a100035ea
   languageName: node
   linkType: hard
 
@@ -23271,11 +23281,13 @@ __metadata:
     jest-environment-jsdom: "npm:^29.4.3"
     lazyrepo: "npm:0.0.0-alpha.27"
     lz-string: "npm:^1.4.4"
+    prosemirror-commands: "npm:^1.6.2"
     prosemirror-example-setup: "npm:^1.2.3"
     prosemirror-model: "npm:^1.23.0"
     prosemirror-schema-basic: "npm:^1.2.3"
     prosemirror-schema-list: "npm:^1.4.1"
     prosemirror-state: "npm:^1.4.3"
+    prosemirror-utils: "npm:^1.2.2"
     prosemirror-view: "npm:^1.36.0"
     resize-observer-polyfill: "npm:^1.5.1"
   peerDependencies:

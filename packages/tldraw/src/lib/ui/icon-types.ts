@@ -19,9 +19,11 @@ export type TLUiIconType =
 	| 'arrowhead-triangle-inverted'
 	| 'arrowhead-triangle'
 	| 'blob'
+	| 'bold'
 	| 'bring-forward'
 	| 'bring-to-front'
 	| 'broken'
+	| 'bulleted-list'
 	| 'check-circle'
 	| 'check'
 	| 'chevron-down'
@@ -83,6 +85,7 @@ export type TLUiIconType =
 	| 'geo-x-box'
 	| 'github'
 	| 'group'
+	| 'header'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
 	| 'horizontal-align-start'
@@ -115,6 +118,7 @@ export type TLUiIconType =
 	| 'status-offline'
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
+	| 'strikethrough'
 	| 'text-align-center'
 	| 'text-align-left'
 	| 'text-align-right'
@@ -163,9 +167,11 @@ export const iconTypes = [
 	'arrowhead-triangle-inverted',
 	'arrowhead-triangle',
 	'blob',
+	'bold',
 	'bring-forward',
 	'bring-to-front',
 	'broken',
+	'bulleted-list',
 	'check-circle',
 	'check',
 	'chevron-down',
@@ -227,6 +233,7 @@ export const iconTypes = [
 	'geo-x-box',
 	'github',
 	'group',
+	'header',
 	'horizontal-align-end',
 	'horizontal-align-middle',
 	'horizontal-align-start',
@@ -259,6 +266,7 @@ export const iconTypes = [
 	'status-offline',
 	'stretch-horizontal',
 	'stretch-vertical',
+	'strikethrough',
 	'text-align-center',
 	'text-align-left',
 	'text-align-right',

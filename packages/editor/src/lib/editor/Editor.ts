@@ -2035,6 +2035,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	private _currentTextEditor = atom('text editor', null as any)
+
+	/**
+	 * The current editing shape's text editor.
+	 *
+	 * @public
+	 */
+	@computed getEditingShapeTextEditor(): any {
+		return this._currentTextEditor.get()
+	}
+
+	/**
+	 * Set the current editing shape's text editor.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setEditingShapeTextEditor(richTextEditorView)
+	 * ```
+	 *
+	 * @param textEditor - The text editor to set as the current editing shape's text editor.
+	 *
+	 * @public
+	 */
+	setEditingShapeTextEditor(textEditor: any) {
+		this._currentTextEditor.set(textEditor)
+	}
+
 	// Hovered
 
 	/**
