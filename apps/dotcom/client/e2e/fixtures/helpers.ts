@@ -7,7 +7,7 @@ import { HomePage } from './HomePage'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
 
-type UserName = 'huppy' | 'suppy'
+export type UserName = 'huppy' | 'suppy'
 type UserProps = { user: UserName; index: number } | undefined
 
 export async function openNewIncognitoPage(
