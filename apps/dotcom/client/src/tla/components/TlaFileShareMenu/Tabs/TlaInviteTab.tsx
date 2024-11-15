@@ -120,7 +120,7 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 							: intl.formatMessage(messages.viewer)
 						: intl.formatMessage(messages.noAccess)
 				}
-				value={sharedLinkType!}
+				value={!isShared ? 'no-access' : sharedLinkType!}
 				disabled={!isShared}
 				onChange={handleSelectChange}
 				options={[

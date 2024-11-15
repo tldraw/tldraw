@@ -26,7 +26,7 @@ export function TlaSelect<T extends string>({
 	return (
 		<Select.Root value={value} onValueChange={handleChange}>
 			<Select.Trigger className={styles.trigger} disabled={disabled} aria-label={label}>
-				<Select.Value className={styles.label} placeholder={label} />
+				<span className={styles.label}>{label}</span>
 				<Select.Icon>
 					<TlaIcon icon="chevron-down" className={styles.chevron} />
 				</Select.Icon>

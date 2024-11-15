@@ -19,27 +19,6 @@ div:has(> .content) {
 	box-shadow: var(--shadow-3);
 }
 
-.label {
-	position: relative;
-	display: flex;
-	flex-direction: row;
-	gap: 4px;
-	text-align: right;
-	pointer-events: none;
-	z-index: 2;
-}
-
-.label::after {
-	display: block;
-	content: '';
-	position: absolute;
-	inset: -4px -4px -4px -8px;
-	background-color: var(--tla-color-hover-1);
-	border-radius: 4px;
-	pointer-events: none;
-	visibility: hidden;
-}
-
 .option {
 	display: flex;
 	align-items: center;
@@ -56,11 +35,11 @@ div:has(> .content) {
 	cursor: default;
 }
 
-.trigger[data-disabled='true'] .label {
+.trigger[data-disabled] .label {
 	color: var(--tla-color-text-3);
 }
 
-.trigger[data-disabled='true'] .chevron {
+.trigger[data-disabled] .chevron {
 	display: none;
 }
 
