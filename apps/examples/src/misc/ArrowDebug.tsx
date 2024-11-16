@@ -1,4 +1,5 @@
 import { Box, TLArrowBinding, TLArrowShape, useEditor, useValue, Vec } from 'tldraw'
+import { ArrowGuideDisplay } from './arrow-logic/ArrowGuideDisplay'
 import { EXPAND_LEG_LENGTH } from './arrow-logic/constants'
 import { ArrowNavigationGrid, getArrowNavigationGrid } from './arrow-logic/getArrowNavigationGrid'
 import { getArrowPath } from './arrow-logic/getArrowPath'
@@ -57,7 +58,7 @@ export function AllArrowsDebugDisplay() {
 
 	if (arrowInfos.length === 0) return null
 
-	return arrowInfos.map((info, i) => <ArrowDebugDisplay key={i} info={info} />)
+	return arrowInfos.map((info, i) => <ArrowGuideDisplay key={i} info={info} />)
 }
 
 function ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
@@ -213,6 +214,7 @@ function GridDisplay({ grid: g }: { grid: ArrowNavigationGrid }) {
 			<Rect p1={g.C.tl} p2={g.C.br} color="blue" />
 			<Line p1={g.D.tc} p2={g.D.bc} color="green" />
 			<Line p1={g.D.lc} p2={g.D.rc} color="green" />
+			<Rect p1={g.A.e.tl} p2={g.A.e.br} color="orange" />
 			<Rect p1={g.B.e.tl} p2={g.B.e.br} color="orange" />
 			<Line p1={g.C.tl} p2={g.D.tcl} color="orange" />
 			<Line p1={g.C.tl} p2={g.D.lct} color="orange" />

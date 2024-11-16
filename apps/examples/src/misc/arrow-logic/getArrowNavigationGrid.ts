@@ -8,6 +8,8 @@ export interface ArrowNavigationGrid {
 		c: Vec
 		// expanded bounds
 		e: {
+			// expanded bounds box
+			box: Box
 			// edges
 			t: Vec
 			r: Vec
@@ -32,6 +34,8 @@ export interface ArrowNavigationGrid {
 		c: Vec
 		// expanded bounds
 		e: {
+			// expanded bounds box
+			box: Box
 			// edges
 			t: Vec
 			r: Vec
@@ -124,6 +128,9 @@ export interface ArrowNavigationGrid {
 		| 'a-overlaps-b-exact'
 		| 'a-contains-b'
 		| 'a-inside-b'
+	pathPoints: Vec[]
+	gridPoints: Vec[][]
+	gridPointsMap: Map<Vec, Vec>
 }
 
 export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNavigationGrid {
@@ -224,7 +231,7 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 		vPos === 'a-below-b'
 	)
 
-	const g = {
+	const g: ArrowNavigationGrid = {
 		A: {
 			box: A,
 			c: A.center,
@@ -233,6 +240,7 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 			b: new Vec(A.midX, A.maxY),
 			l: new Vec(A.minX, A.midY),
 			e: {
+				box: AE,
 				t: new Vec(AE.midX, AE.minY),
 				r: new Vec(AE.maxX, AE.midY),
 				b: new Vec(AE.midX, AE.maxY),
@@ -251,6 +259,7 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 			b: new Vec(B.midX, B.maxY),
 			l: new Vec(B.minX, B.midY),
 			e: {
+				box: BE,
 				t: new Vec(BE.midX, BE.minY),
 				r: new Vec(BE.maxX, BE.midY),
 				b: new Vec(BE.midX, BE.maxY),
@@ -313,7 +322,77 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 			: A.midY > B.midY
 				? 'up'
 				: 'down') as ArrowNavigationGrid['vDir'],
+		pathPoints: [],
+		gridPoints: [],
+		gridPointsMap: new Map(),
 		// set of banned vectors (points on C or D that are contained in Ae or Be)
+	}
+
+	g.pathPoints = [
+		g.A.t,
+		g.A.r,
+		g.A.b,
+		g.A.l,
+		g.A.e.t,
+		g.A.e.r,
+		g.A.e.b,
+		g.A.e.l,
+		// g.A.e.tr,
+		// g.A.e.tl,
+		// g.A.e.br,
+		// g.A.e.bl,
+		g.B.t,
+		g.B.r,
+		g.B.b,
+		g.B.l,
+		g.B.e.t,
+		g.B.e.r,
+		g.B.e.b,
+		g.B.e.l,
+		// g.B.e.tr,
+		// g.B.e.tl,
+		// g.B.e.br,
+		// g.B.e.bl,
+		// in order of ascending priority
+		g.D.tc,
+		g.D.rc,
+		g.D.bc,
+		g.D.lc,
+		g.D.tl,
+		g.D.tr,
+		g.D.br,
+		g.D.bl,
+		g.D.tcl,
+		g.D.tcr,
+		g.D.bcl,
+		g.D.lct,
+		g.D.rct,
+		g.D.bcr,
+		g.D.lcb,
+		g.D.rcb,
+		g.C.c,
+		g.C.t,
+		g.C.r,
+		g.C.b,
+		g.C.l,
+		g.C.tl,
+		g.C.tr,
+		g.C.br,
+		g.C.bl,
+		g.A.c,
+		g.B.c,
+	]
+
+	const xs = Array.from(new Set(g.pathPoints.map((p) => Math.floor(p.x)))).sort((a, b) => a - b)
+	const ys = Array.from(new Set(g.pathPoints.map((p) => Math.floor(p.y)))).sort((a, b) => a - b)
+
+	g.gridPoints = Array.from({ length: ys.length }, () => Array.from({ length: xs.length }))
+
+	for (const point of g.pathPoints) {
+		const yIndex = ys.indexOf(Math.floor(point.y))
+		const xIndex = xs.indexOf(Math.floor(point.x))
+		g.gridPoints[yIndex][xIndex] = point
+		g.gridPointsMap.set(point, new Vec(xIndex, yIndex))
 	}
 
 	return g
