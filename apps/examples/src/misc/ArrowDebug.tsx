@@ -61,7 +61,7 @@ export function AllArrowsDebugDisplay() {
 	return arrowInfos.map((info, i) => <ArrowGuideDisplay key={i} info={info} />)
 }
 
-function ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
+function _ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
 	const { startBounds: boxA, endBounds: boxB } = info
 
 	const grid = getArrowNavigationGrid(boxA, boxB, EXPAND_LEG_LENGTH)

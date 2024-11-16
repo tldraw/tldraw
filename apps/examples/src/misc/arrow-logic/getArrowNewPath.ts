@@ -247,7 +247,6 @@ function aStarAlgorithm(g: ArrowGuide, start: GridNode, initialD: 't' | 'r' | 'b
 			}
 
 			if (current === start && isElbow) {
-				console.log('skipping elbow on start', dir, current.d)
 				continue
 			}
 
