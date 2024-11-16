@@ -168,8 +168,18 @@ My browser: ${navigator.userAgent}`
 						<h2>Something&apos;s gone wrong.</h2>
 						<p>
 							Sorry, we encountered an error. Please refresh the page to continue. If you keep
-							seeing this error, you can <a href={url.toString()}>create a GitHub issue</a> or{' '}
-							<a href="https://discord.gg/Cq6cPsTfNy">ask for help on Discord</a>.
+							seeing this error, you can{' '}
+							<a href={url.toString()} style={{ color: 'blue', textDecoration: 'underline' }}>
+								create a GitHub issue
+							</a>
+							or
+							<a
+								href="https://discord.gg/Cq6cPsTfNy"
+								style={{ color: 'blue', textDecoration: 'underline' }}
+							>
+								ask for help on Discord
+							</a>
+							.
 						</p>
 						{shouldShowError && (
 							<>
