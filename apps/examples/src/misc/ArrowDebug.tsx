@@ -76,9 +76,9 @@ export function AllArrowsDebugDisplay() {
 }
 
 function _ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
-	const { startBounds: boxA, endBounds: boxB } = info
+	const { startBounds: boxA, endBounds: boxB, M } = info
 
-	const grid = getArrowNavigationGrid(boxA, boxB, EXPAND_LEG_LENGTH)
+	const grid = getArrowNavigationGrid(boxA, boxB, M, EXPAND_LEG_LENGTH)
 
 	const showGrid = true
 
@@ -155,33 +155,32 @@ function GridDisplay({ grid: g }: { grid: ArrowNavigationGrid }) {
 			/>
 
 			{/* D bounds */}
-			<Dot point={g.D.tl} color="grey" />
-			<Dot point={g.D.tr} color="grey" />
-			<Dot point={g.D.br} color="grey" />
-			<Dot point={g.D.bl} color="grey" />
+			{g.pathPoints.includes(g.D.tl) && <Dot point={g.D.tl} color="grey" />}
+			{g.pathPoints.includes(g.D.tr) && <Dot point={g.D.tr} color="grey" />}
+			{g.pathPoints.includes(g.D.br) && <Dot point={g.D.br} color="grey" />}
+			{g.pathPoints.includes(g.D.bl) && <Dot point={g.D.bl} color="grey" />}
 
-			<Dot point={g.D.tc} color="green" />
-			<Dot point={g.D.rc} color="green" />
-			<Dot point={g.D.bc} color="green" />
-			<Dot point={g.D.lc} color="green" />
+			{g.pathPoints.includes(g.D.tc) && <Dot point={g.D.tc} color="green" />}
+			{g.pathPoints.includes(g.D.rc) && <Dot point={g.D.rc} color="green" />}
+			{g.pathPoints.includes(g.D.bc) && <Dot point={g.D.bc} color="green" />}
+			{g.pathPoints.includes(g.D.lc) && <Dot point={g.D.lc} color="green" />}
 
-			<Dot point={g.D.tcl} color="orange" />
-			<Dot point={g.D.tcr} color="orange" />
-			<Dot point={g.D.lct} color="orange" />
-			<Dot point={g.D.lcb} color="orange" />
-			<Dot point={g.D.bcr} color="orange" />
-			<Dot point={g.D.bcl} color="orange" />
-			<Dot point={g.D.rct} color="orange" />
-			<Dot point={g.D.rcb} color="orange" />
+			{g.pathPoints.includes(g.D.tcl) && <Dot point={g.D.tcl} color="orange" />}
+			{g.pathPoints.includes(g.D.tcr) && <Dot point={g.D.tcr} color="orange" />}
+			{g.pathPoints.includes(g.D.lct) && <Dot point={g.D.lct} color="orange" />}
+			{g.pathPoints.includes(g.D.lcb) && <Dot point={g.D.lcb} color="orange" />}
+			{g.pathPoints.includes(g.D.bcr) && <Dot point={g.D.bcr} color="orange" />}
+			{g.pathPoints.includes(g.D.bcl) && <Dot point={g.D.bcl} color="orange" />}
+			{g.pathPoints.includes(g.D.rct) && <Dot point={g.D.rct} color="orange" />}
+			{g.pathPoints.includes(g.D.rcb) && <Dot point={g.D.rcb} color="orange" />}
 
 			{/* C center */}
-			<Dot point={g.C.c} color="purple" />
+			{g.pathPoints.includes(g.C.c) && <Dot point={g.C.c} color="purple" />}
 
 			{/* C bounds */}
-			<Dot point={g.C.t} color="green" />
-			<Dot point={g.C.r} color="green" />
-			<Dot point={g.C.b} color="green" />
-			<Dot point={g.C.l} color="green" />
+			{g.pathPoints.includes(g.C.t) && <Dot point={g.C.t} color="green" />}
+			{g.pathPoints.includes(g.C.b) && <Dot point={g.C.b} color="green" />}
+			{g.pathPoints.includes(g.C.l) && <Dot point={g.C.l} color="green" />}
 
 			{/* C corners */}
 			<Dot point={g.C.tl} color="blue" />
@@ -201,10 +200,10 @@ function GridDisplay({ grid: g }: { grid: ArrowNavigationGrid }) {
 			<Dot point={g.A.e.r} color="salmon" />
 			<Dot point={g.A.e.b} color="salmon" />
 			<Dot point={g.A.e.l} color="salmon" />
-			<Dot point={g.A.e.tl} color="salmon" />
+			{/* <Dot point={g.A.e.tl} color="salmon" />
 			<Dot point={g.A.e.tr} color="salmon" />
 			<Dot point={g.A.e.br} color="salmon" />
-			<Dot point={g.A.e.bl} color="salmon" />
+			<Dot point={g.A.e.bl} color="salmon" /> */}
 
 			{/* B bounds */}
 			<Dot point={g.B.c} color="purple" />
@@ -218,10 +217,10 @@ function GridDisplay({ grid: g }: { grid: ArrowNavigationGrid }) {
 			<Dot point={g.B.e.r} color="salmon" />
 			<Dot point={g.B.e.b} color="salmon" />
 			<Dot point={g.B.e.l} color="salmon" />
-			<Dot point={g.B.e.tl} color="salmon" />
+			{/* <Dot point={g.B.e.tl} color="salmon" />
 			<Dot point={g.B.e.tr} color="salmon" />
 			<Dot point={g.B.e.br} color="salmon" />
-			<Dot point={g.B.e.bl} color="salmon" />
+			<Dot point={g.B.e.bl} color="salmon" /> */}
 
 			{/* edges */}
 			<Rect p1={g.D.tl} p2={g.D.br} color="orange" />

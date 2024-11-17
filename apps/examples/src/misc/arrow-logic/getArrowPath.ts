@@ -58,46 +58,142 @@ export function getArrowPath(
 
 	let closestPair = [] as [ArrowDirection, Vec, Vec][]
 
-	if (g.hPos === 'a-left-of-b') {
+	if (g.gapDir === 'h') {
+		// hs prefer S arrows
+		closestPair[0] = g.hPos === 'a-left-of-b' ? edgesA[1] : edgesA[3]
+		closestPair[1] = g.hPos === 'a-left-of-b' ? edgesB[3] : edgesB[1]
+	} else if (g.gapDir === 'v') {
+		// vs prefer L arrows
 		if (g.vPos === 'a-above-b') {
-			closestPair = [edgesA[1], edgesB[0]]
+			closestPair[0] = edgesA[2]
+			closestPair[1] = edgesB[0] // tricky, see below
 		} else if (g.vPos === 'a-below-b') {
-			closestPair = [edgesA[1], edgesB[2]]
-		} else {
-			closestPair = [edgesA[1], edgesB[3]]
+			closestPair[0] = edgesA[0]
+			closestPair[1] = edgesB[2] // tricky, see below
 		}
-	} else if (g.hPos === 'a-right-of-b') {
-		if (g.vPos === 'a-above-b') {
-			closestPair = [edgesA[3], edgesB[0]]
-		} else if (g.vPos === 'a-below-b') {
-			closestPair = [edgesA[3], edgesB[2]]
-		} else {
-			closestPair = [edgesA[3], edgesB[1]]
+
+		// overwrites the B just set above
+		if (g.hPos === 'a-left-of-b') {
+			closestPair[1] = edgesB[3]
+		} else if (g.hPos === 'a-right-of-b') {
+			closestPair[1] = edgesB[1]
 		}
 	} else {
-		if (g.vPos === 'a-above-b') {
-			if (g.gap.v.h < g.p * 2) {
-				if (g.A.e.l.x > g.B.c.x && g.A.c.x > g.B.c.x) {
-					closestPair = [edgesA[3], edgesB[0]]
-				} else if (g.A.e.l.x < g.B.c.x && g.A.c.x > g.B.c.x) {
-					closestPair = [edgesA[3], edgesB[3]]
-				} else if (g.A.e.r.x > g.B.l.x && g.A.e.r.x < g.B.c.x) {
+		if (g.hPos === 'a-left-of-b') {
+			if (g.A.c.y < g.B.c.y) {
+				if (g.A.c.y < g.B.e.t.y) {
 					closestPair = [edgesA[1], edgesB[0]]
-				} else if (g.A.e.r.x > g.B.c.x && g.A.c.x < g.B.c.x) {
-					closestPair = [edgesA[1], edgesB[1]]
 				} else {
-					closestPair = [edgesA[2], edgesB[0]]
+					closestPair = [edgesA[0], edgesB[0]]
 				}
 			} else {
-				closestPair = [edgesA[2], edgesB[0]]
+				if (g.A.c.y > g.B.e.b.y) {
+					closestPair = [edgesA[1], edgesB[2]]
+				} else {
+					closestPair = [edgesA[2], edgesB[2]]
+				}
+			}
+		} else if (g.hPos === 'a-right-of-b') {
+			if (g.A.c.y < g.B.c.y) {
+				if (g.A.c.y < g.B.e.t.y) {
+					closestPair = [edgesA[3], edgesB[0]]
+				} else {
+					closestPair = [edgesA[0], edgesB[0]]
+				}
+			} else {
+				if (g.A.c.y > g.B.e.b.y) {
+					closestPair = [edgesA[3], edgesB[2]]
+				} else {
+					closestPair = [edgesA[2], edgesB[2]]
+				}
+			}
+		} else if (g.vPos === 'a-above-b') {
+			// to short for an s, so make a c
+			if (g.A.c.x < g.B.c.x) {
+				if (g.A.e.r.x < g.B.c.x) {
+					// l arrow, right to top
+					closestPair = [edgesA[1], edgesB[0]]
+				} else {
+					// c arrow, right to right
+					closestPair = [edgesA[1], edgesB[1]]
+				}
+			} else {
+				if (g.A.e.l.x > g.B.c.x) {
+					// l arrow, left to top
+					closestPair = [edgesA[3], edgesB[0]]
+				} else {
+					// c arrow, left to left
+					closestPair = [edgesA[3], edgesB[3]]
+				}
 			}
 		} else if (g.vPos === 'a-below-b') {
-			closestPair = [edgesA[0], edgesB[2]]
+			if (g.A.c.x < g.B.c.x) {
+				if (g.A.e.r.x < g.B.c.x) {
+					closestPair = [edgesA[1], edgesB[2]]
+				} else {
+					closestPair = [edgesA[1], edgesB[1]]
+				}
+			} else {
+				if (g.A.e.l.x > g.B.c.x) {
+					closestPair = [edgesA[3], edgesB[2]]
+				} else {
+					closestPair = [edgesA[3], edgesB[3]]
+				}
+			}
 		} else {
-			closestPair = [edgesA[2], edgesB[0]]
+			if (g.A.t.y < g.B.t.y) {
+				if (g.A.e.r.x < g.B.e.r.x) {
+					closestPair = [edgesA[0], edgesB[1]]
+				} else {
+					closestPair = [edgesA[0], edgesB[3]]
+				}
+			} else {
+				if (g.A.e.r.x < g.B.e.r.x) {
+					closestPair = [edgesA[2], edgesB[1]]
+				} else {
+					closestPair = [edgesA[2], edgesB[3]]
+				}
+			}
 		}
 	}
 
+	// // Closest the handle...
+	// let closestDist = Infinity
+	// for (let i = 0; i < edgesA.length; i++) {
+	// 	const dist = Vec.Dist2(edgesA[i][2], g.M)
+	// 	if (dist < closestDist) {
+	// 		closestDist = dist
+	// 		closestPair[0] = edgesA[i]
+	// 	}
+	// }
+	// closestDist = Infinity
+	// for (let i = 0; i < edgesB.length; i++) {
+	// 	const dist = Vec.Dist2(edgesB[i][2], g.M)
+	// 	if (dist < closestDist) {
+	// 		closestDist = dist
+	// 		closestPair[1] = edgesB[i]
+	// 	}
+	// }
+
+	// // Closest the centers...
+	// let closestDist = Infinity
+	// for (let i = 0; i < edgesA.length; i++) {
+	// 	const dist = Vec.Dist2(edgesA[i][2], g.B.c)
+	// 	if (dist < closestDist) {
+	// 		closestDist = dist
+	// 		closestPair[0] = edgesA[i]
+	// 	}
+	// }
+	// closestDist = Infinity
+	// for (let i = 0; i < edgesB.length; i++) {
+	// 	const dist = Vec.Dist2(edgesB[i][2], g.A.c)
+	// 	if (dist < closestDist) {
+	// 		closestDist = dist
+	// 		closestPair[1] = edgesB[i]
+	// 	}
+	// }
+
+	// // Closest to eachother...
 	// let closestDist = Infinity
 	// for (let i = 0; i < edgesA.length; i++) {
 	// 	for (let j = 0; j < edgesB.length; j++) {
@@ -122,7 +218,7 @@ export function getArrowPath(
 	const ep = g.gridPointsMap.get(e)!
 	const paths = getNextPointInPath(
 		g,
-		new ArrowStepResult([kp, ep], 0, Vec.Dist(kp, ep), new Set([k, e]), 'a'),
+		new ArrowStepResult([kp, ep], 0, Vec.Dist(kp, ep), new Set([k, e]), 'mid'),
 		dir
 	)
 
@@ -241,27 +337,35 @@ function move(g: ArrowNavigationGrid, tpos: Vec, result: ArrowStepResult, corner
 	// Even if the point is invalid, we still want to add it to the visited set
 	result.visited.add(next)
 
-	if (result.phase === 'a' && !g.A.e.box.containsPoint(next)) {
-		result.phase = 'mid'
+	// If we're in phase A
+	if (result.phase === 'a') {
+		// ...and the next point is an edge of A.e, we're in phase mid
+		if (next === g.A.e.t || next === g.A.e.r || next === g.A.e.b || next === g.A.e.l) {
+			result.phase = 'mid'
+		} else {
+			// Otherwise, we're broken
+			result.broken = true
+			return false
+		}
 	}
 
-	if (result.phase !== 'b' && g.B.box.containsPoint(next)) {
-		result.broken = true
-		return false
-	}
-
-	if (result.phase === 'mid' && g.B.e.box.containsPoint(next)) {
-		result.phase = 'b'
-	}
-
-	if (result.phase === 'mid' && g.A.e.box.containsPoint(next)) {
-		result.broken = true
-		return false
-	}
-
-	if (result.phase === 'b' && !g.B.e.box.containsPoint(next)) {
-		result.broken = true
-		return false
+	// If we're in phase mid and the next point is an edge of B.e, we're in phase b
+	else if (result.phase === 'mid') {
+		if (next === g.B.e.t || next === g.B.e.r || next === g.B.e.b || next === g.B.e.l) {
+			result.phase = 'b'
+		} else {
+			// If we're in the mid phase and the point is on the expanded bounds of A or B, we're done
+			if (g.A.e.box.containsPoint(next) || g.B.e.box.containsPoint(next)) {
+				result.broken = true
+				return false
+			}
+		}
+	} else if (result.phase === 'b') {
+		// From B, the only valid points should be the edges of B
+		if (!(next === g.B.t || next === g.B.r || next === g.B.b || next === g.B.l)) {
+			result.broken = true
+			return false
+		}
 	}
 
 	// If it's a corner and the corner is invalid, we're done

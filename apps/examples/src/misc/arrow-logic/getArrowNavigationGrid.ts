@@ -3,6 +3,8 @@ import { Box, Vec } from 'tldraw'
 export interface ArrowNavigationGrid {
 	// Padding around boxes
 	p: number
+	// middle handle
+	M: Vec
 	// First box bounds
 	A: {
 		box: Box
@@ -112,6 +114,7 @@ export interface ArrowNavigationGrid {
 		c: Vec
 	}
 	overlap: boolean
+	gapDir: 'h' | 'v' | null
 	hDir: 'left' | 'right' | 'exact'
 	vDir: 'up' | 'down' | 'exact'
 	hPos:
@@ -135,7 +138,12 @@ export interface ArrowNavigationGrid {
 	gridPointsMap: Map<Vec, Vec>
 }
 
-export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNavigationGrid {
+export function getArrowNavigationGrid(
+	A: Box,
+	B: Box,
+	M: Vec,
+	expand: number
+): ArrowNavigationGrid {
 	const AE = A.clone().expandBy(expand)
 	const BE = B.clone().expandBy(expand)
 	const C = Box.FromPoints([A.center, B.center])
@@ -149,18 +157,22 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 		my: number,
 		hPos: ArrowNavigationGrid['hPos'],
 		vPos: ArrowNavigationGrid['vPos'],
-		overlap = false
+		overlap = false,
+		gx = 0,
+		gy = 0
 
 	if (A.maxX < B.minX) {
 		// range a is to the left of range b
 		gapX = B.minX - A.maxX
 		mx = A.maxX + gapX / 2
 		hPos = 'a-left-of-b'
+		gx = gapX
 	} else if (A.minX > B.maxX) {
 		// range a is to the right of range b
 		gapX = A.minX - B.maxX
 		mx = B.maxX + gapX / 2
 		hPos = 'a-right-of-b'
+		gx = gapX
 	} else if (A.maxX > B.maxX && A.minX < B.minX) {
 		// a contains whole B range
 		gapX = Math.abs(B.maxX - B.minX)
@@ -193,11 +205,13 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 		gapY = B.minY - A.maxY
 		my = A.maxY + gapY / 2
 		vPos = 'a-above-b'
+		gy = gapY
 	} else if (A.minY > B.maxY) {
 		// range a is below range b
 		gapY = A.minY - B.maxY
 		my = B.maxY + gapY / 2
 		vPos = 'a-below-b'
+		gy = gapY
 	} else if (A.maxY > B.maxY && A.minY < B.minY) {
 		// a contains whole B range
 		gapY = Math.abs(B.maxY - B.minY)
@@ -235,6 +249,7 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 
 	const g: ArrowNavigationGrid = {
 		p: expand,
+		M,
 		A: {
 			box: A,
 			c: A.center,
@@ -312,6 +327,7 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 			]),
 			c: new Vec(mx, my),
 		},
+		gapDir: gx > expand * 2 || gy > expand * 2 ? (gx > gy ? 'h' : 'v') : null,
 		overlap,
 		vPos,
 		hPos,
@@ -357,31 +373,33 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 		// g.B.e.br,
 		// g.B.e.bl,
 		// in order of ascending priority
-		g.D.tc,
-		g.D.rc,
-		g.D.bc,
-		g.D.lc,
 		g.D.tl,
 		g.D.tr,
 		g.D.br,
 		g.D.bl,
-		g.D.tcl,
-		g.D.tcr,
-		g.D.bcl,
-		g.D.lct,
-		g.D.rct,
-		g.D.bcr,
-		g.D.lcb,
-		g.D.rcb,
-		g.C.c,
-		g.C.t,
-		g.C.r,
-		g.C.b,
-		g.C.l,
-		g.C.tl,
-		g.C.tr,
-		g.C.br,
-		g.C.bl,
+		...[
+			g.D.tc,
+			g.D.rc,
+			g.D.bc,
+			g.D.lc,
+			g.D.tcl,
+			g.D.tcr,
+			g.D.bcl,
+			g.D.lct,
+			g.D.rct,
+			g.D.bcr,
+			g.D.lcb,
+			g.D.rcb,
+			g.C.c,
+			g.C.t,
+			g.C.r,
+			g.C.b,
+			g.C.l,
+			g.C.tl,
+			g.C.tr,
+			g.C.br,
+			g.C.bl,
+		].filter((p) => !g.B.e.box.containsPoint(p) && !g.A.e.box.containsPoint(p)),
 		g.A.c,
 		g.B.c,
 	]
