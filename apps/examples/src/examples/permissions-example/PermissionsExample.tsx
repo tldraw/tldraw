@@ -55,8 +55,8 @@ can use permissions to control what users can do in the editor.
 In your app, you probably have an ID that could be associated with a user. You could use this ID to prevent
 users from modifying or deleting shapes that they didn't create. You could also use this ID to prevent users
 from modifying, deleting, or perhaps even unlocking certain template shapes. This system could also be dynamic,
-such as checking the user's permission level ("change-all", "change-own", "change-none") to determine what they
-can or can't do.
+such as checking your user's permission level (something like "change-all", "change-own", "change-none") to 
+determine what they can or can't do.
 
 Remember that tldraw also has a readonly mode, which can be set on the editor component. (If you wanted to be
 extra safe, you could also prevent changes in the client to the readonly mode using the side effect system).
