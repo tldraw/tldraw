@@ -2,6 +2,8 @@ import { Box, Vec } from 'tldraw'
 
 type GridPosition = [number, number]
 
+type Dir = 't' | 'r' | 'b' | 'l'
+
 interface GridNode {
 	vec: Vec
 	x: number
@@ -10,12 +12,21 @@ interface GridNode {
 	g: number
 	h: number
 	e: number
-	d?: 't' | 'r' | 'b' | 'l'
+	d?: 't' | 'r' | 'b' | 'l' | 'any'
 	parent: GridNode | null
 }
 
 export interface ArrowGuide {
+	// Center of gap
 	c: GridNode
+	// Center of A
+	Ac: GridNode
+	// Center of B
+	Bc: GridNode
+	// Middle handle
+	M: GridNode
+	// Padding amount
+	p: number
 	grid: GridNode[][]
 	map: Map<GridNode, GridPosition>
 	startNodes: {
@@ -30,6 +41,8 @@ export interface ArrowGuide {
 		b: GridNode
 		l: GridNode
 	}
+	A: Box
+	B: Box
 	bannedNodes: Set<GridNode>
 	path: Vec[]
 }
@@ -37,12 +50,14 @@ export interface ArrowGuide {
 export function getArrowGuide({
 	A,
 	B,
+	M,
 	p,
 	start,
 	end: _,
 }: {
 	A: Box
 	B: Box
+	M: Vec
 	start: 't' | 'r' | 'b' | 'l' | 'any'
 	end: 't' | 'r' | 'b' | 'l' | 'any'
 	p: number
@@ -54,7 +69,13 @@ export function getArrowGuide({
 		endNodes: {} as any,
 		bannedNodes: new Set(),
 		path: [],
+		p,
 		c: {} as any,
+		Ac: {} as any,
+		Bc: {} as any,
+		M: {} as any,
+		A,
+		B,
 	}
 
 	// collect all of the points in the grid
@@ -69,6 +90,7 @@ export function getArrowGuide({
 		A.maxX + p,
 		B.minX - p,
 		B.maxX + p,
+		M.x,
 	]
 
 	const ys = [
@@ -82,6 +104,7 @@ export function getArrowGuide({
 		A.maxY + p,
 		B.minY - p,
 		B.maxY + p,
+		M.y,
 	]
 
 	let cx = A.midX
@@ -157,6 +180,9 @@ export function getArrowGuide({
 	}
 
 	g.c = g.grid[ys.indexOf(cy)][xs.indexOf(cx)]
+	g.Ac = g.grid[ys.indexOf(A.midY)][xs.indexOf(A.midX)]
+	g.Bc = g.grid[ys.indexOf(B.midY)][xs.indexOf(B.midX)]
+	g.M = g.grid[ys.indexOf(M.y)][xs.indexOf(M.x)]
 
 	// populate start and end nodes
 	for (let i = 0; i < g.grid.length; i++) {
@@ -187,21 +213,31 @@ export function getArrowGuide({
 
 	// console.log(path)
 
-	const paths = (start === 'any' ? Object.entries(g.startNodes) : [g.startNodes[start]]).map(
-		([d, n]: any) => aStarAlgorithm(g, n, d as any)
-	)
-	const pathToShow = paths.sort((a, b) => a.length - b.length)[0]
+	// const startingNodes = start === 'any' ? Object.entries(g.startNodes) : [g.startNodes[start]]
+	// const paths = startingNodes.map(([d, n]: any) => {
+	// 	const firstStage = aStarAlgorithm(g, n, d, 0, [])
+	// 	const secondStage = aStarAlgorithm(g, g.M, g.M.d!, 1, firstStage)
+	// 	return [...firstStage, ...secondStage]
+	// })
+	const firstStage = aStarAlgorithm(g, g.Ac, [g.Bc])
+	const path = [...firstStage]
 
-	g.path = pathToShow.map((n) => n.vec)
+	// const path = naivePathing(g, [g.Ac, g.M, g.Bc])
+	// const path = expensivePath(g, g.Ac, g.M, g.Bc)
+
+	// const pathToShow = paths.sort((a, b) => a.length - b.length)[0]
+
+	// const pathToShow = paths.map(p => p.vec!)
+	if (path) g.path = path.map((n) => n.vec)
 
 	return g
 }
 
-function aStarAlgorithm(g: ArrowGuide, start: GridNode, initialD: 't' | 'r' | 'b' | 'l') {
+const DIRS = ['t', 'r', 'b', 'l'] as const
+
+function aStarAlgorithm(g: ArrowGuide, start: GridNode, targets: GridNode[]): GridNode[] {
 	const openSet = new Set<GridNode>()
 	const closedSet = new Set<GridNode>()
-
-	const endNodes = Object.values(g.endNodes)
 
 	// Reset nodes
 	for (let y = 0; y < g.grid.length; y++) {
@@ -218,17 +254,34 @@ function aStarAlgorithm(g: ArrowGuide, start: GridNode, initialD: 't' | 'r' | 'b
 
 	// Initialize start node
 	start.g = 0
-	start.h = getHeuristic(g, start, endNodes)
+	start.h = getHeuristic(g, start, targets)
 	start.f = start.g + start.h
-	start.d = initialD
+	start.d = 'any'
+	start.e = 0
 	openSet.add(start)
 
 	while (openSet.size > 0) {
-		const current = [...openSet.values()].reduce((acc, node) =>
-			!acc || node.f < acc.f ? node : acc
-		)
+		let current: GridNode | undefined
 
-		if (endNodes.includes(current)) {
+		openSet.forEach((node) => {
+			if (!current) {
+				current = node
+			} else {
+				if (node.f < current.f) {
+					current = node
+				}
+			}
+		})
+
+		if (!current) {
+			throw Error('No current node')
+		}
+
+		if (targets.includes(current)) {
+			current.e++
+		}
+
+		if (current === targets[targets.length - 1]) {
 			return reconstructPath(current)
 		}
 
@@ -240,30 +293,18 @@ function aStarAlgorithm(g: ArrowGuide, start: GridNode, initialD: 't' | 'r' | 'b
 		for (let i = 0; i < 4; i++) {
 			const neighbor = neighbors[i]
 			const dir = DIRS[i]
-			const isElbow = dir !== current.d
+			start.d = dir
 
 			if (!neighbor || closedSet.has(neighbor)) {
 				continue
 			}
 
-			if (current === start && isElbow) {
+			const isElbow = dir !== current.d
+			if (isElbow && g.A.containsPoint(neighbor.vec)) {
 				continue
 			}
 
-			if (
-				(neighbor === g.endNodes.t && dir !== 'b') ||
-				(neighbor === g.endNodes.b && dir !== 't') ||
-				(neighbor === g.endNodes.r && dir !== 'l') ||
-				(neighbor === g.endNodes.l && dir !== 'r')
-			) {
-				continue
-			}
-
-			// if the next point is in the same direction as the previous point,
-			// the cost is zero; otherwise, if the next point would make the path
-			// take a left or right turn, then the cost is 1
-
-			const tentativeG = current.g + (isElbow ? 1 : 0)
+			const tentativeG = current.g + 1
 
 			if (!openSet.has(neighbor)) {
 				openSet.add(neighbor)
@@ -271,26 +312,45 @@ function aStarAlgorithm(g: ArrowGuide, start: GridNode, initialD: 't' | 'r' | 'b
 				continue
 			}
 
+			// if targets include current, bump some number like e
+
 			// Update neighbor scores
 			neighbor.parent = current
 			neighbor.g = tentativeG
-			neighbor.h = getHeuristic(g, neighbor, endNodes)
+			neighbor.h = getHeuristic(g, neighbor, targets)
 			neighbor.f = neighbor.g + neighbor.h
 			neighbor.d = dir
+			neighbor.e = current.e
 		}
 	}
 
 	return []
 }
 
-function getHeuristic(g: ArrowGuide, node: GridNode, endNodes: GridNode[]): number {
-	// const distFromCenter = Math.abs(node.x - g.c.x) + Math.abs(node.y - g.c.y)
-	return Math.min(
-		...endNodes.map((end) => {
-			const distFromEndNodes = Math.abs(node.x - end.x) + Math.abs(node.y - end.y)
-			return distFromEndNodes // + distFromCenter
-		})
-	)
+function mtDist(a: GridNode, b: GridNode) {
+	return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
+}
+
+function rawDist(a: GridNode, b: GridNode) {
+	return Vec.Dist(a.vec, b.vec)
+}
+
+function getHeuristic(g: ArrowGuide, node: GridNode, targets: GridNode[]): number {
+	const distanceToNext = mtDist(node, targets[node.e])
+	return distanceToNext
+
+	// = Math.min(...Math.abs(node.x - target.x) + Math.abs(node.y - target.y)
+
+	// 	const los = Math.min(
+	// 			if (end.x === node.x) {
+	// 				return 0
+	// 			}
+	// 			if (end.y === node.y) {
+	// 				return 0
+	// 			}
+	// 			return 10
+	// }
+	// 	)
 }
 
 function reconstructPath(endNode: GridNode): GridNode[] {
@@ -320,7 +380,131 @@ function getAdjacentNode(
 	if (dir === 'b') tpos[1]++
 	if (dir === 'l') tpos[0]--
 	if (dir === 'r') tpos[0]++
-	return g.grid[tpos[1]]?.[tpos[0]]
+	const next = g.grid[tpos[1]]?.[tpos[0]]
+	return next
 }
 
-const DIRS = ['t', 'r', 'b', 'l'] as const
+function naivePathing(g: ArrowGuide, points: GridNode[]): GridNode[] {
+	// a path through g.grid that passes through each point in points
+	const path: GridNode[] = []
+
+	let i = 0
+	let k = 0
+	let complete = false
+
+	const visited = new Set<GridNode>()
+
+	path.push(points[i])
+	let current = points[i]
+
+	while (!complete) {
+		const next = points[i + 1]
+
+		if (!next) {
+			complete = true
+			break
+		}
+		k++
+		const neighbors = getNeighbors(g, current)
+		let minDist = Infinity
+		let nearest: GridNode | undefined
+
+		for (const neighbor of neighbors) {
+			if (!neighbor) continue
+			// if (visited.has(neighbor)) continue
+			// visited.add(neighbor)
+			if (path.includes(neighbor)) continue
+			const dist = mtDist(neighbor, next)
+			if (dist < minDist) {
+				minDist = dist
+				nearest = neighbor
+			}
+		}
+
+		if (!nearest) {
+			break
+		}
+
+		if (nearest) {
+			path.push(nearest)
+			current = nearest
+		}
+
+		if (current === next) {
+			i++
+		}
+	}
+
+	return path
+}
+
+function expensivePath(g: ArrowGuide, start: GridNode, mid: GridNode, target: GridNode) {
+	const paths = next(g, start, 0, [mid, target], new Set(), [], -1, 0)
+	if (!paths) return
+	return (
+		paths
+			// .map((p) => p.filter((v) => !g.bannedNodes.has(v)))
+			.sort((a, b) => a.length - b.length)[0]
+	)
+}
+
+function next(
+	g: ArrowGuide,
+	node: GridNode,
+	targetIndex: number,
+	targets: GridNode[],
+	visited: Set<GridNode>,
+	path: GridNode[],
+	dir: number,
+	turns: number
+): GridNode[][] | undefined {
+	if (g.B.containsPoint(node.vec)) {
+		return [[...path, node]]
+	}
+
+	path.push(node)
+	visited.add(node)
+
+	let target = targets[targetIndex]
+	if (node === target) {
+		if (targetIndex === targets.length - 1) {
+			return [path]
+		} else {
+			targetIndex++
+			target = targets[targetIndex]
+		}
+	}
+
+	if (turns > 4) {
+		return
+	}
+
+	const neighbors = getNeighbors(g, node)
+	const paths: GridNode[][] = []
+
+	for (let i = 0; i < 4; i++) {
+		if (path.length === 3 && i !== dir) continue
+		const neighbor = neighbors[i]
+		if (!neighbor) continue
+		if (visited.has(neighbor)) continue
+		if (mtDist(neighbor, target) > mtDist(node, target)) continue
+
+		const nextPath = [...path]
+		if (dir === i) nextPath.pop()
+
+		const results = next(
+			g,
+			neighbor,
+			targetIndex,
+			targets,
+			new Set(visited),
+			nextPath,
+			i,
+			i === dir ? turns : turns + 1
+		)
+		if (!results) continue
+		paths.push(...results)
+	}
+
+	return paths
+}

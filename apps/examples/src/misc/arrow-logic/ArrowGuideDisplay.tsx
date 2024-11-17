@@ -7,12 +7,14 @@ export interface ArrowDebugInfo {
 	startBounds: Box
 	endBounds: Box
 	centerBounds: Box
+	M: Vec
 }
 
 export function ArrowGuideDisplay({ info }: { info: ArrowDebugInfo }) {
 	const g = getArrowGuide({
 		A: info.startBounds,
 		B: info.endBounds,
+		M: info.M,
 		start: 'any',
 		end: 'any',
 		p: 32,

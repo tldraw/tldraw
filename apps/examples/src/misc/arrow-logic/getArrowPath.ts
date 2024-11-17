@@ -21,12 +21,19 @@ class ArrowStepResult {
 		public corners: number,
 		public length: number,
 		public visited: Set<Vec>,
+		public phase: 'a' | 'mid' | 'b',
 		public complete: boolean = false,
 		public broken: boolean = false
 	) {}
 
 	clone() {
-		return new ArrowStepResult([...this.path], this.corners, this.length, new Set(this.visited))
+		return new ArrowStepResult(
+			[...this.path],
+			this.corners,
+			this.length,
+			new Set(this.visited),
+			this.phase
+		)
 	}
 }
 
@@ -69,7 +76,21 @@ export function getArrowPath(
 		}
 	} else {
 		if (g.vPos === 'a-above-b') {
-			closestPair = [edgesA[2], edgesB[0]]
+			if (g.gap.v.h < g.p * 2) {
+				if (g.A.e.l.x > g.B.c.x && g.A.c.x > g.B.c.x) {
+					closestPair = [edgesA[3], edgesB[0]]
+				} else if (g.A.e.l.x < g.B.c.x && g.A.c.x > g.B.c.x) {
+					closestPair = [edgesA[3], edgesB[3]]
+				} else if (g.A.e.r.x > g.B.l.x && g.A.e.r.x < g.B.c.x) {
+					closestPair = [edgesA[1], edgesB[0]]
+				} else if (g.A.e.r.x > g.B.c.x && g.A.c.x < g.B.c.x) {
+					closestPair = [edgesA[1], edgesB[1]]
+				} else {
+					closestPair = [edgesA[2], edgesB[0]]
+				}
+			} else {
+				closestPair = [edgesA[2], edgesB[0]]
+			}
 		} else if (g.vPos === 'a-below-b') {
 			closestPair = [edgesA[0], edgesB[2]]
 		} else {
@@ -101,144 +122,14 @@ export function getArrowPath(
 	const ep = g.gridPointsMap.get(e)!
 	const paths = getNextPointInPath(
 		g,
-		new ArrowStepResult([kp, ep], 0, Vec.Dist(kp, ep), new Set([k, e])),
+		new ArrowStepResult([kp, ep], 0, Vec.Dist(kp, ep), new Set([k, e]), 'a'),
 		dir
 	)
+
+	const finalPaths = paths
 		.filter((p) => p.complete)
 		.filter((p) => p.visited.has(closestPair[1][1]))
 		.sort((a, b) => a.corners - b.corners)
-
-	// const dirs = [] as ArrowDirection[]
-
-	// console.log(closestPair)
-
-	// const brokenEdges = getBrokenEdges(g)
-
-	// let dirs: [ArrowDirection, ArrowDirection]
-	// const angle = (Vec.Angle(g.A.c, g.B.c) + Math.PI / 2 + Math.PI * 2) % (Math.PI * 2)
-
-	// if (angle > Math.PI * 1.75 || angle < Math.PI * 0.25) {
-	// 	dirs = ['up', 'down']
-	// } else if (angle > Math.PI * 0.25 && angle < Math.PI * 0.75) {
-	// 	dirs = ['right', 'left']
-	// } else if (angle > Math.PI * 0.75 && angle < Math.PI * 1.25) {
-	// 	dirs = ['down', 'up']
-	// } else {
-	// 	dirs = ['left', 'right']
-	// }
-
-	// if (brokenEdges.error) {
-	// 	dirs = ['down', 'up']
-	// } else {
-	// 	dirs = brokenEdges.dirs
-	// }
-	// const [startBrokenEdge, endBrokenEdge] = dirs
-
-	// const startDir = start || startBrokenEdge
-	// const endDir = end || endBrokenEdge
-
-	// const allDirsA: Record<ArrowDirection, [Vec, Vec, ArrowDirection]> = {
-	// 	up: [g.A.t, g.A.e.t, 'up'],
-	// 	right: [g.A.r, g.A.e.r, 'right'],
-	// 	down: [g.A.b, g.A.e.b, 'down'],
-	// 	left: [g.A.l, g.A.e.l, 'left'],
-	// }
-
-	// // All directions, just pick the best one that isn't broken
-	// const dirsA = Object.values(allDirsA).filter(
-	// 	(d) => !g.B.e.box.containsPoint(d[0]) && !g.B.e.box.containsPoint(d[1])
-	// )
-
-	// const dirA = allDirsA[startDir]
-	// const dirA = allDirsA[dirs[0]]
-
-	// let dirsA
-	// if (g.B.e.box.containsPoint(dirA[0]) || g.B.e.box.containsPoint(dirA[1])) {
-	// 	dirsA = Object.values(allDirsA).filter(
-	// 		(d) => !g.B.e.box.containsPoint(d[0]) && !g.B.e.box.containsPoint(d[1])
-	// 	)
-	// } else {
-	// 	dirsA = [dirA]
-	// }
-
-	// const paths = dirsA.flatMap(([k, e, dir]) => {
-	// 	const kp = g.gridPointsMap.get(k)!
-	// 	const ep = g.gridPointsMap.get(e)!
-	// 	return getNextPointInPath(
-	// 		g,
-	// 		new ArrowStepResult([kp, ep], 0, Vec.Dist(kp, ep), new Set([k, e])),
-	// 		dir
-	// 	)
-	// })
-
-	// const completePaths = paths.filter((result) => result.complete)
-
-	// const allDirsB: Record<ArrowDirection, [Vec, Vec, ArrowDirection]> = {
-	// 	up: [g.B.t, g.B.e.t, 'up'],
-	// 	right: [g.B.r, g.B.e.r, 'right'],
-	// 	down: [g.B.b, g.B.e.b, 'down'],
-	// 	left: [g.B.l, g.B.e.l, 'left'],
-	// }
-
-	// const dirB = allDirsB[endDir]
-
-	// let dirsB
-	// if (g.A.e.box.containsPoint(dirB[0]) || g.A.e.box.containsPoint(dirB[1])) {
-	// 	dirsB = Object.values(allDirsB).filter(
-	// 		(d) => !g.A.e.box.containsPoint(d[0]) && !g.A.e.box.containsPoint(d[1])
-	// 	)
-	// } else {
-	// 	dirsB = [dirB]
-	// }
-
-	// console.log(completePaths, dirsB)
-
-	// completePaths.forEach((p) => {
-	// 	p.length = p.path.reduce((acc, cur) => acc + Vec.Dist(cur, g.C.c), 0)
-	// })
-
-	// console.log(completePaths)
-
-	// const minCorners = Math.min(...completePaths.map((p) => p.corners))
-
-	// console.log(
-	// 	g.hPos,
-	// 	g.vPos,
-	// 	!(g.hPos === 'a-left-of-b' || g.hPos === 'a-right-of-b') ||
-	// 		!(g.vPos === 'a-above-b' || g.vPos === 'a-below-b')
-	// )
-
-	// const shortPaths = completePaths
-	// 	.filter((p) =>
-	// 		!(g.hPos === 'a-left-of-b' || g.hPos === 'a-right-of-b') ||
-	// 		!(g.vPos === 'a-above-b' || g.vPos === 'a-below-b')
-	// 			? p.corners === 2
-	// 			: p.corners === minCorners
-	// 	) // || p.corners === 2)
-	// 	.sort((a, b) => (a.length < b.length ? -1 : 1))
-	// 	.sort((a, b) => (a.visited.has(g.C.c) && !b.visited.has(g.C.c) ? -1 : 1))
-	// // .sort(
-	// // 	// (a, b) => (a.corners === 2 ? -1 : a.corners < b.corners ? -1 : 1)
-	// // 	(a, b) => (a.corners < b.corners ? -1 : 1)
-	// // )
-
-	// console.log(shortPaths)
-
-	// const pathsEndingInOptimalEdge = completePaths
-
-	// const pathsEndingInOptimalEdge = completePaths.filter((p) => {
-	// 	return dirsB.some((d) => p.visited.has(d[0]))
-	// })
-
-	// if (pathsEndingInOptimalEdge.length === 0) {
-	// 	pathsEndingInOptimalEdge.push(...completePaths)
-	// }
-
-	// const shortPaths = pathsEndingInOptimalEdge
-	// 	.filter((p) => p.corners === minCorners)
-	// 	.sort((a, b) => (a.length < b.length ? -1 : 1))
-
-	const finalPaths = paths
 
 	if (!finalPaths.length) {
 		return {
@@ -269,7 +160,7 @@ export function getArrowPath(
  * @param point The terminal point to check
  * @returns Whether the terminal point is valid
  */
-function isMidPathPointValid(g: ArrowNavigationGrid, point: Vec) {
+function _isMidPathPointValid(g: ArrowNavigationGrid, point: Vec) {
 	return (
 		// point.equals(g.A.e.tr) ||
 		// point.equals(g.A.e.tl) ||
@@ -303,8 +194,6 @@ function getNextPointInPath(
 	if (result.complete) return [result]
 	if (result.broken) return [result]
 	if (result.corners > 5) return [result]
-	const ccw = DIRS[(4 + (DIRS.indexOf(dir) - 1)) % 4]
-	const cw = DIRS[(DIRS.indexOf(dir) + 1) % 4]
 
 	const pos = result.path[result.path.length - 1]
 
@@ -315,11 +204,13 @@ function getNextPointInPath(
 		results.push(...getNextPointInPath(g, fwd_res, dir))
 	}
 
+	const ccw = DIRS[(4 + (DIRS.indexOf(dir) - 1)) % 4]
 	const ccw_res = getNext(g, pos, ccw, true, result.clone())
 	if (ccw_res) {
 		results.push(...getNextPointInPath(g, ccw_res, ccw))
 	}
 
+	const cw = DIRS[(DIRS.indexOf(dir) + 1) % 4]
 	const cw_res = getNext(g, pos, cw, true, result.clone())
 	if (cw_res) {
 		results.push(...getNextPointInPath(g, cw_res, cw))
@@ -350,12 +241,35 @@ function move(g: ArrowNavigationGrid, tpos: Vec, result: ArrowStepResult, corner
 	// Even if the point is invalid, we still want to add it to the visited set
 	result.visited.add(next)
 
-	// If it's a corner and the corner is invalid, we're done
-	// if we're just going ahead, then we can skip this check
-	if (corner && !isMidPathPointValid(g, next)) {
+	if (result.phase === 'a' && !g.A.e.box.containsPoint(next)) {
+		result.phase = 'mid'
+	}
+
+	if (result.phase !== 'b' && g.B.box.containsPoint(next)) {
 		result.broken = true
 		return false
 	}
+
+	if (result.phase === 'mid' && g.B.e.box.containsPoint(next)) {
+		result.phase = 'b'
+	}
+
+	if (result.phase === 'mid' && g.A.e.box.containsPoint(next)) {
+		result.broken = true
+		return false
+	}
+
+	if (result.phase === 'b' && !g.B.e.box.containsPoint(next)) {
+		result.broken = true
+		return false
+	}
+
+	// If it's a corner and the corner is invalid, we're done
+	// if we're just going ahead, then we can skip this check
+	// if (corner && !isMidPathPointValid(g, next)) {
+	// 	result.broken = true
+	// 	return false
+	// }
 
 	// We're good, let's add it and update the result
 	if (corner) result.corners++

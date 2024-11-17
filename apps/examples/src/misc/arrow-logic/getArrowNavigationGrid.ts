@@ -1,6 +1,8 @@
 import { Box, Vec } from 'tldraw'
 
 export interface ArrowNavigationGrid {
+	// Padding around boxes
+	p: number
 	// First box bounds
 	A: {
 		box: Box
@@ -232,6 +234,7 @@ export function getArrowNavigationGrid(A: Box, B: Box, expand: number): ArrowNav
 	)
 
 	const g: ArrowNavigationGrid = {
+		p: expand,
 		A: {
 			box: A,
 			c: A.center,

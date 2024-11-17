@@ -54,6 +54,7 @@ export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
 export { type TLArcInfo, type TLArrowInfo, type TLArrowPoint } from './lib/shapes/arrow/arrow-types'
 export {
 	getArrowBindings,
+	getArrowInfo,
 	getArrowTerminalsInArrowSpace,
 	type TLArrowBindings,
 } from './lib/shapes/arrow/shared'

@@ -1,17 +1,20 @@
-import { Box, TLArrowBinding, TLArrowShape, useEditor, useValue, Vec } from 'tldraw'
-import { ArrowGuideDisplay } from './arrow-logic/ArrowGuideDisplay'
+import {
+	Box,
+	getArrowInfo,
+	Mat,
+	TLArrowBinding,
+	TLArrowShape,
+	useEditor,
+	useValue,
+	Vec,
+} from 'tldraw'
+import { ArrowDebugInfo } from './arrow-logic/ArrowGuideDisplay'
 import { EXPAND_LEG_LENGTH } from './arrow-logic/constants'
 import { ArrowNavigationGrid, getArrowNavigationGrid } from './arrow-logic/getArrowNavigationGrid'
 import { getArrowPath } from './arrow-logic/getArrowPath'
 import { Dot } from './DebugComponents/Dot'
 import { Line } from './DebugComponents/Line'
 import { Rect } from './DebugComponents/Rect'
-
-interface ArrowDebugInfo {
-	startBounds: Box
-	endBounds: Box
-	centerBounds: Box
-}
 
 export function AllArrowsDebugDisplay() {
 	const editor = useEditor()
@@ -44,10 +47,21 @@ export function AllArrowsDebugDisplay() {
 
 					const centerBounds = Box.FromPoints([startBounds.center, endBounds.center])
 
+					const middleHandleInShapeSpace = getArrowInfo(editor, arrow)?.middle
+
+					if (!middleHandleInShapeSpace) return
+
+					const shapePageTransform = editor.getShapePageTransform(arrow)!
+					const middleHandleInPageSpace = Mat.applyToPoint(
+						shapePageTransform,
+						middleHandleInShapeSpace!
+					)
+
 					results.push({
 						startBounds,
 						endBounds,
 						centerBounds,
+						M: Vec.From(middleHandleInPageSpace),
 					})
 				})
 
@@ -58,7 +72,7 @@ export function AllArrowsDebugDisplay() {
 
 	if (arrowInfos.length === 0) return null
 
-	return arrowInfos.map((info, i) => <ArrowGuideDisplay key={i} info={info} />)
+	return arrowInfos.map((info, i) => <_ArrowDebugDisplay key={i} info={info} />)
 }
 
 function _ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
