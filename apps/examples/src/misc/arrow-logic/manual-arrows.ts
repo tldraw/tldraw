@@ -3,7 +3,7 @@ import { ArrowDirection, MINIMUM_LEG_LENGTH } from './constants'
 import { ArrowNavigationGrid } from './getArrowNavigationGrid'
 
 // Midle leg of an S is too short if the centers of A and B are too close on the axis of the leg
-function sArrowMiddleLegTooShort(g: ArrowNavigationGrid, dir: ArrowDirection) {
+function _sArrowMiddleLegTooShort(g: ArrowNavigationGrid, dir: ArrowDirection) {
 	switch (dir) {
 		case 'right': {
 			return Math.abs(g.A.c.y - g.B.c.y) < MINIMUM_LEG_LENGTH
@@ -21,7 +21,7 @@ function sArrowMiddleLegTooShort(g: ArrowNavigationGrid, dir: ArrowDirection) {
 }
 
 // Outside leg of an S is too short if the edge of A is too close to the center of C
-function sArrowOutsideLegTooShort(g: ArrowNavigationGrid, dir: ArrowDirection) {
+function _sArrowOutsideLegTooShort(g: ArrowNavigationGrid, dir: ArrowDirection) {
 	switch (dir) {
 		case 'right': {
 			return g.A.e.r.x > g.C.c.x
@@ -39,7 +39,7 @@ function sArrowOutsideLegTooShort(g: ArrowNavigationGrid, dir: ArrowDirection) {
 }
 
 // An I arrow is just a straight line aligned with the center of the shapes on the axis of the arrow
-function getIArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection, averaged?: boolean) {
+function _getIArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection, averaged?: boolean) {
 	if (averaged) {
 		switch (dir) {
 			case 'right': {
@@ -74,7 +74,7 @@ function getIArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection, averaged?: b
 }
 
 // A U arrow goes out to the outside expanded bounds and wraps around the outside corner before returning to the other box on the same edge (e.g. top to top)
-function getUArrowPath(g: ArrowNavigationGrid, dir1: ArrowDirection, dir2: ArrowDirection) {
+function _getUArrowPath(g: ArrowNavigationGrid, dir1: ArrowDirection, dir2: ArrowDirection) {
 	switch (dir1) {
 		case 'right': {
 			if (dir2 === 'down') {
@@ -146,7 +146,7 @@ function getUArrowPath(g: ArrowNavigationGrid, dir1: ArrowDirection, dir2: Arrow
 }
 
 // An L arrow goes out to the outside of the center bounds and then returns to the other box on the closest edge (e.g. right to top)
-function getLArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection) {
+function _getLArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection) {
 	switch (dir) {
 		case 'right': {
 			return [
@@ -187,7 +187,7 @@ function getLArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection) {
 	}
 }
 
-function getSArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection) {
+function _getSArrowPath(g: ArrowNavigationGrid, dir: ArrowDirection) {
 	switch (dir) {
 		case 'right': {
 			return [

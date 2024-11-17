@@ -331,7 +331,7 @@ function mtDist(a: GridNode, b: GridNode) {
 	return Math.abs(a.x - b.x) + Math.abs(a.y - b.y)
 }
 
-function rawDist(a: GridNode, b: GridNode) {
+function _rawDist(a: GridNode, b: GridNode) {
 	return Vec.Dist(a.vec, b.vec)
 }
 
