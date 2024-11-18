@@ -171,8 +171,8 @@ My browser: ${navigator.userAgent}`
 							seeing this error, you can{' '}
 							<a href={url.toString()} style={{ color: 'blue', textDecoration: 'underline' }}>
 								create a GitHub issue
-							</a>
-							or
+							</a>{' '}
+							or{' '}
 							<a
 								href="https://discord.gg/Cq6cPsTfNy"
 								style={{ color: 'blue', textDecoration: 'underline' }}
