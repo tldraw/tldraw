@@ -45,10 +45,19 @@ export interface ZMutationCommit {
 	type: 'mutation_commit'
 	userId: string
 	mutationNumber: number
+	// if the sequence id changes make sure we still handle the mutation commit
+	sequenceId: string
+}
+export interface ZForceReboot {
+	type: 'force_reboot'
 	sequenceId: string
 }
 
-export type ZReplicationEvent = ZRowUpdateEvent | ZBootCompleteEvent | ZMutationCommit
+export type ZReplicationEvent =
+	| ZRowUpdateEvent
+	| ZBootCompleteEvent
+	| ZMutationCommit
+	| ZForceReboot
 
 type BootState =
 	| {
@@ -260,7 +269,7 @@ export class UserDataSyncer {
 
 	handleReplicationEvent(event: ZReplicationEvent) {
 		assert(this.state.type !== 'init', 'state should not be init')
-		if (this.state.sequenceId !== event.sequenceId) {
+		if (event.type === 'force_reboot' || this.state.sequenceId !== event.sequenceId) {
 			// the replicator has restarted, so we need to reboot
 			this.reboot()
 			return

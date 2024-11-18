@@ -24,11 +24,11 @@ import { isRateLimited } from './utils/rateLimit'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
-	db: ReturnType<typeof postgres>
-	replicator: TLPostgresReplicator
+	private readonly db: ReturnType<typeof postgres>
+	private readonly replicator: TLPostgresReplicator
 
-	sentry
-	captureException(exception: unknown, eventHint?: EventHint) {
+	private readonly sentry
+	private captureException(exception: unknown, eventHint?: EventHint) {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
@@ -50,7 +50,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.debug('created')
 	}
 
-	userId: string | null = null
+	private userId: string | null = null
 
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
@@ -101,11 +101,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	assertCache(): asserts this is { cache: UserDataSyncer } {
+	private assertCache(): asserts this is { cache: UserDataSyncer } {
 		assert(this.cache, 'no cache')
 	}
 
-	sockets = new Set<WebSocket>()
+	private readonly sockets = new Set<WebSocket>()
 
 	broadcast(message: ZServerSentMessage) {
 		const msg = JSON.stringify(message)
@@ -156,8 +156,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.sockets.add(serverWebSocket)
 
-		this.alarm()
-
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
@@ -172,10 +170,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	async handleSocketMessage(message: string) {
+	private async handleSocketMessage(message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
-		await this.cache!.waitUntilConnected()
 		this.assertCache()
+		await this.cache.waitUntilConnected()
 
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
@@ -191,9 +189,9 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
-		await this.cache?.waitUntilConnected()
+	private async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
+		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
 		for (const socket of this.ctx.getWebSockets()) {
 			socket.send(
@@ -364,28 +362,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	/* ------- RPCs -------  */
 
-	// to make sure the replicator wakes up if it went to sleep for whatever
-	// reason, we ping it every every once in a while from every actively connected user DO
-	override async alarm() {
-		const { sequenceId } = await this.replicator.ping()
-		if (
-			this.cache &&
-			'sequenceId' in this.cache.state &&
-			this.cache.state.sequenceId !== sequenceId
-		) {
-			this.cache.reboot()
-		}
-		const alarm = await this.ctx.storage.getAlarm()
-		if ((!alarm || alarm <= Date.now()) && this.ctx.getWebSockets().length > 0) {
-			this.ctx.storage.setAlarm(Date.now() + 1000 * 10)
-		}
-	}
-
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.debug('replication event', event, !!this.cache)
 		if (!this.cache) {
-			this.replicator.unregisterUser(this.userId!)
-			return
+			return 'unregister'
 		}
 
 		if (event.type === 'mutation_commit') {
@@ -399,6 +379,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		} else {
 			this.cache.handleReplicationEvent(event)
 		}
+
+		return 'ok'
 	}
 
 	/* --------------  */

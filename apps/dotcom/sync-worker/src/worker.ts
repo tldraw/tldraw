@@ -22,6 +22,7 @@ import { createFiles } from './routes/tla/createFiles'
 import { deleteFile } from './routes/tla/deleteFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { testRoutes } from './testRoutes'
 import { Environment } from './types'
 import { getAuth } from './utils/tla/getAuth'
 // export { TLAppDurableObject } from './TLAppDurableObject'
@@ -70,6 +71,7 @@ const router = createRouter<Environment>()
 	.get('/app/file/:roomId', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.delete('/app/file/:roomId', deleteFile)
+	.all('/app/__test__/*', testRoutes.fetch)
 	// end app
 	.all('*', notFound)
 

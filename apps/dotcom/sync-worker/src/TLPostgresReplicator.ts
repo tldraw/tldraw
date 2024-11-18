@@ -5,9 +5,10 @@ import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
-import type { TLUserDurableObject } from './TLUserDurableObject'
+import { ZReplicationEvent } from './UserDataSyncer'
 import { getPostgres } from './getPostgres'
 import { Environment } from './types'
+import { getUserDurableObject } from './utils/durableObjects'
 
 const seed = `
 -- we keep the active_user data between reboots to 
@@ -15,7 +16,8 @@ const seed = `
 CREATE TABLE IF NOT EXISTS active_user (
 	id TEXT PRIMARY KEY
 );
-CREATE TABLE IF NOT EXISTS user_file_subscriptions (
+DROP TABLE IF EXISTS user_file_subscriptions;
+CREATE TABLE user_file_subscriptions (
 	userId TEXT,
 	fileId TEXT,
 	PRIMARY KEY (userId, fileId),
@@ -68,7 +70,16 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql = this.ctx.storage.sql
 		this.sql.exec(seed)
 		this.reboot(false)
+		this.alarm()
 	}
+
+	__test__forceReboot() {
+		this.reboot()
+	}
+	__test__panic() {
+		this.ctx.abort()
+	}
+
 	private debug(...args: any[]) {
 		// uncomment for dev time debugging
 		// console.log(...args)
@@ -78,6 +89,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				message: args.join(' '),
 			})
 		}
+	}
+	override async alarm() {
+		this.ctx.storage.setAlarm(Date.now() + 1000)
 	}
 
 	private queue = new ExecutionQueue()
@@ -114,7 +128,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const subscription = await this.state.db.subscribe(
 			'*',
 			this.handleEvent.bind(this),
-			() => {},
+			() => {
+				// re-register all active users to get their latest guest info
+				const users = this.sql.exec('SELECT id FROM active_user').toArray()
+				for (const user of users) {
+					const sequenceId = this.state.sequenceId
+					this.queue.push(async () => {
+						if (this.state.sequenceId !== sequenceId) return
+						this.messageUser(user.id as string, { type: 'force_reboot', sequenceId })
+						await sleep(10)
+					})
+				}
+			},
 			() => {
 				this.captureException(new Error('Subscription error'))
 				this.reboot()
@@ -139,7 +164,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		try {
 			if (event.relation.table === 'user_boot_id' && event.command !== 'delete') {
 				assert(row, 'Row is required for insert/update event')
-				this.getStubForUser(row.userId).handleReplicationEvent({
+				this.messageUser(row.userId, {
 					type: 'boot_complete',
 					userId: row.userId,
 					bootId: row.bootId,
@@ -149,7 +174,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			}
 			if (event.relation.table === 'user_mutation_number') {
 				if (!row) throw new Error('Row is required for delete event')
-				this.getStubForUser(row.userId).handleReplicationEvent({
+				this.messageUser(row.userId, {
 					type: 'mutation_commit',
 					mutationNumber: row.mutationNumber,
 					userId: row.userId,
@@ -185,7 +210,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 						row.userId,
 						row.fileId
 					)
-					this.getStubForUser(row.userId).handleReplicationEvent({
+					this.messageUser(row.userId, {
 						type: 'row_update',
 						row: file,
 						table: 'file',
@@ -215,7 +240,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 						row.userId,
 						row
 					)
-					this.getStubForUser(row.userId).handleReplicationEvent({
+					this.messageUser(row.userId, {
 						type: 'row_update',
 						row: { id: row.fileId } as any,
 						table: 'file',
@@ -239,7 +264,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (row) {
 				for (const userId of userIds) {
 					// get user DO and send update message
-					this.getStubForUser(userId).handleReplicationEvent({
+					this.messageUser(userId, {
 						type: 'row_update',
 						row: row as any,
 						table: event.relation.table as 'user' | 'file' | 'file_state',
@@ -253,6 +278,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			this.captureException(e)
 		}
 	}
+
 	private userIsActive(userId: string) {
 		return this.sql.exec(`SELECT * FROM active_user WHERE id = ?`, userId).toArray().length > 0
 	}
@@ -290,6 +316,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async ping() {
+		this.debug('ping')
 		return { sequenceId: this.state.sequenceId }
 	}
 
@@ -311,9 +338,12 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private getStubForUser(userId: string) {
-		const id = this.env.TL_USER.idFromName(userId)
-		return this.env.TL_USER.get(id) as any as TLUserDurableObject
+	private async messageUser(userId: string, event: ZReplicationEvent) {
+		const user = getUserDurableObject(this.env, userId)
+		const res = await user.handleReplicationEvent(event)
+		if (res === 'unregister') {
+			this.unregisterUser(userId)
+		}
 	}
 
 	private getStubForFile(fileId: string) {
@@ -322,13 +352,14 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async registerUser(userId: string) {
-		this.debug('registerUser', userId)
 		await this.waitUntilConnected()
-		this.debug('registerUser', userId, 'connected')
 		assert(this.state.type === 'connected', 'state should be connected in registerUser')
-		this.sql.exec(`INSERT INTO active_user (id) VALUES (?) ON CONFLICT (id) DO NOTHING`, userId)
 		const guestFiles = await this.state
-			.db`SELECT file.id FROM file_state JOIN file ON file_state."userId" = ${userId} AND file."ownerId" != ${userId} AND file_state."fileId" = file.id`
+			.db`SELECT file.id as id FROM file_state JOIN file ON file_state."userId" = ${userId} AND file."ownerId" != ${userId} AND file_state."fileId" = file.id`
+
+		// clear user and subscriptions
+		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+		this.sql.exec(`INSERT INTO active_user (id) VALUES (?)`, userId)
 		for (const file of guestFiles) {
 			this.sql.exec(
 				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,

@@ -30,7 +30,6 @@ export class Zero {
 					break
 				case 'update':
 					this.store.updateCommittedData(msg.update)
-
 					break
 				case 'commit':
 					{
