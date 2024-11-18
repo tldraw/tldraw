@@ -11,7 +11,6 @@ import {
 	Vec,
 	WeakCache,
 	getDefaultColorTheme,
-	preventDefault,
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
@@ -23,7 +22,6 @@ import {
 	renderPlaintextFromRichText,
 } from '../../utils/text/richText'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextHelpers } from '../shared/TextHelpers'
 import { RichTextSVG, TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
@@ -354,15 +352,6 @@ function useTextShapeKeydownHandler(id: TLShapeId) {
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {
 						editor.complete()
-					}
-					break
-				}
-				case 'Tab': {
-					preventDefault(e)
-					if (e.shiftKey) {
-						TextHelpers.unindent(e.currentTarget! as HTMLTextAreaElement)
-					} else {
-						TextHelpers.indent(e.currentTarget! as HTMLTextAreaElement)
 					}
 					break
 				}
