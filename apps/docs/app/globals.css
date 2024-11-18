@@ -71,20 +71,8 @@ html {
 	@apply sm:col-span-2;
 }
 
-#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 .hs_audience__internal_vs__external {
-	@apply sm:col-span-2;
-}
-
-#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 .hs_audience__internal_vs__external select {
-	@apply sm:w-1/2;
-}
-
 #hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 textarea {
 	@apply sm:col-span-2 -mb-1.5 w-full px-4 py-2 rounded-lg resize-none text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
-}
-
-.hs_poc_built_ {
-	@apply sm:col-span-2 flex flex-col items-center;
 }
 
 .hs-submit {
