@@ -44,3 +44,53 @@ html {
 		}
 	}
 }
+
+.hs-form-field.hs-fieldtype-text label,
+.hs-form-field.hs-fieldtype-select label,
+.hs-form-field.hs-fieldtype-textarea label {
+	display: none;
+}
+
+.hs-field-desc {
+	display: none !important;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 {
+	@apply grid grid-cols-1 sm:grid-cols-2 gap-4;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 select {
+	@apply w-full h-9 px-4 appearance-none rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 input {
+	@apply w-full h-9 px-4 rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 .hs_how_do_you_plan_to_use_tldraw_ {
+	@apply sm:col-span-2;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 .hs_audience__internal_vs__external {
+	@apply sm:col-span-2;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 .hs_audience__internal_vs__external select {
+	@apply sm:w-1/2;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 textarea {
+	@apply sm:col-span-2 -mb-1.5 w-full px-4 py-2 rounded-lg resize-none text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
+}
+
+.hs_poc_built_ {
+	@apply sm:col-span-2 flex flex-col items-center;
+}
+
+.hs-submit {
+	@apply relative overflow-hidden flex justify-center items-center col-start-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-zinc-900 focus:ring-offset-zinc-900 h-9 px-4 gap-2.5 rounded-lg text-base bg-blue-500 text-white hover:bg-blue-600 dark:hover:bg-blue-400;
+}
+
+.hs-submit input {
+	background-color: transparent !important;
+}
