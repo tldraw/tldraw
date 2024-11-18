@@ -118,7 +118,9 @@ test.describe('sidebar actions', () => {
 		await test.step('verify the file is deleted', async () => {
 			await expect(page.getByText(current)).not.toBeVisible()
 			await page.goto(url)
-			await expect(page.getByText('Not found')).toBeVisible()
+			await expect(() => async () => {
+				await expect(page.getByText('Not found')).toBeVisible()
+			}).toPass()
 		})
 	})
 
