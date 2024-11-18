@@ -9,9 +9,7 @@ function HubspotForm() {
 		document.body.appendChild(script)
 
 		script.addEventListener('load', () => {
-			// @TS-ignore
 			if ((window as any).hbspt) {
-				// @TS-ignore
 				;(window as any).hbspt.forms.create({
 					portalId: '145620695',
 					formId: 'b8b7b29f-3987-4c37-b64f-bffff5b3fd17',
@@ -21,11 +19,7 @@ function HubspotForm() {
 		})
 	}, [])
 
-	return (
-		<div>
-			<div id="hubspotForm"></div>
-		</div>
-	)
+	return <div id="hubspotForm"></div>
 }
 
 export function RequestForm() {
