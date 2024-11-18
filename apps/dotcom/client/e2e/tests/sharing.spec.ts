@@ -79,7 +79,7 @@ test.describe('shared files', () => {
 		})
 		// we have to wait a bit for the search params to get populated
 		await newPage.waitForTimeout(500)
-		const otherUserUrl = await newShareMenu.openMenuCopyLinkAndReturnUrl()
+		const otherUserUrl = await newShareMenu.openMenuAndCopyLink()
 		expect(areUrlsEqual(otherUserUrl, url)).toBe(true)
 		await newContext.close()
 	})
@@ -173,7 +173,7 @@ test.describe('published files', () => {
 			})
 			// we have to wait a bit for the search params to get populated
 			await newPage.waitForTimeout(500)
-			const otherUserUrl = await newShareMenu.openMenuCopyLinkAndReturnUrl()
+			const otherUserUrl = await newShareMenu.openMenuAndCopyLink()
 			expect(areUrlsEqual(otherUserUrl, url)).toBe(true)
 			await newContext.close()
 		})

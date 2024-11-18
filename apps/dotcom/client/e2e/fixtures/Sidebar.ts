@@ -47,12 +47,12 @@ export class Sidebar {
 
 	async openPreferences() {
 		await this.sidebarBottom.hover()
+		await this.page.getByRole('button', { name: 'Account menu' }).click()
 	}
 
 	@step('Sidebar.setDarkMode')
 	async setDarkMode() {
 		await this.openPreferences()
-		await this.page.getByRole('button', { name: 'Account menu' }).click()
 		await this.preferencesButton.hover()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
@@ -61,7 +61,6 @@ export class Sidebar {
 	@step('Sidebar.openLanguageMenu')
 	async openLanguageMenu(languageButtonText: string) {
 		await this.openPreferences()
-		await this.page.getByRole('button', { name: 'Account menu' }).click()
 		await this.page.getByText(languageButtonText).hover()
 	}
 

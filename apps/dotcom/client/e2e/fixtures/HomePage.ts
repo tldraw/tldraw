@@ -26,8 +26,8 @@ export class HomePage {
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)
 		await this.page.getByLabel('Enter verification code. Digit').fill('424242')
-		await expect(() => {
-			this.page.getByRole('button', { name: 'Share' }).isVisible()
+		await expect(async () => {
+			await expect(this.page.getByRole('button', { name: 'Share' })).toBeVisible()
 		}).toPass()
 	}
 

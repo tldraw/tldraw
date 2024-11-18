@@ -89,13 +89,10 @@ export class ShareMenu {
 		return await handle.jsonValue()
 	}
 
-	@step('ShareMenu.openMenuCopyLinkAndReturnUrl')
-	async openMenuCopyLinkAndReturnUrl() {
-		await this.page.waitForTimeout(500)
+	@step('ShareMenu.openMenuAndCopyLink')
+	async openMenuAndCopyLink() {
 		await this.open()
-		await this.copyLink()
-		const handle = await this.page.evaluateHandle(() => navigator.clipboard.readText())
-		return await handle.jsonValue()
+		return await this.copyLink()
 	}
 
 	@step('ShareMenu.exportFile')
