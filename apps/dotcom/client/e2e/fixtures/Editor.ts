@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { Sidebar } from './Sidebar'
+import { step } from './tla-test'
 
 export class Editor {
 	public readonly sidebarToggle: Locator
@@ -22,6 +23,7 @@ export class Editor {
 		await this.sidebarToggle.click()
 	}
 
+	@step('Editor.ensureSidebarOpen')
 	async ensureSidebarOpen() {
 		const visible = await this.sidebar.isVisible()
 		if (!visible) {
@@ -29,6 +31,8 @@ export class Editor {
 		}
 		await this.sidebar.expectIsVisible()
 	}
+
+	@step('Editor.ensureSidebarClosed')
 	async ensureSidebarClosed() {
 		const visible = await this.sidebar.isVisible()
 		if (visible) {
@@ -41,6 +45,7 @@ export class Editor {
 		await expect(this.sidebarToggle).toBeVisible()
 	}
 
+	@step('Editor.expectShapesCount')
 	async expectShapesCount(expected: number) {
 		await expect(this.shapes).toHaveCount(expected)
 	}
@@ -49,12 +54,14 @@ export class Editor {
 		return await this.fileName.innerText()
 	}
 
+	@step('Editor.rename')
 	async rename(newName: string) {
 		await this.fileName.click()
 		await this.page.getByRole('textbox').fill(newName)
 		await this.page.keyboard.press('Enter')
 	}
 
+	@step('Editor.openPageMenu')
 	async openPageMenu() {
 		await this.pageMenu.click()
 	}

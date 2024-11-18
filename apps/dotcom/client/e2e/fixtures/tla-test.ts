@@ -18,6 +18,7 @@ interface TlaFixtures {
 	database: Database
 	deleteFileDialog: DeleteFileDialog
 	setupAndCleanup: void
+	retry(fn: () => Promise<void>): Promise<void>
 }
 
 interface TlaWorkerFixtures {
@@ -100,3 +101,39 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 })
 
 export { expect } from '@playwright/test'
+
+export function step(name: string) {
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+	return function (target: Function, context: any) {
+		if (context.kind === 'method') {
+			return async function (...args: any[]) {
+				return await test.step(name, async () => {
+					// @ts-expect-error Parameter 'this' implicitly has an 'any' type.ts(7006)
+					return target.apply(this, args)
+				})
+			}
+		} else {
+			console.error('Only supporting methods for step decorator.')
+		}
+	}
+}
+
+export function repeatTest(
+	name: string,
+	fn: (...args: any) => Promise<void>,
+	{ times = 5, only = false } = {}
+) {
+	const getName = (i: number) => `${name} (${i + 1} of ${times})`
+	for (let i = 0; i < times; i++) {
+		if (only) {
+			// eslint-disable-next-line no-only-tests/no-only-tests
+			test.only(getName(i), fn)
+		} else {
+			test(getName(i), fn)
+		}
+	}
+	return
+}
+
+repeatTest.only = (name: string, fn: (...args: any) => Promise<void>, { times = 5 } = {}) =>
+	repeatTest(name, fn, { times, only: true })

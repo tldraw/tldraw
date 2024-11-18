@@ -1,4 +1,4 @@
-import { Browser, BrowserContext } from '@playwright/test'
+import { Browser, BrowserContext, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 import { Editor } from './Editor'
@@ -14,33 +14,35 @@ export async function openNewIncognitoPage(
 	browser: Browser,
 	opts: { url?: string; userProps: UserProps; allowClipboard?: boolean }
 ) {
-	const { url, userProps, allowClipboard } = opts
-	let newContext: BrowserContext
-	if (userProps === undefined) {
-		newContext = await browser.newContext({ storageState: undefined })
-	} else {
-		const storageStateFileName = getStorageStateFileName(userProps.index, userProps.user)
-		const storageState = JSON.parse(fs.readFileSync(storageStateFileName, 'utf-8'))
-		newContext = await browser.newContext({ storageState })
-	}
+	return await test.step('open new incognito page', async () => {
+		const { url, userProps, allowClipboard } = opts
+		let newContext: BrowserContext
+		if (userProps === undefined) {
+			newContext = await browser.newContext({ storageState: undefined })
+		} else {
+			const storageStateFileName = getStorageStateFileName(userProps.index, userProps.user)
+			const storageState = JSON.parse(fs.readFileSync(storageStateFileName, 'utf-8'))
+			newContext = await browser.newContext({ storageState })
+		}
 
-	if (allowClipboard) {
-		await newContext.grantPermissions(['clipboard-read', 'clipboard-write'])
-	}
-	const newPage = await newContext.newPage()
-	const newSidebar = new Sidebar(newPage)
-	const newEditor = new Editor(newPage, newSidebar)
-	const newHomePage = new HomePage(newPage, newEditor)
-	const newShareMenu = new ShareMenu(newPage)
-	const errorPage = new ErrorPage(newPage)
-	if (url) {
-		await newPage.goto(url)
-	} else {
-		await newHomePage.goto()
-	}
+		if (allowClipboard) {
+			await newContext.grantPermissions(['clipboard-read', 'clipboard-write'])
+		}
+		const newPage = await newContext.newPage()
+		const newSidebar = new Sidebar(newPage)
+		const newEditor = new Editor(newPage, newSidebar)
+		const newHomePage = new HomePage(newPage, newEditor)
+		const newShareMenu = new ShareMenu(newPage)
+		const errorPage = new ErrorPage(newPage)
+		if (url) {
+			await newPage.goto(url)
+		} else {
+			await newHomePage.goto()
+		}
 
-	await newHomePage.isLoaded()
-	return { newPage, newContext, newHomePage, newEditor, newShareMenu, errorPage }
+		await newHomePage.isLoaded()
+		return { newPage, newContext, newHomePage, newEditor, newShareMenu, errorPage }
+	})
 }
 
 export function getStorageStateFileName(index: number, user: UserName) {

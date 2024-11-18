@@ -1,5 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
-import { expect } from './tla-test'
+import { expect, step } from './tla-test'
 
 export class Sidebar {
 	public readonly fileLink = '[data-element="file-link"]'
@@ -23,10 +23,6 @@ export class Sidebar {
 		this.themeButton = this.page.getByText('Theme')
 		this.darkModeButton = this.page.getByText('Dark')
 		this.signOutButton = this.page.getByText('Sign out')
-	}
-
-	async goto() {
-		await this.page.goto('http://localhost:3000/q')
 	}
 
 	async isVisible() {
@@ -53,6 +49,7 @@ export class Sidebar {
 		await this.sidebarBottom.hover()
 	}
 
+	@step('Sidebar.setDarkMode')
 	async setDarkMode() {
 		await this.openPreferences()
 		await this.page.getByRole('button', { name: 'Account menu' }).click()
@@ -61,26 +58,31 @@ export class Sidebar {
 		await this.darkModeButton.click()
 	}
 
+	@step('Sidebar.openLanguageMenu')
 	async openLanguageMenu(languageButtonText: string) {
 		await this.openPreferences()
 		await this.page.getByRole('button', { name: 'Account menu' }).click()
 		await this.page.getByText(languageButtonText).hover()
 	}
 
+	@step('Sidebar.expectLanguageToBe')
 	async expectLanguageToBe(languageButtonText: string, language: string) {
 		await this.openLanguageMenu(languageButtonText)
-		const checkedAttribute = await this.page
-			.getByRole('menuitemcheckbox', { name: language })
-			.getAttribute('data-state')
-		expect(checkedAttribute).toBe('checked')
-		await this.sidebarBottom.click()
+		await expect(async () => {
+			const checkedAttribute = await this.page
+				.getByRole('menuitemcheckbox', { name: language })
+				.getAttribute('data-state')
+			expect(checkedAttribute).toBe('checked')
+		}).toPass()
 	}
 
+	@step('Sidebar.setLanguage')
 	async setLanguage(languageButtonText: string, language: string) {
 		await this.openLanguageMenu(languageButtonText)
 		await this.page.getByRole('menuitemcheckbox', { name: language }).click()
 	}
 
+	@step('Sidebar.signOut')
 	async signOut() {
 		await this.openPreferences()
 		await this.sidebarBottom.getByRole('button').click()
@@ -111,22 +113,33 @@ export class Sidebar {
 		const fileName = this.page.getByTestId(`tla-file-name-${index}`)
 		return await fileName.innerText()
 	}
-	async openFileMenu(fileLink: Locator) {
+
+	@step('Sidebar.openFileMenu')
+	private async openFileMenu(fileLink: Locator) {
 		await fileLink?.hover()
 		const button = fileLink.getByRole('button')
 		await button?.click()
 	}
 
-	async deleteFromFileMenu() {
+	@step('Sidebar.deleteFile')
+	async deleteFile(index: number) {
+		await this.openFileMenu(this.getFileLink(index))
+		await this.deleteFromFileMenu()
+	}
+
+	@step('Sidebar.deleteFromFileMenu')
+	private async deleteFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Delete' }).click()
 	}
 
+	@step('Sidebar.renameFile')
 	async renameFile(index: number, newName: string) {
 		const fileLink = this.getFileLink(index)
 		await this.openFileMenu(fileLink)
 		await this.renameFromFileMenu(newName)
 	}
 
+	@step('Sidebar.renameFromFileMenu')
 	async renameFromFileMenu(name: string) {
 		await this.page.getByRole('menuitem', { name: 'Rename' }).click()
 		const input = this.page.getByRole('textbox')
@@ -134,20 +147,24 @@ export class Sidebar {
 		await this.page.keyboard.press('Enter')
 	}
 
+	@step('Sidebar.duplicateFromFileMenu')
 	private async duplicateFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Duplicate' }).click()
 	}
 
+	@step('Sidebar.duplicateFile')
 	async duplicateFile(index: number) {
 		const fileLink = this.getFileLink(index)
 		await this.openFileMenu(fileLink)
 		await this.duplicateFromFileMenu()
 	}
 
+	@step('Sidebar.copyFileLinkFromFileMenu')
 	async copyFileLinkFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Copy link' }).click()
 	}
 
+	@step('Sidebar.copyFileLink')
 	async copyFileLink(index: number) {
 		const fileLink = this.getFileLink(index)
 		await this.openFileMenu(fileLink)
@@ -164,5 +181,10 @@ export class Sidebar {
 	async isHinted(fileLink: Locator): Promise<boolean> {
 		const backgroundColor = await this.getAfterElementStyle(fileLink, 'background-color')
 		return backgroundColor === 'rgba(9, 11, 12, 0.043)'
+	}
+
+	@step('Sidebar.closeAccountMenu')
+	async closeAccountMenu() {
+		await this.page.keyboard.press('Escape')
 	}
 }

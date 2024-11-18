@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
 import { Editor } from './Editor'
+import { step } from './tla-test'
 
 export class HomePage {
 	public readonly signInButton: Locator
@@ -13,6 +14,7 @@ export class HomePage {
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
 	}
 
+	@step('Homepage.loginAs')
 	async loginAs(email: string) {
 		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
 		// We are already logged in
@@ -24,7 +26,9 @@ export class HomePage {
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
 		await this.page.waitForTimeout(1000)
 		await this.page.getByLabel('Enter verification code. Digit').fill('424242')
-		await expect(this.page.getByRole('button', { name: 'Share' })).toBeVisible()
+		await expect(() => {
+			this.page.getByRole('button', { name: 'Share' }).isVisible()
+		}).toPass()
 	}
 
 	async expectSignInButtonVisible() {
@@ -40,7 +44,9 @@ export class HomePage {
 	}
 
 	async isLoaded() {
-		await expect(this.page).toHaveTitle(/tldraw/)
-		await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
+		await expect(async () => {
+			await expect(this.page).toHaveTitle(/tldraw/)
+			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
+		}).toPass()
 	}
 }

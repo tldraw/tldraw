@@ -1,4 +1,5 @@
 import type { Locator, Page } from '@playwright/test'
+import { step } from './tla-test'
 
 type ShareMenuTab = 'invite' | 'export' | 'publish'
 
@@ -56,18 +57,22 @@ export class ShareMenu {
 		}
 	}
 
+	@step('ShareMenu.shareFile')
 	async shareFile() {
 		await this.share('invite')
 	}
 
+	@step('ShareMenu.unshareFile')
 	async unshareFile() {
 		await this.unshare('invite')
 	}
 
+	@step('ShareMenu.publishFile')
 	async publishFile() {
 		await this.share('publish')
 	}
 
+	@step('ShareMenu.unpublishFile')
 	async unpublishFile() {
 		await this.unshare('publish')
 	}
@@ -76,10 +81,15 @@ export class ShareMenu {
 		return await this.page.getByRole('checkbox').isChecked()
 	}
 
+	@step('ShareMenu.copyLink')
 	async copyLink() {
 		await this.copyLinkButton.click()
+
+		const handle = await this.page.evaluateHandle(async () => await navigator.clipboard.readText())
+		return await handle.jsonValue()
 	}
 
+	@step('ShareMenu.openMenuCopyLinkAndReturnUrl')
 	async openMenuCopyLinkAndReturnUrl() {
 		await this.page.waitForTimeout(500)
 		await this.open()
@@ -88,22 +98,26 @@ export class ShareMenu {
 		return await handle.jsonValue()
 	}
 
+	@step('ShareMenu.exportFile')
 	async exportFile() {
 		await this.ensureTabSelected('export')
 		await this.exportImageButton.click()
 	}
 
+	@step('ShareMenu.isTabSelected')
 	async isTabSelected(tab: ShareMenuTab) {
 		const attr = await this.tabs[tab].getAttribute('data-active')
 		return attr === 'true'
 	}
 
+	@step('ShareMenu.ensureTabSelected')
 	async ensureTabSelected(tab: ShareMenuTab) {
 		if (await this.isTabSelected(tab)) return
 		const locator = this.tabs[tab]
 		await locator.click()
 	}
 
+	@step('ShareMenu.publishChanges')
 	async publishChanges() {
 		await this.ensureTabSelected('publish')
 		await this.publishChangesButton.click()

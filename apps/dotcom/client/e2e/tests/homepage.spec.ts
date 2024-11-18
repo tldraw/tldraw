@@ -54,6 +54,7 @@ test.describe('preferences', () => {
 		await test.step('English by default', async () => {
 			await sidebar.expectLanguageToBe('Language', 'English')
 		})
+		await sidebar.closeAccountMenu()
 		await test.step('change language', async () => {
 			await sidebar.setLanguage('Language', 'Français')
 		})
@@ -102,16 +103,13 @@ test.describe('sidebar actions', () => {
 
 	test('delete the document via the file menu', async ({ sidebar, deleteFileDialog, page }) => {
 		const url = page.url()
-		let fileLink: Locator
 		const current = 'delete me'
 		await test.step('rename the file', async () => {
 			await sidebar.renameFile(0, current)
-			fileLink = sidebar.getFirstFileLink()
 		})
 
 		await test.step('delete the file', async () => {
-			await sidebar.openFileMenu(fileLink)
-			await sidebar.deleteFromFileMenu()
+			await sidebar.deleteFile(0)
 			await deleteFileDialog.expectIsVisible()
 			await deleteFileDialog.confirmDeletion()
 			await deleteFileDialog.expectIsNotVisible()
@@ -124,11 +122,20 @@ test.describe('sidebar actions', () => {
 		})
 	})
 
-	test('duplicate the document via the file menu', async ({ sidebar }) => {
-		const fileName = await sidebar.getFirstFileName()
+	test('duplicate the document via the file menu', async ({ page, sidebar }) => {
+		const fileName = Math.random().toString(36).substring(7)
+		expect(await sidebar.getNumberOfFiles()).toBe(1)
+		await sidebar.renameFile(0, fileName)
 		await sidebar.duplicateFile(0)
-		const newFileName = await sidebar.getFileName(1)
-		expect(newFileName).toBe(fileName)
+		await expect(async () => {
+			await expect(
+				page.getByTestId('tla-file-name-0').getByText(`${fileName} Copy`, { exact: true })
+			).toBeVisible()
+			await expect(
+				page.getByTestId('tla-file-name-1').getByText(fileName, { exact: true })
+			).toBeVisible()
+		}).toPass()
+		expect(await sidebar.getNumberOfFiles()).toBe(2)
 	})
 
 	test('can copy a file link from the file menu', async ({ page, context, sidebar }) => {
@@ -144,15 +151,16 @@ test.describe('sidebar actions', () => {
 
 test('can rename a file name by clicking the name', async ({ editor, sidebar }) => {
 	const originalName = await editor.getCurrentFileName()
-	const newName = 'NewFileName'
-	await sidebar.expectToContainText(originalName)
-	await sidebar.expectNotToContainText(newName)
+	const newName = Math.random().toString(36).substring(7)
+	await expect(async () => {
+		await sidebar.expectToContainText(originalName)
+		await sidebar.expectNotToContainText(newName)
+	}).toPass()
 
 	await editor.rename(newName)
 
-	const currentName = await editor.getCurrentFileName()
-	expect(currentName).toBe(newName)
-	expect(currentName).not.toBe(originalName)
-	await sidebar.expectToContainText(newName)
-	await sidebar.expectNotToContainText(originalName)
+	await expect(async () => {
+		await sidebar.expectToContainText(newName)
+		await sidebar.expectNotToContainText(originalName)
+	}).toPass()
 })

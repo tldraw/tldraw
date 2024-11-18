@@ -241,6 +241,7 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 	const isActive = fileSlug === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
 	const trackEvent = useTldrawAppUiEvents()
+	const intl = useIntl()
 
 	const handleRenameAction = () => setIsRenaming(true)
 
@@ -251,6 +252,13 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 	if (isRenaming) {
 		return <TlaRenameInline source="sidebar" fileId={fileId} onClose={handleRenameClose} />
 	}
+	const msg = defineMessages({
+		guest: {
+			defaultMessage: '(Guest)',
+		},
+	})
+
+	console.log(app.getFileName(fileId), isOwnFile ? '' : intl.formatMessage(msg.guest))
 
 	return (
 		<div
