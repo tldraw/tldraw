@@ -52,7 +52,8 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 		} = props
 		const json = JSON.stringify(state.doc.toJSON())
 		// This is a quick and dirty way to determine if the text is just plaintext or if it's rich text.
-		const isPlaintext = !json.includes(`"marks"`) && !json.includes(`"list_item"`)
+		const isPlaintext =
+			!json.includes(`"marks"`) && !json.includes(`"list_item"`) && !json.includes(`"heading"`)
 		if (isPlaintext) {
 			const plaintext = renderPlaintextFromRichText(editor, json)
 			// There is a 'short-circuit' path here. If it's just plaintext, we don't need to do anything fancy.
