@@ -7490,6 +7490,8 @@ __metadata:
     "@peculiar/webcrypto": "npm:^1.4.0"
     "@testing-library/jest-dom": "npm:^5.16.5"
     "@testing-library/react": "npm:^15.0.6"
+    "@tiptap/core": "npm:^2.9.1"
+    "@tiptap/pm": "npm:^2.9.1"
     "@tiptap/react": "npm:^2.9.1"
     "@tldraw/state": "workspace:*"
     "@tldraw/state-react": "workspace:*"
