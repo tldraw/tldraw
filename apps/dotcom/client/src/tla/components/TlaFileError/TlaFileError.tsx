@@ -11,7 +11,18 @@ function DefaultError() {
 		<TlaFileErrorContent
 			header={<F defaultMessage="Something went wrong" />}
 			para1={<F defaultMessage="Please try refreshing the page." />}
-			para2={<F defaultMessage="Still having trouble? Let us know at hello@tldraw.com" />}
+			para2={
+				<F
+					defaultMessage="Still having trouble? Let us know at <a>hello@tldraw.com</a>"
+					values={{
+						a: (chunks) => (
+							<a href="mailto:hello@tldraw.com" target="_blank" rel="noopener noreferrer">
+								{chunks}
+							</a>
+						),
+					}}
+				/>
+			}
 		/>
 	)
 }

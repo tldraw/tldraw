@@ -4,6 +4,7 @@
 	align-items: center;
 	justify-content: flex-start;
 	position: relative;
+	overflow-x: auto;
 	--tab-padding: 12px;
 	--line-height: 2px;
 }
