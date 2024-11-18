@@ -56,7 +56,7 @@ html {
 }
 
 #hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 {
-	@apply grid grid-cols-1 sm:grid-cols-2 gap-4;
+	@apply flex flex-col sm:grid-cols-2 sm:grid gap-4;
 }
 
 #hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 select {
@@ -72,7 +72,8 @@ html {
 }
 
 #hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 textarea {
-	@apply sm:col-span-2 -mb-1.5 w-full px-4 py-2 rounded-lg resize-none text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
+	@apply sm:col-span-2  -mb-1.5 w-full px-4 py-2 rounded-lg resize-none text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
+	height: 112px;
 }
 
 .hs-submit {
