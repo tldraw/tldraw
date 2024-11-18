@@ -13,6 +13,7 @@ import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { Dispatch } from 'react';
+import { EditorProviderProps } from '@tiptap/react';
 import { EffectScheduler } from '@tldraw/state';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
@@ -24,7 +25,6 @@ import { LegacyMigrations } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { NamedExoticComponent } from 'react';
 import { PerformanceTracker } from '@tldraw/utils';
-import { Plugin as Plugin_2 } from 'prosemirror-state';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
@@ -34,7 +34,6 @@ import { ReactNode } from 'react';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { RefObject } from 'react';
-import { Schema } from 'prosemirror-model';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { SetStateAction } from 'react';
@@ -3007,10 +3006,6 @@ export interface TLEventMap {
         pageId: TLPageId;
     }];
     // (undocumented)
-    'rich-text-transaction': [{
-        state: any;
-    }];
-    // (undocumented)
     'select-all-text': [{
         shapeId: TLShapeId;
     }];
@@ -3579,10 +3574,7 @@ export type TLSvgOptions = TLImageExportOptions;
 // @public (undocumented)
 export interface TLTextOptions {
     // (undocumented)
-    proseMirrorConfig?: {
-        plugins?: readonly Plugin_2[];
-        schema?: Schema;
-    };
+    tipTapConfig?: EditorProviderProps;
 }
 
 // @public (undocumented)

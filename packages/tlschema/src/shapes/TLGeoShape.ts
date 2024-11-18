@@ -90,7 +90,7 @@ export const geoShapeProps: RecordProps<TLGeoShape> = {
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
 	text: T.string,
-	richText: T.proseMirrorDoc.optional(),
+	richText: T.tipTapDoc.optional(),
 	scale: T.nonZeroNumber,
 }
 

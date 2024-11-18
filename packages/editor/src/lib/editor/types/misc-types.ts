@@ -1,6 +1,5 @@
+import { EditorProviderProps } from '@tiptap/react'
 import { BoxModel } from '@tldraw/tlschema'
-import { Schema } from 'prosemirror-model'
-import { Plugin } from 'prosemirror-state'
 import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
@@ -139,14 +138,5 @@ export interface TLCameraConstraints {
 
 /** @public */
 export interface TLTextOptions {
-	proseMirrorConfig?: {
-		/**
-    The schema to use. If not provided, the default schema will be used.
-    */
-		schema?: Schema
-		/**
-    The plugins that should be active in this state.
-    */
-		plugins?: readonly Plugin[]
-	}
+	tipTapConfig?: EditorProviderProps
 }

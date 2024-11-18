@@ -245,6 +245,7 @@ export type TLUiTranslationKey =
 	| 'tool.rich-text-bold'
 	| 'tool.rich-text-strikethrough'
 	| 'tool.rich-text-link'
+	| 'tool.rich-text-link-remove'
 	| 'tool.rich-text-header'
 	| 'tool.rich-text-bulleted-list'
 	| 'menu.title'

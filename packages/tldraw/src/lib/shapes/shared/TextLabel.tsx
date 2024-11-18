@@ -10,7 +10,8 @@ import {
 } from '@tldraw/editor'
 import React, { useEffect, useState } from 'react'
 import { renderHtmlFromRichText } from '../../utils/text/richText'
-import { PlainTextArea, RichTextArea } from '../text/TextArea'
+import { PlainTextArea } from '../text/PlainTextArea'
+import { RichTextArea } from '../text/RichTextArea'
 import { TextHelpers } from './TextHelpers'
 import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
@@ -34,7 +35,7 @@ export interface TextLabelProps {
 	bounds?: Box
 	isNote?: boolean
 	isSelected: boolean
-	onKeyDown?(e: React.KeyboardEvent<HTMLTextAreaElement>): void
+	onKeyDown?(e: KeyboardEvent): void
 	classNamePrefix?: string
 	style?: React.CSSProperties
 	textWidth?: number
@@ -101,6 +102,14 @@ export const TextLabel = React.memo(function TextLabel({
 		return null
 	}
 
+	const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
+		// Allow links to be clicked upon.
+		if (e.target instanceof HTMLElement && e.target.tagName === 'A') {
+			e.preventDefault()
+			e.stopPropagation()
+		}
+	}
+
 	// TODO: probably combine tl-text and tl-arrow eventually
 	const cssPrefix = classNamePrefix || 'tl-text'
 	const TextAreaComponent = enableRichText ? RichTextArea : PlainTextArea
@@ -136,8 +145,9 @@ export const TextLabel = React.memo(function TextLabel({
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
 					{enableRichText && richText ? (
 						<div
-							className="ProseMirror"
+							className="tl-rich-text-tiptap"
 							dangerouslySetInnerHTML={{ __html: htmlFromMarkdown || '' }}
+							onPointerDownCapture={handlePointerDownCapture}
 						/>
 					) : (
 						finalText.split('\n').map((lineOfText, index) => (

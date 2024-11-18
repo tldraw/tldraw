@@ -39,7 +39,7 @@ import { useToasts } from './ui/context/toasts'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
 import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
 import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
-import { tldrawProseMirrorSchema } from './utils/text/richText'
+import { tipTapDefaultExtensions } from './utils/text/richText'
 
 /**
  * Override the default react components used by the editor and UI. Set components to null to
@@ -135,9 +135,9 @@ export function Tldraw(props: TldrawProps) {
 
 	const textOptionsWithDefaults = useMemo(
 		() => ({
-			proseMirrorConfig: {
-				schema: tldrawProseMirrorSchema,
-				...textOptions?.proseMirrorConfig,
+			tipTapConfig: {
+				extensions: tipTapDefaultExtensions,
+				...textOptions?.tipTapConfig,
 			},
 			...textOptions,
 		}),

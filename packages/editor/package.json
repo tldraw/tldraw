@@ -45,6 +45,7 @@
 		"lint": "yarn run -T tsx ../../internal/scripts/lint.ts"
 	},
 	"dependencies": {
+		"@tiptap/react": "^2.9.1",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",
@@ -58,9 +59,7 @@
 		"eventemitter3": "^4.0.7",
 		"idb": "^7.1.1",
 		"is-plain-object": "^5.0.0",
-		"lodash.isequal": "^4.5.0",
-		"prosemirror-model": "^1.23.0",
-		"prosemirror-state": "^1.4.3"
+		"lodash.isequal": "^4.5.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0",

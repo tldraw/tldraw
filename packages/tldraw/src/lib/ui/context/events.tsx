@@ -112,7 +112,16 @@ export interface TLUiEventMap {
 	'flatten-to-image': null
 	'open-url': { url: string }
 	'copy-link': null
-	'rich-text': { operation: 'bold' | 'strikethrough' | 'link' | 'header' | 'bulleted-list' }
+	'rich-text': {
+		operation:
+			| 'bold'
+			| 'strikethrough'
+			| 'link'
+			| 'link-edit'
+			| 'link-remove'
+			| 'header'
+			| 'bulleted-list'
+	}
 }
 
 /** @public */

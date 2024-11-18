@@ -59,7 +59,11 @@ export const TldrawUiButtonPicker = memo(function TldrawUiButtonPicker<T extends
 			// is retained on a text label. That way, you can continue typing
 			// after selecting a style.
 			const origActiveEl = rPointingOriginalActiveElement.current
-			if (origActiveEl && ['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName)) {
+			if (
+				origActiveEl &&
+				(['TEXTAREA', 'INPUT'].includes(origActiveEl.nodeName) ||
+					origActiveEl.getAttribute('contenteditable') === 'true')
+			) {
 				origActiveEl.focus()
 			}
 			rPointingOriginalActiveElement.current = null

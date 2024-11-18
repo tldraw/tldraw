@@ -57,7 +57,7 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string, 
 
 	// When the user presses ctrl / meta enter, complete the editing state.
 	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
 			switch (e.key) {

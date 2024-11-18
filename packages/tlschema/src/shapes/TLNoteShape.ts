@@ -49,7 +49,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
-	richText: T.proseMirrorDoc.optional(),
+	richText: T.tipTapDoc.optional(),
 	scale: T.nonZeroNumber,
 }
 

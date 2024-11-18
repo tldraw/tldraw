@@ -345,7 +345,7 @@
 	user-select: none;
 	contain: strict;
 	z-index: var(--layer-panels);
-	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
 	--sab: env(safe-area-inset-bottom);
 	font-weight: 500;
 	line-height: 1.6;
@@ -938,6 +938,14 @@
 .tl-rich-text__toolbar [data-isactive='true']::after {
 	background-color: var(--color-muted-1);
 	opacity: 1;
+}
+
+.tl-rich-text__toolbar-link-input {
+	margin-left: 12px;
+}
+
+.tl-rich-text__toolbar .tlui-input__wrapper {
+	height: 40px;
 }
 
 /* -------------------- Help Zone ------------------- */

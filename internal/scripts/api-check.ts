@@ -12,8 +12,6 @@ const packagesOurTypesCanDependOn = [
 	'@types/react-dom',
 	'eventemitter3',
 	'nanoevents',
-	'prosemirror-model',
-	'prosemirror-state',
 ]
 
 main()

@@ -16,7 +16,6 @@ export interface TLEventMap {
 	tick: [number]
 	frame: [number]
 	'select-all-text': [{ shapeId: TLShapeId }]
-	'rich-text-transaction': [{ state: any }]
 }
 
 /** @public */

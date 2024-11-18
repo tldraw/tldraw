@@ -137,9 +137,6 @@ const positiveInteger: Validator<number>;
 // @public
 const positiveNumber: Validator<number>;
 
-// @public
-const proseMirrorDoc: Validator<any>;
-
 // @public (undocumented)
 function setEnum<T>(values: ReadonlySet<T>): Validator<T>;
 
@@ -187,7 +184,7 @@ declare namespace T {
         boolean,
         bigint,
         array,
-        proseMirrorDoc,
+        tipTapDoc,
         unknownObject,
         ExtractRequiredKeys,
         ExtractOptionalKeys,
@@ -199,6 +196,9 @@ declare namespace T {
     }
 }
 export { T }
+
+// @public
+const tipTapDoc: Validator<any>;
 
 // @public (undocumented)
 type TypeOf<V extends Validatable<any>> = V extends Validatable<infer T> ? T : never;

@@ -31,7 +31,7 @@ export const textShapeProps: RecordProps<TLTextShape> = {
 	textAlign: DefaultTextAlignStyle,
 	w: T.nonZeroNumber,
 	text: T.string,
-	richText: T.proseMirrorDoc.optional(),
+	richText: T.tipTapDoc.optional(),
 	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
 }

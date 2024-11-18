@@ -466,7 +466,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 	const translation = useCurrentTranslation()
 
 	return useCallback(
-		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		(e: KeyboardEvent) => {
 			const shape = editor.getShape<TLNoteShape>(id)
 			if (!shape) return
 

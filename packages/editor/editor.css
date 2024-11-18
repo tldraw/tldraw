@@ -247,7 +247,7 @@
 input,
 *[contenteditable],
 *[contenteditable] * {
-	-webkit-user-select: text;
+	user-select: text;
 }
 
 /* -------------------------------------------------- */
@@ -891,107 +891,43 @@ input,
 	text-shadow: none;
 }
 
-.ProseMirror {
-	display: flex;
-	flex-direction: column;
-	min-width: 64px;
-	outline: none;
-	word-wrap: break-word;
+.tl-rich-text-tiptap .ProseMirror {
+	white-space: normal;
 }
 
-.tl-text-shape-label .ProseMirror {
-	min-width: 0;
-}
-
-.ProseMirror p {
+.tl-rich-text-tiptap p {
 	margin: 0;
 }
 
-.ProseMirror ul,
-.ProseMirror ol {
-	display: flex;
-	flex-direction: column;
-	padding-left: 30px;
+.tl-rich-text-tiptap ul,
+.tl-rich-text-tiptap ol {
+	text-align: left;
 }
 
-.tl-text-label[data-align='start'] .ProseMirror ul,
-.tl-text-label[data-align='start'] .ProseMirror ol {
-	justify-content: flex-start;
-}
-
-.tl-text-label[data-align='middle'] .ProseMirror ul,
-.tl-text-label[data-align='middle'] .ProseMirror ol {
-	justify-content: center;
-}
-
-.tl-text-label[data-align='end'] .ProseMirror ul,
-.tl-text-label[data-align='end'] .ProseMirror ol {
-	justify-content: flex-end;
-}
-
-.ProseMirror h1,
-.ProseMirror h2,
-.ProseMirror h3,
-.ProseMirror h4,
-.ProseMirror h5,
-.ProseMirror h6,
-.ProseMirror ul,
-.ProseMirror ol {
+.tl-rich-text-tiptap h1,
+.tl-rich-text-tiptap h2,
+.tl-rich-text-tiptap h3,
+.tl-rich-text-tiptap h4,
+.tl-rich-text-tiptap h5,
+.tl-rich-text-tiptap h6,
+.tl-rich-text-tiptap ul,
+.tl-rich-text-tiptap ol {
 	margin-top: 5px;
 	margin-bottom: 10px;
 }
 
-.ProseMirror pre {
-	white-space: pre-wrap;
-}
-
-.ProseMirror li {
-	position: relative;
-}
-
-.ProseMirror strong {
+.tl-rich-text-tiptap strong {
 	text-shadow: 1px 1px 2px var(--color-text-3);
-}
-
-.ProseMirror-hideselection *::selection {
-	background: transparent;
-}
-.ProseMirror-hideselection *::-moz-selection {
-	background: transparent;
-}
-.ProseMirror-hideselection {
-	caret-color: transparent;
-}
-
-/* See https://github.com/ProseMirror/prosemirror/issues/1421#issuecomment-1759320191 */
-.ProseMirror [draggable][contenteditable='false'] {
-	user-select: text;
-}
-
-.ProseMirror-selectednode {
-	outline: 2px solid #8cf;
-}
-
-/* Make sure li selections wrap around markers */
-
-li.ProseMirror-selectednode {
-	outline: none;
-}
-
-li.ProseMirror-selectednode:after {
-	content: '';
-	position: absolute;
-	left: -32px;
-	right: -2px;
-	top: -2px;
-	bottom: -2px;
-	border: 2px solid #8cf;
-	pointer-events: none;
 }
 
 .tl-rich-text {
 	display: none;
 	position: static !important; /* todo */
+}
+
+.tl-rich-text.tl-text-input {
+	/* TODO, can I get rid of the original rule? */
+	overflow: visible;
 }
 
 .tl-text-wrapper[data-isediting='true'] .tl-rich-text {

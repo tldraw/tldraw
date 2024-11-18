@@ -1,14 +1,11 @@
+import { Editor, EditorEvents } from '@tiptap/core'
 import { TLCamera, TLShape, track, useEditor, useValue, Vec } from '@tldraw/editor'
-import { setBlockType, toggleMark } from 'prosemirror-commands'
-import { Attrs, MarkType, NodeType, Schema } from 'prosemirror-model'
-import { liftListItem, wrapInList } from 'prosemirror-schema-list'
-import { findParentNode } from 'prosemirror-utils'
-import { EditorView } from 'prosemirror-view'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
+import { TldrawUiInput } from '../primitives/TldrawUiInput'
 
 /** @public @react */
 export const RichTextToolbar = track(function RichTextToolbar() {
@@ -19,6 +16,7 @@ export const RichTextToolbar = track(function RichTextToolbar() {
 	const [currentShape, setCurrentShape] = useState<TLShape | null>()
 	const [currentCoordinates, setCurrentCoordinates] = useState<Vec>()
 	const [currentCamera, setCurrentCamera] = useState<TLCamera>(editor.getCamera())
+	const [isEditingLink, setIsEditingLink] = useState(false)
 
 	const showToolbar = editor.isInAny('select.editing_shape')
 	const selectionRotatedPageBounds = editor.getSelectionRotatedPageBounds()
@@ -27,11 +25,10 @@ export const RichTextToolbar = track(function RichTextToolbar() {
 	const pageCoordinates = selectionRotatedPageBounds
 		? editor.pageToViewport(selectionRotatedPageBounds.point)
 		: null
-	const textEditor: EditorView = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
+	const textEditor: Editor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
 		editor,
 	])
-	const schema = editor.getTextOptions().proseMirrorConfig?.schema
-	const [textEditorState, setTextEditorState] = useState(textEditor?.state)
+	const [, setTextEditorState] = useState(textEditor?.state)
 
 	useEffect(() => {
 		if (
@@ -63,27 +60,47 @@ export const RichTextToolbar = track(function RichTextToolbar() {
 	])
 
 	useEffect(() => {
-		const onRichTextTransaction = (info: any) => {
-			setTextEditorState(info.state)
+		if (!textEditor) return
+		const handleTransaction = ({ editor: textEditor }: EditorEvents['transaction']) => {
+			setTextEditorState(textEditor.state)
 		}
-		editor.on('rich-text-transaction', onRichTextTransaction)
+		const handleClick = () => {
+			setIsEditingLink(textEditor.isActive('link'))
+		}
+
+		textEditor.on('transaction', handleTransaction)
+		textEditor.view.dom.addEventListener('click', handleClick)
+
 		return () => {
-			editor.off('rich-text-transaction', onRichTextTransaction)
+			textEditor.off('transaction', handleTransaction)
+			textEditor.view.dom.removeEventListener('click', handleClick)
 		}
-	}, [editor])
+	}, [textEditor])
 
 	if (!showToolbar) return null
 	if (!selectionRotatedPageBounds) return null
 	if (!currentCoordinates) return null
 	if (!textEditor) return null
-	if (!schema) return null
-	if (!textEditorState) return null
 
-	const { $from } = textEditorState.selection
-	const isBulletedList = !!findParentNode((node) => node.type === schema.nodes.bullet_list)(
-		textEditorState.selection
-	)
-	const isHeader = $from.parent.type === schema.nodes.heading
+	const handleLinkComplete = (link: string) => {
+		trackEvent('rich-text', { operation: 'link-edit', source })
+		if (!link.startsWith('http://') && !link.startsWith('https://')) {
+			link = `https://${link}`
+		}
+
+		textEditor.chain().setLink({ href: link }).focus().run()
+		setIsEditingLink(false)
+	}
+
+	const handleRemoveLink = () => {
+		trackEvent('rich-text', { operation: 'link-remove', source })
+		textEditor.chain().unsetLink().focus().run()
+		setIsEditingLink(false)
+	}
+
+	const handleLinkCancel = () => {
+		setIsEditingLink(false)
+	}
 
 	return (
 		<div
@@ -96,102 +113,116 @@ export const RichTextToolbar = track(function RichTextToolbar() {
 			onPointerDown={(e) => e.stopPropagation()}
 		>
 			<div className="tlui-toolbar__tools" role="radiogroup">
-				<TldrawUiButton
-					title={msg('tool.rich-text-bold')}
-					type="icon"
-					onClick={() => {
-						trackEvent('rich-text', { operation: 'bold', source })
-						applyInlineStyle(textEditor, schema.marks.strong)
-					}}
-				>
-					<TldrawUiButtonIcon small icon="bold" />
-				</TldrawUiButton>
-				<TldrawUiButton
-					title={msg('tool.rich-text-strikethrough')}
-					type="icon"
-					onClick={() => {
-						trackEvent('rich-text', { operation: 'strikethrough', source })
-						applyInlineStyle(textEditor, schema.marks.strikethrough)
-					}}
-				>
-					<TldrawUiButtonIcon small icon="strikethrough" />
-				</TldrawUiButton>
-				<TldrawUiButton
-					title={msg('tool.rich-text-link')}
-					type="icon"
-					onClick={() => {
-						trackEvent('rich-text', { operation: 'link', source })
-						// todo
-					}}
-				>
-					<TldrawUiButtonIcon small icon="link" />
-				</TldrawUiButton>
-				<TldrawUiButton
-					title={msg('tool.rich-text-header')}
-					type="icon"
-					isActive={isHeader}
-					onClick={() => {
-						trackEvent('rich-text', { operation: 'header', source })
-						if (isHeader) {
-							applyBlockType(textEditor, schema, schema.nodes.paragraph)
-						} else {
-							applyBlockType(textEditor, schema, schema.nodes.heading, { level: 3 })
-						}
-					}}
-				>
-					<TldrawUiButtonIcon small icon="header" />
-				</TldrawUiButton>
-				<TldrawUiButton
-					title={msg('tool.rich-text-bulleted-list')}
-					type="icon"
-					isActive={isBulletedList}
-					onClick={() => {
-						trackEvent('rich-text', { operation: 'bulleted-list', source })
-						if (isBulletedList) {
-							applyBlockType(textEditor, schema, schema.nodes.paragraph)
-						} else {
-							applyListType(textEditor, schema, schema.nodes.bullet_list)
-						}
-					}}
-				>
-					<TldrawUiButtonIcon small icon="bulleted-list" />
-				</TldrawUiButton>
+				{isEditingLink ? (
+					<LinkEditor
+						value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
+						onComplete={handleLinkComplete}
+						onCancel={handleLinkCancel}
+						onRemoveLink={handleRemoveLink}
+					/>
+				) : (
+					<>
+						<TldrawUiButton
+							title={msg('tool.rich-text-bold')}
+							type="icon"
+							isActive={textEditor.isActive('bold')}
+							onClick={() => {
+								trackEvent('rich-text', { operation: 'bold', source })
+								textEditor.chain().focus().toggleBold().run()
+							}}
+						>
+							<TldrawUiButtonIcon small icon="bold" />
+						</TldrawUiButton>
+						<TldrawUiButton
+							title={msg('tool.rich-text-strikethrough')}
+							type="icon"
+							isActive={textEditor.isActive('strike')}
+							onClick={() => {
+								trackEvent('rich-text', { operation: 'strikethrough', source })
+								textEditor.chain().focus().toggleStrike().run()
+							}}
+						>
+							<TldrawUiButtonIcon small icon="strikethrough" />
+						</TldrawUiButton>
+						<TldrawUiButton
+							title={msg('tool.rich-text-link')}
+							type="icon"
+							isActive={textEditor.isActive('link')}
+							onClick={() => {
+								trackEvent('rich-text', { operation: 'link', source })
+								setIsEditingLink(true)
+							}}
+						>
+							<TldrawUiButtonIcon small icon="link" />
+						</TldrawUiButton>
+						<TldrawUiButton
+							title={msg('tool.rich-text-header')}
+							type="icon"
+							isActive={textEditor.isActive('heading', { level: 3 })}
+							onClick={() => {
+								trackEvent('rich-text', { operation: 'header', source })
+								textEditor.chain().focus().toggleHeading({ level: 3 }).run()
+							}}
+						>
+							<TldrawUiButtonIcon small icon="header" />
+						</TldrawUiButton>
+						<TldrawUiButton
+							title={msg('tool.rich-text-bulleted-list')}
+							type="icon"
+							isActive={textEditor.isActive('bulletList')}
+							onClick={() => {
+								trackEvent('rich-text', { operation: 'bulleted-list', source })
+								textEditor.chain().focus().toggleBulletList().run()
+							}}
+						>
+							<TldrawUiButtonIcon small icon="bulleted-list" />
+						</TldrawUiButton>
+					</>
+				)}
 			</div>
 		</div>
 	)
 })
 
-export function wrapTextEditorCommand(fn: (...args: any[]) => void) {
-	return (textEditor: EditorView, ...args: any[]) => {
-		fn(textEditor, ...args)
-		textEditor.focus()
-	}
+function LinkEditor({
+	value: initialValue,
+	onComplete,
+	onCancel,
+	onRemoveLink,
+}: {
+	value: string
+	onComplete(link: string): void
+	onCancel(): void
+	onRemoveLink(): void
+}) {
+	const [value, setValue] = useState(initialValue)
+	const msg = useTranslation()
+	const ref = useRef<HTMLInputElement>(null)
+
+	const handleValueChange = (value: string) => setValue(value)
+
+	useEffect(() => {
+		ref.current?.focus()
+	}, [])
+
+	return (
+		<>
+			<TldrawUiInput
+				ref={ref}
+				className="tl-rich-text__toolbar-link-input"
+				value={value}
+				onValueChange={handleValueChange}
+				onComplete={onComplete}
+				onCancel={onCancel}
+			/>
+			<TldrawUiButton
+				className="tl-rich-text__toolbar-link-remove"
+				title={msg('tool.rich-text-link-remove')}
+				type="icon"
+				onClick={onRemoveLink}
+			>
+				<TldrawUiButtonIcon small icon="cross-2" />
+			</TldrawUiButton>
+		</>
+	)
 }
-
-export const applyInlineStyle = wrapTextEditorCommand((textEditor: EditorView, type: MarkType) => {
-	toggleMark(type)(textEditor.state, textEditor.dispatch, textEditor)
-})
-
-export const applyBlockType = wrapTextEditorCommand(
-	(textEditor: EditorView, schema: Schema, type: NodeType, attrs?: Attrs | null) => {
-		const { state, dispatch } = textEditor
-		const transaction = state.tr
-
-		// Remove any list items if present.
-		liftListItem(schema.nodes.list_item)(state.apply(transaction), dispatch)
-
-		// Set the block type to the specified type (e.g. heading).
-		setBlockType(type, attrs)(state.apply(transaction), dispatch)
-	}
-)
-
-export const applyListType = wrapTextEditorCommand(
-	(textEditor: EditorView, schema: Schema, type: NodeType) => {
-		const { state, dispatch } = textEditor
-		const transaction = state.tr
-
-		// Remove any header block if present.
-		setBlockType(schema.nodes.paragraph)(state.apply(transaction), dispatch)
-		wrapInList(type)(state.apply(transaction), dispatch)
-	}
-)

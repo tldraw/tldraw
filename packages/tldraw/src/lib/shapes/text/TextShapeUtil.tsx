@@ -347,7 +347,7 @@ function useTextShapeKeydownHandler(id: TLShapeId) {
 	const editor = useEditor()
 
 	return useCallback(
-		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		(e: KeyboardEvent) => {
 			if (editor.getEditingShapeId() !== id) return
 
 			switch (e.key) {
@@ -360,9 +360,9 @@ function useTextShapeKeydownHandler(id: TLShapeId) {
 				case 'Tab': {
 					preventDefault(e)
 					if (e.shiftKey) {
-						TextHelpers.unindent(e.currentTarget)
+						TextHelpers.unindent(e.currentTarget! as HTMLTextAreaElement)
 					} else {
-						TextHelpers.indent(e.currentTarget)
+						TextHelpers.indent(e.currentTarget! as HTMLTextAreaElement)
 					}
 					break
 				}
