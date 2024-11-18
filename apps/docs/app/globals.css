@@ -79,9 +79,13 @@ div.hs-fieldtype-textarea {
 }
 
 .hs-submit {
-	@apply relative overflow-hidden flex justify-center items-center col-start-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-zinc-900 focus:ring-offset-zinc-900 h-9 px-4 gap-2.5 rounded-lg text-base bg-blue-500 text-white hover:bg-blue-600 dark:hover:bg-blue-400;
+	@apply overflow-hidden items-center col-start-2 p-2;
 }
 
 .hs-submit input {
-	background-color: transparent !important;
+	@apply overflow-hidden items-center h-9 rounded-lg text-base !bg-blue-500 !text-white hover:!bg-blue-600 dark:hover:!bg-blue-400;
+}
+
+.hs_error_rollup {
+	@apply flex items-center;
 }
