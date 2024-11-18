@@ -144,10 +144,14 @@ export function getArrowNavigationGrid(
 	M: Vec,
 	expand: number
 ): ArrowNavigationGrid {
-	const AE = A.clone().expandBy(expand)
-	const BE = B.clone().expandBy(expand)
-	const C = Box.FromPoints([A.center, B.center])
-	const D = Box.Common([A, B]).expandBy(expand)
+	A.toFixed()
+	B.toFixed()
+	M.toFixed()
+
+	const AE = A.clone().expandBy(expand).toFixed()
+	const BE = B.clone().expandBy(expand).toFixed()
+	const C = Box.FromPoints([A.center, B.center]).toFixed()
+	const D = Box.Common([A, B]).expandBy(expand).toFixed()
 
 	// are A and B disjoint on the x axis, and if so, what's min and max?
 

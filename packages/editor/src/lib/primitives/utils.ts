@@ -61,7 +61,7 @@ export function clamp(n: number, min: number, max?: number): number {
  * @param precision - The precision.
  * @public
  */
-export function toPrecision(n: number, precision = 10000000000) {
+export function toPrecision(n: number, precision = 1e2) {
 	if (!n) return 0
 	return Math.round(n * precision) / precision
 }

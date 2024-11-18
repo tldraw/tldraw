@@ -58,25 +58,45 @@ export function getArrowPath(
 
 	let closestPair = [] as [ArrowDirection, Vec, Vec][]
 
+	// gapDir is h or v if is there are no overlaps, ie both left/above, right/above, right/below, or left/below
+
 	if (g.gapDir === 'h') {
 		// hs prefer S arrows
-		closestPair[0] = g.hPos === 'a-left-of-b' ? edgesA[1] : edgesA[3]
-		closestPair[1] = g.hPos === 'a-left-of-b' ? edgesB[3] : edgesB[1]
+		closestPair = [
+			g.hPos === 'a-left-of-b' ? edgesA[1] : edgesA[3],
+			g.hPos === 'a-left-of-b' ? edgesB[3] : edgesB[1],
+		]
 	} else if (g.gapDir === 'v') {
-		// vs prefer L arrows
-		if (g.vPos === 'a-above-b') {
-			closestPair[0] = edgesA[2]
-			closestPair[1] = edgesB[0] // tricky, see below
-		} else if (g.vPos === 'a-below-b') {
-			closestPair[0] = edgesA[0]
-			closestPair[1] = edgesB[2] // tricky, see below
-		}
+		closestPair = [edgesA[1], edgesB[1]] // temp
 
-		// overwrites the B just set above
-		if (g.hPos === 'a-left-of-b') {
-			closestPair[1] = edgesB[3]
-		} else if (g.hPos === 'a-right-of-b') {
-			closestPair[1] = edgesB[1]
+		if (g.vPos === 'a-above-b') {
+			if (g.hPos === 'a-right-of-b') {
+				closestPair = [edgesA[3], edgesB[0]]
+			} else if (g.hPos === 'a-left-of-b') {
+				closestPair = [edgesA[1], edgesB[0]]
+			} else {
+				if (g.A.e.l.x > g.B.c.x) {
+					closestPair = [edgesA[3], edgesB[0]]
+				} else if (g.A.e.r.x < g.B.c.x) {
+					closestPair = [edgesA[1], edgesB[0]]
+				} else {
+					closestPair = [edgesA[2], edgesB[0]]
+				}
+			}
+		} else if (g.vPos === 'a-below-b') {
+			if (g.hPos === 'a-right-of-b') {
+				closestPair = [edgesA[3], edgesB[2]]
+			} else if (g.hPos === 'a-left-of-b') {
+				closestPair = [edgesA[1], edgesB[2]]
+			} else {
+				if (g.A.e.l.x > g.B.c.x) {
+					closestPair = [edgesA[3], edgesB[2]]
+				} else if (g.A.e.r.x < g.B.c.x) {
+					closestPair = [edgesA[1], edgesB[2]]
+				} else {
+					closestPair = [edgesA[0], edgesB[2]]
+				}
+			}
 		}
 	} else {
 		if (g.hPos === 'a-left-of-b') {
@@ -214,6 +234,7 @@ export function getArrowPath(
 	}
 
 	const [dir, k, e] = closestPair[0]
+
 	const kp = g.gridPointsMap.get(k)!
 	const ep = g.gridPointsMap.get(e)!
 	const paths = getNextPointInPath(
@@ -428,6 +449,5 @@ function getNext(
 		if (res === false) res = result
 		break
 	}
-
 	return res === true ? null : res
 }
