@@ -239,7 +239,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`Cannot create a file for another user ${nextFile.id}`
 					)
 				}
-				if (nextFile.ownerId === this.userId) return
+				if (prevFile.ownerId === this.userId) return
 				if (prevFile.shared && prevFile.sharedLinkType === 'edit') return
 				throw new ZMutationError(
 					ZErrorCode.forbidden,
@@ -367,7 +367,14 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	// to make sure the replicator wakes up if it went to sleep for whatever
 	// reason, we ping it every every once in a while from every actively connected user DO
 	override async alarm() {
-		this.replicator.ping()
+		const { sequenceId } = await this.replicator.ping()
+		if (
+			this.cache &&
+			'sequenceId' in this.cache.state &&
+			this.cache.state.sequenceId !== sequenceId
+		) {
+			this.cache.reboot()
+		}
 		const alarm = await this.ctx.storage.getAlarm()
 		if ((!alarm || alarm <= Date.now()) && this.ctx.getWebSockets().length > 0) {
 			this.ctx.storage.setAlarm(Date.now() + 1000 * 10)

@@ -29,6 +29,7 @@ type BootState =
 	| {
 			type: 'init'
 			promise: PromiseWithResolve
+			sequenceId: string
 	  }
 	| {
 			type: 'connecting'
@@ -48,6 +49,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	state: BootState = {
 		type: 'init',
 		promise: promiseWithResolve(),
+		sequenceId: uniqueId(),
 	}
 
 	sentry
@@ -288,7 +290,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async ping() {
-		return 'pong'
+		return { sequenceId: this.state.sequenceId }
 	}
 
 	async waitUntilConnected() {

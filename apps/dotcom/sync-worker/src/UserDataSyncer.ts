@@ -117,7 +117,7 @@ export class UserDataSyncer {
 
 	private queue = new ExecutionQueue()
 
-	private async reboot(delay = true) {
+	async reboot(delay = true) {
 		// TODO: set up analytics and alerts for this
 		this.debug('rebooting')
 		await this.queue.push(async () => {
