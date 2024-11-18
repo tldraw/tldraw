@@ -15,6 +15,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
+import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Environment } from './types'
@@ -45,7 +46,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.env.TL_PG_REPLICATOR.idFromName('0')
 		) as any as TLPostgresReplicator
 
-		this.db = postgres(env.BOTCOM_POSTGRES_CONNECTION_STRING)
+		this.db = getPostgres(env)
 		this.debug('created')
 	}
 
@@ -60,8 +61,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			if (rateLimited) {
 				throw new Error('Rate limited')
 			}
-			while (this.cache === null) {
+			if (this.cache === null) {
 				await this.init()
+			} else {
+				await this.cache.waitUntilConnected()
 			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
@@ -240,7 +243,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				if (prevFile.shared && prevFile.sharedLinkType === 'edit') return
 				throw new ZMutationError(
 					ZErrorCode.forbidden,
-					'Cannot update file that is not our own and not shared in edit mode'
+					'Cannot update file that is not our own and not shared in edit mode' +
+						` user id ${this.userId} ownerId ${nextFile.ownerId}`
 				)
 			}
 			case 'file_state': {

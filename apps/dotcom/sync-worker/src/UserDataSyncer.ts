@@ -18,6 +18,7 @@ import {
 	parseResultRow,
 	userKeys,
 } from './getFetchEverythingSql'
+import { getPostgres } from './getPostgres'
 import { Environment } from './types'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -99,16 +100,7 @@ export class UserDataSyncer {
 		this.replicator = env.TL_PG_REPLICATOR.get(
 			env.TL_PG_REPLICATOR.idFromName('0')
 		) as any as TLPostgresReplicator
-		this.db = postgres(this.env.BOTCOM_POSTGRES_CONNECTION_STRING, {
-			types: {
-				bigint: {
-					from: [20], // PostgreSQL OID for BIGINT
-					parse: (value: string) => Number(value), // Convert string to number
-					to: 20,
-					serialize: (value: number) => String(value), // Convert number to string
-				},
-			},
-		})
+		this.db = getPostgres(env)
 		this.reboot(false)
 	}
 
@@ -172,6 +164,7 @@ export class UserDataSyncer {
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
 		const sequenceId = await this.replicator.registerUser(this.userId)
+		this.debug('registered user', sequenceId)
 		this.state = {
 			type: 'connecting',
 			// preserve the promise so any awaiters do eventually get resolved

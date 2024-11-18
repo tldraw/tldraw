@@ -398,34 +398,15 @@ export class TldrawApp {
 	 * @param fileId - The file id.
 	 */
 	async deleteOrForgetFile(fileId: string) {
-		// Stash these so that we can restore them later
-		let fileStates: TlaFileState[]
 		const file = this.getFile(fileId)
-		if (!file) return Result.err('no file with id ' + fileId)
 
-		if (file.ownerId === this.userId) {
-			// Optimistic update, remove file and file states
-			this.z.mutate((tx) => {
-				tx.file.delete(file)
-				// TODO(blah): other file states should be deleted by backend
-				fileStates = this.getUserFileStates().filter((r) => r.fileId === fileId)
-				for (const state of fileStates) {
-					if (state.fileId === fileId) {
-						tx.file_state.delete(state)
-					}
-				}
-			})
-		} else {
-			// If not the owner, just remove the file state
-			this.z.mutate((tx) => {
-				fileStates = this.getUserFileStates().filter((r) => r.fileId === fileId)
-				for (const state of fileStates) {
-					if (state.fileId === fileId) {
-						tx.file_state.delete(state)
-					}
-				}
-			})
-		}
+		// Optimistic update, remove file and file states
+		this.z.mutate((tx) => {
+			tx.file_state.delete({ fileId, userId: this.userId })
+			if (file?.ownerId === this.userId) {
+				tx.file.delete({ id: fileId })
+			}
+		})
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {

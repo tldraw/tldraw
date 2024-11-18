@@ -6,6 +6,7 @@ import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import type { TLUserDurableObject } from './TLUserDurableObject'
+import { getPostgres } from './getPostgres'
 import { Environment } from './types'
 
 const seed = `
@@ -105,16 +106,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			db: postgres(this.env.BOTCOM_POSTGRES_CONNECTION_STRING, {
-				types: {
-					bigint: {
-						from: [20], // PostgreSQL OID for BIGINT
-						parse: (value: string) => Number(value), // Convert string to number
-						to: 20,
-						serialize: (value: number) => String(value), // Convert number to string
-					},
-				},
-			}),
+			db: getPostgres(this.env),
 			sequenceId: uniqueId(),
 		}
 		const subscription = await this.state.db.subscribe(
@@ -199,7 +191,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 						sequenceId: this.state.sequenceId,
 						userId: row.userId,
 					})
-				} else {
+				} else if (!file) {
 					this.captureException(new Error(`File not found: ${row.fileId}`))
 				}
 			} else if (
@@ -328,7 +320,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async registerUser(userId: string) {
+		this.debug('registerUser', userId)
 		await this.waitUntilConnected()
+		this.debug('registerUser', userId, 'connected')
 		assert(this.state.type === 'connected', 'state should be connected in registerUser')
 		this.sql.exec(`INSERT INTO active_user (id) VALUES (?) ON CONFLICT (id) DO NOTHING`, userId)
 		const guestFiles = await this.state
