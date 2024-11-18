@@ -44,3 +44,48 @@ html {
 		}
 	}
 }
+
+.hs-form-field.hs-fieldtype-text label,
+.hs-form-field.hs-fieldtype-select label,
+.hs-form-field.hs-fieldtype-textarea label {
+	display: none;
+}
+
+/* We don't show any descriptions or lables */
+.hs-field-desc {
+	display: none !important;
+}
+
+/* Make text areas span both columns */
+div.hs-fieldtype-textarea {
+	@apply sm:col-span-2;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 {
+	@apply flex flex-col sm:grid-cols-2 sm:grid gap-4;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 select {
+	@apply w-full h-9 px-4 appearance-none rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 input {
+	@apply w-full h-9 px-4 rounded-lg text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
+}
+
+#hsForm_b8b7b29f-3987-4c37-b64f-bffff5b3fd17 textarea {
+	@apply -mb-1.5 w-full px-4 py-2 rounded-lg resize-none text-white bg-zinc-700/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-zinc-900;
+	height: 112px;
+}
+
+.hs-submit {
+	@apply overflow-hidden items-center col-start-2 p-2;
+}
+
+.hs-submit input {
+	@apply overflow-hidden items-center h-9 rounded-lg text-base !bg-blue-500 !text-white hover:!bg-blue-600 dark:hover:!bg-blue-400;
+}
+
+.hs_error_rollup {
+	@apply flex items-center;
+}
