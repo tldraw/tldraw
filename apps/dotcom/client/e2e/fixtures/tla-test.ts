@@ -102,19 +102,18 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 
 export { expect } from '@playwright/test'
 
-export function step(name: string) {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-	return function (target: Function, context: any) {
-		if (context.kind === 'method') {
-			return async function (...args: any[]) {
-				return await test.step(name, async () => {
-					// @ts-expect-error Parameter 'this' implicitly has an 'any' type.ts(7006)
-					return target.apply(this, args)
-				})
-			}
-		} else {
-			console.error('Only supporting methods for step decorator.')
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+export function step(target: Function, context: any) {
+	if (context.kind === 'method') {
+		return async function (...args: any[]) {
+			// @ts-expect-error Parameter 'this' implicitly has an 'any' type.ts(7006)
+			return await test.step(`${this.constructor.name}.${context.name}`, async () => {
+				// @ts-expect-error Parameter 'this' implicitly has an 'any' type.ts(7006)
+				return target.apply(this, args)
+			})
 		}
+	} else {
+		console.error('Only supporting methods for step decorator.')
 	}
 }
 

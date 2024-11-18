@@ -50,7 +50,7 @@ export class Sidebar {
 		await this.page.getByRole('button', { name: 'Account menu' }).click()
 	}
 
-	@step('Sidebar.setDarkMode')
+	@step
 	async setDarkMode() {
 		await this.openPreferences()
 		await this.preferencesButton.hover()
@@ -58,13 +58,13 @@ export class Sidebar {
 		await this.darkModeButton.click()
 	}
 
-	@step('Sidebar.openLanguageMenu')
+	@step
 	async openLanguageMenu(languageButtonText: string) {
 		await this.openPreferences()
 		await this.page.getByText(languageButtonText).hover()
 	}
 
-	@step('Sidebar.expectLanguageToBe')
+	@step
 	async expectLanguageToBe(languageButtonText: string, language: string) {
 		await this.openLanguageMenu(languageButtonText)
 		await expect(async () => {
@@ -75,13 +75,13 @@ export class Sidebar {
 		}).toPass()
 	}
 
-	@step('Sidebar.setLanguage')
+	@step
 	async setLanguage(languageButtonText: string, language: string) {
 		await this.openLanguageMenu(languageButtonText)
 		await this.page.getByRole('menuitemcheckbox', { name: language }).click()
 	}
 
-	@step('Sidebar.signOut')
+	@step
 	async signOut() {
 		await this.openPreferences()
 		await this.sidebarBottom.getByRole('button').click()
@@ -113,32 +113,32 @@ export class Sidebar {
 		return await fileName.innerText()
 	}
 
-	@step('Sidebar.openFileMenu')
+	@step
 	private async openFileMenu(fileLink: Locator) {
 		await fileLink?.hover()
 		const button = fileLink.getByRole('button')
 		await button?.click()
 	}
 
-	@step('Sidebar.deleteFile')
+	@step
 	async deleteFile(index: number) {
 		await this.openFileMenu(this.getFileLink(index))
 		await this.deleteFromFileMenu()
 	}
 
-	@step('Sidebar.deleteFromFileMenu')
+	@step
 	private async deleteFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Delete' }).click()
 	}
 
-	@step('Sidebar.renameFile')
+	@step
 	async renameFile(index: number, newName: string) {
 		const fileLink = this.getFileLink(index)
 		await this.openFileMenu(fileLink)
 		await this.renameFromFileMenu(newName)
 	}
 
-	@step('Sidebar.renameFromFileMenu')
+	@step
 	async renameFromFileMenu(name: string) {
 		await this.page.getByRole('menuitem', { name: 'Rename' }).click()
 		const input = this.page.getByRole('textbox')
@@ -146,24 +146,24 @@ export class Sidebar {
 		await this.page.keyboard.press('Enter')
 	}
 
-	@step('Sidebar.duplicateFromFileMenu')
+	@step
 	private async duplicateFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Duplicate' }).click()
 	}
 
-	@step('Sidebar.duplicateFile')
+	@step
 	async duplicateFile(index: number) {
 		const fileLink = this.getFileLink(index)
 		await this.openFileMenu(fileLink)
 		await this.duplicateFromFileMenu()
 	}
 
-	@step('Sidebar.copyFileLinkFromFileMenu')
+	@step
 	async copyFileLinkFromFileMenu() {
 		await this.page.getByRole('menuitem', { name: 'Copy link' }).click()
 	}
 
-	@step('Sidebar.copyFileLink')
+	@step
 	async copyFileLink(index: number) {
 		const fileLink = this.getFileLink(index)
 		await this.openFileMenu(fileLink)
@@ -182,7 +182,7 @@ export class Sidebar {
 		return backgroundColor === 'rgba(9, 11, 12, 0.043)'
 	}
 
-	@step('Sidebar.closeAccountMenu')
+	@step
 	async closeAccountMenu() {
 		await this.page.keyboard.press('Escape')
 	}

@@ -57,22 +57,22 @@ export class ShareMenu {
 		}
 	}
 
-	@step('ShareMenu.shareFile')
+	@step
 	async shareFile() {
 		await this.share('invite')
 	}
 
-	@step('ShareMenu.unshareFile')
+	@step
 	async unshareFile() {
 		await this.unshare('invite')
 	}
 
-	@step('ShareMenu.publishFile')
+	@step
 	async publishFile() {
 		await this.share('publish')
 	}
 
-	@step('ShareMenu.unpublishFile')
+	@step
 	async unpublishFile() {
 		await this.unshare('publish')
 	}
@@ -81,7 +81,7 @@ export class ShareMenu {
 		return await this.page.getByRole('checkbox').isChecked()
 	}
 
-	@step('ShareMenu.copyLink')
+	@step
 	async copyLink() {
 		await this.copyLinkButton.click()
 
@@ -89,32 +89,32 @@ export class ShareMenu {
 		return await handle.jsonValue()
 	}
 
-	@step('ShareMenu.openMenuAndCopyLink')
+	@step
 	async openMenuAndCopyLink() {
 		await this.open()
 		return await this.copyLink()
 	}
 
-	@step('ShareMenu.exportFile')
+	@step
 	async exportFile() {
 		await this.ensureTabSelected('export')
 		await this.exportImageButton.click()
 	}
 
-	@step('ShareMenu.isTabSelected')
+	@step
 	async isTabSelected(tab: ShareMenuTab) {
 		const attr = await this.tabs[tab].getAttribute('data-active')
 		return attr === 'true'
 	}
 
-	@step('ShareMenu.ensureTabSelected')
+	@step
 	async ensureTabSelected(tab: ShareMenuTab) {
 		if (await this.isTabSelected(tab)) return
 		const locator = this.tabs[tab]
 		await locator.click()
 	}
 
-	@step('ShareMenu.publishChanges')
+	@step
 	async publishChanges() {
 		await this.ensureTabSelected('publish')
 		await this.publishChangesButton.click()

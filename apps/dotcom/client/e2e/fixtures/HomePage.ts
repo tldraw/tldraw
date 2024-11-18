@@ -14,7 +14,7 @@ export class HomePage {
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
 	}
 
-	@step('Homepage.loginAs')
+	@step
 	async loginAs(email: string) {
 		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
 		// We are already logged in
