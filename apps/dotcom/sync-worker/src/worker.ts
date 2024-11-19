@@ -24,6 +24,7 @@ import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { testRoutes } from './testRoutes'
 import { Environment } from './types'
+import { getUserDurableObject } from './utils/durableObjects'
 import { getAuth } from './utils/tla/getAuth'
 // export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
@@ -64,7 +65,7 @@ const router = createRouter<Environment>()
 			console.log('auth not found')
 			return notFound()
 		}
-		const stub = env.TL_USER.get(env.TL_USER.idFromName(auth.userId))
+		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})
 	.post('/app/tldr', createFiles)

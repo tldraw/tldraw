@@ -20,6 +20,7 @@ import {
 } from './getFetchEverythingSql'
 import { getPostgres } from './getPostgres'
 import { Environment } from './types'
+import { getReplicator } from './utils/durableObjects'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
 export interface ZRowUpdateEvent {
@@ -106,9 +107,7 @@ export class UserDataSyncer {
 		private broadcast: (message: ZServerSentMessage) => void
 	) {
 		this.sentry = createSentry(ctx, env)
-		this.replicator = env.TL_PG_REPLICATOR.get(
-			env.TL_PG_REPLICATOR.idFromName('0')
-		) as any as TLPostgresReplicator
+		this.replicator = getReplicator(env)
 		this.db = getPostgres(env)
 		this.reboot(false)
 	}
