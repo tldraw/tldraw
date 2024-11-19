@@ -140,16 +140,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			'*',
 			this.handleEvent.bind(this),
 			() => {
-				// re-register all active users to get their latest guest info
-				const users = this.sql.exec('SELECT id FROM active_user').toArray()
-				for (const user of users) {
-					const sequenceId = this.state.sequenceId
-					this.queue.push(async () => {
-						if (this.state.sequenceId !== sequenceId) return
-						this.messageUser(user.id as string, { type: 'force_reboot', sequenceId })
-						await sleep(10)
-					})
-				}
+				this.onDidBoot()
 			},
 			() => {
 				// this is invoked if the subscription is closed unexpectedly
@@ -167,11 +158,29 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		promise.resolve(null)
 	}
 
-	handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+	private onDidBoot() {
+		// re-register all active users to get their latest guest info
+		// do this in small batches to avoid overwhelming the system
+		const users = this.sql.exec('SELECT id FROM active_user').toArray()
+		const sequenceId = this.state.sequenceId
+		const BATCH_SIZE = 5
+		const tick = () => {
+			if (this.state.sequenceId !== sequenceId) return
+			if (users.length === 0) return
+			const batch = users.splice(0, BATCH_SIZE)
+			for (const user of batch) {
+				this.messageUser(user.id as string, { type: 'force_reboot', sequenceId })
+			}
+			setTimeout(tick, 10)
+		}
+		tick()
+	}
+
+	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		this.queue.push(() => this._handleEvent(row, event))
 	}
 
-	async _handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+	private async _handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
 		try {
 			if (event.relation.table === 'user_boot_id' && event.command !== 'delete') {
@@ -332,7 +341,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		return { sequenceId: this.state.sequenceId }
 	}
 
-	async waitUntilConnected() {
+	private async waitUntilConnected() {
 		while (this.state.type !== 'connected') {
 			await this.state.promise
 		}
