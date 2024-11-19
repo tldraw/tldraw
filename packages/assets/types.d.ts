@@ -185,6 +185,7 @@ export type AssetUrls = {
 		ro: string
 		ru: string
 		sl: string
+		so: string
 		sv: string
 		te: string
 		th: string
