@@ -32,11 +32,11 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "279f0531ff": {
+    "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
+  },
   "27de813139": {
     "translation": "Private file"
-  },
-  "293888023c": {
-    "translation": "Still having trouble? Let us know at hello@tldraw.com"
   },
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
@@ -65,11 +65,17 @@
   "517bb809d9": {
     "translation": "Page menu"
   },
+  "54d240fa41": {
+    "translation": "Please slow down."
+  },
   "55505ba281": {
     "translation": "PNG"
   },
   "5a95a425f7": {
     "translation": "Share"
+  },
+  "5fb63579fc": {
+    "translation": "Copy"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -94,6 +100,9 @@
   },
   "827aedd218": {
     "translation": "Added .tldr {count, plural, one {# file} other {# files}}"
+  },
+  "8ff3d0a705": {
+    "translation": "Rate limited"
   },
   "904a830405": {
     "translation": "Rename"

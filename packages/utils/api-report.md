@@ -95,6 +95,10 @@ export class FileHelpers {
     static blobToText(file: Blob): Promise<string>;
     // (undocumented)
     static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
+    // (undocumented)
+    static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
+    // (undocumented)
+    static rewriteMimeType(blob: File, newMimeType: string): File;
 }
 
 // @internal

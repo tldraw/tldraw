@@ -51,6 +51,11 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 				message = `You don't have permission to view this room.`
 				break
 			}
+			case TLSyncErrorCloseEventReason.RATE_LIMITED: {
+				header = 'Rate limited'
+				message = `Please slow down.`
+				break
+			}
 			default: {
 				console.error('Unhandled sync error', error)
 			}

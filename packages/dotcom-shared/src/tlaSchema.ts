@@ -129,3 +129,13 @@ type SchemaToRow<T extends TableSchema> = {
 export type TlaFile = SchemaToRow<typeof tlaFileSchema>
 export type TlaFileState = SchemaToRow<typeof tlaFileStateSchema>
 export type TlaUser = SchemaToRow<typeof tlaUserSchema>
+
+const immutableColumns: Record<string, Set<string>> = {
+	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt']),
+	file: new Set<keyof TlaFile>(['id', 'ownerId', 'createdAt']),
+	file_state: new Set<keyof TlaFileState>(['userId', 'fileId', 'firstVisitAt']),
+}
+
+export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {
+	return !immutableColumns[tableName].has(column)
+}

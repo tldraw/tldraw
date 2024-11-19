@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { IRequest } from 'itty-router'
 import { TLPostgresReplicator } from '../../TLPostgresReplicator'
@@ -16,15 +15,11 @@ export async function getPublishedFile(request: IRequest, env: Environment): Pro
 		const parentSlug = await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.get(roomId)
 		if (!parentSlug) throw Error('not found')
 
-		console.log('parentSlug', parentSlug)
-
 		const replicator = env.TL_PG_REPLICATOR.get(
 			env.TL_PG_REPLICATOR.idFromName('0')
 		) as any as TLPostgresReplicator
 		const file = await replicator.getFileRecord(parentSlug)
-		console.log('roomId', roomId)
 
-		console.log('file', file)
 		if (!file) throw Error('not found')
 
 		if (!file.published) throw Error('not published')

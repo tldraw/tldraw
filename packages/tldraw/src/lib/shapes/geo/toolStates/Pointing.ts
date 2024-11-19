@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	Vec,
 	createShapeId,
+	maybeSnapToGrid,
 } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
@@ -21,14 +22,14 @@ export class Pointing extends StateNode {
 			const id = createShapeId()
 
 			const creatingMarkId = this.editor.markHistoryStoppingPoint(`creating_geo:${id}`)
-
+			const newPoint = maybeSnapToGrid(originPagePoint, this.editor)
 			this.editor
 				.createShapes<TLGeoShape>([
 					{
 						id,
 						type: 'geo',
-						x: originPagePoint.x,
-						y: originPagePoint.y,
+						x: newPoint.x,
+						y: newPoint.y,
 						props: {
 							w: 1,
 							h: 1,
@@ -102,13 +103,13 @@ export class Pointing extends StateNode {
 		const delta = new Vec(w / 2, h / 2).mul(scale)
 		const parentTransform = this.editor.getShapeParentTransform(shape)
 		if (parentTransform) delta.rot(-parentTransform.rotation())
-
+		const newPoint = maybeSnapToGrid(new Vec(shape.x - delta.x, shape.y - delta.y), this.editor)
 		this.editor.select(id)
 		this.editor.updateShape<TLGeoShape>({
 			id: shape.id,
 			type: 'geo',
-			x: shape.x - delta.x,
-			y: shape.y - delta.y,
+			x: newPoint.x,
+			y: newPoint.y,
 			props: {
 				geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
 				w: w * scale,

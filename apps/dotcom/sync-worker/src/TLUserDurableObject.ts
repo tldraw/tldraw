@@ -1,4 +1,5 @@
 import {
+	isColumnMutable,
 	OptimisticAppStore,
 	ROOM_PREFIX,
 	TlaFile,
@@ -17,9 +18,10 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
-import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { getR2KeyForRoom } from './r2'
+import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Environment } from './types'
+import { isRateLimited } from './utils/rateLimit'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
@@ -49,14 +51,25 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	userId: string | null = null
 
+	lastReplicatorBootId: string | null = null
+
 	readonly router = Router()
 		.all('/app/:userId/*', async (req) => {
 			if (!this.userId) {
 				this.userId = req.params.userId
 			}
-			await this.ctx.blockConcurrencyWhile(async () => {
-				this.store.initialize(await this.replicator.fetchDataForUser(this.userId!))
-			})
+			const rateLimited = await isRateLimited(this.env, this.userId!)
+			if (rateLimited) {
+				throw new Error('Rate limited')
+			}
+			if (this.lastReplicatorBootId === null) {
+				await this.ctx.blockConcurrencyWhile(async () => {
+					const { data, bootId } = await this.replicator.fetchDataForUser(this.userId!)
+					this.lastReplicatorBootId = bootId
+					this.store.initialize(data)
+					this.replicator.registerUser(this.userId!)
+				})
+			}
 		})
 		.get(`/app/:userId/connect`, (req) => this.onRequest(req))
 
@@ -98,12 +111,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		this.ctx.acceptWebSocket(serverWebSocket)
-		const initialData = this.store.getCommitedData()
+		const initialData = this.store.getCommittedData()
 		if (!initialData) {
 			throw new Error('Initial data not fetched')
 		}
 
-		// todo: sync
 		serverWebSocket.send(
 			JSON.stringify({
 				type: 'initial_data',
@@ -111,33 +123,24 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			} satisfies ZServerSentMessage)
 		)
 
+		this.alarm()
+
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}
 
 	override async webSocketMessage(_ws: WebSocket, message: string) {
+		const rateLimited = await isRateLimited(this.env, this.userId!)
 		const msg = JSON.parse(message) as any as ZClientSentMessage
 		switch (msg.type) {
 			case 'mutate':
-				await this.handleMutate(msg)
+				if (rateLimited) {
+					this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
+				} else {
+					await this.handleMutate(msg)
+				}
 				break
 			default:
 				this.captureException(new Error('Unhandled message'), { data: { message } })
-		}
-	}
-
-	async commitMutation(mutationNumber: number) {
-		const mutationIds = this.mutations
-			.filter((m) => m.mutationNumber <= mutationNumber)
-			.map((m) => m.mutationId)
-		this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
-		this.store.commitMutations(mutationIds)
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.send(
-				JSON.stringify({
-					type: 'commit',
-					mutationIds,
-				} satisfies ZServerSentMessage)
-			)
 		}
 	}
 
@@ -237,13 +240,21 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								break
 							}
 						}
-						case 'update':
+						case 'update': {
+							const mutableColumns = Object.keys(update.row).filter((k) =>
+								isColumnMutable(update.table, k)
+							)
+							if (mutableColumns.length === 0) continue
+							const updates = Object.fromEntries(
+								mutableColumns.map((k) => [k, (update.row as any)[k]])
+							)
 							if (update.table === 'file_state') {
-								const { fileId, userId, ...rest } = update.row as any
-								await sql`update public.file_state set ${sql(rest)} where "fileId" = ${fileId} and "userId" = ${userId}`
+								const { fileId, userId } = update.row as any
+								await sql`update public.file_state set ${sql(updates)} where "fileId" = ${fileId} and "userId" = ${userId}`
 							} else {
 								const { id, ...rest } = update.row as any
-								await sql`update ${sql('public.' + update.table)} set ${sql(rest)} where id = ${id}`
+
+								await sql`update ${sql('public.' + update.table)} set ${sql(updates)} where id = ${id}`
 								if (update.table === 'file') {
 									const currentFile = this.store.getFullData()?.files.find((f) => f.id === id)
 									if (currentFile && currentFile.published !== rest.published) {
@@ -262,6 +273,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								}
 							}
 							break
+						}
 						case 'delete':
 							if (update.table === 'file_state') {
 								const { fileId, userId } = update.row as any
@@ -299,21 +311,72 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	onRowChange(row: object, table: ZTable, event: ZEvent) {
-		this.store.updateCommittedData({ table, event, row })
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.send(
-				JSON.stringify({
-					type: 'update',
-					update: {
-						table,
-						event,
-						row,
-					},
-				} satisfies ZServerSentMessage)
-			)
+	/* ------- RPCs -------  */
+
+	requireUserId(cb: () => void, userId: string) {
+		if (!this.userId) {
+			this.replicator.unregisterUser(userId)
+			return
+		}
+		cb()
+	}
+
+	// to make sure the replicator wakes up if it went to sleep for whatever
+	// reason, we ping it every every once in a while from every actively connected user DO
+	override async alarm() {
+		this.replicator.ping()
+		const alarm = await this.ctx.storage.getAlarm()
+		if ((!alarm || alarm <= Date.now()) && this.ctx.getWebSockets().length > 0) {
+			this.ctx.storage.setAlarm(Date.now() + 1000 * 10)
 		}
 	}
+
+	onRowChange(bootId: string, row: object, table: ZTable, event: ZEvent, userId: string) {
+		this.requireUserId(() => {
+			if (bootId !== this.lastReplicatorBootId) {
+				// replicator rebooted, reset the state and force clients to reconnect
+				this.lastReplicatorBootId = null
+				for (const socket of this.ctx.getWebSockets()) {
+					socket.close()
+				}
+				return
+			}
+			this.store.updateCommittedData({ table, event, row })
+			for (const socket of this.ctx.getWebSockets()) {
+				socket.send(
+					JSON.stringify({
+						type: 'update',
+						update: {
+							table,
+							event,
+							row,
+						},
+					} satisfies ZServerSentMessage)
+				)
+			}
+		}, userId)
+	}
+
+	commitMutation(mutationNumber: number, userId: string) {
+		this.requireUserId(() => {
+			const mutationIds = this.mutations
+				.filter((m) => m.mutationNumber <= mutationNumber)
+				.map((m) => m.mutationId)
+			this.mutations = this.mutations.filter((m) => m.mutationNumber > mutationNumber)
+			this.store.commitMutations(mutationIds)
+			for (const socket of this.ctx.getWebSockets()) {
+				if (socket.readyState !== WebSocket.OPEN) continue
+				socket.send(
+					JSON.stringify({
+						type: 'commit',
+						mutationIds,
+					} satisfies ZServerSentMessage)
+				)
+			}
+		}, userId)
+	}
+
+	/* --------------  */
 
 	async deleteFileStuff(id: string) {
 		const fileRecord = await this.replicator.getFileRecord(id)

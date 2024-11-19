@@ -1,4 +1,15 @@
-import { Editor, TLImageExportOptions, TLShapeId, exhaustiveSwitchError } from '@tldraw/editor'
+import {
+	Editor,
+	FileHelpers,
+	TLImageExportOptions,
+	TLShapeId,
+	exhaustiveSwitchError,
+} from '@tldraw/editor'
+import {
+	clipboardWrite,
+	doesClipboardSupportType,
+	getAdditionalClipboardWriteType,
+} from '../clipboard'
 import { exportToBlobPromise, exportToString } from './export'
 
 /** @public */
@@ -21,28 +32,23 @@ export function copyAs(
 	opts: TLImageExportOptions = {}
 ): Promise<void> {
 	// Note:  it's important that this function itself isn't async and doesn't really use promises -
-	// we need to create the relevant `ClipboardItem`s and call window.navigator.clipboard.write
+	// we need to create the relevant `ClipboardItem`s and call navigator.clipboard.write
 	// synchronously to make sure safari knows that the user _wants_ to copy See
 	// https://bugs.webkit.org/show_bug.cgi?id=222262
 
-	if (!window.navigator.clipboard) return Promise.reject(new Error('Copy not supported'))
-	if (window.navigator.clipboard.write) {
+	if (!navigator.clipboard) return Promise.reject(new Error('Copy not supported'))
+	if (navigator.clipboard.write as any) {
 		const { blobPromise, mimeType } = exportToBlobPromise(editor, ids, format, opts)
 
-		blobPromise.catch((err) => {
-			console.error(err)
-		})
+		const types: Record<string, Promise<Blob>> = { [mimeType]: blobPromise }
+		const additionalMimeType = getAdditionalClipboardWriteType(mimeType)
+		if (additionalMimeType && doesClipboardSupportType(additionalMimeType)) {
+			types[additionalMimeType] = blobPromise.then((blob) =>
+				FileHelpers.rewriteMimeType(blob, additionalMimeType)
+			)
+		}
 
-		return window.navigator.clipboard
-			.write([new ClipboardItem({ [mimeType]: blobPromise })])
-			.catch((err) => {
-				// Firefox will fail with the above if `dom.events.asyncClipboard.clipboardItem` is enabled.
-				// See <https://github.com/tldraw/tldraw/issues/1325>
-				console.error(err)
-				return blobPromise.then((blob) => {
-					return window.navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })])
-				})
-			})
+		return clipboardWrite(types)
 	}
 
 	switch (format) {

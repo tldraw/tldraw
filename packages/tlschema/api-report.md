@@ -418,6 +418,9 @@ export const LANGUAGES: readonly [{
     readonly label: "Slovenščina";
     readonly locale: "sl";
 }, {
+    readonly label: "Somali";
+    readonly locale: "so";
+}, {
     readonly label: "Suomi";
     readonly locale: "fi";
 }, {

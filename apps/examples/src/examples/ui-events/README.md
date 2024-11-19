@@ -1,12 +1,12 @@
 ---
-title: Code x-ray for UI events
+title: UI events
 component: ./UiEventsExample.tsx
 category: editor-api
 priority: 0
-keywords: []
+keywords: [ui, events, api, x-ray]
 ---
 
-Listen to events from tldraw's UI.
+Useful if you want to build a custom ui. See which editor methods are triggered by ui events.
 
 ---
 
