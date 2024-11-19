@@ -145,7 +145,6 @@ export class UserDataSyncer {
 		assert(this.state.type === 'connecting', 'state should be connecting')
 		if (this.state.didGetBootId && this.state.data) {
 			// we got everything, so we can set the state to connected and apply any buffered events
-			assert(this.state.type === 'connecting', 'state should be connecting')
 			const promise = this.state.promise
 			const bufferedEvents = this.state.bufferedEvents
 			const data = this.state.data

@@ -1,4 +1,4 @@
-import { ROOM_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
+import { ROOM_PREFIX, TlaFile, ZTable } from '@tldraw/dotcom-shared'
 import { assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -82,11 +82,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private debug(...args: any[]) {
 		// uncomment for dev time debugging
-		// console.log(...args)
+		// console.log('[TLPostgresReplicator]:', ...args)
 		if (this.sentry) {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
-				message: args.join(' '),
+				message: `[TLPostgresReplicator]: ${args.join(' ')}`,
 			})
 		}
 	}
@@ -279,7 +279,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					this.messageUser(userId, {
 						type: 'row_update',
 						row: row as any,
-						table: event.relation.table as 'user' | 'file' | 'file_state',
+						table: event.relation.table as ZTable,
 						event: event.command,
 						sequenceId: this.state.sequenceId,
 						userId,

@@ -76,7 +76,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		)
 		this.debug('cache', !!this.cache)
 		await this.cache.waitUntilConnected()
-		this.replicator.registerUser(this.userId!)
 	}
 
 	// Handle a request to the Durable Object.
@@ -160,11 +159,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private debug(...args: any[]) {
 		// uncomment for dev time debugging
-		// console.log(...args)
+		// console.log('[TLUserDurableObject]: ', ...args)
 		if (this.sentry) {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
-				message: args.join(' '),
+				message: `[TLUserDurableObject]: ${args.join(' ')}`,
 			})
 		}
 	}
@@ -241,7 +240,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 				throw new ZMutationError(
 					ZErrorCode.forbidden,
 					'Cannot update file that is not our own and not shared in edit mode' +
-						` user id ${this.userId} ownerId ${nextFile.ownerId}`
+						` user id ${this.userId} ownerId ${prevFile.ownerId}`
 				)
 			}
 			case 'file_state': {
