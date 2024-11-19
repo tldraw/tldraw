@@ -55,6 +55,12 @@ const config = {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
 			},
 		},
+		e2e: {
+			cache: 'none',
+		},
+		'e2e-x10': {
+			cache: 'none',
+		},
 		'test-ci': {
 			baseCommand: 'yarn run -T jest',
 			runsAfter: { 'refresh-assets': {} },

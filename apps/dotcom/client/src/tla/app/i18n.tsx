@@ -3,14 +3,12 @@ import {
 	IntlConfig,
 	IntlShape,
 	MessageDescriptor,
-	PrimitiveType,
 	createIntlCache,
 	createIntl as originalCreateIntl,
 	defineMessages as originalDefineMessages,
-	useIntl as originalUseIntl,
+	useIntl,
 } from 'react-intl'
 
-import { FormatXMLElementFn, Options } from 'intl-messageformat'
 import MD5 from 'md5.js'
 import { ComponentPropsWithoutRef } from 'react'
 
@@ -31,31 +29,6 @@ function generateId({ id, description, defaultMessage }: MessageDescriptor) {
 		.update(description ? `${defaultMessage}#${description}` : defaultMessage)
 		.digest('hex')
 		.slice(0, 10)
-}
-
-let originalFormatMessage: IntlShape['formatMessage'] | null = null
-export function useIntl() {
-	const intl = originalUseIntl()
-
-	if (!originalFormatMessage) {
-		originalFormatMessage = intl.formatMessage
-	}
-
-	intl.formatMessage = (
-		descriptor: MessageDescriptor,
-		values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>,
-		opts?: Options
-	) => {
-		let formattedMessage = originalFormatMessage!(descriptor, values, opts)
-		if (intl.locale === 'xx-AE') {
-			formattedMessage = makeAccented(formattedMessage)
-		} else if (intl.locale === 'xx-LS') {
-			formattedMessage = makeLong(formattedMessage)
-		}
-		return formattedMessage
-	}
-
-	return intl
 }
 
 export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
