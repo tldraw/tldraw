@@ -80,7 +80,7 @@ function _ArrowDebugDisplay({ info }: { info: ArrowDebugInfo }) {
 
 	const grid = getArrowNavigationGrid(boxA, boxB, M, EXPAND_LEG_LENGTH)
 
-	const showGrid = true
+	const showGrid = false
 
 	let path: Vec[] | undefined
 

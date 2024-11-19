@@ -56,45 +56,45 @@ export function getArrowPath(
 		['left', g.B.l, g.B.e.l],
 	]
 
-	let closestPair = [] as [ArrowDirection, Vec, Vec][]
+	let edges: [ArrowDirection, ArrowDirection] = ['up', 'up']
 
 	// gapDir is h or v if is there are no overlaps, ie both left/above, right/above, right/below, or left/below
 
 	if (g.gapDir === 'h') {
 		// hs prefer S arrows
-		closestPair = [
-			g.hPos === 'a-left-of-b' ? edgesA[1] : edgesA[3],
-			g.hPos === 'a-left-of-b' ? edgesB[3] : edgesB[1],
+		edges = [
+			g.hPos === 'a-left-of-b' ? 'right' : 'left',
+			g.hPos === 'a-left-of-b' ? 'left' : 'right',
 		]
 	} else if (g.gapDir === 'v') {
-		closestPair = [edgesA[1], edgesB[1]] // temp
+		edges = ['right', 'right'] // temp
 
 		if (g.vPos === 'a-above-b') {
 			if (g.hPos === 'a-right-of-b') {
-				closestPair = [edgesA[3], edgesB[0]]
+				edges = ['left', 'up']
 			} else if (g.hPos === 'a-left-of-b') {
-				closestPair = [edgesA[1], edgesB[0]]
+				edges = ['right', 'up']
 			} else {
 				if (g.A.e.l.x > g.B.c.x) {
-					closestPair = [edgesA[3], edgesB[0]]
+					edges = ['left', 'up']
 				} else if (g.A.e.r.x < g.B.c.x) {
-					closestPair = [edgesA[1], edgesB[0]]
+					edges = ['right', 'up']
 				} else {
-					closestPair = [edgesA[2], edgesB[0]]
+					edges = ['down', 'up']
 				}
 			}
 		} else if (g.vPos === 'a-below-b') {
 			if (g.hPos === 'a-right-of-b') {
-				closestPair = [edgesA[3], edgesB[2]]
+				edges = ['left', 'down']
 			} else if (g.hPos === 'a-left-of-b') {
-				closestPair = [edgesA[1], edgesB[2]]
+				edges = ['right', 'down']
 			} else {
 				if (g.A.e.l.x > g.B.c.x) {
-					closestPair = [edgesA[3], edgesB[2]]
+					edges = ['left', 'down']
 				} else if (g.A.e.r.x < g.B.c.x) {
-					closestPair = [edgesA[1], edgesB[2]]
+					edges = ['right', 'down']
 				} else {
-					closestPair = [edgesA[0], edgesB[2]]
+					edges = ['up', 'down']
 				}
 			}
 		}
@@ -102,29 +102,29 @@ export function getArrowPath(
 		if (g.hPos === 'a-left-of-b') {
 			if (g.A.c.y < g.B.c.y) {
 				if (g.A.c.y < g.B.e.t.y) {
-					closestPair = [edgesA[1], edgesB[0]]
+					edges = ['right', 'up']
 				} else {
-					closestPair = [edgesA[0], edgesB[0]]
+					edges = ['up', 'up']
 				}
 			} else {
 				if (g.A.c.y > g.B.e.b.y) {
-					closestPair = [edgesA[1], edgesB[2]]
+					edges = ['right', 'down']
 				} else {
-					closestPair = [edgesA[2], edgesB[2]]
+					edges = ['down', 'down']
 				}
 			}
 		} else if (g.hPos === 'a-right-of-b') {
 			if (g.A.c.y < g.B.c.y) {
 				if (g.A.c.y < g.B.e.t.y) {
-					closestPair = [edgesA[3], edgesB[0]]
+					edges = ['left', 'up']
 				} else {
-					closestPair = [edgesA[0], edgesB[0]]
+					edges = ['up', 'up']
 				}
 			} else {
 				if (g.A.c.y > g.B.e.b.y) {
-					closestPair = [edgesA[3], edgesB[2]]
+					edges = ['left', 'down']
 				} else {
-					closestPair = [edgesA[2], edgesB[2]]
+					edges = ['down', 'down']
 				}
 			}
 		} else if (g.vPos === 'a-above-b') {
@@ -132,46 +132,46 @@ export function getArrowPath(
 			if (g.A.c.x < g.B.c.x) {
 				if (g.A.e.r.x < g.B.c.x) {
 					// l arrow, right to top
-					closestPair = [edgesA[1], edgesB[0]]
+					edges = ['right', 'up']
 				} else {
 					// c arrow, right to right
-					closestPair = [edgesA[1], edgesB[1]]
+					edges = ['right', 'right']
 				}
 			} else {
 				if (g.A.e.l.x > g.B.c.x) {
 					// l arrow, left to top
-					closestPair = [edgesA[3], edgesB[0]]
+					edges = ['left', 'up']
 				} else {
 					// c arrow, left to left
-					closestPair = [edgesA[3], edgesB[3]]
+					edges = ['left', 'left']
 				}
 			}
 		} else if (g.vPos === 'a-below-b') {
 			if (g.A.c.x < g.B.c.x) {
 				if (g.A.e.r.x < g.B.c.x) {
-					closestPair = [edgesA[1], edgesB[2]]
+					edges = ['right', 'down']
 				} else {
-					closestPair = [edgesA[1], edgesB[1]]
+					edges = ['right', 'right']
 				}
 			} else {
 				if (g.A.e.l.x > g.B.c.x) {
-					closestPair = [edgesA[3], edgesB[2]]
+					edges = ['left', 'down']
 				} else {
-					closestPair = [edgesA[3], edgesB[3]]
+					edges = ['left', 'left']
 				}
 			}
 		} else {
 			if (g.A.t.y < g.B.t.y) {
 				if (g.A.e.r.x < g.B.e.r.x) {
-					closestPair = [edgesA[0], edgesB[1]]
+					edges = ['up', 'right']
 				} else {
-					closestPair = [edgesA[0], edgesB[3]]
+					edges = ['up', 'left']
 				}
 			} else {
 				if (g.A.e.r.x < g.B.e.r.x) {
-					closestPair = [edgesA[2], edgesB[1]]
+					edges = ['down', 'right']
 				} else {
-					closestPair = [edgesA[2], edgesB[3]]
+					edges = ['down', 'left']
 				}
 			}
 		}
@@ -220,10 +220,15 @@ export function getArrowPath(
 	// 		const dist = Vec.Dist2(edgesA[i][1], edgesB[j][1])
 	// 		if (dist < closestDist) {
 	// 			closestDist = dist
-	// 			closestPair = [edgesA[i], edgesB[j]]
+	// 			edges = [edgesA[i], edgesB[j]]
 	// 		}
 	// 	}
 	// }
+
+	const closestPair = [
+		edgesA.find((e) => e[0] === edges[0])!,
+		edgesB.find((e) => e[0] === edges[1])!,
+	]
 
 	if (start) {
 		closestPair[0] = edgesA.find((e) => e[0] === start)!
@@ -255,7 +260,7 @@ export function getArrowPath(
 		}
 	}
 
-	const shortestPath = finalPaths[0].path.map((p) => g.gridPoints[p.y][p.x].toFixed())
+	const shortestPath = finalPaths[0].path.map((p) => g.gridPoints[p.y][p.x])
 
 	const pointBox = Box.FromPoints(shortestPath)
 	if (pointBox.w < MINIMUM_LEG_LENGTH) {
