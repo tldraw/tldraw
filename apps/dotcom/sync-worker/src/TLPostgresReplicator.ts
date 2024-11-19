@@ -60,7 +60,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
-			console.error(exception)
+			console.error(`[TLPostgresReplicator]: `, exception)
 		}
 	}
 
@@ -177,11 +177,17 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		this.debug('handleEvent', event)
 		this.queue.push(() => this._handleEvent(row, event))
 	}
 
 	private async _handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
+		if (event.command === 'delete' && event.relation.table === 'file') {
+			const userId = row?.ownerId
+			this.debug("deleting user's file", row, 'isActive', this.userIsActive(userId))
+		}
+		// this.debug('handleEvent', event)
 		try {
 			if (event.relation.table === 'user_boot_id' && event.command !== 'delete') {
 				assert(row, 'Row is required for insert/update event')
@@ -221,10 +227,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				const file = await this.getFileRecord(row.fileId)
 				if (
 					file &&
-					file?.ownerId !== row.userId &&
-					// mitigate a potential race condition where the file is unshared between the time this
-					// event was dispatched and the time it was processed
-					file.shared
+					(file.ownerId === row.userId ||
+						(file?.ownerId !== row.userId &&
+							// mitigate a potential race condition where the file is unshared between the time this
+							// event was dispatched and the time it was processed
+							file.shared))
 				) {
 					this.sql.exec(
 						`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
@@ -310,13 +317,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				assert(row.id, 'row id is required')
 				return this.userIsActive(row.id) ? [row.id as string] : []
 			case 'file': {
-				const result = this.userIsActive(row.ownerId) ? [row.ownerId as string] : []
-				const guestUserIds = this.sql.exec(
-					`SELECT "userId" FROM user_file_subscriptions WHERE "fileId" = ?`,
-					row.id
-				)
-				result.push(...guestUserIds.toArray().map((x) => x.userId as string))
-				return result
+				return this.sql
+					.exec(`SELECT "userId" FROM user_file_subscriptions WHERE "fileId" = ?`, row.id)
+					.toArray()
+					.map((x) => x.userId as string)
 			}
 			case 'file_state':
 				assert(row.userId, 'user id is required')
@@ -358,6 +362,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		const user = getUserDurableObject(this.env, userId)
 		const res = await user.handleReplicationEvent(event)
 		if (res === 'unregister') {
+			this.debug('unregistering user', userId, event)
 			this.unregisterUser(userId)
 		}
 	}
@@ -368,10 +373,11 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async registerUser(userId: string) {
+		this.debug('registering user', userId)
 		await this.waitUntilConnected()
 		assert(this.state.type === 'connected', 'state should be connected in registerUser')
 		const guestFiles = await this.state
-			.db`SELECT file.id as id FROM file_state JOIN file ON file_state."userId" = ${userId} AND file."ownerId" != ${userId} AND file_state."fileId" = file.id`
+			.db`SELECT "fileId" as id FROM file_state where "userId" = ${userId}`
 
 		// clear user and subscriptions
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)

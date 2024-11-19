@@ -7,7 +7,7 @@ for i in {1..30}; do
 		echo "Postgres is healthy"
 		break
 	fi
-	sleep 10
+	sleep 1
 done
 
 if [ "$STATUS" != "\"healthy\"" ]; then

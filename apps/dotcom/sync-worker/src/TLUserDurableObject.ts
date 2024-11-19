@@ -33,7 +33,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
-			console.error(exception)
+			console.error(`[TLUserDurableObject]: `, exception)
 		}
 	}
 

@@ -270,12 +270,6 @@ export class TldrawApp {
 				...file,
 				shared: !file.shared,
 			})
-
-			// if it was shared, remove all shared links
-			// TODO: move this to the backend after read permissions are implemented
-			for (const fileState of this.getUserFileStates().filter((f) => f.fileId === fileId)) {
-				tx.file_state.delete(fileState)
-			}
 		})
 	}
 
@@ -512,6 +506,8 @@ export class TldrawApp {
 
 		const { id: _id, name: _name, color: _color, ...restOfPreferences } = getUserPreferences()
 		const app = new TldrawApp(opts.userId, opts.getToken)
+		// @ts-expect-error
+		window.app = app
 		await app.preload({
 			id: opts.userId,
 			name: opts.fullName,

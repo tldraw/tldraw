@@ -98,7 +98,7 @@ export class UserDataSyncer {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
-			console.error(exception)
+			console.error(`[UserDataSyncer]: `, exception)
 		}
 	}
 
@@ -116,11 +116,11 @@ export class UserDataSyncer {
 
 	private debug(...args: any[]) {
 		// uncomment for dev time debugging
-		// console.log(...args)
+		// console.log('[UserDataSyncer]:',...args)
 		if (this.sentry) {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
-				message: args.join(' '),
+				message: `[UserDataSyncer]: ${args.join(' ')}`,
 			})
 		}
 	}
@@ -185,7 +185,7 @@ export class UserDataSyncer {
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
 		const sequenceId = await this.replicator.registerUser(this.userId)
-		this.debug('registered user', sequenceId)
+		this.debug('registered user, sequenceId:', sequenceId)
 		this.state = {
 			type: 'connecting',
 			// preserve the promise so any awaiters do eventually get resolved
