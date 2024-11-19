@@ -268,12 +268,15 @@ export class UserDataSyncer {
 	}
 
 	handleReplicationEvent(event: ZReplicationEvent) {
-		assert(this.state.type !== 'init', 'state should not be init')
-		if (event.type === 'force_reboot' || this.state.sequenceId !== event.sequenceId) {
+		if (
+			event.type === 'force_reboot' ||
+			('sequenceId' in this.state && this.state.sequenceId !== event.sequenceId)
+		) {
 			// the replicator has restarted, so we need to reboot
 			this.reboot()
 			return
 		}
+		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
 
 		if (this.state.type === 'connected') {
 			assert(event.type === 'row_update', `event type should be row_update got ${event.type}`)

@@ -98,12 +98,23 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private async reboot(delay = true) {
 		// TODO: set up analytics and alerts for this
-		this.debug('rebooting')
+		this.debug('reboot push')
 		await this.queue.push(async () => {
 			if (delay) {
 				await sleep(1000)
 			}
-			await this.boot()
+			this.debug('rebooting')
+			const res = await Promise.race([
+				this.boot().then(() => 'ok'),
+				sleep(3000).then(() => 'timeout'),
+			]).catch((e) => {
+				this.captureException(e)
+				return 'error'
+			})
+			this.debug('rebooted', res)
+			if (res !== 'ok') {
+				this.reboot()
+			}
 		})
 	}
 
@@ -141,6 +152,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				}
 			},
 			() => {
+				// this is invoked if the subscription is closed unexpectedly
 				this.captureException(new Error('Subscription error'))
 				this.reboot()
 			}
