@@ -1,3 +1,4 @@
+import { USERS } from '../consts'
 import { expect, test } from '../fixtures/tla-test'
 
 // Don't use stored credentials
@@ -5,21 +6,23 @@ test.use({ storageState: { cookies: [], origins: [] } })
 
 test('can login', async ({ homePage, editor }) => {
 	expect(homePage.signInButton).toBeVisible()
-	await homePage.login()
+	const user = USERS[test.info().parallelIndex]
+	await homePage.loginAs(user)
 	await expect(homePage.signInButton).not.toBeVisible()
 	await expect(editor.sidebarToggle).toBeVisible()
 })
 
-test.fixme('can visit a shared file', async () => {
-	// ...
-})
-
-test.fixme('can visit a pubished file', async () => {
-	// ...
-})
-
-test.fixme('can not visit an unshared file', async () => {
-	// ...
+// TODO: renable when this is fixed
+// https://linear.app/tldraw/issue/INT-490/error-when-logging-out
+test.skip('can sign out', async ({ homePage, editor, sidebar }) => {
+	await test.step('Login', async () => {
+		const user = USERS[test.info().parallelIndex]
+		await homePage.loginAs(user)
+	})
+	await homePage.expectSignInButtonNotVisible()
+	await editor.ensureSidebarOpen()
+	await sidebar.signOut()
+	await homePage.expectSignInButtonVisible()
 })
 
 test.fixme('can scroll down to see landing page content', async () => {
@@ -27,13 +30,5 @@ test.fixme('can scroll down to see landing page content', async () => {
 })
 
 test.fixme('can export images', async () => {
-	// ...
-})
-
-test.fixme('when visiting a shared file, can copy the shared file link', async () => {
-	// ...
-})
-
-test.fixme('when visiting a published file, can copy the published file link', async () => {
 	// ...
 })

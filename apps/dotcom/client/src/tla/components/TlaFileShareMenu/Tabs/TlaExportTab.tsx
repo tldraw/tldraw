@@ -149,14 +149,15 @@ function ExportFormatSelect({
 			<TlaMenuControlLabel>
 				<F defaultMessage="Export as" />
 			</TlaMenuControlLabel>
-			<TlaSelect value={value} label={value === 'svg' ? 'SVG' : 'PNG'} onChange={handleChange}>
-				<option value="svg">
-					<F defaultMessage="SVG" />
-				</option>
-				<option value="png">
-					<F defaultMessage="PNG" />
-				</option>
-			</TlaSelect>
+			<TlaSelect
+				value={value}
+				label={value === 'svg' ? 'SVG' : 'PNG'}
+				onChange={handleChange}
+				options={[
+					{ value: 'svg', label: <F defaultMessage="SVG" /> },
+					{ value: 'png', label: <F defaultMessage="PNG" /> },
+				]}
+			/>
 		</TlaMenuControl>
 	)
 }
@@ -190,17 +191,16 @@ function ExportThemeSelect({
 			<TlaMenuControlLabel>
 				<F defaultMessage="Theme" />
 			</TlaMenuControlLabel>
-			<TlaSelect value={value} label={label} onChange={handleChange}>
-				<option value="auto">
-					<F defaultMessage="Auto" />
-				</option>
-				<option value="light">
-					<F defaultMessage="Light" />
-				</option>
-				<option value="dark">
-					<F defaultMessage="Dark" />
-				</option>
-			</TlaSelect>
+			<TlaSelect
+				value={value}
+				label={label}
+				onChange={handleChange}
+				options={[
+					{ value: 'auto', label: <F defaultMessage="Auto" /> },
+					{ value: 'light', label: <F defaultMessage="Light" /> },
+					{ value: 'dark', label: <F defaultMessage="Dark" /> },
+				]}
+			/>
 		</TlaMenuControl>
 	)
 }

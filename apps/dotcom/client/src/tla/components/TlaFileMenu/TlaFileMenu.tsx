@@ -30,6 +30,7 @@ const messages = defineMessages({
 	file: { defaultMessage: 'File' },
 	forget: { defaultMessage: 'Forget' },
 	rename: { defaultMessage: 'Rename' },
+	copy: { defaultMessage: 'Copy' },
 })
 
 export function TlaFileMenu({
@@ -65,10 +66,10 @@ export function TlaFileMenu({
 
 	const handleDuplicateClick = useCallback(async () => {
 		const newFileId = uniqueId()
-		const name = app.getFileName(fileId)
+		const name = `${app.getFileName(fileId)} ${intl.formatMessage(messages.copy)}`
 		app.createFile({ id: newFileId, name })
 		navigate(getFilePath(newFileId), { state: { mode: 'duplicate', duplicateId: fileId } })
-	}, [fileId, navigate, app])
+	}, [app, fileId, intl, navigate])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
