@@ -215,6 +215,7 @@ function TlaFileNameEditor({
 				<button
 					className={styles.nameWidthSetter}
 					onClick={onChange ? handleEditingStart : undefined}
+					data-testid="tla-file-name"
 				>
 					{fileName.replace(/ /g, '\u00a0')}
 				</button>

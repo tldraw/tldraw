@@ -66,6 +66,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				className={styles.sidebar}
 				data-visible={isSidebarOpen}
 				data-visiblemobile={isSidebarOpenMobile}
+				data-test-id="tla-sidebar"
 				onDropCapture={onDrop}
 				onDragOver={onDragOver}
 				onDragEnter={onDragEnter}
@@ -79,7 +80,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				<div className={styles.content}>
 					<TlaSidebarRecentFiles />
 				</div>
-				<div className={styles.bottom}>
+				<div className={styles.bottom} data-testid="tla-sidebar-bottom">
 					<TlaSidebarUserLink />
 				</div>
 			</div>
@@ -226,14 +227,14 @@ function TlaSidebarFileSection({ title, items }: { title: ReactElement; items: R
 		<div className={styles.section}>
 			<TlaSpacer height="8" />
 			<div className={classNames(styles.sectionTitle, 'tla-text_ui__medium')}>{title}</div>
-			{items.map((item) => (
-				<TlaSidebarFileLink key={'recent_' + item.fileId} item={item} />
+			{items.map((item, index) => (
+				<TlaSidebarFileLink key={'recent_' + item.fileId} item={item} index={index} />
 			))}
 		</div>
 	)
 }
 
-function TlaSidebarFileLink({ item }: { item: RecentFile }) {
+function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }) {
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
 	const { fileSlug } = useParams<{ fileSlug: string }>()
@@ -256,10 +257,14 @@ function TlaSidebarFileLink({ item }: { item: RecentFile }) {
 			className={classNames(styles.link, styles.hoverable)}
 			data-active={isActive}
 			data-element="file-link"
+			data-testid={`tla-file-link-${index}`}
 			onDoubleClick={handleRenameAction}
 		>
 			<div className={styles.linkContent}>
-				<div className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}>
+				<div
+					className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}
+					data-testid={`tla-file-name-${index}`}
+				>
 					{app.getFileName(fileId)} {isOwnFile ? null : <F defaultMessage="(Guest)" />}
 				</div>
 			</div>
