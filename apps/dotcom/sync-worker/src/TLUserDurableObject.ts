@@ -202,8 +202,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
-	mutations: { mutationNumber: number; mutationId: string }[] = []
-
 	private async assertValidMutation(update: ZRowUpdate) {
 		// s is the entire set of data that the user has access to
 		// and is up to date with all committed mutations so far.
@@ -343,12 +341,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			const result = await this
 				.db`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`
 			const mutationNumber = Number(result[0].mutationNumber)
-			const currentMutationNumber = this.mutations.at(-1)?.mutationNumber ?? 0
+			const currentMutationNumber = this.cache.mutations.at(-1)?.mutationNumber ?? 0
 			assert(
 				mutationNumber > currentMutationNumber,
 				`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
 			)
-			this.mutations.push({ mutationNumber, mutationId: msg.mutationId })
+			this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
 		} catch (e) {
 			const code = e instanceof ZMutationError ? e.errorCode : ZErrorCode.unknown_error
 			this.captureException(e, {
@@ -366,17 +364,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			return 'unregister'
 		}
 
-		if (event.type === 'mutation_commit') {
-			// todo: move this into user syncer somehow
-			const mutationIds = this.mutations
-				.filter((m) => m.mutationNumber <= event.mutationNumber)
-				.map((m) => m.mutationId)
-			this.mutations = this.mutations.filter((m) => m.mutationNumber > event.mutationNumber)
-			this.broadcast({ type: 'commit', mutationIds: mutationIds })
-			this.cache.store.commitMutations(mutationIds)
-		} else {
-			this.cache.handleReplicationEvent(event)
-		}
+		this.cache.handleReplicationEvent(event)
 
 		return 'ok'
 	}

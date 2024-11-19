@@ -73,6 +73,7 @@ type BootState =
 			bufferedEvents: Array<ZReplicationEvent>
 			didGetBootId: boolean
 			data: null | ZStoreData
+			mutationNumber: number
 	  }
 	| {
 			type: 'connected'
@@ -89,6 +90,7 @@ export class UserDataSyncer {
 	db: postgres.Sql
 
 	store = new OptimisticAppStore()
+	mutations: { mutationNumber: number; mutationId: string }[] = []
 
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
@@ -141,6 +143,15 @@ export class UserDataSyncer {
 		})
 	}
 
+	private commitMutations(upToAndIncludingNumber: number) {
+		const mutationIds = this.mutations
+			.filter((m) => m.mutationNumber <= upToAndIncludingNumber)
+			.map((m) => m.mutationId)
+		this.mutations = this.mutations.filter((m) => m.mutationNumber > upToAndIncludingNumber)
+		this.store.commitMutations(mutationIds)
+		this.broadcast({ type: 'commit', mutationIds: mutationIds })
+	}
+
 	private updateStateAfterBootStep() {
 		assert(this.state.type === 'connecting', 'state should be connecting')
 		if (this.state.didGetBootId && this.state.data) {
@@ -148,12 +159,14 @@ export class UserDataSyncer {
 			const promise = this.state.promise
 			const bufferedEvents = this.state.bufferedEvents
 			const data = this.state.data
+			const mutationNumber = this.state.mutationNumber
 			this.state = {
 				type: 'connected',
 				bootId: this.state.bootId,
 				sequenceId: this.state.sequenceId,
 			}
 			this.store.initialize(data)
+
 			if (bufferedEvents.length > 0) {
 				bufferedEvents.forEach((event) => this.handleReplicationEvent(event))
 			}
@@ -162,6 +175,7 @@ export class UserDataSyncer {
 				type: 'initial_data',
 				initialData: data,
 			})
+			this.commitMutations(mutationNumber)
 		}
 		return this.state
 	}
@@ -182,6 +196,7 @@ export class UserDataSyncer {
 			bufferedEvents: [],
 			didGetBootId: false,
 			data: null,
+			mutationNumber: 0,
 		}
 		/**
 		 * BOOTUP SEQUENCE
@@ -212,6 +227,7 @@ export class UserDataSyncer {
 				.unsafe(sql, [], { prepare: false })
 				.simple()
 				.forEach((row: any) => {
+					assert(this.state.type === 'connecting', 'state should be connecting in boot')
 					switch (row.table) {
 						case 'user':
 							initialData.user = parseResultRow(userKeys, row)
@@ -221,6 +237,10 @@ export class UserDataSyncer {
 							break
 						case 'file_state':
 							initialData.fileStates.push(parseResultRow(fileStateKeys, row))
+							break
+						case 'user_mutation_number':
+							assert(typeof row.mutationNumber === 'number', 'mutationNumber should be a number')
+							this.state.mutationNumber = row.mutationNumber
 							break
 					}
 				})
@@ -275,6 +295,11 @@ export class UserDataSyncer {
 			return
 		}
 		assert(this.state.type !== 'init', 'state should not be init: ' + event.type)
+
+		if (event.type === 'mutation_commit') {
+			this.commitMutations(event.mutationNumber)
+			return
+		}
 
 		if (this.state.type === 'connected') {
 			assert(event.type === 'row_update', `event type should be row_update got ${event.type}`)

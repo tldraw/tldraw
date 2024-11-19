@@ -43,11 +43,13 @@ const fileStateColumns = fileStateKeys.map((c) => `${c.reference} as "${c.alias}
 export function getFetchUserDataSql(userId: string, bootId: string) {
 	return `
 INSERT INTO public.user_boot_id ("userId", "bootId") VALUES ('${userId}', '${bootId}') ON CONFLICT ("userId") DO UPDATE SET "bootId" = '${bootId}';
-SELECT 'user' AS "table", ${userColumns.concat(fileNulls).concat(fileStateNulls)} FROM public.user WHERE "id" = '${userId}'
+SELECT 'user' AS "table", null::bigint as "mutationNumber", ${userColumns.concat(fileNulls).concat(fileStateNulls)} FROM public.user WHERE "id" = '${userId}'
 UNION
-SELECT 'file' AS "table", ${userNulls.concat(fileColumns).concat(fileStateNulls)} FROM public.file WHERE "ownerId" = '${userId}' OR "shared" = true AND EXISTS(SELECT 1 FROM public.file_state WHERE "userId" = '${userId}' AND public.file_state."fileId" = public.file.id) 
+SELECT 'file' AS "table", null::bigint as "mutationNumber", ${userNulls.concat(fileColumns).concat(fileStateNulls)} FROM public.file WHERE "ownerId" = '${userId}' OR "shared" = true AND EXISTS(SELECT 1 FROM public.file_state WHERE "userId" = '${userId}' AND public.file_state."fileId" = public.file.id) 
 UNION
-SELECT 'file_state' AS "table", ${userNulls.concat(fileNulls).concat(fileStateColumns)} FROM public.file_state WHERE "userId" = '${userId}';
+SELECT 'file_state' AS "table", null::bigint as "mutationNumber", ${userNulls.concat(fileNulls).concat(fileStateColumns)} FROM public.file_state WHERE "userId" = '${userId}'
+UNION
+SELECT 'user_mutation_number' as "table", "mutationNumber"::bigint, ${userNulls.concat(fileNulls).concat(fileStateNulls)} FROM public.user_mutation_number WHERE "userId" = '${userId}';
 `
 }
 
