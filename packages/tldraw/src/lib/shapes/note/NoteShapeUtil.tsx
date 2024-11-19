@@ -209,7 +209,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			this.editor,
 		])
 
-		const darkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
+		const isDarkMode = useValue('dark mode', () => this.editor.user.getIsDarkMode(), [this.editor])
 
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 
@@ -222,8 +222,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						width: nw,
 						height: nh,
 						backgroundColor: theme[color].note.fill,
-						borderBottom:
-							hideShadows && !darkMode ? `${2 * scale}px solid rgb(207, 209, 210)` : `none`,
+						borderBottom: hideShadows
+							? isDarkMode
+								? `${2 * scale}px solid rgb(20, 20, 20)`
+								: `${2 * scale}px solid rgb(144, 144, 144)`
+							: 'none',
 						boxShadow: hideShadows ? 'none' : getNoteShadow(shape.id, rotation, scale),
 					}}
 				>
