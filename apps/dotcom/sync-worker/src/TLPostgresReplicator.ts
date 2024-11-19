@@ -305,35 +305,30 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private getActiveImpactedUserIds(row: postgres.Row, event: postgres.ReplicationEvent): string[] {
-		let result: string[] = []
-
 		switch (event.relation.table) {
 			case 'user':
 				assert(row.id, 'row id is required')
-				result = [row.id as string]
-				break
+				return this.userIsActive(row.id) ? [row.id as string] : []
 			case 'file': {
-				result = [row.ownerId as string]
+				const result = this.userIsActive(row.ownerId) ? [row.ownerId as string] : []
 				const guestUserIds = this.sql.exec(
 					`SELECT "userId" FROM user_file_subscriptions WHERE "fileId" = ?`,
 					row.id
 				)
 				result.push(...guestUserIds.toArray().map((x) => x.userId as string))
-				break
+				return result
 			}
 			case 'file_state':
 				assert(row.userId, 'user id is required')
 				assert(row.fileId, 'file id is required')
-				result = [row.userId as string]
+				return this.userIsActive(row.userId) ? [row.userId as string] : []
 				break
+			default:
+				this.captureException(
+					new Error(`[getActiveImpactedUserIds] Unhandled table: ${event.relation.table}`)
+				)
 		}
-		if (result.length === 0) return []
-
-		const ids = result.map((id) => `'${id}'`).join(', ')
-		return this.sql
-			.exec(`SELECT * FROM active_user WHERE id IN (${ids})`)
-			.toArray()
-			.map((x) => x.id as string)
+		return []
 	}
 
 	async ping() {
