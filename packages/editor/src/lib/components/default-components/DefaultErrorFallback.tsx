@@ -165,11 +165,14 @@ My browser: ${navigator.userAgent}`
 					</>
 				) : (
 					<>
-						<h2>Something&apos;s gone wrong.</h2>
+						<h2>Something went wrong</h2>
+						<p>Please refresh the page to continue.</p>
 						<p>
-							Sorry, we encountered an error. Please refresh the page to continue. If you keep
-							seeing this error, you can create a <a href={url.toString()}>GitHub issue</a> or ask
-							for help on <a href="https://discord.gg/Cq6cPsTfNy">Discord</a>.
+							If you keep seeing this screen, you can create a{' '}
+							<a href={url.toString()}>GitHub issue</a> or ask for help on{' '}
+							<a href="https://discord.gg/Cq6cPsTfNy">Discord</a>. If you are still stuck, you can
+							reset the tldraw data on your machine. This may erase the project you were working on,
+							so try to get help first.
 						</p>
 						{shouldShowError && (
 							<>
