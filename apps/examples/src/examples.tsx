@@ -27,10 +27,6 @@ type Category =
 const getExamplesForCategory = (category: Category) =>
 	(Object.values(import.meta.glob('./examples/*/README.md', { eager: true })) as Example[])
 		.filter((e) => e.category === category)
-		.map((example) => ({
-			...example,
-			priority: example.priority ?? 5,
-		}))
 		.sort((a, b) => {
 			if (a.priority === b.priority) return a.title.localeCompare(b.title)
 			return a.priority - b.priority
