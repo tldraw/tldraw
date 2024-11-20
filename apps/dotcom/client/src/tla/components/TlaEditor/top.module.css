@@ -28,6 +28,15 @@
 	justify-content: flex-start;
 }
 
+@media (min-width: 768px) {
+	.topPanelLeft {
+		width: auto;
+	}
+	.topPanelLeftButtons {
+		width: auto;
+	}
+}
+
 .topPanelLeft > button:nth-last-of-type(1) {
 	position: relative;
 	flex-shrink: 0;
