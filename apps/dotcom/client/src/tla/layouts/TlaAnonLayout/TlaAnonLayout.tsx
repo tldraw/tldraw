@@ -6,6 +6,7 @@ import { defineMessages, F, useIntl } from '../../app/i18n'
 import { TlaAccountMenu } from '../../components/TlaAccountMenu/TlaAccountMenu'
 import { TlaIcon } from '../../components/TlaIcon/TlaIcon'
 import { TlaSignInButton } from '../../components/TlaSignInButton/TlaSignInButton'
+import { TlaSignUpButton } from '../../components/TlaSignUpButton/TlaSignUpButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import styles from './anon.module.css'
@@ -47,12 +48,12 @@ export function TlaAnonLayout({ children }: { children: ReactNode }) {
 						>
 							<F defaultMessage="Sign in" />
 						</TlaSignInButton>
-						<TlaSignInButton
+						<TlaSignUpButton
 							onClick={() => trackEvent('sign-up-clicked', { source: 'anon-landing-page' })}
 							data-testid="tla-signup-button"
 						>
 							<F defaultMessage="Sign up" />
-						</TlaSignInButton>
+						</TlaSignUpButton>
 					</SignedOut>
 				</div>
 			</div>
