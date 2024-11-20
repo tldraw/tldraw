@@ -12,14 +12,6 @@ export function getRelevantDates() {
 	}
 }
 
-/**
- * Returns the date format options based on the given date.
- * If the date is within the last week, it returns a format with weekday, hour, and minute..
- * Otherwise, it returns a format with month, weekday, day, and hour.
- *
- * @param {Date} date - The date to format.
- * @returns {FormatDateOptions} The date format options.
- */
 export function getDateFormat(date: Date): FormatDateOptions {
 	const { yesterday, thisMonth, thisYear } = getRelevantDates()
 	const d = date.getTime()
