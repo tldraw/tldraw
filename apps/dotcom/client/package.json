@@ -11,7 +11,7 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "yarn run -T tsx scripts/dev-app.ts",
+		"dev": "./scripts/wait-for-docker.sh && yarn run -T tsx scripts/dev-app.ts",
 		"build": "yarn run -T tsx scripts/build.ts",
 		"build-i18n": "yarn i18n:extract && yarn i18n:compile",
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
@@ -20,8 +20,8 @@
 		"test": "yarn run -T jest",
 		"i18n:extract": "formatjs extract 'src/tla/**/*.ts*' 'src/components/**/*.ts*' --out-file public/tla/locales/en.json --additional-component-names F --id-interpolation-pattern '[md5:contenthash:hex:10]' --format lokalise",
 		"i18n:compile": "formatjs compile-folder public/tla/locales public/tla/locales-compiled --format lokalise",
-		"e2e": "./scripts/wait-for-docker.sh && yarn playwright test; cd ../zero-cache; yarn docker-down > /dev/null 2>&1",
-		"e2e-x10": "./scripts/wait-for-docker.sh && yarn playwright test --repeat-each=10; cd ../zero-cache; yarn docker-down > /dev/null 2>&1",
+		"e2e": "yarn playwright test",
+		"e2e-x10": "yarn playwright test --repeat-each=10",
 		"e2e-debug": "yarn playwright test --debug",
 		"e2e-ui": "yarn playwright test --ui"
 	},
