@@ -730,6 +730,7 @@ export const defaultTldrawOptions: {
     readonly multiClickDurationMs: 200;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
+    readonly toolLockEffectsText: true;
 };
 
 // @public (undocumented)
@@ -2825,6 +2826,8 @@ export interface TldrawOptions {
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
+    // (undocumented)
+    readonly toolLockEffectsText: boolean;
 }
 
 // @public (undocumented)

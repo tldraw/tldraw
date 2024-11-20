@@ -27,17 +27,14 @@ export function registerDefaultSideEffects(editor: Editor) {
 							// then create the shape with a flag that will let it know to
 							// go back to the text tool once the edit is complete.
 							const shape = editor.getEditingShape()
-							if (
-								shape &&
-								shape.type === 'text' &&
-								editor.isInAny('text.pointing', 'select.resizing') &&
-								editor.getInstanceState().isToolLocked
-							) {
+							if (shape) {
 								editor.setCurrentTool('select.editing_shape', {
-									isCreatingTextWhileToolLocked: true,
+									isCreatingTextWhileToolLocked:
+										editor.options.toolLockEffectsText &&
+										shape.type === 'text' &&
+										editor.isInAny('text.pointing', 'select.resizing') &&
+										editor.getInstanceState().isToolLocked,
 								})
-							} else {
-								editor.setCurrentTool('select.editing_shape')
 							}
 						}
 					} else if (prev.editingShapeId && !next.editingShapeId) {
