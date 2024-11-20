@@ -77,6 +77,9 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
+  "625fd29749": {
+    "translation": "Older"
+  },
   "6609dd239e": {
     "translation": "Something went wrong"
   },
@@ -152,9 +155,6 @@
   },
   "c2276c9127": {
     "translation": "Learn more about sharing."
-  },
-  "c35890fced": {
-    "translation": "This year"
   },
   "c655b27b1e": {
     "translation": "i18n: Long String"

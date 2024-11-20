@@ -7,6 +7,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { getRelevantDates } from '../../utils/dates'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { getFilePath } from '../../utils/urls'
 import { TlaAccountMenu } from '../TlaAccountMenu/TlaAccountMenu'
@@ -174,8 +175,9 @@ function TlaSidebarRecentFiles() {
 
 	if (!results) throw Error('Could not get files')
 
+	const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()
+
 	// split the files into today, yesterday, this week, this month, and then by month
-	const day = 1000 * 60 * 60 * 24
 	const todayFiles: RecentFile[] = []
 	const yesterdayFiles: RecentFile[] = []
 	const thisWeekFiles: RecentFile[] = []
@@ -184,22 +186,21 @@ function TlaSidebarRecentFiles() {
 	// todo: order by month
 	const olderFiles: RecentFile[] = []
 
-	const now = Date.now()
-
 	for (const item of results) {
 		const { date } = item
-		if (date > now - day * 1) {
+		if (date >= today) {
 			todayFiles.push(item)
-		} else if (date > now - day * 2) {
+		} else if (date >= yesterday) {
 			yesterdayFiles.push(item)
-		} else if (date > now - day * 7) {
+		} else if (date >= thisWeek) {
 			thisWeekFiles.push(item)
-		} else if (date > now - day * 30) {
+		} else if (date >= thisMonth) {
 			thisMonthFiles.push(item)
 		} else {
 			olderFiles.push(item)
 		}
 	}
+	const sortedOlderFiles = olderFiles.sort((a, b) => b.date - a.date)
 
 	return (
 		<>
@@ -216,7 +217,7 @@ function TlaSidebarRecentFiles() {
 				<TlaSidebarFileSection title={<F defaultMessage="This month" />} items={thisMonthFiles} />
 			) : null}
 			{olderFiles.length ? (
-				<TlaSidebarFileSection title={<F defaultMessage="This year" />} items={olderFiles} />
+				<TlaSidebarFileSection title={<F defaultMessage="Older" />} items={sortedOlderFiles} />
 			) : null}
 		</>
 	)
