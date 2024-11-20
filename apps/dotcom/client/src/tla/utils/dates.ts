@@ -18,7 +18,7 @@ export function getDateFormat(date: Date): FormatDateOptions {
 
 	if (d >= yesterday) {
 		return {
-			weekday: 'long',
+			weekday: 'short',
 			hour: 'numeric',
 			minute: 'numeric',
 			second: 'numeric',
@@ -26,14 +26,14 @@ export function getDateFormat(date: Date): FormatDateOptions {
 	} else if (d >= thisMonth) {
 		return {
 			month: 'short',
-			weekday: 'long',
+			weekday: 'short',
 			day: 'numeric',
 			hour: 'numeric',
 		}
 	} else if (d >= thisYear) {
 		return {
 			month: 'short',
-			weekday: 'long',
+			weekday: 'short',
 			day: 'numeric',
 			hour: 'numeric',
 		}
@@ -41,7 +41,7 @@ export function getDateFormat(date: Date): FormatDateOptions {
 	return {
 		year: 'numeric',
 		month: 'short',
-		weekday: 'long',
+		weekday: 'short',
 		day: 'numeric',
 	}
 }
