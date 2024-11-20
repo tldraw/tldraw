@@ -119,4 +119,10 @@ export class ShareMenu {
 		await this.ensureTabSelected('publish')
 		await this.publishChangesButton.click()
 	}
+
+	async getShareType() {
+		return (await this.page.waitForSelector('[data-testid="shared-link-type-select"]'))
+			.textContent()
+			.then((text) => text?.trim())
+	}
 }

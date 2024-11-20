@@ -9,12 +9,14 @@ export function TlaSelect<T extends string>({
 	disabled,
 	onChange,
 	options,
+	'data-testid': dataTestId,
 }: {
 	label: string
 	value: T
 	disabled?: boolean
 	onChange(value: T): void
 	options: { value: T; label: ReactNode }[]
+	'data-testid'?: string
 }) {
 	const [isOpen, setIsOpen] = useState(false)
 	const handleChange = useCallback(
@@ -52,7 +54,12 @@ export function TlaSelect<T extends string>({
 			onOpenChange={handleOpenChange}
 			onValueChange={handleChange}
 		>
-			<Select.Trigger className={styles.trigger} disabled={disabled} aria-label={label}>
+			<Select.Trigger
+				className={styles.trigger}
+				disabled={disabled}
+				aria-label={label}
+				data-testid={dataTestId}
+			>
 				<span className={styles.label}>{label}</span>
 				<Select.Icon>
 					<TlaIcon icon="chevron-down" className={styles.chevron} />
