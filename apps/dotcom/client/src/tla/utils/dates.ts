@@ -39,9 +39,9 @@ export function getDateFormat(date: Date): FormatDateOptions {
 		}
 	}
 	return {
+		year: 'numeric',
 		month: 'short',
 		weekday: 'long',
 		day: 'numeric',
-		year: 'numeric',
 	}
 }
