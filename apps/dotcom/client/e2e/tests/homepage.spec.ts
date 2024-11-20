@@ -131,7 +131,7 @@ test.describe('sidebar actions', () => {
 		await sidebar.duplicateFile(0)
 		await expect(async () => {
 			await expect(
-				page.getByTestId('tla-file-name-0').getByText(`${fileName} Copy`, { exact: true })
+				page.getByTestId('tla-file-name-0').getByText(`${fileName} 1`, { exact: true })
 			).toBeVisible()
 			await expect(
 				page.getByTestId('tla-file-name-1').getByText(fileName, { exact: true })
