@@ -53,14 +53,12 @@ export const test = base.extend<TlaFixtures, TlaWorkerFixtures>({
 			// Make sure we don't get marked as a bot
 			// https://clerk.com/docs/testing/playwright/overview
 			await setupClerkTestingToken({ page })
+			await database.reset()
 
 			await homePage.goto()
 			await homePage.isLoaded()
 
 			await testUse()
-
-			// All the code after testUse is run after each test
-			await database.reset()
 		},
 		{ auto: true },
 	],

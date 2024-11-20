@@ -52,6 +52,7 @@ export class Database {
 `.execute()
 
 			await sql`DELETE FROM public.file WHERE "ownerId" = ${id}`.execute()
+			// await fetch(`http://localhost:3000/api/app/__test__/user/${id}/reboot`)
 		} catch (e) {
 			console.error('Error', e)
 		}

@@ -25,11 +25,11 @@ import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
-import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { PERSIST_INTERVAL_MS } from './config'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
@@ -299,9 +299,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		const stub = this.env.TL_PG_REPLICATOR.get(
-			this.env.TL_PG_REPLICATOR.idFromName('0')
-		) as any as TLPostgresReplicator
+		const stub = getReplicator(this.env)
 		try {
 			return await stub.getFileRecord(this.documentInfo.slug)
 		} catch (_e) {
@@ -325,7 +323,6 @@ export class TLDrawDurableObject extends DurableObject {
 		serverWebSocket.accept()
 
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
-			console.error('CLOSING SOCKET', reason, new Error().stack)
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}

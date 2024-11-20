@@ -22,7 +22,9 @@ import { createFiles } from './routes/tla/createFiles'
 import { deleteFile } from './routes/tla/deleteFile'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { testRoutes } from './testRoutes'
 import { Environment } from './types'
+import { getUserDurableObject } from './utils/durableObjects'
 import { getAuth } from './utils/tla/getAuth'
 // export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
@@ -63,13 +65,14 @@ const router = createRouter<Environment>()
 			console.log('auth not found')
 			return notFound()
 		}
-		const stub = env.TL_USER.get(env.TL_USER.idFromName(auth.userId))
+		const stub = getUserDurableObject(env, auth.userId)
 		return stub.fetch(req)
 	})
 	.post('/app/tldr', createFiles)
 	.get('/app/file/:roomId', forwardRoomRequest)
 	.get('/app/publish/:roomId', getPublishedFile)
 	.delete('/app/file/:roomId', deleteFile)
+	.all('/app/__test__/*', testRoutes.fetch)
 	// end app
 	.all('*', notFound)
 

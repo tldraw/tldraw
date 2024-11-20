@@ -270,12 +270,6 @@ export class TldrawApp {
 				...file,
 				shared: !file.shared,
 			})
-
-			// if it was shared, remove all shared links
-			// TODO: move this to the backend after read permissions are implemented
-			for (const fileState of this.getUserFileStates().filter((f) => f.fileId === fileId)) {
-				tx.file_state.delete(fileState)
-			}
 		})
 	}
 
@@ -398,34 +392,15 @@ export class TldrawApp {
 	 * @param fileId - The file id.
 	 */
 	async deleteOrForgetFile(fileId: string) {
-		// Stash these so that we can restore them later
-		let fileStates: TlaFileState[]
 		const file = this.getFile(fileId)
-		if (!file) return Result.err('no file with id ' + fileId)
 
-		if (file.ownerId === this.userId) {
-			// Optimistic update, remove file and file states
-			this.z.mutate((tx) => {
-				tx.file.delete(file)
-				// TODO(blah): other file states should be deleted by backend
-				fileStates = this.getUserFileStates().filter((r) => r.fileId === fileId)
-				for (const state of fileStates) {
-					if (state.fileId === fileId) {
-						tx.file_state.delete(state)
-					}
-				}
-			})
-		} else {
-			// If not the owner, just remove the file state
-			this.z.mutate((tx) => {
-				fileStates = this.getUserFileStates().filter((r) => r.fileId === fileId)
-				for (const state of fileStates) {
-					if (state.fileId === fileId) {
-						tx.file_state.delete(state)
-					}
-				}
-			})
-		}
+		// Optimistic update, remove file and file states
+		this.z.mutate((tx) => {
+			tx.file_state.delete({ fileId, userId: this.userId })
+			if (file?.ownerId === this.userId) {
+				tx.file.delete({ id: fileId })
+			}
+		})
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
@@ -531,6 +506,8 @@ export class TldrawApp {
 
 		const { id: _id, name: _name, color: _color, ...restOfPreferences } = getUserPreferences()
 		const app = new TldrawApp(opts.userId, opts.getToken)
+		// @ts-expect-error
+		window.app = app
 		await app.preload({
 			id: opts.userId,
 			name: opts.fullName,
