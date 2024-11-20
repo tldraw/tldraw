@@ -191,7 +191,7 @@ export class Translating extends StateNode {
 		)
 		this.handleEnd()
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
+		if (this.editor.getCurrentToolIsLocked() && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			if (this.isCreating) {

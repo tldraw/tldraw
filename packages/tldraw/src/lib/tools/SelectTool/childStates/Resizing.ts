@@ -132,7 +132,7 @@ export class Resizing extends StateNode {
 			return
 		}
 
-		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
+		if (this.editor.getCurrentToolIsLocked() && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 			return
 		}

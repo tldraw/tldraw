@@ -123,7 +123,7 @@ export class Pointing extends StateNode {
 
 		this.editor.setSelectedShapes([id])
 
-		if (this.editor.getInstanceState().isToolLocked) {
+		if (this.editor.getCurrentToolIsLocked()) {
 			this.parent.transition('idle')
 		} else {
 			this.editor.setCurrentTool('select.idle')

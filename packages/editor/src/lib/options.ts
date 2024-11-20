@@ -59,7 +59,10 @@ export interface TldrawOptions {
 	readonly temporaryAssetPreviewLifetimeMs: number
 	readonly actionShortcutsLocation: 'menu' | 'toolbar' | 'swap'
 	readonly createTextOnCanvasDoubleClick: boolean
-	readonly toolLockEffectsText: boolean
+	/**
+	 * This option accepts an array of states where tool lock should be ignored. For example, if you wished to ignore tool lock when using the text tool or the draw tool, you would provide `['text', 'draw']` as a value. The values provided here are used together with `editor.isInAny`, so you can provide deep states as well, such as "text.pointing".
+	 */
+	readonly ignoreToolLock: string[]
 }
 
 /** @public */
@@ -104,5 +107,5 @@ export const defaultTldrawOptions = {
 	temporaryAssetPreviewLifetimeMs: 180000,
 	actionShortcutsLocation: 'swap',
 	createTextOnCanvasDoubleClick: true,
-	toolLockEffectsText: true,
+	ignoreToolLock: [],
 } as const satisfies TldrawOptions

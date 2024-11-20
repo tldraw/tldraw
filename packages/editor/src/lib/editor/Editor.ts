@@ -1378,6 +1378,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get whether the editor should preserve the current tool after finishing an interaction. This property returns true if the instance state's `isToolLocked` is true and the current state is not among the states provided in `options.ignoreToolLock`.
+	 *
+	 * @public
+	 */
+	getCurrentToolIsLocked() {
+		return this.getInstanceState().isToolLocked && !this.isInAny(...this.options.ignoreToolLock)
+	}
+
+	/**
 	 * Get a descendant by its path.
 	 *
 	 * @example

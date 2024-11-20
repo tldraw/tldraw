@@ -720,6 +720,7 @@ export const defaultTldrawOptions: {
     }];
     readonly handleRadius: 12;
     readonly hitTestMargin: 8;
+    readonly ignoreToolLock: [];
     readonly laserDelayMs: 1200;
     readonly longPressDurationMs: 500;
     readonly maxExportDelayMs: 5000;
@@ -730,7 +731,6 @@ export const defaultTldrawOptions: {
     readonly multiClickDurationMs: 200;
     readonly temporaryAssetPreviewLifetimeMs: 180000;
     readonly textShadowLod: 0.35;
-    readonly toolLockEffectsText: true;
 };
 
 // @public (undocumented)
@@ -992,6 +992,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode;
     getCurrentToolId(): string;
+    getCurrentToolIsLocked(): boolean;
     getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getEditingShape(): TLShape | undefined;
@@ -2807,6 +2808,7 @@ export interface TldrawOptions {
     readonly handleRadius: number;
     // (undocumented)
     readonly hitTestMargin: number;
+    readonly ignoreToolLock: string[];
     // (undocumented)
     readonly laserDelayMs: number;
     // (undocumented)
@@ -2826,8 +2828,6 @@ export interface TldrawOptions {
     readonly temporaryAssetPreviewLifetimeMs: number;
     // (undocumented)
     readonly textShadowLod: number;
-    // (undocumented)
-    readonly toolLockEffectsText: boolean;
 }
 
 // @public (undocumented)

@@ -30,10 +30,9 @@ export function registerDefaultSideEffects(editor: Editor) {
 							if (shape) {
 								editor.setCurrentTool('select.editing_shape', {
 									isCreatingTextWhileToolLocked:
-										editor.options.toolLockEffectsText &&
 										shape.type === 'text' &&
 										editor.isInAny('text.pointing', 'select.resizing') &&
-										editor.getInstanceState().isToolLocked,
+										editor.getCurrentToolIsLocked(),
 								})
 							}
 						}

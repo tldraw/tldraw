@@ -78,7 +78,7 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
-		if (this.editor.getInstanceState().isToolLocked) {
+		if (this.editor.getCurrentToolIsLocked()) {
 			this.parent.transition('idle')
 		} else {
 			this.editor.setEditingShape(this.shape.id)
