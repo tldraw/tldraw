@@ -1,5 +1,6 @@
 /* ---------------------- Menu ---------------------- */
 
+import { TlaFile } from '@tldraw/dotcom-shared'
 import { ReactNode, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -10,10 +11,12 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	getIncrementedName,
 	uniqueId,
 	useDialogs,
 	useToasts,
 } from 'tldraw'
+import { TldrawApp } from '../../app/TldrawApp'
 import { defineMessages, useIntl } from '../../app/i18n'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
@@ -32,6 +35,15 @@ const messages = defineMessages({
 	rename: { defaultMessage: 'Rename' },
 	copy: { defaultMessage: 'Copy' },
 })
+
+function getDuplicateName(file: TlaFile, app: TldrawApp) {
+	if (file.name.trim().length === 0) {
+		return ''
+	}
+	const currentFileName = app.getFileName(file.id)
+	const allFileNames = app.getUserOwnFiles().map((file) => file.name)
+	return getIncrementedName(currentFileName, allFileNames)
+}
 
 export function TlaFileMenu({
 	children,
@@ -66,10 +78,11 @@ export function TlaFileMenu({
 
 	const handleDuplicateClick = useCallback(async () => {
 		const newFileId = uniqueId()
-		const name = `${app.getFileName(fileId)} ${intl.formatMessage(messages.copy)}`
-		app.createFile({ id: newFileId, name })
+		const file = app.getFile(fileId)
+		if (!file) return
+		app.createFile({ id: newFileId, name: getDuplicateName(file, app) })
 		navigate(getFilePath(newFileId), { state: { mode: 'duplicate', duplicateId: fileId } })
-	}, [app, fileId, intl, navigate])
+	}, [app, fileId, navigate])
 
 	const handleDeleteClick = useCallback(() => {
 		addDialog({
