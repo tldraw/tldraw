@@ -113,6 +113,7 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 				<F defaultMessage="Anyone with the link" />
 			</TlaMenuControlLabel>
 			<TlaSelect
+				data-testid="shared-link-type-select"
 				label={
 					isShared
 						? sharedLinkType === 'edit'
