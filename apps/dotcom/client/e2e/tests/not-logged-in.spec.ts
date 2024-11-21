@@ -1,5 +1,5 @@
 import { USERS } from '../consts'
-import { expect, test } from '../fixtures/tla-test'
+import { expect, repeatTest, test } from '../fixtures/tla-test'
 
 // Don't use stored credentials
 test.use({ storageState: { cookies: [], origins: [] } })
@@ -12,9 +12,7 @@ test('can login', async ({ homePage, editor }) => {
 	await expect(editor.sidebarToggle).toBeVisible()
 })
 
-// TODO: renable when this is fixed
-// https://linear.app/tldraw/issue/INT-490/error-when-logging-out
-test.skip('can sign out', async ({ homePage, editor, sidebar }) => {
+repeatTest.only('can sign out', async ({ homePage, editor, sidebar }) => {
 	await test.step('Login', async () => {
 		const user = USERS[test.info().parallelIndex]
 		await homePage.loginAs(user)
