@@ -325,7 +325,8 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 								await sql`delete from public.file_state where "fileId" = ${fileId} and "userId" = ${userId}`
 							} else {
 								const { id } = update.row as any
-								await sql`delete from ${sql('public.' + update.table)} where id = ${id}`
+								const deleteQ = `delete from public."${update.table}" where id = '${id}'`
+								await sql.unsafe(deleteQ)
 							}
 							if (update.table === 'file') {
 								const { id } = update.row as TlaFile
