@@ -85,7 +85,6 @@ export class Sidebar {
 	@step
 	async signOut() {
 		await this.openPreferences()
-		await this.sidebarBottom.getByRole('button').click()
 		await this.signOutButton.click()
 	}
 
