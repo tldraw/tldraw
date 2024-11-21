@@ -236,6 +236,36 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 				row.userId,
 				row.fileId
 			)
+			assert(typeof row.isFileOwner === 'boolean', 'isFileOwner is required')
+			if (!row.isFileOwner) {
+				// need to dispatch a file creation event to the user
+				const sequenceId = this.state.sequenceId
+				this.getFileRecord(row.fileId).then((file) => {
+					// mitigate a couple of race conditions
+
+					// check that we didn't reboot (in which case the user do will fetch the file record on its own)
+					if (this.state.sequenceId !== sequenceId) return
+					// check that the subscription wasn't deleted before we managed to fetch the file record
+					const sub = this.sql
+						.exec(
+							`SELECT * FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
+							row.userId,
+							row.fileId
+						)
+						.toArray()[0]
+					if (!sub) return
+
+					// alright we're good to go
+					this.messageUser(row.userId, {
+						type: 'row_update',
+						row: file as any,
+						table: 'file',
+						event: 'insert',
+						sequenceId: this.state.sequenceId,
+						userId: row.userId,
+					})
+				})
+			}
 		} else if (event.command === 'delete') {
 			// If the file state being deleted does not belong to the file owner,
 			// we need to send a delete event for the file to the user
