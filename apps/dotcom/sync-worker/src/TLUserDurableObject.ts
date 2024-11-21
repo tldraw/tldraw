@@ -266,7 +266,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async handleMutate(msg: ZClientSentMessage) {
 		this.assertCache()
 		try {
-			;(await this.db.begin(async (sql) => {
+			await this.db.begin(async (sql) => {
 				for (const update of msg.updates) {
 					await this.assertValidMutation(update)
 					switch (update.event) {
@@ -336,7 +336,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					}
 					this.cache.store.updateOptimisticData([update], msg.mutationId)
 				}
-			})) as any
+			})
 
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
 			const result = await this
