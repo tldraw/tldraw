@@ -170,7 +170,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async handleSocketMessage(message: string) {
 		const rateLimited = await isRateLimited(this.env, this.userId!)
-
 		this.assertCache()
 		await this.cache.waitUntilConnected()
 
