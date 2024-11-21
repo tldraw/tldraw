@@ -103,7 +103,10 @@
 .tla-text_ui__title {
 	font-size: 14px;
 	line-height: 1.3;
-	font-weight: 600;
+	font-weight: 700;
+	letter-spacing: 0.2px;
+	position: relative;
+	top: 1px;
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
