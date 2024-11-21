@@ -163,7 +163,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		if (this.sentry) {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
-				message: `[TLUserDurableObject]: ${args.join(' ')}`,
+				message: `[TLUserDurableObject]: ${args.map((a) => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`,
 			})
 		}
 	}
@@ -390,11 +390,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			isApp: true,
 		})
 		const publishedHistory = await listAllObjectKeys(this.env.ROOM_SNAPSHOTS, publishedPrefixKey)
-		await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+		if (publishedHistory.length > 0) {
+			await this.env.ROOM_SNAPSHOTS.delete(publishedHistory)
+		}
 		// remove edit history
 		const r2Key = getR2KeyForRoom({ slug: id, isApp: true })
 		const editHistory = await listAllObjectKeys(this.env.ROOMS_HISTORY_EPHEMERAL, r2Key)
-		await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
+		if (editHistory.length > 0) {
+			await this.env.ROOMS_HISTORY_EPHEMERAL.delete(editHistory)
+		}
 		// remove main file
 		await this.env.ROOMS.delete(r2Key)
 	}
