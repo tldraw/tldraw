@@ -157,9 +157,7 @@ function SignedInProvider({
 		}
 	}, [auth.userId, auth.isSignedIn])
 
-	if (!auth.isLoaded) {
-		return null
-	}
+	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return children
