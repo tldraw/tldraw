@@ -21,7 +21,6 @@ export function getDateFormat(date: Date): FormatDateOptions {
 			weekday: 'short',
 			hour: 'numeric',
 			minute: 'numeric',
-			second: 'numeric',
 		}
 	} else if (d >= thisMonth) {
 		return {
