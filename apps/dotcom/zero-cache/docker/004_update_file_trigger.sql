@@ -1,7 +1,8 @@
 CREATE OR REPLACE FUNCTION update_file_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW."updatedAt" := CAST(EXTRACT(EPOCH FROM now()) * 1000 AS BIGINT);
+  -- updatedAt is a unix timestamp in milliseconds
+  NEW."updatedAt" := CAST(EXTRACT(EPOCH FROM now()) * 1000 AS BIGINT); -- we store the 
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
