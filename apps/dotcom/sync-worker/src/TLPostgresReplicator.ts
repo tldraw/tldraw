@@ -178,161 +178,152 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		this.debug('handleEvent', event)
-		this.queue.push(() => this._handleEvent(row, event))
-	}
-
-	private async _handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
-		if (event.command === 'delete' && event.relation.table === 'file') {
-			const userId = row?.ownerId
-			this.debug("deleting user's file", row, 'isActive', this.userIsActive(userId))
-		}
-		// this.debug('handleEvent', event)
 		try {
-			if (event.relation.table === 'user_boot_id' && event.command !== 'delete') {
-				assert(row, 'Row is required for insert/update event')
-				this.messageUser(row.userId, {
-					type: 'boot_complete',
-					userId: row.userId,
-					bootId: row.bootId,
-					sequenceId: this.state.sequenceId,
-				})
-				return
-			}
-			if (event.relation.table === 'user_mutation_number') {
-				if (!row) throw new Error('Row is required for delete event')
-				this.messageUser(row.userId, {
-					type: 'mutation_commit',
-					mutationNumber: row.mutationNumber,
-					userId: row.userId,
-					sequenceId: this.state.sequenceId,
-				})
-				return
-			}
-			if (
-				event.relation.table !== 'user' &&
-				event.relation.table !== 'file' &&
-				event.relation.table !== 'file_state'
-			) {
-				console.error(`Unhandled table: ${event.relation.table}`)
-				return
-			}
-			assert(row, 'Row is required for insert/update/delete event')
-
-			if (
-				event.relation.table === 'file_state' &&
-				event.command === 'insert' &&
-				this.userIsActive(row.userId)
-			) {
-				const file = await this.getFileRecord(row.fileId)
-				if (
-					file &&
-					(file.ownerId === row.userId ||
-						(file?.ownerId !== row.userId &&
-							// mitigate a potential race condition where the file is unshared between the time this
-							// event was dispatched and the time it was processed
-							file.shared))
-				) {
-					this.sql.exec(
-						`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?) ON CONFLICT (userId, fileId) DO NOTHING`,
-						row.userId,
-						row.fileId
-					)
-					this.messageUser(row.userId, {
-						type: 'row_update',
-						row: file,
-						table: 'file',
-						event: 'insert',
-						sequenceId: this.state.sequenceId,
-						userId: row.userId,
-					})
-				} else if (!file) {
-					this.captureException(new Error(`File not found: ${row.fileId}`))
-				}
-			} else if (
-				event.relation.table === 'file_state' &&
-				event.command === 'delete' &&
-				this.userIsActive(row.userId)
-			) {
-				const didHaveSubscription =
-					this.sql
-						.exec(
-							'SELECT * FROM user_file_subscriptions WHERE userId = ? AND fileId = ?',
-							row.userId,
-							row.fileId
-						)
-						.toArray().length > 0
-				if (didHaveSubscription) {
-					this.sql.exec(
-						`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
-						row.userId,
-						row
-					)
-					this.messageUser(row.userId, {
-						type: 'row_update',
-						row: { id: row.fileId } as any,
-						table: 'file',
-						event: 'delete',
-						sequenceId: this.state.sequenceId,
-						userId: row.userId,
-					})
-				}
-			}
-			if (event.relation.table === 'file' && event.command === 'delete') {
-				this.getStubForFile(row.id).appFileRecordDidDelete()
-			}
-			if (event.relation.table === 'file' && event.command === 'update') {
-				this.getStubForFile(row.id).appFileRecordDidUpdate(row as TlaFile)
-			}
-
-			let userIds: string[] = []
-			if (row) {
-				userIds = this.getActiveImpactedUserIds(row, event)
-			}
-			if (row) {
-				for (const userId of userIds) {
-					// get user DO and send update message
-					this.messageUser(userId, {
-						type: 'row_update',
-						row: row as any,
-						table: event.relation.table as ZTable,
-						event: event.command,
-						sequenceId: this.state.sequenceId,
-						userId,
-					})
-				}
+			switch (event.relation.table) {
+				case 'user_boot_id':
+					this.handleBootEvent(row, event)
+					return
+				case 'user_mutation_number':
+					this.handleMutationEvent(row, event)
+					return
+				case 'file_state':
+					this.handleFileStateEvent(row, event)
+					return
+				case 'file':
+					this.handleFileEvent(row, event)
+					return
+				case 'user':
+					this.handleUserEvent(row, event)
+					return
+				default:
+					this.captureException(new Error(`Unhandled table: ${event.relation.table}`))
+					return
 			}
 		} catch (e) {
 			this.captureException(e)
 		}
 	}
 
-	private userIsActive(userId: string) {
-		return this.sql.exec(`SELECT * FROM active_user WHERE id = ?`, userId).toArray().length > 0
+	private handleBootEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		if (event.command === 'delete') return
+		assert(row?.bootId, 'bootId is required')
+		this.messageUser(row.userId, {
+			type: 'boot_complete',
+			userId: row.userId,
+			bootId: row.bootId,
+			sequenceId: this.state.sequenceId,
+		})
 	}
 
-	private getActiveImpactedUserIds(row: postgres.Row, event: postgres.ReplicationEvent): string[] {
-		switch (event.relation.table) {
-			case 'user':
-				assert(row.id, 'row id is required')
-				return this.userIsActive(row.id) ? [row.id as string] : []
-			case 'file': {
-				return this.sql
-					.exec(`SELECT "userId" FROM user_file_subscriptions WHERE "fileId" = ?`, row.id)
-					.toArray()
-					.map((x) => x.userId as string)
-			}
-			case 'file_state':
-				assert(row.userId, 'user id is required')
-				assert(row.fileId, 'file id is required')
-				return this.userIsActive(row.userId) ? [row.userId as string] : []
-				break
-			default:
-				this.captureException(
-					new Error(`[getActiveImpactedUserIds] Unhandled table: ${event.relation.table}`)
+	private handleMutationEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		if (event.command === 'delete') return
+		assert(typeof row?.mutationNumber === 'number', 'mutationNumber is required')
+		this.messageUser(row.userId, {
+			type: 'mutation_commit',
+			mutationNumber: row.mutationNumber,
+			userId: row.userId,
+			sequenceId: this.state.sequenceId,
+		})
+	}
+
+	private handleFileStateEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		assert(row?.userId, 'userId is required')
+		if (!this.userIsActive(row.userId)) return
+		if (event.command === 'insert') {
+			this.sql.exec(
+				`INSERT INTO user_file_subscriptions (userId, fileId) VALUES (?, ?)`,
+				row.userId,
+				row.fileId
+			)
+		} else if (event.command === 'delete') {
+			// If the file state being deleted does not belong to the file owner,
+			// we need to send a delete event for the file to the user
+			const sub = this.sql
+				.exec(
+					`SELECT * FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
+					row.userId,
+					row.fileId
 				)
+				.toArray()[0]
+			if (!sub) {
+				// the file was deleted before the file state
+				this.debug('file state deleted before file', row)
+			} else {
+				this.sql.exec(
+					`DELETE FROM user_file_subscriptions WHERE userId = ? AND fileId = ?`,
+					row.userId,
+					row.fileId
+				)
+				// We forward a file delete event to the user
+				// even if they are the file owner. This is because the file_state
+				// deletion might happen before the file deletion and we don't get the
+				// ownerId on file delete events
+				this.messageUser(row.userId, {
+					type: 'row_update',
+					row: { id: row.fileId } as any,
+					table: 'file',
+					event: 'delete',
+					sequenceId: this.state.sequenceId,
+					userId: row.userId,
+				})
+			}
 		}
-		return []
+		this.messageUser(row.userId, {
+			type: 'row_update',
+			row: row as any,
+			table: event.relation.table as ZTable,
+			event: event.command,
+			sequenceId: this.state.sequenceId,
+			userId: row.userId,
+		})
+	}
+
+	private handleFileEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		assert(row?.id, 'row id is required')
+		const impactedUserIds = this.sql
+			.exec('SELECT userId FROM user_file_subscriptions WHERE fileId = ?', row.id)
+			.toArray()
+			.map((x) => x.userId as string)
+		// if the file state was deleted before the file, we might not have any impacted users
+		if (event.command === 'delete') {
+			this.getStubForFile(row.id).appFileRecordDidDelete()
+			this.sql.exec(`DELETE FROM user_file_subscriptions WHERE fileId = ?`, row.id)
+		} else if (event.command === 'update') {
+			assert(row.ownerId, 'ownerId is required when updating file')
+			this.getStubForFile(row.id).appFileRecordDidUpdate(row as TlaFile)
+		} else if (event.command === 'insert') {
+			assert(row.ownerId, 'ownerId is required when inserting file')
+			if (!impactedUserIds.includes(row.ownerId)) {
+				impactedUserIds.push(row.ownerId)
+			}
+		}
+		for (const userId of impactedUserIds) {
+			this.messageUser(userId, {
+				type: 'row_update',
+				row: row as any,
+				table: event.relation.table as ZTable,
+				event: event.command,
+				sequenceId: this.state.sequenceId,
+				userId,
+			})
+		}
+	}
+
+	private handleUserEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		assert(row?.id, 'user id is required')
+		this.messageUser(row.id, {
+			type: 'row_update',
+			row: row as any,
+			table: event.relation.table as ZTable,
+			event: event.command,
+			sequenceId: this.state.sequenceId,
+			userId: row.id,
+		})
+	}
+
+	private userIsActive(userId: string) {
+		return this.sql.exec(`SELECT * FROM active_user WHERE id = ?`, userId).toArray().length > 0
 	}
 
 	async ping() {
