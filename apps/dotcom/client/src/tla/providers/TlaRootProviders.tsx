@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
@@ -129,6 +129,7 @@ function SignedInProvider({
 	onLocaleChange(locale: string): void
 }) {
 	const auth = useAuth()
+	const { user, isLoaded: isUserLoaded } = useClerkUser()
 	const [currentLocale, setCurrentLocale] = useState<string>(
 		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
 	)
@@ -156,9 +157,11 @@ function SignedInProvider({
 		}
 	}, [auth.userId, auth.isSignedIn])
 
-	if (!auth.isLoaded) return null
+	if (!auth.isLoaded) {
+		return null
+	}
 
-	if (!auth.isSignedIn) {
+	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return children
 	}
 
