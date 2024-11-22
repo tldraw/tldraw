@@ -118,6 +118,7 @@ export const RichTextToolbar = track(function RichTextToolbar() {
 			data-has-selection={hasSelection}
 			data-is-selecting-text={isSelectingText}
 			data-is-selection-on-same-line={isSelectionOnSameLine}
+			data-is-mobile={toolbarPosition.isMobile}
 			style={{
 				top: `${toolbarPosition.top}px`,
 				left: `${toolbarPosition.left}px`,
@@ -157,6 +158,7 @@ const defaultPosition = {
 	left: -1000,
 	offset: 0,
 	visible: false,
+	isMobile: false,
 }
 
 /*!
@@ -205,10 +207,11 @@ function usePosition({
 
 	if (isCoarsePointer) {
 		return {
-			top: viewportHeight - menuHeight,
-			left: 0,
+			top: viewportHeight - menuHeight - 16,
+			left: window.innerWidth / 2 - menuWidth / 2,
 			offset: 0,
 			visible: true,
+			isMobile: true,
 		}
 	}
 
@@ -262,5 +265,6 @@ function usePosition({
 		left: Math.round(left + window.scrollX),
 		offset: Math.round(offset),
 		visible: true,
+		isMobile: false,
 	}
 }

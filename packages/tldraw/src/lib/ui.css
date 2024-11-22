@@ -974,6 +974,10 @@
 	pointer-events: none;
 }
 
+.tl-rich-text__toolbar[data-is-mobile='true'] .tl-rich-text__toolbar-indicator {
+	display: none;
+}
+
 .tl-rich-text__toolbar .tlui-toolbar__tools {
 	box-shadow: none;
 }
