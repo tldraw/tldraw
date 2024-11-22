@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Waiting for postgres to become healthy..."
-for _ in {1..30}; do
+for _ in {1..120}; do
 
 	STATUS=$(docker inspect --format='{{json .State.Health.Status}}' docker-zstart_postgres-1 2>/dev/null)
 	if [ "$STATUS" = "\"healthy\"" ]; then
