@@ -30,6 +30,14 @@ export function getFrameHeadingInfo(
 	shape: TLFrameShape,
 	opts: TLCreateTextJsxFromSpansOpts
 ) {
+	if (process.env.NODE_ENV === 'test') {
+		// can't really measure text in tests
+		return {
+			box: new Box(0, -opts.height, shape.props.w, opts.height),
+			spans: [],
+		}
+	}
+
 	const spans = editor.textMeasure.measureTextSpans(
 		defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
 		opts
