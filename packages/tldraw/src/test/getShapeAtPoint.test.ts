@@ -190,7 +190,7 @@ describe('frames', () => {
 		editor.pointerDown().pointerUp()
 
 		expect(editor.getOnlySelectedShape()).toBe(frame)
-		expect(editor.getEditingShape()).toBe(null)
+		expect(editor.getEditingShape()).toBe(undefined)
 	})
 
 	it('edits frame label', () => {
