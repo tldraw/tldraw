@@ -77,9 +77,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
 				</div>
-				<div className={styles.content}>
-					<TlaSidebarRecentFiles />
-				</div>
+				<TlaSidebarRecentFiles />
 				<div className={styles.bottom} data-testid="tla-sidebar-bottom">
 					<TlaSidebarUserLink />
 				</div>
@@ -171,6 +169,11 @@ function TlaSidebarRecentFiles() {
 		},
 		[app]
 	)
+	const sidebarContentRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		sidebarContentRef.current?.scrollTo({ top: 0 })
+	}, [results.length])
 
 	if (!results) throw Error('Could not get files')
 
@@ -202,7 +205,7 @@ function TlaSidebarRecentFiles() {
 	}
 
 	return (
-		<>
+		<div ref={sidebarContentRef} className={styles.content}>
 			{todayFiles.length ? (
 				<TlaSidebarFileSection title={<F defaultMessage="Today" />} items={todayFiles} />
 			) : null}
@@ -218,7 +221,7 @@ function TlaSidebarRecentFiles() {
 			{olderFiles.length ? (
 				<TlaSidebarFileSection title={<F defaultMessage="This year" />} items={olderFiles} />
 			) : null}
-		</>
+		</div>
 	)
 }
 
