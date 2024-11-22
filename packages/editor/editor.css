@@ -920,6 +920,27 @@ input,
 	text-shadow: 1px 1px 2px var(--color-text-3);
 }
 
+.tl-rich-text-tiptap mark {
+	text-shadow: none;
+	background-color: #fddd00;
+}
+
+.tl-theme__dark .tl-rich-text-tiptap mark {
+	background-color: #d2b700;
+}
+
+@supports (color: color(display-p3 1 1 1)) {
+	@media (color-gamut: p3) { 
+		.tl-rich-text-tiptap mark {
+			background-color: color(display-p3 0.972 0.8705 0.05);
+		}
+
+		.tl-theme__dark .tl-rich-text-tiptap mark {
+			background-color: color(display-p3 0.8078 0.7225 0.0312);
+		}
+	}
+}
+
 .tl-rich-text {
 	display: none;
 	position: static !important; /* todo */

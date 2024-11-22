@@ -34,6 +34,7 @@ export type TLUiIconType =
 	| 'chevrons-sw'
 	| 'clipboard-copied'
 	| 'clipboard-copy'
+	| 'code'
 	| 'color'
 	| 'cross-2'
 	| 'cross-circle'
@@ -86,6 +87,7 @@ export type TLUiIconType =
 	| 'github'
 	| 'group'
 	| 'heading'
+	| 'highlight'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
 	| 'horizontal-align-start'
@@ -182,6 +184,7 @@ export const iconTypes = [
 	'chevrons-sw',
 	'clipboard-copied',
 	'clipboard-copy',
+	'code',
 	'color',
 	'cross-2',
 	'cross-circle',
@@ -234,6 +237,7 @@ export const iconTypes = [
 	'github',
 	'group',
 	'heading',
+	'highlight',
 	'horizontal-align-end',
 	'horizontal-align-middle',
 	'horizontal-align-start',

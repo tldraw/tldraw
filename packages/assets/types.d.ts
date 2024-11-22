@@ -42,6 +42,7 @@ export type AssetUrls = {
 		'chevrons-sw': string
 		'clipboard-copied': string
 		'clipboard-copy': string
+		code: string
 		color: string
 		'cross-2': string
 		'cross-circle': string
@@ -94,6 +95,7 @@ export type AssetUrls = {
 		github: string
 		group: string
 		heading: string
+		highlight: string
 		'horizontal-align-end': string
 		'horizontal-align-middle': string
 		'horizontal-align-start': string

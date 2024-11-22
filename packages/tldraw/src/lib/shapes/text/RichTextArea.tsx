@@ -1,7 +1,12 @@
-import { preventDefault, stopEventPropagation, useEditor, useUniqueSafeId } from '@tldraw/editor'
-import { forwardRef, useEffect } from 'react'
-
 import { EditorEvents, EditorProvider } from '@tiptap/react'
+import {
+	preventDefault,
+	stopEventPropagation,
+	TLShapeId,
+	useEditor,
+	useUniqueSafeId,
+} from '@tldraw/editor'
+import { forwardRef, useEffect, useState } from 'react'
 
 /** @internal */
 export interface TextAreaProps {
@@ -34,14 +39,32 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 	const tipTapId = useUniqueSafeId('tip-tap-editor')
 	const editor = useEditor()
 	const tipTapConfig = editor.getTextOptions().tipTapConfig
+	const [shouldSelectAllOnCreate, setShouldSelectAllOnCreate] = useState(false)
 
 	const handleCreate = (props: EditorEvents['create']) => {
 		editor.setEditingShapeTextEditor(props.editor)
+		if (shouldSelectAllOnCreate) {
+			props.editor.chain().focus().selectAll().run()
+		}
 	}
 
 	useEffect(() => {
 		if (!isEditing) {
 			editor.setEditingShapeTextEditor(null)
+		}
+	}, [editor, isEditing])
+
+	useEffect(() => {
+		function selectAllIfEditing(event: { shapeId: TLShapeId }) {
+			if (event.shapeId === editor.getEditingShapeId()) {
+				setShouldSelectAllOnCreate(true)
+			}
+		}
+
+		editor.on('select-all-text', selectAllIfEditing)
+		return () => {
+			editor.off('select-all-text', selectAllIfEditing)
+			setShouldSelectAllOnCreate(false)
 		}
 	}, [editor, isEditing])
 

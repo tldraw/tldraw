@@ -18,6 +18,8 @@ export function RichTextToolbarItems({ textEditor, onEditLinkIntent }: RichTextT
 	const actions = [
 		{ name: 'bold', op: 'toggleBold' },
 		{ name: 'strike', op: 'toggleStrike' },
+		{ name: 'highlight', op: 'toggleHighlight' },
+		{ name: 'code', op: 'toggleCode' },
 		{ name: 'link', customOp: () => onEditLinkIntent() },
 		{ name: 'heading', op: 'toggleHeading', attrs: { level: 3 as const } },
 		{ name: 'bulletList', op: 'toggleBulletList' },

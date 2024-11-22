@@ -246,6 +246,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.rich-text-bold': 'Bold',
 	'tool.rich-text-strikethrough': 'Strikethrough',
 	'tool.rich-text-link': 'Link',
+	'tool.rich-text-link-visit': 'Visit link',
 	'tool.rich-text-link-remove': 'Remove link',
 	'tool.rich-text-header': 'Header',
 	'tool.rich-text-bulleted-list': 'Bulleted list',

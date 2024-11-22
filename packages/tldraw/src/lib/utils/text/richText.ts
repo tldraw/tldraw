@@ -1,4 +1,5 @@
 import { generateHTML, generateText } from '@tiptap/core'
+import Highlight from '@tiptap/extension-highlight'
 import Link from '@tiptap/extension-link'
 import StarterKit from '@tiptap/starter-kit'
 import { Editor } from '@tldraw/editor'
@@ -11,6 +12,7 @@ export const tipTapDefaultExtensions = [
 		autolink: true,
 		defaultProtocol: 'https',
 	}),
+	Highlight,
 ]
 
 /** @public */
