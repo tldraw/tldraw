@@ -8,7 +8,6 @@ import {
 } from '@tldraw/dotcom-shared'
 import { Result, assert, fetch, structuredClone, uniqueId } from '@tldraw/utils'
 import pick from 'lodash.pick'
-import { createIntl } from 'react-intl'
 import {
 	Signal,
 	TLSessionStateSnapshot,
@@ -25,6 +24,7 @@ import {
 	react,
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
+import { createIntl } from './i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -104,11 +104,6 @@ export class TldrawApp {
 			'file states signal',
 			this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
 		)
-	}
-
-	private getIntl() {
-		const locale = this.user$.get()?.locale
-		return createIntl({ locale: locale ?? 'en' })
 	}
 
 	async preload(initialUserData: TlaUser) {
@@ -263,10 +258,14 @@ export class TldrawApp {
 			return name
 		}
 
-		const intl = this.getIntl()
-		const createdAt = new Date(file.createdAt)
-		const format = getDateFormat(createdAt)
-		return intl.formatDate(createdAt, format)
+		const intl = createIntl()
+		if (intl) {
+			const createdAt = new Date(file.createdAt)
+			const format = getDateFormat(createdAt)
+			return intl.formatDate(createdAt, format)
+		}
+		const locale = this.user$.get()?.locale
+		return new Date(file.createdAt).toLocaleString(locale ?? 'en-gb')
 	}
 
 	claimTemporaryFile(fileId: string) {
