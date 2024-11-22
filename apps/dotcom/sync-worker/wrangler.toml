@@ -30,6 +30,10 @@ tag = "v5"
 new_sqlite_classes = ["TLPostgresReplicator"]
 new_classes = ["TLUserDurableObject"]
 
+[[migrations]]
+tag = "v6"
+deleted_classes = ["TLAppDurableObject"]
+
 [[analytics_engine_datasets]]
 binding = "MEASURE"
 
