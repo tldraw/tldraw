@@ -258,7 +258,7 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 	)
 	useEffect(() => {
 		if (isActive && results.length > 0) {
-			ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+			ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 		}
 	}, [isActive, results.length])
 
