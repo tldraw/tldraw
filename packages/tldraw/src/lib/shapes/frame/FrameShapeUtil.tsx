@@ -64,33 +64,37 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// wow this fucking sucks!!!
 		let x: number, y: number, w: number, h: number
 
+		const { w: hw, h: hh } = headingInfo.box
+		const scaledW = Math.min(hw, shape.props.w * z)
+		const scaledH = Math.min(hh, shape.props.h * z)
+
 		switch (labelSide) {
 			case 0: {
 				x = -8 / z
-				y = (-headingInfo.box.height - 4) / z
-				w = (Math.min(headingInfo.box.width, shape.props.w * z) + 16) / z
-				h = headingInfo.box.height / z
+				y = (-hh - 4) / z
+				w = (scaledW + 16) / z
+				h = hh / z
 				break
 			}
 			case 1: {
-				x = (-headingInfo.box.height - 4) / z
-				h = (Math.min(headingInfo.box.width, shape.props.h * z) + 16) / z
+				x = (-hh - 4) / z
+				h = (scaledH + 16) / z
 				y = shape.props.h - h + 8 / z
-				w = headingInfo.box.height / z
+				w = hh / z
 				break
 			}
 			case 2: {
-				x = shape.props.w - (Math.min(headingInfo.box.width, shape.props.w * z) + 8) / z
+				x = shape.props.w - (scaledW + 8) / z
 				y = shape.props.h + 4 / z
-				w = (Math.min(headingInfo.box.width, shape.props.w * z) + 16) / z
-				h = headingInfo.box.height / z
+				w = (scaledH + 16) / z
+				h = hh / z
 				break
 			}
 			case 3: {
 				x = shape.props.w + 4 / z
-				h = (Math.min(headingInfo.box.width, shape.props.h * z) + 16) / z
+				h = (scaledH + 16) / z
 				y = -8 / z
-				w = headingInfo.box.height / z
+				w = hh / z
 				break
 			}
 		}
