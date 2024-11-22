@@ -82,7 +82,7 @@ function makeLong(str: string) {
 }
 
 // This is optional but highly recommended since it prevents memory leaks.
-// https://formatjs.github.io/docs/react-intl/api/#createintl
+// See: https://formatjs.github.io/docs/react-intl/api/#createintl
 const cache = createIntlCache()
 let presetIntl: IntlShape | null = null
 let didSetupCreateIntl = false
