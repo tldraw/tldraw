@@ -232,8 +232,8 @@ export class TldrawApp {
 			name: '',
 			published: false,
 			publishedSlug: uniqueId(),
-			shared: false,
-			sharedLinkType: 'view',
+			shared: true,
+			sharedLinkType: 'edit',
 			thumbnail: '',
 			updatedAt: Date.now(),
 		}

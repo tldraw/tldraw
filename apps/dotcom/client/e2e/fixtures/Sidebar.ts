@@ -79,12 +79,12 @@ export class Sidebar {
 	async setLanguage(languageButtonText: string, language: string) {
 		await this.openLanguageMenu(languageButtonText)
 		await this.page.getByRole('menuitemcheckbox', { name: language }).click()
+		await this.page.keyboard.press('Escape')
 	}
 
 	@step
 	async signOut() {
 		await this.openPreferences()
-		await this.sidebarBottom.getByRole('button').click()
 		await this.signOutButton.click()
 	}
 

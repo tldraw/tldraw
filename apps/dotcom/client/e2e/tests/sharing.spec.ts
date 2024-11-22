@@ -26,6 +26,14 @@ const users = [
 	{ user: undefined, sameFileName: false, description: 'anon users' },
 	{ user: 'suppy' as const, sameFileName: true, description: 'logged in users' },
 ]
+test.describe('default share state', () => {
+	test('is public and editable', async ({ shareMenu }) => {
+		await shareMenu.open()
+		expect(await shareMenu.isVisible()).toBe(true)
+		expect(await shareMenu.isToggleChecked()).toBe(true)
+		expect(await shareMenu.getShareType()).toBe('Editor')
+	})
+})
 
 test.describe('shared files', () => {
 	users.map((u) => {
