@@ -930,7 +930,7 @@ input,
 }
 
 @supports (color: color(display-p3 1 1 1)) {
-	@media (color-gamut: p3) { 
+	@media (color-gamut: p3) {
 		.tl-rich-text-tiptap mark {
 			background-color: color(display-p3 0.972 0.8705 0.05);
 		}
