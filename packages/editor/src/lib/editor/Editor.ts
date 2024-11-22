@@ -1473,7 +1473,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts?: TLHistoryBatchOptions
 	) {
 		this.run(() => {
-			this.store.update(TLINSTANCE_ID, (r) => ({ ...r, ...partial }))
+			this.store.put([
+				{
+					...this.getInstanceState(),
+					...partial,
+				},
+			])
 		}, opts)
 	}
 
