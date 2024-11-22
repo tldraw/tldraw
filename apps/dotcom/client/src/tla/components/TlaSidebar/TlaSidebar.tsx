@@ -77,7 +77,9 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
 				</div>
-				<TlaSidebarRecentFiles />
+				<div className={styles.content}>
+					<TlaSidebarRecentFiles />
+				</div>
 				<div className={styles.bottom} data-testid="tla-sidebar-bottom">
 					<TlaSidebarUserLink />
 				</div>
@@ -200,7 +202,7 @@ function TlaSidebarRecentFiles() {
 	}
 
 	return (
-		<div className={styles.content}>
+		<>
 			{todayFiles.length ? (
 				<TlaSidebarFileSection title={<F defaultMessage="Today" />} items={todayFiles} />
 			) : null}
@@ -216,7 +218,7 @@ function TlaSidebarRecentFiles() {
 			{olderFiles.length ? (
 				<TlaSidebarFileSection title={<F defaultMessage="This year" />} items={olderFiles} />
 			) : null}
-		</div>
+		</>
 	)
 }
 
