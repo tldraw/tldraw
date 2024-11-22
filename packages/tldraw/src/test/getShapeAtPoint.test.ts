@@ -177,10 +177,34 @@ describe('frames', () => {
 				x: 100,
 				y: 100,
 			})
-			.pointerMove(100, 90)
-			.pointerDown()
-			.pointerUp()
+			.pointerMove(-100, -100)
 
-		expect(editor.getOnlySelectedShape()?.type).toBe('frame')
+		const frame = editor.getLastCreatedShape()
+
+		expect(editor.getHoveredShapeId()).toBe(null)
+
+		editor.pointerMove(100, 90)
+
+		expect(editor.getHoveredShapeId()).toBe(frame.id)
+
+		editor.pointerDown().pointerUp()
+
+		expect(editor.getOnlySelectedShape()).toBe(frame)
+		expect(editor.getEditingShape()).toBe(null)
+	})
+
+	it('edits frame label', () => {
+		editor.selectAll().deleteShapes(editor.getSelectedShapes()).createShape({
+			type: 'frame',
+			x: 100,
+			y: 100,
+		})
+
+		const frame = editor.getLastCreatedShape()
+
+		editor.pointerMove(100, 90).doubleClick()
+
+		expect(editor.getOnlySelectedShape()).toBe(frame)
+		expect(editor.getEditingShape()).toBe(frame)
 	})
 })

@@ -1,7 +1,5 @@
 import {
 	BaseBoxShapeUtil,
-	Box,
-	Editor,
 	Geometry2d,
 	Group2d,
 	Rectangle2d,
@@ -12,11 +10,9 @@ import {
 	TLGroupShape,
 	TLResizeInfo,
 	TLShape,
-	canonicalizeRotation,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
-	last,
 	lerp,
 	resizeBox,
 	toDomPrecision,
@@ -30,6 +26,12 @@ import {
 } from '../shared/createTextJsxFromSpans'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
+import {
+	getFrameHeadingInfo,
+	getFrameHeadingOpts,
+	getFrameHeadingSide,
+	getFrameHeadingTranslation,
+} from './frameHelpers'
 
 export function defaultEmptyAs(str: string, dflt: string) {
 	if (str.match(/^\s*$/)) {
@@ -93,15 +95,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			}
 		}
 
-		const label = new Rectangle2d({
-			x,
-			y,
-			width: w,
-			height: h,
-			isFilled: true,
-			isLabel: true,
-		})
-
 		return new Group2d({
 			children: [
 				new Rectangle2d({
@@ -109,7 +102,14 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 					height: shape.props.h,
 					isFilled: false,
 				}),
-				label,
+				new Rectangle2d({
+					x,
+					y,
+					width: w,
+					height: h,
+					isFilled: true,
+					isLabel: true,
+				}),
 			],
 		})
 	}
@@ -166,26 +166,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		// rotate right 45 deg
 		const labelSide = getFrameHeadingSide(this.editor, shape)
-
-		let labelTranslate: string
-		switch (labelSide) {
-			case 0: // top
-				labelTranslate = ``
-				break
-			case 3: // right
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, 0) rotate(90)`
-				break
-			case 2: // bottom
-				labelTranslate = `translate(${toDomPrecision(shape.props.w)}, ${toDomPrecision(
-					shape.props.h
-				)}) rotate(180)`
-				break
-			case 1: // left
-				labelTranslate = `translate(0, ${toDomPrecision(shape.props.h)}) rotate(270)`
-				break
-			default:
-				throw Error('labelSide out of bounds')
-		}
+		const labelTranslate = getFrameHeadingTranslation(shape, labelSide, true)
 
 		// Truncate with ellipsis
 		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(shape, theme.text)
@@ -278,59 +259,4 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
 	}
-}
-
-function getFrameHeadingOpts(shape: TLFrameShape, color: string): TLCreateTextJsxFromSpansOpts {
-	return {
-		fontSize: 12,
-		fontFamily: 'Inter, sans-serif',
-		textAlign: 'start' as const,
-		width: shape.props.w,
-		height: 32,
-		padding: 0,
-		lineHeight: 1,
-		fontStyle: 'normal',
-		fontWeight: 'normal',
-		overflow: 'truncate-ellipsis' as const,
-		verticalTextAlign: 'middle' as const,
-		fill: color,
-		offsetY: -(32 + 2),
-		offsetX: 2,
-	}
-}
-
-/**
- * Get the frame heading info (size and text) for a frame shape.
- *
- * @param editor The editor instance.
- * @param shape The frame shape.
- * @param opts The text measurement options.
- *
- * @returns The frame heading's size (as a Box) and JSX text spans.
- */
-function getFrameHeadingInfo(
-	editor: Editor,
-	shape: TLFrameShape,
-	opts: TLCreateTextJsxFromSpansOpts
-) {
-	const spans = editor.textMeasure.measureTextSpans(
-		defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
-		opts
-	)
-
-	const firstSpan = spans[0]
-	const lastSpan = last(spans)!
-	const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-
-	return {
-		box: new Box(0, -opts.height, labelTextWidth, opts.height),
-		spans,
-	}
-}
-
-function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 | 2 | 3 {
-	const pageRotation = canonicalizeRotation(editor.getShapePageTransform(shape.id)!.rotation())
-	const offsetRotation = pageRotation + Math.PI / 4
-	const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-	return Math.floor(scaledRotation) as 0 | 1 | 2 | 3
 }
