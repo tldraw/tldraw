@@ -3,6 +3,7 @@ import {
 	Box,
 	Editor,
 	Geometry2d,
+	Group2d,
 	Rectangle2d,
 	SVGContainer,
 	SvgExportContext,
@@ -52,10 +53,64 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override getGeometry(shape: TLFrameShape): Geometry2d {
-		return new Rectangle2d({
-			width: shape.props.w,
-			height: shape.props.h,
-			isFilled: false,
+		const { editor } = this
+		const z = editor.getZoomLevel()
+		const opts = getFrameHeadingOpts(shape, 'black')
+		const headingInfo = getFrameHeadingInfo(editor, shape, opts)
+		const labelSide = getFrameHeadingSide(editor, shape)
+
+		// wow this fucking sucks!!!
+		let x: number, y: number, w: number, h: number
+
+		switch (labelSide) {
+			case 0: {
+				x = -8 / z
+				y = (-headingInfo.box.height - 4) / z
+				w = (Math.min(headingInfo.box.width, shape.props.w * z) + 16) / z
+				h = headingInfo.box.height / z
+				break
+			}
+			case 1: {
+				x = (-headingInfo.box.height - 4) / z
+				h = (Math.min(headingInfo.box.width, shape.props.h * z) + 16) / z
+				y = shape.props.h - h + 8 / z
+				w = headingInfo.box.height / z
+				break
+			}
+			case 2: {
+				x = shape.props.w - (Math.min(headingInfo.box.width, shape.props.w * z) + 8) / z
+				y = shape.props.h + 4 / z
+				w = (Math.min(headingInfo.box.width, shape.props.w * z) + 16) / z
+				h = headingInfo.box.height / z
+				break
+			}
+			case 3: {
+				x = shape.props.w + 4 / z
+				h = (Math.min(headingInfo.box.width, shape.props.h * z) + 16) / z
+				y = -8 / z
+				w = headingInfo.box.height / z
+				break
+			}
+		}
+
+		const label = new Rectangle2d({
+			x,
+			y,
+			width: w,
+			height: h,
+			isFilled: true,
+			isLabel: true,
+		})
+
+		return new Group2d({
+			children: [
+				new Rectangle2d({
+					width: shape.props.w,
+					height: shape.props.h,
+					isFilled: false,
+				}),
+				label,
+			],
 		})
 	}
 
@@ -109,14 +164,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override toSvg(shape: TLFrameShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 
-		// Text label
-		const pageRotation = canonicalizeRotation(
-			this.editor.getShapePageTransform(shape.id)!.rotation()
-		)
 		// rotate right 45 deg
-		const offsetRotation = pageRotation + Math.PI / 4
-		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
-		const labelSide = Math.floor(scaledRotation)
+		const labelSide = getFrameHeadingSide(this.editor, shape)
 
 		let labelTranslate: string
 		switch (labelSide) {
@@ -139,22 +188,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 
 		// Truncate with ellipsis
-		const opts: TLCreateTextJsxFromSpansOpts = {
-			fontSize: 12,
-			fontFamily: 'Inter, sans-serif',
-			textAlign: 'start' as const,
-			width: shape.props.w,
-			height: 32,
-			padding: 0,
-			lineHeight: 1,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			overflow: 'truncate-ellipsis' as const,
-			verticalTextAlign: 'middle' as const,
-			fill: theme.text,
-			offsetY: -(32 + 4),
-			offsetX: 2,
-		}
+		const opts: TLCreateTextJsxFromSpansOpts = getFrameHeadingOpts(shape, theme.text)
 
 		const { box: labelBounds, spans } = getFrameHeadingInfo(this.editor, shape, opts)
 		const text = createTextJsxFromSpans(this.editor, spans, opts)
@@ -172,9 +206,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				/>
 				<g transform={labelTranslate}>
 					<rect
-						x={labelBounds.x}
-						y={labelBounds.y}
-						width={labelBounds.width}
+						x={labelBounds.x - 8}
+						y={labelBounds.y - 4}
+						width={labelBounds.width + 20}
 						height={labelBounds.height}
 						fill={theme.background}
 						rx={4}
@@ -246,6 +280,25 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 }
 
+function getFrameHeadingOpts(shape: TLFrameShape, color: string): TLCreateTextJsxFromSpansOpts {
+	return {
+		fontSize: 12,
+		fontFamily: 'Inter, sans-serif',
+		textAlign: 'start' as const,
+		width: shape.props.w,
+		height: 32,
+		padding: 0,
+		lineHeight: 1,
+		fontStyle: 'normal',
+		fontWeight: 'normal',
+		overflow: 'truncate-ellipsis' as const,
+		verticalTextAlign: 'middle' as const,
+		fill: color,
+		offsetY: -(32 + 2),
+		offsetX: 2,
+	}
+}
+
 /**
  * Get the frame heading info (size and text) for a frame shape.
  *
@@ -270,7 +323,14 @@ function getFrameHeadingInfo(
 	const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
 
 	return {
-		box: new Box(-6, -(opts.height + 4), labelTextWidth + 16, opts.height),
+		box: new Box(0, -opts.height, labelTextWidth, opts.height),
 		spans,
 	}
+}
+
+function getFrameHeadingSide(editor: Editor, shape: TLFrameShape): 0 | 1 | 2 | 3 {
+	const pageRotation = canonicalizeRotation(editor.getShapePageTransform(shape.id)!.rotation())
+	const offsetRotation = pageRotation + Math.PI / 4
+	const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
+	return Math.floor(scaledRotation) as 0 | 1 | 2 | 3
 }
