@@ -169,11 +169,6 @@ function TlaSidebarRecentFiles() {
 		},
 		[app]
 	)
-	const sidebarContentRef = useRef<HTMLDivElement>(null)
-
-	useEffect(() => {
-		sidebarContentRef.current?.scrollTo({ top: 0 })
-	}, [results.length])
 
 	if (!results) throw Error('Could not get files')
 
@@ -205,7 +200,7 @@ function TlaSidebarRecentFiles() {
 	}
 
 	return (
-		<div ref={sidebarContentRef} className={styles.content}>
+		<div className={styles.content}>
 			{todayFiles.length ? (
 				<TlaSidebarFileSection title={<F defaultMessage="Today" />} items={todayFiles} />
 			) : null}
@@ -244,12 +239,26 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 	const isActive = fileSlug === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
 	const trackEvent = useTldrawAppUiEvents()
+	const ref = useRef<HTMLDivElement>(null)
 
 	const handleRenameAction = () => setIsRenaming(true)
 
 	const handleRenameClose = () => setIsRenaming(false)
 
 	const app = useApp()
+
+	const results = useValue(
+		'recent user files',
+		() => {
+			return app.getUserRecentFiles()
+		},
+		[app]
+	)
+	useEffect(() => {
+		if (isActive && results.length > 0) {
+			ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+		}
+	}, [isActive, results.length])
 
 	if (isRenaming) {
 		return <TlaRenameInline source="sidebar" fileId={fileId} onClose={handleRenameClose} />
@@ -262,6 +271,7 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 			data-element="file-link"
 			data-testid={`tla-file-link-${index}`}
 			onDoubleClick={handleRenameAction}
+			ref={ref}
 		>
 			<div className={styles.linkContent}>
 				<div
