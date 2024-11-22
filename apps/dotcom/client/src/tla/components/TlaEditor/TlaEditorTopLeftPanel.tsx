@@ -37,7 +37,7 @@ const messages = defineMessages({
 
 export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
+	usePassThroughWheelEvents(ref.current)
 
 	return (
 		<div ref={ref} className={classNames(styles.topPanelLeft)}>

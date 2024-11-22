@@ -79,7 +79,6 @@ export const TextLabel = React.memo(function TextLabel({
 			const html = renderHtmlFromRichText(editor, richText)
 			setHtmlFromMarkdown(html)
 		} else {
-			// This is the 'short-circuit' path. If it's just plaintext, we don't need to do anything fancy.
 			if (htmlFromMarkdown) {
 				setHtmlFromMarkdown(null)
 			}

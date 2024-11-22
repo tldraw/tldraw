@@ -43,7 +43,7 @@ const WatermarkInner = memo(function WatermarkInner({ src }: { src: string }) {
 	const events = useCanvasEvents()
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
+	usePassThroughWheelEvents(ref.current)
 
 	const maskCss = `url('${src}') center 100% / 100% no-repeat`
 	const url = 'https://tldraw.dev'

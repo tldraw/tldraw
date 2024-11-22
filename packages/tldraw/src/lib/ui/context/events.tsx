@@ -113,14 +113,7 @@ export interface TLUiEventMap {
 	'open-url': { url: string }
 	'copy-link': null
 	'rich-text': {
-		operation:
-			| 'bold'
-			| 'strikethrough'
-			| 'link'
-			| 'link-edit'
-			| 'link-remove'
-			| 'header'
-			| 'bulleted-list'
+		operation: 'bold' | 'strike' | 'link' | 'link-edit' | 'link-remove' | 'heading' | 'bulletList'
 	}
 }
 

@@ -18,7 +18,7 @@ export const DefaultStylePanel = memo(function DefaultStylePanel({
 	const editor = useEditor()
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
+	usePassThroughWheelEvents(ref.current)
 
 	const styles = useRelevantStyles()
 

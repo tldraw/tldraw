@@ -21,7 +21,7 @@ const components: TLComponents = {
 	},
 	SharePanel: () => {
 		const ref = useRef<HTMLDivElement>(null)
-		usePassThroughWheelEvents(ref)
+		usePassThroughWheelEvents(ref.current)
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
 				<TlaFileShareMenuPublishPage>

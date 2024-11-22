@@ -1,6 +1,5 @@
 import { preventDefault, stopEventPropagation, useEditor, useUniqueSafeId } from '@tldraw/editor'
 import { forwardRef, useEffect } from 'react'
-import { renderPlaintextFromRichText } from '../../utils/text/richText'
 
 import { EditorEvents, EditorProvider } from '@tiptap/react'
 
@@ -51,22 +50,13 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 			editor: { state },
 		} = props
 		const json = JSON.stringify(state.doc.toJSON())
-		// This is a quick and dirty way to determine if the text is just plaintext or if it's rich text.
-		const isPlaintext =
-			!json.includes(`"marks"`) && !json.includes(`"list_item"`) && !json.includes(`"heading"`)
-		if (isPlaintext) {
-			const plaintext = renderPlaintextFromRichText(editor, json)
-			// There is a 'short-circuit' path here. If it's just plaintext, we don't need to do anything fancy.
-			handleChange({ plaintext })
-		} else {
-			handleChange({ richText: json })
-		}
+		handleChange({ richText: json })
 	}
 
 	if (!isEditing) return null
 	if (!tipTapConfig) return null
 
-	const content = richText ? JSON.parse(richText) : plaintext
+	const content = richText ? JSON.parse(richText) : plaintext.split('\n').join('<br />')
 
 	return (
 		<div

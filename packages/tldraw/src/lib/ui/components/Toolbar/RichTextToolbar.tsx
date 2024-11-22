@@ -1,67 +1,85 @@
-import { Editor, EditorEvents } from '@tiptap/core'
-import { TLCamera, TLShape, track, useEditor, useValue, Vec } from '@tldraw/editor'
-import { useEffect, useRef, useState } from 'react'
-import { useUiEvents } from '../../context/events'
-import { useTranslation } from '../../hooks/useTranslation/useTranslation'
-import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
-import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
-import { TldrawUiInput } from '../primitives/TldrawUiInput'
+import { Editor as TextEditor, EditorEvents as TextEditorEvents } from '@tiptap/core'
+import { EditorState as TextEditorState } from '@tiptap/pm/state'
+import {
+	Editor,
+	TLCamera,
+	Vec,
+	stopEventPropagation,
+	track,
+	useEditor,
+	usePassThroughMouseOverEvents,
+	usePassThroughWheelEvents,
+	useValue,
+} from '@tldraw/editor'
+import { RefObject, useEffect, useRef, useState } from 'react'
+import useViewportHeight from '../../hooks/useViewportHeight'
+import { LinkEditor } from './LinkEditor'
+import { RichTextToolbarItems } from './RichTextToolbarItems'
 
 /** @public @react */
 export const RichTextToolbar = track(function RichTextToolbar() {
 	const editor = useEditor()
-	const trackEvent = useUiEvents()
-	const msg = useTranslation()
-	const source = 'rich-text-menu'
-	const [currentShape, setCurrentShape] = useState<TLShape | null>()
 	const [currentCoordinates, setCurrentCoordinates] = useState<Vec>()
 	const [currentCamera, setCurrentCamera] = useState<TLCamera>(editor.getCamera())
+	const toolbarRef = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(toolbarRef.current)
+	usePassThroughMouseOverEvents(toolbarRef.current)
+	const previousTop = useRef(defaultPosition.top)
 	const [isEditingLink, setIsEditingLink] = useState(false)
+	const textEditor: TextEditor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
+		editor,
+	])
+	const [textEditorState, setTextEditorState] = useState<TextEditorState | null>(textEditor?.state)
+	const [isSelectingText, setSelectingText] = useState(false)
+	const [shouldAllowToolbarClick, setShouldAllowToolbarClick] = useState(false)
+	const hasSelection = !textEditorState?.selection.empty
 
-	const showToolbar = editor.isInAny('select.editing_shape')
 	const selectionRotatedPageBounds = editor.getSelectionRotatedPageBounds()
 	const camera = editor.getCamera()
-	const selectedShape = editor.getOnlySelectedShape()
 	const pageCoordinates = selectionRotatedPageBounds
 		? editor.pageToViewport(selectionRotatedPageBounds.point)
 		: null
-	const textEditor: Editor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
-		editor,
-	])
-	const [, setTextEditorState] = useState(textEditor?.state)
 
+	// This is to ensure the toolbar follows the selection when the camera moves.
 	useEffect(() => {
 		if (
 			pageCoordinates &&
-			((selectedShape && !currentShape) ||
-				selectedShape?.id !== currentShape?.id ||
-				currentCamera.x !== camera.x ||
-				currentCamera.y !== camera.y ||
-				currentCamera.z !== camera.z)
+			(currentCamera.x !== camera.x || currentCamera.y !== camera.y || currentCamera.z !== camera.z)
 		) {
 			if (!currentCoordinates || !currentCoordinates.equals(pageCoordinates)) {
 				setCurrentCoordinates(pageCoordinates)
 			}
 		}
-		if (!showToolbar) {
-			setCurrentShape(null)
-		} else {
-			setCurrentShape(selectedShape)
-		}
 		setCurrentCamera(camera)
-	}, [
-		selectedShape,
-		currentShape,
-		currentCoordinates,
-		pageCoordinates,
-		showToolbar,
-		camera,
-		currentCamera,
-	])
+	}, [currentCoordinates, pageCoordinates, camera, currentCamera])
 
 	useEffect(() => {
-		if (!textEditor) return
-		const handleTransaction = ({ editor: textEditor }: EditorEvents['transaction']) => {
+		const handleMouseDown = () => {
+			setSelectingText(true)
+			setShouldAllowToolbarClick(hasSelection)
+		}
+
+		const handleMouseUp = () => {
+			setSelectingText(false)
+			setShouldAllowToolbarClick(true)
+		}
+
+		window.addEventListener('mousedown', handleMouseDown)
+		window.addEventListener('mouseup', handleMouseUp)
+
+		return () => {
+			window.removeEventListener('mousedown', handleMouseDown)
+			window.removeEventListener('mouseup', handleMouseUp)
+		}
+	}, [hasSelection])
+
+	useEffect(() => {
+		if (!textEditor) {
+			setTextEditorState(null)
+			return
+		}
+
+		const handleTransaction = ({ editor: textEditor }: TextEditorEvents['transaction']) => {
 			setTextEditorState(textEditor.state)
 		}
 		const handleClick = () => {
@@ -74,155 +92,175 @@ export const RichTextToolbar = track(function RichTextToolbar() {
 		return () => {
 			textEditor.off('transaction', handleTransaction)
 			textEditor.view.dom.removeEventListener('click', handleClick)
+			setTextEditorState(null)
 		}
 	}, [textEditor])
 
-	if (!showToolbar) return null
-	if (!selectionRotatedPageBounds) return null
-	if (!currentCoordinates) return null
-	if (!textEditor) return null
+	const toolbarPosition = usePosition({
+		hasSelection,
+		toolbarRef,
+		textEditor,
+		shouldAllowToolbarClick,
+	})
 
-	const handleLinkComplete = (link: string) => {
-		trackEvent('rich-text', { operation: 'link-edit', source })
-		if (!link.startsWith('http://') && !link.startsWith('https://')) {
-			link = `https://${link}`
-		}
+	if (!textEditor || !shouldShowToolbar(editor, textEditorState)) return null
 
-		textEditor.chain().setLink({ href: link }).focus().run()
-		setIsEditingLink(false)
-	}
+	const handleEditLinkIntent = () => setIsEditingLink(true)
+	const handleLinkComplete = () => setIsEditingLink(false)
 
-	const handleRemoveLink = () => {
-		trackEvent('rich-text', { operation: 'link-remove', source })
-		textEditor.chain().unsetLink().focus().run()
-		setIsEditingLink(false)
-	}
-
-	const handleLinkCancel = () => {
-		setIsEditingLink(false)
-	}
+	const isSelectionOnSameLine = previousTop.current === toolbarPosition.top
+	previousTop.current = toolbarPosition.top
 
 	return (
 		<div
+			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
+			data-has-selection={hasSelection}
+			data-is-selecting-text={isSelectingText}
+			data-is-selection-on-same-line={isSelectionOnSameLine}
 			style={{
-				top: Math.floor(Math.max(16, currentCoordinates.y - 64)),
-				left: Math.floor(Math.max(16, currentCoordinates.x)),
-				width: Math.floor(selectionRotatedPageBounds.width * editor.getZoomLevel()),
+				top: `${toolbarPosition.top}px`,
+				left: `${toolbarPosition.left}px`,
 			}}
-			onPointerDown={(e) => e.stopPropagation()}
+			onPointerDown={stopEventPropagation}
 		>
+			<div
+				className="tl-rich-text__toolbar-indicator"
+				style={{ left: `calc(50% - var(--arrow-size) - ${toolbarPosition.offset}px)` }}
+			/>
 			<div className="tlui-toolbar__tools" role="radiogroup">
 				{isEditingLink ? (
 					<LinkEditor
+						textEditor={textEditor}
 						value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
 						onComplete={handleLinkComplete}
-						onCancel={handleLinkCancel}
-						onRemoveLink={handleRemoveLink}
 					/>
 				) : (
-					<>
-						<TldrawUiButton
-							title={msg('tool.rich-text-bold')}
-							type="icon"
-							isActive={textEditor.isActive('bold')}
-							onClick={() => {
-								trackEvent('rich-text', { operation: 'bold', source })
-								textEditor.chain().focus().toggleBold().run()
-							}}
-						>
-							<TldrawUiButtonIcon small icon="bold" />
-						</TldrawUiButton>
-						<TldrawUiButton
-							title={msg('tool.rich-text-strikethrough')}
-							type="icon"
-							isActive={textEditor.isActive('strike')}
-							onClick={() => {
-								trackEvent('rich-text', { operation: 'strikethrough', source })
-								textEditor.chain().focus().toggleStrike().run()
-							}}
-						>
-							<TldrawUiButtonIcon small icon="strikethrough" />
-						</TldrawUiButton>
-						<TldrawUiButton
-							title={msg('tool.rich-text-link')}
-							type="icon"
-							isActive={textEditor.isActive('link')}
-							onClick={() => {
-								trackEvent('rich-text', { operation: 'link', source })
-								setIsEditingLink(true)
-							}}
-						>
-							<TldrawUiButtonIcon small icon="link" />
-						</TldrawUiButton>
-						<TldrawUiButton
-							title={msg('tool.rich-text-header')}
-							type="icon"
-							isActive={textEditor.isActive('heading', { level: 3 })}
-							onClick={() => {
-								trackEvent('rich-text', { operation: 'header', source })
-								textEditor.chain().focus().toggleHeading({ level: 3 }).run()
-							}}
-						>
-							<TldrawUiButtonIcon small icon="header" />
-						</TldrawUiButton>
-						<TldrawUiButton
-							title={msg('tool.rich-text-bulleted-list')}
-							type="icon"
-							isActive={textEditor.isActive('bulletList')}
-							onClick={() => {
-								trackEvent('rich-text', { operation: 'bulleted-list', source })
-								textEditor.chain().focus().toggleBulletList().run()
-							}}
-						>
-							<TldrawUiButtonIcon small icon="bulleted-list" />
-						</TldrawUiButton>
-					</>
+					<RichTextToolbarItems textEditor={textEditor} onEditLinkIntent={handleEditLinkIntent} />
 				)}
 			</div>
 		</div>
 	)
 })
 
-function LinkEditor({
-	value: initialValue,
-	onComplete,
-	onCancel,
-	onRemoveLink,
+function shouldShowToolbar(editor: Editor, textEditorState: TextEditorState | null) {
+	const showToolbar = editor.isInAny('select.editing_shape')
+
+	if (!showToolbar) return false
+	if (!textEditorState) return false
+
+	return true
+}
+
+const defaultPosition = {
+	top: -1000,
+	left: -1000,
+	offset: 0,
+	visible: false,
+}
+
+/*!
+ * BSD License: https://github.com/outline/rich-markdown-editor/blob/main/LICENSE
+ * Copyright (c) 2020 General Outline, Inc (https://www.getoutline.com/) and individual contributors.
+ *
+ * Modified from FloatingToolbar.tsx -> usePosition
+ * https://github.com/outline/rich-markdown-editor/blob/main/src/components/FloatingToolbar.tsx
+ *
+ * The Outline editor was a Dropbox Paper clone, and I worked on Dropbox Paper as a founding engineer.
+ * Now I'm working at tldraw adding rich text features to the editor and bringing those Paper/Outline
+ * ideas to the tldraw editor using some Outline logic.
+ * It all comes full circle! :)
+ *
+ * Returns the position of the toolbar based on the current selection in the editor.
+ *
+ * @public
+ */
+function usePosition({
+	hasSelection,
+	toolbarRef,
+	textEditor,
+	shouldAllowToolbarClick,
 }: {
-	value: string
-	onComplete(link: string): void
-	onCancel(): void
-	onRemoveLink(): void
+	hasSelection: boolean
+	toolbarRef: RefObject<HTMLDivElement>
+	textEditor: TextEditor
+	shouldAllowToolbarClick: boolean
 }) {
-	const [value, setValue] = useState(initialValue)
-	const msg = useTranslation()
-	const ref = useRef<HTMLInputElement>(null)
-
-	const handleValueChange = (value: string) => setValue(value)
-
-	useEffect(() => {
-		ref.current?.focus()
-	}, [])
-
-	return (
-		<>
-			<TldrawUiInput
-				ref={ref}
-				className="tl-rich-text__toolbar-link-input"
-				value={value}
-				onValueChange={handleValueChange}
-				onComplete={onComplete}
-				onCancel={onCancel}
-			/>
-			<TldrawUiButton
-				className="tl-rich-text__toolbar-link-remove"
-				title={msg('tool.rich-text-link-remove')}
-				type="icon"
-				onClick={onRemoveLink}
-			>
-				<TldrawUiButtonIcon small icon="cross-2" />
-			</TldrawUiButton>
-		</>
+	const editor = useEditor()
+	const isCoarsePointer = useValue(
+		'isCoarsePointer',
+		() => editor.getInstanceState().isCoarsePointer,
+		[editor]
 	)
+	const viewportHeight = useViewportHeight()
+
+	if (!textEditor || !toolbarRef?.current) return defaultPosition
+	const { view } = textEditor
+	const { selection } = view.state
+	const { width: menuWidth, height: menuHeight } = toolbarRef.current.getBoundingClientRect()
+
+	if (!hasSelection || !menuWidth || !menuHeight || !shouldAllowToolbarClick) {
+		return defaultPosition
+	}
+
+	if (isCoarsePointer) {
+		return {
+			top: viewportHeight - menuHeight,
+			left: 0,
+			offset: 0,
+			visible: true,
+		}
+	}
+
+	// Based on the start and end of the selection calculate the position at the center top.
+	let fromPos
+	let toPos
+	try {
+		fromPos = view.coordsAtPos(selection.from)
+		toPos = view.coordsAtPos(selection.to, -1)
+	} catch (err) {
+		console.warn(err)
+		return defaultPosition
+	}
+
+	// Ensure that start < end for the menu to be positioned correctly.
+	const selectionBounds = {
+		top: Math.min(fromPos.top, toPos.top),
+		bottom: Math.max(fromPos.bottom, toPos.bottom),
+		left: Math.min(fromPos.left, toPos.left),
+		right: Math.max(fromPos.right, toPos.right),
+	}
+
+	// Calcluate the horizontal center of the selection.
+	const halfSelection = Math.abs(selectionBounds.right - selectionBounds.left) / 2
+	const centerOfSelection = selectionBounds.left + halfSelection
+
+	// Position the menu so that it is centered over the selection except in
+	// the cases where it would extend off the edge of the screen. In these
+	// instances leave a margin.
+	const margin = 16
+	const left = Math.min(
+		window.innerWidth - menuWidth - margin,
+		Math.max(margin, centerOfSelection - menuWidth / 2)
+	)
+	const top = Math.min(
+		window.innerHeight - menuHeight - margin,
+		Math.max(margin, selectionBounds.top - menuHeight)
+	)
+
+	// If the menu has been offset to not extend offscreen then we should adjust
+	// the position of the triangle underneath to correctly point to the center
+	// of the selection still.
+	const toolbarIndicatorPadding = 20
+	const offset = Math.max(
+		(-1 * menuWidth) / 2 + toolbarIndicatorPadding,
+		Math.min(menuWidth / 2 - toolbarIndicatorPadding, left - (centerOfSelection - menuWidth / 2))
+	)
+
+	return {
+		top: Math.round(top + window.scrollY),
+		left: Math.round(left + window.scrollX),
+		offset: Math.round(offset),
+		visible: true,
+	}
 }

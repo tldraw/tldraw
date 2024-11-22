@@ -8,7 +8,7 @@ import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel() {
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
+	usePassThroughWheelEvents(ref.current)
 	const fileId = useCurrentFileId()
 
 	return (

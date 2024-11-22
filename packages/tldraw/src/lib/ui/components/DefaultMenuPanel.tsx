@@ -9,7 +9,7 @@ export const DefaultMenuPanel = memo(function MenuPanel() {
 	const breakpoint = useBreakpoint()
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
+	usePassThroughWheelEvents(ref.current)
 
 	const { MainMenu, QuickActions, ActionsMenu, PageMenu } = useTldrawUiComponents()
 

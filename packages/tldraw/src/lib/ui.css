@@ -898,7 +898,6 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	background-color: var(--color-low);
 	border-radius: var(--radius-4);
 	z-index: var(--layer-panels);
 	pointer-events: all;
@@ -933,6 +932,50 @@
 	justify-content: center;
 	align-items: center;
 	pointer-events: all;
+
+	/* This forgoes the box-shadow so that we can get a shadow on the indicator arrow. */
+	filter: drop-shadow(0px 2px 3px hsl(0, 0%, 0%, 24%));
+
+	--animation-curve: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+	will-change: top, left, opacity, transform;
+	opacity: 0;
+	transform: scale(0.95);
+	transition: opacity 150ms var(--animation-curve),
+		transform 150ms var(--animation-curve);
+	transition-delay: 150ms;
+}
+
+.tl-rich-text__toolbar[data-has-selection='true'] {
+	transform: translateY(-6px) scale(1);
+  opacity: 1;
+}
+
+/**
+ * This prevents jumpiness of the animation when going across multiple lines.
+ * Otherwise, annoyingly, the toolbar is whips back-and-forth as the selection goes from
+ * the beginning of a line to the end of the line and so on.
+ */
+.tl-rich-text__toolbar[data-is-selection-on-same-line='true'][data-is-selecting-text='true'] {
+	transition: opacity 150ms var(--animation-curve),
+		transform 150ms var(--animation-curve),
+		left 150ms var(--animation-curve);
+	transition-delay: 150ms;
+}
+
+.tl-rich-text__toolbar-indicator {
+	--arrow-size: 8px;
+	position: absolute;
+	bottom: calc(-1 * var(--arrow-size));
+	left: 0;
+	z-index: calc(var(--layer-canvas-shapes) + 1);
+	border: var(--arrow-size) solid transparent;
+	border-bottom-width: 0;
+	border-top-color: var(--color-panel);
+	pointer-events: none;
+}
+
+.tl-rich-text__toolbar .tlui-toolbar__tools {
+	box-shadow: none;
 }
 
 .tl-rich-text__toolbar [data-isactive='true']::after {

@@ -31,7 +31,7 @@ export type AssetUrls = {
 		'bring-forward': string
 		'bring-to-front': string
 		broken: string
-		'bulleted-list': string
+		bulletList: string
 		'check-circle': string
 		check: string
 		'chevron-down': string
@@ -93,7 +93,7 @@ export type AssetUrls = {
 		'geo-x-box': string
 		github: string
 		group: string
-		header: string
+		heading: string
 		'horizontal-align-end': string
 		'horizontal-align-middle': string
 		'horizontal-align-start': string
@@ -126,7 +126,7 @@ export type AssetUrls = {
 		'status-offline': string
 		'stretch-horizontal': string
 		'stretch-vertical': string
-		strikethrough: string
+		strike: string
 		'text-align-center': string
 		'text-align-left': string
 		'text-align-right': string
