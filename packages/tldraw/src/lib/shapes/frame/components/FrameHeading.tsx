@@ -103,8 +103,8 @@ export const FrameHeading = function FrameHeading({
 				bottom: '100%',
 				transform: `${labelTranslate} scale(var(--tl-scale)) translateX(calc(-1 * var(--space-3))`,
 			}}
-			onPointerDown={handlePointerDown}
-			onPointerUp={handlePointerUp}
+			// onPointerDown={handlePointerDown}
+			// onPointerUp={handlePointerUp}
 		>
 			<div className="tl-frame-heading-hit-area">
 				<FrameLabelInput ref={rInput} id={id} name={name} isEditing={isEditing} />

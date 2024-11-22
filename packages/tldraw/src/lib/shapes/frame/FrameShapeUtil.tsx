@@ -1,5 +1,7 @@
 import {
 	BaseBoxShapeUtil,
+	Box,
+	Editor,
 	Geometry2d,
 	Rectangle2d,
 	SVGContainer,
@@ -21,7 +23,10 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 
-import { createTextJsxFromSpans } from '../shared/createTextJsxFromSpans'
+import {
+	TLCreateTextJsxFromSpansOpts,
+	createTextJsxFromSpans,
+} from '../shared/createTextJsxFromSpans'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import { FrameHeading } from './components/FrameHeading'
 
@@ -134,7 +139,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 
 		// Truncate with ellipsis
-		const opts = {
+		const opts: TLCreateTextJsxFromSpansOpts = {
 			fontSize: 12,
 			fontFamily: 'Inter, sans-serif',
 			textAlign: 'start' as const,
@@ -147,20 +152,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			overflow: 'truncate-ellipsis' as const,
 			verticalTextAlign: 'middle' as const,
 			fill: theme.text,
+			offsetY: -(32 + 4),
+			offsetX: 2,
 		}
 
-		const spans = this.editor.textMeasure.measureTextSpans(
-			defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
-			opts
-		)
-
-		const firstSpan = spans[0]
-		const lastSpan = last(spans)!
-		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = createTextJsxFromSpans(this.editor, spans, {
-			offsetY: -opts.height - 2,
-			...opts,
-		})
+		const { box: labelBounds, spans } = getFrameHeadingInfo(this.editor, shape, opts)
+		const text = createTextJsxFromSpans(this.editor, spans, opts)
 
 		return (
 			<>
@@ -175,10 +172,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 				/>
 				<g transform={labelTranslate}>
 					<rect
-						x={-8}
-						y={-opts.height - 4}
-						width={labelTextWidth + 16}
-						height={opts.height}
+						x={labelBounds.x}
+						y={labelBounds.y}
+						width={labelBounds.width}
+						height={labelBounds.height}
 						fill={theme.background}
 						rx={4}
 						ry={4}
@@ -246,5 +243,34 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			w: lerp(startShape.props.w, endShape.props.w, t),
 			h: lerp(startShape.props.h, endShape.props.h, t),
 		}
+	}
+}
+
+/**
+ * Get the frame heading info (size and text) for a frame shape.
+ *
+ * @param editor The editor instance.
+ * @param shape The frame shape.
+ * @param opts The text measurement options.
+ *
+ * @returns The frame heading's size (as a Box) and JSX text spans.
+ */
+function getFrameHeadingInfo(
+	editor: Editor,
+	shape: TLFrameShape,
+	opts: TLCreateTextJsxFromSpansOpts
+) {
+	const spans = editor.textMeasure.measureTextSpans(
+		defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
+		opts
+	)
+
+	const firstSpan = spans[0]
+	const lastSpan = last(spans)!
+	const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
+
+	return {
+		box: new Box(-6, -(opts.height + 4), labelTextWidth + 16, opts.height),
+		spans,
 	}
 }

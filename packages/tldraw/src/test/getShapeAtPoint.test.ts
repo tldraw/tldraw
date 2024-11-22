@@ -166,3 +166,21 @@ describe('with filter', () => {
 		expect(editor.getShapeAtPoint({ x: 310, y: 310 }, opts)?.id).toBe(undefined)
 	})
 })
+
+describe('frames', () => {
+	it('hits frame label', () => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.getSelectedShapes())
+			.createShape({
+				type: 'frame',
+				x: 100,
+				y: 100,
+			})
+			.pointerMove(100, 90)
+			.pointerDown()
+			.pointerUp()
+
+		expect(editor.getOnlySelectedShape()?.type).toBe('frame')
+	})
+})
