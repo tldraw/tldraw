@@ -940,14 +940,15 @@
 	will-change: top, left, opacity, transform;
 	opacity: 0;
 	transform: scale(0.95);
-	transition: opacity 150ms var(--animation-curve),
+	transition:
+		opacity 150ms var(--animation-curve),
 		transform 150ms var(--animation-curve);
 	transition-delay: 150ms;
 }
 
 .tl-rich-text__toolbar[data-has-selection='true'] {
 	transform: translateY(-6px) scale(1);
-  opacity: 1;
+	opacity: 1;
 }
 
 /**
@@ -956,7 +957,8 @@
  * the beginning of a line to the end of the line and so on.
  */
 .tl-rich-text__toolbar[data-is-selection-on-same-line='true'][data-is-selecting-text='true'] {
-	transition: opacity 150ms var(--animation-curve),
+	transition:
+		opacity 150ms var(--animation-curve),
 		transform 150ms var(--animation-curve),
 		left 150ms var(--animation-curve);
 	transition-delay: 150ms;
