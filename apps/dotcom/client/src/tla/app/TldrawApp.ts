@@ -259,13 +259,13 @@ export class TldrawApp {
 		}
 
 		const intl = createIntl()
+		const createdAt = new Date(file.createdAt)
 		if (intl) {
-			const createdAt = new Date(file.createdAt)
 			const format = getDateFormat(createdAt)
 			return intl.formatDate(createdAt, format)
 		}
 		const locale = this.user$.get()?.locale
-		return new Date(file.createdAt).toLocaleString(locale ?? 'en-gb')
+		return new Date(createdAt).toLocaleString(locale ?? 'en-gb')
 	}
 
 	claimTemporaryFile(fileId: string) {
