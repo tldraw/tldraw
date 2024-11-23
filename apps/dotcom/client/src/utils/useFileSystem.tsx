@@ -15,6 +15,7 @@ import {
 import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'
+import { SVG_FILE_EXTENSION } from 'tldraw/src/lib/utils/tldr/file'
 
 export const SAVE_FILE_COPY_ACTION = 'save-file-copy'
 export const OPEN_FILE_ACTION = 'open-file'
@@ -58,7 +59,7 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 						let file
 						try {
 							file = await fileOpen({
-								extensions: [TLDRAW_FILE_EXTENSION],
+								extensions: [TLDRAW_FILE_EXTENSION, SVG_FILE_EXTENSION],
 								multiple: false,
 								description: 'tldraw project',
 							})
