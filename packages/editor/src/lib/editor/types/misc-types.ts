@@ -14,6 +14,7 @@ export interface TLImageExportOptions {
 	quality?: number
 	pixelRatio?: number
 	background?: boolean
+	embedScene?: boolean
 	padding?: number
 	darkMode?: boolean
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']

@@ -15,6 +15,7 @@ export function useExportAs() {
 			exportAs(editor, ids, format, name, {
 				scale: 1,
 				background: editor.getInstanceState().exportBackground,
+				embedScene: editor.getInstanceState().embedScene,
 			}).catch((e) => {
 				console.error(e.message)
 				addToast({
