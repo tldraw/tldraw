@@ -1224,6 +1224,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-embed-scene',
+				label: {
+					default: 'action.toggle-embed-scene',
+					menu: 'action.toggle-embed-scene.menu',
+					['context-menu']: 'action.toggle-embed-scene.context-menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-embed-scene', { source })
+					editor.updateInstanceState({
+						embedScene: !editor.getInstanceState().embedScene,
+					})
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-tool-lock',
 				label: {
 					default: 'action.toggle-tool-lock',

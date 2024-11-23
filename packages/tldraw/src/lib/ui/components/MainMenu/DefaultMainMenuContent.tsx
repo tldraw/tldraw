@@ -18,6 +18,7 @@ import {
 	ToggleDebugModeItem,
 	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
+	ToggleEmbedSceneMenuItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleLockMenuItem,
@@ -61,6 +62,7 @@ export function ExportFileContentSubMenu() {
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="export-all-as-bg">
 				<ToggleTransparentBgMenuItem />
+				<ToggleEmbedSceneMenuItem />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
