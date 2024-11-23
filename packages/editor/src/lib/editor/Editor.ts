@@ -8582,10 +8582,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!result) return undefined
 
 		if (opts.embedScene) {
-			const data = await this.resolveAssetsInContent(this.getContentFromCurrentPage(shapes))
-			if (!data) return undefined
 			// FIXME: unicode?
-			const base64Scene = btoa(JSON.stringify(data))
+			const base64Scene = btoa(opts.embedScene)
 			// FIXME: add some version information, and maybe make the comment more detailed to
 			// make it harder to accidentally end up with a false positive when parsing random files?
 			const comment = document.createComment(`tldraw-scene=${base64Scene}`)

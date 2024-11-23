@@ -184,6 +184,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
+					// FIXME: consider making it .tldraw.svg if opts.embedScene is true?
 					exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
