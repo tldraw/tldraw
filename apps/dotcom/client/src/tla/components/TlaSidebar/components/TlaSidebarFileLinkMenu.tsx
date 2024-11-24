@@ -1,4 +1,4 @@
-import { useIntl } from 'react-intl'
+import { useMsg } from '../../../utils/i18n'
 import { TlaFileMenu } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -11,8 +11,7 @@ export function TlaSidebarFileLinkMenu({
 	fileId: string
 	onRenameAction(): void
 }) {
-	const intl = useIntl()
-	const fileMenuLbl = intl.formatMessage(messages.fileMenu)
+	const fileMenuLbl = useMsg(messages.fileMenu)
 
 	return (
 		<TlaFileMenu

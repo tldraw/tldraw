@@ -1,7 +1,7 @@
 import classNames from 'classnames'
-import { useIntl } from 'react-intl'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
+import { useMsg } from '../../../utils/i18n'
 import { TlaAccountMenu } from '../../TlaAccountMenu/TlaAccountMenu'
 import { TlaAvatar } from '../../TlaAvatar/TlaAvatar'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
@@ -10,20 +10,10 @@ import { messages } from './sidebar-shared'
 
 export function TlaSidebarUserLink() {
 	const app = useApp()
-	const intl = useIntl()
-	const accountMenuLbl = intl.formatMessage(messages.accountMenu)
+	const accountMenuLbl = useMsg(messages.accountMenu)
 
-	const user = useValue(
-		'auth',
-		() => {
-			return app.getUser()
-		},
-		[app]
-	)
-
-	if (!user) {
-		return null
-	}
+	const user = useValue('auth', () => app.getUser(), [app])
+	if (!user) return null
 
 	return (
 		<TlaAccountMenu source="sidebar">

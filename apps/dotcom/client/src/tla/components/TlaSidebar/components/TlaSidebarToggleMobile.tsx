@@ -1,5 +1,5 @@
-import { useIntl } from 'react-intl'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
+import { useMsg } from '../../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -7,8 +7,7 @@ import { messages } from './sidebar-shared'
 
 export function TlaSidebarToggleMobile() {
 	const trackEvent = useTldrawAppUiEvents()
-	const intl = useIntl()
-	const toggleSidebarLbl = intl.formatMessage(messages.toggleSidebar)
+	const toggleSidebarLbl = useMsg(messages.toggleSidebar)
 
 	return (
 		<button

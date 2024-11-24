@@ -18,6 +18,11 @@ import { ComponentPropsWithoutRef } from 'react'
 // eslint-disable-next-line
 export * from 'react-intl'
 
+export function useMsg(message: MessageDescriptor) {
+	const intl = useIntl()
+	return intl.formatMessage(message)
+}
+
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 
 // This matches the extraction tool pattern:

@@ -1,8 +1,8 @@
 import { useCallback } from 'react'
-import { useIntl } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
+import { useMsg } from '../../../utils/i18n'
 import { getFilePath } from '../../../utils/urls'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
@@ -12,8 +12,7 @@ export function TlaSidebarCreateFileButton() {
 	const app = useApp()
 	const navigate = useNavigate()
 	const trackEvent = useTldrawAppUiEvents()
-	const intl = useIntl()
-	const createTitle = intl.formatMessage(messages.create)
+	const createTitle = useMsg(messages.create)
 
 	const handleSidebarCreate = useCallback(async () => {
 		const res = await app.createFile()
