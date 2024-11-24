@@ -42,7 +42,7 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 
 	return (
 		<div ref={ref} className={classNames(styles.topPanelLeft)}>
-			<div className={classNames(styles.topPanelLeftButtons, 'tlui-buttons__horizontal')}>
+			<div className={classNames(styles.topPanelLeftButtons)}>
 				{isAnonUser ? <TlaEditorTopLeftPanelAnonymous /> : <TlaEditorTopLeftPanelSignedIn />}
 			</div>
 		</div>
@@ -100,6 +100,9 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const intl = useIntl()
 	const pageMenuLbl = intl.formatMessage(messages.pageMenu)
 
+	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
+	const isOwner = useIsFileOwner(fileSlug)
+
 	const app = useApp()
 	const fileId = useCurrentFileId()!
 	const fileName = useValue(
@@ -109,24 +112,25 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		// We should figure out a way to have a single source of truth for the file name.
 		// And to allow guests to 'subscribe' to file metadata updates somehow.
 		() => {
-			return app.getFileName(fileId) ?? editor.getDocumentSettings().name
+			// we need that backup file name for empty file names
+			return app.getFileName(fileId).trim() || editor.getDocumentSettings().name
 		},
 		[app, editor, fileId]
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
-			setIsRenaming(false)
-			// don't allow guests to update the file name
-			app.updateFile(fileId, (file) => ({ ...file, name }))
+			if (isOwner) {
+				setIsRenaming(false)
+				// don't allow guests to update the file name
+				app.updateFile(fileId, (file) => ({ ...file, name }))
+				editor.updateDocumentSettings({ name })
+			}
 		},
-		[app, fileId]
+		[app, editor, fileId, isOwner]
 	)
 
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameEnd = () => setIsRenaming(false)
-
-	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
-	const isOwner = useIsFileOwner(fileSlug)
 
 	const separator = '/'
 	return (

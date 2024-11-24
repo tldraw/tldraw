@@ -46,7 +46,7 @@
 .topPanelSeparator {
 	color: var(--color-text-3);
 	pointer-events: none;
-	padding: 0px 4px;
+	padding: 0px 0px 0px 4px;
 }
 
 .inputWrapper {
@@ -57,7 +57,8 @@
 	max-width: 100%;
 	min-width: 0px;
 	height: 40px;
-	left: -4px;
+	margin-left: -4px;
+	margin-right: -4px;
 	flex-shrink: 2;
 }
 
@@ -154,6 +155,7 @@ button.nameWidthSetter {
 	z-index: 3;
 	padding: 0px;
 	cursor: pointer;
+	margin-left: -4px;
 }
 
 .linkMenu::after {

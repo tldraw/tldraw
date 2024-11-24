@@ -250,7 +250,10 @@ export class TldrawApp {
 		if (typeof file === 'string') {
 			file = this.getFile(file)
 		}
-		if (!file) return ''
+		if (!file) {
+			// possibly a published file
+			return ''
+		}
 		assert(typeof file !== 'string', 'ok')
 
 		const name = file.name.trim()
