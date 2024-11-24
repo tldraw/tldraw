@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { F, IntlProvider } from '../../tla/app/i18n'
+import { F, IntlProvider } from '../../tla/utils/i18n'
 import { isInIframe } from '../../utils/iFrame'
 
 const GoBackLink = () => {

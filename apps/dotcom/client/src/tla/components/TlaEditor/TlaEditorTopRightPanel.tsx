@@ -1,8 +1,8 @@
 import { forwardRef, useRef } from 'react'
 import { PeopleMenu, usePassThroughWheelEvents } from 'tldraw'
-import { F } from '../../app/i18n'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { F } from '../../utils/i18n'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import styles from './top.module.css'
 

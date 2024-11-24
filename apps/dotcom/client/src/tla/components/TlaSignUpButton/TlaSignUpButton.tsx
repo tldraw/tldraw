@@ -1,7 +1,7 @@
 import { SignUpButton } from '@clerk/clerk-react'
 import { ComponentProps } from 'react'
 import { useLocation } from 'react-router-dom'
-import { F } from '../../app/i18n'
+import { F } from '../../utils/i18n'
 import { TlaButton } from '../TlaButton/TlaButton'
 
 export function TlaSignUpButton({ children, ...props }: ComponentProps<typeof TlaButton>) {
