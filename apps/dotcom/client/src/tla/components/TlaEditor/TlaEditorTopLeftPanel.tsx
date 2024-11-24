@@ -18,15 +18,16 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
-import { defineMessages, useIntl } from '../../app/i18n'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { defineMessages, useIntl } from '../../utils/i18n'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
-import { TlaSidebarToggle, TlaSidebarToggleMobile } from '../TlaSidebar/TlaSidebar'
+import { TlaSidebarToggle } from '../TlaSidebar/components/TlaSidebarToggle'
+import { TlaSidebarToggleMobile } from '../TlaSidebar/components/TlaSidebarToggleMobile'
 import styles from './top.module.css'
 
 const messages = defineMessages({

@@ -12,7 +12,7 @@ import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-ro
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
-import { IntlProvider } from './tla/app/i18n'
+import { IntlProvider } from './tla/utils/i18n'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 import { PREFIX } from './tla/utils/urls'
 
@@ -106,6 +106,7 @@ export const router = createRoutesFromElements(
 		<Route element={<NoIndex />}>
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 				<Route path={`/${PREFIX.tla}`} lazy={() => import('./tla/pages/local')} />
+				<Route path={`/${PREFIX.tla}/playground`} lazy={() => import('./tla/pages/playground')} />
 				{/* File view */}
 				<Route
 					path={`/${PREFIX.tla}/${PREFIX.file}/:fileSlug`}

@@ -13,10 +13,10 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../../../utils/globalEditor'
 import { TldrawApp } from '../../../app/TldrawApp'
-import { F, defineMessages, useIntl } from '../../../app/i18n'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getCurrentEditor } from '../../../utils/getCurrentEditor'
+import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,
