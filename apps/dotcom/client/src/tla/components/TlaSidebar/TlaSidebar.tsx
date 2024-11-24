@@ -20,6 +20,18 @@ export const TlaSidebar = memo(function TlaSidebar() {
 	const sidebarRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
+		function handleKeyDown(e: KeyboardEvent) {
+			if (e.key === '\\' && (e.ctrlKey || e.metaKey)) {
+				updateLocalSessionState((state) => ({ isSidebarOpen: !state.isSidebarOpen }))
+			}
+		}
+		window.addEventListener('keydown', handleKeyDown)
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown)
+		}
+	}, [])
+
+	useEffect(() => {
 		const sidebarEl = sidebarRef.current
 		if (!sidebarEl) return
 

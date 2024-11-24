@@ -14,6 +14,7 @@ import {
 	TldrawUiIcon,
 	TldrawUiInput,
 	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
 	ViewSubmenu,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -157,11 +158,15 @@ export function TlaEditorTopLeftPanelSignedIn() {
 					</button>
 				}
 			>
-				<EditSubmenu />
-				<ViewSubmenu />
-				<ExportFileContentSubMenu />
-				<ExtrasGroup />
-				<PreferencesGroup />
+				<TldrawUiMenuGroup id="regular-stuff">
+					<EditSubmenu />
+					<ViewSubmenu />
+					<ExportFileContentSubMenu />
+					<ExtrasGroup />
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="preferences">
+					<PreferencesGroup />
+				</TldrawUiMenuGroup>
 			</TlaFileMenu>
 		</>
 	)

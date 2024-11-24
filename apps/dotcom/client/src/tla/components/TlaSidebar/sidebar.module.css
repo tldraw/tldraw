@@ -1,16 +1,18 @@
 .sidebar {
 	position: absolute;
+	display: flex;
 	top: 0px;
-	left: 0px;
+	left: -260px;
 	height: 100%;
 	width: 260px;
 	z-index: 100;
-	display: none;
+	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
 	padding: 3px 12px 2px 12px;
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid transparent;
+	transition: transform 0.16s ease-in-out;
 }
 
 .sidebar[data-dragging='true']::after {
@@ -54,7 +56,8 @@
 		border-right: 1px solid var(--color-low);
 	}
 	.sidebar[data-visible='true'] {
-		display: flex;
+		transform: translate(100%, 0px);
+		transition: transform 0.22s ease-out;
 	}
 }
 
