@@ -1,7 +1,7 @@
 import { SignUpButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import {
 	DefaultPageMenu,
 	EditSubmenu,
@@ -59,14 +59,35 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	const brandMsg = useMsg(messages.brand)
 	const pageMenuLbl = useMsg(messages.pageMenu)
 
+	const editor = useEditor()
+	const fileSlug = useParams<{ fileSlug: string }>().fileSlug
+	const anonFileName = useValue(
+		'fileName',
+		() => (fileSlug ? editor.getDocumentSettings().name : ''),
+		[editor, fileSlug]
+	)
+
+	// This is used in three places
+	// - root, ie tldraw.com
+	// - being an anonymous guest on someone else's file
+	// - being a logged out viewer of a published file
+
 	return (
 		<>
-			<div className={styles.brand}>
+			<Link to="/" className={styles.brand}>
 				<TlaIconWrapper data-size="m">
 					<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" />
 				</TlaIconWrapper>
 				<div className={classNames('tla-text_ui__title', 'notranslate')}>{brandMsg}</div>
-			</div>
+			</Link>
+			{anonFileName && (
+				<>
+					<span className={styles.topPanelSeparator}>{separator}</span>
+					<button className={styles.nameWidthSetter} data-testid="tla-file-name">
+						{anonFileName.replace(/ /g, '\u00a0')}
+					</button>
+				</>
+			)}
 			<span className={styles.topPanelSeparator}>{separator}</span>
 			<DefaultPageMenu />
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>

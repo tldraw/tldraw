@@ -1670,8 +1670,8 @@
 }
 
 .tlui-people-menu__avatar {
-	height: 28px;
-	width: 28px;
+	height: 24px;
+	width: 24px;
 	border: 2px solid var(--color-background);
 	background-color: var(--color-low);
 	border-radius: 100%;

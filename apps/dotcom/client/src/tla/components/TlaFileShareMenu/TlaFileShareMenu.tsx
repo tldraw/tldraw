@@ -62,8 +62,8 @@ export function TlaFileShareMenu({
 				<TldrawUiDropdownMenuContent
 					className={styles.shareMenu}
 					side="bottom"
-					align={isAnonUser ? 'start' : 'end'}
-					alignOffset={isAnonUser ? 2 : -2}
+					align="end"
+					alignOffset={-2}
 					sideOffset={4}
 				>
 					{app ? (

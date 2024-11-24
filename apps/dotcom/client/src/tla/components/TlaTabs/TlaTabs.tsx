@@ -40,7 +40,15 @@ export function TlaTabsTabs({ children }: { children: ReactNode }) {
 	)
 }
 
-export function TlaTabsTab({ id, children }: { id: string; children: ReactNode }) {
+export function TlaTabsTab({
+	id,
+	disabled = false,
+	children,
+}: {
+	id: string
+	disabled?: boolean
+	children: ReactNode
+}) {
 	const { activeTab, onTabChange } = useContext(tabsContext)
 
 	const handleClick = useCallback(() => {
@@ -52,6 +60,7 @@ export function TlaTabsTab({ id, children }: { id: string; children: ReactNode }
 			className={classNames(c.tab, 'tla-text_ui__medium')}
 			data-active={activeTab === id}
 			onClick={handleClick}
+			disabled={disabled}
 		>
 			{children}
 		</button>

@@ -13,6 +13,7 @@ import { TlaFileShareMenuPublishPage } from '../TlaFileShareMenu/TlaPublishFileS
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { ShareButton } from './TlaEditorTopRightPanel'
+import { TlaSignUpButton } from './TlaSignUpButton'
 import styles from './editor.module.css'
 
 const components: TLComponents = {
@@ -22,11 +23,17 @@ const components: TLComponents = {
 	SharePanel: () => {
 		const ref = useRef<HTMLDivElement>(null)
 		usePassThroughWheelEvents(ref)
+		const isAnonUser = !useMaybeApp()
+
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
-				<TlaFileShareMenuPublishPage>
-					<ShareButton />
-				</TlaFileShareMenuPublishPage>
+				{isAnonUser ? (
+					<TlaSignUpButton />
+				) : (
+					<TlaFileShareMenuPublishPage>
+						<ShareButton />
+					</TlaFileShareMenuPublishPage>
+				)}
 			</div>
 		)
 	},
