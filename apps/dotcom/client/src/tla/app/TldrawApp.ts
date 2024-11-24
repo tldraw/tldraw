@@ -46,7 +46,6 @@ export class TldrawApp {
 	private readonly user$: Signal<TlaUser | undefined>
 	private readonly files$: Signal<TlaFile[]>
 	private readonly fileStates$: Signal<(TlaFileState & { file: TlaFile })[]>
-	private readonly recentFileOwners$: Signal<TlaUser[] | undefined>
 
 	readonly disposables: (() => void)[] = []
 
@@ -103,14 +102,7 @@ export class TldrawApp {
 		)
 		this.fileStates$ = this.signalizeQuery(
 			'file states signal',
-			this.z.query.file_state.where('userId', this.userId) //.related('file', (q: any) => q.one())
-		)
-		this.recentFileOwners$ = this.signalizeQuery(
-			'recent file owners',
-			this.z.query.file_state
-				.where('userId', this.userId)
-				.related('file', (q: any) => q.one())
-				.related('owner', (q: any) => q.one())
+			this.z.query.file_state.where('userId', this.userId).related('file', (q: any) => q.one())
 		)
 	}
 
@@ -133,11 +125,6 @@ export class TldrawApp {
 	dispose() {
 		this.disposables.forEach((d) => d())
 		// this.store.dispose()
-	}
-
-	getUserById(id: TlaUser['id']) {
-		const recentFileOwners = this.recentFileOwners$.get()
-		return recentFileOwners?.find((u) => u.id === id)
 	}
 
 	getUser() {
@@ -375,10 +362,6 @@ export class TldrawApp {
 
 	getFile(fileId: string): TlaFile | null {
 		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
-	}
-
-	getFileOwner(fileId: string) {
-		return this.recentFileOwners$.get()
 	}
 
 	isFileOwner(fileId: string) {
