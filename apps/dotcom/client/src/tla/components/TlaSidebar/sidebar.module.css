@@ -213,7 +213,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding: 0 4px;
+	padding: 0 0px;
 	position: relative;
 	z-index: 1;
 }
