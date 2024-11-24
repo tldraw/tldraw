@@ -40,11 +40,9 @@ const messages = defineMessages({
 export function TlaAccountMenu({
 	children,
 	source,
-	align,
 }: {
 	children: ReactNode
 	source: TLAppUiEventSource
-	align?: 'end' | 'start' | 'center'
 }) {
 	const maybeEditor = useMaybeEditor()
 	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [

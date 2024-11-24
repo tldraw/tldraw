@@ -7,11 +7,9 @@ import {
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PreferencesGroup,
-	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiIcon,
 	TldrawUiInput,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -26,14 +24,14 @@ import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
-import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle } from '../TlaSidebar/components/TlaSidebarToggle'
 import { TlaSidebarToggleMobile } from '../TlaSidebar/components/TlaSidebarToggleMobile'
 import styles from './top.module.css'
 
 const messages = defineMessages({
 	pageMenu: { defaultMessage: 'Page menu' },
+	brand: { defaultMessage: 'tldraw' },
 })
 
 // There are some styles in tla.css that adjust the regular tlui top panels
@@ -52,28 +50,18 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 }
 
 export function TlaEditorTopLeftPanelAnonymous() {
-	const editor = useEditor()
-	const pageMenuLbl = useMsg(messages.pageMenu)
-	const isTempFile = !useParams<{ fileSlug: string }>().fileSlug
-	const fileName = useValue('fileName', () => editor.getDocumentSettings().name || 'New board', [])
-	const handleFileNameChange = useCallback(
-		(name: string) => editor.updateDocumentSettings({ name }),
-		[editor]
-	)
-
 	const separator = '/'
+	const brandMsg = useMsg(messages.brand)
+	const pageMenuLbl = useMsg(messages.pageMenu)
+
 	return (
 		<>
-			<TlaFileShareMenu fileId={'' as any} source="file-header" isAnonUser>
-				<TldrawUiButton type="icon">
-					<TldrawUiIcon icon="share-1" />
-				</TldrawUiButton>
-			</TlaFileShareMenu>
-			<TlaFileNameEditor
-				source="file-header"
-				fileName={fileName}
-				onChange={isTempFile ? handleFileNameChange : undefined}
-			/>
+			<div className={styles.brand}>
+				<TlaIconWrapper data-size="m">
+					<TlaIcon className="tla-tldraw-sidebar-icon" icon="tldraw" />
+				</TlaIconWrapper>
+				<div className={classNames('tla-text_ui__title', 'notranslate')}>{brandMsg}</div>
+			</div>
 			<span className={styles.topPanelSeparator}>{separator}</span>
 			<DefaultPageMenu />
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>

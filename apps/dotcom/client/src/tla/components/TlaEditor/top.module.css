@@ -234,3 +234,10 @@ button.nameWidthSetter {
 	background-color: var(--color-background);
 	border-radius: var(--radius-3);
 }
+
+.brand {
+	padding: 0px 8px 4px 4px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+}

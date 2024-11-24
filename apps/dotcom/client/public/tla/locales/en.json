@@ -17,9 +17,6 @@
   "0b9a4cde72": {
     "translation": "File menu"
   },
-  "10e6cdc8fa": {
-    "translation": "the tldraw logo"
-  },
   "110a4b01be": {
     "translation": "Publish"
   },
@@ -55,6 +52,9 @@
   },
   "45b543cbb1": {
     "translation": "Publish this project"
+  },
+  "47839e47a5": {
+    "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
@@ -147,9 +147,6 @@
   "b758336699": {
     "translation": "Copy link"
   },
-  "b831a0fede": {
-    "translation": "<b>tldraw</b> is a free online whiteboard for you and your friends."
-  },
   "c2276c9127": {
     "translation": "Learn more about sharing."
   },
@@ -218,9 +215,6 @@
   },
   "f43fb62093": {
     "translation": "Back to tldraw."
-  },
-  "f990e553cd": {
-    "translation": "Learn more."
   },
   "fb15c53f22": {
     "translation": "Viewer"

@@ -115,9 +115,15 @@
 	visibility: hidden;
 }
 
+.hoverable:has(*[data-state='open'])::after,
 .hoverable[data-active='true']::after {
 	background-color: var(--tla-color-hover-2);
 	visibility: visible;
+}
+
+.hoverable:has(*[data-state='open']) .collaborator,
+.hoverable[data-active='true'] .collaborator {
+	display: none;
 }
 
 @media (hover: hover) {
@@ -355,10 +361,6 @@
 	.hoverable[data-active='true'],
 	.hoverable:hover {
 		color: var(--tla-color-text-1);
-	}
-
-	.hoverable:hover .collaborator {
-		display: none;
 	}
 }
 
