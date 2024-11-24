@@ -121,8 +121,7 @@
 	visibility: visible;
 }
 
-.hoverable:has(*[data-state='open']) .collaborator,
-.hoverable[data-active='true'] .collaborator {
+.hoverable:has(*[data-state='open']) .collaborator {
 	display: none;
 }
 
