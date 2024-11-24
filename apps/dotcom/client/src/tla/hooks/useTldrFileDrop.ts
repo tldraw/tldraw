@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { defineMessages, useIntl } from '../utils/i18n'
+import { defineMessages, useIntl } from '../app/i18n'
 import { useApp } from './useAppState'
 
 const messages = defineMessages({

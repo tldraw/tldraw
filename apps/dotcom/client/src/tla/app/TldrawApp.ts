@@ -24,7 +24,7 @@ import {
 	react,
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
-import { createIntl } from '../utils/i18n'
+import { createIntl } from './i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`

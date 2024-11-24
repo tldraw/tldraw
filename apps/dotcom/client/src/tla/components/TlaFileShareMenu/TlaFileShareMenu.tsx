@@ -6,10 +6,10 @@ import {
 	TldrawUiMenuContextProvider,
 	useValue,
 } from 'tldraw'
+import { F } from '../../app/i18n'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
 import { TlaExportTab } from './Tabs/TlaExportTab'

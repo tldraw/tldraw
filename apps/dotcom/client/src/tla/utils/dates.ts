@@ -1,4 +1,4 @@
-import { FormatDateOptions } from '../utils/i18n'
+import { FormatDateOptions } from 'react-intl'
 
 export function getRelevantDates() {
 	const now = new Date()

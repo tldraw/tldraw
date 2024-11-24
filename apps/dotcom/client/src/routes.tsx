@@ -12,7 +12,7 @@ import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-ro
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
-import { IntlProvider } from './tla/utils/i18n'
+import { IntlProvider } from './tla/app/i18n'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 import { PREFIX } from './tla/utils/urls'
 

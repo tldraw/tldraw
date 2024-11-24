@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { Link } from 'react-router-dom'
-import { F } from '../../utils/i18n'
+import { F } from '../../app/i18n'
 import { getRootPath } from '../../utils/urls'
 import styles from './error.module.css'
 
