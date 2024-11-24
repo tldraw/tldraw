@@ -19,14 +19,13 @@ import { defineMessages, useMsg } from '../../utils/i18n'
 
 const messages = defineMessages({
 	appDebugFlags: { defaultMessage: 'App debug flags' },
-	signOut: { defaultMessage: 'Sign out' },
 	help: { defaultMessage: 'Help' },
 	langAccented: { defaultMessage: 'i18n: Accented' },
 	langLongString: { defaultMessage: 'i18n: Long String' },
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
-export function TlaAccountMenuGroup() {
+export function TlaAppMenuGroup() {
 	return (
 		<TldrawUiMenuGroup id="things-to-do">
 			<HelpSubMenu />
@@ -36,7 +35,7 @@ export function TlaAccountMenuGroup() {
 	)
 }
 
-export function TlaAccountMenuGroupLazyFlipped() {
+export function TlaAppMenuGroupLazyFlipped() {
 	return (
 		<TldrawUiMenuGroup id="things-to-do">
 			<ColorThemeSubmenu />

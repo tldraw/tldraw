@@ -10,7 +10,7 @@ import {
 } from 'tldraw'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { TlaAccountMenuGroup } from './TlaAccountMenuGroup'
+import { TlaAppMenuGroup } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 
 const messages = defineMessages({
 	signOut: { defaultMessage: 'Sign out' },
@@ -33,7 +33,7 @@ export function TlaAccountMenu({
 					alignOffset={0}
 					sideOffset={0}
 				>
-					<TlaAccountMenuGroup />
+					<TlaAppMenuGroup />
 					<TldrawUiMenuGroup id="signout">
 						<SignOutMenuItem source={source} />
 					</TldrawUiMenuGroup>

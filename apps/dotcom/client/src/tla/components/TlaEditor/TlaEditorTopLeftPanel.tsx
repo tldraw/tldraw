@@ -1,3 +1,4 @@
+import { SignUpButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -7,6 +8,8 @@ import {
 	ExportFileContentSubMenu,
 	ExtrasGroup,
 	PreferencesGroup,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -23,7 +26,7 @@ import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { TlaAccountMenuGroupLazyFlipped } from '../TlaAccountMenu/TlaAccountMenuGroup'
+import { TlaAppMenuGroupLazyFlipped } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle } from '../TlaSidebar/components/TlaSidebarToggle'
@@ -31,6 +34,7 @@ import { TlaSidebarToggleMobile } from '../TlaSidebar/components/TlaSidebarToggl
 import styles from './top.module.css'
 
 const messages = defineMessages({
+	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	brand: { defaultMessage: 'tldraw' },
 })
@@ -77,7 +81,10 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						<ViewSubmenu />
 						<ExportFileContentSubMenu />
 						<ExtrasGroup />
-						<TlaAccountMenuGroupLazyFlipped />
+						<TlaAppMenuGroupLazyFlipped />
+						<TldrawUiMenuGroup id="signin">
+							<SignInMenuItem />
+						</TldrawUiMenuGroup>
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiMenuContextProvider>
 			</TldrawUiDropdownMenuRoot>
@@ -270,5 +277,21 @@ function TlaFileNameEditorInput({
 			/>
 			<div className={styles.nameWidthSetter}>{temporaryFileName.replace(/ /g, '\u00a0')}</div>
 		</>
+	)
+}
+
+function SignInMenuItem() {
+	const msg = useMsg(messages.signIn)
+	return (
+		<SignUpButton
+			mode="modal"
+			forceRedirectUrl={location.pathname + location.search}
+			signInForceRedirectUrl={location.pathname + location.search}
+		>
+			<TldrawUiButton type="menu" data-testid="tla-sign-up-menu-button">
+				<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+				<TlaIcon icon="sign-in" />
+			</TldrawUiButton>
+		</SignUpButton>
 	)
 }
