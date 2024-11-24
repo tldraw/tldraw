@@ -1,7 +1,8 @@
 import { useAuth } from '@clerk/clerk-react'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
 import {
-	PreferencesGroup,
+	ColorSchemeMenu,
+	LanguageMenu,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -10,13 +11,22 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
+	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
+	TogglePasteAtCursorItem,
+	ToggleReduceMotionItem,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
+	ToggleWrapModeItem,
 	useMaybeEditor,
 	useValue,
 } from 'tldraw'
 import { Links } from '../../../components/Links'
-import { globalEditor } from '../../../utils/globalEditor'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, useIntl } from '../../utils/i18n'
+import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 
 const messages = defineMessages({
 	appDebugFlags: { defaultMessage: 'App debug flags' },
@@ -36,20 +46,10 @@ export function TlaAccountMenu({
 	source: TLAppUiEventSource
 	align?: 'end' | 'start' | 'center'
 }) {
-	const auth = useAuth()
 	const maybeEditor = useMaybeEditor()
 	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [
 		maybeEditor,
 	])
-	const trackEvent = useTldrawAppUiEvents()
-	const intl = useIntl()
-
-	const handleSignout = useCallback(() => {
-		auth.signOut()
-		trackEvent('sign-out-clicked', { source })
-	}, [auth, trackEvent, source])
-
-	const currentEditor = useValue('editor', () => globalEditor.get(), [])
 
 	return (
 		<TldrawUiDropdownMenuRoot id={`account-menu-${source}`}>
@@ -62,30 +62,78 @@ export function TlaAccountMenu({
 					alignOffset={0}
 					sideOffset={0}
 				>
-					{auth.isSignedIn && (
-						<TldrawUiMenuGroup id="account-actions">
-							<TldrawUiMenuItem
-								id="sign-out"
-								label={intl.formatMessage(messages.signOut)}
-								readonlyOk
-								onSelect={handleSignout}
-							/>
-						</TldrawUiMenuGroup>
-					)}
-					<TldrawUiMenuGroup id="account-links">
-						<TldrawUiMenuSubmenu id="help" label={intl.formatMessage(messages.help)}>
-							<Links />
-						</TldrawUiMenuSubmenu>
+					<TldrawUiMenuGroup id="things-to-do">
+						<HelpSubMenu />
+						<ColorThemeSubmenu />
+						<LanguageMenu />
+						{/* <KeyboardShortcutsMenuItem /> */}
+						{isDebugMode && <TlaDebugSubmenu />}
 					</TldrawUiMenuGroup>
-					{currentEditor && <PreferencesGroup />}
-					{isDebugMode && <AppDebugMenu />}
+					<TldrawUiMenuGroup id="signout">
+						<SignOutMenuItem source={source} />
+					</TldrawUiMenuGroup>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
 	)
 }
 
-function AppDebugMenu() {
+function ColorThemeSubmenu() {
+	return <ColorSchemeMenu />
+}
+
+function _PreferencesSubmenu() {
+	return (
+		<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
+			<TldrawUiMenuGroup id="preferences-actions">
+				<ToggleSnapModeItem />
+				<ToggleToolLockItem />
+				<ToggleGridItem />
+				<ToggleWrapModeItem />
+				<ToggleFocusModeItem />
+				<ToggleEdgeScrollingItem />
+				<ToggleReduceMotionItem />
+				<ToggleDynamicSizeModeItem />
+				<TogglePasteAtCursorItem />
+				<ToggleDebugModeItem />
+			</TldrawUiMenuGroup>
+			<TldrawUiMenuGroup id="color-scheme">
+				<ColorSchemeMenu />
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+function HelpSubMenu() {
+	const msg = useMsg(messages.help)
+	return (
+		<TldrawUiMenuSubmenu id="help" label={msg}>
+			<Links />
+		</TldrawUiMenuSubmenu>
+	)
+}
+
+function SignOutMenuItem({ source }: { source: TLAppUiEventSource }) {
+	const auth = useAuth()
+
+	const trackEvent = useTldrawAppUiEvents()
+
+	const label = useMsg(messages.signOut)
+
+	const handleSignout = useCallback(() => {
+		auth.signOut()
+		trackEvent('sign-out-clicked', { source })
+	}, [auth, trackEvent, source])
+
+	if (!auth.isSignedIn) return
+	return (
+		<TldrawUiMenuGroup id="account-actions">
+			<TldrawUiMenuItem id="sign-out" label={label} readonlyOk onSelect={handleSignout} />
+		</TldrawUiMenuGroup>
+	)
+}
+
+function TlaDebugSubmenu() {
 	const editor = useMaybeEditor()
 	const intl = useIntl()
 	const appFlagsLbl = intl.formatMessage(messages.appDebugFlags)
@@ -102,33 +150,31 @@ function AppDebugMenu() {
 	}, [shouldHighlightMissing])
 
 	return (
-		<TldrawUiMenuGroup id="debug">
-			<TldrawUiMenuSubmenu id="debug" label={appFlagsLbl}>
-				<TldrawUiMenuGroup id="debug app flags">
-					{debugLanguageFlags.map((flag) => (
-						<TldrawUiMenuCheckboxItem
-							key={flag.name}
-							id={flag.name}
-							title={flag.name}
-							label={flag.name
-								.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
-								.replace(/^[a-z]/, (m) => m.toUpperCase())}
-							checked={
-								flag.locale === 'xx-MS'
-									? shouldHighlightMissing
-									: editor?.user.getLocale() === flag.locale
+		<TldrawUiMenuSubmenu id="debug" label={appFlagsLbl}>
+			<TldrawUiMenuGroup id="debug app flags">
+				{debugLanguageFlags.map((flag) => (
+					<TldrawUiMenuCheckboxItem
+						key={flag.name}
+						id={flag.name}
+						title={flag.name}
+						label={flag.name
+							.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
+							.replace(/^[a-z]/, (m) => m.toUpperCase())}
+						checked={
+							flag.locale === 'xx-MS'
+								? shouldHighlightMissing
+								: editor?.user.getLocale() === flag.locale
+						}
+						onSelect={() => {
+							if (flag.locale === 'xx-MS') {
+								setShouldHighlightMissing(!shouldHighlightMissing)
+							} else {
+								editor?.user.updateUserPreferences({ locale: flag.locale })
 							}
-							onSelect={() => {
-								if (flag.locale === 'xx-MS') {
-									setShouldHighlightMissing(!shouldHighlightMissing)
-								} else {
-									editor?.user.updateUserPreferences({ locale: flag.locale })
-								}
-							}}
-						/>
-					))}
-				</TldrawUiMenuGroup>
-			</TldrawUiMenuSubmenu>
-		</TldrawUiMenuGroup>
+						}}
+					/>
+				))}
+			</TldrawUiMenuGroup>
+		</TldrawUiMenuSubmenu>
 	)
 }

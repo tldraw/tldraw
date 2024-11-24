@@ -6,6 +6,7 @@ import {
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	PreferencesGroup,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -160,6 +161,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				<ViewSubmenu />
 				<ExportFileContentSubMenu />
 				<ExtrasGroup />
+				<PreferencesGroup />
 			</TlaFileMenu>
 		</>
 	)

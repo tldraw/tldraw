@@ -1,6 +1,7 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
 export { TldrawUiToasts } from './lib/ui/components/Toasts'
 export {
@@ -275,10 +276,12 @@ export {
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleLockMenuItem,
+	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
