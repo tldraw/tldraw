@@ -64,7 +64,7 @@ export function TlaSidebarFileLinkInner({
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
-			onDoubleClick={handleRenameAction}
+			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
 		>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}>
