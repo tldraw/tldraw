@@ -12,7 +12,6 @@ export function SneakyDarkModeSync() {
 	useReactor(
 		'dark mode sync',
 		() => {
-			if (!app) return
 			const appIsDark = getLocalSessionStateUnsafe()!.theme === 'dark'
 			const editorIsDark = editor.user.getIsDarkMode()
 

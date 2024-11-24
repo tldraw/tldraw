@@ -34,7 +34,7 @@
 	--tla-color-text-1: hsl(204, 8%, 5%);
 	--tla-color-text-2: hsl(204, 2%, 20%);
 	--tla-color-text-3: hsl(204, 4%, 45%);
-	--tla-color-contrast: hsl(0, 0%, 99%);
+	--tla-color-contrast: hsl(0, 0%, 100%);
 	--tla-color-low: hsl(204, 16%, 94%);
 	--tla-color-border: hsl(204, 16%, 85%);
 	--tla-color-hover-1: hsl(204, 16%, 4%, 3%);
@@ -42,6 +42,7 @@
 	--tla-color-hover-3: hsla(0, 0%, 100%, 32.5%);
 	--tla-color-overlay: hsla(240, 16%, 2%, 30%);
 	--tla-color-primary: hsl(214, 84%, 56%);
+	--tla-color-cta: hsl(214, 92%, 50%);
 	--tla-color-secondary: hsl(0, 0%, 92%);
 	--tla-color-secondary-border: hsl(0, 0%, 80%);
 	--tla-color-accent-1: hsl(50, 91%, 70%);
@@ -74,6 +75,7 @@
 	--tla-color-hover-2: hsl(240, 8%, 100%, 5%);
 	--tla-color-hover-3: hsl(204, 16%, 4%, 3%);
 	--tla-color-overlay: hsla(240, 0%, 0%, 81%);
+	--tla-color-cta: hsl(214, 100%, 50%);
 	--tla-color-primary: hsl(214, 84%, 46%);
 	--tla-color-secondary: hsl(0, 0%, 20%);
 	--tla-color-secondary-border: hsl(0, 0%, 25%);
@@ -241,10 +243,6 @@
 	position: absolute;
 	width: 100%;
 	height: 100%;
-}
-
-.tla-theme__dark .tla-tldraw-sidebar-icon {
-	filter: invert(1);
 }
 
 .tla-lang-highlight-missing *:not(.notranslate) {

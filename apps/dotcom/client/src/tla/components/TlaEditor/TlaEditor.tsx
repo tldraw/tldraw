@@ -66,7 +66,8 @@ export const components: TLComponents = {
 		return <TlaEditorTopLeftPanel isAnonUser={!app} />
 	},
 	SharePanel: () => {
-		return <TlaEditorTopRightPanel />
+		const app = useMaybeApp()
+		return <TlaEditorTopRightPanel isAnonUser={!app} />
 	},
 	TopPanel: () => {
 		const collaborationStatus = useCollaborationStatus()
@@ -77,7 +78,6 @@ export const components: TLComponents = {
 
 const anonComponents = {
 	...components,
-	SharePanel: null,
 	StylePanel: () => {
 		// When on a temporary file, we don't want to show the people menu or file share menu, just the regular style panel
 		const { fileSlug } = useParams()
@@ -222,6 +222,13 @@ function TlaEditorInner({
 		</div>
 	)
 }
+
+// function SneakyThemeUpdater() {
+// 	const editor = useEditor()
+// 	useEffect(() => {
+// 		editor.setTheme('dark')
+// 	}, [editor])
+// }
 
 function SneakyTldrawFileDropHandler() {
 	const editor = useEditor()

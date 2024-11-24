@@ -23,6 +23,7 @@ import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { TlaAccountMenuGroupLazyFlipped } from '../TlaAccountMenu/TlaAccountMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
 import { TlaSidebarToggle } from '../TlaSidebar/components/TlaSidebarToggle'
@@ -76,6 +77,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						<ViewSubmenu />
 						<ExportFileContentSubMenu />
 						<ExtrasGroup />
+						<TlaAccountMenuGroupLazyFlipped />
 					</TldrawUiDropdownMenuContent>
 				</TldrawUiMenuContextProvider>
 			</TldrawUiDropdownMenuRoot>

@@ -236,8 +236,17 @@ button.nameWidthSetter {
 }
 
 .brand {
+	color: var(--tla-color-text-1);
 	padding: 0px 8px 4px 4px;
 	height: 40px;
 	display: flex;
 	align-items: center;
+}
+
+.signInButtons {
+	display: flex;
+	gap: 0px;
+	height: 40px;
+	align-items: center;
+	padding-right: 6px;
 }

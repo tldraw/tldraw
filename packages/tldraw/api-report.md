@@ -1351,7 +1351,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): vo
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
-export function LanguageMenu(): JSX_2.Element;
+export function LanguageMenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export class LaserTool extends StateNode {

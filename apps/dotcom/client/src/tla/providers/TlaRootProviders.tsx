@@ -160,7 +160,7 @@ function SignedInProvider({
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
-		return children
+		return <ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
 	}
 
 	return (
