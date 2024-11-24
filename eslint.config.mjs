@@ -306,7 +306,6 @@ export default [
 					message: 'Use structuredClone from @tldraw/util instead',
 				},
 			],
-
 			'no-restricted-properties': [
 				'error',
 				{
@@ -331,6 +330,17 @@ export default [
 		files: ['apps/dotcom/client/src/tla/**/*'],
 
 		rules: {
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: 'react-intl',
+							message: 'Please import useIntl from src/utils/intl instead.',
+						},
+					],
+				},
+			],
 			'react/jsx-no-literals': [
 				'error',
 				{
@@ -379,20 +389,5 @@ export default [
 		rules: {
 			'no-console': 'off',
 		},
-	},
-	{
-		files: ['apps/dotcom/client/src/tla/**/*'],
-		'no-restricted-imports': [
-			'error',
-			{
-				paths: [
-					{
-						name: 'react-intl',
-						importNames: ['useIntl'],
-						message: 'Please import useIntl from src/utils/intl instead.',
-					},
-				],
-			},
-		],
 	},
 ]
