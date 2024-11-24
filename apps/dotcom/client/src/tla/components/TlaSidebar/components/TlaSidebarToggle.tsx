@@ -23,7 +23,7 @@ export function TlaSidebarToggle() {
 				})
 			}}
 		>
-			<TlaIcon icon="sidebar" />
+			<TlaIcon icon="sidebar-strong" />
 		</button>
 	)
 }

@@ -22,7 +22,7 @@
 	font-size: 12px;
 	font-weight: 600;
 	z-index: 1000;
-	background-color: var(--tla-color-panel);
+	background-color: var(--tla-color-sidebar);
 	content: 'Upload .tldr files';
 	opacity: 0;
 	animation: 0.2s fade-in 0.25s forwards;
@@ -130,6 +130,13 @@
 	justify-content: center;
 	pointer-events: all;
 	flex-shrink: 0;
+	padding: 0px;
+}
+
+@media (hover: hover) {
+	.toggle:hover {
+		z-index: 100;
+	}
 }
 
 .toggle::after {
@@ -176,7 +183,7 @@
 	border: none;
 	cursor: pointer;
 	position: relative;
-	top: 0px;
+	top: 0.5px;
 	right: -8px;
 	height: 40px;
 	width: 40px;
@@ -184,6 +191,7 @@
 	align-items: center;
 	justify-content: center;
 	color: var(--tla-color-text-1);
+	padding: 0px;
 	z-index: 10;
 }
 
@@ -231,7 +239,11 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	padding-right: 4px;
-	background-color: var(--tla-color-panel);
+	background-color: var(--tla-color-sidebar);
+}
+
+.workspace {
+	padding-bottom: 1px;
 }
 
 .user {
@@ -258,7 +270,7 @@
 }
 
 .section {
-	background: var(--tla-color-panel);
+	background: var(--tla-color-sidebar);
 }
 
 .section_title {
@@ -274,7 +286,7 @@
 }
 
 .link {
-	background-color: var(--tla-color-panel);
+	background-color: var(--tla-color-sidebar);
 	position: relative;
 	width: 100%;
 	display: flex;
@@ -303,7 +315,7 @@
 }
 
 .renameWrapper {
-	background-color: var(--tla-color-panel);
+	background-color: var(--tla-color-sidebar);
 	outline: 1px solid var(--color-primary);
 	outline-offset: -2px;
 	border-radius: 6px;

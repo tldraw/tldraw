@@ -57,6 +57,7 @@
 	max-width: 100%;
 	min-width: 0px;
 	height: 40px;
+	left: -4px;
 	flex-shrink: 2;
 }
 
@@ -86,7 +87,6 @@ button.nameWidthSetter {
 	padding: none;
 	margin: none;
 	opacity: 1;
-	padding: 0px 12px;
 	pointer-events: all;
 	height: 100%;
 	min-width: 0px;
