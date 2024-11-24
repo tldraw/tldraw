@@ -4,8 +4,8 @@ import { Link, useParams } from 'react-router-dom'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { F } from '../../../utils/i18n'
 import { getFilePath } from '../../../utils/urls'
+import { TlaCollaborator } from '../../TlaCollaborator/TlaCollaborator'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
@@ -67,7 +67,7 @@ export function TlaSidebarFileLinkInner({
 		>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}>
-					{fileName} {isOwnFile ? null : <F defaultMessage="(Guest)" />}
+					{isOwnFile ? null : <TlaCollaborator size="small" />} {fileName}
 				</div>
 			</div>
 			<Link

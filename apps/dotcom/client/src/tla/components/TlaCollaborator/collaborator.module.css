@@ -1,0 +1,23 @@
+.collaboratorSmall {
+	width: 16px;
+	height: 16px;
+	border-radius: 100%;
+	background-color: var(--color-text-3);
+	border: 2px solid var(--tla-color-panel);
+}
+
+.collaboratorMedium {
+	width: 18px;
+	height: 18px;
+	border-radius: 100%;
+	background-color: var(--color-text-3);
+	border: 2px solid var(--tla-color-panel);
+}
+
+.collaboratorLarge {
+	width: 20px;
+	height: 20px;
+	border-radius: 100%;
+	background-color: var(--color-text-3);
+	border: 2px solid var(--tla-color-panel);
+}

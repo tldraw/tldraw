@@ -219,6 +219,9 @@
 	text-overflow: ellipsis;
 	padding: 0 4px;
 	position: relative;
+	display: flex;
+	gap: 4px;
+	align-items: center;
 	z-index: 1;
 }
 
