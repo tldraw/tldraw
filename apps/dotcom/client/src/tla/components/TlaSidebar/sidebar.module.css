@@ -115,7 +115,6 @@
 	visibility: hidden;
 }
 
-.hoverable .linkMenu[data-state='open']::after,
 .hoverable[data-active='true']::after {
 	background-color: var(--tla-color-hover-2);
 	visibility: visible;
@@ -258,7 +257,6 @@
 
 .user {
 	padding: 0px 8px;
-	cursor: pointer;
 	gap: 8px;
 }
 
@@ -392,7 +390,6 @@
 	color: var(--tla-color-text-3);
 	flex: 0 0 auto;
 	z-index: 3;
-	padding-right: 2px;
 	cursor: pointer;
 }
 
