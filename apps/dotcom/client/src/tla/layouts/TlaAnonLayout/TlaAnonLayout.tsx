@@ -8,7 +8,7 @@ import { TlaSignInButton } from '../../components/TlaSignInButton/TlaSignInButto
 import { TlaSignUpButton } from '../../components/TlaSignUpButton/TlaSignUpButton'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, F, useIntl } from '../../utils/i18n'
+import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './anon.module.css'
 
 const messages = defineMessages({
@@ -18,9 +18,8 @@ const messages = defineMessages({
 
 export function TlaAnonLayout({ children }: { children: ReactNode }) {
 	usePreventAccidentalDrops()
-	const intl = useIntl()
-	const logoAriaLabel = intl.formatMessage(messages.logo)
-	const accountMenuLabel = intl.formatMessage(messages.accountMenu)
+	const logoAriaLabel = useMsg(messages.logo)
+	const accountMenuLabel = useMsg(messages.accountMenu)
 	const trackEvent = useTldrawAppUiEvents()
 
 	return (

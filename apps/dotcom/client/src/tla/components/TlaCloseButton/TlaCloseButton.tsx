@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { defineMessages, F, useIntl } from '../../utils/i18n'
+import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './close.module.css'
 
@@ -8,8 +8,7 @@ const messages = defineMessages({
 })
 
 export function TlaCloseButton({ onClose }: { onClose(): void }) {
-	const intl = useIntl()
-	const closeLbl = intl.formatMessage(messages.close)
+	const closeLbl = useMsg(messages.close)
 
 	return (
 		<button

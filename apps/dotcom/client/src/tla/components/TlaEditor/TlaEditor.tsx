@@ -35,7 +35,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
-import { defineMessages, useIntl } from '../../utils/i18n'
+import { defineMessages, useMsg } from '../../utils/i18n'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -52,10 +52,9 @@ export const components: TLComponents = {
 	},
 	KeyboardShortcutsDialog: (props) => {
 		const actions = useActions()
-		const intl = useIntl()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup label={intl.formatMessage(messages.file)} id="file">
+				<TldrawUiMenuGroup label={useMsg(messages.file)} id="file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />

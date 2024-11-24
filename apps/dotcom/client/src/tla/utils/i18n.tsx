@@ -5,12 +5,14 @@ import {
 	IntlConfig,
 	IntlShape,
 	MessageDescriptor,
+	PrimitiveType,
 	createIntlCache,
 	createIntl as originalCreateIntl,
 	defineMessages as originalDefineMessages,
 	useIntl,
 } from 'react-intl'
 
+import { FormatXMLElementFn } from 'intl-messageformat'
 import MD5 from 'md5.js'
 import { ComponentPropsWithoutRef } from 'react'
 
@@ -18,9 +20,12 @@ import { ComponentPropsWithoutRef } from 'react'
 // eslint-disable-next-line
 export * from 'react-intl'
 
-export function useMsg(message: MessageDescriptor) {
+export function useMsg(
+	message: MessageDescriptor,
+	values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>
+) {
 	const intl = useIntl()
-	return intl.formatMessage(message)
+	return intl.formatMessage(message, values)
 }
 
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']

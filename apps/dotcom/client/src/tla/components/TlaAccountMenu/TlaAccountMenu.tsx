@@ -26,7 +26,7 @@ import {
 } from 'tldraw'
 import { Links } from '../../../components/Links'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
+import { defineMessages, useMsg } from '../../utils/i18n'
 
 const messages = defineMessages({
 	appDebugFlags: { defaultMessage: 'App debug flags' },
@@ -135,14 +135,13 @@ function SignOutMenuItem({ source }: { source: TLAppUiEventSource }) {
 
 function TlaDebugSubmenu() {
 	const editor = useMaybeEditor()
-	const intl = useIntl()
-	const appFlagsLbl = intl.formatMessage(messages.appDebugFlags)
+	const appFlagsLbl = useMsg(messages.appDebugFlags)
 
 	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(false)
 	const debugLanguageFlags = [
-		{ name: intl.formatMessage(messages.langAccented), locale: 'xx-AE' },
-		{ name: intl.formatMessage(messages.langLongString), locale: 'xx-LS' },
-		{ name: intl.formatMessage(messages.langHighlightMissing), locale: 'xx-MS' },
+		{ name: useMsg(messages.langAccented), locale: 'xx-AE' },
+		{ name: useMsg(messages.langLongString), locale: 'xx-LS' },
+		{ name: useMsg(messages.langHighlightMissing), locale: 'xx-MS' },
 	]
 
 	useEffect(() => {

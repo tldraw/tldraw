@@ -24,7 +24,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, useIntl } from '../../utils/i18n'
+import { defineMessages, useMsg } from '../../utils/i18n'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -53,8 +53,7 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 
 export function TlaEditorTopLeftPanelAnonymous() {
 	const editor = useEditor()
-	const intl = useIntl()
-	const pageMenuLbl = intl.formatMessage(messages.pageMenu)
+	const pageMenuLbl = useMsg(messages.pageMenu)
 	const isTempFile = !useParams<{ fileSlug: string }>().fileSlug
 	const fileName = useValue('fileName', () => editor.getDocumentSettings().name || 'New board', [])
 	const handleFileNameChange = useCallback(
@@ -99,8 +98,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 export function TlaEditorTopLeftPanelSignedIn() {
 	const editor = useEditor()
 	const [isRenaming, setIsRenaming] = useState(false)
-	const intl = useIntl()
-	const pageMenuLbl = intl.formatMessage(messages.pageMenu)
+	const pageMenuLbl = useMsg(messages.pageMenu)
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
 	const isOwner = useIsFileOwner(fileSlug)
