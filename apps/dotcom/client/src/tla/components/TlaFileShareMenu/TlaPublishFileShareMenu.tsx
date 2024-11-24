@@ -14,7 +14,6 @@ import { TlaCopyPublishLinkButton } from './Tabs/TlaPublishTab'
 import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenuPublishPage({
-	isAnonUser,
 	children,
 }: {
 	isAnonUser?: boolean
@@ -48,11 +47,11 @@ export function TlaFileShareMenuPublishPage({
 				>
 					<TlaTabsRoot activeTab={activeTab} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
-							{isAnonUser ? null : (
+							{/* {isAnonUser ? null : (
 								<TlaTabsTab id="share" disabled>
 									<F defaultMessage="Fork" />
 								</TlaTabsTab>
-							)}
+							)} */}
 							<TlaTabsTab id="export">
 								<F defaultMessage="Export" />
 							</TlaTabsTab>
