@@ -391,10 +391,12 @@
 		display: none;
 	}
 
-	.workspace:hover > .linkMenu,
-	.user:hover > .linkMenu,
+	.workspace .linkMenu[data-state='open'],
+	.user .linkMenu[data-state='open'],
 	.link .linkMenu[data-state='open'],
-	.link:hover > .linkMenu {
+	.workspace:hover .linkMenu,
+	.user:hover .linkMenu,
+	.link:hover .linkMenu {
 		display: flex;
 	}
 

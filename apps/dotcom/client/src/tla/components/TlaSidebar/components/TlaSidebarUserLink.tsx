@@ -16,14 +16,14 @@ export function TlaSidebarUserLink() {
 	if (!user) return null
 
 	return (
-		<TlaAccountMenu source="sidebar">
-			<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
-				<TlaAvatar img={user.avatar} />
-				<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
+		<div className={classNames(styles.user, styles.hoverable, 'tla-text_ui__regular')}>
+			<TlaAvatar img={user.avatar} />
+			<div className={classNames(styles.userName, 'notranslate')}>{user.name}</div>
+			<TlaAccountMenu source="sidebar">
 				<button className={styles.linkMenu} title={accountMenuLbl}>
 					<TlaIcon icon="dots-vertical-strong" />
 				</button>
-			</div>
-		</TlaAccountMenu>
+			</TlaAccountMenu>
+		</div>
 	)
 }
