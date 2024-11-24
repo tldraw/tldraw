@@ -62,8 +62,15 @@
 }
 
 @media (max-width: 767px) {
+	.sidebar {
+		--w: max(220px, calc(100vw - 100px));
+		left: calc(var(--w) * -1);
+		width: var(--w);
+		transition: none;
+	}
+
 	.sidebar[data-visiblemobile='true'] {
-		display: flex;
+		transform: translate(100%, 0px);
 	}
 
 	.sidebarOverlayMobile[data-visiblemobile='true'] {
