@@ -105,10 +105,6 @@
 	visibility: hidden;
 }
 
-.linkMenu {
-	right: 4px;
-}
-
 .hoverable .linkMenu[data-state='open']::after,
 .hoverable[data-active='true']::after {
 	background-color: var(--tla-color-hover-2);
@@ -219,9 +215,6 @@
 	text-overflow: ellipsis;
 	padding: 0 4px;
 	position: relative;
-	display: flex;
-	gap: 4px;
-	align-items: center;
 	z-index: 1;
 }
 
@@ -296,11 +289,17 @@
 	flex: 1 1 auto;
 	overflow: hidden;
 	display: flex;
+	flex-direction: row;
 	align-items: center;
 	justify-content: flex-start;
-	gap: 4px;
+	gap: 8px;
 	position: relative;
 	z-index: 2;
+}
+
+.linkContent > .label {
+	padding: 0px;
+	flex: 2 1 auto;
 }
 
 .renameWrapper {
@@ -325,6 +324,10 @@
 	z-index: 1;
 }
 
+.collaborator {
+	flex: 0 0 auto;
+}
+
 @media (hover: hover) {
 	.hoverable {
 		color: var(--tla-color-text-2);
@@ -333,11 +336,10 @@
 	.hoverable:hover {
 		color: var(--tla-color-text-1);
 	}
-}
 
-.linkContent > .label {
-	padding: 0px;
-	flex: 0 1 auto;
+	.hoverable:hover .collaborator {
+		display: none;
+	}
 }
 
 .linkButton {
@@ -357,6 +359,7 @@
 	background: none;
 	border: none;
 	position: relative;
+	right: 4px;
 	outline: none;
 	margin-right: -12px;
 	width: 36px;
@@ -367,7 +370,7 @@
 	color: var(--tla-color-text-3);
 	flex: 0 0 auto;
 	z-index: 3;
-	padding-right: 0px;
+	padding-right: 2px;
 	cursor: pointer;
 }
 

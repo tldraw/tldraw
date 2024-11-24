@@ -1,8 +1,10 @@
 .collaboratorSmall {
+	/* margin-right: -12px; */
+	width: 36px;
 	width: 16px;
 	height: 16px;
 	border-radius: 100%;
-	background-color: var(--color-text-3);
+	background-color: var(--color-accent);
 	border: 2px solid var(--tla-color-panel);
 }
 
@@ -10,7 +12,7 @@
 	width: 18px;
 	height: 18px;
 	border-radius: 100%;
-	background-color: var(--color-text-3);
+	background-color: var(--color-accent);
 	border: 2px solid var(--tla-color-panel);
 }
 
@@ -18,6 +20,10 @@
 	width: 20px;
 	height: 20px;
 	border-radius: 100%;
-	background-color: var(--color-text-3);
+	background-color: var(--color-accent);
 	border: 2px solid var(--tla-color-panel);
+}
+
+.idle {
+	background-color: var(--color-text-3);
 }

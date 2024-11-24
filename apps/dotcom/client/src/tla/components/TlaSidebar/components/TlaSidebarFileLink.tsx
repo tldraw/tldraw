@@ -35,6 +35,7 @@ export function TlaSidebarFileLinkInner({
 	fileId,
 	isActive,
 	isOwnFile,
+	// owner,
 	fileName,
 	href,
 	debugIsRenaming = false,
@@ -67,8 +68,13 @@ export function TlaSidebarFileLinkInner({
 		>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}>
-					{isOwnFile ? null : <TlaCollaborator size="small" />} {fileName}
+					{fileName}
 				</div>
+				{isOwnFile ? null : (
+					<div className={styles.collaborator}>
+						<TlaCollaborator size="small" idle />
+					</div>
+				)}
 			</div>
 			<Link
 				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
