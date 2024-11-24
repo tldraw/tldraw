@@ -380,4 +380,19 @@ export default [
 			'no-console': 'off',
 		},
 	},
+	{
+		files: ['apps/dotcom/client/src/tla/**/*'],
+		'no-restricted-imports': [
+			'error',
+			{
+				paths: [
+					{
+						name: 'react-intl',
+						importNames: ['useIntl'],
+						message: 'Please import useIntl from src/utils/intl instead.',
+					},
+				],
+			},
+		],
+	},
 ]
