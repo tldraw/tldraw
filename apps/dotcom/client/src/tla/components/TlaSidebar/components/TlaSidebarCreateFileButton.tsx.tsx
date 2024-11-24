@@ -1,5 +1,6 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { tltime } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
@@ -14,12 +15,17 @@ export function TlaSidebarCreateFileButton() {
 	const trackEvent = useTldrawAppUiEvents()
 	const createTitle = useMsg(messages.create)
 
+	const rCanCreate = useRef(true)
+
 	const handleSidebarCreate = useCallback(async () => {
+		if (!rCanCreate.current) return
 		const res = await app.createFile()
 		if (res.ok) {
 			const { file } = res.value
 			navigate(getFilePath(file.id), { state: { mode: 'create' } })
 			trackEvent('create-file', { source: 'sidebar' })
+			rCanCreate.current = false
+			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
 		}
 	}, [app, navigate, trackEvent])
 
