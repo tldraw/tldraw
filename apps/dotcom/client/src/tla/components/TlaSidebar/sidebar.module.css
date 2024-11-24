@@ -179,9 +179,9 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	position: absolute;
-	top: 3.5px;
-	right: 0px;
+	position: relative;
+	top: 0px;
+	right: -8px;
 	height: 40px;
 	width: 40px;
 	display: flex;
@@ -235,6 +235,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	padding-right: 4px;
+	background-color: var(--tla-color-panel);
 }
 
 .user {
@@ -260,6 +261,10 @@
 	flex: 0 0 auto;
 }
 
+.section {
+	background: var(--tla-color-panel);
+}
+
 .section_title {
 	position: relative;
 	width: 100%;
@@ -273,6 +278,7 @@
 }
 
 .link {
+	background-color: var(--tla-color-panel);
 	position: relative;
 	width: 100%;
 	display: flex;
@@ -295,6 +301,7 @@
 }
 
 .renameWrapper {
+	background-color: var(--tla-color-panel);
 	outline: 1px solid var(--color-primary);
 	outline-offset: -2px;
 	border-radius: 6px;

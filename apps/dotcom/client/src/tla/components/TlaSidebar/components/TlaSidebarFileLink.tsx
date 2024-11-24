@@ -11,19 +11,47 @@ import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
 import { RecentFile } from './sidebar-shared'
 
-export function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }) {
+export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId: string }) {
+	const app = useApp()
+	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
-	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const isActive = fileSlug === fileId
-	const [isRenaming, setIsRenaming] = useState(false)
+
+	return (
+		<TlaSidebarFileLinkInner
+			fileId={fileId}
+			testId={testId}
+			isActive={isActive}
+			isOwnFile={isOwnFile}
+			fileName={app.getFileName(fileId)}
+			href={getFilePath(fileId)}
+		/>
+	)
+}
+
+export function TlaSidebarFileLinkInner({
+	testId,
+	fileId,
+	isActive,
+	isOwnFile,
+	fileName,
+	href,
+	debugIsRenaming = false,
+}: {
+	fileId: string
+	testId: string | number
+	isActive: boolean
+	isOwnFile: boolean
+	fileName: string
+	href: string
+	debugIsRenaming?: boolean
+}) {
 	const trackEvent = useTldrawAppUiEvents()
 
+	const [isRenaming, setIsRenaming] = useState(debugIsRenaming)
 	const handleRenameAction = () => setIsRenaming(true)
-
 	const handleRenameClose = () => setIsRenaming(false)
-
-	const app = useApp()
 
 	if (isRenaming) {
 		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={handleRenameClose} />
@@ -34,20 +62,17 @@ export function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: n
 			className={classNames(styles.link, styles.hoverable)}
 			data-active={isActive}
 			data-element="file-link"
-			data-testid={`tla-file-link-${index}`}
+			data-testid={testId}
 			onDoubleClick={handleRenameAction}
 		>
 			<div className={styles.linkContent}>
-				<div
-					className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}
-					data-testid={`tla-file-name-${index}`}
-				>
-					{app.getFileName(fileId)} {isOwnFile ? null : <F defaultMessage="(Guest)" />}
+				<div className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}>
+					{fileName} {isOwnFile ? null : <F defaultMessage="(Guest)" />}
 				</div>
 			</div>
 			<Link
 				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
-				to={getFilePath(fileId)}
+				to={href}
 				className={styles.linkButton}
 			/>
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
