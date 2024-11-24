@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { defineMessages, F, useIntl } from '../../utils/i18n'
+import { defineMessages, F, useIntl } from '../../app/i18n'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './close.module.css'
 

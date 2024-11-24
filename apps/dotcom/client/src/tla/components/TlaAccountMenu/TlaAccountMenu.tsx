@@ -15,8 +15,8 @@ import {
 } from 'tldraw'
 import { Links } from '../../../components/Links'
 import { globalEditor } from '../../../utils/globalEditor'
+import { defineMessages, useIntl } from '../../app/i18n'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, useIntl } from '../../utils/i18n'
 
 const messages = defineMessages({
 	appDebugFlags: { defaultMessage: 'App debug flags' },

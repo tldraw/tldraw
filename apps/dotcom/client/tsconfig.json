@@ -21,7 +21,7 @@
 			}
 		]
 	},
-	"include": ["**/*.ts", "**/*.tsx", "zero.config.ts"],
+	"include": ["**/*.ts", "**/*.tsx", "src/tla/layouts/TlaAnonLayout", "zero.config.ts"],
 	"exclude": ["node_modules", "_archive"],
 	"references": [
 		{

@@ -1,8 +1,8 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactElement, useEffect } from 'react'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
+import { F } from '../../app/i18n'
 import { useSetIsReady } from '../../hooks/useIsReady'
-import { F } from '../../utils/i18n'
 import { TlaSignInButton } from '../TlaSignInButton/TlaSignInButton'
 import styles from './TlaFileError.module.css'
 
