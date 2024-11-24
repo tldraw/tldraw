@@ -1,4 +1,3 @@
-import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { forwardRef, useRef } from 'react'
 import { PeopleMenu, usePassThroughWheelEvents } from 'tldraw'
@@ -6,6 +5,7 @@ import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
+import { TlaSignUpButton } from './TlaSignUpButton'
 import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel({ isAnonUser }: { isAnonUser: boolean }) {
@@ -18,7 +18,7 @@ export function TlaEditorTopRightPanel({ isAnonUser }: { isAnonUser: boolean }) 
 			<div ref={ref} className={classNames(styles.topRightPanel)}>
 				<PeopleMenu />
 				<div className={styles.signInButtons}>
-					<SignInButton />
+					<TlaSignUpButton />
 				</div>
 			</div>
 		)

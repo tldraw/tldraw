@@ -83,9 +83,11 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			{anonFileName && (
 				<>
 					<span className={styles.topPanelSeparator}>{separator}</span>
-					<button className={styles.nameWidthSetter} data-testid="tla-file-name">
-						{anonFileName.replace(/ /g, '\u00a0')}
-					</button>
+					<div className={classNames(styles.inputWrapper)}>
+						<button className={styles.nameWidthSetter} data-testid="tla-file-name">
+							{anonFileName.replace(/ /g, '\u00a0')}
+						</button>
+					</div>
 				</>
 			)}
 			<span className={styles.topPanelSeparator}>{separator}</span>

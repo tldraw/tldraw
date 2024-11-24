@@ -46,7 +46,11 @@
 .topPanelSeparator {
 	color: var(--color-text-3);
 	pointer-events: none;
-	padding: 0px 0px 0px 4px;
+	padding: 0px 4px;
+}
+
+.topPanelSeparator:nth-last-of-type(1) {
+	margin-right: -4px;
 }
 
 .inputWrapper {
