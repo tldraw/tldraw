@@ -20,12 +20,10 @@ import styles from './file-share-menu.module.css'
 export function TlaFileShareMenu({
 	fileId,
 	source,
-	isAnonUser,
 	children,
 }: {
 	fileId: string
 	source: string
-	isAnonUser?: boolean
 	children: ReactNode
 }) {
 	const trackEvent = useTldrawAppUiEvents()
