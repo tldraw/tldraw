@@ -237,7 +237,6 @@ function TlaSidebarFileSection({ title, items }: { title: ReactElement; items: R
 
 export const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
 export function scrollActiveFileLinkIntoView() {
-	console.error('here')
 	setTimeout(() => {
 		const el = document.getElementById(ACTIVE_FILE_LINK_ID)
 		if (el) {
