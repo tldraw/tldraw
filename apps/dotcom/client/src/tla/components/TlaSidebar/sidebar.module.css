@@ -129,6 +129,14 @@
 	.hoverable:hover::after {
 		visibility: visible;
 	}
+
+	.hoverable {
+		color: var(--tla-color-text-2);
+	}
+	.hoverable[data-active='true'],
+	.hoverable:hover {
+		color: var(--tla-color-text-1);
+	}
 }
 
 .toggle {
@@ -351,16 +359,6 @@
 
 .collaborator {
 	flex: 0 0 auto;
-}
-
-@media (hover: hover) {
-	.hoverable {
-		color: var(--tla-color-text-2);
-	}
-	.hoverable[data-active='true'],
-	.hoverable:hover {
-		color: var(--tla-color-text-1);
-	}
 }
 
 .linkButton {

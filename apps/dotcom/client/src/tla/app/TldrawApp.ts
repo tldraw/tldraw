@@ -366,7 +366,8 @@ export class TldrawApp {
 		})
 	}
 
-	getFile(fileId: string): TlaFile | null {
+	getFile(fileId?: string): TlaFile | null {
+		if (!fileId) return null
 		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
 	}
 

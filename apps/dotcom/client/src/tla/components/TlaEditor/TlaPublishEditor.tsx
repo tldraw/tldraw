@@ -9,11 +9,9 @@ import { useSharing } from '../../../utils/sharing'
 import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { TlaFileShareMenuPublishPage } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
-import { TlaShareButton } from '../TlaShareButton/TlaShareButton'
-import { TlaSignUpButton } from '../TlaSignUpButton/TlaSignUpButton'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
+import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
 const components: TLComponents = {
@@ -25,17 +23,7 @@ const components: TLComponents = {
 		usePassThroughWheelEvents(ref)
 		const isAnonUser = !useMaybeApp()
 
-		return (
-			<div ref={ref} className={styles.topRightPanel}>
-				{isAnonUser ? (
-					<TlaSignUpButton />
-				) : (
-					<TlaFileShareMenuPublishPage>
-						<TlaShareButton />
-					</TlaFileShareMenuPublishPage>
-				)}
-			</div>
-		)
+		return <TlaEditorTopRightPanel isAnonUser={isAnonUser} />
 	},
 	MenuPanel: () => {
 		const app = useMaybeApp()
