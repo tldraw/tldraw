@@ -191,47 +191,7 @@ button.nameWidthSetter {
 	align-items: center;
 	justify-content: center;
 	pointer-events: all;
-}
-
-.shareButton {
-	font-family: inherit;
-	font-size: inherit;
-	height: 36px;
-	border: 2px solid var(--color-background);
-	border-left: 2px solid var(--color-background);
-	border-radius: 8px;
-	background-color: var(--color-selected);
-	color: var(--color-selected-contrast);
-	text-shadow: none;
-	pointer-events: all;
-	position: relative;
-	font-weight: 700;
-}
-
-.shareButton::before {
-	position: absolute;
-	display: block;
-	content: '';
-	inset: 0px;
-	background-color: var(--color-background);
-	border-top-left-radius: var(--radius-3);
-	border-bottom-right-radius: var(--radius-3);
-	border-bottom-left-radius: var(--radius-3);
-	z-index: -1;
-}
-
-.shareButton:active {
-	color: var(--color-selected-contrast);
-}
-
-@media (hover: hover) {
-	.shareButton:hover {
-		color: var(--color-selected-contrast);
-	}
-
-	.shareButton:not(:disabled, :focus-visible):hover {
-		color: var(--color-selected-contrast);
-	}
+	padding-right: 6px;
 }
 
 .exportButton {
@@ -268,38 +228,4 @@ button.nameWidthSetter {
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
-}
-
-.shareButtonMini {
-	height: 40px;
-	width: 40px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: none;
-	border: none;
-	position: relative;
-	cursor: pointer;
-	z-index: 1;
-}
-
-@media (hover: hover) {
-	.shareButtonMini::after {
-		display: block;
-		content: '';
-		position: absolute;
-		top: 4px;
-		left: 4px;
-		right: 4px;
-		bottom: 4px;
-		border-radius: 4px;
-		background-color: var(--tla-color-hover-1);
-		z-index: 0;
-		pointer-events: none;
-		visibility: hidden;
-	}
-
-	.shareButtonMini:hover::after {
-		visibility: visible;
-	}
 }

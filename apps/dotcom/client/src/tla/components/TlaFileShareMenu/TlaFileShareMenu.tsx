@@ -71,28 +71,27 @@ export function TlaFileShareMenu({
 				<TldrawUiDropdownMenuContent
 					className={styles.shareMenu}
 					side="bottom"
-					align="end"
 					alignOffset={-2}
 					sideOffset={4}
 				>
 					<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
 							{/* Disable share when on a scratchpad file */}
-							{context === 'published-file' ? null : (
-								<TlaTabsTab id="share" disabled={context === 'scratch'}>
+							{context === 'file' ? (
+								<TlaTabsTab id="share">
 									<F defaultMessage="Invite" />
 								</TlaTabsTab>
-							)}
+							) : null}
 							{/* Always show export */}
 							<TlaTabsTab id="export">
 								<F defaultMessage="Export" />
 							</TlaTabsTab>
 							{/* Show publish tab when there's a file and either the context is a published file or the user owns the file */}
-							{context === 'file' && !isOwner ? null : (
+							{context === 'file' && isOwner ? (
 								<TlaTabsTab id="publish" disabled={!showPublish}>
 									<F defaultMessage="Publish" />
 								</TlaTabsTab>
-							)}
+							) : null}
 						</TlaTabsTabs>
 						{context === 'file' ? (
 							app && fileId ? (
