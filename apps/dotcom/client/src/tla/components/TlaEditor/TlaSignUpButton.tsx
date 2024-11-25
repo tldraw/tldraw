@@ -17,6 +17,7 @@ export const TlaSignUpButton = forwardRef<HTMLButtonElement>(function ShareButto
 				ref={ref}
 				draggable={false}
 				type="button"
+				data-testId="tla-signup-button"
 				className="tlui-share-zone__button-wrapper"
 				{...props}
 				onClick={() => trackEvent('sign-up-clicked', { source: 'anon-landing-page' })}
