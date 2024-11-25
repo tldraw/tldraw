@@ -1,7 +1,14 @@
 import { atom, computed } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
-import { TlaFile, TlaFilePartial, TlaFileState, TlaFileStatePartial, TlaUser } from './tlaSchema'
+import {
+	TlaFile,
+	TlaFilePartial,
+	TlaFileState,
+	TlaFileStatePartial,
+	TlaUser,
+	TlaUserPartial,
+} from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
 
 export class OptimisticAppStore {
@@ -76,7 +83,8 @@ export class OptimisticAppStore {
 		const { row, table, event } = update
 		if (table === 'user') {
 			if (event === 'update') {
-				return { ...prev, user: { ...prev.user, ...(row as Partial<TlaUser>) } }
+				const { id: _id, ...rest } = row as TlaUserPartial
+				return { ...prev, user: { ...prev.user, ...rest } }
 			} else {
 				return { ...prev, user: row as TlaUser }
 			}
