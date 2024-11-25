@@ -108,8 +108,7 @@ export class Sidebar {
 	}
 
 	async getFileName(index: number) {
-		const fileName = this.page.getByTestId(`tla-file-name-${index}`)
-		return await fileName.innerText()
+		return await this.page.getByTestId(`tla-file-name-${index}`).innerText({ timeout: 5000 })
 	}
 
 	@step
