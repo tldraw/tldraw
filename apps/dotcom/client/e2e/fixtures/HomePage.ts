@@ -12,7 +12,7 @@ export class HomePage {
 		private readonly page: Page,
 		private readonly editor: Editor
 	) {
-		this.signUpButton = this.page.getByTestId('tla-signup-button')
+		this.signUpButton = this.page.getByTestId('tla-cta')
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
 	}
 

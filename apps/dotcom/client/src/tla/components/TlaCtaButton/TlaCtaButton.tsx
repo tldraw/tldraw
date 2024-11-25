@@ -11,6 +11,7 @@ export const TlaCtaButton = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<H
 				ref={ref}
 				type="button"
 				draggable={false}
+				data-testid="cta-button"
 				className={classNames(styles.ctaButton)}
 				onClick={() => trackEvent('open-share-menu', { source: 'anon-landing-page' })}
 				{...props}
