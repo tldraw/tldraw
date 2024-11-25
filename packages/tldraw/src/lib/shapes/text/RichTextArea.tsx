@@ -1,8 +1,8 @@
 import { EditorEvents, EditorProvider } from '@tiptap/react'
 import {
+	TLShapeId,
 	preventDefault,
 	stopEventPropagation,
-	TLShapeId,
 	useEditor,
 	useUniqueSafeId,
 } from '@tldraw/editor'
@@ -40,11 +40,29 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 	const editor = useEditor()
 	const tipTapConfig = editor.getTextOptions().tipTapConfig
 	const [shouldSelectAllOnCreate, setShouldSelectAllOnCreate] = useState(false)
+	const [initialPositionOnCreate, setInitialPositionOnCreate] = useState(
+		null as { x: number; y: number } | null
+	)
 
 	const handleCreate = (props: EditorEvents['create']) => {
 		editor.setEditingShapeTextEditor(props.editor)
+
 		if (shouldSelectAllOnCreate) {
 			props.editor.chain().focus().selectAll().run()
+		} else if (initialPositionOnCreate) {
+			const textEditor = editor.getEditingShapeTextEditor()
+			const pos = textEditor.view.posAtCoords({
+				left: initialPositionOnCreate.x,
+				top: initialPositionOnCreate.y,
+			})?.pos
+
+			if (pos) {
+				// Focus to that position.
+				textEditor.chain().focus().setTextSelection(pos).run()
+			} else {
+				// Default to just focusing to the end of the editor content.
+				textEditor.commands.focus('end')
+			}
 		}
 	}
 
@@ -61,10 +79,19 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 			}
 		}
 
+		function placeCaret(event: { shapeId: TLShapeId; point: { x: number; y: number } }) {
+			if (event.shapeId === editor.getEditingShapeId()) {
+				setInitialPositionOnCreate(event.point)
+			}
+		}
+
 		editor.on('select-all-text', selectAllIfEditing)
+		editor.on('place-caret', placeCaret)
 		return () => {
 			editor.off('select-all-text', selectAllIfEditing)
+			editor.off('place-caret', placeCaret)
 			setShouldSelectAllOnCreate(false)
+			setInitialPositionOnCreate(null)
 		}
 	}, [editor, isEditing])
 

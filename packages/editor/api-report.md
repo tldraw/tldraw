@@ -3005,6 +3005,14 @@ export interface TLEventMap {
         pageId: TLPageId;
     }];
     // (undocumented)
+    'place-caret': [{
+        point: {
+            x: number;
+            y: number;
+        };
+        shapeId: TLShapeId;
+    }];
+    // (undocumented)
     'select-all-text': [{
         shapeId: TLShapeId;
     }];
