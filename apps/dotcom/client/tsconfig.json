@@ -23,9 +23,6 @@
 	},
 	"include": ["**/*.ts", "**/*.tsx", "zero.config.ts"],
 	"exclude": ["node_modules", "_archive"],
-	"paths": {
-		"react-intl": ["src/tla/utils/a18n"]
-	},
 	"references": [
 		{
 			"path": "../../../packages/assets"
