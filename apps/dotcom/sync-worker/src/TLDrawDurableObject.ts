@@ -615,9 +615,9 @@ export class TLDrawDurableObject extends DurableObject {
 
 		for (const session of room.getSessions()) {
 			if (file.isDeleted) {
-        room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
-        continue
-      }
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+				continue
+			}
 			// allow the owner to stay connected
 			if (session.meta.userId === file.ownerId) continue
 
