@@ -10,9 +10,9 @@ import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { TlaFileShareMenuPublishPage } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
+import { TlaShareButton } from '../TlaShareButton/TlaShareButton'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
-import { ShareButton } from './TlaEditorTopRightPanel'
 import { TlaSignUpButton } from './TlaSignUpButton'
 import styles from './editor.module.css'
 
@@ -31,7 +31,7 @@ const components: TLComponents = {
 					<TlaSignUpButton />
 				) : (
 					<TlaFileShareMenuPublishPage>
-						<ShareButton />
+						<TlaShareButton />
 					</TlaFileShareMenuPublishPage>
 				)}
 			</div>
