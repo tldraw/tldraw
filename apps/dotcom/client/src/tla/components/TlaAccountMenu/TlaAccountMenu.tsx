@@ -31,7 +31,7 @@ export function TlaAccountMenu({
 					className="tla-account-menu"
 					side="bottom"
 					alignOffset={0}
-					sideOffset={0}
+					sideOffset={4}
 				>
 					<TlaAppMenuGroup />
 					<TldrawUiMenuGroup id="signout">
