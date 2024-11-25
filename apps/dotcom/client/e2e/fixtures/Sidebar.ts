@@ -30,11 +30,11 @@ export class Sidebar {
 	}
 
 	async expectIsVisible() {
-		await expect(this.sidebarLogo).toBeVisible()
+		await expect(this.sidebarLogo).toBeInViewport()
 	}
 
 	async expectIsNotVisible() {
-		await expect(this.sidebarLogo).not.toBeVisible()
+		await expect(this.sidebarLogo).not.toBeInViewport()
 	}
 
 	async createNewDocument() {
@@ -45,22 +45,21 @@ export class Sidebar {
 		return (await this.page.$$(this.fileLink)).length
 	}
 
-	async openPreferences() {
+	async openAccountMenu() {
 		await this.sidebarBottom.hover()
 		await this.page.getByRole('button', { name: 'Account menu' }).click()
 	}
 
 	@step
 	async setDarkMode() {
-		await this.openPreferences()
-		await this.preferencesButton.hover()
+		await this.openAccountMenu()
 		await this.themeButton.hover()
 		await this.darkModeButton.click()
 	}
 
 	@step
 	async openLanguageMenu(languageButtonText: string) {
-		await this.openPreferences()
+		await this.openAccountMenu()
 		await this.page.getByText(languageButtonText).hover()
 	}
 
@@ -84,7 +83,7 @@ export class Sidebar {
 
 	@step
 	async signOut() {
-		await this.openPreferences()
+		await this.openAccountMenu()
 		await this.signOutButton.click()
 	}
 

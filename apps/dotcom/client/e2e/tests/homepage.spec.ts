@@ -4,9 +4,9 @@ import { expect, test } from '../fixtures/tla-test'
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {
 	await editor.ensureSidebarClosed()
-	await expect(sidebar.sidebarLogo).not.toBeVisible()
+	await expect(sidebar.sidebarLogo).not.toBeInViewport()
 	await editor.toggleSidebar()
-	await expect(sidebar.sidebarLogo).toBeVisible()
+	await expect(sidebar.sidebarLogo).toBeInViewport()
 })
 
 test('can create new file', async ({ editor, sidebar }) => {
