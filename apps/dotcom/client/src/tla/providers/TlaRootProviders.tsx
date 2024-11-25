@@ -15,11 +15,11 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { IntlProvider, setupCreateIntl } from '../app/i18n'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { IntlProvider, setupCreateIntl } from '../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 import { getRootPath } from '../utils/urls'
 
@@ -160,7 +160,7 @@ function SignedInProvider({
 	if (!auth.isLoaded) return null
 
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
-		return children
+		return <ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
 	}
 
 	return (

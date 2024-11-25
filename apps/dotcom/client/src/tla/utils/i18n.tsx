@@ -1,20 +1,32 @@
+/* eslint-disable no-restricted-imports */
+
 import {
 	FormattedMessage,
 	IntlConfig,
 	IntlShape,
 	MessageDescriptor,
+	PrimitiveType,
 	createIntlCache,
 	createIntl as originalCreateIntl,
 	defineMessages as originalDefineMessages,
 	useIntl,
 } from 'react-intl'
 
+import { FormatXMLElementFn } from 'intl-messageformat'
 import MD5 from 'md5.js'
 import { ComponentPropsWithoutRef } from 'react'
 
 // Re-export everything and override below what we want to override.
 // eslint-disable-next-line
 export * from 'react-intl'
+
+export function useMsg(
+	message: MessageDescriptor,
+	values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>
+) {
+	const intl = useIntl()
+	return intl.formatMessage(message, values)
+}
 
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 

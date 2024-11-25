@@ -1,12 +1,12 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useEditor, useValue } from 'tldraw'
-import { F, defineMessages, useIntl } from '../../../app/i18n'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
+import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import { getShareableFileUrl } from '../../../utils/urls'
 import { TlaSelect } from '../../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
@@ -87,7 +87,6 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; fileId: string }) {
 	const app = useApp()
 	const user = useTldrawUser()
-	const intl = useIntl()
 	const trackEvent = useTldrawAppUiEvents()
 	if (!user) throw Error('should have auth')
 
@@ -107,6 +106,10 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 		[app, fileId, trackEvent]
 	)
 
+	const label = useMsg(
+		isShared ? (sharedLinkType === 'edit' ? messages.editor : messages.viewer) : messages.noAccess
+	)
+
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>
@@ -114,13 +117,7 @@ function TlaSelectSharedLinkType({ isShared, fileId }: { isShared: boolean; file
 			</TlaMenuControlLabel>
 			<TlaSelect
 				data-testid="shared-link-type-select"
-				label={
-					isShared
-						? sharedLinkType === 'edit'
-							? intl.formatMessage(messages.editor)
-							: intl.formatMessage(messages.viewer)
-						: intl.formatMessage(messages.noAccess)
-				}
+				label={label}
 				value={!isShared ? 'no-access' : sharedLinkType!}
 				disabled={!isShared}
 				onChange={handleSelectChange}

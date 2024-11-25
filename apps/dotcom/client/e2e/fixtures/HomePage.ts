@@ -6,13 +6,13 @@ import { step } from './tla-test'
 const rootUrl = 'http://localhost:3000/q'
 
 export class HomePage {
-	public readonly signInButton: Locator
+	public readonly signUpButton: Locator
 	public readonly tldrawEditor: Locator
 	constructor(
 		private readonly page: Page,
 		private readonly editor: Editor
 	) {
-		this.signInButton = this.page.getByTestId('tla-signin-button')
+		this.signUpButton = this.page.getByTestId('tla-signup-button')
 		this.tldrawEditor = this.page.getByTestId('tla-editor')
 	}
 
@@ -24,7 +24,7 @@ export class HomePage {
 		if (this.page.url() !== rootUrl) {
 			await this.goto()
 		}
-		await expect(this.signInButton).toBeVisible()
+		await expect(this.signUpButton).toBeVisible()
 		await this.page.click('text=Sign in')
 		await this.page.getByLabel('Email address').fill(email)
 		await this.page.getByRole('button', { name: 'Continue', exact: true }).click()
@@ -37,13 +37,13 @@ export class HomePage {
 
 	async expectSignInButtonVisible() {
 		await expect(async () => {
-			await expect(this.signInButton).toBeVisible()
+			await expect(this.signUpButton).toBeVisible()
 		}).toPass()
 	}
 
 	async expectSignInButtonNotVisible() {
 		await expect(async () => {
-			await expect(this.signInButton).not.toBeVisible()
+			await expect(this.signUpButton).not.toBeVisible()
 		}).toPass()
 	}
 
