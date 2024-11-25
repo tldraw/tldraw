@@ -67,6 +67,8 @@ export function TlaEditorTopLeftPanelAnonymous() {
 		[editor, fileSlug]
 	)
 
+	const hasPages = useValue('hasPages', () => editor.getPages().length > 1, [editor])
+
 	// This is used in three places
 	// - root, ie tldraw.com
 	// - being an anonymous guest on someone else's file
@@ -90,8 +92,13 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					</div>
 				</>
 			)}
-			<span className={styles.topPanelSeparator}>{separator}</span>
-			<DefaultPageMenu />
+
+			{hasPages && (
+				<>
+					<span className={styles.topPanelSeparator}>{separator}</span>
+					<DefaultPageMenu />
+				</>
+			)}
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
 					<TldrawUiDropdownMenuTrigger>
