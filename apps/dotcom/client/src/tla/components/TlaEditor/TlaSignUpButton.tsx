@@ -1,4 +1,4 @@
-import { SignUpButton } from '@clerk/clerk-react'
+import { SignInButton } from '@clerk/clerk-react'
 import classNames from 'classnames'
 import { forwardRef } from 'react'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -8,10 +8,10 @@ import styles from './top.module.css'
 export const TlaSignUpButton = forwardRef<HTMLButtonElement>(function ShareButton(props, ref) {
 	const trackEvent = useTldrawAppUiEvents()
 	return (
-		<SignUpButton
+		<SignInButton
 			mode="modal"
 			forceRedirectUrl={location.pathname + location.search}
-			signInForceRedirectUrl={location.pathname + location.search}
+			signUpForceRedirectUrl={location.pathname + location.search}
 		>
 			<button
 				ref={ref}
@@ -33,6 +33,6 @@ export const TlaSignUpButton = forwardRef<HTMLButtonElement>(function ShareButto
 					</span>
 				</div>
 			</button>
-		</SignUpButton>
+		</SignInButton>
 	)
 })
