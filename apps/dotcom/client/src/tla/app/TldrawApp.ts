@@ -2,6 +2,7 @@
 import {
 	CreateFilesResponseBody,
 	TlaFile,
+	TlaFilePartial,
 	TlaFileState,
 	TlaUser,
 	UserPreferencesKeys,
@@ -376,7 +377,7 @@ export class TldrawApp {
 		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
 	}
 
-	updateFile(partial: Partial<TlaFile> & { id: TlaFile['id'] }) {
+	updateFile(partial: TlaFilePartial) {
 		this.requireFile(partial.id)
 		this.z.mutate.file.update(partial)
 	}

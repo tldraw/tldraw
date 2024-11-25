@@ -1,8 +1,11 @@
 import {
 	OptimisticAppStore,
 	TlaFile,
+	TlaFilePartial,
 	TlaFileState,
+	TlaFileStatePartial,
 	TlaUser,
+	TlaUserPartial,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZRowUpdate,
@@ -154,7 +157,7 @@ export class Zero {
 					},
 				])
 			},
-			update: (data: Partial<TlaFile> & { id: TlaFile['id'] }) => {
+			update: (data: TlaFilePartial) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)
 				if (!existing) throw new Error('file not found')
 				this.makeOptimistic([{ table: 'file', event: 'update', row: data }])
@@ -169,12 +172,7 @@ export class Zero {
 				if (!store) throw new Error('store not initialized')
 				this.makeOptimistic([{ table: 'file_state', event: 'insert', row: data }])
 			},
-			update: (
-				data: Partial<TlaFileState> & {
-					fileId: TlaFileState['fileId']
-					userId: TlaFileState['userId']
-				}
-			) => {
+			update: (data: TlaFileStatePartial) => {
 				const existing = this.store
 					.getFullData()
 					?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)
@@ -189,7 +187,7 @@ export class Zero {
 			create: (data: TlaUser) => {
 				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
 			},
-			update: (data: Partial<TlaUser> & { id: TlaUser['id'] }) => {
+			update: (data: TlaUserPartial) => {
 				this.makeOptimistic([{ table: 'user', event: 'update', row: data as any }])
 			},
 			delete: () => {

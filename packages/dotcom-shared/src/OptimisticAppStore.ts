@@ -1,7 +1,7 @@
 import { atom, computed } from '@tldraw/state'
 import { assert } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
-import { TlaFile, TlaFileState, TlaUser } from './tlaSchema'
+import { TlaFile, TlaFilePartial, TlaFileState, TlaFileStatePartial, TlaUser } from './tlaSchema'
 import { ZRowUpdate, ZStoreData } from './types'
 
 export class OptimisticAppStore {
@@ -88,7 +88,7 @@ export class OptimisticAppStore {
 					files: prev.files.filter((f) => f.id !== (row as TlaFile).id),
 				}
 			} else if (event === 'update') {
-				const { id, ...rest } = row as Partial<TlaFile> & { id: TlaFile['id'] }
+				const { id, ...rest } = row as TlaFilePartial
 				return {
 					...prev,
 					files: prev.files.map((f) => (f.id === id ? ({ ...f, ...rest } as TlaFile) : f)),
@@ -102,10 +102,7 @@ export class OptimisticAppStore {
 			}
 		}
 		assert(table === 'file_state')
-		const fileState = row as Partial<TlaFileState> & {
-			fileId: TlaFileState['fileId']
-			userId: TlaFileState['userId']
-		}
+		const fileState = row as TlaFileStatePartial
 		const { fileId, userId, ...rest } = fileState
 		if (event === 'delete') {
 			return {
