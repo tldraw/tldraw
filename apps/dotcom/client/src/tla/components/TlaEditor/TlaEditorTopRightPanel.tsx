@@ -30,7 +30,7 @@ export function TlaEditorTopRightPanel({
 					forceRedirectUrl={location.pathname + location.search}
 					signUpForceRedirectUrl={location.pathname + location.search}
 				>
-					<TlaCtaButton>
+					<TlaCtaButton data-testid="tla-sign-up">
 						<F defaultMessage="Sign in" />
 					</TlaCtaButton>
 				</SignInButton>
@@ -42,7 +42,7 @@ export function TlaEditorTopRightPanel({
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu displayUserWhenAlone={false} />
 			<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
-				<TlaCtaButton>
+				<TlaCtaButton data-testid="share">
 					<F defaultMessage="Share" />
 				</TlaCtaButton>
 			</TlaFileShareMenu>

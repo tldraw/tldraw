@@ -56,7 +56,7 @@ export function TlaFileError({ error }: { error: unknown }) {
 							forceRedirectUrl={location.pathname + location.search}
 							signUpForceRedirectUrl={location.pathname + location.search}
 						>
-							<TlaCtaButton>
+							<TlaCtaButton data-testid="tla-sign-up">
 								<F defaultMessage="Sign in" />
 							</TlaCtaButton>
 						</SignInButton>
