@@ -498,6 +498,18 @@ export class TLDrawDurableObject extends DurableObject {
 				return { type: 'room_found', snapshot: JSON.parse(data) }
 			}
 
+			if (this.documentInfo.isApp) {
+				// finally check whether the file exists in the DB but not in R2 yet
+				const file = await this.getAppFileRecord()
+				if (!file) {
+					return { type: 'room_not_found' }
+				}
+				return {
+					type: 'room_found',
+					snapshot: new TLSyncRoom({ schema: createTLSchema() }).getSnapshot(),
+				}
+			}
+
 			// if we don't have a room in the bucket, try to load from supabase
 			if (!this.supabaseClient) return { type: 'room_not_found' }
 			const { data, error } = await this.supabaseClient
