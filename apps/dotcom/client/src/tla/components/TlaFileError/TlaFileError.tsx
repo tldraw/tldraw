@@ -3,7 +3,7 @@ import { ReactElement, useEffect } from 'react'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
-import { TlaSignUpButton } from '../TlaEditor/TlaSignUpButton'
+import { TlaSignUpButton } from '../TlaSignUpButton/TlaSignUpButton'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {

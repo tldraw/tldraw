@@ -4,7 +4,7 @@ import { PeopleMenu, usePassThroughWheelEvents } from 'tldraw'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaShareButton } from '../TlaShareButton/TlaShareButton'
-import { TlaSignUpButton } from './TlaSignUpButton'
+import { TlaSignUpButton } from '../TlaSignUpButton/TlaSignUpButton'
 import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel({ isAnonUser }: { isAnonUser: boolean }) {

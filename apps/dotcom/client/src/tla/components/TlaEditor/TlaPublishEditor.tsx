@@ -11,9 +11,9 @@ import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { TlaFileShareMenuPublishPage } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
 import { TlaShareButton } from '../TlaShareButton/TlaShareButton'
+import { TlaSignUpButton } from '../TlaSignUpButton/TlaSignUpButton'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
-import { TlaSignUpButton } from './TlaSignUpButton'
 import styles from './editor.module.css'
 
 const components: TLComponents = {

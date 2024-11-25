@@ -1,20 +1,38 @@
-import { SignUpButton } from '@clerk/clerk-react'
-import { ComponentProps } from 'react'
-import { useLocation } from 'react-router-dom'
+import { SignInButton } from '@clerk/clerk-react'
+import classNames from 'classnames'
+import { forwardRef } from 'react'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
-import { TlaButton } from '../TlaButton/TlaButton'
+import styles from './sign-up-button.module.css'
 
-export function TlaSignUpButton({ children, ...props }: ComponentProps<typeof TlaButton>) {
-	const location = useLocation()
+export const TlaSignUpButton = forwardRef<HTMLButtonElement>(function ShareButton(props, ref) {
+	const trackEvent = useTldrawAppUiEvents()
 	return (
-		<SignUpButton
+		<SignInButton
 			mode="modal"
 			forceRedirectUrl={location.pathname + location.search}
-			signInForceRedirectUrl={location.pathname + location.search}
+			signUpForceRedirectUrl={location.pathname + location.search}
 		>
-			<TlaButton data-testid="tla-sign-up-button" {...props}>
-				{children ?? <F defaultMessage="Sign up" />}
-			</TlaButton>
-		</SignUpButton>
+			<button
+				ref={ref}
+				draggable={false}
+				type="button"
+				data-testId="tla-signup-button"
+				className="tlui-share-zone__button-wrapper"
+				{...props}
+				onClick={() => trackEvent('sign-up-clicked', { source: 'anon-landing-page' })}
+			>
+				<div
+					className={classNames(
+						'tlui-button tlui-button__normal tlui-share-zone__button',
+						styles.signUpButton
+					)}
+				>
+					<span className="tlui-button__label" draggable={false}>
+						<F defaultMessage="Sign in" />
+					</span>
+				</div>
+			</button>
+		</SignInButton>
 	)
-}
+})
