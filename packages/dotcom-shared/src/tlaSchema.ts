@@ -48,6 +48,8 @@ export const tlaFileSchema = {
 		id: { type: 'string' },
 		name: { type: 'string' },
 		ownerId: { type: 'string' },
+		ownerName: { type: 'string' },
+		ownerAvatar: { type: 'string' },
 		thumbnail: { type: 'string' },
 		shared: { type: 'boolean' },
 		sharedLinkType: { type: 'string' },
@@ -135,7 +137,7 @@ export type TlaUser = SchemaToRow<typeof tlaUserSchema>
 export type TlaRow = TlaFile | TlaFileState | TlaUser
 
 const immutableColumns: Record<string, Set<string>> = {
-	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt']),
+	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt', 'avatar']),
 	file: new Set<keyof TlaFile>(['id', 'ownerId', 'createdAt']),
 	file_state: new Set<keyof TlaFileState>(['userId', 'fileId', 'firstVisitAt', 'isFileOwner']),
 }

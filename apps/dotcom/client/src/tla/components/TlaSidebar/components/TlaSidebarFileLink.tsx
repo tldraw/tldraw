@@ -1,11 +1,21 @@
+import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useContainer, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
+import { F } from '../../../utils/i18n'
 import { getFilePath } from '../../../utils/urls'
-import { TlaCollaborator } from '../../TlaCollaborator/TlaCollaborator'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import {
+	TlaTooltipArrow,
+	TlaTooltipContent,
+	TlaTooltipPortal,
+	TlaTooltipRoot,
+	TlaTooltipTrigger,
+} from '../../TlaTooltip/TlaTooltip'
 import styles from '../sidebar.module.css'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
@@ -66,6 +76,10 @@ export function TlaSidebarFileLinkInner({
 	const [isRenaming, setIsRenaming] = useState(debugIsRenaming)
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameClose = () => setIsRenaming(false)
+	const app = useApp()
+
+	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
+	if (!file) return null
 
 	if (isRenaming) {
 		return <TlaSidebarRenameInline source="sidebar" fileId={fileId} onClose={handleRenameClose} />
@@ -88,11 +102,11 @@ export function TlaSidebarFileLinkInner({
 				>
 					{fileName}
 				</div>
-				{isOwnFile ? null : (
+				{/* {isOwnFile ? null : (
 					<div className={styles.collaborator}>
 						<TlaCollaborator size="small" idle />
 					</div>
-				)}
+				)} */}
 			</div>
 			<Link
 				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
@@ -100,6 +114,45 @@ export function TlaSidebarFileLinkInner({
 				className={styles.linkButton}
 			/>
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
+			{!isOwnFile && <GuestBadge file={file} />}
+		</div>
+	)
+}
+
+function GuestBadge({ file }: { file: TlaFile }) {
+	const container = useContainer()
+	const ownerName = file.ownerName.trim()
+	const avatar = file.ownerAvatar
+	return (
+		<div className={styles.guestBadge}>
+			<TlaTooltipRoot>
+				<TlaTooltipTrigger
+					dir="ltr"
+					// this is needed to prevent the tooltip from closing when clicking the badge
+					onClick={(e) => {
+						e.preventDefault()
+					}}
+					className={styles.guestBadgeTrigger}
+				>
+					{avatar ? <img src={avatar} style={{ objectFit: 'cover' }} /> : <TlaIcon icon="group" />}
+				</TlaTooltipTrigger>
+				<TlaTooltipPortal container={container}>
+					<TlaTooltipContent
+						style={{ zIndex: 200 }}
+						// this is also needed to prevent the tooltip from closing when clicking the badge
+						onPointerDownOutside={(event) => {
+							event.preventDefault()
+						}}
+					>
+						{ownerName ? (
+							<F defaultMessage={`Shared by {ownerName}`} values={{ ownerName }} />
+						) : (
+							<F defaultMessage="Shared with you" />
+						)}
+						<TlaTooltipArrow />
+					</TlaTooltipContent>
+				</TlaTooltipPortal>
+			</TlaTooltipRoot>
 		</div>
 	)
 }

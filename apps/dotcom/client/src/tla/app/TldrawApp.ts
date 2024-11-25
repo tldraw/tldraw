@@ -228,6 +228,9 @@ export class TldrawApp {
 		const file: TlaFile = {
 			id: typeof fileOrId === 'string' ? fileOrId : uniqueId(),
 			ownerId: this.userId,
+			// these two owner properties are overridden by postgres triggers
+			ownerAvatar: this.getUser().avatar,
+			ownerName: this.getUser().name,
 			isEmpty: true,
 			createdAt: Date.now(),
 			lastPublished: 0,
