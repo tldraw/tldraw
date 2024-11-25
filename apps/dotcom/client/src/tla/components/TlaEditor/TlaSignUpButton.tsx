@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import { forwardRef } from 'react'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './top.module.css'
 
 export const TlaSignUpButton = forwardRef<HTMLButtonElement>(function ShareButton(props, ref) {
@@ -31,6 +32,7 @@ export const TlaSignUpButton = forwardRef<HTMLButtonElement>(function ShareButto
 					<span className="tlui-button__label" draggable={false}>
 						<F defaultMessage="Sign in" />
 					</span>
+					<TlaIcon icon="sign-in" />
 				</div>
 			</button>
 		</SignUpButton>

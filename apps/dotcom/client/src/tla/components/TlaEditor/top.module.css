@@ -261,4 +261,9 @@ button.nameWidthSetter {
 	color: #ffffff;
 	font-weight: 600;
 	pointer-events: all;
+	display: flex;
+	gap: 8px;
+	padding-left: 12px;
+	padding-right: 11px;
+	height: 40px;
 }

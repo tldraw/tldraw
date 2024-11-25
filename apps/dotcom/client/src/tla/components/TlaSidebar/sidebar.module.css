@@ -63,7 +63,7 @@
 
 @media (max-width: 767px) {
 	.sidebar {
-		--w: max(220px, calc(100vw - 100px));
+		--w: min(320px, max(220px, calc(100vw - 100px)));
 		left: calc(var(--w) * -1);
 		width: var(--w);
 		transition: none;
