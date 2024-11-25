@@ -81,10 +81,18 @@ export interface ZStoreData {
 	user: TlaUser
 }
 
-export interface ZRowUpdate {
+export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
+
+export interface ZRowInsert {
+	row: TlaFile | TlaFileState | TlaUser
+	table: ZTable
+	event: 'insert'
+}
+
+export interface ZRowDeleteOrUpdate {
 	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial
-	table: 'file' | 'file_state' | 'user'
-	event: 'insert' | 'update' | 'delete'
+	table: ZTable
+	event: 'update' | 'delete'
 }
 
 export type ZTable = 'file' | 'file_state' | 'user'
