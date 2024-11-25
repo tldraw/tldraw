@@ -95,12 +95,16 @@ export class Sidebar {
 		await expect(this.sidebarLayout).not.toContainText(text)
 	}
 
+	private getTestId(section: string, index: number, suffix?: string) {
+		return `tla-file-link-${section}-${index}${suffix ? `-${suffix}` : ''}`
+	}
+
 	getFirstFileLink() {
 		return this.getFileLink('today', 0)
 	}
 
 	getFileLink(section: string, index: number) {
-		return this.page.getByTestId(`tla-file-link-${section}-${index}`)
+		return this.page.getByTestId(this.getTestId(section, index))
 	}
 
 	async getFirstFileName() {
@@ -108,7 +112,9 @@ export class Sidebar {
 	}
 
 	async getFileName(index: number) {
-		return await this.page.getByTestId(`tla-file-name-${index}`).innerText({ timeout: 5000 })
+		return await this.page
+			.getByTestId(this.getTestId('today', index, 'name'))
+			.innerText({ timeout: 5000 })
 	}
 
 	@step
