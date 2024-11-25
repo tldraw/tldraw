@@ -9,6 +9,7 @@ export const TlaShareButton = forwardRef<HTMLButtonElement>(function ShareButton
 			ref={ref}
 			draggable={false}
 			type="button"
+			data-testid="share-button"
 			className="tlui-share-zone__button-wrapper"
 			{...props}
 			onClick={() => trackEvent('open-share-menu', { source: 'file-header' })}

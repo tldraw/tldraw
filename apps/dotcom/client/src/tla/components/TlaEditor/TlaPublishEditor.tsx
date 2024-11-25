@@ -22,7 +22,7 @@ const components: TLComponents = {
 		const ref = useRef<HTMLDivElement>(null)
 		usePassThroughWheelEvents(ref)
 		const isAnonUser = !useMaybeApp()
-		return <TlaEditorTopRightPanel isAnonUser={isAnonUser} isPublished />
+		return <TlaEditorTopRightPanel isAnonUser={isAnonUser} context="published-file" />
 	},
 	MenuPanel: () => {
 		const isAnonUser = !useMaybeApp()

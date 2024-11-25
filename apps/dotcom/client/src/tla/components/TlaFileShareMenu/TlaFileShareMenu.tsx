@@ -20,11 +20,12 @@ import styles from './file-share-menu.module.css'
 
 export function TlaFileShareMenu({
 	fileId,
-	isPublished,
+	context,
 	source,
 	children,
 }: {
-	isPublished?: boolean
+	// this share menu is shown when viewing a file, or a published file (snapshot), or when the logged out user is on the root (the scratchpad)
+	context: 'file' | 'published-file' | 'scratch'
 	fileId?: string
 	source: string
 	children: ReactNode
@@ -50,14 +51,12 @@ export function TlaFileShareMenu({
 		[trackEvent]
 	)
 
-	const isScratch = !fileId
-
 	let tabToShowAsActive = shareMenuActiveTab
 
-	const showPublish = isOwner || isPublished
+	const showPublish = (file && isOwner) || context === 'published-file'
 
 	if (
-		(tabToShowAsActive === 'share' && (isScratch || !file)) ||
+		(tabToShowAsActive === 'share' && (context === 'scratch' || context === 'published-file')) ||
 		(tabToShowAsActive === 'publish' && !showPublish)
 	) {
 		tabToShowAsActive = 'export'
@@ -79,8 +78,8 @@ export function TlaFileShareMenu({
 					<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
 							{/* Disable share when on a scratchpad file */}
-							{!file || isPublished ? null : (
-								<TlaTabsTab id="share" disabled={isScratch}>
+							{context === 'published-file' ? null : (
+								<TlaTabsTab id="share" disabled={context === 'scratch'}>
 									<F defaultMessage="Invite" />
 								</TlaTabsTab>
 							)}
@@ -88,31 +87,35 @@ export function TlaFileShareMenu({
 							<TlaTabsTab id="export">
 								<F defaultMessage="Export" />
 							</TlaTabsTab>
-							{/* Show publish tab when there's a file and either the file is published or the user owns the file */}
-							<TlaTabsTab id="publish" disabled={!showPublish}>
-								<F defaultMessage="Publish" />
-							</TlaTabsTab>
+							{/* Show publish tab when there's a file and either the context is a published file or the user owns the file */}
+							{context === 'file' && !isOwner ? null : (
+								<TlaTabsTab id="publish" disabled={!showPublish}>
+									<F defaultMessage="Publish" />
+								</TlaTabsTab>
+							)}
 						</TlaTabsTabs>
-						{isScratch ? null : app ? (
-							// We have a file / published file and we're authenticated
-							<TlaTabsPage id="share">
-								<TlaInviteTab fileId={fileId} />
-							</TlaTabsPage>
-						) : (
-							// We have a file / published file but we're NOT authenticated
-							<TlaTabsPage id="share">
-								<TlaAnonCopyLinkTab />
-							</TlaTabsPage>
-						)}
+						{context === 'file' ? (
+							app && fileId ? (
+								// We have a file and we're authenticated
+								<TlaTabsPage id="share">
+									<TlaInviteTab fileId={fileId} />
+								</TlaTabsPage>
+							) : (
+								// We have a file / published file but we're NOT authenticated
+								<TlaTabsPage id="share">
+									<TlaAnonCopyLinkTab />
+								</TlaTabsPage>
+							)
+						) : null}
 						{/* Always show export tab */}
 						<TlaTabsPage id="export">
 							<TlaExportTab />
 						</TlaTabsPage>
-						{file && isOwner ? (
+						{context === 'file' && file && isOwner ? (
 							<TlaTabsPage id="publish">
 								<TlaPublishTab file={file} />
 							</TlaTabsPage>
-						) : isPublished ? (
+						) : context === 'published-file' ? (
 							<TlaTabsPage id="publish">
 								<TlaAnonCopyLinkTab />
 							</TlaTabsPage>

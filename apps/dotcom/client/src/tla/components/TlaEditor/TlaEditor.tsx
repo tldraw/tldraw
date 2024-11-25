@@ -2,6 +2,7 @@ import { useAuth } from '@clerk/clerk-react'
 import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
@@ -64,7 +65,8 @@ export const components: TLComponents = {
 	},
 	SharePanel: () => {
 		const app = useMaybeApp()
-		return <TlaEditorTopRightPanel isAnonUser={!app} />
+		const fileSlug = useParams<{ fileSlug: string }>().fileSlug
+		return <TlaEditorTopRightPanel isAnonUser={!app} context={fileSlug ? 'file' : 'scratch'} />
 	},
 	TopPanel: () => {
 		const collaborationStatus = useCollaborationStatus()

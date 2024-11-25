@@ -10,10 +10,10 @@ import styles from './top.module.css'
 
 export function TlaEditorTopRightPanel({
 	isAnonUser,
-	isPublished,
+	context,
 }: {
-	isAnonUser?: boolean
-	isPublished?: boolean
+	isAnonUser: boolean
+	context: 'file' | 'published-file' | 'scratch'
 }) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
@@ -24,8 +24,8 @@ export function TlaEditorTopRightPanel({
 			<div ref={ref} className={classNames(styles.topRightPanel)}>
 				<PeopleMenu displayUserWhenAlone={false} />
 				<div className={styles.signInButtons}>
-					<TlaFileShareMenu fileId={fileId!} isPublished={isPublished} source="anon">
-						<button className={classNames(styles.shareButtonMini)}>
+					<TlaFileShareMenu fileId={fileId!} context={context} source="anon">
+						<button data-testid="share-button" className={classNames(styles.shareButtonMini)}>
 							<TlaIcon icon="share" />
 						</button>
 					</TlaFileShareMenu>
@@ -38,7 +38,7 @@ export function TlaEditorTopRightPanel({
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu displayUserWhenAlone={false} />
-			<TlaFileShareMenu fileId={fileId!} source="file-header">
+			<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
 				<TlaShareButton />
 			</TlaFileShareMenu>
 		</div>
