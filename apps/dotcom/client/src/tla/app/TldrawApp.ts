@@ -328,6 +328,7 @@ export class TldrawApp {
 					lastEditAt: null,
 					lastSessionState: null,
 					lastVisitAt: null,
+					isFileOwner: true,
 				})
 			}
 		})
@@ -458,6 +459,9 @@ export class TldrawApp {
 				lastEditAt: null,
 				lastSessionState: null,
 				lastVisitAt: null,
+				// doesn't really matter what this is because it is
+				// overwritten by postgres
+				isFileOwner: this.isFileOwner(fileId),
 			})
 		}
 		fileState = this.getFileState(fileId)
