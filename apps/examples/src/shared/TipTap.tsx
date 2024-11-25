@@ -141,13 +141,7 @@ export function TipTapMeasure({ content }: { content: string }) {
 	const tiptapEditor = useTipTapEditor({
 		extensions: [StarterKit],
 		content: content ? JSON.parse(content) : '',
-	})
-
-	useEffect(() => {
-		if (content && JSON.stringify(tiptapEditor?.getJSON()) !== content) {
-			tiptapEditor?.commands.setContent(JSON.parse(content))
-		}
-	}, [tiptapEditor, content])
+	}, [content])
 
 	return <EditorContent editor={tiptapEditor} />
 }
