@@ -150,12 +150,8 @@ const PROPAGATE_CHANGES_TIMEOUT = 100
  * 4. Executes the provided expectations again and ensures they pass.
  */
 export async function expectBeforeAndAfterReload(fn: () => Promise<void>, page: Page) {
-	await expect(async () => {
-		await fn()
-	}).toPass()
+	await fn()
 	await sleep(PROPAGATE_CHANGES_TIMEOUT)
 	await page.reload()
-	await expect(async () => {
-		await fn()
-	}).toPass()
+	await fn()
 }
