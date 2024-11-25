@@ -96,11 +96,11 @@ export class Sidebar {
 	}
 
 	getFirstFileLink() {
-		return this.getFileLink(0)
+		return this.getFileLink('today', 0)
 	}
 
-	getFileLink(index: number) {
-		return this.page.getByTestId(`tla-file-link-${index}`)
+	getFileLink(section: string, index: number) {
+		return this.page.getByTestId(`tla-file-link-${section}-${index}`)
 	}
 
 	async getFirstFileName() {
@@ -121,7 +121,7 @@ export class Sidebar {
 
 	@step
 	async deleteFile(index: number) {
-		await this.openFileMenu(this.getFileLink(index))
+		await this.openFileMenu(this.getFileLink('today', index))
 		await this.deleteFromFileMenu()
 	}
 
@@ -132,7 +132,7 @@ export class Sidebar {
 
 	@step
 	async renameFile(index: number, newName: string) {
-		const fileLink = this.getFileLink(index)
+		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.renameFromFileMenu(newName)
 	}
@@ -152,7 +152,7 @@ export class Sidebar {
 
 	@step
 	async duplicateFile(index: number) {
-		const fileLink = this.getFileLink(index)
+		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.duplicateFromFileMenu()
 	}
@@ -164,7 +164,7 @@ export class Sidebar {
 
 	@step
 	async copyFileLink(index: number) {
-		const fileLink = this.getFileLink(index)
+		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)
 		await this.copyFileLinkFromFileMenu()
 		return await this.page.evaluate(() => navigator.clipboard.readText())
