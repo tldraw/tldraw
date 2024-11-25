@@ -1,13 +1,5 @@
 import { promiseWithResolve } from '@tldraw/utils'
-import {
-	ComponentType,
-	ReactElement,
-	ReactNode,
-	createContext,
-	useContext,
-	useEffect,
-	useState,
-} from 'react'
+import { ReactElement, ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { ContainerProvider } from '../../hooks/useContainer'
 import { EditorProvider } from '../../hooks/useEditor'
 import { useEvent } from '../../hooks/useEvent'
@@ -43,22 +35,18 @@ export interface SvgExportContext {
 	readonly isDarkMode: boolean
 }
 
-function NoProvider({ children }: { children: ReactNode }) {
-	return <>{children}</>
-}
-
 const Context = createContext<SvgExportContext | null>(null)
 export function SvgExportContextProvider({
 	context,
 	editor,
-	Provider = NoProvider,
 	children,
 }: {
 	context: SvgExportContext
 	editor: Editor
-	Provider?: ComponentType<{ children: ReactNode }>
 	children: ReactNode
 }) {
+	const Provider = editor.options.exportProvider
+
 	return (
 		<EditorProvider editor={editor}>
 			<ContainerProvider container={editor.getContainer()}>
