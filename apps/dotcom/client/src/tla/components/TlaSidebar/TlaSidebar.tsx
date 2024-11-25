@@ -116,6 +116,7 @@ function TlaSidebarCreateFileButton() {
 		if (res.ok) {
 			const { file } = res.value
 			navigate(getFilePath(file.id), { state: { mode: 'create' } })
+			scrollActiveFileLinkIntoView()
 			trackEvent('create-file', { source: 'sidebar' })
 		}
 	}, [app, navigate, trackEvent])
@@ -234,6 +235,17 @@ function TlaSidebarFileSection({ title, items }: { title: ReactElement; items: R
 	)
 }
 
+export const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
+export function scrollActiveFileLinkIntoView() {
+	console.error('here')
+	setTimeout(() => {
+		const el = document.getElementById(ACTIVE_FILE_LINK_ID)
+		if (el) {
+			el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+		}
+	}, 0)
+}
+
 function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }) {
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
@@ -241,26 +253,12 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 	const isActive = fileSlug === fileId
 	const [isRenaming, setIsRenaming] = useState(false)
 	const trackEvent = useTldrawAppUiEvents()
-	const ref = useRef<HTMLDivElement>(null)
 
 	const handleRenameAction = () => setIsRenaming(true)
 
 	const handleRenameClose = () => setIsRenaming(false)
 
 	const app = useApp()
-
-	const results = useValue(
-		'recent user files',
-		() => {
-			return app.getUserRecentFiles()
-		},
-		[app]
-	)
-	useEffect(() => {
-		if (isActive && results.length > 0) {
-			ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-		}
-	}, [isActive, results.length])
 
 	if (isRenaming) {
 		return <TlaRenameInline source="sidebar" fileId={fileId} onClose={handleRenameClose} />
@@ -273,7 +271,8 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 			data-element="file-link"
 			data-testid={`tla-file-link-${index}`}
 			onDoubleClick={handleRenameAction}
-			ref={ref}
+			// We use this id to scroll the active file link into view when creating or deleting files.
+			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 		>
 			<div className={styles.linkContent}>
 				<div
