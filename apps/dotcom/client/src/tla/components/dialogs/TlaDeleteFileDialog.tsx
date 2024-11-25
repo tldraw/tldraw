@@ -15,7 +15,6 @@ import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getFilePath } from '../../utils/urls'
-import { scrollActiveFileLinkIntoView } from '../TlaSidebar/TlaSidebar'
 
 export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClose(): void }) {
 	const app = useApp()
@@ -40,7 +39,6 @@ export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClo
 		} else {
 			navigate(getFilePath(recentFiles[0].fileId))
 		}
-		scrollActiveFileLinkIntoView()
 		onClose()
 	}, [auth, app, fileId, onClose, navigate, trackEvent])
 
