@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-no-literals */
-import { TlaSidebarCreateFileButton } from '../components/TlaSidebar/components/TlaSidebarCreateFileButton.tsx'
+import { TlaSidebarCreateFileButton } from '../components/TlaSidebar/components/TlaSidebarCreateFileButton'
 import { TlaSidebarFileLinkInner } from '../components/TlaSidebar/components/TlaSidebarFileLink'
 import { TlaSidebarFileSection } from '../components/TlaSidebar/components/TlaSidebarFileSection'
 import { TlaSidebarToggle } from '../components/TlaSidebar/components/TlaSidebarToggle'
