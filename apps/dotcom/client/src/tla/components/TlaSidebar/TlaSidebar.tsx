@@ -315,10 +315,7 @@ function TlaRenameInline({
 
 		if (name) {
 			// Only update the name if there is a name there to update
-			app.updateFile(fileId, (file) => ({
-				...file,
-				name,
-			}))
+			app.updateFile({ id: fileId, name })
 		}
 		trackEvent('rename-file', { name, source })
 		onClose()

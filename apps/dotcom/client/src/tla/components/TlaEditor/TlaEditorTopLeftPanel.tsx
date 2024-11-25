@@ -116,7 +116,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		(name: string) => {
 			setIsRenaming(false)
 			// don't allow guests to update the file name
-			app.updateFile(fileId, (file) => ({ ...file, name }))
+			app.updateFile({ id: fileId, name })
 		},
 		[app, fileId]
 	)

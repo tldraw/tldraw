@@ -157,10 +157,10 @@ export class Zero {
 			update: (data: Partial<TlaFile> & { id: TlaFile['id'] }) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)
 				if (!existing) throw new Error('file not found')
-				this.makeOptimistic([{ table: 'file', event: 'update', row: data as any }])
+				this.makeOptimistic([{ table: 'file', event: 'update', row: data }])
 			},
 			delete: (data: { id: TlaFile['id'] }) => {
-				this.makeOptimistic([{ table: 'file', event: 'delete', row: data as any }])
+				this.makeOptimistic([{ table: 'file', event: 'delete', row: data }])
 			},
 		},
 		file_state: {
@@ -179,7 +179,7 @@ export class Zero {
 					.getFullData()
 					?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)
 				if (!existing) throw new Error('file state not found')
-				this.makeOptimistic([{ table: 'file_state', event: 'update', row: data as any }])
+				this.makeOptimistic([{ table: 'file_state', event: 'update', row: data }])
 			},
 			delete: (data: { fileId: TlaFileState['fileId']; userId: TlaFileState['userId'] }) => {
 				this.makeOptimistic([{ table: 'file_state', event: 'delete', row: data as any }])
@@ -189,7 +189,7 @@ export class Zero {
 			create: (data: TlaUser) => {
 				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
 			},
-			update: (data: Partial<TlaUser>) => {
+			update: (data: Partial<TlaUser> & { id: TlaUser['id'] }) => {
 				this.makeOptimistic([{ table: 'user', event: 'update', row: data as any }])
 			},
 			delete: () => {

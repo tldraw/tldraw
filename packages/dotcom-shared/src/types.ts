@@ -75,7 +75,10 @@ export interface ZStoreData {
 }
 
 export interface ZRowUpdate {
-	row: TlaFile | TlaFileState | TlaUser
+	row:
+		| (Partial<TlaFile> & { id: TlaFile['id'] })
+		| (Partial<TlaFileState> & { fileId: TlaFileState['fileId']; userId: TlaFileState['userId'] })
+		| (Partial<TlaUser> & { id: TlaUser['id'] })
 	table: 'file' | 'file_state' | 'user'
 	event: 'insert' | 'update' | 'delete'
 }

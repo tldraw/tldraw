@@ -75,7 +75,11 @@ export class OptimisticAppStore {
 	applyUpdate(prev: ZStoreData, update: ZRowUpdate) {
 		const { row, table, event } = update
 		if (table === 'user') {
-			return { ...prev, user: row as TlaUser }
+			if (event === 'update') {
+				return { ...prev, user: { ...prev.user, ...(row as Partial<TlaUser>) } }
+			} else {
+				return { ...prev, user: row as TlaUser }
+			}
 		}
 		if (table === 'file') {
 			if (event === 'delete') {
@@ -84,9 +88,10 @@ export class OptimisticAppStore {
 					files: prev.files.filter((f) => f.id !== (row as TlaFile).id),
 				}
 			} else if (event === 'update') {
+				const { id, ...rest } = row as Partial<TlaFile> & { id: TlaFile['id'] }
 				return {
 					...prev,
-					files: prev.files.map((f) => (f.id === (row as TlaFile).id ? (row as TlaFile) : f)),
+					files: prev.files.map((f) => (f.id === id ? ({ ...f, ...rest } as TlaFile) : f)),
 				}
 			} else {
 				assert(event === 'insert', 'invalid event')
@@ -97,8 +102,11 @@ export class OptimisticAppStore {
 			}
 		}
 		assert(table === 'file_state')
-		const fileState = row as TlaFileState
-		const { fileId, userId } = fileState
+		const fileState = row as Partial<TlaFileState> & {
+			fileId: TlaFileState['fileId']
+			userId: TlaFileState['userId']
+		}
+		const { fileId, userId, ...rest } = fileState
 		if (event === 'delete') {
 			return {
 				...prev,
@@ -109,7 +117,7 @@ export class OptimisticAppStore {
 				...prev,
 				fileStates: prev.fileStates.map((f) => {
 					if (f.fileId === fileId && f.userId === userId) {
-						return fileState
+						return { ...f, ...rest }
 					}
 					return f
 				}),
@@ -118,7 +126,7 @@ export class OptimisticAppStore {
 			assert(event === 'insert', 'invalid event')
 			return {
 				...prev,
-				fileStates: [...prev.fileStates, fileState],
+				fileStates: [...prev.fileStates, row as TlaFileState],
 			}
 		}
 	}
