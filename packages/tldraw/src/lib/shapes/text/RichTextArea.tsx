@@ -104,6 +104,8 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 					onFocus={handleFocus}
 					onBlur={handleBlur}
 					onCreate={handleCreate}
+					immediatelyRender={true}
+					shouldRerenderOnTransaction={false}
 					editorProps={{
 						handleKeyDown: (view, event) => {
 							handleKeyDown(event)
