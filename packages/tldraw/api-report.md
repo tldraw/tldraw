@@ -1639,12 +1639,14 @@ export function parseTldrawJsonFile({ json, schema, }: {
 export function PasteMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
-export const PeopleMenu: NamedExoticComponent<PeopleMenuProps>;
+export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface PeopleMenuProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    displayUserWhenAlone: boolean;
 }
 
 // @public (undocumented)

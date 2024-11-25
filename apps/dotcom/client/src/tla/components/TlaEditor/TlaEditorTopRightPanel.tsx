@@ -16,7 +16,7 @@ export function TlaEditorTopRightPanel({ isAnonUser }: { isAnonUser: boolean }) 
 	if (isAnonUser) {
 		return (
 			<div ref={ref} className={classNames(styles.topRightPanel)}>
-				<PeopleMenu />
+				<PeopleMenu displayUserWhenAlone={false} />
 				<div className={styles.signInButtons}>
 					<TlaSignUpButton />
 				</div>
@@ -26,7 +26,7 @@ export function TlaEditorTopRightPanel({ isAnonUser }: { isAnonUser: boolean }) 
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
-			<PeopleMenu />
+			<PeopleMenu displayUserWhenAlone={false} />
 			<TlaFileShareMenu fileId={fileId!} source="file-header">
 				<ShareButton />
 			</TlaFileShareMenu>

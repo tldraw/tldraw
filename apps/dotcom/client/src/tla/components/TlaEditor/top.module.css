@@ -257,13 +257,12 @@ button.nameWidthSetter {
 
 .signInButton {
 	background-color: var(--tla-color-cta);
-	box-shadow: var(--tla-shadow-cta-highlight);
 	color: #ffffff;
 	font-weight: 600;
 	pointer-events: all;
 	display: flex;
 	gap: 8px;
-	padding-left: 12px;
-	padding-right: 11px;
+	padding-left: 18px;
+	padding-right: 18px;
 	height: 40px;
 }
