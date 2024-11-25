@@ -127,7 +127,7 @@ export class Zero {
 	query = {
 		file: this.makeQuery(
 			'file',
-			computed('files', () => this.store.getFullData()?.files)
+			computed('files', () => this.store.getFullData()?.files.filter((f) => !f.isDeleted))
 		),
 		file_state: this.makeQuery(
 			'file_state',
