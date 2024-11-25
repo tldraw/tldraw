@@ -177,7 +177,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		switch (msg.type) {
 			case 'mutate':
 				if (rateLimited) {
-					this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
+					await this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
 				} else {
 					await this.handleMutate(msg)
 				}
@@ -191,15 +191,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.assertCache()
 		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
-		for (const socket of this.ctx.getWebSockets()) {
-			socket.send(
-				JSON.stringify({
-					type: 'reject',
-					mutationId,
-					errorCode,
-				} satisfies ZServerSentMessage)
-			)
-		}
+		this.broadcast({
+			type: 'reject',
+			mutationId,
+			errorCode,
+		} satisfies ZServerSentMessage)
 	}
 
 	private async assertValidMutation(update: ZRowUpdate) {
@@ -352,7 +348,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.captureException(e, {
 				data: { errorCode: code, reason: 'mutation failed' },
 			})
-			this.rejectMutation(msg.mutationId, code)
+			await this.rejectMutation(msg.mutationId, code)
 		}
 	}
 
