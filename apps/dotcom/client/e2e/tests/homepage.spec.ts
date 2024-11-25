@@ -1,5 +1,5 @@
 import { Locator } from '@playwright/test'
-import { areUrlsEqual } from '../fixtures/helpers'
+import { areUrlsEqual, getRandomName } from '../fixtures/helpers'
 import { expect, expectBeforeAndAfterReload, test } from '../fixtures/tla-test'
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {
@@ -81,7 +81,7 @@ test.describe('sidebar actions', () => {
 			await expect(fileLink).toBeVisible()
 		})
 
-		const newName = Math.random().toString(36).substring(7)
+		const newName = getRandomName()
 		await test.step('change the name', async () => {
 			await fileLink.dblclick()
 			const input = page.getByRole('textbox')
@@ -100,7 +100,7 @@ test.describe('sidebar actions', () => {
 
 	test('rename the document via file menu', async ({ sidebar, page }) => {
 		const currentName = await sidebar.getFirstFileName()
-		const newName = Math.random().toString(36).substring(7)
+		const newName = getRandomName()
 		await sidebar.renameFile(0, newName)
 		await expectBeforeAndAfterReload(async () => {
 			expect(await sidebar.getFirstFileName()).toBe(newName)
@@ -134,18 +134,20 @@ test.describe('sidebar actions', () => {
 	})
 
 	test('duplicate the document via the file menu', async ({ page, sidebar }) => {
-		const fileName = Math.random().toString(36).substring(7)
+		const fileName = getRandomName()
 		expect(await sidebar.getNumberOfFiles()).toBe(1)
 		await sidebar.renameFile(0, fileName)
 		await sidebar.duplicateFile(0)
 		await expectBeforeAndAfterReload(async () => {
-			await expect(
-				page.getByTestId('tla-file-name-0').getByText(`${fileName} 1`, { exact: true })
-			).toBeVisible()
-			await expect(
-				page.getByTestId('tla-file-name-1').getByText(fileName, { exact: true })
-			).toBeVisible()
-			expect(await sidebar.getNumberOfFiles()).toBe(2)
+			await expect(async () => {
+				await expect(
+					page.getByTestId('tla-file-name-0').getByText(`${fileName} 1`, { exact: true })
+				).toBeVisible()
+				await expect(
+					page.getByTestId('tla-file-name-1').getByText(fileName, { exact: true })
+				).toBeVisible()
+				expect(await sidebar.getNumberOfFiles()).toBe(2)
+			}).toPass()
 		}, page)
 	})
 
@@ -162,7 +164,7 @@ test.describe('sidebar actions', () => {
 
 test('can rename a file name by clicking the name', async ({ editor, sidebar, page }) => {
 	const originalName = await editor.getCurrentFileName()
-	const newName = Math.random().toString(36).substring(7)
+	const newName = getRandomName()
 	await expect(async () => {
 		await sidebar.expectToContainText(originalName)
 		await sidebar.expectNotToContainText(newName)
