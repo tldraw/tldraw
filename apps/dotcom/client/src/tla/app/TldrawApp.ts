@@ -184,6 +184,7 @@ export class TldrawApp {
 				continue
 			}
 			const file = myFiles[fileId]
+			if (!file) continue
 			const state = myStates[fileId]
 
 			nextRecentFileOrdering.push({
