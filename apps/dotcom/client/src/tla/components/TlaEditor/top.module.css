@@ -195,6 +195,12 @@ button.nameWidthSetter {
 	padding-right: 6px;
 }
 
+@media (max-width: 767px) {
+	.topRightPanel {
+		padding-right: 2px;
+	}
+}
+
 .exportButton {
 	background-color: var(--color-background);
 	border-radius: var(--radius-3);
