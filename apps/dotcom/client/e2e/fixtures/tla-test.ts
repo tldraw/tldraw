@@ -6,7 +6,7 @@ import { OTHER_USERS, USERS } from '../consts'
 import { Database } from './Database'
 import { DeleteFileDialog } from './DeleteFileDialog'
 import { Editor } from './Editor'
-import { getStorageStateFileName } from './helpers'
+import { createFixtures, getStorageStateFileName } from './helpers'
 import { HomePage } from './HomePage'
 import { ShareMenu } from './ShareMenu'
 import { Sidebar } from './Sidebar'
@@ -153,5 +153,8 @@ export async function expectBeforeAndAfterReload(fn: () => Promise<void>, page: 
 	await fn()
 	await sleep(PROPAGATE_CHANGES_TIMEOUT)
 	await page.reload()
+	const { newHomePage } = createFixtures(page)
+	await newHomePage.isLoaded()
 	await fn()
+	await page.pause()
 }
