@@ -132,6 +132,9 @@ export function AlignMenuItems(): JSX_2.Element;
 export function ArrangeMenuSubmenu(): JSX_2.Element | null;
 
 // @public (undocumented)
+export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
+
+// @public (undocumented)
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     getDefaultProps(): Partial<TLArrowBindingProps>;
@@ -987,6 +990,9 @@ export function FitFrameToContentMenuItem(): JSX_2.Element | null;
 export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 
 // @public (undocumented)
+export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
+
+// @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static id: string;
@@ -1208,8 +1214,8 @@ export function getOccludedChildren(editor: Editor, parent: TLShape): TLShapeId[
 // @public (undocumented)
 export function getSvgAsImage(editor: Editor, svgString: string, options: {
     height: number;
-    quality: number;
-    scale: number;
+    pixelRatio?: number;
+    quality?: number;
     type: 'jpeg' | 'png' | 'webp';
     width: number;
 }): Promise<Blob | null>;
@@ -1743,6 +1749,9 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export interface StylePickerSetProps {

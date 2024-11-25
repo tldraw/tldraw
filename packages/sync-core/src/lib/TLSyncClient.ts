@@ -51,6 +51,7 @@ export const TLSyncErrorCloseEventReason = {
 	CLIENT_TOO_OLD: 'CLIENT_TOO_OLD',
 	SERVER_TOO_OLD: 'SERVER_TOO_OLD',
 	INVALID_RECORD: 'INVALID_RECORD',
+	RATE_LIMITED: 'RATE_LIMITED',
 } as const
 /**
  * The set of reasons that a connection can be closed by the server
@@ -391,7 +392,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
-			this.store.ensureStoreIsUsable()
 			this.onAfterConnect?.(this, { isReadonly: event.isReadonly })
 		})
 
@@ -645,7 +645,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					this.resetConnection()
 				}
 			})
-			this.store.ensureStoreIsUsable()
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
 		} catch (e) {
 			console.error(e)

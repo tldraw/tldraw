@@ -103,7 +103,10 @@
 .tla-text_ui__title {
 	font-size: 14px;
 	line-height: 1.3;
-	font-weight: 600;
+	font-weight: 700;
+	letter-spacing: 0.2px;
+	position: relative;
+	top: 1px;
 	font-family: var(--tla-font-ui);
 	color: var(--tla-color-text-1);
 	text-rendering: optimizeLegibility;
@@ -242,4 +245,18 @@
 
 .tla-theme__dark .tla-tldraw-sidebar-icon {
 	filter: invert(1);
+}
+
+.tla-lang-highlight-missing *:not(.notranslate) {
+	text-shadow: 3px 3px red;
+}
+
+/* TODO: the .tlui-menu rule is too broad, it should be more specific */
+.tla-lang-highlight-missing .tla-editor *,
+.tla-lang-highlight-missing .tlui-menu *,
+.tla-lang-highlight-missing .notranslate,
+.tla-lang-highlight-missing .notranslate *,
+.tla-lang-highlight-missing .i18n-msg,
+.tla-lang-highlight-missing .i18n-msg * {
+	text-shadow: none;
 }

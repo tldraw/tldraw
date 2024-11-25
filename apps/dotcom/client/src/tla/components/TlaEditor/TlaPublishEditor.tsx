@@ -1,7 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo, useRef } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw, usePassThroughWheelEvents } from 'tldraw'
-import { ShareButton } from '../../../components/ShareButton'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -13,6 +12,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { TlaFileShareMenuPublishPage } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
+import { ShareButton } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
 const components: TLComponents = {
@@ -25,7 +25,7 @@ const components: TLComponents = {
 		return (
 			<div ref={ref} className={styles.topRightPanel}>
 				<TlaFileShareMenuPublishPage>
-					<ShareButton title={'share-menu.title'} label={'share-menu.title'} />
+					<ShareButton />
 				</TlaFileShareMenuPublishPage>
 			</div>
 		)
@@ -58,7 +58,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	)
 
 	return (
-		<div className={styles.editor}>
+		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}

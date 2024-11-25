@@ -7,10 +7,8 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
-	TldrawAppFile,
-	TldrawAppFileRecordType,
-	TldrawAppUserId,
-	TldrawAppUserRecordType,
+	TlaFile,
+	TlaFileOpenMode,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
 import {
@@ -27,11 +25,13 @@ import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
-import { APP_ID } from './TLAppDurableObject'
 import { PERSIST_INTERVAL_MS } from './config'
+import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getReplicator } from './utils/durableObjects'
+import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
 import { getAuth } from './utils/tla/getAuth'
@@ -39,7 +39,7 @@ import { getAuth } from './utils/tla/getAuth'
 const MAX_CONNECTIONS = 50
 
 // increment this any time you make a change to this type
-const CURRENT_DOCUMENT_INFO_VERSION = 2
+const CURRENT_DOCUMENT_INFO_VERSION = 3
 interface DocumentInfo {
 	version: number
 	slug: string
@@ -47,14 +47,16 @@ interface DocumentInfo {
 	// Create mode is used by the app to bypass the 'room not found' check.
 	// i.e. if this is a new file it creates the file, even if it wasn't
 	// added to the user's app database yet.
-	isOrWasCreateMode: boolean
+	appMode: TlaFileOpenMode
+	duplicateId: string | null
+	deleted: boolean
 }
 
 const ROOM_NOT_FOUND = Symbol('room_not_found')
 
 interface SessionMeta {
 	storeId: string
-	userId: TldrawAppUserId | null
+	userId: string | null
 }
 
 export class TLDrawDurableObject extends DurableObject {
@@ -69,7 +71,7 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 		const slug = this._documentInfo.slug
 		if (!this._room) {
-			this._room = this.loadFromDatabase(slug).then((result) => {
+			this._room = this.loadFromDatabase(slug).then(async (result) => {
 				switch (result.type) {
 					case 'room_found': {
 						const room = new TLSocketRoom<TLRecord, SessionMeta>({
@@ -115,6 +117,7 @@ export class TLDrawDurableObject extends DurableObject {
 								})
 							},
 						})
+
 						this.logEvent({ type: 'room', roomId: slug, name: 'room_start' })
 						return room
 					}
@@ -231,7 +234,11 @@ export class TLDrawDurableObject extends DurableObject {
 			'roomId must be present'
 		)
 		const isApp = new URL(req.url).pathname.startsWith('/app/')
-		const isOrWasCreateMode = isApp && new URL(req.url).searchParams.get('isCreateMode') === 'true'
+		const appMode = isApp
+			? (new URL(req.url).searchParams.get('mode') as TlaFileOpenMode) ?? null
+			: null
+
+		const duplicateId = isApp ? new URL(req.url).searchParams.get('duplicateId') : null
 
 		if (this._documentInfo) {
 			assert(this._documentInfo.slug === slug, 'slug must match')
@@ -240,7 +247,9 @@ export class TLDrawDurableObject extends DurableObject {
 				version: CURRENT_DOCUMENT_INFO_VERSION,
 				slug,
 				isApp,
-				isOrWasCreateMode,
+				appMode,
+				duplicateId,
+				deleted: false,
 			})
 		}
 	}
@@ -289,23 +298,14 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	_ownerId: string | null = null
-	async getOwnerId() {
-		if (!this._ownerId) {
-			const slug = this.documentInfo.slug
-			const fileId = TldrawAppFileRecordType.createId(slug)
-			const row = await this.env.DB.prepare('SELECT record FROM records WHERE id = ?')
-				.bind(fileId)
-				.first()
-
-			if (row) {
-				this._ownerId = JSON.parse(row.record as any).ownerId as string
-				if (typeof this._ownerId !== 'string') {
-					throw new Error('ownerId must be a string')
-				}
-			}
+	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
+	async getAppFileRecord(): Promise<TlaFile | null> {
+		const stub = getReplicator(this.env)
+		try {
+			return await stub.getFileRecord(this.documentInfo.slug)
+		} catch (_e) {
+			return null
 		}
-		return this._ownerId
 	}
 
 	async onRequest(req: IRequest, openMode: RoomOpenMode) {
@@ -328,27 +328,39 @@ export class TLDrawDurableObject extends DurableObject {
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 
+		if (this.documentInfo.deleted) {
+			return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+		}
+
 		const auth = await getAuth(req, this.env)
 		if (this.documentInfo.isApp) {
-			const ownerId = await this.getOwnerId()
+			openMode = ROOM_OPEN_MODE.READ_WRITE
+			const file = await this.getAppFileRecord()
 
-			if (ownerId) {
-				const ownerDurableObject = this.env.TLAPP_DO.get(this.env.TLAPP_DO.idFromName(APP_ID))
-				const shareType = await ownerDurableObject.getFileShareType(
-					TldrawAppFileRecordType.createId(this.documentInfo.slug)
-				)
-				if (!auth && shareType === 'private') {
+			if (file) {
+				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
-				if (ownerId !== TldrawAppUserRecordType.createId(auth?.userId)) {
-					if (shareType === 'private') {
+				if (auth?.userId) {
+					const rateLimited = await isRateLimited(this.env, auth?.userId)
+					if (rateLimited) {
+						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+					}
+				} else {
+					const rateLimited = await isRateLimited(this.env, sessionId)
+					if (rateLimited) {
+						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
+					}
+				}
+				if (file.ownerId !== auth?.userId) {
+					if (!file.shared) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
-					if (shareType === 'view') {
+					if (file.sharedLinkType === 'view') {
 						openMode = ROOM_OPEN_MODE.READ_ONLY
 					}
 				}
-			} else if (!this.documentInfo.isOrWasCreateMode) {
+			} else if (!this.documentInfo.appMode) {
 				// If there is no owner that means it's a temporary room, but if they didn't add the create
 				// flag don't let them in.
 				// This prevents people from just creating rooms by typing extra chars in the URL because we only
@@ -371,7 +383,7 @@ export class TLDrawDurableObject extends DurableObject {
 				socket: serverWebSocket,
 				meta: {
 					storeId,
-					userId: auth?.userId ? TldrawAppUserRecordType.createId(auth.userId) : null,
+					userId: auth?.userId ? auth.userId : null,
 				},
 				isReadonly:
 					openMode === ROOM_OPEN_MODE.READ_ONLY || openMode === ROOM_OPEN_MODE.READ_ONLY_LEGACY,
@@ -454,13 +466,36 @@ export class TLDrawDurableObject extends DurableObject {
 				return { type: 'room_found', snapshot: await roomFromBucket.json() }
 			}
 
-			if (this.documentInfo.isApp) {
+			if (this.documentInfo.appMode === 'create') {
 				return {
 					type: 'room_found',
 					snapshot: new TLSyncRoom({
 						schema: createTLSchema(),
 					}).getSnapshot(),
 				}
+			}
+
+			if (this.documentInfo.appMode === 'duplicate') {
+				assert(this.documentInfo.duplicateId, 'duplicateId must be present')
+				// load the duplicate id
+				let data: string | undefined = undefined
+				try {
+					const otherRoom = this.env.TLDR_DOC.get(
+						this.env.TLDR_DOC.idFromName(`/${ROOM_PREFIX}/${this.documentInfo.duplicateId}`)
+					) as any as TLDrawDurableObject
+					data = await otherRoom.getCurrentSerializedSnapshot()
+				} catch (_e) {
+					data = await this.r2.rooms
+						.get(getR2KeyForRoom({ slug: this.documentInfo.duplicateId, isApp: true }))
+						.then((r) => r?.text())
+				}
+
+				if (!data) {
+					return { type: 'room_not_found' }
+				}
+				// otherwise copy the snapshot
+				await this.r2.rooms.put(key, data)
+				return { type: 'room_found', snapshot: JSON.parse(data) }
 			}
 
 			// if we don't have a room in the bucket, try to load from supabase
@@ -495,7 +530,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
-	// Save the room to supabase
+	// Save the room to r2
 	async persistToDatabase() {
 		try {
 			await this.executionQueue.push(async () => {
@@ -515,6 +550,12 @@ export class TLDrawDurableObject extends DurableObject {
 					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 				])
 				this._lastPersistedClock = clock
+
+				// Update the updatedAt timestamp in the database
+				if (this.documentInfo.isApp) {
+					const pg = getPostgres(this.env)
+					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
+				}
 			})
 		} catch (e) {
 			this.reportError(e)
@@ -540,13 +581,19 @@ export class TLDrawDurableObject extends DurableObject {
 		await this.scheduler.onAlarm()
 	}
 
-	async appFileRecordDidUpdate(file: TldrawAppFile) {
+	async appFileRecordDidUpdate(file: TlaFile) {
+		if (!file) {
+			console.error('file record updated but no file found')
+			return
+		}
 		if (!this._documentInfo) {
 			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
-				slug: TldrawAppFileRecordType.parseId(file.id),
+				slug: file.id,
 				isApp: true,
-				isOrWasCreateMode: false,
+				appMode: null,
+				duplicateId: null,
+				deleted: false,
 			})
 		}
 		const room = await this.getRoom()
@@ -565,7 +612,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 		for (const session of room.getSessions()) {
 			// allow the owner to stay connected
-			if (session.meta.userId === (await this.getOwnerId())) continue
+			if (session.meta.userId === file.ownerId) continue
 
 			if (!file.shared) {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
@@ -580,16 +627,20 @@ export class TLDrawDurableObject extends DurableObject {
 		}
 	}
 
-	async appFileRecordDidDelete(slug: string) {
+	async appFileRecordDidDelete() {
 		// force isOrWasCreateMode to be false so next open will check the database
+		if (this._documentInfo?.deleted) return
+
 		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,
-			slug,
+			slug: this.documentInfo.slug,
 			isApp: true,
-			isOrWasCreateMode: false,
+			appMode: null,
+			duplicateId: null,
+			deleted: true,
 		})
 
-		this.executionQueue.push(async () => {
+		await this.executionQueue.push(async () => {
 			const room = await this.getRoom()
 			for (const session of room.getSessions()) {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
@@ -597,10 +648,7 @@ export class TLDrawDurableObject extends DurableObject {
 			room.close()
 			// setting _room to null will prevent any further persists from going through
 			this._room = null
-			this._ownerId = null
-			// delete from R2
-			const key = getR2KeyForRoom({ slug, isApp: true })
-			await this.r2.rooms.delete(key)
+			// delete should be handled by the delete endpoint now
 		})
 	}
 

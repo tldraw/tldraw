@@ -8,7 +8,7 @@
 	display: none;
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 2px 12px 2px 12px;
+	padding: 3px 12px 2px 12px;
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid transparent;
 }
@@ -180,7 +180,7 @@
 	border: none;
 	cursor: pointer;
 	position: absolute;
-	top: 3px;
+	top: 3.5px;
 	right: 0px;
 	height: 40px;
 	width: 40px;
@@ -230,7 +230,6 @@
 	height: 40px;
 	flex-grow: 2;
 	display: flex;
-	gap: 8px;
 	align-items: center;
 	white-space: nowrap;
 	overflow: hidden;
@@ -241,6 +240,7 @@
 .user {
 	padding: 0px 8px;
 	cursor: pointer;
+	gap: 8px;
 }
 
 .userName {

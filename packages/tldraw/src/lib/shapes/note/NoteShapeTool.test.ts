@@ -133,7 +133,7 @@ describe('When in the pointing state', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(1)
 	})
 
-	it('Creates a frame and returns to frame.idle on pointer up if tool lock is enabled', () => {
+	it('Creates a note and returns to note.idle on pointer up if tool lock is enabled', () => {
 		editor.updateInstanceState({ isToolLocked: true })
 		expect(editor.getCurrentPageShapes().length).toBe(0)
 		editor.setCurrentTool('note')
@@ -144,7 +144,7 @@ describe('When in the pointing state', () => {
 	})
 })
 
-describe('Grid placement helpers', () => {
+describe('Adjacent note position helpers (sticky pits)', () => {
 	it('Creates a new sticky note outside of a sticky pit', () => {
 		editor.createShape({ type: 'note', x: 0, y: 0 })
 
@@ -270,5 +270,24 @@ describe('Grid placement helpers', () => {
 				y: 320,
 			})
 			.undo()
+	})
+	it('Prefers snapping to adjacent note position over the grid', () => {
+		editor.updateInstanceState({ isGridMode: true })
+
+		editor.createShape({ type: 'note', x: 2, y: 0 })
+
+		const pit = { x: 322, y: 100 }
+
+		editor
+			.setCurrentTool('note')
+			.pointerDown(0, 0)
+			.pointerMove(pit.x, pit.y)
+			.pointerUp()
+			.expectShapeToMatch({
+				...editor.getLastCreatedShape(),
+				x: pit.x - 100,
+				y: pit.y - 100,
+			})
+		expect(editor.getLastCreatedShape().x).not.toBe(220)
 	})
 })

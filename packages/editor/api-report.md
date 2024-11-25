@@ -694,6 +694,7 @@ export const defaultTldrawOptions: {
     readonly collaboratorCheckIntervalMs: 1200;
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
+    readonly createTextOnCanvasDoubleClick: true;
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
@@ -745,7 +746,7 @@ export const defaultUserPreferences: Readonly<{
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
 }>;
 
@@ -838,7 +839,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     blur({ blurContainer }?: {
         blurContainer?: boolean | undefined;
     }): this;
-    bringForward(shapes: TLShape[] | TLShapeId[]): this;
+    bringForward(shapes: TLShape[] | TLShapeId[], opts?: {
+        considerAllShapes?: boolean;
+    }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     // (undocumented)
     canBindShapes({ fromShape, toShape, binding, }: {
@@ -1218,7 +1221,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
     selectNone(): this;
-    sendBackward(shapes: TLShape[] | TLShapeId[]): this;
+    sendBackward(shapes: TLShape[] | TLShapeId[], opts?: {
+        considerAllShapes?: boolean;
+    }): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
     _setAltKeyTimeout(): void;
@@ -1914,6 +1919,9 @@ export interface MatModel {
     // (undocumented)
     f: number;
 }
+
+// @public
+export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 
 // @public
 export type MeasureMethod = 'text' | ((content: string) => ReactNode);
@@ -2861,6 +2869,8 @@ export interface TldrawOptions {
     // (undocumented)
     readonly collaboratorInactiveTimeoutMs: number;
     // (undocumented)
+    readonly createTextOnCanvasDoubleClick: boolean;
+    // (undocumented)
     readonly defaultSvgPadding: number;
     // (undocumented)
     readonly doubleClickDurationMs: number;
@@ -3246,7 +3256,11 @@ export interface TLImageExportOptions {
     // (undocumented)
     padding?: number;
     // (undocumented)
+    pixelRatio?: number;
+    // (undocumented)
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    // (undocumented)
+    quality?: number;
     // (undocumented)
     scale?: number;
 }

@@ -1,4 +1,3 @@
-import '../../styles/globals.css'
 import { IFrameProtector, ROOM_CONTEXT } from '../components/IFrameProtector'
 import { LocalEditor } from '../components/LocalEditor'
 

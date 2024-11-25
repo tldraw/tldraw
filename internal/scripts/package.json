@@ -47,17 +47,19 @@
 		"rimraf": "^4.4.0",
 		"semver": "^7.3.8",
 		"svgo": "^3.0.2",
-		"typescript": "^5.3.3"
+		"typescript": "~5.4.2"
 	},
 	"scripts": {
 		"lint": "yarn run -T tsx lint.ts"
 	},
 	"dependencies": {
+		"@lokalise/node-api": "^12.8.0",
 		"@octokit/rest": "^20.0.2",
 		"@types/minimist": "^1.2.5",
 		"@types/proper-lockfile": "^4.1.4",
 		"@types/tmp": "^0.2.6",
 		"ignore": "^5.2.4",
+		"jszip": "^3.10.1",
 		"minimist": "^1.2.8",
 		"proper-lockfile": "^4.1.2",
 		"tar": "^7.0.1",

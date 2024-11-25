@@ -94,7 +94,7 @@
 		"@types/sqlite3": "^3.1.9",
 		"@types/ws": "^8.5.9",
 		"autoprefixer": "^10.4.19",
-		"concurrently": "^8.2.2",
+		"concurrently": "^9.0.1",
 		"dotenv": "^16.3.1",
 		"eslint": "^9.13.0",
 		"eslint-config-next": "^15.0.0",
@@ -109,7 +109,7 @@
 		"sharp": "^0.33.5",
 		"tailwindcss": "^3.4.4",
 		"tsx": "^4.0.0",
-		"typescript": "^5.3.3",
+		"typescript": "~5.4.2",
 		"vectra": "^0.4.4",
 		"ws": "^8.16.0"
 	},

@@ -15,7 +15,7 @@
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",
-		"check-bundle-size": "yarn run -T tsx ../../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 450000",
+		"check-bundle-size": "yarn run -T tsx ../../../internal/scripts/check-worker-bundle.ts --entry src/worker.ts --size-limit-bytes 500000",
 		"reset-db": "./reset-db.sh",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
@@ -31,15 +31,17 @@
 		"@tldraw/validate": "workspace:*",
 		"@tldraw/worker-shared": "workspace:*",
 		"itty-router": "^5.0.17",
+		"jose": "^5.9.6",
+		"postgres": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20240620.0",
+		"@cloudflare/workers-types": "^4.20241022.0",
 		"esbuild": "^0.21.5",
 		"lazyrepo": "0.0.0-alpha.27",
-		"typescript": "^5.3.3",
-		"wrangler": "3.62.0"
+		"typescript": "~5.4.2",
+		"wrangler": "^3.84.1"
 	},
 	"jest": {
 		"preset": "../../../internal/config/jest/node/jest-preset.js",
