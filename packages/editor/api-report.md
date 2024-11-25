@@ -3157,6 +3157,10 @@ export interface TLImageExportOptions {
     // (undocumented)
     darkMode?: boolean;
     // (undocumented)
+    exportProvider?: ComponentType<{
+        children: React.ReactNode;
+    }>;
+    // (undocumented)
     padding?: number;
     // (undocumented)
     pixelRatio?: number;

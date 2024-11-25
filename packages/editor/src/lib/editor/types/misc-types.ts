@@ -1,4 +1,5 @@
 import { BoxModel } from '@tldraw/tlschema'
+import { ComponentType } from 'react'
 import { Box } from '../../primitives/Box'
 import { VecLike } from '../../primitives/Vec'
 
@@ -17,6 +18,7 @@ export interface TLImageExportOptions {
 	padding?: number
 	darkMode?: boolean
 	preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+	exportProvider?: ComponentType<{ children: React.ReactNode }>
 }
 
 /**

@@ -10,6 +10,7 @@ import {
 	ComponentType,
 	Fragment,
 	ReactElement,
+	ReactNode,
 	useEffect,
 	useLayoutEffect,
 	useMemo,
@@ -108,6 +109,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			renderingShapes={renderingShapes}
 			onMount={initialEffectPromise.resolve}
 			waitUntil={exportDelay.waitUntil}
+			Provider={opts.exportProvider}
 		>
 			{}
 		</SvgExport>
@@ -127,6 +129,7 @@ function SvgExport({
 	renderingShapes,
 	onMount,
 	waitUntil,
+	Provider,
 }: {
 	editor: Editor
 	preserveAspectRatio?: string
@@ -138,6 +141,7 @@ function SvgExport({
 	renderingShapes: TLRenderingShape[]
 	onMount(): void
 	waitUntil(promise: Promise<void>): void
+	Provider?: ComponentType<{ children: ReactNode }>
 }) {
 	const masksId = useUniqueSafeId()
 	const theme = getDefaultColorTheme({ isDarkMode })
@@ -303,7 +307,7 @@ function SvgExport({
 	}, [onMount, shapeElements])
 
 	return (
-		<SvgExportContextProvider editor={editor} context={exportContext}>
+		<SvgExportContextProvider editor={editor} context={exportContext} Provider={Provider}>
 			<svg
 				preserveAspectRatio={preserveAspectRatio}
 				direction="ltr"
