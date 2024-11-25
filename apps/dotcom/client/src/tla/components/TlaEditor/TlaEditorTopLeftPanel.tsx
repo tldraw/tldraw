@@ -63,7 +63,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug
 	const anonFileName = useValue(
 		'fileName',
-		() => (fileSlug ? editor.getDocumentSettings().name : ''),
+		() => (fileSlug ? editor.getDocumentSettings().name || 'New board' : ''),
 		[editor, fileSlug]
 	)
 

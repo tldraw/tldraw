@@ -7,7 +7,7 @@ import { TlaMenuSection } from '../../tla-menu/tla-menu'
 import { QrCode } from '../QrCode'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-export function TlaAnonInviteTab() {
+export function TlaAnonCopyLinkTab() {
 	return (
 		<>
 			<TlaMenuSection>

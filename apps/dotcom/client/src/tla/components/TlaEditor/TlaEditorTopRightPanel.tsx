@@ -8,7 +8,13 @@ import { TlaShareButton } from '../TlaShareButton/TlaShareButton'
 import { TlaSignUpButton } from '../TlaSignUpButton/TlaSignUpButton'
 import styles from './top.module.css'
 
-export function TlaEditorTopRightPanel({ isAnonUser }: { isAnonUser: boolean }) {
+export function TlaEditorTopRightPanel({
+	isAnonUser,
+	isPublished,
+}: {
+	isAnonUser?: boolean
+	isPublished?: boolean
+}) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
@@ -18,7 +24,7 @@ export function TlaEditorTopRightPanel({ isAnonUser }: { isAnonUser: boolean }) 
 			<div ref={ref} className={classNames(styles.topRightPanel)}>
 				<PeopleMenu displayUserWhenAlone={false} />
 				<div className={styles.signInButtons}>
-					<TlaFileShareMenu fileId={fileId!} isPublished source="anon">
+					<TlaFileShareMenu fileId={fileId!} isPublished={isPublished} source="anon">
 						<button className={classNames(styles.shareButtonMini)}>
 							<TlaIcon icon="share" />
 						</button>

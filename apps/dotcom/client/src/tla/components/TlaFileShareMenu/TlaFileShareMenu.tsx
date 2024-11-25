@@ -12,7 +12,7 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { F } from '../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaTabsPage, TlaTabsRoot, TlaTabsTab, TlaTabsTabs } from '../TlaTabs/TlaTabs'
-import { TlaAnonInviteTab } from './Tabs/TlaAnonInviteTab'
+import { TlaAnonCopyLinkTab } from './Tabs/TlaAnonCopyLinkTab'
 import { TlaExportTab } from './Tabs/TlaExportTab'
 import { TlaInviteTab } from './Tabs/TlaInviteTab'
 import { TlaPublishTab } from './Tabs/TlaPublishTab'
@@ -51,18 +51,16 @@ export function TlaFileShareMenu({
 	)
 
 	const isScratch = !fileId
-	const canPublish = file && isOwner
-	const showPublish = file && (canPublish || isPublished)
 
-	let actuallyActiveTab = shareMenuActiveTab
+	let tabToShowAsActive = shareMenuActiveTab
 
-	// This handles the case when a non owner is on the publish tab and the owner unpublishes it
-	if (actuallyActiveTab === 'publish' && !canPublish) {
-		actuallyActiveTab = 'share'
-	}
+	const showPublish = isOwner || isPublished
 
-	if (actuallyActiveTab === 'share' && isScratch) {
-		actuallyActiveTab = 'export'
+	if (
+		(tabToShowAsActive === 'share' && (isScratch || !file)) ||
+		(tabToShowAsActive === 'publish' && !showPublish)
+	) {
+		tabToShowAsActive = 'export'
 	}
 
 	// todo: replace disabled tabs for signed out users with "sign in to do X" content
@@ -78,12 +76,14 @@ export function TlaFileShareMenu({
 					alignOffset={-2}
 					sideOffset={4}
 				>
-					<TlaTabsRoot activeTab={actuallyActiveTab} onTabChange={handleTabChange}>
+					<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
 							{/* Disable share when on a scratchpad file */}
-							<TlaTabsTab id="share" disabled={isScratch}>
-								<F defaultMessage="Invite" />
-							</TlaTabsTab>
+							{!file || isPublished ? null : (
+								<TlaTabsTab id="share" disabled={isScratch}>
+									<F defaultMessage="Invite" />
+								</TlaTabsTab>
+							)}
 							{/* Always show export */}
 							<TlaTabsTab id="export">
 								<F defaultMessage="Export" />
@@ -101,18 +101,22 @@ export function TlaFileShareMenu({
 						) : (
 							// We have a file / published file but we're NOT authenticated
 							<TlaTabsPage id="share">
-								<TlaAnonInviteTab />
+								<TlaAnonCopyLinkTab />
 							</TlaTabsPage>
 						)}
 						{/* Always show export tab */}
 						<TlaTabsPage id="export">
 							<TlaExportTab />
 						</TlaTabsPage>
-						{showPublish && (
+						{file && isOwner ? (
 							<TlaTabsPage id="publish">
 								<TlaPublishTab file={file} />
 							</TlaTabsPage>
-						)}
+						) : isPublished ? (
+							<TlaTabsPage id="publish">
+								<TlaAnonCopyLinkTab />
+							</TlaTabsPage>
+						) : null}
 					</TlaTabsRoot>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
