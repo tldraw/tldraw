@@ -234,14 +234,12 @@ function TlaSidebarFileSection({ title, items }: { title: ReactElement; items: R
 	)
 }
 
-export const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
-export function scrollActiveFileLinkIntoView() {
-	setTimeout(() => {
-		const el = document.getElementById(ACTIVE_FILE_LINK_ID)
-		if (el) {
-			el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-		}
-	}, 0)
+const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
+function scrollActiveFileLinkIntoView() {
+	const el = document.getElementById(ACTIVE_FILE_LINK_ID)
+	if (el) {
+		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+	}
 }
 
 function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }) {
