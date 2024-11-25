@@ -94,7 +94,8 @@ const components: TLComponents = {
 		const msg = useTranslation()
 		return (
 			<div className="tlui-share-zone" draggable={false}>
-				<PeopleMenu>
+				{/* Legacy, display the user when the user is the only one connected */}
+				<PeopleMenu displayUserWhenAlone>
 					<div className="tlui-people-menu__section">
 						<TldrawUiButton
 							type="menu"

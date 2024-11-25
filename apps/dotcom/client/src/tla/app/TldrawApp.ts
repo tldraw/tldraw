@@ -25,7 +25,7 @@ import {
 	react,
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
-import { createIntl } from './i18n'
+import { createIntl } from '../utils/i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -252,7 +252,10 @@ export class TldrawApp {
 		if (typeof file === 'string') {
 			file = this.getFile(file)
 		}
-		if (!file) return ''
+		if (!file) {
+			// possibly a published file
+			return ''
+		}
 		assert(typeof file !== 'string', 'ok')
 
 		const name = file.name.trim()
@@ -363,7 +366,8 @@ export class TldrawApp {
 		})
 	}
 
-	getFile(fileId: string): TlaFile | null {
+	getFile(fileId?: string): TlaFile | null {
+		if (!fileId) return null
 		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
 	}
 

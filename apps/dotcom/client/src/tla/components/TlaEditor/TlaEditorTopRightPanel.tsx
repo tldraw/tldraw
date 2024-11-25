@@ -1,44 +1,46 @@
-import { forwardRef, useRef } from 'react'
+import classNames from 'classnames'
+import { useRef } from 'react'
 import { PeopleMenu, usePassThroughWheelEvents } from 'tldraw'
-import { F } from '../../app/i18n'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
+import { TlaShareButton } from '../TlaShareButton/TlaShareButton'
+import { TlaSignUpButton } from '../TlaSignUpButton/TlaSignUpButton'
 import styles from './top.module.css'
 
-export function TlaEditorTopRightPanel() {
+export function TlaEditorTopRightPanel({
+	isAnonUser,
+	context,
+}: {
+	isAnonUser: boolean
+	context: 'file' | 'published-file' | 'scratch'
+}) {
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
 
+	if (isAnonUser) {
+		return (
+			<div ref={ref} className={classNames(styles.topRightPanel)}>
+				<PeopleMenu displayUserWhenAlone={false} />
+				<div className={styles.signInButtons}>
+					<TlaFileShareMenu fileId={fileId!} context={context} source="anon">
+						<button data-testid="share-button" className={classNames(styles.shareButtonMini)}>
+							<TlaIcon icon="share" />
+						</button>
+					</TlaFileShareMenu>
+					<TlaSignUpButton />
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
-			<PeopleMenu />
-			<TlaFileShareMenu fileId={fileId!} source="file-header">
-				<ShareButton />
+			<PeopleMenu displayUserWhenAlone={false} />
+			<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
+				<TlaShareButton />
 			</TlaFileShareMenu>
 		</div>
 	)
 }
-
-// todo, move styles from globals.css to top.module.css
-
-export const ShareButton = forwardRef<HTMLButtonElement>(function ShareButton(props, ref) {
-	const trackEvent = useTldrawAppUiEvents()
-	return (
-		<button
-			ref={ref}
-			draggable={false}
-			type="button"
-			className="tlui-share-zone__button-wrapper"
-			{...props}
-			onClick={() => trackEvent('open-share-menu', { source: 'file-header' })}
-		>
-			<div className="tlui-button tlui-button__normal tlui-share-zone__button">
-				<span className="tlui-button__label" draggable={false}>
-					<F defaultMessage="Share" />
-				</span>
-			</div>
-		</button>
-	)
-})

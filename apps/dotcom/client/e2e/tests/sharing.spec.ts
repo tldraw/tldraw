@@ -87,13 +87,12 @@ test.describe('shared files', () => {
 		})
 		// we have to wait a bit for the search params to get populated
 		await newPage.waitForTimeout(500)
-		const otherUserUrl = await newShareMenu.openMenuAndCopyLink()
+		const otherUserUrl = await newShareMenu.openShareMenuAndCopyInviteLink()
 		expect(areUrlsEqual(otherUserUrl, url)).toBe(true)
 		await newContext.close()
 	})
 
-	// TODO: Looks like we currently don't show a share menu for anon users?
-	test.skip('anon users can copy shared links', async ({ page, browser, shareMenu }) => {
+	test('anon users can copy shared links', async ({ page, browser, shareMenu }) => {
 		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
 
 		const { newShareMenu, newContext } = await openNewIncognitoPage(browser, {
@@ -101,7 +100,8 @@ test.describe('shared files', () => {
 			allowClipboard: true,
 			userProps: undefined,
 		})
-		await expect(newShareMenu.shareButton).not.toBeVisible()
+		await expect(newShareMenu.shareButton).toBeVisible()
+		await newShareMenu.openShareMenuAndCopyInviteLink()
 		await newContext.close()
 	})
 })
@@ -181,7 +181,7 @@ test.describe('published files', () => {
 			})
 			// we have to wait a bit for the search params to get populated
 			await newPage.waitForTimeout(500)
-			const otherUserUrl = await newShareMenu.openMenuAndCopyLink()
+			const otherUserUrl = await newShareMenu.openShareMenuAndCopyPublishedLink()
 			expect(areUrlsEqual(otherUserUrl, url)).toBe(true)
 			await newContext.close()
 		})

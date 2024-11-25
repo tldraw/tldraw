@@ -49,6 +49,10 @@
 	padding: 0px 4px;
 }
 
+.topPanelSeparator:nth-last-of-type(1) {
+	margin-right: -4px;
+}
+
 .inputWrapper {
 	position: relative;
 	display: flex;
@@ -57,6 +61,8 @@
 	max-width: 100%;
 	min-width: 0px;
 	height: 40px;
+	margin-left: -4px;
+	margin-right: -4px;
 	flex-shrink: 2;
 }
 
@@ -86,7 +92,6 @@ button.nameWidthSetter {
 	padding: none;
 	margin: none;
 	opacity: 1;
-	padding: 0px 12px;
 	pointer-events: all;
 	height: 100%;
 	min-width: 0px;
@@ -154,6 +159,7 @@ button.nameWidthSetter {
 	z-index: 3;
 	padding: 0px;
 	cursor: pointer;
+	margin-left: -4px;
 }
 
 .linkMenu::after {
@@ -231,4 +237,69 @@ button.nameWidthSetter {
 .exportButton {
 	background-color: var(--color-background);
 	border-radius: var(--radius-3);
+}
+
+.brand {
+	color: var(--tla-color-text-1);
+	padding: 0px 8px 4px 4px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+}
+
+.signInButtons {
+	display: flex;
+	gap: 0px;
+	height: 40px;
+	align-items: center;
+	padding-right: 4px;
+}
+
+.hoverable::after {
+	display: block;
+	content: '';
+	position: absolute;
+	top: 2px;
+	left: 0px;
+	right: 0px;
+	bottom: 2px;
+	border-radius: 4px;
+	background-color: var(--tla-color-hover-1);
+	z-index: 0;
+	pointer-events: none;
+	visibility: hidden;
+}
+
+.shareButtonMini {
+	height: 40px;
+	width: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: none;
+	border: none;
+	position: relative;
+	cursor: pointer;
+	z-index: 1;
+}
+
+@media (hover: hover) {
+	.shareButtonMini::after {
+		display: block;
+		content: '';
+		position: absolute;
+		top: 4px;
+		left: 4px;
+		right: 4px;
+		bottom: 4px;
+		border-radius: 4px;
+		background-color: var(--tla-color-hover-1);
+		z-index: 0;
+		pointer-events: none;
+		visibility: hidden;
+	}
+
+	.shareButtonMini:hover::after {
+		visibility: visible;
+	}
 }
