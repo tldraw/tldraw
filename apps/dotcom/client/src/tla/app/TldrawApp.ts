@@ -422,7 +422,7 @@ export class TldrawApp {
 		this.z.mutate((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
-				tx.file.update({ ...file, isDeleted: true })
+				tx.file.update({ id: fileId, isDeleted: true })
 			}
 		})
 	}
