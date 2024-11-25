@@ -116,7 +116,6 @@ function TlaSidebarCreateFileButton() {
 		if (res.ok) {
 			const { file } = res.value
 			navigate(getFilePath(file.id), { state: { mode: 'create' } })
-			scrollActiveFileLinkIntoView()
 			trackEvent('create-file', { source: 'sidebar' })
 		}
 	}, [app, navigate, trackEvent])
@@ -250,6 +249,11 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 	const isOwnFile = useIsFileOwner(fileId)
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const isActive = fileSlug === fileId
+	useEffect(() => {
+		if (isActive) {
+			scrollActiveFileLinkIntoView()
+		}
+	}, [isActive])
 	const [isRenaming, setIsRenaming] = useState(false)
 	const trackEvent = useTldrawAppUiEvents()
 

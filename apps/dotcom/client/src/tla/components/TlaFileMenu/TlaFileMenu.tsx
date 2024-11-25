@@ -23,7 +23,6 @@ import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { getFilePath, getShareableFileUrl } from '../../utils/urls'
-import { scrollActiveFileLinkIntoView } from '../TlaSidebar/TlaSidebar'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 const messages = defineMessages({
@@ -82,7 +81,6 @@ export function TlaFileMenu({
 		const file = app.getFile(fileId)
 		if (!file) return
 		app.createFile({ id: newFileId, name: getDuplicateName(file, app) })
-		scrollActiveFileLinkIntoView()
 		navigate(getFilePath(newFileId), { state: { mode: 'duplicate', duplicateId: fileId } })
 	}, [app, fileId, navigate])
 
