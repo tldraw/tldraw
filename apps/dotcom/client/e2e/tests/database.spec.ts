@@ -3,7 +3,7 @@ import { HomePage } from '../fixtures/HomePage'
 import { Sidebar } from '../fixtures/Sidebar'
 import { expect, test } from '../fixtures/tla-test'
 
-test.only('correctly clears db ', async ({ page, browser, editor, sidebar, database }) => {
+test('correctly clears db ', async ({ page, browser, editor, sidebar, database }) => {
 	const documentsToAdd = 3
 	await test.step(`create ${documentsToAdd} files file`, async () => {
 		await editor.ensureSidebarOpen()
