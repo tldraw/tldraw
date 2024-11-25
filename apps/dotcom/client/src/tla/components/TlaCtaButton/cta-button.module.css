@@ -1,4 +1,5 @@
 .ctaButton {
+	flex: 0 0 auto;
 	position: relative;
 	box-sizing: border-box;
 	background-color: transparent;
