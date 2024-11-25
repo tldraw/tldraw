@@ -26,6 +26,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
 import { PERSIST_INTERVAL_MS } from './config'
+import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
@@ -529,7 +530,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
-	// Save the room to supabase
+	// Save the room to r2
 	async persistToDatabase() {
 		try {
 			await this.executionQueue.push(async () => {
@@ -549,6 +550,12 @@ export class TLDrawDurableObject extends DurableObject {
 					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 				])
 				this._lastPersistedClock = clock
+
+				// Update the updatedAt timestamp in the database
+				if (this.documentInfo.isApp) {
+					const pg = getPostgres(this.env)
+					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
+				}
 			})
 		} catch (e) {
 			this.reportError(e)
