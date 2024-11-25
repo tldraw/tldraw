@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
@@ -11,12 +11,25 @@ import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
 import { RecentFile } from './sidebar-shared'
 
+const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
+function scrollActiveFileLinkIntoView() {
+	const el = document.getElementById(ACTIVE_FILE_LINK_ID)
+	if (el) {
+		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+	}
+}
+
 export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId: string }) {
 	const app = useApp()
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
 	const isActive = fileSlug === fileId
+	useEffect(() => {
+		if (isActive) {
+			scrollActiveFileLinkIntoView()
+		}
+	}, [isActive])
 
 	return (
 		<TlaSidebarFileLinkInner
@@ -65,6 +78,8 @@ export function TlaSidebarFileLinkInner({
 			data-element="file-link"
 			data-testid={testId}
 			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
+			// We use this id to scroll the active file link into view when creating or deleting files.
+			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 		>
 			<div className={styles.linkContent}>
 				<div className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}>
