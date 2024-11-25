@@ -42,7 +42,7 @@ export function TlaEditorTopRightPanel({
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu displayUserWhenAlone={false} />
 			<TlaFileShareMenu fileId={fileId!} source="file-header" context={context}>
-				<TlaCtaButton data-testid="share">
+				<TlaCtaButton data-testid="tla-share-button">
 					<F defaultMessage="Share" />
 				</TlaCtaButton>
 			</TlaFileShareMenu>
