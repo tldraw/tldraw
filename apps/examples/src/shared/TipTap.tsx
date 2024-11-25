@@ -56,6 +56,8 @@ const Tiptap = ({
 		extensions,
 		content: content ? JSON.parse(content) : '',
 		autofocus: true,
+		immediatelyRender: true,
+		shouldRerenderOnTransaction: false,
 		onUpdate: ({ editor }) => {
 			const json = editor.getJSON()
 			tldrawEditor.updateShapes<TLUnknownShape & { props: { text: string } }>([
