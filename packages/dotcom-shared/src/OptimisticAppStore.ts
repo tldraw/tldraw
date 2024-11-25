@@ -110,8 +110,7 @@ export class OptimisticAppStore {
 			}
 		}
 		assert(table === 'file_state')
-		const fileState = row as TlaFileStatePartial
-		const { fileId, userId, ...rest } = fileState
+		const { fileId, userId, ...rest } = row as TlaFileStatePartial
 		if (event === 'delete') {
 			return {
 				...prev,
