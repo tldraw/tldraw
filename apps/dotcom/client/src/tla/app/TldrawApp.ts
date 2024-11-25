@@ -23,6 +23,8 @@ import {
 	objectMapKeys,
 	react,
 } from 'tldraw'
+import { getDateFormat } from '../utils/dates'
+import { createIntl } from './i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -250,7 +252,20 @@ export class TldrawApp {
 		}
 		if (!file) return ''
 		assert(typeof file !== 'string', 'ok')
-		return file.name.trim() || new Date(file.createdAt).toLocaleString('en-gb')
+
+		const name = file.name.trim()
+		if (name) {
+			return name
+		}
+
+		const intl = createIntl()
+		const createdAt = new Date(file.createdAt)
+		if (intl) {
+			const format = getDateFormat(createdAt)
+			return intl.formatDate(createdAt, format)
+		}
+		const locale = this.user$.get()?.locale
+		return new Date(createdAt).toLocaleString(locale ?? 'en-gb')
 	}
 
 	claimTemporaryFile(fileId: string) {
@@ -313,6 +328,7 @@ export class TldrawApp {
 					lastEditAt: null,
 					lastSessionState: null,
 					lastVisitAt: null,
+					isFileOwner: true,
 				})
 			}
 		})
@@ -443,6 +459,9 @@ export class TldrawApp {
 				lastEditAt: null,
 				lastSessionState: null,
 				lastVisitAt: null,
+				// doesn't really matter what this is because it is
+				// overwritten by postgres
+				isFileOwner: this.isFileOwner(fileId),
 			})
 		}
 		fileState = this.getFileState(fileId)

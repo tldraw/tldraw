@@ -7,9 +7,14 @@
 	justify-content: flex-end;
 }
 
+.wrapper {
+	position: relative;
+}
+
 /* need to target the parent div, ugh, can't target via a className */
 div:has(> .content) {
-	/* right: 0; */
+	position: absolute !important;
+	right: 0;
 	z-index: 2 !important;
 }
 
