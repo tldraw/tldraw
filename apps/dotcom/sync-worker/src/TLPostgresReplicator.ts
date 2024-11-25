@@ -185,7 +185,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 					this.handleBootEvent(row, event)
 					return
 				case 'user_mutation_number':
-					this.handleMutationEvent(row, event)
+					this.handleMutationConfirmationEvent(row, event)
 					return
 				case 'file_state':
 					this.handleFileStateEvent(row, event)
@@ -216,7 +216,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		})
 	}
 
-	private handleMutationEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+	private handleMutationConfirmationEvent(
+		row: postgres.Row | null,
+		event: postgres.ReplicationEvent
+	) {
 		if (event.command === 'delete') return
 		assert(typeof row?.mutationNumber === 'number', 'mutationNumber is required')
 		this.messageUser(row.userId, {
