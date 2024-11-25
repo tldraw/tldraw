@@ -18,6 +18,7 @@ import {
 	atom,
 	computed,
 	createTLUser,
+	defaultUserPreferences,
 	getUserPreferences,
 	objectMapFromEntries,
 	objectMapKeys,
@@ -184,6 +185,7 @@ export class TldrawApp {
 				continue
 			}
 			const file = myFiles[fileId]
+			if (!file) continue
 			const state = myStates[fileId]
 
 			nextRecentFileOrdering.push({
@@ -331,6 +333,7 @@ export class TldrawApp {
 					lastEditAt: null,
 					lastSessionState: null,
 					lastVisitAt: null,
+					isFileOwner: true,
 				})
 			}
 		})
@@ -461,6 +464,9 @@ export class TldrawApp {
 				lastEditAt: null,
 				lastSessionState: null,
 				lastVisitAt: null,
+				// doesn't really matter what this is because it is
+				// overwritten by postgres
+				isFileOwner: this.isFileOwner(fileId),
 			})
 		}
 		fileState = this.getFileState(fileId)
@@ -522,7 +528,7 @@ export class TldrawApp {
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
-		const { id: _id, name: _name, color: _color, ...restOfPreferences } = getUserPreferences()
+		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
 		const app = new TldrawApp(opts.userId, opts.getToken)
 		// @ts-expect-error
 		window.app = app
@@ -530,7 +536,7 @@ export class TldrawApp {
 			id: opts.userId,
 			name: opts.fullName,
 			email: opts.email,
-			color: 'salmon',
+			color: color ?? defaultUserPreferences.color,
 			avatar: opts.avatar,
 			exportFormat: 'png',
 			exportTheme: 'light',
