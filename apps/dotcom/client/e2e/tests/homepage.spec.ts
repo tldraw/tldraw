@@ -71,7 +71,6 @@ test.describe('preferences', () => {
 test.describe('sidebar actions', () => {
 	test('rename the document via double click', async ({ sidebar, page }) => {
 		let fileLink: Locator
-		await page.pause()
 		const currentName = await sidebar.getFirstFileName()
 		await test.step('get the current file name', async () => {
 			fileLink = sidebar.getFirstFileLink()
@@ -131,10 +130,10 @@ test.describe('sidebar actions', () => {
 		await sidebar.duplicateFile(0)
 		await expect(async () => {
 			await expect(
-				page.getByTestId('tla-file-name-today-0').getByText(`${fileName} 1`, { exact: true })
+				page.getByTestId('tla-file-link-today-0').getByText(`${fileName} 1`, { exact: true })
 			).toBeVisible()
 			await expect(
-				page.getByTestId('tla-file-name-today-1').getByText(fileName, { exact: true })
+				page.getByTestId('tla-file-link-today-1').getByText(fileName, { exact: true })
 			).toBeVisible()
 		}).toPass()
 		expect(await sidebar.getNumberOfFiles()).toBe(2)

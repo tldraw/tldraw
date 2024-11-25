@@ -82,7 +82,10 @@ export function TlaSidebarFileLinkInner({
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 		>
 			<div className={styles.linkContent}>
-				<div className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}>
+				<div
+					className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}
+					data-testid={`${testId}-name`}
+				>
 					{fileName}
 				</div>
 				{isOwnFile ? null : (
