@@ -235,11 +235,24 @@ function TlaSidebarFileSection({ title, items }: { title: ReactElement; items: R
 	)
 }
 
+const ACTIVE_FILE_LINK_ID = 'tla-active-file-link'
+function scrollActiveFileLinkIntoView() {
+	const el = document.getElementById(ACTIVE_FILE_LINK_ID)
+	if (el) {
+		el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+	}
+}
+
 function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }) {
 	const { fileId } = item
 	const isOwnFile = useIsFileOwner(fileId)
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const isActive = fileSlug === fileId
+	useEffect(() => {
+		if (isActive) {
+			scrollActiveFileLinkIntoView()
+		}
+	}, [isActive])
 	const [isRenaming, setIsRenaming] = useState(false)
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -260,6 +273,8 @@ function TlaSidebarFileLink({ item, index }: { item: RecentFile; index: number }
 			data-element="file-link"
 			data-testid={`tla-file-link-${index}`}
 			onDoubleClick={handleRenameAction}
+			// We use this id to scroll the active file link into view when creating or deleting files.
+			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 		>
 			<div className={styles.linkContent}>
 				<div
