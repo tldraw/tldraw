@@ -238,6 +238,7 @@ export class TldrawApp {
 			sharedLinkType: 'edit',
 			thumbnail: '',
 			updatedAt: Date.now(),
+			isDeleted: false,
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
@@ -416,7 +417,7 @@ export class TldrawApp {
 		this.z.mutate((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
-				tx.file.delete({ id: fileId })
+				tx.file.update({ ...file, isDeleted: true })
 			}
 		})
 	}
