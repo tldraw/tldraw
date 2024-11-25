@@ -338,6 +338,9 @@ export class TLDrawDurableObject extends DurableObject {
 			const file = await this.getAppFileRecord()
 
 			if (file) {
+				if (file.isDeleted) {
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+				}
 				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
@@ -623,6 +626,10 @@ export class TLDrawDurableObject extends DurableObject {
 		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
 
 		for (const session of room.getSessions()) {
+			if (file.isDeleted) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+				continue
+			}
 			// allow the owner to stay connected
 			if (session.meta.userId === file.ownerId) continue
 

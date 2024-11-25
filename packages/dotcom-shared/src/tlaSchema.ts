@@ -57,6 +57,7 @@ export const tlaFileSchema = {
 		createdAt: { type: 'number' },
 		updatedAt: { type: 'number' },
 		isEmpty: { type: 'boolean' },
+		isDeleted: { type: 'boolean' },
 	},
 	primaryKey: ['id'],
 	relationships: {

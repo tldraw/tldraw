@@ -179,13 +179,13 @@ export class TldrawApp {
 		const nextRecentFileOrdering = []
 
 		for (const fileId of myFileIds) {
+			const file = myFiles[fileId]
+			if (!file) continue
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
 			if (existing) {
 				nextRecentFileOrdering.push(existing)
 				continue
 			}
-			const file = myFiles[fileId]
-			if (!file) continue
 			const state = myStates[fileId]
 
 			nextRecentFileOrdering.push({
@@ -238,6 +238,7 @@ export class TldrawApp {
 			sharedLinkType: 'edit',
 			thumbnail: '',
 			updatedAt: Date.now(),
+			isDeleted: false,
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
@@ -420,7 +421,7 @@ export class TldrawApp {
 		this.z.mutate((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
-				tx.file.delete({ id: fileId })
+				tx.file.update({ ...file, isDeleted: true })
 			}
 		})
 	}
@@ -458,7 +459,7 @@ export class TldrawApp {
 	async getOrCreateFileState(fileId: string) {
 		let fileState = this.getFileState(fileId)
 		if (!fileState) {
-			await this.z.mutate.file_state.create({
+			this.z.mutate.file_state.create({
 				fileId,
 				userId: this.userId,
 				firstVisitAt: Date.now(),
