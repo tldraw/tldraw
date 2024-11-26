@@ -6,8 +6,9 @@ import {
 	TlaFileState,
 	TlaUser,
 	UserPreferencesKeys,
+	ZErrorCode,
 } from '@tldraw/dotcom-shared'
-import { Result, assert, fetch, structuredClone, uniqueId } from '@tldraw/utils'
+import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
 	Signal,
@@ -26,7 +27,7 @@ import {
 	react,
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
-import { createIntl } from '../utils/i18n'
+import { IntlShape, defineMessages } from '../utils/i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -68,6 +69,8 @@ export class TldrawApp {
 	}
 
 	toasts: TLUiToastsContextType | null = null
+	intl: IntlShape | null = null
+
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | null>
@@ -85,12 +88,7 @@ export class TldrawApp {
 			// schema,
 			// This is often easier to develop with if you're frequently changing
 			// the schema. Switch to 'idb' for local-persistence.
-			onMutationRejected: (errorCode) => {
-				this.toasts?.addToast({
-					title: 'That didn’t work',
-					description: `Error code: ${errorCode}`,
-				})
-			},
+			onMutationRejected: this.showMutationRejectionToast,
 		})
 		this.disposables.push(() => this.z.dispose())
 
@@ -123,6 +121,31 @@ export class TldrawApp {
 		await this.z.query.file_state.where('userId', this.userId).preload().complete
 		await this.z.query.file.where('ownerId', this.userId).preload().complete
 	}
+
+	messages = defineMessages({
+		publish_failed: { defaultMessage: 'Unable to publish the file' },
+		unpublish_failed: { defaultMessage: 'Unable to unpublish the file' },
+		republish_failed: { defaultMessage: 'Unable to publish the changes' },
+		unknown_error: { defaultMessage: 'An unexpected error occurred' },
+		forbidden: {
+			defaultMessage: 'You do not have the necessary permissions to perform this action',
+		},
+		bad_request: { defaultMessage: 'Invalid request' },
+		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit' },
+		mutation_error_toast_title: { defaultMessage: "That didn't work" },
+	})
+
+	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
+		const descriptor = this.messages[errorCode]
+		// Looks like we don't get type safety here
+		if (!descriptor) {
+			console.error('Could not find a translation for this error code', errorCode)
+		}
+		this.toasts?.addToast({
+			title: this.intl?.formatMessage(this.messages.mutation_error_toast_title),
+			description: this.intl?.formatMessage(descriptor ?? this.messages.unknown_error),
+		})
+	}, 3000)
 
 	dispose() {
 		this.disposables.forEach((d) => d())
@@ -268,11 +291,10 @@ export class TldrawApp {
 			return name
 		}
 
-		const intl = createIntl()
 		const createdAt = new Date(file.createdAt)
-		if (intl) {
+		if (this.intl) {
 			const format = getDateFormat(createdAt)
-			return intl.formatDate(createdAt, format)
+			return this.intl.formatDate(createdAt, format)
 		}
 		const locale = this.user$.get()?.locale
 		return new Date(createdAt).toLocaleString(locale ?? 'en-gb')

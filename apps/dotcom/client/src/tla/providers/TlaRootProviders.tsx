@@ -19,7 +19,7 @@ import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { IntlProvider, setupCreateIntl } from '../utils/i18n'
+import { IntlProvider, setupCreateIntl, useIntl } from '../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 import { getRootPath } from '../utils/urls'
 
@@ -107,6 +107,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				<TldrawUiDialogs />
 				<TldrawUiToasts />
 				<PutToastsInApp />
+				<PutIntlInApp />
 			</TldrawUiContextProvider>
 		</EditorContext.Provider>
 	)
@@ -116,6 +117,13 @@ function PutToastsInApp() {
 	const toasts = useToasts()
 	const app = useMaybeApp()
 	if (app) app.toasts = toasts
+	return null
+}
+
+function PutIntlInApp() {
+	const intl = useIntl()
+	const app = useMaybeApp()
+	if (app) app.intl = intl
 	return null
 }
 
