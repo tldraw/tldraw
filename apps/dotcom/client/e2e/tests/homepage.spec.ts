@@ -1,6 +1,6 @@
 import { Locator } from '@playwright/test'
-import { areUrlsEqual } from '../fixtures/helpers'
-import { expect, test } from '../fixtures/tla-test'
+import { areUrlsEqual, getRandomName } from '../fixtures/helpers'
+import { expect, expectBeforeAndAfterReload, test } from '../fixtures/tla-test'
 
 test('can toggle sidebar', async ({ editor, sidebar }) => {
 	await editor.ensureSidebarClosed()
@@ -9,12 +9,14 @@ test('can toggle sidebar', async ({ editor, sidebar }) => {
 	await expect(sidebar.sidebarLogo).toBeInViewport()
 })
 
-test('can create new file', async ({ editor, sidebar }) => {
+test('can create new file', async ({ editor, sidebar, page }) => {
 	await editor.ensureSidebarOpen()
 	const currentCount = await sidebar.getNumberOfFiles()
 	await sidebar.createNewDocument()
-	const newCount = await sidebar.getNumberOfFiles()
-	expect(newCount).toBe(currentCount + 1)
+	await expectBeforeAndAfterReload(async () => {
+		const newCount = await sidebar.getNumberOfFiles()
+		expect(newCount).toBe(currentCount + 1)
+	}, page)
 })
 
 test.describe('preferences', () => {
@@ -36,16 +38,18 @@ test.describe('preferences', () => {
 			await sidebar.setDarkMode()
 		})
 		await test.step('is dark mode', async () => {
-			await expect(page.locator('div.tla-theme__light.tl-theme__light')).not.toBeVisible()
-			await expect(page.locator('div.tla-theme__dark.tl-theme__dark')).toBeVisible()
-			await expect(page.locator('div.tl-background')).toHaveCSS(
-				'background-color',
-				'rgb(16, 16, 17)'
-			)
-			await expect(page.locator('div.tla-theme-container')).toHaveCSS(
-				'background-color',
-				'rgb(13, 13, 13)'
-			)
+			await expectBeforeAndAfterReload(async () => {
+				await expect(page.locator('div.tla-theme__light.tl-theme__light')).not.toBeVisible()
+				await expect(page.locator('div.tla-theme__dark.tl-theme__dark')).toBeVisible()
+				await expect(page.locator('div.tl-background')).toHaveCSS(
+					'background-color',
+					'rgb(16, 16, 17)'
+				)
+				await expect(page.locator('div.tla-theme-container')).toHaveCSS(
+					'background-color',
+					'rgb(13, 13, 13)'
+				)
+			}, page)
 		})
 	})
 
@@ -77,7 +81,7 @@ test.describe('sidebar actions', () => {
 			await expect(fileLink).toBeVisible()
 		})
 
-		const newName = Math.random().toString(36).substring(7)
+		const newName = getRandomName()
 		await test.step('change the name', async () => {
 			await fileLink.dblclick()
 			const input = page.getByRole('textbox')
@@ -86,18 +90,22 @@ test.describe('sidebar actions', () => {
 		})
 
 		await test.step('verify the name change', async () => {
-			const newFileText = await sidebar.getFirstFileName()
-			expect(newFileText).toBe(newName)
-			await expect(page.getByText(currentName)).not.toBeVisible()
+			await expectBeforeAndAfterReload(async () => {
+				const newFileText = await sidebar.getFirstFileName()
+				expect(newFileText).toBe(newName)
+				await expect(page.getByText(currentName)).not.toBeVisible()
+			}, page)
 		})
 	})
 
-	test('rename the document via file menu', async ({ sidebar }) => {
+	test('rename the document via file menu', async ({ sidebar, page }) => {
 		const currentName = await sidebar.getFirstFileName()
-		const newName = Math.random().toString(36).substring(7)
+		const newName = getRandomName()
 		await sidebar.renameFile(0, newName)
-		expect(await sidebar.getFirstFileName()).toBe(newName)
-		await expect(sidebar.sidebar.getByText(currentName)).not.toBeVisible()
+		await expectBeforeAndAfterReload(async () => {
+			expect(await sidebar.getFirstFileName()).toBe(newName)
+			await expect(sidebar.sidebar.getByText(currentName)).not.toBeVisible()
+		}, page)
 	})
 
 	test('delete the document via the file menu', async ({ sidebar, deleteFileDialog, page }) => {
@@ -115,7 +123,9 @@ test.describe('sidebar actions', () => {
 		})
 
 		await test.step('verify the file is deleted', async () => {
-			await expect(page.getByText(current)).not.toBeVisible()
+			await expectBeforeAndAfterReload(async () => {
+				await expect(page.getByText(current)).not.toBeVisible()
+			}, page)
 			await page.goto(url)
 			await expect(() => async () => {
 				await expect(page.getByText('Not found')).toBeVisible()
@@ -124,19 +134,21 @@ test.describe('sidebar actions', () => {
 	})
 
 	test('duplicate the document via the file menu', async ({ page, sidebar }) => {
-		const fileName = Math.random().toString(36).substring(7)
+		const fileName = getRandomName()
 		expect(await sidebar.getNumberOfFiles()).toBe(1)
 		await sidebar.renameFile(0, fileName)
 		await sidebar.duplicateFile(0)
-		await expect(async () => {
-			await expect(
-				page.getByTestId('tla-file-link-today-0').getByText(`${fileName} 1`, { exact: true })
-			).toBeVisible()
-			await expect(
-				page.getByTestId('tla-file-link-today-1').getByText(fileName, { exact: true })
-			).toBeVisible()
-		}).toPass()
-		expect(await sidebar.getNumberOfFiles()).toBe(2)
+		await expectBeforeAndAfterReload(async () => {
+			await expect(async () => {
+				await expect(
+					page.getByTestId('tla-file-link-today-0').getByText(`${fileName} 1`, { exact: true })
+				).toBeVisible()
+				await expect(
+					page.getByTestId('tla-file-link-today-1').getByText(fileName, { exact: true })
+				).toBeVisible()
+				expect(await sidebar.getNumberOfFiles()).toBe(2)
+			}).toPass()
+		}, page)
 	})
 
 	test('can copy a file link from the file menu', async ({ page, context, sidebar }) => {
@@ -150,9 +162,9 @@ test.describe('sidebar actions', () => {
 
 // Menu bar
 
-test('can rename a file name by clicking the name', async ({ editor, sidebar }) => {
+test('can rename a file name by clicking the name', async ({ editor, sidebar, page }) => {
 	const originalName = await editor.getCurrentFileName()
-	const newName = Math.random().toString(36).substring(7)
+	const newName = getRandomName()
 	await expect(async () => {
 		await sidebar.expectToContainText(originalName)
 		await sidebar.expectNotToContainText(newName)
@@ -160,8 +172,8 @@ test('can rename a file name by clicking the name', async ({ editor, sidebar }) 
 
 	await editor.rename(newName)
 
-	await expect(async () => {
+	await expectBeforeAndAfterReload(async () => {
 		await sidebar.expectToContainText(newName)
 		await sidebar.expectNotToContainText(originalName)
-	}).toPass()
+	}, page)
 })
