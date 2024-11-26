@@ -1109,6 +1109,12 @@ input,
 	width: 100%;
 }
 
+.tl-shape[data-shape-type='image'] .tl-text-label,
+.tl-shape[data-shape-type='video'] .tl-text-label {
+	top: 100%;
+	height: fit-content;
+}
+
 .tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
 	width: 40px;
 	height: 40px;

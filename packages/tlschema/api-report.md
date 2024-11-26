@@ -1055,19 +1055,35 @@ export interface TLImageShapeCrop {
 // @public (undocumented)
 export interface TLImageShapeProps {
     // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
     assetId: null | TLAssetId;
     // (undocumented)
+    color: TLDefaultColorStyle;
+    // (undocumented)
     crop: null | TLImageShapeCrop;
+    // (undocumented)
+    fill: TLDefaultFillStyle;
     // (undocumented)
     flipX: boolean;
     // (undocumented)
     flipY: boolean;
     // (undocumented)
+    font: TLDefaultFontStyle;
+    // (undocumented)
     h: number;
+    // (undocumented)
+    labelColor: TLDefaultColorStyle;
     // (undocumented)
     playing: boolean;
     // (undocumented)
+    size: TLDefaultSizeStyle;
+    // (undocumented)
+    text: string;
+    // (undocumented)
     url: string;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     w: number;
 }
@@ -1445,15 +1461,31 @@ export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 // @public (undocumented)
 export interface TLVideoShapeProps {
     // (undocumented)
+    align: TLDefaultHorizontalAlignStyle;
+    // (undocumented)
     assetId: null | TLAssetId;
+    // (undocumented)
+    color: TLDefaultColorStyle;
+    // (undocumented)
+    fill: TLDefaultFillStyle;
+    // (undocumented)
+    font: TLDefaultFontStyle;
     // (undocumented)
     h: number;
     // (undocumented)
+    labelColor: TLDefaultColorStyle;
+    // (undocumented)
     playing: boolean;
+    // (undocumented)
+    size: TLDefaultSizeStyle;
+    // (undocumented)
+    text: string;
     // (undocumented)
     time: number;
     // (undocumented)
     url: string;
+    // (undocumented)
+    verticalAlign: TLDefaultVerticalAlignStyle;
     // (undocumented)
     w: number;
 }

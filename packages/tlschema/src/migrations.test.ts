@@ -249,6 +249,54 @@ describe('Adding url props', () => {
 	}
 })
 
+describe('Adding text props', () => {
+	for (const [name, { up }] of [
+		['video shape', getTestMigration(videoShapeVersions.AddTextProps)],
+		['image shape', getTestMigration(imageShapeVersions.AddTextProps)],
+	] as const) {
+		test(`${name}: up works as expected`, () => {
+			expect(up({ props: {} })).toEqual({
+				props: {
+					color: 'black',
+					labelColor: 'black',
+					fill: 'none',
+					size: 'm',
+					font: 'draw',
+					text: '',
+					align: 'middle',
+					verticalAlign: 'middle',
+				},
+			})
+		})
+	}
+})
+
+describe('Removing text props', () => {
+	for (const [name, { down }] of [
+		['video shape', getTestMigration(videoShapeVersions.AddTextProps)],
+		['image shape', getTestMigration(imageShapeVersions.AddTextProps)],
+	] as const) {
+		test(`${name}: down works as expected`, () => {
+			expect(
+				down({
+					props: {
+						color: 'black',
+						labelColor: 'black',
+						fill: 'none',
+						size: 'm',
+						font: 'draw',
+						text: '',
+						align: 'middle',
+						verticalAlign: 'middle',
+					},
+				})
+			).toEqual({
+				props: {},
+			})
+		})
+	}
+})
+
 describe('Bookmark null asset id', () => {
 	const { up } = getTestMigration(bookmarkShapeVersions.NullAssetId)
 	test('up works as expected', () => {
