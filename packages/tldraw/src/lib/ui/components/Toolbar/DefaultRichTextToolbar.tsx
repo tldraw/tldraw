@@ -3,7 +3,7 @@ import { EditorState as TextEditorState } from '@tiptap/pm/state'
 import { Editor, track, useEditor, useValue } from '@tldraw/editor'
 import { RefObject, useEffect, useRef, useState } from 'react'
 import useViewportHeight from '../../hooks/useViewportHeight'
-import { ContextualToolbar, useFollowCanvas } from './ContextualToolbar'
+import { TldrawUiContextualToolbar, useFollowCanvas } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
 import { LinkEditor } from './LinkEditor'
 
@@ -89,7 +89,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	previousTop.current = toolbarPosition.top
 
 	return (
-		<ContextualToolbar position={toolbarPosition}>
+		<TldrawUiContextualToolbar position={toolbarPosition}>
 			<div
 				ref={toolbarRef}
 				className="tl-rich-text__toolbar"
@@ -118,7 +118,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 					)}
 				</div>
 			</div>
-		</ContextualToolbar>
+		</TldrawUiContextualToolbar>
 	)
 })
 

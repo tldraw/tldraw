@@ -8,7 +8,8 @@ import {
 } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 
-interface ContextualToolbarProps {
+/** @public */
+export interface TLUiContextualToolbarProps {
 	children?: React.ReactNode
 	position: { top: number; left: number; isMobile: boolean }
 }
@@ -19,10 +20,10 @@ interface ContextualToolbarProps {
  *
  * @public @react
  */
-export const ContextualToolbar = function ContextualToolbar({
+export const TldrawUiContextualToolbar = function TldrawUiContextualToolbar({
 	children,
 	position,
-}: ContextualToolbarProps) {
+}: TLUiContextualToolbarProps) {
 	const toolbarRef = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(toolbarRef.current)
 	usePassThroughMouseOverEvents(toolbarRef.current)

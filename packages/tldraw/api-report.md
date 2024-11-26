@@ -2135,6 +2135,9 @@ export function TldrawUiComponentsProvider({ overrides, children, }: TLUiCompone
 // @public (undocumented)
 export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderProps>;
 
+// @public
+export const TldrawUiContextualToolbar: ({ children, position, }: TLUiContextualToolbarProps) => JSX_2.Element;
+
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
 
@@ -2468,6 +2471,18 @@ export interface TLUiContextProviderProps {
     mediaMimeTypes?: string[];
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
+}
+
+// @public (undocumented)
+export interface TLUiContextualToolbarProps {
+    // (undocumented)
+    children?: React.ReactNode;
+    // (undocumented)
+    position: {
+        isMobile: boolean;
+        left: number;
+        top: number;
+    };
 }
 
 // @public (undocumented)
@@ -3830,6 +3845,9 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string, 
 
 // @public (undocumented)
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+
+// @public
+export function useFollowCanvas(): void;
 
 // @public
 export function useImageOrVideoAsset({ shapeId, assetId, }: {

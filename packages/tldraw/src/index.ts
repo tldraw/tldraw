@@ -315,6 +315,11 @@ export {
 	type TLUiButtonPickerProps,
 } from './lib/ui/components/primitives/TldrawUiButtonPicker'
 export {
+	TldrawUiContextualToolbar,
+	useFollowCanvas,
+	type TLUiContextualToolbarProps,
+} from './lib/ui/components/primitives/TldrawUiContextualToolbar'
+export {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
