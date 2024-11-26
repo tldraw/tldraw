@@ -26,7 +26,7 @@ import {
 	react,
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
-import { IntlShape, createIntl, defineMessages } from '../utils/i18n'
+import { IntlShape, defineMessages } from '../utils/i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -287,11 +287,10 @@ export class TldrawApp {
 			return name
 		}
 
-		const intl = createIntl()
 		const createdAt = new Date(file.createdAt)
-		if (intl) {
+		if (this.intl) {
 			const format = getDateFormat(createdAt)
-			return intl.formatDate(createdAt, format)
+			return this.intl.formatDate(createdAt, format)
 		}
 		const locale = this.user$.get()?.locale
 		return new Date(createdAt).toLocaleString(locale ?? 'en-gb')
