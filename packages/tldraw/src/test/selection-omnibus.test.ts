@@ -735,7 +735,7 @@ describe('when a frame has multiple children', () => {
 	// })
 
 	it('brush does not select a shape when brushing its masked parts', () => {
-		editor.pointerMove(110, 0)
+		editor.pointerMove(120, 0)
 		expect(editor.getHoveredShapeId()).toBe(null)
 		editor.pointerDown()
 		editor.pointerMove(160, 160)

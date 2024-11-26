@@ -18,11 +18,14 @@ import {
 	atom,
 	computed,
 	createTLUser,
+	defaultUserPreferences,
 	getUserPreferences,
 	objectMapFromEntries,
 	objectMapKeys,
 	react,
 } from 'tldraw'
+import { getDateFormat } from '../utils/dates'
+import { createIntl } from '../utils/i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -176,12 +179,13 @@ export class TldrawApp {
 		const nextRecentFileOrdering = []
 
 		for (const fileId of myFileIds) {
+			const file = myFiles[fileId]
+			if (!file) continue
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
 			if (existing) {
 				nextRecentFileOrdering.push(existing)
 				continue
 			}
-			const file = myFiles[fileId]
 			const state = myStates[fileId]
 
 			nextRecentFileOrdering.push({
@@ -230,10 +234,11 @@ export class TldrawApp {
 			name: '',
 			published: false,
 			publishedSlug: uniqueId(),
-			shared: false,
-			sharedLinkType: 'view',
+			shared: true,
+			sharedLinkType: 'edit',
 			thumbnail: '',
 			updatedAt: Date.now(),
+			isDeleted: false,
 		}
 		if (typeof fileOrId === 'object') {
 			Object.assign(file, fileOrId)
@@ -248,9 +253,25 @@ export class TldrawApp {
 		if (typeof file === 'string') {
 			file = this.getFile(file)
 		}
-		if (!file) return ''
+		if (!file) {
+			// possibly a published file
+			return ''
+		}
 		assert(typeof file !== 'string', 'ok')
-		return file.name.trim() || new Date(file.createdAt).toLocaleString('en-gb')
+
+		const name = file.name.trim()
+		if (name) {
+			return name
+		}
+
+		const intl = createIntl()
+		const createdAt = new Date(file.createdAt)
+		if (intl) {
+			const format = getDateFormat(createdAt)
+			return intl.formatDate(createdAt, format)
+		}
+		const locale = this.user$.get()?.locale
+		return new Date(createdAt).toLocaleString(locale ?? 'en-gb')
 	}
 
 	claimTemporaryFile(fileId: string) {
@@ -270,12 +291,6 @@ export class TldrawApp {
 				...file,
 				shared: !file.shared,
 			})
-
-			// if it was shared, remove all shared links
-			// TODO: move this to the backend after read permissions are implemented
-			for (const fileState of this.getUserFileStates().filter((f) => f.fileId === fileId)) {
-				tx.file_state.delete(fileState)
-			}
 		})
 	}
 
@@ -319,6 +334,7 @@ export class TldrawApp {
 					lastEditAt: null,
 					lastSessionState: null,
 					lastVisitAt: null,
+					isFileOwner: true,
 				})
 			}
 		})
@@ -351,7 +367,8 @@ export class TldrawApp {
 		})
 	}
 
-	getFile(fileId: string): TlaFile | null {
+	getFile(fileId?: string): TlaFile | null {
+		if (!fileId) return null
 		return this.getUserOwnFiles().find((f) => f.id === fileId) ?? null
 	}
 
@@ -398,34 +415,15 @@ export class TldrawApp {
 	 * @param fileId - The file id.
 	 */
 	async deleteOrForgetFile(fileId: string) {
-		// Stash these so that we can restore them later
-		let fileStates: TlaFileState[]
 		const file = this.getFile(fileId)
-		if (!file) return Result.err('no file with id ' + fileId)
 
-		if (file.ownerId === this.userId) {
-			// Optimistic update, remove file and file states
-			this.z.mutate((tx) => {
-				tx.file.delete(file)
-				// TODO(blah): other file states should be deleted by backend
-				fileStates = this.getUserFileStates().filter((r) => r.fileId === fileId)
-				for (const state of fileStates) {
-					if (state.fileId === fileId) {
-						tx.file_state.delete(state)
-					}
-				}
-			})
-		} else {
-			// If not the owner, just remove the file state
-			this.z.mutate((tx) => {
-				fileStates = this.getUserFileStates().filter((r) => r.fileId === fileId)
-				for (const state of fileStates) {
-					if (state.fileId === fileId) {
-						tx.file_state.delete(state)
-					}
-				}
-			})
-		}
+		// Optimistic update, remove file and file states
+		this.z.mutate((tx) => {
+			tx.file_state.delete({ fileId, userId: this.userId })
+			if (file?.ownerId === this.userId) {
+				tx.file.update({ ...file, isDeleted: true })
+			}
+		})
 	}
 
 	setFileSharedLinkType(fileId: string, sharedLinkType: TlaFile['sharedLinkType'] | 'no-access') {
@@ -461,13 +459,16 @@ export class TldrawApp {
 	async getOrCreateFileState(fileId: string) {
 		let fileState = this.getFileState(fileId)
 		if (!fileState) {
-			await this.z.mutate.file_state.create({
+			this.z.mutate.file_state.create({
 				fileId,
 				userId: this.userId,
 				firstVisitAt: Date.now(),
 				lastEditAt: null,
 				lastSessionState: null,
 				lastVisitAt: null,
+				// doesn't really matter what this is because it is
+				// overwritten by postgres
+				isFileOwner: this.isFileOwner(fileId),
 			})
 		}
 		fileState = this.getFileState(fileId)
@@ -529,13 +530,15 @@ export class TldrawApp {
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
-		const { id: _id, name: _name, color: _color, ...restOfPreferences } = getUserPreferences()
+		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
 		const app = new TldrawApp(opts.userId, opts.getToken)
+		// @ts-expect-error
+		window.app = app
 		await app.preload({
 			id: opts.userId,
 			name: opts.fullName,
 			email: opts.email,
-			color: 'salmon',
+			color: color ?? defaultUserPreferences.color,
 			avatar: opts.avatar,
 			exportFormat: 'png',
 			exportTheme: 'light',

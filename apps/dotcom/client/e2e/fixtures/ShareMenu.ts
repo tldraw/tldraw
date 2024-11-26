@@ -14,7 +14,7 @@ export class ShareMenu {
 	public readonly tabs: { invite: Locator; export: Locator; publish: Locator }
 
 	constructor(public readonly page: Page) {
-		this.shareButton = this.page.getByRole('button', { name: 'Share' })
+		this.shareButton = this.page.getByTestId('share-button')
 		this.exportButton = this.page.getByRole('button', { name: 'Export', exact: true })
 		this.inviteButton = this.page.getByRole('button', { name: 'Invite' })
 		this.publishButton = this.page.getByRole('button', { name: 'Publish', exact: true })
@@ -90,8 +90,18 @@ export class ShareMenu {
 	}
 
 	@step
-	async openMenuAndCopyLink() {
+	async openShareMenuAndCopyInviteLink() {
 		await this.open()
+		await this.inviteButton.click()
+		await this.ensureTabSelected('invite')
+		return await this.copyLink()
+	}
+
+	@step
+	async openShareMenuAndCopyPublishedLink() {
+		await this.open()
+		await this.publishButton.click()
+		await this.ensureTabSelected('publish')
 		return await this.copyLink()
 	}
 
@@ -118,5 +128,11 @@ export class ShareMenu {
 	async publishChanges() {
 		await this.ensureTabSelected('publish')
 		await this.publishChangesButton.click()
+	}
+
+	async getShareType() {
+		return (await this.page.waitForSelector('[data-testid="shared-link-type-select"]'))
+			.textContent()
+			.then((text) => text?.trim())
 	}
 }

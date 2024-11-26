@@ -5,16 +5,14 @@ import { expect, test } from '../fixtures/tla-test'
 test.use({ storageState: { cookies: [], origins: [] } })
 
 test('can login', async ({ homePage, editor }) => {
-	expect(homePage.signInButton).toBeVisible()
+	expect(homePage.signUpButton).toBeVisible()
 	const user = USERS[test.info().parallelIndex]
 	await homePage.loginAs(user)
-	await expect(homePage.signInButton).not.toBeVisible()
+	await expect(homePage.signUpButton).not.toBeVisible()
 	await expect(editor.sidebarToggle).toBeVisible()
 })
 
-// TODO: renable when this is fixed
-// https://linear.app/tldraw/issue/INT-490/error-when-logging-out
-test.skip('can sign out', async ({ homePage, editor, sidebar }) => {
+test('can sign out', async ({ homePage, editor, sidebar }) => {
 	await test.step('Login', async () => {
 		const user = USERS[test.info().parallelIndex]
 		await homePage.loginAs(user)

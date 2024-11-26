@@ -1,16 +1,18 @@
 .sidebar {
 	position: absolute;
+	display: flex;
 	top: 0px;
-	left: 0px;
+	left: -260px;
 	height: 100%;
 	width: 260px;
 	z-index: 100;
-	display: none;
+	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 2px 12px 2px 12px;
+	padding: 3px 12px 2px 12px;
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid transparent;
+	transition: transform 0.16s ease-in-out;
 }
 
 .sidebar[data-dragging='true']::after {
@@ -22,7 +24,7 @@
 	font-size: 12px;
 	font-weight: 600;
 	z-index: 1000;
-	background-color: var(--tla-color-panel);
+	background-color: var(--tla-color-sidebar);
 	content: 'Upload .tldr files';
 	opacity: 0;
 	animation: 0.2s fade-in 0.25s forwards;
@@ -54,13 +56,21 @@
 		border-right: 1px solid var(--color-low);
 	}
 	.sidebar[data-visible='true'] {
-		display: flex;
+		transform: translate(100%, 0px);
+		transition: transform 0.22s ease-out;
 	}
 }
 
 @media (max-width: 767px) {
+	.sidebar {
+		--w: min(320px, max(220px, calc(100vw - 100px)));
+		left: calc(var(--w) * -1);
+		width: var(--w);
+		transition: none;
+	}
+
 	.sidebar[data-visiblemobile='true'] {
-		display: flex;
+		transform: translate(100%, 0px);
 	}
 
 	.sidebarOverlayMobile[data-visiblemobile='true'] {
@@ -105,19 +115,27 @@
 	visibility: hidden;
 }
 
-.linkMenu {
-	right: 4px;
-}
-
-.hoverable .linkMenu[data-state='open']::after,
+.hoverable:has(*[data-state='open'])::after,
 .hoverable[data-active='true']::after {
 	background-color: var(--tla-color-hover-2);
 	visibility: visible;
 }
 
+.hoverable:has(*[data-state='open']) .collaborator {
+	display: none;
+}
+
 @media (hover: hover) {
 	.hoverable:hover::after {
 		visibility: visible;
+	}
+
+	.hoverable {
+		color: var(--tla-color-text-2);
+	}
+	.hoverable[data-active='true'],
+	.hoverable:hover {
+		color: var(--tla-color-text-1);
 	}
 }
 
@@ -134,6 +152,13 @@
 	justify-content: center;
 	pointer-events: all;
 	flex-shrink: 0;
+	padding: 0px;
+}
+
+@media (hover: hover) {
+	.toggle:hover {
+		z-index: 100;
+	}
 }
 
 .toggle::after {
@@ -179,15 +204,16 @@
 	background: none;
 	border: none;
 	cursor: pointer;
-	position: absolute;
-	top: 3px;
-	right: 0px;
+	position: relative;
+	top: 0.5px;
+	right: -10px;
 	height: 40px;
 	width: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	color: var(--tla-color-text-1);
+	padding: 0px;
 	z-index: 10;
 }
 
@@ -217,7 +243,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding: 0 4px;
+	padding: 0 0px;
 	position: relative;
 	z-index: 1;
 }
@@ -230,17 +256,21 @@
 	height: 40px;
 	flex-grow: 2;
 	display: flex;
-	gap: 8px;
 	align-items: center;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	padding-right: 4px;
+	background-color: var(--tla-color-sidebar);
+}
+
+.workspace {
+	padding-bottom: 1px;
 }
 
 .user {
 	padding: 0px 8px;
-	cursor: pointer;
+	gap: 8px;
 }
 
 .userName {
@@ -260,6 +290,10 @@
 	flex: 0 0 auto;
 }
 
+.section {
+	background: var(--tla-color-sidebar);
+}
+
 .section_title {
 	position: relative;
 	width: 100%;
@@ -273,6 +307,7 @@
 }
 
 .link {
+	background-color: var(--tla-color-sidebar);
 	position: relative;
 	width: 100%;
 	display: flex;
@@ -287,14 +322,21 @@
 	flex: 1 1 auto;
 	overflow: hidden;
 	display: flex;
+	flex-direction: row;
 	align-items: center;
 	justify-content: flex-start;
-	gap: 4px;
+	gap: 8px;
 	position: relative;
 	z-index: 2;
 }
 
+.linkContent > .label {
+	padding: 0px;
+	flex: 2 1 auto;
+}
+
 .renameWrapper {
+	background-color: var(--tla-color-sidebar);
 	outline: 1px solid var(--color-primary);
 	outline-offset: -2px;
 	border-radius: 6px;
@@ -315,19 +357,8 @@
 	z-index: 1;
 }
 
-@media (hover: hover) {
-	.hoverable {
-		color: var(--tla-color-text-2);
-	}
-	.hoverable[data-active='true'],
-	.hoverable:hover {
-		color: var(--tla-color-text-1);
-	}
-}
-
-.linkContent > .label {
-	padding: 0px;
-	flex: 0 1 auto;
+.collaborator {
+	flex: 0 0 auto;
 }
 
 .linkButton {
@@ -347,6 +378,7 @@
 	background: none;
 	border: none;
 	position: relative;
+	right: 4px;
 	outline: none;
 	margin-right: -12px;
 	width: 36px;
@@ -357,7 +389,6 @@
 	color: var(--tla-color-text-3);
 	flex: 0 0 auto;
 	z-index: 3;
-	padding-right: 0px;
 	cursor: pointer;
 }
 
@@ -366,10 +397,12 @@
 		display: none;
 	}
 
-	.workspace:hover > .linkMenu,
-	.user:hover > .linkMenu,
+	.workspace .linkMenu[data-state='open'],
+	.user .linkMenu[data-state='open'],
 	.link .linkMenu[data-state='open'],
-	.link:hover > .linkMenu {
+	.workspace:hover .linkMenu,
+	.user:hover .linkMenu,
+	.link:hover .linkMenu {
 		display: flex;
 	}
 

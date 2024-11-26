@@ -1,12 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
-import {
-	preventDefault,
-	track,
-	useContainer,
-	useEditor,
-	usePeerIds,
-	useValue,
-} from '@tldraw/editor'
+import { preventDefault, useContainer, useEditor, usePeerIds, useValue } from '@tldraw/editor'
 import { ReactNode } from 'react'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -17,11 +10,12 @@ import { UserPresenceEditor } from './UserPresenceEditor'
 
 /** @public */
 export interface PeopleMenuProps {
+	displayUserWhenAlone: boolean
 	children?: ReactNode
 }
 
 /** @public @react */
-export const PeopleMenu = track(function PeopleMenu({ children }: PeopleMenuProps) {
+export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) {
 	const msg = useTranslation()
 
 	const container = useContainer()
@@ -42,14 +36,16 @@ export const PeopleMenu = track(function PeopleMenu({ children }: PeopleMenuProp
 						{userIds.slice(-5).map((userId) => (
 							<PeopleMenuAvatar key={userId} userId={userId} />
 						))}
-						<div
-							className="tlui-people-menu__avatar"
-							style={{
-								backgroundColor: userColor,
-							}}
-						>
-							{userName === 'New User' ? '' : userName[0] ?? ''}
-						</div>
+						{(displayUserWhenAlone || userIds.length > 0) && (
+							<div
+								className="tlui-people-menu__avatar"
+								style={{
+									backgroundColor: userColor,
+								}}
+							>
+								{userName === 'New User' ? '' : userName[0] ?? ''}
+							</div>
+						)}
 					</div>
 				</button>
 			</Popover.Trigger>
@@ -80,4 +76,4 @@ export const PeopleMenu = track(function PeopleMenu({ children }: PeopleMenuProp
 			</Popover.Portal>
 		</Popover.Root>
 	)
-})
+}

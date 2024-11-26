@@ -75,7 +75,7 @@ export interface ZStoreData {
 }
 
 export interface ZRowUpdate {
-	row: object
+	row: TlaFile | TlaFileState | TlaUser
 	table: 'file' | 'file_state' | 'user'
 	event: 'insert' | 'update' | 'delete'
 }
@@ -131,4 +131,5 @@ export const UserPreferencesKeys = [
 	'isDynamicSizeMode',
 	'isPasteAtCursorMode',
 	'name',
+	'color',
 ] as const satisfies Array<keyof TlaUser>

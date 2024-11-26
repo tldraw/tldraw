@@ -30,7 +30,6 @@ export class Zero {
 					break
 				case 'update':
 					this.store.updateCommittedData(msg.update)
-
 					break
 				case 'commit':
 					{
@@ -125,7 +124,7 @@ export class Zero {
 	query = {
 		file: this.makeQuery(
 			'file',
-			computed('files', () => this.store.getFullData()?.files)
+			computed('files', () => this.store.getFullData()?.files.filter((f) => !f.isDeleted))
 		),
 		file_state: this.makeQuery(
 			'file_state',
@@ -151,17 +150,17 @@ export class Zero {
 					{
 						table: 'file_state',
 						event: 'insert',
-						row: { fileId: data.id, userId: store.user.id },
+						row: { fileId: data.id, userId: store.user.id } as any,
 					},
 				])
 			},
 			update: (data: Partial<TlaFile> & { id: TlaFile['id'] }) => {
 				const existing = this.store.getFullData()?.files.find((f) => f.id === data.id)
 				if (!existing) throw new Error('file not found')
-				this.makeOptimistic([{ table: 'file', event: 'update', row: data }])
+				this.makeOptimistic([{ table: 'file', event: 'update', row: data as any }])
 			},
 			delete: (data: { id: TlaFile['id'] }) => {
-				this.makeOptimistic([{ table: 'file', event: 'delete', row: data }])
+				this.makeOptimistic([{ table: 'file', event: 'delete', row: data as any }])
 			},
 		},
 		file_state: {
@@ -180,18 +179,18 @@ export class Zero {
 					.getFullData()
 					?.fileStates.find((f) => f.fileId === data.fileId && f.userId === data.userId)
 				if (!existing) throw new Error('file state not found')
-				this.makeOptimistic([{ table: 'file_state', event: 'update', row: data }])
+				this.makeOptimistic([{ table: 'file_state', event: 'update', row: data as any }])
 			},
 			delete: (data: { fileId: TlaFileState['fileId']; userId: TlaFileState['userId'] }) => {
-				this.makeOptimistic([{ table: 'file_state', event: 'delete', row: data }])
+				this.makeOptimistic([{ table: 'file_state', event: 'delete', row: data as any }])
 			},
 		},
 		user: {
 			create: (data: TlaUser) => {
-				this.makeOptimistic([{ table: 'user', event: 'insert', row: data }])
+				this.makeOptimistic([{ table: 'user', event: 'insert', row: data as any }])
 			},
 			update: (data: Partial<TlaUser>) => {
-				this.makeOptimistic([{ table: 'user', event: 'update', row: data }])
+				this.makeOptimistic([{ table: 'user', event: 'update', row: data as any }])
 			},
 			delete: () => {
 				throw new Error('no')

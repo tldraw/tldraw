@@ -58,9 +58,8 @@ export class OptimisticAppStore {
 	commitMutations(mutationIds: string[]) {
 		this._optimisticStore.update((prev) => {
 			if (!prev) return prev
-			return prev.filter((p) => {
-				return !mutationIds.includes(p.mutationId)
-			})
+			const highestIndex = prev.findLastIndex((p) => mutationIds.includes(p.mutationId))
+			return prev.slice(highestIndex + 1)
 		})
 	}
 

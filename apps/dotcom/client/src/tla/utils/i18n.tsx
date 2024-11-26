@@ -1,20 +1,32 @@
+/* eslint-disable no-restricted-imports */
+
 import {
 	FormattedMessage,
 	IntlConfig,
 	IntlShape,
 	MessageDescriptor,
+	PrimitiveType,
 	createIntlCache,
 	createIntl as originalCreateIntl,
 	defineMessages as originalDefineMessages,
 	useIntl,
 } from 'react-intl'
 
+import { FormatXMLElementFn } from 'intl-messageformat'
 import MD5 from 'md5.js'
 import { ComponentPropsWithoutRef } from 'react'
 
 // Re-export everything and override below what we want to override.
 // eslint-disable-next-line
 export * from 'react-intl'
+
+export function useMsg(
+	message: MessageDescriptor,
+	values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>
+) {
+	const intl = useIntl()
+	return intl.formatMessage(message, values)
+}
 
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 
@@ -82,7 +94,7 @@ function makeLong(str: string) {
 }
 
 // This is optional but highly recommended since it prevents memory leaks.
-// See: https://formatjs.io/docs/intl/#createintl
+// See: https://formatjs.github.io/docs/react-intl/api/#createintl
 const cache = createIntlCache()
 let presetIntl: IntlShape | null = null
 let didSetupCreateIntl = false
@@ -100,7 +112,7 @@ export function setupCreateIntl({ defaultLocale, locale, messages }: IntlConfig)
 }
 
 // createIntl is used in non-React locations.
-export function createIntl(options: IntlShape) {
+export function createIntl(options?: IntlShape) {
 	if (options) {
 		return originalCreateIntl(options)
 	} else {

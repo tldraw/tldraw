@@ -1,0 +1,12 @@
+.signUpButton {
+	background-color: var(--tla-color-cta);
+	color: #ffffff;
+	font-weight: 600;
+	pointer-events: all;
+	display: flex;
+	gap: 8px;
+	padding-left: 16px;
+	padding-right: 16px;
+	height: 36px;
+	margin-top: 1px;
+}

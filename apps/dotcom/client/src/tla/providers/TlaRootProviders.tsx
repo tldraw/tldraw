@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
@@ -15,11 +15,11 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { IntlProvider, setupCreateIntl } from '../app/i18n'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { IntlProvider, setupCreateIntl } from '../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 import { getRootPath } from '../utils/urls'
 
@@ -129,6 +129,7 @@ function SignedInProvider({
 	onLocaleChange(locale: string): void
 }) {
 	const auth = useAuth()
+	const { user, isLoaded: isUserLoaded } = useClerkUser()
 	const [currentLocale, setCurrentLocale] = useState<string>(
 		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
 	)
@@ -158,8 +159,8 @@ function SignedInProvider({
 
 	if (!auth.isLoaded) return null
 
-	if (!auth.isSignedIn) {
-		return children
+	if (!auth.isSignedIn || !user || !isUserLoaded) {
+		return <ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
 	}
 
 	return (

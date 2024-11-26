@@ -9,12 +9,14 @@ export function TlaSelect<T extends string>({
 	disabled,
 	onChange,
 	options,
+	'data-testid': dataTestId,
 }: {
 	label: string
 	value: T
 	disabled?: boolean
 	onChange(value: T): void
 	options: { value: T; label: ReactNode }[]
+	'data-testid'?: string
 }) {
 	const [isOpen, setIsOpen] = useState(false)
 	const handleChange = useCallback(
@@ -32,44 +34,51 @@ export function TlaSelect<T extends string>({
 		if (!isOpen) return
 		// Close the select menu when the user clicks outside of it
 		// This is a workaround for an issue in Radix Select when combined with a popper menu.
-		const handleMouseDown = (event: MouseEvent) => {
+		const handlePointerDown = (event: MouseEvent) => {
 			const target = event.target as HTMLElement
 			if (!target.closest(`.${styles.content}`)) {
 				setIsOpen(false)
 			}
 		}
 
-		document.body.addEventListener('mousedown', handleMouseDown)
+		document.body.addEventListener('pointerdown', handlePointerDown, { capture: true })
 		return () => {
-			document.body.removeEventListener('mousedown', handleMouseDown)
+			document.body.removeEventListener('pointerdown', handlePointerDown)
 		}
 	}, [isOpen])
 
 	return (
-		<Select.Root
-			open={isOpen}
-			value={value}
-			onOpenChange={handleOpenChange}
-			onValueChange={handleChange}
-		>
-			<Select.Trigger className={styles.trigger} disabled={disabled} aria-label={label}>
-				<span className={styles.label}>{label}</span>
-				<Select.Icon>
-					<TlaIcon icon="chevron-down" className={styles.chevron} />
-				</Select.Icon>
-			</Select.Trigger>
-			<Select.Content className={styles.content}>
-				<div>
-					{options.map((option) => (
-						<Select.Item key={option.value} className={styles.option} value={option.value}>
-							<Select.ItemText>{option.label}</Select.ItemText>
-							<Select.ItemIndicator>
-								<TlaIcon icon="check" />
-							</Select.ItemIndicator>
-						</Select.Item>
-					))}
-				</div>
-			</Select.Content>
-		</Select.Root>
+		<div className={styles.wrapper}>
+			<Select.Root
+				open={isOpen}
+				value={value}
+				onOpenChange={handleOpenChange}
+				onValueChange={handleChange}
+			>
+				<Select.Trigger
+					className={styles.trigger}
+					disabled={disabled}
+					aria-label={label}
+					data-testid={dataTestId}
+				>
+					<span className={styles.label}>{label}</span>
+					<Select.Icon>
+						<TlaIcon icon="chevron-down" className={styles.chevron} />
+					</Select.Icon>
+				</Select.Trigger>
+				<Select.Content className={styles.content}>
+					<div>
+						{options.map((option) => (
+							<Select.Item key={option.value} className={styles.option} value={option.value}>
+								<Select.ItemText>{option.label}</Select.ItemText>
+								<Select.ItemIndicator>
+									<TlaIcon icon="check" />
+								</Select.ItemIndicator>
+							</Select.Item>
+						))}
+					</div>
+				</Select.Content>
+			</Select.Root>
+		</div>
 	)
 }

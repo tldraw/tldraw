@@ -57,6 +57,7 @@
 	"jest": {
 		"preset": "../../internal/config/jest/node/jest-preset.js",
 		"setupFiles": [
+			"./setupTests.js",
 			"raf/polyfill"
 		],
 		"moduleNameMapper": {
