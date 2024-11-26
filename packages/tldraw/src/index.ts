@@ -81,6 +81,8 @@ export {
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
+export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
+export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -196,6 +198,11 @@ export {
 	type TLUiStylePanelContentProps,
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
+export { DefaultRichTextToolbar } from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
+export {
+	DefaultRichTextToolbarItems,
+	type DefaultRichTextToolbarItemsProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbarItems'
 export {
 	DefaultToolbar,
 	type DefaultToolbarProps,

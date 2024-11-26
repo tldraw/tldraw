@@ -8,7 +8,7 @@ import {
 } from '@tldraw/editor'
 import { forwardRef, useEffect, useState } from 'react'
 
-/** @internal */
+/** @public */
 export interface TextAreaProps {
 	isEditing: boolean
 	text: string
@@ -21,6 +21,12 @@ export interface TextAreaProps {
 	handleDoubleClick(e: any): any
 }
 
+/**
+ * A rich text area that can be used for editing text with rich text formatting.
+ * This component uses the TipTap editor under the hood.
+ *
+ * @public @react
+ */
 export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function TextArea(
 	{
 		isEditing,
@@ -47,9 +53,13 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 	const handleCreate = (props: EditorEvents['create']) => {
 		editor.setEditingShapeTextEditor(props.editor)
 
+		// Either we select-all the text upon creation if desired.
 		if (shouldSelectAllOnCreate) {
 			props.editor.chain().focus().selectAll().run()
 		} else if (initialPositionOnCreate) {
+			// Or, we place the caret at the intended clicked position, if
+			// there was any (one could have also entered into editing
+			// via Enter on the keyboard).
 			const textEditor = editor.getEditingShapeTextEditor()
 			const pos = textEditor.view.posAtCoords({
 				left: initialPositionOnCreate.x,
@@ -107,6 +117,7 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 	if (!tipTapConfig) return null
 
 	const content = richText ? JSON.parse(richText) : plaintext.split('\n').join('<br />')
+	const { editorProps, ...restOfTipTapConfig } = tipTapConfig
 
 	return (
 		<div
@@ -134,15 +145,11 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 					immediatelyRender={true}
 					shouldRerenderOnTransaction={false}
 					editorProps={{
-						handleKeyDown: (view, event) => {
-							handleKeyDown(event)
-						},
-						handleDoubleClick: (view, pos, event) => {
-							handleDoubleClick(event)
-						},
-						...tipTapConfig.editorProps,
+						handleKeyDown: (view, event) => handleKeyDown(event),
+						handleDoubleClick: (view, pos, event) => handleDoubleClick(event),
+						...editorProps,
 					}}
-					{...tipTapConfig}
+					{...restOfTipTapConfig}
 					content={content}
 				/>
 			</div>

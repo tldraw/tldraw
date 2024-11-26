@@ -4,13 +4,28 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 
-export interface RichTextToolbarItemsProps {
+/**
+ * Props for the default rich text toolbar items.
+ *
+ * onEditLinkIntent: Function to call when the user wants to edit a link.
+ * textEditor: The text editor.
+ *
+ * @public
+ */
+export interface DefaultRichTextToolbarItemsProps {
 	onEditLinkIntent(): void
 	textEditor: TextEditor
 }
 
-/** @public @react */
-export function RichTextToolbarItems({ textEditor, onEditLinkIntent }: RichTextToolbarItemsProps) {
+/**
+ * Rich text toolbar items that have the basics.
+ *
+ * @public @react
+ */
+export function DefaultRichTextToolbarItems({
+	textEditor,
+	onEditLinkIntent,
+}: DefaultRichTextToolbarItemsProps) {
 	const trackEvent = useUiEvents()
 	const msg = useTranslation()
 	const source = 'rich-text-menu'

@@ -5,7 +5,6 @@ import { TLUiAssetUrlOverrides } from './assetUrls'
 import { TldrawUiDialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
 import { TldrawUiToasts } from './components/Toasts'
-import { RichTextToolbar } from './components/Toolbar/RichTextToolbar'
 import { TldrawUiButton } from './components/primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './components/primitives/Button/TldrawUiButtonIcon'
 import { PORTRAIT_BREAKPOINT } from './constants'
@@ -111,6 +110,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 		HelperButtons,
 		DebugPanel,
 		CursorChatBubble,
+		RichTextToolbar,
 	} = useTldrawUiComponents()
 
 	useKeyboardShortcuts()
@@ -162,7 +162,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					</div>
 				</>
 			)}
-			<RichTextToolbar />
+			{RichTextToolbar && <RichTextToolbar />}
 			<TldrawUiToasts />
 			<TldrawUiDialogs />
 			<FollowingIndicator />

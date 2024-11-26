@@ -19,6 +19,8 @@ import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
+import { Editor as Editor_2 } from '@tiptap/core';
+import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -39,6 +41,7 @@ import { ReadonlySharedStyleMap } from '@tldraw/editor';
 import { RecordProps } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
+import { RefAttributes } from 'react';
 import { Result } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
@@ -695,6 +698,22 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 
 // @public (undocumented)
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
+
+// @public
+export const DefaultRichTextToolbar: NamedExoticComponent<    {
+children?: React.ReactNode;
+}>;
+
+// @public
+export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent }: DefaultRichTextToolbarItemsProps): JSX_2.Element[];
+
+// @public
+export interface DefaultRichTextToolbarItemsProps {
+    // (undocumented)
+    onEditLinkIntent(): void;
+    // (undocumented)
+    textEditor: Editor_2;
+}
 
 // @public (undocumented)
 export const defaultShapeTools: readonly [typeof TextShapeTool, typeof DrawShapeTool, typeof GeoShapeTool, typeof NoteShapeTool, typeof LineShapeTool, typeof FrameShapeTool, typeof ArrowShapeTool, typeof HighlightShapeTool];
@@ -1642,6 +1661,9 @@ export interface PeopleMenuProps {
     children?: ReactNode;
 }
 
+// @public
+export const PlainTextArea: ForwardRefExoticComponent<TextAreaProps & RefAttributes<HTMLTextAreaElement>>;
+
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {
     // (undocumented)
@@ -1697,6 +1719,9 @@ export function ReorderMenuSubmenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export function RhombusToolbarItem(): JSX_2.Element;
+
+// @public
+export const RichTextArea: ForwardRefExoticComponent<TextAreaProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX_2.Element;
@@ -1773,6 +1798,31 @@ export const TEXT_PROPS: {
 };
 
 // @public (undocumented)
+export interface TextAreaProps {
+    // (undocumented)
+    handleBlur(): void;
+    // (undocumented)
+    handleChange(changeInfo: {
+        plaintext?: string;
+        richText?: string;
+    }): void;
+    // (undocumented)
+    handleDoubleClick(e: any): any;
+    // (undocumented)
+    handleFocus(): void;
+    // (undocumented)
+    handleInputPointerDown(e: React.PointerEvent<HTMLTextAreaElement>): void;
+    // (undocumented)
+    handleKeyDown(e: KeyboardEvent): void;
+    // (undocumented)
+    isEditing: boolean;
+    // (undocumented)
+    richText?: string;
+    // (undocumented)
+    text: string;
+}
+
+// @public
 export const TextLabel: React_3.NamedExoticComponent<TextLabelProps>;
 
 // @public (undocumented)
@@ -2379,6 +2429,8 @@ export interface TLUiComponents {
     PageMenu?: ComponentType | null;
     // (undocumented)
     QuickActions?: ComponentType<TLUiQuickActionsProps> | null;
+    // (undocumented)
+    RichTextToolbar?: ComponentType | null;
     // (undocumented)
     SharePanel?: ComponentType | null;
     // (undocumented)

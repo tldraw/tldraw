@@ -43,7 +43,13 @@ export interface TextLabelProps {
 	padding?: number
 }
 
-/** @public @react */
+/**
+ * Renders a text label that can be used inside of shapes.
+ * The component has the ability to be edited in place and furthermore
+ * supports rich text editing.
+ *
+ * @public @react
+ */
 export const TextLabel = React.memo(function TextLabel({
 	shapeId: shapeId,
 	type,
@@ -175,6 +181,24 @@ export const TextLabel = React.memo(function TextLabel({
 	)
 })
 
+/** @public */
+export interface RichTextSVGProps {
+	bounds: Box
+	richText: string
+	fontSize: number
+	font: TLDefaultFontStyle
+	align: TLDefaultHorizontalAlignStyle
+	verticalAlign: TLDefaultVerticalAlignStyle
+	wrap?: boolean
+	labelColor: string
+	padding: number
+}
+
+/**
+ * Renders a rich text string as SVG given bounds and text properties.
+ *
+ * @public @react
+ */
 export function RichTextSVG({
 	bounds,
 	richText,
@@ -185,17 +209,7 @@ export function RichTextSVG({
 	wrap,
 	labelColor,
 	padding,
-}: {
-	bounds: Box
-	richText: string
-	fontSize: number
-	font: TLDefaultFontStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
-	wrap?: boolean
-	labelColor: string
-	padding: number
-}) {
+}: RichTextSVGProps) {
 	const editor = useEditor()
 	const html = renderHtmlFromRichText(editor, richText)
 	const textAlign =

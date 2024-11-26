@@ -7166,7 +7166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/extension-highlight@npm:^2.10.2":
+"@tiptap/extension-highlight@npm:^2.9.1":
   version: 2.10.2
   resolution: "@tiptap/extension-highlight@npm:2.10.2"
   peerDependencies:
@@ -13518,6 +13518,9 @@ __metadata:
   dependencies:
     "@playwright/test": "npm:^1.46.1"
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
+    "@tiptap/core": "npm:^2.9.1"
+    "@tiptap/pm": "npm:^2.9.1"
+    "@tiptap/starter-kit": "npm:^2.9.1"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
     "@tldraw/sync": "workspace:*"
@@ -23701,7 +23704,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^5.16.5"
     "@testing-library/react": "npm:^15.0.6"
     "@tiptap/core": "npm:^2.9.1"
-    "@tiptap/extension-highlight": "npm:^2.10.2"
+    "@tiptap/extension-highlight": "npm:^2.9.1"
     "@tiptap/extension-link": "npm:^2.9.1"
     "@tiptap/pm": "npm:^2.9.1"
     "@tiptap/react": "npm:^2.9.1"

@@ -31,6 +31,7 @@ import {
 } from '../components/QuickActions/DefaultQuickActions'
 import { DefaultSharePanel } from '../components/SharePanel/DefaultSharePanel'
 import { DefaultStylePanel, TLUiStylePanelProps } from '../components/StylePanel/DefaultStylePanel'
+import { DefaultRichTextToolbar } from '../components/Toolbar/DefaultRichTextToolbar'
 import { DefaultToolbar } from '../components/Toolbar/DefaultToolbar'
 import { DefaultTopPanel } from '../components/TopPanel/DefaultTopPanel'
 import { DefaultZoomMenu, TLUiZoomMenuProps } from '../components/ZoomMenu/DefaultZoomMenu'
@@ -48,6 +49,7 @@ export interface TLUiComponents {
 	PageMenu?: ComponentType | null
 	NavigationPanel?: ComponentType | null
 	Toolbar?: ComponentType | null
+	RichTextToolbar?: ComponentType | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
 	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
 	HelperButtons?: ComponentType<TLUiHelperButtonsProps> | null
@@ -89,6 +91,7 @@ export function TldrawUiComponentsProvider({
 					PageMenu: DefaultPageMenu,
 					NavigationPanel: DefaultNavigationPanel,
 					Toolbar: DefaultToolbar,
+					RichTextToolbar: DefaultRichTextToolbar,
 					KeyboardShortcutsDialog: DefaultKeyboardShortcutsDialog,
 					QuickActions: DefaultQuickActions,
 					HelperButtons: DefaultHelperButtons,

@@ -2,6 +2,11 @@ import { preventDefault, stopEventPropagation } from '@tldraw/editor'
 import { forwardRef } from 'react'
 import { TextAreaProps } from './RichTextArea'
 
+/**
+ * A plain text area that can be used for basic editing text.
+ *
+ * @public @react
+ */
 export const PlainTextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
 	{
 		isEditing,

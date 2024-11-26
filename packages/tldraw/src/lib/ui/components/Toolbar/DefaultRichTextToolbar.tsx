@@ -13,11 +13,19 @@ import {
 } from '@tldraw/editor'
 import { RefObject, useEffect, useRef, useState } from 'react'
 import useViewportHeight from '../../hooks/useViewportHeight'
+import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
 import { LinkEditor } from './LinkEditor'
-import { RichTextToolbarItems } from './RichTextToolbarItems'
 
-/** @public @react */
-export const RichTextToolbar = track(function RichTextToolbar() {
+/**
+ * The default rich text toolbar.
+ *
+ * @public @react
+ */
+export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
+	children,
+}: {
+	children?: React.ReactNode
+}) {
 	const editor = useEditor()
 	const [currentCoordinates, setCurrentCoordinates] = useState<Vec>()
 	const [currentCamera, setCurrentCamera] = useState<TLCamera>(editor.getCamera())
@@ -130,14 +138,19 @@ export const RichTextToolbar = track(function RichTextToolbar() {
 				style={{ left: `calc(50% - var(--arrow-size) - ${toolbarPosition.offset}px)` }}
 			/>
 			<div className="tlui-toolbar__tools" role="radiogroup">
-				{isEditingLink ? (
+				{children ? (
+					children
+				) : isEditingLink ? (
 					<LinkEditor
 						textEditor={textEditor}
 						value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
 						onComplete={handleLinkComplete}
 					/>
 				) : (
-					<RichTextToolbarItems textEditor={textEditor} onEditLinkIntent={handleEditLinkIntent} />
+					<DefaultRichTextToolbarItems
+						textEditor={textEditor}
+						onEditLinkIntent={handleEditLinkIntent}
+					/>
 				)}
 			</div>
 		</div>
@@ -159,6 +172,13 @@ const defaultPosition = {
 	offset: 0,
 	visible: false,
 	isMobile: false,
+}
+
+interface Coordinates {
+	top: number
+	bottom: number
+	left: number
+	right: number
 }
 
 /*!
@@ -189,6 +209,7 @@ function usePosition({
 	shouldAllowToolbarClick: boolean
 }) {
 	const editor = useEditor()
+	const container = editor.getContainer()
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
 		() => editor.getInstanceState().isCoarsePointer,
@@ -208,7 +229,7 @@ function usePosition({
 	if (isCoarsePointer) {
 		return {
 			top: viewportHeight - menuHeight - 16,
-			left: window.innerWidth / 2 - menuWidth / 2,
+			left: container.clientWidth / 2 - menuWidth / 2,
 			offset: 0,
 			visible: true,
 			isMobile: true,
@@ -216,11 +237,24 @@ function usePosition({
 	}
 
 	// Based on the start and end of the selection calculate the position at the center top.
-	let fromPos
-	let toPos
+	let fromPos: Coordinates
+	let toPos: Coordinates
 	try {
 		fromPos = view.coordsAtPos(selection.from)
 		toPos = view.coordsAtPos(selection.to, -1)
+
+		// Need to account for the view being positioned within the container not just the entire
+		// window.
+		const adjustPosition = (pos: Coordinates, containerRect: DOMRect) => {
+			pos.top -= containerRect.top
+			pos.bottom -= containerRect.top
+			pos.left -= containerRect.left
+			pos.right -= containerRect.left
+		}
+
+		const containerRect = container.getBoundingClientRect()
+		adjustPosition(fromPos, containerRect)
+		adjustPosition(toPos, containerRect)
 	} catch (err) {
 		console.warn(err)
 		return defaultPosition
@@ -243,11 +277,11 @@ function usePosition({
 	// instances leave a margin.
 	const margin = 16
 	const left = Math.min(
-		window.innerWidth - menuWidth - margin,
+		container.clientWidth - menuWidth - margin,
 		Math.max(margin, centerOfSelection - menuWidth / 2)
 	)
 	const top = Math.min(
-		window.innerHeight - menuHeight - margin,
+		container.clientHeight - menuHeight - margin,
 		Math.max(margin, selectionBounds.top - menuHeight)
 	)
 
@@ -261,8 +295,8 @@ function usePosition({
 	)
 
 	return {
-		top: Math.round(top + window.scrollY),
-		left: Math.round(left + window.scrollX),
+		top: Math.round(top + container.scrollTop),
+		left: Math.round(left + container.scrollLeft),
 		offset: Math.round(offset),
 		visible: true,
 		isMobile: false,
