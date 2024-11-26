@@ -55,8 +55,8 @@ export function DefaultRichTextToolbarItems({
 					} else if (op === 'toggleHeading' && attrs) {
 						textEditor.chain().focus().toggleHeading(attrs).run()
 					} else {
-						const cmd = op as 'toggleBold' | 'toggleStrike' | 'toggleBulletList'
-						textEditor.chain().focus()[cmd]().run()
+						// @ts-ignore typing this is annoying at the moment.
+						textEditor.chain().focus()[op]().run()
 					}
 				}}
 			>

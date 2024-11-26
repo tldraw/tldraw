@@ -14,7 +14,6 @@ export const tipTapDefaultExtensions: Extensions = [
 	Link.configure({
 		openOnClick: false,
 		autolink: true,
-		defaultProtocol: 'https',
 	}),
 	Highlight,
 ]

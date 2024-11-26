@@ -892,7 +892,9 @@ input,
 }
 
 .tl-rich-text-tiptap .ProseMirror {
-	white-space: normal;
+	word-wrap: break-word;
+	white-space: pre-wrap;
+	white-space: break-spaces;
 }
 
 .tl-rich-text-tiptap p {
