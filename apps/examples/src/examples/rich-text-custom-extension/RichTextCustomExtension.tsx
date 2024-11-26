@@ -2,7 +2,6 @@ import { Mark, Editor as TextEditor, mergeAttributes } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import {
 	DefaultRichTextToolbar,
-	DefaultRichTextToolbarItems,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
@@ -88,7 +87,8 @@ const components: TLComponents = {
 				>
 					〰️
 				</TldrawUiButton>
-				<DefaultRichTextToolbarItems textEditor={textEditor} onEditLinkIntent={() => {}} />
+				{/* Add the DefaultRichTextToolbarItems if you want to add more items. */}
+				{/* <DefaultRichTextToolbarItems textEditor={textEditor} onEditLinkIntent={() => {}} /> */}
 			</DefaultRichTextToolbar>
 		)
 	},

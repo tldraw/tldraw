@@ -705,7 +705,7 @@ children?: React.ReactNode;
 }>;
 
 // @public
-export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent }: DefaultRichTextToolbarItemsProps): JSX_2.Element[];
+export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarItemsProps): JSX_2.Element[];
 
 // @public
 export interface DefaultRichTextToolbarItemsProps {

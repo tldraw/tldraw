@@ -1,18 +1,9 @@
 import { Editor as TextEditor, EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
-import {
-	Editor,
-	TLCamera,
-	Vec,
-	stopEventPropagation,
-	track,
-	useEditor,
-	usePassThroughMouseOverEvents,
-	usePassThroughWheelEvents,
-	useValue,
-} from '@tldraw/editor'
+import { Editor, track, useEditor, useValue } from '@tldraw/editor'
 import { RefObject, useEffect, useRef, useState } from 'react'
 import useViewportHeight from '../../hooks/useViewportHeight'
+import { ContextualToolbar, useFollowCanvas } from './ContextualToolbar'
 import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
 import { LinkEditor } from './LinkEditor'
 
@@ -27,11 +18,8 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	children?: React.ReactNode
 }) {
 	const editor = useEditor()
-	const [currentCoordinates, setCurrentCoordinates] = useState<Vec>()
-	const [currentCamera, setCurrentCamera] = useState<TLCamera>(editor.getCamera())
+	useFollowCanvas()
 	const toolbarRef = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(toolbarRef.current)
-	usePassThroughMouseOverEvents(toolbarRef.current)
 	const previousTop = useRef(defaultPosition.top)
 	const [isEditingLink, setIsEditingLink] = useState(false)
 	const textEditor: TextEditor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
@@ -41,25 +29,6 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	const [isSelectingText, setSelectingText] = useState(false)
 	const [shouldAllowToolbarClick, setShouldAllowToolbarClick] = useState(false)
 	const hasSelection = !textEditorState?.selection.empty
-
-	const selectionRotatedPageBounds = editor.getSelectionRotatedPageBounds()
-	const camera = editor.getCamera()
-	const pageCoordinates = selectionRotatedPageBounds
-		? editor.pageToViewport(selectionRotatedPageBounds.point)
-		: null
-
-	// This is to ensure the toolbar follows the selection when the camera moves.
-	useEffect(() => {
-		if (
-			pageCoordinates &&
-			(currentCamera.x !== camera.x || currentCamera.y !== camera.y || currentCamera.z !== camera.z)
-		) {
-			if (!currentCoordinates || !currentCoordinates.equals(pageCoordinates)) {
-				setCurrentCoordinates(pageCoordinates)
-			}
-		}
-		setCurrentCamera(camera)
-	}, [currentCoordinates, pageCoordinates, camera, currentCamera])
 
 	useEffect(() => {
 		const handleMouseDown = () => {
@@ -120,40 +89,36 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	previousTop.current = toolbarPosition.top
 
 	return (
-		<div
-			ref={toolbarRef}
-			className="tl-rich-text__toolbar"
-			data-has-selection={hasSelection}
-			data-is-selecting-text={isSelectingText}
-			data-is-selection-on-same-line={isSelectionOnSameLine}
-			data-is-mobile={toolbarPosition.isMobile}
-			style={{
-				top: `${toolbarPosition.top}px`,
-				left: `${toolbarPosition.left}px`,
-			}}
-			onPointerDown={stopEventPropagation}
-		>
+		<ContextualToolbar position={toolbarPosition}>
 			<div
-				className="tl-rich-text__toolbar-indicator"
-				style={{ left: `calc(50% - var(--arrow-size) - ${toolbarPosition.offset}px)` }}
-			/>
-			<div className="tlui-toolbar__tools" role="radiogroup">
-				{children ? (
-					children
-				) : isEditingLink ? (
-					<LinkEditor
-						textEditor={textEditor}
-						value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
-						onComplete={handleLinkComplete}
-					/>
-				) : (
-					<DefaultRichTextToolbarItems
-						textEditor={textEditor}
-						onEditLinkIntent={handleEditLinkIntent}
-					/>
-				)}
+				ref={toolbarRef}
+				className="tl-rich-text__toolbar"
+				data-has-selection={hasSelection}
+				data-is-selecting-text={isSelectingText}
+				data-is-selection-on-same-line={isSelectionOnSameLine}
+			>
+				<div
+					className="tl-rich-text__toolbar-indicator"
+					style={{ left: `calc(50% - var(--arrow-size) - ${toolbarPosition.offset}px)` }}
+				/>
+				<div className="tlui-toolbar__tools" role="radiogroup">
+					{children ? (
+						children
+					) : isEditingLink ? (
+						<LinkEditor
+							textEditor={textEditor}
+							value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
+							onComplete={handleLinkComplete}
+						/>
+					) : (
+						<DefaultRichTextToolbarItems
+							textEditor={textEditor}
+							onEditLinkIntent={handleEditLinkIntent}
+						/>
+					)}
+				</div>
 			</div>
-		</div>
+		</ContextualToolbar>
 	)
 })
 

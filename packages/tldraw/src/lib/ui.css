@@ -926,8 +926,12 @@
 
 /* --------------- Contextual Toolbar --------------- */
 
-.tl-rich-text__toolbar {
+.tl-contextual-toolbar {
 	position: absolute;
+	pointer-events: all;
+}
+
+.tl-rich-text__toolbar {
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -976,7 +980,7 @@
 	pointer-events: none;
 }
 
-.tl-rich-text__toolbar[data-is-mobile='true'] .tl-rich-text__toolbar-indicator {
+.tl-contextual-toolbar[data-is-mobile='true'] .tl-rich-text__toolbar-indicator {
 	display: none;
 }
 
