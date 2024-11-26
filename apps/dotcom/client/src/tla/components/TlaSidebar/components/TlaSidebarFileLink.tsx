@@ -102,11 +102,6 @@ export function TlaSidebarFileLinkInner({
 				>
 					{fileName}
 				</div>
-				{/* {isOwnFile ? null : (
-					<div className={styles.collaborator}>
-						<TlaCollaborator size="small" idle />
-					</div>
-				)} */}
 			</div>
 			<Link
 				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
