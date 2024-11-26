@@ -1,4 +1,7 @@
 {
+  "00102ce224": {
+    "translation": "You do not have the necessary permissions to perform this action"
+  },
   "0095a9fa74": {
     "translation": "Export"
   },
@@ -44,11 +47,20 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "38da638ded": {
+    "translation": "That didn't work"
+  },
   "424cc22417": {
     "translation": "Take me home"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
+  },
+  "446b416d53": {
+    "translation": "Invalid request"
+  },
+  "44b7fb14cb": {
+    "translation": "Unable to publish the changes"
   },
   "45b543cbb1": {
     "translation": "Publish this project"
@@ -76,6 +88,9 @@
   },
   "625fd29749": {
     "translation": "Older"
+  },
+  "65963328b3": {
+    "translation": "You have exceeded the rate limit"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -109,6 +124,9 @@
   },
   "96165d6df5": {
     "translation": "This month"
+  },
+  "9789e32247": {
+    "translation": "An unexpected error occurred"
   },
   "9914a0ce04": {
     "translation": "Light"
@@ -180,6 +198,9 @@
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."
   },
+  "ded274b9ea": {
+    "translation": "Unable to publish the file"
+  },
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
@@ -212,6 +233,9 @@
   },
   "f43fb62093": {
     "translation": "Back to tldraw."
+  },
+  "f7e5db3cf0": {
+    "translation": "Unable to unpublish the file"
   },
   "fb15c53f22": {
     "translation": "Viewer"
