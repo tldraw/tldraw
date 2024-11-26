@@ -129,8 +129,14 @@ type SchemaToRow<T extends TableSchema> = {
 }
 
 export type TlaFile = SchemaToRow<typeof tlaFileSchema>
+export type TlaFilePartial = Partial<TlaFile> & { id: TlaFile['id'] }
 export type TlaFileState = SchemaToRow<typeof tlaFileStateSchema>
+export type TlaFileStatePartial = Partial<TlaFileState> & {
+	fileId: TlaFileState['fileId']
+	userId: TlaFileState['userId']
+}
 export type TlaUser = SchemaToRow<typeof tlaUserSchema>
+export type TlaUserPartial = Partial<TlaUser> & { id: TlaUser['id'] }
 
 export type TlaRow = TlaFile | TlaFileState | TlaUser
 
