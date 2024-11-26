@@ -14,7 +14,7 @@ export class ShareMenu {
 	public readonly tabs: { invite: Locator; export: Locator; publish: Locator }
 
 	constructor(public readonly page: Page) {
-		this.shareButton = this.page.getByTestId('share-button')
+		this.shareButton = this.page.getByTestId('tla-share-button')
 		this.exportButton = this.page.getByRole('button', { name: 'Export', exact: true })
 		this.inviteButton = this.page.getByRole('button', { name: 'Invite' })
 		this.publishButton = this.page.getByRole('button', { name: 'Publish', exact: true })
