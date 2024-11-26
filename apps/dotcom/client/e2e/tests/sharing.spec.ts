@@ -170,7 +170,7 @@ test.describe('logged in user on own file', () => {
 		await newContext.close()
 	})
 
-	test('can publish changes', async ({ page, homePage, shareMenu, browser }) => {
+	test('can publish changes', async ({ page, shareMenu, browser }) => {
 		// Publish the user's current project
 		await shareMenu.open()
 		await shareMenu.publishFile()
@@ -180,9 +180,9 @@ test.describe('logged in user on own file', () => {
 		const newTab1 = await openNewTab(browser, {
 			url,
 			allowClipboard: true,
-			userProps: { user: 'huppy', index: test.info().parallelIndex },
+			userProps: undefined,
 		})
-		await homePage.goto()
+
 		await expect(newTab1.newShareMenu.shareButton).toBeVisible()
 		await newTab1.newShareMenu.open()
 
@@ -227,7 +227,7 @@ test.describe('logged in user on someone elses file', () => {
 })
 
 test.describe('logged in user on published file', () => {
-	test('tabs work correctly', async ({ homePage, shareMenu, browser }) => {
+	test('tabs work correctly', async ({ shareMenu, browser }) => {
 		// Publish the user's current file
 		await shareMenu.open()
 		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
@@ -241,7 +241,6 @@ test.describe('logged in user on published file', () => {
 			userProps: { user: 'huppy', index: test.info().parallelIndex },
 		})
 
-		await homePage.goto()
 		await expect(newShareMenu.shareButton).toBeVisible()
 		await newShareMenu.open()
 
@@ -269,14 +268,13 @@ test.describe('logged in user on published file', () => {
 })
 
 test.describe('logged out user on scratch file', () => {
-	test('tabs work correctly', async ({ homePage, browser }) => {
+	test('tabs work correctly', async ({ browser }) => {
 		const { newShareMenu, newContext } = await openNewTab(browser, {
 			allowClipboard: true,
 			userProps: undefined,
 		})
 
 		// In the incognito window, we are on the scratchpad
-		await homePage.goto()
 		await expect(newShareMenu.shareButton).toBeVisible()
 		await newShareMenu.open()
 		expect(await newShareMenu.inviteTabButton.isVisible()).toBe(false)
@@ -289,7 +287,7 @@ test.describe('logged out user on scratch file', () => {
 })
 
 test.describe('logged out user on guest file', () => {
-	test('tabs work correctly', async ({ homePage, shareMenu, browser }) => {
+	test('tabs work correctly', async ({ shareMenu, browser }) => {
 		// Share the logged in user's current file
 		await shareMenu.open()
 		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
@@ -303,7 +301,6 @@ test.describe('logged out user on guest file', () => {
 			userProps: undefined,
 		})
 
-		await homePage.goto()
 		await expect(newShareMenu.shareButton).toBeVisible()
 		await newShareMenu.open()
 
@@ -331,7 +328,7 @@ test.describe('logged out user on guest file', () => {
 })
 
 test.describe('logged out user on published file', () => {
-	test('tabs work correctly', async ({ homePage, shareMenu, browser }) => {
+	test('tabs work correctly', async ({ shareMenu, browser }) => {
 		// Publish the user's current file
 		await shareMenu.open()
 		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
@@ -345,7 +342,6 @@ test.describe('logged out user on published file', () => {
 			userProps: undefined,
 		})
 
-		await homePage.goto()
 		await expect(newShareMenu.shareButton).toBeVisible()
 		await newShareMenu.open()
 
