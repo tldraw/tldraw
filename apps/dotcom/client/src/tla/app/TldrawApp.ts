@@ -2,6 +2,7 @@
 import {
 	CreateFilesResponseBody,
 	TlaFile,
+	TlaFilePartial,
 	TlaFileState,
 	TlaUser,
 	UserPreferencesKeys,
@@ -143,11 +144,14 @@ export class TldrawApp {
 		setUserPreferences: ({ id: _, ...others }: Partial<TLUserPreferences>) => {
 			const user = this.getUser()
 
+			const nonNull = Object.fromEntries(
+				Object.entries(others).filter(([_, value]) => value !== null)
+			) as Partial<TLUserPreferences>
+
 			this.z.mutate((tx) => {
 				tx.user.update({
-					...user,
-					// TODO: remove nulls
-					...(others as TlaUser),
+					id: user.id,
+					...(nonNull as any),
 				})
 			})
 		},
@@ -288,7 +292,7 @@ export class TldrawApp {
 
 		this.z.mutate((tx) => {
 			tx.file.update({
-				...file,
+				id: fileId,
 				shared: !file.shared,
 			})
 		})
@@ -359,7 +363,7 @@ export class TldrawApp {
 		// Optimistic update
 		this.z.mutate((tx) => {
 			tx.file.update({
-				...file,
+				id: fileId,
 				name,
 				published: true,
 				lastPublished: Date.now(),
@@ -381,9 +385,9 @@ export class TldrawApp {
 		return assertExists(this.getFile(fileId), 'no file with id ' + fileId)
 	}
 
-	updateFile(fileId: string, cb: (file: TlaFile) => TlaFile) {
-		const file = this.requireFile(fileId)
-		this.z.mutate.file.update(cb(file))
+	updateFile(partial: TlaFilePartial) {
+		this.requireFile(partial.id)
+		this.z.mutate.file.update(partial)
 	}
 
 	/**
@@ -401,7 +405,7 @@ export class TldrawApp {
 		// Optimistic update
 		this.z.mutate((tx) => {
 			tx.file.update({
-				...file,
+				id: fileId,
 				published: false,
 			})
 		})
@@ -421,7 +425,7 @@ export class TldrawApp {
 		this.z.mutate((tx) => {
 			tx.file_state.delete({ fileId, userId: this.userId })
 			if (file?.ownerId === this.userId) {
-				tx.file.update({ ...file, isDeleted: true })
+				tx.file.update({ id: fileId, isDeleted: true })
 			}
 		})
 	}
@@ -434,15 +438,18 @@ export class TldrawApp {
 		}
 
 		if (sharedLinkType === 'no-access') {
-			this.z.mutate.file.update({ ...file, shared: false })
+			this.z.mutate.file.update({ id: fileId, shared: false })
 			return
 		}
-		this.z.mutate.file.update({ ...file, shared: true, sharedLinkType })
+		this.z.mutate.file.update({ id: fileId, shared: true, sharedLinkType })
 	}
 
-	updateUser(cb: (user: TlaUser) => TlaUser) {
+	updateUser(partial: Partial<TlaUser>) {
 		const user = this.getUser()
-		this.z.mutate.user.update(cb(user))
+		this.z.mutate.user.update({
+			id: user.id,
+			...partial,
+		})
 	}
 
 	updateUserExportPreferences(
@@ -450,10 +457,7 @@ export class TldrawApp {
 			Pick<TlaUser, 'exportFormat' | 'exportPadding' | 'exportBackground' | 'exportTheme'>
 		>
 	) {
-		this.updateUser((user) => ({
-			...user,
-			...exportPreferences,
-		}))
+		this.updateUser(exportPreferences)
 	}
 
 	async getOrCreateFileState(fileId: string) {
@@ -480,41 +484,37 @@ export class TldrawApp {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
 	}
 
-	updateFileState(fileId: string, cb: (fileState: TlaFileState) => TlaFileState) {
+	updateFileState(fileId: string, cb: (fileState: TlaFileState) => Partial<TlaFileState>) {
 		const fileState = this.getFileState(fileId)
 		if (!fileState) return
 		// remove relationship because zero complains
 		const { file: _, ...rest } = fileState
-		this.z.mutate.file_state.update(cb(rest))
+		this.z.mutate.file_state.update({ ...cb(rest), fileId, userId: fileState.userId })
 	}
 
 	async onFileEnter(fileId: string) {
 		await this.getOrCreateFileState(fileId)
 		this.updateFileState(fileId, (fileState) => ({
-			...fileState,
 			firstVisitAt: fileState.firstVisitAt ?? Date.now(),
 			lastVisitAt: Date.now(),
 		}))
 	}
 
 	onFileEdit(fileId: string) {
-		this.updateFileState(fileId, (fileState) => ({
-			...fileState,
+		this.updateFileState(fileId, () => ({
 			lastEditAt: Date.now(),
 		}))
 	}
 
 	onFileSessionStateUpdate(fileId: string, sessionState: TLSessionStateSnapshot) {
-		this.updateFileState(fileId, (fileState) => ({
-			...fileState,
+		this.updateFileState(fileId, () => ({
 			lastSessionState: JSON.stringify(sessionState),
 			lastVisitAt: Date.now(),
 		}))
 	}
 
 	onFileExit(fileId: string) {
-		this.updateFileState(fileId, (fileState) => ({
-			...fileState,
+		this.updateFileState(fileId, () => ({
 			lastVisitAt: Date.now(),
 		}))
 	}
