@@ -153,7 +153,7 @@ export class Zero {
 					{
 						table: 'file_state',
 						event: 'insert',
-						row: { fileId: data.id, userId: store.user.id } as any,
+						row: { fileId: data.id, userId: store.user.id, firstVisitAt: Date.now() } as any,
 					},
 				])
 			},
