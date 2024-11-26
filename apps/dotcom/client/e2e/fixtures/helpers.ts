@@ -1,4 +1,4 @@
-import { Browser, BrowserContext, test } from '@playwright/test'
+import { Browser, BrowserContext, Page, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 import { Editor } from './Editor'
@@ -29,11 +29,7 @@ export async function openNewIncognitoPage(
 			await newContext.grantPermissions(['clipboard-read', 'clipboard-write'])
 		}
 		const newPage = await newContext.newPage()
-		const newSidebar = new Sidebar(newPage)
-		const newEditor = new Editor(newPage, newSidebar)
-		const newHomePage = new HomePage(newPage, newEditor)
-		const newShareMenu = new ShareMenu(newPage)
-		const errorPage = new ErrorPage(newPage)
+		const { newEditor, newHomePage, newShareMenu, errorPage } = createFixtures(newPage)
 		if (url) {
 			await newPage.goto(url)
 		} else {
@@ -60,4 +56,23 @@ export function areUrlsEqual(
 		return url1Obj.origin === url2Obj.origin && url1Obj.pathname === url2Obj.pathname
 	}
 	return url1 === url2
+}
+
+export function createFixtures(page: Page) {
+	const newSidebar = new Sidebar(page)
+	const newEditor = new Editor(page, newSidebar)
+	const newHomePage = new HomePage(page, newEditor)
+	const newShareMenu = new ShareMenu(page)
+	const errorPage = new ErrorPage(page)
+	return { newSidebar, newEditor, newHomePage, newShareMenu, errorPage }
+}
+
+export function getRandomName() {
+	const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+	let result = ''
+	for (let i = 0; i < 10; i++) {
+		const randomIndex = Math.floor(Math.random() * characters.length)
+		result += characters[randomIndex]
+	}
+	return result
 }
