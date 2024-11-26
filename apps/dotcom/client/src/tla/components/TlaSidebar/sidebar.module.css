@@ -424,7 +424,7 @@
 }
 
 .guestBadgeTrigger {
-	margin-left: 8px;
+	margin-right: 6px;
 	border-radius: 50%;
 	pointer-events: all;
 	overflow: hidden;
@@ -433,8 +433,8 @@
 	justify-content: center;
 	outline: none;
 	border: none;
-	width: 20px;
-	height: 20px;
+	width: 14px;
+	height: 14px;
 	z-index: 3;
 	padding: 0;
 	background: none;
