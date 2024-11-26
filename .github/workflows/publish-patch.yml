@@ -16,7 +16,7 @@ jobs:
     name: Publish patch release
     environment: npm deploy
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores-open
     outputs:
       is_latest_version: ${{ steps.publish_step.outputs.is_latest_version }}
 

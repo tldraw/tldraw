@@ -28,7 +28,7 @@ jobs:
     name: 'Publish new version of public packages'
     environment: npm deploy
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores-open
 
     steps:
       - name: Check inputs

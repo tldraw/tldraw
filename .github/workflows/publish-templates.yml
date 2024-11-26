@@ -23,7 +23,7 @@ jobs:
   publish_vite:
     name: 'Vite'
     timeout-minutes: 60
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores-open
 
     steps:
       - name: Check out code
@@ -53,7 +53,7 @@ jobs:
   publish_next:
     name: 'Next.js'
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores-open
 
     steps:
       - name: Check out code
@@ -83,7 +83,7 @@ jobs:
   publish_cf_workers:
     name: 'Cloudflare Workers'
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-16-cores-open
 
     steps:
       - name: Check out code
