@@ -53,17 +53,23 @@ export function TlaFileShareMenu({
 
 	let tabToShowAsActive = shareMenuActiveTab
 
-	// Can the current user configure the file's sharing settings?
-	const hasSharePermissions = context === 'file' && fileId && file && isOwner
+	const okTabs = {
+		// If the context is a guest file or published file, show the anon share file
+		'anon-share': !isOwner && (context === 'file' || context === 'published-file'),
+		export: true,
+		// Can the current user configure the file's sharing settings?
+		share: context === 'file' && fileId && file && isOwner,
+		// Can the current user configure the file's publishing settings?
+		publish: context === 'file' && fileId && file && isOwner,
+	}
 
-	// Can the current user configure the file's publishing settings?
-	const hasPublishPermissions = context === 'file' && fileId && file && isOwner
-
-	// If the context is a guest file or published file, show the anon share file
-	const showAnonShareTab = !hasSharePermissions && context !== 'scratch'
+	// If the user is not signed in and their local active tab is share, then show the anon share tab
+	if (tabToShowAsActive === 'share' && !okTabs.share) {
+		tabToShowAsActive = 'anon-share'
+	}
 
 	// If we're on a tab that we're not allowed to be on, then switch to the first tab we're allowed to be on
-	if (showAnonShareTab && tabToShowAsActive !== 'export' && tabToShowAsActive !== 'anon-share') {
+	if (!okTabs[tabToShowAsActive]) {
 		tabToShowAsActive = 'export'
 	}
 
@@ -82,44 +88,44 @@ export function TlaFileShareMenu({
 					<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
 							{/* Disable share when on a scratchpad file */}
-							{hasSharePermissions && (
-								<TlaTabsTab id="share">
+							{okTabs.share && (
+								<TlaTabsTab id="share" data-testid="tla-share-tab-button-share">
 									<F defaultMessage="Invite" />
 								</TlaTabsTab>
 							)}
-							{showAnonShareTab && (
-								<TlaTabsTab id="anon-share">
+							{okTabs['anon-share'] && (
+								<TlaTabsTab id="anon-share" data-testid="tla-share-tab-button-anon-share">
 									<F defaultMessage="Share" />
 								</TlaTabsTab>
 							)}
 							{/* Always show export */}
-							<TlaTabsTab id="export">
+							<TlaTabsTab id="export" data-testid="tla-share-tab-button-export">
 								<F defaultMessage="Export" />
 							</TlaTabsTab>
 							{/* Show publish tab when there's a file and either the context is a published file or the user owns the file */}
-							{hasPublishPermissions && (
-								<TlaTabsTab id="publish">
+							{okTabs.publish && (
+								<TlaTabsTab id="publish" data-testid="tla-share-tab-button-publish">
 									<F defaultMessage="Publish" />
 								</TlaTabsTab>
 							)}
 						</TlaTabsTabs>
-						{hasSharePermissions && (
+						{okTabs.share && fileId && (
 							// We have a file and we're authenticated
-							<TlaTabsPage id="share">
+							<TlaTabsPage id="share" data-testid="tla-share-tab-page-share">
 								<TlaInviteTab fileId={fileId} />
 							</TlaTabsPage>
 						)}
-						{showAnonShareTab && (
-							<TlaTabsPage id="anon-share">
+						{okTabs['anon-share'] && (
+							<TlaTabsPage id="anon-share" data-testid="tla-share-tab-page-anon-share">
 								<TlaAnonCopyLinkTab />
 							</TlaTabsPage>
 						)}
-						<TlaTabsPage id="export">
+						<TlaTabsPage id="export" data-testid="tla-share-tab-page-export">
 							<TlaExportTab />
 						</TlaTabsPage>
 						{/* Only show the publish tab if the file is owned by the user */}
-						{hasPublishPermissions && (
-							<TlaTabsPage id="publish">
+						{okTabs.publish && file && (
+							<TlaTabsPage id="publish" data-testid="tla-share-tab-page-publish">
 								<TlaPublishTab file={file} />
 							</TlaTabsPage>
 						)}

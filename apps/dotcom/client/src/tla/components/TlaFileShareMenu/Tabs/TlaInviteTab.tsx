@@ -79,7 +79,11 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 			>
 				<F defaultMessage="Learn more about sharing." />
 			</TlaMenuControlInfoTooltip>
-			<TlaSwitch checked={!!isShared} onChange={handleToggleShared} />
+			<TlaSwitch
+				data-testid="shared-link-shared-switch"
+				checked={!!isShared}
+				onChange={handleToggleShared}
+			/>
 		</TlaMenuControl>
 	)
 }

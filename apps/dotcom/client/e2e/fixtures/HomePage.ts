@@ -47,8 +47,8 @@ export class HomePage {
 		}).toPass()
 	}
 
-	async goto() {
-		await this.page.goto(rootUrl, { waitUntil: 'load' })
+	async goto(url = rootUrl) {
+		await this.page.goto(url, { waitUntil: 'load' })
 	}
 
 	async isLoaded() {
