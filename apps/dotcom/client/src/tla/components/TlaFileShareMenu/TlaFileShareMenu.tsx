@@ -53,12 +53,23 @@ export function TlaFileShareMenu({
 
 	let tabToShowAsActive = shareMenuActiveTab
 
-	const showPublish = (file && isOwner) || context === 'published-file'
+	const okTabs = {
+		// If the context is a guest file or published file, show the anon share file
+		'anon-share': !isOwner && (context === 'file' || context === 'published-file'),
+		export: true,
+		// Can the current user configure the file's sharing settings?
+		share: context === 'file' && fileId && file && isOwner,
+		// Can the current user configure the file's publishing settings?
+		publish: context === 'file' && fileId && file && isOwner,
+	}
 
-	if (
-		(tabToShowAsActive === 'share' && (context === 'scratch' || context === 'published-file')) ||
-		(tabToShowAsActive === 'publish' && !showPublish)
-	) {
+	// If the user is not signed in and their local active tab is share, then show the anon share tab
+	if (tabToShowAsActive === 'share' && !okTabs.share) {
+		tabToShowAsActive = 'anon-share'
+	}
+
+	// If we're on a tab that we're not allowed to be on, then switch to the first tab we're allowed to be on
+	if (!okTabs[tabToShowAsActive]) {
 		tabToShowAsActive = 'export'
 	}
 
@@ -71,55 +82,53 @@ export function TlaFileShareMenu({
 				<TldrawUiDropdownMenuContent
 					className={styles.shareMenu}
 					side="bottom"
-					align="end"
 					alignOffset={-2}
 					sideOffset={4}
 				>
 					<TlaTabsRoot activeTab={tabToShowAsActive} onTabChange={handleTabChange}>
 						<TlaTabsTabs>
 							{/* Disable share when on a scratchpad file */}
-							{context === 'published-file' ? null : (
-								<TlaTabsTab id="share" disabled={context === 'scratch'}>
+							{okTabs.share && (
+								<TlaTabsTab id="share" data-testid="tla-share-tab-button-share">
 									<F defaultMessage="Invite" />
 								</TlaTabsTab>
 							)}
+							{okTabs['anon-share'] && (
+								<TlaTabsTab id="anon-share" data-testid="tla-share-tab-button-anon-share">
+									<F defaultMessage="Share" />
+								</TlaTabsTab>
+							)}
 							{/* Always show export */}
-							<TlaTabsTab id="export">
+							<TlaTabsTab id="export" data-testid="tla-share-tab-button-export">
 								<F defaultMessage="Export" />
 							</TlaTabsTab>
 							{/* Show publish tab when there's a file and either the context is a published file or the user owns the file */}
-							{context === 'file' && !isOwner ? null : (
-								<TlaTabsTab id="publish" disabled={!showPublish}>
+							{okTabs.publish && (
+								<TlaTabsTab id="publish" data-testid="tla-share-tab-button-publish">
 									<F defaultMessage="Publish" />
 								</TlaTabsTab>
 							)}
 						</TlaTabsTabs>
-						{context === 'file' ? (
-							app && fileId ? (
-								// We have a file and we're authenticated
-								<TlaTabsPage id="share">
-									<TlaInviteTab fileId={fileId} />
-								</TlaTabsPage>
-							) : (
-								// We have a file / published file but we're NOT authenticated
-								<TlaTabsPage id="share">
-									<TlaAnonCopyLinkTab />
-								</TlaTabsPage>
-							)
-						) : null}
-						{/* Always show export tab */}
-						<TlaTabsPage id="export">
-							<TlaExportTab />
-						</TlaTabsPage>
-						{context === 'file' && file && isOwner ? (
-							<TlaTabsPage id="publish">
-								<TlaPublishTab file={file} />
+						{okTabs.share && fileId && (
+							// We have a file and we're authenticated
+							<TlaTabsPage id="share" data-testid="tla-share-tab-page-share">
+								<TlaInviteTab fileId={fileId} />
 							</TlaTabsPage>
-						) : context === 'published-file' ? (
-							<TlaTabsPage id="publish">
+						)}
+						{okTabs['anon-share'] && (
+							<TlaTabsPage id="anon-share" data-testid="tla-share-tab-page-anon-share">
 								<TlaAnonCopyLinkTab />
 							</TlaTabsPage>
-						) : null}
+						)}
+						<TlaTabsPage id="export" data-testid="tla-share-tab-page-export">
+							<TlaExportTab />
+						</TlaTabsPage>
+						{/* Only show the publish tab if the file is owned by the user */}
+						{okTabs.publish && file && (
+							<TlaTabsPage id="publish" data-testid="tla-share-tab-page-publish">
+								<TlaPublishTab file={file} />
+							</TlaTabsPage>
+						)}
 					</TlaTabsRoot>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>

@@ -204,7 +204,7 @@
 }
 
 .tlui-layout__top__left {
-	flex: 2 1;
+	flex: 1 1;
 	height: auto;
 	width: fit-content;
 	overflow: hidden;

@@ -10,7 +10,7 @@ import { Sidebar } from './Sidebar'
 export type UserName = 'huppy' | 'suppy'
 type UserProps = { user: UserName; index: number } | undefined
 
-export async function openNewIncognitoPage(
+export async function openNewTab(
 	browser: Browser,
 	opts: { url?: string; userProps: UserProps; allowClipboard?: boolean }
 ) {
