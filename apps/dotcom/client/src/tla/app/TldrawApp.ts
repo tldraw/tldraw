@@ -487,7 +487,6 @@ export class TldrawApp {
 	updateFileState(fileId: string, partial: Partial<TlaFileState>) {
 		const fileState = this.getFileState(fileId)
 		if (!fileState) return
-		// remove relationship because zero complains
 		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
 	}
 
