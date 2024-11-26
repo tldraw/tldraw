@@ -144,11 +144,14 @@ export class TldrawApp {
 		setUserPreferences: ({ id: _, ...others }: Partial<TLUserPreferences>) => {
 			const user = this.getUser()
 
+			const nonNull = Object.fromEntries(
+				Object.entries(others).filter(([_, value]) => value !== null)
+			) as Partial<TLUserPreferences>
+
 			this.z.mutate((tx) => {
 				tx.user.update({
-					...user,
-					// TODO: remove nulls
-					...(others as TlaUser),
+					id: user.id,
+					...(nonNull as any),
 				})
 			})
 		},
