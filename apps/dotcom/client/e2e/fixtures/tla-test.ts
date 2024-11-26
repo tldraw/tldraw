@@ -156,5 +156,4 @@ export async function expectBeforeAndAfterReload(fn: () => Promise<void>, page: 
 	const { newHomePage } = createFixtures(page)
 	await newHomePage.isLoaded()
 	await fn()
-	await page.pause()
 }
