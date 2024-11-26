@@ -116,6 +116,9 @@
   "827aedd218": {
     "translation": "Added .tldr {count, plural, one {# file} other {# files}}"
   },
+  "8eb2c00e96": {
+    "translation": "Shared with you"
+  },
   "8ff3d0a705": {
     "translation": "Rate limited"
   },
@@ -164,6 +167,9 @@
   },
   "b758336699": {
     "translation": "Copy link"
+  },
+  "bc88b0e89e": {
+    "translation": "Shared by {ownerName}"
   },
   "c2276c9127": {
     "translation": "Learn more about sharing."
