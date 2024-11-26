@@ -12,7 +12,7 @@ export function TlaSignedOutShareButton({
 }) {
 	return (
 		<TlaFileShareMenu fileId={fileId} context={context} source="anon">
-			<button data-testid="share-button" className={classNames(styles.signedOutShareButton)}>
+			<button data-testid="tla-share-button" className={classNames(styles.signedOutShareButton)}>
 				<TlaIcon icon="share" />
 			</button>
 		</TlaFileShareMenu>

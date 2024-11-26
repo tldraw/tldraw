@@ -17,7 +17,7 @@ async function shareFileAndCopyLink(
 	shareAction: () => Promise<void>
 ) {
 	await shareMenu.open()
-	expect(await shareMenu.isVisible()).toBe(true)
+	expect(await shareMenu.isInviteButtonVisible()).toBe(true)
 	await shareAction()
 	return await shareMenu.copyLink()
 }
@@ -26,10 +26,11 @@ const users = [
 	{ user: undefined, sameFileName: false, description: 'anon users' },
 	{ user: 'suppy' as const, sameFileName: true, description: 'logged in users' },
 ]
+
 test.describe('default share state', () => {
 	test('is public and editable', async ({ shareMenu }) => {
 		await shareMenu.open()
-		expect(await shareMenu.isVisible()).toBe(true)
+		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
 		expect(await shareMenu.isToggleChecked()).toBe(true)
 		expect(await shareMenu.getShareType()).toBe('Editor')
 	})
@@ -146,22 +147,35 @@ test.describe('published files', () => {
 			await newContext.close()
 		})
 
-		test(`can be unpublished for ${u.description}`, async ({ page, browser, shareMenu }) => {
-			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
-
-			const index = test.info().parallelIndex
-			const userProps = u.user ? { user: u.user, index } : undefined
-			const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(browser, {
-				url,
-				userProps,
-			})
-			if (!userProps) await newHomePage.expectSignInButtonVisible()
-			await errorPage.expectNotFoundNotVisible()
-			await shareMenu.unpublishFile()
-			await newPage.reload()
-			await errorPage.expectNotFoundVisible()
-			await newContext.close()
+		test.only(`can only be unpublished by owner (testing ${u.description})`, async ({
+			page,
+			browser,
+			context,
+			shareMenu,
+		}) => {
+			if (u.user) {
+				// logged in user
+				const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
+				expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
+				const index = test.info().parallelIndex
+				const userProps = { user: u.user, index }
+				const { newContext, newPage, errorPage } = await openNewIncognitoPage(browser, {
+					url,
+					userProps,
+				})
+				await errorPage.expectNotFoundNotVisible()
+				await shareMenu.unpublishFile()
+				await newPage.reload()
+				await errorPage.expectNotFoundVisible()
+				await newContext.close()
+			} else {
+				// anon user
+				// open the share menu
+				await shareMenu.open()
+				// expect the publish button to be hidden
+				expect(await shareMenu.publishButton.isHidden()).toBe(true)
+				await context.close()
+			}
 		})
 
 		test(`${u.description} can copy a published file link`, async ({

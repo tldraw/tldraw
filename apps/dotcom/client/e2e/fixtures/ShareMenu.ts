@@ -8,6 +8,7 @@ export class ShareMenu {
 	public readonly exportButton: Locator
 	public readonly inviteButton: Locator
 	public readonly publishButton: Locator
+	public readonly anonShareButton: Locator
 	public readonly publishChangesButton: Locator
 	public readonly copyLinkButton: Locator
 	public readonly exportImageButton: Locator
@@ -16,8 +17,9 @@ export class ShareMenu {
 	constructor(public readonly page: Page) {
 		this.shareButton = this.page.getByTestId('tla-share-button')
 		this.exportButton = this.page.getByRole('button', { name: 'Export', exact: true })
-		this.inviteButton = this.page.getByRole('button', { name: 'Invite' })
+		this.inviteButton = this.page.getByRole('button', { name: 'Invite', exact: true })
 		this.publishButton = this.page.getByRole('button', { name: 'Publish', exact: true })
+		this.anonShareButton = this.page.getByRole('button', { name: 'Share', exact: true })
 		this.publishChangesButton = this.page.getByRole('button', {
 			name: 'Publish changes',
 			exact: true,
@@ -39,7 +41,7 @@ export class ShareMenu {
 		await this.shareButton.click()
 	}
 
-	async isVisible() {
+	async isInviteButtonVisible() {
 		return await this.inviteButton.isVisible()
 	}
 

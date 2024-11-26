@@ -18,7 +18,7 @@ jobs:
   test:
     name: 'Tests & checks'
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open # TODO: this should probably run on multiple OSes
+    runs-on: ubuntu-latest # TODO: this should probably run on multiple OSes
 
     steps:
       - name: Check out code
@@ -64,7 +64,7 @@ jobs:
   build:
     name: 'Build all projects'
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
