@@ -1,9 +1,9 @@
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactElement, useEffect } from 'react'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
-import { F } from '../../app/i18n'
 import { useSetIsReady } from '../../hooks/useIsReady'
-import { TlaSignInButton } from '../TlaSignInButton/TlaSignInButton'
+import { F } from '../../utils/i18n'
+import { TlaSignUpButton } from '../TlaSignUpButton/TlaSignUpButton'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
@@ -49,7 +49,7 @@ export function TlaFileError({ error }: { error: unknown }) {
 				<TlaFileErrorContent
 					header={<F defaultMessage="Private file" />}
 					para1={<F defaultMessage="Contact the owner to request access." />}
-					cta={<TlaSignInButton />}
+					cta={<TlaSignUpButton />}
 				/>
 			)
 		}

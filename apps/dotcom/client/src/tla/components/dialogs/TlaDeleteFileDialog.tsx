@@ -10,10 +10,10 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { F } from '../../app/i18n'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { F } from '../../utils/i18n'
 import { getFilePath } from '../../utils/urls'
 
 export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClose(): void }) {

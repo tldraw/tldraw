@@ -131,4 +131,5 @@ export const UserPreferencesKeys = [
 	'isDynamicSizeMode',
 	'isPasteAtCursorMode',
 	'name',
+	'color',
 ] as const satisfies Array<keyof TlaUser>
