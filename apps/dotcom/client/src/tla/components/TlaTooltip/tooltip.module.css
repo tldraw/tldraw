@@ -3,9 +3,8 @@
 	padding: 6px 12px;
 	border-radius: 8px;
 	background-color: var(--tla-color-tooltip);
-	border: 1px solid var(--color-text-1);
 	box-shadow: none;
-	color: var(--color-selected-contrast);
+	color: var(--color-text-shadow);
 	animation-name: fade-in;
 	animation-duration: 0.1s;
 }

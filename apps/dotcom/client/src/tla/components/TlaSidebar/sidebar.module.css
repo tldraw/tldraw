@@ -438,4 +438,5 @@
 	z-index: 3;
 	padding: 0;
 	background: none;
+	color: var(--tla-color-text-1);
 }
