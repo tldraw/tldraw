@@ -180,13 +180,13 @@ export class TldrawApp {
 
 		for (const fileId of myFileIds) {
 			const file = myFiles[fileId]
-			if (!file) continue
+			const state = myStates[fileId]
+			if (!file || !state) continue
 			const existing = this.lastRecentFileOrdering?.find((f) => f.fileId === fileId)
 			if (existing) {
 				nextRecentFileOrdering.push(existing)
 				continue
 			}
-			const state = myStates[fileId]
 
 			nextRecentFileOrdering.push({
 				fileId,
