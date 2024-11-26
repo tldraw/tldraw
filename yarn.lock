@@ -7412,6 +7412,7 @@ __metadata:
     "@types/lodash.uniq": "npm:^4.5.7"
     fractional-indexing-jittered: "npm:^0.9.1"
     jest-environment-jsdom: "npm:^29.4.3"
+    jsmediatags-web: "patch:jsmediatags-web@npm%3A0.0.4#~/.yarn/patches/jsmediatags-web-npm-0.0.4-e0f5d2ada2.patch"
     lazyrepo: "npm:0.0.0-alpha.27"
     lodash.throttle: "npm:^4.1.1"
     lodash.uniq: "npm:^4.5.0"
@@ -16557,6 +16558,20 @@ __metadata:
   bin:
     jsesc: bin/jsesc
   checksum: d2096abdcdec56969764b40ffc91d4a23408aa2f351b4d1c13f736f25476643238c43fdbaf38a191c26b1b78fd856d965f5d4d0dde7b89459cd94025190cdf13
+  languageName: node
+  linkType: hard
+
+"jsmediatags-web@npm:0.0.4":
+  version: 0.0.4
+  resolution: "jsmediatags-web@npm:0.0.4"
+  checksum: a96b6f5d3da32b784efe89b8815712f9abeac845beca235d7ab80d5136a0dda735870e0a396ede7b786c133f03ee9dd08b163a64d817b604e1f1d7eccdf808a3
+  languageName: node
+  linkType: hard
+
+"jsmediatags-web@patch:jsmediatags-web@npm%3A0.0.4#~/.yarn/patches/jsmediatags-web-npm-0.0.4-e0f5d2ada2.patch":
+  version: 0.0.4
+  resolution: "jsmediatags-web@patch:jsmediatags-web@npm%3A0.0.4#~/.yarn/patches/jsmediatags-web-npm-0.0.4-e0f5d2ada2.patch::version=0.0.4&hash=b88496"
+  checksum: 5efda4fa475182c8adf4a656d0bfe2e3721a60bbc22864c4624f8b7551d8f84ff8db29a37ec77362b417b96b429115eefe3975b80e93ad72b8ddb1f1db65385d
   languageName: node
   linkType: hard
 

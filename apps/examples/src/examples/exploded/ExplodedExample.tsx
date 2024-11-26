@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import {
 	ContextMenu,
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
+	DEFAULT_SUPPORT_AUDIO_TYPES,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DefaultContextMenuContent,
 	DefaultSpinner,
@@ -88,6 +89,7 @@ function InsideEditorAndUiContext() {
 				maxAssetSize: 10 * 1024 * 1024, // 10mb
 				acceptedImageMimeTypes: DEFAULT_SUPPORTED_IMAGE_TYPES,
 				acceptedVideoMimeTypes: DEFAULT_SUPPORT_VIDEO_TYPES,
+				acceptedAudioMimeTypes: DEFAULT_SUPPORT_AUDIO_TYPES,
 			},
 			{
 				toasts,

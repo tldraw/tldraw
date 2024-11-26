@@ -6,12 +6,16 @@ function getAssetObjectName(uploadId: string) {
 	return `uploads/${uploadId.replace(/[^a-zA-Z0-9\_\-]+/g, '_')}`
 }
 
-// when a user uploads an asset, we store it in the bucket. we only allow image and video assets.
+// when a user uploads an asset, we store it in the bucket. we only allow image, video, and audio assets.
 export async function handleAssetUpload(request: IRequest, env: Environment) {
 	const objectName = getAssetObjectName(request.params.uploadId)
 
 	const contentType = request.headers.get('content-type') ?? ''
-	if (!contentType.startsWith('image/') && !contentType.startsWith('video/')) {
+	if (
+		!contentType.startsWith('image/') &&
+		!contentType.startsWith('video/') &&
+		!contentType.startsWith('audio/')
+	) {
 		return error(400, 'Invalid content type')
 	}
 

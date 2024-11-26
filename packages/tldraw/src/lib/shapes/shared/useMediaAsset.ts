@@ -1,6 +1,8 @@
 import {
 	Editor,
 	TLAssetId,
+	TLAudioAsset,
+	TLAudioShape,
 	TLImageAsset,
 	TLImageShape,
 	TLShapeId,
@@ -25,7 +27,7 @@ import { useEffect, useRef, useState } from 'react'
  *
  * @public
  */
-export function useImageOrVideoAsset({
+export function useMediaAsset({
 	shapeId,
 	assetId,
 }: {
@@ -38,10 +40,12 @@ export function useImageOrVideoAsset({
 
 	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
 	const [result, setResult] = useState<{
-		asset: (TLImageAsset | TLVideoAsset) | null
+		asset: (TLImageAsset | TLVideoAsset | TLAudioAsset) | null
 		url: string | null
 	}>(() => ({
-		asset: assetId ? editor.getAsset<TLImageAsset | TLVideoAsset>(assetId) ?? null : null,
+		asset: assetId
+			? editor.getAsset<TLImageAsset | TLVideoAsset | TLAudioAsset>(assetId) ?? null
+			: null,
 		url: null as string | null,
 	}))
 
@@ -61,11 +65,11 @@ export function useImageOrVideoAsset({
 			if (!isExport && editor.getCulledShapes().has(shapeId)) return
 
 			// Get the fresh asset
-			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
+			const asset = editor.getAsset<TLImageAsset | TLVideoAsset | TLAudioAsset>(assetId)
 			if (!asset) return
 
 			// Get the fresh shape
-			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
+			const shape = editor.getShape<TLImageShape | TLVideoShape | TLAudioShape>(shapeId)
 			if (!shape) return
 
 			// Set initial preview for the shape if it has no source (if it was pasted into a local project as base64)
@@ -137,8 +141,8 @@ function resolveAssetUrl(
 const resolveAssetUrlDebounced = debounce(resolveAssetUrl, 500)
 
 /**
- * @deprecated Use {@link useImageOrVideoAsset} instead.
+ * @deprecated Use {@link useMediaAsset} instead.
  *
  * @public
  */
-export const useAsset = useImageOrVideoAsset
+export const useAsset = useMediaAsset

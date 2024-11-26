@@ -16,7 +16,7 @@ import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { useImageOrVideoAsset } from '../shared/useImageOrVideoAsset'
+import { useMediaAsset } from '../shared/useMediaAsset'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 /** @public */
@@ -44,7 +44,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 
 	component(shape: TLVideoShape) {
-		const { asset, url } = useImageOrVideoAsset({
+		const { asset, url } = useMediaAsset({
 			shapeId: shape.id,
 			assetId: shape.props.assetId,
 		})

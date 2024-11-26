@@ -47,6 +47,9 @@ export function debounce<T extends unknown[], U>(callback: (...args: T) => Promi
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
 // @public (undocumented)
+export const DEFAULT_SUPPORT_AUDIO_TYPES: readonly string[];
+
+// @public (undocumented)
 export const DEFAULT_SUPPORT_VIDEO_TYPES: readonly string[];
 
 // @public (undocumented)
@@ -237,6 +240,11 @@ export function measureDuration(_target: any, propertyKey: string, descriptor: P
 
 // @public
 export class MediaHelpers {
+    // (undocumented)
+    static getAudioTags(blob: Blob): Promise<{
+        coverArt: string;
+        title: string;
+    }>;
     static getImageSize(blob: Blob): Promise<{
         h: number;
         w: number;
@@ -257,6 +265,7 @@ export class MediaHelpers {
     static isStaticImageType(mimeType: null | string): boolean;
     // (undocumented)
     static isVectorImageType(mimeType: null | string): boolean;
+    static loadAudio(src: string): Promise<HTMLAudioElement>;
     static loadImage(src: string): Promise<HTMLImageElement>;
     static loadVideo(src: string): Promise<HTMLVideoElement>;
     // (undocumented)

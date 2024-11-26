@@ -368,6 +368,11 @@ export const DEFAULT_TRANSLATION = {
 	'navigation-zone.zoom': 'Zoom',
 	'focus-mode.toggle-focus-mode': 'Toggle focus mode',
 	'toast.close': 'Close',
+	'audio.play': 'Play',
+	'audio.pause': 'Pause',
+	'audio.seek': 'Seek',
+	'audio.mute': 'Mute',
+	'audio.unmute': 'Unmute',
 	'file-system.file-open-error.title': 'Could not open file',
 	'file-system.file-open-error.not-a-tldraw-file':
 		"The file you tried to open doesn't look like a tldraw file.",

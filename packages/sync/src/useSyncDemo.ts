@@ -136,6 +136,9 @@ function createDemoAssetStore(host: string): TLAssetStore {
 			// We don't deal with videos at the moment.
 			if (asset.type === 'video') return asset.props.src
 
+			// We don't deal with audio at the moment.
+			if (asset.type === 'audio') return asset.props.src
+
 			// Assert it's an image to make TS happy.
 			if (asset.type !== 'image') return null
 

@@ -291,8 +291,14 @@ export class Idle extends StateNode {
 				const { shape } = info
 				const util = this.editor.getShapeUtil(shape)
 
-				// Allow playing videos and embeds
-				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.getIsReadonly()) break
+				// Allow playing videos, audio, and embeds
+				if (
+					shape.type !== 'video' &&
+					shape.type !== 'audio' &&
+					shape.type !== 'embed' &&
+					this.editor.getIsReadonly()
+				)
+					break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
