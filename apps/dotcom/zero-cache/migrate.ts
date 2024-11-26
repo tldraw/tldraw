@@ -25,11 +25,11 @@ CREATE TABLE IF NOT EXISTS migrations.applied_migrations (
 `
 
 async function waitForPostgres() {
-	const sql = postgres(postgresConnectionString)
 	process.stdout.write('Waiting for postgres')
 	let attempts = 0
 	do {
 		try {
+			const sql = postgres(postgresConnectionString)
 			await sql`SELECT 1`
 			break
 		} catch (_e) {
@@ -37,10 +37,11 @@ async function waitForPostgres() {
 				throw new Error('Failed to connect to postgres')
 			}
 			process.stdout.write('.')
-			await new Promise((resolve) => setTimeout(resolve, 250))
+			await new Promise((resolve) => setTimeout(resolve, 500))
 		}
 		// eslint-disable-next-line no-constant-condition
 	} while (true)
+	const sql = postgres(postgresConnectionString)
 	await sql.unsafe(init).simple()
 }
 async function run() {

@@ -204,6 +204,14 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
 		didUpdateTlsyncWorker = true
 	}
+	const BOTCOM_POSTGRES_CONNECTION_STRING =
+		env.BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW || env.BOTCOM_POSTGRES_CONNECTION_STRING
+	// TODO: if preview provision a new database in aws
+	await exec('yarn', ['workspace', 'apps/dotcom/zero-cache', 'migrate'], {
+		env: {
+			BOTCOM_POSTGRES_CONNECTION_STRING,
+		},
+	})
 	await wranglerDeploy({
 		location: worker,
 		dryRun,
@@ -218,8 +226,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
-			BOTCOM_POSTGRES_CONNECTION_STRING:
-				env.BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW || env.BOTCOM_POSTGRES_CONNECTION_STRING,
+			BOTCOM_POSTGRES_CONNECTION_STRING,
 		},
 		sentry: {
 			project: 'tldraw-sync',
