@@ -95,7 +95,7 @@ export function TlaSidebarFileLinkInner({
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 		>
-			<GuestBadge file={file} />
+			{!isOwnFile && <GuestBadge file={file} />}
 			<div className={styles.linkContent}>
 				<div
 					className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}
