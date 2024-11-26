@@ -17,6 +17,7 @@ import {
 	createSessionStateSnapshotSignal,
 	react,
 	throttle,
+	tltime,
 	useActions,
 	useCollaborationStatus,
 	useEditor,
@@ -179,10 +180,20 @@ function TlaEditorInner({
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
-
-		app.onFileEnter(fileId)
+		let didEnter = false
+		const timer = tltime.setTimeout(
+			'file enter timer',
+			() => {
+				app.onFileEnter(fileId)
+				didEnter = true
+			},
+			1000
+		)
 		return () => {
-			app.onFileExit(fileId)
+			clearTimeout(timer)
+			if (didEnter) {
+				app.onFileExit(fileId)
+			}
 		}
 	}, [app, fileId, store.status])
 

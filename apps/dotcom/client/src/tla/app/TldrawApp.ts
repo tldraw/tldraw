@@ -497,6 +497,15 @@ export class TldrawApp {
 		}))
 	}
 
+	onFileExit(fileId: string) {
+		this.updateFileState(fileId, (fileState) => {
+			return {
+				...fileState,
+				lastVisitAt: Date.now(),
+			}
+		})
+	}
+
 	onFileEdit(fileId: string) {
 		this.updateFileState(fileId, (fileState) => ({
 			...fileState,
@@ -508,13 +517,6 @@ export class TldrawApp {
 		this.updateFileState(fileId, (fileState) => ({
 			...fileState,
 			lastSessionState: JSON.stringify(sessionState),
-			lastVisitAt: Date.now(),
-		}))
-	}
-
-	onFileExit(fileId: string) {
-		this.updateFileState(fileId, (fileState) => ({
-			...fileState,
 			lastVisitAt: Date.now(),
 		}))
 	}
