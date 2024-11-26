@@ -140,10 +140,9 @@ export class TldrawApp {
 		if (!descriptor) {
 			console.error('Unknown error code:', errorCode)
 		}
-		const translated = this.intl?.formatMessage(descriptor ?? this.messages.unknown_error)
 		this.toasts?.addToast({
 			title: this.intl?.formatMessage(this.messages.mutation_error_toast_title),
-			description: translated,
+			description: this.intl?.formatMessage(descriptor ?? this.messages.unknown_error),
 		})
 	}, 3000)
 
