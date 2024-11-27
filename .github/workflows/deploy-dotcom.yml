@@ -38,16 +38,13 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - name: Build types
-        run: yarn build-types
-
       - id: create-branch
         # only run on PR branches
         if: github.event_name == 'pull_request'
         uses: neondatabase/create-branch-action@v5
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          username: "dotcom-preview_owner" # Change this to the role you use to connect to your database
+          username: 'dotcom-preview_owner' # Change this to the role you use to connect to your database
           # parent: dev # optional (defaults to your primary branch)
           # use PR number as branch name
           database: dotcom-preview
@@ -61,6 +58,9 @@ jobs:
       - run: |
           echo "the thing is $NEON_PREVIEW_DB_CONNECTION_STRING"
         if: github.event_name == 'pull_request'
+
+      - name: Build types
+        run: yarn build-types
 
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts
