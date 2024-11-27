@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import dotenv from 'dotenv'
 import { existsSync, readdirSync } from 'fs'
+import { createServer } from 'http'
 import postgres from 'postgres'
 dotenv.config()
 
@@ -36,6 +37,8 @@ INSERT INTO migrations.applied_migrations (filename) VALUES
 ('007_update_file_owner_details.sql')
 ON CONFLICT DO NOTHING;
  */
+
+const shouldSignalSuccess = process.argv.includes('--signal-success')
 
 async function waitForPostgres() {
 	let attempts = 0
@@ -102,7 +105,14 @@ async function run() {
 		await migrate(summary)
 		console.log(summary.join('\n'))
 		// need to do this to close the db connection
-		process.exit(0)
+		if (shouldSignalSuccess) {
+			const s = createServer((_, res) => {
+				res.end('ok')
+			})
+			s.listen(7654)
+		} else {
+			process.exit(0)
+		}
 	} catch (e) {
 		console.error(e)
 		console.error(summary.join('\n'))
