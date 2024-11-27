@@ -52,8 +52,12 @@ async function migrate(summary: string[]) {
 			throw new Error('No migrations found')
 		}
 
-		console.log('Applied migrations:', appliedMigrations)
-		console.log('found migrations', migrations)
+		// check that all applied migrations exist
+		for (const appliedMigration of appliedMigrations) {
+			if (!migrations.includes(appliedMigration.filename)) {
+				throw new Error(`Previously-applied migration ${appliedMigration.filename} not found`)
+			}
+		}
 
 		for (const migration of migrations) {
 			if (appliedMigrations.some((m: any) => m.filename === migration)) {
@@ -82,16 +86,16 @@ async function run() {
 
 	const summary: string[] = []
 	try {
-		migrate(summary)
+		await migrate(summary)
+		console.log(summary.join('\n'))
+		// need to do this to close the db connection
+		process.exit(0)
 	} catch (e) {
 		console.error(e)
 		console.error(summary.join('\n'))
 		console.error('🧹 Rolling back...')
 		process.exit(1)
 	}
-	console.log(summary.join('\n'))
-	// need to do this to close the connection
-	process.exit(0)
 }
 
 run()
