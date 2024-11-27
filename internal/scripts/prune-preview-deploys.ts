@@ -105,7 +105,10 @@ async function getBranchId(branchName: string) {
 async function deletePreviewDatabase(prNumber: number) {
 	const branchName = `pr-${prNumber}`
 	const id = await getBranchId(branchName)
-	if (!id) return
+	if (!id) {
+		nicelog(`Branch ${branchName} not found`)
+		return
+	}
 
 	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches/${id}`
 	nicelog('DELETE', url)

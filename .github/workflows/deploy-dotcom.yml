@@ -61,10 +61,6 @@ jobs:
           echo "NEON_PREVIEW_DB_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url }}" >> "$GITHUB_ENV"
         if: github.event_name == 'pull_request'
 
-      - run: |
-          echo "the thing is $NEON_PREVIEW_DB_CONNECTION_STRING"
-        if: github.event_name == 'pull_request'
-
       - name: Build types
         run: yarn build-types
 
