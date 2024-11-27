@@ -52,8 +52,8 @@ jobs:
         uses: neondatabase/create-branch-action@v5
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          username: 'dotcom-preview_owner'
-          database: dotcom-preview
+          username: 'dotcom_owner'
+          database: dotcom
           branch_name: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }} # Generate an API key in your Neon account settings
 
