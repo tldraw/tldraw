@@ -206,7 +206,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	}
 	const BOTCOM_POSTGRES_CONNECTION_STRING =
 		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
-	// TODO: if preview provision a new database in aws
 	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate'], {
 		env: {
 			BOTCOM_POSTGRES_CONNECTION_STRING,
