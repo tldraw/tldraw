@@ -47,9 +47,10 @@ jobs:
         uses: neondatabase/create-branch-action@v5
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          username: "neondb_owner" # Change this to the role you use to connect to your database
+          username: "dotcom-preview_owner" # Change this to the role you use to connect to your database
           # parent: dev # optional (defaults to your primary branch)
           # use PR number as branch name
+          database: dotcom-preview
           branch_name: preview/${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }} # Generate an API key in your Neon account settings
 
