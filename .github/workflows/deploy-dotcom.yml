@@ -41,6 +41,26 @@ jobs:
       - name: Build types
         run: yarn build-types
 
+      - id: create-branch
+        # only run on PR branches
+        if: github.event_name == 'pull_request'
+        uses: neondatabase/create-branch-action@v5
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          username: "neondb_owner" # Change this to the role you use to connect to your database
+          # parent: dev # optional (defaults to your primary branch)
+          # use PR number as branch name
+          branch_name: preview/${{ github.event.number }}
+          api_key: ${{ secrets.NEON_API_KEY }} # Generate an API key in your Neon account settings
+
+      - run: |
+          echo "NEON_PREVIEW_DB_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url }}" >> "$GITHUB_ENV"
+        if: github.event_name == 'pull_request'
+
+      - run: |
+          echo "the thing is $NEON_PREVIEW_DB_CONNECTION_STRING"
+        if: github.event_name == 'pull_request'
+
       - name: Deploy
         run: yarn tsx internal/scripts/deploy-dotcom.ts
         env:
@@ -75,4 +95,3 @@ jobs:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           BOTCOM_POSTGRES_CONNECTION_STRING: ${{ secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
-          BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW: ${{ secrets.BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW }}

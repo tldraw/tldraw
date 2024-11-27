@@ -62,7 +62,7 @@ const env = makeEnv([
 	'VERCEL_TOKEN',
 	'VITE_CLERK_PUBLISHABLE_KEY',
 	'WORKER_SENTRY_DSN',
-	previewId ? 'BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
+	previewId ? 'NEON_PREVIEW_DB_CONNECTION_STRING' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
 ])
 
 const discord = new Discord({
@@ -205,7 +205,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		didUpdateTlsyncWorker = true
 	}
 	const BOTCOM_POSTGRES_CONNECTION_STRING =
-		env.BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW || env.BOTCOM_POSTGRES_CONNECTION_STRING
+		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
 	// TODO: if preview provision a new database in aws
 	await exec('yarn', ['workspace', 'apps/dotcom/zero-cache', 'migrate'], {
 		env: {
