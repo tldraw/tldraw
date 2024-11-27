@@ -137,10 +137,6 @@ export class TldrawApp {
 
 	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
 		const descriptor = this.messages[errorCode]
-		// Looks like we don't get type safety here
-		if (!descriptor) {
-			console.error('Could not find a translation for this error code', errorCode)
-		}
 		this.toasts?.addToast({
 			title: this.intl?.formatMessage(this.messages.mutation_error_toast_title),
 			description: this.intl?.formatMessage(descriptor ?? this.messages.unknown_error),
