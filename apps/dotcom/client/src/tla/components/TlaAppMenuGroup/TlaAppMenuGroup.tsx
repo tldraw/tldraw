@@ -18,11 +18,7 @@ import { Links } from '../../../components/Links'
 import { defineMessages, useMsg } from '../../utils/i18n'
 
 const messages = defineMessages({
-	appDebugFlags: { defaultMessage: 'App debug flags' },
 	help: { defaultMessage: 'Help' },
-	langAccented: { defaultMessage: 'i18n: Accented' },
-	langLongString: { defaultMessage: 'i18n: Long String' },
-	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
 export function TlaAppMenuGroup() {
