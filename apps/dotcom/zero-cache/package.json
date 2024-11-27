@@ -11,10 +11,9 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "concurrently 'yarn docker-up' 'yarn migrate --signal-success'",
+		"dev": "yarn docker-up",
 		"docker-up": "docker compose --env-file .env -f ./docker/docker-compose.yml up",
 		"docker-down": "docker compose --env-file .env -f ./docker/docker-compose.yml down",
-		"migrate": "yarn tsx ./migrate.ts",
 		"clean": "yarn docker-down && ./clean.sh",
 		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
 	},
@@ -23,9 +22,6 @@
 		"concurrently": "^9.0.1"
 	},
 	"devDependencies": {
-		"dotenv": "^16.4.5",
-		"lazyrepo": "0.0.0-alpha.27",
-		"postgres": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
-		"tsx": "^4.19.2"
+		"lazyrepo": "0.0.0-alpha.27"
 	}
 }

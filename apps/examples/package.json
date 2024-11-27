@@ -55,7 +55,7 @@
 	"devDependencies": {
 		"@types/lodash": "^4.14.188",
 		"@vitejs/plugin-react-swc": "^3.7.0",
-		"dotenv": "^16.4.5",
+		"dotenv": "^16.3.1",
 		"remark": "^15.0.1",
 		"remark-frontmatter": "^5.0.0",
 		"remark-html": "^16.0.1",

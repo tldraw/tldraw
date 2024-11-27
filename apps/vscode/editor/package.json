@@ -40,7 +40,7 @@
 		"@types/react-router-dom": "^5.1.8",
 		"concurrently": "^9.0.1",
 		"create-serve": "1.0.1",
-		"dotenv": "^16.4.5",
+		"dotenv": "^16.3.1",
 		"esbuild": "^0.21.5",
 		"fs-extra": "^11.1.0",
 		"lazyrepo": "0.0.0-alpha.27",

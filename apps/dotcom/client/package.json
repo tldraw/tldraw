@@ -11,7 +11,7 @@
 		"defaults"
 	],
 	"scripts": {
-		"dev": "./wait-for-postgres.sh && yarn run -T tsx scripts/dev-app.ts",
+		"dev": "./scripts/wait-for-docker.sh && yarn run -T tsx scripts/dev-app.ts",
 		"build": "yarn run -T tsx scripts/build.ts",
 		"build-i18n": "yarn i18n:extract && yarn i18n:compile",
 		"start": "VITE_PREVIEW=1 yarn run -T tsx scripts/dev-app.ts",
@@ -67,7 +67,7 @@
 		"@types/react": "^18.2.0",
 		"@typescript-eslint/utils": "^8.11.0",
 		"@vitejs/plugin-react-swc": "^3.7.0",
-		"dotenv": "^16.4.5",
+		"dotenv": "^16.3.1",
 		"eslint": "^9.13.0",
 		"eslint-plugin-formatjs": "^5.1.0",
 		"fast-glob": "^3.3.1",
