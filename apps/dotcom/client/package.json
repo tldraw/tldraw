@@ -67,7 +67,7 @@
 		"@types/react": "^18.2.0",
 		"@typescript-eslint/utils": "^8.11.0",
 		"@vitejs/plugin-react-swc": "^3.7.0",
-		"dotenv": "^16.3.1",
+		"dotenv": "^16.4.5",
 		"eslint": "^9.13.0",
 		"eslint-plugin-formatjs": "^5.1.0",
 		"fast-glob": "^3.3.1",
