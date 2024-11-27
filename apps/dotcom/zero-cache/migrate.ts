@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS migrations.applied_migrations (
 `
 
 async function waitForPostgres() {
-	process.stdout.write('Waiting for postgres')
 	let attempts = 0
 	do {
 		try {
@@ -36,7 +35,7 @@ async function waitForPostgres() {
 			if (attempts++ > 20) {
 				throw new Error('Failed to connect to postgres')
 			}
-			process.stdout.write('.')
+			console.log('Waiting for postgres' + '.'.repeat(attempts))
 			await new Promise((resolve) => setTimeout(resolve, 500))
 		}
 		// eslint-disable-next-line no-constant-condition
@@ -44,34 +43,55 @@ async function waitForPostgres() {
 	const sql = postgres(postgresConnectionString)
 	await sql.unsafe(init).simple()
 }
+
+async function migrate(summary: string[]) {
+	await postgres(postgresConnectionString).begin(async (sql) => {
+		const appliedMigrations = await sql`SELECT filename FROM migrations.applied_migrations`
+		const migrations = readdirSync(`./migrations`).sort()
+		if (migrations.length === 0) {
+			throw new Error('No migrations found')
+		}
+
+		console.log('Applied migrations:', appliedMigrations)
+		console.log('found migrations', migrations)
+
+		for (const migration of migrations) {
+			if (appliedMigrations.some((m: any) => m.filename === migration)) {
+				summary.push(`🏃 ${migration} already applied`)
+				continue
+			}
+
+			try {
+				await sql.file(`${migrationsPath}/${migration}`).execute()
+				await sql`INSERT INTO migrations.applied_migrations (filename) VALUES (${migration})`
+				summary.push(`✅ ${migration} applied`)
+			} catch (e) {
+				summary.push(`❌ ${migration} failed`)
+				throw e
+			}
+		}
+	})
+}
 async function run() {
-	await waitForPostgres()
-	const sql = postgres(postgresConnectionString)
-	const appliedMigrations = await sql`SELECT filename FROM migrations.applied_migrations`
-	const migrations = readdirSync(`./migrations`).sort()
-	if (migrations.length === 0) {
-		throw new Error('No migrations found')
+	try {
+		await waitForPostgres()
+	} catch (e) {
+		console.error(e)
+		process.exit(1)
 	}
 
-	for (const migration of migrations) {
-		if (appliedMigrations.some((m: any) => m.filename === migration)) {
-			console.log(`🏃 ${migration} already applied`)
-			continue
-		}
-
-		try {
-			await sql.begin((s) => s.file(`${migrationsPath}/${migration}`).execute())
-			await sql`INSERT INTO migrations.applied_migrations (filename) VALUES (${migration})`
-			console.log(`✅ ${migration} applied`)
-		} catch (e) {
-			console.error(`❌ ${migration} failed`)
-			console.error(e)
-			process.exit(1)
-		}
+	const summary: string[] = []
+	try {
+		migrate(summary)
+	} catch (e) {
+		console.error(e)
+		console.error(summary.join('\n'))
+		console.error('🧹 Rolling back...')
+		process.exit(1)
 	}
+	console.log(summary.join('\n'))
+	// need to do this to close the connection
+	process.exit(0)
 }
 
-run().catch((e) => {
-	console.error(e)
-	process.exit(1)
-})
+run()
