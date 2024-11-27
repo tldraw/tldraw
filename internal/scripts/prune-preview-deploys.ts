@@ -4,7 +4,13 @@ import { nicelog } from './lib/nicelog'
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
-const env = makeEnv(['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_API_TOKEN', 'GH_TOKEN'])
+const env = makeEnv([
+	'CLOUDFLARE_ACCOUNT_ID',
+	'CLOUDFLARE_API_TOKEN',
+	'GH_TOKEN',
+	'NEON_API_KEY',
+	'NEON_PROJECT_ID',
+])
 
 interface ListWorkersResult {
 	success: boolean
@@ -60,20 +66,32 @@ async function ListPreviewWorkerDeployments() {
 }
 
 async function deletePreviewWorkerDeployment(id: string) {
-	const res = await fetch(
-		`https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${id}`,
-		{
-			method: 'DELETE',
-			headers: {
-				Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
-				'Content-Type': 'application/json',
-			},
-		}
-	)
+	const url = `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/workers/scripts/${id}`
+	console.log('DELETE', url)
+	const res = await fetch(url, {
+		method: 'DELETE',
+		headers: {
+			Authorization: `Bearer ${env.CLOUDFLARE_API_TOKEN}`,
+			'Content-Type': 'application/json',
+		},
+	})
+	console.log('status', res.status)
 
 	if (!res.ok) {
 		throw new Error('Failed to delete worker ' + JSON.stringify(await res.json()))
 	}
+}
+
+async function deletePreviewDatabase(prNumber: number) {
+	const url = `https://console.neon.tech/api/v2/projects/${env.NEON_PROJECT_ID}/branches/pr-${prNumber}`
+	console.log('DELETE', url)
+	const res = await fetch(url, {
+		method: 'DELETE',
+		headers: {
+			Authorization: `Bearer ${env.NEON_API_KEY}`,
+		},
+	})
+	console.log('status', res.status)
 }
 
 async function main() {
@@ -83,6 +101,7 @@ async function main() {
 		if (await isPrClosedForAWhile(prNumber)) {
 			nicelog(`Deleting ${deployment} because PR is closed`)
 			await deletePreviewWorkerDeployment(deployment)
+			await deletePreviewDatabase(prNumber)
 		} else {
 			nicelog(`Skipping ${deployment} because PR is still open`)
 		}
