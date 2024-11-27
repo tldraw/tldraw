@@ -7,7 +7,7 @@ on:
 jobs:
   deploy:
     name: Deploy docs on release edit
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest
     steps:
       - name: Call deploy webhook
         run: curl -X POST "$VERCEL_DOCS_DEPLOY_WEBHOOK_URL"
