@@ -40,8 +40,7 @@ jobs:
 
       - name: Delete Neon Branch
         uses: neondatabase/delete-branch-action@v3.1.3
-        # only run if the PR has a label called 'reset-db'
-        if: contains(github.event.pull_request.labels.*.name, 'reset-db')
+        if: contains(github.event.pull_request.labels.*.name, 'reset-preview-db')
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch: preview/${{ github.event.number }}
