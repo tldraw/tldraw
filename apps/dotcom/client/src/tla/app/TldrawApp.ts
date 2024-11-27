@@ -509,39 +509,32 @@ export class TldrawApp {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
 	}
 
-	updateFileState(fileId: string, cb: (fileState: TlaFileState) => Partial<TlaFileState>) {
+	updateFileState(fileId: string, partial: Partial<TlaFileState>) {
 		const fileState = this.getFileState(fileId)
 		if (!fileState) return
-		// remove relationship because zero complains
-		const { file: _, ...rest } = fileState
-		this.z.mutate.file_state.update({ ...cb(rest), fileId, userId: fileState.userId })
+		this.z.mutate.file_state.update({ ...partial, fileId, userId: fileState.userId })
 	}
 
 	async onFileEnter(fileId: string) {
 		await this.getOrCreateFileState(fileId)
-		this.updateFileState(fileId, (fileState) => ({
-			firstVisitAt: fileState.firstVisitAt ?? Date.now(),
+		this.updateFileState(fileId, {
 			lastVisitAt: Date.now(),
-		}))
+		})
 	}
 
 	onFileEdit(fileId: string) {
-		this.updateFileState(fileId, () => ({
-			lastEditAt: Date.now(),
-		}))
+		this.updateFileState(fileId, { lastEditAt: Date.now() })
 	}
 
 	onFileSessionStateUpdate(fileId: string, sessionState: TLSessionStateSnapshot) {
-		this.updateFileState(fileId, () => ({
+		this.updateFileState(fileId, {
 			lastSessionState: JSON.stringify(sessionState),
 			lastVisitAt: Date.now(),
-		}))
+		})
 	}
 
 	onFileExit(fileId: string) {
-		this.updateFileState(fileId, () => ({
-			lastVisitAt: Date.now(),
-		}))
+		this.updateFileState(fileId, { lastVisitAt: Date.now() })
 	}
 
 	static async create(opts: {
