@@ -1,6 +1,8 @@
 -- This file adds a column to the file_state table that indicates whether the user is the owner of the file.
 -- To make sure it is always up to date, we add two triggers that update the column when the file or file_state table is updated.
 
+BEGIN;
+
 ALTER TABLE file_state
 ADD COLUMN "isFileOwner" BOOLEAN;
 
@@ -31,3 +33,5 @@ FOR EACH ROW EXECUTE FUNCTION update_file_state_on_file_change();
 -- popluating the isFileOwner column with no-op update
 UPDATE file_state
 SET "userId" = file_state."userId";
+
+COMMIT;

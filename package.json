@@ -108,7 +108,7 @@
 		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
 		"tsutils": "^3.21.0",
-		"tsx": "^4.19.2",
+		"tsx": "^4.0.0",
 		"typescript": "~5.4.2",
 		"vercel": "^34.2.4"
 	},
