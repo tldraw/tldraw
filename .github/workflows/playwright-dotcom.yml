@@ -19,7 +19,7 @@ jobs:
   build:
     name: 'End to end tests (dotcom)'
     timeout-minutes: 40
-    runs-on: ubuntu-latest-4-cores-open
+    runs-on: ubuntu-latest-8-cores-open
     environment: 'e2e-dotcom'
 
     steps:
