@@ -24,6 +24,19 @@ CREATE TABLE IF NOT EXISTS migrations.applied_migrations (
 );
 `
 
+/**
+INSERT INTO migrations.applied_migrations (filename) VALUES 
+('000_seed.sql'),
+('001_replicator_boot.sql'),
+('002_add_user_id.sql'),
+('003_make_published_slug_unique.sql'),
+('004_guest_column_on_file_state.sql'),
+('005_update_file_trigger.sql'),
+('006_add_file_soft_delete.sql'),
+('007_update_file_owner_details.sql')
+ON CONFLICT DO NOTHING;
+ */
+
 async function waitForPostgres() {
 	let attempts = 0
 	do {
