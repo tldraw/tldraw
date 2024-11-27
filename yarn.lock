@@ -7480,7 +7480,7 @@ __metadata:
     concurrently: "npm:^9.0.1"
     dotenv: "npm:^16.4.5"
     lazyrepo: "npm:0.0.0-alpha.27"
-    postgres: "npm:^3.4.5"
+    postgres: "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch"
     tsx: "npm:^4.19.2"
   languageName: unknown
   linkType: soft
@@ -20192,7 +20192,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postgres@npm:3.4.5, postgres@npm:^3.4.5":
+"postgres@npm:3.4.5":
   version: 3.4.5
   resolution: "postgres@npm:3.4.5"
   checksum: b51341a8640bd63c42caf2a866c8b6bcac0d4cc1b85985f01eb3fd941eb7bf3fe5200bcf6983eaa1d42ae7555d85f4ff51d35916b5543b95aecfe98b76213611

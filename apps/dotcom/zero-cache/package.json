@@ -25,7 +25,7 @@
 	"devDependencies": {
 		"dotenv": "^16.4.5",
 		"lazyrepo": "0.0.0-alpha.27",
-		"postgres": "^3.4.5",
+		"postgres": "patch:postgres@npm%3A3.4.5#~/.yarn/patches/postgres-npm-3.4.5-8a680ccbcd.patch",
 		"tsx": "^4.19.2"
 	}
 }
