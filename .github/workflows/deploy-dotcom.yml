@@ -43,7 +43,7 @@ jobs:
         if: contains(github.event.pull_request.labels.*.name, 'reset-preview-db')
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview/${{ github.event.number }}
+          branch: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
 
       - id: create-branch
@@ -54,7 +54,7 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           username: 'dotcom-preview_owner'
           database: dotcom-preview
-          branch_name: preview/${{ github.event.number }}
+          branch_name: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }} # Generate an API key in your Neon account settings
 
       - run: |
