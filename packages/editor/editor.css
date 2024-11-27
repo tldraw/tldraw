@@ -911,11 +911,14 @@ input,
 .tl-rich-text-tiptap h3,
 .tl-rich-text-tiptap h4,
 .tl-rich-text-tiptap h5,
-.tl-rich-text-tiptap h6,
-.tl-rich-text-tiptap ul,
-.tl-rich-text-tiptap ol {
+.tl-rich-text-tiptap h6 {
 	margin-top: 5px;
 	margin-bottom: 10px;
+}
+
+.tl-rich-text-tiptap ul,
+.tl-rich-text-tiptap ol {
+	margin: 0;
 }
 
 .tl-rich-text-tiptap strong {

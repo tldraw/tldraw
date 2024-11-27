@@ -2136,7 +2136,7 @@ export function TldrawUiComponentsProvider({ overrides, children, }: TLUiCompone
 export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderProps>;
 
 // @public
-export const TldrawUiContextualToolbar: ({ children, position, }: TLUiContextualToolbarProps) => JSX_2.Element;
+export const TldrawUiContextualToolbar: ForwardRefExoticComponent<TLUiContextualToolbarProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
@@ -2478,8 +2478,13 @@ export interface TLUiContextualToolbarProps {
     // (undocumented)
     children?: React.ReactNode;
     // (undocumented)
+    className?: string;
+    // (undocumented)
+    hideIndicator?: boolean;
+    // (undocumented)
+    indicatorOffset?: number;
+    // (undocumented)
     position: {
-        isMobile: boolean;
         left: number;
         top: number;
     };

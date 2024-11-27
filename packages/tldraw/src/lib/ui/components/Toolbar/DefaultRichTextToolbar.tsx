@@ -26,18 +26,18 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		editor,
 	])
 	const [textEditorState, setTextEditorState] = useState<TextEditorState | null>(textEditor?.state)
-	const [isSelectingText, setSelectingText] = useState(false)
+	const [isSelectingText, setIsSelectingText] = useState(false)
 	const [shouldAllowToolbarClick, setShouldAllowToolbarClick] = useState(false)
 	const hasSelection = !textEditorState?.selection.empty
 
 	useEffect(() => {
 		const handleMouseDown = () => {
-			setSelectingText(true)
+			setIsSelectingText(true)
 			setShouldAllowToolbarClick(hasSelection)
 		}
 
 		const handleMouseUp = () => {
-			setSelectingText(false)
+			setIsSelectingText(false)
 			setShouldAllowToolbarClick(true)
 		}
 
@@ -80,44 +80,45 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		shouldAllowToolbarClick,
 	})
 
-	if (!textEditor || !shouldShowToolbar(editor, textEditorState)) return null
-
 	const handleEditLinkIntent = () => setIsEditingLink(true)
 	const handleLinkComplete = () => setIsEditingLink(false)
 
+	// This helps make the toolbar less spastic as the selection changes.
 	const isSelectionOnSameLine = previousTop.current === toolbarPosition.top
 	previousTop.current = toolbarPosition.top
 
+	useEffect(() => {
+		toolbarRef.current?.setAttribute('data-has-selection', hasSelection.toString())
+		toolbarRef.current?.setAttribute('data-is-selecting-text', isSelectingText.toString())
+		toolbarRef.current?.setAttribute(
+			'data-is-selection-on-same-line',
+			isSelectionOnSameLine.toString()
+		)
+	}, [hasSelection, isSelectingText, isSelectionOnSameLine])
+
+	if (!textEditor || !shouldShowToolbar(editor, textEditorState)) return null
+
 	return (
-		<TldrawUiContextualToolbar position={toolbarPosition}>
-			<div
-				ref={toolbarRef}
-				className="tl-rich-text__toolbar"
-				data-has-selection={hasSelection}
-				data-is-selecting-text={isSelectingText}
-				data-is-selection-on-same-line={isSelectionOnSameLine}
-			>
-				<div
-					className="tl-rich-text__toolbar-indicator"
-					style={{ left: `calc(50% - var(--arrow-size) - ${toolbarPosition.offset}px)` }}
+		<TldrawUiContextualToolbar
+			ref={toolbarRef}
+			className="tl-rich-text__toolbar"
+			position={toolbarPosition}
+			indicatorOffset={toolbarPosition.indicatorOffset}
+		>
+			{children ? (
+				children
+			) : isEditingLink ? (
+				<LinkEditor
+					textEditor={textEditor}
+					value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
+					onComplete={handleLinkComplete}
 				/>
-				<div className="tlui-toolbar__tools" role="radiogroup">
-					{children ? (
-						children
-					) : isEditingLink ? (
-						<LinkEditor
-							textEditor={textEditor}
-							value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
-							onComplete={handleLinkComplete}
-						/>
-					) : (
-						<DefaultRichTextToolbarItems
-							textEditor={textEditor}
-							onEditLinkIntent={handleEditLinkIntent}
-						/>
-					)}
-				</div>
-			</div>
+			) : (
+				<DefaultRichTextToolbarItems
+					textEditor={textEditor}
+					onEditLinkIntent={handleEditLinkIntent}
+				/>
+			)}
 		</TldrawUiContextualToolbar>
 	)
 })
@@ -134,9 +135,8 @@ function shouldShowToolbar(editor: Editor, textEditorState: TextEditorState | nu
 const defaultPosition = {
 	top: -1000,
 	left: -1000,
-	offset: 0,
+	indicatorOffset: 0,
 	visible: false,
-	isMobile: false,
 }
 
 interface Coordinates {
@@ -195,9 +195,8 @@ function usePosition({
 		return {
 			top: viewportHeight - menuHeight - 16,
 			left: container.clientWidth / 2 - menuWidth / 2,
-			offset: 0,
+			indicatorOffset: 0,
 			visible: true,
-			isMobile: true,
 		}
 	}
 
@@ -205,8 +204,8 @@ function usePosition({
 	let fromPos: Coordinates
 	let toPos: Coordinates
 	try {
-		fromPos = view.coordsAtPos(selection.from)
-		toPos = view.coordsAtPos(selection.to, -1)
+		fromPos = Object.assign({}, view.coordsAtPos(selection.from))
+		toPos = Object.assign({}, view.coordsAtPos(selection.to, -1))
 
 		// Need to account for the view being positioned within the container not just the entire
 		// window.
@@ -254,7 +253,7 @@ function usePosition({
 	// the position of the triangle underneath to correctly point to the center
 	// of the selection still.
 	const toolbarIndicatorPadding = 20
-	const offset = Math.max(
+	const indicatorOffset = Math.max(
 		(-1 * menuWidth) / 2 + toolbarIndicatorPadding,
 		Math.min(menuWidth / 2 - toolbarIndicatorPadding, left - (centerOfSelection - menuWidth / 2))
 	)
@@ -262,8 +261,7 @@ function usePosition({
 	return {
 		top: Math.round(top + container.scrollTop),
 		left: Math.round(left + container.scrollLeft),
-		offset: Math.round(offset),
+		indicatorOffset: Math.round(indicatorOffset),
 		visible: true,
-		isMobile: false,
 	}
 }
