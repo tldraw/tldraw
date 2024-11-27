@@ -9,6 +9,7 @@ export {
 	Validator,
 	type ExtractOptionalKeys,
 	type ExtractRequiredKeys,
+	type MakeUndefinedOptional,
 	type UnionValidatorConfig,
 } from './lib/validation'
 export { T }

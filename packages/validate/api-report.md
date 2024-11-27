@@ -80,6 +80,13 @@ function literal<T extends boolean | number | string>(expectedValue: T): Validat
 // @public (undocumented)
 function literalEnum<const Values extends readonly unknown[]>(...values: Values): Validator<Values[number]>;
 
+// @public (undocumented)
+export type MakeUndefinedOptional<T extends object> = Expand<{
+    [P in ExtractRequiredKeys<T>]: T[P];
+} & {
+    [P in ExtractOptionalKeys<T>]?: T[P];
+}>;
+
 // @public
 function model<T extends {
     readonly id: string;
@@ -103,11 +110,7 @@ function numberUnion<Key extends string, Config extends UnionValidatorConfig<Key
 // @public
 function object<Shape extends object>(config: {
     readonly [K in keyof Shape]: Validatable<Shape[K]>;
-}): ObjectValidator<Expand<{
-    [P in ExtractRequiredKeys<Shape>]: Shape[P];
-} & {
-    [P in ExtractOptionalKeys<Shape>]?: Shape[P];
-}>>;
+}): ObjectValidator<MakeUndefinedOptional<Shape>>;
 
 // @public (undocumented)
 export class ObjectValidator<Shape extends object> extends Validator<Shape> {
@@ -187,6 +190,7 @@ declare namespace T {
         unknownObject,
         ExtractRequiredKeys,
         ExtractOptionalKeys,
+        MakeUndefinedOptional,
         jsonValue,
         linkUrl,
         srcUrl,
