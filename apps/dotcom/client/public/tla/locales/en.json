@@ -20,11 +20,17 @@
   "0b9a4cde72": {
     "translation": "File menu"
   },
+  "0dd7888283": {
+    "translation": "Highlight missing"
+  },
   "110a4b01be": {
     "translation": "Publish"
   },
   "13ddd375ad": {
     "translation": "Export as"
+  },
+  "180e7f10e7": {
+    "translation": "Long string"
   },
   "181b90f889": {
     "translation": "Create file"
@@ -103,6 +109,9 @@
   },
   "7573b8110a": {
     "translation": "No access"
+  },
+  "7855c2abb8": {
+    "translation": "Accented"
   },
   "7cb5f8b4a5": {
     "translation": "Forget"

@@ -16,7 +16,7 @@ import { TldrawApp } from '../../../app/TldrawApp'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getCurrentEditor } from '../../../utils/getCurrentEditor'
-import { F, defineMessages, useMsg } from '../../../utils/i18n'
+import { F, MessageDescriptor, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,
@@ -162,7 +162,10 @@ function ExportFormatSelect({
 	)
 }
 
-const messages = defineMessages({
+const messages = defineMessages<
+	TldrawAppSessionState['exportSettings']['exportTheme'],
+	MessageDescriptor
+>({
 	auto: { defaultMessage: 'Auto' },
 	light: { defaultMessage: 'Light' },
 	dark: { defaultMessage: 'Dark' },

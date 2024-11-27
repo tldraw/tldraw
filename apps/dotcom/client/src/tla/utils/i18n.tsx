@@ -66,7 +66,9 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 }
 
 // We programmatically define ID's for messages to make things easier for devs.
-export function defineMessages(values: Record<string | number | symbol, MessageDescriptor>) {
+export function defineMessages<T extends string | number | symbol, D extends MessageDescriptor>(
+	values: Record<T, D>
+): Record<T, D> {
 	for (const key in values) {
 		if (!values[key].id) {
 			values[key].id = generateId(values[key])

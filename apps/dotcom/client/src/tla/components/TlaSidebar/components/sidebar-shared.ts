@@ -10,4 +10,8 @@ export const messages = defineMessages({
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	accountMenu: { defaultMessage: 'Account menu' },
 	fileMenu: { defaultMessage: 'File menu' },
+	langAccented: { defaultMessage: 'Accented' },
+	langLongString: { defaultMessage: 'Long string' },
+	langHighlightMissing: { defaultMessage: 'Highlight missing' },
+	appDebugFlags: { defaultMessage: 'App debug flags' },
 })
