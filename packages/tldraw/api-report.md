@@ -3906,9 +3906,6 @@ export function useReadonly(): boolean;
 // @public (undocumented)
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
 
-// @public
-export function useSelectionToPageBox(): Box;
-
 // @public (undocumented)
 export function useShowCollaborationUi(): boolean;
 

@@ -782,8 +782,7 @@ input,
 }
 
 .tl-text-wrapper[data-isediting='true'] .tl-text-content {
-	opacity: 0;
-	display: none; /* todo */
+	display: none;
 }
 
 .tl-text {
@@ -946,22 +945,13 @@ input,
 	}
 }
 
-.tl-rich-text {
+.tl-text-label__inner > .tl-text-input.tl-rich-text {
 	display: none;
-	position: static !important; /* todo */
-}
-
-.tl-rich-text.tl-text-input {
-	/* TODO, can I get rid of the original rule? */
-	overflow: visible;
+	position: static;
 }
 
 .tl-text-wrapper[data-isediting='true'] .tl-rich-text {
 	display: block;
-}
-
-.tl-text-wrapper[data-isediting='true'] .tl-rich-text p {
-	opacity: 1; /* todo */
 }
 
 /* ------------------- Snap Lines ------------------- */
@@ -1246,10 +1236,6 @@ input,
 .tl-text-label[data-isediting='true'] {
 	background-color: transparent;
 	min-height: auto;
-}
-
-.tl-text-label[data-isediting='true'] p {
-	opacity: 0;
 }
 
 .tl-arrow-hint {

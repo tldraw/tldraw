@@ -1,6 +1,5 @@
 import { Box, useEditor, useValue } from '@tldraw/editor'
 import { RefObject } from 'react'
-import { useSelectionToPageBox } from './useSelectionToPageBox'
 import useViewportHeight from './useViewportHeight'
 
 const defaultPosition = {
@@ -35,7 +34,9 @@ export function useContextualToolbarPosition({
 	selectionBounds?: Box
 }) {
 	const editor = useEditor()
-	const editorSelectionBounds = useSelectionToPageBox()
+	const selectionToPageBox = useValue('selectionToPageBox', () => editor.getSelectionToPageBox(), [
+		editor,
+	])
 	const container = editor.getContainer()
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
@@ -43,7 +44,7 @@ export function useContextualToolbarPosition({
 		[editor]
 	)
 	const viewportHeight = useViewportHeight()
-	selectionBounds = selectionBounds ?? editorSelectionBounds
+	selectionBounds = selectionBounds ?? selectionToPageBox
 
 	if (!toolbarRef?.current) return defaultPosition
 	const { width: menuWidth, height: menuHeight } = toolbarRef.current.getBoundingClientRect()

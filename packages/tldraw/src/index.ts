@@ -440,7 +440,6 @@ export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { usePreloadAssets } from './lib/ui/hooks/usePreloadAssets'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
-export { useSelectionToPageBox } from './lib/ui/hooks/useSelectionToPageBox'
 export {
 	useTools,
 	type TLUiToolItem,

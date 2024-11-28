@@ -1,9 +1,8 @@
 import { Editor as TextEditor, EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
-import { Box, Editor, track, useEditor, useValue } from '@tldraw/editor'
+import { Box, Editor, areObjectsShallowEqual, track, useEditor, useValue } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
-import { useSelectionToPageBox } from '../../hooks/useSelectionToPageBox'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
 import { LinkEditor } from './LinkEditor'
@@ -19,11 +18,20 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	children?: React.ReactNode
 }) {
 	const editor = useEditor()
-	useSelectionToPageBox()
 	const toolbarRef = useRef<HTMLDivElement>(null)
-	const previousTop = useRef(-1000)
+	const previousTop = useRef(defaultPosition.y)
+	const [currentSelectionToPageBox, setCurrentSelectionToPageBox] = useState(
+		Box.From(defaultPosition)
+	)
+	const [stabilizedToolbarPosition, setStabilizedToolbarPosition] = useState({
+		x: defaultPosition.x,
+		y: defaultPosition.y,
+	})
 	const [isEditingLink, setIsEditingLink] = useState(false)
 	const textEditor: TextEditor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
+		editor,
+	])
+	const selectionToPageBox = useValue('selectionToPageBox', () => editor.getSelectionToPageBox(), [
 		editor,
 	])
 	const [textEditorState, setTextEditorState] = useState<TextEditorState | null>(textEditor?.state)
@@ -86,8 +94,8 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	const handleLinkComplete = () => setIsEditingLink(false)
 
 	// This helps make the toolbar less spastic as the selection changes.
-	const isSelectionOnSameLine = previousTop.current === toolbarPosition.y
-	previousTop.current = toolbarPosition.y
+	const isSelectionOnSameLine = previousTop.current === stabilizedToolbarPosition.y
+	previousTop.current = stabilizedToolbarPosition.y
 
 	useEffect(() => {
 		toolbarRef.current?.setAttribute('data-is-selecting-text', isSelectingText.toString())
@@ -97,13 +105,39 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		)
 	}, [hasSelection, isSelectingText, isSelectionOnSameLine])
 
+	useEffect(() => {
+		if (toolbarPosition.y === defaultPosition.y) return
+
+		const areSelectionBoundsUpdated = !areObjectsShallowEqual(
+			selectionToPageBox,
+			currentSelectionToPageBox
+		)
+
+		// A bit annoying but we need to stabilize the toolbar position so it doesn't jump around when modifying the rich text.
+		// The issue stems from the fact that coordsAtPos provides slightly different results for the same general position.
+		const hasXPositionChangedEnough =
+			areSelectionBoundsUpdated || Math.abs(toolbarPosition.x - stabilizedToolbarPosition.x) > 10
+		const hasYPositionChangedEnough =
+			areSelectionBoundsUpdated || Math.abs(toolbarPosition.y - stabilizedToolbarPosition.y) > 10
+		if (hasXPositionChangedEnough || hasYPositionChangedEnough) {
+			setStabilizedToolbarPosition({
+				x: hasXPositionChangedEnough ? toolbarPosition.x : stabilizedToolbarPosition.x,
+				y: hasYPositionChangedEnough ? toolbarPosition.y : stabilizedToolbarPosition.y,
+			})
+		}
+
+		if (areSelectionBoundsUpdated) {
+			setCurrentSelectionToPageBox(selectionToPageBox)
+		}
+	}, [toolbarPosition, stabilizedToolbarPosition, selectionToPageBox, currentSelectionToPageBox])
+
 	if (!textEditor || !shouldShowToolbar(editor, textEditorState)) return null
 
 	return (
 		<TldrawUiContextualToolbar
 			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
-			position={toolbarPosition}
+			position={stabilizedToolbarPosition}
 			isVisible={hasSelection}
 			indicatorOffset={toolbarPosition.indicatorOffset}
 		>
@@ -172,8 +206,7 @@ function getTextSelectionBounds(editor: Editor, textEditor: TextEditor) {
 		const containerRect = container.getBoundingClientRect()
 		adjustPosition(fromPos, containerRect)
 		adjustPosition(toPos, containerRect)
-	} catch (err) {
-		console.warn(err)
+	} catch {
 		return Box.From(defaultPosition)
 	}
 
