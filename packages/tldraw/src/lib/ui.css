@@ -983,7 +983,7 @@
 		opacity 150ms var(--animation-curve),
 		transform 150ms var(--animation-curve),
 		left 150ms var(--animation-curve);
-	transition-delay: 150ms;
+	transition-delay: 100ms;
 }
 
 .tl-rich-text__toolbar-link-input {
