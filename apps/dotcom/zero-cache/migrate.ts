@@ -6,11 +6,12 @@ import postgres from 'postgres'
 const postgresConnectionString: string =
 	process.env.CI === 'true'
 		? process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING!
-		: 'postgresql://user:password@127.0.0.1:6543/postgres'
+		: 'postgresql://dotcom_owner:DMt67fbPcCgT@ep-plain-shadow-a2ogb3bl-pooler.eu-central-1.aws.neon.tech/dotcom?sslmode=require'
 
 if (!postgresConnectionString) {
 	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
 }
+console.log('Using connection string:', postgresConnectionString)
 
 const migrationsPath = `./migrations`
 if (!existsSync(migrationsPath)) {
@@ -49,7 +50,7 @@ async function waitForPostgres() {
 			await sql`SELECT 1`
 			break
 		} catch (_e) {
-			if (attempts++ > 20) {
+			if (attempts++ > 100) {
 				throw new Error('Failed to connect to postgres')
 			}
 			console.log('Waiting for postgres' + '.'.repeat(attempts))
