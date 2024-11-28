@@ -290,10 +290,6 @@
 	flex: 0 0 auto;
 }
 
-.section {
-	background: var(--tla-color-sidebar);
-}
-
 .section_title {
 	position: relative;
 	width: 100%;
