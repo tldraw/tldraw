@@ -2,7 +2,7 @@ import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { useContainer, useValue } from 'tldraw'
+import { preventDefault, useContainer, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -76,6 +76,8 @@ export function TlaSidebarFileLinkInner({
 	const [isRenaming, setIsRenaming] = useState(debugIsRenaming)
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameClose = () => setIsRenaming(false)
+	const params = useParams()
+	const { fileSlug } = params
 	const app = useApp()
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
@@ -105,7 +107,13 @@ export function TlaSidebarFileLinkInner({
 				</div>
 			</div>
 			<Link
-				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
+				onClick={(event) => {
+					// Don't navigate if we are already on the file page
+					if (fileSlug && fileSlug === fileId) {
+						preventDefault(event)
+					}
+					trackEvent('click-file-link', { source: 'sidebar' })
+				}}
 				to={href}
 				className={styles.linkButton}
 			/>
