@@ -53,7 +53,7 @@ jobs:
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           username: 'dotcom_owner'
-          database: 'dotcom_staging'
+          database: 'dotcom'
           branch_name: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }} # Generate an API key in your Neon account settings
 
