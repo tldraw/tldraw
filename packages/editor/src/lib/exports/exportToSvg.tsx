@@ -45,6 +45,9 @@ export async function exportToSvg(
 	// create a react root...
 	const root = createRoot(renderTarget, { identifierPrefix: `export_${idCounter++}_` })
 	try {
+		// ...wait for a tick so we know we're not in e.g. a react lifecycle method...
+		await Promise.resolve()
+
 		// ...and render the SVG into it.
 		flushSync(() => {
 			root.render(result.jsx)
@@ -57,6 +60,10 @@ export async function exportToSvg(
 		// Extract the rendered SVG element from the react root
 		const svg = renderTarget.firstElementChild
 		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
+
+		if (!svg.querySelector('defs > style')) {
+			debugger
+		}
 
 		// And apply any changes to <foreignObject> elements that we need to make. Whilst we're in
 		// the document, these elements work exactly as we'd expect from other dom elements - they

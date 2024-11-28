@@ -537,6 +537,17 @@ const snapshots: Snapshots = {
 			),
 		},
 	},
+	Regressions: {
+		'#5020': {
+			'scaled text within a frame': (
+				<TL.frame w={300} h={200}>
+					<TL.text text="the text" x={-30} y={0} />
+					<TL.text text="the text" x={-60} y={50} scale={2} />
+					<TL.text text="the text" x={-90} y={100} scale={3} />
+				</TL.frame>
+			),
+		},
+	},
 }
 
 interface SnapshotWithoutJsx {
