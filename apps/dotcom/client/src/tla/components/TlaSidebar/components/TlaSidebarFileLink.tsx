@@ -79,6 +79,7 @@ export function TlaSidebarFileLinkInner({
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameClose = () => setIsRenaming(false)
 	const handleKeyDown = (e: KeyboardEvent) => {
+		if (!isActive) return
 		if (e.key === 'Enter') {
 			handleRenameAction()
 		}
