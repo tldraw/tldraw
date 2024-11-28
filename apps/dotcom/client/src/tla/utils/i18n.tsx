@@ -66,18 +66,15 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 }
 
 // We programmatically define ID's for messages to make things easier for devs.
-export function defineMessages<
-	K extends keyof any,
-	T = MessageDescriptor,
-	U extends Record<K, T> = Record<K, T>,
->(msgs: U): U {
+export function defineMessages<T extends string, D extends MessageDescriptor>(
+	msgs: Record<T, D>
+): Record<T, D> {
 	for (const key in msgs) {
-		const message = msgs[key] as MessageDescriptor
-		if (!message.id) {
-			message.id = generateId(message)
+		if (!msgs[key].id) {
+			msgs[key].id = generateId(msgs[key])
 		}
 	}
-	return originalDefineMessages(msgs as Record<string, MessageDescriptor>) as U
+	return originalDefineMessages(msgs)
 }
 
 export function isInternalLocale(locale: string) {
