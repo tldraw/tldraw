@@ -1,4 +1,3 @@
-BEGIN;
 ALTER TABLE "file"
 ADD COLUMN "ownerName" VARCHAR DEFAULT '' NOT NULL;
 ALTER TABLE "file"
@@ -41,5 +40,3 @@ CREATE TRIGGER "set_file_owner_details_trigger"
 AFTER INSERT OR UPDATE OF "ownerId" ON "file"
 FOR EACH ROW
 EXECUTE FUNCTION set_file_owner_details();
-
-COMMIT;

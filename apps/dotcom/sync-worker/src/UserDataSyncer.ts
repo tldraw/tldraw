@@ -18,7 +18,6 @@ import {
 	parseResultRow,
 	userKeys,
 } from './getFetchEverythingSql'
-import { getPostgres } from './getPostgres'
 import { Environment } from './types'
 import { getReplicator } from './utils/durableObjects'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
@@ -87,7 +86,6 @@ export class UserDataSyncer {
 		promise: promiseWithResolve(),
 	}
 	replicator: TLPostgresReplicator
-	db: postgres.Sql
 
 	store = new OptimisticAppStore()
 	mutations: { mutationNumber: number; mutationId: string }[] = []
@@ -103,14 +101,14 @@ export class UserDataSyncer {
 	}
 
 	constructor(
-		private ctx: DurableObjectState,
-		private env: Environment,
+		ctx: DurableObjectState,
+		env: Environment,
+		private db: postgres.Sql,
 		private userId: string,
 		private broadcast: (message: ZServerSentMessage) => void
 	) {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
-		this.db = getPostgres(env)
 		this.reboot(false)
 	}
 
