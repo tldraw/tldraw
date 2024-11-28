@@ -1,14 +1,15 @@
 /* eslint-disable no-console */
-import dotenv from 'dotenv'
 import { existsSync, readdirSync } from 'fs'
 import { createServer } from 'http'
 import postgres from 'postgres'
-dotenv.config()
 
 const postgresConnectionString: string =
-	process.env.BOTCOM_POSTGRES_CONNECTION_STRING! || process.env.ZSTART_DB!
+	process.env.CI === 'true'
+		? process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING!
+		: 'postgresql://user:password@127.0.0.1:6543/postgres'
+
 if (!postgresConnectionString) {
-	throw new Error('Missing BOTCOM_POSTGRES_CONNECTION_STRING or ZSTART_DB in .env')
+	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
 }
 
 const migrationsPath = `./migrations`

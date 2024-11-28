@@ -45,7 +45,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
 
-		this.db = getPostgres(env)
+		this.db = getPostgres(env, { pooled: true })
 		this.debug('created')
 	}
 
@@ -71,7 +71,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async init() {
 		assert(this.userId, 'User ID not set')
 		this.debug('init')
-		this.cache = new UserDataSyncer(this.ctx, this.env, this.userId, (message) =>
+		this.cache = new UserDataSyncer(this.ctx, this.env, this.db, this.userId, (message) =>
 			this.broadcast(message)
 		)
 		this.debug('cache', !!this.cache)
