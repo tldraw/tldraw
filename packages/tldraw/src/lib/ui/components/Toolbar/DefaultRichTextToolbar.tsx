@@ -20,9 +20,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
 	const previousTop = useRef(defaultPosition.y)
-	const [currentSelectionToPageBox, setCurrentSelectionToPageBox] = useState(
-		Box.From(defaultPosition)
-	)
+	const [currentCamera, setCurrentCamera] = useState(editor.getCamera())
 	const [stabilizedToolbarPosition, setStabilizedToolbarPosition] = useState({
 		x: defaultPosition.x,
 		y: defaultPosition.y,
@@ -31,9 +29,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	const textEditor: TextEditor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
 		editor,
 	])
-	const selectionToPageBox = useValue('selectionToPageBox', () => editor.getSelectionToPageBox(), [
-		editor,
-	])
+	const camera = useValue('camera', () => editor.getCamera(), [editor])
 	const [textEditorState, setTextEditorState] = useState<TextEditorState | null>(textEditor?.state)
 	const [isSelectingText, setIsSelectingText] = useState(false)
 	const [shouldAllowToolbarClick, setShouldAllowToolbarClick] = useState(false)
@@ -108,17 +104,14 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	useEffect(() => {
 		if (toolbarPosition.y === defaultPosition.y) return
 
-		const areSelectionBoundsUpdated = !areObjectsShallowEqual(
-			selectionToPageBox,
-			currentSelectionToPageBox
-		)
+		const hasCameraMoved = !areObjectsShallowEqual(camera, currentCamera)
 
 		// A bit annoying but we need to stabilize the toolbar position so it doesn't jump around when modifying the rich text.
 		// The issue stems from the fact that coordsAtPos provides slightly different results for the same general position.
 		const hasXPositionChangedEnough =
-			areSelectionBoundsUpdated || Math.abs(toolbarPosition.x - stabilizedToolbarPosition.x) > 10
+			hasCameraMoved || Math.abs(toolbarPosition.x - stabilizedToolbarPosition.x) > 10
 		const hasYPositionChangedEnough =
-			areSelectionBoundsUpdated || Math.abs(toolbarPosition.y - stabilizedToolbarPosition.y) > 10
+			hasCameraMoved || Math.abs(toolbarPosition.y - stabilizedToolbarPosition.y) > 10
 		if (hasXPositionChangedEnough || hasYPositionChangedEnough) {
 			setStabilizedToolbarPosition({
 				x: hasXPositionChangedEnough ? toolbarPosition.x : stabilizedToolbarPosition.x,
@@ -126,10 +119,10 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 			})
 		}
 
-		if (areSelectionBoundsUpdated) {
-			setCurrentSelectionToPageBox(selectionToPageBox)
+		if (hasCameraMoved) {
+			setCurrentCamera(camera)
 		}
-	}, [toolbarPosition, stabilizedToolbarPosition, selectionToPageBox, currentSelectionToPageBox])
+	}, [toolbarPosition, stabilizedToolbarPosition, camera, currentCamera])
 
 	if (!textEditor || !shouldShowToolbar(editor, textEditorState)) return null
 
