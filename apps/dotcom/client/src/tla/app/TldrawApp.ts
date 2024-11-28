@@ -71,11 +71,11 @@ export class TldrawApp {
 	}
 
 	toasts: TLUiToastsContextType | null = null
-	intl: IntlShape | null = null
 
 	private constructor(
 		public readonly userId: string,
-		getToken: () => Promise<string | null>
+		getToken: () => Promise<string | null>,
+		private intl: IntlShape
 	) {
 		const sessionId = uniqueId()
 		this.z = new Zero({
@@ -297,12 +297,8 @@ export class TldrawApp {
 		}
 
 		const createdAt = new Date(file.createdAt)
-		if (this.intl) {
-			const format = getDateFormat(createdAt)
-			return this.intl.formatDate(createdAt, format)
-		}
-		const locale = this.user$.get()?.locale
-		return new Date(createdAt).toLocaleString(locale ?? 'en-gb')
+		const format = getDateFormat(createdAt)
+		return this.intl.formatDate(createdAt, format)
 	}
 
 	claimTemporaryFile(fileId: string) {
@@ -557,13 +553,14 @@ export class TldrawApp {
 		email: string
 		avatar: string
 		getToken(): Promise<string | null>
+		intl: IntlShape
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken)
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.intl)
 		// @ts-expect-error
 		window.app = app
 		await app.preload({
