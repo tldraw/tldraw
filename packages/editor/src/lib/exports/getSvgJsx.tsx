@@ -37,8 +37,6 @@ import { ExportDelay } from './ExportDelay'
 export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportOptions = {}) {
 	if (!window.document) throw Error('No document')
 
-	console.log('getSvgJsx')
-
 	const {
 		scale = 1,
 		// should we include the background in the export? or is it transparent?
@@ -157,11 +155,9 @@ function SvgExport({
 		stateAtom.update((state) => {
 			if (hasOwnProperty(state.defsById, def.key)) return state
 
-			console.log('add def', def.key)
 			const promise = Promise.resolve(def.getElement())
 			waitUntil(
 				promise.then((result) => {
-					console.log('resolve def', def.key, result)
 					stateAtom.update((state) => ({
 						...state,
 						defsById: { ...state.defsById, [def.key]: { pending: false, element: result } },

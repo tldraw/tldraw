@@ -61,10 +61,6 @@ export async function exportToSvg(
 		const svg = renderTarget.firstElementChild
 		assert(svg instanceof SVGSVGElement, 'Expected an SVG element')
 
-		if (!svg.querySelector('defs > style')) {
-			debugger
-		}
-
 		// And apply any changes to <foreignObject> elements that we need to make. Whilst we're in
 		// the document, these elements work exactly as we'd expect from other dom elements - they
 		// can load external resources, and any stylesheets in the document apply to them as we
