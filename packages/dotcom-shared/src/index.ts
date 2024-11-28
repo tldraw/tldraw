@@ -1,5 +1,6 @@
 /* eslint-disable local/no-export-star */
 export * from './OptimisticAppStore'
+export * from './featureFlag'
 export { default as getLicenseKey } from './license'
 export {
 	READ_ONLY_LEGACY_PREFIX,

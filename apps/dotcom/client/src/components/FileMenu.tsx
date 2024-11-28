@@ -1,3 +1,4 @@
+import { OLD_FILE_CREATION_DISABLED } from '@tldraw/dotcom-shared'
 import { TldrawUiMenuActionItem, TldrawUiMenuGroup, TldrawUiMenuSubmenu } from 'tldraw'
 import {
 	FORK_PROJECT_ACTION,
@@ -16,13 +17,17 @@ export function LocalFileMenu() {
 		<TldrawUiMenuSubmenu id="file" label="menu.file">
 			<TldrawUiMenuGroup id="file-actions">
 				<TldrawUiMenuActionItem actionId={NEW_PROJECT_ACTION} />
-				<TldrawUiMenuActionItem actionId={NEW_SHARED_PROJECT_ACTION} />
+				{!OLD_FILE_CREATION_DISABLED && (
+					<TldrawUiMenuActionItem actionId={NEW_SHARED_PROJECT_ACTION} />
+				)}
 				<TldrawUiMenuActionItem actionId={OPEN_FILE_ACTION} />
 				<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="share">
-				<TldrawUiMenuActionItem actionId={SHARE_PROJECT_ACTION} />
-			</TldrawUiMenuGroup>
+			{!OLD_FILE_CREATION_DISABLED && (
+				<TldrawUiMenuGroup id="share">
+					<TldrawUiMenuActionItem actionId={SHARE_PROJECT_ACTION} />
+				</TldrawUiMenuGroup>
+			)}
 		</TldrawUiMenuSubmenu>
 	)
 }
@@ -34,8 +39,12 @@ export function MultiplayerFileMenu() {
 				<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="share">
-				<TldrawUiMenuActionItem actionId={NEW_SHARED_PROJECT_ACTION} />
-				<TldrawUiMenuActionItem actionId={FORK_PROJECT_ACTION} />
+				{!OLD_FILE_CREATION_DISABLED && (
+					<>
+						<TldrawUiMenuActionItem actionId={NEW_SHARED_PROJECT_ACTION} />
+						<TldrawUiMenuActionItem actionId={FORK_PROJECT_ACTION} />
+					</>
+				)}
 				<TldrawUiMenuActionItem actionId={LEAVE_SHARED_PROJECT_ACTION} />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>

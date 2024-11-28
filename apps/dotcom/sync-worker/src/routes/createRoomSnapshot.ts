@@ -1,4 +1,4 @@
-import { CreateSnapshotRequestBody } from '@tldraw/dotcom-shared'
+import { CreateSnapshotRequestBody, OLD_FILE_CREATION_DISABLED } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
@@ -12,6 +12,10 @@ export interface R2Snapshot {
 }
 
 export async function createRoomSnapshot(request: IRequest, env: Environment): Promise<Response> {
+	if (OLD_FILE_CREATION_DISABLED)
+		return new Response(JSON.stringify({ error: true, message: 'File creation is disabled' }), {
+			status: 400,
+		})
 	const data = (await request.json()) as CreateSnapshotRequestBody
 
 	const snapshotResult = validateSnapshot(data)
