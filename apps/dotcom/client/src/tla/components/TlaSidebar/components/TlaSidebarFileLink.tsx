@@ -87,7 +87,7 @@ export function TlaSidebarFileLinkInner({
 
 	useEffect(() => {
 		if (!isActive || !linkRef.current) return
-		linkRef.current?.focus()
+		linkRef.current.focus()
 	}, [isActive, linkRef])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
