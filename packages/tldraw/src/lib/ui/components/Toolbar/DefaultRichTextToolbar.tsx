@@ -1,9 +1,10 @@
 import { Editor as TextEditor, EditorEvents as TextEditorEvents } from '@tiptap/core'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
-import { Editor, track, useEditor, useValue } from '@tldraw/editor'
-import { RefObject, useEffect, useRef, useState } from 'react'
-import useViewportHeight from '../../hooks/useViewportHeight'
-import { TldrawUiContextualToolbar, useFollowCanvas } from '../primitives/TldrawUiContextualToolbar'
+import { Box, Editor, track, useEditor, useValue } from '@tldraw/editor'
+import { useEffect, useRef, useState } from 'react'
+import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
+import { useSelectionToPageBox } from '../../hooks/useSelectionToPageBox'
+import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
 import { LinkEditor } from './LinkEditor'
 
@@ -18,9 +19,9 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	children?: React.ReactNode
 }) {
 	const editor = useEditor()
-	useFollowCanvas()
+	useSelectionToPageBox()
 	const toolbarRef = useRef<HTMLDivElement>(null)
-	const previousTop = useRef(defaultPosition.top)
+	const previousTop = useRef(-1000)
 	const [isEditingLink, setIsEditingLink] = useState(false)
 	const textEditor: TextEditor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
 		editor,
@@ -73,22 +74,22 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		}
 	}, [textEditor])
 
-	const toolbarPosition = usePosition({
-		hasSelection,
+	// Based on the start and end of the selection calculate the position at the center top.
+	const selectionBounds = getTextSelectionBounds(editor, textEditor)
+	const toolbarPosition = useContextualToolbarPosition({
+		hasSelection: hasSelection && textEditor && shouldAllowToolbarClick,
 		toolbarRef,
-		textEditor,
-		shouldAllowToolbarClick,
+		selectionBounds,
 	})
 
 	const handleEditLinkIntent = () => setIsEditingLink(true)
 	const handleLinkComplete = () => setIsEditingLink(false)
 
 	// This helps make the toolbar less spastic as the selection changes.
-	const isSelectionOnSameLine = previousTop.current === toolbarPosition.top
-	previousTop.current = toolbarPosition.top
+	const isSelectionOnSameLine = previousTop.current === toolbarPosition.y
+	previousTop.current = toolbarPosition.y
 
 	useEffect(() => {
-		toolbarRef.current?.setAttribute('data-has-selection', hasSelection.toString())
 		toolbarRef.current?.setAttribute('data-is-selecting-text', isSelectingText.toString())
 		toolbarRef.current?.setAttribute(
 			'data-is-selection-on-same-line',
@@ -103,6 +104,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
 			position={toolbarPosition}
+			isVisible={hasSelection}
 			indicatorOffset={toolbarPosition.indicatorOffset}
 		>
 			{children ? (
@@ -132,13 +134,6 @@ function shouldShowToolbar(editor: Editor, textEditorState: TextEditorState | nu
 	return true
 }
 
-const defaultPosition = {
-	top: -1000,
-	left: -1000,
-	indicatorOffset: 0,
-	visible: false,
-}
-
 interface Coordinates {
 	top: number
 	bottom: number
@@ -146,61 +141,19 @@ interface Coordinates {
 	right: number
 }
 
-/*!
- * BSD License: https://github.com/outline/rich-markdown-editor/blob/main/LICENSE
- * Copyright (c) 2020 General Outline, Inc (https://www.getoutline.com/) and individual contributors.
- *
- * Modified from FloatingToolbar.tsx -> usePosition
- * https://github.com/outline/rich-markdown-editor/blob/main/src/components/FloatingToolbar.tsx
- *
- * The Outline editor was a Dropbox Paper clone, and I worked on Dropbox Paper as a founding engineer.
- * Now I'm working at tldraw adding rich text features to the editor and bringing those Paper/Outline
- * ideas to the tldraw editor using some Outline logic.
- * It all comes full circle! :)
- *
- * Returns the position of the toolbar based on the current selection in the editor.
- *
- * @public
- */
-function usePosition({
-	hasSelection,
-	toolbarRef,
-	textEditor,
-	shouldAllowToolbarClick,
-}: {
-	hasSelection: boolean
-	toolbarRef: RefObject<HTMLDivElement>
-	textEditor: TextEditor
-	shouldAllowToolbarClick: boolean
-}) {
-	const editor = useEditor()
-	const container = editor.getContainer()
-	const isCoarsePointer = useValue(
-		'isCoarsePointer',
-		() => editor.getInstanceState().isCoarsePointer,
-		[editor]
-	)
-	const viewportHeight = useViewportHeight()
+const defaultPosition = {
+	x: -1000,
+	y: -1000,
+	w: 0,
+	h: 0,
+}
 
-	if (!textEditor || !toolbarRef?.current) return defaultPosition
+function getTextSelectionBounds(editor: Editor, textEditor: TextEditor) {
+	if (!textEditor) return Box.From(defaultPosition)
+
+	const container = editor.getContainer()
 	const { view } = textEditor
 	const { selection } = view.state
-	const { width: menuWidth, height: menuHeight } = toolbarRef.current.getBoundingClientRect()
-
-	if (!hasSelection || !menuWidth || !menuHeight || !shouldAllowToolbarClick) {
-		return defaultPosition
-	}
-
-	if (isCoarsePointer) {
-		return {
-			top: viewportHeight - menuHeight - 16,
-			left: container.clientWidth / 2 - menuWidth / 2,
-			indicatorOffset: 0,
-			visible: true,
-		}
-	}
-
-	// Based on the start and end of the selection calculate the position at the center top.
 	let fromPos: Coordinates
 	let toPos: Coordinates
 	try {
@@ -221,47 +174,21 @@ function usePosition({
 		adjustPosition(toPos, containerRect)
 	} catch (err) {
 		console.warn(err)
-		return defaultPosition
+		return Box.From(defaultPosition)
 	}
 
 	// Ensure that start < end for the menu to be positioned correctly.
-	const selectionBounds = {
+	const coords = {
 		top: Math.min(fromPos.top, toPos.top),
 		bottom: Math.max(fromPos.bottom, toPos.bottom),
 		left: Math.min(fromPos.left, toPos.left),
 		right: Math.max(fromPos.right, toPos.right),
 	}
 
-	// Calcluate the horizontal center of the selection.
-	const halfSelection = Math.abs(selectionBounds.right - selectionBounds.left) / 2
-	const centerOfSelection = selectionBounds.left + halfSelection
-
-	// Position the menu so that it is centered over the selection except in
-	// the cases where it would extend off the edge of the screen. In these
-	// instances leave a margin.
-	const margin = 16
-	const left = Math.min(
-		container.clientWidth - menuWidth - margin,
-		Math.max(margin, centerOfSelection - menuWidth / 2)
-	)
-	const top = Math.min(
-		container.clientHeight - menuHeight - margin,
-		Math.max(margin, selectionBounds.top - menuHeight)
-	)
-
-	// If the menu has been offset to not extend offscreen then we should adjust
-	// the position of the triangle underneath to correctly point to the center
-	// of the selection still.
-	const toolbarIndicatorPadding = 20
-	const indicatorOffset = Math.max(
-		(-1 * menuWidth) / 2 + toolbarIndicatorPadding,
-		Math.min(menuWidth / 2 - toolbarIndicatorPadding, left - (centerOfSelection - menuWidth / 2))
-	)
-
-	return {
-		top: Math.round(top + container.scrollTop),
-		left: Math.round(left + container.scrollLeft),
-		indicatorOffset: Math.round(indicatorOffset),
-		visible: true,
-	}
+	return Box.From({
+		x: coords.left,
+		y: coords.top,
+		w: coords.right - coords.left,
+		h: coords.bottom - coords.top,
+	})
 }

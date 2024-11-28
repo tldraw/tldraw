@@ -42,6 +42,7 @@ import { RecordProps } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
 import { RefAttributes } from 'react';
+import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
@@ -2484,10 +2485,9 @@ export interface TLUiContextualToolbarProps {
     // (undocumented)
     indicatorOffset?: number;
     // (undocumented)
-    position: {
-        left: number;
-        top: number;
-    };
+    isVisible: boolean;
+    // (undocumented)
+    position?: VecLike;
 }
 
 // @public (undocumented)
@@ -3786,6 +3786,18 @@ export function useCanUndo(): boolean;
 export function useCollaborationStatus(): "offline" | "online" | null;
 
 // @public (undocumented)
+export function useContextualToolbarPosition({ hasSelection, toolbarRef, selectionBounds, }: {
+    hasSelection: boolean;
+    selectionBounds?: Box;
+    toolbarRef: RefObject<HTMLDivElement>;
+}): {
+    indicatorOffset: number;
+    visible: boolean;
+    x: number;
+    y: number;
+};
+
+// @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
@@ -3852,9 +3864,6 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string, 
 export function useExportAs(): (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
 
 // @public
-export function useFollowCanvas(): void;
-
-// @public
 export function useImageOrVideoAsset({ shapeId, assetId, }: {
     assetId: null | TLAssetId;
     shapeId: TLShapeId;
@@ -3896,6 +3905,9 @@ export function useReadonly(): boolean;
 
 // @public (undocumented)
 export function useRelevantStyles(stylesToCheck?: readonly StyleProp<any>[]): null | ReadonlySharedStyleMap;
+
+// @public
+export function useSelectionToPageBox(): Box;
 
 // @public (undocumented)
 export function useShowCollaborationUi(): boolean;

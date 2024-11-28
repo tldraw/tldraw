@@ -316,7 +316,6 @@ export {
 } from './lib/ui/components/primitives/TldrawUiButtonPicker'
 export {
 	TldrawUiContextualToolbar,
-	useFollowCanvas,
 	type TLUiContextualToolbarProps,
 } from './lib/ui/components/primitives/TldrawUiContextualToolbar'
 export {
@@ -431,6 +430,7 @@ export {
 } from './lib/ui/context/toasts'
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export { useContextualToolbarPosition } from './lib/ui/hooks/useContextualToolbarPosition'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'
@@ -440,6 +440,7 @@ export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { usePreloadAssets } from './lib/ui/hooks/usePreloadAssets'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
+export { useSelectionToPageBox } from './lib/ui/hooks/useSelectionToPageBox'
 export {
 	useTools,
 	type TLUiToolItem,

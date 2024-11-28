@@ -1,6 +1,5 @@
 import {
-	TLCamera,
-	Vec,
+	VecLike,
 	stopEventPropagation,
 	useEditor,
 	usePassThroughMouseOverEvents,
@@ -8,13 +7,14 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { RefObject, forwardRef, useEffect, useState } from 'react'
+import { RefObject, forwardRef } from 'react'
 
 /** @public */
 export interface TLUiContextualToolbarProps {
 	children?: React.ReactNode
 	className?: string
-	position: { top: number; left: number }
+	position?: VecLike
+	isVisible: boolean
 	hideIndicator?: boolean
 	indicatorOffset?: number
 }
@@ -30,7 +30,8 @@ export const TldrawUiContextualToolbar = forwardRef<HTMLDivElement, TLUiContextu
 		{
 			children,
 			className,
-			position,
+			position = { x: -1000, y: -1000 },
+			isVisible,
 			hideIndicator = false,
 			indicatorOffset = 0,
 		}: TLUiContextualToolbarProps,
@@ -48,9 +49,10 @@ export const TldrawUiContextualToolbar = forwardRef<HTMLDivElement, TLUiContextu
 				ref={toolbarRef}
 				className={classNames('tl-contextual-toolbar', className)}
 				data-is-mobile={isMobile}
+				data-is-visible={isVisible}
 				style={{
-					top: `${position.top}px`,
-					left: `${position.left}px`,
+					left: `${position.x}px`,
+					top: `${position.y}px`,
 				}}
 				onPointerDown={stopEventPropagation}
 			>
@@ -67,32 +69,3 @@ export const TldrawUiContextualToolbar = forwardRef<HTMLDivElement, TLUiContextu
 		)
 	}
 )
-
-/**
- * A hook that makes the toolbar follow the selection on the canvas.
- *
- * @public
- */
-export function useFollowCanvas() {
-	const editor = useEditor()
-	const [currentCoordinates, setCurrentCoordinates] = useState<Vec>()
-	const [currentCamera, setCurrentCamera] = useState<TLCamera>(editor.getCamera())
-	const selectionRotatedPageBounds = editor.getSelectionRotatedPageBounds()
-	const camera = editor.getCamera()
-	const pageCoordinates = selectionRotatedPageBounds
-		? editor.pageToViewport(selectionRotatedPageBounds.point)
-		: null
-
-	// This is to ensure the toolbar follows the selection when the camera moves.
-	useEffect(() => {
-		if (
-			pageCoordinates &&
-			(currentCamera.x !== camera.x || currentCamera.y !== camera.y || currentCamera.z !== camera.z)
-		) {
-			if (!currentCoordinates || !currentCoordinates.equals(pageCoordinates)) {
-				setCurrentCoordinates(pageCoordinates)
-			}
-		}
-		setCurrentCamera(camera)
-	}, [currentCoordinates, pageCoordinates, camera, currentCamera])
-}

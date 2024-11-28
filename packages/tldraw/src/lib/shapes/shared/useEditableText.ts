@@ -82,7 +82,7 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string, 
 			editor.updateShape<TLUnknownShape & { props: { text: string; richText?: string } }>({
 				id: shapeId,
 				type,
-				props: { text: normalizedPlaintext, richText: richText ?? '' },
+				props: { text: normalizedPlaintext, richText: richText ?? undefined },
 			})
 		},
 		[editor, shapeId, type]

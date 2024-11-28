@@ -929,29 +929,6 @@
 .tl-contextual-toolbar {
 	position: absolute;
 	pointer-events: all;
-}
-
-.tl-contextual-toolbar__indicator {
-	--arrow-size: 8px;
-	position: absolute;
-	bottom: calc(-1 * var(--arrow-size));
-	left: 0;
-	z-index: calc(var(--layer-canvas-shapes) + 1);
-	border: var(--arrow-size) solid transparent;
-	border-bottom-width: 0;
-	border-top-color: var(--color-panel);
-	pointer-events: none;
-}
-
-.tl-contextual-toolbar[data-is-mobile='true'] .tl-contextual-toolbar__indicator {
-	display: none;
-}
-
-.tl-rich-text__toolbar {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	pointer-events: all;
 
 	/* This forgoes the box-shadow so that we can get a shadow on the indicator arrow. */
 	filter: drop-shadow(0px 2px 3px hsl(0, 0%, 0%, 24%));
@@ -966,9 +943,34 @@
 	transition-delay: 150ms;
 }
 
-.tl-rich-text__toolbar[data-has-selection='true'] {
+.tl-contextual-toolbar[data-is-visible='true'] {
 	transform: translateY(-6px) scale(1);
 	opacity: 1;
+}
+
+.tl-contextual-toolbar .tlui-toolbar__tools {
+	box-shadow: none;
+}
+
+.tl-contextual-toolbar [data-isactive='true']::after {
+	background-color: var(--color-muted-1);
+	opacity: 1;
+}
+
+.tl-contextual-toolbar__indicator {
+	--arrow-size: 8px;
+	position: absolute;
+	bottom: calc(-1 * var(--arrow-size) + 1px);
+	left: 0;
+	z-index: calc(var(--layer-canvas-shapes) + 1);
+	border: var(--arrow-size) solid transparent;
+	border-bottom-width: 0;
+	border-top-color: var(--color-panel);
+	pointer-events: none;
+}
+
+.tl-contextual-toolbar[data-is-mobile='true'] .tl-contextual-toolbar__indicator {
+	display: none;
 }
 
 /**
@@ -982,15 +984,6 @@
 		transform 150ms var(--animation-curve),
 		left 150ms var(--animation-curve);
 	transition-delay: 150ms;
-}
-
-.tl-rich-text__toolbar .tlui-toolbar__tools {
-	box-shadow: none;
-}
-
-.tl-rich-text__toolbar [data-isactive='true']::after {
-	background-color: var(--color-muted-1);
-	opacity: 1;
 }
 
 .tl-rich-text__toolbar-link-input {
