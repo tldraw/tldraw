@@ -4,9 +4,8 @@ import { createServer } from 'http'
 import postgres from 'postgres'
 
 const postgresConnectionString: string =
-	process.env.CI === 'true'
-		? process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING!
-		: 'postgresql://user:password@127.0.0.1:6543/postgres'
+	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
+	'postgresql://user:password@127.0.0.1:6543/postgres'
 
 if (!postgresConnectionString) {
 	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
