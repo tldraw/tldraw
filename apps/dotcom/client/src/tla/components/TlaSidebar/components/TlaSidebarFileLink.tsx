@@ -1,6 +1,6 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useEffect, useState } from 'react'
+import { KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useContainer, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
@@ -72,11 +72,23 @@ export function TlaSidebarFileLinkInner({
 	debugIsRenaming?: boolean
 }) {
 	const trackEvent = useTldrawAppUiEvents()
+	const linkRef = useRef<HTMLAnchorElement | null>(null)
+	const app = useApp()
 
 	const [isRenaming, setIsRenaming] = useState(debugIsRenaming)
 	const handleRenameAction = () => setIsRenaming(true)
 	const handleRenameClose = () => setIsRenaming(false)
-	const app = useApp()
+	const handleKeyDown = (e: KeyboardEvent) => {
+		if (!isActive) return
+		if (e.key === 'Enter') {
+			handleRenameAction()
+		}
+	}
+
+	useEffect(() => {
+		if (!isActive || !linkRef.current) return
+		linkRef.current.focus()
+	}, [isActive, linkRef])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
 	if (!file) return null
@@ -105,6 +117,8 @@ export function TlaSidebarFileLinkInner({
 				</div>
 			</div>
 			<Link
+				ref={linkRef}
+				onKeyDown={handleKeyDown}
 				onClick={() => trackEvent('click-file-link', { source: 'sidebar' })}
 				to={href}
 				className={styles.linkButton}
