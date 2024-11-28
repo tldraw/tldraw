@@ -27,6 +27,7 @@
 	},
 	"dependencies": {
 		"@clerk/clerk-react": "^5.15.5",
+		"@formkit/auto-animate": "^0.8.2",
 		"@radix-ui/react-popover": "^1.0.7",
 		"@radix-ui/react-select": "^2.1.2",
 		"@radix-ui/react-tooltip": "^1.1.3",

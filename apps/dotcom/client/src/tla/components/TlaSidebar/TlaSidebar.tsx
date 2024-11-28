@@ -1,3 +1,4 @@
+import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { preventDefault, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
@@ -53,6 +54,10 @@ export const TlaSidebar = memo(function TlaSidebar() {
 
 	const { onDrop, onDragOver, onDragEnter, onDragLeave, isDraggingOver } = useTldrFileDrop()
 
+	const [animationParent] = useAutoAnimate({
+		easing: 'ease-in-out',
+		duration: 90,
+	})
 	return (
 		<div ref={sidebarRef}>
 			<button
@@ -75,7 +80,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />
 				</div>
-				<div className={styles.content}>
+				<div className={styles.content} ref={animationParent}>
 					<TlaSidebarRecentFiles />
 				</div>
 				<div className={styles.bottom} data-testid="tla-sidebar-bottom">

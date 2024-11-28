@@ -2522,6 +2522,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@formkit/auto-animate@npm:^0.8.2":
+  version: 0.8.2
+  resolution: "@formkit/auto-animate@npm:0.8.2"
+  checksum: 4414fbc9d13ddf8f9e39adfa1a96a9d3affca8d5fb3b148bd4bb9149066910a179b8477a9ce0af51d2abb2ee8d126d25d290460845ed8018858c569eed15655f
+  languageName: node
+  linkType: hard
+
 "@gar/promisify@npm:^1.0.1":
   version: 1.1.3
   resolution: "@gar/promisify@npm:1.1.3"
@@ -11773,6 +11780,7 @@ __metadata:
     "@clerk/clerk-react": "npm:^5.15.5"
     "@clerk/testing": "npm:^1.3.25"
     "@formatjs/cli": "npm:^6.2.15"
+    "@formkit/auto-animate": "npm:^0.8.2"
     "@jest/globals": "npm:30.0.0-alpha.2"
     "@playwright/test": "npm:^1.46.1"
     "@radix-ui/react-popover": "npm:^1.0.7"
