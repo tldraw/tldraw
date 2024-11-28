@@ -6,7 +6,7 @@ import postgres from 'postgres'
 const postgresConnectionString: string =
 	process.env.CI === 'true'
 		? process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING!
-		: 'postgresql://dotcom_owner:DMt67fbPcCgT@ep-plain-shadow-a2ogb3bl-pooler.eu-central-1.aws.neon.tech/dotcom?sslmode=require'
+		: 'postgresql://user:password@127.0.0.1:6543/postgres'
 
 if (!postgresConnectionString) {
 	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
