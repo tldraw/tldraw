@@ -5,6 +5,9 @@
   "0095a9fa74": {
     "translation": "Export"
   },
+  "015ebd44b7": {
+    "translation": "Please refresh the page to get the latest version of tldraw"
+  },
   "01c32a1e98": {
     "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
   },
@@ -47,8 +50,8 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "38da638ded": {
-    "translation": "That didn't work"
+  "3710f2a1e9": {
+    "translation": "This tldraw tab is out of date"
   },
   "424cc22417": {
     "translation": "Take me home"
@@ -71,6 +74,9 @@
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
   },
+  "4d1c8263ba": {
+    "translation": "Reload"
+  },
   "517bb809d9": {
     "translation": "Page menu"
   },
@@ -85,6 +91,9 @@
   },
   "5fb63579fc": {
     "translation": "Copy"
+  },
+  "61057a0c84": {
+    "translation": "Later"
   },
   "625fd29749": {
     "translation": "Older"
@@ -121,6 +130,9 @@
   },
   "8ff3d0a705": {
     "translation": "Rate limited"
+  },
+  "902b0d55fd": {
+    "translation": "Error"
   },
   "904a830405": {
     "translation": "Rename"
@@ -188,6 +200,9 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
+  },
+  "d12621fde4": {
+    "translation": "Please reload the page."
   },
   "d3d2e61733": {
     "translation": "Close"

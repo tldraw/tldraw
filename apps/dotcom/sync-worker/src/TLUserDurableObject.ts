@@ -4,6 +4,7 @@ import {
 	TlaFile,
 	TlaFileState,
 	TlaUser,
+	Z_PROTOCOL_VERSION,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZRowUpdate,
@@ -118,6 +119,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		}
 	}
+	protocolVersion = Z_PROTOCOL_VERSION
 
 	async onRequest(req: IRequest) {
 		assert(this.userId, 'User ID not set')
@@ -125,15 +127,28 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
-		const { sessionId } = params
+		const { sessionId, protocolVersion } = params
 
 		assert(sessionId, 'Session ID is required')
+		assert(protocolVersion, 'Protocol version is required')
+		assert(Number(protocolVersion), 'Protocol version must be a number')
 
 		this.assertCache()
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
+
+		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION) {
+			serverWebSocket.send(
+				JSON.stringify({
+					type: 'client_too_old',
+				} satisfies ZServerSentMessage)
+			)
+			serverWebSocket.close()
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
+		}
+
 		serverWebSocket.addEventListener('message', (e) => this.handleSocketMessage(e.data.toString()))
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
