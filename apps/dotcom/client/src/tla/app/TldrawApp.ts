@@ -12,6 +12,7 @@ import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tld
 import pick from 'lodash.pick'
 import {
 	Signal,
+	TLDocument,
 	TLSessionStateSnapshot,
 	TLStoreSnapshot,
 	TLUiToastsContextType,
@@ -22,6 +23,7 @@ import {
 	createTLUser,
 	defaultUserPreferences,
 	getUserPreferences,
+	isDocument,
 	objectMapFromEntries,
 	objectMapKeys,
 	react,
@@ -245,9 +247,9 @@ export class TldrawApp {
 		return numberOfFiles < this.config.maxNumberOfFiles
 	}
 
-	async createFile(
+	createFile(
 		fileOrId?: string | Partial<TlaFile>
-	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
+	): Result<{ file: TlaFile }, 'max number of files reached'> {
 		if (!this.canCreateNewFile()) {
 			return Result.err('max number of files reached')
 		}
@@ -355,7 +357,19 @@ export class TldrawApp {
 
 		// Also create a file state record for the new file
 		this.z.mutate((tx) => {
-			for (const slug of response.slugs) {
+			for (let i = 0; i < response.slugs.length; i++) {
+				const slug = response.slugs[i]
+				const entries = Object.entries(snapshots[i].store)
+				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
+					| [string, TLDocument]
+					| undefined
+				const name = documentEntry ? documentEntry[1].name : ''
+
+				const result = this.createFile({ id: slug, name })
+				if (!result.ok) {
+					console.error('Could not create file', result.error)
+					continue
+				}
 				tx.file_state.create({
 					userId: this.userId,
 					fileId: slug,
