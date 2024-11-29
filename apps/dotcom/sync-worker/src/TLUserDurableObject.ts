@@ -10,6 +10,7 @@ import {
 	ZRowUpdate,
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
+import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { assert } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -140,12 +141,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		serverWebSocket.accept()
 
 		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION) {
-			serverWebSocket.send(
-				JSON.stringify({
-					type: 'client_too_old',
-				} satisfies ZServerSentMessage)
-			)
-			serverWebSocket.close()
+			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
 

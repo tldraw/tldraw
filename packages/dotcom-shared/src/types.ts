@@ -116,9 +116,6 @@ export const Z_PROTOCOL_VERSION = 1
 
 export type ZServerSentMessage =
 	| {
-			type: 'client_too_old'
-	  }
-	| {
 			type: 'initial_data'
 			initialData: ZStoreData
 	  }

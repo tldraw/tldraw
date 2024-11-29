@@ -15,12 +15,12 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { TlaButton } from '../components/TlaButton/TlaButton'
+import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
-import { AppStateProvider, isClientTooOld$, useMaybeApp } from '../hooks/useAppState'
+import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { F, IntlProvider, setupCreateIntl } from '../utils/i18n'
+import { IntlProvider, setupCreateIntl } from '../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 import { getRootPath } from '../utils/urls'
 
@@ -172,80 +172,6 @@ function SignedInProvider({
 				<ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
 			</UserProvider>
 		</AppStateProvider>
-	)
-}
-
-function MaybeForceUserRefresh({ children }: { children: ReactNode }) {
-	const isClientTooOld = useValue(isClientTooOld$)
-	const [forceDismiss, setForceDismiss] = useState(false)
-
-	const showModal = isClientTooOld && !forceDismiss
-
-	return (
-		<div style={{ display: 'flex', flex: 1 }}>
-			<div
-				style={{
-					display: 'flex',
-					flex: 1,
-					pointerEvents: showModal ? 'none' : 'all',
-					opacity: showModal ? 0.5 : 1,
-				}}
-			>
-				{children}
-			</div>
-			{showModal ? (
-				<div
-					style={{
-						position: 'fixed',
-						inset: 0,
-						display: 'flex',
-						justifyContent: 'center',
-						alignItems: 'center',
-					}}
-				>
-					<div
-						style={{
-							maxWidth: '90vw',
-							padding: '20px 30px',
-							fontSize: '14px',
-							background: 'var(--tla-color-sidebar)',
-							boxShadow: 'var(--tla-shadow-3)',
-							borderRadius: 8,
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'center',
-							gap: 10,
-						}}
-					>
-						<div style={{ fontSize: 16, fontWeight: 700 }}>
-							<F defaultMessage="This tldraw tab is out of date" />
-						</div>
-						<div style={{ fontSize: 14 }}>
-							<F defaultMessage="Please reload the page." />
-						</div>
-						<div style={{ display: 'flex', width: '100%', gap: 10, marginTop: 10 }}>
-							<TlaButton
-								style={{ flex: 1 }}
-								variant="secondary"
-								onClick={() => {
-									setForceDismiss(true)
-								}}
-							>
-								<F defaultMessage="Later" />
-							</TlaButton>
-							<TlaButton
-								style={{ flex: 1 }}
-								onClick={() => {
-									window.location.reload()
-								}}
-							>
-								<F defaultMessage="Reload" />
-							</TlaButton>
-						</div>
-					</div>
-				</div>
-			) : null}
-		</div>
 	)
 }
 

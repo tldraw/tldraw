@@ -11,7 +11,7 @@ import {
 	ZRowUpdate,
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
-import { ClientWebSocketAdapter } from '@tldraw/sync-core'
+import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Signal, computed, react, transact, uniqueId } from 'tldraw'
 
 export class Zero {
@@ -30,6 +30,16 @@ export class Zero {
 		}
 	) {
 		this.socket = new ClientWebSocketAdapter(opts.getUri)
+		this.socket.onStatusChange((e) => {
+			if (e.status === 'error') {
+				if (e.reason === TLSyncErrorCloseEventReason.CLIENT_TOO_OLD) {
+					this.clientTooOld = true
+					this.opts.onClientTooOld()
+					this.socket.close()
+				}
+				// todo: handle other well known errors if we add any
+			}
+		})
 		this.socket.onReceiveMessage((_msg) => {
 			if (this.clientTooOld) {
 				// ignore incoming messages if the client is not supported
@@ -37,10 +47,6 @@ export class Zero {
 			}
 			const msg = _msg as any as ZServerSentMessage
 			switch (msg.type) {
-				case 'client_too_old':
-					this.clientTooOld = true
-					this.opts.onClientTooOld()
-					break
 				case 'initial_data':
 					this.store.initialize(msg.initialData)
 					break
