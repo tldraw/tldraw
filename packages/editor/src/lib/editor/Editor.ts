@@ -9485,161 +9485,180 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			case 'pointer': {
 				// Ignore pointer events while we're pinching
-				if (inputs.isPinching) return
-
-				this._updateInputsFromEvent(info)
-				const { isPen } = info
-				const { isPenMode } = instanceState
-
+				if (inputs.isPinching) return;
+			  
+				this._updateInputsFromEvent(info);
+				const { isPen } = info;
+				const { isPenMode } = instanceState;
+			  
 				switch (info.name) {
-					case 'pointer_down': {
-						// If we're in pen mode and the input is not a pen type, then stop here
-						if (isPenMode && !isPen) return
-
+				  case 'pointer_down': {
+					// Handle pen mode
+					if (isPenMode) {
+					  if (isPen) {
+						// Pen input: allow drawing (don’t interfere with draw logic)
+						// Do NOT enable panning for pen input; let the event propagate for drawing
+						break;
+					  } else {
+						// Finger input in pen mode: enable one-finger panning
 						if (!this.inputs.isPanning) {
-							// Start a long press timeout
-							this._longPressTimeout = this.timers.setTimeout(() => {
-								this.dispatch({
-									...info,
-									point: this.inputs.currentScreenPoint,
-									name: 'long_press',
-								})
-							}, this.options.longPressDurationMs)
+						  this.inputs.isPanning = true;
+						  this.stopCameraAnimation();
+						  this.setCursor({ type: 'grabbing', rotation: 0 });
 						}
-
-						// Save the selected ids at pointer down
-						this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds()
-
-						// Firefox bug fix...
-						// If it's a left-mouse-click, we store the pointer id for later user
-						if (info.button === LEFT_MOUSE_BUTTON) this.capturedPointerId = info.pointerId
-
-						// Add the button from the buttons set
-						inputs.buttons.add(info.button)
-
-						// Start pointing and stop dragging
-						inputs.isPointing = true
-						inputs.isDragging = false
-
-						// If pen mode is off but we're not already in pen mode, turn that on
-						if (!isPenMode && isPen) this.updateInstanceState({ isPenMode: true })
-
-						// On devices with erasers (like the Surface Pen or Wacom Pen), button 5 is the eraser
-						if (info.button === STYLUS_ERASER_BUTTON) {
-							this._restoreToolId = this.getCurrentToolId()
-							this.complete()
-							this.setCurrentTool('eraser')
-						} else if (info.button === MIDDLE_MOUSE_BUTTON) {
-							// Middle mouse pan activates panning unless we're already panning (with spacebar)
-							if (!this.inputs.isPanning) {
-								this._prevCursor = this.getInstanceState().cursor.type
-							}
-							this.inputs.isPanning = true
-							clearTimeout(this._longPressTimeout)
-						}
-
-						// We might be panning because we did a middle mouse click, or because we're holding spacebar and started a regular click
-						// Also stop here, we don't want the state chart to receive the event
-						if (this.inputs.isPanning) {
-							this.stopCameraAnimation()
-							this.setCursor({ type: 'grabbing', rotation: 0 })
-							return this
-						}
-
-						break
+			  
+						// Disable two-finger panning by ignoring additional pointers
+						return this;
+					  }
 					}
-					case 'pointer_move': {
-						// If the user is in pen mode, but the pointer is not a pen, stop here.
-						if (!isPen && isPenMode) return
-
-						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera())
-
-						// If we've started panning, then clear any long press timeout
-						if (this.inputs.isPanning && this.inputs.isPointing) {
-							// Handle spacebar / middle mouse button panning
-							const { currentScreenPoint, previousScreenPoint } = this.inputs
-							const { panSpeed } = cameraOptions
-							const offset = Vec.Sub(currentScreenPoint, previousScreenPoint)
-							this.setCamera(
-								new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
-								{ immediate: true }
-							)
-							this.maybeTrackPerformance('Panning')
-							return
-						}
-
-						if (
-							inputs.isPointing &&
-							!inputs.isDragging &&
-							Vec.Dist2(originPagePoint, currentPagePoint) * this.getZoomLevel() >
-								(instanceState.isCoarsePointer
-									? this.options.coarseDragDistanceSquared
-									: this.options.dragDistanceSquared) /
-									cz
-						) {
-							// Start dragging
-							inputs.isDragging = true
-							clearTimeout(this._longPressTimeout)
-						}
-						break
+			  
+					// Start a long press timeout (for non-pen modes)
+					if (!this.inputs.isPanning) {
+					  this._longPressTimeout = this.timers.setTimeout(() => {
+						this.dispatch({
+						  ...info,
+						  point: this.inputs.currentScreenPoint,
+						  name: 'long_press',
+						});
+					  }, this.options.longPressDurationMs);
 					}
-					case 'pointer_up': {
-						// Stop dragging / pointing
-						inputs.isDragging = false
-						inputs.isPointing = false
-						clearTimeout(this._longPressTimeout)
-
-						// Remove the button from the buttons set
-						inputs.buttons.delete(info.button)
-
-						// If we're in pen mode and we're not using a pen, stop here
-						if (instanceState.isPenMode && !isPen) return
-
-						// Firefox bug fix...
-						// If it's the same pointer that we stored earlier...
-						// ... then it's probably still a left-mouse-click!
-						if (this.capturedPointerId === info.pointerId) {
-							this.capturedPointerId = null
-							info.button = 0
-						}
-
-						if (inputs.isPanning) {
-							if (!inputs.keys.has('Space')) {
-								inputs.isPanning = false
-								inputs.isSpacebarPanning = false
-							}
-							const slideDirection = this.inputs.pointerVelocity
-							const slideSpeed = Math.min(2, slideDirection.len())
-
-							switch (info.button) {
-								case LEFT_MOUSE_BUTTON: {
-									this.setCursor({ type: 'grab', rotation: 0 })
-									break
-								}
-								case MIDDLE_MOUSE_BUTTON: {
-									if (this.inputs.keys.has(' ')) {
-										this.setCursor({ type: 'grab', rotation: 0 })
-									} else {
-										this.setCursor({ type: this._prevCursor, rotation: 0 })
-									}
-								}
-							}
-
-							if (slideSpeed > 0) {
-								this.slideCamera({ speed: slideSpeed, direction: slideDirection })
-							}
-						} else {
-							if (info.button === STYLUS_ERASER_BUTTON) {
-								// If we were erasing with a stylus button, restore the tool we were using before we started erasing
-								this.complete()
-								this.setCurrentTool(this._restoreToolId)
-							}
-						}
-						break
+			  
+					// Save the selected ids at pointer down
+					this._selectedShapeIdsAtPointerDown = this.getSelectedShapeIds();
+			  
+					// Firefox bug fix...
+					// If it's a left-mouse-click, we store the pointer id for later use
+					if (info.button === LEFT_MOUSE_BUTTON) this.capturedPointerId = info.pointerId;
+			  
+					// Add the button from the buttons set
+					inputs.buttons.add(info.button);
+			  
+					// Start pointing and stop dragging
+					inputs.isPointing = true;
+					inputs.isDragging = false;
+			  
+					// If pen mode is off but we're not already in pen mode, turn that on
+					if (!isPenMode && isPen) this.updateInstanceState({ isPenMode: true });
+			  
+					// On devices with erasers (like the Surface Pen or Wacom Pen), button 5 is the eraser
+					if (info.button === STYLUS_ERASER_BUTTON) {
+					  this._restoreToolId = this.getCurrentToolId();
+					  this.complete();
+					  this.setCurrentTool('eraser');
+					} else if (info.button === MIDDLE_MOUSE_BUTTON) {
+					  // Middle mouse pan activates panning unless we're already panning (with spacebar)
+					  if (!this.inputs.isPanning) {
+						this._prevCursor = this.getInstanceState().cursor.type;
+					  }
+					  this.inputs.isPanning = true;
+					  clearTimeout(this._longPressTimeout);
 					}
+			  
+					// Handle general panning logic
+					if (this.inputs.isPanning) {
+					  this.stopCameraAnimation();
+					  this.setCursor({ type: 'grabbing', rotation: 0 });
+					  return this;
+					}
+			  
+					break;
+				  }
+			  
+				  case 'pointer_move': {
+					// Handle pen mode
+					if (isPenMode) {
+					  if (isPen) {
+						// Pen input: allow drawing (don’t interfere with draw logic)
+						break; // Skip panning logic for pen
+					  } else if (this.inputs.isPanning) {
+						// Finger input: handle one-finger panning
+						const { x: cx, y: cy, z: cz } = unsafe__withoutCapture(() => this.getCamera());
+						const { currentScreenPoint, previousScreenPoint } = this.inputs;
+						const { panSpeed } = cameraOptions;
+						const offset = Vec.Sub(currentScreenPoint, previousScreenPoint);
+			  
+						this.setCamera(
+						  new Vec(cx + (offset.x * panSpeed) / cz, cy + (offset.y * panSpeed) / cz, cz),
+						  { immediate: true }
+						);
+						this.maybeTrackPerformance('Panning');
+						return;
+					  }
+					}
+			  
+					// Handle drag detection
+					if (
+					  inputs.isPointing &&
+					  !inputs.isDragging &&
+					  Vec.Dist2(originPagePoint, currentPagePoint) * this.getZoomLevel() >
+						(instanceState.isCoarsePointer
+						  ? this.options.coarseDragDistanceSquared
+						  : this.options.dragDistanceSquared) /
+						  this.getZoomLevel()
+					) {
+					  inputs.isDragging = true;
+					  clearTimeout(this._longPressTimeout);
+					}
+			  
+					break;
+				  }
+			  
+				  case 'pointer_up': {
+					// Stop dragging / pointing
+					inputs.isDragging = false;
+					inputs.isPointing = false;
+					clearTimeout(this._longPressTimeout);
+			  
+					// Remove the button from the buttons set
+					inputs.buttons.delete(info.button);
+			  
+					// Firefox bug fix...
+					// If it's the same pointer that we stored earlier...
+					// ... then it's probably still a left-mouse-click!
+					if (this.capturedPointerId === info.pointerId) {
+					  this.capturedPointerId = null;
+					  info.button = 0;
+					}
+			  
+					if (inputs.isPanning) {
+					  if (!inputs.keys.has('Space')) {
+						inputs.isPanning = false;
+						inputs.isSpacebarPanning = false;
+					  }
+					  const slideDirection = this.inputs.pointerVelocity;
+					  const slideSpeed = Math.min(2, slideDirection.len());
+			  
+					  switch (info.button) {
+						case LEFT_MOUSE_BUTTON: {
+						  this.setCursor({ type: 'grab', rotation: 0 });
+						  break;
+						}
+						case MIDDLE_MOUSE_BUTTON: {
+						  if (this.inputs.keys.has(' ')) {
+							this.setCursor({ type: 'grab', rotation: 0 });
+						  } else {
+							this.setCursor({ type: this._prevCursor, rotation: 0 });
+						  }
+						}
+					  }
+			  
+					  if (slideSpeed > 0) {
+						this.slideCamera({ speed: slideSpeed, direction: slideDirection });
+					  }
+					} else {
+					  if (info.button === STYLUS_ERASER_BUTTON) {
+						// If we were erasing with a stylus button, restore the tool we were using before we started erasing
+						this.complete();
+						this.setCurrentTool(this._restoreToolId);
+					  }
+					}
+			  
+					break;
+				  }
 				}
-				break
-			}
+			  
+				break;
+			  }
 			case 'keyboard': {
 				// please, please
 				if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
