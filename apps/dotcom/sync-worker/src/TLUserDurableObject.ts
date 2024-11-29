@@ -9,7 +9,7 @@ import {
 	ZRowUpdate,
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
-import { assert } from '@tldraw/utils'
+import { assert, exhaustiveSwitchError } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -18,7 +18,7 @@ import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
-import { Environment } from './types'
+import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
 import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
@@ -27,6 +27,7 @@ import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializ
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: ReturnType<typeof postgres>
 	private readonly replicator: TLPostgresReplicator
+	private metrics: Analytics | undefined
 
 	private readonly sentry
 	private captureException(exception: unknown, eventHint?: EventHint) {
@@ -47,6 +48,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.db = getPostgres(env, { pooled: true })
 		this.debug('created')
+		this.metrics = env.MEASURE
 	}
 
 	private userId: string | null = null
@@ -58,6 +60,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
+				this.logEvent({ type: 'rate_limited', id: this.userId })
 				throw new Error('Rate limited')
 			}
 			if (this.cache === null) {
@@ -71,8 +74,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async init() {
 		assert(this.userId, 'User ID not set')
 		this.debug('init')
-		this.cache = new UserDataSyncer(this.ctx, this.env, this.db, this.userId, (message) =>
-			this.broadcast(message)
+		this.cache = new UserDataSyncer(
+			this.ctx,
+			this.env,
+			this.db,
+			this.userId,
+			(message) => this.broadcast(message),
+			this.logEvent
 		)
 		this.debug('cache', !!this.cache)
 		await this.cache.waitUntilConnected()
@@ -177,6 +185,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		switch (msg.type) {
 			case 'mutate':
 				if (rateLimited) {
+					this.logEvent({ type: 'rate_limited', id: this.userId! })
 					await this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
 				} else {
 					await this.handleMutate(msg)
@@ -436,6 +445,30 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 		} catch (e) {
 			throw new ZMutationError(ZErrorCode.unpublish_failed, 'Failed to unpublish snapshot', e)
+		}
+	}
+
+	logEvent(event: TLUserDurableObjectEvent) {
+		switch (event.type) {
+			case 'reboot':
+			case 'reboot_error':
+				this.metrics?.writeDataPoint({
+					blobs: ['replicator', event.type, event.id],
+				})
+				break
+
+			case 'reboot_duration':
+				this.metrics?.writeDataPoint({
+					blobs: ['replicator', event.type, event.id, event.duration.toString()],
+				})
+				break
+			case 'rate_limited':
+				this.metrics?.writeDataPoint({
+					blobs: ['replicator', event.type, event.id],
+				})
+				break
+			default:
+				exhaustiveSwitchError(event)
 		}
 	}
 }

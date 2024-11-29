@@ -1,5 +1,5 @@
 import { ROOM_PREFIX, TlaFile, ZTable } from '@tldraw/dotcom-shared'
-import { assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import { assert, exhaustiveSwitchError, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
 import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
@@ -7,7 +7,7 @@ import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import { ZReplicationEvent } from './UserDataSyncer'
 import { getPostgres } from './getPostgres'
-import { Environment } from './types'
+import { Analytics, Environment, TLReplicatorEvent } from './types'
 import { getUserDurableObject } from './utils/durableObjects'
 
 const seed = `
@@ -24,6 +24,8 @@ CREATE TABLE user_file_subscriptions (
 	FOREIGN KEY (userId) REFERENCES active_user(id) ON DELETE CASCADE
 );
 `
+
+const ONE_MINUTE = 60 * 1000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -53,6 +55,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		promise: promiseWithResolve(),
 		sequenceId: uniqueId(),
 	}
+	metrics: Analytics | undefined
+	postgresUpdates = 0
+	lastRpmLogTime = Date.now()
 
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
@@ -71,6 +76,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql.exec(seed)
 		this.reboot(false)
 		this.alarm()
+		this.metrics = env.MEASURE
 	}
 
 	__test__forceReboot() {
@@ -92,27 +98,41 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 	override async alarm() {
 		this.ctx.storage.setAlarm(Date.now() + 1000)
+		const now = Date.now()
+		if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
+			this.logEvent({
+				type: 'rpm',
+				rpm: this.postgresUpdates,
+			})
+			this.postgresUpdates = 0
+			this.lastRpmLogTime = now
+		}
 	}
 
 	private queue = new ExecutionQueue()
 
 	private async reboot(delay = true) {
-		// TODO: set up analytics and alerts for this
+		this.logEvent({ type: 'reboot' })
 		this.debug('reboot push')
 		await this.queue.push(async () => {
 			if (delay) {
 				await sleep(1000)
 			}
+			const start = Date.now()
 			this.debug('rebooting')
 			const res = await Promise.race([
 				this.boot().then(() => 'ok'),
 				sleep(3000).then(() => 'timeout'),
 			]).catch((e) => {
+				this.logEvent({ type: 'reboot_error' })
 				this.captureException(e)
 				return 'error'
 			})
 			this.debug('rebooted', res)
-			if (res !== 'ok') {
+			if (res === 'ok') {
+				this.logEvent({ type: 'reboot_duration', duration: Date.now() - start })
+			} else {
+				this.logEvent({ type: 'reboot_error' })
 				this.reboot()
 			}
 		})
@@ -177,6 +197,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private handleEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
+		this.postgresUpdates++
 		this.debug('handleEvent', event)
 		assert(this.state.type === 'connected', 'state should be connected in handleEvent')
 		try {
@@ -418,5 +439,29 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async unregisterUser(userId: string) {
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
+	}
+
+	logEvent(event: TLReplicatorEvent) {
+		switch (event.type) {
+			case 'reboot':
+			case 'reboot_error':
+				this.metrics?.writeDataPoint({
+					blobs: ['replicator', event.type],
+				})
+				break
+
+			case 'reboot_duration':
+				this.metrics?.writeDataPoint({
+					blobs: ['replicator', event.type, event.duration.toString()],
+				})
+				break
+			case 'rpm':
+				this.metrics?.writeDataPoint({
+					blobs: ['replicator', event.type, `${event.rpm}/min`],
+				})
+				break
+			default:
+				exhaustiveSwitchError(event)
+		}
 	}
 }

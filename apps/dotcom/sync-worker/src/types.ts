@@ -76,6 +76,12 @@ export type TLServerEvent =
 			localClientId: string
 	  }
 	| {
+			type: 'client'
+			name: 'rate_limited'
+			userId: string | undefined
+			localClientId: string
+	  }
+	| {
 			type: 'room'
 			name:
 				| 'failed_load_from_db'
@@ -91,3 +97,12 @@ export type TLServerEvent =
 			messageType: string
 			messageLength: number
 	  }
+
+export type TLReplicatorEvent =
+	| { type: 'reboot' | 'reboot_error' }
+	| { type: 'reboot_duration'; duration: number }
+	| { type: 'rpm'; rpm: number }
+
+export type TLUserDurableObjectEvent =
+	| { type: 'reboot' | 'reboot_error' | 'rate_limited'; id: string }
+	| { type: 'reboot_duration'; id: string; duration: number }

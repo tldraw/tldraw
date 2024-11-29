@@ -347,11 +347,23 @@ export class TLDrawDurableObject extends DurableObject {
 				if (auth?.userId) {
 					const rateLimited = await isRateLimited(this.env, auth?.userId)
 					if (rateLimited) {
+						this.logEvent({
+							type: 'client',
+							userId: auth.userId,
+							localClientId: storeId,
+							name: 'rate_limited',
+						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				} else {
 					const rateLimited = await isRateLimited(this.env, sessionId)
 					if (rateLimited) {
+						this.logEvent({
+							type: 'client',
+							userId: auth?.userId,
+							localClientId: storeId,
+							name: 'rate_limited',
+						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				}
@@ -439,11 +451,18 @@ export class TLDrawDurableObject extends DurableObject {
 				break
 			}
 			case 'client': {
-				// we would add user/connection ids here if we could
-				this.writeEvent(event.name, {
-					blobs: [event.roomId, 'unused', event.instanceId],
-					indexes: [event.localClientId],
-				})
+				if (event.name === 'rate_limited') {
+					this.writeEvent(event.name, {
+						blobs: [event.userId ?? 'anon-user', 'unused'],
+						indexes: [event.localClientId],
+					})
+				} else {
+					// we would add user/connection ids here if we could
+					this.writeEvent(event.name, {
+						blobs: [event.roomId, 'unused', event.instanceId],
+						indexes: [event.localClientId],
+					})
+				}
 				break
 			}
 			case 'send_message': {
