@@ -51,7 +51,7 @@ export interface TextLabelProps {
  * @public @react
  */
 export const TextLabel = React.memo(function TextLabel({
-	shapeId: shapeId,
+	shapeId,
 	type,
 	enableRichText,
 	text: plaintext,
@@ -172,6 +172,7 @@ export const TextLabel = React.memo(function TextLabel({
 						text={plaintext}
 						richText={richText}
 						isEditing={isEditing}
+						shapeId={shapeId}
 						{...editableTextRest}
 						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
 					/>

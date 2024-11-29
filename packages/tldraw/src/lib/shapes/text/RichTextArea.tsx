@@ -15,6 +15,7 @@ import { forwardRef, useEffect, useState } from 'react'
 export interface TextAreaProps {
 	isEditing: boolean
 	text: string
+	shapeId: TLShapeId
 	richText?: string
 	handleFocus(): void
 	handleBlur(): void
@@ -32,6 +33,7 @@ export interface TextAreaProps {
  */
 export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function TextArea(
 	{
+		shapeId,
 		isEditing,
 		text: plaintext,
 		richText,
@@ -54,16 +56,18 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 	)
 
 	const handleCreate = (props: EditorEvents['create']) => {
-		editor.setEditingShapeTextEditor(props.editor)
+		if (editor.getEditingShapeId() !== shapeId) return
+
+		const textEditor = props.editor
+		editor.setEditingShapeTextEditor(textEditor)
 
 		// Either we select-all the text upon creation if desired.
 		if (shouldSelectAllOnCreate) {
-			props.editor.chain().focus().selectAll().run()
+			textEditor.chain().focus().selectAll().run()
 		} else if (initialPositionOnCreate) {
 			// Or, we place the caret at the intended clicked position, if
 			// there was any (one could have also entered into editing
 			// via Enter on the keyboard).
-			const textEditor = editor.getEditingShapeTextEditor() as TextEditor
 			const pos = textEditor.view.posAtCoords({
 				left: initialPositionOnCreate.x,
 				top: initialPositionOnCreate.y,
@@ -76,14 +80,21 @@ export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function T
 				// Default to just focusing to the end of the editor content.
 				textEditor.commands.focus('end')
 			}
+		} else {
+			// XXX: I don't love this. The setTimeout is because when creating a brand new shape
+			// and double-clicking into it quickly to edit it, there's some kind of race condition
+			// happening where the editor doesn't focus properly.
+			editor.timers.setTimeout(() => textEditor.commands.focus('end'), 100)
 		}
 	}
 
 	useEffect(() => {
-		if (!isEditing) {
+		// It's possible that by the time this hook runs, that a new shape is now being edited.
+		// Don't clear the text editor in that case.
+		if (!isEditing && editor.getEditingShapeId() === shapeId) {
 			editor.setEditingShapeTextEditor(null)
 		}
-	}, [editor, isEditing])
+	}, [editor, shapeId, isEditing])
 
 	useEffect(() => {
 		function selectAllIfEditing(event: { shapeId: TLShapeId }) {

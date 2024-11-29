@@ -26,6 +26,11 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
 	const previousTop = useRef(defaultPosition.y)
+	const isCoarsePointer = useValue(
+		'isCoarsePointer',
+		() => editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
 	const [currentCamera, setCurrentCamera] = useState(editor.getCamera())
 	const [stabilizedToolbarPosition, setStabilizedToolbarPosition] = useState({
 		x: defaultPosition.x,
@@ -110,7 +115,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	const selectionBounds = getTextSelectionBounds(editor, textEditor)
 	const isVisible =
 		textEditor &&
-		isMousingAround &&
+		(isMousingAround || isCoarsePointer) &&
 		((hasTextSelection && !isMousingDown) || textEditor.isActive('link'))
 	const toolbarPosition = useContextualToolbarPosition({
 		isVisible,

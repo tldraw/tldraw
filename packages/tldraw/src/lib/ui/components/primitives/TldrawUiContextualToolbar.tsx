@@ -38,9 +38,11 @@ export const TldrawUiContextualToolbar = forwardRef<HTMLDivElement, TLUiContextu
 		toolbarRef
 	) {
 		const editor = useEditor()
-		const isMobile = useValue('isCoarsePointer', () => editor.getInstanceState().isCoarsePointer, [
-			editor,
-		])
+		const isCoarsePointer = useValue(
+			'isCoarsePointer',
+			() => editor.getInstanceState().isCoarsePointer,
+			[editor]
+		)
 		usePassThroughWheelEvents((toolbarRef as RefObject<HTMLDivElement>).current)
 		usePassThroughMouseOverEvents((toolbarRef as RefObject<HTMLDivElement>).current)
 
@@ -48,7 +50,7 @@ export const TldrawUiContextualToolbar = forwardRef<HTMLDivElement, TLUiContextu
 			<div
 				ref={toolbarRef}
 				className={classNames('tl-contextual-toolbar', className)}
-				data-is-mobile={isMobile}
+				data-is-mobile={isCoarsePointer}
 				data-is-visible={isVisible}
 				style={{
 					left: `${position.x}px`,

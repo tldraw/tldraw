@@ -1834,6 +1834,8 @@ export interface TextAreaProps {
     // (undocumented)
     richText?: string;
     // (undocumented)
+    shapeId: TLShapeId;
+    // (undocumented)
     text: string;
 }
 
