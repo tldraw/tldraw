@@ -10,7 +10,7 @@ export interface TldrawAppSessionState {
 	auth?: {
 		userId: string
 	}
-	shareMenuActiveTab: 'share' | 'export' | 'publish'
+	shareMenuActiveTab: 'share' | 'export' | 'publish' | 'anon-share'
 	sidebarActiveTab: 'recent' | 'groups' | 'shared' | 'drafts' | 'starred'
 	theme: 'light' | 'dark'
 	views: {

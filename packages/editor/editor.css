@@ -1586,7 +1586,7 @@ it from receiving any pointer events or affecting the cursor. */
 }
 
 .tl-error-boundary__content a {
-	color: var(--color-text-1);
+	color: var(--color-selected);
 	font-weight: 500;
 	text-decoration: none;
 }

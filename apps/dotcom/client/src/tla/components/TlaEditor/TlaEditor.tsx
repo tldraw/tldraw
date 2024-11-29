@@ -6,10 +6,8 @@ import { useParams } from 'react-router-dom'
 import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
-	DefaultStylePanel,
 	Editor,
 	OfflineIndicator,
-	PeopleMenu,
 	TLComponents,
 	TLSessionStateSnapshot,
 	Tldraw,
@@ -31,11 +29,11 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
-import { defineMessages, useIntl } from '../../app/i18n'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
+import { defineMessages, useMsg } from '../../utils/i18n'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -52,10 +50,9 @@ export const components: TLComponents = {
 	},
 	KeyboardShortcutsDialog: (props) => {
 		const actions = useActions()
-		const intl = useIntl()
 		return (
 			<DefaultKeyboardShortcutsDialog {...props}>
-				<TldrawUiMenuGroup label={intl.formatMessage(messages.file)} id="file">
+				<TldrawUiMenuGroup label={useMsg(messages.file)} id="file">
 					<TldrawUiMenuItem {...actions[SAVE_FILE_COPY_ACTION]} />
 				</TldrawUiMenuGroup>
 				<DefaultKeyboardShortcutsDialogContent />
@@ -67,7 +64,9 @@ export const components: TLComponents = {
 		return <TlaEditorTopLeftPanel isAnonUser={!app} />
 	},
 	SharePanel: () => {
-		return <TlaEditorTopRightPanel />
+		const app = useMaybeApp()
+		const fileSlug = useParams<{ fileSlug: string }>().fileSlug
+		return <TlaEditorTopRightPanel isAnonUser={!app} context={fileSlug ? 'file' : 'scratch'} />
 	},
 	TopPanel: () => {
 		const collaborationStatus = useCollaborationStatus()
@@ -78,20 +77,6 @@ export const components: TLComponents = {
 
 const anonComponents = {
 	...components,
-	SharePanel: null,
-	StylePanel: () => {
-		// When on a temporary file, we don't want to show the people menu or file share menu, just the regular style panel
-		const { fileSlug } = useParams()
-		if (!fileSlug) return <DefaultStylePanel />
-
-		// ...but when an anonymous user is on a shared file, we do want to show the people menu next to the style panel
-		return (
-			<div className={styles.anonStylePanel}>
-				<PeopleMenu />
-				<DefaultStylePanel />
-			</div>
-		)
-	},
 }
 
 interface TlaEditorProps {
@@ -223,6 +208,13 @@ function TlaEditorInner({
 		</div>
 	)
 }
+
+// function SneakyThemeUpdater() {
+// 	const editor = useEditor()
+// 	useEffect(() => {
+// 		editor.setTheme('dark')
+// 	}, [editor])
+// }
 
 function SneakyTldrawFileDropHandler() {
 	const editor = useEditor()

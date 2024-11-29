@@ -21,6 +21,7 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 			className={styles.layout}
 			data-sidebar={isSidebarOpen}
 			data-sidebarmobile={isSidebarOpenMobile}
+			data-testid="tla-sidebar-layout"
 		>
 			<TlaSidebar />
 			{children}

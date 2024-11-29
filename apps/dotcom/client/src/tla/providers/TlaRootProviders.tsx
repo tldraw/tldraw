@@ -1,4 +1,4 @@
-import { ClerkProvider, useAuth } from '@clerk/clerk-react'
+import { ClerkProvider, useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { Provider as TooltipProvider } from '@radix-ui/react-tooltip'
 import { getAssetUrlsByImport } from '@tldraw/assets/imports.vite'
 import { ReactNode, useCallback, useEffect, useState } from 'react'
@@ -15,11 +15,12 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { IntlProvider, setupCreateIntl } from '../app/i18n'
+import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
+import { IntlProvider, setupCreateIntl } from '../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 import { getRootPath } from '../utils/urls'
 
@@ -41,24 +42,26 @@ export function Component() {
 	const handleLocaleChange = (locale: string) => setLocale(locale)
 
 	return (
-		<IntlWrapper locale={locale}>
-			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
-				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-					<div
-						ref={setContainer}
-						className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-					>
-						{container && (
-							<ContainerProvider container={container}>
-								<InsideOfContainerContext>
-									<Outlet />
-								</InsideOfContainerContext>
-							</ContainerProvider>
-						)}
-					</div>
-				</SignedInProvider>
-			</ClerkProvider>
-		</IntlWrapper>
+		<div
+			ref={setContainer}
+			className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+		>
+			<IntlWrapper locale={locale}>
+				<MaybeForceUserRefresh>
+					<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
+						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+							{container && (
+								<ContainerProvider container={container}>
+									<InsideOfContainerContext>
+										<Outlet />
+									</InsideOfContainerContext>
+								</ContainerProvider>
+							)}
+						</SignedInProvider>
+					</ClerkProvider>
+				</MaybeForceUserRefresh>
+			</IntlWrapper>
+		</div>
 	)
 }
 
@@ -129,6 +132,7 @@ function SignedInProvider({
 	onLocaleChange(locale: string): void
 }) {
 	const auth = useAuth()
+	const { user, isLoaded: isUserLoaded } = useClerkUser()
 	const [currentLocale, setCurrentLocale] = useState<string>(
 		globalEditor.get()?.user.getUserPreferences().locale ?? 'en'
 	)
@@ -158,8 +162,8 @@ function SignedInProvider({
 
 	if (!auth.isLoaded) return null
 
-	if (!auth.isSignedIn) {
-		return children
+	if (!auth.isSignedIn || !user || !isUserLoaded) {
+		return <ThemeContainer onThemeChange={onThemeChange}>{children}</ThemeContainer>
 	}
 
 	return (

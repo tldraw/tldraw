@@ -139,6 +139,9 @@ export function AlignMenuItems(): JSX_2.Element;
 export function ArrangeMenuSubmenu(): JSX_2.Element | null;
 
 // @public (undocumented)
+export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
+
+// @public (undocumented)
 export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     getDefaultProps(): Partial<TLArrowBindingProps>;
@@ -382,6 +385,9 @@ export function ClipboardMenuGroup(): JSX_2.Element;
 
 // @public (undocumented)
 export function CloudToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export function ColorSchemeMenu(): JSX_2.Element;
 
 // @public (undocumented)
 export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps): JSX_2.Element;
@@ -1010,6 +1016,9 @@ export function FitFrameToContentMenuItem(): JSX_2.Element | null;
 export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
 
 // @public (undocumented)
+export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
+
+// @public (undocumented)
 export class FrameShapeTool extends BaseBoxShapeTool {
     // (undocumented)
     static id: string;
@@ -1364,7 +1373,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[]): vo
 export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
-export function LanguageMenu(): JSX_2.Element;
+export function LanguageMenu(): JSX_2.Element | null;
 
 // @public (undocumented)
 export class LaserTool extends StateNode {
@@ -1654,12 +1663,14 @@ export function parseTldrawJsonFile({ json, schema, }: {
 export function PasteMenuItem(): JSX_2.Element;
 
 // @public (undocumented)
-export const PeopleMenu: NamedExoticComponent<PeopleMenuProps>;
+export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps): JSX_2.Element;
 
 // @public (undocumented)
 export interface PeopleMenuProps {
     // (undocumented)
     children?: ReactNode;
+    // (undocumented)
+    displayUserWhenAlone: boolean;
 }
 
 // @public
@@ -1776,6 +1787,9 @@ export function StackMenuItems(): JSX_2.Element;
 
 // @public (undocumented)
 export function StarToolbarItem(): JSX_2.Element;
+
+// @public (undocumented)
+export const STROKE_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export interface StylePickerSetProps {
@@ -3708,6 +3722,9 @@ export function ToggleAutoSizeMenuItem(): JSX_2.Element | null;
 export function ToggleDebugModeItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function ToggleDynamicSizeModeItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function ToggleEdgeScrollingItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -3718,6 +3735,9 @@ export function ToggleGridItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ToggleLockMenuItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function TogglePasteAtCursorItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ToggleReduceMotionItem(): JSX_2.Element;

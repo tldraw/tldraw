@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-imports */
+
 import {
 	FormattedMessage,
 	IntlConfig,
@@ -7,16 +9,24 @@ import {
 	createIntlCache,
 	createIntl as originalCreateIntl,
 	defineMessages as originalDefineMessages,
-	useIntl as originalUseIntl,
+	useIntl,
 } from 'react-intl'
 
-import { FormatXMLElementFn, Options } from 'intl-messageformat'
+import { FormatXMLElementFn } from 'intl-messageformat'
 import MD5 from 'md5.js'
 import { ComponentPropsWithoutRef } from 'react'
 
 // Re-export everything and override below what we want to override.
 // eslint-disable-next-line
 export * from 'react-intl'
+
+export function useMsg(
+	message: MessageDescriptor,
+	values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>
+) {
+	const intl = useIntl()
+	return intl.formatMessage(message, values)
+}
 
 const INTERNAL_LOCALES = ['xx-AE', 'xx-LS']
 
@@ -31,31 +41,6 @@ function generateId({ id, description, defaultMessage }: MessageDescriptor) {
 		.update(description ? `${defaultMessage}#${description}` : defaultMessage)
 		.digest('hex')
 		.slice(0, 10)
-}
-
-let originalFormatMessage: IntlShape['formatMessage'] | null = null
-export function useIntl() {
-	const intl = originalUseIntl()
-
-	if (!originalFormatMessage) {
-		originalFormatMessage = intl.formatMessage
-	}
-
-	intl.formatMessage = (
-		descriptor: MessageDescriptor,
-		values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>,
-		opts?: Options
-	) => {
-		let formattedMessage = originalFormatMessage!(descriptor, values, opts)
-		if (intl.locale === 'xx-AE') {
-			formattedMessage = makeAccented(formattedMessage)
-		} else if (intl.locale === 'xx-LS') {
-			formattedMessage = makeLong(formattedMessage)
-		}
-		return formattedMessage
-	}
-
-	return intl
 }
 
 export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
@@ -81,13 +66,15 @@ export function F(props: ComponentPropsWithoutRef<typeof FormattedMessage>) {
 }
 
 // We programmatically define ID's for messages to make things easier for devs.
-export function defineMessages(values: Record<string | number | symbol, MessageDescriptor>) {
-	for (const key in values) {
-		if (!values[key].id) {
-			values[key].id = generateId(values[key])
+export function defineMessages<T extends string, D extends MessageDescriptor>(
+	msgs: Record<T, D>
+): Record<T, D> {
+	for (const key in msgs) {
+		if (!msgs[key].id) {
+			msgs[key].id = generateId(msgs[key])
 		}
 	}
-	return originalDefineMessages(values)
+	return originalDefineMessages(msgs)
 }
 
 export function isInternalLocale(locale: string) {
@@ -109,7 +96,7 @@ function makeLong(str: string) {
 }
 
 // This is optional but highly recommended since it prevents memory leaks.
-// See: https://formatjs.io/docs/intl/#createintl
+// See: https://formatjs.github.io/docs/react-intl/api/#createintl
 const cache = createIntlCache()
 let presetIntl: IntlShape | null = null
 let didSetupCreateIntl = false
@@ -127,7 +114,7 @@ export function setupCreateIntl({ defaultLocale, locale, messages }: IntlConfig)
 }
 
 // createIntl is used in non-React locations.
-export function createIntl(options: IntlShape) {
+export function createIntl(options?: IntlShape) {
 	if (options) {
 		return originalCreateIntl(options)
 	} else {

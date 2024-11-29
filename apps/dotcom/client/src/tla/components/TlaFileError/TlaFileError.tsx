@@ -1,9 +1,10 @@
+import { SignInButton } from '@clerk/clerk-react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactElement, useEffect } from 'react'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
-import { F } from '../../app/i18n'
 import { useSetIsReady } from '../../hooks/useIsReady'
-import { TlaSignInButton } from '../TlaSignInButton/TlaSignInButton'
+import { F } from '../../utils/i18n'
+import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
@@ -11,7 +12,18 @@ function DefaultError() {
 		<TlaFileErrorContent
 			header={<F defaultMessage="Something went wrong" />}
 			para1={<F defaultMessage="Please try refreshing the page." />}
-			para2={<F defaultMessage="Still having trouble? Let us know at hello@tldraw.com" />}
+			para2={
+				<F
+					defaultMessage="Still having trouble? Let us know at <a>hello@tldraw.com</a>"
+					values={{
+						a: (chunks) => (
+							<a href="mailto:hello@tldraw.com" target="_blank" rel="noopener noreferrer">
+								{chunks}
+							</a>
+						),
+					}}
+				/>
+			}
 		/>
 	)
 }
@@ -38,7 +50,17 @@ export function TlaFileError({ error }: { error: unknown }) {
 				<TlaFileErrorContent
 					header={<F defaultMessage="Private file" />}
 					para1={<F defaultMessage="Contact the owner to request access." />}
-					cta={<TlaSignInButton />}
+					cta={
+						<SignInButton
+							mode="modal"
+							forceRedirectUrl={location.pathname + location.search}
+							signUpForceRedirectUrl={location.pathname + location.search}
+						>
+							<TlaCtaButton data-testid="tla-sign-up">
+								<F defaultMessage="Sign in" />
+							</TlaCtaButton>
+						</SignInButton>
+					}
 				/>
 			)
 		}

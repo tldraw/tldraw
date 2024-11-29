@@ -217,6 +217,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			ro: formatAssetUrl(new URL('./translations/ro.json', import.meta.url).href, opts),
 			ru: formatAssetUrl(new URL('./translations/ru.json', import.meta.url).href, opts),
 			sl: formatAssetUrl(new URL('./translations/sl.json', import.meta.url).href, opts),
+			so: formatAssetUrl(new URL('./translations/so.json', import.meta.url).href, opts),
 			sv: formatAssetUrl(new URL('./translations/sv.json', import.meta.url).href, opts),
 			te: formatAssetUrl(new URL('./translations/te.json', import.meta.url).href, opts),
 			th: formatAssetUrl(new URL('./translations/th.json', import.meta.url).href, opts),

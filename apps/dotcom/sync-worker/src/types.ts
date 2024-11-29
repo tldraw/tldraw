@@ -22,6 +22,7 @@ export interface Environment {
 	TL_PG_REPLICATOR: DurableObjectNamespace<TLPostgresReplicator>
 	TL_USER: DurableObjectNamespace<TLUserDurableObject>
 	BOTCOM_POSTGRES_CONNECTION_STRING: string
+	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: string
 	MEASURE: Analytics | undefined
 
 	ROOMS: R2Bucket

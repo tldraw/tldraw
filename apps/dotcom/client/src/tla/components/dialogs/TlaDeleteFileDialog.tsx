@@ -10,10 +10,10 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
-import { F } from '../../app/i18n'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { F } from '../../utils/i18n'
 import { getFilePath } from '../../utils/urls'
 
 export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClose(): void }) {
@@ -30,12 +30,11 @@ export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClo
 		await app.deleteOrForgetFile(fileId)
 		const recentFiles = app.getUserRecentFiles()
 		if (recentFiles.length === 0) {
-			app.createFile().then((res) => {
-				if (res.ok) {
-					navigate(getFilePath(res.value.file.id), { state: { mode: 'create' } })
-					trackEvent('delete-file', { source: 'file-menu' })
-				}
-			})
+			const result = app.createFile()
+			if (result.ok) {
+				navigate(getFilePath(result.value.file.id), { state: { mode: 'create' } })
+				trackEvent('delete-file', { source: 'file-menu' })
+			}
 		} else {
 			navigate(getFilePath(recentFiles[0].fileId))
 		}

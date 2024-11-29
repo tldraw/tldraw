@@ -1,6 +1,7 @@
 /// <reference types="react" />
 
 import { registerTldrawLibraryVersion } from '@tldraw/editor'
+export { ColorSchemeMenu } from './lib/ui/components/ColorSchemeMenu'
 export { TldrawUiDialogs } from './lib/ui/components/Dialogs'
 export { TldrawUiToasts } from './lib/ui/components/Toasts'
 export {
@@ -74,8 +75,11 @@ export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
 export { TextLabel, type TextLabelProps } from './lib/shapes/shared/TextLabel'
 export {
+	ARROW_LABEL_FONT_SIZES,
 	FONT_FAMILIES,
+	FONT_SIZES,
 	LABEL_FONT_SIZES,
+	STROKE_SIZES,
 	TEXT_PROPS,
 } from './lib/shapes/shared/default-shape-constants'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
@@ -279,10 +283,12 @@ export {
 	SelectAllMenuItem,
 	ToggleAutoSizeMenuItem,
 	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
 	ToggleEdgeScrollingItem,
 	ToggleFocusModeItem,
 	ToggleGridItem,
 	ToggleLockMenuItem,
+	TogglePasteAtCursorItem,
 	ToggleReduceMotionItem,
 	ToggleSnapModeItem,
 	ToggleToolLockItem,
