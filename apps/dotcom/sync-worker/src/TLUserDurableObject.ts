@@ -120,7 +120,6 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 		}
 	}
-	protocolVersion = Z_PROTOCOL_VERSION
 
 	async onRequest(req: IRequest) {
 		assert(this.userId, 'User ID not set')
@@ -128,11 +127,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		const url = new URL(req.url)
 		const params = Object.fromEntries(url.searchParams.entries())
-		const { sessionId, protocolVersion } = params
+		const { sessionId } = params
+
+		const protocolVersion = params.protocolVersion ? Number(params.protocolVersion) : 1
 
 		assert(sessionId, 'Session ID is required')
-		assert(protocolVersion, 'Protocol version is required')
-		assert(Number(protocolVersion), 'Protocol version must be a number')
+		assert(Number.isFinite(protocolVersion), `Invalid protocol version ${params.protocolVersion}`)
 
 		this.assertCache()
 
