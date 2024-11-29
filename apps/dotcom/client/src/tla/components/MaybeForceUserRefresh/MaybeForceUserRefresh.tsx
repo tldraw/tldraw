@@ -26,10 +26,10 @@ export function MaybeForceUserRefresh({ children }: { children: ReactNode }) {
 				<div className={styles.modal}>
 					<div className={styles.modalContent}>
 						<div className={styles.modalTitle}>
-							<F defaultMessage="This tldraw tab is out of date" />
+							<F defaultMessage="Please reload the page" />
 						</div>
 						<div>
-							<F defaultMessage="Please reload the page." />
+							<F defaultMessage="This version of tldraw is no longer supported." />
 						</div>
 						<div className={styles.modalActions}>
 							<TlaButton

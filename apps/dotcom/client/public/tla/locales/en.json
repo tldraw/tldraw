@@ -50,9 +50,6 @@
   "344a7f427f": {
     "translation": "Editor"
   },
-  "3710f2a1e9": {
-    "translation": "This tldraw tab is out of date"
-  },
   "424cc22417": {
     "translation": "Take me home"
   },
@@ -109,6 +106,12 @@
   },
   "70a6facb9d": {
     "translation": "This week"
+  },
+  "73ab799383": {
+    "translation": "This version of tldraw is no longer supported."
+  },
+  "7408cf0d7b": {
+    "translation": "Please reload the page"
   },
   "7573b8110a": {
     "translation": "No access"
@@ -200,9 +203,6 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
-  },
-  "d12621fde4": {
-    "translation": "Please reload the page."
   },
   "d3d2e61733": {
     "translation": "Close"

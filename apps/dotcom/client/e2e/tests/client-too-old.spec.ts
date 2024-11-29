@@ -11,7 +11,7 @@ test('if the backend drops support for the current client version', async ({
 	const reloadButton = page.locator('button:has-text("Reload")')
 	try {
 		await fetch(`http://localhost:3000/api/app/__test__/user/${id}/downgrade-client`)
-		await expect(page.getByText('This tldraw tab is out of date')).toBeVisible()
+		await expect(page.getByText('Please reload the page')).toBeVisible()
 		await expect(reloadButton).toBeVisible()
 	} finally {
 		await fetch(`http://localhost:3000/api/app/__test__/user/${id}/upgrade-client`)
