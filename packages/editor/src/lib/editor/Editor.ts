@@ -9800,9 +9800,7 @@ function applyPartialToRecordWithProps<
 		if (k === 'props' || k === 'meta') {
 			next[k] = { ...prev[k] } as JsonObject
 			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				if (nextValue !== undefined) {
-					;(next[k] as JsonObject)[nextKey] = nextValue
-				}
+				;(next[k] as JsonObject)[nextKey] = nextValue
 			}
 			continue
 		}
