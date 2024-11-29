@@ -891,8 +891,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     component(shape: TLEmbedShape): JSX_2.Element | null;
     // (undocumented)
-    static embedDefinitions: readonly EmbedDefinition[];
-    // (undocumented)
     getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
     getEmbedDefinition(url: string): TLEmbedResult;
@@ -914,6 +912,8 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     onResize(shape: TLEmbedShape, info: TLResizeInfo<TLEmbedShape>): TLEmbedShape;
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
+    // (undocumented)
+    static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
     static type: "embed";
 }
