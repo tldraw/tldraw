@@ -36,6 +36,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isDebugMode: boolean
 	isToolLocked: boolean
 	exportBackground: boolean
+	embedScene: boolean
 	screenBounds: BoxModel
 	insets: boolean[]
 	zoomBrush: BoxModel | null
@@ -88,6 +89,7 @@ export const shouldKeyBePreservedBetweenSessions = {
 	isDebugMode: true, // preserves because it's a user preference
 	isToolLocked: true, // preserves because it's a user preference
 	exportBackground: true, // preserves because it's a user preference
+	embedScene: true, // preserves because it's a user preference
 	screenBounds: true, // preserves because it's capturing the user's screen state
 	insets: true, // preserves because it's capturing the user's screen state
 
@@ -145,6 +147,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isDebugMode: T.boolean,
 			isToolLocked: T.boolean,
 			exportBackground: T.boolean,
+			embedScene: T.boolean,
 			screenBounds: boxModelValidator,
 			insets: T.arrayOf(T.boolean),
 			zoomBrush: boxModelValidator.nullable(),
@@ -188,6 +191,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isDebugMode: true,
 			isToolLocked: true,
 			exportBackground: true,
+			embedScene: true,
 			screenBounds: true,
 			insets: true,
 			zoomBrush: true,
@@ -218,6 +222,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			},
 			isFocusMode: false,
 			exportBackground: false,
+			embedScene: false,
 			isDebugMode: false,
 			isToolLocked: false,
 			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },

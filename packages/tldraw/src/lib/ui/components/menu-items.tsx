@@ -145,6 +145,23 @@ export function ToggleTransparentBgMenuItem() {
 	)
 }
 /** @public @react */
+export function ToggleEmbedSceneMenuItem() {
+	const editor = useEditor()
+	const embedScene = useValue(
+		'embedScene',
+		() => !editor.getInstanceState().embedScene,
+		[editor]
+	)
+	console.log('embedScene', embedScene)
+	return (
+		<TldrawUiMenuActionCheckboxItem
+			actionId="toggle-embed-scene"
+			checked={embedScene}
+			toggle
+		/>
+	)
+}
+/** @public @react */
 export function UnlockAllMenuItem() {
 	const editor = useEditor()
 	const shouldDisplay = useValue('any shapes', () => editor.getCurrentPageShapeIds().size > 0, [

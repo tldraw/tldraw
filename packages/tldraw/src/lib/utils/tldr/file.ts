@@ -29,6 +29,7 @@ export const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json' as const
 
 /** @public */
 export const TLDRAW_FILE_EXTENSION = '.tldr' as const
+export const SVG_FILE_EXTENSION = '.svg' as const
 
 // When incrementing this, you'll need to update parseTldrawJsonFile to handle
 // both your new changes and the old file format
@@ -238,6 +239,21 @@ export async function parseAndLoadDocument(
 	onV1FileLoad?: () => void,
 	forceDarkMode?: boolean
 ) {
+	if (document.startsWith('<svg')) {
+		const base64 = document.match(/<!--tldraw-scene=(.*?)-->/)?.[1]
+		console.log('base64', base64)
+		if (!base64) {
+			addToast({
+				title: msg('file-system.file-open-error.title'),
+				description: msg('file-system.file-open-error.not-a-tldraw-file'),
+				severity: 'error',
+			})
+			return
+		}
+		// FIXME: handle unicode?
+		document = atob(base64)
+		console.log('document', document)
+	}
 	const parseFileResult = parseTldrawJsonFile({
 		schema: editor.store.schema,
 		json: document,

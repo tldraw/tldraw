@@ -184,6 +184,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (ids.length === 0) ids = Array.from(editor.getCurrentPageShapeIds().values())
 					if (ids.length === 0) return
 					trackEvent('export-as', { format: 'svg', source })
+					// FIXME: consider making it .tldraw.svg if opts.embedScene is true?
 					exportAs(ids, 'svg', getExportName(editor, defaultDocumentName))
 				},
 			},
@@ -1219,6 +1220,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-transparent', { source })
 					editor.updateInstanceState({
 						exportBackground: !editor.getInstanceState().exportBackground,
+					})
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-embed-scene',
+				label: {
+					default: 'action.toggle-embed-scene',
+					menu: 'action.toggle-embed-scene.menu',
+					['context-menu']: 'action.toggle-embed-scene.context-menu',
+				},
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-embed-scene', { source })
+					editor.updateInstanceState({
+						embedScene: !editor.getInstanceState().embedScene,
 					})
 				},
 				checkbox: true,
