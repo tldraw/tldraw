@@ -7,7 +7,7 @@ import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import { ZReplicationEvent } from './UserDataSyncer'
 import { getPostgres } from './getPostgres'
-import { Analytics, Environment, TLReplicatorEvent } from './types'
+import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
 import { getUserDurableObject } from './utils/durableObjects'
 
 const seed = `
@@ -441,7 +441,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 	}
 
-	logEvent(event: TLReplicatorEvent) {
+	logEvent(event: TLPostgresReplicatorEvent) {
 		switch (event.type) {
 			case 'reboot':
 			case 'reboot_error':

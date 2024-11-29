@@ -98,7 +98,7 @@ export type TLServerEvent =
 			messageLength: number
 	  }
 
-export type TLReplicatorEvent =
+export type TLPostgresReplicatorEvent =
 	| { type: 'reboot' | 'reboot_error' }
 	| { type: 'reboot_duration'; duration: number }
 	| { type: 'rpm'; rpm: number }
