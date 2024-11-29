@@ -103,11 +103,16 @@ export const ZErrorCode = stringEnum(
 	'unpublish_failed',
 	'republish_failed',
 	'unknown_error',
+	'client_too_old',
 	'forbidden',
 	'bad_request',
 	'rate_limit_exceeded'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
+
+// increment this to force clients to reload
+// e.g. if we make backwards-incompatible changes to the schema
+export const Z_PROTOCOL_VERSION = 1
 
 export type ZServerSentMessage =
 	| {

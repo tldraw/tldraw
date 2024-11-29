@@ -22,7 +22,8 @@ services:
       -c max_replication_slots=5 
       -c hot_standby=on 
       -c hot_standby_feedback=on
-      -c config_file=/etc/postgresql/postgresql.conf
+#       Uncomment the following line to enable query logging
+#       -c config_file=/etc/postgresql/postgresql.conf
     volumes:
       - zstart_pgdata:/var/lib/postgresql/data
       - ./:/docker-entrypoint-initdb.d

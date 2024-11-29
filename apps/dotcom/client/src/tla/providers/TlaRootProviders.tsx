@@ -15,6 +15,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
@@ -41,24 +42,26 @@ export function Component() {
 	const handleLocaleChange = (locale: string) => setLocale(locale)
 
 	return (
-		<IntlWrapper locale={locale}>
-			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
-				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-					<div
-						ref={setContainer}
-						className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-					>
-						{container && (
-							<ContainerProvider container={container}>
-								<InsideOfContainerContext>
-									<Outlet />
-								</InsideOfContainerContext>
-							</ContainerProvider>
-						)}
-					</div>
-				</SignedInProvider>
-			</ClerkProvider>
-		</IntlWrapper>
+		<div
+			ref={setContainer}
+			className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+		>
+			<IntlWrapper locale={locale}>
+				<MaybeForceUserRefresh>
+					<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
+						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+							{container && (
+								<ContainerProvider container={container}>
+									<InsideOfContainerContext>
+										<Outlet />
+									</InsideOfContainerContext>
+								</ContainerProvider>
+							)}
+						</SignedInProvider>
+					</ClerkProvider>
+				</MaybeForceUserRefresh>
+			</IntlWrapper>
+		</div>
 	)
 }
 
