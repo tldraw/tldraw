@@ -987,7 +987,7 @@
  * Otherwise, annoyingly, the toolbar is whips back-and-forth as the selection goes from
  * the beginning of a line to the end of the line and so on.
  */
-.tl-rich-text__toolbar[data-is-selection-on-same-line='true'][data-is-selecting-text='true'] {
+.tl-rich-text__toolbar[data-is-mousing-down='true'][data-is-selection-on-same-line='true'] {
 	transition:
 		opacity 150ms var(--animation-curve),
 		transform 150ms var(--animation-curve),
@@ -997,6 +997,11 @@
 
 .tl-rich-text__toolbar-link-input {
 	margin-left: 12px;
+	/*
+	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
+	 * This is so the toolbar size stays stable going in and out of the link editor.
+	 */
+	min-width: 188px;
 }
 
 .tl-rich-text__toolbar .tlui-input__wrapper {

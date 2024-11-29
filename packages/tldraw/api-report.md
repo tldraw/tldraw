@@ -3786,8 +3786,8 @@ export function useCanUndo(): boolean;
 export function useCollaborationStatus(): "offline" | "online" | null;
 
 // @public (undocumented)
-export function useContextualToolbarPosition({ hasSelection, toolbarRef, selectionBounds, }: {
-    hasSelection: boolean;
+export function useContextualToolbarPosition({ isVisible, toolbarRef, selectionBounds, }: {
+    isVisible: boolean;
     selectionBounds?: Box;
     toolbarRef: RefObject<HTMLDivElement>;
 }): {

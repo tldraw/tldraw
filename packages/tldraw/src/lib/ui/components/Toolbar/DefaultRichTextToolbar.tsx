@@ -1,6 +1,12 @@
-import { Editor as TextEditor, EditorEvents as TextEditorEvents } from '@tiptap/core'
+import {
+	getMarkRange,
+	Range,
+	Editor as TextEditor,
+	EditorEvents as TextEditorEvents,
+} from '@tiptap/core'
+import { MarkType } from '@tiptap/pm/model'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
-import { Box, Editor, areObjectsShallowEqual, track, useEditor, useValue } from '@tldraw/editor'
+import { areObjectsShallowEqual, Box, Editor, track, useEditor, useValue } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
@@ -26,35 +32,35 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		y: defaultPosition.y,
 	})
 	const [isEditingLink, setIsEditingLink] = useState(false)
+	const [wasJustEditingLink, setWasJustEditingLink] = useState(false)
 	const textEditor: TextEditor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
 		editor,
 	])
 	const camera = useValue('camera', () => editor.getCamera(), [editor])
 	const [textEditorState, setTextEditorState] = useState<TextEditorState | null>(textEditor?.state)
-	const [isSelectingText, setIsSelectingText] = useState(false)
-	const [shouldAllowToolbarClick, setShouldAllowToolbarClick] = useState(false)
-	const hasSelection = !textEditorState?.selection.empty
+	const [isMousingDown, setIsMousingDown] = useState(false)
+	const [isMousingAround, setIsMousingAround] = useState(false)
+	const hasTextSelection = !textEditorState?.selection.empty
 
+	// Set up general event listeners for text selection.
 	useEffect(() => {
-		const handleMouseDown = () => {
-			setIsSelectingText(true)
-			setShouldAllowToolbarClick(hasSelection)
-		}
-
-		const handleMouseUp = () => {
-			setIsSelectingText(false)
-			setShouldAllowToolbarClick(true)
-		}
-
+		const handleMouseDown = () => !hasTextSelection && setIsMousingDown(true)
+		const handleMouseUp = () => setIsMousingDown(false)
+		const handleMouseMove = () => setIsMousingAround(true)
+		const handleKeyDown = () => !isEditingLink && setIsMousingAround(false)
 		window.addEventListener('mousedown', handleMouseDown)
 		window.addEventListener('mouseup', handleMouseUp)
-
+		window.addEventListener('mousemove', handleMouseMove)
+		window.addEventListener('keydown', handleKeyDown)
 		return () => {
 			window.removeEventListener('mousedown', handleMouseDown)
 			window.removeEventListener('mouseup', handleMouseUp)
+			window.removeEventListener('mousemove', handleMouseMove)
+			window.removeEventListener('keydown', handleKeyDown)
 		}
-	}, [hasSelection])
+	}, [hasTextSelection, isEditingLink])
 
+	// Set up text editor transaction listener.
 	useEffect(() => {
 		if (!textEditor) {
 			setTextEditorState(null)
@@ -64,54 +70,87 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		const handleTransaction = ({ editor: textEditor }: TextEditorEvents['transaction']) => {
 			setTextEditorState(textEditor.state)
 		}
-		const handleClick = () => {
-			setIsEditingLink(textEditor.isActive('link'))
-		}
 
 		textEditor.on('transaction', handleTransaction)
-		textEditor.view.dom.addEventListener('click', handleClick)
-
 		return () => {
 			textEditor.off('transaction', handleTransaction)
-			textEditor.view.dom.removeEventListener('click', handleClick)
 			setTextEditorState(null)
 		}
 	}, [textEditor])
 
+	// Set up text editor event listeners.
+	useEffect(() => {
+		if (!textEditor) {
+			return
+		}
+
+		const handleClick = () => {
+			const isLinkActive = textEditor.isActive('link')
+			if (isLinkActive) {
+				const { from, to } = getMarkRange(
+					textEditor.state.doc.resolve(textEditor.state.selection.from),
+					textEditor.schema.marks.link as MarkType
+				) as Range
+				// Select the entire link if we just clicked on it while in edit mode, but not if there's a specific selection.
+				if (textEditor.state.selection.empty) {
+					textEditor.commands.setTextSelection({ from, to })
+				}
+			}
+			setWasJustEditingLink(isEditingLink)
+			setIsEditingLink(isLinkActive)
+		}
+
+		textEditor.view.dom.addEventListener('click', handleClick)
+		return () => {
+			textEditor.view.dom.removeEventListener('click', handleClick)
+		}
+	}, [textEditor, isEditingLink])
+
 	// Based on the start and end of the selection calculate the position at the center top.
 	const selectionBounds = getTextSelectionBounds(editor, textEditor)
+	const isVisible =
+		textEditor &&
+		isMousingAround &&
+		((hasTextSelection && !isMousingDown) || textEditor.isActive('link'))
 	const toolbarPosition = useContextualToolbarPosition({
-		hasSelection: hasSelection && textEditor && shouldAllowToolbarClick,
+		isVisible,
 		toolbarRef,
 		selectionBounds,
 	})
 
 	const handleEditLinkIntent = () => setIsEditingLink(true)
-	const handleLinkComplete = () => setIsEditingLink(false)
+	const handleLinkComplete = () => {
+		setWasJustEditingLink(true)
+		setIsEditingLink(false)
+		setIsMousingAround(false)
+		const from = textEditor.state.selection.from
+		textEditor.commands.setTextSelection({ from, to: from })
+	}
 
 	// This helps make the toolbar less spastic as the selection changes.
 	const isSelectionOnSameLine = previousTop.current === stabilizedToolbarPosition.y
 	previousTop.current = stabilizedToolbarPosition.y
-
 	useEffect(() => {
-		toolbarRef.current?.setAttribute('data-is-selecting-text', isSelectingText.toString())
+		toolbarRef.current?.setAttribute('data-is-mousing-down', isMousingDown.toString())
 		toolbarRef.current?.setAttribute(
 			'data-is-selection-on-same-line',
 			isSelectionOnSameLine.toString()
 		)
-	}, [hasSelection, isSelectingText, isSelectionOnSameLine])
+	}, [hasTextSelection, isMousingDown, isSelectionOnSameLine])
 
+	// A bit annoying but we need to stabilize the toolbar position so it doesn't jump around when modifying the rich text.
+	// The issue stems from the fact that coordsAtPos provides slightly different results for the same general position.
+	// However, if the camera has moved, forget the stabilization logic, just update the positions.
 	useEffect(() => {
-		if (toolbarPosition.y === defaultPosition.y) return
+		if (toolbarPosition.y === defaultPosition.y || isEditingLink) return
 
 		const hasCameraMoved = !areObjectsShallowEqual(camera, currentCamera)
 
-		// A bit annoying but we need to stabilize the toolbar position so it doesn't jump around when modifying the rich text.
-		// The issue stems from the fact that coordsAtPos provides slightly different results for the same general position.
+		const threshold = 10
 		const hasXPositionChangedEnough =
-			hasCameraMoved || Math.abs(toolbarPosition.x - stabilizedToolbarPosition.x) > 10
+			hasCameraMoved || Math.abs(toolbarPosition.x - stabilizedToolbarPosition.x) > threshold
 		const hasYPositionChangedEnough =
-			hasCameraMoved || Math.abs(toolbarPosition.y - stabilizedToolbarPosition.y) > 10
+			hasCameraMoved || Math.abs(toolbarPosition.y - stabilizedToolbarPosition.y) > threshold
 		if (hasXPositionChangedEnough || hasYPositionChangedEnough) {
 			setStabilizedToolbarPosition({
 				x: hasXPositionChangedEnough ? toolbarPosition.x : stabilizedToolbarPosition.x,
@@ -122,21 +161,21 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		if (hasCameraMoved) {
 			setCurrentCamera(camera)
 		}
-	}, [toolbarPosition, stabilizedToolbarPosition, camera, currentCamera])
+	}, [toolbarPosition, stabilizedToolbarPosition, camera, currentCamera, isEditingLink])
 
-	if (!textEditor || !shouldShowToolbar(editor, textEditorState)) return null
+	if (!textEditor || !textEditorState || !editor.isInAny('select.editing_shape')) return null
 
 	return (
 		<TldrawUiContextualToolbar
 			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
 			position={stabilizedToolbarPosition}
-			isVisible={hasSelection}
+			isVisible={isVisible}
 			indicatorOffset={toolbarPosition.indicatorOffset}
 		>
 			{children ? (
 				children
-			) : isEditingLink ? (
+			) : isEditingLink || (wasJustEditingLink && !isVisible) ? (
 				<LinkEditor
 					textEditor={textEditor}
 					value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
@@ -151,15 +190,6 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		</TldrawUiContextualToolbar>
 	)
 })
-
-function shouldShowToolbar(editor: Editor, textEditorState: TextEditorState | null) {
-	const showToolbar = editor.isInAny('select.editing_shape')
-
-	if (!showToolbar) return false
-	if (!textEditorState) return false
-
-	return true
-}
 
 interface Coordinates {
 	top: number
@@ -204,11 +234,24 @@ function getTextSelectionBounds(editor: Editor, textEditor: TextEditor) {
 	}
 
 	// Ensure that start < end for the menu to be positioned correctly.
+	// Sometimes the coords can be NaN and we need to exclude those.
 	const coords = {
-		top: Math.min(fromPos.top, toPos.top),
-		bottom: Math.max(fromPos.bottom, toPos.bottom),
-		left: Math.min(fromPos.left, toPos.left),
-		right: Math.max(fromPos.right, toPos.right),
+		top: Math.min(
+			!isNaN(fromPos.top) ? fromPos.top : Infinity,
+			!isNaN(toPos.top) ? toPos.top : Infinity
+		),
+		bottom: Math.max(
+			!isNaN(fromPos.bottom) ? fromPos.bottom : -Infinity,
+			!isNaN(toPos.bottom) ? toPos.bottom : -Infinity
+		),
+		left: Math.min(
+			!isNaN(fromPos.left) ? fromPos.left : Infinity,
+			!isNaN(toPos.left) ? toPos.left : Infinity
+		),
+		right: Math.max(
+			!isNaN(fromPos.right) ? fromPos.right : -Infinity,
+			!isNaN(toPos.right) ? toPos.right : -Infinity
+		),
 	}
 
 	return Box.From({

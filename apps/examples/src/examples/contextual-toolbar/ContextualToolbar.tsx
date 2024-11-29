@@ -33,7 +33,7 @@ const ContextualToolbarComponent = track(() => {
 
 	// [3]
 	const toolbarPosition = useContextualToolbarPosition({
-		hasSelection: showToolbar,
+		isVisible: showToolbar,
 		toolbarRef,
 	})
 

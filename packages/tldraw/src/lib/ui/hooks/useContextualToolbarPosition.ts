@@ -25,11 +25,11 @@ const defaultPosition = {
  */
 /** @public */
 export function useContextualToolbarPosition({
-	hasSelection,
+	isVisible,
 	toolbarRef,
 	selectionBounds,
 }: {
-	hasSelection: boolean
+	isVisible: boolean
 	toolbarRef: RefObject<HTMLDivElement>
 	selectionBounds?: Box
 }) {
@@ -49,7 +49,7 @@ export function useContextualToolbarPosition({
 	if (!toolbarRef?.current) return defaultPosition
 	const { width: menuWidth, height: menuHeight } = toolbarRef.current.getBoundingClientRect()
 
-	if (!hasSelection || !menuWidth || !menuHeight) {
+	if (!isVisible || !menuWidth || !menuHeight) {
 		return defaultPosition
 	}
 
