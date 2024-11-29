@@ -140,7 +140,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
 
-		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION) {
+		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
 			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
@@ -448,6 +448,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		} catch (e) {
 			throw new ZMutationError(ZErrorCode.unpublish_failed, 'Failed to unpublish snapshot', e)
 		}
+	}
+
+	/** sneaky test stuff */
+	// this allows us to test the 'your client is out of date please refresh' flow
+	private __test__isForceDowngraded = false
+	async __test__downgradeClient(isDowngraded: boolean) {
+		if (this.env.IS_LOCAL !== 'true') {
+			return
+		}
+		this.__test__isForceDowngraded = isDowngraded
+		this.sockets.forEach((socket) => {
+			socket.close()
+		})
 	}
 }
 
