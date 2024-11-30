@@ -1,4 +1,4 @@
-import { TLFrameShape, TLGeoShape, createShapeId, tlenv } from '@tldraw/editor'
+import { Box, TLFrameShape, TLGeoShape, createShapeId, tlenv } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -2170,5 +2170,21 @@ describe('control pointing', () => {
 		editor.pointerDown()
 		editor.pointerUp()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box3])
+	})
+})
+
+describe('long press', () => {
+	it('works correctly with screenbounds offset', () => {
+		editor.updateViewportScreenBounds(new Box(100, 100, 800, 600))
+		editor.pointerDown(201, 202)
+		expect(editor.inputs.currentScreenPoint).toMatchObject({ x: 101, y: 102 })
+	})
+
+	it('works correctly with screenbounds offset', () => {
+		editor.updateViewportScreenBounds(new Box(100, 100, 800, 600))
+		editor.pointerDown(201, 202)
+		jest.advanceTimersByTime(1000)
+		// without the fix added in this PR, it would have been 1, 2
+		expect(editor.inputs.currentScreenPoint).toMatchObject({ x: 101, y: 102 })
 	})
 })
