@@ -13,6 +13,7 @@ import 'tldraw/tldraw.css'
 
 const CAMERA_OPTIONS: TLCameraOptions = {
 	isLocked: false,
+	isZoomLocked: false,
 	wheelBehavior: 'pan',
 	panSpeed: 1,
 	zoomSpeed: 1,

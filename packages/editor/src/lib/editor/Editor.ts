@@ -2759,6 +2759,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToFit(opts?: TLCameraMoveOptions): this {
+		const { isZoomLocked} = this.getCameraOptions()
+		if ((isZoomLocked) && !opts?.force) return this
 		const ids = [...this.getCurrentPageShapeIds()]
 		if (ids.length <= 0) return this
 		const pageBounds = Box.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
@@ -2782,8 +2784,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resetZoom(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		const { isLocked, constraints: constraints } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
+		const { isLocked, isZoomLocked, constraints: constraints } = this.getCameraOptions()
+		if ((isLocked || isZoomLocked) && !opts?.force) return this
 
 		const currentCamera = this.getCamera()
 		const { x: cx, y: cy, z: cz } = currentCamera
@@ -2823,8 +2825,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomIn(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		const { isLocked } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
+		const { isLocked, isZoomLocked } = this.getCameraOptions()
+		if ((isLocked || isZoomLocked) && !opts?.force) return this
 
 		const { x: cx, y: cy, z: cz } = this.getCamera()
 
@@ -2868,8 +2870,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomOut(point = this.getViewportScreenCenter(), opts?: TLCameraMoveOptions): this {
-		const { isLocked } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
+		const { isLocked, isZoomLocked } = this.getCameraOptions()
+		if ((isLocked || isZoomLocked) && !opts?.force) return this
 
 		const { zoomSteps } = this.getCameraOptions()
 		if (zoomSteps !== null && zoomSteps.length > 1) {
@@ -2911,8 +2913,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToSelection(opts?: TLCameraMoveOptions): this {
-		const { isLocked } = this.getCameraOptions()
-		if (isLocked && !opts?.force) return this
+		const { isLocked, isZoomLocked } = this.getCameraOptions()
+		if ((isLocked || isZoomLocked) && !opts?.force) return this
 
 		const selectionPageBounds = this.getSelectionPageBounds()
 		if (selectionPageBounds) {
@@ -2921,6 +2923,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 				...opts,
 			})
 		}
+		return this
+	}
+
+	/**
+	 * Lock/unlock the camera's zoom functionality. 
+	 *
+	 * @example
+	 * ```ts
+	 * editor.toggleZoom()
+	 * ```
+	 *
+	 *
+	 * @public
+	 */
+	toggleZoom()  : this {
+		const { isZoomLocked } = this.getCameraOptions()
+		if (isZoomLocked) this.setCameraOptions({isZoomLocked: false})
+		else this.setCameraOptions({isZoomLocked: true})
+		console.log(isZoomLocked)
 		return this
 	}
 
@@ -2944,7 +2965,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts?: { targetZoom?: number; inset?: number } & TLCameraMoveOptions
 	): this {
 		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()
-		if (cameraOptions.isLocked && !opts?.force) return this
+		if ((cameraOptions.isLocked || cameraOptions.isZoomLocked) && !opts?.force) return this
 
 		const viewportScreenBounds = this.getViewportScreenBounds()
 
@@ -9332,7 +9353,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const instanceState = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const pageState = this.store.get(this._getCurrentPageStateId())!
 		const cameraOptions = this._cameraOptions.__unsafe__getWithoutCapture()!
-
 		switch (type) {
 			case 'pinch': {
 				if (cameraOptions.isLocked) return
@@ -9446,6 +9466,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					switch (behavior) {
 						case 'zoom': {
+							if (cameraOptions.isZoomLocked) return
 							// Zoom in on current screen point using the wheel delta
 							const { x, y } = this.inputs.currentScreenPoint
 							let delta = dz
@@ -9490,7 +9511,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this._updateInputsFromEvent(info)
 				const { isPen } = info
 				const { isPenMode } = instanceState
-
 				switch (info.name) {
 					case 'pointer_down': {
 						// If we're in pen mode and the input is not a pen type, then stop here
