@@ -17,6 +17,7 @@ import {
 	createSessionStateSnapshotSignal,
 	react,
 	throttle,
+	tltime,
 	useActions,
 	useCollaborationStatus,
 	useEditor,
@@ -175,14 +176,36 @@ function TlaEditorInner({
 		userInfo: app?.tlUser.userPreferences,
 	})
 
-	// Handle entering and exiting the file
+	// Handle entering and exiting the file, with some protection against rapid enters/exits
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
+		let didEnter = false
+		let timer: any
 
-		app.onFileEnter(fileId)
+		const fileState = app.getFileState(fileId)
+
+		if (fileState && fileState.firstVisitAt) {
+			// If there's a file state already then wait a second before marking it as entered
+			timer = tltime.setTimeout(
+				'file enter timer',
+				() => {
+					app.onFileEnter(fileId)
+					didEnter = true
+				},
+				1000
+			)
+		} else {
+			// If there's not a file state yet (i.e. if we're visiting this for the first time) then do an enter
+			app.onFileEnter(fileId)
+			didEnter = true
+		}
+
 		return () => {
-			app.onFileExit(fileId)
+			clearTimeout(timer)
+			if (didEnter) {
+				app.onFileExit(fileId)
+			}
 		}
 	}, [app, fileId, store.status])
 
