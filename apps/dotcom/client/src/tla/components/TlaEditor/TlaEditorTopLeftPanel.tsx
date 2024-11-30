@@ -149,7 +149,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 			if (isOwner) {
 				setIsRenaming(false)
 				// don't allow guests to update the file name
-				app.updateFile(fileId, (file) => ({ ...file, name }))
+				app.updateFile({ id: fileId, name })
 				editor.updateDocumentSettings({ name })
 			}
 		},

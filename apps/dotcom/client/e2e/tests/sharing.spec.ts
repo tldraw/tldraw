@@ -1,8 +1,6 @@
-import { Page } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
-import { ShareMenu } from '../fixtures/ShareMenu'
-import { areUrlsEqual, openNewIncognitoPage } from '../fixtures/helpers'
+import { openNewTab } from '../fixtures/helpers'
 import { expect, test } from '../fixtures/tla-test'
 
 test.beforeEach(async ({ context }) => {
@@ -11,97 +9,361 @@ test.beforeEach(async ({ context }) => {
 
 /* --------------------- Sharing -------------------- */
 
-async function shareFileAndCopyLink(
-	page: Page,
-	shareMenu: ShareMenu,
-	shareAction: () => Promise<void>
-) {
-	await shareMenu.open()
-	expect(await shareMenu.isVisible()).toBe(true)
-	await shareAction()
-	return await shareMenu.copyLink()
-}
-
-const users = [
-	{ user: undefined, sameFileName: false, description: 'anon users' },
-	{ user: 'suppy' as const, sameFileName: true, description: 'logged in users' },
-]
-test.describe('default share state', () => {
-	test('is public and editable', async ({ shareMenu }) => {
+test.describe('logged in user on own file', () => {
+	test('default share state', async ({ shareMenu }) => {
 		await shareMenu.open()
-		expect(await shareMenu.isVisible()).toBe(true)
 		expect(await shareMenu.isToggleChecked()).toBe(true)
 		expect(await shareMenu.getShareType()).toBe('Editor')
 	})
-})
 
-test.describe('shared files', () => {
-	users.map((u) => {
-		test(`can be seen by ${u.description}`, async ({ page, browser, shareMenu, editor }) => {
-			const { url, fileName, userProps } = await test.step('Share file', async () => {
-				const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
-				const fileName = await editor.getCurrentFileName()
-				const index = test.info().parallelIndex
-				const userProps = u.user ? { user: u.user, index } : undefined
-				return { url, fileName, userProps }
-			})
+	test('tabs work correctly', async ({ shareMenu }) => {
+		await shareMenu.open()
+		expect(await shareMenu.publishTabButton.isVisible()).toBe(true)
+		expect(await shareMenu.inviteTabButton.isVisible()).toBe(true)
+		expect(await shareMenu.exportTabButton.isVisible()).toBe(true)
+		expect(await shareMenu.anonShareTabButton.isVisible()).toBe(false)
 
-			const { newContext, newPage, newEditor } = await openNewIncognitoPage(browser, {
-				url,
-				userProps,
-			})
-			// We are in a multiplayer room with another person
-			await expect(page.getByRole('button', { name: 'People' })).toBeVisible()
+		expect(await shareMenu.publishTabPage.isVisible()).toBe(false)
+		expect(await shareMenu.inviteTabPage.isVisible()).toBe(true)
+		expect(await shareMenu.exportTabPage.isVisible()).toBe(false)
+		expect(await shareMenu.anonShareTabPage.isVisible()).toBe(false)
 
-			await expect(newPage.getByRole('heading', { name: 'Not found' })).not.toBeVisible()
-			expect(await newEditor.getCurrentFileName()).toBe(u.sameFileName ? fileName : 'New board')
-			await newContext.close()
-		})
+		// Starts on the invite tab
+		expect(await shareMenu.inviteTabPage.isVisible()).toBe(true)
+		expect(await shareMenu.exportTabPage.isVisible()).toBe(false)
+		expect(await shareMenu.publishTabPage.isVisible()).toBe(false)
+		expect(await shareMenu.anonShareTabPage.isVisible()).toBe(false)
 
-		test(`can be unshared for ${u.description}`, async ({ page, browser, shareMenu }) => {
-			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
+		// Can switch between tabs (export)
+		await shareMenu.exportTabButton.click()
+		expect(await shareMenu.inviteTabPage.isVisible()).toBe(false)
+		expect(await shareMenu.exportTabPage.isVisible()).toBe(true)
+		expect(await shareMenu.publishTabPage.isVisible()).toBe(false)
 
-			const index = test.info().parallelIndex
-			const userProps = u.user ? { user: u.user, index } : undefined
-			const { newContext, errorPage } = await openNewIncognitoPage(browser, {
-				url,
-				userProps,
-			})
-
-			await shareMenu.unshareFile()
-			await errorPage.expectPrivateFileVisible()
-			await newContext.close()
-		})
-	})
-	test('logged in users can copy shared links', async ({ page, browser, shareMenu }) => {
-		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
-		const index = test.info().parallelIndex
-
-		const { newPage, newShareMenu, newContext } = await openNewIncognitoPage(browser, {
-			url,
-			userProps: {
-				user: 'huppy' as const,
-				index,
-			},
-			allowClipboard: true,
-		})
-		// we have to wait a bit for the search params to get populated
-		await newPage.waitForTimeout(500)
-		const otherUserUrl = await newShareMenu.openShareMenuAndCopyInviteLink()
-		expect(areUrlsEqual(otherUserUrl, url)).toBe(true)
-		await newContext.close()
+		// Can switch between tabs (publish)
+		await shareMenu.publishTabButton.click()
+		expect(await shareMenu.inviteTabPage.isVisible()).toBe(false)
+		expect(await shareMenu.exportTabPage.isVisible()).toBe(false)
+		expect(await shareMenu.publishTabPage.isVisible()).toBe(true)
 	})
 
-	test('anon users can copy shared links', async ({ page, browser, shareMenu }) => {
-		const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.shareFile)
+	test('can unshare and reshare', async ({ page, browser, shareMenu }) => {
+		// Copy the link to the current file
+		await shareMenu.open()
+		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
+		const url = await shareMenu.copyLink()
 
-		const { newShareMenu, newContext } = await openNewIncognitoPage(browser, {
+		// Open link in an incognito window
+		const { newPage, newShareMenu, newContext } = await openNewTab(browser, {
 			url,
 			allowClipboard: true,
 			userProps: undefined,
 		})
+
+		// The second page should have the share button and not the error
 		await expect(newShareMenu.shareButton).toBeVisible()
-		await newShareMenu.openShareMenuAndCopyInviteLink()
+		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
+
+		// Now unshare it it...
+		await page.getByTestId('shared-link-shared-switch').click()
+		expect(await shareMenu.isToggleChecked()).toBe(false)
+
+		// Reload the second page
+		newPage.reload()
+
+		// The second page should have an error and not the share button
+		await expect(newShareMenu.shareButton).not.toBeVisible()
+		await expect(newPage.getByTestId('tla-error-icon')).toBeVisible()
+
+		// Now reshare it...
+		await page.getByTestId('shared-link-shared-switch').click()
+		expect(await shareMenu.isToggleChecked()).toBe(true)
+
+		// Reload the second page again
+		newPage.reload()
+
+		// The second page should have the share button and not the error again
+		await expect(newShareMenu.shareButton).toBeVisible()
+		await expect(newPage.getByTestId('tla-error-icon')).not.toBeVisible()
+
+		await newContext.close()
+	})
+
+	test('can switch share permissions between editor and viewer', async ({
+		page,
+		browser,
+		shareMenu,
+	}) => {
+		// Copy the link to the current file
+		await shareMenu.open()
+
+		// The permission should be editor by default...
+		await expect(page.getByTestId('shared-link-type-select')).toHaveText('Editor')
+
+		// Copy the share link
+		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
+		const url = await shareMenu.copyLink()
+
+		// Open link in an incognito window
+		const { newPage, newContext } = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: undefined,
+		})
+
+		// The second page should be in editor mode
+		await expect(newPage.getByTestId('tools.draw')).toBeVisible()
+
+		// Now set the permission to viewer...
+		await page.getByTestId('shared-link-type-select').click()
+		await page.getByRole('option', { name: 'Viewer' }).click()
+		await expect(page.getByTestId('shared-link-type-select')).toHaveText('Viewer')
+
+		// Reload the second page
+		newPage.reload()
+
+		// The second page should be in readonly mode
+		await expect(newPage.getByTestId('tools.draw')).not.toBeVisible()
+
+		// Now reshare it...
+		await page.getByTestId('shared-link-type-select').click()
+		await page.getByRole('option', { name: 'Editor' }).click()
+		await expect(page.getByTestId('shared-link-type-select')).toHaveText('Editor')
+
+		// Reload the second page again
+		newPage.reload()
+
+		// The second page should be back in editor mode
+		await expect(newPage.getByTestId('tools.draw')).toBeVisible()
+
+		await newContext.close()
+	})
+
+	test('can publish and unpublish', async ({ shareMenu, browser }) => {
+		// Publish the user's current file
+		await shareMenu.open()
+		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
+		await shareMenu.publishFile()
+		const url = await shareMenu.copyLink()
+
+		// Open published file link in an incognito window
+		const { newPage, newShareMenu, newContext } = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: { user: 'huppy', index: test.info().parallelIndex },
+		})
+
+		await expect(newShareMenu.shareButton).toBeVisible()
+
+		// Now unpublish it...
+
+		await shareMenu.unpublishFile()
+
+		newPage.reload()
+
+		// Open published file link in an incognito window
+
+		await expect(newShareMenu.shareButton).not.toBeVisible()
+
+		await expect(newPage.getByTestId('tla-error-icon')).toBeVisible()
+
+		await newContext.close()
+	})
+
+	test('can publish changes', async ({ page, shareMenu, browser }) => {
+		// Publish the user's current project
+		await shareMenu.open()
+		await shareMenu.publishFile()
+		const url = await shareMenu.copyLink()
+
+		// Open published project link in an incognito window
+		const newTab1 = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: undefined,
+		})
+
+		await expect(newTab1.newShareMenu.shareButton).toBeVisible()
+		await newTab1.newShareMenu.open()
+
+		// should see an empty page...
+		await newTab1.newEditor.expectShapesCount(0)
+		await newTab1.newContext.close()
+
+		// Back on the published project, add a shape
+		await page.getByTestId('tools.rectangle').click()
+		await page.locator('.tl-background').click()
+
+		// Open in a second new tab
+		const newTab2 = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: undefined,
+		})
+
+		// published project should still be zero
+		await newTab2.newEditor.expectShapesCount(0)
+		await newTab2.newContext.close()
+
+		// Back on the published project... publish the changes
+		await shareMenu.open()
+		await shareMenu.publishChanges()
+
+		// Open published project in a third new tab
+		const newTab3 = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: undefined,
+		})
+
+		// published project should now have one shape
+		await newTab3.newEditor.expectShapesCount(1)
+		await newTab3.newContext.close()
+	})
+})
+
+test.describe('logged in user on someone elses file', () => {
+	test.fixme('todo', () => {})
+})
+
+test.describe('logged in user on published file', () => {
+	test('tabs work correctly', async ({ shareMenu, browser }) => {
+		// Publish the user's current file
+		await shareMenu.open()
+		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
+		await shareMenu.publishFile()
+		const url = await shareMenu.copyLink()
+
+		// Open published file link in an incognito window
+		const { newShareMenu, newContext } = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: { user: 'huppy', index: test.info().parallelIndex },
+		})
+
+		await expect(newShareMenu.shareButton).toBeVisible()
+		await newShareMenu.open()
+
+		expect(await newShareMenu.publishTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.inviteTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabButton.isVisible()).toBe(true)
+		expect(await newShareMenu.anonShareTabButton.isVisible()).toBe(true)
+
+		expect(await newShareMenu.publishTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.inviteTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(true) // show anon share tab page
+
+		// can copy the url
+		const copiedUrl = await newShareMenu.copyLink()
+		expect(copiedUrl).toBe(url)
+
+		// Switch to the export share tab
+		await newShareMenu.exportTabButton.click()
+		expect(await newShareMenu.exportTabPage.isVisible()).toBe(true)
+		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(false)
+
+		await newContext.close()
+	})
+})
+
+test.describe('logged out user on scratch file', () => {
+	test('tabs work correctly', async ({ browser }) => {
+		const { newShareMenu, newContext } = await openNewTab(browser, {
+			allowClipboard: true,
+			userProps: undefined,
+		})
+
+		// In the incognito window, we are on the scratchpad
+		await expect(newShareMenu.shareButton).toBeVisible()
+		await newShareMenu.open()
+		expect(await newShareMenu.inviteTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabButton.isVisible()).toBe(true)
+		expect(await newShareMenu.publishTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.anonShareTabButton.isVisible()).toBe(false) // not shown on scratch
+
+		await newContext.close()
+	})
+})
+
+test.describe('logged out user on guest file', () => {
+	test('tabs work correctly', async ({ shareMenu, browser }) => {
+		// Share the logged in user's current file
+		await shareMenu.open()
+		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
+		await shareMenu.shareFile()
+		const url = await shareMenu.copyLink()
+
+		// Open file link in an incognito window
+		const { newShareMenu, newContext } = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: undefined,
+		})
+
+		await expect(newShareMenu.shareButton).toBeVisible()
+		await newShareMenu.open()
+
+		expect(await newShareMenu.publishTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.inviteTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabButton.isVisible()).toBe(true)
+		expect(await newShareMenu.anonShareTabButton.isVisible()).toBe(true)
+
+		expect(await newShareMenu.publishTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.inviteTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(true) // show anon share tab page
+
+		// can copy the url
+		const copiedUrl = await shareMenu.copyLink()
+		expect(copiedUrl).toBe(url)
+
+		// Switch to the export share tab
+		await newShareMenu.exportTabButton.click()
+		expect(await newShareMenu.exportTabPage.isVisible()).toBe(true)
+		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(false)
+
+		await newContext.close()
+	})
+})
+
+test.describe('logged out user on published file', () => {
+	test('tabs work correctly', async ({ shareMenu, browser }) => {
+		// Publish the user's current file
+		await shareMenu.open()
+		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
+		await shareMenu.publishFile()
+		const url = await shareMenu.copyLink()
+
+		// Open published file link in an incognito window
+		const { newShareMenu, newContext } = await openNewTab(browser, {
+			url,
+			allowClipboard: true,
+			userProps: undefined,
+		})
+
+		await expect(newShareMenu.shareButton).toBeVisible()
+		await newShareMenu.open()
+
+		expect(await newShareMenu.publishTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.inviteTabButton.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabButton.isVisible()).toBe(true)
+		expect(await newShareMenu.anonShareTabButton.isVisible()).toBe(true)
+
+		expect(await newShareMenu.publishTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.inviteTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.exportTabPage.isVisible()).toBe(false)
+		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(true) // show anon share tab page
+
+		// can copy the url
+		const copiedUrl = await shareMenu.copyLink()
+		expect(copiedUrl).toBe(url)
+
+		// Switch to the export share tab
+		await newShareMenu.exportTabButton.click()
+		expect(await newShareMenu.exportTabPage.isVisible()).toBe(true)
+		expect(await newShareMenu.anonShareTabPage.isVisible()).toBe(false)
+
 		await newContext.close()
 	})
 })
@@ -123,104 +385,4 @@ test('can export a file as an image', async ({ page, shareMenu }) => {
 	expect(fs.existsSync(filePath)).toBeTruthy()
 	const stats = fs.statSync(filePath)
 	expect(stats.size).toBeGreaterThan(0)
-})
-
-/* ------------------- Publishing ------------------- */
-
-test.describe('published files', () => {
-	users.map((u) => {
-		test(`can be seen by ${u.description}`, async ({ page, browser, shareMenu }) => {
-			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
-
-			const index = test.info().parallelIndex
-			const userProps = u.user ? { user: u.user, index } : undefined
-
-			const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(browser, {
-				url,
-				userProps,
-			})
-			await errorPage.expectNotFoundNotVisible()
-			if (!userProps) await newHomePage.expectSignInButtonVisible()
-			expect(areUrlsEqual(url, newPage.url())).toBe(true)
-			await newContext.close()
-		})
-
-		test(`can be unpublished for ${u.description}`, async ({ page, browser, shareMenu }) => {
-			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
-
-			const index = test.info().parallelIndex
-			const userProps = u.user ? { user: u.user, index } : undefined
-			const { newContext, newPage, newHomePage, errorPage } = await openNewIncognitoPage(browser, {
-				url,
-				userProps,
-			})
-			if (!userProps) await newHomePage.expectSignInButtonVisible()
-			await errorPage.expectNotFoundNotVisible()
-			await shareMenu.unpublishFile()
-			await newPage.reload()
-			await errorPage.expectNotFoundVisible()
-			await newContext.close()
-		})
-
-		test(`${u.description} can copy a published file link`, async ({
-			page,
-			browser,
-			shareMenu,
-		}) => {
-			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
-
-			const index = test.info().parallelIndex
-			const userProps = u.user ? { user: u.user, index } : undefined
-			const { newPage, newShareMenu, newContext } = await openNewIncognitoPage(browser, {
-				url,
-				userProps,
-				allowClipboard: true,
-			})
-			// we have to wait a bit for the search params to get populated
-			await newPage.waitForTimeout(500)
-			const otherUserUrl = await newShareMenu.openShareMenuAndCopyPublishedLink()
-			expect(areUrlsEqual(otherUserUrl, url)).toBe(true)
-			await newContext.close()
-		})
-	})
-
-	test('can be updated', async ({ page, browser, editor, shareMenu }) => {
-		const url = await test.step('Create a shape and publish file', async () => {
-			await page.getByTestId('tools.rectangle').click()
-			await page.locator('.tl-background').click()
-			await editor.expectShapesCount(1)
-			const url = await shareFileAndCopyLink(page, shareMenu, shareMenu.publishFile)
-			expect(url).toMatch(/http:\/\/localhost:3000\/q\/p\//)
-			return url
-		})
-
-		const { newContext, newPage, newHomePage, newEditor } = await openNewIncognitoPage(browser, {
-			url,
-			userProps: undefined,
-		})
-		await newHomePage.isLoaded()
-		await newEditor.expectShapesCount(1)
-
-		await test.step('Update the document (duplicate the shape)', async () => {
-			await page.getByTestId('quick-actions.duplicate').click()
-
-			// lets reload to make sure the change would have time to propagate
-			await newPage.reload()
-			await newHomePage.isLoaded()
-			// We haven't published changes yet, so the new page should still only see one shape
-			await newEditor.expectShapesCount(1)
-		})
-
-		await test.step('Publish the changes and check for updates', async () => {
-			await shareMenu.open()
-			await shareMenu.publishChanges()
-			await newPage.reload()
-			await newHomePage.isLoaded()
-			await newEditor.expectShapesCount(2)
-			await newContext.close()
-		})
-	})
 })

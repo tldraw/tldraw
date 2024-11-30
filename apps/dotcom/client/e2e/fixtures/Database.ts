@@ -2,7 +2,7 @@ import { Page } from '@playwright/test'
 import fs from 'fs'
 import postgres from 'postgres'
 import { OTHER_USERS, USERS } from '../consts'
-import { UserName, getStorageStateFileName } from './helpers'
+import { getStorageStateFileName } from './helpers'
 
 const sql = postgres('postgresql://user:password@127.0.0.1:6543/postgres')
 
@@ -33,17 +33,22 @@ export class Database {
 	) {}
 
 	async reset() {
-		await this.cleanUpUser(USERS[this.parallelIndex], 'huppy')
-		await this.cleanUpUser(OTHER_USERS[this.parallelIndex], 'suppy')
+		await this.cleanUpUser(true)
+		await this.cleanUpUser(false)
 	}
 
-	private async cleanUpUser(email: string, filePrefix: UserName) {
-		if (!email) return
-		const fileName = getStorageStateFileName(this.parallelIndex, filePrefix)
-		if (!fs.existsSync(fileName)) return
-		const dbUser = await sql`SELECT id FROM public.user WHERE email = ${email}`.execute()
+	async getUserId(isOther: boolean = false) {
+		const email = isOther ? OTHER_USERS[this.parallelIndex] : USERS[this.parallelIndex]
+		const dbUser = await sql`SELECT id FROM public.user WHERE email = ${email ?? ''}`.execute()
 		if (!dbUser[0]) return
-		const id = dbUser[0].id
+		return dbUser[0].id
+	}
+
+	private async cleanUpUser(isOther: boolean) {
+		const fileName = getStorageStateFileName(this.parallelIndex, isOther ? 'suppy' : 'huppy')
+		if (!fs.existsSync(fileName)) return
+		const id = await this.getUserId(isOther)
+		if (!id) return
 		try {
 			await sql`
   UPDATE public.user

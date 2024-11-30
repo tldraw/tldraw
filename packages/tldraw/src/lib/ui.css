@@ -1661,7 +1661,7 @@
 	pointer-events: all;
 	border-radius: var(--radius-1);
 	padding-right: 1px;
-	height: 36px;
+	height: 100%;
 }
 
 .tlui-people-menu__avatars {

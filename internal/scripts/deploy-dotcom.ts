@@ -62,7 +62,10 @@ const env = makeEnv([
 	'VERCEL_TOKEN',
 	'VITE_CLERK_PUBLISHABLE_KEY',
 	'WORKER_SENTRY_DSN',
-	previewId ? 'BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
+	previewId ? 'NEON_PREVIEW_DB_CONNECTION_STRING' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
+	previewId
+		? 'NEON_PREVIEW_DB_POOLED_CONNECTION_STRING'
+		: 'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
 ])
 
 const discord = new Discord({
@@ -204,6 +207,15 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
 		didUpdateTlsyncWorker = true
 	}
+	const BOTCOM_POSTGRES_CONNECTION_STRING =
+		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
+	const BOTCOM_POSTGRES_POOLED_CONNECTION_STRING =
+		env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
+	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
+		env: {
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+		},
+	})
 	await wranglerDeploy({
 		location: worker,
 		dryRun,
@@ -218,8 +230,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
-			BOTCOM_POSTGRES_CONNECTION_STRING:
-				env.BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW || env.BOTCOM_POSTGRES_CONNECTION_STRING,
+			BOTCOM_POSTGRES_CONNECTION_STRING,
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 		sentry: {
 			project: 'tldraw-sync',

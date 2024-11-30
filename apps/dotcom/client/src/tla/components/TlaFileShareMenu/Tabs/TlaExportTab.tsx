@@ -175,7 +175,7 @@ function ExportThemeSelect({
 	value: TldrawAppSessionState['exportSettings']['exportTheme']
 	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
-	const label = useMsg(messages[value])
+	const label = useMsg(messages[value as 'auto' | 'light' | 'dark'])
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = useCallback(
 		(value: TldrawAppSessionState['exportSettings']['exportTheme']) => {

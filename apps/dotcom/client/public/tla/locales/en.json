@@ -1,6 +1,12 @@
 {
+  "00102ce224": {
+    "translation": "You do not have the necessary permissions to perform this action"
+  },
   "0095a9fa74": {
     "translation": "Export"
+  },
+  "015ebd44b7": {
+    "translation": "Please refresh the page to get the latest version of tldraw"
   },
   "01c32a1e98": {
     "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
@@ -50,6 +56,12 @@
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
+  "446b416d53": {
+    "translation": "Invalid request"
+  },
+  "44b7fb14cb": {
+    "translation": "Unable to publish the changes"
+  },
   "45b543cbb1": {
     "translation": "Publish this project"
   },
@@ -58,6 +70,9 @@
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
+  },
+  "4d1c8263ba": {
+    "translation": "Reload"
   },
   "517bb809d9": {
     "translation": "Page menu"
@@ -74,8 +89,14 @@
   "5fb63579fc": {
     "translation": "Copy"
   },
+  "61057a0c84": {
+    "translation": "Later"
+  },
   "625fd29749": {
     "translation": "Older"
+  },
+  "65963328b3": {
+    "translation": "You have exceeded the rate limit"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -85,6 +106,12 @@
   },
   "70a6facb9d": {
     "translation": "This week"
+  },
+  "73ab799383": {
+    "translation": "This version of tldraw is no longer supported."
+  },
+  "7408cf0d7b": {
+    "translation": "Please reload the page"
   },
   "7573b8110a": {
     "translation": "No access"
@@ -101,14 +128,23 @@
   "827aedd218": {
     "translation": "Added .tldr {count, plural, one {# file} other {# files}}"
   },
+  "8eb2c00e96": {
+    "translation": "Shared with you"
+  },
   "8ff3d0a705": {
     "translation": "Rate limited"
+  },
+  "902b0d55fd": {
+    "translation": "Error"
   },
   "904a830405": {
     "translation": "Rename"
   },
   "96165d6df5": {
     "translation": "This month"
+  },
+  "9789e32247": {
+    "translation": "An unexpected error occurred"
   },
   "9914a0ce04": {
     "translation": "Light"
@@ -147,6 +183,9 @@
   "b758336699": {
     "translation": "Copy link"
   },
+  "bc88b0e89e": {
+    "translation": "Shared by {ownerName}"
+  },
   "c2276c9127": {
     "translation": "Learn more about sharing."
   },
@@ -180,6 +219,9 @@
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."
   },
+  "ded274b9ea": {
+    "translation": "Unable to publish the file"
+  },
   "dfdb78a4e4": {
     "translation": "App debug flags"
   },
@@ -212,6 +254,9 @@
   },
   "f43fb62093": {
     "translation": "Back to tldraw."
+  },
+  "f7e5db3cf0": {
+    "translation": "Unable to unpublish the file"
   },
   "fb15c53f22": {
     "translation": "Viewer"

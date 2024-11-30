@@ -29,4 +29,12 @@ export const testRoutes = createRouter<Environment>()
 		})
 		return new Response('ok')
 	})
+	.get('/app/__test__/user/:userId/downgrade-client', (req, env) => {
+		getUserDurableObject(env, req.params.userId).__test__downgradeClient(true)
+		return new Response('ok')
+	})
+	.get('/app/__test__/user/:userId/upgrade-client', (req, env) => {
+		getUserDurableObject(env, req.params.userId).__test__downgradeClient(false)
+		return new Response('ok')
+	})
 	.all('*', notFound)

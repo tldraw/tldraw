@@ -351,6 +351,9 @@ export function isBinding(record?: UnknownRecord): record is TLBinding;
 export function isBindingId(id?: string): id is TLBindingId;
 
 // @public (undocumented)
+export function isDocument(record?: UnknownRecord): record is TLDocument;
+
+// @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
 
 // @public (undocumented)
