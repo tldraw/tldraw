@@ -1,3 +1,24 @@
+# v3.5.1 (Sat Nov 30 2024)
+
+### Release Notes
+
+#### Hotfix/longpress 2 ([#5037](https://github.com/tldraw/tldraw/pull/5037))
+
+- Fixed a bug with long press on inset canvases.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@tldraw/editor`, `tldraw`
+  - Hotfix/longpress 2 [#5037](https://github.com/tldraw/tldraw/pull/5037) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.5.0 (Tue Nov 26 2024)
 
 ### Release Notes
