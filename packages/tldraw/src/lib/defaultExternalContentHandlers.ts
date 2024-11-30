@@ -7,11 +7,13 @@ import {
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLImageAsset,
+	TLImageShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
 	TLVideoAsset,
+	TLVideoShape,
 	Vec,
 	VecLike,
 	assert,
@@ -235,7 +237,6 @@ export function registerDefaultExternalContentHandlers(
 				: editor.getViewportPageBounds().center)
 
 		const pagePoint = new Vec(position.x, position.y)
-		const assets: TLAsset[] = []
 		const assetsToUpdate: {
 			asset: TLAsset
 			file: File
@@ -288,9 +289,14 @@ export function registerDefaultExternalContentHandlers(
 			if (isImageType) {
 				temporaryAssetPreview = editor.createTemporaryAssetPreview(assetId, file)
 			}
-			assets.push(assetInfo)
 			assetsToUpdate.push({ asset: assetInfo, file, temporaryAssetPreview })
 		}
+
+		await createShapesForAssets(
+			editor,
+			assetsToUpdate.map((info) => info.asset),
+			pagePoint
+		)
 
 		Promise.allSettled(
 			assetsToUpdate.map(async (assetAndFile) => {
@@ -312,12 +318,38 @@ export function registerDefaultExternalContentHandlers(
 						severity: 'error',
 					})
 					console.error(error)
-					return
+
+					throw assetAndFile.asset.id
 				}
 			})
-		)
+		).then((results) => {
+			const failedIds: TLAssetId[] = results
+				.filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+				.map((result) => result.reason)
+			if (!failedIds.length) return
 
-		createShapesForAssets(editor, assets, pagePoint)
+			// Since it is possible to paste during upload, target all shapes on the page
+			const shapes = editor
+				.getCurrentPageShapes()
+				.filter((shape): shape is TLVideoShape | TLImageShape => {
+					return shape.type === 'image' || shape.type === 'video'
+				})
+				.filter((shape) => {
+					return failedIds.includes(shape.props.assetId as TLAssetId)
+				})
+				.map((shape) => ({
+					...shape,
+					props: { ...shape.props, assetId: null },
+				}))
+
+			editor.run(
+				() => {
+					editor.deleteAssets(failedIds)
+					editor.updateShapes(shapes)
+				},
+				{ history: 'ignore' }
+			)
+		})
 	})
 
 	// text

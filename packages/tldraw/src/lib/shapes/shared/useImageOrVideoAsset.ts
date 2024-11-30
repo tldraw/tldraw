@@ -64,7 +64,11 @@ export function useImageOrVideoAsset({
 
 			// Get the fresh asset
 			const asset = editor.getAsset<TLImageAsset | TLVideoAsset>(assetId)
-			if (!asset) return
+			if (!asset) {
+				// If the asset is deleted, such as when an upload fails, set the URL to null
+				setResult((prev) => ({ ...prev, asset: null, url: null }))
+				return
+			}
 
 			// Get the fresh shape
 			const shape = editor.getShape<TLImageShape | TLVideoShape>(shapeId)
