@@ -543,7 +543,7 @@
 
 .tlui-popover__content {
 	position: relative;
-	max-height: 75vh;
+	max-height: max-height: calc(var(--radix-popover-content-available-height) - 8px);
 	margin: 0px;
 	border: none;
 	border-radius: var(--radius-3);
