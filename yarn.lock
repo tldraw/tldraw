@@ -13174,6 +13174,7 @@ __metadata:
     "@radix-ui/react-alert-dialog": "npm:^1.0.5"
     "@tldraw/assets": "workspace:*"
     "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/state": "workspace:*"
     "@tldraw/sync": "workspace:*"
     "@types/lodash": "npm:^4.14.188"
     "@vercel/analytics": "npm:^1.1.1"
