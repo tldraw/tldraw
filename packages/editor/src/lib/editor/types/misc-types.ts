@@ -46,6 +46,8 @@ export interface TLCameraMoveOptions {
 export interface TLCameraOptions {
 	/** Whether the camera is locked. */
 	isLocked: boolean
+	/** Whether the camera's zoom is locked. */
+	isZoomLocked: boolean
 	/** The speed of a scroll wheel / trackpad pan. Default is 1. */
 	panSpeed: number
 	/** The speed of a scroll wheel / trackpad zoom. Default is 1. */

@@ -1104,6 +1104,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'toggle-zoom',
+				kbd: '$L',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-zoom', { source })
+					editor.toggleZoom()
+				},
+			},
+			{
 				id: 'toggle-snap-mode',
 				label: {
 					default: 'action.toggle-snap-mode',
