@@ -23,6 +23,16 @@ it('zooms by increments', () => {
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[6])
 })
 
+it('does not zoom when lock mode toggled', () => {
+	const cameraOptions = editor.getCameraOptions()
+
+	// Starts at 1
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
+	editor.setCameraOptions({ isLocked: true })
+	editor.zoomOut()
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
+})
+
 it('is ignored by undo/redo', () => {
 	const cameraOptions = editor.getCameraOptions()
 

@@ -209,4 +209,6 @@ describe('TLSelectTool.Zooming', () => {
 		})
 		editor.expectToBeIn('zoom.idle')
 	})
+
+	it("Correctly doesn't zoom in when the zoom lock is deactivated", () => {})
 })

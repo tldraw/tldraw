@@ -2761,6 +2761,8 @@ export interface TLUiEventMap {
     // (undocumented)
     'toggle-wrap-mode': null;
     // (undocumented)
+    'toggle-zoom': null;
+    // (undocumented)
     'ungroup-shapes': null;
     // (undocumented)
     'unlock-all': null;
