@@ -1,5 +1,5 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
-import { useCallback, useEffect } from 'react'
+import { ReactNode, useEffect } from 'react'
 import {
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
@@ -27,6 +27,7 @@ import {
 	setInLocalStorage,
 	useDialogs,
 	useEditor,
+	useEvent,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -40,7 +41,7 @@ import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
-const components: TLComponents = {
+const localComponents: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
@@ -82,16 +83,26 @@ const components: TLComponents = {
 	},
 }
 
-export function LocalEditor() {
+export function LocalEditor({
+	components,
+	onMount,
+	children,
+}: {
+	components?: TLComponents
+	onMount?(editor: Editor): void
+	children?: ReactNode
+}) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
 	const fileSystemUiOverrides = useFileSystem({ isMultiplayer: false })
 
-	const handleMount = useCallback((editor: Editor) => {
+	const handleMount = useEvent((editor: Editor) => {
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-	}, [])
+		// Register the editor globally
+		onMount?.(editor)
+	})
 
 	return (
 		<div className="tldraw__editor">
@@ -102,11 +113,12 @@ export function LocalEditor() {
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
-				components={components}
+				components={components ?? localComponents}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />
 				<SneakyLocalSaveWarning />
+				{children}
 			</Tldraw>
 		</div>
 	)

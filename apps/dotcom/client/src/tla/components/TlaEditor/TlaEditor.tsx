@@ -90,10 +90,6 @@ export const components: TLComponents = {
 	},
 }
 
-const anonComponents = {
-	...components,
-}
-
 interface TlaEditorProps {
 	fileSlug: string
 	onDocumentChange?(): void
@@ -284,13 +280,12 @@ function TlaEditorInner({
 				user={app?.tlUser}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
-				components={!app ? anonComponents : components}
+				components={components}
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
 				overrides={overrides}
 			>
 				<ThemeUpdater />
-				{/* <CursorChatBubble /> */}
 				<SneakyDarkModeSync />
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} onDocumentChange={onDocumentChange} />
