@@ -32,7 +32,7 @@ it('does not zoom when lock mode toggled', () => {
 
 	// Starts at 1
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
-	editor.setCameraOptions({ isLocked: true })
+	editor.toggleZoom()
 	editor.zoomToFit()
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
 })

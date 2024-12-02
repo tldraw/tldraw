@@ -55,7 +55,7 @@ it('does not zoom when lock mode toggled', () => {
 	// Starts at 1
 	editor.setSelectedShapes([ids.box1, ids.box2])
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
-	editor.setCameraOptions({ isLocked: true })
+	editor.toggleZoom()
 	editor.zoomToSelection()
 	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
 })
