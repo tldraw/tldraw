@@ -10,6 +10,7 @@ export function DefaultZoomMenuContent() {
 			<ZoomTo100MenuItem />
 			<ZoomToFitMenuItem />
 			<ZoomToSelectionMenuItem />
+			<TldrawUiMenuActionItem actionId="toggle-zoom" noClose />
 		</>
 	)
 }

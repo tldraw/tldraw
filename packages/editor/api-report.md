@@ -1278,6 +1278,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
     };
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
+    toggleZoom(): this;
     undo(): this;
     ungroupShapes(ids: TLShapeId[], opts?: Partial<{
         select: boolean;
@@ -2584,6 +2585,7 @@ export interface TLCameraMoveOptions {
 export interface TLCameraOptions {
     constraints?: TLCameraConstraints;
     isLocked: boolean;
+    isZoomLocked: boolean;
     panSpeed: number;
     wheelBehavior: 'none' | 'pan' | 'zoom';
     zoomSpeed: number;
