@@ -9,16 +9,20 @@ import { getNewRoomResponse } from '../utils/sharing'
 const schema = createTLSchema()
 
 const { loader, useData } = defineLoader(async (_args) => {
-	if (isInIframe()) return null
+	if (isInIframe()) return { error: true, reason: 'iframe' }
 
 	const res = await getNewRoomResponse({
 		schema: schema.serialize(),
 		snapshot: {},
 	} satisfies Snapshot)
 
-	const response = (await res.json()) as { error: boolean; slug?: string }
+	const response = (await res.json()) as { error: boolean; slug?: string; message?: string }
 	if (!res.ok || response.error || !response.slug) {
-		return null
+		const fileCreationDisabled = response.message === 'File creation is disabled'
+		return {
+			error: true,
+			reason: fileCreationDisabled ? 'file-creation-disabled' : 'not-found',
+		}
 	}
 	return { slug: response.slug }
 })
@@ -32,15 +36,27 @@ const state = {
 
 export function Component() {
 	const data = useData()
-	if (!data)
-		return (
-			<ErrorPage
-				messages={{
-					header: 'Page not found',
-					para1: 'The page you are looking does not exist or has been moved.',
-				}}
-			/>
-		)
-
+	if (data.error) {
+		switch (data.reason) {
+			case 'file-creation-disabled':
+				return (
+					<ErrorPage
+						messages={{
+							header: 'Count not create room',
+							para1: 'Please log in to create new rooms.',
+						}}
+					/>
+				)
+			default:
+				return (
+					<ErrorPage
+						messages={{
+							header: 'Page not found',
+							para1: 'The page you are looking does not exist or has been moved.',
+						}}
+					/>
+				)
+		}
+	}
 	return <Navigate replace state={state} to={`/${ROOM_PREFIX}/${data.slug}`} />
 }
