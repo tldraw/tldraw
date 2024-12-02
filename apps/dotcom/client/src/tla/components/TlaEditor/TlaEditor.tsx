@@ -306,7 +306,11 @@ function SetDocumentTitle() {
 	const editor = useValue('editor', () => globalEditor.get(), [])
 	const title = useValue(
 		'title',
-		() => (fileSlug ? app?.getFileName(fileSlug) : null) ?? editor?.getDocumentSettings().name,
+		() =>
+			((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
+				editor?.getDocumentSettings().name) ||
+			// rather than displaying the date for the project here, display Untitled project
+			'Untitled project',
 		[app, editor, fileSlug]
 	)
 	if (!title) return null

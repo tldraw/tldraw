@@ -139,8 +139,13 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		// We should figure out a way to have a single source of truth for the file name.
 		// And to allow guests to 'subscribe' to file metadata updates somehow.
 		() => {
-			// we need that backup file name for empty file names
-			return app.getFileName(fileId).trim() || editor.getDocumentSettings().name
+			// we need that backup file name for empty file names (the initial value for the name is empty)
+			return (
+				app.getFileName(fileId, false)?.trim() ||
+				editor.getDocumentSettings().name ||
+				// rather than displaying the date for the project here, display Untitled project
+				'Untitled project'
+			)
 		},
 		[app, editor, fileId]
 	)
@@ -148,9 +153,12 @@ export function TlaEditorTopLeftPanelSignedIn() {
 		(name: string) => {
 			if (isOwner) {
 				setIsRenaming(false)
-				// don't allow guests to update the file name
-				app.updateFile({ id: fileId, name })
-				editor.updateDocumentSettings({ name })
+				// only actually update the name if name is a value, otherwise keep the previous name
+				if (name) {
+					// don't allow guests to update the file name
+					app.updateFile({ id: fileId, name })
+					editor.updateDocumentSettings({ name })
+				}
 			}
 		},
 		[app, editor, fileId, isOwner]
