@@ -1,19 +1,4 @@
-import {
-	ColorSchemeMenu,
-	LanguageMenu,
-	TldrawUiMenuGroup,
-	TldrawUiMenuSubmenu,
-	ToggleDebugModeItem,
-	ToggleDynamicSizeModeItem,
-	ToggleEdgeScrollingItem,
-	ToggleFocusModeItem,
-	ToggleGridItem,
-	TogglePasteAtCursorItem,
-	ToggleReduceMotionItem,
-	ToggleSnapModeItem,
-	ToggleToolLockItem,
-	ToggleWrapModeItem,
-} from 'tldraw'
+import { ColorSchemeMenu, LanguageMenu, TldrawUiMenuGroup, TldrawUiMenuSubmenu } from 'tldraw'
 import { Links } from '../../../components/Links'
 import { defineMessages, useMsg } from '../../utils/i18n'
 
@@ -43,28 +28,6 @@ export function TlaAppMenuGroupLazyFlipped() {
 
 function ColorThemeSubmenu() {
 	return <ColorSchemeMenu />
-}
-
-function _PreferencesSubmenu() {
-	return (
-		<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
-			<TldrawUiMenuGroup id="preferences-actions">
-				<ToggleSnapModeItem />
-				<ToggleToolLockItem />
-				<ToggleGridItem />
-				<ToggleWrapModeItem />
-				<ToggleFocusModeItem />
-				<ToggleEdgeScrollingItem />
-				<ToggleReduceMotionItem />
-				<ToggleDynamicSizeModeItem />
-				<TogglePasteAtCursorItem />
-				<ToggleDebugModeItem />
-			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="color-scheme">
-				<ColorSchemeMenu />
-			</TldrawUiMenuGroup>
-		</TldrawUiMenuSubmenu>
-	)
 }
 
 function HelpSubMenu() {
