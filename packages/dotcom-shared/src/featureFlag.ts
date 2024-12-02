@@ -1,1 +1,1 @@
-export const OLD_FILE_CREATION_DISABLED = true
+export const OLD_FILE_CREATION_DISABLED = false
