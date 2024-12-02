@@ -77,6 +77,9 @@
   "517bb809d9": {
     "translation": "Page menu"
   },
+  "54286b1d01": {
+    "translation": "Collaborator limit reached"
+  },
   "54d240fa41": {
     "translation": "Please slow down."
   },
@@ -233,6 +236,9 @@
   },
   "ebfe9ce86e": {
     "translation": "Yesterday"
+  },
+  "ec59b960ea": {
+    "translation": "This file has reached the maximum number of active collaborators."
   },
   "ec611e9a08": {
     "translation": "Account menu"
