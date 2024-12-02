@@ -27,7 +27,6 @@ export class ExportDelay {
 
 	private async resolvePromises() {
 		let lastLength = null
-		await sleep(1000)
 		while (this.promisesToWaitFor.length !== lastLength) {
 			lastLength = this.promisesToWaitFor.length
 			await Promise.allSettled(this.promisesToWaitFor)
