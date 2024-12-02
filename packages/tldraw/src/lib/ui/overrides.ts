@@ -84,7 +84,7 @@ export interface TLUiOverrides {
 	tools?(
 		editor: Editor,
 		tools: TLUiToolsContextType,
-		helpers: { insertMedia(): void } & TLUiOverrideHelpers
+		helpers: TLUiOverrideHelpers
 	): TLUiToolsContextType
 	translations?: TLUiTranslationProviderProps['overrides']
 }

@@ -2993,9 +2993,7 @@ export interface TLUiOverrides {
     // (undocumented)
     actions?(editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers): TLUiActionsContextType;
     // (undocumented)
-    tools?(editor: Editor, tools: TLUiToolsContextType, helpers: {
-        insertMedia(): void;
-    } & TLUiOverrideHelpers): TLUiToolsContextType;
+    tools?(editor: Editor, tools: TLUiToolsContextType, helpers: TLUiOverrideHelpers): TLUiToolsContextType;
     // (undocumented)
     translations?: TLUiTranslationProviderProps['overrides'];
 }
