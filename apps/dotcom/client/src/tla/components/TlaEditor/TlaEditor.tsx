@@ -2,6 +2,7 @@ import { useAuth } from '@clerk/clerk-react'
 import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { useParams } from 'react-router-dom'
 import {
 	DefaultKeyboardShortcutsDialog,
@@ -21,6 +22,7 @@ import {
 	useActions,
 	useCollaborationStatus,
 	useEditor,
+	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -102,9 +104,12 @@ export function TlaEditor(props: TlaEditorProps) {
 	}
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
-		<ReadyWrapper key={props.fileSlug}>
-			<TlaEditorInner {...props} key={props.fileSlug} />
-		</ReadyWrapper>
+		<>
+			<SetDocumentTitle />
+			<ReadyWrapper key={props.fileSlug}>
+				<TlaEditorInner {...props} key={props.fileSlug} />
+			</ReadyWrapper>
+		</>
 	)
 }
 
@@ -299,4 +304,21 @@ function SneakyFileUpdateHandler({
 	}, [app, onDocumentChange, fileId, editor])
 
 	return null
+}
+
+function SetDocumentTitle() {
+	const { fileSlug } = useParams<{ fileSlug: string }>()
+	const app = useMaybeApp()
+	const editor = useValue('editor', () => globalEditor.get(), [])
+	const title = useValue(
+		'title',
+		() =>
+			((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
+				editor?.getDocumentSettings().name) ||
+			// rather than displaying the date for the project here, display Untitled project
+			'Untitled project',
+		[app, editor, fileSlug]
+	)
+	if (!title) return null
+	return <Helmet title={title} />
 }
