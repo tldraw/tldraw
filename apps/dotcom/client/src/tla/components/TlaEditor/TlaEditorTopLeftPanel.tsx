@@ -14,6 +14,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiInput,
+	TldrawUiMenuActionItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	ViewSubmenu,
@@ -21,6 +22,7 @@ import {
 	usePassThroughWheelEvents,
 	useValue,
 } from 'tldraw'
+import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
@@ -107,6 +109,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						</button>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
+						<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 						<EditSubmenu />
 						<ViewSubmenu />
 						<ExportFileContentSubMenu />
