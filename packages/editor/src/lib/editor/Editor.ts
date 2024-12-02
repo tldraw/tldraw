@@ -2941,7 +2941,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { isZoomLocked } = this.getCameraOptions()
 		if (isZoomLocked) this.setCameraOptions({isZoomLocked: false})
 		else this.setCameraOptions({isZoomLocked: true})
-		console.log(isZoomLocked)
 		return this
 	}
 
