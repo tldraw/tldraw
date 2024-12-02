@@ -12,18 +12,18 @@ import {
 	SAVE_FILE_COPY_ACTION,
 } from '../utils/useFileSystem'
 
+const allowSharing = !OLD_FILE_CREATION_DISABLED
+
 export function LocalFileMenu() {
 	return (
 		<TldrawUiMenuSubmenu id="file" label="menu.file">
 			<TldrawUiMenuGroup id="file-actions">
 				<TldrawUiMenuActionItem actionId={NEW_PROJECT_ACTION} />
-				{!OLD_FILE_CREATION_DISABLED && (
-					<TldrawUiMenuActionItem actionId={NEW_SHARED_PROJECT_ACTION} />
-				)}
+				{allowSharing && <TldrawUiMenuActionItem actionId={NEW_SHARED_PROJECT_ACTION} />}
 				<TldrawUiMenuActionItem actionId={OPEN_FILE_ACTION} />
 				<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 			</TldrawUiMenuGroup>
-			{!OLD_FILE_CREATION_DISABLED && (
+			{allowSharing && (
 				<TldrawUiMenuGroup id="share">
 					<TldrawUiMenuActionItem actionId={SHARE_PROJECT_ACTION} />
 				</TldrawUiMenuGroup>
@@ -39,7 +39,7 @@ export function MultiplayerFileMenu() {
 				<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="share">
-				{!OLD_FILE_CREATION_DISABLED && (
+				{allowSharing && (
 					<>
 						<TldrawUiMenuActionItem actionId={NEW_SHARED_PROJECT_ACTION} />
 						<TldrawUiMenuActionItem actionId={FORK_PROJECT_ACTION} />
