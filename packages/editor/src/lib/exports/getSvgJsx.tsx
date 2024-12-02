@@ -17,6 +17,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
 import { InnerShape, InnerShapeBackground } from '../components/Shape'
 import { Editor, TLRenderingShape } from '../editor/Editor'
@@ -310,13 +311,16 @@ function SvgExport({
 			)
 
 			const unorderedShapeElements = (await Promise.all(unorderedShapeElementPromises)).flat()
-			stateAtom.update((state) => ({
-				...state,
-				shapeElements: unorderedShapeElements
-					.sort((a, b) => a.zIndex - b.zIndex)
-					.map(({ element }) => element),
-				defsById: { ...state.defsById, ...shapeDefs },
-			}))
+
+			flushSync(() => {
+				stateAtom.update((state) => ({
+					...state,
+					shapeElements: unorderedShapeElements
+						.sort((a, b) => a.zIndex - b.zIndex)
+						.map(({ element }) => element),
+					defsById: { ...state.defsById, ...shapeDefs },
+				}))
+			})
 		})()
 	}, [bbox, editor, exportContext, masksId, renderingShapes, singleFrameShapeId, stateAtom])
 
