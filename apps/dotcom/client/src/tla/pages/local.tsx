@@ -1,15 +1,24 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
+import { useNavigate } from 'react-router-dom'
+import {
+	assert,
+	deleteFromLocalStorage,
+	getFromLocalStorage,
+	setInLocalStorage,
+	uniqueId,
+} from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { globalEditor } from '../../utils/globalEditor'
-import { SCRATCH_PERSISTENCE_KEY } from '../../utils/scratch-persistence-key'
 import { SneakyDarkModeSync } from '../components/TlaEditor/SneakyDarkModeSync'
 import { TlaEditor, components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
-import { getLocalSessionState } from '../utils/local-session-state'
-import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
+import {
+	LOCAL_LEGACY_SLUG,
+	TEMPORARY_FILE_KEY,
+	TLA_WAS_LEGACY_CONTENT_MIGRATED,
+	hasMeaningfulLegacyContent,
+} from '../utils/temporary-files'
 import { getFilePath } from '../utils/urls'
 
 export function Component() {
@@ -19,24 +28,34 @@ export function Component() {
 
 	useEffect(() => {
 		if (!app) return
-		if (app.getUserRecentFiles().length === 0) {
+
+		const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
+		if (claimTemporaryFileId) {
+			deleteFromLocalStorage(TEMPORARY_FILE_KEY)
+			const slug = app.claimTemporaryFile(claimTemporaryFileId)
+			navigate(getFilePath(slug), { state: { mode: 'create' }, replace: true })
+			return
+		}
+
+		const recentFiles = app.getUserRecentFiles()
+		if (recentFiles.length === 0) {
 			creatingFile.current = true
 			const result = app.createFile()
+			assert(result.ok, 'Failed to create file')
+			// result is only false if the user reached their file limit so
+			// we don't need to handle that case here since they have no files
 			if (result.ok) {
-				navigate(getFilePath(result.value.file.id), { state: { mode: 'create' } })
+				navigate(getFilePath(result.value.file.id), { state: { mode: 'create' }, replace: true })
 			}
+			return
 		}
+
+		navigate(getFilePath(recentFiles[0].fileId), { replace: true })
 	}, [app, navigate])
 
 	if (!app) return <LocalTldraw />
-	if (creatingFile.current) return null
-	// Navigate to the most recent file (if there is one) or else a new file
-	const { auth } = getLocalSessionState()
-	const fileId = auth?.userId && app.getUserRecentFiles()[0]?.fileId
-	if (fileId) {
-		return <Navigate to={getFilePath(fileId)} replace />
-	}
 
+	// navigation will be handled by the useEffect above
 	return null
 }
 
@@ -62,6 +81,8 @@ function LocalTldraw() {
 					components={components}
 					onMount={(editor) => {
 						globalEditor.set(editor)
+						setInLocalStorage(TEMPORARY_FILE_KEY, LOCAL_LEGACY_SLUG)
+						setInLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED, 'false')
 					}}
 				>
 					<SneakyDarkModeSync />
@@ -79,37 +100,4 @@ function LocalTldraw() {
 			)}
 		</TlaAnonLayout>
 	)
-}
-
-// Need to do this check as fast as possible. This method takes about 30-60ms while using our
-// indexedDb wrapper takes closer to 150ms to run.
-async function hasMeaningfulLegacyContent() {
-	try {
-		const wasLegacyContentAlreadyMigrated = !!getFromLocalStorage(
-			'tldraw_was_legacy_content_migrated'
-		)
-		if (wasLegacyContentAlreadyMigrated) return false
-
-		return await new Promise<boolean>((resolve, reject) => {
-			const request = indexedDB.open('TLDRAW_DOCUMENT_v2' + SCRATCH_PERSISTENCE_KEY)
-
-			request.onerror = reject
-
-			request.onsuccess = () => {
-				const db = request.result
-				const transaction = db.transaction(['records'], 'readonly')
-				const objectStore = transaction.objectStore('records')
-				const query = objectStore.count()
-
-				query.onsuccess = () => {
-					// one page record, one document record, one shape record = 3 records
-					resolve(query.result >= 3)
-				}
-
-				query.onerror = reject
-			}
-		})
-	} catch (_e) {
-		return false
-	}
 }

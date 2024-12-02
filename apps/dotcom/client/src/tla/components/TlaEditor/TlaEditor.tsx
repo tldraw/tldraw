@@ -20,8 +20,11 @@ import {
 	TldrawUiMenuItem,
 	assert,
 	createSessionStateSnapshotSignal,
+	getFromLocalStorage,
 	react,
 	serializeTldrawJsonBlob,
+	setInLocalStorage,
+	sleep,
 	throttle,
 	tltime,
 	useActions,
@@ -42,6 +45,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { TLA_WAS_LEGACY_CONTENT_MIGRATED, migrateLegacyContent } from '../../utils/temporary-files'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -135,12 +139,14 @@ function TlaEditorInner({
 			;(window as any).editor = editor
 			// Register the editor globally
 			globalEditor.set(editor)
-			setIsReady()
 
 			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 
-			if (!app) return
+			if (!app) {
+				setIsReady()
+				return
+			}
 			const fileState = app.getFileState(fileId)
 			if (fileState?.lastSessionState) {
 				editor.loadSnapshot({ session: JSON.parse(fileState.lastSessionState.trim() || 'null') })
@@ -160,7 +166,29 @@ function TlaEditorInner({
 				}
 				updateSessionState(state)
 			})
+
+			const abortController = new AbortController()
+			const wasMigrated = getFromLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED)
+			if (app._localLegacyClaimId === fileId && wasMigrated === 'false') {
+				// This is a one-time operation.
+				// We set the TLA_WAS_LEGACY_CONTENT_MIGRATED flag in local storage to indicate
+				// that the content has been migrated.
+				// need to wait a tick for react strict mode (evil)
+				sleep(50).then(async () => {
+					if (!abortController.signal.aborted) {
+						if (abortController.signal.aborted) return
+						await migrateLegacyContent(editor)
+						setInLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED, 'true')
+						await sleep(2000)
+						setIsReady()
+					}
+				})
+			} else {
+				setIsReady()
+			}
+
 			return () => {
+				abortController.abort()
 				cleanup()
 				updateSessionState.cancel()
 			}

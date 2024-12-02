@@ -4,6 +4,7 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
+export { LocalIndexedDb } from './lib/utils/sync/LocalIndexedDb'
 export {
 	EMPTY_ARRAY,
 	EffectScheduler,

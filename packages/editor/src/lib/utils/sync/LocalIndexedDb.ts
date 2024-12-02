@@ -288,14 +288,14 @@ export class LocalIndexedDb {
 		})
 	}
 
-	async getAsset(assetId: string): Promise<Blob | undefined> {
+	async getAsset(assetId: string): Promise<File | undefined> {
 		return await this.tx('readonly', [Table.Assets], async (tx) => {
 			const assetsStore = tx.objectStore(Table.Assets)
 			return await assetsStore.get(assetId)
 		})
 	}
 
-	async storeAsset(assetId: string, blob: Blob) {
+	async storeAsset(assetId: string, blob: File) {
 		await this.tx('readwrite', [Table.Assets], async (tx) => {
 			const assetsStore = tx.objectStore(Table.Assets)
 			await assetsStore.put(blob, assetId)

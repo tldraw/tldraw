@@ -31,6 +31,7 @@ import {
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
 import { IntlShape, defineMessages } from '../utils/i18n'
+import { LOCAL_LEGACY_SLUG } from '../utils/temporary-files'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -316,10 +317,17 @@ export class TldrawApp {
 		return
 	}
 
+	_localLegacyClaimId: string | null = null
 	claimTemporaryFile(fileId: string) {
 		// TODO(david): check that you can't claim someone else's file (the db insert should fail)
 		// TODO(zero stuff): add table constraint
+		if (fileId === LOCAL_LEGACY_SLUG) {
+			fileId = this._localLegacyClaimId = uniqueId()
+		}
+
 		this.createFile(fileId)
+
+		return fileId
 	}
 
 	toggleFileShared(fileId: string) {
