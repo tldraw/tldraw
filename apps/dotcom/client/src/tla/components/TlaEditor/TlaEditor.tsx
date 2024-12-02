@@ -71,8 +71,14 @@ export const components: TLComponents = {
 	},
 	TopPanel: () => {
 		const collaborationStatus = useCollaborationStatus()
-		if (collaborationStatus === 'offline') return null
-		return <OfflineIndicator />
+		if (collaborationStatus === 'offline') {
+			return (
+				<div className={styles.offlineIndicatorWrapper}>
+					<OfflineIndicator />{' '}
+				</div>
+			)
+		}
+		return null
 	},
 }
 
