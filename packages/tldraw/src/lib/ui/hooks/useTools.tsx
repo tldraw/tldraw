@@ -1,10 +1,9 @@
 import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
-import { useDialogs } from '../context/dialogs'
 import { TLUiEventSource, useUiEvents } from '../context/events'
 import { TLUiIconType } from '../icon-types'
-import { useInsertMedia } from './useInsertMedia'
+import { useDefaultHelpers } from '../overrides'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
@@ -45,8 +44,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
-	const { addDialog } = useDialogs()
-	const insertMedia = useInsertMedia()
+	const helpers = useDefaultHelpers()
 
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
 		const toolsArray: TLUiToolItem<TLUiTranslationKey, TLUiIconType>[] = [
@@ -165,7 +163,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-media',
 				kbd: '$u',
 				onSelect(source) {
-					insertMedia()
+					helpers.insertMedia()
 					trackEvent('select-tool', { source, id: 'media' })
 				},
 			},
@@ -195,7 +193,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				label: 'tool.embed',
 				icon: 'dot',
 				onSelect(source) {
-					addDialog({ component: EmbedDialog })
+					helpers.addDialog({ component: EmbedDialog })
 					trackEvent('select-tool', { source, id: 'embed' })
 				},
 			},
@@ -217,11 +215,11 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		const tools = Object.fromEntries(toolsArray.map((t) => [t.id, t]))
 
 		if (overrides) {
-			return overrides(editor, tools, { insertMedia })
+			return overrides(editor, tools, helpers)
 		}
 
 		return tools
-	}, [overrides, editor, trackEvent, insertMedia, addDialog])
+	}, [overrides, editor, trackEvent, helpers])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

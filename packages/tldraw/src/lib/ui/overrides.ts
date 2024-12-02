@@ -5,6 +5,12 @@ import { ActionsProviderProps, TLUiActionsContextType } from './context/actions'
 import { useBreakpoint } from './context/breakpoints'
 import { useDialogs } from './context/dialogs'
 import { useToasts } from './context/toasts'
+import { useMenuClipboardEvents } from './hooks/useClipboardEvents'
+import { useCopyAs } from './hooks/useCopyAs'
+import { useExportAs } from './hooks/useExportAs'
+import { useGetEmbedDefinition } from './hooks/useGetEmbedDefinition'
+import { useInsertMedia } from './hooks/useInsertMedia'
+import { usePrint } from './hooks/usePrint'
 import { TLUiToolsContextType, TLUiToolsProviderProps } from './hooks/useTools'
 import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
@@ -12,9 +18,19 @@ import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTransla
 export function useDefaultHelpers() {
 	const { addToast, removeToast, clearToasts } = useToasts()
 	const { addDialog, clearDialogs, removeDialog } = useDialogs()
+
+	const msg = useTranslation()
+	const insertMedia = useInsertMedia()
+	const printSelectionOrPages = usePrint()
+	const { cut, copy, paste } = useMenuClipboardEvents()
+	const copyAs = useCopyAs()
+	const exportAs = useExportAs()
+	const getEmbedDefinition = useGetEmbedDefinition()
+
+	// This is the only one that will change during runtime
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
-	const msg = useTranslation()
+
 	return useMemo(
 		() => ({
 			addToast,
@@ -25,8 +41,33 @@ export function useDefaultHelpers() {
 			clearDialogs,
 			msg,
 			isMobile,
+			insertMedia,
+			printSelectionOrPages,
+			cut,
+			copy,
+			paste,
+			copyAs,
+			exportAs,
+			getEmbedDefinition,
 		}),
-		[addDialog, addToast, clearDialogs, clearToasts, msg, removeDialog, removeToast, isMobile]
+		[
+			addToast,
+			removeToast,
+			clearToasts,
+			addDialog,
+			removeDialog,
+			clearDialogs,
+			msg,
+			isMobile,
+			insertMedia,
+			printSelectionOrPages,
+			cut,
+			copy,
+			paste,
+			copyAs,
+			exportAs,
+			getEmbedDefinition,
+		]
 	)
 }
 
@@ -71,10 +112,10 @@ export function mergeOverrides(
 		}
 	}
 	return {
-		actions: (editor, schema) => {
+		actions: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.actions) {
-					schema = override.actions(editor, schema, defaultHelpers)
+					schema = override.actions(editor, schema, helpers)
 				}
 			}
 			return schema

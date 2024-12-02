@@ -122,7 +122,7 @@ export interface ActionsProviderProps {
     // (undocumented)
     children: React_2.ReactNode;
     // (undocumented)
-    overrides?(editor: Editor, actions: TLUiActionsContextType, helpers: undefined): TLUiActionsContextType;
+    overrides?(editor: Editor, actions: TLUiActionsContextType, helpers: TLUiOverrideHelpers): TLUiActionsContextType;
 }
 
 // @public (undocumented)
@@ -3755,8 +3755,16 @@ export function useDefaultHelpers(): {
     }) => string;
     clearDialogs: () => void;
     clearToasts: () => void;
+    copy: (source: TLUiEventSource) => Promise<void>;
+    copyAs: (ids: TLShapeId[], format?: TLCopyType) => void;
+    cut: (source: TLUiEventSource) => Promise<void>;
+    exportAs: (ids: TLShapeId[], format: TLExportType | undefined, name: string | undefined) => void;
+    getEmbedDefinition: (url: string) => TLEmbedResult;
+    insertMedia: () => void;
     isMobile: boolean;
     msg: (id?: string | undefined) => string;
+    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike | undefined) => Promise<void>;
+    printSelectionOrPages: () => Promise<void>;
     removeDialog: (id: string) => string;
     removeToast: (id: string) => string;
 };
