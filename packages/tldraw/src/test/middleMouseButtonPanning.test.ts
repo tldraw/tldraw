@@ -29,3 +29,30 @@ it('When clicking the middle mouse button and dragging on a shape, it pans the c
 	editor.pointerMove(100, 100)
 	editor.expectCameraToBe(100, 100, 1)
 })
+
+describe('Middle mouse functions in pen mode', () => {
+	it('Middle mouse button panning works in pen mode', () => {
+		editor.updateInstanceState({ isPenMode: true })
+		editor.pointerDown(0, 0, { button: 1 })
+		editor.pointerMove(100, 100)
+		editor.expectCameraToBe(100, 100, 1)
+	})
+
+	it('When clicking the middle mouse button and dragging on a shape, it pans the camera in pen mode', () => {
+		editor.updateInstanceState({ isPenMode: true })
+		editor.createShapes([
+			{
+				id: createShapeId(),
+				type: 'geo',
+				props: {
+					geo: 'rectangle',
+					w: 100,
+					h: 100,
+				},
+			},
+		])
+		editor.pointerDown(0, 0, { button: 1 })
+		editor.pointerMove(100, 100)
+		editor.expectCameraToBe(100, 100, 1)
+	})
+})
