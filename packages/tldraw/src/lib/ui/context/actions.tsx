@@ -1105,6 +1105,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-zoom',
+				label: 'action.toggle-zoom',
 				kbd: '$L',
 				readonlyOk: true,
 				onSelect(source) {

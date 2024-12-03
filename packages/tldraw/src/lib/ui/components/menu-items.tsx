@@ -159,18 +159,20 @@ export function UnlockAllMenuItem() {
 export function ZoomTo100MenuItem() {
 	const editor = useEditor()
 	const isZoomedTo100 = useValue('zoomed to 100', () => editor.getZoomLevel() === 1, [editor])
+	const {isZoomLocked} = editor.getCameraOptions()
 
-	return <TldrawUiMenuActionItem actionId="zoom-to-100" noClose disabled={isZoomedTo100} />
+	return <TldrawUiMenuActionItem actionId="zoom-to-100" noClose disabled={isZoomedTo100 || isZoomLocked} />
 }
 /** @public @react */
 export function ZoomToFitMenuItem() {
 	const editor = useEditor()
 	const hasShapes = useValue('has shapes', () => editor.getCurrentPageShapeIds().size > 0, [editor])
+	const {isZoomLocked} = editor.getCameraOptions()
 
 	return (
 		<TldrawUiMenuActionItem
 			actionId="zoom-to-fit"
-			disabled={!hasShapes}
+			disabled={!hasShapes || isZoomLocked}
 			data-testid="minimap.zoom-menu.zoom-to-fit"
 			noClose
 		/>
@@ -182,11 +184,12 @@ export function ZoomToSelectionMenuItem() {
 	const hasSelected = useValue('has shapes', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
+	const {isZoomLocked} = editor.getCameraOptions()
 
 	return (
 		<TldrawUiMenuActionItem
 			actionId="zoom-to-selection"
-			disabled={!hasSelected}
+			disabled={!hasSelected || isZoomLocked}
 			data-testid="minimap.zoom-menu.zoom-to-selection"
 			noClose
 		/>

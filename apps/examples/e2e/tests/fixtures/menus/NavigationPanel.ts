@@ -16,6 +16,7 @@ export class NavigationPanel {
 			zoomToHundred: page.getByRole('menuitem').getByText('Zoom to 100%'),
 			zoomToFit: page.getByRole('menuitem').getByText('Zoom to fit'),
 			zoomToSelection: page.getByRole('menuitem').getByText('Zoom to selection'),
+			toggleZoom: page.getByRole('menuitem').getByText('Toggle zoom lock'),
 		}
 	}
 }
