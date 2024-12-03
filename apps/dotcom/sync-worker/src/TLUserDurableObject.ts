@@ -22,7 +22,7 @@ import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
-import { EventData, writeEvent } from './utils/analytics'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
@@ -83,7 +83,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.db,
 			this.userId,
 			(message) => this.broadcast(message),
-			this.logEvent
+			this.logEvent.bind(this)
 		)
 		this.debug('cache', !!this.cache)
 		await this.cache.waitUntilConnected()
@@ -461,7 +461,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeEvent(this.measure, this.env, 'user_durable_object', eventData)
+		writeDataPoint(this.measure, this.env, 'user_durable_object', eventData)
 	}
 
 	logEvent(event: TLUserDurableObjectEvent) {

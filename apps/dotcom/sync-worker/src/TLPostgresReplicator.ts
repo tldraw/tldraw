@@ -8,7 +8,7 @@ import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import { ZReplicationEvent } from './UserDataSyncer'
 import { getPostgres } from './getPostgres'
 import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
-import { EventData, writeEvent } from './utils/analytics'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { getUserDurableObject } from './utils/durableObjects'
 
 const seed = `
@@ -443,7 +443,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private writeEvent(eventData: EventData) {
-		writeEvent(this.measure, this.env, 'replicator', eventData)
+		writeDataPoint(this.measure, this.env, 'replicator', eventData)
 	}
 
 	logEvent(event: TLPostgresReplicatorEvent) {

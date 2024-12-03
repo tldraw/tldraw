@@ -6,7 +6,7 @@ export interface EventData {
 	doubles?: number[]
 }
 
-export function writeEvent(
+export function writeDataPoint(
 	measure: Analytics | undefined,
 	env: Environment,
 	name: string,

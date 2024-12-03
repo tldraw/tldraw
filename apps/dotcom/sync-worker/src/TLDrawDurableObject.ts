@@ -29,7 +29,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
-import { EventData, writeEvent } from './utils/analytics'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
@@ -434,7 +434,7 @@ export class TLDrawDurableObject extends DurableObject {
 	}, 2000)
 
 	private writeEvent(name: string, eventData: EventData) {
-		writeEvent(this.measure, this.env, name, eventData)
+		writeDataPoint(this.measure, this.env, name, eventData)
 	}
 
 	logEvent(event: TLServerEvent) {
