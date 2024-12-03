@@ -1,4 +1,5 @@
 /* eslint-disable local/no-export-star */
+export * from './OptimisticAppStore'
 export { default as getLicenseKey } from './license'
 export {
 	READ_ONLY_LEGACY_PREFIX,
@@ -9,17 +10,5 @@ export {
 	SNAPSHOT_PREFIX,
 	type RoomOpenMode,
 } from './routes'
-export type {
-	CreateRoomRequestBody,
-	CreateSnapshotRequestBody,
-	CreateSnapshotResponseBody,
-	GetReadonlySlugResponseBody,
-	Snapshot,
-} from './types'
-
-export * from './tla-schema/TldrawAppFile'
-export * from './tla-schema/TldrawAppFileEdit'
-export * from './tla-schema/TldrawAppFileVisit'
-export * from './tla-schema/TldrawAppSessionState'
-export * from './tla-schema/TldrawAppUser'
-export * from './tla-schema/tldrawAppSchema'
+export * from './tlaSchema'
+export * from './types'

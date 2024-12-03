@@ -126,31 +126,4 @@ export function startEditingShapeWithLabel(editor: Editor, shape: TLShape, selec
 	if (selectAll) {
 		editor.emit('select-all-text', { shapeId: shape.id })
 	}
-	zoomToShapeIfOffscreen(editor)
-}
-
-const ZOOM_TO_SHAPE_PADDING = 16
-export function zoomToShapeIfOffscreen(editor: Editor) {
-	const selectionPageBounds = editor.getSelectionPageBounds()
-	const viewportPageBounds = editor.getViewportPageBounds()
-	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-		const eb = selectionPageBounds
-			.clone()
-			// Expand the bounds by the padding
-			.expandBy(ZOOM_TO_SHAPE_PADDING / editor.getZoomLevel())
-			// then expand the bounds to include the viewport bounds
-			.expand(viewportPageBounds)
-
-		// then use the difference between the centers to calculate the offset
-		const nextBounds = viewportPageBounds.clone().translate({
-			x: (eb.center.x - viewportPageBounds.center.x) * 2,
-			y: (eb.center.y - viewportPageBounds.center.y) * 2,
-		})
-		editor.zoomToBounds(nextBounds, {
-			animation: {
-				duration: editor.options.animationMediumMs,
-			},
-			inset: 0,
-		})
-	}
 }

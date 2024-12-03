@@ -20,17 +20,17 @@ jobs:
   deploy:
     name: Deploy bemo to ${{ (github.ref == 'refs/heads/bemo-production' && 'production') || (github.ref == 'refs/heads/main' && 'staging') || 'preview'  }}
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/bemo-production' && 'bemo-production' || 'bemo-canary' }}
     concurrency: bemo-${{ github.ref == 'refs/heads/bemo-production' && 'bemo-production' || github.ref }}
 
     steps:
-      - name: Notify initial start
-        uses: MineBartekSA/discord-webhook@v2
-        if: github.ref == 'refs/heads/bemo-production'
-        with:
-          webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
-          content: 'Preparing ${{ env.TLDRAW_ENV }} bemo deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
+      # - name: Notify initial start
+      #   uses: MineBartekSA/discord-webhook@v2
+      #   if: github.ref == 'refs/heads/bemo-production'
+      #   with:
+      #     webhook: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
+      #     content: 'Preparing ${{ env.TLDRAW_ENV }} bemo deploy: ${{ github.event.head_commit.message }} by ${{ github.event.head_commit.author.name }}'
 
       - name: Check out code
         uses: actions/checkout@v3

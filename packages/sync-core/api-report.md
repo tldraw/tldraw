@@ -328,6 +328,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     close(): void;
     closeSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     getCurrentDocumentClock(): number;
+    // @internal
+    getCurrentSerializedSnapshot(): string;
     getCurrentSnapshot(): RoomSnapshot;
     getNumActiveSessions(): number;
     getRecord(id: string): R;
@@ -471,6 +473,8 @@ export const TLSyncErrorCloseEventReason: {
     readonly INVALID_RECORD: "INVALID_RECORD";
     readonly NOT_AUTHENTICATED: "NOT_AUTHENTICATED";
     readonly NOT_FOUND: "NOT_FOUND";
+    readonly RATE_LIMITED: "RATE_LIMITED";
+    readonly ROOM_FULL: "ROOM_FULL";
     readonly SERVER_TOO_OLD: "SERVER_TOO_OLD";
     readonly UNKNOWN_ERROR: "UNKNOWN_ERROR";
 };

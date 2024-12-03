@@ -29,6 +29,8 @@ const assetUpload = path.relative(
 )
 const dotcom = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/client'))
 
+const { previewId, sha } = getDeployInfo()
+
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
 const env = makeEnv([
@@ -60,6 +62,10 @@ const env = makeEnv([
 	'VERCEL_TOKEN',
 	'VITE_CLERK_PUBLISHABLE_KEY',
 	'WORKER_SENTRY_DSN',
+	previewId ? 'NEON_PREVIEW_DB_CONNECTION_STRING' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
+	previewId
+		? 'NEON_PREVIEW_DB_POOLED_CONNECTION_STRING'
+		: 'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
 ])
 
 const discord = new Discord({
@@ -68,7 +74,6 @@ const discord = new Discord({
 	totalSteps: 8,
 })
 
-const { previewId, sha } = getDeployInfo()
 const sentryReleaseName = `${env.TLDRAW_ENV}-${previewId ? previewId + '-' : ''}-${sha}`
 
 if (previewId) {
@@ -202,6 +207,15 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 		await setWranglerPreviewConfig(worker, { name: workerId })
 		didUpdateTlsyncWorker = true
 	}
+	const BOTCOM_POSTGRES_CONNECTION_STRING =
+		env.NEON_PREVIEW_DB_CONNECTION_STRING || env.BOTCOM_POSTGRES_CONNECTION_STRING
+	const BOTCOM_POSTGRES_POOLED_CONNECTION_STRING =
+		env.NEON_PREVIEW_DB_POOLED_CONNECTION_STRING || env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING
+	await exec('yarn', ['workspace', '@tldraw/zero-cache', 'migrate', dryRun ? '--dry-run' : null], {
+		env: {
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
+		},
+	})
 	await wranglerDeploy({
 		location: worker,
 		dryRun,
@@ -216,6 +230,8 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 			WORKER_NAME: workerId,
 			CLERK_SECRET_KEY: env.CLERK_SECRET_KEY,
 			CLERK_PUBLISHABLE_KEY: env.VITE_CLERK_PUBLISHABLE_KEY,
+			BOTCOM_POSTGRES_CONNECTION_STRING,
+			BOTCOM_POSTGRES_POOLED_CONNECTION_STRING,
 		},
 		sentry: {
 			project: 'tldraw-sync',
@@ -386,10 +402,10 @@ async function coalesceWithPreviousAssets(assetsDir: string) {
 	}
 
 	// Always include the assets from the directly previous build, but also if there
-	// have been more deploys in the last two weeks, include those too.
-	const twoWeeks = 1000 * 60 * 60 * 24 * 14
+	// have been more deploys in the last six months, include those too.
+	const oneMonth = 1000 * 60 * 60 * 24 * 30
 	const recentOthers = others.filter(
-		(o) => (o.LastModified?.getTime() ?? 0) > Date.now() - twoWeeks
+		(o) => (o.LastModified?.getTime() ?? 0) > Date.now() - oneMonth
 	)
 	const objectsToFetch = [mostRecent, ...recentOthers]
 

@@ -38,7 +38,6 @@ export {
 	type ValueOp,
 } from './lib/diff'
 export {
-	// eslint-disable-next-line deprecation/deprecation
 	TLIncompatibilityReason,
 	getTlsyncProtocolVersion,
 	type TLConnectRequest,

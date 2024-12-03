@@ -15,16 +15,12 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/q/?$",
   },
   {
-    "reactRouterPattern": "/q/debug",
-    "vercelRouterPattern": "^/q/debug/?$",
-  },
-  {
     "reactRouterPattern": "/q/f/:fileSlug",
     "vercelRouterPattern": "^/q/f/[^/]*/?$",
   },
   {
-    "reactRouterPattern": "/q/profile",
-    "vercelRouterPattern": "^/q/profile/?$",
+    "reactRouterPattern": "/q/p/:fileSlug",
+    "vercelRouterPattern": "^/q/p/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/r",

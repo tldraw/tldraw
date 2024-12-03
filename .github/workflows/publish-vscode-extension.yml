@@ -18,7 +18,7 @@ jobs:
     name: Publish VS Code Extension
     environment: vsce publish
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores-open
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code

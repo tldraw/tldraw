@@ -1,3 +1,240 @@
+# v3.5.0 (Tue Nov 26 2024)
+
+### Release Notes
+
+#### Click / right click on frame headings ([#4979](https://github.com/tldraw/tldraw/pull/4979))
+
+- Improved clicks for frame headings
+
+#### Improve panning performance when we have many not shapes and when we are zoomed out ([#4935](https://github.com/tldraw/tldraw/pull/4935))
+
+- Improve performance of rendering note shapes when zoomed out past 35%.
+
+#### chore(api): expose font sizes, stroke sizes api ([#4940](https://github.com/tldraw/tldraw/pull/4940))
+
+- Expose `ARROW_LABEL_FONT_SIZES`, `STROKE_SIZES`, `FONT_SIZES`
+
+#### remove zoom to label ([#4872](https://github.com/tldraw/tldraw/pull/4872))
+
+- Removed zoom to label feature when editing shape labels
+
+#### Snap to grid when creating shapes ([#4875](https://github.com/tldraw/tldraw/pull/4875))
+
+- Shapes snap to grid on creation, or when adding points.
+
+#### make sure copy-as-png comes in at natural size ([#4771](https://github.com/tldraw/tldraw/pull/4771))
+
+-  Shapes copied as PNG will have the same size when pasted back into tldraw.
+
+#### Smart bringForward/sendBackward ([#4851](https://github.com/tldraw/tldraw/pull/4851))
+
+- Improved the 'bring forward' and 'send backward' actions by making them only consider nearby overlapping shapes when deciding the next ordering.
+
+#### Fix shapes getting stuck in erasing state ([#4861](https://github.com/tldraw/tldraw/pull/4861))
+
+- Fixed a bug with shapes getting stuck in the translucent erasing state.
+
+#### Remove outlines from buttons until we fix radix-ui issues ([#4855](https://github.com/tldraw/tldraw/pull/4855))
+
+- Fixed a bug with focus outlines appearing in menu items at the wrong time.
+
+#### fix id regression ([#4849](https://github.com/tldraw/tldraw/pull/4849))
+
+- Prevent arrows being clipped incorrectly when multiple tldraw instances or exports are present in the dom.
+
+#### Add option to disable text creation on double click ([#4841](https://github.com/tldraw/tldraw/pull/4841))
+
+- Add option to disable text creation on double click `createTextOnCanvasDoubleClick`
+
+#### Better support scale / quality in export utilities ([#4795](https://github.com/tldraw/tldraw/pull/4795))
+
+- Improved treatment of `scale` in image copy / export utilities.
+
+#### Improve hovers on page menu ([#4788](https://github.com/tldraw/tldraw/pull/4788))
+
+- Improve the page menu hover effects.
+
+#### kbd shortcuts: fix up wrong size dialog on desktop ([#4791](https://github.com/tldraw/tldraw/pull/4791))
+
+- Fix keyboard shortcuts dialog being narrow on desktop.
+
+#### Fix toast spacing ([#4800](https://github.com/tldraw/tldraw/pull/4800))
+
+- Fixed a bug with toast layout.
+
+#### Fix dragging on frame headings ([#4794](https://github.com/tldraw/tldraw/pull/4794))
+
+- Fixed a bug with dragging frames by their heading.
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] Pre-launch design / UX pass [#4984](https://github.com/tldraw/tldraw/pull/4984) ([@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- botcom: add react-select for better select menus [#4920](https://github.com/tldraw/tldraw/pull/4920) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [botcom] improve error UX [#4790](https://github.com/tldraw/tldraw/pull/4790) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fixes
+
+- remove zoom to label [#4872](https://github.com/tldraw/tldraw/pull/4872) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- make sure copy-as-png comes in at natural size [#4771](https://github.com/tldraw/tldraw/pull/4771) ([@SomeHats](https://github.com/SomeHats))
+- Fix shapes getting stuck in erasing state [#4861](https://github.com/tldraw/tldraw/pull/4861) ([@TodePond](https://github.com/TodePond))
+- Remove outlines from buttons until we fix radix-ui issues [#4855](https://github.com/tldraw/tldraw/pull/4855) ([@steveruizok](https://github.com/steveruizok))
+- fix id regression [#4849](https://github.com/tldraw/tldraw/pull/4849) ([@SomeHats](https://github.com/SomeHats))
+- kbd shortcuts: fix up wrong size dialog on desktop [#4791](https://github.com/tldraw/tldraw/pull/4791) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix toast spacing [#4800](https://github.com/tldraw/tldraw/pull/4800) ([@steveruizok](https://github.com/steveruizok))
+- Fix dragging on frame headings [#4794](https://github.com/tldraw/tldraw/pull/4794) ([@steveruizok](https://github.com/steveruizok))
+
+#### 💄 Product Improvements
+
+- Click / right click on frame headings [#4979](https://github.com/tldraw/tldraw/pull/4979) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Improve panning performance when we have many not shapes and when we are zoomed out [#4935](https://github.com/tldraw/tldraw/pull/4935) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- Snap to grid when creating shapes [#4875](https://github.com/tldraw/tldraw/pull/4875) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git) [@mimecuvalo](https://github.com/mimecuvalo))
+- Smart bringForward/sendBackward [#4851](https://github.com/tldraw/tldraw/pull/4851) ([@ds300](https://github.com/ds300))
+- Improve hovers on page menu [#4788](https://github.com/tldraw/tldraw/pull/4788) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🎉 New Features
+
+- Add option to disable text creation on double click [#4841](https://github.com/tldraw/tldraw/pull/4841) ([@ds300](https://github.com/ds300) [@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- chore(api): expose font sizes, stroke sizes api [#4940](https://github.com/tldraw/tldraw/pull/4940) ([@judicaelandria](https://github.com/judicaelandria))
+- Better support scale / quality in export utilities [#4795](https://github.com/tldraw/tldraw/pull/4795) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 9
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Judicael ([@judicaelandria](https://github.com/judicaelandria))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
+# v3.4.0 (Thu Oct 24 2024)
+
+### Release Notes
+
+#### npm: upgrade eslint v8 → v9 ([#4757](https://github.com/tldraw/tldraw/pull/4757))
+
+- Upgrade eslint v8 → v9
+
+#### make options object stable ([#4762](https://github.com/tldraw/tldraw/pull/4762))
+
+- Writing `options` inline in the Tldraw component will no longer cause re-render loops
+
+#### [Fix] Toolbar button outline border radius ([#4759](https://github.com/tldraw/tldraw/pull/4759))
+
+- Fixed a bug with the border radius on toolbar button outlines.
+
+#### Improve tooltips in the style panel ([#4750](https://github.com/tldraw/tldraw/pull/4750))
+
+- Fixed a bug with…
+
+#### [Fix] Colors from Excalidraw when pasting ([#4752](https://github.com/tldraw/tldraw/pull/4752))
+
+- Fixed a bug that prevented pasted Excalidraw content from keeping the right color.
+
+#### arrows: fix up label indicator showing up ([#4749](https://github.com/tldraw/tldraw/pull/4749))
+
+- Fix labels on arrows having indicators show up behind them.
+
+#### Limit the page name length in the move to page menu. ([#4747](https://github.com/tldraw/tldraw/pull/4747))
+
+- Limit the length of the page names in the move to page menu.
+
+#### ui: dont highlight menu triggers that dont have their submenus open ([#4710](https://github.com/tldraw/tldraw/pull/4710))
+
+- Fix submenu hover active state.
+
+#### menus: rework the open menu logic to be in one consistent place ([#4642](https://github.com/tldraw/tldraw/pull/4642))
+
+- Rework open menu logic to be centralized.
+
+#### Fix style menu vertical align button ([#4735](https://github.com/tldraw/tldraw/pull/4735))
+
+- Fixed a bug with the vertical alignment button in the style panel.
+
+#### Add labelColor for notes. ([#4724](https://github.com/tldraw/tldraw/pull/4724))
+
+- Adds `labelColor` for Note shapes.
+
+#### lod: memoize media assets so that zoom level doesn't re-render constantly ([#4659](https://github.com/tldraw/tldraw/pull/4659))
+
+- Improve performance of image/video rendering.
+
+#### embeds: fix pasting urls giving an error msg always ([#4709](https://github.com/tldraw/tldraw/pull/4709))
+
+- Fix embed dialog pasting URLs
+
+#### make sure DOM IDs are globally unique ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+
+- Exports and other tldraw instances no longer can affect how each other are rendered
+- **BREAKING:** the `id` attribute that was present on some shapes in the dom has been removed. there's now a data-shape-id attribute on every shape wrapper instead though.
+
+#### menus: fix up some missing readonlyOk items; rm some ctx menu items in readonly ([#4696](https://github.com/tldraw/tldraw/pull/4696))
+
+- Fix some items missing `readonlyOk` and some other items that shouldn't have been shown in readonly mode.
+
+#### share: fix copy link ux ([#4695](https://github.com/tldraw/tldraw/pull/4695))
+
+- Fix copy link UX (adds spinner and also adds checkmarks back in)
+
+---
+
+#### 🐛 Bug Fix
+
+- roll back changes from bad deploy [#4780](https://github.com/tldraw/tldraw/pull/4780) ([@SomeHats](https://github.com/SomeHats))
+- Update CHANGELOG.md \[skip ci\] ([@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- botcom: inline rename [#4758](https://github.com/tldraw/tldraw/pull/4758) ([@mimecuvalo](https://github.com/mimecuvalo))
+- [botcom] local session state, logged out view of files [#4711](https://github.com/tldraw/tldraw/pull/4711) ([@steveruizok](https://github.com/steveruizok))
+- ui: suppress aria warning about desc in dialogs [#4707](https://github.com/tldraw/tldraw/pull/4707) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 🐛 Bug Fixes
+
+- [Fix] Toolbar button outline border radius [#4759](https://github.com/tldraw/tldraw/pull/4759) ([@steveruizok](https://github.com/steveruizok))
+- [Fix] Keyboard events on menus [#4745](https://github.com/tldraw/tldraw/pull/4745) ([@steveruizok](https://github.com/steveruizok))
+- [Fix] Colors from Excalidraw when pasting [#4752](https://github.com/tldraw/tldraw/pull/4752) ([@steveruizok](https://github.com/steveruizok))
+- arrows: fix up label indicator showing up [#4749](https://github.com/tldraw/tldraw/pull/4749) ([@mimecuvalo](https://github.com/mimecuvalo))
+- ui: dont highlight menu triggers that dont have their submenus open [#4710](https://github.com/tldraw/tldraw/pull/4710) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- Fix style menu vertical align button [#4735](https://github.com/tldraw/tldraw/pull/4735) ([@steveruizok](https://github.com/steveruizok))
+- embeds: fix pasting urls giving an error msg always [#4709](https://github.com/tldraw/tldraw/pull/4709) ([@mimecuvalo](https://github.com/mimecuvalo))
+- make sure DOM IDs are globally unique [#4694](https://github.com/tldraw/tldraw/pull/4694) ([@SomeHats](https://github.com/SomeHats))
+- menus: fix up some missing readonlyOk items; rm some ctx menu items in readonly [#4696](https://github.com/tldraw/tldraw/pull/4696) ([@mimecuvalo](https://github.com/mimecuvalo))
+- share: fix copy link ux [#4695](https://github.com/tldraw/tldraw/pull/4695) ([@mimecuvalo](https://github.com/mimecuvalo))
+
+#### 💄 Product Improvements
+
+- npm: upgrade eslint v8 → v9 [#4757](https://github.com/tldraw/tldraw/pull/4757) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats) [@ds300](https://github.com/ds300) [@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- Improve tooltips in the style panel [#4750](https://github.com/tldraw/tldraw/pull/4750) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Limit the page name length in the move to page menu. [#4747](https://github.com/tldraw/tldraw/pull/4747) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- menus: rework the open menu logic to be in one consistent place [#4642](https://github.com/tldraw/tldraw/pull/4642) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+- lod: memoize media assets so that zoom level doesn't re-render constantly [#4659](https://github.com/tldraw/tldraw/pull/4659) ([@mimecuvalo](https://github.com/mimecuvalo) [@steveruizok](https://github.com/steveruizok))
+
+#### 🎉 New Features
+
+- Add labelColor for notes. [#4724](https://github.com/tldraw/tldraw/pull/4724) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- make options object stable [#4762](https://github.com/tldraw/tldraw/pull/4762) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.3.0 (Wed Oct 09 2024)
 
 ### Release Notes

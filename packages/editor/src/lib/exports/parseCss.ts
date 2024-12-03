@@ -65,7 +65,6 @@ export function parseCssFontFamilyValue(value: string) {
 
 	const fontFamilies = new Set<string>()
 
-	// eslint-disable-next-line no-constant-condition
 	while (true) {
 		const valueMatch = valueRegex.exec(value)
 		if (!valueMatch) {

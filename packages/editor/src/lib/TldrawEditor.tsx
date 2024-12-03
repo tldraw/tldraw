@@ -222,6 +222,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	components,
 	className,
 	user: _user,
+	options: _options,
 	...rest
 }: TldrawEditorProps) {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
@@ -239,6 +240,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		bindingUtils: rest.bindingUtils ?? EMPTY_BINDING_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 		components,
+		options: useShallowObjectIdentity(_options),
 	}
 
 	return (

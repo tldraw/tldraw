@@ -78,9 +78,15 @@ export {
 	setInLocalStorage,
 	setInSessionStorage,
 } from './lib/storage'
+export { stringEnum } from './lib/stringEnum'
 export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export { Timers } from './lib/timers'
-export type { Expand, RecursivePartial, Required } from './lib/types'
+export {
+	type Expand,
+	type MakeUndefinedOptional,
+	type RecursivePartial,
+	type Required,
+} from './lib/types'
 export { safeParseUrl } from './lib/url'
 export {
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,

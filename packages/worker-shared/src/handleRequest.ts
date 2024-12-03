@@ -46,7 +46,7 @@ export async function handleApiRequest<
 		} else {
 			response = Response.json({ error: 'Internal server error' }, { status: 500 })
 			console.error(error.stack ?? error)
-			// eslint-disable-next-line deprecation/deprecation
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			createSentry(ctx, env, request)?.captureException(error)
 		}
 	}
@@ -55,7 +55,7 @@ export async function handleApiRequest<
 		return await after(response)
 	} catch (error: any) {
 		console.error(error.stack ?? error)
-		// eslint-disable-next-line deprecation/deprecation
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		createSentry(ctx, env, request)?.captureException(error)
 		return Response.json({ error: 'Internal server error' }, { status: 500 })
 	}

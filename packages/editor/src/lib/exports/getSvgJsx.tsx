@@ -1,3 +1,4 @@
+import { useAtom, useValue } from '@tldraw/state-react'
 import {
 	TLFrameShape,
 	TLGroupShape,
@@ -10,11 +11,11 @@ import {
 	ComponentType,
 	Fragment,
 	ReactElement,
+	ReactNode,
 	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
-	useState,
 } from 'react'
 import { flushSync } from 'react-dom'
 import { ErrorBoundary } from '../components/ErrorBoundary'
@@ -87,7 +88,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 
 	try {
 		document.body.focus?.() // weird but necessary
-	} catch (e) {
+	} catch {
 		// not implemented
 	}
 
@@ -142,17 +143,33 @@ function SvgExport({
 	const masksId = useUniqueSafeId()
 	const theme = getDefaultColorTheme({ isDarkMode })
 
-	const [defsById, setDefsById] = useState<Record<string, ReactElement>>({})
-	const addExportDef = useEvent((def: SvgExportDef) => {
-		if (hasOwnProperty(defsById, def.key)) return
-		waitUntil(
-			(async () => {
-				const element = await def.getElement()
-				if (!element) return
+	const stateAtom = useAtom<{
+		defsById: Record<
+			string,
+			{ pending: false; element: ReactNode } | { pending: true; element: Promise<ReactNode> }
+		>
+		shapeElements: ReactElement[] | null
+	}>('export state', { defsById: {}, shapeElements: null })
+	const { defsById, shapeElements } = useValue(stateAtom)
 
-				flushSync(() => setDefsById((defsById) => ({ ...defsById, [def.key]: element })))
-			})()
-		)
+	const addExportDef = useEvent((def: SvgExportDef) => {
+		stateAtom.update((state) => {
+			if (hasOwnProperty(state.defsById, def.key)) return state
+
+			const promise = Promise.resolve(def.getElement())
+			waitUntil(
+				promise.then((result) => {
+					stateAtom.update((state) => ({
+						...state,
+						defsById: { ...state.defsById, [def.key]: { pending: false, element: result } },
+					}))
+				})
+			)
+			return {
+				...state,
+				defsById: { ...state.defsById, [def.key]: { pending: true, element: promise } },
+			}
+		})
 	})
 
 	const exportContext = useMemo(
@@ -164,7 +181,6 @@ function SvgExport({
 		[isDarkMode, waitUntil, addExportDef]
 	)
 
-	const [shapeElements, setShapeElements] = useState<ReactElement[] | null>(null)
 	const didRenderRef = useRef(false)
 	useLayoutEffect(() => {
 		if (didRenderRef.current) {
@@ -172,7 +188,7 @@ function SvgExport({
 		}
 		didRenderRef.current = true
 		;(async () => {
-			const shapeDefs: Record<string, ReactElement> = {}
+			const shapeDefs: Record<string, { pending: false; element: ReactElement }> = {}
 
 			const unorderedShapeElementPromises = renderingShapes.map(
 				async ({ id, opacity, index, backgroundIndex }) => {
@@ -195,8 +211,10 @@ function SvgExport({
 
 						const pageTransform = editor.getShapePageTransform(shape)
 						let pageTransformString = pageTransform!.toCssString()
+						let scale = 1
 						if ('scale' in shape.props) {
 							if (shape.props.scale !== 1) {
+								scale = shape.props.scale
 								pageTransformString = `${pageTransformString} scale(${shape.props.scale}, ${shape.props.scale})`
 							}
 						}
@@ -209,12 +227,17 @@ function SvgExport({
 						const shapeMaskId = suffixSafeId(masksId, shape.id)
 						if (shapeMask) {
 							// Create a clip path and add it to defs
-							shapeDefs[shapeMaskId] = (
-								<clipPath id={shapeMaskId}>
-									{/* Create a polyline mask that does the clipping */}
-									<path d={`M${shapeMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`} />
-								</clipPath>
-							)
+							shapeDefs[shapeMaskId] = {
+								pending: false,
+								element: (
+									<clipPath id={shapeMaskId}>
+										{/* Create a polyline mask that does the clipping */}
+										<path
+											d={`M${shapeMask.map(({ x, y }) => `${x / scale},${y / scale}`).join('L')}Z`}
+										/>
+									</clipPath>
+								),
+							}
 						}
 
 						if (toSvgResult) {
@@ -288,14 +311,18 @@ function SvgExport({
 			)
 
 			const unorderedShapeElements = (await Promise.all(unorderedShapeElementPromises)).flat()
+
 			flushSync(() => {
-				setShapeElements(
-					unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex).map(({ element }) => element)
-				)
-				setDefsById((defsById) => ({ ...defsById, ...shapeDefs }))
+				stateAtom.update((state) => ({
+					...state,
+					shapeElements: unorderedShapeElements
+						.sort((a, b) => a.zIndex - b.zIndex)
+						.map(({ element }) => element),
+					defsById: { ...state.defsById, ...shapeDefs },
+				}))
 			})
 		})()
-	}, [bbox, editor, exportContext, masksId, renderingShapes, singleFrameShapeId])
+	}, [bbox, editor, exportContext, masksId, renderingShapes, singleFrameShapeId, stateAtom])
 
 	useEffect(() => {
 		if (shapeElements === null) return
@@ -323,9 +350,9 @@ function SvgExport({
 				className={`tl-container tl-theme__force-sRGB ${isDarkMode ? 'tl-theme__dark' : 'tl-theme__light'}`}
 			>
 				<defs>
-					{Object.entries(defsById).map(([key, def]) => (
-						<Fragment key={key}>{def}</Fragment>
-					))}
+					{Object.entries(defsById).map(([key, def]) =>
+						def.pending ? null : <Fragment key={key}>{def.element}</Fragment>
+					)}
 				</defs>
 				{shapeElements}
 			</svg>

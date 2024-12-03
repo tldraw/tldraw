@@ -9,7 +9,8 @@ export const TlaButton = forwardRef<
 		isLoading?: boolean
 		icon?: string
 		iconRight?: string
-		variant?: 'primary' | 'secondary' | 'warning'
+		ghost?: boolean
+		variant?: 'primary' | 'secondary' | 'warning' | 'cta'
 	}
 >(function TlaButton(
 	{
@@ -17,8 +18,10 @@ export const TlaButton = forwardRef<
 		className = '',
 		icon = '',
 		iconRight = '',
+		ghost = false,
 		variant = 'primary',
 		isLoading = false,
+		onClick,
 		...props
 	},
 	ref
@@ -26,25 +29,37 @@ export const TlaButton = forwardRef<
 	return (
 		<button
 			{...props}
+			onClick={isLoading ? undefined : onClick}
 			ref={ref}
 			data-state={isLoading ? 'loading' : 'ready'}
 			className={classNames(
-				'tla-text_ui__medium',
 				styles.button,
 				{
+					[styles.cta]: variant === 'cta',
 					[styles.primary]: variant === 'primary',
 					[styles.secondary]: variant === 'secondary',
+					[styles.ghost]: ghost,
 				},
 				className
 			)}
 		>
-			{icon && <TlaIcon icon={icon} />}
-			{children && <span>{children}</span>}
-			{iconRight && <TlaIcon icon={iconRight} className={styles.iconRight} />}
-			{isLoading && (
+			{isLoading && !iconRight ? (
 				<div className={styles.spinner}>
 					<TlaIcon className="tla-spinner" icon="spinner" />
 				</div>
+			) : (
+				<>
+					{icon && <TlaIcon icon={icon} />}
+					{children && <span>{children}</span>}
+					{iconRight &&
+						(isLoading ? (
+							<div className={styles.iconRight}>
+								<TlaIcon icon={iconRight} className={classNames(styles.spinner)} />
+							</div>
+						) : (
+							<TlaIcon icon={iconRight} className={styles.iconRight} />
+						))}
+				</>
 			)}
 		</button>
 	)

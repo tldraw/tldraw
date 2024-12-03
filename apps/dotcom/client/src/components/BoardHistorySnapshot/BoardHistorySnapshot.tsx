@@ -2,7 +2,6 @@ import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { useCallback, useState } from 'react'
 import { Tldraw, fetch } from 'tldraw'
-import '../../../styles/core.css'
 import { assetUrls } from '../../utils/assetUrls'
 import { useFileSystem } from '../../utils/useFileSystem'
 
@@ -62,7 +61,6 @@ export function BoardHistorySnapshot({
 						})
 					}}
 					overrides={[fileSystemUiOverrides]}
-					inferDarkMode
 				/>
 			</div>
 			<div className="board-history__restore">

@@ -1,6 +1,6 @@
-import { TldrawAppFileId, TldrawAppFileRecordType } from '@tldraw/dotcom-shared'
+import { useAuth } from '@clerk/clerk-react'
 import { useCallback } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
 	TldrawUiButton,
 	TldrawUiButtonLabel,
@@ -11,43 +11,63 @@ import {
 	TldrawUiDialogTitle,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
-import { useRaw } from '../../hooks/useRaw'
+import { useIsFileOwner } from '../../hooks/useIsFileOwner'
+import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { F } from '../../utils/i18n'
+import { getFilePath } from '../../utils/urls'
 
-export function TlaDeleteFileDialog({
-	fileId,
-	onClose,
-}: {
-	fileId: TldrawAppFileId
-	onClose(): void
-}) {
+export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClose(): void }) {
 	const app = useApp()
-	const raw = useRaw()
-	const location = useLocation()
 	const navigate = useNavigate()
+	const trackEvent = useTldrawAppUiEvents()
+	const auth = useAuth()
 
-	const handleDelete = useCallback(() => {
-		app.deleteFile(fileId)
-		if (location.pathname.endsWith(TldrawAppFileRecordType.parseId(fileId))) {
-			navigate('/q')
+	const isOwner = useIsFileOwner(fileId)
+
+	const handleDelete = useCallback(async () => {
+		const token = await auth.getToken()
+		if (!token) throw new Error('No token')
+		await app.deleteOrForgetFile(fileId)
+		const recentFiles = app.getUserRecentFiles()
+		if (recentFiles.length === 0) {
+			const result = app.createFile()
+			if (result.ok) {
+				navigate(getFilePath(result.value.file.id), { state: { mode: 'create' } })
+				trackEvent('delete-file', { source: 'file-menu' })
+			}
+		} else {
+			navigate(getFilePath(recentFiles[0].fileId))
 		}
 		onClose()
-	}, [app, fileId, location.pathname, navigate, onClose])
+	}, [auth, app, fileId, onClose, navigate, trackEvent])
 
 	return (
 		<>
 			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>{raw('Delete file')}</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>
+					{isOwner ? <F defaultMessage="Delete file" /> : <F defaultMessage="Forget file" />}
+				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<>{raw('Are you sure you want to delete this file?')}</>
+				<>
+					{isOwner ? (
+						<F defaultMessage="Are you sure you want to delete this file?" />
+					) : (
+						<F defaultMessage="Are you sure you want to forget this file?" />
+					)}
+				</>
 			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="normal" onClick={onClose}>
-					<TldrawUiButtonLabel>{raw('Cancel')}</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>
+						<F defaultMessage="Cancel" />
+					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 				<TldrawUiButton type="danger" onClick={handleDelete}>
-					<TldrawUiButtonLabel>{raw('Delete')}</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>
+						{isOwner ? <F defaultMessage="Delete" /> : <F defaultMessage="Forget" />}
+					</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</TldrawUiDialogFooter>
 		</>

@@ -13,6 +13,9 @@
 			"path": "../../packages/sync"
 		},
 		{
+			"path": "../../packages/state"
+		},
+		{
 			"path": "../../packages/tldraw"
 		},
 		{

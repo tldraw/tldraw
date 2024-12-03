@@ -1,5 +1,5 @@
 /**
  * How often we the document to R2?
- * 10 seconds.
+ * 8 seconds.
  */
-export const PERSIST_INTERVAL_MS = 10_000
+export const PERSIST_INTERVAL_MS = 8_000

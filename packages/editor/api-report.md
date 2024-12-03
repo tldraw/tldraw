@@ -16,6 +16,7 @@ import { Dispatch } from 'react';
 import { EffectScheduler } from '@tldraw/state';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
+import { ExoticComponent } from 'react';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -690,6 +691,7 @@ export const defaultTldrawOptions: {
     readonly collaboratorCheckIntervalMs: 1200;
     readonly collaboratorIdleTimeoutMs: 3000;
     readonly collaboratorInactiveTimeoutMs: 60000;
+    readonly createTextOnCanvasDoubleClick: true;
     readonly defaultSvgPadding: 32;
     readonly doubleClickDurationMs: 450;
     readonly dragDistanceSquared: 16;
@@ -697,6 +699,9 @@ export const defaultTldrawOptions: {
     readonly edgeScrollDistance: 8;
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
+    readonly exportProvider: ExoticComponent<    {
+    children?: ReactNode;
+    }>;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
     readonly followChaseViewportSnap: 2;
@@ -735,13 +740,13 @@ export const defaultTldrawOptions: {
 export const defaultUserPreferences: Readonly<{
     animationSpeed: 0 | 1;
     color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
-    colorScheme: "system";
+    colorScheme: "light";
     edgeScrollSpeed: 1;
     isDynamicSizeMode: false;
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
 }>;
 
@@ -834,7 +839,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     blur({ blurContainer }?: {
         blurContainer?: boolean | undefined;
     }): this;
-    bringForward(shapes: TLShape[] | TLShapeId[]): this;
+    bringForward(shapes: TLShape[] | TLShapeId[], opts?: {
+        considerAllShapes?: boolean;
+    }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
     // (undocumented)
     canBindShapes({ fromShape, toShape, binding, }: {
@@ -1214,7 +1221,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
     selectNone(): this;
-    sendBackward(shapes: TLShape[] | TLShapeId[]): this;
+    sendBackward(shapes: TLShape[] | TLShapeId[], opts?: {
+        considerAllShapes?: boolean;
+    }): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
     // @internal (undocumented)
     _setAltKeyTimeout(): void;
@@ -1905,6 +1914,9 @@ export interface MatModel {
     // (undocumented)
     f: number;
 }
+
+// @public
+export function maybeSnapToGrid(point: Vec, editor: Editor): Vec;
 
 // @public
 export function MenuClickCapture(): false | JSX_2.Element;
@@ -2768,6 +2780,8 @@ export interface TldrawOptions {
     // (undocumented)
     readonly collaboratorInactiveTimeoutMs: number;
     // (undocumented)
+    readonly createTextOnCanvasDoubleClick: boolean;
+    // (undocumented)
     readonly defaultSvgPadding: number;
     // (undocumented)
     readonly doubleClickDurationMs: number;
@@ -2781,6 +2795,9 @@ export interface TldrawOptions {
     readonly edgeScrollEaseDuration: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
+    readonly exportProvider: ComponentType<{
+        children: React.ReactNode;
+    }>;
     // (undocumented)
     readonly flattenImageBoundsExpand: number;
     // (undocumented)
@@ -3152,7 +3169,11 @@ export interface TLImageExportOptions {
     // (undocumented)
     padding?: number;
     // (undocumented)
+    pixelRatio?: number;
+    // (undocumented)
     preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    // (undocumented)
+    quality?: number;
     // (undocumented)
     scale?: number;
 }
@@ -3709,6 +3730,10 @@ export function useRefState<T>(initialValue: T): [T, Dispatch<SetStateAction<T>>
 // @public (undocumented)
 export class UserPreferencesManager {
     constructor(user: TLUser, inferDarkMode: boolean);
+    // (undocumented)
+    disposables: Set<() => void>;
+    // (undocumented)
+    dispose(): void;
     // (undocumented)
     getAnimationSpeed(): number;
     // (undocumented)

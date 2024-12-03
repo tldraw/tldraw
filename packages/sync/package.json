@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/sync",
 	"description": "A tiny little drawing app (multiplayer sync react bindings).",
-	"version": "3.3.0",
+	"version": "3.5.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
 		"email": "hello@tldraw.com"
@@ -41,7 +41,7 @@
 		"pack-tarball": "yarn pack"
 	},
 	"devDependencies": {
-		"typescript": "^5.3.3",
+		"typescript": "~5.4.2",
 		"uuid-by-string": "^4.0.0",
 		"uuid-readable": "^0.0.2"
 	},

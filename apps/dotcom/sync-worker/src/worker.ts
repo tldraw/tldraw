@@ -7,22 +7,30 @@ import {
 	ROOM_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { createRouter, handleApiRequest, notFound } from '@tldraw/worker-shared'
-import { WorkerEntrypoint } from 'cloudflare:workers'
+import { DurableObject, WorkerEntrypoint } from 'cloudflare:workers'
 import { cors } from 'itty-router'
-import { APP_ID } from './TLAppDurableObject'
+// import { APP_ID } from './TLAppDurableObject'
 import { createRoom } from './routes/createRoom'
 import { createRoomSnapshot } from './routes/createRoomSnapshot'
 import { extractBookmarkMetadata } from './routes/extractBookmarkMetadata'
-import { forwardRoomRequest } from './routes/forwardRoomRequest'
 import { getReadonlySlug } from './routes/getReadonlySlug'
 import { getRoomHistory } from './routes/getRoomHistory'
 import { getRoomHistorySnapshot } from './routes/getRoomHistorySnapshot'
 import { getRoomSnapshot } from './routes/getRoomSnapshot'
 import { joinExistingRoom } from './routes/joinExistingRoom'
+import { createFiles } from './routes/tla/createFiles'
+import { deleteFile } from './routes/tla/deleteFile'
+import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
+import { getPublishedFile } from './routes/tla/getPublishedFile'
+import { testRoutes } from './testRoutes'
 import { Environment } from './types'
-import { getAuth } from './utils/getAuth'
-export { TLAppDurableObject } from './TLAppDurableObject'
+import { getUserDurableObject } from './utils/durableObjects'
+import { getAuth } from './utils/tla/getAuth'
+// export { TLAppDurableObject } from './TLAppDurableObject'
 export { TLDrawDurableObject } from './TLDrawDurableObject'
+export { TLPostgresReplicator } from './TLPostgresReplicator'
+export { TLUserDurableObject } from './TLUserDurableObject'
+export class TLAppDurableObject extends DurableObject {}
 
 const { preflight, corsify } = cors({
 	origin: isAllowedOrigin,
@@ -43,27 +51,29 @@ const router = createRouter<Environment>()
 	.get(`/${READ_ONLY_PREFIX}/:roomId`, (req, env) =>
 		joinExistingRoom(req, env, ROOM_OPEN_MODE.READ_ONLY)
 	)
-	.get('/app/file/:roomId', forwardRoomRequest)
-	.get('/app', async (req, env) => {
-		const auth = await getAuth(req, env)
-		if (!auth?.userId) return notFound()
-
-		// This needs to be a websocket request!
-		if (req.headers.get('upgrade')?.toLowerCase() === 'websocket') {
-			const url = new URL(req.url)
-			url.pathname = `/app/${auth.userId}`
-			// clone the request and add the new url
-			return env.TLAPP_DO.get(env.TLAPP_DO.idFromName(APP_ID)).fetch(new Request(url, req))
-		}
-
-		return notFound()
-	})
 	.get(`/${ROOM_PREFIX}/:roomId/history`, getRoomHistory)
 	.get(`/${ROOM_PREFIX}/:roomId/history/:timestamp`, getRoomHistorySnapshot)
 	.get('/readonly-slug/:roomId', getReadonlySlug)
 	.get('/unfurl', extractBookmarkMetadata)
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
+	.get('/app/:userId/connect', async (req, env) => {
+		// forward req to the user durable object
+		const auth = await getAuth(req, env)
+		if (!auth) {
+			// eslint-disable-next-line no-console
+			console.log('auth not found')
+			return notFound()
+		}
+		const stub = getUserDurableObject(env, auth.userId)
+		return stub.fetch(req)
+	})
+	.post('/app/tldr', createFiles)
+	.get('/app/file/:roomId', forwardRoomRequest)
+	.get('/app/publish/:roomId', getPublishedFile)
+	.delete('/app/file/:roomId', deleteFile)
+	.all('/app/__test__/*', testRoutes.fetch)
+	// end app
 	.all('*', notFound)
 
 export default class Worker extends WorkerEntrypoint<Environment> {

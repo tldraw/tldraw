@@ -7,7 +7,6 @@ import {
 	Group2d,
 	Rectangle2d,
 	SVGContainer,
-	SafeId,
 	ShapeUtil,
 	SvgExportContext,
 	TLArrowBinding,
@@ -27,7 +26,7 @@ import {
 	getPerfectDashProps,
 	lerp,
 	mapObjectMapValues,
-	sanitizeId,
+	maybeSnapToGrid,
 	structuredClone,
 	toDomPrecision,
 	track,
@@ -38,6 +37,7 @@ import {
 } from '@tldraw/editor'
 import React from 'react'
 import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
+
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextLabel } from '../shared/TextLabel'
@@ -255,10 +255,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!target) {
 			// todo: maybe double check that this isn't equal to the other handle too?
 			removeArrowBinding(this.editor, shape, handleId)
-
+			const newPoint = maybeSnapToGrid(new Vec(handle.x, handle.y), this.editor)
 			update.props![handleId] = {
-				x: handle.x,
-				y: handle.y,
+				x: newPoint.x,
+				y: newPoint.y,
 			}
 			return update
 		}
@@ -643,6 +643,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	indicator(shape: TLArrowShape) {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const clipPathId = useSharedSafeId(shape.id + '_clip')
 
 		const info = getArrowInfo(this.editor, shape)
 		if (!info) return null
@@ -666,8 +668,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			(as && info.start.arrowhead !== 'arrow') ||
 			(ae && info.end.arrowhead !== 'arrow') ||
 			!!labelGeometry
-
-		const clipPathId = sanitizeId(shape.id + '_clip')
 
 		if (isEditing && labelGeometry) {
 			return (
@@ -842,7 +842,7 @@ const ArrowSvg = track(function ArrowSvg({
 		[editor]
 	)
 
-	const clipPathId = sanitizeId(shape.id + '_clip') as SafeId
+	const clipPathId = useSharedSafeId(shape.id + '_clip')
 	const arrowheadDotId = useSharedSafeId('arrowhead-dot')
 	const arrowheadCrossId = useSharedSafeId('arrowhead-cross')
 

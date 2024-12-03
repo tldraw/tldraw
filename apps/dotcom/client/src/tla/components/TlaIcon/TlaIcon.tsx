@@ -2,6 +2,10 @@ import classNames from 'classnames'
 import { HtmlHTMLAttributes, useLayoutEffect, useRef } from 'react'
 import styles from './icon.module.css'
 
+function getMaskStyle(icon: string): string {
+	return `url(/tla/icon-${icon}.svg) center 100% / 100% no-repeat`
+}
+
 export function TlaIcon({
 	icon,
 	className = '',
@@ -18,8 +22,8 @@ export function TlaIcon({
 		// HACK: Fix for <https://linear.app/tldraw/issue/TLD-1700/dragging-around-with-the-handtool-makes-lots-of-requests-for-icons>
 		// It seems that passing `WebkitMask` to react will cause a render on each call, no idea why... but this appears to be the fix.
 		// @ts-ignore
-		// eslint-disable-next-line deprecation/deprecation
-		ref.current.style.webkitMask = `url(/tla/icon-${icon}.svg) center 100% / 100% no-repeat`
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		ref.current.style.webkitMask = getMaskStyle(icon)
 	}, [ref, icon])
 
 	if (icon === 'none') {
@@ -31,7 +35,7 @@ export function TlaIcon({
 			ref={ref}
 			className={classNames(styles.icon, className)}
 			style={{
-				mask: `url(/icon-${icon}.svg) center 100% / 100% no-repeat`,
+				mask: getMaskStyle(icon),
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,
 			}}
 		/>
