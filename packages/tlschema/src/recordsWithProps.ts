@@ -7,7 +7,7 @@ import {
 	UnknownRecord,
 	createMigrationSequence,
 } from '@tldraw/store'
-import { Expand, assert } from '@tldraw/utils'
+import { MakeUndefinedOptional, assert } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { SchemaPropsInfo } from './createTLSchema'
 
@@ -17,9 +17,10 @@ export type RecordProps<R extends UnknownRecord & { props: object }> = {
 }
 
 /** @public */
-export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = Expand<{
-	[K in keyof Config]: T.TypeOf<Config[K]>
-}>
+export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> =
+	MakeUndefinedOptional<{
+		[K in keyof Config]: T.TypeOf<Config[K]>
+	}>
 
 /**
  * @public
