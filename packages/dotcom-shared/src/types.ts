@@ -1,6 +1,13 @@
 import { stringEnum } from '@tldraw/utils'
 import { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
-import { TlaFile, TlaFileState, TlaUser } from './tlaSchema'
+import {
+	TlaFile,
+	TlaFilePartial,
+	TlaFileState,
+	TlaFileStatePartial,
+	TlaUser,
+	TlaUserPartial,
+} from './tlaSchema'
 
 export interface Snapshot {
 	schema: SerializedSchema
@@ -74,10 +81,18 @@ export interface ZStoreData {
 	user: TlaUser
 }
 
-export interface ZRowUpdate {
-	row: object
-	table: 'file' | 'file_state' | 'user'
-	event: 'insert' | 'update' | 'delete'
+export type ZRowUpdate = ZRowInsert | ZRowDeleteOrUpdate
+
+export interface ZRowInsert {
+	row: TlaFile | TlaFileState | TlaUser
+	table: ZTable
+	event: 'insert'
+}
+
+export interface ZRowDeleteOrUpdate {
+	row: TlaFilePartial | TlaFileStatePartial | TlaUserPartial
+	table: ZTable
+	event: 'update' | 'delete'
 }
 
 export type ZTable = 'file' | 'file_state' | 'user'
@@ -88,11 +103,16 @@ export const ZErrorCode = stringEnum(
 	'unpublish_failed',
 	'republish_failed',
 	'unknown_error',
+	'client_too_old',
 	'forbidden',
 	'bad_request',
 	'rate_limit_exceeded'
 )
 export type ZErrorCode = keyof typeof ZErrorCode
+
+// increment this to force clients to reload
+// e.g. if we make backwards-incompatible changes to the schema
+export const Z_PROTOCOL_VERSION = 1
 
 export type ZServerSentMessage =
 	| {
@@ -131,4 +151,5 @@ export const UserPreferencesKeys = [
 	'isDynamicSizeMode',
 	'isPasteAtCursorMode',
 	'name',
+	'color',
 ] as const satisfies Array<keyof TlaUser>

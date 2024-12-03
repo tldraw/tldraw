@@ -48,6 +48,8 @@ export const tlaFileSchema = {
 		id: { type: 'string' },
 		name: { type: 'string' },
 		ownerId: { type: 'string' },
+		ownerName: { type: 'string' },
+		ownerAvatar: { type: 'string' },
 		thumbnail: { type: 'string' },
 		shared: { type: 'boolean' },
 		sharedLinkType: { type: 'string' },
@@ -57,6 +59,7 @@ export const tlaFileSchema = {
 		createdAt: { type: 'number' },
 		updatedAt: { type: 'number' },
 		isEmpty: { type: 'boolean' },
+		isDeleted: { type: 'boolean' },
 	},
 	primaryKey: ['id'],
 	relationships: {
@@ -79,6 +82,7 @@ export const tlaFileStateSchema = {
 		lastEditAt: { type: 'number', optional: true },
 		lastSessionState: { type: 'string', optional: true },
 		lastVisitAt: { type: 'number', optional: true },
+		isFileOwner: { type: 'boolean', optional: true },
 	},
 	primaryKey: ['userId', 'fileId'],
 	relationships: {
@@ -127,13 +131,21 @@ type SchemaToRow<T extends TableSchema> = {
 }
 
 export type TlaFile = SchemaToRow<typeof tlaFileSchema>
+export type TlaFilePartial = Partial<TlaFile> & { id: TlaFile['id'] }
 export type TlaFileState = SchemaToRow<typeof tlaFileStateSchema>
+export type TlaFileStatePartial = Partial<TlaFileState> & {
+	fileId: TlaFileState['fileId']
+	userId: TlaFileState['userId']
+}
 export type TlaUser = SchemaToRow<typeof tlaUserSchema>
+export type TlaUserPartial = Partial<TlaUser> & { id: TlaUser['id'] }
+
+export type TlaRow = TlaFile | TlaFileState | TlaUser
 
 const immutableColumns: Record<string, Set<string>> = {
-	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt']),
+	user: new Set<keyof TlaUser>(['id', 'email', 'createdAt', 'avatar']),
 	file: new Set<keyof TlaFile>(['id', 'ownerId', 'createdAt']),
-	file_state: new Set<keyof TlaFileState>(['userId', 'fileId', 'firstVisitAt']),
+	file_state: new Set<keyof TlaFileState>(['userId', 'fileId', 'firstVisitAt', 'isFileOwner']),
 }
 
 export function isColumnMutable(tableName: keyof typeof immutableColumns, column: string) {

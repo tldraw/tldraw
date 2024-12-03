@@ -9,10 +9,9 @@ import { useSharing } from '../../../utils/sharing'
 import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { TlaFileShareMenuPublishPage } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
-import { ShareButton } from './TlaEditorTopRightPanel'
+import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
 const components: TLComponents = {
@@ -22,17 +21,12 @@ const components: TLComponents = {
 	SharePanel: () => {
 		const ref = useRef<HTMLDivElement>(null)
 		usePassThroughWheelEvents(ref)
-		return (
-			<div ref={ref} className={styles.topRightPanel}>
-				<TlaFileShareMenuPublishPage>
-					<ShareButton />
-				</TlaFileShareMenuPublishPage>
-			</div>
-		)
+		const isAnonUser = !useMaybeApp()
+		return <TlaEditorTopRightPanel isAnonUser={isAnonUser} context="published-file" />
 	},
 	MenuPanel: () => {
-		const app = useMaybeApp()
-		return <TlaEditorTopLeftPanel isAnonUser={!app} />
+		const isAnonUser = !useMaybeApp()
+		return <TlaEditorTopLeftPanel isAnonUser={isAnonUser} />
 	},
 }
 

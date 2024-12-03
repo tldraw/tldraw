@@ -1661,7 +1661,7 @@
 	pointer-events: all;
 	border-radius: var(--radius-1);
 	padding-right: 1px;
-	height: 36px;
+	height: 100%;
 }
 
 .tlui-people-menu__avatars {
@@ -1670,8 +1670,8 @@
 }
 
 .tlui-people-menu__avatar {
-	height: 28px;
-	width: 28px;
+	height: 24px;
+	width: 24px;
 	border: 2px solid var(--color-background);
 	background-color: var(--color-low);
 	border-radius: 100%;

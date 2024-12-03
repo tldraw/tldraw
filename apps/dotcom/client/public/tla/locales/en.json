@@ -1,6 +1,12 @@
 {
+  "00102ce224": {
+    "translation": "You do not have the necessary permissions to perform this action"
+  },
   "0095a9fa74": {
     "translation": "Export"
+  },
+  "015ebd44b7": {
+    "translation": "Please refresh the page to get the latest version of tldraw"
   },
   "01c32a1e98": {
     "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
@@ -17,9 +23,6 @@
   "0b9a4cde72": {
     "translation": "File menu"
   },
-  "10e6cdc8fa": {
-    "translation": "the tldraw logo"
-  },
   "110a4b01be": {
     "translation": "Publish"
   },
@@ -32,11 +35,11 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "279f0531ff": {
+    "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
+  },
   "27de813139": {
     "translation": "Private file"
-  },
-  "293888023c": {
-    "translation": "Still having trouble? Let us know at hello@tldraw.com"
   },
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
@@ -53,17 +56,29 @@
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
+  "446b416d53": {
+    "translation": "Invalid request"
+  },
+  "44b7fb14cb": {
+    "translation": "Unable to publish the changes"
+  },
   "45b543cbb1": {
     "translation": "Publish this project"
   },
-  "48a575ed51": {
-    "translation": "(Guest)"
+  "47839e47a5": {
+    "translation": "tldraw"
   },
   "4908687e50": {
     "translation": "Are you sure you want to forget this file?"
   },
+  "4d1c8263ba": {
+    "translation": "Reload"
+  },
   "517bb809d9": {
     "translation": "Page menu"
+  },
+  "54286b1d01": {
+    "translation": "Collaborator limit reached"
   },
   "54d240fa41": {
     "translation": "Please slow down."
@@ -74,6 +89,18 @@
   "5a95a425f7": {
     "translation": "Share"
   },
+  "5fb63579fc": {
+    "translation": "Copy"
+  },
+  "61057a0c84": {
+    "translation": "Later"
+  },
+  "625fd29749": {
+    "translation": "Older"
+  },
+  "65963328b3": {
+    "translation": "You have exceeded the rate limit"
+  },
   "6609dd239e": {
     "translation": "Something went wrong"
   },
@@ -82,6 +109,12 @@
   },
   "70a6facb9d": {
     "translation": "This week"
+  },
+  "73ab799383": {
+    "translation": "This version of tldraw is no longer supported."
+  },
+  "7408cf0d7b": {
+    "translation": "Please reload the page"
   },
   "7573b8110a": {
     "translation": "No access"
@@ -98,14 +131,23 @@
   "827aedd218": {
     "translation": "Added .tldr {count, plural, one {# file} other {# files}}"
   },
+  "8eb2c00e96": {
+    "translation": "Shared with you"
+  },
   "8ff3d0a705": {
     "translation": "Rate limited"
+  },
+  "902b0d55fd": {
+    "translation": "Error"
   },
   "904a830405": {
     "translation": "Rename"
   },
   "96165d6df5": {
     "translation": "This month"
+  },
+  "9789e32247": {
+    "translation": "An unexpected error occurred"
   },
   "9914a0ce04": {
     "translation": "Light"
@@ -144,14 +186,11 @@
   "b758336699": {
     "translation": "Copy link"
   },
-  "b831a0fede": {
-    "translation": "<b>tldraw</b> is a free online whiteboard for you and your friends."
+  "bc88b0e89e": {
+    "translation": "Shared by {ownerName}"
   },
   "c2276c9127": {
     "translation": "Learn more about sharing."
-  },
-  "c35890fced": {
-    "translation": "This year"
   },
   "c655b27b1e": {
     "translation": "i18n: Long String"
@@ -180,11 +219,11 @@
   "d721757161": {
     "translation": "Theme"
   },
-  "d9776f0775": {
-    "translation": "Sign up"
-  },
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."
+  },
+  "ded274b9ea": {
+    "translation": "Unable to publish the file"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
@@ -197,6 +236,9 @@
   },
   "ebfe9ce86e": {
     "translation": "Yesterday"
+  },
+  "ec59b960ea": {
+    "translation": "This file has reached the maximum number of active collaborators."
   },
   "ec611e9a08": {
     "translation": "Account menu"
@@ -219,8 +261,8 @@
   "f43fb62093": {
     "translation": "Back to tldraw."
   },
-  "f990e553cd": {
-    "translation": "Learn more."
+  "f7e5db3cf0": {
+    "translation": "Unable to unpublish the file"
   },
   "fb15c53f22": {
     "translation": "Viewer"

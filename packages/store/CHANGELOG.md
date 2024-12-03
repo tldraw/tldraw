@@ -1,3 +1,30 @@
+# v3.5.0 (Tue Nov 26 2024)
+
+### Release Notes
+
+#### Click / right click on frame headings ([#4979](https://github.com/tldraw/tldraw/pull/4979))
+
+- Improved clicks for frame headings
+
+#### Call ensureStoreIsUsable after mergeRemoteChanges ([#4833](https://github.com/tldraw/tldraw/pull/4833))
+
+- Add store consistency checks during `mergeRemoteChanges`
+
+---
+
+#### 💄 Product Improvements
+
+- Click / right click on frame headings [#4979](https://github.com/tldraw/tldraw/pull/4979) ([@steveruizok](https://github.com/steveruizok) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Call ensureStoreIsUsable after mergeRemoteChanges [#4833](https://github.com/tldraw/tldraw/pull/4833) ([@ds300](https://github.com/ds300))
+
+#### Authors: 3
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 ### Release Notes

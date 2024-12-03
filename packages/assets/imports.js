@@ -59,6 +59,7 @@ import translationsPtPtJson from './translations/pt-pt.json'
 import translationsRoJson from './translations/ro.json'
 import translationsRuJson from './translations/ru.json'
 import translationsSlJson from './translations/sl.json'
+import translationsSoJson from './translations/so.json'
 import translationsSvJson from './translations/sv.json'
 import translationsTeJson from './translations/te.json'
 import translationsThJson from './translations/th.json'
@@ -256,6 +257,7 @@ export function getAssetUrlsByImport(opts) {
 			ro: formatAssetUrl(translationsRoJson, opts),
 			ru: formatAssetUrl(translationsRuJson, opts),
 			sl: formatAssetUrl(translationsSlJson, opts),
+			so: formatAssetUrl(translationsSoJson, opts),
 			sv: formatAssetUrl(translationsSvJson, opts),
 			te: formatAssetUrl(translationsTeJson, opts),
 			th: formatAssetUrl(translationsThJson, opts),

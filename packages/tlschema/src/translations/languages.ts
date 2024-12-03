@@ -22,6 +22,7 @@ export const LANGUAGES = [
 	{ locale: 'ro', label: 'Română' },
 	{ locale: 'ru', label: 'Russian' },
 	{ locale: 'sl', label: 'Slovenščina' },
+	{ locale: 'so', label: 'Somali' },
 	{ locale: 'fi', label: 'Suomi' },
 	{ locale: 'sv', label: 'Svenska' },
 	{ locale: 'vi', label: 'Tiếng Việt' },

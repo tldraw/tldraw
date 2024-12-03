@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { defineMessages, useIntl } from '../app/i18n'
+import { defineMessages, useIntl } from '../utils/i18n'
 import { useApp } from './useAppState'
 
 const messages = defineMessages({
@@ -42,10 +42,10 @@ export function useTldrFileDrop() {
 				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
 				if (!snapshots.length) return
 
-				const uploadingTitle = intl.formatMessage(messages.uploadingTitle, {
+				const uploadingTitle = intl.formatMessage(messages.uploading, {
 					count: snapshots.length,
 				})
-				const addedTitle = intl.formatMessage(messages.addedTitle, { count: snapshots.length })
+				const addedTitle = intl.formatMessage(messages.adding, { count: snapshots.length })
 
 				const id = addToast({
 					severity: 'info',

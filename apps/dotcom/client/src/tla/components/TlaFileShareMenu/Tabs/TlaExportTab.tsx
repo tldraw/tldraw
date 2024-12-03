@@ -13,10 +13,10 @@ import {
 } from 'tldraw'
 import { globalEditor } from '../../../../utils/globalEditor'
 import { TldrawApp } from '../../../app/TldrawApp'
-import { F, defineMessages, useIntl } from '../../../app/i18n'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getCurrentEditor } from '../../../utils/getCurrentEditor'
+import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,
@@ -149,14 +149,15 @@ function ExportFormatSelect({
 			<TlaMenuControlLabel>
 				<F defaultMessage="Export as" />
 			</TlaMenuControlLabel>
-			<TlaSelect value={value} label={value === 'svg' ? 'SVG' : 'PNG'} onChange={handleChange}>
-				<option value="svg">
-					<F defaultMessage="SVG" />
-				</option>
-				<option value="png">
-					<F defaultMessage="PNG" />
-				</option>
-			</TlaSelect>
+			<TlaSelect
+				value={value}
+				label={value === 'svg' ? 'SVG' : 'PNG'}
+				onChange={handleChange}
+				options={[
+					{ value: 'svg', label: <F defaultMessage="SVG" /> },
+					{ value: 'png', label: <F defaultMessage="PNG" /> },
+				]}
+			/>
 		</TlaMenuControl>
 	)
 }
@@ -174,7 +175,7 @@ function ExportThemeSelect({
 	value: TldrawAppSessionState['exportSettings']['exportTheme']
 	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
-	const intl = useIntl()
+	const label = useMsg(messages[value as 'auto' | 'light' | 'dark'])
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = useCallback(
 		(value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
@@ -184,23 +185,21 @@ function ExportThemeSelect({
 		[onChange, trackEvent]
 	)
 
-	const label = intl.formatMessage(messages[value])
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>
 				<F defaultMessage="Theme" />
 			</TlaMenuControlLabel>
-			<TlaSelect value={value} label={label} onChange={handleChange}>
-				<option value="auto">
-					<F defaultMessage="Auto" />
-				</option>
-				<option value="light">
-					<F defaultMessage="Light" />
-				</option>
-				<option value="dark">
-					<F defaultMessage="Dark" />
-				</option>
-			</TlaSelect>
+			<TlaSelect
+				value={value}
+				label={label}
+				onChange={handleChange}
+				options={[
+					{ value: 'auto', label: <F defaultMessage="Auto" /> },
+					{ value: 'light', label: <F defaultMessage="Light" /> },
+					{ value: 'dark', label: <F defaultMessage="Dark" /> },
+				]}
+			/>
 		</TlaMenuControl>
 	)
 }

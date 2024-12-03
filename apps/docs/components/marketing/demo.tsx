@@ -38,7 +38,7 @@ export function Demo() {
 
 function FakeTldraw({ onClick, isLoading }: { onClick(): void; isLoading: boolean }) {
 	return (
-		<div className="absolute inset-0 z-20 bg-[#FBFCFE] cursor-pointer" onClick={onClick}>
+		<div className="absolute inset-0 z-5 bg-[#FBFCFE] cursor-pointer" onClick={onClick}>
 			<Image
 				src={LgTl}
 				alt="Tldraw UI"

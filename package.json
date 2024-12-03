@@ -60,6 +60,7 @@
 		"test-coverage": "lazy test-coverage && node internal/scripts/offer-coverage.mjs",
 		"e2e": "lazy e2e --filter='apps/examples'",
 		"e2e-dotcom": "lazy e2e --filter='apps/dotcom/*'",
+		"e2e-dotcom-x10": "lazy e2e-x10 --filter='apps/dotcom/*'",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts"
 	},
@@ -107,7 +108,7 @@
 		"prettier-plugin-organize-imports": "^3.2.3",
 		"rimraf": "^4.4.0",
 		"tsutils": "^3.21.0",
-		"tsx": "^4.0.0",
+		"tsx": "^4.19.2",
 		"typescript": "~5.4.2",
 		"vercel": "^34.2.4"
 	},

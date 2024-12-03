@@ -17,11 +17,10 @@ export function Component() {
 		if (!app) return
 		if (app.getUserRecentFiles().length === 0) {
 			creatingFile.current = true
-			app.createFile().then((res) => {
-				if (res.ok) {
-					navigate(getFilePath(res.value.file.id), { state: { mode: 'create' } })
-				}
-			})
+			const result = app.createFile()
+			if (result.ok) {
+				navigate(getFilePath(result.value.file.id), { state: { mode: 'create' } })
+			}
 		}
 	}, [app, navigate])
 

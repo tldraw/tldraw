@@ -4,6 +4,7 @@
 	align-items: center;
 	justify-content: flex-start;
 	position: relative;
+	overflow-x: auto;
 	--tab-padding: 12px;
 	--line-height: 2px;
 }
@@ -33,6 +34,10 @@
 	visibility: hidden;
 }
 
+.tab:disabled {
+	cursor: default;
+}
+
 .tab[data-active='true'] {
 	color: var(--tla-color-text-1);
 	/* active tab in front of peers */
@@ -44,7 +49,7 @@
 }
 
 @media (hover: hover) {
-	.tab:hover {
+	.tab:not(:disabled):hover {
 		color: var(--tla-color-text-1);
 	}
 }

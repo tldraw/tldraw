@@ -38,6 +38,30 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Delete Neon Branch
+        uses: neondatabase/delete-branch-action@v3.1.3
+        if: contains(github.event.pull_request.labels.*.name, 'reset-preview-db')
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          branch: pr-${{ github.event.number }}
+          api_key: ${{ secrets.NEON_API_KEY }}
+
+      - id: create-branch
+        # only run on PR branches
+        if: github.event_name == 'pull_request'
+        uses: neondatabase/create-branch-action@v5
+        with:
+          project_id: ${{ vars.NEON_PROJECT_ID }}
+          username: 'dotcom_owner'
+          database: 'dotcom'
+          branch_name: pr-${{ github.event.number }}
+          api_key: ${{ secrets.NEON_API_KEY }} # Generate an API key in your Neon account settings
+
+      - run: |
+          echo "NEON_PREVIEW_DB_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url }}" >> "$GITHUB_ENV"
+          echo "NEON_PREVIEW_DB_POOLED_CONNECTION_STRING=${{ steps.create-branch.outputs.db_url_with_pooler }}" >> "$GITHUB_ENV"
+        if: github.event_name == 'pull_request'
+
       - name: Build types
         run: yarn build-types
 
@@ -75,4 +99,4 @@ jobs:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           WORKER_SENTRY_DSN: ${{ secrets.WORKER_SENTRY_DSN }}
           BOTCOM_POSTGRES_CONNECTION_STRING: ${{ secrets.BOTCOM_POSTGRES_CONNECTION_STRING }}
-          BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW: ${{ secrets.BOTCOM_POSTGRES_CONNECTION_STRING_PREVIEW }}
+          BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: ${{ secrets.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING }}

@@ -16,6 +16,7 @@ import { Dispatch } from 'react';
 import { EffectScheduler } from '@tldraw/state';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
+import { ExoticComponent } from 'react';
 import { HistoryEntry } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
@@ -698,6 +699,9 @@ export const defaultTldrawOptions: {
     readonly edgeScrollDistance: 8;
     readonly edgeScrollEaseDuration: 200;
     readonly edgeScrollSpeed: 25;
+    readonly exportProvider: ExoticComponent<    {
+    children?: ReactNode;
+    }>;
     readonly flattenImageBoundsExpand: 64;
     readonly flattenImageBoundsPadding: 16;
     readonly followChaseViewportSnap: 2;
@@ -742,7 +746,7 @@ export const defaultUserPreferences: Readonly<{
     isPasteAtCursorMode: false;
     isSnapMode: false;
     isWrapMode: false;
-    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    locale: "ar" | "ca" | "cs" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hr" | "hu" | "id" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sl" | "so" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
     name: "New User";
 }>;
 
@@ -2790,6 +2794,9 @@ export interface TldrawOptions {
     readonly edgeScrollEaseDuration: number;
     // (undocumented)
     readonly edgeScrollSpeed: number;
+    readonly exportProvider: ComponentType<{
+        children: React.ReactNode;
+    }>;
     // (undocumented)
     readonly flattenImageBoundsExpand: number;
     // (undocumented)

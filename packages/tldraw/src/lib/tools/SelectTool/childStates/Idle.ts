@@ -354,7 +354,7 @@ export class Idle extends StateNode {
 								hitInside: false,
 								hitLabels: true,
 								hitLocked: true,
-								hitFrameInside: false,
+								hitFrameInside: true,
 								renderingOnly: true,
 							})
 

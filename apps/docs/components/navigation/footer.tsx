@@ -3,12 +3,15 @@ import Link from 'next/link'
 
 const menus = [
 	{
+		heading: 'Company',
+		items: [{ caption: 'Jobs', href: '/jobs' }],
+	},
+	{
 		heading: 'Product',
 		items: [
 			{ caption: 'Overview', href: '/' },
 			{ caption: 'Playground', href: 'https://tldraw.com' },
 			{ caption: 'Pricing', href: '/#pricing' },
-			// { caption: 'Terms of Use', href: '/legal/terms' },
 		],
 	},
 	{

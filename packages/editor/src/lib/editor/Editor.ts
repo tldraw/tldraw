@@ -4725,21 +4725,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Check labels first
 			if (
-				this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
-				(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')
+				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
+				((this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
+					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
+					shape.props.text.trim())
 			) {
-				if (shape.props.text.trim()) {
-					// let's check whether the shape has a label and check that
-					for (const childGeometry of (geometry as Group2d).children) {
-						if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
-							return shape
-						}
+				for (const childGeometry of (geometry as Group2d).children) {
+					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
+						return shape
 					}
 				}
 			}
 
 			if (this.isShapeOfType(shape, 'frame')) {
-				// On the rare case that we've hit a frame, test again hitInside to be forced true;
+				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
@@ -9499,9 +9498,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (!this.inputs.isPanning) {
 							// Start a long press timeout
 							this._longPressTimeout = this.timers.setTimeout(() => {
+								const vsb = this.getViewportScreenBounds()
 								this.dispatch({
 									...info,
-									point: this.inputs.currentScreenPoint,
+									// important! non-obvious!! the screenpoint was adjusted using the
+									// viewport bounds, and will be again when this event is handled...
+									// so we need to counter-adjust from the stored value so that the
+									// new value is set correctly.
+									point: this.inputs.originScreenPoint.clone().addXY(vsb.x, vsb.y),
 									name: 'long_press',
 								})
 							}, this.options.longPressDurationMs)

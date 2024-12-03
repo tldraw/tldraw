@@ -25,11 +25,12 @@ import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
 import { AlarmScheduler } from './AlarmScheduler'
-import type { TLPostgresReplicator } from './TLPostgresReplicator'
 import { PERSIST_INTERVAL_MS } from './config'
+import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { createSupabaseClient } from './utils/createSupabaseClient'
+import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getSlug } from './utils/roomOpenMode'
 import { throttle } from './utils/throttle'
@@ -299,9 +300,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
 	async getAppFileRecord(): Promise<TlaFile | null> {
-		const stub = this.env.TL_PG_REPLICATOR.get(
-			this.env.TL_PG_REPLICATOR.idFromName('0')
-		) as any as TLPostgresReplicator
+		const stub = getReplicator(this.env)
 		try {
 			return await stub.getFileRecord(this.documentInfo.slug)
 		} catch (_e) {
@@ -325,7 +324,6 @@ export class TLDrawDurableObject extends DurableObject {
 		serverWebSocket.accept()
 
 		const closeSocket = (reason: TLSyncErrorCloseEventReason) => {
-			console.error('CLOSING SOCKET', reason, new Error().stack)
 			serverWebSocket.close(TLSyncErrorCloseEventCode, reason)
 			return new Response(null, { status: 101, webSocket: clientWebSocket })
 		}
@@ -340,6 +338,9 @@ export class TLDrawDurableObject extends DurableObject {
 			const file = await this.getAppFileRecord()
 
 			if (file) {
+				if (file.isDeleted) {
+					return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
+				}
 				if (!auth && !file.shared) {
 					return closeSocket(TLSyncErrorCloseEventReason.NOT_AUTHENTICATED)
 				}
@@ -375,8 +376,8 @@ export class TLDrawDurableObject extends DurableObject {
 		try {
 			const room = await this.getRoom()
 			// Don't connect if we're already at max connections
-			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
-				return new Response('Room is full', { status: 403 })
+			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
+				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
 
 			// all good
@@ -500,6 +501,18 @@ export class TLDrawDurableObject extends DurableObject {
 				return { type: 'room_found', snapshot: JSON.parse(data) }
 			}
 
+			if (this.documentInfo.isApp) {
+				// finally check whether the file exists in the DB but not in R2 yet
+				const file = await this.getAppFileRecord()
+				if (!file) {
+					return { type: 'room_not_found' }
+				}
+				return {
+					type: 'room_found',
+					snapshot: new TLSyncRoom({ schema: createTLSchema() }).getSnapshot(),
+				}
+			}
+
 			// if we don't have a room in the bucket, try to load from supabase
 			if (!this.supabaseClient) return { type: 'room_not_found' }
 			const { data, error } = await this.supabaseClient
@@ -532,7 +545,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 	executionQueue = new ExecutionQueue()
 
-	// Save the room to supabase
+	// Save the room to r2
 	async persistToDatabase() {
 		try {
 			await this.executionQueue.push(async () => {
@@ -552,6 +565,12 @@ export class TLDrawDurableObject extends DurableObject {
 					this.r2.versionCache.put(key + `/` + new Date().toISOString(), snapshot),
 				])
 				this._lastPersistedClock = clock
+
+				// Update the updatedAt timestamp in the database
+				if (this.documentInfo.isApp) {
+					const pg = getPostgres(this.env, { pooled: true })
+					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
+				}
 			})
 		} catch (e) {
 			this.reportError(e)
@@ -607,6 +626,10 @@ export class TLDrawDurableObject extends DurableObject {
 		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType === 'view'
 
 		for (const session of room.getSessions()) {
+			if (file.isDeleted) {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
+				continue
+			}
 			// allow the owner to stay connected
 			if (session.meta.userId === file.ownerId) continue
 

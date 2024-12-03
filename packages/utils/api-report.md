@@ -219,6 +219,17 @@ export function lerp(a: number, b: number, t: number): number;
 // @public (undocumented)
 export function lns(str: string): string;
 
+// @public (undocumented)
+export type MakeUndefinedOptional<T extends object> = Expand<{
+    [P in {
+        [K in keyof T]: undefined extends T[K] ? never : K;
+    }[keyof T]]: T[P];
+} & {
+    [P in {
+        [K in keyof T]: undefined extends T[K] ? K : never;
+    }[keyof T]]?: T[P];
+}>;
+
 // @internal
 export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(object: {
     readonly [K in Key]: ValueBefore;
