@@ -8,6 +8,7 @@ import type { TLDrawDurableObject } from './TLDrawDurableObject'
 import { ZReplicationEvent } from './UserDataSyncer'
 import { getPostgres } from './getPostgres'
 import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
+import { EventData, writeEvent } from './utils/analytics'
 import { getUserDurableObject } from './utils/durableObjects'
 
 const seed = `
@@ -55,7 +56,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		promise: promiseWithResolve(),
 		sequenceId: uniqueId(),
 	}
-	metrics: Analytics | undefined
+	measure: Analytics | undefined
 	postgresUpdates = 0
 	lastRpmLogTime = Date.now()
 
@@ -76,7 +77,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql.exec(seed)
 		this.reboot(false)
 		this.alarm()
-		this.metrics = env.MEASURE
+		this.measure = env.MEASURE
 	}
 
 	__test__forceReboot() {
@@ -441,23 +442,29 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 	}
 
+	private writeEvent(eventData: EventData) {
+		writeEvent(this.measure, this.env, 'replicator', eventData)
+	}
+
 	logEvent(event: TLPostgresReplicatorEvent) {
 		switch (event.type) {
 			case 'reboot':
 			case 'reboot_error':
-				this.metrics?.writeDataPoint({
-					blobs: ['replicator', event.type],
+				this.writeEvent({
+					blobs: [event.type],
 				})
 				break
 
 			case 'reboot_duration':
-				this.metrics?.writeDataPoint({
-					blobs: ['replicator', event.type, event.duration.toString()],
+				this.writeEvent({
+					blobs: [event.type],
+					doubles: [event.duration],
 				})
 				break
 			case 'rpm':
-				this.metrics?.writeDataPoint({
-					blobs: ['replicator', event.type, `${event.rpm}/min`],
+				this.writeEvent({
+					blobs: [event.type],
+					doubles: [event.rpm],
 				})
 				break
 			default:

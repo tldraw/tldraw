@@ -29,6 +29,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import { EventData, writeEvent } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
@@ -432,15 +433,8 @@ export class TLDrawDurableObject extends DurableObject {
 		this.schedulePersist()
 	}, 2000)
 
-	private writeEvent(
-		name: string,
-		{ blobs, indexes, doubles }: { blobs?: string[]; indexes?: [string]; doubles?: number[] }
-	) {
-		this.measure?.writeDataPoint({
-			blobs: [name, this.env.WORKER_NAME ?? 'development-tldraw-multiplayer', ...(blobs ?? [])],
-			doubles,
-			indexes,
-		})
+	private writeEvent(name: string, eventData: EventData) {
+		writeEvent(this.measure, this.env, name, eventData)
 	}
 
 	logEvent(event: TLServerEvent) {

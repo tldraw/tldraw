@@ -20,6 +20,7 @@ import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
 import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { EventData, writeEvent } from './utils/analytics'
 import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
@@ -27,7 +28,7 @@ import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializ
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: ReturnType<typeof postgres>
 	private readonly replicator: TLPostgresReplicator
-	private metrics: Analytics | undefined
+	private measure: Analytics | undefined
 
 	private readonly sentry
 	private captureException(exception: unknown, eventHint?: EventHint) {
@@ -48,7 +49,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.db = getPostgres(env, { pooled: true })
 		this.debug('created')
-		this.metrics = env.MEASURE
+		this.measure = env.MEASURE
 	}
 
 	private userId: string | null = null
@@ -448,23 +449,22 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	private writeEvent(eventData: EventData) {
+		writeEvent(this.measure, this.env, 'user_durable_object', eventData)
+	}
+
 	logEvent(event: TLUserDurableObjectEvent) {
 		switch (event.type) {
 			case 'reboot':
 			case 'reboot_error':
-				this.metrics?.writeDataPoint({
-					blobs: ['replicator', event.type, event.id],
-				})
+			case 'rate_limited':
+				this.writeEvent({ blobs: [event.type, event.id] })
 				break
 
 			case 'reboot_duration':
-				this.metrics?.writeDataPoint({
-					blobs: ['replicator', event.type, event.id, event.duration.toString()],
-				})
-				break
-			case 'rate_limited':
-				this.metrics?.writeDataPoint({
-					blobs: ['replicator', event.type, event.id],
+				this.writeEvent({
+					blobs: [event.type, event.id],
+					doubles: [event.duration],
 				})
 				break
 			default:
