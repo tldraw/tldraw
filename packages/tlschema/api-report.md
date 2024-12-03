@@ -9,6 +9,7 @@ import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { LegacyMigrations } from '@tldraw/store';
+import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
@@ -84,25 +85,13 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<{
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
 type: Type;
 typeName: 'asset';
-}>]: {
-id: TLAssetId;
-meta: JsonObject;
-props: Props;
-type: Type;
-typeName: 'asset';
-}[P]; } & { [P_1 in T.ExtractOptionalKeys<{
-id: TLAssetId;
-meta: JsonObject;
-props: Props;
-type: Type;
-typeName: 'asset';
-}>]?: {
+}[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: {
 id: TLAssetId;
 meta: JsonObject;
 props: Props;
@@ -126,7 +115,7 @@ export function createBindingValidator<Type extends string, Props extends JsonOb
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseBinding<Type, Props>>]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseBinding<Type, Props>>]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "fromId" | "id" | "meta" | "toId" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseBinding<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseBinding<Type, Props>[P_1] | undefined; }>>;
 
 // @public
 export function createPresenceStateDerivation($user: Signal<{
@@ -151,7 +140,7 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
     [K in keyof Props]: T.Validatable<Props[K]>;
 }, meta?: {
     [K in keyof Meta]: T.Validatable<Meta[K]>;
-}): T.ObjectValidator<Expand<    { [P in T.ExtractRequiredKeys<TLBaseShape<Type, Props>>]: TLBaseShape<Type, Props>[P]; } & { [P_1 in T.ExtractOptionalKeys<TLBaseShape<Type, Props>>]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
+}): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P_1 in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P_1] | undefined; }>>;
 
 // @public
 export function createTLSchema({ shapes, bindings, migrations, }?: {
@@ -517,7 +506,7 @@ export type RecordProps<R extends UnknownRecord & {
 };
 
 // @public (undocumented)
-export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = Expand<{
+export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = MakeUndefinedOptional<{
     [K in keyof Config]: T.TypeOf<Config[K]>;
 }>;
 

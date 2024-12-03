@@ -4,9 +4,9 @@
 
 ```ts
 
-import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
 import { JsonValue } from '@tldraw/utils';
+import { MakeUndefinedOptional } from '@tldraw/utils';
 
 // @public
 const any: Validator<any>;
@@ -46,16 +46,6 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
     readonly valueValidator: Validatable<Value>;
 }
 
-// @public (undocumented)
-export type ExtractOptionalKeys<T extends object> = {
-    [K in keyof T]: undefined extends T[K] ? K : never;
-}[keyof T];
-
-// @public (undocumented)
-export type ExtractRequiredKeys<T extends object> = {
-    [K in keyof T]: undefined extends T[K] ? never : K;
-}[keyof T];
-
 // @public
 const httpUrl: Validator<string>;
 
@@ -79,13 +69,6 @@ function literal<T extends boolean | number | string>(expectedValue: T): Validat
 
 // @public (undocumented)
 function literalEnum<const Values extends readonly unknown[]>(...values: Values): Validator<Values[number]>;
-
-// @public (undocumented)
-export type MakeUndefinedOptional<T extends object> = Expand<{
-    [P in ExtractRequiredKeys<T>]: T[P];
-} & {
-    [P in ExtractOptionalKeys<T>]?: T[P];
-}>;
 
 // @public
 function model<T extends {
@@ -188,9 +171,6 @@ declare namespace T {
         bigint,
         array,
         unknownObject,
-        ExtractRequiredKeys,
-        ExtractOptionalKeys,
-        MakeUndefinedOptional,
         jsonValue,
         linkUrl,
         srcUrl,
