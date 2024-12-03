@@ -485,6 +485,34 @@ describe('CameraOptions.zoomSteps', () => {
 	})
 })
 
+describe('CameraOptions isZoomLocked', () => {
+	it('Zoom mouse wheeling deactivated when zoom lock is active', () => {
+		expect(editor.getCameraOptions().isZoomLocked).toBe(false)
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2, wheelBehavior: 'zoom' })
+		editor.toggleZoom()
+		editor
+			.dispatch({
+				...wheelEvent,
+				delta: new Vec(0, 1, 0),
+			})
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 }) // 1 + 1
+	})
+
+	it('Zoom pinching deactivated when zoom lock is active', () => {
+		expect(editor.getCameraOptions().isZoomLocked).toBe(false)
+		editor.setCameraOptions({ ...DEFAULT_CAMERA_OPTIONS, panSpeed: 2, wheelBehavior: 'zoom' })
+		editor.toggleZoom()
+		editor
+			.dispatch({
+				...pinchEvent,
+				point: new Vec(0, 0, 0.5),
+			})
+			.forceTick()
+		expect(editor.getCamera()).toMatchObject({ x: 0, y: 0, z: 1 }) // 1 + 1
+	})
+})
+
 // constraints?: {
 // 	/** The bounds (in page space) of the constrained space */
 // 	bounds: BoxModel
