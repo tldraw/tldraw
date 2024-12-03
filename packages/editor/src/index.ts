@@ -4,7 +4,6 @@ import 'core-js/stable/array/flat-map.js'
 import 'core-js/stable/array/flat.js'
 import 'core-js/stable/string/at.js'
 import 'core-js/stable/string/replace-all.js'
-export { LocalIndexedDb } from './lib/utils/sync/LocalIndexedDb'
 export {
 	EMPTY_ARRAY,
 	EffectScheduler,
@@ -26,6 +25,7 @@ export {
 	useStateTracking,
 	useValue,
 } from '@tldraw/state-react'
+export { LocalIndexedDb, Table, type StoreName } from './lib/utils/sync/LocalIndexedDb'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star

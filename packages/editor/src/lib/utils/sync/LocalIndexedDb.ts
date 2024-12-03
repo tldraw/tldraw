@@ -9,14 +9,16 @@ const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 const LEGACY_ASSET_STORE_PREFIX = 'TLDRAW_ASSET_STORE_v1'
 const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
 
-const Table = {
+/** @internal */
+export const Table = {
 	Records: 'records',
 	Schema: 'schema',
 	SessionState: 'session_state',
 	Assets: 'assets',
 } as const
 
-type StoreName = (typeof Table)[keyof typeof Table]
+/** @internal */
+export type StoreName = (typeof Table)[keyof typeof Table]
 
 async function openLocalDb(persistenceKey: string) {
 	const storeId = STORE_PREFIX + persistenceKey

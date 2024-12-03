@@ -41,7 +41,7 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { ReadyWrapper, useSetIsReady, useSetLoadingMessage } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
@@ -132,6 +132,7 @@ function TlaEditorInner({
 	const fileId = fileSlug
 
 	const setIsReady = useSetIsReady()
+	const setLoadingMessage = useSetLoadingMessage()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -170,19 +171,24 @@ function TlaEditorInner({
 			const abortController = new AbortController()
 			const wasMigrated = getFromLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED)
 			if (app._localLegacyClaimId === fileId && wasMigrated === 'false') {
+				setLoadingMessage('uploading')
 				// This is a one-time operation.
-				// We set the TLA_WAS_LEGACY_CONTENT_MIGRATED flag in local storage to indicate
-				// that the content has been migrated.
-				// need to wait a tick for react strict mode (evil)
-				sleep(50).then(async () => {
-					if (!abortController.signal.aborted) {
-						if (abortController.signal.aborted) return
-						await migrateLegacyContent(editor)
-						setInLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED, 'true')
-						await sleep(2000)
-						setIsReady()
-					}
-				})
+				// So we need to wait a tick for react strict mode to finish
+				// doing its nasty business before we start the migration.
+				sleep(50)
+					.then(async () => {
+						if (!abortController.signal.aborted) {
+							if (abortController.signal.aborted) return
+							await migrateLegacyContent(editor)
+							setInLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED, 'true')
+							setIsReady()
+						}
+					})
+					.catch((_e) => {
+						// show migration error
+						// give people link to /local and tell them to
+						// create a tldr file and drag it in
+					})
 			} else {
 				setIsReady()
 			}
@@ -193,7 +199,7 @@ function TlaEditorInner({
 				updateSessionState.cancel()
 			}
 		},
-		[app, fileId, setIsReady]
+		[app, fileId, setIsReady, setLoadingMessage]
 	)
 
 	const user = useTldrawUser()
