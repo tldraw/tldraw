@@ -389,8 +389,8 @@ export class TLDrawDurableObject extends DurableObject {
 		try {
 			const room = await this.getRoom()
 			// Don't connect if we're already at max connections
-			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
-				return new Response('Room is full', { status: 403 })
+			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
+				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
 
 			// all good

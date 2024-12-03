@@ -112,13 +112,12 @@ export function getNoteShapeAdjacentPositionOffset(editor: Editor, center: Vec, 
 }
 
 export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
-	const newPoint = maybeSnapToGrid(center, editor)
 	editor
 		.createShape({
 			id,
 			type: 'note',
-			x: newPoint.x,
-			y: newPoint.y,
+			x: center.x,
+			y: center.y,
 			props: {
 				scale: editor.user.getIsDynamicResizeMode() ? 1 / editor.getZoomLevel() : 1,
 			},
@@ -127,14 +126,18 @@ export function createNoteShape(editor: Editor, id: TLShapeId, center: Vec) {
 
 	const shape = editor.getShape<TLNoteShape>(id)!
 	const bounds = editor.getShapeGeometry(shape).bounds
+	const newPoint = maybeSnapToGrid(
+		new Vec(shape.x - bounds.width / 2, shape.y - bounds.height / 2),
+		editor
+	)
 
 	// Center the text around the created point
 	editor.updateShapes([
 		{
 			id,
 			type: 'note',
-			x: shape.x - bounds.width / 2,
-			y: shape.y - bounds.height / 2,
+			x: newPoint.x,
+			y: newPoint.y,
 		},
 	])
 

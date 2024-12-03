@@ -80,6 +80,17 @@ export function TlaFileError({ error }: { error: unknown }) {
 				/>
 			)
 		}
+		case TLSyncErrorCloseEventReason.ROOM_FULL: {
+			return (
+				<TlaFileErrorContent
+					header={<F defaultMessage="Collaborator limit reached" />}
+					para1={
+						<F defaultMessage="This file has reached the maximum number of active collaborators." />
+					}
+				/>
+			)
+		}
+
 		default:
 			return <DefaultError />
 	}

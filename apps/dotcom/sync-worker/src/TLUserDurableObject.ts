@@ -4,11 +4,13 @@ import {
 	TlaFile,
 	TlaFileState,
 	TlaUser,
+	Z_PROTOCOL_VERSION,
 	ZClientSentMessage,
 	ZErrorCode,
 	ZRowUpdate,
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
+import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { assert, exhaustiveSwitchError } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -136,13 +138,22 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		const params = Object.fromEntries(url.searchParams.entries())
 		const { sessionId } = params
 
+		const protocolVersion = params.protocolVersion ? Number(params.protocolVersion) : 1
+
 		assert(sessionId, 'Session ID is required')
+		assert(Number.isFinite(protocolVersion), `Invalid protocol version ${params.protocolVersion}`)
 
 		this.assertCache()
 
 		// Create the websocket pair for the client
 		const { 0: clientWebSocket, 1: serverWebSocket } = new WebSocketPair()
 		serverWebSocket.accept()
+
+		if (Number(protocolVersion) !== Z_PROTOCOL_VERSION || this.__test__isForceDowngraded) {
+			serverWebSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			return new Response(null, { status: 101, webSocket: clientWebSocket })
+		}
+
 		serverWebSocket.addEventListener('message', (e) => this.handleSocketMessage(e.data.toString()))
 		serverWebSocket.addEventListener('close', () => {
 			this.sockets.delete(serverWebSocket)
@@ -470,6 +481,19 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			default:
 				exhaustiveSwitchError(event)
 		}
+	}
+
+	/** sneaky test stuff */
+	// this allows us to test the 'your client is out of date please refresh' flow
+	private __test__isForceDowngraded = false
+	async __test__downgradeClient(isDowngraded: boolean) {
+		if (this.env.IS_LOCAL !== 'true') {
+			return
+		}
+		this.__test__isForceDowngraded = isDowngraded
+		this.sockets.forEach((socket) => {
+			socket.close()
+		})
 	}
 }
 
