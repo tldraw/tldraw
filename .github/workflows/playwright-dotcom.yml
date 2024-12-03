@@ -21,16 +21,9 @@ jobs:
     timeout-minutes: 40
     runs-on: ubuntu-latest-8-cores-open
     environment: 'e2e-dotcom'
+    if: ${{ github.event.pull_request.head.repo.fork == false }}
 
     steps:
-      - name: Skip if fork
-        id: skip-if-fork
-        run: |
-          if [[ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]]; then
-            echo "Workflow triggered from a fork. Exiting."
-            exit 0
-          fi
-
       - name: Check out code
         uses: actions/checkout@v3
 
