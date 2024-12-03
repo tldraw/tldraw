@@ -25,12 +25,12 @@ export function DefaultQuickActionsContent() {
 	return (
 		<>
 			<UndoRedoGroup />
-			<SelectDependentActionsGroup />
+			<DeleteDuplicateGroup />
 		</>
 	)
 }
 
-function SelectDependentActionsGroup() {
+function DeleteDuplicateGroup() {
 	const oneSelected = useUnlockedSelectedShapesCount(1)
 	const isInSelectState = useIsInSelectState()
 	const selectDependentActionsEnabled = oneSelected && isInSelectState
