@@ -147,6 +147,11 @@ export function Tldraw(props: TldrawProps) {
 		)
 	}
 
+	const embedShapeUtil = shapeUtilsWithDefaults.find((util) => util.type === 'embed')
+	if (embedShapeUtil && embeds) {
+		EmbedShapeUtil.setEmbedDefinitions(embeds)
+	}
+
 	return (
 		<TldrawEditor
 			initialState="select"
@@ -163,7 +168,6 @@ export function Tldraw(props: TldrawProps) {
 					acceptedImageMimeTypes={_imageMimeTypes}
 					acceptedVideoMimeTypes={_videoMimeTypes}
 					onMount={onMount}
-					embeds={embeds}
 				/>
 				{children}
 			</TldrawUi>
@@ -178,20 +182,14 @@ function InsideOfEditorAndUiContext({
 	acceptedImageMimeTypes = DEFAULT_SUPPORTED_IMAGE_TYPES,
 	acceptedVideoMimeTypes = DEFAULT_SUPPORT_VIDEO_TYPES,
 	onMount,
-	embeds,
 }: TLExternalContentProps & {
 	onMount?: TLOnMountHandler
-	embeds?: TLEmbedDefinition[]
 }) {
 	const editor = useEditor()
 	const toasts = useToasts()
 	const msg = useTranslation()
 
 	useOnMount(() => {
-		const embedUtil = editor.getShapeUtil('embed') as EmbedShapeUtil | undefined
-		if (embedUtil && embeds) {
-			embedUtil.setEmbedDefinitions(embeds)
-		}
 		const unsubs: (void | (() => void) | undefined)[] = []
 
 		unsubs.push(registerDefaultSideEffects(editor))

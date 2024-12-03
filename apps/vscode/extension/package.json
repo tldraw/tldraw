@@ -147,7 +147,7 @@
 		"tldraw": "workspace:*",
 		"ts-loader": "^9.2.5",
 		"tslib": "^2.6.2",
-		"tsx": "^4.0.0",
+		"tsx": "^4.19.2",
 		"typescript": "~5.4.2",
 		"vsce": "^2.15.0",
 		"webpack": "^5.0.0"

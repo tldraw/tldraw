@@ -56,7 +56,7 @@ jobs:
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-        if: ${{!contains(github.event.pull_request.labels.*.name, 'e2e-x10')}}
+        if: ${{!contains(github.event.pull_request.labels.*.name, 'e2e-x10') && !github.event.pull_request.head.repo.fork }}
 
       - name: Run Playwright tests (x10)
         run: |
@@ -66,7 +66,7 @@ jobs:
         env:
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-        if: contains(github.event.pull_request.labels.*.name, 'e2e-x10')
+        if: ${{ contains(github.event.pull_request.labels.*.name, 'e2e-x10') && !github.event.pull_request.head.repo.fork }}
 
       - uses: actions/upload-artifact@v3
         if: always()

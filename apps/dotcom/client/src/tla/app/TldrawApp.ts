@@ -7,11 +7,13 @@ import {
 	TlaUser,
 	UserPreferencesKeys,
 	ZErrorCode,
+	Z_PROTOCOL_VERSION,
 } from '@tldraw/dotcom-shared'
 import { Result, assert, fetch, structuredClone, throttle, uniqueId } from '@tldraw/utils'
 import pick from 'lodash.pick'
 import {
 	Signal,
+	TLDocument,
 	TLSessionStateSnapshot,
 	TLStoreSnapshot,
 	TLUiToastsContextType,
@@ -22,6 +24,7 @@ import {
 	createTLUser,
 	defaultUserPreferences,
 	getUserPreferences,
+	isDocument,
 	objectMapFromEntries,
 	objectMapKeys,
 	react,
@@ -69,26 +72,31 @@ export class TldrawApp {
 	}
 
 	toasts: TLUiToastsContextType | null = null
-	intl: IntlShape | null = null
 
 	private constructor(
 		public readonly userId: string,
-		getToken: () => Promise<string | null>
+		getToken: () => Promise<string | null>,
+		onClientTooOld: () => void,
+		private intl: IntlShape
 	) {
 		const sessionId = uniqueId()
 		this.z = new Zero({
 			// userID: userId,
 			// auth: encodedJWT,
 			getUri: async () => {
+				const params = new URLSearchParams({
+					sessionId,
+					protocolVersion: String(Z_PROTOCOL_VERSION),
+				})
 				const token = await getToken()
-				if (!token)
-					return `${process.env.MULTIPLAYER_SERVER}/api/app/${userId}/connect?accessToken=no-token-found&sessionId=${sessionId}`
-				return `${process.env.MULTIPLAYER_SERVER}/api/app/${userId}/connect?accessToken=${token}&sessionId=${sessionId}`
+				params.set('accessToken', token || 'no-token-found')
+				return `${process.env.MULTIPLAYER_SERVER}/api/app/${userId}/connect?${params}`
 			},
 			// schema,
 			// This is often easier to develop with if you're frequently changing
 			// the schema. Switch to 'idb' for local-persistence.
 			onMutationRejected: this.showMutationRejectionToast,
+			onClientTooOld: () => onClientTooOld(),
 		})
 		this.disposables.push(() => this.z.dispose())
 
@@ -132,7 +140,10 @@ export class TldrawApp {
 		},
 		bad_request: { defaultMessage: 'Invalid request' },
 		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit' },
-		mutation_error_toast_title: { defaultMessage: "That didn't work" },
+		mutation_error_toast_title: { defaultMessage: 'Error' },
+		client_too_old: {
+			defaultMessage: 'Please refresh the page to get the latest version of tldraw',
+		},
 	})
 
 	showMutationRejectionToast = throttle((errorCode: ZErrorCode) => {
@@ -245,9 +256,9 @@ export class TldrawApp {
 		return numberOfFiles < this.config.maxNumberOfFiles
 	}
 
-	async createFile(
+	createFile(
 		fileOrId?: string | Partial<TlaFile>
-	): Promise<Result<{ file: TlaFile }, 'max number of files reached'>> {
+	): Result<{ file: TlaFile }, 'max number of files reached'> {
 		if (!this.canCreateNewFile()) {
 			return Result.err('max number of files reached')
 		}
@@ -279,7 +290,9 @@ export class TldrawApp {
 		return Result.ok({ file })
 	}
 
-	getFileName(file: TlaFile | string | null) {
+	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
+	getFileName(file: TlaFile | string | null, useDateFallback?: true): string
+	getFileName(file: TlaFile | string | null, useDateFallback = true) {
 		if (typeof file === 'string') {
 			file = this.getFile(file)
 		}
@@ -294,13 +307,13 @@ export class TldrawApp {
 			return name
 		}
 
-		const createdAt = new Date(file.createdAt)
-		if (this.intl) {
+		if (useDateFallback) {
+			const createdAt = new Date(file.createdAt)
 			const format = getDateFormat(createdAt)
 			return this.intl.formatDate(createdAt, format)
 		}
-		const locale = this.user$.get()?.locale
-		return new Date(createdAt).toLocaleString(locale ?? 'en-gb')
+
+		return
 	}
 
 	claimTemporaryFile(fileId: string) {
@@ -355,7 +368,19 @@ export class TldrawApp {
 
 		// Also create a file state record for the new file
 		this.z.mutate((tx) => {
-			for (const slug of response.slugs) {
+			for (let i = 0; i < response.slugs.length; i++) {
+				const slug = response.slugs[i]
+				const entries = Object.entries(snapshots[i].store)
+				const documentEntry = entries.find(([_, value]) => isDocument(value)) as
+					| [string, TLDocument]
+					| undefined
+				const name = documentEntry ? documentEntry[1].name : ''
+
+				const result = this.createFile({ id: slug, name })
+				if (!result.ok) {
+					console.error('Could not create file', result.error)
+					continue
+				}
 				tx.file_state.create({
 					userId: this.userId,
 					fileId: slug,
@@ -543,13 +568,15 @@ export class TldrawApp {
 		email: string
 		avatar: string
 		getToken(): Promise<string | null>
+		onClientTooOld(): void
+		intl: IntlShape
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken)
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.intl)
 		// @ts-expect-error
 		window.app = app
 		await app.preload({

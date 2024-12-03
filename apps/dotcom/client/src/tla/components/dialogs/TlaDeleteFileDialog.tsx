@@ -30,12 +30,11 @@ export function TlaDeleteFileDialog({ fileId, onClose }: { fileId: string; onClo
 		await app.deleteOrForgetFile(fileId)
 		const recentFiles = app.getUserRecentFiles()
 		if (recentFiles.length === 0) {
-			app.createFile().then((res) => {
-				if (res.ok) {
-					navigate(getFilePath(res.value.file.id), { state: { mode: 'create' } })
-					trackEvent('delete-file', { source: 'file-menu' })
-				}
-			})
+			const result = app.createFile()
+			if (result.ok) {
+				navigate(getFilePath(result.value.file.id), { state: { mode: 'create' } })
+				trackEvent('delete-file', { source: 'file-menu' })
+			}
 		} else {
 			navigate(getFilePath(recentFiles[0].fileId))
 		}

@@ -15,11 +15,12 @@ import {
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
-import { IntlProvider, setupCreateIntl, useIntl } from '../utils/i18n'
+import { IntlProvider, setupCreateIntl } from '../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
 import { getRootPath } from '../utils/urls'
 
@@ -41,24 +42,26 @@ export function Component() {
 	const handleLocaleChange = (locale: string) => setLocale(locale)
 
 	return (
-		<IntlWrapper locale={locale}>
-			<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
-				<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
-					<div
-						ref={setContainer}
-						className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
-					>
-						{container && (
-							<ContainerProvider container={container}>
-								<InsideOfContainerContext>
-									<Outlet />
-								</InsideOfContainerContext>
-							</ContainerProvider>
-						)}
-					</div>
-				</SignedInProvider>
-			</ClerkProvider>
-		</IntlWrapper>
+		<div
+			ref={setContainer}
+			className={`tla tl-container tla-theme-container ${theme === 'light' ? 'tla-theme__light tl-theme__light' : 'tla-theme__dark tl-theme__dark'}`}
+		>
+			<IntlWrapper locale={locale}>
+				<MaybeForceUserRefresh>
+					<ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl={getRootPath()}>
+						<SignedInProvider onThemeChange={handleThemeChange} onLocaleChange={handleLocaleChange}>
+							{container && (
+								<ContainerProvider container={container}>
+									<InsideOfContainerContext>
+										<Outlet />
+									</InsideOfContainerContext>
+								</ContainerProvider>
+							)}
+						</SignedInProvider>
+					</ClerkProvider>
+				</MaybeForceUserRefresh>
+			</IntlWrapper>
+		</div>
 	)
 }
 
@@ -107,7 +110,6 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 				<TldrawUiDialogs />
 				<TldrawUiToasts />
 				<PutToastsInApp />
-				<PutIntlInApp />
 			</TldrawUiContextProvider>
 		</EditorContext.Provider>
 	)
@@ -117,13 +119,6 @@ function PutToastsInApp() {
 	const toasts = useToasts()
 	const app = useMaybeApp()
 	if (app) app.toasts = toasts
-	return null
-}
-
-function PutIntlInApp() {
-	const intl = useIntl()
-	const app = useMaybeApp()
-	if (app) app.intl = intl
 	return null
 }
 

@@ -11,21 +11,40 @@ import {
 	ZRowUpdate,
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
-import { ClientWebSocketAdapter } from '@tldraw/sync-core'
+import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Signal, computed, react, transact, uniqueId } from 'tldraw'
 
 export class Zero {
-	socket: ClientWebSocketAdapter
-	store = new OptimisticAppStore()
-	pendingUpdates: ZRowUpdate[] = []
-	timeout: NodeJS.Timeout | undefined = undefined
-	currentMutationId = uniqueId()
+	private socket: ClientWebSocketAdapter
+	private store = new OptimisticAppStore()
+	private pendingUpdates: ZRowUpdate[] = []
+	private timeout: NodeJS.Timeout | undefined = undefined
+	private currentMutationId = uniqueId()
+	private clientTooOld = false
 
 	constructor(
-		private opts: { getUri(): Promise<string>; onMutationRejected(errorCode: ZErrorCode): void }
+		private opts: {
+			getUri(): Promise<string>
+			onMutationRejected(errorCode: ZErrorCode): void
+			onClientTooOld(): void
+		}
 	) {
 		this.socket = new ClientWebSocketAdapter(opts.getUri)
+		this.socket.onStatusChange((e) => {
+			if (e.status === 'error') {
+				if (e.reason === TLSyncErrorCloseEventReason.CLIENT_TOO_OLD) {
+					this.clientTooOld = true
+					this.opts.onClientTooOld()
+					this.socket.close()
+				}
+				// todo: handle other well known errors if we add any
+			}
+		})
 		this.socket.onReceiveMessage((_msg) => {
+			if (this.clientTooOld) {
+				// ignore incoming messages if the client is not supported
+				return
+			}
 			const msg = _msg as any as ZServerSentMessage
 			switch (msg.type) {
 				case 'initial_data':
@@ -216,6 +235,11 @@ export class Zero {
 	}
 
 	makeOptimistic(updates: ZRowUpdate[]) {
+		if (this.clientTooOld) {
+			// ignore incoming messages if the client is not supported
+			this.opts.onMutationRejected('client_too_old')
+			return
+		}
 		this.store.updateOptimisticData(updates, this.currentMutationId)
 
 		this.pendingUpdates.push(...updates)
