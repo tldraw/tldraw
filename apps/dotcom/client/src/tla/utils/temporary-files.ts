@@ -1,4 +1,4 @@
-import { Editor, LocalIndexedDb, TAB_ID, TLAsset, getFromLocalStorage } from 'tldraw'
+import { Editor, LocalIndexedDb, TAB_ID, TLAsset, getFromLocalStorage, sleep } from 'tldraw'
 import { SCRATCH_PERSISTENCE_KEY } from '../../utils/scratch-persistence-key'
 
 export const TEMPORARY_FILE_KEY = 'TLA_TEMPORARY_FILE_ID_1'
@@ -6,9 +6,10 @@ export const TLA_WAS_LEGACY_CONTENT_MIGRATED = 'TLA_WAS_LEGACY_CONTENT_MIGRATED'
 export const LOCAL_LEGACY_SLUG = 'local_legacy'
 export const LOCAL_LEGACY_SUFFIX = '_legacy'
 
-export async function migrateLegacyContent(editor: Editor) {
+export async function migrateLegacyContent(editor: Editor, abortSignal: AbortSignal) {
 	const db = new LocalIndexedDb(SCRATCH_PERSISTENCE_KEY)
 	const data = await db.load({ sessionId: TAB_ID })
+	if (abortSignal.aborted) return
 	const assets = data.records.filter((r) => r.typeName === 'asset') as TLAsset[]
 	// upload assets
 	for (const asset of assets) {
@@ -18,6 +19,8 @@ export async function migrateLegacyContent(editor: Editor) {
 			const url = await editor.uploadAsset(asset, file)
 			asset.props.src = url
 		}
+		if (abortSignal.aborted) return
+		await sleep(1000)
 	}
 	editor.loadSnapshot({
 		document: {

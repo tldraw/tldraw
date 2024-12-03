@@ -41,7 +41,7 @@ import { ShareMenu } from './ShareMenu'
 import { SneakyOnDropOverride } from './SneakyOnDropOverride'
 import { ThemeUpdater } from './ThemeUpdater/ThemeUpdater'
 
-const localComponents: TLComponents = {
+const components: TLComponents = {
 	ErrorFallback: ({ error }) => {
 		throw error
 	},
@@ -84,11 +84,11 @@ const localComponents: TLComponents = {
 }
 
 export function LocalEditor({
-	components,
+	componentsOverride,
 	onMount,
 	children,
 }: {
-	components?: TLComponents
+	componentsOverride?: TLComponents
 	onMount?(editor: Editor): void
 	children?: ReactNode
 }) {
@@ -100,8 +100,7 @@ export function LocalEditor({
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		editor.registerExternalAssetHandler('url', createAssetFromUrl)
-		// Register the editor globally
-		onMount?.(editor)
+		return onMount?.(editor)
 	})
 
 	return (
@@ -113,7 +112,7 @@ export function LocalEditor({
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}
-				components={components ?? localComponents}
+				components={componentsOverride ?? components}
 			>
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<ThemeUpdater />

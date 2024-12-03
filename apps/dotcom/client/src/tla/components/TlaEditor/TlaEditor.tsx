@@ -179,7 +179,8 @@ function TlaEditorInner({
 					.then(async () => {
 						if (!abortController.signal.aborted) {
 							if (abortController.signal.aborted) return
-							await migrateLegacyContent(editor)
+							await migrateLegacyContent(editor, abortController.signal)
+							if (abortController.signal.aborted) return
 							setInLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED, 'true')
 							setIsReady()
 						}

@@ -78,7 +78,7 @@ function LocalTldraw() {
 		<TlaAnonLayout>
 			{showLegacyEditor ? (
 				<LocalEditor
-					components={components}
+					componentsOverride={components}
 					onMount={(editor) => {
 						globalEditor.set(editor)
 						setInLocalStorage(TEMPORARY_FILE_KEY, LOCAL_LEGACY_SLUG)
