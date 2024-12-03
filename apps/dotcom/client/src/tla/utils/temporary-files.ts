@@ -1,64 +1,56 @@
-import { Editor, LocalIndexedDb, TAB_ID, TLAsset, getFromLocalStorage } from 'tldraw'
-import { SCRATCH_PERSISTENCE_KEY } from '../../utils/scratch-persistence-key'
+import { deleteDB } from 'idb'
+import { Editor, LocalIndexedDb, TAB_ID, TLAsset } from 'tldraw'
+import { globalEditor } from '../../utils/globalEditor'
+import {
+	getScratchPersistenceKey,
+	resetScratchPersistenceKey,
+} from '../../utils/scratch-persistence-key'
 
-export const TEMPORARY_FILE_KEY = 'TLA_TEMPORARY_FILE_ID_1'
-export const TLA_WAS_LEGACY_CONTENT_MIGRATED = 'TLA_WAS_LEGACY_CONTENT_MIGRATED'
+export const SHOULD_SLURP_FILE = 'SHOULD_SLURP_FILE'
 export const LOCAL_LEGACY_SLUG = 'local_legacy'
 export const LOCAL_LEGACY_SUFFIX = '_legacy'
 
-export async function migrateLegacyContent(editor: Editor, abortSignal: AbortSignal) {
-	const db = new LocalIndexedDb(SCRATCH_PERSISTENCE_KEY)
-	const data = await db.load({ sessionId: TAB_ID })
-	if (abortSignal.aborted) return
-	// Assets will be served from the local indexedDb while they are being uploaded
-	editor.loadSnapshot({
-		document: {
-			schema: data.schema,
-			store: Object.fromEntries(data.records.map((r) => [r.id, r])),
-		},
-		session: data.sessionStateSnapshot,
-	})
-}
-
-// Need to do this check as fast as possible. This method takes about 30-60ms while using our
-// indexedDb wrapper takes closer to 150ms to run.
-export async function hasMeaningfulLegacyContent() {
+export async function slurpLocalContent(editor: Editor, abortSignal: AbortSignal) {
+	const slurpPersistenceKey = getScratchPersistenceKey()
+	const db = new LocalIndexedDb(slurpPersistenceKey)
 	try {
-		const wasLegacyContentAlreadyMigrated =
-			getFromLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED) === 'true'
-		if (wasLegacyContentAlreadyMigrated) return false
-
-		return await new Promise<boolean>((resolve, reject) => {
-			const request = indexedDB.open('TLDRAW_DOCUMENT_v2' + SCRATCH_PERSISTENCE_KEY)
-
-			request.onerror = reject
-
-			request.onsuccess = () => {
-				const db = request.result
-				const transaction = db.transaction(['records'], 'readonly')
-				const objectStore = transaction.objectStore('records')
-				const query = objectStore.count()
-
-				query.onsuccess = () => {
-					// one page record, one document record, one shape record = 3 records
-					resolve(query.result >= 3)
-				}
-
-				query.onerror = reject
-			}
+		const data = await db.load({ sessionId: TAB_ID })
+		if (data.records.length < 3) return // no meaningful content to slurp
+		if (abortSignal.aborted) return
+		// Assets will be served from the local indexedDb while they are being uploaded
+		editor.loadSnapshot({
+			document: {
+				schema: data.schema,
+				store: Object.fromEntries(data.records.map((r) => [r.id, r])),
+			},
+			session: data.sessionStateSnapshot,
 		})
-	} catch (_e) {
-		return false
+		editor.updateDocumentSettings({ meta: { slurpPersistenceKey } })
+		// reset the persistence key so that if the user logs out they don't
+		// see the same content we already slurped
+		resetScratchPersistenceKey()
+	} finally {
+		db.close()
 	}
 }
 
 const localFileCache = new WeakMap<TLAsset, { file: File; url: string }>()
 
+function getSlurpPersistenceKey() {
+	const editor = globalEditor.get()
+	if (!editor) return null
+	const key = editor.getDocumentSettings().meta.slurpPersistenceKey
+	if (!key) return null
+	return key as string
+}
+
 export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: string } | null> {
 	const existing = localFileCache.get(asset)
 	if (existing) return existing
+	const slurpPersistenceKey = getSlurpPersistenceKey()
+	if (!slurpPersistenceKey) return null
 
-	const db = new LocalIndexedDb(SCRATCH_PERSISTENCE_KEY)
+	const db = new LocalIndexedDb(slurpPersistenceKey)
 	try {
 		const file = await db.getAsset(asset.id)
 		if (!file) return null
@@ -74,6 +66,7 @@ export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: 
 export async function uploadLegacyFiles(editor: Editor, abortSignal: AbortSignal) {
 	const assets$ = editor.store.query.records('asset')
 	let asset: TLAsset | undefined
+
 	while (
 		!abortSignal.aborted &&
 		(asset = assets$.get().find((a) => a.props.src?.startsWith('asset:')))
@@ -85,4 +78,8 @@ export async function uploadLegacyFiles(editor: Editor, abortSignal: AbortSignal
 		if (abortSignal.aborted) return
 		editor.updateAssets([{ ...asset, props: { ...asset.props, src: url } }])
 	}
+
+	// all done, kill the old db
+	const key = 'TLDRAW_DOCUMENT_v2' + editor.getDocumentSettings().meta.slurpPersistenceKey
+	deleteDB(key)
 }

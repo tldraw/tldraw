@@ -20,10 +20,8 @@ import {
 	TldrawUiMenuItem,
 	assert,
 	createSessionStateSnapshotSignal,
-	getFromLocalStorage,
 	react,
 	serializeTldrawJsonBlob,
-	setInLocalStorage,
 	sleep,
 	throttle,
 	tltime,
@@ -45,11 +43,7 @@ import { ReadyWrapper, useSetIsReady, useSetLoadingMessage } from '../../hooks/u
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import {
-	TLA_WAS_LEGACY_CONTENT_MIGRATED,
-	migrateLegacyContent,
-	uploadLegacyFiles,
-} from '../../utils/temporary-files'
+import { slurpLocalContent, uploadLegacyFiles } from '../../utils/temporary-files'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -100,7 +94,6 @@ export const components: TLComponents = {
 
 interface TlaEditorProps {
 	fileSlug: string
-	onDocumentChange?(): void
 	mode?: TlaFileOpenMode
 	duplicateId?: string
 	deepLinks?: boolean
@@ -123,13 +116,7 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
-function TlaEditorInner({
-	fileSlug,
-	onDocumentChange,
-	mode,
-	deepLinks,
-	duplicateId,
-}: TlaEditorProps) {
+function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorProps) {
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
 
@@ -173,8 +160,7 @@ function TlaEditorInner({
 			})
 
 			const abortController = new AbortController()
-			const wasMigrated = getFromLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED)
-			if (app._localLegacyClaimId === fileId && wasMigrated === 'false') {
+			if (app._slurpFileId === fileId) {
 				setLoadingMessage('uploading')
 				// This is a one-time operation.
 				// So we need to wait a tick for react strict mode to finish
@@ -183,9 +169,10 @@ function TlaEditorInner({
 					.then(async () => {
 						if (!abortController.signal.aborted) {
 							if (abortController.signal.aborted) return
-							await migrateLegacyContent(editor, abortController.signal)
+							await slurpLocalContent(editor, abortController.signal)
 							if (abortController.signal.aborted) return
-							setInLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED, 'true')
+							uploadLegacyFiles(editor, abortController.signal)
+							app._slurpFileId = null
 							setIsReady()
 						}
 					})
@@ -195,10 +182,9 @@ function TlaEditorInner({
 						// create a tldr file and drag it in
 					})
 			} else {
+				uploadLegacyFiles(editor, abortController.signal)
 				setIsReady()
 			}
-
-			uploadLegacyFiles(editor, abortController.signal)
 
 			return () => {
 				abortController.abort()
@@ -329,7 +315,7 @@ function TlaEditorInner({
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 				{app && <SneakyTldrawFileDropHandler />}
-				<SneakyFileUpdateHandler fileId={fileId} onDocumentChange={onDocumentChange} />
+				<SneakyFileUpdateHandler fileId={fileId} />
 			</Tldraw>
 		</div>
 	)
@@ -367,13 +353,7 @@ function SneakyTldrawFileDropHandler() {
 	return null
 }
 
-function SneakyFileUpdateHandler({
-	onDocumentChange,
-	fileId,
-}: {
-	onDocumentChange?(): void
-	fileId: string
-}) {
+function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
 	const app = useMaybeApp()
 	const editor = useEditor()
 	useEffect(() => {
@@ -381,7 +361,6 @@ function SneakyFileUpdateHandler({
 			() => {
 				if (!app) return
 				app.onFileEdit(fileId)
-				onDocumentChange?.()
 			},
 			// This is used to update the lastEditAt time in the database, and to let the local
 			// room know that an edit ahs been made.
@@ -393,7 +372,7 @@ function SneakyFileUpdateHandler({
 			unsub()
 			onChange.cancel()
 		}
-	}, [app, onDocumentChange, fileId, editor])
+	}, [app, fileId, editor])
 
 	return null
 }

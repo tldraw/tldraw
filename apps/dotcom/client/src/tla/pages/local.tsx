@@ -1,24 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-	assert,
-	deleteFromLocalStorage,
-	getFromLocalStorage,
-	setInLocalStorage,
-	uniqueId,
-} from 'tldraw'
+import { assert, deleteFromLocalStorage, getFromLocalStorage, setInLocalStorage } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { globalEditor } from '../../utils/globalEditor'
 import { SneakyDarkModeSync } from '../components/TlaEditor/SneakyDarkModeSync'
-import { TlaEditor, components } from '../components/TlaEditor/TlaEditor'
+import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
-import {
-	LOCAL_LEGACY_SLUG,
-	TEMPORARY_FILE_KEY,
-	TLA_WAS_LEGACY_CONTENT_MIGRATED,
-	hasMeaningfulLegacyContent,
-} from '../utils/temporary-files'
+import { SHOULD_SLURP_FILE } from '../utils/temporary-files'
 import { getFilePath } from '../utils/urls'
 
 export function Component() {
@@ -29,11 +18,13 @@ export function Component() {
 	useEffect(() => {
 		if (!app) return
 
-		const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
-		if (claimTemporaryFileId) {
-			deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-			const slug = app.claimTemporaryFile(claimTemporaryFileId)
-			navigate(getFilePath(slug), { state: { mode: 'create' }, replace: true })
+		const shouldSlurpFile = getFromLocalStorage(SHOULD_SLURP_FILE)
+		if (shouldSlurpFile) {
+			deleteFromLocalStorage(SHOULD_SLURP_FILE)
+			const res = app.slurpFile()
+			if (res.ok) {
+				navigate(getFilePath(res.value.file.id), { state: { mode: 'create' }, replace: true })
+			}
 			return
 		}
 
@@ -60,44 +51,30 @@ export function Component() {
 }
 
 function LocalTldraw() {
-	const [fileSlug] = useState(() => {
-		return getFromLocalStorage(TEMPORARY_FILE_KEY) ?? uniqueId()
-	})
-
-	const [showLegacyEditor, setShowLegacyEditor] = useState(null as boolean | null)
-
-	useEffect(() => {
-		hasMeaningfulLegacyContent().then(setShowLegacyEditor)
-	}, [])
-
-	if (showLegacyEditor === null) {
-		return null
-	}
-
 	return (
 		<TlaAnonLayout>
-			{showLegacyEditor ? (
-				<LocalEditor
-					componentsOverride={components}
-					onMount={(editor) => {
-						globalEditor.set(editor)
-						setInLocalStorage(TEMPORARY_FILE_KEY, LOCAL_LEGACY_SLUG)
-						setInLocalStorage(TLA_WAS_LEGACY_CONTENT_MIGRATED, 'false')
-					}}
-				>
-					<SneakyDarkModeSync />
-				</LocalEditor>
-			) : (
-				<TlaEditor
-					mode={'create'}
-					key={fileSlug}
-					fileSlug={fileSlug}
-					onDocumentChange={() => {
-						// Save the file slug to local storage if they actually make changes
-						setInLocalStorage(TEMPORARY_FILE_KEY, fileSlug)
-					}}
-				/>
-			)}
+			<LocalEditor
+				componentsOverride={components}
+				onMount={(editor) => {
+					globalEditor.set(editor)
+
+					// the first time the user makes a change we should indicate
+					// that the file should be slurped
+					let unsub = editor.store.listen(
+						() => {
+							setInLocalStorage(SHOULD_SLURP_FILE, 'true')
+							unsub()
+							unsub = () => {}
+						},
+						{ scope: 'document', source: 'user' }
+					)
+					return () => {
+						unsub()
+					}
+				}}
+			>
+				<SneakyDarkModeSync />
+			</LocalEditor>
 		</TlaAnonLayout>
 	)
 }
