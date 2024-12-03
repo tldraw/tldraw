@@ -85,22 +85,24 @@ export function useImageOrVideoAsset({
 
 			const screenScale = editor.getZoomLevel() * (shape.props.w / asset.props.w)
 
+			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
+				if (isCancelled) return // don't update if the hook has remounted
+				if (previousUrl.current === url) return // don't update the state if the url is the same
+				didAlreadyResolve.current = true // mark that we've resolved our first image
+				previousUrl.current = url // keep the url around to compare with the next one
+				setResult({ asset, url })
+				isReady() // let the SVG export know we're ready for export
+			}
+
 			// If we already resolved the URL, debounce fetching potentially multiple image variations.
 			if (didAlreadyResolve.current) {
-				resolveAssetUrlDebounced(editor, assetId, screenScale, isExport, (url) => {
-					if (isCancelled) return // don't update if the hook has remounted
-					if (previousUrl.current === url) return // don't update the state if the url is the same
-					previousUrl.current = url // keep the url around to compare with the next one
-					setResult(() => ({ asset, url }))
-				})
+				const resolveAssetUrlDebounced = getResolveAssetUrlDebounced(assetId)
+				resolveAssetUrlDebounced(editor, assetId, screenScale, isExport, (url) =>
+					resolve(asset, url)
+				)
 				cancelDebounceFn = resolveAssetUrlDebounced.cancel // cancel the debounce when the hook unmounts
 			} else {
-				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => {
-					if (isCancelled) return // don't update if the hook has remounted
-					didAlreadyResolve.current = true // mark that we've resolved our first image
-					previousUrl.current = url // keep the url around to compare with the next one
-					setResult(() => ({ asset, url }))
-				})
+				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => resolve(asset, url))
 			}
 		})
 
@@ -134,7 +136,15 @@ function resolveAssetUrl(
 		})
 }
 
-const resolveAssetUrlDebounced = debounce(resolveAssetUrl, 500)
+const debouncedFunctions = new Map<TLAssetId, typeof resolveAssetUrl>()
+
+function getResolveAssetUrlDebounced(assetId: TLAssetId) {
+	if (!debouncedFunctions.has(assetId)) {
+		const debouncedFn = debounce(resolveAssetUrl, 500)
+		debouncedFunctions.set(assetId, debouncedFn)
+	}
+	return debouncedFunctions.get(assetId) as typeof resolveAssetUrl & { cancel(): void }
+}
 
 /**
  * @deprecated Use {@link useImageOrVideoAsset} instead.
