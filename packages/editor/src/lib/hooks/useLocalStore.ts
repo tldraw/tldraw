@@ -37,7 +37,6 @@ export function useLocalStore(
 		const assets: TLAssetStore = {
 			upload: async (asset, file) => {
 				await client.db.storeAsset(asset.id, file)
-
 				return asset.id
 			},
 			resolve: async (asset) => {

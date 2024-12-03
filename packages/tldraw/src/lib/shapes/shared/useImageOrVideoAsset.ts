@@ -136,14 +136,14 @@ function resolveAssetUrl(
 		})
 }
 
-const debouncedFunctions = new Map<TLAssetId, typeof resolveAssetUrl>()
+const debouncedFunctions = new Map<TLAssetId, typeof resolveAssetUrl & { cancel(): void }>()
 
 function getResolveAssetUrlDebounced(assetId: TLAssetId) {
 	if (!debouncedFunctions.has(assetId)) {
 		const debouncedFn = debounce(resolveAssetUrl, 500)
 		debouncedFunctions.set(assetId, debouncedFn)
 	}
-	return debouncedFunctions.get(assetId) as typeof resolveAssetUrl & { cancel(): void }
+	return debouncedFunctions.get(assetId)!
 }
 
 /**
