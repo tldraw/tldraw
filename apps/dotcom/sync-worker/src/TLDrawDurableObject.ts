@@ -376,8 +376,8 @@ export class TLDrawDurableObject extends DurableObject {
 		try {
 			const room = await this.getRoom()
 			// Don't connect if we're already at max connections
-			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
-				return new Response('Room is full', { status: 403 })
+			if (room.getNumActiveSessions() > MAX_CONNECTIONS) {
+				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
 
 			// all good
@@ -568,7 +568,7 @@ export class TLDrawDurableObject extends DurableObject {
 
 				// Update the updatedAt timestamp in the database
 				if (this.documentInfo.isApp) {
-					const pg = getPostgres(this.env)
+					const pg = getPostgres(this.env, { pooled: true })
 					await pg`UPDATE public.file SET "updatedAt" = ${new Date().getTime()} WHERE id = ${this.documentInfo.slug}`
 				}
 			})

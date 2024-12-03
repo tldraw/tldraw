@@ -56,6 +56,11 @@ export function StoreErrorScreen({ error }: { error: Error }) {
 				message = `Please slow down.`
 				break
 			}
+			case TLSyncErrorCloseEventReason.ROOM_FULL: {
+				header = 'Room full'
+				message = 'This room has reached the maximum number of active collaborators.'
+				break
+			}
 			default: {
 				console.error('Unhandled sync error', error)
 			}
