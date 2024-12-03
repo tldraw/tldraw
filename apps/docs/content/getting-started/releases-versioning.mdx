@@ -15,49 +15,68 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 {/* START AUTO-GENERATED CHANGELOG */}
 
-## Current release: [v3.4.0](/releases/v3.4.0)
+## Current release: [v3.5.0](/releases/v3.5.0)
 
-Welcome to the 3.4.0 release of the tldraw SDK. This issue fixes a few bugs in our user interface, improves performance around images and videos, and even improves our very secret ability to accept pasted content from [Excalidraw](https://excalidraw.com/). See below for the full list of changes.
+Welcome to the 3.5.0 release of tldraw. This month's SDK release improves grid snapping, some usability improvements around layering shapes, and more fine-grained controls around exporting.
 
-#### Breaking changes
+## What's new
 
-- The `id` attribute that was present on some shapes in the dom has been removed. There's now a data-shape-id attribute on every shape wrapper that can be used instead. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+#### Snap to grid when creating shapes ([#4875](https://github.com/tldraw/tldraw/pull/4875))
+
+This PR makes sure that shapes snap to the grid when created. It adds a `maybeSnapToGrid` function, which can be used to push a shape onto the grid if grid mode is enabled, both when click-creating and when drag-creating.
+
+#### Smart `bringForward`/`sendBackward` ([#4851](https://github.com/tldraw/tldraw/pull/4851))
+
+Improved the 'bring forward' and 'send backward' actions by making them only consider nearby overlapping shapes when deciding the next ordering.
+
+#### Better support scale / quality in export utilities ([#4795](https://github.com/tldraw/tldraw/pull/4795))
+
+This helps better control the scale when using the image export utilities in tldraw. We now have the option to pass `scale` and `pixelRatio` to the export functions to give more fine-grained control.
 
 #### Improvements
 
-- Clearer tooltip wording in the style panel. ([#4750](https://github.com/tldraw/tldraw/pull/4750))
-- Arrow labels no longer have their indictors showing behind them. ([#4749](https://github.com/tldraw/tldraw/pull/4749))
-- Limit the page name length in the move to page menu. ([#4747](https://github.com/tldraw/tldraw/pull/4747))
-- Improve performance of image/video rendering. ([#4659](https://github.com/tldraw/tldraw/pull/4659))
+- Improve panning performance when we have many note shapes and when we are zoomed out [#4935](https://github.com/tldraw/tldraw/pull/4935)
+- Improve hovers on page menu [#4788](https://github.com/tldraw/tldraw/)
+- Allow custom React providers in SVG exports [#4991](https://github.com/tldraw/tldraw/pull/4991)
+- Make default color theme light. [#4796](https://github.com/tldraw/tldraw/pull/4796)
+- Improve right click on frame headings [#4979](https://github.com/tldraw/tldraw/pull/4979)
 
 #### API changes
 
-- Add `labelColor` to note shapes. ([#4724](https://github.com/tldraw/tldraw/pull/4724))
-- There are a new set of APIs for working with unique DOM IDs in tldraw components: [`useUniqueSafeId`](https://staging.tldraw.dev/reference/editor/useUniqueSafeId) & [`useSharedSafeId`](https://staging.tldraw.dev/reference/editor/useSharedSafeId). ([#4694](https://github.com/tldraw/tldraw/pull/4694))
+- Expose font sizes, stroke sizes API [#4940](https://github.com/tldraw/tldraw/pull/4940)
+- Add rate limiting socket close reason. [#4898](https://github.com/tldraw/tldraw/pull/4898)
+- Add option to disable text creation on double click [#4841](https://github.com/tldraw/tldraw/pull/4841)
 
-#### Bug fixes
+#### Bug Fix
 
-- Writing `options` inline in the Tldraw component will no longer cause re-render loops. ([#4762](https://github.com/tldraw/tldraw/pull/4762))
-- Make sure toolbar button outlines match the border-radius of the button. ([#4759](https://github.com/tldraw/tldraw/pull/4759))
-- Make sure content pasted from Excalidraw keeps the correct color. ([#4752](https://github.com/tldraw/tldraw/pull/4752))
-- Don't highlight menu triggers that dont have their submenus open. ([#4710](https://github.com/tldraw/tldraw/pull/4710))
-- Pass through the correct event type for drag events. ([#4739](https://github.com/tldraw/tldraw/pull/4739))
-- Prevent multiple images accidentally being created when you drop one onto the canvas. ([#4704](https://github.com/tldraw/tldraw/pull/4704))
-- Make sure the link indicator is visible on sticky notes. ([#4708](https://github.com/tldraw/tldraw/pull/4708))
-- The insert embed dialog now parses URLs correctly. ([#4709](https://github.com/tldraw/tldraw/pull/4709))
-- Exports and other tldraw instances no longer can affect how each other are rendered. ([#4694](https://github.com/tldraw/tldraw/pull/4694))
-- Show the correct set of menu options in read-only mode. ([#4696](https://github.com/tldraw/tldraw/pull/4696))
+- Remove zooming to an editing shape if the shape is off-screen [#4872](https://github.com/tldraw/tldraw/pull/4872)
+- Fix shapes getting stuck in erasing state [#4861](https://github.com/tldraw/tldraw/pull/4861)
+- Fix id regression [#4849](https://github.com/tldraw/tldraw/pull/4849)pull/4788)
+- Keyboard shortcuts: fix up wrong size dialog on desktop [#4791](https://github.com/tldraw/tldraw/pull/4791)
+- Fix toast spacing [#4800](https://github.com/tldraw/tldraw/pull/4800)
+- Fix dragging on frame headings [#4794](https://github.com/tldraw/tldraw/pull/4794)
+- Make sure copy-as-png comes in at natural size [#4771](https://github.com/tldraw/tldraw/pull/4771)
+- Add store consistency checks during `mergeRemoteChanges` [#4833](https://github.com/tldraw/tldraw/pull/4833)
+- Fix Safari sleep crash [#4822](https://github.com/tldraw/tldraw/pull/4822)
 
-#### Authors
+#### Authors: 13
 
-- [@nayounsang](https://github.com/nayounsang)
 - alex ([@SomeHats](https://github.com/SomeHats))
+- [@Crysta1ightning](https://github.com/Crysta1ightning)
 - David Sheldrick ([@ds300](https://github.com/ds300))
+- Emmanuel Ferdman ([@emmanuel-ferdman](https://github.com/emmanuel-ferdman))
+- Judicael ([@judicaelandria](https://github.com/judicaelandria))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
 - Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
 - Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
 - Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- Thien Nguyen ([@tatthien](https://github.com/tatthien))
+- Younsang Na ([@nayounsang](https://github.com/nayounsang))
 
 ## Previous releases
+
+- [v3.4.0](/releases/v3.4.0)
 
 - [v3.3.0](/releases/v3.3.0)
 

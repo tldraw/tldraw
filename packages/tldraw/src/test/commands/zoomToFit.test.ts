@@ -26,3 +26,13 @@ it('is ignored by undo/redo', () => {
 	editor.undo()
 	expect(editor.getCamera()).toBe(camera)
 })
+
+it('does not zoom when lock mode toggled', () => {
+	const cameraOptions = editor.getCameraOptions()
+
+	// Starts at 1
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
+	editor.toggleZoom()
+	editor.zoomToFit()
+	expect(editor.getZoomLevel()).toBe(cameraOptions.zoomSteps[3])
+})
