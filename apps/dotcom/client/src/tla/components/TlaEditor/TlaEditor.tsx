@@ -39,7 +39,7 @@ import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { ReadyWrapper, useSetIsReady, useSetLoadingMessage } from '../../hooks/useIsReady'
+import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
@@ -123,7 +123,6 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 	const fileId = fileSlug
 
 	const setIsReady = useSetIsReady()
-	const setLoadingMessage = useSetLoadingMessage()
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -161,7 +160,6 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 
 			const abortController = new AbortController()
 			if (app._slurpFileId === fileId) {
-				setLoadingMessage('uploading')
 				// This is a one-time operation.
 				// So we need to wait a tick for react strict mode to finish
 				// doing its nasty business before we start the migration.
@@ -192,7 +190,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				updateSessionState.cancel()
 			}
 		},
-		[app, fileId, setIsReady, setLoadingMessage]
+		[app, fileId, setIsReady]
 	)
 
 	const user = useTldrawUser()
