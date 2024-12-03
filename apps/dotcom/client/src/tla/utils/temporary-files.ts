@@ -1,4 +1,4 @@
-import { Editor, LocalIndexedDb, TAB_ID, TLAsset, getFromLocalStorage, sleep } from 'tldraw'
+import { Editor, LocalIndexedDb, TAB_ID, TLAsset, getFromLocalStorage } from 'tldraw'
 import { SCRATCH_PERSISTENCE_KEY } from '../../utils/scratch-persistence-key'
 
 export const TEMPORARY_FILE_KEY = 'TLA_TEMPORARY_FILE_ID_1'
@@ -10,18 +10,7 @@ export async function migrateLegacyContent(editor: Editor, abortSignal: AbortSig
 	const db = new LocalIndexedDb(SCRATCH_PERSISTENCE_KEY)
 	const data = await db.load({ sessionId: TAB_ID })
 	if (abortSignal.aborted) return
-	const assets = data.records.filter((r) => r.typeName === 'asset') as TLAsset[]
-	// upload assets
-	for (const asset of assets) {
-		if (asset.props.src?.startsWith('asset:')) {
-			const file = await db.getAsset(asset.id)
-			if (!file) continue
-			const url = await editor.uploadAsset(asset, file)
-			asset.props.src = url
-		}
-		if (abortSignal.aborted) return
-		await sleep(1000)
-	}
+	// Assets will be served from the local indexedDb while they are being uploaded
 	editor.loadSnapshot({
 		document: {
 			schema: data.schema,
@@ -60,5 +49,40 @@ export async function hasMeaningfulLegacyContent() {
 		})
 	} catch (_e) {
 		return false
+	}
+}
+
+const localFileCache = new WeakMap<TLAsset, { file: File; url: string }>()
+
+export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: string } | null> {
+	const existing = localFileCache.get(asset)
+	if (existing) return existing
+
+	const db = new LocalIndexedDb(SCRATCH_PERSISTENCE_KEY)
+	try {
+		const file = await db.getAsset(asset.id)
+		if (!file) return null
+		const url = URL.createObjectURL(file)
+		const result = { file, url }
+		localFileCache.set(asset, result)
+		return result
+	} finally {
+		db.close()
+	}
+}
+
+export async function uploadLegacyFiles(editor: Editor, abortSignal: AbortSignal) {
+	const assets$ = editor.store.query.records('asset')
+	let asset: TLAsset | undefined
+	while (
+		!abortSignal.aborted &&
+		(asset = assets$.get().find((a) => a.props.src?.startsWith('asset:')))
+	) {
+		const res = await loadLocalFile(asset)
+		if (abortSignal.aborted) return
+		if (!res) return
+		const url = await editor.uploadAsset(asset, res.file)
+		if (abortSignal.aborted) return
+		editor.updateAssets([{ ...asset, props: { ...asset.props, src: url } }])
 	}
 }

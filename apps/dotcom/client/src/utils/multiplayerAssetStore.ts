@@ -1,4 +1,5 @@
 import { MediaHelpers, TLAssetStore, fetch, uniqueId } from 'tldraw'
+import { loadLocalFile } from '../tla/utils/temporary-files'
 import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
 
@@ -22,8 +23,15 @@ export const multiplayerAssetStore = {
 		return url
 	},
 
-	resolve(asset, context) {
+	async resolve(asset, context) {
 		if (!asset.props.src) return null
+
+		if (asset.props.src.startsWith('asset:')) {
+			const res = await loadLocalFile(asset)
+			if (res) {
+				return res.url
+			}
+		}
 
 		// We don't deal with videos at the moment.
 		if (asset.type === 'video') return asset.props.src

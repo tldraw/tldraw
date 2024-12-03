@@ -45,7 +45,11 @@ import { ReadyWrapper, useSetIsReady, useSetLoadingMessage } from '../../hooks/u
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { TLA_WAS_LEGACY_CONTENT_MIGRATED, migrateLegacyContent } from '../../utils/temporary-files'
+import {
+	TLA_WAS_LEGACY_CONTENT_MIGRATED,
+	migrateLegacyContent,
+	uploadLegacyFiles,
+} from '../../utils/temporary-files'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -193,6 +197,8 @@ function TlaEditorInner({
 			} else {
 				setIsReady()
 			}
+
+			uploadLegacyFiles(editor, abortController.signal)
 
 			return () => {
 				abortController.abort()
