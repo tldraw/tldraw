@@ -52,6 +52,7 @@ export const TLSyncErrorCloseEventReason = {
 	SERVER_TOO_OLD: 'SERVER_TOO_OLD',
 	INVALID_RECORD: 'INVALID_RECORD',
 	RATE_LIMITED: 'RATE_LIMITED',
+	ROOM_FULL: 'ROOM_FULL',
 } as const
 /**
  * The set of reasons that a connection can be closed by the server

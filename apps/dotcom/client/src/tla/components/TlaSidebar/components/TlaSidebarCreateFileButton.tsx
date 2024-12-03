@@ -19,7 +19,7 @@ export function TlaSidebarCreateFileButton() {
 
 	const handleSidebarCreate = useCallback(async () => {
 		if (!rCanCreate.current) return
-		const res = await app.createFile()
+		const res = app.createFile()
 		if (res.ok) {
 			const { file } = res.value
 			navigate(getFilePath(file.id), { state: { mode: 'create' } })

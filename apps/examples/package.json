@@ -37,6 +37,7 @@
 		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"ag-grid-community": "^32.1.0",
