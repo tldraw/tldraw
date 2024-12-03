@@ -62,3 +62,29 @@ it('When holding spacebar, pressing the arrow keys moves over by one viewport', 
 	expect(editor.getViewportPageBounds()).toEqual({ x: 1080, y: 720, w: 1080, h: 720 })
 	editor.keyUp(' ')
 })
+
+describe('Spacebar functions in pen mode', () => {
+	it('Spacebar panning works in pen mode', () => {
+		editor.updateInstanceState({ isPenMode: true })
+		editor.keyDown(' ')
+		editor.pointerDown(0, 0, { button: 0 })
+		editor.pointerMove(100, 100)
+		editor.expectCameraToBe(100, 100, 1)
+		editor.keyUp(' ')
+	})
+
+	it('When holding spacebar, pressing the arrow keys moves over by one viewport', () => {
+		editor.updateInstanceState({ isPenMode: true })
+		editor.keyDown(' ')
+		editor.expectCameraToBe(0, 0, 1)
+		editor.user.updateUserPreferences({ animationSpeed: 0 })
+		expect(editor.getViewportPageBounds()).toEqual({ x: -0, y: -0, w: 1080, h: 720 })
+		editor.keyDown('ArrowRight')
+		editor.keyUp('ArrowRight')
+		expect(editor.getViewportPageBounds()).toEqual({ x: 1080, y: 0, w: 1080, h: 720 })
+		editor.keyDown('ArrowDown')
+		editor.keyUp('ArrowDown')
+		expect(editor.getViewportPageBounds()).toEqual({ x: 1080, y: 720, w: 1080, h: 720 })
+		editor.keyUp(' ')
+	})
+})
