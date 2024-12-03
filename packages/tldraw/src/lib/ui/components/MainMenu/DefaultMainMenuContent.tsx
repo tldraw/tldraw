@@ -131,14 +131,18 @@ export function UndoRedoGroup() {
 
 /** @public @react */
 export function ViewSubmenu() {
+	const editor = useEditor()
+	const { isZoomLocked } = editor.getCameraOptions()
+
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
-				<TldrawUiMenuActionItem actionId="zoom-in" />
-				<TldrawUiMenuActionItem actionId="zoom-out" />
+				<TldrawUiMenuActionItem actionId="zoom-in" disabled={isZoomLocked} />
+				<TldrawUiMenuActionItem actionId="zoom-out" disabled={isZoomLocked} />
 				<ZoomTo100MenuItem />
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
+				<TldrawUiMenuActionItem actionId="toggle-zoom" />
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)
