@@ -133,7 +133,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			if (res === 'ok') {
 				this.logEvent({ type: 'reboot_duration', duration: Date.now() - start })
 			} else {
-				this.logEvent({ type: 'reboot_error' })
 				this.reboot()
 			}
 		})
@@ -393,6 +392,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async getFileRecord(fileId: string) {
+		this.logEvent({ type: 'get_file_record' })
 		await this.waitUntilConnected()
 		assert(this.state.type === 'connected', 'state should be connected in getFileRecord')
 		try {
@@ -420,6 +420,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	async registerUser(userId: string) {
 		this.debug('registering user', userId)
+		this.logEvent({ type: 'register_user' })
 		await this.waitUntilConnected()
 		assert(this.state.type === 'connected', 'state should be connected in registerUser')
 		const guestFiles = await this.state
@@ -439,6 +440,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	async unregisterUser(userId: string) {
+		this.logEvent({ type: 'unregister_user' })
 		this.sql.exec(`DELETE FROM active_user WHERE id = ?`, userId)
 	}
 
@@ -450,6 +452,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		switch (event.type) {
 			case 'reboot':
 			case 'reboot_error':
+			case 'register_user':
+			case 'unregister_user':
+			case 'get_file_record':
 				this.writeEvent({
 					blobs: [event.type],
 				})

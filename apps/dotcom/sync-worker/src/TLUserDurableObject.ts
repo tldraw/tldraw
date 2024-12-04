@@ -11,7 +11,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert, exhaustiveSwitchError } from '@tldraw/utils'
+import { assert } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -117,6 +117,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly sockets = new Set<WebSocket>()
 
 	broadcast(message: ZServerSentMessage) {
+		this.logEvent({ type: 'broadcast_message', id: this.userId! })
 		const msg = JSON.stringify(message)
 		for (const socket of this.sockets) {
 			if (socket.readyState === WebSocket.OPEN) {
@@ -200,6 +201,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 					this.logEvent({ type: 'rate_limited', id: this.userId! })
 					await this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
 				} else {
+					this.logEvent({ type: 'mutation', id: this.userId! })
 					await this.handleMutate(msg)
 				}
 				break
@@ -210,6 +212,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
+		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
 		this.broadcast({
@@ -376,6 +379,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	/* ------- RPCs -------  */
 
 	async handleReplicationEvent(event: ZReplicationEvent) {
+		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.debug('replication event', event, !!this.cache)
 		if (!this.cache) {
 			return 'unregister'
@@ -466,20 +470,15 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	logEvent(event: TLUserDurableObjectEvent) {
 		switch (event.type) {
-			case 'reboot':
-			case 'reboot_error':
-			case 'rate_limited':
-				this.writeEvent({ blobs: [event.type, event.id] })
-				break
-
 			case 'reboot_duration':
 				this.writeEvent({
 					blobs: [event.type, event.id],
 					doubles: [event.duration],
 				})
 				break
+
 			default:
-				exhaustiveSwitchError(event)
+				this.writeEvent({ blobs: [event.type, event.id] })
 		}
 	}
 
