@@ -110,7 +110,9 @@ export async function uploadLocalAssets(editor: Editor, abortSignal: AbortSignal
 		const url = await retry(() => editor.uploadAsset(asset!, res.file), abortSignal)
 		if (!url) return // uploading failed and onFail was called
 		if (abortSignal.aborted) return
-		editor.updateAssets([{ ...asset, props: { ...asset.props, src: url } }])
+		editor.updateAssets([
+			{ ...asset, props: { ...asset.props, src: url }, meta: { ...asset.meta, hidden: false } },
+		])
 	}
 
 	// all done, kill the old db
