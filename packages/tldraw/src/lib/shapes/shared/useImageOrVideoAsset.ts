@@ -12,7 +12,7 @@ import {
 	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 /**
  * This is a handy helper hook that resolves an asset to an optimized URL for a given shape, or its
@@ -35,6 +35,8 @@ export function useImageOrVideoAsset({
 	const editor = useEditor()
 	const isExport = !!useSvgExportContext()
 	const isReady = useDelaySvgExport()
+
+	const resolveAssetUrlDebounced = useMemo(() => debounce(resolveAssetUrl, 500), [])
 
 	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
 	const [result, setResult] = useState<{
@@ -96,7 +98,6 @@ export function useImageOrVideoAsset({
 
 			// If we already resolved the URL, debounce fetching potentially multiple image variations.
 			if (didAlreadyResolve.current) {
-				const resolveAssetUrlDebounced = getResolveAssetUrlDebounced(assetId)
 				resolveAssetUrlDebounced(editor, assetId, screenScale, isExport, (url) =>
 					resolve(asset, url)
 				)
@@ -111,7 +112,7 @@ export function useImageOrVideoAsset({
 			cancelDebounceFn?.()
 			isCancelled = true
 		}
-	}, [editor, assetId, isExport, isReady, shapeId])
+	}, [editor, assetId, isExport, isReady, shapeId, resolveAssetUrlDebounced])
 
 	return result
 }
@@ -134,16 +135,6 @@ function resolveAssetUrl(
 		.then((url) => {
 			callback(url)
 		})
-}
-
-const debouncedFunctions = new Map<TLAssetId, typeof resolveAssetUrl & { cancel(): void }>()
-
-function getResolveAssetUrlDebounced(assetId: TLAssetId) {
-	if (!debouncedFunctions.has(assetId)) {
-		const debouncedFn = debounce(resolveAssetUrl, 500)
-		debouncedFunctions.set(assetId, debouncedFn)
-	}
-	return debouncedFunctions.get(assetId)!
 }
 
 /**
