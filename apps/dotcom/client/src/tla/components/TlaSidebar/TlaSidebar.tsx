@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef } from 'react'
 import { preventDefault, useValue } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useTldrFileDrop } from '../../hooks/useTldrFileDrop'
+import { F } from '../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
@@ -69,8 +70,12 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				onDragOver={onDragOver}
 				onDragEnter={onDragEnter}
 				onDragLeave={onDragLeave}
-				data-dragging={isDraggingOver}
 			>
+				{isDraggingOver && (
+					<div className={styles.sidebarDragOverlay}>
+						<F defaultMessage="Upload .tldr files" />
+					</div>
+				)}
 				<div className={styles.top}>
 					<TlaSidebarWorkspaceLink />
 					<TlaSidebarCreateFileButton />

@@ -15,7 +15,7 @@
 	transition: transform 0.16s ease-in-out;
 }
 
-.sidebar[data-dragging='true']::after {
+.sidebarDragOverlay {
 	position: absolute;
 	inset: 0px;
 	display: flex;
