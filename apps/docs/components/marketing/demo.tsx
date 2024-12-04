@@ -1,20 +1,20 @@
 'use client'
 
-import classNames from 'classnames'
+import LgBcDark from '@/public/images/ui-placeholder/lg-bc-dark.png'
+import LgBc from '@/public/images/ui-placeholder/lg-bc.png'
+import LgBlDark from '@/public/images/ui-placeholder/lg-bl-dark.png'
+import LgBl from '@/public/images/ui-placeholder/lg-bl.png'
+import LgTlDark from '@/public/images/ui-placeholder/lg-tl-dark.png'
+import LgTl from '@/public/images/ui-placeholder/lg-tl.png'
+import LgTrDark from '@/public/images/ui-placeholder/lg-tr-dark.png'
+import LgTr from '@/public/images/ui-placeholder/lg-tr.png'
+import SmBcDark from '@/public/images/ui-placeholder/sm-bc-dark.png'
+import SmBc from '@/public/images/ui-placeholder/sm-bc.png'
+import SmTlDark from '@/public/images/ui-placeholder/sm-tl-dark.png'
+import SmTl from '@/public/images/ui-placeholder/sm-tl.png'
+import { cn } from '@/utils/cn'
 import Image from 'next/image'
 import { lazy, Suspense, useCallback, useState } from 'react'
-import LgBcDark from '../../public/images/ui-placeholder/lg-bc-dark.png'
-import LgBc from '../../public/images/ui-placeholder/lg-bc.png'
-import LgBlDark from '../../public/images/ui-placeholder/lg-bl-dark.png'
-import LgBl from '../../public/images/ui-placeholder/lg-bl.png'
-import LgTlDark from '../../public/images/ui-placeholder/lg-tl-dark.png'
-import LgTl from '../../public/images/ui-placeholder/lg-tl.png'
-import LgTrDark from '../../public/images/ui-placeholder/lg-tr-dark.png'
-import LgTr from '../../public/images/ui-placeholder/lg-tr.png'
-import SmBcDark from '../../public/images/ui-placeholder/sm-bc-dark.png'
-import SmBc from '../../public/images/ui-placeholder/sm-bc.png'
-import SmTlDark from '../../public/images/ui-placeholder/sm-tl-dark.png'
-import SmTl from '../../public/images/ui-placeholder/sm-tl.png'
 import { Button } from '../common/button'
 
 // We start loading the editor immediately (lazily), but display a fake
@@ -63,76 +63,56 @@ function FakeTldraw({ onClick, isLoading }: { onClick(): void; isLoading: boolea
 					src={LgTl}
 					role="presentation"
 					alt=""
-					className={classNames('hidden sm:block', classes.tl)}
+					className={cn('hidden sm:block', classes.tl)}
 				/>
 				<Image
 					src={LgBl}
 					role="presentation"
 					alt=""
-					className={classNames('hidden sm:block', classes.bl)}
+					className={cn('hidden sm:block', classes.bl)}
 				/>
 				<Image
 					src={LgBc}
 					role="presentation"
 					alt=""
-					className={classNames('hidden sm:block', classes.bc)}
+					className={cn('hidden sm:block', classes.bc)}
 				/>
 				<Image
 					src={LgTr}
 					role="presentation"
 					alt=""
-					className={classNames('hidden md:block', classes.tr)}
+					className={cn('hidden md:block', classes.tr)}
 				/>
-				<Image
-					src={SmTl}
-					role="presentation"
-					alt=""
-					className={classNames('sm:hidden', classes.tl)}
-				/>
-				<Image
-					src={SmBc}
-					role="presentation"
-					alt=""
-					className={classNames('sm:hidden', classes.bc)}
-				/>
+				<Image src={SmTl} role="presentation" alt="" className={cn('sm:hidden', classes.tl)} />
+				<Image src={SmBc} role="presentation" alt="" className={cn('sm:hidden', classes.bc)} />
 			</div>
 			<div className="hidden dark:block">
 				<Image
 					src={LgTlDark}
 					role="presentation"
 					alt=""
-					className={classNames('hidden sm:block', classes.tl)}
+					className={cn('hidden sm:block', classes.tl)}
 				/>
 				<Image
 					src={LgBlDark}
 					role="presentation"
 					alt=""
-					className={classNames('hidden sm:block', classes.bl)}
+					className={cn('hidden sm:block', classes.bl)}
 				/>
 				<Image
 					src={LgBcDark}
 					role="presentation"
 					alt=""
-					className={classNames('hidden sm:block', classes.bc)}
+					className={cn('hidden sm:block', classes.bc)}
 				/>
 				<Image
 					src={LgTrDark}
 					role="presentation"
 					alt=""
-					className={classNames('hidden md:block', classes.tr)}
+					className={cn('hidden md:block', classes.tr)}
 				/>
-				<Image
-					src={SmTlDark}
-					role="presentation"
-					alt=""
-					className={classNames('sm:hidden', classes.tl)}
-				/>
-				<Image
-					src={SmBcDark}
-					role="presentation"
-					alt=""
-					className={classNames('sm:hidden', classes.bc)}
-				/>
+				<Image src={SmTlDark} role="presentation" alt="" className={cn('sm:hidden', classes.tl)} />
+				<Image src={SmBcDark} role="presentation" alt="" className={cn('sm:hidden', classes.bc)} />
 			</div>
 			<div className="absolute inset-0 bg-[#FBFCFE]/50 dark:bg-[#101011]/50 flex items-center justify-center">
 				<Button
