@@ -290,7 +290,9 @@ export class TldrawApp {
 		return Result.ok({ file })
 	}
 
-	getFileName(file: TlaFile | string | null) {
+	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
+	getFileName(file: TlaFile | string | null, useDateFallback?: true): string
+	getFileName(file: TlaFile | string | null, useDateFallback = true) {
 		if (typeof file === 'string') {
 			file = this.getFile(file)
 		}
@@ -305,9 +307,13 @@ export class TldrawApp {
 			return name
 		}
 
-		const createdAt = new Date(file.createdAt)
-		const format = getDateFormat(createdAt)
-		return this.intl.formatDate(createdAt, format)
+		if (useDateFallback) {
+			const createdAt = new Date(file.createdAt)
+			const format = getDateFormat(createdAt)
+			return this.intl.formatDate(createdAt, format)
+		}
+
+		return
 	}
 
 	claimTemporaryFile(fileId: string) {

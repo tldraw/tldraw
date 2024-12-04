@@ -1,3 +1,68 @@
+# v3.6.0 (Wed Dec 04 2024)
+
+### Release Notes
+
+#### assets: fix up resolving when copy/pasting multiple items; also, videos ([#5061](https://github.com/tldraw/tldraw/pull/5061))
+
+- Fixed bugs with copy/pasting multilple assets from one board to another.
+- Fixed bug with copy/pasting videos from one board to another.
+
+#### Expand helpers available in actions / toasts overrides. ([#5041](https://github.com/tldraw/tldraw/pull/5041))
+
+- Makes new helper available via actions and tools overrides.
+
+#### Fix file name when exporting a single unnamed frame ([#4918](https://github.com/tldraw/tldraw/pull/4918))
+
+- Fix file name when exporting a single unnamed frame
+
+#### Fix some export bugs ([#5022](https://github.com/tldraw/tldraw/pull/5022))
+
+- Properly clip scaled text in frames when exporting
+- Stop multiple concurrent exports from interfering with each-others fonts
+
+#### Make sure notes snap to grid after position is updated ([#5010](https://github.com/tldraw/tldraw/pull/5010))
+
+- Fixed a bug with notes not snapping to the grid unless the size was a multiple of the grid size.
+
+#### Fix custom embed first render ([#5027](https://github.com/tldraw/tldraw/pull/5027))
+
+- Fix an issue with custom embeds not rendering correctly on the first render.
+
+#### Fix long press bug ([#5032](https://github.com/tldraw/tldraw/pull/5032))
+
+- Fixed a bug with long press on inset canvases.
+
+---
+
+#### 🐛 Bug Fix
+
+- [botcom] Add import / save as tldr file. [#5049](https://github.com/tldraw/tldraw/pull/5049) ([@steveruizok](https://github.com/steveruizok))
+- [botcom] more design tweaks [#4995](https://github.com/tldraw/tldraw/pull/4995) ([@steveruizok](https://github.com/steveruizok) [@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🐛 Bug Fixes
+
+- assets: fix up resolving when copy/pasting multiple items; also, videos [#5061](https://github.com/tldraw/tldraw/pull/5061) ([@mimecuvalo](https://github.com/mimecuvalo))
+- Fix file name when exporting a single unnamed frame [#4918](https://github.com/tldraw/tldraw/pull/4918) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@SomeHats](https://github.com/SomeHats) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix some export bugs [#5022](https://github.com/tldraw/tldraw/pull/5022) ([@SomeHats](https://github.com/SomeHats) [@huppy-bot[bot]](https://github.com/huppy-bot[bot]))
+- Make sure notes snap to grid after position is updated [#5010](https://github.com/tldraw/tldraw/pull/5010) ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk) [@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix custom embed first render [#5027](https://github.com/tldraw/tldraw/pull/5027) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix long press bug [#5032](https://github.com/tldraw/tldraw/pull/5032) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🛠️ API Changes
+
+- Expand helpers available in actions / toasts overrides. [#5041](https://github.com/tldraw/tldraw/pull/5041) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 6
+
+- [@huppy-bot[bot]](https://github.com/huppy-bot[bot])
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Trygve Aaberge ([@trygve-aaberge-adsk](https://github.com/trygve-aaberge-adsk))
+
+---
+
 # v3.5.0 (Tue Nov 26 2024)
 
 ### Release Notes

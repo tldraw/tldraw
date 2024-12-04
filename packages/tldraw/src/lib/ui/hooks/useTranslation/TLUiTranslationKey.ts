@@ -307,6 +307,7 @@ export type TLUiTranslationKey =
 	| 'people-menu.leading'
 	| 'people-menu.user'
 	| 'people-menu.invite'
+	| 'help-menu.import-tldr-file'
 	| 'help-menu.title'
 	| 'help-menu.about'
 	| 'help-menu.docs'

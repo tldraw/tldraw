@@ -26,12 +26,10 @@ export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef
 	return {
 		key: `${DefaultFontStyle.id}:${fontStyle}`,
 		async getElement() {
-			const font = findFont(fontStyle)
-			if (!font) return null
+			const fontInfo = findFontInfo(fontStyle)
+			if (!fontInfo) return null
 
-			const url: string = (font as any).$$_url
-			const fontFaceRule: string = (font as any).$$_fontface
-			if (!url || !fontFaceRule) return null
+			const { url, fontFaceRule } = fontInfo
 
 			const fontFile = await (await fetch(url)).blob()
 			const base64FontFile = await FileHelpers.blobToDataUrl(fontFile)
@@ -56,11 +54,18 @@ export function getRichTextStylesExport(): SvgExportDef {
 	}
 }
 
-function findFont(name: TLDefaultFontStyle): FontFace | null {
+function findFontInfo(name: TLDefaultFontStyle) {
 	const fontFamily = DefaultFontFamilies[name]
 	for (const font of document.fonts) {
 		if (fontFamily.includes(font.family)) {
-			return font
+			if (
+				'$$_url' in font &&
+				typeof font.$$_url === 'string' &&
+				'$$_fontface' in font &&
+				typeof font.$$_fontface === 'string'
+			) {
+				return { url: font.$$_url, fontFaceRule: font.$$_fontface }
+			}
 		}
 	}
 	return null

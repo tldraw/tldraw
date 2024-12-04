@@ -1,7 +1,7 @@
 import {
-	Expand,
 	IndexKey,
 	JsonValue,
+	MakeUndefinedOptional,
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,
 	exhaustiveSwitchError,
 	getOwnProperty,
@@ -700,16 +700,6 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
 	return value as Record<string, unknown>
 })
 
-/** @public */
-export type ExtractRequiredKeys<T extends object> = {
-	[K in keyof T]: undefined extends T[K] ? never : K
-}[keyof T]
-
-/** @public */
-export type ExtractOptionalKeys<T extends object> = {
-	[K in keyof T]: undefined extends T[K] ? K : never
-}[keyof T]
-
 /**
  * Validate an object has a particular shape.
  *
@@ -717,13 +707,7 @@ export type ExtractOptionalKeys<T extends object> = {
  */
 export function object<Shape extends object>(config: {
 	readonly [K in keyof Shape]: Validatable<Shape[K]>
-}): ObjectValidator<
-	Expand<
-		{ [P in ExtractRequiredKeys<Shape>]: Shape[P] } & {
-			[P in ExtractOptionalKeys<Shape>]?: Shape[P]
-		}
-	>
-> {
+}): ObjectValidator<MakeUndefinedOptional<Shape>> {
 	return new ObjectValidator(config) as any
 }
 
