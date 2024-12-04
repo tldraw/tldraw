@@ -31,6 +31,7 @@ import {
 	useCollaborationStatus,
 	useDialogs,
 	useEditor,
+	useEvent,
 	useValue,
 } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -136,7 +137,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 		(shape: TLShape) => hideAllShapes.get() || !!shape.meta.hidden,
 		[hideAllShapes]
 	)
-	const handleSlurpFailure = useCallback(
+	const handleSlurpFailure = useEvent(
 		({ slurpPersistenceKey, onTryAgain }: { slurpPersistenceKey: string; onTryAgain(): void }) => {
 			dialogs.addDialog({
 				id: 'slurp-failure',
@@ -151,8 +152,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 					/>
 				),
 			})
-		},
-		[dialogs]
+		}
 	)
 
 	const handleMount = useCallback(
