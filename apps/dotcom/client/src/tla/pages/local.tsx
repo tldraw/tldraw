@@ -1,13 +1,17 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { assert, deleteFromLocalStorage, getFromLocalStorage, setInLocalStorage } from 'tldraw'
+import { assert, throttle } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { globalEditor } from '../../utils/globalEditor'
 import { SneakyDarkModeSync } from '../components/TlaEditor/SneakyDarkModeSync'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
-import { SHOULD_SLURP_FILE } from '../utils/temporary-files'
+import {
+	clearShouldSlurpFile,
+	getShouldSlurpFile,
+	setShouldSlurpFile,
+} from '../utils/temporary-files'
 import { getFilePath } from '../utils/urls'
 
 export function Component() {
@@ -18,9 +22,8 @@ export function Component() {
 	useEffect(() => {
 		if (!app) return
 
-		const shouldSlurpFile = getFromLocalStorage(SHOULD_SLURP_FILE)
-		if (shouldSlurpFile) {
-			deleteFromLocalStorage(SHOULD_SLURP_FILE)
+		if (getShouldSlurpFile()) {
+			clearShouldSlurpFile()
 			const res = app.slurpFile()
 			if (res.ok) {
 				navigate(getFilePath(res.value.file.id), { state: { mode: 'create' }, replace: true })
@@ -57,18 +60,24 @@ function LocalTldraw() {
 				componentsOverride={components}
 				onMount={(editor) => {
 					globalEditor.set(editor)
+					const shapes$ = editor.store.query.ids('shape')
+
+					function maybeSlurpFile() {
+						if (shapes$.get().size > 0) {
+							setShouldSlurpFile()
+						} else {
+							clearShouldSlurpFile()
+						}
+					}
+
+					maybeSlurpFile()
+					const throttledMaybeSlurpFile = throttle(maybeSlurpFile, 1000)
 
 					// the first time the user makes a change we should indicate
 					// that the file should be slurped
-					let unsub = editor.store.listen(
-						() => {
-							setInLocalStorage(SHOULD_SLURP_FILE, 'true')
-							unsub()
-							unsub = () => {}
-						},
-						{ scope: 'document', source: 'user' }
-					)
+					const unsub = editor.store.listen(maybeSlurpFile, { scope: 'document', source: 'user' })
 					return () => {
+						throttledMaybeSlurpFile.cancel()
 						unsub()
 					}
 				}}

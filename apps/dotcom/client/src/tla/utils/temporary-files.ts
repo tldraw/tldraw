@@ -1,14 +1,30 @@
 import { deleteDB } from 'idb'
-import { Editor, LocalIndexedDb, TAB_ID, TLAsset } from 'tldraw'
+import {
+	Editor,
+	LocalIndexedDb,
+	TAB_ID,
+	TLAsset,
+	deleteFromLocalStorage,
+	getFromLocalStorage,
+	setInLocalStorage,
+} from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
 import {
 	getScratchPersistenceKey,
 	resetScratchPersistenceKey,
 } from '../../utils/scratch-persistence-key'
 
-export const SHOULD_SLURP_FILE = 'SHOULD_SLURP_FILE'
-export const LOCAL_LEGACY_SLUG = 'local_legacy'
-export const LOCAL_LEGACY_SUFFIX = '_legacy'
+const SHOULD_SLURP_FILE = 'SHOULD_SLURP_FILE'
+
+export function getShouldSlurpFile() {
+	return getFromLocalStorage(SHOULD_SLURP_FILE)
+}
+export function setShouldSlurpFile() {
+	setInLocalStorage(SHOULD_SLURP_FILE, 'true')
+}
+export function clearShouldSlurpFile() {
+	deleteFromLocalStorage(SHOULD_SLURP_FILE)
+}
 
 export async function slurpLocalContent(editor: Editor, abortSignal: AbortSignal) {
 	const slurpPersistenceKey = getScratchPersistenceKey()
