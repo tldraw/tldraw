@@ -5,10 +5,10 @@ import { expect, test } from '../fixtures/tla-test'
 test.use({ storageState: { cookies: [], origins: [] } })
 
 test('can login', async ({ homePage, editor }) => {
-	expect(homePage.signUpButton).toBeVisible()
+	expect(homePage.signInButton).toBeVisible()
 	const user = USERS[test.info().parallelIndex]
 	await homePage.loginAs(user)
-	await expect(homePage.signUpButton).not.toBeVisible()
+	await expect(homePage.signInButton).not.toBeVisible()
 	await expect(editor.sidebarToggle).toBeVisible()
 })
 

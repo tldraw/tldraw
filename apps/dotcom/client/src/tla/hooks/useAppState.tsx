@@ -1,13 +1,17 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
-import { assertExists, deleteFromLocalStorage, getFromLocalStorage } from 'tldraw'
+import { assertExists, atom, deleteFromLocalStorage, getFromLocalStorage } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
+import { useIntl } from '../utils/i18n'
 import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
 const appContext = createContext<TldrawApp | null>(null)
 
+export const isClientTooOld$ = atom('isClientTooOld', false)
+
 export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState(null as TldrawApp | null)
+	const intl = useIntl()
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
 
@@ -34,6 +38,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				email: user.emailAddresses[0]?.emailAddress || '',
 				avatar: user.imageUrl || '',
 				getToken: async () => await auth.getToken(),
+				onClientTooOld: () => {
+					isClientTooOld$.set(true)
+				},
+				intl,
 			}).then(({ app }) => {
 				if (didCancel) {
 					app.dispose()

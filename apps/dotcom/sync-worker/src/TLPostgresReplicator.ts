@@ -133,7 +133,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 			// preserve the promise so any awaiters do eventually get resolved
 			// TODO: set a timeout on the promise?
 			promise,
-			db: getPostgres(this.env),
+			db: getPostgres(this.env, { pooled: false }),
 			sequenceId: uniqueId(),
 		}
 		const subscription = await this.state.db.subscribe(

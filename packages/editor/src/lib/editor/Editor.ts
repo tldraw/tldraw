@@ -8183,6 +8183,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (
 					(asset.type === 'image' || asset.type === 'video') &&
 					!asset.props.src?.startsWith('data:image') &&
+					!asset.props.src?.startsWith('data:video') &&
 					!asset.props.src?.startsWith('http')
 				) {
 					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
@@ -8420,8 +8421,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (
-				(asset.type === 'image' || asset.type === 'video') &&
-				asset.props.src?.startsWith('data:image')
+				(asset.type === 'image' && asset.props.src?.startsWith('data:image')) ||
+				(asset.type === 'video' && asset.props.src?.startsWith('data:video'))
 			) {
 				// it's src is a base64 image or video; we need to create a new asset without the src,
 				// then create a new asset from the original src. So we save a copy of the original asset,

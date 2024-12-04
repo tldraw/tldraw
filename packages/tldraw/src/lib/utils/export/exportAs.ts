@@ -28,7 +28,7 @@ export async function exportAs(
 		if (ids.length === 1) {
 			const first = editor.getShape(ids[0])!
 			if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
-				name = first.props.name ?? 'frame'
+				name = first.props.name || 'frame'
 			} else {
 				name = `${sanitizeId(first.id)} at ${getTimestamp()}`
 			}

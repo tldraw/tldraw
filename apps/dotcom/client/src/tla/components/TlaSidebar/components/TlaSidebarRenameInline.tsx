@@ -26,10 +26,7 @@ export function TlaSidebarRenameInline({
 
 		if (name) {
 			// Only update the name if there is a name there to update
-			app.updateFile(fileId, (file) => ({
-				...file,
-				name,
-			}))
+			app.updateFile({ id: fileId, name })
 		}
 		trackEvent('rename-file', { name, source })
 		onClose()
@@ -62,6 +59,7 @@ export function TlaSidebarRenameInline({
 				defaultValue={app.getFileName(fileId)}
 				onComplete={handleSave}
 				onCancel={onClose}
+				onBlur={onClose}
 				autoSelect
 				autoFocus
 			/>

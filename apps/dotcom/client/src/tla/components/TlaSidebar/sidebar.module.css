@@ -313,7 +313,6 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	overflow: hidden;
 	height: 36px;
 	padding: 0px 8px 0px 8px;
 }
@@ -372,6 +371,7 @@
 	height: 100%;
 	cursor: pointer;
 	z-index: 2;
+	pointer-events: all;
 }
 
 .linkMenu {
@@ -415,4 +415,28 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.guestBadge {
+	display: inline-flex;
+	justify-self: flex-end;
+	pointer-events: all;
+}
+
+.guestBadgeTrigger {
+	margin-right: 6px;
+	border-radius: 50%;
+	pointer-events: all;
+	overflow: hidden;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	outline: none;
+	border: none;
+	width: 14px;
+	height: 14px;
+	z-index: 3;
+	padding: 0;
+	background: none;
+	color: var(--tla-color-text-1);
 }

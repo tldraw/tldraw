@@ -1,9 +1,10 @@
+import { SignInButton } from '@clerk/clerk-react'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { ReactElement, useEffect } from 'react'
 import { sadFaceIcon } from '../../../components/ErrorPage/ErrorPage'
 import { useSetIsReady } from '../../hooks/useIsReady'
 import { F } from '../../utils/i18n'
-import { TlaSignUpButton } from '../TlaSignUpButton/TlaSignUpButton'
+import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import styles from './TlaFileError.module.css'
 
 function DefaultError() {
@@ -49,7 +50,17 @@ export function TlaFileError({ error }: { error: unknown }) {
 				<TlaFileErrorContent
 					header={<F defaultMessage="Private file" />}
 					para1={<F defaultMessage="Contact the owner to request access." />}
-					cta={<TlaSignUpButton />}
+					cta={
+						<SignInButton
+							mode="modal"
+							forceRedirectUrl={location.pathname + location.search}
+							signUpForceRedirectUrl={location.pathname + location.search}
+						>
+							<TlaCtaButton data-testid="tla-sign-up">
+								<F defaultMessage="Sign in" />
+							</TlaCtaButton>
+						</SignInButton>
+					}
 				/>
 			)
 		}
@@ -69,6 +80,17 @@ export function TlaFileError({ error }: { error: unknown }) {
 				/>
 			)
 		}
+		case TLSyncErrorCloseEventReason.ROOM_FULL: {
+			return (
+				<TlaFileErrorContent
+					header={<F defaultMessage="Collaborator limit reached" />}
+					para1={
+						<F defaultMessage="This file has reached the maximum number of active collaborators." />
+					}
+				/>
+			)
+		}
+
 		default:
 			return <DefaultError />
 	}

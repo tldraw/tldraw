@@ -14,7 +14,14 @@ const GoBackLink = () => {
 
 // This is inline because if you're offline you won't be able to get an image.
 export const sadFaceIcon = (
-	<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
+	<svg
+		data-testid="tla-error-icon"
+		xmlns="http://www.w3.org/2000/svg"
+		width="36"
+		height="36"
+		viewBox="0 0 36 36"
+		fill="none"
+	>
 		<path
 			d="M0 3.95604C0 1.77118 1.69661 0 3.78947 0H32.2105C34.3034 0 36 1.77118 36 3.95604V32.044C36 34.2288 34.3034 36 32.2105 36H3.78947C1.69661 36 0 34.2288 0 32.044V3.95604Z"
 			fill="black"

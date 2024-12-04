@@ -53,10 +53,9 @@ export function PeopleMenu({ displayUserWhenAlone, children }: PeopleMenuProps) 
 				<Popover.Content
 					dir="ltr"
 					className="tlui-menu"
-					align="end"
 					side="bottom"
 					sideOffset={2}
-					alignOffset={-5}
+					collisionPadding={4}
 					onEscapeKeyDown={preventDefault}
 				>
 					<div className="tlui-people-menu__wrapper">
