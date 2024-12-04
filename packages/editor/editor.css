@@ -893,7 +893,28 @@ input,
 .tl-rich-text-tiptap .ProseMirror {
 	word-wrap: break-word;
 	white-space: pre-wrap;
-	white-space: break-spaces;
+
+	/**
+	 * N.B. This following CSS Rule comes standard with the tiptap editor.
+	 * Combined with the above rule that it supersedes, it allows for
+	 * the auto-linking to work in text. Say, when typing example.com
+	 * this helps it automatically turn that bit of text into a link.
+	 *
+	 * However, specifically, the break-spaces features seems to cause
+	 * rendering differences when going in-and-out of edit mode. For example,
+	 * the statically rendered text 'the rain in spain falls mainly on the plain'
+	 * in a note shape will render differently when going in-and-out of edit mode.
+	 *
+	 * So, this is commented out to help make both the autolinking work (which now
+	 * relies on the white-space: pre-wrap to work and to make the static/edit-mode
+	 * rendering consistent.
+	 * In the future, we might consider just making the static rendering just use
+	 * white-space: break-spaces to make it consistent with the edit mode if need be.
+	 *
+	 * Also, the amount of ink I've spilt in my career writing comments explaining
+	 * white-space in contenteditable is incredible.
+	 *
+	/* white-space: break-spaces; */
 }
 
 .tl-rich-text-tiptap p {

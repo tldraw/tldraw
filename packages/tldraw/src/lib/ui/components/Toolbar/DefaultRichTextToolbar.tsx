@@ -91,16 +91,6 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 
 		const handleClick = () => {
 			const isLinkActive = textEditor.isActive('link')
-			if (isLinkActive) {
-				const { from, to } = getMarkRange(
-					textEditor.state.doc.resolve(textEditor.state.selection.from),
-					textEditor.schema.marks.link as MarkType
-				) as Range
-				// Select the entire link if we just clicked on it while in edit mode, but not if there's a specific selection.
-				if (textEditor.state.selection.empty) {
-					textEditor.commands.setTextSelection({ from, to })
-				}
-			}
 			setWasJustEditingLink(isEditingLink)
 			setIsEditingLink(isLinkActive)
 		}
@@ -108,6 +98,27 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		textEditor.view.dom.addEventListener('click', handleClick)
 		return () => {
 			textEditor.view.dom.removeEventListener('click', handleClick)
+		}
+	}, [textEditor, isEditingLink])
+
+	// If we're editing a link, select the entire link.
+	// This can happen via a click or via keyboarding over to the link and then
+	// clicking the toolbar button.
+	useEffect(() => {
+		if (!textEditor) {
+			return
+		}
+
+		if (isEditingLink) {
+			const { from, to } = getMarkRange(
+				textEditor.state.doc.resolve(textEditor.state.selection.from),
+				textEditor.schema.marks.link as MarkType
+			) as Range
+			// Select the entire link if we just clicked on it while in edit mode, but not if there's
+			// a specific selection.
+			if (textEditor.state.selection.empty) {
+				textEditor.commands.setTextSelection({ from, to })
+			}
 		}
 	}, [textEditor, isEditingLink])
 
@@ -143,8 +154,9 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		)
 	}, [hasTextSelection, isMousingDown, isSelectionOnSameLine])
 
-	// A bit annoying but we need to stabilize the toolbar position so it doesn't jump around when modifying the rich text.
-	// The issue stems from the fact that coordsAtPos provides slightly different results for the same general position.
+	// A bit annoying but we need to stabilize the toolbar position so it doesn't jump around
+	// when modifying the rich text. The issue stems from the fact that coordsAtPos provides
+	// slightly different results for the same general position.
 	// However, if the camera has moved, forget the stabilization logic, just update the positions.
 	useEffect(() => {
 		if (toolbarPosition.y === defaultPosition.y || isEditingLink) return
