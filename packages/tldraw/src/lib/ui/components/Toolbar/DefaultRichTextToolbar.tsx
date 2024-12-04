@@ -241,22 +241,10 @@ function getTextSelectionBounds(editor: Editor, textEditor: TextEditor) {
 	// Ensure that start < end for the menu to be positioned correctly.
 	// Sometimes the coords can be NaN and we need to exclude those.
 	const coords = {
-		top: Math.min(
-			!isNaN(fromPos.top) ? fromPos.top : Infinity,
-			!isNaN(toPos.top) ? toPos.top : Infinity
-		),
-		bottom: Math.max(
-			!isNaN(fromPos.bottom) ? fromPos.bottom : -Infinity,
-			!isNaN(toPos.bottom) ? toPos.bottom : -Infinity
-		),
-		left: Math.min(
-			!isNaN(fromPos.left) ? fromPos.left : Infinity,
-			!isNaN(toPos.left) ? toPos.left : Infinity
-		),
-		right: Math.max(
-			!isNaN(fromPos.right) ? fromPos.right : -Infinity,
-			!isNaN(toPos.right) ? toPos.right : -Infinity
-		),
+		top: Math.min(fromPos.top, toPos.top),
+		bottom: Math.max(fromPos.bottom, toPos.bottom),
+		left: Math.min(fromPos.left, toPos.left),
+		right: Math.max(fromPos.right, toPos.right),
 	}
 
 	return Box.From({

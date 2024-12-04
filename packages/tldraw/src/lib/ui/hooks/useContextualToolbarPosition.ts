@@ -53,7 +53,7 @@ export function useContextualToolbarPosition({
 		return defaultPosition
 	}
 
-	if (isCoarsePointer || !selectionBounds) {
+	if (isCoarsePointer || !selectionBounds || isNaN(selectionBounds.x) || isNaN(selectionBounds.y)) {
 		return {
 			x: container.clientWidth / 2 - menuWidth / 2,
 			y: viewportHeight - menuHeight - 16,

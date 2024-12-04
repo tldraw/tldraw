@@ -1,4 +1,5 @@
 import { Editor as TextEditor } from '@tiptap/core'
+import { preventDefault } from '@tldraw/editor'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
@@ -47,6 +48,7 @@ export function DefaultRichTextToolbarItems({
 				title={msg(`tool.rich-text-${name}`)}
 				type="icon"
 				isActive={textEditor.isActive(name, attrs)}
+				onPointerDown={preventDefault}
 				onClick={() => {
 					trackEvent('rich-text', { operation: name as any, source })
 
