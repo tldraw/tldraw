@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
 
@@ -8,7 +9,13 @@ export function TestimonialsSection() {
 			<SectionHeading
 				subheading="Testimonials"
 				heading="Friends of the draw"
-				description="34,000+ GitHub stars. 60,000 followers on X. Join the 5,000+ strong community on Discord."
+				description={
+					<>
+						36,000 <Link href="https://github.com/tldraw">GitHub stars</Link>. 62,000 followers on{' '}
+						<Link href="https://x.com/tldraw">Twitter/X</Link>. Join the 7,500 strong community on{' '}
+						<Link href="https://discord.com/invite/SBBEVCA4PG">Discord</Link>.
+					</>
+				}
 			/>
 			<div className="flow-root px-5 md:px-0 relative">
 				<div className="-mt-8 sm:columns-2 lg:columns-3 gap-8">
@@ -37,13 +44,23 @@ export function TestimonialsSection() {
 	)
 }
 
-const testimonials = [
+const testimonials: {
+	name: string
+	role: string
+	avatar: string
+	quote: string
+}[] = [
 	{
-		name: 'Alasdair Monk',
-		role: 'Developer at Github',
-		avatar: 'https://i.pravatar.cc/300?img=1',
-		quote:
-			'p much hands down my favourite tool right now is @tldraw – perfect level of fidelity for multiplayer whiteboarding',
+		name: 'Matt Palmer',
+		role: 'Developer Relations at Replit',
+		avatar: '/testimonial/matt_palmer.jpg',
+		quote: 'The @tldraw docs are excellent',
+	},
+	{
+		name: 'Ryan Mather',
+		role: 'Poetry Camera',
+		avatar: '/testimonial/ryan_mather.jpg',
+		quote: "these cats can't stop cooking",
 	},
 	{
 		name: 'Justin Duke',
