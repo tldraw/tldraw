@@ -27,9 +27,13 @@ export const multiplayerAssetStore = {
 		if (!asset.props.src) return null
 
 		if (asset.props.src.startsWith('asset:')) {
-			const res = await loadLocalFile(asset)
-			if (res) {
-				return res.url
+			if (!asset.meta.hidden) {
+				const res = await loadLocalFile(asset)
+				if (res) {
+					return res.url
+				}
+			} else {
+				return asset.props.src
 			}
 		}
 

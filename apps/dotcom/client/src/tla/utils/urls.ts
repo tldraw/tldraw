@@ -25,6 +25,10 @@ export function getFilePath(fileSlug: string) {
 	return buildUrl({ pathname: `/${PREFIX.file}/${fileSlug}` })
 }
 
+export function getLocalFilePath(persistenceKey: string) {
+	return buildUrl({ pathname: `/${PREFIX.localFile}/${persistenceKey}` })
+}
+
 export function getPublishPath(publishSlug: string) {
 	return buildUrl({ pathname: `/${PREFIX.publish}/${publishSlug}` })
 }

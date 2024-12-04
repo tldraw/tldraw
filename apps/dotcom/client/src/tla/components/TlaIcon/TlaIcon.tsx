@@ -10,10 +10,12 @@ export function TlaIcon({
 	icon,
 	className = '',
 	invertIcon,
+	inline,
 }: {
 	icon: string
 	className?: string
 	invertIcon?: boolean
+	inline?: boolean
 }) {
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -26,14 +28,20 @@ export function TlaIcon({
 		ref.current.style.webkitMask = getMaskStyle(icon)
 	}, [ref, icon])
 
+	const _className = classNames({
+		[styles.icon]: true,
+		[styles.inline]: inline,
+		[className]: true,
+	})
+
 	if (icon === 'none') {
-		return <div className={classNames(styles.icon, className)} />
+		return <div className={_className} />
 	}
 
 	return (
 		<div
 			ref={ref}
-			className={classNames(styles.icon, className)}
+			className={_className}
 			style={{
 				mask: getMaskStyle(icon),
 				transform: invertIcon ? 'scale(-1, 1)' : undefined,

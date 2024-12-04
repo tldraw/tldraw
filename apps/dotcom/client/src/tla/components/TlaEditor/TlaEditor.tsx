@@ -13,6 +13,7 @@ import {
 	TLComponents,
 	TLDRAW_FILE_EXTENSION,
 	TLSessionStateSnapshot,
+	TLShape,
 	TLStore,
 	TLUiOverrides,
 	Tldraw,
@@ -26,7 +27,9 @@ import {
 	throttle,
 	tltime,
 	useActions,
+	useAtom,
 	useCollaborationStatus,
+	useDialogs,
 	useEditor,
 	useValue,
 } from 'tldraw'
@@ -36,6 +39,7 @@ import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
+import { getScratchPersistenceKey } from '../../../utils/scratch-persistence-key'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -43,7 +47,8 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { slurpLocalContent, uploadLegacyFiles } from '../../utils/temporary-files'
+import { slurpLocalContent, uploadLocalAssets } from '../../utils/temporary-files'
+import { SlurpFailure } from './SlurpFailure'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -124,6 +129,32 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 
 	const setIsReady = useSetIsReady()
 
+	const dialogs = useDialogs()
+
+	const hideAllShapes = useAtom('hideAllShapes', false)
+	const isShapeHidden = useCallback(
+		(shape: TLShape) => hideAllShapes.get() || !!shape.meta.hidden,
+		[hideAllShapes]
+	)
+	const handleSlurpFailure = useCallback(
+		({ slurpPersistenceKey, onTryAgain }: { slurpPersistenceKey: string; onTryAgain(): void }) => {
+			dialogs.addDialog({
+				id: 'slurp-failure',
+				component: ({ onClose }) => (
+					<SlurpFailure
+						slurpPersistenceKey={slurpPersistenceKey}
+						onTryAgain={() => {
+							onTryAgain()
+							onClose()
+						}}
+						onClose={onClose}
+					/>
+				),
+			})
+		},
+		[dialogs]
+	)
+
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			;(window as any).app = app
@@ -138,6 +169,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				setIsReady()
 				return
 			}
+
 			const fileState = app.getFileState(fileId)
 			if (fileState?.lastSessionState) {
 				editor.loadSnapshot({ session: JSON.parse(fileState.lastSessionState.trim() || 'null') })
@@ -159,28 +191,75 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 			})
 
 			const abortController = new AbortController()
+			const onSlurpFail = (slurpPersistenceKey: string) => {
+				if (abortController.signal.aborted) return
+				// hide failed assets
+				editor.updateAssets(
+					editor
+						.getAssets()
+						.map((asset) =>
+							asset.props.src?.startsWith('asset:')
+								? { ...asset, meta: { ...asset.meta, hidden: true } }
+								: asset
+						)
+				)
+				// need to remount all shapes to get the failure state to show for images
+				hideAllShapes.set(true)
+				requestAnimationFrame(() => {
+					hideAllShapes.set(false)
+				})
+
+				handleSlurpFailure({
+					slurpPersistenceKey,
+					onTryAgain() {
+						if (abortController.signal.aborted) return
+						editor.focus()
+						// show failed assets
+						editor.updateAssets(
+							editor
+								.getAssets()
+								.map((asset) =>
+									asset.props.src?.startsWith('asset:')
+										? { ...asset, meta: { ...asset.meta, hidden: false } }
+										: asset
+								)
+						)
+						uploadLocalAssets(editor, abortController.signal).catch((e) => {
+							console.error(e)
+							onSlurpFail(slurpPersistenceKey)
+						})
+					},
+				})
+			}
+
 			if (app._slurpFileId === fileId) {
 				// This is a one-time operation.
 				// So we need to wait a tick for react strict mode to finish
 				// doing its nasty business before we start the migration.
+				const slurpPersistenceKey = getScratchPersistenceKey()
 				sleep(50)
 					.then(async () => {
 						if (!abortController.signal.aborted) {
 							if (abortController.signal.aborted) return
 							await slurpLocalContent(editor, abortController.signal)
 							if (abortController.signal.aborted) return
-							uploadLegacyFiles(editor, abortController.signal)
+							uploadLocalAssets(editor, abortController.signal).catch((e) => {
+								console.error(e)
+								onSlurpFail(slurpPersistenceKey)
+							})
 							app._slurpFileId = null
 							setIsReady()
 						}
 					})
-					.catch((_e) => {
-						// show migration error
-						// give people link to /local and tell them to
-						// create a tldr file and drag it in
-					})
+					.catch(() => onSlurpFail(slurpPersistenceKey))
 			} else {
-				uploadLegacyFiles(editor, abortController.signal)
+				const slurpPersistenceKey = editor.getDocumentSettings().meta.slurpPersistenceKey
+				if (typeof slurpPersistenceKey === 'string') {
+					uploadLocalAssets(editor, abortController.signal).catch((e) => {
+						console.error(e)
+						onSlurpFail(slurpPersistenceKey)
+					})
+				}
 				setIsReady()
 			}
 
@@ -190,7 +269,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				updateSessionState.cancel()
 			}
 		},
-		[app, fileId, setIsReady]
+		[app, fileId, handleSlurpFailure, hideAllShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()
@@ -309,6 +388,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				options={{ actionShortcutsLocation: 'toolbar' }}
 				deepLinks={deepLinks || undefined}
 				overrides={overrides}
+				isShapeHidden={isShapeHidden}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
