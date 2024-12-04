@@ -109,7 +109,11 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 			return
 		}
 
-		if (isEditingLink) {
+		// N.B. This specifically isn't checking the isEditingLink state but
+		// the current active state of the text editor. This is because there's
+		// a subtelty where when going edit-to-edit, that is text editor-to-text editor
+		// in different shapes, the isEditingLink state doesn't get reset quickly enough.
+		if (textEditor.isActive('link')) {
 			const { from, to } = getMarkRange(
 				textEditor.state.doc.resolve(textEditor.state.selection.from),
 				textEditor.schema.marks.link as MarkType
