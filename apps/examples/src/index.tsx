@@ -1,6 +1,7 @@
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import {
 	DefaultErrorFallback,
@@ -60,9 +61,11 @@ const router = createBrowserRouter([
 					const Component = await example.loadComponent()
 					return {
 						element: (
-							<ExamplePage example={example}>
-								<ExampleWrapper example={example} component={Component} />
-							</ExamplePage>
+							<NoIndex>
+								<ExamplePage example={example}>
+									<ExampleWrapper example={example} component={Component} />
+								</ExamplePage>
+							</NoIndex>
 						),
 					}
 				},
@@ -72,13 +75,28 @@ const router = createBrowserRouter([
 				lazy: async () => {
 					const Component = await example.loadComponent()
 					return {
-						element: <ExampleWrapper example={example} component={Component} />,
+						element: (
+							<NoIndex>
+								<ExampleWrapper example={example} component={Component} />,
+							</NoIndex>
+						),
 					}
 				},
 			},
 		])
 	),
 ])
+
+function NoIndex({ children }: { children: React.ReactNode }) {
+	return (
+		<>
+			<Helmet>
+				<meta name="robots" content="noindex, noimageindex, nofollow" />
+			</Helmet>
+			{children}
+		</>
+	)
+}
 
 document.addEventListener('DOMContentLoaded', () => {
 	const rootElement = document.getElementById('root')!
@@ -89,7 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
 				fallback={(error) => <DefaultErrorFallback error={error} />}
 				onError={(error) => console.error(error)}
 			>
-				<RouterProvider router={router} />
+				<HelmetProvider>
+					<RouterProvider router={router} />
+				</HelmetProvider>
 			</ErrorBoundary>
 		</StrictMode>
 	)
