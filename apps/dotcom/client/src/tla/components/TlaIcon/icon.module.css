@@ -1,4 +1,5 @@
 .icon {
+	display: flex;
 	position: relative;
 	flex-shrink: 0;
 	background-color: currentColor;

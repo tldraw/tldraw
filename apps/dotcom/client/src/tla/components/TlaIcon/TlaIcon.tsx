@@ -35,11 +35,11 @@ export function TlaIcon({
 	})
 
 	if (icon === 'none') {
-		return <div className={_className} />
+		return <span className={_className} />
 	}
 
 	return (
-		<div
+		<span
 			ref={ref}
 			className={_className}
 			style={{
@@ -51,5 +51,5 @@ export function TlaIcon({
 }
 
 export function TlaIconWrapper(props: HtmlHTMLAttributes<HTMLDivElement>) {
-	return <div {...props} className={classNames(styles.iconWrapper, props.className)} />
+	return <span {...props} className={classNames(styles.iconWrapper, props.className)} />
 }
