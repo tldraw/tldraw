@@ -3,7 +3,7 @@ import Link from 'next/link'
 export function LogoSection() {
 	return (
 		<section className="w-full max-w-screen-xl mx-auto px-2 lg:px-5 pt-16 sm:pt-20 text-sm sm:text-base">
-			<h2 className="text-center mb-8">Trusted by great teams around the globe:</h2>
+			<h2 className="text-center mb-8">Our real customers:</h2>
 			<div className="flex flex-wrap items-center justify-center lg:justify-center gap-0">
 				{logos.map(({ src, alt, url }, index) => (
 					<Link key={index} href={url} title={alt} target="_blank">
