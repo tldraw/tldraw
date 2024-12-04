@@ -1,6 +1,7 @@
 import { ColorSchemeMenu, LanguageMenu, TldrawUiMenuGroup, TldrawUiMenuSubmenu } from 'tldraw'
 import { Links } from '../../../components/Links'
 import { defineMessages, useMsg } from '../../utils/i18n'
+import { TlaDebugMenuGroup } from '../TlaDebugMenuGroup'
 
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
@@ -12,6 +13,7 @@ export function TlaAppMenuGroup() {
 			<HelpSubMenu />
 			<ColorThemeSubmenu />
 			<LanguageMenu />
+			<TlaDebugMenuGroup />
 		</TldrawUiMenuGroup>
 	)
 }

@@ -131,18 +131,18 @@ export class TldrawApp {
 	}
 
 	messages = defineMessages({
-		publish_failed: { defaultMessage: 'Unable to publish the file' },
-		unpublish_failed: { defaultMessage: 'Unable to unpublish the file' },
-		republish_failed: { defaultMessage: 'Unable to publish the changes' },
-		unknown_error: { defaultMessage: 'An unexpected error occurred' },
+		publish_failed: { defaultMessage: 'Unable to publish the file.' },
+		unpublish_failed: { defaultMessage: 'Unable to unpublish the file.' },
+		republish_failed: { defaultMessage: 'Unable to publish the changes.' },
+		unknown_error: { defaultMessage: 'An unexpected error occurred.' },
 		forbidden: {
-			defaultMessage: 'You do not have the necessary permissions to perform this action',
+			defaultMessage: 'You do not have the necessary permissions to perform this action.',
 		},
-		bad_request: { defaultMessage: 'Invalid request' },
-		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit' },
+		bad_request: { defaultMessage: 'Invalid request.' },
+		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit.' },
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		client_too_old: {
-			defaultMessage: 'Please refresh the page to get the latest version of tldraw',
+			defaultMessage: 'Please refresh the page to get the latest version of tldraw.',
 		},
 	})
 
