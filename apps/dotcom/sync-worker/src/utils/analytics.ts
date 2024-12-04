@@ -12,6 +12,7 @@ export function writeDataPoint(
 	name: string,
 	{ blobs, indexes, doubles }: EventData
 ) {
+	// eslint-disable-next-line no-console
 	console.log('writeDataPoint', name, blobs, indexes, doubles)
 	measure?.writeDataPoint({
 		blobs: [name, env.WORKER_NAME ?? 'development-tldraw-multiplayer', ...(blobs ?? [])],
