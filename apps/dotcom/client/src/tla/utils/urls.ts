@@ -1,6 +1,7 @@
 export const PREFIX = {
 	tla: 'q',
 	file: 'f',
+	localFile: 'lf',
 	publish: 'p',
 }
 

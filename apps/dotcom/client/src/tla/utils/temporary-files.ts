@@ -80,6 +80,8 @@ export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: 
 }
 
 export async function uploadLegacyFiles(editor: Editor, abortSignal: AbortSignal) {
+	const slurpPersistenceKey = editor.getDocumentSettings().meta.slurpPersistenceKey
+	if (!slurpPersistenceKey) return
 	const assets$ = editor.store.query.records('asset')
 	let asset: TLAsset | undefined
 
@@ -96,6 +98,6 @@ export async function uploadLegacyFiles(editor: Editor, abortSignal: AbortSignal
 	}
 
 	// all done, kill the old db
-	const key = 'TLDRAW_DOCUMENT_v2' + editor.getDocumentSettings().meta.slurpPersistenceKey
+	const key = 'TLDRAW_DOCUMENT_v2' + slurpPersistenceKey
 	deleteDB(key)
 }

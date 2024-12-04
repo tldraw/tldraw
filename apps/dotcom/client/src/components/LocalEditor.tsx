@@ -87,10 +87,12 @@ export function LocalEditor({
 	componentsOverride,
 	onMount,
 	children,
+	persistenceKey,
 }: {
 	componentsOverride?: TLComponents
 	onMount?(editor: Editor): void
 	children?: ReactNode
+	persistenceKey?: string
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
@@ -108,7 +110,7 @@ export function LocalEditor({
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
-				persistenceKey={getScratchPersistenceKey()}
+				persistenceKey={persistenceKey ?? getScratchPersistenceKey()}
 				onMount={handleMount}
 				overrides={[sharingUiOverrides, fileSystemUiOverrides]}
 				onUiEvent={handleUiEvent}

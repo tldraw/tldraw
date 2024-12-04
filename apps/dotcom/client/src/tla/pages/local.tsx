@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { assert, throttle } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
@@ -17,7 +17,6 @@ import { getFilePath } from '../utils/urls'
 export function Component() {
 	const app = useMaybeApp()
 	const navigate = useNavigate()
-	const creatingFile = useRef(false)
 
 	useEffect(() => {
 		if (!app) return
@@ -33,7 +32,6 @@ export function Component() {
 
 		const recentFiles = app.getUserRecentFiles()
 		if (recentFiles.length === 0) {
-			creatingFile.current = true
 			const result = app.createFile()
 			assert(result.ok, 'Failed to create file')
 			// result is only false if the user reached their file limit so
