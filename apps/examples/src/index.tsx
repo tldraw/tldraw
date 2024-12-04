@@ -108,9 +108,26 @@ document.addEventListener('DOMContentLoaded', () => {
 				onError={(error) => console.error(error)}
 			>
 				<HelmetProvider>
+					<RootMeta />
 					<RouterProvider router={router} />
 				</HelmetProvider>
 			</ErrorBoundary>
 		</StrictMode>
 	)
 })
+
+function RootMeta() {
+	return (
+		<Helmet>
+			<title>tldraw examples</title>
+			<meta
+				name="keywords"
+				content="tldraw, examples, whiteboard, react, collaborative whiteboard, online drawing, team collboration, react, library"
+			/>
+			<meta
+				name="description"
+				content="Examples for using tldraw - a library for building infinite canvases with React. "
+			/>
+		</Helmet>
+	)
+}
