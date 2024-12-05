@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+// todo: use masking to use current color
+
 export function LogoSection() {
 	return (
 		<section className="w-full max-w-screen-xl mx-auto px-2 lg:px-5 pt-16 sm:pt-20 text-sm sm:text-base">
@@ -70,13 +72,13 @@ const logos: {
 		alt: 'Roam',
 		url: 'https://ro.am/',
 	},
+	// {
+	// 	src: '/images/logos/cadchat-logo.svg',
+	// 	alt: 'Cadchat',
+	// 	url: 'https://cadchat.com/',
+	// },
 	{
-		src: '/images/logos/cadchat-logo.svg',
-		alt: 'Cadchat',
-		url: 'https://cadchat.com/',
-	},
-	{
-		src: '/images/logos/bbb-logo.svg',
+		src: '/images/logos/bigbluebutton-logo.svg',
 		alt: 'Big Blue Button',
 		url: 'https://bigbluebutton.org/',
 	},
@@ -95,9 +97,9 @@ const logos: {
 		alt: 'Matilda Workspace',
 		url: 'https://matilda.io/',
 	},
-	{
-		src: '/images/logos/fev-logo.svg',
-		alt: 'Fev tutor',
-		url: 'https://fevtutor.com/',
-	},
+	// {
+	// 	src: '/images/logos/fevtutor-logo.svg',
+	// 	alt: 'Fev tutor',
+	// 	url: 'https://fevtutor.com/',
+	// },
 ]
