@@ -9,7 +9,7 @@ import {
 	useEditor,
 	useUniqueSafeId,
 } from '@tldraw/editor'
-import { forwardRef, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 /** @public */
 export interface TextAreaProps {
@@ -31,7 +31,7 @@ export interface TextAreaProps {
  *
  * @public @react
  */
-export const RichTextArea = forwardRef<HTMLDivElement, TextAreaProps>(function TextArea(
+export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(function TextArea(
 	{
 		shapeId,
 		isEditing,

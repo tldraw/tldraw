@@ -1,5 +1,5 @@
 import { preventDefault, stopEventPropagation } from '@tldraw/editor'
-import { forwardRef } from 'react'
+import React from 'react'
 import { TextAreaProps } from './RichTextArea'
 
 /**
@@ -7,7 +7,7 @@ import { TextAreaProps } from './RichTextArea'
  *
  * @public @react
  */
-export const PlainTextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
+export const PlainTextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
 	{
 		isEditing,
 		text,

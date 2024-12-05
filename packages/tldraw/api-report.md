@@ -20,7 +20,6 @@ import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { Editor as Editor_2 } from '@tiptap/core';
-import { ForwardRefExoticComponent } from 'react';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -41,7 +40,6 @@ import { ReadonlySharedStyleMap } from '@tldraw/editor';
 import { RecordProps } from '@tldraw/editor';
 import { Rectangle2d } from '@tldraw/editor';
 import { RecursivePartial } from '@tldraw/editor';
-import { RefAttributes } from 'react';
 import { RefObject } from 'react';
 import { Result } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
@@ -712,7 +710,7 @@ export const DefaultRichTextToolbar: NamedExoticComponent<TLUiRichTextToolbarPro
 // @public
 export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarItemsProps): JSX_2.Element[];
 
-// @public
+// @public (undocumented)
 export interface DefaultRichTextToolbarItemsProps {
     // (undocumented)
     onEditLinkIntent(): void;
@@ -1672,7 +1670,7 @@ export interface PeopleMenuProps {
 }
 
 // @public
-export const PlainTextArea: ForwardRefExoticComponent<TextAreaProps & RefAttributes<HTMLTextAreaElement>>;
+export const PlainTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLTextAreaElement>>;
 
 // @public (undocumented)
 export enum PORTRAIT_BREAKPOINT {
@@ -1731,7 +1729,7 @@ export function ReorderMenuSubmenu(): JSX_2.Element | null;
 export function RhombusToolbarItem(): JSX_2.Element;
 
 // @public
-export const RichTextArea: ForwardRefExoticComponent<TextAreaProps & RefAttributes<HTMLDivElement>>;
+export const RichTextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
 export function RotateCWMenuItem(): JSX_2.Element;
@@ -1824,7 +1822,7 @@ export interface TextAreaProps {
     // (undocumented)
     handleFocus(): void;
     // (undocumented)
-    handleInputPointerDown(e: React.PointerEvent<HTMLTextAreaElement>): void;
+    handleInputPointerDown(e: React_3.PointerEvent<HTMLTextAreaElement>): void;
     // (undocumented)
     handleKeyDown(e: KeyboardEvent): void;
     // (undocumented)
@@ -2151,7 +2149,7 @@ export function TldrawUiComponentsProvider({ overrides, children, }: TLUiCompone
 export const TldrawUiContextProvider: NamedExoticComponent<TLUiContextProviderProps>;
 
 // @public
-export const TldrawUiContextualToolbar: ForwardRefExoticComponent<TLUiContextualToolbarProps & RefAttributes<HTMLDivElement>>;
+export const TldrawUiContextualToolbar: React_3.ForwardRefExoticComponent<TLUiContextualToolbarProps & React_3.RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
 export function TldrawUiDialogBody({ className, children, style }: TLUiDialogBodyProps): JSX_2.Element;
@@ -2491,7 +2489,7 @@ export interface TLUiContextProviderProps {
 // @public (undocumented)
 export interface TLUiContextualToolbarProps {
     // (undocumented)
-    children?: React.ReactNode;
+    children?: React_3.ReactNode;
     // (undocumented)
     className?: string;
     // (undocumented)

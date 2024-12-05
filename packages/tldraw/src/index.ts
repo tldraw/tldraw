@@ -202,7 +202,10 @@ export {
 	type TLUiStylePanelContentProps,
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
-export { DefaultRichTextToolbar , type TLUiRichTextToolbarProps} from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
+export {
+	DefaultRichTextToolbar,
+	type TLUiRichTextToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
 export {
 	DefaultRichTextToolbarItems,
 	type DefaultRichTextToolbarItemsProps,

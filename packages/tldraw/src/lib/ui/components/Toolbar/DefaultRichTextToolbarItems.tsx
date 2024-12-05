@@ -5,14 +5,7 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 
-/**
- * Props for the default rich text toolbar items.
- *
- * onEditLinkIntent: Function to call when the user wants to edit a link.
- * textEditor: The text editor.
- *
- * @public
- */
+/** @public */
 export interface DefaultRichTextToolbarItemsProps {
 	onEditLinkIntent(): void
 	textEditor: TextEditor
