@@ -12,7 +12,6 @@ export function writeDataPoint(
 	name: string,
 	{ blobs, indexes, doubles }: EventData
 ) {
-	console.log('writeDataPoint', name, blobs, indexes, doubles)
 	measure?.writeDataPoint({
 		// We put the worker name in the second spot for legacy reasons: when we first introduced analytics
 		// we only included the name. If we were to change the order it would be hard to query old data.
