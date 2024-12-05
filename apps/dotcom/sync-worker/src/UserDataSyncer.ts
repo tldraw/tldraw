@@ -252,11 +252,10 @@ export class UserDataSyncer {
 		this.state = this.updateStateAfterBootStep()
 		// this will prevent more events from being added to the buffer
 
+		await promise
 		const end = Date.now()
 		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
-		await promise
 		this.debug('boot time', end - start, 'ms')
-
 		assert(this.state.type === 'connected', 'state should be connected after boot')
 	}
 
