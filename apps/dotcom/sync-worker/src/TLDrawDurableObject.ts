@@ -29,6 +29,7 @@ import { PERSIST_INTERVAL_MS } from './config'
 import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { createSupabaseClient } from './utils/createSupabaseClient'
 import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
@@ -347,11 +348,23 @@ export class TLDrawDurableObject extends DurableObject {
 				if (auth?.userId) {
 					const rateLimited = await isRateLimited(this.env, auth?.userId)
 					if (rateLimited) {
+						this.logEvent({
+							type: 'client',
+							userId: auth.userId,
+							localClientId: storeId,
+							name: 'rate_limited',
+						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				} else {
 					const rateLimited = await isRateLimited(this.env, sessionId)
 					if (rateLimited) {
+						this.logEvent({
+							type: 'client',
+							userId: auth?.userId,
+							localClientId: storeId,
+							name: 'rate_limited',
+						})
 						return closeSocket(TLSyncErrorCloseEventReason.RATE_LIMITED)
 					}
 				}
@@ -420,15 +433,8 @@ export class TLDrawDurableObject extends DurableObject {
 		this.schedulePersist()
 	}, 2000)
 
-	private writeEvent(
-		name: string,
-		{ blobs, indexes, doubles }: { blobs?: string[]; indexes?: [string]; doubles?: number[] }
-	) {
-		this.measure?.writeDataPoint({
-			blobs: [name, this.env.WORKER_NAME ?? 'development-tldraw-multiplayer', ...(blobs ?? [])],
-			doubles,
-			indexes,
-		})
+	private writeEvent(name: string, eventData: EventData) {
+		writeDataPoint(this.measure, this.env, name, eventData)
 	}
 
 	logEvent(event: TLServerEvent) {
@@ -439,11 +445,18 @@ export class TLDrawDurableObject extends DurableObject {
 				break
 			}
 			case 'client': {
-				// we would add user/connection ids here if we could
-				this.writeEvent(event.name, {
-					blobs: [event.roomId, 'unused', event.instanceId],
-					indexes: [event.localClientId],
-				})
+				if (event.name === 'rate_limited') {
+					this.writeEvent(event.name, {
+						blobs: [event.userId ?? 'anon-user'],
+						indexes: [event.localClientId],
+					})
+				} else {
+					// we would add user/connection ids here if we could
+					this.writeEvent(event.name, {
+						blobs: [event.roomId, 'unused', event.instanceId],
+						indexes: [event.localClientId],
+					})
+				}
 				break
 			}
 			case 'send_message': {

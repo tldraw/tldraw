@@ -18,7 +18,7 @@ import {
 	parseResultRow,
 	userKeys,
 } from './getFetchEverythingSql'
-import { Environment } from './types'
+import { Environment, TLUserDurableObjectEvent } from './types'
 import { getReplicator } from './utils/durableObjects'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -105,7 +105,8 @@ export class UserDataSyncer {
 		env: Environment,
 		private db: postgres.Sql,
 		private userId: string,
-		private broadcast: (message: ZServerSentMessage) => void
+		private broadcast: (message: ZServerSentMessage) => void,
+		private logEvent: (event: TLUserDurableObjectEvent) => void
 	) {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
@@ -114,7 +115,7 @@ export class UserDataSyncer {
 
 	private debug(...args: any[]) {
 		// uncomment for dev time debugging
-		// console.log('[UserDataSyncer]:',...args)
+		// console.log('[UserDataSyncer]:', ...args)
 		if (this.sentry) {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
@@ -126,8 +127,8 @@ export class UserDataSyncer {
 	private queue = new ExecutionQueue()
 
 	async reboot(delay = true) {
-		// TODO: set up analytics and alerts for this
 		this.debug('rebooting')
+		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
 			if (delay) {
 				await sleep(1000)
@@ -135,6 +136,7 @@ export class UserDataSyncer {
 			try {
 				await this.boot()
 			} catch (e) {
+				this.logEvent({ type: 'reboot_error', id: this.userId })
 				this.captureException(e)
 				this.reboot()
 			}
@@ -252,6 +254,7 @@ export class UserDataSyncer {
 
 		await promise
 		const end = Date.now()
+		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
 		this.debug('boot time', end - start, 'ms')
 		assert(this.state.type === 'connected', 'state should be connected after boot')
 	}
