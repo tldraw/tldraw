@@ -39,7 +39,6 @@ import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
-import { getScratchPersistenceKey } from '../../../utils/scratch-persistence-key'
 import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -47,7 +46,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { Slurper } from '../../utils/slurping'
+import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -183,28 +182,14 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 			})
 
 			const abortController = new AbortController()
-			let slurpPersistenceKey = null as string | null
-			if (app._slurpFileId) {
-				slurpPersistenceKey = getScratchPersistenceKey()
-			} else {
-				slurpPersistenceKey =
-					(editor.getDocumentSettings().meta.slurpPersistenceKey as string) ?? null
-			}
-			if (slurpPersistenceKey) {
-				new Slurper({
-					app,
-					editor,
-					fileId,
-					abortSignal: abortController.signal,
-					addDialog,
-					slurpPersistenceKey,
-					remountImageShapes,
-				})
-					.maybeSlurp()
-					.then(setIsReady)
-			} else {
-				setIsReady()
-			}
+			maybeSlurp({
+				app,
+				editor,
+				fileId,
+				abortSignal: abortController.signal,
+				addDialog,
+				remountImageShapes,
+			}).then(setIsReady)
 
 			return () => {
 				abortController.abort()

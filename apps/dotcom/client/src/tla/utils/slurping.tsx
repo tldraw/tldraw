@@ -12,7 +12,10 @@ import {
 	sleep,
 } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
-import { resetScratchPersistenceKey } from '../../utils/scratch-persistence-key'
+import {
+	getScratchPersistenceKey,
+	resetScratchPersistenceKey,
+} from '../../utils/scratch-persistence-key'
 import { TldrawApp } from '../app/TldrawApp'
 import { SlurpFailure } from '../components/TlaEditor/SlurpFailure'
 
@@ -72,27 +75,39 @@ async function retry<T>(fn: () => Promise<T>, abortSignal: AbortSignal, times = 
 	throw error
 }
 
-export class Slurper {
-	constructor(
-		private opts: {
-			app: TldrawApp
-			editor: Editor
-			fileId: string
-			abortSignal: AbortSignal
-			addDialog: TLUiDialogsContextType['addDialog']
-			slurpPersistenceKey: string
-			remountImageShapes(): void
-		}
-	) {}
+interface SlurperOpts {
+	app: TldrawApp
+	editor: Editor
+	fileId: string
+	abortSignal: AbortSignal
+	addDialog: TLUiDialogsContextType['addDialog']
+	remountImageShapes(): void
+}
 
-	async maybeSlurp() {
-		if (this.opts.app._slurpFileId === this.opts.fileId) {
+export async function maybeSlurp(opts: SlurperOpts) {
+	if (opts.abortSignal.aborted) return
+	let persistenceKey = null as string | null
+	if (opts.app._slurpFileId === opts.fileId) {
+		persistenceKey = getScratchPersistenceKey()
+	} else {
+		persistenceKey = (opts.editor.getDocumentSettings().meta.slurpPersistenceKey as string) ?? null
+	}
+	if (persistenceKey) {
+		return new Slurper({ ...opts, slurpPersistenceKey: persistenceKey }).slurp()
+	}
+}
+
+class Slurper {
+	constructor(private opts: SlurperOpts & { slurpPersistenceKey: string }) {}
+
+	async slurp() {
+		if (!this.opts.editor.getDocumentSettings().meta.slurpPersistenceKey) {
 			// This is a one-time operation.
 			// So we need to wait a tick for react strict mode to finish
 			// doing its nasty business before we start the migration.
 			await sleep(50)
 			if (this.opts.abortSignal.aborted) return
-			await this.slurpLocalContent()
+			await this.slurpDocumentData()
 			if (this.opts.abortSignal.aborted) return
 			this.opts.app._slurpFileId = null
 			this.uploadLocalAssets() // no await, it can happen in the background
@@ -101,7 +116,8 @@ export class Slurper {
 		}
 	}
 
-	async slurpLocalContent() {
+	// get the records out of the local indexedDb and load them into the editor
+	private async slurpDocumentData() {
 		const { slurpPersistenceKey, editor, abortSignal } = this.opts
 		const db = new LocalIndexedDb(slurpPersistenceKey)
 		try {
@@ -116,7 +132,8 @@ export class Slurper {
 				},
 				session: data.sessionStateSnapshot,
 			})
-			editor.updateDocumentSettings({ meta: { slurpPersistenceKey } })
+			const meta = { ...editor.getDocumentSettings().meta, slurpPersistenceKey }
+			editor.updateDocumentSettings({ meta })
 			// reset the persistence key so that if the user logs out they don't
 			// see the same content we already slurped
 			resetScratchPersistenceKey()
@@ -125,7 +142,7 @@ export class Slurper {
 		}
 	}
 
-	showFailureDialog() {
+	private showFailureDialog() {
 		this.opts.addDialog({
 			id: 'slurp-failure',
 			component: ({ onClose }) => (
@@ -141,7 +158,7 @@ export class Slurper {
 		})
 	}
 
-	onSlurpFail() {
+	private onSlurpFail() {
 		if (this.opts.abortSignal.aborted) return
 		// hide failed assets
 		this.opts.editor.updateAssets(
@@ -159,7 +176,7 @@ export class Slurper {
 		this.showFailureDialog()
 	}
 
-	onTryAgain() {
+	private onTryAgain() {
 		if (this.opts.abortSignal.aborted) return
 		this.opts.editor.focus()
 		// show failed assets
@@ -175,7 +192,7 @@ export class Slurper {
 		this.uploadLocalAssets()
 	}
 
-	async uploadLocalAssets() {
+	private async uploadLocalAssets() {
 		if (this.opts.abortSignal.aborted) return
 
 		const assetsToUpload = this.opts.editor.store.query
@@ -219,6 +236,8 @@ export class Slurper {
 		if (res.every((r) => r.status === 'fulfilled')) {
 			// all uploads succeeded, clear the local db
 			deleteDB('TLDRAW_DOCUMENT_v2' + this.opts.slurpPersistenceKey)
+			const { slurpPersistenceKey: _, ...meta } = this.opts.editor.getDocumentSettings().meta
+			this.opts.editor.updateDocumentSettings({ meta })
 			return
 		}
 
