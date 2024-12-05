@@ -15,6 +15,7 @@ import {
 import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'
+import { routes } from '../routeDefs'
 
 export const SAVE_FILE_COPY_ACTION = 'save-file-copy'
 export const OPEN_FILE_ACTION = 'open-file'
@@ -76,7 +77,7 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 					readonlyOk: true,
 					async onSelect(source) {
 						handleUiEvent('create-new-shared-project', { source })
-						navigate('/new')
+						navigate(routes.legacyNewPage())
 					},
 				}
 				actions[NEW_PROJECT_ACTION] = {
