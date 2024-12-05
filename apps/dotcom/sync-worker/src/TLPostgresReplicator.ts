@@ -99,6 +99,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 	override async alarm() {
 		this.ctx.storage.setAlarm(Date.now() + 1000)
+		this.maybeLogRpm()
+	}
+
+	private maybeLogRpm() {
 		const now = Date.now()
 		if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
 			this.logEvent({
