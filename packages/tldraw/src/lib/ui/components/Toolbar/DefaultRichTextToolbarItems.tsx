@@ -8,8 +8,8 @@ import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 /**
  * Props for the default rich text toolbar items.
  *
- * onEditLinkIntent: Function to call when the user wants to edit a link.
- * textEditor: The text editor.
+ * @param onEditLinkIntent: Function to call when the user wants to edit a link.
+ * @param textEditor: The text editor.
  *
  * @public
  */

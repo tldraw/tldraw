@@ -950,7 +950,7 @@ input,
 	font-family: var(--tl-font-mono);
 }
 
-.tl-text-label[data-font="draw"] .tl-rich-text-tiptap strong {
+.tl-text-label[data-font='draw'] .tl-rich-text-tiptap strong {
 	text-shadow: 1px 1px 2px var(--color-text-3);
 }
 
