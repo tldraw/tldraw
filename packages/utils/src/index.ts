@@ -8,6 +8,7 @@ export {
 	compact,
 	dedupe,
 	last,
+	maxBy,
 	minBy,
 	partition,
 	rotateArray,

@@ -238,6 +238,9 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 };
 
 // @internal (undocumented)
+export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
+
+// @internal (undocumented)
 export function measureAverageDuration(_target: any, propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor;
 
 // @internal (undocumented)

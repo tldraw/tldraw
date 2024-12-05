@@ -1191,7 +1191,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         x: number;
         y: number;
         z: number;
-    };
+    } | null;
     // (undocumented)
     chatMessage: string;
     // (undocumented)
@@ -1204,15 +1204,15 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         type: TLCursor['type'];
         x: number;
         y: number;
-    };
+    } | null;
     // (undocumented)
     followingUserId: null | string;
     // (undocumented)
-    lastActivityTimestamp: number;
+    lastActivityTimestamp: null | number;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
-    screenBounds: BoxModel;
+    screenBounds: BoxModel | null;
     // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)

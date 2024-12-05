@@ -24,7 +24,7 @@ import {
 	getDefaultUserPresence,
 	getUserPreferences,
 	uniqueId,
-	useEvent,
+	useReactiveEvent,
 	useRefState,
 	useShallowObjectIdentity,
 	useTLSchemaFromUtils,
@@ -87,7 +87,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const prefs = useShallowObjectIdentity(userInfo)
-	const getUserPresence = useEvent(_getUserPresence ?? getDefaultUserPresence)
+	const getUserPresence = useReactiveEvent(_getUserPresence ?? getDefaultUserPresence)
 
 	const userAtom = useAtom<TLSyncUserInfo | Signal<TLSyncUserInfo> | undefined>('userAtom', prefs)
 
