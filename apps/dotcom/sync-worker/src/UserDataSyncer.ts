@@ -115,7 +115,7 @@ export class UserDataSyncer {
 
 	private debug(...args: any[]) {
 		// uncomment for dev time debugging
-		console.log('[UserDataSyncer]:', ...args)
+		// console.log('[UserDataSyncer]:', ...args)
 		if (this.sentry) {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
@@ -181,7 +181,6 @@ export class UserDataSyncer {
 	}
 
 	private async boot() {
-		console.info('[1]: UserDataSyncer.ts:183 boot')
 		this.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
@@ -254,9 +253,7 @@ export class UserDataSyncer {
 		// this will prevent more events from being added to the buffer
 
 		const end = Date.now()
-		console.log(this.logEvent)
 		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
-		console.log(' reboot', end - start)
 		await promise
 		this.debug('boot time', end - start, 'ms')
 
