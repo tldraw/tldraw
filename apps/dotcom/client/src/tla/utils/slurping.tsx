@@ -189,6 +189,7 @@ class Slurper {
 						: asset
 				)
 		)
+		this.opts.remountImageShapes()
 		this.slurp()
 	}
 
