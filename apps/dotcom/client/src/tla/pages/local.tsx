@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { assert, throttle } from 'tldraw'
+import { assert, react } from 'tldraw'
 import { LocalEditor } from '../../components/LocalEditor'
 import { globalEditor } from '../../utils/globalEditor'
 import { SneakyDarkModeSync } from '../components/TlaEditor/SneakyDarkModeSync'
@@ -18,10 +18,14 @@ export function Component() {
 		if (!app) return
 
 		if (getShouldSlurpFile()) {
-			clearShouldSlurpFile()
 			const res = app.slurpFile()
 			if (res.ok) {
+				clearShouldSlurpFile()
 				navigate(getFilePath(res.value.file.id), { state: { mode: 'create' }, replace: true })
+			} else {
+				// if the user has too many files we end up here.
+				// don't slurp the file and when they log out they'll
+				// be able to see the same content that was there before
 			}
 			return
 		}
@@ -56,24 +60,13 @@ function LocalTldraw() {
 					globalEditor.set(editor)
 					const shapes$ = editor.store.query.ids('shape')
 
-					function maybeSlurpFile() {
+					return react('updateShouldSlurpFile', () => {
 						if (shapes$.get().size > 0) {
 							setShouldSlurpFile()
 						} else {
 							clearShouldSlurpFile()
 						}
-					}
-
-					maybeSlurpFile()
-					const throttledMaybeSlurpFile = throttle(maybeSlurpFile, 1000)
-
-					// the first time the user makes a change we should indicate
-					// that the file should be slurped
-					const unsub = editor.store.listen(maybeSlurpFile, { scope: 'document', source: 'user' })
-					return () => {
-						throttledMaybeSlurpFile.cancel()
-						unsub()
-					}
+					})
 				}}
 			>
 				<SneakyDarkModeSync />
