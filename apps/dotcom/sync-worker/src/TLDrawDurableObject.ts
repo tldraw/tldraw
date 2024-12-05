@@ -447,7 +447,7 @@ export class TLDrawDurableObject extends DurableObject {
 			case 'client': {
 				if (event.name === 'rate_limited') {
 					this.writeEvent(event.name, {
-						blobs: [event.userId ?? 'anon-user', 'unused'],
+						blobs: [event.userId ?? 'anon-user'],
 						indexes: [event.localClientId],
 					})
 				} else {
