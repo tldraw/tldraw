@@ -14,7 +14,7 @@ import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
 import { LinkEditor } from './LinkEditor'
 
 /** @public */
-export interface DefaultRichTextToolbarProps {
+export interface TLUiRichTextToolbarProps {
 	children?: React.ReactNode
 }
 
@@ -25,7 +25,7 @@ export interface DefaultRichTextToolbarProps {
  */
 export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	children,
-}: DefaultRichTextToolbarProps) {
+}: TLUiRichTextToolbarProps) {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
 	const previousTop = useRef(defaultPosition.y)

@@ -707,9 +707,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public
-export const DefaultRichTextToolbar: NamedExoticComponent<    {
-children?: React.ReactNode;
-}>;
+export const DefaultRichTextToolbar: NamedExoticComponent<TLUiRichTextToolbarProps>;
 
 // @public
 export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarItemsProps): JSX_2.Element[];
@@ -2450,7 +2448,7 @@ export interface TLUiComponents {
     // (undocumented)
     QuickActions?: ComponentType<TLUiQuickActionsProps> | null;
     // (undocumented)
-    RichTextToolbar?: ComponentType | null;
+    RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null;
     // (undocumented)
     SharePanel?: ComponentType | null;
     // (undocumented)
@@ -3125,6 +3123,12 @@ export interface TLUiPopoverTriggerProps {
 export interface TLUiQuickActionsProps {
     // (undocumented)
     children?: ReactNode;
+}
+
+// @public (undocumented)
+export interface TLUiRichTextToolbarProps {
+    // (undocumented)
+    children?: React.ReactNode;
 }
 
 // @public (undocumented)
