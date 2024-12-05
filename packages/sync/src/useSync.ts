@@ -9,19 +9,22 @@ import {
 import { useEffect } from 'react'
 import {
 	Editor,
+	InstancePresenceRecordType,
 	Signal,
 	TAB_ID,
 	TLAssetStore,
+	TLPresenceStateInfo,
 	TLRecord,
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
 	computed,
-	createPresenceStateDerivation,
 	createTLStore,
 	defaultUserPreferences,
+	getDefaultUserPresence,
 	getUserPreferences,
 	uniqueId,
+	useEvent,
 	useRefState,
 	useShallowObjectIdentity,
 	useTLSchemaFromUtils,
@@ -72,6 +75,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		onMount,
 		trackAnalyticsEvent: track,
 		userInfo,
+		getUserPresence: _getUserPresence,
 		...schemaOpts
 	} = opts
 
@@ -83,6 +87,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const schema = useTLSchemaFromUtils(schemaOpts)
 
 	const prefs = useShallowObjectIdentity(userInfo)
+	const getUserPresence = useEvent(_getUserPresence ?? getDefaultUserPresence)
 
 	const userAtom = useAtom<TLSyncUserInfo | Signal<TLSyncUserInfo> | undefined>('userAtom', prefs)
 
@@ -146,6 +151,16 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			},
 		})
 
+		const presence = computed('instancePresence', () => {
+			const presenceState = getUserPresence(store, userPreferences.get())
+			if (!presenceState) return null
+
+			return InstancePresenceRecordType.create({
+				...presenceState,
+				id: InstancePresenceRecordType.createId(store.id),
+			})
+		})
+
 		const client = new TLSyncClient({
 			store,
 			socket,
@@ -190,7 +205,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					store.ensureStoreIsUsable()
 				})
 			},
-			presence: createPresenceStateDerivation(userPreferences)(store),
+			presence,
 		})
 
 		return () => {
@@ -199,7 +214,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket.close()
 			setState(null)
 		}
-	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri])
+	}, [assets, onMount, userAtom, roomId, schema, setState, track, uri, getUserPresence])
 
 	return useValue<RemoteTLStoreWithStatus>(
 		'remote synced store',
@@ -275,4 +290,12 @@ export interface UseSyncOptions {
 	roomId?: string
 	/** @internal */
 	trackAnalyticsEvent?(name: string, data: { [key: string]: any }): void
+
+	/**
+	 * A reactive function that returns a {@link @tldraw/tlschema#TLInstancePresence} object. The
+	 * result of this function will be synchronized across all clients to display presence
+	 * indicators such as cursors. See {@link @tldraw/tlschema#getDefaultUserPresence} for
+	 * the default implementation of this function.
+	 */
+	getUserPresence?(store: TLStore, user: TLSyncUserInfo): TLPresenceStateInfo | null
 }
