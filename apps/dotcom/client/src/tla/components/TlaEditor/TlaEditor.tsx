@@ -49,6 +49,7 @@ import styles from './editor.module.css'
 
 const messages = defineMessages({
 	file: { defaultMessage: 'File' },
+	untitledProject: { defaultMessage: 'Untitled project' },
 })
 
 /** @internal */
@@ -225,6 +226,7 @@ function TlaEditorInner({
 		}
 	}, [app, fileId, store.status])
 
+	const untitledProject = useMsg(messages.untitledProject)
 	const overrides = useMemo<TLUiOverrides>(() => {
 		if (!app) return {}
 
@@ -241,7 +243,7 @@ function TlaEditorInner({
 							((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
 								editor?.getDocumentSettings().name) ||
 							// rather than displaying the date for the project here, display Untitled project
-							'Untitled project'
+							untitledProject
 						const defaultName =
 							saveFileNames.get(editor.store) || `${documentName}${TLDRAW_FILE_EXTENSION}`
 
@@ -271,7 +273,7 @@ function TlaEditorInner({
 				return actions
 			},
 		}
-	}, [app, fileSlug, handleUiEvent])
+	}, [app, fileSlug, handleUiEvent, untitledProject])
 
 	return (
 		<div className={styles.editor} data-testid="tla-editor">
@@ -364,14 +366,15 @@ function SetDocumentTitle() {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const app = useMaybeApp()
 	const editor = useValue('editor', () => globalEditor.get(), [])
+	const untitledProject = useMsg(messages.untitledProject)
 	const title = useValue(
 		'title',
 		() =>
 			((fileSlug ? app?.getFileName(fileSlug, false) : null) ??
 				editor?.getDocumentSettings().name) ||
 			// rather than displaying the date for the project here, display Untitled project
-			'Untitled project',
-		[app, editor, fileSlug]
+			untitledProject,
+		[app, editor, fileSlug, untitledProject]
 	)
 	if (!title) return null
 	return <Helmet title={title} />

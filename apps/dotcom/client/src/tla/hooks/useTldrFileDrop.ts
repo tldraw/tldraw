@@ -6,8 +6,10 @@ import { defineMessages, useIntl } from '../utils/i18n'
 import { useApp } from './useAppState'
 
 const messages = defineMessages({
-	uploading: { defaultMessage: 'Uploading .tldr {count, plural, one {# file} other {# files}}…' },
-	adding: { defaultMessage: 'Added .tldr {count, plural, one {# file} other {# files}}' },
+	uploading: {
+		defaultMessage: 'Uploading {count} .tldr {count, plural, one {file} other {files}}…',
+	},
+	adding: { defaultMessage: 'Added {count} .tldr {count, plural, one {file} other {files}}.' },
 })
 
 export function useTldrFileDrop() {
