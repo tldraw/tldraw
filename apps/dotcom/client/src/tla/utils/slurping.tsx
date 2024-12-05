@@ -32,20 +32,21 @@ export function clearShouldSlurpFile() {
 	deleteFromLocalStorage(SHOULD_SLURP_FILE)
 }
 
-const localFileCache = new WeakMap<TLAsset, { file: File; url: string }>()
-
-function getSlurpPersistenceKey() {
-	const editor = globalEditor.get()
-	if (!editor) return null
-	const key = editor.getDocumentSettings().meta.slurpPersistenceKey
-	if (!key) return null
-	return key as string
+// asset stores are not given access to the editor or even the Store instance so
+// in order to allow the multiplayerAssetStore to load assets from indexedDb we need
+// to piggyback on the global editor instance.
+// TODO: maybe think about giving the asset store access to the editor instance directly?
+function getGlobalSlurpPersistenceKey() {
+	return (globalEditor.get()?.getDocumentSettings().meta.slurpPersistenceKey as string) ?? null
 }
 
+const localFileCache = new WeakMap<TLAsset, { file: File; url: string }>()
+// this is used by our multiplayer asset store to load slurped assets from indexedDb
+// temporarily while they are being uploaded to the server.
 export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: string } | null> {
 	const existing = localFileCache.get(asset)
 	if (existing) return existing
-	const slurpPersistenceKey = getSlurpPersistenceKey()
+	const slurpPersistenceKey = getGlobalSlurpPersistenceKey()
 	if (!slurpPersistenceKey) return null
 
 	const db = new LocalIndexedDb(slurpPersistenceKey)
@@ -88,6 +89,7 @@ export async function maybeSlurp(opts: SlurperOpts) {
 	if (opts.abortSignal.aborted) return
 	let persistenceKey = null as string | null
 	if (opts.app._slurpFileId === opts.fileId) {
+		// we just landed on this file after signing in on the root page
 		persistenceKey = getScratchPersistenceKey()
 	} else {
 		persistenceKey = (opts.editor.getDocumentSettings().meta.slurpPersistenceKey as string) ?? null
@@ -122,7 +124,6 @@ class Slurper {
 		const db = new LocalIndexedDb(slurpPersistenceKey)
 		try {
 			const data = await db.load({ sessionId: TAB_ID })
-			if (data.records.length < 3) return // no meaningful content to slurp
 			if (abortSignal.aborted) return
 			// Assets will be served from the local indexedDb while they are being uploaded
 			editor.loadSnapshot({
@@ -178,7 +179,6 @@ class Slurper {
 
 	private onTryAgain() {
 		if (this.opts.abortSignal.aborted) return
-		this.opts.editor.focus()
 		// show failed assets
 		this.opts.editor.updateAssets(
 			this.opts.editor
@@ -189,7 +189,7 @@ class Slurper {
 						: asset
 				)
 		)
-		this.uploadLocalAssets()
+		this.slurp()
 	}
 
 	private async uploadLocalAssets() {
@@ -200,6 +200,8 @@ class Slurper {
 			.get()
 			.filter((a) => a.props.src?.startsWith('asset:'))
 
+		// we create a small set of execution queues to upload assets concurrently
+		// and to allow some to succeed and some to fail regardless of order
 		const uploadQueues = new Array(UPLOAD_CONCURRENCY).fill(0).map(() => new ExecutionQueue())
 
 		const uploads = Promise.allSettled(
@@ -234,6 +236,9 @@ class Slurper {
 		}
 
 		if (res.every((r) => r.status === 'fulfilled')) {
+			// .every returns true if the array is empty, so this will run if there
+			// were no assets to upload!
+
 			// all uploads succeeded, clear the local db
 			deleteDB('TLDRAW_DOCUMENT_v2' + this.opts.slurpPersistenceKey)
 			const { slurpPersistenceKey: _, ...meta } = this.opts.editor.getDocumentSettings().meta
