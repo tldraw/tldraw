@@ -7,11 +7,7 @@ import { SneakyDarkModeSync } from '../components/TlaEditor/SneakyDarkModeSync'
 import { components } from '../components/TlaEditor/TlaEditor'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
-import {
-	clearShouldSlurpFile,
-	getShouldSlurpFile,
-	setShouldSlurpFile,
-} from '../utils/temporary-files'
+import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 import { getFilePath } from '../utils/urls'
 
 export function Component() {

@@ -1,10 +1,10 @@
 import { MediaHelpers, TLAssetStore, fetch, uniqueId } from 'tldraw'
-import { loadLocalFile } from '../tla/utils/temporary-files'
+import { loadLocalFile } from '../tla/utils/slurping'
 import { ASSET_UPLOADER_URL, IMAGE_WORKER } from './config'
 import { isDevelopmentEnv } from './env'
 
 export const multiplayerAssetStore = {
-	upload: async (asset, file) => {
+	upload: async (asset, file, abortSignal?) => {
 		const id = uniqueId()
 
 		const UPLOAD_URL = `${ASSET_UPLOADER_URL}/uploads`
@@ -14,6 +14,7 @@ export const multiplayerAssetStore = {
 		const response = await fetch(url, {
 			method: 'POST',
 			body: file,
+			signal: abortSignal,
 		})
 
 		if (!response.ok) {

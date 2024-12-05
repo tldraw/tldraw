@@ -13,8 +13,8 @@ import {
 	TLComponents,
 	TLDRAW_FILE_EXTENSION,
 	TLSessionStateSnapshot,
-	TLShape,
 	TLStore,
+	TLUiDialogsContextType,
 	TLUiOverrides,
 	Tldraw,
 	TldrawUiMenuGroup,
@@ -23,7 +23,6 @@ import {
 	createSessionStateSnapshotSignal,
 	react,
 	serializeTldrawJsonBlob,
-	sleep,
 	throttle,
 	tltime,
 	useActions,
@@ -48,8 +47,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { slurpLocalContent, uploadLocalAssets } from '../../utils/temporary-files'
-import { SlurpFailure } from './SlurpFailure'
+import { Slurper } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
@@ -131,29 +129,23 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 	const setIsReady = useSetIsReady()
 
 	const dialogs = useDialogs()
+	// need to wrap this in a useEvent to prevent the context id from changing on us
+	const addDialog: TLUiDialogsContextType['addDialog'] = useEvent((dialog) =>
+		dialogs.addDialog(dialog)
+	)
 
+	// We cycle this flag to cause shapes to remount when slurping images/videos fails.
+	// Because in that case we want to show the failure state for the images/videos.
+	// i.e. where it appears that they are not present. so the user knows which ones failed.
+	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
-	const isShapeHidden = useCallback(
-		(shape: TLShape) => hideAllShapes.get() || !!shape.meta.hidden,
-		[hideAllShapes]
-	)
-	const handleSlurpFailure = useEvent(
-		({ slurpPersistenceKey, onTryAgain }: { slurpPersistenceKey: string; onTryAgain(): void }) => {
-			dialogs.addDialog({
-				id: 'slurp-failure',
-				component: ({ onClose }) => (
-					<SlurpFailure
-						slurpPersistenceKey={slurpPersistenceKey}
-						onTryAgain={() => {
-							onTryAgain()
-							onClose()
-						}}
-						onClose={onClose}
-					/>
-				),
-			})
-		}
-	)
+	const isShapeHidden = useCallback(() => hideAllShapes.get(), [hideAllShapes])
+	const remountImageShapes = useCallback(() => {
+		hideAllShapes.set(true)
+		requestAnimationFrame(() => {
+			hideAllShapes.set(false)
+		})
+	}, [hideAllShapes])
 
 	const handleMount = useCallback(
 		(editor: Editor) => {
@@ -191,75 +183,26 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 			})
 
 			const abortController = new AbortController()
-			const onSlurpFail = (slurpPersistenceKey: string) => {
-				if (abortController.signal.aborted) return
-				// hide failed assets
-				editor.updateAssets(
-					editor
-						.getAssets()
-						.map((asset) =>
-							asset.props.src?.startsWith('asset:')
-								? { ...asset, meta: { ...asset.meta, hidden: true } }
-								: asset
-						)
-				)
-				// need to remount all shapes to get the failure state to show for images
-				hideAllShapes.set(true)
-				requestAnimationFrame(() => {
-					hideAllShapes.set(false)
-				})
-
-				handleSlurpFailure({
-					slurpPersistenceKey,
-					onTryAgain() {
-						if (abortController.signal.aborted) return
-						editor.focus()
-						// show failed assets
-						editor.updateAssets(
-							editor
-								.getAssets()
-								.map((asset) =>
-									asset.props.src?.startsWith('asset:')
-										? { ...asset, meta: { ...asset.meta, hidden: false } }
-										: asset
-								)
-						)
-						uploadLocalAssets(editor, abortController.signal).catch((e) => {
-							console.error(e)
-							onSlurpFail(slurpPersistenceKey)
-						})
-					},
-				})
-			}
-
-			if (app._slurpFileId === fileId) {
-				// This is a one-time operation.
-				// So we need to wait a tick for react strict mode to finish
-				// doing its nasty business before we start the migration.
-				const slurpPersistenceKey = getScratchPersistenceKey()
-				sleep(50)
-					.then(async () => {
-						if (!abortController.signal.aborted) {
-							if (abortController.signal.aborted) return
-							await slurpLocalContent(editor, abortController.signal)
-							if (abortController.signal.aborted) return
-							uploadLocalAssets(editor, abortController.signal).catch((e) => {
-								console.error(e)
-								onSlurpFail(slurpPersistenceKey)
-							})
-							app._slurpFileId = null
-							setIsReady()
-						}
-					})
-					.catch(() => onSlurpFail(slurpPersistenceKey))
+			let slurpPersistenceKey = null as string | null
+			if (app._slurpFileId) {
+				slurpPersistenceKey = getScratchPersistenceKey()
 			} else {
-				const slurpPersistenceKey = editor.getDocumentSettings().meta.slurpPersistenceKey
-				if (typeof slurpPersistenceKey === 'string') {
-					uploadLocalAssets(editor, abortController.signal).catch((e) => {
-						console.error(e)
-						onSlurpFail(slurpPersistenceKey)
-					})
-				}
+				slurpPersistenceKey =
+					(editor.getDocumentSettings().meta.slurpPersistenceKey as string) ?? null
+			}
+			if (slurpPersistenceKey) {
+				new Slurper({
+					app,
+					editor,
+					fileId,
+					abortSignal: abortController.signal,
+					addDialog,
+					slurpPersistenceKey,
+					remountImageShapes,
+				})
+					.maybeSlurp()
+					.then(setIsReady)
+			} else {
 				setIsReady()
 			}
 
@@ -269,7 +212,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				updateSessionState.cancel()
 			}
 		},
-		[app, fileId, handleSlurpFailure, hideAllShapes, setIsReady]
+		[addDialog, app, fileId, remountImageShapes, setIsReady]
 	)
 
 	const user = useTldrawUser()

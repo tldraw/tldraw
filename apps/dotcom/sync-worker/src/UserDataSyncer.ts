@@ -6,8 +6,8 @@ import {
 	ZStoreData,
 	ZTable,
 } from '@tldraw/dotcom-shared'
-import { assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
-import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
+import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import { createSentry } from '@tldraw/worker-shared'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { TLPostgresReplicator } from './TLPostgresReplicator'
