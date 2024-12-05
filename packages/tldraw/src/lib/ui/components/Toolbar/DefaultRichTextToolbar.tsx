@@ -7,8 +7,9 @@ import {
 import { MarkType } from '@tiptap/pm/model'
 import { EditorState as TextEditorState } from '@tiptap/pm/state'
 import { areObjectsShallowEqual, Box, Editor, track, useEditor, useValue } from '@tldraw/editor'
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useContextualToolbarPosition } from '../../hooks/useContextualToolbarPosition'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolbar'
 import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
 import { LinkEditor } from './LinkEditor'
@@ -41,18 +42,22 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	})
 	const [isEditingLink, setIsEditingLink] = useState(false)
 	const [wasJustEditingLink, setWasJustEditingLink] = useState(false)
-	const textEditor: TextEditor = useValue('textEditor', () => editor.getEditingShapeTextEditor(), [
-		editor,
-	])
+	const textEditor: TextEditor | null = useValue(
+		'textEditor',
+		() => editor.getEditingShapeTextEditor(),
+		[editor]
+	)
 	const camera = useValue('camera', () => editor.getCamera(), [editor])
-	const [textEditorState, setTextEditorState] = useState<TextEditorState | null>(textEditor?.state)
+	const [textEditorState, setTextEditorState] = useState<TextEditorState | null>(
+		textEditor?.state ?? null
+	)
 	const [isMousingDown, setIsMousingDown] = useState(false)
 	const [isMousingAround, setIsMousingAround] = useState(false)
 	const hasTextSelection = !textEditorState?.selection.empty
 
 	// Set up general event listeners for text selection.
 	useEffect(() => {
-		const handleMouseDown = () => !hasTextSelection && setIsMousingDown(true)
+		const handleMouseDown = () => setIsMousingDown(true)
 		const handleMouseUp = () => setIsMousingDown(false)
 		const handleMouseMove = () => setIsMousingAround(true)
 		const handleKeyDown = () => !isEditingLink && setIsMousingAround(false)
@@ -132,9 +137,11 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	// Based on the start and end of the selection calculate the position at the center top.
 	const selectionBounds = getTextSelectionBounds(editor, textEditor)
 	const isVisible =
-		textEditor &&
+		!!textEditor &&
+		!!textEditorState &&
+		editor.isInAny('select.editing_shape') &&
 		(isMousingAround || isCoarsePointer) &&
-		((hasTextSelection && !isMousingDown) || textEditor.isActive('link'))
+		(hasTextSelection || textEditor.isActive('link'))
 	const toolbarPosition = useContextualToolbarPosition({
 		isVisible,
 		toolbarRef,
@@ -143,6 +150,7 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 
 	const handleEditLinkIntent = () => setIsEditingLink(true)
 	const handleLinkComplete = () => {
+		if (!textEditor) return
 		setWasJustEditingLink(true)
 		setIsEditingLink(false)
 		setIsMousingAround(false)
@@ -187,30 +195,79 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		}
 	}, [toolbarPosition, stabilizedToolbarPosition, camera, currentCamera, isEditingLink])
 
-	if (!textEditor || !textEditorState || !editor.isInAny('select.editing_shape')) return null
+	// N.B. One tactic here that could have been done is to, if there is no textEditor or we're
+	// not in editing text mode, that we just return null and not render the toolbar. However,
+	// because we want the toolbar to smoothly animate in-and-out of view we keep it around.
+
+	return (
+		<DebouncedRichTextToolbar
+			ref={toolbarRef}
+			textEditor={textEditor}
+			isVisible={isVisible}
+			toolbarPosition={stabilizedToolbarPosition}
+			handleLinkComplete={handleLinkComplete}
+			handleEditLinkIntent={handleEditLinkIntent}
+			showLinkEditor={isEditingLink || (wasJustEditingLink && !isVisible)}
+			indicatorOffset={toolbarPosition.indicatorOffset}
+		>
+			{children}
+		</DebouncedRichTextToolbar>
+	)
+})
+
+// The toolbar can get a _lot_ of updates because the textEditor state changes so much.
+// That can make it cycle pretty quickly through isVisible and toolbarPosition states.
+// This helps take the stabilizedPosition and visibility states and make them less jittery.
+const DebouncedRichTextToolbar = React.forwardRef<
+	HTMLDivElement,
+	{
+		children: React.ReactNode
+		textEditor: TextEditor | null
+		isVisible: boolean
+		toolbarPosition: { x: number; y: number }
+		handleLinkComplete(): void
+		handleEditLinkIntent(): void
+		showLinkEditor: boolean
+		indicatorOffset: number
+	}
+>(function DebouncedRichTextToolbar(
+	{
+		children,
+		textEditor,
+		isVisible,
+		toolbarPosition,
+		handleLinkComplete,
+		handleEditLinkIntent,
+		showLinkEditor,
+		indicatorOffset,
+	},
+	toolbarRef
+) {
+	const debouncedToolbarPosition = useDebouncedValue(toolbarPosition, 150)
+	const debouncedIsVisible = useDebouncedValue(isVisible, 150)
 
 	return (
 		<TldrawUiContextualToolbar
 			ref={toolbarRef}
 			className="tl-rich-text__toolbar"
-			position={stabilizedToolbarPosition}
-			isVisible={isVisible}
-			indicatorOffset={toolbarPosition.indicatorOffset}
+			position={debouncedToolbarPosition}
+			isVisible={debouncedIsVisible}
+			indicatorOffset={indicatorOffset}
 		>
 			{children ? (
 				children
-			) : isEditingLink || (wasJustEditingLink && !isVisible) ? (
+			) : showLinkEditor && textEditor ? (
 				<LinkEditor
 					textEditor={textEditor}
 					value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
 					onComplete={handleLinkComplete}
 				/>
-			) : (
+			) : textEditor ? (
 				<DefaultRichTextToolbarItems
 					textEditor={textEditor}
 					onEditLinkIntent={handleEditLinkIntent}
 				/>
-			)}
+			) : null}
 		</TldrawUiContextualToolbar>
 	)
 })
@@ -229,7 +286,7 @@ const defaultPosition = {
 	h: 0,
 }
 
-function getTextSelectionBounds(editor: Editor, textEditor: TextEditor) {
+function getTextSelectionBounds(editor: Editor, textEditor: TextEditor | null) {
 	if (!textEditor) return Box.From(defaultPosition)
 
 	const container = editor.getContainer()

@@ -705,7 +705,7 @@ export const DefaultQuickActions: NamedExoticComponent<TLUiQuickActionsProps>;
 export function DefaultQuickActionsContent(): JSX_2.Element | undefined;
 
 // @public
-export const DefaultRichTextToolbar: NamedExoticComponent<TLUiRichTextToolbarProps>;
+export const DefaultRichTextToolbar: React_3.NamedExoticComponent<TLUiRichTextToolbarProps>;
 
 // @public
 export function DefaultRichTextToolbarItems({ textEditor, onEditLinkIntent, }: DefaultRichTextToolbarItemsProps): JSX_2.Element[];
@@ -3126,7 +3126,7 @@ export interface TLUiQuickActionsProps {
 // @public (undocumented)
 export interface TLUiRichTextToolbarProps {
     // (undocumented)
-    children?: React.ReactNode;
+    children?: React_3.ReactNode;
 }
 
 // @public (undocumented)
@@ -3824,6 +3824,9 @@ export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
 export function useCurrentTranslation(): TLUiTranslation;
+
+// @public (undocumented)
+export function useDebouncedValue<T>(value: T, delay: number): T;
 
 // @public (undocumented)
 export function useDefaultColorTheme(): {
