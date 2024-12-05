@@ -111,7 +111,7 @@ export class LocalIndexedDb {
 		})()
 	}
 
-	getDb() {
+	private getDb() {
 		return this.getDbPromise
 	}
 

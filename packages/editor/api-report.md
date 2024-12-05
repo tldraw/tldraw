@@ -18,7 +18,6 @@ import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
 import { ExoticComponent } from 'react';
 import { HistoryEntry } from '@tldraw/store';
-import { IDBPDatabase } from 'idb';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { JSX as JSX_2 } from 'react/jsx-runtime';
@@ -1797,8 +1796,6 @@ export class LocalIndexedDb {
     static connectedInstances: Set<LocalIndexedDb>;
     // (undocumented)
     getAsset(assetId: string): Promise<File | undefined>;
-    // (undocumented)
-    getDb(): Promise<IDBPDatabase<StoreName>>;
     // (undocumented)
     load({ sessionId }?: {
         sessionId?: string;
