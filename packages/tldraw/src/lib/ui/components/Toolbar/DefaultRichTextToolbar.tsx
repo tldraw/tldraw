@@ -15,7 +15,7 @@ import { LinkEditor } from './LinkEditor'
 
 /** @public */
 export interface DefaultRichTextToolbarProps {
-	children: React.ReactNode
+	children?: React.ReactNode
 }
 
 /**
