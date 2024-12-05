@@ -469,6 +469,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	}
 
 	logEvent(event: TLUserDurableObjectEvent) {
+		console.log('event', event)
 		switch (event.type) {
 			case 'reboot_duration':
 				this.writeEvent({

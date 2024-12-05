@@ -181,6 +181,7 @@ export class UserDataSyncer {
 	}
 
 	private async boot() {
+		console.info('💡[1]: UserDataSyncer.ts:183 boot')
 		this.debug('booting')
 		// todo: clean up old resources if necessary?
 		const start = Date.now()
@@ -252,10 +253,12 @@ export class UserDataSyncer {
 		this.state = this.updateStateAfterBootStep()
 		// this will prevent more events from being added to the buffer
 
-		await promise
 		const end = Date.now()
-		this.debug('boot time', end - start, 'ms')
 		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
+		console.log('💡[2]: UserDataSyncer.ts:256 reboot', end - start)
+		await promise
+		this.debug('boot time', end - start, 'ms')
+
 		assert(this.state.type === 'connected', 'state should be connected after boot')
 	}
 
