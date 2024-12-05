@@ -941,11 +941,16 @@ input,
 	margin: 0;
 }
 
+.tl-rich-text-tiptap a {
+	color: var(--color-primary);
+	text-decoration: underline;
+}
+
 .tl-rich-text-tiptap code {
 	font-family: var(--tl-font-mono);
 }
 
-.tl-rich-text-tiptap strong {
+.tl-text-label[data-font="draw"] .tl-rich-text-tiptap strong {
 	text-shadow: 1px 1px 2px var(--color-text-3);
 }
 
