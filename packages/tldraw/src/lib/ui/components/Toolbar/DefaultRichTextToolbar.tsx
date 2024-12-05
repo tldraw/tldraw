@@ -13,6 +13,11 @@ import { TldrawUiContextualToolbar } from '../primitives/TldrawUiContextualToolb
 import { DefaultRichTextToolbarItems } from './DefaultRichTextToolbarItems'
 import { LinkEditor } from './LinkEditor'
 
+/** @public */
+export interface DefaultRichTextToolbarProps {
+	children: React.ReactNode
+}
+
 /**
  * The default rich text toolbar.
  *
@@ -20,9 +25,7 @@ import { LinkEditor } from './LinkEditor'
  */
 export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	children,
-}: {
-	children?: React.ReactNode
-}) {
+}: DefaultRichTextToolbarProps) {
 	const editor = useEditor()
 	const toolbarRef = useRef<HTMLDivElement>(null)
 	const previousTop = useRef(defaultPosition.y)

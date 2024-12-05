@@ -34,7 +34,7 @@ export const TldrawUiContextualToolbar = forwardRef<HTMLDivElement, TLUiContextu
 			isVisible,
 			hideIndicator = false,
 			indicatorOffset = 0,
-		}: TLUiContextualToolbarProps,
+		},
 		toolbarRef
 	) {
 		const editor = useEditor()
