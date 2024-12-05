@@ -115,7 +115,7 @@ export class UserDataSyncer {
 
 	private debug(...args: any[]) {
 		// uncomment for dev time debugging
-		// console.log('[UserDataSyncer]:',...args)
+		console.log('[UserDataSyncer]:', ...args)
 		if (this.sentry) {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
