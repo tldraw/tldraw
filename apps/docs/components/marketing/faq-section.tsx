@@ -132,6 +132,19 @@ const faq = [
 			</>
 		),
 	},
+	{
+		q: 'Where can I find the AI stuff?',
+		a: (
+			<>
+				Oh, the AI stuff. You can try our{' '}
+				<BlueA href="https://makereal.tldraw.com">Make Real</BlueA> for drawing user interfaces with
+				tldraw. We also have <BlueA href="https://teach.tldraw.com">Teach</BlueA> for working with
+				an AI on the canvas. And we have <BlueA href="https://computer.tldraw.com">Computer</BlueA>{' '}
+				for building AI-powered workflows. Follow us on{' '}
+				<BlueA href="https://x.com/tldraw">X/Twitter</BlueA> for the latest!
+			</>
+		),
+	},
 ]
 
 function BlueA({ href, children }: { href: string; children: React.ReactNode }) {
