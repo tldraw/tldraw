@@ -2636,10 +2636,11 @@ export interface TLCameraMoveOptions {
 
 // @public (undocumented)
 export interface TLCameraOptions {
+    autoWheelBehavior?: 'pan' | 'zoom';
     constraints?: TLCameraConstraints;
     isLocked: boolean;
     panSpeed: number;
-    wheelBehavior: 'none' | 'pan' | 'zoom';
+    wheelBehavior: 'auto' | 'none' | 'pan' | 'zoom';
     zoomSpeed: number;
     zoomSteps: number[];
 }
@@ -3048,6 +3049,8 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 
 // @public (undocumented)
 export interface TLEventMap {
+    // (undocumented)
+    'camera-options-change': [TLCameraOptions];
     // (undocumented)
     'max-shapes': [{
         count: number;

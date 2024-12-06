@@ -1,6 +1,7 @@
 import { HistoryEntry } from '@tldraw/store'
 import { TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
+import { TLCameraOptions } from './misc-types'
 
 /** @public */
 export interface TLEventMap {
@@ -16,6 +17,7 @@ export interface TLEventMap {
 	tick: [number]
 	frame: [number]
 	'select-all-text': [{ shapeId: TLShapeId }]
+	'camera-options-change': [TLCameraOptions]
 }
 
 /** @public */
