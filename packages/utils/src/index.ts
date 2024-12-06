@@ -67,6 +67,7 @@ export {
 	validateIndexKey,
 	type IndexKey,
 } from './lib/reordering'
+export { retry } from './lib/retry'
 export { sortById } from './lib/sort'
 export {
 	clearLocalStorage,
