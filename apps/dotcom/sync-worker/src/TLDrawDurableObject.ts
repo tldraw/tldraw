@@ -300,10 +300,15 @@ export class TLDrawDurableObject extends DurableObject {
 	}
 
 	// this might return null if the file doesn't exist yet in the backend, or if it was deleted
+	_fileRecordCache: TlaFile | null = null
 	async getAppFileRecord(): Promise<TlaFile | null> {
+		if (this._fileRecordCache) {
+			return this._fileRecordCache
+		}
 		const stub = getReplicator(this.env)
 		try {
-			return await stub.getFileRecord(this.documentInfo.slug)
+			this._fileRecordCache = await stub.getFileRecord(this.documentInfo.slug)
+			return this._fileRecordCache
 		} catch (_e) {
 			return null
 		}
@@ -614,6 +619,7 @@ export class TLDrawDurableObject extends DurableObject {
 			console.error('file record updated but no file found')
 			return
 		}
+		this._fileRecordCache = file
 		if (!this._documentInfo) {
 			this.setDocumentInfo({
 				version: CURRENT_DOCUMENT_INFO_VERSION,
@@ -662,6 +668,8 @@ export class TLDrawDurableObject extends DurableObject {
 	async appFileRecordDidDelete() {
 		// force isOrWasCreateMode to be false so next open will check the database
 		if (this._documentInfo?.deleted) return
+
+		this._fileRecordCache = null
 
 		this.setDocumentInfo({
 			version: CURRENT_DOCUMENT_INFO_VERSION,
