@@ -363,7 +363,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		try {
 			// we connect to pg via a pooler, so in the case that the pool is exhausted
 			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
-			await retryOnConnectionFailure(() => this._doMutate(msg))
+			await retryOnConnectionFailure(
+				() => this._doMutate(msg),
+				() => {
+					this.logEvent({ type: 'connect_retry', id: this.userId! })
+				}
+			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
 			const result = await this
 				.db`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`

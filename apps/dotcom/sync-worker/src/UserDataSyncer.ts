@@ -224,36 +224,44 @@ export class UserDataSyncer {
 		}
 		// we connect to pg via a pooler, so in the case that the pool is exhausted
 		// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
-		await retryOnConnectionFailure(async () => {
-			// sync initial data
-			initialData.user = null as any
-			initialData.files = []
-			initialData.fileStates = []
+		await retryOnConnectionFailure(
+			async () => {
+				// sync initial data
+				initialData.user = null as any
+				initialData.files = []
+				initialData.fileStates = []
 
-			await this.db.begin(async (db) => {
-				return db
-					.unsafe(sql, [], { prepare: false })
-					.simple()
-					.forEach((row: any) => {
-						assert(this.state.type === 'connecting', 'state should be connecting in boot')
-						switch (row.table) {
-							case 'user':
-								initialData.user = parseResultRow(userKeys, row)
-								break
-							case 'file':
-								initialData.files.push(parseResultRow(fileKeys, row))
-								break
-							case 'file_state':
-								initialData.fileStates.push(parseResultRow(fileStateKeys, row))
-								break
-							case 'user_mutation_number':
-								assert(typeof row.mutationNumber === 'number', 'mutationNumber should be a number')
-								this.state.mutationNumber = row.mutationNumber
-								break
-						}
-					})
-			})
-		})
+				await this.db.begin(async (db) => {
+					return db
+						.unsafe(sql, [], { prepare: false })
+						.simple()
+						.forEach((row: any) => {
+							assert(this.state.type === 'connecting', 'state should be connecting in boot')
+							switch (row.table) {
+								case 'user':
+									initialData.user = parseResultRow(userKeys, row)
+									break
+								case 'file':
+									initialData.files.push(parseResultRow(fileKeys, row))
+									break
+								case 'file_state':
+									initialData.fileStates.push(parseResultRow(fileStateKeys, row))
+									break
+								case 'user_mutation_number':
+									assert(
+										typeof row.mutationNumber === 'number',
+										'mutationNumber should be a number'
+									)
+									this.state.mutationNumber = row.mutationNumber
+									break
+							}
+						})
+				})
+			},
+			() => {
+				this.logEvent({ type: 'connect_retry', id: this.userId })
+			}
+		)
 
 		this.state.data = initialData
 		// do an unnecessary assign here to tell typescript that the state might have changed

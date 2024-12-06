@@ -113,6 +113,7 @@ export type TLUserDurableObjectEvent =
 				| 'mutation'
 				| 'reject_mutation'
 				| 'replication_event'
+				| 'connect_retry'
 			id: string
 	  }
 	| { type: 'reboot_duration'; id: string; duration: number }
