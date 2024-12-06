@@ -284,21 +284,22 @@ function TlaFileNameEditorInput({
 	const rTemporaryName = useRef<string>(fileName)
 	const [temporaryFileName, setTemporaryFileName] = useState(fileName)
 
-	const handleBlur = useCallback(() => {
-		// dispatch the new filename via onComplete
-		const newFileName = rTemporaryName.current.replace(/ /g, '\u00a0')
-		setTemporaryFileName(newFileName)
-		rTemporaryName.current = newFileName
-		onComplete(newFileName)
-		onBlur()
-	}, [onBlur, onComplete])
-
 	const handleCancel = useCallback(() => {
 		// restore original filename from file
 		setTemporaryFileName(fileName)
 		rTemporaryName.current = fileName
 		onBlur()
 	}, [onBlur, fileName])
+
+	const handleBlur = useCallback(() => {
+		// dispatch the new filename via onComplete
+		const newFileName = rTemporaryName.current.replace(/\s+/g, ' ').trim()
+		if (newFileName === fileName) return handleCancel()
+		setTemporaryFileName(newFileName)
+		rTemporaryName.current = newFileName
+		onComplete(newFileName)
+		onBlur()
+	}, [onBlur, onComplete, fileName, handleCancel])
 
 	const handleValueChange = useCallback((value: string) => {
 		setTemporaryFileName(value)
@@ -309,7 +310,7 @@ function TlaFileNameEditorInput({
 		<>
 			<TldrawUiInput
 				className={styles.nameInput}
-				value={temporaryFileName.replace(/ /g, '\u00a0')}
+				value={temporaryFileName}
 				onValueChange={handleValueChange}
 				onCancel={handleCancel}
 				onBlur={handleBlur}
