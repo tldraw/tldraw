@@ -8,6 +8,7 @@ import {
 	TLUiDialogsContextType,
 	deleteFromLocalStorage,
 	getFromLocalStorage,
+	retry,
 	setInLocalStorage,
 	sleep,
 } from 'tldraw'
@@ -60,20 +61,6 @@ export async function loadLocalFile(asset: TLAsset): Promise<{ file: File; url: 
 	} finally {
 		db.close()
 	}
-}
-
-async function retry<T>(fn: () => Promise<T>, abortSignal: AbortSignal, times = 3, timeout = 1000) {
-	let error: unknown = null
-	for (let i = 0; i < times; i++) {
-		if (abortSignal.aborted) throw new Error('aborted')
-		try {
-			return await fn()
-		} catch (e) {
-			error = e
-			await sleep(timeout)
-		}
-	}
-	throw error
 }
 
 interface SlurperOpts {
@@ -212,7 +199,11 @@ class Slurper {
 					if (!res) throw new Error(`Failed to load local file for asset ${asset.id}`)
 					const url = await retry(
 						() => this.opts.editor.uploadAsset(asset!, res.file, this.opts.abortSignal),
-						this.opts.abortSignal
+						{
+							attempts: 3,
+							waitDuration: 1000,
+							abortSignal: this.opts.abortSignal,
+						}
 					)
 					this.opts.editor.updateAssets([
 						{
