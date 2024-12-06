@@ -28,7 +28,7 @@
 	left: calc(var(--tla-sidebar-width) - 5px);
 	width: 10px;
 	cursor: ew-resize;
-	z-index: 1000;
+	z-index: 250;
 	display: flex;
 	justify-content: center;
 }
