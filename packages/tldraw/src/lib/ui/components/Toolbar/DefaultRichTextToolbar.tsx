@@ -195,56 +195,15 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 		}
 	}, [toolbarPosition, stabilizedToolbarPosition, camera, currentCamera, isEditingLink])
 
+	// The toolbar can get a _lot_ of updates because the textEditor state changes so much.
+	// That can make it cycle pretty quickly through isVisible and toolbarPosition states.
+	// This helps take the stabilizedPosition and visibility states and make them less jittery.
+	const debouncedToolbarPosition = useDebouncedValue(toolbarPosition, 150)
+	const debouncedIsVisible = useDebouncedValue(isVisible, 150)
+
 	// N.B. One tactic here that could have been done is to, if there is no textEditor or we're
 	// not in editing text mode, that we just return null and not render the toolbar. However,
 	// because we want the toolbar to smoothly animate in-and-out of view we keep it around.
-
-	return (
-		<DebouncedRichTextToolbar
-			ref={toolbarRef}
-			textEditor={textEditor}
-			isVisible={isVisible}
-			toolbarPosition={stabilizedToolbarPosition}
-			handleLinkComplete={handleLinkComplete}
-			handleEditLinkIntent={handleEditLinkIntent}
-			showLinkEditor={isEditingLink || (wasJustEditingLink && !isVisible)}
-			indicatorOffset={toolbarPosition.indicatorOffset}
-		>
-			{children}
-		</DebouncedRichTextToolbar>
-	)
-})
-
-// The toolbar can get a _lot_ of updates because the textEditor state changes so much.
-// That can make it cycle pretty quickly through isVisible and toolbarPosition states.
-// This helps take the stabilizedPosition and visibility states and make them less jittery.
-const DebouncedRichTextToolbar = React.forwardRef<
-	HTMLDivElement,
-	{
-		children: React.ReactNode
-		textEditor: TextEditor | null
-		isVisible: boolean
-		toolbarPosition: { x: number; y: number }
-		handleLinkComplete(): void
-		handleEditLinkIntent(): void
-		showLinkEditor: boolean
-		indicatorOffset: number
-	}
->(function DebouncedRichTextToolbar(
-	{
-		children,
-		textEditor,
-		isVisible,
-		toolbarPosition,
-		handleLinkComplete,
-		handleEditLinkIntent,
-		showLinkEditor,
-		indicatorOffset,
-	},
-	toolbarRef
-) {
-	const debouncedToolbarPosition = useDebouncedValue(toolbarPosition, 150)
-	const debouncedIsVisible = useDebouncedValue(isVisible, 150)
 
 	return (
 		<TldrawUiContextualToolbar
@@ -252,11 +211,11 @@ const DebouncedRichTextToolbar = React.forwardRef<
 			className="tl-rich-text__toolbar"
 			position={debouncedToolbarPosition}
 			isVisible={debouncedIsVisible}
-			indicatorOffset={indicatorOffset}
+			indicatorOffset={toolbarPosition.indicatorOffset}
 		>
 			{children ? (
 				children
-			) : showLinkEditor && textEditor ? (
+			) : textEditor && (isEditingLink || (wasJustEditingLink && !isVisible)) ? (
 				<LinkEditor
 					textEditor={textEditor}
 					value={textEditor.isActive('link') ? textEditor.getAttributes('link').href : ''}
