@@ -55,6 +55,7 @@ function LocalTldraw() {
 	return (
 		<TlaAnonLayout>
 			<LocalEditor
+				data-testid="tla-editor"
 				componentsOverride={components}
 				onMount={(editor) => {
 					globalEditor.set(editor)

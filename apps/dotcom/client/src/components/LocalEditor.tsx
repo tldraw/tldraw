@@ -88,11 +88,13 @@ export function LocalEditor({
 	onMount,
 	children,
 	persistenceKey,
+	'data-testid': dataTestId,
 }: {
 	componentsOverride?: TLComponents
 	onMount?(editor: Editor): void
 	children?: ReactNode
 	persistenceKey?: string
+	'data-testid'?: string
 }) {
 	const handleUiEvent = useHandleUiEvents()
 	const sharingUiOverrides = useSharing()
@@ -106,7 +108,7 @@ export function LocalEditor({
 	})
 
 	return (
-		<div className="tldraw__editor">
+		<div className="tldraw__editor" data-testid={dataTestId}>
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
