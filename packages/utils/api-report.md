@@ -78,6 +78,13 @@ export interface ErrorResult<E> {
 }
 
 // @internal (undocumented)
+export class ExecutionQueue {
+    constructor(timeout?: number | undefined);
+    // (undocumented)
+    push<T>(task: () => T): Promise<Awaited<T>>;
+}
+
+// @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
 // @public (undocumented)

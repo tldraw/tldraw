@@ -104,6 +104,10 @@ export const router = createRoutesFromElements(
 		</Route>
 		{/* begin tla */}
 		<Route element={<NoIndex />}>
+			<Route
+				path={`/${PREFIX.tla}/${PREFIX.localFile}/:fileSlug`}
+				lazy={() => import('./tla/pages/local-file')}
+			/>
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 				<Route path={`/${PREFIX.tla}`} lazy={() => import('./tla/pages/local')} />
 				{/* <Route path={`/${PREFIX.tla}/playground`} lazy={() => import('./tla/pages/playground')} /> */}

@@ -2,6 +2,7 @@ import { registerTldrawLibraryVersion } from './lib/version'
 
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
+export { ExecutionQueue } from './lib/ExecutionQueue'
 export { PerformanceTracker } from './lib/PerformanceTracker'
 export {
 	areArraysShallowEqual,

@@ -8,7 +8,7 @@ describe('multiplayerAssetStore.resolve', () => {
 	it('should return null if the asset has no src', async () => {
 		const asset = { type: 'image', props: { w: 100, fileSize: FILE_SIZE } }
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -24,7 +24,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			props: { src: 'http://assets.tldraw.dev/video.mp4', fileSize: FILE_SIZE },
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -40,7 +40,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			props: { src: 'http://assets.not-tldraw.dev/video.mp4', fileSize: FILE_SIZE },
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -56,7 +56,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			props: { src: 'http://assets.tldraw.dev/image.jpg', fileSize: 1000 },
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -69,7 +69,7 @@ describe('multiplayerAssetStore.resolve', () => {
 	it('should return the original src for if original is asked for', async () => {
 		const asset = { type: 'image', props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100 } }
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -82,7 +82,7 @@ describe('multiplayerAssetStore.resolve', () => {
 	it('should return the original src if it does not start with http or https', async () => {
 		const asset = { type: 'image', props: { src: 'data:somedata', w: 100, fileSize: FILE_SIZE } }
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -103,7 +103,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			},
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -124,7 +124,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			},
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -140,7 +140,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			props: { src: 'http://assets.tldraw.dev/doc.pdf', w: 100, fileSize: FILE_SIZE },
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 1,
 				dpr: 1,
@@ -156,7 +156,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 0.5,
 				dpr: 2,
@@ -172,7 +172,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			props: { src: 'http://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 0.5,
 				dpr: 2,
@@ -188,7 +188,7 @@ describe('multiplayerAssetStore.resolve', () => {
 			props: { src: 'https://assets.tldraw.dev/image.jpg', w: 100, fileSize: FILE_SIZE },
 		}
 		expect(
-			resolver(asset as TLAsset, {
+			await resolver(asset as TLAsset, {
 				screenScale: -1,
 				steppedScreenScale: 5,
 				dpr: 1,

@@ -1,9 +1,8 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
-import { assertExists, atom, deleteFromLocalStorage, getFromLocalStorage } from 'tldraw'
+import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
 import { useIntl } from '../utils/i18n'
-import { TEMPORARY_FILE_KEY } from '../utils/temporary-files'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -46,11 +45,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				if (didCancel) {
 					app.dispose()
 					return
-				}
-				const claimTemporaryFileId = getFromLocalStorage(TEMPORARY_FILE_KEY)
-				if (claimTemporaryFileId) {
-					deleteFromLocalStorage(TEMPORARY_FILE_KEY)
-					app.claimTemporaryFile(claimTemporaryFileId)
 				}
 				_app = app
 				setApp(app)
