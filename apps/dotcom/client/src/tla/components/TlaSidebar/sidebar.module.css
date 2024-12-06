@@ -2,9 +2,9 @@
 	position: absolute;
 	display: flex;
 	top: 0px;
-	left: -260px;
+	left: calc(var(--tla-sidebar-width) * -1);
 	height: 100%;
-	width: 260px;
+	width: var(--tla-sidebar-width);
 	z-index: 100;
 	transform: translate(0px, 0px);
 	flex-direction: column;
@@ -274,7 +274,10 @@
 }
 
 .userName {
-	flex-grow: 1;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .main-link {

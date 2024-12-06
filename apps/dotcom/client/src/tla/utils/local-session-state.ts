@@ -25,6 +25,7 @@ export interface TldrawAppSessionState {
 		TlaUser,
 		'exportFormat' | 'exportTheme' | 'exportBackground' | 'exportPadding'
 	>
+	sidebarWidth?: number
 }
 
 let prev: TldrawAppSessionState = {
