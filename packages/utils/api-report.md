@@ -392,6 +392,14 @@ export const Result: {
     ok<T>(value: T): OkResult<T>;
 };
 
+// @internal (undocumented)
+export function retry<T>(fn: () => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+    abortSignal?: AbortSignal;
+    attempts?: number;
+    matchError?(error: unknown): boolean;
+    waitDuration?: number;
+}): Promise<T>;
+
 // @public
 export function rng(seed?: string): () => number;
 
