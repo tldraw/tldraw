@@ -89,3 +89,10 @@ div.hs-fieldtype-textarea {
 .hs_error_rollup {
 	@apply flex items-center;
 }
+
+.masked-logo {
+	position: relative;
+	background-color: currentColor;
+	z-index: 1;
+	color: inherit;
+}

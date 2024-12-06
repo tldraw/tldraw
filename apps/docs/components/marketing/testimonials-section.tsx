@@ -1,13 +1,31 @@
-import Image from 'next/image'
 import Link from 'next/link'
+import { Icon, IconName } from '../common/icon'
 import { Section } from './section'
 import { SectionHeading } from './section-heading'
+
+const socialLinks = [
+	{
+		caption: 'Twitter',
+		icon: 'twitter' as IconName,
+		href: 'https://x.com/tldraw/',
+	},
+	{
+		caption: 'Discord',
+		icon: 'discord' as IconName,
+		href: 'https://discord.com/invite/SBBEVCA4PG',
+	},
+	{
+		caption: 'GitHub',
+		icon: 'github' as IconName,
+		href: 'https://github.com/tldraw/tldraw',
+	},
+]
 
 export function TestimonialsSection() {
 	return (
 		<Section>
 			<SectionHeading
-				subheading="Testimonials"
+				subheading="Community"
 				heading="Friends of the draw"
 				description={
 					<>
@@ -17,7 +35,14 @@ export function TestimonialsSection() {
 					</>
 				}
 			/>
-			<div className="flow-root px-5 md:px-0 relative">
+			<ul className="flex gap-6 items-center justify-center">
+				{socialLinks.map((item, index) => (
+					<li key={index}>
+						<SocialLink {...item} />
+					</li>
+				))}
+			</ul>
+			{/* <div className="flow-root px-5 md:px-0 relative">
 				<div className="-mt-8 sm:columns-2 lg:columns-3 gap-8">
 					{testimonials.map(({ name, role, avatar, quote }, index) => (
 						<div key={index} className="pt-8 sm:inline-block sm:w-full">
@@ -38,13 +63,12 @@ export function TestimonialsSection() {
 						</div>
 					))}
 				</div>
-				{/* Mailing list */}
-			</div>
+			</div> */}
 		</Section>
 	)
 }
 
-const testimonials: {
+const _testimonials: {
 	name: string
 	role: string
 	avatar: string
@@ -115,3 +139,12 @@ const testimonials: {
 			'Props on @tldraw gave it a try, and I loved it.  Especially when it auto-detected the eraser when I flipped my stylus.  I had fun building the below for @getAllSpark.',
 	},
 ]
+
+function SocialLink({ caption, icon, href }: { caption: string; icon: IconName; href: string }) {
+	return (
+		<Link href={href} target="_blank" rel="noreferrer">
+			<span className="sr-only">{caption}</span>
+			<Icon icon={icon} className="h-10 text-black hover:text-zinc-600 dark:hover:text-zinc-100" />
+		</Link>
+	)
+}
