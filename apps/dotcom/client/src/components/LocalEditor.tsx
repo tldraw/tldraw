@@ -1,4 +1,4 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
+import { getLicenseKey, OLD_FILE_CREATION_DISABLED } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect } from 'react'
 import {
 	DefaultDebugMenu,
@@ -6,11 +6,13 @@ import {
 	DefaultKeyboardShortcutsDialog,
 	DefaultKeyboardShortcutsDialogContent,
 	DefaultMainMenu,
-	EditSubmenu,
 	Editor,
+	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
+	getFromLocalStorage,
 	PreferencesGroup,
+	setInLocalStorage,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
@@ -22,11 +24,9 @@ import {
 	TldrawUiDialogTitle,
 	TldrawUiMenuActionItem,
 	TldrawUiMenuGroup,
-	ViewSubmenu,
-	getFromLocalStorage,
-	setInLocalStorage,
 	useDialogs,
 	useEditor,
+	ViewSubmenu,
 } from 'tldraw'
 import { assetUrls } from '../utils/assetUrls'
 import { createAssetFromUrl } from '../utils/createAssetFromUrl'
@@ -74,6 +74,7 @@ const components: TLComponents = {
 		)
 	},
 	SharePanel: () => {
+		if (OLD_FILE_CREATION_DISABLED) return null
 		return (
 			<div className="tlui-share-zone" draggable={false}>
 				<ShareMenu />

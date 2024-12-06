@@ -1,5 +1,6 @@
 import { captureException } from '@sentry/react'
 import {
+	OLD_FILE_CREATION_DISABLED,
 	READ_ONLY_LEGACY_PREFIX,
 	READ_ONLY_PREFIX,
 	ROOM_PREFIX,
@@ -75,8 +76,12 @@ export const router = createRoutesFromElements(
 			{/* We don't want to index multiplayer rooms */}
 			<Route element={<NoIndex />}>
 				<Route element={<ShimIntlProvider />}>
-					<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
-					<Route path="/new" lazy={() => import('./pages/new')} />
+					{!OLD_FILE_CREATION_DISABLED && (
+						<>
+							<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
+							<Route path="/new" lazy={() => import('./pages/new')} />
+						</>
+					)}
 					<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
 					<Route
 						path={`/${ROOM_PREFIX}/:roomId`}

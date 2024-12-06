@@ -1,4 +1,4 @@
-import { SNAPSHOT_PREFIX } from '@tldraw/dotcom-shared'
+import { OLD_FILE_CREATION_DISABLED, SNAPSHOT_PREFIX } from '@tldraw/dotcom-shared'
 import React, { useCallback, useState } from 'react'
 import {
 	TldrawUiMenuGroup,
@@ -31,6 +31,7 @@ export const SnapshotLinkCopy = React.memo(function SnapshotLinkCopy() {
 		setDidCopySnapshotLink(true)
 		setTimeout(() => setDidCopySnapshotLink(false), 1000)
 	}, [shareSnapshot])
+	if (OLD_FILE_CREATION_DISABLED) return null
 
 	return (
 		<TldrawUiMenuGroup id="snapshot">

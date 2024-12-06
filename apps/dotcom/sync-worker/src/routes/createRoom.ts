@@ -1,4 +1,4 @@
-import { CreateRoomRequestBody } from '@tldraw/dotcom-shared'
+import { CreateRoomRequestBody, OLD_FILE_CREATION_DISABLED } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { createTLSchema } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
@@ -9,6 +9,11 @@ import { validateSnapshot } from '../utils/validateSnapshot'
 
 // Sets up a new room based on a provided snapshot, e.g. when a user clicks the "Share" buttons or the "Fork project" buttons.
 export async function createRoom(request: IRequest, env: Environment): Promise<Response> {
+	if (OLD_FILE_CREATION_DISABLED) {
+		return new Response(JSON.stringify({ error: true, message: 'File creation is disabled' }), {
+			status: 400,
+		})
+	}
 	// The data sent from the client will include the data for the new room
 	const data = (await request.json()) as CreateRoomRequestBody
 
