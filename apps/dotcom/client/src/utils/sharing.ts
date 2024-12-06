@@ -23,13 +23,13 @@ import {
 	fetch,
 	isShape,
 } from 'tldraw'
+import { routes } from '../routeDefs'
 import { writeToClipboard } from './clipboard'
 import { cloneAssetForShare } from './cloneAssetForShare'
 import { getParentOrigin, isInIframe } from './iFrame'
 import { shouldLeaveSharedProject } from './shouldLeaveSharedProject'
 import { trackAnalyticsEvent } from './trackAnalyticsEvent'
 import { UI_OVERRIDE_TODO_EVENT, useHandleUiEvents } from './useHandleUiEvent'
-import { routes } from '../routeDefs'
 
 export const SHARE_PROJECT_ACTION = 'share-project' as const
 export const SHARE_SNAPSHOT_ACTION = 'share-snapshot' as const

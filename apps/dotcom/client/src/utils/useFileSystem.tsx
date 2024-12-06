@@ -12,10 +12,10 @@ import {
 	serializeTldrawJsonBlob,
 	transact,
 } from 'tldraw'
+import { routes } from '../routeDefs'
 import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'
-import { routes } from '../routeDefs'
 
 export const SAVE_FILE_COPY_ACTION = 'save-file-copy'
 export const OPEN_FILE_ACTION = 'open-file'
