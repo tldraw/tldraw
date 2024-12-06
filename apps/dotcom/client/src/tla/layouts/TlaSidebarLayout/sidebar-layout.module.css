@@ -29,8 +29,14 @@
 	width: 10px;
 	cursor: ew-resize;
 	z-index: 250;
-	display: flex;
 	justify-content: center;
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.resizeHandle {
+		display: flex;
+	}
 }
 
 .resizeHandleIndicator {
