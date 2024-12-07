@@ -25,7 +25,7 @@ export default function Page() {
 			<TestimonialsSection />
 			<FAQSection />
 			<CTASection />
-			<div className="pb-24">
+			<div className="my-32 lg:my-40">
 				<NewsletterSignup bg={false} hideAfterSubmit={false} />
 			</div>
 		</>
