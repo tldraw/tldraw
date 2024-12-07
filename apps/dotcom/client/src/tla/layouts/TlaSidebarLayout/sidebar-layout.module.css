@@ -22,11 +22,14 @@
 }
 
 .resizeHandle {
+	--indicator-width: 2px;
+	--hoverable-width: 6px;
+	--active-width: 40px;
 	height: 100%;
 	position: absolute;
 	top: 0;
-	left: calc(var(--tla-sidebar-width) - 5px);
-	width: 10px;
+	left: calc(var(--tla-sidebar-width) - var(--hoverable-width) + 1px);
+	width: var(--hoverable-width);
 	cursor: col-resize;
 	z-index: 250;
 	justify-content: center;
@@ -35,8 +38,10 @@
 
 /* make the handle bigger while mouse is down to avoid flickering */
 .resizeHandle:active {
-	left: calc(var(--tla-sidebar-width) - 20px);
-	width: 40px;
+	left: calc(
+		var(--tla-sidebar-width) - (var(--active-width) / 2) - (var(--hoverable-width) / 2) + 1px
+	);
+	width: var(--active-width);
 	display: flex;
 }
 
@@ -49,7 +54,7 @@
 .resizeHandleIndicator {
 	background-color: var(--tla-color-primary);
 	height: 100%;
-	width: 2px;
+	width: var(--indicator-width);
 	opacity: 0;
 	transition: opacity 100ms;
 }
