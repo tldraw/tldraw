@@ -11,6 +11,7 @@ import {
 import styles from './sidebar-layout.module.css'
 
 const MIN_SIDEBAR_WIDTH = 150
+const DEF_SIDEBAR_WIDTH = 260
 const MAX_SIDEBAR_WIDTH = 500
 
 export function TlaSidebarLayout({ children }: { children: ReactNode; collapsible?: boolean }) {
@@ -38,10 +39,12 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		}
 	})
 
-	const rResizeState = useRef({ name: 'idle' } as
+	const rResizeState = useRef<
 		| { name: 'idle' }
 		| { name: 'pointing'; startWidth: number; startX: number }
-		| { name: 'resizing'; startWidth: number; startX: number })
+		| { name: 'resizing'; startWidth: number; startX: number }
+		| { name: 'closing' }
+	>({ name: 'idle' })
 
 	const handlePointerDown = useCallback((event: React.PointerEvent) => {
 		// Get the current sidebar width as its start width
@@ -81,18 +84,40 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		}
 	}, [])
 
+	const rTimeout = useRef<any>(null)
+
 	const handlePointerUp = useCallback((event: React.PointerEvent) => {
+		event.currentTarget.releasePointerCapture(event.pointerId)
+		rSidebar.current?.removeAttribute('data-resizing')
+
 		if (rResizeState.current.name === 'pointing') {
-			// close the menu
-			updateLocalSessionState(() => ({ isSidebarOpen: false }))
-		} else if (rResizeState.current.name === 'resizing') {
-			// stop resizing
-			rSidebar.current?.removeAttribute('data-resizing')
+			// if the menu is at its default size, close it
+			if (getLocalSessionStateUnsafe().sidebarWidth === DEF_SIDEBAR_WIDTH) {
+				updateLocalSessionState(() => ({ isSidebarOpen: false }))
+				rResizeState.current = { name: 'idle' }
+				return
+			}
+
+			// if it's been resized, the user might be double clicking to reset its width
+			rResizeState.current = { name: 'closing' }
+			rTimeout.current = setTimeout(() => {
+				// close the menu after 200ms unless a double click happens
+				if (rResizeState.current.name === 'closing') {
+					updateLocalSessionState(() => ({ isSidebarOpen: false }))
+					rResizeState.current = { name: 'idle' }
+				}
+			}, 200)
+			return
 		}
 
 		// return to idle
-		event.currentTarget.releasePointerCapture(event.pointerId)
 		rResizeState.current = { name: 'idle' }
+	}, [])
+
+	const handleDoubleClick = useCallback(() => {
+		rResizeState.current = { name: 'idle' }
+		clearTimeout(rTimeout.current)
+		updateLocalSessionState(() => ({ sidebarWidth: DEF_SIDEBAR_WIDTH }))
 	}, [])
 
 	return (
@@ -111,6 +136,7 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 					onPointerDown={handlePointerDown}
 					onPointerMove={handlePointerMove}
 					onPointerUp={handlePointerUp}
+					onDoubleClick={handleDoubleClick}
 				>
 					<div className={styles.resizeHandleIndicator}></div>
 				</div>
