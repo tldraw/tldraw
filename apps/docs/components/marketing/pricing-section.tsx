@@ -1,7 +1,8 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
 import { CheckCircleIcon, UserCircleIcon } from '@heroicons/react/20/solid'
-import Link from 'next/link'
+
+import { PricingButton } from './pricing-button'
 
 export function PricingSection() {
 	return (
@@ -40,13 +41,7 @@ export function PricingSection() {
 									</p>
 								</>
 							)}
-							<Link
-								href={tier.href}
-								aria-describedby={tier.id}
-								className="mt-10 block rounded-md bg-blue-500 px-3 py-2 text-center text-sm/6 font-semibold shadow-sm bg-blue-500 text-white hover:bg-blue-600 dark:hover:bg-blue-400"
-							>
-								{tier.id === 'business' ? 'Contact us' : 'Buy now'}
-							</Link>
+							<PricingButton tier={tier} />
 							<p className="mt-10 text-sm/6 font-semibold text-gray-900">{tier.description}</p>
 							<ul role="list" className="mt-6 space-y-3 text-sm/6 text-gray-600">
 								{tier.features.map((feature, i) => (

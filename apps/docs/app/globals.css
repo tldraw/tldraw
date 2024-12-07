@@ -102,12 +102,15 @@ mark {
 	padding: 0.1em 0.4em;
 	border-radius: 0.8em 0.3em;
 	background: transparent;
+	color: inherit;
 	background-image: linear-gradient(
 		to right,
-		rgba(255, 225, 0, 0),
-		rgba(255, 230, 0, 0.5) 12%,
-		rgba(255, 213, 0, 0.5) 88%,
-		rgba(255, 225, 0, 0)
+		rgba(255, 230, 0, 0),
+		rgba(255, 230, 0, 0) 1%,
+		rgba(255, 230, 0, 0.6) 6%,
+		rgba(255, 213, 0, 0.7) 88%,
+		rgba(255, 213, 0, 0) 99%,
+		rgba(255, 213, 0, 0)
 	);
 	-webkit-box-decoration-break: clone;
 	box-decoration-break: clone;
