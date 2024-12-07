@@ -6,7 +6,7 @@ export function WatermarkSection() {
 	return (
 		<Section
 			id="watermark"
-			className="bg-zinc-50 py-24 sm:py-24 md:py-32 lg:py-40 w-full max-w-full"
+			className="bg-zinc-50 dark:bg-zinc-900 py-24 sm:py-24 md:py-32 lg:py-40 w-full max-w-full"
 		>
 			<SectionHeading subheading="License" heading="Free with Watermark" />
 			<div className="flex justify-center mb-8">
