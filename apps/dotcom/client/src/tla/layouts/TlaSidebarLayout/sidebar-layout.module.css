@@ -27,7 +27,7 @@
 	top: 0;
 	left: calc(var(--tla-sidebar-width) - 5px);
 	width: 10px;
-	cursor: ew-resize;
+	cursor: col-resize;
 	z-index: 250;
 	justify-content: center;
 	display: none;
