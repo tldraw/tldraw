@@ -13,37 +13,39 @@ export function PricingSection() {
 				description="Remove the watermark and access additional support."
 			/>
 			<div className="mt-20 flow-root">
-				<div className="isolate mx-auto md:px-5 -mt-16 grid max-w-sm grid-cols-1 gap-y-16 divide-y divide-gray-100 sm:mx-auto lg:-mx-8 lg:mt-0 lg:max-w-none lg:grid-cols-3 lg:divide-x lg:divide-y-0 xl:-mx-4">
+				<div className="isolate mx-auto px-8 md:px-5 -mt-16 grid max-w-sm grid-cols-1 gap-y-16 divide-y divide-gray-100 sm:mx-auto lg:-mx-8 lg:mt-0 lg:max-w-none lg:grid-cols-3 lg:divide-x lg:divide-y-0 xl:-mx-4">
 					{tiers.map((tier) => (
 						<div key={tier.id} className="pt-16 lg:px-8 lg:pt-0 xl:px-14">
-							<h3 id={tier.id} className="text-base/7 font-semibold text-gray-900">
+							<h3 id={tier.id} className="text-base/7 font-semibold text-black dark:text-white">
 								{tier.name}
 							</h3>
 							{tier.id === 'business' ? (
 								<>
 									<p className="mt-6 flex items-baseline gap-x-1">
-										<span className="text-5xl font-semibold tracking-tight text-gray-900">
+										<span className="text-5xl font-semibold tracking-tight text-black dark:text-white">
 											Custom
 										</span>
 									</p>
-									<p className="mt-3 text-sm/6 text-gray-500">Value based pricing available</p>
+									<p className="mt-3 text-sm/6 opacity-[.9]">Value based pricing available</p>
 								</>
 							) : (
 								<>
 									<p className="mt-6 flex items-baseline gap-x-1">
-										<span className="text-5xl font-semibold tracking-tight text-gray-900">
+										<span className="text-5xl font-semibold tracking-tight text-black dark:text-white">
 											{tier.price.monthly}
 										</span>
-										<span className="text-sm/6 font-semibold text-gray-600">/month</span>
+										<span className="text-sm/6 font-semibold">/month</span>
 									</p>
-									<p className="mt-3 text-sm/6 text-gray-500">
+									<p className="mt-3 text-sm/6 opacity-[.9]">
 										{tier.price.annually} per month if paid annually
 									</p>
 								</>
 							)}
 							<PricingButton tier={tier} />
-							<p className="mt-10 text-sm/6 font-semibold text-gray-900">{tier.description}</p>
-							<ul role="list" className="mt-6 space-y-3 text-sm/6 text-gray-600">
+							<p className="mt-10 text-sm/6 font-semibold text-black dark:text-white">
+								{tier.description}
+							</p>
+							<ul role="list" className="mt-6 space-y-3 text-sm/6">
 								{tier.features.map((feature, i) => (
 									<li key={feature} className="flex gap-x-3">
 										{tier.flagFirst && i === 0 ? (
@@ -88,7 +90,7 @@ const tiers = [
 		},
 		href: '/buy/startup',
 		description: 'For small teams who need to speak to us.',
-		features: ['Fewer than 10 employees', 'No watermark', 'Priority support'],
+		features: ['Fewer than 10 employees', 'No watermark', 'One hour of support per month'],
 		flagFirst: true,
 	},
 	{
@@ -96,12 +98,7 @@ const tiers = [
 		name: 'Business',
 		href: '/buy/business',
 		description: 'For larger teams and enterprises.',
-		features: [
-			'No watermark',
-			'Priority support',
-			'Custom agreements',
-			'Dedicated account manager',
-		],
+		features: ['No watermark', 'Premium support', 'Custom agreements', 'Dedicated account manager'],
 		flagFirst: false,
 	},
 ] as const

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 
 const categoryLinks = [
 	{
-		caption: 'Learn',
+		caption: 'Quick Start',
 		icon: AcademicCapIcon,
 		href: '/quick-start',
 		active: (pathname: string) =>
