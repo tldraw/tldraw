@@ -1,34 +1,103 @@
 import React, { ReactNode, useCallback, useRef } from 'react'
-import { clamp, stopEventPropagation, useQuickReactor, useValue } from 'tldraw'
+import { clamp, useQuickReactor, useValue } from 'tldraw'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { useApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
-import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
+import {
+	getLocalSessionState,
+	getLocalSessionStateUnsafe,
+	updateLocalSessionState,
+} from '../../utils/local-session-state'
 import styles from './sidebar-layout.module.css'
+
+const MIN_SIDEBAR_WIDTH = 150
+const MAX_SIDEBAR_WIDTH = 500
 
 export function TlaSidebarLayout({ children }: { children: ReactNode; collapsible?: boolean }) {
 	const app = useApp()
+
 	const isSidebarOpen = useValue('sidebar open', () => getLocalSessionState().isSidebarOpen, [app])
+
 	const isSidebarOpenMobile = useValue(
 		'sidebar open mobile',
 		() => getLocalSessionState().isSidebarOpenMobile,
 		[app]
 	)
-	usePreventAccidentalDrops()
-	const layoutRef = useRef<HTMLDivElement>(null)
 
+	usePreventAccidentalDrops()
+
+	const rSidebar = useRef<HTMLDivElement>(null)
+
+	// When the local session state sidebar width changes, update the sidebar element's width
 	useQuickReactor('update sidebar width', () => {
-		if (layoutRef.current) {
+		if (rSidebar.current) {
 			const width = getLocalSessionState().sidebarWidth
 			if (typeof width === 'number') {
-				layoutRef.current.style.setProperty('--tla-sidebar-width', `${width}px`)
+				rSidebar.current.style.setProperty('--tla-sidebar-width', `${width}px`)
 			}
 		}
 	})
 
+	const rResizeState = useRef({ name: 'idle' } as
+		| { name: 'idle' }
+		| { name: 'pointing'; startWidth: number; startX: number }
+		| { name: 'resizing'; startWidth: number; startX: number })
+
+	const handlePointerDown = useCallback((event: React.PointerEvent) => {
+		// Get the current sidebar width as its start width
+		const startWidth = rSidebar.current
+			? parseInt(getComputedStyle(rSidebar.current).getPropertyValue('--tla-sidebar-width'), 10)
+			: 0
+
+		// start pointing
+		event.currentTarget.setPointerCapture(event.pointerId)
+		rResizeState.current = { name: 'pointing', startX: event.clientX, startWidth }
+	}, [])
+
+	const handlePointerMove = useCallback((moveEvent: React.PointerEvent) => {
+		if (rResizeState.current.name === 'idle') return
+
+		if (rResizeState.current.name === 'pointing') {
+			if (Math.abs(moveEvent.clientX - rResizeState.current.startX) < 5) return // not resizing yet...
+
+			// start resizing
+			rResizeState.current = { ...rResizeState.current, name: 'resizing' }
+			rSidebar.current?.setAttribute('data-resizing', 'true')
+		}
+
+		if (rResizeState.current.name === 'resizing') {
+			const { startX, startWidth } = rResizeState.current
+
+			const newWidth = clamp(
+				startWidth + (moveEvent.clientX - startX),
+				MIN_SIDEBAR_WIDTH,
+				MAX_SIDEBAR_WIDTH
+			)
+
+			if (newWidth !== getLocalSessionStateUnsafe().sidebarWidth) {
+				// Update local sidebar width
+				updateLocalSessionState(() => ({ sidebarWidth: newWidth }))
+			}
+		}
+	}, [])
+
+	const handlePointerUp = useCallback((event: React.PointerEvent) => {
+		if (rResizeState.current.name === 'pointing') {
+			// close the menu
+			updateLocalSessionState(() => ({ isSidebarOpen: false }))
+		} else if (rResizeState.current.name === 'resizing') {
+			// stop resizing
+			rSidebar.current?.removeAttribute('data-resizing')
+		}
+
+		// return to idle
+		event.currentTarget.releasePointerCapture(event.pointerId)
+		rResizeState.current = { name: 'idle' }
+	}, [])
+
 	return (
 		<div
-			ref={layoutRef}
+			ref={rSidebar}
 			className={styles.layout}
 			data-sidebar={isSidebarOpen}
 			data-sidebarmobile={isSidebarOpenMobile}
@@ -37,95 +106,15 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 			<TlaSidebar />
 			{children}
 			{isSidebarOpen && (
-				<SidebarResizeHandle
-					layoutRef={layoutRef}
-					onResize={(sidebarWidth) => {
-						updateLocalSessionState(() => ({ sidebarWidth }))
-					}}
-					onClose={() => {
-						updateLocalSessionState(() => ({ isSidebarOpen: false }))
-					}}
-				/>
+				<div
+					className={styles.resizeHandle}
+					onPointerDown={handlePointerDown}
+					onPointerMove={handlePointerMove}
+					onPointerUp={handlePointerUp}
+				>
+					<div className={styles.resizeHandleIndicator}></div>
+				</div>
 			)}
-		</div>
-	)
-}
-
-const MIN_SIDEBAR_WIDTH = 150
-const MAX_SIDEBAR_WIDTH = 500
-function SidebarResizeHandle({
-	onResize,
-	onClose,
-	layoutRef,
-}: {
-	onResize(width: number): void
-	onClose(): void
-	layoutRef: React.RefObject<HTMLDivElement>
-}) {
-	const rResizeState = useRef({ name: 'idle' } as
-		| { name: 'idle' }
-		| { name: 'pointing'; startWidth: number; startX: number }
-		| { name: 'resizing'; startWidth: number; startX: number })
-
-	const handlePointerDown = useCallback(
-		(event: React.PointerEvent) => {
-			const startWidth = layoutRef.current
-				? parseInt(getComputedStyle(layoutRef.current).getPropertyValue('--tla-sidebar-width'), 10)
-				: 0
-
-			event.currentTarget.setPointerCapture(event.pointerId)
-			rResizeState.current = { name: 'pointing', startX: event.clientX, startWidth }
-		},
-		[layoutRef]
-	)
-
-	const handlePointerMove = useCallback(
-		(moveEvent: React.PointerEvent) => {
-			if (rResizeState.current.name === 'idle') return
-
-			if (rResizeState.current.name === 'pointing') {
-				const dx = moveEvent.clientX - rResizeState.current.startX
-				if (Math.abs(dx) < 5) return
-				rResizeState.current = { ...rResizeState.current, name: 'resizing' }
-				layoutRef.current?.setAttribute('data-resizing', 'true')
-			}
-
-			if (rResizeState.current.name === 'resizing') {
-				const newWidth = clamp(
-					rResizeState.current.startWidth + (moveEvent.clientX - rResizeState.current.startX),
-					MIN_SIDEBAR_WIDTH,
-					MAX_SIDEBAR_WIDTH
-				)
-				onResize(newWidth)
-			}
-		},
-		[onResize, layoutRef]
-	)
-
-	const handlePointerUp = useCallback(
-		(event: React.PointerEvent) => {
-			layoutRef.current?.removeAttribute('data-resizing')
-			event.currentTarget.releasePointerCapture(event.pointerId)
-
-			if (rResizeState.current.name === 'resizing') {
-				stopEventPropagation(event)
-			} else {
-				onClose()
-			}
-
-			rResizeState.current = { name: 'idle' }
-		},
-		[layoutRef, onClose]
-	)
-
-	return (
-		<div
-			className={styles.resizeHandle}
-			onPointerDown={handlePointerDown}
-			onPointerMove={handlePointerMove}
-			onPointerUp={handlePointerUp}
-		>
-			<div className={styles.resizeHandleIndicator}></div>
 		</div>
 	)
 }

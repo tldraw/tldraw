@@ -43,6 +43,7 @@ let prev: TldrawAppSessionState = {
 		exportBackground: true,
 		exportPadding: true,
 	},
+	sidebarWidth: 260,
 }
 
 try {
