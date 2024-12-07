@@ -47,11 +47,11 @@ const logos: {
 			alt: 'Autodesk',
 			url: 'https://www.autodesk.com/products/forma',
 		},
-		{
-			src: '/images/logos/clickup-logo.svg',
-			alt: 'ClickUp',
-			url: 'https://clickup.com/',
-		},
+		// {
+		// 	src: '/images/logos/clickup-logo.svg',
+		// 	alt: 'ClickUp',
+		// 	url: 'https://clickup.com/',
+		// },
 		{
 			src: '/images/logos/craft-logo.svg',
 			alt: 'Craft',
