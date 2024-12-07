@@ -9,7 +9,7 @@ export function HeroSection() {
 			<div className="relative">
 				<h1 className="relative font-black text-black dark:text-white text-center text-3xl leading-tight sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight w-full px-[8px]">
 					The <mark className="inline dark:hidden">infinite&nbsp;canvas&nbsp;SDK</mark>
-					<span className="hidden dark:inline">infinite&nbsp;canvas&nbsp;SDK</span>
+					<span className="hidden dark:inline text-[#FFC034]">infinite&nbsp;canvas&nbsp;SDK</span>
 					<br />
 					for React developers
 				</h1>
