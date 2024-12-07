@@ -47,13 +47,14 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 	>({ name: 'idle' })
 
 	const handlePointerDown = useCallback((event: React.PointerEvent) => {
+		// start pointing
+		event.currentTarget.setPointerCapture(event.pointerId)
+
 		// Get the current sidebar width as its start width
 		const startWidth = rSidebar.current
 			? parseInt(getComputedStyle(rSidebar.current).getPropertyValue('--tla-sidebar-width'), 10)
 			: 0
 
-		// start pointing
-		event.currentTarget.setPointerCapture(event.pointerId)
 		rResizeState.current = { name: 'pointing', startX: event.clientX, startWidth }
 	}, [])
 
