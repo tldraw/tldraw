@@ -87,8 +87,19 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 	const rTimeout = useRef<any>(null)
 
 	const handlePointerUp = useCallback((event: React.PointerEvent) => {
+		// regardless of whether we're in pointing or resizing, remove capture and the resizing attribute
 		event.currentTarget.releasePointerCapture(event.pointerId)
 		rSidebar.current?.removeAttribute('data-resizing')
+
+		if (rResizeState.current.name === 'idle') {
+			// noop
+			return
+		}
+
+		if (rResizeState.current.name === 'resizing') {
+			// we're done, go to idle
+			rResizeState.current = { name: 'idle' }
+		}
 
 		if (rResizeState.current.name === 'pointing') {
 			// if the menu is at its default size, close it
@@ -109,12 +120,11 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 			}, 200)
 			return
 		}
-
-		// return to idle
-		rResizeState.current = { name: 'idle' }
 	}, [])
 
 	const handleDoubleClick = useCallback(() => {
+		// Reset the sidebar width to its default width on double click
+		// todo: prevent the canvas from animating when the sidebar width changes
 		rResizeState.current = { name: 'idle' }
 		clearTimeout(rTimeout.current)
 		updateLocalSessionState(() => ({ sidebarWidth: DEF_SIDEBAR_WIDTH }))
