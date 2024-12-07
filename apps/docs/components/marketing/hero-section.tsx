@@ -8,7 +8,7 @@ export function HeroSection() {
 		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center py-8 sm:py-16">
 			<div className="relative">
 				<h1 className="relative font-black text-black dark:text-white text-center text-3xl leading-tight sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight w-full px-[8px]">
-					The infinite&nbsp;canvas&nbsp;SDK
+					The <mark>infinite&nbsp;canvas&nbsp;SDK</mark>
 					<br />
 					for React developers
 				</h1>
