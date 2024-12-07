@@ -33,6 +33,13 @@
 	display: none;
 }
 
+/* make the handle bigger while mouse is down to avoid flickering */
+.resizeHandle:active {
+	left: calc(var(--tla-sidebar-width) - 20px);
+	width: 40px;
+	display: flex;
+}
+
 @media (min-width: 768px) {
 	.resizeHandle {
 		display: flex;
@@ -44,17 +51,11 @@
 	height: 100%;
 	width: 2px;
 	opacity: 0;
+	transition: opacity 100ms;
 }
 
-.resizeHandle:hover .resizeHandleIndicator {
-	animation: fadeIn 150ms 80ms forwards;
-}
-
-@keyframes fadeIn {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
+.resizeHandle:hover .resizeHandleIndicator,
+.resizeHandle:active .resizeHandleIndicator {
+	transition: opacity 150ms 80ms;
+	opacity: 1;
 }
