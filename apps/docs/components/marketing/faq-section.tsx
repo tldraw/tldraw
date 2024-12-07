@@ -41,6 +41,38 @@ const faq = [
 		),
 	},
 	{
+		q: 'How can I get help and support with the SDK?',
+		a: (
+			<>
+				The best place for community support is either{' '}
+				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or{' '}
+				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
+			</>
+		),
+	},
+
+	{
+		q: 'Where can I find examples of apps built with the tldraw SDK?',
+		a: (
+			<>
+				We have a <BlueA href="https://github.com/tldraw/awesome-tldraw">awesome-tldraw</BlueA> repo
+				where we collect links to awesome projects built with tldraw. You can also check out the
+				#show-and-tell channel on our
+				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA> community.
+			</>
+		),
+	},
+	{
+		q: 'How do I request a feature for tldraw?',
+		a: (
+			<>
+				You can request features through our
+				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or in our{' '}
+				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
+			</>
+		),
+	},
+	{
 		q: 'Can I use tldraw in a commercial application?',
 		a: (
 			<>
@@ -85,38 +117,6 @@ const faq = [
 				Yes, though your app will have to embed React for the component. The SDK uses React for
 				rendering only, and most of the tldraw SDK is regular TypeScript; so we may add first-class
 				support for alternative renderers such as Svelte or Vue in the future.
-			</>
-		),
-	},
-	{
-		q: 'How can I get help and support with the SDK?',
-		a: (
-			<>
-				The best place for community support is either{' '}
-				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or{' '}
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
-			</>
-		),
-	},
-
-	{
-		q: 'Where can I find examples of apps built with the tldraw SDK?',
-		a: (
-			<>
-				We have a <BlueA href="https://github.com/tldraw/awesome-tldraw">awesome-tldraw</BlueA> repo
-				where we collect links to awesome projects built with tldraw. You can also check out the
-				#show-and-tell channel on our
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA> community.
-			</>
-		),
-	},
-	{
-		q: 'How do I request a feature for tldraw?',
-		a: (
-			<>
-				You can request features through our
-				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or in our{' '}
-				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
 			</>
 		),
 	},
