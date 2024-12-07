@@ -24,8 +24,8 @@ export function FeaturesSection() {
 							React canvas
 						</h3>
 						<p className="max-w-xs">
-							Everything on the tldraw canvas is its own React component. If you can do it on the
-							web, you can now do it on the canvas too.
+							The tldraw canvas and everything on it is its own React component, rendered in regular
+							HTML and CSS. If you can do it on the web, you can now do it on the canvas too.
 						</p>
 					</div>
 					<Image
@@ -41,7 +41,8 @@ export function FeaturesSection() {
 								High performance
 							</h3>
 							<p className="max-w-xs">
-								Create and edit thousands of objects. We&apos;ve tuned performance for desktop,
+								Create, edit, and manipulate thousands of objects, including images, interactive
+								components, and embedded content. Highly optimized for performance on desktop,
 								tablets, and mobile devices.
 							</p>
 						</div>
@@ -55,12 +56,15 @@ export function FeaturesSection() {
 				<Card className="col-span-6 md:col-span-2">
 					<div className="relative p-5 pb-8 lg:px-10 lg:py-9">
 						<h3 className="text-black dark:text-white font-black text-xl md:text-2xl mb-4">
-							Real-time collaborative
+							Real-time collaboration
 						</h3>
 						<p className="max-w-xs">
-							Create shared experiences with real-time collaboration, live cursors, viewport
-							following and cursor chat. Go live with <Link href="/docs/sync">tldraw sync</Link> or
-							bring your own backend.
+							Go live with{' '}
+							<Link className="text-blue-500" href="/docs/sync">
+								tldraw sync
+							</Link>{' '}
+							or bring your own backend for shared experiences. Built-in support for collaborative
+							editing, live cursors, viewport following and cursor chat.
 						</p>
 					</div>
 					<Image
@@ -93,8 +97,12 @@ export function FeaturesSection() {
 							Customization
 						</h3>
 						<p className="max-w-xs">
-							Create your own custom shapes, tools, and user interface. Use the runtime Editor API
-							to drive the canvas.
+							Create your own custom elements, tools, interactions, and user interface. Use the
+							runtime{' '}
+							<Link className="text-blue-500" href="/docs/editor">
+								Editor API
+							</Link>{' '}
+							to control the canvas.
 						</p>
 					</div>
 					<Image

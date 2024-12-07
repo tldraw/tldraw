@@ -11,7 +11,7 @@ import Link from 'next/link'
 
 const links = [
 	{
-		caption: 'Learn',
+		caption: 'Quick Start',
 		icon: AcademicCapIcon,
 		href: '/quick-start',
 	},

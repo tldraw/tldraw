@@ -13,7 +13,7 @@ export function DetailsSection() {
 			<SectionHeading
 				subheading="details"
 				heading="Beautiful software"
-				description="Carefully considered details that turn table-stakes features into best-in-class user experience."
+				description="Thousands of carefully considered details that turn canvas conventions into best-in-class user experience."
 			/>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-5">
 				{details.map(({ icon, heading, description }, index) => {
@@ -44,18 +44,18 @@ const details = [
 		icon: ArrowUturnUpIcon,
 		heading: 'Perfect arrows',
 		description:
-			'Linking lines never looked so good. Customize arrowheads and create beautiful curves between shapes, notes, and more.',
+			'Linking lines never looked so good. Create beautiful arrows between shapes, notes, and more.',
 	},
 	{
 		icon: MoonIcon,
-		heading: 'Dark Mode',
+		heading: 'Dark mode',
 		description:
 			'Switch between full light and dark mode themes that affect menus, shapes, and even image exports.',
 	},
 	{
 		icon: Bars3BottomLeftIcon,
-		heading: 'Works everywhere',
+		heading: 'Just works',
 		description:
-			'High performance in all modern browsers and on desktop, tablet, and mobile devices. Quality constantly maintained.',
+			'High performance in all modern browsers. Consistent quality across desktop, tablet, and mobile devices.',
 	},
 ]
