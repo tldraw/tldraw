@@ -54,7 +54,7 @@ const details = [
 	},
 	{
 		icon: Bars3BottomLeftIcon,
-		heading: 'Works everywhere',
+		heading: 'Just works',
 		description:
 			'High performance in all modern browsers. Consistent quality across desktop, tablet, and mobile devices.',
 	},
