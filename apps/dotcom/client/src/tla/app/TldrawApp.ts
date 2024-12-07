@@ -316,10 +316,13 @@ export class TldrawApp {
 		return
 	}
 
-	claimTemporaryFile(fileId: string) {
-		// TODO(david): check that you can't claim someone else's file (the db insert should fail)
-		// TODO(zero stuff): add table constraint
-		this.createFile(fileId)
+	_slurpFileId: string | null = null
+	slurpFile() {
+		const res = this.createFile()
+		if (res.ok) {
+			this._slurpFileId = res.value.file.id
+		}
+		return res
 	}
 
 	toggleFileShared(fileId: string) {

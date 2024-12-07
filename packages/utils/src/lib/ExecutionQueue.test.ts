@@ -1,5 +1,5 @@
-import { promiseWithResolve } from '@tldraw/utils'
 import { ExecutionQueue } from './ExecutionQueue'
+import { promiseWithResolve } from './control'
 
 const tick = () => Promise.resolve()
 

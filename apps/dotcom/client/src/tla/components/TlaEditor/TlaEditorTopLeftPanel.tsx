@@ -27,7 +27,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, useMsg } from '../../utils/i18n'
+import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaAppMenuGroupLazyFlipped } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
@@ -39,6 +39,7 @@ const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	brand: { defaultMessage: 'tldraw' },
+	untitledProject: { defaultMessage: 'Untitled project' },
 })
 
 // There are some styles in tla.css that adjust the regular tlui top panels
@@ -127,6 +128,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 
 export function TlaEditorTopLeftPanelSignedIn() {
 	const editor = useEditor()
+	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = useMsg(messages.pageMenu)
 
@@ -147,10 +149,10 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				app.getFileName(fileId, false)?.trim() ||
 				editor.getDocumentSettings().name ||
 				// rather than displaying the date for the project here, display Untitled project
-				'Untitled project'
+				intl.formatMessage(messages.untitledProject)
 			)
 		},
-		[app, editor, fileId]
+		[app, editor, fileId, intl]
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
@@ -284,21 +286,22 @@ function TlaFileNameEditorInput({
 	const rTemporaryName = useRef<string>(fileName)
 	const [temporaryFileName, setTemporaryFileName] = useState(fileName)
 
-	const handleBlur = useCallback(() => {
-		// dispatch the new filename via onComplete
-		const newFileName = rTemporaryName.current.replace(/ /g, '\u00a0')
-		setTemporaryFileName(newFileName)
-		rTemporaryName.current = newFileName
-		onComplete(newFileName)
-		onBlur()
-	}, [onBlur, onComplete])
-
 	const handleCancel = useCallback(() => {
 		// restore original filename from file
 		setTemporaryFileName(fileName)
 		rTemporaryName.current = fileName
 		onBlur()
 	}, [onBlur, fileName])
+
+	const handleBlur = useCallback(() => {
+		// dispatch the new filename via onComplete
+		const newFileName = rTemporaryName.current.replace(/\s+/g, ' ').trim()
+		if (newFileName === fileName) return handleCancel()
+		setTemporaryFileName(newFileName)
+		rTemporaryName.current = newFileName
+		onComplete(newFileName)
+		onBlur()
+	}, [onBlur, onComplete, fileName, handleCancel])
 
 	const handleValueChange = useCallback((value: string) => {
 		setTemporaryFileName(value)
@@ -309,7 +312,7 @@ function TlaFileNameEditorInput({
 		<>
 			<TldrawUiInput
 				className={styles.nameInput}
-				value={temporaryFileName.replace(/ /g, '\u00a0')}
+				value={temporaryFileName}
 				onValueChange={handleValueChange}
 				onCancel={handleCancel}
 				onBlur={handleBlur}

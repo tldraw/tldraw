@@ -1,6 +1,7 @@
 export const PREFIX = {
 	tla: 'q',
 	file: 'f',
+	localFile: 'lf',
 	publish: 'p',
 }
 
@@ -22,6 +23,10 @@ export function getProfilePath() {
 
 export function getFilePath(fileSlug: string) {
 	return buildUrl({ pathname: `/${PREFIX.file}/${fileSlug}` })
+}
+
+export function getLocalFilePath(persistenceKey: string) {
+	return buildUrl({ pathname: `/${PREFIX.localFile}/${persistenceKey}` })
 }
 
 export function getPublishPath(publishSlug: string) {

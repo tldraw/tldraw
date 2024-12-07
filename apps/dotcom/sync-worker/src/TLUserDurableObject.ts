@@ -20,15 +20,18 @@ import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { getPostgres } from './getPostgres'
 import { getR2KeyForRoom } from './r2'
 import { type TLPostgresReplicator } from './TLPostgresReplicator'
-import { Environment } from './types'
+import { Analytics, Environment, TLUserDurableObjectEvent } from './types'
 import { UserDataSyncer, ZReplicationEvent } from './UserDataSyncer'
+import { EventData, writeDataPoint } from './utils/analytics'
 import { getReplicator } from './utils/durableObjects'
 import { isRateLimited } from './utils/rateLimit'
+import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 import { getCurrentSerializedRoomSnapshot } from './utils/tla/getCurrentSerializedRoomSnapshot'
 
 export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: ReturnType<typeof postgres>
 	private readonly replicator: TLPostgresReplicator
+	private measure: Analytics | undefined
 
 	private readonly sentry
 	private captureException(exception: unknown, eventHint?: EventHint) {
@@ -49,6 +52,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 		this.db = getPostgres(env, { pooled: true })
 		this.debug('created')
+		this.measure = env.MEASURE
 	}
 
 	private userId: string | null = null
@@ -60,6 +64,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			}
 			const rateLimited = await isRateLimited(this.env, this.userId!)
 			if (rateLimited) {
+				this.logEvent({ type: 'rate_limited', id: this.userId })
 				throw new Error('Rate limited')
 			}
 			if (this.cache === null) {
@@ -73,8 +78,13 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private async init() {
 		assert(this.userId, 'User ID not set')
 		this.debug('init')
-		this.cache = new UserDataSyncer(this.ctx, this.env, this.db, this.userId, (message) =>
-			this.broadcast(message)
+		this.cache = new UserDataSyncer(
+			this.ctx,
+			this.env,
+			this.db,
+			this.userId,
+			(message) => this.broadcast(message),
+			this.logEvent.bind(this)
 		)
 		this.debug('cache', !!this.cache)
 		await this.cache.waitUntilConnected()
@@ -108,6 +118,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly sockets = new Set<WebSocket>()
 
 	broadcast(message: ZServerSentMessage) {
+		this.logEvent({ type: 'broadcast_message', id: this.userId! })
 		const msg = JSON.stringify(message)
 		for (const socket of this.sockets) {
 			if (socket.readyState === WebSocket.OPEN) {
@@ -188,8 +199,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		switch (msg.type) {
 			case 'mutate':
 				if (rateLimited) {
+					this.logEvent({ type: 'rate_limited', id: this.userId! })
 					await this.rejectMutation(msg.mutationId, ZErrorCode.rate_limit_exceeded)
 				} else {
+					this.logEvent({ type: 'mutation', id: this.userId! })
 					await this.handleMutate(msg)
 				}
 				break
@@ -200,6 +213,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	private async rejectMutation(mutationId: string, errorCode: ZErrorCode) {
 		this.assertCache()
+		this.logEvent({ type: 'reject_mutation', id: this.userId! })
 		await this.cache.waitUntilConnected()
 		this.cache.store.rejectMutation(mutationId)
 		this.broadcast({
@@ -270,80 +284,91 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		}
 	}
 
+	private async _doMutate(msg: ZClientSentMessage) {
+		this.assertCache()
+		await this.db.begin(async (sql) => {
+			for (const update of msg.updates) {
+				await this.assertValidMutation(update)
+				switch (update.event) {
+					case 'insert': {
+						if (update.table === 'file_state') {
+							const { fileId: _fileId, userId: _userId, ...rest } = update.row as any
+							if (Object.keys(rest).length === 0) {
+								await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("fileId", "userId") DO NOTHING`
+							} else {
+								await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("fileId", "userId") DO UPDATE SET ${sql(rest)}`
+							}
+							break
+						} else {
+							const { id: _id, ...rest } = update.row as any
+							await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("id") DO UPDATE SET ${sql(rest)}`
+							break
+						}
+					}
+					case 'update': {
+						const mutableColumns = Object.keys(update.row).filter((k) =>
+							isColumnMutable(update.table, k)
+						)
+						if (mutableColumns.length === 0) continue
+						const updates = Object.fromEntries(
+							mutableColumns.map((k) => [k, (update.row as any)[k]])
+						)
+						if (update.table === 'file_state') {
+							const { fileId, userId } = update.row as any
+							await sql`update public.file_state set ${sql(updates)} where "fileId" = ${fileId} and "userId" = ${userId}`
+						} else {
+							const { id, ...rest } = update.row as any
+
+							await sql`update ${sql('public.' + update.table)} set ${sql(updates)} where id = ${id}`
+							if (update.table === 'file') {
+								const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
+								if (currentFile && currentFile.published !== rest.published) {
+									if (rest.published) {
+										await this.publishSnapshot(currentFile)
+									} else {
+										await this.unpublishSnapshot(currentFile)
+									}
+								} else if (
+									currentFile &&
+									currentFile.published &&
+									currentFile.lastPublished < rest.lastPublished
+								) {
+									await this.publishSnapshot(currentFile)
+								}
+							}
+						}
+						break
+					}
+					case 'delete':
+						if (update.table === 'file_state') {
+							const { fileId, userId } = update.row as any
+							await sql`delete from public.file_state where "fileId" = ${fileId} and "userId" = ${userId}`
+						} else {
+							const { id } = update.row as any
+							await sql`delete from ${sql('public.' + update.table)} where id = ${id}`
+						}
+						if (update.table === 'file') {
+							const { id } = update.row as TlaFile
+							await this.deleteFileStuff(id)
+						}
+						break
+				}
+				this.cache.store.updateOptimisticData([update], msg.mutationId)
+			}
+		})
+	}
+
 	private async handleMutate(msg: ZClientSentMessage) {
 		this.assertCache()
 		try {
-			await this.db.begin(async (sql) => {
-				for (const update of msg.updates) {
-					await this.assertValidMutation(update)
-					switch (update.event) {
-						case 'insert': {
-							if (update.table === 'file_state') {
-								const { fileId: _fileId, userId: _userId, ...rest } = update.row as any
-								if (Object.keys(rest).length === 0) {
-									await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("fileId", "userId") DO NOTHING`
-								} else {
-									await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("fileId", "userId") DO UPDATE SET ${sql(rest)}`
-								}
-								break
-							} else {
-								const { id: _id, ...rest } = update.row as any
-								await sql`insert into ${sql('public.' + update.table)} ${sql(update.row)} ON CONFLICT ("id") DO UPDATE SET ${sql(rest)}`
-								break
-							}
-						}
-						case 'update': {
-							const mutableColumns = Object.keys(update.row).filter((k) =>
-								isColumnMutable(update.table, k)
-							)
-							if (mutableColumns.length === 0) continue
-							const updates = Object.fromEntries(
-								mutableColumns.map((k) => [k, (update.row as any)[k]])
-							)
-							if (update.table === 'file_state') {
-								const { fileId, userId } = update.row as any
-								await sql`update public.file_state set ${sql(updates)} where "fileId" = ${fileId} and "userId" = ${userId}`
-							} else {
-								const { id, ...rest } = update.row as any
-
-								await sql`update ${sql('public.' + update.table)} set ${sql(updates)} where id = ${id}`
-								if (update.table === 'file') {
-									const currentFile = this.cache.store.getFullData()?.files.find((f) => f.id === id)
-									if (currentFile && currentFile.published !== rest.published) {
-										if (rest.published) {
-											await this.publishSnapshot(currentFile)
-										} else {
-											await this.unpublishSnapshot(currentFile)
-										}
-									} else if (
-										currentFile &&
-										currentFile.published &&
-										currentFile.lastPublished < rest.lastPublished
-									) {
-										await this.publishSnapshot(currentFile)
-									}
-								}
-							}
-							break
-						}
-						case 'delete':
-							if (update.table === 'file_state') {
-								const { fileId, userId } = update.row as any
-								await sql`delete from public.file_state where "fileId" = ${fileId} and "userId" = ${userId}`
-							} else {
-								const { id } = update.row as any
-								await sql`delete from ${sql('public.' + update.table)} where id = ${id}`
-							}
-							if (update.table === 'file') {
-								const { id } = update.row as TlaFile
-								await this.deleteFileStuff(id)
-							}
-							break
-					}
-					this.cache.store.updateOptimisticData([update], msg.mutationId)
+			// we connect to pg via a pooler, so in the case that the pool is exhausted
+			// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
+			await retryOnConnectionFailure(
+				() => this._doMutate(msg),
+				() => {
+					this.logEvent({ type: 'connect_retry', id: this.userId! })
 				}
-			})
-
+			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
 			const result = await this
 				.db`insert into public.user_mutation_number ("userId", "mutationNumber") values (${this.userId}, 1) on conflict ("userId") do update set "mutationNumber" = user_mutation_number."mutationNumber" + 1 returning "mutationNumber"`
@@ -366,6 +391,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	/* ------- RPCs -------  */
 
 	async handleReplicationEvent(event: ZReplicationEvent) {
+		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
 		this.debug('replication event', event, !!this.cache)
 		if (!this.cache) {
 			return 'unregister'
@@ -447,6 +473,24 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 		} catch (e) {
 			throw new ZMutationError(ZErrorCode.unpublish_failed, 'Failed to unpublish snapshot', e)
+		}
+	}
+
+	private writeEvent(eventData: EventData) {
+		writeDataPoint(this.measure, this.env, 'user_durable_object', eventData)
+	}
+
+	logEvent(event: TLUserDurableObjectEvent) {
+		switch (event.type) {
+			case 'reboot_duration':
+				this.writeEvent({
+					blobs: [event.type, event.id],
+					doubles: [event.duration],
+				})
+				break
+
+			default:
+				this.writeEvent({ blobs: [event.type, event.id] })
 		}
 	}
 

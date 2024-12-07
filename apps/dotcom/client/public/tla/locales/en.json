@@ -5,6 +5,12 @@
   "01c32a1e98": {
     "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
   },
+  "03b3e13197": {
+    "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
+  },
+  "043973ec1f": {
+    "translation": "Still having trouble? {GetHelpLink}"
+  },
   "05596b840b": {
     "translation": "Open tldraw."
   },
@@ -32,11 +38,17 @@
   "1dd1c5fb7f": {
     "translation": "Today"
   },
+  "1f9696d5f2": {
+    "translation": "Export the content as a .tldr file: Go to 'File' > 'Save a copy'"
+  },
   "279f0531ff": {
     "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
   },
   "27de813139": {
     "translation": "Private file"
+  },
+  "299cb00a7a": {
+    "translation": "Upload failed"
   },
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
@@ -58,6 +70,9 @@
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
+  },
+  "44db318ee5": {
+    "translation": "Get help on Discord"
   },
   "45b543cbb1": {
     "translation": "Publish this project"
@@ -89,6 +104,9 @@
   "5a95a425f7": {
     "translation": "Share"
   },
+  "5d26ae7550": {
+    "translation": "We failed to upload some of the content you created before you signed in."
+  },
   "5fb63579fc": {
     "translation": "Copy"
   },
@@ -106,6 +124,9 @@
   },
   "6dc0836c1b": {
     "translation": "You do not have the necessary permissions to perform this action."
+  },
+  "6dfc62f621": {
+    "translation": "Follow these steps to import the content manually:"
   },
   "70a6facb9d": {
     "translation": "This week"
@@ -233,6 +254,12 @@
   },
   "d721757161": {
     "translation": "Theme"
+  },
+  "d876a9fe1a": {
+    "translation": "Try Again"
+  },
+  "d9100f3e10": {
+    "translation": "Go here to see the content"
   },
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."

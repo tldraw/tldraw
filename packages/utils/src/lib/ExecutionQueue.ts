@@ -1,5 +1,6 @@
-import { sleep } from '@tldraw/utils'
+import { sleep } from './control'
 
+/** @internal */
 export class ExecutionQueue {
 	private queue: (() => Promise<any>)[] = []
 	private running = false
