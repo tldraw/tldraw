@@ -1,15 +1,15 @@
 {
-  "00102ce224": {
-    "translation": "You do not have the necessary permissions to perform this action"
-  },
   "0095a9fa74": {
     "translation": "Export"
   },
-  "015ebd44b7": {
-    "translation": "Please refresh the page to get the latest version of tldraw"
-  },
   "01c32a1e98": {
     "translation": "Sorry, you don’t have access to that file. If you know whose created the file, you can request a new invite link."
+  },
+  "03b3e13197": {
+    "translation": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
+  },
+  "043973ec1f": {
+    "translation": "Still having trouble? {GetHelpLink}"
   },
   "05596b840b": {
     "translation": "Open tldraw."
@@ -32,14 +32,23 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "1da2e8106b": {
+    "translation": "An unexpected error occurred."
+  },
   "1dd1c5fb7f": {
     "translation": "Today"
+  },
+  "1f9696d5f2": {
+    "translation": "Export the content as a .tldr file: Go to 'File' > 'Save a copy'"
   },
   "279f0531ff": {
     "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
   },
   "27de813139": {
     "translation": "Private file"
+  },
+  "299cb00a7a": {
+    "translation": "Upload failed"
   },
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
@@ -50,17 +59,20 @@
   "344a7f427f": {
     "translation": "Editor"
   },
+  "354ff6be84": {
+    "translation": "Added {count} .tldr {count, plural, one {file} other {files}}."
+  },
+  "3bd1b98dbd": {
+    "translation": "Unable to publish the changes."
+  },
   "424cc22417": {
     "translation": "Take me home"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
   },
-  "446b416d53": {
-    "translation": "Invalid request"
-  },
-  "44b7fb14cb": {
-    "translation": "Unable to publish the changes"
+  "44db318ee5": {
+    "translation": "Get help on Discord"
   },
   "45b543cbb1": {
     "translation": "Publish this project"
@@ -74,8 +86,14 @@
   "4d1c8263ba": {
     "translation": "Reload"
   },
+  "50db1b7e1e": {
+    "translation": "Unable to unpublish the file."
+  },
   "517bb809d9": {
     "translation": "Page menu"
+  },
+  "54286b1d01": {
+    "translation": "Collaborator limit reached"
   },
   "54d240fa41": {
     "translation": "Please slow down."
@@ -86,6 +104,9 @@
   "5a95a425f7": {
     "translation": "Share"
   },
+  "5d26ae7550": {
+    "translation": "We failed to upload some of the content you created before you signed in."
+  },
   "5fb63579fc": {
     "translation": "Copy"
   },
@@ -95,14 +116,17 @@
   "625fd29749": {
     "translation": "Older"
   },
-  "65963328b3": {
-    "translation": "You have exceeded the rate limit"
-  },
   "6609dd239e": {
     "translation": "Something went wrong"
   },
   "6a26f54883": {
     "translation": "Help"
+  },
+  "6dc0836c1b": {
+    "translation": "You do not have the necessary permissions to perform this action."
+  },
+  "6dfc62f621": {
+    "translation": "Follow these steps to import the content manually:"
   },
   "70a6facb9d": {
     "translation": "This week"
@@ -116,6 +140,9 @@
   "7573b8110a": {
     "translation": "No access"
   },
+  "777f9e90cf": {
+    "translation": "Invalid request."
+  },
   "7cb5f8b4a5": {
     "translation": "Forget"
   },
@@ -125,8 +152,8 @@
   "7fcdcc6455": {
     "translation": "Forget file"
   },
-  "827aedd218": {
-    "translation": "Added .tldr {count, plural, one {# file} other {# files}}"
+  "85a082de1b": {
+    "translation": "Please refresh the page to get the latest version of tldraw."
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -140,11 +167,11 @@
   "904a830405": {
     "translation": "Rename"
   },
+  "9563b82670": {
+    "translation": "Uploading {count} .tldr {count, plural, one {file} other {files}}…"
+  },
   "96165d6df5": {
     "translation": "This month"
-  },
-  "9789e32247": {
-    "translation": "An unexpected error occurred"
   },
   "9914a0ce04": {
     "translation": "Light"
@@ -183,11 +210,20 @@
   "b758336699": {
     "translation": "Copy link"
   },
+  "bbc5a713da": {
+    "translation": "Untitled project"
+  },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
   },
+  "bcb62136a3": {
+    "translation": "Upload .tldr files"
+  },
   "c2276c9127": {
     "translation": "Learn more about sharing."
+  },
+  "c303bd1095": {
+    "translation": "Unable to publish the file."
   },
   "c655b27b1e": {
     "translation": "i18n: Long String"
@@ -204,6 +240,9 @@
   "cea291e45e": {
     "translation": "Learn more about publishing."
   },
+  "d2458ac9bf": {
+    "translation": "You have exceeded the rate limit."
+  },
   "d3d2e61733": {
     "translation": "Close"
   },
@@ -216,11 +255,14 @@
   "d721757161": {
     "translation": "Theme"
   },
+  "d876a9fe1a": {
+    "translation": "Try Again"
+  },
+  "d9100f3e10": {
+    "translation": "Go here to see the content"
+  },
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."
-  },
-  "ded274b9ea": {
-    "translation": "Unable to publish the file"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
@@ -234,6 +276,9 @@
   "ebfe9ce86e": {
     "translation": "Yesterday"
   },
+  "ec59b960ea": {
+    "translation": "This file has reached the maximum number of active collaborators."
+  },
   "ec611e9a08": {
     "translation": "Account menu"
   },
@@ -246,17 +291,11 @@
   "ed75712b0e": {
     "translation": "Duplicate"
   },
-  "ee2f2925b3": {
-    "translation": "Uploading .tldr {count, plural, one {# file} other {# files}}…"
-  },
   "f2a6c498fb": {
     "translation": "Delete"
   },
   "f43fb62093": {
     "translation": "Back to tldraw."
-  },
-  "f7e5db3cf0": {
-    "translation": "Unable to unpublish the file"
   },
   "fb15c53f22": {
     "translation": "Viewer"

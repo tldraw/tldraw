@@ -131,18 +131,18 @@ export class TldrawApp {
 	}
 
 	messages = defineMessages({
-		publish_failed: { defaultMessage: 'Unable to publish the file' },
-		unpublish_failed: { defaultMessage: 'Unable to unpublish the file' },
-		republish_failed: { defaultMessage: 'Unable to publish the changes' },
-		unknown_error: { defaultMessage: 'An unexpected error occurred' },
+		publish_failed: { defaultMessage: 'Unable to publish the file.' },
+		unpublish_failed: { defaultMessage: 'Unable to unpublish the file.' },
+		republish_failed: { defaultMessage: 'Unable to publish the changes.' },
+		unknown_error: { defaultMessage: 'An unexpected error occurred.' },
 		forbidden: {
-			defaultMessage: 'You do not have the necessary permissions to perform this action',
+			defaultMessage: 'You do not have the necessary permissions to perform this action.',
 		},
-		bad_request: { defaultMessage: 'Invalid request' },
-		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit' },
+		bad_request: { defaultMessage: 'Invalid request.' },
+		rate_limit_exceeded: { defaultMessage: 'You have exceeded the rate limit.' },
 		mutation_error_toast_title: { defaultMessage: 'Error' },
 		client_too_old: {
-			defaultMessage: 'Please refresh the page to get the latest version of tldraw',
+			defaultMessage: 'Please refresh the page to get the latest version of tldraw.',
 		},
 	})
 
@@ -290,7 +290,9 @@ export class TldrawApp {
 		return Result.ok({ file })
 	}
 
-	getFileName(file: TlaFile | string | null) {
+	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
+	getFileName(file: TlaFile | string | null, useDateFallback?: true): string
+	getFileName(file: TlaFile | string | null, useDateFallback = true) {
 		if (typeof file === 'string') {
 			file = this.getFile(file)
 		}
@@ -305,15 +307,22 @@ export class TldrawApp {
 			return name
 		}
 
-		const createdAt = new Date(file.createdAt)
-		const format = getDateFormat(createdAt)
-		return this.intl.formatDate(createdAt, format)
+		if (useDateFallback) {
+			const createdAt = new Date(file.createdAt)
+			const format = getDateFormat(createdAt)
+			return this.intl.formatDate(createdAt, format)
+		}
+
+		return
 	}
 
-	claimTemporaryFile(fileId: string) {
-		// TODO(david): check that you can't claim someone else's file (the db insert should fail)
-		// TODO(zero stuff): add table constraint
-		this.createFile(fileId)
+	_slurpFileId: string | null = null
+	slurpFile() {
+		const res = this.createFile()
+		if (res.ok) {
+			this._slurpFileId = res.value.file.id
+		}
+		return res
 	}
 
 	toggleFileShared(fileId: string) {

@@ -1,3 +1,15 @@
+# v3.6.0 (Wed Dec 04 2024)
+
+#### 💄 Product Improvements
+
+- [dotcom] Handle max connections properly [#5044](https://github.com/tldraw/tldraw/pull/5044) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v3.5.0 (Tue Nov 26 2024)
 
 ### Release Notes

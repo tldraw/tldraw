@@ -37,6 +37,7 @@
 		"@radix-ui/react-alert-dialog": "^1.0.5",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/state": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@vercel/analytics": "^1.1.1",
 		"ag-grid-community": "^32.1.0",
@@ -48,6 +49,7 @@
 		"pdfjs-dist": "^4.0.379",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
+		"react-helmet-async": "^1.3.0",
 		"react-router-dom": "^6.24.1",
 		"tldraw": "workspace:*",
 		"vite": "^5.4.10"

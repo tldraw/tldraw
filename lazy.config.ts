@@ -21,7 +21,7 @@ const config = {
 	scripts: {
 		build: {
 			baseCommand: 'exit 0',
-			runsAfter: { prebuild: {}, 'refresh-assets': {} },
+			runsAfter: { prebuild: {}, 'refresh-assets': {}, 'build-i18n': {} },
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
 				'packages/*': {
@@ -49,7 +49,7 @@ const config = {
 		},
 		dev: {
 			execution: 'independent',
-			runsAfter: { predev: {}, 'refresh-assets': {} },
+			runsAfter: { predev: {}, 'refresh-assets': {}, 'build-i18n': {} },
 			cache: 'none',
 			workspaceOverrides: {
 				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
@@ -127,6 +127,13 @@ const config = {
 					// local .tsbuild files
 					usesOutput: false,
 				},
+			},
+		},
+		'build-i18n': {
+			execution: 'independent',
+			cache: {
+				inputs: ['<rootDir>/apps/dotcom/client/public/tla/locales/*.json'],
+				outputs: ['<rootDir>/apps/dotcom/client/public/tla/locales-compiled/*.json'],
 			},
 		},
 		'api-check': {

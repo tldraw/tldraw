@@ -1,12 +1,11 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
 	Editor,
 	HTMLContainer,
 	MediaHelpers,
-	TLAsset,
 	TLVideoShape,
 	toDomPrecision,
+	useEditor,
 	useEditorComponents,
 	useIsEditing,
 	videoShapeMigrations,
@@ -44,12 +43,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 
 	component(shape: TLVideoShape) {
-		const { asset, url } = useImageOrVideoAsset({
-			shapeId: shape.id,
-			assetId: shape.props.assetId,
-		})
-
-		return <VideoShape editor={this.editor} shape={shape} asset={asset} url={url} />
+		return <VideoShape shape={shape} />
 	}
 
 	indicator(shape: TLVideoShape) {
@@ -63,21 +57,17 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	}
 }
 
-const VideoShape = memo(function VideoShape({
-	editor,
-	shape,
-	asset,
-	url,
-}: {
-	editor: Editor
-	shape: TLVideoShape
-	asset?: TLAsset | null
-	url: string | null
-}) {
+const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) {
+	const editor = useEditor()
 	const showControls = editor.getShapeGeometry(shape).bounds.w * editor.getZoomLevel() >= 110
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()
+
+	const { asset, url } = useImageOrVideoAsset({
+		shapeId: shape.id,
+		assetId: shape.props.assetId,
+	})
 
 	const rVideo = useRef<HTMLVideoElement>(null!)
 
