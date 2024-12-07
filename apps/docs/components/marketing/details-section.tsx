@@ -50,7 +50,7 @@ const details = [
 		icon: MoonIcon,
 		heading: 'Dark Mode',
 		description:
-			'Switch between full light and dark mode themes that effect menus, shapes, and even image exports.',
+			'Switch between full light and dark mode themes that affect menus, shapes, and even image exports.',
 	},
 	{
 		icon: Bars3BottomLeftIcon,
