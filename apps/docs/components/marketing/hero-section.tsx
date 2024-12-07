@@ -1,12 +1,14 @@
 import { Button } from '@/components/common/button'
 import { Demo } from '@/components/marketing/demo'
+import { ArrowRightIcon } from '@heroicons/react/20/solid'
+import Link from 'next/link'
 
 export function HeroSection() {
 	return (
-		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center pt-8 sm:pt-16">
+		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center py-8 sm:py-16">
 			<div className="relative">
 				<h1 className="relative font-black text-black dark:text-white text-center text-3xl leading-tight sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight w-full px-[8px]">
-					The infinite&nbsp;canvas&nbsp;SDK
+					The <mark>infinite&nbsp;canvas&nbsp;SDK</mark>
 					<br />
 					for React developers
 				</h1>
@@ -41,9 +43,8 @@ export function HeroSection() {
                 </div>
             </div> */}
 			<p className="mt-5 sm:mt-8 px-5 text-center text-zinc-800 dark:text-zinc-200 sm:text-lg max-w-lg md:max-w-xl">
-				Use the <b>tldraw SDK</b> to add a collaborative whiteboard to your product <i>or</i> use
-				its components, runtime APIs, services to build your own canvas-based experiences on the
-				web.
+				Use the <b>tldraw SDK</b> to add a collaborative whiteboard to your product or use its
+				components, runtime APIs, services to build your own canvas-based experiences on the web.
 			</p>
 			<div className="flex flex-row items-center sm:items-start sm:flex-row gap-x-4 gap-y-2 mt-6 sm:mt-9 flex-wrap justify-center sm:max-width-xl pb-8 sm:pb-16">
 				<Button href="/quick-start" caption="Get started" type="black" size="lg" />
@@ -61,6 +62,17 @@ export function HeroSection() {
             </div> */}
 			</div>
 			<Demo />
+			<div className="w-full flex items-center justify-center md:justify-end text-sm font-semibold pb-4">
+				<Link
+					href="https://tldraw.com"
+					className="flex gap-1 items-center hover:text-black transition-all duration-200"
+				>
+					<p>
+						Try the full demo at <span className="text-blue-500">tldraw.com</span>{' '}
+					</p>
+					<ArrowRightIcon className="h-[16px]" />
+				</Link>
+			</div>
 		</section>
 	)
 }

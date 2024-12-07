@@ -13,7 +13,7 @@ export function FeaturesSection() {
 	return (
 		<Section id="features">
 			<SectionHeading
-				subheading="Features"
+				subheading="features"
 				heading="Made for developers"
 				description="We've designed the tldraw SDK to be a solid foundation for developers: built for the web, packed with table-stakes features, and designed for extensibility."
 			/>

@@ -25,7 +25,6 @@ function HubspotForm() {
 export function RequestForm() {
 	return (
 		<div className="flex gap-4 flex-col pt-6 mt-6 border-t border-zinc-700/50">
-			<h3 className="text-white font-semibold sm:col-span-2 pb-2">Request your Business License</h3>
 			<HubspotForm />
 		</div>
 	)
