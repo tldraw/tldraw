@@ -319,3 +319,27 @@ describe('Rotation math', () => {
 		).toMatchObject({ x: 100, y: 300 })
 	})
 })
+
+describe('Edge cases', () => {
+	it.only('does not enter the pointing_rotate_handle state when pointing a rotate corner of an image while holding command / control', () => {
+		const id = createShapeId()
+		editor
+			.createShape({
+				id,
+				type: 'image',
+			})
+			.select(id)
+			.pointerDown(
+				60,
+				10,
+				{
+					target: 'selection',
+					handle: 'top_right_rotate',
+				},
+				{ ctrlKey: true }
+			)
+			.expectToBeIn('select.brushing')
+			.pointerUp()
+			.expectToBeIn('select.idle')
+	})
+})

@@ -44,11 +44,11 @@
   "279f0531ff": {
     "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
   },
-  "27de813139": {
-    "translation": "Private file"
-  },
   "299cb00a7a": {
     "translation": "Upload failed"
+  },
+  "31246941ad": {
+    "translation": "You need to sign in to view this file."
   },
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
@@ -263,6 +263,9 @@
   },
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."
+  },
+  "dbbebf3c03": {
+    "translation": "Invite only"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"
