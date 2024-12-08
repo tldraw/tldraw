@@ -139,7 +139,7 @@ import { FocusManager } from './managers/FocusManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { ScribbleManager } from './managers/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
-import { TextManager } from './managers/TextManager'
+import { MeasureMethod, TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
@@ -218,6 +218,10 @@ export interface TLEditorOptions {
 	 */
 	inferDarkMode?: boolean
 	/**
+	 * Specifies how to measure text, whether pure text or as HTML.
+	 */
+	measureMethod?: MeasureMethod
+	/**
 	 * Options for the editor's camera.
 	 */
 	cameraOptions?: Partial<TLCameraOptions>
@@ -262,6 +266,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		initialState,
 		autoFocus,
 		inferDarkMode,
+		measureMethod,
 		options,
 		isShapeHidden,
 	}: TLEditorOptions) {
@@ -292,7 +297,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.getContainer = getContainer
 
-		this.textMeasure = new TextManager(this)
+		this.textMeasure = new TextManager(this, measureMethod)
 		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {

@@ -31,6 +31,7 @@ import {
 	toDomPrecision,
 	track,
 	useEditor,
+	useEditorComponents,
 	useIsEditing,
 	useSharedSafeId,
 	useValue,
@@ -40,7 +41,6 @@ import { updateArrowTerminal } from '../../bindings/arrow/ArrowBindingUtil'
 
 import { ShapeFill } from '../shared/ShapeFill'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
 import { ARROW_LABEL_PADDING, STROKE_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import {
 	getFillDefForCanvas,
@@ -600,13 +600,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'arrow.dragging'
 			) && !this.editor.getIsReadonly()
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const { TextLabel } = useEditorComponents()
+
 		const info = getArrowInfo(this.editor, shape)
 		if (!info?.isValid) return null
 
 		const labelPosition = getArrowLabelPosition(this.editor, shape)
 		const isSelected = shape.id === this.editor.getOnlySelectedShapeId()
 		const isEditing = this.editor.getEditingShapeId() === shape.id
-		const showArrowLabel = isEditing || shape.props.text
+		const showArrowLabel = TextLabel && (isEditing || shape.props.text)
 
 		return (
 			<>

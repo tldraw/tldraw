@@ -16,12 +16,12 @@ import {
 	TLHandle,
 	TLHandleDragInfo,
 	TLResizeInfo,
-	TextLabel,
 	Vec,
 	ZERO_INDEX_KEY,
 	resizeBox,
 	structuredClone,
 	useDefaultColorTheme,
+	useEditorComponents,
 	vecModelValidator,
 } from 'tldraw'
 import { getSpeechBubbleVertices, getTailIntersectionPoint } from './helpers'
@@ -182,6 +182,9 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
+		/* eslint-disable-next-line react-hooks/rules-of-hooks */
+		const { TextLabel } = useEditorComponents()
+
 		return (
 			<>
 				<svg className="tl-svg-container">
@@ -192,20 +195,22 @@ export class SpeechBubbleUtil extends ShapeUtil<SpeechBubbleShape> {
 						fill={'none'}
 					/>
 				</svg>
-				<TextLabel
-					shapeId={id}
-					type={type}
-					font={font}
-					textWidth={shape.props.w}
-					fontSize={LABEL_FONT_SIZES[size]}
-					lineHeight={TEXT_PROPS.lineHeight}
-					align={align}
-					verticalAlign="start"
-					text={text}
-					labelColor={theme[color].solid}
-					isSelected={isSelected}
-					wrap
-				/>
+				{TextLabel && (
+					<TextLabel
+						shapeId={id}
+						type={type}
+						font={font}
+						textWidth={shape.props.w}
+						fontSize={LABEL_FONT_SIZES[size]}
+						lineHeight={TEXT_PROPS.lineHeight}
+						align={align}
+						verticalAlign="start"
+						text={text}
+						labelColor={theme[color].solid}
+						isSelected={isSelected}
+						wrap
+					/>
+				)}
 			</>
 		)
 	}

@@ -1,44 +1,19 @@
 import {
-	Box,
-	TLDefaultFillStyle,
-	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
-	TLDefaultVerticalAlignStyle,
-	TLShapeId,
+	TLTextLabel,
+	preventDefault,
+	stopEventPropagation,
 } from '@tldraw/editor'
-import React, { useEffect, useState } from 'react'
-import { TextArea } from '../text/TextArea'
-import { TextHelpers } from './TextHelpers'
-import { isLegacyAlign } from './legacyProps'
-import { useEditableText } from './useEditableText'
+import React, { forwardRef, useEffect, useState } from 'react'
+import { TextHelpers } from '../TextHelpers'
+import { useEditableText } from '../useEditableText'
 
-/** @public */
-export interface TextLabelProps {
-	shapeId: TLShapeId
-	type: string
-	font: TLDefaultFontStyle
-	fontSize: number
-	lineHeight: number
-	fill?: TLDefaultFillStyle
-	align: TLDefaultHorizontalAlignStyle
-	verticalAlign: TLDefaultVerticalAlignStyle
-	wrap?: boolean
-	text: string
-	labelColor: string
-	bounds?: Box
-	isNote?: boolean
-	isSelected: boolean
-	onKeyDown?(e: React.KeyboardEvent<HTMLTextAreaElement>): void
-	classNamePrefix?: string
-	style?: React.CSSProperties
-	textWidth?: number
-	textHeight?: number
-	padding?: number
-}
-
-/** @public @react */
-export const TextLabel = React.memo(function TextLabel({
-	shapeId: shapeId,
+/**
+ * @public @react
+ * This is an _experimental_ component that we are still exploring.
+ */
+export const TldrawTextLabel: TLTextLabel = React.memo(function TextLabel({
+	shapeId,
 	type,
 	text,
 	labelColor,
@@ -55,7 +30,7 @@ export const TextLabel = React.memo(function TextLabel({
 	style,
 	textWidth,
 	textHeight,
-}: TextLabelProps) {
+}) {
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		shapeId,
 		type,
@@ -131,3 +106,71 @@ export const TextLabel = React.memo(function TextLabel({
 		</div>
 	)
 })
+TldrawTextLabel.measureMethod = 'text'
+
+/** @public */
+export interface TextAreaProps {
+	isEditing: boolean
+	text: string
+	handleFocus(): void
+	handleBlur(): void
+	handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>): void
+	handleChange(e: React.ChangeEvent<HTMLTextAreaElement>): void
+	handleInputPointerDown(e: React.PointerEvent<HTMLTextAreaElement>): void
+	handleDoubleClick(e: any): any
+}
+
+/**
+ * @public @react
+ * This is an _experimental_ component that we are still exploring.
+ */
+export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
+	{
+		isEditing,
+		text,
+		handleFocus,
+		handleChange,
+		handleKeyDown,
+		handleBlur,
+		handleInputPointerDown,
+		handleDoubleClick,
+	},
+	ref
+) {
+	return (
+		<textarea
+			ref={ref}
+			className="tl-text tl-text-input"
+			name="text"
+			tabIndex={-1}
+			readOnly={!isEditing}
+			autoComplete="off"
+			autoCapitalize="off"
+			autoCorrect="off"
+			autoSave="off"
+			placeholder=""
+			spellCheck="true"
+			wrap="off"
+			dir="auto"
+			defaultValue={text}
+			onFocus={handleFocus}
+			onChange={handleChange}
+			onKeyDown={handleKeyDown}
+			onBlur={handleBlur}
+			onTouchEnd={stopEventPropagation}
+			onContextMenu={isEditing ? stopEventPropagation : undefined}
+			onPointerDown={handleInputPointerDown}
+			onDoubleClick={handleDoubleClick}
+			// On FF, there's a behavior where dragging a selection will grab that selection into
+			// the drag event. However, once the drag is over, and you select away from the textarea,
+			// starting a drag over the textarea will restart a selection drag instead of a shape drag.
+			// This prevents that default behavior in FF.
+			onDragStart={preventDefault}
+		/>
+	)
+})
+
+// sneaky TLDefaultHorizontalAlignStyle for legacies
+function isLegacyAlign(align: TLDefaultHorizontalAlignStyle | string): boolean {
+	return align === 'start-legacy' || align === 'middle-legacy' || align === 'end-legacy'
+}
