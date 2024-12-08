@@ -383,6 +383,9 @@ export function ClipboardMenuGroup(): JSX_2.Element;
 export function CloudToolbarItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function ColorSchemeMenu(): JSX_2.Element;
+
+// @public (undocumented)
 export function CommonStylePickerSet({ styles, theme }: ThemeStylePickerSetProps): JSX_2.Element;
 
 // @public
@@ -3630,6 +3633,9 @@ export function ToggleAutoSizeMenuItem(): JSX_2.Element | null;
 export function ToggleDebugModeItem(): JSX_2.Element;
 
 // @public (undocumented)
+export function ToggleDynamicSizeModeItem(): JSX_2.Element;
+
+// @public (undocumented)
 export function ToggleEdgeScrollingItem(): JSX_2.Element;
 
 // @public (undocumented)
@@ -3640,6 +3646,9 @@ export function ToggleGridItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ToggleLockMenuItem(): JSX_2.Element | null;
+
+// @public (undocumented)
+export function TogglePasteAtCursorItem(): JSX_2.Element;
 
 // @public (undocumented)
 export function ToggleReduceMotionItem(): JSX_2.Element;
