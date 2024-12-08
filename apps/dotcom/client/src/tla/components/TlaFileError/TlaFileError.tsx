@@ -48,8 +48,8 @@ export function TlaFileError({ error }: { error: unknown }) {
 		case TLSyncErrorCloseEventReason.NOT_AUTHENTICATED: {
 			return (
 				<TlaFileErrorContent
-					header={<F defaultMessage="Private file" />}
-					para1={<F defaultMessage="Contact the owner to request access." />}
+					header={<F defaultMessage="Sign in" />}
+					para1={<F defaultMessage="You need to sign in to view this file." />}
 					cta={
 						<SignInButton
 							mode="modal"
@@ -67,7 +67,7 @@ export function TlaFileError({ error }: { error: unknown }) {
 		case TLSyncErrorCloseEventReason.FORBIDDEN: {
 			return (
 				<TlaFileErrorContent
-					header={<F defaultMessage="Private file" />}
+					header={<F defaultMessage="Invite only" />}
 					para1={<F defaultMessage="Contact the owner to request access." />}
 				/>
 			)
