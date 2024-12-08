@@ -103,7 +103,7 @@ const Collaborator = track(function Collaborator({
 					color={color}
 					zoom={zoomLevel}
 					name={userName !== 'New User' ? userName : null}
-					chatMessage={chatMessage}
+					chatMessage={chatMessage ?? ''}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint

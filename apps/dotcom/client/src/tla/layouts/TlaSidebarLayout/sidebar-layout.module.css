@@ -1,13 +1,66 @@
 .layout {
+	--tla-sidebar-width: 260px;
 	position: absolute;
 	top: 0px;
 	left: 0px;
 	width: 100%;
 	height: 100%;
+	/* disable transition while dragging */
+	transition: padding-left 0.16s ease-in-out;
+	background-color: var(--color-background);
+}
+.layout[data-resizing='true'] {
+	pointer-events: none;
+	transition: none !important;
 }
 
 @media (min-width: 768px) {
 	.layout[data-sidebar='true'] {
-		padding-left: 260px;
+		padding-left: var(--tla-sidebar-width);
+		transition: padding-left 0.22s ease-out;
 	}
+}
+
+.resizeHandle {
+	--indicator-width: 2px;
+	--hoverable-width: 6px;
+	--active-width: 40px;
+	height: 100%;
+	position: absolute;
+	top: 0;
+	left: calc(var(--tla-sidebar-width) - var(--hoverable-width) + 1px);
+	width: var(--hoverable-width);
+	cursor: col-resize;
+	z-index: 250;
+	justify-content: center;
+	display: none;
+}
+
+/* make the handle bigger while mouse is down to avoid flickering */
+.resizeHandle:active {
+	left: calc(
+		var(--tla-sidebar-width) - (var(--active-width) / 2) - (var(--hoverable-width) / 2) + 1px
+	);
+	width: var(--active-width);
+	display: flex;
+}
+
+@media (min-width: 768px) {
+	.resizeHandle {
+		display: flex;
+	}
+}
+
+.resizeHandleIndicator {
+	background-color: var(--tla-color-primary);
+	height: 100%;
+	width: var(--indicator-width);
+	opacity: 0;
+	transition: opacity 100ms;
+}
+
+.resizeHandle:hover .resizeHandleIndicator,
+.resizeHandle:active .resizeHandleIndicator {
+	transition: opacity 150ms 80ms;
+	opacity: 1;
 }

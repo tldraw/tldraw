@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { createContext, ReactNode, useCallback, useContext } from 'react'
+import { createContext, HTMLAttributes, ReactNode, useCallback, useContext } from 'react'
 import c from './tabs.module.css'
 
 /*
@@ -40,7 +40,15 @@ export function TlaTabsTabs({ children }: { children: ReactNode }) {
 	)
 }
 
-export function TlaTabsTab({ id, children }: { id: string; children: ReactNode }) {
+export function TlaTabsTab({
+	id,
+	disabled = false,
+	...props
+}: {
+	id: string
+	disabled?: boolean
+	children: ReactNode
+} & HTMLAttributes<HTMLButtonElement>) {
 	const { activeTab, onTabChange } = useContext(tabsContext)
 
 	const handleClick = useCallback(() => {
@@ -52,14 +60,14 @@ export function TlaTabsTab({ id, children }: { id: string; children: ReactNode }
 			className={classNames(c.tab, 'tla-text_ui__medium')}
 			data-active={activeTab === id}
 			onClick={handleClick}
-		>
-			{children}
-		</button>
+			disabled={disabled}
+			{...props}
+		/>
 	)
 }
 
-export function TlaTabsPage({ id, children }: { id: string; children: ReactNode }) {
+export function TlaTabsPage({ id, ...props }: { id: string } & HTMLAttributes<HTMLDivElement>) {
 	const { activeTab } = useContext(tabsContext)
 	if (activeTab !== id) return null
-	return <div>{children}</div>
+	return <div {...props} />
 }

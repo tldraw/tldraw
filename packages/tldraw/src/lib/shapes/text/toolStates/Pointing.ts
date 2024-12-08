@@ -6,6 +6,7 @@ import {
 	Vec,
 	createShapeId,
 	isShapeId,
+	maybeSnapToGrid,
 } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
@@ -169,11 +170,24 @@ export class Pointing extends StateNode {
 			delta.rot(-transform.rotation())
 		}
 
-		this.editor.updateShape({
-			...shape,
-			x: shape.x + delta.x,
-			y: shape.y + delta.y,
-		})
+		const shapeX = shape.x + delta.x
+		const shapeY = shape.y + delta.y
+		if (this.editor.getInstanceState().isGridMode) {
+			const topLeft = new Vec(shapeX, shapeY)
+			const gridSnappedPoint = maybeSnapToGrid(topLeft, this.editor)
+			const gridDelta = Vec.Sub(topLeft, gridSnappedPoint)
+			this.editor.updateShape({
+				...shape,
+				x: shapeX - gridDelta.x,
+				y: shapeY - gridDelta.y,
+			})
+		} else {
+			this.editor.updateShape({
+				...shape,
+				x: shapeX,
+				y: shapeY,
+			})
+		}
 
 		return shape
 	}

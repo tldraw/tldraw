@@ -45,6 +45,9 @@ export async function exportToSvg(
 	// create a react root...
 	const root = createRoot(renderTarget, { identifierPrefix: `export_${idCounter++}_` })
 	try {
+		// ...wait for a tick so we know we're not in e.g. a react lifecycle method...
+		await Promise.resolve()
+
 		// ...and render the SVG into it.
 		flushSync(() => {
 			root.render(result.jsx)

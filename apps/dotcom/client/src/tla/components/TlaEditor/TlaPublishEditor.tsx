@@ -1,7 +1,6 @@
 import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo, useRef } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw, usePassThroughWheelEvents } from 'tldraw'
-import { ShareButton } from '../../../components/ShareButton'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -10,9 +9,9 @@ import { useSharing } from '../../../utils/sharing'
 import { useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { TlaFileShareMenuPublishPage } from '../TlaFileShareMenu/TlaPublishFileShareMenu'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
+import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import styles from './editor.module.css'
 
 const components: TLComponents = {
@@ -22,17 +21,12 @@ const components: TLComponents = {
 	SharePanel: () => {
 		const ref = useRef<HTMLDivElement>(null)
 		usePassThroughWheelEvents(ref)
-		return (
-			<div ref={ref} className={styles.topRightPanel}>
-				<TlaFileShareMenuPublishPage>
-					<ShareButton title={'share-menu.title'} label={'share-menu.title'} />
-				</TlaFileShareMenuPublishPage>
-			</div>
-		)
+		const isAnonUser = !useMaybeApp()
+		return <TlaEditorTopRightPanel isAnonUser={isAnonUser} context="published-file" />
 	},
 	MenuPanel: () => {
-		const app = useMaybeApp()
-		return <TlaEditorTopLeftPanel isAnonUser={!app} />
+		const isAnonUser = !useMaybeApp()
+		return <TlaEditorTopLeftPanel isAnonUser={isAnonUser} />
 	},
 }
 
@@ -58,7 +52,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	)
 
 	return (
-		<div className={styles.editor}>
+		<div className={styles.editor} data-testid="tla-editor">
 			<Tldraw
 				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}

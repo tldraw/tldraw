@@ -193,6 +193,7 @@ export function getAssetUrls(opts) {
 			ro: formatAssetUrl('./translations/ro.json', opts),
 			ru: formatAssetUrl('./translations/ru.json', opts),
 			sl: formatAssetUrl('./translations/sl.json', opts),
+			so: formatAssetUrl('./translations/so.json', opts),
 			sv: formatAssetUrl('./translations/sv.json', opts),
 			te: formatAssetUrl('./translations/te.json', opts),
 			th: formatAssetUrl('./translations/th.json', opts),

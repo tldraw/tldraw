@@ -1,13 +1,12 @@
 import { useAuth } from '@clerk/clerk-react'
-import { TldrawAppFile } from '@tldraw/dotcom-shared'
+import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useEditor, useToasts } from 'tldraw'
-import { F, FormattedRelativeTime } from '../../../app/i18n'
+import { useEditor } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import { useRaw } from '../../../hooks/useRaw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
+import { F, FormattedRelativeTime } from '../../../utils/i18n'
 import { getShareablePublishUrl } from '../../../utils/urls'
 import { TlaButton } from '../../TlaButton/TlaButton'
 import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
@@ -22,12 +21,17 @@ import {
 } from '../../tla-menu/tla-menu'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 
-export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
-	const raw = useRaw()
+// add errors to zero-polyfill toasts
+// const messages = defineMessages({
+// 	publishChangesError: { defaultMessage: 'Could not publish changes' },
+// 	publishFileError: { defaultMessage: 'Could not publish file' },
+// 	deleteError: { defaultMessage: 'Could not delete' },
+// })
+
+export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const { fileSlug } = useParams()
 	const editor = useEditor()
 	const app = useApp()
-	const { addToast } = useToasts()
 	const { publishedSlug, published } = file
 	const isOwner = app.isFileOwner(file.id)
 	const auth = useAuth()
@@ -42,41 +46,15 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 			const token = await auth.getToken()
 			if (!token) throw Error('no token')
 
-			const startTime = Date.now()
-
 			if (isPublishingChanges) {
-				setUploadState('uploading')
+				setUploadState('success')
 			}
 
-			const result = await app.publishFile(file.id, token)
+			app.publishFile(file.id)
 
-			if (result.ok) {
-				const elapsed = Date.now() - startTime
-				// uploading should always take at least 1 second
-				if (elapsed < 1000) {
-					await new Promise((r) => setTimeout(r, 1000 - elapsed))
-				}
-
-				// Show the check and then hide it again after 2s
-				if (isPublishingChanges) {
-					setUploadState('success')
-					editor.timers.setTimeout(() => {
-						setUploadState('idle')
-					}, 2000)
-				}
-			} else {
-				if (isPublishingChanges) {
-					setUploadState('idle')
-				}
-
-				addToast({
-					title: isPublishingChanges ? 'Could not publish changes' : 'Could not publish file',
-					severity: 'error',
-				})
-			}
-			trackEvent('publish-file', { result, source: 'file-share-menu' })
+			trackEvent('publish-file', { source: 'file-share-menu' })
 		},
-		[editor, fileSlug, isOwner, auth, app, addToast, file.id, trackEvent]
+		[editor, fileSlug, isOwner, auth, app, file.id, trackEvent]
 	)
 
 	const unpublish = useCallback(async () => {
@@ -85,19 +63,9 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 		const token = await auth.getToken()
 		if (!token) throw Error('no token')
 
-		const result = await app.unpublishFile(file.id, token)
-
-		if (result.ok) {
-			// noop, all good
-		} else {
-			// show error toast
-			addToast({
-				title: 'Could not delete',
-				severity: 'error',
-			})
-		}
-		trackEvent('unpublish-file', { result, source: 'file-share-menu' })
-	}, [addToast, app, auth, file.id, isOwner, trackEvent])
+		app.unpublishFile(file.id)
+		trackEvent('unpublish-file', { source: 'file-share-menu' })
+	}, [app, auth, file.id, isOwner, trackEvent])
 
 	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
 
@@ -109,14 +77,16 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 				<TlaMenuControlGroup>
 					{isOwner && (
 						<TlaMenuControl>
-							<TlaMenuControlLabel>{raw('Publish this project')}</TlaMenuControlLabel>
+							<TlaMenuControlLabel>
+								<F defaultMessage="Publish this project" />
+							</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip
 								onClick={() =>
 									trackEvent('open-url', { url: learnMoreUrl, source: 'file-share-menu' })
 								}
 								href={learnMoreUrl}
 							>
-								{raw('Learn more about publishing.')}
+								<F defaultMessage="Learn more about publishing." />
 							</TlaMenuControlInfoTooltip>
 							<TlaSwitch
 								checked={published}
@@ -135,7 +105,7 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 								variant="secondary"
 								onClick={() => publish(true)}
 							>
-								{raw('Publish changes')}
+								<F defaultMessage="Publish changes" />
 							</TlaButton>
 						)}
 						{/* todo: make this data actually true based on file.lastPublished */}
@@ -163,7 +133,6 @@ export function TlaPublishTab({ file }: { file: TldrawAppFile }) {
 }
 
 export function TlaCopyPublishLinkButton({ url }: { url: string }) {
-	const raw = useRaw()
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -175,7 +144,7 @@ export function TlaCopyPublishLinkButton({ url }: { url: string }) {
 
 	return (
 		<TlaShareMenuCopyButton onClick={handleCopyPublishLink}>
-			{raw('Copy link')}
+			<F defaultMessage="Copy link" />
 		</TlaShareMenuCopyButton>
 	)
 }

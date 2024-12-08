@@ -1,3 +1,21 @@
+# v3.5.0 (Tue Nov 26 2024)
+
+#### 🐛 Bug Fix
+
+- botcom: scaffolding for i18n [#4719](https://github.com/tldraw/tldraw/pull/4719) ([@mimecuvalo](https://github.com/mimecuvalo) [@SomeHats](https://github.com/SomeHats))
+
+#### 💄 Product Improvements
+
+- Lokalise: Translations update [#4947](https://github.com/tldraw/tldraw/pull/4947) ([@TodePond](https://github.com/TodePond) [@mimecuvalo](https://github.com/mimecuvalo))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mime Čuvalo ([@mimecuvalo](https://github.com/mimecuvalo))
+
+---
+
 # v3.4.0 (Thu Oct 24 2024)
 
 #### 🐛 Bug Fix

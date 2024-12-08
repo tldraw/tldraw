@@ -354,7 +354,7 @@ export class Idle extends StateNode {
 								hitInside: false,
 								hitLabels: true,
 								hitLocked: true,
-								hitFrameInside: false,
+								hitFrameInside: true,
 								renderingOnly: true,
 							})
 
@@ -561,6 +561,8 @@ export class Idle extends StateNode {
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getIsReadonly()) return
+
+		if (!this.editor.options.createTextOnCanvasDoubleClick) return
 
 		this.editor.markHistoryStoppingPoint('creating text shape')
 

@@ -12,6 +12,7 @@ import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-ro
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
+import { IntlProvider } from './tla/utils/i18n'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 import { PREFIX } from './tla/utils/urls'
 
@@ -47,6 +48,12 @@ export const router = createRoutesFromElements(
 						para1 = `You don't have permission to view this room.`
 						break
 					}
+
+					case TLSyncErrorCloseEventReason.RATE_LIMITED: {
+						header = 'Rate limited'
+						para1 = `Please slow down.`
+						break
+					}
 				}
 			}
 			if (error instanceof TlaNotFoundError) {
@@ -67,33 +74,43 @@ export const router = createRoutesFromElements(
 			<Route path="/" lazy={() => import('./pages/root')} />
 			{/* We don't want to index multiplayer rooms */}
 			<Route element={<NoIndex />}>
-				<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
-				<Route path="/new" lazy={() => import('./pages/new')} />
-				<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
-				<Route path={`/${ROOM_PREFIX}/:roomId`} lazy={() => import('./pages/public-multiplayer')} />
-				<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
-				<Route
-					path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
-					lazy={() => import('./pages/history-snapshot')}
-				/>
-				<Route
-					path={`/${SNAPSHOT_PREFIX}/:roomId`}
-					lazy={() => import('./pages/public-snapshot')}
-				/>
-				<Route
-					path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
-					lazy={() => import('./pages/public-readonly-legacy')}
-				/>
-				<Route
-					path={`/${READ_ONLY_PREFIX}/:roomId`}
-					lazy={() => import('./pages/public-readonly')}
-				/>
+				<Route element={<ShimIntlProvider />}>
+					<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
+					<Route path="/new" lazy={() => import('./pages/new')} />
+					<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
+					<Route
+						path={`/${ROOM_PREFIX}/:roomId`}
+						lazy={() => import('./pages/public-multiplayer')}
+					/>
+					<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
+					<Route
+						path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
+						lazy={() => import('./pages/history-snapshot')}
+					/>
+					<Route
+						path={`/${SNAPSHOT_PREFIX}/:roomId`}
+						lazy={() => import('./pages/public-snapshot')}
+					/>
+					<Route
+						path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
+						lazy={() => import('./pages/public-readonly-legacy')}
+					/>
+					<Route
+						path={`/${READ_ONLY_PREFIX}/:roomId`}
+						lazy={() => import('./pages/public-readonly')}
+					/>
+				</Route>
 			</Route>
 		</Route>
 		{/* begin tla */}
 		<Route element={<NoIndex />}>
+			<Route
+				path={`/${PREFIX.tla}/${PREFIX.localFile}/:fileSlug`}
+				lazy={() => import('./tla/pages/local-file')}
+			/>
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
 				<Route path={`/${PREFIX.tla}`} lazy={() => import('./tla/pages/local')} />
+				{/* <Route path={`/${PREFIX.tla}/playground`} lazy={() => import('./tla/pages/playground')} /> */}
 				{/* File view */}
 				<Route
 					path={`/${PREFIX.tla}/${PREFIX.file}/:fileSlug`}
@@ -104,12 +121,7 @@ export const router = createRoutesFromElements(
 					lazy={() => import('./tla/pages/publish')}
 				/>
 				{/* Views that require login */}
-				<Route lazy={() => import('./tla/providers/RequireSignedInUser')}>
-					{/* User settings */}
-					<Route path={`/${PREFIX.tla}/profile`} lazy={() => import('./tla/pages/profile')} />
-					{/* Internal */}
-					<Route path={`/${PREFIX.tla}/debug`} lazy={() => import('./tla/pages/debug')} />
-				</Route>
+				<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
 			</Route>
 		</Route>
 		{/* end tla */}
@@ -125,5 +137,14 @@ function NoIndex() {
 			</Helmet>
 			<Outlet />
 		</>
+	)
+}
+
+function ShimIntlProvider() {
+	return (
+		// This IntlProvider is just for backwards compatibilty for the old site.
+		<IntlProvider defaultLocale="en" locale="en" messages={{}}>
+			<Outlet />
+		</IntlProvider>
 	)
 }

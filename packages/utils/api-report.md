@@ -78,6 +78,13 @@ export interface ErrorResult<E> {
 }
 
 // @internal (undocumented)
+export class ExecutionQueue {
+    constructor(timeout?: number | undefined);
+    // (undocumented)
+    push<T>(task: () => T): Promise<Awaited<T>>;
+}
+
+// @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
 // @public (undocumented)
@@ -95,6 +102,10 @@ export class FileHelpers {
     static blobToText(file: Blob): Promise<string>;
     // (undocumented)
     static dataUrlToArrayBuffer(dataURL: string): Promise<ArrayBuffer>;
+    // (undocumented)
+    static rewriteMimeType(blob: Blob, newMimeType: string): Blob;
+    // (undocumented)
+    static rewriteMimeType(blob: File, newMimeType: string): File;
 }
 
 // @internal
@@ -214,6 +225,17 @@ export function lerp(a: number, b: number, t: number): number;
 
 // @public (undocumented)
 export function lns(str: string): string;
+
+// @public (undocumented)
+export type MakeUndefinedOptional<T extends object> = Expand<{
+    [P in {
+        [K in keyof T]: undefined extends T[K] ? never : K;
+    }[keyof T]]: T[P];
+} & {
+    [P in {
+        [K in keyof T]: undefined extends T[K] ? K : never;
+    }[keyof T]]?: T[P];
+}>;
 
 // @internal
 export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(object: {
@@ -377,6 +399,14 @@ export const Result: {
     ok<T>(value: T): OkResult<T>;
 };
 
+// @internal (undocumented)
+export function retry<T>(fn: () => Promise<T>, { attempts, waitDuration, abortSignal, matchError, }?: {
+    abortSignal?: AbortSignal;
+    attempts?: number;
+    matchError?(error: unknown): boolean;
+    waitDuration?: number;
+}): Promise<T>;
+
 // @public
 export function rng(seed?: string): () => number;
 
@@ -404,6 +434,11 @@ export function sortById<T extends {
 export function sortByIndex<T extends {
     index: IndexKey;
 }>(a: T, b: T): -1 | 0 | 1;
+
+// @internal (undocumented)
+export function stringEnum<T extends string>(...values: T[]): {
+    [K in T]: K;
+};
 
 // @internal
 export const STRUCTURED_CLONE_OBJECT_PROTOTYPE: any;

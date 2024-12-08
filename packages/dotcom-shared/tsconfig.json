@@ -8,6 +8,9 @@
 	},
 	"references": [
 		{
+			"path": "../state"
+		},
+		{
 			"path": "../store"
 		},
 		{

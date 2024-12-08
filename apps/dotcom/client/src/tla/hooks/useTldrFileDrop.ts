@@ -1,17 +1,29 @@
 import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
 import { globalEditor } from '../../utils/globalEditor'
+import { defineMessages, useIntl } from '../utils/i18n'
+import { getFilePath } from '../utils/urls'
 import { useApp } from './useAppState'
+
+const messages = defineMessages({
+	uploading: {
+		defaultMessage: 'Uploading {count} .tldr {count, plural, one {file} other {files}}…',
+	},
+	adding: { defaultMessage: 'Added {count} .tldr {count, plural, one {file} other {files}}.' },
+})
 
 export function useTldrFileDrop() {
 	const app = useApp()
+	const navigate = useNavigate()
 
 	const [isDraggingOver, setIsDraggingOver] = useState(false)
 
 	const { addToast, removeToast } = useToasts()
 
 	const auth = useAuth()
+	const intl = useIntl()
 
 	const onDrop = useCallback(
 		async (e: DragEvent) => {
@@ -35,22 +47,30 @@ export function useTldrFileDrop() {
 				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
 				if (!snapshots.length) return
 
+				const uploadingTitle = intl.formatMessage(messages.uploading, {
+					count: snapshots.length,
+				})
+				const addedTitle = intl.formatMessage(messages.adding, { count: snapshots.length })
+
 				const id = addToast({
 					severity: 'info',
-					title: `Uploading .tldr file${snapshots.length > 1 ? 's' : ''}...`,
+					title: uploadingTitle,
 				})
 
-				await app.createFilesFromTldrFiles(snapshots, token)
+				const results = await app.createFilesFromTldrFiles(snapshots, token)
 
 				removeToast(id)
 				addToast({
 					severity: 'success',
-					title: `Added .tldr file${snapshots.length > 1 ? 's' : ''}`,
+					title: addedTitle,
 					keepOpen: true,
 				})
+				if (results.slugs.length > 0) {
+					navigate(getFilePath(results.slugs[0]), { state: { mode: 'create' } })
+				}
 			}
 		},
-		[app, addToast, removeToast, auth]
+		[app, addToast, removeToast, auth, intl, navigate]
 	)
 
 	const onDragOver = useCallback((e: DragEvent) => {

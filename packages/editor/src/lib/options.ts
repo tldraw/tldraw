@@ -1,3 +1,5 @@
+import { ComponentType, Fragment } from 'react'
+
 /**
  * Options for configuring tldraw. For defaults, see {@link defaultTldrawOptions}.
  *
@@ -58,6 +60,12 @@ export interface TldrawOptions {
 	 */
 	readonly temporaryAssetPreviewLifetimeMs: number
 	readonly actionShortcutsLocation: 'menu' | 'toolbar' | 'swap'
+	readonly createTextOnCanvasDoubleClick: boolean
+	/**
+	 * The react provider to use when exporting an image. This is useful if your shapes depend on
+	 * external context providers. By default, this is `React.Fragment`.
+	 */
+	readonly exportProvider: ComponentType<{ children: React.ReactNode }>
 }
 
 /** @public */
@@ -101,4 +109,6 @@ export const defaultTldrawOptions = {
 	maxExportDelayMs: 5000,
 	temporaryAssetPreviewLifetimeMs: 180000,
 	actionShortcutsLocation: 'swap',
+	createTextOnCanvasDoubleClick: true,
+	exportProvider: Fragment,
 } as const satisfies TldrawOptions

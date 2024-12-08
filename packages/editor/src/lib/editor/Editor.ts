@@ -3750,7 +3750,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getPages(): TLPage[] {
-		return this._getAllPagesQuery().get().sort(sortByIndex)
+		return Array.from(this._getAllPagesQuery().get()).sort(sortByIndex)
 	}
 
 	/**
@@ -4165,8 +4165,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Upload an asset to the store's asset service, returning a URL that can be used to resolve the
 	 * asset.
 	 */
-	async uploadAsset(asset: TLAsset, file: File): Promise<string> {
-		return await this.store.props.assets.upload(asset, file)
+	async uploadAsset(asset: TLAsset, file: File, abortSignal?: AbortSignal): Promise<string> {
+		return await this.store.props.assets.upload(asset, file, abortSignal)
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -4725,21 +4725,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Check labels first
 			if (
-				this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
-				(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')
+				this.isShapeOfType<TLFrameShape>(shape, 'frame') ||
+				((this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
+					(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')) &&
+					shape.props.text.trim())
 			) {
-				if (shape.props.text.trim()) {
-					// let's check whether the shape has a label and check that
-					for (const childGeometry of (geometry as Group2d).children) {
-						if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
-							return shape
-						}
+				for (const childGeometry of (geometry as Group2d).children) {
+					if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
+						return shape
 					}
 				}
 			}
 
 			if (this.isShapeOfType(shape, 'frame')) {
-				// On the rare case that we've hit a frame, test again hitInside to be forced true;
+				// On the rare case that we've hit a frame (not its label), test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behind it.
 
 				// If the hit is within the frame's outer margin, then select the frame
@@ -5983,7 +5982,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
-		const changes = getReorderingShapesChanges(this, 'toBack', ids as TLShapeId[])
+		const changes = getReorderingShapesChanges(this, 'toBack', ids as TLShapeId[], {
+			considerAllShapes: true,
+		})
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -5997,16 +5998,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.sendBackward([box1, box2])
 	 * ```
 	 *
+	 * By default, the operation will only consider overlapping shapes.
+	 * To consider all shapes, pass `{ considerAllShapes: true }` in the options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.sendBackward(['id1', 'id2'], { considerAllShapes: true })
+	 * ```
+	 *
 	 * @param shapes - The shapes (or shape ids) to move.
+	 * @param opts - The options for the backward operation.
 	 *
 	 * @public
 	 */
-	sendBackward(shapes: TLShapeId[] | TLShape[]): this {
+	sendBackward(shapes: TLShapeId[] | TLShape[], opts: { considerAllShapes?: boolean } = {}): this {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
-		const changes = getReorderingShapesChanges(this, 'backward', ids as TLShapeId[])
+		const changes = getReorderingShapesChanges(this, 'backward', ids as TLShapeId[], opts)
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -6020,16 +6030,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.bringForward(box1,  box2)
 	 * ```
 	 *
+	 * By default, the operation will only consider overlapping shapes.
+	 * To consider all shapes, pass `{ considerAllShapes: true }` in the options.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.bringForward(['id1', 'id2'], { considerAllShapes: true })
+	 * ```
+	 *
 	 * @param shapes - The shapes (or shape ids) to move.
+	 * @param opts - The options for the forward operation.
 	 *
 	 * @public
 	 */
-	bringForward(shapes: TLShapeId[] | TLShape[]): this {
+	bringForward(shapes: TLShapeId[] | TLShape[], opts: { considerAllShapes?: boolean } = {}): this {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((s) => s.id)
-		const changes = getReorderingShapesChanges(this, 'forward', ids as TLShapeId[])
+		const changes = getReorderingShapesChanges(this, 'forward', ids as TLShapeId[], opts)
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -8164,6 +8183,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (
 					(asset.type === 'image' || asset.type === 'video') &&
 					!asset.props.src?.startsWith('data:image') &&
+					!asset.props.src?.startsWith('data:video') &&
 					!asset.props.src?.startsWith('http')
 				) {
 					const assetWithDataUrl = structuredClone(asset as TLImageAsset | TLVideoAsset)
@@ -8401,8 +8421,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (
-				(asset.type === 'image' || asset.type === 'video') &&
-				asset.props.src?.startsWith('data:image')
+				(asset.type === 'image' && asset.props.src?.startsWith('data:image')) ||
+				(asset.type === 'video' && asset.props.src?.startsWith('data:video'))
 			) {
 				// it's src is a base64 image or video; we need to create a new asset without the src,
 				// then create a new asset from the original src. So we save a copy of the original asset,
@@ -9479,9 +9499,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (!this.inputs.isPanning) {
 							// Start a long press timeout
 							this._longPressTimeout = this.timers.setTimeout(() => {
+								const vsb = this.getViewportScreenBounds()
 								this.dispatch({
 									...info,
-									point: this.inputs.currentScreenPoint,
+									// important! non-obvious!! the screenpoint was adjusted using the
+									// viewport bounds, and will be again when this event is handled...
+									// so we need to counter-adjust from the stored value so that the
+									// new value is set correctly.
+									point: this.inputs.originScreenPoint.clone().addXY(vsb.x, vsb.y),
 									name: 'long_press',
 								})
 							}, this.options.longPressDurationMs)
@@ -9781,9 +9806,7 @@ function applyPartialToRecordWithProps<
 		if (k === 'props' || k === 'meta') {
 			next[k] = { ...prev[k] } as JsonObject
 			for (const [nextKey, nextValue] of Object.entries(v as object)) {
-				if (nextValue !== undefined) {
-					;(next[k] as JsonObject)[nextKey] = nextValue
-				}
+				;(next[k] as JsonObject)[nextKey] = nextValue
 			}
 			continue
 		}

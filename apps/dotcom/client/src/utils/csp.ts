@@ -16,12 +16,16 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',
 		'https://clerk.staging.tldraw.com',
+		// zero
+		'http://localhost:4848',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`https:`],
 	'img-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
+		// need wasm for zero
+		`'unsafe-eval'`,
 		`'self'`,
 		'https://challenges.cloudflare.com',
 		'https://*.clerk.accounts.dev',

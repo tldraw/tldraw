@@ -64,21 +64,6 @@
 	right: 0px;
 }
 
-.tooltip {
-	font-size: 12px;
-	padding: 6px 12px;
-	min-width: 160px;
-	border-radius: 8px;
-	background-color: var(--color-text-1);
-	border: 1px solid var(--color-text-1);
-	box-shadow: none;
-	color: var(--color-selected-contrast);
-}
-
-.tooltipArrow {
-	fill: var(--color-text-1);
-}
-
 .detailCentered {
 	text-align: center;
 }

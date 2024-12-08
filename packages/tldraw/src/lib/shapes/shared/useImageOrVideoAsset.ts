@@ -12,7 +12,7 @@ import {
 	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 /**
  * This is a handy helper hook that resolves an asset to an optimized URL for a given shape, or its
@@ -35,6 +35,8 @@ export function useImageOrVideoAsset({
 	const editor = useEditor()
 	const isExport = !!useSvgExportContext()
 	const isReady = useDelaySvgExport()
+
+	const resolveAssetUrlDebounced = useMemo(() => debounce(resolveAssetUrl, 500), [])
 
 	// We use a state to store the result of the asset resolution, and we're going to avoid updating this whenever we can
 	const [result, setResult] = useState<{
@@ -85,22 +87,23 @@ export function useImageOrVideoAsset({
 
 			const screenScale = editor.getZoomLevel() * (shape.props.w / asset.props.w)
 
+			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {
+				if (isCancelled) return // don't update if the hook has remounted
+				if (previousUrl.current === url) return // don't update the state if the url is the same
+				didAlreadyResolve.current = true // mark that we've resolved our first image
+				previousUrl.current = url // keep the url around to compare with the next one
+				setResult({ asset, url })
+				isReady() // let the SVG export know we're ready for export
+			}
+
 			// If we already resolved the URL, debounce fetching potentially multiple image variations.
 			if (didAlreadyResolve.current) {
-				resolveAssetUrlDebounced(editor, assetId, screenScale, isExport, (url) => {
-					if (isCancelled) return // don't update if the hook has remounted
-					if (previousUrl.current === url) return // don't update the state if the url is the same
-					previousUrl.current = url // keep the url around to compare with the next one
-					setResult(() => ({ asset, url }))
-				})
+				resolveAssetUrlDebounced(editor, assetId, screenScale, isExport, (url) =>
+					resolve(asset, url)
+				)
 				cancelDebounceFn = resolveAssetUrlDebounced.cancel // cancel the debounce when the hook unmounts
 			} else {
-				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => {
-					if (isCancelled) return // don't update if the hook has remounted
-					didAlreadyResolve.current = true // mark that we've resolved our first image
-					previousUrl.current = url // keep the url around to compare with the next one
-					setResult(() => ({ asset, url }))
-				})
+				resolveAssetUrl(editor, assetId, screenScale, isExport, (url) => resolve(asset, url))
 			}
 		})
 
@@ -109,7 +112,7 @@ export function useImageOrVideoAsset({
 			cancelDebounceFn?.()
 			isCancelled = true
 		}
-	}, [editor, assetId, isExport, isReady, shapeId])
+	}, [editor, assetId, isExport, isReady, shapeId, resolveAssetUrlDebounced])
 
 	return result
 }
@@ -133,8 +136,6 @@ function resolveAssetUrl(
 			callback(url)
 		})
 }
-
-const resolveAssetUrlDebounced = debounce(resolveAssetUrl, 500)
 
 /**
  * @deprecated Use {@link useImageOrVideoAsset} instead.

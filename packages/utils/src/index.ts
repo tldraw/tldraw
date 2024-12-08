@@ -2,6 +2,7 @@ import { registerTldrawLibraryVersion } from './lib/version'
 
 export { default as throttle } from 'lodash.throttle'
 export { default as uniq } from 'lodash.uniq'
+export { ExecutionQueue } from './lib/ExecutionQueue'
 export { PerformanceTracker } from './lib/PerformanceTracker'
 export {
 	areArraysShallowEqual,
@@ -67,6 +68,7 @@ export {
 	validateIndexKey,
 	type IndexKey,
 } from './lib/reordering'
+export { retry } from './lib/retry'
 export { sortById } from './lib/sort'
 export {
 	clearLocalStorage,
@@ -78,9 +80,15 @@ export {
 	setInLocalStorage,
 	setInSessionStorage,
 } from './lib/storage'
+export { stringEnum } from './lib/stringEnum'
 export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
 export { Timers } from './lib/timers'
-export type { Expand, RecursivePartial, Required } from './lib/types'
+export {
+	type Expand,
+	type MakeUndefinedOptional,
+	type RecursivePartial,
+	type Required,
+} from './lib/types'
 export { safeParseUrl } from './lib/url'
 export {
 	STRUCTURED_CLONE_OBJECT_PROTOTYPE,

@@ -1,7 +1,13 @@
-import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import classNames from 'classnames'
 import { ReactNode } from 'react'
-import { TldrawUiButton, TldrawUiIcon, useContainer } from 'tldraw'
+import { TldrawUiButton, TldrawUiIcon } from 'tldraw'
+import {
+	TlaTooltipArrow,
+	TlaTooltipContent,
+	TlaTooltipPortal,
+	TlaTooltipRoot,
+	TlaTooltipTrigger,
+} from '../TlaTooltip/TlaTooltip'
 import styles from './menu.module.css'
 
 // Used to section areas of the menu, ie links vs snapshots
@@ -29,11 +35,10 @@ export function TlaMenuControlInfoTooltip({
 	onClick?(): void
 	children: ReactNode
 }) {
-	const container = useContainer()
 	return (
 		<div className={styles.info}>
-			<TooltipPrimitive.Root>
-				<TooltipPrimitive.Trigger dir="ltr" asChild>
+			<TlaTooltipRoot>
+				<TlaTooltipTrigger dir="ltr" asChild>
 					{href ? (
 						<a
 							onClick={onClick}
@@ -48,19 +53,14 @@ export function TlaMenuControlInfoTooltip({
 							<TldrawUiIcon icon="help-circle" small />
 						</TldrawUiButton>
 					)}
-				</TooltipPrimitive.Trigger>
-				<TooltipPrimitive.Portal container={container}>
-					<TooltipPrimitive.Content
-						avoidCollisions
-						collisionPadding={8}
-						dir="ltr"
-						className={classNames('tlui-menu', styles.tooltip)}
-					>
+				</TlaTooltipTrigger>
+				<TlaTooltipPortal>
+					<TlaTooltipContent>
 						{children}
-						<TooltipPrimitive.Arrow className={styles.tooltipArrow} />
-					</TooltipPrimitive.Content>
-				</TooltipPrimitive.Portal>
-			</TooltipPrimitive.Root>
+						<TlaTooltipArrow />
+					</TlaTooltipContent>
+				</TlaTooltipPortal>
+			</TlaTooltipRoot>
 		</div>
 	)
 }
