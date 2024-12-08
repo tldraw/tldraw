@@ -7,6 +7,9 @@
 import { Editor } from 'tldraw';
 import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
+import { TLPresenceStateInfo } from 'tldraw';
+import { TLPresenceUserInfo } from 'tldraw';
+import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
 
@@ -32,6 +35,7 @@ export function useSyncDemo(options: UseSyncDemoOptions & TLStoreSchemaOptions):
 
 // @public (undocumented)
 export interface UseSyncDemoOptions {
+    getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
     // @internal (undocumented)
     host?: string;
     roomId: string;
@@ -41,6 +45,7 @@ export interface UseSyncDemoOptions {
 // @public
 export interface UseSyncOptions {
     assets: TLAssetStore;
+    getUserPresence?(store: TLStore, user: TLSyncUserInfo): null | TLPresenceStateInfo;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
     // @internal

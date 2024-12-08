@@ -6,6 +6,7 @@
 
 import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
+import { Expand } from '@tldraw/utils';
 import { Result } from '@tldraw/utils';
 
 // @public
@@ -250,7 +251,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
         readonly validator?: StoreValidator<R>;
     });
     clone(record: R): R;
-    create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R;
+    create(properties: Expand<Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>>): R;
     // @deprecated
     createCustomId(id: string): IdOf<R>;
     // (undocumented)
