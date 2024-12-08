@@ -345,7 +345,7 @@
 	user-select: none;
 	contain: strict;
 	z-index: var(--layer-panels);
-	-webkit-transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
 	--sab: env(safe-area-inset-bottom);
 	font-weight: 500;
 	line-height: 1.6;
@@ -898,7 +898,6 @@
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	background-color: var(--color-low);
 	border-radius: var(--radius-4);
 	z-index: var(--layer-panels);
 	pointer-events: all;
@@ -923,6 +922,97 @@
 
 .tlui-layout__mobile .tlui-toolbar *[data-state='open']::after {
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+}
+
+/* --------------- Contextual Toolbar --------------- */
+
+.tl-contextual-toolbar {
+	position: absolute;
+	pointer-events: none;
+
+	/* This forgoes the box-shadow so that we can get a shadow on the indicator arrow. */
+	filter: drop-shadow(0px 2px 3px hsl(0, 0%, 0%, 24%));
+
+	--animation-curve: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+	will-change: top, left, opacity, transform;
+	opacity: 0;
+	transform: scale(0.95);
+	transition:
+		opacity 150ms var(--animation-curve),
+		transform 150ms var(--animation-curve);
+	transition-delay: 150ms;
+}
+
+.tl-contextual-toolbar * {
+	pointer-events: none;
+}
+
+.tl-contextual-toolbar[data-is-visible='true'] {
+	transform: translateY(-6px) scale(1);
+	opacity: 1;
+}
+
+/**
+ * N.B. We don't want the toolbar to be clickable when "mousing down", i.e. selecting text
+ * because when hovering over the toolbar in the midst of selecting, the selection goes all wonky.
+ */
+.tl-contextual-toolbar[data-is-visible='true'][data-is-mousing-down='false'] {
+	pointer-events: all;
+}
+
+.tl-contextual-toolbar[data-is-visible='true'][data-is-mousing-down='false'] * {
+	pointer-events: all;
+}
+
+.tl-contextual-toolbar .tlui-toolbar__tools {
+	box-shadow: none;
+}
+
+.tl-contextual-toolbar [data-isactive='true']::after {
+	background-color: var(--color-muted-1);
+	opacity: 1;
+}
+
+.tl-contextual-toolbar__indicator {
+	--arrow-size: 8px;
+	position: absolute;
+	bottom: calc(-1 * var(--arrow-size) + 1px);
+	left: 0;
+	z-index: calc(var(--layer-canvas-shapes) + 1);
+	border: var(--arrow-size) solid transparent;
+	border-bottom-width: 0;
+	border-top-color: var(--color-panel);
+	pointer-events: none;
+}
+
+.tl-contextual-toolbar[data-is-mobile='true'] .tl-contextual-toolbar__indicator {
+	display: none;
+}
+
+/**
+ * This prevents jumpiness of the animation when going across multiple lines.
+ * Otherwise, annoyingly, the toolbar is whips back-and-forth as the selection goes from
+ * the beginning of a line to the end of the line and so on.
+ */
+.tl-rich-text__toolbar[data-is-mousing-down='true'][data-is-selection-on-same-line='true'] {
+	transition:
+		opacity 150ms var(--animation-curve),
+		transform 150ms var(--animation-curve),
+		left 150ms var(--animation-curve);
+	transition-delay: 100ms;
+}
+
+.tl-rich-text__toolbar-link-input {
+	margin-left: 12px;
+	/*
+	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
+	 * This is so the toolbar size stays stable going in and out of the link editor.
+	 */
+	min-width: 188px;
+}
+
+.tl-rich-text__toolbar .tlui-input__wrapper {
+	height: 40px;
 }
 
 /* -------------------- Help Zone ------------------- */

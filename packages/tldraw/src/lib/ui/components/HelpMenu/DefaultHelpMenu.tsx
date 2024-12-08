@@ -24,7 +24,7 @@ export const DefaultHelpMenu = memo(function DefaultHelpMenu({ children }: TLUiH
 	const breakpoint = useBreakpoint()
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
+	usePassThroughWheelEvents(ref.current)
 
 	// Get the help menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
