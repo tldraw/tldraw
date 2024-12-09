@@ -146,8 +146,9 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 					className={styles.resizeHandle}
 					onPointerDown={handlePointerDown}
 					onPointerMove={handlePointerMove}
-					onPointerUp={handlePointerUp}
+					draggable={false}
 					onDoubleClick={handleDoubleClick}
+					onLostPointerCapture={handlePointerUp}
 				>
 					<div className={styles.resizeHandleIndicator}></div>
 				</div>
