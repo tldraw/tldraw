@@ -2,9 +2,9 @@ import { useAuth } from '@clerk/clerk-react'
 import { DragEvent, useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Editor, TLStoreSnapshot, parseTldrawJsonFile, tlmenus, useToasts } from 'tldraw'
+import { routes } from '../../routeDefs'
 import { globalEditor } from '../../utils/globalEditor'
 import { defineMessages, useIntl } from '../utils/i18n'
-import { getFilePath } from '../utils/urls'
 import { useApp } from './useAppState'
 
 const messages = defineMessages({
@@ -66,7 +66,7 @@ export function useTldrFileDrop() {
 					keepOpen: true,
 				})
 				if (results.slugs.length > 0) {
-					navigate(getFilePath(results.slugs[0]), { state: { mode: 'create' } })
+					navigate(routes.tlaFile(results.slugs[0]))
 				}
 			}
 		},

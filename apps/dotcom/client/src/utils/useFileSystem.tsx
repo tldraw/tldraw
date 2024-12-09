@@ -12,6 +12,7 @@ import {
 	serializeTldrawJsonBlob,
 	transact,
 } from 'tldraw'
+import { routes } from '../routeDefs'
 import { shouldClearDocument } from './shouldClearDocument'
 import { shouldOverrideDocument } from './shouldOverrideDocument'
 import { useHandleUiEvents } from './useHandleUiEvent'
@@ -76,7 +77,7 @@ export function useFileSystem({ isMultiplayer }: { isMultiplayer: boolean }): TL
 					readonlyOk: true,
 					async onSelect(source) {
 						handleUiEvent('create-new-shared-project', { source })
-						navigate('/new')
+						navigate(routes.legacyNewPage())
 					},
 				}
 				actions[NEW_PROJECT_ACTION] = {

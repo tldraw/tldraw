@@ -3,11 +3,11 @@ import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useEditor } from 'tldraw'
+import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { F, FormattedRelativeTime } from '../../../utils/i18n'
-import { getShareablePublishUrl } from '../../../utils/urls'
 import { TlaButton } from '../../TlaButton/TlaButton'
 import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import { TlaTabsPage } from '../../TlaTabs/TlaTabs'
@@ -67,7 +67,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 		trackEvent('unpublish-file', { source: 'file-share-menu' })
 	}, [app, auth, file.id, isOwner, trackEvent])
 
-	const publishShareUrl = publishedSlug ? getShareablePublishUrl(publishedSlug) : null
+	const publishShareUrl = publishedSlug ? routes.tlaPublish(publishedSlug, { asUrl: true }) : null
 
 	const secondsSince = Math.min(0, Math.floor((Date.now() - file.lastPublished) / 1000))
 	const learnMoreUrl = 'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'

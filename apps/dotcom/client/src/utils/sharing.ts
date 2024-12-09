@@ -23,6 +23,7 @@ import {
 	fetch,
 	isShape,
 } from 'tldraw'
+import { routes } from '../routeDefs'
 import { writeToClipboard } from './clipboard'
 import { cloneAssetForShare } from './cloneAssetForShare'
 import { getParentOrigin, isInIframe } from './iFrame'
@@ -107,7 +108,7 @@ export function useSharing(): TLUiOverrides {
 
 						handleUiEvent('leave-shared-project', {})
 
-						navigate('/')
+						navigate(routes.legacyRoot())
 					},
 				}
 				actions[SHARE_PROJECT_ACTION] = {

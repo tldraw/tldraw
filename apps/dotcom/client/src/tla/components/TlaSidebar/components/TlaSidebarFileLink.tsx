@@ -3,11 +3,11 @@ import classNames from 'classnames'
 import { KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { preventDefault, useContainer, useValue } from 'tldraw'
+import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { F } from '../../../utils/i18n'
-import { getFilePath } from '../../../utils/urls'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	TlaTooltipArrow,
@@ -48,7 +48,7 @@ export function TlaSidebarFileLink({ item, testId }: { item: RecentFile; testId:
 			isActive={isActive}
 			isOwnFile={isOwnFile}
 			fileName={app.getFileName(fileId)}
-			href={getFilePath(fileId)}
+			href={routes.tlaFile(fileId)}
 		/>
 	)
 }

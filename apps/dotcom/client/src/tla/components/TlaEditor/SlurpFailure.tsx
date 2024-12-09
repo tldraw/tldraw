@@ -7,8 +7,8 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { F } from '../../utils/i18n'
-import { getLocalFilePath } from '../../utils/urls'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 
 export function SlurpFailure({
@@ -46,7 +46,7 @@ export function SlurpFailure({
 				</p>
 				<ol>
 					<li>
-						<ExternalLink to={getLocalFilePath(slurpPersistenceKey)}>
+						<ExternalLink to={routes.tlaLocalFile(slurpPersistenceKey)}>
 							<F defaultMessage="Go here to see the content" />
 						</ExternalLink>
 					</li>
