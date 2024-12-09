@@ -2,7 +2,6 @@ import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { assertExists, atom } from 'tldraw'
 import { TldrawApp } from '../app/TldrawApp'
-import { useIntl } from '../utils/i18n'
 
 const appContext = createContext<TldrawApp | null>(null)
 
@@ -10,7 +9,6 @@ export const isClientTooOld$ = atom('isClientTooOld', false)
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
 	const [app, setApp] = useState(null as TldrawApp | null)
-	const intl = useIntl()
 	const auth = useAuth()
 	const { user, isLoaded } = useClerkUser()
 
@@ -40,7 +38,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				onClientTooOld: () => {
 					isClientTooOld$.set(true)
 				},
-				intl,
 			}).then(({ app }) => {
 				if (didCancel) {
 					app.dispose()
