@@ -16,11 +16,11 @@ import {
 	textShapeProps,
 	toDomPrecision,
 	useEditor,
+	useEditorComponents,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
 import { TextHelpers } from '../shared/TextHelpers'
-import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
@@ -85,28 +85,32 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const theme = useDefaultColorTheme()
 		const handleKeyDown = useTextShapeKeydownHandler(id)
 
+		const { TextLabel } = useEditorComponents()
+
 		return (
-			<TextLabel
-				shapeId={id}
-				classNamePrefix="tl-text-shape"
-				type="text"
-				font={font}
-				fontSize={FONT_SIZES[size]}
-				lineHeight={TEXT_PROPS.lineHeight}
-				align={textAlign}
-				verticalAlign="middle"
-				text={text}
-				labelColor={theme[color].solid}
-				isSelected={isSelected}
-				textWidth={width}
-				textHeight={height}
-				style={{
-					transform: `scale(${scale})`,
-					transformOrigin: 'top left',
-				}}
-				wrap
-				onKeyDown={handleKeyDown}
-			/>
+			TextLabel && (
+				<TextLabel
+					shapeId={id}
+					classNamePrefix="tl-text-shape"
+					type="text"
+					font={font}
+					fontSize={FONT_SIZES[size]}
+					lineHeight={TEXT_PROPS.lineHeight}
+					align={textAlign}
+					verticalAlign="middle"
+					text={text}
+					labelColor={theme[color].solid}
+					isSelected={isSelected}
+					textWidth={width}
+					textHeight={height}
+					style={{
+						transform: `scale(${scale})`,
+						transformOrigin: 'top left',
+					}}
+					wrap
+					onKeyDown={handleKeyDown}
+				/>
+			)
 		)
 	}
 
@@ -289,17 +293,17 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 
 	const cw = autoSize
 		? null
-		: // `measureText` floors the number so we need to do the same here to avoid issues.
+		: // `measure` floors the number so we need to do the same here to avoid issues.
 			Math.floor(Math.max(minWidth, w))
 
-	const result = editor.textMeasure.measureText(text, {
+	const result = editor.textMeasure.measure(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
 		maxWidth: cw,
 	})
 
-	// If we're autosizing the measureText will essentially `Math.floor`
+	// If we're autosizing the `measure` will essentially `Math.floor`
 	// the numbers so `19` rather than `19.3`, this means we must +1 to
 	// whatever we get to avoid wrapping.
 	if (autoSize) {

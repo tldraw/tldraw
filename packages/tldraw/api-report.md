@@ -14,7 +14,6 @@ import { BindingOnCreateOptions } from '@tldraw/editor';
 import { BindingOnShapeChangeOptions } from '@tldraw/editor';
 import { BindingOnShapeIsolateOptions } from '@tldraw/editor';
 import { BindingUtil } from '@tldraw/editor';
-import { Box } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
@@ -60,11 +59,8 @@ import { TLBookmarkShapeProps } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultColorTheme } from '@tldraw/editor';
 import { TLDefaultColorThemeColor } from '@tldraw/editor';
-import { TLDefaultFillStyle } from '@tldraw/editor';
 import { TLDefaultFontStyle } from '@tldraw/editor';
-import { TLDefaultHorizontalAlignStyle } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
-import { TLDefaultVerticalAlignStyle } from '@tldraw/editor';
 import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TldrawEditorStoreProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
@@ -109,6 +105,7 @@ import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLStateNodeConstructor } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSnapshot } from '@tldraw/editor';
+import { TLTextLabel } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLVideoAsset } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
@@ -1782,51 +1779,27 @@ export const TEXT_PROPS: {
     padding: string;
 };
 
-// @public (undocumented)
-export const TextLabel: React_3.NamedExoticComponent<TextLabelProps>;
+// @public
+export const TextArea: React_3.ForwardRefExoticComponent<TextAreaProps & React_3.RefAttributes<HTMLTextAreaElement>>;
 
 // @public (undocumented)
-export interface TextLabelProps {
+export interface TextAreaProps {
     // (undocumented)
-    align: TLDefaultHorizontalAlignStyle;
+    handleBlur(): void;
     // (undocumented)
-    bounds?: Box;
+    handleChange(e: React_3.ChangeEvent<HTMLTextAreaElement>): void;
     // (undocumented)
-    classNamePrefix?: string;
+    handleDoubleClick(e: any): any;
     // (undocumented)
-    fill?: TLDefaultFillStyle;
+    handleFocus(): void;
     // (undocumented)
-    font: TLDefaultFontStyle;
+    handleInputPointerDown(e: React_3.PointerEvent<HTMLTextAreaElement>): void;
     // (undocumented)
-    fontSize: number;
+    handleKeyDown(e: React_3.KeyboardEvent<HTMLTextAreaElement>): void;
     // (undocumented)
-    isNote?: boolean;
-    // (undocumented)
-    isSelected: boolean;
-    // (undocumented)
-    labelColor: string;
-    // (undocumented)
-    lineHeight: number;
-    // (undocumented)
-    onKeyDown?(e: React_3.KeyboardEvent<HTMLTextAreaElement>): void;
-    // (undocumented)
-    padding?: number;
-    // (undocumented)
-    shapeId: TLShapeId;
-    // (undocumented)
-    style?: React_3.CSSProperties;
+    isEditing: boolean;
     // (undocumented)
     text: string;
-    // (undocumented)
-    textHeight?: number;
-    // (undocumented)
-    textWidth?: number;
-    // (undocumented)
-    type: string;
-    // (undocumented)
-    verticalAlign: TLDefaultVerticalAlignStyle;
-    // (undocumented)
-    wrap?: boolean;
 }
 
 // @public (undocumented)
@@ -1846,7 +1819,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     canEdit(): boolean;
     // (undocumented)
-    component(shape: TLTextShape): JSX_2.Element;
+    component(shape: TLTextShape): JSX_2.Element | null;
     // (undocumented)
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)
@@ -2065,6 +2038,9 @@ export const TldrawSelectionForeground: NamedExoticComponent<TLSelectionForegrou
 
 // @public (undocumented)
 export function TldrawShapeIndicators(): JSX_2.Element | null;
+
+// @public
+export const TldrawTextLabel: TLTextLabel;
 
 // @public (undocumented)
 export const TldrawUi: React_3.NamedExoticComponent<TldrawUiProps>;

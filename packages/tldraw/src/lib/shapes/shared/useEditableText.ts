@@ -74,7 +74,7 @@ export function useEditableText(shapeId: TLShapeId, type: string, text: string) 
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
 			if (editor.getEditingShapeId() !== shapeId) return
 
-			let text = TextHelpers.normalizeText(e.currentTarget.value)
+			let text = TextHelpers.normalizeTextForDom(e.currentTarget.value)
 
 			// ------- Bug fix ------------
 			// Replace tabs with spaces when pasting

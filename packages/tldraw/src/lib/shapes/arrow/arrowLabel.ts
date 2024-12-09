@@ -57,7 +57,7 @@ function getLabelSizeCache(editor: Editor) {
 				const fontSize = getArrowLabelFontSize(shape)
 
 				// First we measure the text with no constraints
-				const { w, h } = editor.textMeasure.measureText(shape.props.text, {
+				const { w, h } = editor.textMeasure.measure(shape.props.text, {
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES[shape.props.font],
 					fontSize,
@@ -79,7 +79,7 @@ function getLabelSizeCache(editor: Editor) {
 				}
 
 				if (shouldSquish) {
-					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measureText(
+					const { w: squishedWidth, h: squishedHeight } = editor.textMeasure.measure(
 						shape.props.text,
 						{
 							...TEXT_PROPS,
