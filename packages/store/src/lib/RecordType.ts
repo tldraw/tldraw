@@ -1,4 +1,4 @@
-import { objectMapEntries, structuredClone, uniqueId } from '@tldraw/utils'
+import { Expand, objectMapEntries, structuredClone, uniqueId } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 
@@ -70,7 +70,9 @@ export class RecordType<
 	 * @param properties - The properties of the record.
 	 * @returns The new record.
 	 */
-	create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R {
+	create(
+		properties: Expand<Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>>
+	): R {
 		const result = { ...this.createDefaultProperties(), id: this.createId() } as any
 
 		for (const [k, v] of Object.entries(properties)) {
