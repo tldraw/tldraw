@@ -57,6 +57,7 @@
 	width: var(--indicator-width);
 	opacity: 0;
 	transition: opacity 100ms;
+	pointer-events: none;
 }
 
 .resizeHandle:hover .resizeHandleIndicator,
