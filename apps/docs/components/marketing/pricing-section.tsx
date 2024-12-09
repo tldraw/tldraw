@@ -36,9 +36,7 @@ export function PricingSection() {
 										</span>
 										<span className="text-sm/6 font-semibold">/month</span>
 									</p>
-									<p className="mt-3 text-sm/6 opacity-[.9]">
-										{tier.price.annually} per month if paid annually
-									</p>
+									<p className="mt-3 text-sm/6 opacity-[.9]">Annual agreement, paid quarterly</p>
 								</>
 							)}
 							<PricingButton tier={tier} />
@@ -72,6 +70,7 @@ const tiers = [
 	{
 		id: 'lite',
 		name: 'Startup Lite',
+		type: 'secondary',
 		price: {
 			monthly: '$499',
 			annually: '$449',
@@ -84,18 +83,20 @@ const tiers = [
 	{
 		id: 'startup',
 		name: 'Startup',
+		type: 'secondary',
 		price: {
 			monthly: '$999',
 			annually: '$899',
 		},
 		href: '/buy/startup',
 		description: 'For small teams who need to speak to us.',
-		features: ['Fewer than 10 employees', 'No watermark', 'One hour of support per month'],
+		features: ['Fewer than 10 employees', 'No watermark', 'Two hours of support per month'],
 		flagFirst: true,
 	},
 	{
 		id: 'business',
 		name: 'Business',
+		type: 'primary',
 		href: '/buy/business',
 		description: 'For larger teams and enterprises.',
 		features: ['No watermark', 'Premium support', 'Custom agreements', 'Dedicated account manager'],
