@@ -22,7 +22,11 @@ import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
 import { UserProvider } from '../hooks/useUser'
 import '../styles/tla.css'
 import { IntlProvider, setupCreateIntl } from '../utils/i18n'
-import { getLocalSessionState, updateLocalSessionState } from '../utils/local-session-state'
+import {
+	clearLocalSessionState,
+	getLocalSessionState,
+	updateLocalSessionState,
+} from '../utils/local-session-state'
 
 const assetUrls = getAssetUrlsByImport()
 
@@ -154,9 +158,7 @@ function SignedInProvider({
 				auth: { userId: auth.userId },
 			}))
 		} else {
-			updateLocalSessionState(() => ({
-				auth: undefined,
-			}))
+			clearLocalSessionState()
 		}
 	}, [auth.userId, auth.isSignedIn])
 
