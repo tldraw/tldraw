@@ -27,14 +27,14 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 
 	usePreventAccidentalDrops()
 
-	const rSidebar = useRef<HTMLDivElement>(null)
+	const rLayoutContainer = useRef<HTMLDivElement>(null)
 
 	// When the local session state sidebar width changes, update the sidebar element's width
 	useQuickReactor('update sidebar width', () => {
-		if (rSidebar.current) {
+		if (rLayoutContainer.current) {
 			const width = getLocalSessionState().sidebarWidth
 			if (typeof width === 'number') {
-				rSidebar.current.style.setProperty('--tla-sidebar-width', `${width}px`)
+				rLayoutContainer.current.style.setProperty('--tla-sidebar-width', `${width}px`)
 			}
 		}
 	})
@@ -51,8 +51,11 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		event.currentTarget.setPointerCapture(event.pointerId)
 
 		// Get the current sidebar width as its start width
-		const startWidth = rSidebar.current
-			? parseInt(getComputedStyle(rSidebar.current).getPropertyValue('--tla-sidebar-width'), 10)
+		const startWidth = rLayoutContainer.current
+			? parseInt(
+					getComputedStyle(rLayoutContainer.current).getPropertyValue('--tla-sidebar-width'),
+					10
+				)
 			: 0
 
 		rResizeState.current = { name: 'pointing', startX: event.clientX, startWidth }
@@ -66,7 +69,7 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 
 			// start resizing
 			rResizeState.current = { ...rResizeState.current, name: 'resizing' }
-			rSidebar.current?.setAttribute('data-resizing', 'true')
+			rLayoutContainer.current?.setAttribute('data-resizing', 'true')
 		}
 
 		if (rResizeState.current.name === 'resizing') {
@@ -90,7 +93,7 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 	const handlePointerUp = useCallback((event: React.PointerEvent) => {
 		// regardless of whether we're in pointing or resizing, remove capture and the resizing attribute
 		event.currentTarget.releasePointerCapture(event.pointerId)
-		rSidebar.current?.removeAttribute('data-resizing')
+		rLayoutContainer.current?.removeAttribute('data-resizing')
 
 		if (rResizeState.current.name === 'idle') {
 			// noop
@@ -133,7 +136,7 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 
 	return (
 		<div
-			ref={rSidebar}
+			ref={rLayoutContainer}
 			className={styles.layout}
 			data-sidebar={isSidebarOpen}
 			data-sidebarmobile={isSidebarOpenMobile}
