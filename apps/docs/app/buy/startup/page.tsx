@@ -18,7 +18,7 @@ export default function PricingPage() {
 						Interested in purchasing a Startup license for the tldraw SDK? Please fill out our form
 						and we will get back to you with more information.
 					</p>
-					<RequestForm />
+					<RequestForm form="startup" plan="startup" />
 				</div>
 			</div>
 		</main>
