@@ -85,7 +85,7 @@ export async function wranglerDeploy({
 	sentry?: {
 		authToken: string
 		project: string
-		release?: string
+		enviroment?: string
 	}
 }) {
 	const varsArray = []
@@ -129,7 +129,7 @@ export async function wranglerDeploy({
 	}
 
 	if (sentry) {
-		const release = sentry.release ?? `${workerNameMatch[1]}.${versionMatch[1]}`
+		const release = `${sentry.enviroment ?? workerNameMatch[1]}.${versionMatch[1]}`
 
 		const sentryEnv = {
 			SENTRY_AUTH_TOKEN: sentry.authToken,
