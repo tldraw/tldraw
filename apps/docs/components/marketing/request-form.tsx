@@ -29,21 +29,19 @@ function HubspotForm(props: HubspotFormProps) {
 
 		script.addEventListener('load', () => {
 			if ((window as any).hbspt) {
-				console.log(
-					(window as any).hbspt.forms.create({
-						portalId: '145620695',
-						formId: forms[props.form],
-						target: '#hubspotForm',
-						onFormReady: (form: HTMLFormElement) => {
-							if (props.form === 'startup') {
-								const field: HTMLSelectElement = form.preferred_startup_plan
-								// hubspot only responds to change events, so dispatch one on the field:
-								field.value = plans[props.plan]
-								field.dispatchEvent(new Event('input', { bubbles: true }))
-							}
-						},
-					})
-				)
+				;(window as any).hbspt.forms.create({
+					portalId: '145620695',
+					formId: forms[props.form],
+					target: '#hubspotForm',
+					onFormReady: (form: HTMLFormElement) => {
+						if (props.form === 'startup') {
+							const field: HTMLSelectElement = form.preferred_startup_plan
+							// hubspot only responds to change events, so dispatch one on the field:
+							field.value = plans[props.plan]
+							field.dispatchEvent(new Event('input', { bubbles: true }))
+						}
+					},
+				})
 			}
 		})
 	}, [props])
