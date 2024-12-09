@@ -1,10 +1,4 @@
 import { captureException } from '@sentry/react'
-import {
-	READ_ONLY_LEGACY_PREFIX,
-	READ_ONLY_PREFIX,
-	ROOM_PREFIX,
-	SNAPSHOT_PREFIX,
-} from '@tldraw/dotcom-shared'
 import { TLRemoteSyncError, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
@@ -12,9 +6,9 @@ import { Outlet, Route, createRoutesFromElements, useRouteError } from 'react-ro
 import { DefaultErrorFallback } from './components/DefaultErrorFallback/DefaultErrorFallback'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
 import { notFound } from './pages/not-found'
+import { ROUTES } from './routeDefs'
 import { IntlProvider } from './tla/utils/i18n'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
-import { PREFIX } from './tla/utils/urls'
 
 const LoginRedirectPage = lazy(() => import('./components/LoginRedirectPage/LoginRedirectPage'))
 
@@ -71,55 +65,40 @@ export const router = createRoutesFromElements(
 		}}
 	>
 		<Route errorElement={<DefaultErrorFallback />}>
-			<Route path="/" lazy={() => import('./pages/root')} />
+			<Route path={ROUTES.legacyRoot} lazy={() => import('./pages/root')} />
 			{/* We don't want to index multiplayer rooms */}
 			<Route element={<NoIndex />}>
 				<Route element={<ShimIntlProvider />}>
-					<Route path={`/${ROOM_PREFIX}`} lazy={() => import('./pages/new')} />
-					<Route path="/new" lazy={() => import('./pages/new')} />
-					<Route path={`/ts-side`} lazy={() => import('./pages/public-touchscreen-side-panel')} />
+					<Route path={ROUTES.legacyNewPage} lazy={() => import('./pages/new')} />
+					<Route path={ROUTES.legacyNewPage2} lazy={() => import('./pages/new')} />
 					<Route
-						path={`/${ROOM_PREFIX}/:roomId`}
-						lazy={() => import('./pages/public-multiplayer')}
+						path={ROUTES.touchscreenSidePanel}
+						lazy={() => import('./pages/public-touchscreen-side-panel')}
 					/>
-					<Route path={`/${ROOM_PREFIX}/:boardId/history`} lazy={() => import('./pages/history')} />
+					<Route path={ROUTES.legacyRoom} lazy={() => import('./pages/public-multiplayer')} />
+					<Route path={ROUTES.legacyRoomHistory} lazy={() => import('./pages/history')} />
 					<Route
-						path={`/${ROOM_PREFIX}/:boardId/history/:timestamp`}
+						path={ROUTES.legacyRoomHistorySnapshot}
 						lazy={() => import('./pages/history-snapshot')}
 					/>
+					<Route path={ROUTES.legacySnapshot} lazy={() => import('./pages/public-snapshot')} />
 					<Route
-						path={`/${SNAPSHOT_PREFIX}/:roomId`}
-						lazy={() => import('./pages/public-snapshot')}
-					/>
-					<Route
-						path={`/${READ_ONLY_LEGACY_PREFIX}/:roomId`}
+						path={ROUTES.legacyReadonlyOld}
 						lazy={() => import('./pages/public-readonly-legacy')}
 					/>
-					<Route
-						path={`/${READ_ONLY_PREFIX}/:roomId`}
-						lazy={() => import('./pages/public-readonly')}
-					/>
+					<Route path={ROUTES.legacyReadonly} lazy={() => import('./pages/public-readonly')} />
 				</Route>
 			</Route>
 		</Route>
 		{/* begin tla */}
 		<Route element={<NoIndex />}>
-			<Route
-				path={`/${PREFIX.tla}/${PREFIX.localFile}/:fileSlug`}
-				lazy={() => import('./tla/pages/local-file')}
-			/>
+			<Route path={ROUTES.tlaLocalFile} lazy={() => import('./tla/pages/local-file')} />
 			<Route lazy={() => import('./tla/providers/TlaRootProviders')}>
-				<Route path={`/${PREFIX.tla}`} lazy={() => import('./tla/pages/local')} />
-				{/* <Route path={`/${PREFIX.tla}/playground`} lazy={() => import('./tla/pages/playground')} /> */}
+				<Route path={ROUTES.tlaRoot} lazy={() => import('./tla/pages/local')} />
+				{/* <Route path={ROUTES.tlaPlayground} lazy={() => import('./tla/pages/playground')} /> */}
 				{/* File view */}
-				<Route
-					path={`/${PREFIX.tla}/${PREFIX.file}/:fileSlug`}
-					lazy={() => import('./tla/pages/file')}
-				/>
-				<Route
-					path={`/${PREFIX.tla}/${PREFIX.publish}/:fileSlug`}
-					lazy={() => import('./tla/pages/publish')}
-				/>
+				<Route path={ROUTES.tlaFile} lazy={() => import('./tla/pages/file')} />
+				<Route path={ROUTES.tlaPublish} lazy={() => import('./tla/pages/publish')} />
 				{/* Views that require login */}
 				<Route lazy={() => import('./tla/providers/RequireSignedInUser')}></Route>
 			</Route>
