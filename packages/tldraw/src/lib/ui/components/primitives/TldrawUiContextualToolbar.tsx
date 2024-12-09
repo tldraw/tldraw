@@ -1,10 +1,8 @@
 import {
 	VecLike,
 	stopEventPropagation,
-	useEditor,
 	usePassThroughMouseOverEvents,
 	usePassThroughWheelEvents,
-	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { RefObject } from 'react'
@@ -39,12 +37,6 @@ export const TldrawUiContextualToolbar = React.forwardRef<
 	},
 	toolbarRef
 ) {
-	const editor = useEditor()
-	const isCoarsePointer = useValue(
-		'isCoarsePointer',
-		() => editor.getInstanceState().isCoarsePointer,
-		[editor]
-	)
 	usePassThroughWheelEvents((toolbarRef as RefObject<HTMLDivElement>).current)
 	usePassThroughMouseOverEvents((toolbarRef as RefObject<HTMLDivElement>).current)
 
@@ -52,7 +44,6 @@ export const TldrawUiContextualToolbar = React.forwardRef<
 		<div
 			ref={toolbarRef}
 			className={classNames('tl-contextual-toolbar', className)}
-			data-is-mobile={isCoarsePointer}
 			data-is-visible={isVisible}
 			style={{
 				left: `${position.x}px`,

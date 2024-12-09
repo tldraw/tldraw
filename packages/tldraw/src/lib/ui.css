@@ -985,8 +985,10 @@
 	pointer-events: none;
 }
 
-.tl-contextual-toolbar[data-is-mobile='true'] .tl-contextual-toolbar__indicator {
-	display: none;
+@media (any-pointer: coarse) {
+	.tl-contextual-toolbar .tl-contextual-toolbar__indicator {
+		display: none;
+	}
 }
 
 /**
