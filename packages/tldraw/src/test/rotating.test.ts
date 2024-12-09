@@ -321,7 +321,7 @@ describe('Rotation math', () => {
 })
 
 describe('Edge cases', () => {
-	it.only('does not enter the pointing_rotate_handle state when pointing a rotate corner of an image while holding command / control', () => {
+	it('does not enter the pointing_rotate_handle state when pointing a rotate corner of an image while holding command / control', () => {
 		const id = createShapeId()
 		editor
 			.createShape({
