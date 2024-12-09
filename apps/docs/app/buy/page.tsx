@@ -29,7 +29,7 @@ export default function PricingPage() {
 						Interested in purchasing a business license for the tldraw SDK? Please fill out our form
 						and we will get back to you with more information.
 					</p>
-					<RequestForm />
+					<RequestForm form="business" />
 				</div>
 			</div>
 		</main>
