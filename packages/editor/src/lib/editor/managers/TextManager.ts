@@ -40,12 +40,16 @@ const spaceCharacterRegex = /\s/
 export class TextManager {
 	baseElm: HTMLDivElement
 
+	prevElm?: HTMLDivElement
+	debug = false
+
 	constructor(public editor: Editor) {
 		const container = this.editor.getContainer()
 
 		const elm = document.createElement('div')
 		elm.classList.add('tl-text')
 		elm.classList.add('tl-text-measure')
+
 		elm.tabIndex = -1
 		container.appendChild(elm)
 
@@ -98,7 +102,14 @@ export class TextManager {
 		elm.textContent = normalizeTextForDom(textToMeasure)
 		const scrollWidth = elm.scrollWidth
 		const rect = elm.getBoundingClientRect()
-		elm.remove()
+
+		if (this.debug) {
+			elm.classList.add('tl-text-measure__debug')
+			this.prevElm?.remove()
+			this.prevElm = elm
+		} else {
+			elm.remove()
+		}
 
 		return {
 			x: 0,
@@ -107,6 +118,11 @@ export class TextManager {
 			h: rect.height,
 			scrollWidth,
 		}
+	}
+
+	dispose() {
+		this.baseElm.remove()
+		this.prevElm?.remove()
 	}
 
 	/**
