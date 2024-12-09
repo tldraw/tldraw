@@ -62,9 +62,6 @@ export class TldrawApp {
 		view.addListener((res: any) => {
 			val$.set(structuredClone(res) as any)
 		})
-		react('blah', () => {
-			val$.get()
-		})
 		this.disposables.push(() => {
 			view.destroy()
 		})
