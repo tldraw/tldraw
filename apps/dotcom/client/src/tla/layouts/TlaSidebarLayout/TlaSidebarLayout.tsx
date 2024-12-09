@@ -1,6 +1,8 @@
 import React, { ReactNode, useCallback, useRef } from 'react'
 import { clamp, tltime, useQuickReactor, useValue } from 'tldraw'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
+import { TlaSidebarToggle } from '../../components/TlaSidebar/components/TlaSidebarToggle'
+import { TlaSidebarToggleMobile } from '../../components/TlaSidebar/components/TlaSidebarToggleMobile'
 import { useApp } from '../../hooks/useAppState'
 import { usePreventAccidentalDrops } from '../../hooks/usePreventAccidentalDrops'
 import {
@@ -163,6 +165,10 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 		>
 			<TlaSidebar />
 			{children}
+			<div className={styles.toggleContainer}>
+				<TlaSidebarToggle />
+				<TlaSidebarToggleMobile />
+			</div>
 			{isSidebarOpen && (
 				<div
 					className={styles.resizeHandle}

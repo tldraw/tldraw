@@ -31,8 +31,6 @@ import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaAppMenuGroupLazyFlipped } from '../TlaAppMenuGroup/TlaAppMenuGroup'
 import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon, TlaIconWrapper } from '../TlaIcon/TlaIcon'
-import { TlaSidebarToggle } from '../TlaSidebar/components/TlaSidebarToggle'
-import { TlaSidebarToggleMobile } from '../TlaSidebar/components/TlaSidebarToggleMobile'
 import styles from './top.module.css'
 
 const messages = defineMessages({
@@ -175,8 +173,8 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const separator = '/'
 	return (
 		<>
-			<TlaSidebarToggle />
-			<TlaSidebarToggleMobile />
+			{/* spacer for the sidebar toggle button */}
+			<div style={{ width: 40 }} />
 			<TlaFileNameEditor
 				source="file-header"
 				isRenaming={isRenaming}
