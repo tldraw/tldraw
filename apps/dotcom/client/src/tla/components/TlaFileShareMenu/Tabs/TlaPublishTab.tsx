@@ -78,7 +78,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 					{isOwner && (
 						<TlaMenuControl>
 							<TlaMenuControlLabel>
-								<F defaultMessage="Publish this project" />
+								<F defaultMessage="Publish this file" />
 							</TlaMenuControlLabel>
 							<TlaMenuControlInfoTooltip
 								onClick={() =>

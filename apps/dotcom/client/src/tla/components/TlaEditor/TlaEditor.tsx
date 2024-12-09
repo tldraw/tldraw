@@ -54,7 +54,7 @@ import styles from './editor.module.css'
 
 const messages = defineMessages({
 	file: { defaultMessage: 'File' },
-	untitledProject: { defaultMessage: 'Untitled project' },
+	untitledProject: { defaultMessage: 'Untitled file' },
 })
 
 /** @internal */
