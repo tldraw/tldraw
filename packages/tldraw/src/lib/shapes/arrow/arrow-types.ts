@@ -1,11 +1,12 @@
-import { TLArrowShapeArrowheadStyle, VecLike } from '@tldraw/editor'
+import { TLArrowShapeArrowheadStyle, Vec, VecLike } from '@tldraw/editor'
 import { TLArrowBindings } from './shared'
 
 /** @public */
 export interface TLArrowPoint {
-	handle: VecLike
-	point: VecLike
+	handle: Vec
+	point: Vec
 	arrowhead: TLArrowShapeArrowheadStyle
+	intersection?: { point: Vec; segment: Vec[] }
 }
 
 /** @public */
