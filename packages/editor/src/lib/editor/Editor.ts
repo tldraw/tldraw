@@ -6696,7 +6696,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const initialShape = opts.initialShape ?? this.getShape(id)
 		if (!initialShape) return this
 
-		const scaleOrigin = opts.scaleOrigin ?? this.getShapePageBounds(id)?.center
+		const scaleOrigin = opts.scaleOrigin ?? this.getShapesRotatedPageBounds([id])?.center
 		if (!scaleOrigin) return this
 
 		const pageTransform = opts.initialPageTransform
@@ -6710,7 +6710,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const scaleAxisRotation = opts.scaleAxisRotation ?? pageRotation
 
-		const initialBounds = opts.initialBounds ?? this.getShapeGeometry(id).bounds
+		const initialBounds =
+			opts.initialBounds ?? Box.FromPoints(this.getShapeGeometry(id).getVertices())
 
 		if (!initialBounds) return this
 
@@ -6921,9 +6922,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		// now calculate how far away the shape is from where it needs to be
-		const pageBounds = this.getShapePageBounds(id)!
+		const pageBounds = Box.FromPoints(this.getShapeGeometry(id).getVertices())
 		const pageTransform = this.getShapePageTransform(id)!
-		const currentPageCenter = pageBounds.center
+
+		const currentPageCenter = Mat.applyToPoint(pageTransform, pageBounds.center)
+
 		const shapePageTransformOrigin = pageTransform.point()
 		if (!currentPageCenter || !shapePageTransformOrigin) return this
 		const pageDelta = Vec.Sub(postScaleShapePageCenter, currentPageCenter)
