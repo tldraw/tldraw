@@ -57,7 +57,7 @@ const faq = [
 			<>
 				We have a <BlueA href="https://github.com/tldraw/awesome-tldraw">awesome-tldraw</BlueA> repo
 				where we collect links to awesome projects built with tldraw. You can also check out the
-				#show-and-tell channel on our
+				#show-and-tell channel on our{' '}
 				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA> community.
 			</>
 		),
@@ -66,7 +66,7 @@ const faq = [
 		q: 'How do I request a feature for tldraw?',
 		a: (
 			<>
-				You can request features through our
+				You can request features through our{' '}
 				<BlueA href="https://github.com/tldraw/tldraw">GitHub</BlueA> or in our{' '}
 				<BlueA href="https://discord.com/invite/SBBEVCA4PG">Discord</BlueA>.
 			</>
