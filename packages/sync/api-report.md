@@ -5,7 +5,8 @@
 ```ts
 
 import { Editor } from 'tldraw';
-import { Signal } from 'tldraw';
+import { Signal } from '@tldraw/state';
+import { Signal as Signal_2 } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLPresenceStateInfo } from 'tldraw';
 import { TLPresenceUserInfo } from 'tldraw';
@@ -21,13 +22,6 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 }>;
 
 // @public
-export interface TLSyncUserInfo {
-    color?: null | string;
-    id: string;
-    name?: null | string;
-}
-
-// @public
 export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public
@@ -39,13 +33,13 @@ export interface UseSyncDemoOptions {
     // @internal (undocumented)
     host?: string;
     roomId: string;
-    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
+    userInfo?: Signal_2<TLPresenceUserInfo> | TLPresenceUserInfo;
 }
 
 // @public
 export interface UseSyncOptions {
     assets: TLAssetStore;
-    getUserPresence?(store: TLStore, user: TLSyncUserInfo): null | TLPresenceStateInfo;
+    getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
     // @internal
@@ -55,7 +49,7 @@ export interface UseSyncOptions {
         [key: string]: any;
     }): void;
     uri: (() => Promise<string> | string) | string;
-    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
+    userInfo?: Signal<TLPresenceUserInfo> | TLPresenceUserInfo;
 }
 
 

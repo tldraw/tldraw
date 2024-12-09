@@ -1,4 +1,4 @@
-import { atom, isSignal, transact } from '@tldraw/state'
+import { Signal, atom, isSignal, transact } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
@@ -10,10 +10,10 @@ import { useEffect } from 'react'
 import {
 	Editor,
 	InstancePresenceRecordType,
-	Signal,
 	TAB_ID,
 	TLAssetStore,
 	TLPresenceStateInfo,
+	TLPresenceUserInfo,
 	TLRecord,
 	TLStore,
 	TLStoreSchemaOptions,
@@ -89,7 +89,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const prefs = useShallowObjectIdentity(userInfo)
 	const getUserPresence = useReactiveEvent(_getUserPresence ?? getDefaultUserPresence)
 
-	const userAtom = useAtom<TLSyncUserInfo | Signal<TLSyncUserInfo> | undefined>('userAtom', prefs)
+	const userAtom = useAtom<TLPresenceUserInfo | Signal<TLPresenceUserInfo> | undefined>(
+		'userAtom',
+		prefs
+	)
 
 	useEffect(() => {
 		userAtom.set(prefs)
@@ -234,25 +237,6 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 }
 
 /**
- * The information about a user which is used for multiplayer features.
- * @public
- */
-export interface TLSyncUserInfo {
-	/**
-	 * id - A unique identifier for the user. This should be the same across all devices and sessions.
-	 */
-	id: string
-	/**
-	 * The user's display name. If not given, 'New User' will be shown.
-	 */
-	name?: string | null
-	/**
-	 * The user's color. If not given, a random color will be assigned.
-	 */
-	color?: string | null
-}
-
-/**
  * Options for the {@link useSync} hook.
  * @public
  */
@@ -275,7 +259,7 @@ export interface UseSyncOptions {
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userInfo?: TLSyncUserInfo | Signal<TLSyncUserInfo>
+	userInfo?: TLPresenceUserInfo | Signal<TLPresenceUserInfo>
 	/**
 	 * The asset store for blob storage. See {@link tldraw#TLAssetStore}.
 	 *
@@ -297,5 +281,5 @@ export interface UseSyncOptions {
 	 * indicators such as cursors. See {@link @tldraw/tlschema#getDefaultUserPresence} for
 	 * the default implementation of this function.
 	 */
-	getUserPresence?(store: TLStore, user: TLSyncUserInfo): TLPresenceStateInfo | null
+	getUserPresence?(store: TLStore, user: TLPresenceUserInfo): TLPresenceStateInfo | null
 }

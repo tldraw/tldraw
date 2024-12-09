@@ -6,11 +6,23 @@ import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
 import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
 
-/** @public */
+/**
+ * The information about a user which is used for multiplayer features.
+ * @public
+ */
 export interface TLPresenceUserInfo {
+	/**
+	 * id - A unique identifier for the user. This should be the same across all devices and sessions.
+	 */
 	id: string
-	color: string
-	name: string
+	/**
+	 * The user's display name. If not given, 'New User' will be shown.
+	 */
+	name?: string | null
+	/**
+	 * The user's color. If not given, a random color will be assigned.
+	 */
+	color?: string | null
 }
 
 /**
@@ -55,14 +67,14 @@ export function getDefaultUserPresence(store: TLStore, user: TLPresenceUserInfo)
 		brush: instance.brush,
 		scribbles: instance.scribbles,
 		userId: user.id,
-		userName: user.name,
+		userName: user.name ?? '',
 		followingUserId: instance.followingUserId,
 		camera: {
 			x: camera.x,
 			y: camera.y,
 			z: camera.z,
 		},
-		color: user.color,
+		color: user.color ?? '#FF0000',
 		currentPageId: instance.currentPageId,
 		cursor: {
 			x: pointer.x,

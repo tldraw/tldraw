@@ -1332,14 +1332,11 @@ export type TLPointerId = RecordId<TLPointer>;
 // @public (undocumented)
 export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)['create']>[0];
 
-// @public (undocumented)
+// @public
 export interface TLPresenceUserInfo {
-    // (undocumented)
-    color: string;
-    // (undocumented)
+    color?: null | string;
     id: string;
-    // (undocumented)
-    name: string;
+    name?: null | string;
 }
 
 // @public (undocumented)

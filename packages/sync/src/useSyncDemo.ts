@@ -16,7 +16,7 @@ import {
 	uniqueId,
 	useShallowObjectIdentity,
 } from 'tldraw'
-import { RemoteTLStoreWithStatus, TLSyncUserInfo, useSync } from './useSync'
+import { RemoteTLStoreWithStatus, useSync } from './useSync'
 
 /** @public */
 export interface UseSyncDemoOptions {
@@ -30,7 +30,7 @@ export interface UseSyncDemoOptions {
 	 * This should be synchronized with the `userPreferences` configuration for the main `<Tldraw />` component.
 	 * If not provided, a default implementation based on localStorage will be used.
 	 */
-	userInfo?: TLSyncUserInfo | Signal<TLSyncUserInfo>
+	userInfo?: TLPresenceUserInfo | Signal<TLPresenceUserInfo>
 
 	/** @internal */
 	host?: string
