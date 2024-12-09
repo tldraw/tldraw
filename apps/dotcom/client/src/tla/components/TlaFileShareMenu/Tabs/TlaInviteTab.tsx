@@ -71,7 +71,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>
-				<F defaultMessage="Share this project" />
+				<F defaultMessage="Share this file" />
 			</TlaMenuControlLabel>
 			<TlaMenuControlInfoTooltip
 				onClick={() => trackEvent('open-url', { url: learnMoreUrl, source: 'file-share-menu' })}

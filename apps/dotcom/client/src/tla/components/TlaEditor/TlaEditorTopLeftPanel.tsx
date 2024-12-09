@@ -39,7 +39,7 @@ const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
 	brand: { defaultMessage: 'tldraw' },
-	untitledProject: { defaultMessage: 'Untitled project' },
+	untitledProject: { defaultMessage: 'Untitled file' },
 })
 
 // There are some styles in tla.css that adjust the regular tlui top panels
