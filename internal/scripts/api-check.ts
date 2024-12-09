@@ -12,6 +12,8 @@ const packagesOurTypesCanDependOn = [
 	'@types/react-dom',
 	'eventemitter3',
 	'nanoevents',
+	'@tiptap/react',
+	'@tiptap/core',
 ]
 
 main()

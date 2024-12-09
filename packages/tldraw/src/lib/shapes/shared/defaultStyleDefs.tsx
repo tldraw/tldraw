@@ -40,6 +40,20 @@ export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef
 	}
 }
 
+/** @public */
+export function getRichTextStylesExport(): SvgExportDef {
+	return {
+		key: 'tl-rich-text-svg',
+		async getElement() {
+			return (
+				<style>{`
+				.tl-rich-text-svg p { margin: 0 }
+			`}</style>
+			)
+		},
+	}
+}
+
 function findFontInfo(name: TLDefaultFontStyle) {
 	const fontFamily = DefaultFontFamilies[name]
 	for (const font of document.fonts) {

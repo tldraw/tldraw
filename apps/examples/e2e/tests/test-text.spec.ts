@@ -326,4 +326,22 @@ test.describe('text measurement', () => {
 
 		expect(shape.props.fontSizeAdjustment).toEqual(14)
 	})
+
+	test('should use custom renderMethod for text measurement', async () => {
+		const { w, h } = await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(
+			async (options) => {
+				const customOptions = {
+					...options,
+					renderMethod: () => `<div><strong>HELLO WORLD</strong></div>`,
+				}
+				return editor.textMeasure.measureText('testing', customOptions)
+			},
+			measureTextOptions
+		)
+
+		// Assuming the custom render method affects the width and height
+		// Adjust these expected values based on how renderMethod is supposed to affect the output
+		expect(w).toBeCloseTo(166.25, 0) // Example value
+		expect(h).toBeCloseTo(32.390625, 0) // Example value
+	})
 })

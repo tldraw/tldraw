@@ -1371,6 +1371,23 @@ describe('Make urls valid for all the shapes', () => {
 	}
 })
 
+describe('Add rich text', () => {
+	const migrations = [
+		['text shape', getTestMigration(textShapeVersions.AddRichText)],
+		['geo shape', getTestMigration(geoShapeVersions.AddRichText)],
+		['note shape', getTestMigration(noteShapeVersions.AddRichText)],
+	] as const
+
+	for (const [shapeName, { up }] of migrations) {
+		it(`works for ${shapeName}`, () => {
+			const shape = { props: { richText: undefined } }
+			expect(up(shape)).toEqual(shape)
+			// N.B. Explicitly no down state so that we force clients to update.
+			// expect(down(originalShape)).toEqual(shape)
+		})
+	}
+})
+
 describe('Make urls valid for all the assets', () => {
 	const migrations = [
 		['bookmark asset', getTestMigration(bookmarkAssetVersions.MakeUrlsValid)],

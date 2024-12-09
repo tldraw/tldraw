@@ -28,17 +28,21 @@ import { useCurrentTranslation } from '../../ui/hooks/useTranslation/useTranslat
 import { isRightToLeftLanguage } from '../../utils/text/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
+import { RichTextSVG, TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
 	LABEL_PADDING,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { getFontDefForExport, getRichTextStylesExport } from '../shared/defaultStyleDefs'
 
 import { startEditingShapeWithLabel } from '../../tools/SelectTool/selectHelpers'
 
+import {
+	renderHtmlFromRichTextForMeasurement,
+	renderPlaintextFromRichText,
+} from '../../utils/text/richText'
 import { useDefaultColorTheme } from '../shared/useDefaultColorTheme'
 import {
 	CLONE_HANDLE_MARGIN,
@@ -170,6 +174,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override getText(shape: TLNoteShape) {
+		if (shape.props.richText) return renderPlaintextFromRichText(this.editor, shape.props.richText)
 		return shape.props.text
 	}
 
@@ -185,6 +190,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				size,
 				align,
 				text,
+				richText,
 				verticalAlign,
 				fontSizeAdjustment,
 			},
@@ -238,7 +244,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						lineHeight={TEXT_PROPS.lineHeight}
 						align={align}
 						verticalAlign={verticalAlign}
+						enableRichText
 						text={text}
+						richText={richText}
 						isNote
 						isSelected={isSelected}
 						labelColor={labelColor === 'black' ? theme[color].note.text : theme[labelColor].fill}
@@ -264,19 +272,28 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
-		if (shape.props.text) ctx.addExportDef(getFontDefForExport(shape.props.font))
+		if (shape.props.text || shape.props.richText)
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: ctx.isDarkMode })
 		const bounds = getBoundsForSVG(shape)
 
-		return (
-			<>
-				<rect x={5} y={5} rx={1} width={NOTE_SIZE - 10} height={bounds.h} fill="rgba(0,0,0,.1)" />
-				<rect
-					rx={1}
-					width={NOTE_SIZE}
-					height={bounds.h}
-					fill={theme[shape.props.color].note.fill}
+		let textLabel
+		if (shape.props.richText) {
+			ctx.addExportDef(getRichTextStylesExport())
+			textLabel = (
+				<RichTextSVG
+					fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
+					font={shape.props.font}
+					align={shape.props.align}
+					verticalAlign={shape.props.verticalAlign}
+					richText={shape.props.richText}
+					labelColor={theme[shape.props.color].note.text}
+					bounds={bounds}
+					padding={16}
 				/>
+			)
+		} else {
+			textLabel = (
 				<SvgTextLabel
 					fontSize={shape.props.fontSizeAdjustment || LABEL_FONT_SIZES[shape.props.size]}
 					font={shape.props.font}
@@ -287,6 +304,19 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					bounds={bounds}
 					stroke={false}
 				/>
+			)
+		}
+
+		return (
+			<>
+				<rect x={5} y={5} rx={1} width={NOTE_SIZE - 10} height={bounds.h} fill="rgba(0,0,0,.1)" />
+				<rect
+					rx={1}
+					width={NOTE_SIZE}
+					height={bounds.h}
+					fill={theme[shape.props.color].note.fill}
+				/>
+				{textLabel}
 			</>
 		)
 	}
@@ -298,6 +328,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override onBeforeUpdate(prev: TLNoteShape, next: TLNoteShape) {
 		if (
 			prev.props.text === next.props.text &&
+			prev.props.richText === next.props.richText &&
 			prev.props.font === next.props.font &&
 			prev.props.size === next.props.size
 		) {
@@ -311,8 +342,10 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { text },
+			props: { text, richText },
 		} = shape
+
+		if (richText) return
 
 		if (text.trimEnd() !== shape.props.text) {
 			this.editor.updateShapes([
@@ -362,9 +395,9 @@ function getNoteSizeAdjustments(editor: Editor, shape: TLNoteShape) {
  * Get the label size for a note.
  */
 function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
-	const { text } = shape.props
+	const { text, richText } = shape.props
 
-	if (!text) {
+	if (!text && !richText) {
 		const minHeight = LABEL_FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + LABEL_PADDING * 2
 		return { labelHeight: minHeight, labelWidth: 100, fontSizeAdjustment: 0 }
 	}
@@ -391,6 +424,9 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 			fontSize: fontSizeAdjustment,
 			maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
 			disableOverflowWrapBreaking: true,
+			renderMethod: richText
+				? () => renderHtmlFromRichTextForMeasurement(editor, richText)
+				: undefined,
 		})
 
 		labelHeight = nextTextSize.h + LABEL_PADDING * 2
@@ -404,6 +440,9 @@ function getNoteLabelSize(editor: Editor, shape: TLNoteShape) {
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: fontSizeAdjustment,
 				maxWidth: NOTE_SIZE - LABEL_PADDING * 2 - FUZZ,
+				renderMethod: richText
+					? () => renderHtmlFromRichTextForMeasurement(editor, richText)
+					: undefined,
 			})
 			labelHeight = nextTextSizeWithOverflowBreak.h + LABEL_PADDING * 2
 			labelWidth = nextTextSizeWithOverflowBreak.w + LABEL_PADDING * 2
@@ -433,7 +472,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 	const translation = useCurrentTranslation()
 
 	return useCallback(
-		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		(e: KeyboardEvent) => {
 			const shape = editor.getShape<TLNoteShape>(id)
 			if (!shape) return
 

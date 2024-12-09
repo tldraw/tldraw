@@ -19,9 +19,11 @@ export type TLUiIconType =
 	| 'arrowhead-triangle-inverted'
 	| 'arrowhead-triangle'
 	| 'blob'
+	| 'bold'
 	| 'bring-forward'
 	| 'bring-to-front'
 	| 'broken'
+	| 'bulletList'
 	| 'check-circle'
 	| 'check'
 	| 'chevron-down'
@@ -32,6 +34,7 @@ export type TLUiIconType =
 	| 'chevrons-sw'
 	| 'clipboard-copied'
 	| 'clipboard-copy'
+	| 'code'
 	| 'color'
 	| 'cross-2'
 	| 'cross-circle'
@@ -83,6 +86,8 @@ export type TLUiIconType =
 	| 'geo-x-box'
 	| 'github'
 	| 'group'
+	| 'heading'
+	| 'highlight'
 	| 'horizontal-align-end'
 	| 'horizontal-align-middle'
 	| 'horizontal-align-start'
@@ -115,6 +120,7 @@ export type TLUiIconType =
 	| 'status-offline'
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
+	| 'strike'
 	| 'text-align-center'
 	| 'text-align-left'
 	| 'text-align-right'
@@ -163,9 +169,11 @@ export const iconTypes = [
 	'arrowhead-triangle-inverted',
 	'arrowhead-triangle',
 	'blob',
+	'bold',
 	'bring-forward',
 	'bring-to-front',
 	'broken',
+	'bulletList',
 	'check-circle',
 	'check',
 	'chevron-down',
@@ -176,6 +184,7 @@ export const iconTypes = [
 	'chevrons-sw',
 	'clipboard-copied',
 	'clipboard-copy',
+	'code',
 	'color',
 	'cross-2',
 	'cross-circle',
@@ -227,6 +236,8 @@ export const iconTypes = [
 	'geo-x-box',
 	'github',
 	'group',
+	'heading',
+	'highlight',
 	'horizontal-align-end',
 	'horizontal-align-middle',
 	'horizontal-align-start',
@@ -259,6 +270,7 @@ export const iconTypes = [
 	'status-offline',
 	'stretch-horizontal',
 	'stretch-vertical',
+	'strike',
 	'text-align-center',
 	'text-align-left',
 	'text-align-right',

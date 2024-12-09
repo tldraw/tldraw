@@ -30,6 +30,7 @@ export interface TLNoteShapeProps {
 	growY: number
 	url: string
 	text: string
+	richText?: string
 	scale: number
 }
 
@@ -48,6 +49,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	growY: T.positiveNumber,
 	url: T.linkUrl,
 	text: T.string,
+	richText: T.tipTapDoc.optional(),
 	scale: T.nonZeroNumber,
 }
 
@@ -60,6 +62,7 @@ const Versions = createShapePropsMigrationIds('note', {
 	AddFontSizeAdjustment: 6,
 	AddScale: 7,
 	AddLabelColor: 8,
+	AddRichText: 9,
 })
 
 export { Versions as noteShapeVersions }
@@ -144,6 +147,14 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 			down: (props) => {
 				delete props.labelColor
 			},
+		},
+		{
+			id: Versions.AddRichText,
+			up: () => {},
+			// N.B. Explicitly no down state so that we force clients to update.
+			// down: (props) => {
+			// 	delete props.richText
+			// },
 		},
 	],
 })
