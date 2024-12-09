@@ -5,8 +5,7 @@
 ```ts
 
 import { Editor } from 'tldraw';
-import { Signal } from '@tldraw/state';
-import { Signal as Signal_2 } from 'tldraw';
+import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLPresenceStateInfo } from 'tldraw';
 import { TLPresenceUserInfo } from 'tldraw';
@@ -33,7 +32,7 @@ export interface UseSyncDemoOptions {
     // @internal (undocumented)
     host?: string;
     roomId: string;
-    userInfo?: Signal_2<TLPresenceUserInfo> | TLPresenceUserInfo;
+    userInfo?: Signal<TLPresenceUserInfo> | TLPresenceUserInfo;
 }
 
 // @public

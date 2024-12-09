@@ -1,4 +1,4 @@
-import { Signal, atom, isSignal, transact } from '@tldraw/state'
+import { atom, isSignal, transact } from '@tldraw/state'
 import { useAtom } from '@tldraw/state-react'
 import {
 	ClientWebSocketAdapter,
@@ -10,6 +10,7 @@ import { useEffect } from 'react'
 import {
 	Editor,
 	InstancePresenceRecordType,
+	Signal,
 	TAB_ID,
 	TLAssetStore,
 	TLPresenceStateInfo,
