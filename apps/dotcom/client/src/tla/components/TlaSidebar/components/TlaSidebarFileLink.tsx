@@ -105,19 +105,11 @@ export function TlaSidebarFileLinkInner({
 			data-active={isActive}
 			data-element="file-link"
 			data-testid={testId}
+			data-is-own-file={isOwnFile}
 			onDoubleClick={isOwnFile ? handleRenameAction : undefined}
 			// We use this id to scroll the active file link into view when creating or deleting files.
 			id={isActive ? ACTIVE_FILE_LINK_ID : undefined}
 		>
-			{!isOwnFile && <GuestBadge file={file} />}
-			<div className={styles.linkContent}>
-				<div
-					className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}
-					data-testid={`${testId}-name`}
-				>
-					{fileName}
-				</div>
-			</div>
 			<Link
 				ref={linkRef}
 				onKeyDown={handleKeyDown}
@@ -131,6 +123,15 @@ export function TlaSidebarFileLinkInner({
 				to={href}
 				className={styles.linkButton}
 			/>
+			<div className={styles.linkContent}>
+				<div
+					className={classNames(styles.label, 'tla-text_ui__regular', 'notranslate')}
+					data-testid={`${testId}-name`}
+				>
+					{fileName}
+				</div>
+				{!isOwnFile && <GuestBadge file={file} />}
+			</div>
 			<TlaSidebarFileLinkMenu fileId={fileId} onRenameAction={handleRenameAction} />
 		</div>
 	)
@@ -139,7 +140,6 @@ export function TlaSidebarFileLinkInner({
 function GuestBadge({ file }: { file: TlaFile }) {
 	const container = useContainer()
 	const ownerName = file.ownerName.trim()
-	const avatar = file.ownerAvatar
 	return (
 		<div className={styles.guestBadge}>
 			<TlaTooltipRoot>
@@ -151,7 +151,7 @@ function GuestBadge({ file }: { file: TlaFile }) {
 					}}
 					className={styles.guestBadgeTrigger}
 				>
-					{avatar ? <img src={avatar} style={{ objectFit: 'cover' }} /> : <TlaIcon icon="group" />}
+					<TlaIcon icon="group" />
 				</TlaTooltipTrigger>
 				<TlaTooltipPortal container={container}>
 					<TlaTooltipContent
