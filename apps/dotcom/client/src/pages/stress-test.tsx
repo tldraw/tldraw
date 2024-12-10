@@ -32,7 +32,7 @@ export function Component() {
 			})
 				.then((res) => res.json())
 				.then(setState)
-		}, 1000)
+		}, 5000)
 		return () => clearInterval(interval)
 	}, [coordinatorUrl, accessToken])
 

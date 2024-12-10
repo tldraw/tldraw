@@ -32,6 +32,6 @@ export class STCoordinatorDO extends DurableObject {
 	}
 
 	override fetch(request) {
-		return this.router.handle(request)
+		return this.router.fetch(request)
 	}
 }
