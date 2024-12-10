@@ -65,3 +65,10 @@
 	transition: opacity 150ms 80ms;
 	opacity: 1;
 }
+
+.toggleContainer {
+	position: absolute;
+	top: 4px;
+	margin-left: 2px;
+	z-index: 1;
+}
