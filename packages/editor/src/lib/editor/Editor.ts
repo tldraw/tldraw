@@ -293,6 +293,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.getContainer = getContainer
 
 		this.textMeasure = new TextManager(this)
+		this.disposables.add(() => this.textMeasure.dispose())
+
 		this._tickManager = new TickManager(this)
 
 		class NewRoot extends RootState {
