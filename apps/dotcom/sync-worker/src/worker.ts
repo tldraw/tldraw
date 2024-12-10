@@ -1,4 +1,4 @@
-/// <reference no-defsult-lib="true"/>
+/// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 import {
 	READ_ONLY_LEGACY_PREFIX,
