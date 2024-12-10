@@ -381,7 +381,7 @@ function TldrawEditorWithReadyStore({
 	},
 	'shapeUtils' | 'bindingUtils' | 'tools'
 >) {
-	const { ErrorFallback } = useEditorComponents()
+	const { ErrorFallback, TextLabel } = useEditorComponents()
 	const container = useContainer()
 
 	const [editor, setEditor] = useRefState<Editor | null>(null)
@@ -427,6 +427,7 @@ function TldrawEditorWithReadyStore({
 				// we should check for some kind of query parameter that turns off autofocus
 				autoFocus,
 				inferDarkMode,
+				measureMethod: TextLabel!.measureMethod,
 				cameraOptions,
 				options,
 				licenseKey,
@@ -463,6 +464,7 @@ function TldrawEditorWithReadyStore({
 			tools,
 			user,
 			setEditor,
+			TextLabel,
 			licenseKey,
 			isShapeHidden,
 		]
