@@ -8,9 +8,11 @@ const regions = ['wnam', 'enam', 'sam', 'weur', 'eeur', 'apac', 'oc', 'afr', 'me
 const { preflight, corsify } = cors({ origin: '*' })
 
 export class STCoordinatorDO extends DurableObject {
+	state: STCoordinatorState = {
+		tests: {},
+	}
 	constructor(state: DurableObjectState, env: Environment) {
 		super(state, env)
-		console.log('STCoordinatorDO created')
 	}
 	router = AutoRouter({
 		before: [preflight],
@@ -21,17 +23,25 @@ export class STCoordinatorDO extends DurableObject {
 		},
 	})
 		// when we get a connection request, we stash the room id if needed and handle the connection
-		.post('/:testId/start', async (request) => {})
-		.post('/:testId/stop', async (request) => {})
+		.post('/:testId/start', async (request) => {
+			console.info('Starting test', request.params.testId)
+			this.state.tests[request.params.testId] = {
+				running: true,
+			}
+		})
+		.post('/:testId/stop', async (request) => {
+			console.info('Stopping test', request.params.testId)
+			this.state.tests[request.params.testId] = {
+				running: false,
+			}
+		})
 		.get('/state', () => new Response(JSON.stringify(this.getState()), { status: 200 }))
 
 	getState(): STCoordinatorState {
-		return {
-			tests: {},
-		}
+		return this.state
 	}
 
-	override fetch(request) {
+	override fetch(request: Request) {
 		return this.router.fetch(request)
 	}
 }
