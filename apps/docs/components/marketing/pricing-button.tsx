@@ -22,7 +22,7 @@ export function PricingButton({
 				'mt-10 block rounded-md px-3 py-2 text-center text-sm/6 font-semibold shadow-sm',
 				{
 					'bg-blue-500 text-white hover:bg-blue-600': tier.type === 'primary',
-					'bg-transparent border-blue-500 border-sm border text-blue-500 dark:text-white hover:bg-blue-50 dark:hover:bg-neutral-800':
+					'bg-transparent border-blue-500 border-sm border text-blue-500 dark:text-white hover:border-blue-600 hover:text-blue-600':
 						tier.type === 'secondary',
 				}
 			)}
