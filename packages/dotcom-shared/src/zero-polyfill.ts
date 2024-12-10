@@ -74,6 +74,33 @@ export class Zero {
 		this.socket.close()
 	}
 
+	sneakyTransaction(fn: () => void): Promise<void> {
+		try {
+			fn()
+			const mutationId = this.currentMutationId
+
+			return new Promise((resolve, reject) => {
+				const unsubCommit = this.store.events.on('commit', (ids: string[]) => {
+					if (ids.includes(mutationId)) {
+						resolve()
+						unsubCommit()
+						unsubReject()
+					}
+				})
+
+				const unsubReject = this.store.events.on('reject', (id: string) => {
+					if (id === mutationId) {
+						reject()
+						unsubCommit()
+						unsubReject()
+					}
+				})
+			})
+		} catch (e) {
+			return Promise.reject(e)
+		}
+	}
+
 	// eslint-disable-next-line local/prefer-class-methods
 	private preload = () => {
 		if (this.store.getFullData()) {

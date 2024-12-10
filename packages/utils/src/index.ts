@@ -82,6 +82,7 @@ export {
 } from './lib/storage'
 export { stringEnum } from './lib/stringEnum'
 export { fpsThrottle, throttleToNextFrame } from './lib/throttle'
+export { time } from './lib/time'
 export { Timers } from './lib/timers'
 export {
 	type Expand,

@@ -1,5 +1,5 @@
 import { Z_PROTOCOL_VERSION, Zero } from '@tldraw/dotcom-shared'
-import { assertExists } from '@tldraw/utils'
+import { assertExists, time } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
 import { Environment } from './types'
 
@@ -59,8 +59,18 @@ export class STWorkerDO extends DurableObject<Environment> {
 					isDynamicSizeMode: null,
 					isPasteAtCursorMode: null,
 				}
-				polyfill.mutate.user.create(defaultUser)
-				console.log('created user')
+				const start = Date.now()
+				const res = await time(() => {
+					return polyfill.sneakyTransaction(() => {
+						polyfill.mutate.user.create(defaultUser)
+					})
+				})
+				if (res.ok) {
+					console.log('created user in', res.value[0], 'ms')
+				} else {
+					// handle failure
+					console.log('created user in', Date.now() - start)
+				}
 			}
 		} catch (e) {
 			console.error(e)

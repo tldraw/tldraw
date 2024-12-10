@@ -7138,6 +7138,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     lodash.isequal: "npm:^4.5.0"
+    nanoevents: "npm:^7.0.1"
     tldraw: "workspace:*"
   peerDependencies:
     react: ^18.2.0
