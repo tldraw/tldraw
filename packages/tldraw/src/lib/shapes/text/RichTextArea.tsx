@@ -138,7 +138,15 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 	if (!isEditing) return null
 	if (!tipTapConfig) return null
 
-	const content = richText ? JSON.parse(richText) : plaintext.split('\n').join('<br />')
+	const content = richText
+		? JSON.parse(richText)
+		: plaintext
+				.replace(/\x20/g, '\u00A0')
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.split('\n')
+				.join('<br />')
 	const { editorProps, ...restOfTipTapConfig } = tipTapConfig
 
 	return (
