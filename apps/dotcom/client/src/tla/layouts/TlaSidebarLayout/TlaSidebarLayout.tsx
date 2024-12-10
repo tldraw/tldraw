@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useRef } from 'react'
+import React, { ReactNode, useCallback, useLayoutEffect, useRef } from 'react'
 import { clamp, tltime, useQuickReactor, useValue } from 'tldraw'
 import { TlaSidebar } from '../../components/TlaSidebar/TlaSidebar'
 import { TlaSidebarToggle } from '../../components/TlaSidebar/components/TlaSidebarToggle'
@@ -31,15 +31,17 @@ export function TlaSidebarLayout({ children }: { children: ReactNode; collapsibl
 
 	const rLayoutContainer = useRef<HTMLDivElement>(null)
 
+	const updateSidebarWidth = useCallback(() => {
+		if (!rLayoutContainer.current) return
+		const width = getLocalSessionState().sidebarWidth
+		if (typeof width !== 'number') return
+		rLayoutContainer.current.style.setProperty('--tla-sidebar-width', `${width}px`)
+	}, [])
+
 	// When the local session state sidebar width changes, update the sidebar element's width
-	useQuickReactor('update sidebar width', () => {
-		if (rLayoutContainer.current) {
-			const width = getLocalSessionState().sidebarWidth
-			if (typeof width === 'number') {
-				rLayoutContainer.current.style.setProperty('--tla-sidebar-width', `${width}px`)
-			}
-		}
-	})
+	useQuickReactor('update sidebar width', updateSidebarWidth)
+	// also update before initial paint to avoid flicker when the width is not default
+	useLayoutEffect(updateSidebarWidth, [updateSidebarWidth])
 
 	const rResizeState = useRef<
 		| { name: 'idle' }
