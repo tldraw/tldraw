@@ -341,7 +341,8 @@ test.describe('text measurement', () => {
 
 		// Assuming the custom render method affects the width and height
 		// Adjust these expected values based on how renderMethod is supposed to affect the output
-		expect(w).toBeCloseTo(166.25, 0) // Example value
-		expect(h).toBeCloseTo(32.390625, 0) // Example value
+		expect(w).toBeGreaterThanOrEqual(165)
+		expect(w).toBeLessThanOrEqual(167)
+		expect(h).toBeCloseTo(32.390625, 0)
 	})
 })

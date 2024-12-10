@@ -1,4 +1,5 @@
 import { Editor as TextEditor } from '@tiptap/core'
+import { preventDefault } from '@tldraw/editor'
 import { useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -57,6 +58,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 		<>
 			<TldrawUiInput
 				ref={ref}
+				data-testid="rich-text.link-input"
 				className="tl-rich-text__toolbar-link-input"
 				value={value}
 				onValueChange={handleValueChange}
@@ -67,6 +69,7 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 				className="tl-rich-text__toolbar-link-visit"
 				title={msg('tool.rich-text-link-visit')}
 				type="icon"
+				onPointerDown={preventDefault}
 				onClick={handleVisitLink}
 				disabled={!value}
 			>
@@ -75,7 +78,9 @@ export function LinkEditor({ textEditor, value: initialValue, onComplete }: Link
 			<TldrawUiButton
 				className="tl-rich-text__toolbar-link-remove"
 				title={msg('tool.rich-text-link-remove')}
+				data-testid="rich-text.link-remove"
 				type="icon"
+				onPointerDown={preventDefault}
 				onClick={handleRemoveLink}
 			>
 				<TldrawUiButtonIcon small icon="trash" />

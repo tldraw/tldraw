@@ -154,6 +154,7 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 			id={tipTapId}
 			ref={ref}
 			tabIndex={-1}
+			data-testid="rich-text-area"
 			className="tl-rich-text tl-text tl-text-input"
 			onTouchEnd={stopEventPropagation}
 			onContextMenu={isEditing ? stopEventPropagation : undefined}

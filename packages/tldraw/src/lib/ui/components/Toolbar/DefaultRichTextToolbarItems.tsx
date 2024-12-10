@@ -39,6 +39,7 @@ export function DefaultRichTextToolbarItems({
 			<TldrawUiButton
 				key={name}
 				title={msg(`tool.rich-text-${name}`)}
+				data-testid={`rich-text.${name}`}
 				type="icon"
 				isActive={textEditor.isActive(name, attrs)}
 				onPointerDown={preventDefault}
