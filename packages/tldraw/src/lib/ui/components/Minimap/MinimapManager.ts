@@ -303,6 +303,7 @@ export class MinimapManager {
 		let offset = 0
 		const zoom = this.getZoom()
 		for (const { cursor } of collaborators) {
+			if (!cursor) continue
 			pie(vertices, {
 				center: Vec.From(cursor),
 				radius: 3 * zoom,

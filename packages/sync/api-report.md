@@ -7,6 +7,9 @@
 import { Editor } from 'tldraw';
 import { Signal } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
+import { TLPresenceStateInfo } from 'tldraw';
+import { TLPresenceUserInfo } from 'tldraw';
+import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
 
@@ -18,13 +21,6 @@ export type RemoteTLStoreWithStatus = Exclude<TLStoreWithStatus, {
 }>;
 
 // @public
-export interface TLSyncUserInfo {
-    color?: null | string;
-    id: string;
-    name?: null | string;
-}
-
-// @public
 export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
 
 // @public
@@ -32,15 +28,17 @@ export function useSyncDemo(options: UseSyncDemoOptions & TLStoreSchemaOptions):
 
 // @public (undocumented)
 export interface UseSyncDemoOptions {
+    getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
     // @internal (undocumented)
     host?: string;
     roomId: string;
-    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
+    userInfo?: Signal<TLPresenceUserInfo> | TLPresenceUserInfo;
 }
 
 // @public
 export interface UseSyncOptions {
     assets: TLAssetStore;
+    getUserPresence?(store: TLStore, user: TLPresenceUserInfo): null | TLPresenceStateInfo;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
     // @internal
@@ -50,7 +48,7 @@ export interface UseSyncOptions {
         [key: string]: any;
     }): void;
     uri: (() => Promise<string> | string) | string;
-    userInfo?: Signal<TLSyncUserInfo> | TLSyncUserInfo;
+    userInfo?: Signal<TLPresenceUserInfo> | TLPresenceUserInfo;
 }
 
 

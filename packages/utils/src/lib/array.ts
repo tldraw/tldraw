@@ -49,6 +49,20 @@ export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefi
 	return min
 }
 
+/** @internal */
+export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined {
+	let max: T | undefined
+	let maxVal = Infinity
+	for (const item of arr) {
+		const val = fn(item)
+		if (val > maxVal) {
+			max = item
+			maxVal = val
+		}
+	}
+	return max
+}
+
 /**
  * Partitions an array into two arrays, one with items that satisfy the predicate, and one with
  * items that do not.

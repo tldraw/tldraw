@@ -1,3 +1,4 @@
+import { useAtom } from '@tldraw/state-react'
 import { assert } from '@tldraw/utils'
 import { useCallback, useDebugValue, useLayoutEffect, useRef } from 'react'
 
@@ -41,4 +42,32 @@ export function useEvent<Args extends Array<unknown>, Result>(
 		assert(fn, 'fn does not exist')
 		return fn(...args)
 	}, [])
+}
+
+/**
+ * like {@link useEvent}, but for use in reactive contexts - when the handler function changes, it
+ * will invalidate any reactive contexts that call it.
+ * @internal
+ */
+export function useReactiveEvent<Args extends Array<unknown>, Result>(
+	handler: (...args: Args) => Result
+): (...args: Args) => Result {
+	const handlerAtom = useAtom<(...args: Args) => Result>('useReactiveEvent', () => handler)
+
+	// In a real implementation, this would run before layout effects
+	useLayoutEffect(() => {
+		handlerAtom.set(handler)
+	})
+
+	useDebugValue(handler)
+
+	return useCallback(
+		(...args: Args) => {
+			// In a real implementation, this would throw if called during render
+			const fn = handlerAtom.get()
+			assert(fn, 'fn does not exist')
+			return fn(...args)
+		},
+		[handlerAtom]
+	)
 }
