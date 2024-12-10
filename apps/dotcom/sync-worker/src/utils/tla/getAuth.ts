@@ -1,17 +1,22 @@
 import { ClerkClient, createClerkClient } from '@clerk/backend'
-import { IRequest, StatusError } from 'itty-router'
+import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 
-export async function requireAuth(request: IRequest, env: Environment): Promise<SignedInAuth> {
-	const auth = await getAuth(request, env)
-	if (!auth) {
-		throw new StatusError(401, 'Unauthorized')
+export async function getAuth(
+	request: IRequest,
+	env: Environment
+): Promise<{ userId: string } | null> {
+	if (env.TLDRAW_ENV !== 'production' && env.TEST_AUTH_SECRET) {
+		const url = new URL(request.url)
+		const token =
+			url.searchParams.get('accessToken') ??
+			request.headers.get('Authorization')?.slice('Bearer '.length)
+		if (token?.startsWith(`${env.TEST_AUTH_SECRET}:`)) {
+			const userId = token.slice(`${env.TEST_AUTH_SECRET}:`.length)
+			return { userId }
+		}
 	}
 
-	return auth
-}
-
-export async function getAuth(request: IRequest, env: Environment): Promise<SignedInAuth | null> {
 	const clerk = createClerkClient({
 		secretKey: env.CLERK_SECRET_KEY,
 		publishableKey: env.CLERK_PUBLISHABLE_KEY,
@@ -35,7 +40,9 @@ export async function getAuth(request: IRequest, env: Environment): Promise<Sign
 		return null
 	}
 
-	return state.toAuth()
+	const { userId } = state.toAuth()
+
+	return { userId }
 }
 
 export type SignedInAuth = ReturnType<

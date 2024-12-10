@@ -274,18 +274,20 @@ export class ReconnectManager {
 	) {
 		this.subscribeToReconnectHints()
 
-		this.disposables.push(
-			listenTo(window, 'offline', () => {
-				debug('window went offline')
-				// On the one hand, 'offline' event is not really reliable; on the other, the only
-				// alternative is to wait for pings not being delivered, which takes more than 20 seconds,
-				// which means we won't see the ClientWebSocketAdapter status change for more than
-				// 20 seconds after the tab goes offline. Our application layer must be resistent to
-				// connection restart anyway, so we can just try to reconnect and see if
-				// we're truly offline.
-				this.socketAdapter._closeSocket()
-			})
-		)
+		if (typeof window !== 'undefined') {
+			this.disposables.push(
+				listenTo(window, 'offline', () => {
+					debug('window went offline')
+					// On the one hand, 'offline' event is not really reliable; on the other, the only
+					// alternative is to wait for pings not being delivered, which takes more than 20 seconds,
+					// which means we won't see the ClientWebSocketAdapter status change for more than
+					// 20 seconds after the tab goes offline. Our application layer must be resistent to
+					// connection restart anyway, so we can just try to reconnect and see if
+					// we're truly offline.
+					this.socketAdapter._closeSocket()
+				})
+			)
+		}
 
 		this.state = 'pendingAttempt'
 		this.intendedDelay = ACTIVE_MIN_DELAY
@@ -293,18 +295,20 @@ export class ReconnectManager {
 	}
 
 	private subscribeToReconnectHints() {
-		this.disposables.push(
-			listenTo(window, 'online', () => {
-				debug('window went online')
-				this.maybeReconnected()
-			}),
-			listenTo(document, 'visibilitychange', () => {
-				if (!document.hidden) {
-					debug('document became visible')
+		if (typeof window !== 'undefined') {
+			this.disposables.push(
+				listenTo(window, 'online', () => {
+					debug('window went online')
 					this.maybeReconnected()
-				}
-			})
-		)
+				}),
+				listenTo(document, 'visibilitychange', () => {
+					if (!document.hidden) {
+						debug('document became visible')
+						this.maybeReconnected()
+					}
+				})
+			)
+		}
 
 		if (Object.prototype.hasOwnProperty.call(navigator, 'connection')) {
 			const connection = (navigator as any)['connection'] as EventTarget
@@ -334,12 +338,16 @@ export class ReconnectManager {
 		})
 	}
 
+	getIsDocumentHidden() {
+		return typeof document !== 'undefined' ? document.hidden : false
+	}
+
 	private getMaxDelay() {
-		return document.hidden ? INACTIVE_MAX_DELAY : ACTIVE_MAX_DELAY
+		return this.getIsDocumentHidden() ? INACTIVE_MAX_DELAY : ACTIVE_MAX_DELAY
 	}
 
 	private getMinDelay() {
-		return document.hidden ? INACTIVE_MIN_DELAY : ACTIVE_MIN_DELAY
+		return this.getIsDocumentHidden() ? INACTIVE_MIN_DELAY : ACTIVE_MIN_DELAY
 	}
 
 	private clearReconnectTimeout() {

@@ -2,6 +2,7 @@ import { STCoordinatorState } from '@tldraw/dotcom-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { AutoRouter, cors, error } from 'itty-router'
 import { Environment } from './types'
+import { STWorkerDO } from './STWorkerDO'
 
 const regions = ['wnam', 'enam', 'sam', 'weur', 'eeur', 'apac', 'oc', 'afr', 'me']
 
@@ -33,9 +34,10 @@ export class STCoordinatorDO extends DurableObject {
 			}
 			for (let i = 0; i < NUMBER_OF_WORKERS; i++) {
 				const id = 'worker' + i
-				const worker = env.ST_WORKER.get(env.ST_WORKER.idFromName(id))
+				const worker = env.ST_WORKER.get(env.ST_WORKER.idFromName(id)) as any as STWorkerDO
 				await worker.start(START_WITHIN, id, body.uri)
 			}
+			return new Response('Started', { status: 200 })
 		})
 		.post('/:testId/stop', async (request) => {
 			console.info('Stopping test', request.params.testId)
