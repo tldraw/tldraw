@@ -54,7 +54,7 @@ import styles from './editor.module.css'
 
 const messages = defineMessages({
 	file: { defaultMessage: 'File' },
-	untitledProject: { defaultMessage: 'Untitled project' },
+	untitledProject: { defaultMessage: 'Untitled file' },
 })
 
 /** @internal */
@@ -398,7 +398,7 @@ function SetDocumentTitle() {
 		[app, editor, fileSlug, untitledProject]
 	)
 	if (!title) return null
-	return <Helmet title={title} />
+	return <Helmet title={app ? title : `${title} • tldraw`} />
 }
 
 // A map of previously saved tldr file names, so we can suggest the same name next time

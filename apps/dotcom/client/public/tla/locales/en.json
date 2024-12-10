@@ -17,6 +17,9 @@
   "06b9281e39": {
     "translation": "Auto"
   },
+  "07dbd11b21": {
+    "translation": "Untitled file"
+  },
   "0b27918290": {
     "translation": "File"
   },
@@ -44,11 +47,11 @@
   "279f0531ff": {
     "translation": "Still having trouble? Let us know at <a>hello@tldraw.com</a>"
   },
-  "27de813139": {
-    "translation": "Private file"
-  },
   "299cb00a7a": {
     "translation": "Upload failed"
+  },
+  "31246941ad": {
+    "translation": "You need to sign in to view this file."
   },
   "31418ce4ad": {
     "translation": "i18n: Highlight Missing"
@@ -73,9 +76,6 @@
   },
   "44db318ee5": {
     "translation": "Get help on Discord"
-  },
-  "45b543cbb1": {
-    "translation": "Publish this project"
   },
   "47839e47a5": {
     "translation": "tldraw"
@@ -179,6 +179,9 @@
   "9bef626805": {
     "translation": "Delete file"
   },
+  "9ceb927baa": {
+    "translation": "Publish this file"
+  },
   "9e076f5885": {
     "translation": "Not found"
   },
@@ -210,9 +213,6 @@
   "b758336699": {
     "translation": "Copy link"
   },
-  "bbc5a713da": {
-    "translation": "Untitled project"
-  },
   "bc88b0e89e": {
     "translation": "Shared by {ownerName}"
   },
@@ -234,6 +234,9 @@
   "c87aacf567": {
     "translation": "Sign out"
   },
+  "cceaefbc20": {
+    "translation": "Share this file"
+  },
   "cd15a75c26": {
     "translation": "SVG"
   },
@@ -249,9 +252,6 @@
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
   },
-  "d6381957f5": {
-    "translation": "Share this project"
-  },
   "d721757161": {
     "translation": "Theme"
   },
@@ -263,6 +263,9 @@
   },
   "d9fe660e4e": {
     "translation": "Sorry, you don’t have access to that workspace."
+  },
+  "dbbebf3c03": {
+    "translation": "Invite only"
   },
   "dfdb78a4e4": {
     "translation": "App debug flags"

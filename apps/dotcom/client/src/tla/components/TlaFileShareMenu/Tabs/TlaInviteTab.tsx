@@ -1,13 +1,13 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { useEditor, useValue } from 'tldraw'
+import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useIsFileOwner } from '../../../hooks/useIsFileOwner'
 import { useTldrawUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
 import { F, defineMessages, useMsg } from '../../../utils/i18n'
-import { getShareableFileUrl } from '../../../utils/urls'
 import { TlaSelect } from '../../TlaSelect/TlaSelect'
 import { TlaSwitch } from '../../TlaSwitch/TlaSwitch'
 import {
@@ -48,7 +48,7 @@ export function TlaInviteTab({ fileId }: { fileId: string }) {
 					</TlaMenuControlGroup>
 				)}
 				{isShared && <TlaCopyLinkButton isShared={isShared} fileId={fileId} />}
-				{isShared && <QrCode url={getShareableFileUrl(fileId)} />}
+				{isShared && <QrCode url={routes.tlaFile(fileId, { asUrl: true })} />}
 			</TlaMenuSection>
 		</>
 	)
@@ -71,7 +71,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel>
-				<F defaultMessage="Share this project" />
+				<F defaultMessage="Share this file" />
 			</TlaMenuControlLabel>
 			<TlaMenuControlInfoTooltip
 				onClick={() => trackEvent('open-url', { url: learnMoreUrl, source: 'file-share-menu' })}
@@ -140,7 +140,7 @@ function TlaCopyLinkButton({ fileId }: { isShared: boolean; fileId: string }) {
 	const trackEvent = useTldrawAppUiEvents()
 
 	const handleCopyLinkClick = useCallback(() => {
-		const url = getShareableFileUrl(fileId)
+		const url = routes.tlaFile(fileId, { asUrl: true })
 		copyTextToClipboard(editor.createDeepLink({ url }).toString())
 		// no toasts please
 		trackEvent('copy-share-link', { source: 'file-share-menu' })

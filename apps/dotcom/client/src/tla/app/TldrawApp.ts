@@ -30,7 +30,7 @@ import {
 	react,
 } from 'tldraw'
 import { getDateFormat } from '../utils/dates'
-import { IntlShape, defineMessages } from '../utils/i18n'
+import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
 import { Zero } from './zero-polyfill'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -62,9 +62,6 @@ export class TldrawApp {
 		view.addListener((res: any) => {
 			val$.set(structuredClone(res) as any)
 		})
-		react('blah', () => {
-			val$.get()
-		})
 		this.disposables.push(() => {
 			view.destroy()
 		})
@@ -76,8 +73,7 @@ export class TldrawApp {
 	private constructor(
 		public readonly userId: string,
 		getToken: () => Promise<string | null>,
-		onClientTooOld: () => void,
-		private intl: IntlShape
+		onClientTooOld: () => void
 	) {
 		const sessionId = uniqueId()
 		this.z = new Zero({
@@ -153,8 +149,8 @@ export class TldrawApp {
 			console.error('Could not find a translation for this error code', errorCode)
 		}
 		this.toasts?.addToast({
-			title: this.intl?.formatMessage(this.messages.mutation_error_toast_title),
-			description: this.intl?.formatMessage(descriptor ?? this.messages.unknown_error),
+			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
+			description: this.getIntl().formatMessage(descriptor ?? this.messages.unknown_error),
 		})
 	}, 3000)
 
@@ -310,7 +306,7 @@ export class TldrawApp {
 		if (useDateFallback) {
 			const createdAt = new Date(file.createdAt)
 			const format = getDateFormat(createdAt)
-			return this.intl.formatDate(createdAt, format)
+			return this.getIntl().formatDate(createdAt, format)
 		}
 
 		return
@@ -572,14 +568,13 @@ export class TldrawApp {
 		avatar: string
 		getToken(): Promise<string | null>
 		onClientTooOld(): void
-		intl: IntlShape
 	}) {
 		// This is an issue: we may have a user record but not in the store.
 		// Could be just old accounts since before the server had a version
 		// of the store... but we should probably identify that better.
 
 		const { id: _id, name: _name, color, ...restOfPreferences } = getUserPreferences()
-		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld, opts.intl)
+		const app = new TldrawApp(opts.userId, opts.getToken, opts.onClientTooOld)
 		// @ts-expect-error
 		window.app = app
 		await app.preload({
@@ -606,5 +601,17 @@ export class TldrawApp {
 			isPasteAtCursorMode: restOfPreferences.isPasteAtCursorMode ?? null,
 		})
 		return { app, userId: opts.userId }
+	}
+
+	getIntl() {
+		const intl = createIntl()
+		if (intl) return intl
+		// intl should exists since IntlWrapper should create it before we get here, but let's use this just in case
+		setupCreateIntl({
+			defaultLocale: 'en',
+			locale: this.user$.get()?.locale ?? 'en',
+			messages: {},
+		})
+		return createIntl()!
 	}
 }

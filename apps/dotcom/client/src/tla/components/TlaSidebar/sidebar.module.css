@@ -2,14 +2,14 @@
 	position: absolute;
 	display: flex;
 	top: 0px;
-	left: -260px;
+	left: calc(var(--tla-sidebar-width) * -1);
 	height: 100%;
-	width: 260px;
+	width: var(--tla-sidebar-width);
 	z-index: 100;
 	transform: translate(0px, 0px);
 	flex-direction: column;
 	flex: 0 0 auto;
-	padding: 3px 12px 2px 12px;
+	padding: 3px 12px 2px;
 	background: var(--tla-color-sidebar);
 	border-right: 1px solid transparent;
 	transition: transform 0.16s ease-in-out;
@@ -260,7 +260,8 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	padding-right: 4px;
+	padding-right: 6px;
+	padding-left: 2px;
 	background-color: var(--tla-color-sidebar);
 }
 
@@ -274,7 +275,10 @@
 }
 
 .userName {
-	flex-grow: 1;
+	flex: 1 1 auto;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .main-link {
@@ -326,12 +330,13 @@
 	justify-content: flex-start;
 	gap: 8px;
 	position: relative;
+	pointer-events: none;
 	z-index: 2;
 }
 
 .linkContent > .label {
 	padding: 0px;
-	flex: 2 1 auto;
+	flex: 0 1 auto;
 }
 
 .renameWrapper {
@@ -375,12 +380,12 @@
 }
 
 .linkMenu {
+	padding: 0px;
 	background: none;
 	border: none;
 	position: relative;
-	right: 4px;
 	outline: none;
-	margin-right: -12px;
+	margin-right: -10px;
 	width: 36px;
 	height: 36px;
 	display: flex;
@@ -396,6 +401,15 @@
 	.linkMenu {
 		display: none;
 	}
+	/*
+		For guest files we show a guest icon at the end of the filename
+		but we don't want it to jump out of the way when the user hovers
+	*/
+
+	.link[data-is-own-file='false'] .linkMenu {
+		visibility: hidden;
+		display: flex;
+	}
 
 	.workspace .linkMenu[data-state='open'],
 	.user .linkMenu[data-state='open'],
@@ -403,6 +417,7 @@
 	.workspace:hover .linkMenu,
 	.user:hover .linkMenu,
 	.link:hover .linkMenu {
+		visibility: visible;
 		display: flex;
 	}
 
@@ -419,14 +434,13 @@
 
 .guestBadge {
 	display: inline-flex;
-	justify-self: flex-end;
 	pointer-events: all;
+	flex: 0 0 auto;
 }
 
 .guestBadgeTrigger {
-	margin-right: 6px;
+	margin-left: 4px;
 	border-radius: 50%;
-	pointer-events: all;
 	overflow: hidden;
 	display: inline-flex;
 	align-items: center;

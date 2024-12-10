@@ -1,10 +1,10 @@
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { tltime } from 'tldraw'
+import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { useMsg } from '../../../utils/i18n'
-import { getFilePath } from '../../../utils/urls'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 import { messages } from './sidebar-shared'
@@ -22,7 +22,7 @@ export function TlaSidebarCreateFileButton() {
 		const res = app.createFile()
 		if (res.ok) {
 			const { file } = res.value
-			navigate(getFilePath(file.id), { state: { mode: 'create' } })
+			navigate(routes.tlaFile(file.id), { state: { mode: 'create' } })
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false
 			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
