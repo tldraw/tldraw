@@ -6,8 +6,8 @@ import {
 	ZStoreData,
 	ZTable,
 } from '@tldraw/dotcom-shared'
-import { assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
-import { ExecutionQueue, createSentry } from '@tldraw/worker-shared'
+import { ExecutionQueue, assert, promiseWithResolve, sleep, uniqueId } from '@tldraw/utils'
+import { createSentry } from '@tldraw/worker-shared'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import { TLPostgresReplicator } from './TLPostgresReplicator'
@@ -18,8 +18,9 @@ import {
 	parseResultRow,
 	userKeys,
 } from './getFetchEverythingSql'
-import { Environment } from './types'
+import { Environment, TLUserDurableObjectEvent } from './types'
 import { getReplicator } from './utils/durableObjects'
+import { retryOnConnectionFailure } from './utils/retryOnConnectionFailure'
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
 export interface ZRowUpdateEvent {
@@ -105,7 +106,8 @@ export class UserDataSyncer {
 		env: Environment,
 		private db: postgres.Sql,
 		private userId: string,
-		private broadcast: (message: ZServerSentMessage) => void
+		private broadcast: (message: ZServerSentMessage) => void,
+		private logEvent: (event: TLUserDurableObjectEvent) => void
 	) {
 		this.sentry = createSentry(ctx, env)
 		this.replicator = getReplicator(env)
@@ -114,7 +116,7 @@ export class UserDataSyncer {
 
 	private debug(...args: any[]) {
 		// uncomment for dev time debugging
-		// console.log('[UserDataSyncer]:',...args)
+		// console.log('[UserDataSyncer]:', ...args)
 		if (this.sentry) {
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
@@ -126,8 +128,8 @@ export class UserDataSyncer {
 	private queue = new ExecutionQueue()
 
 	async reboot(delay = true) {
-		// TODO: set up analytics and alerts for this
 		this.debug('rebooting')
+		this.logEvent({ type: 'reboot', id: this.userId })
 		await this.queue.push(async () => {
 			if (delay) {
 				await sleep(1000)
@@ -135,6 +137,7 @@ export class UserDataSyncer {
 			try {
 				await this.boot()
 			} catch (e) {
+				this.logEvent({ type: 'reboot_error', id: this.userId })
 				this.captureException(e)
 				this.reboot()
 			}
@@ -219,30 +222,46 @@ export class UserDataSyncer {
 			files: [],
 			fileStates: [],
 		}
-		// sync initial data
-		await this.db.begin(async (db) => {
-			return db
-				.unsafe(sql, [], { prepare: false })
-				.simple()
-				.forEach((row: any) => {
-					assert(this.state.type === 'connecting', 'state should be connecting in boot')
-					switch (row.table) {
-						case 'user':
-							initialData.user = parseResultRow(userKeys, row)
-							break
-						case 'file':
-							initialData.files.push(parseResultRow(fileKeys, row))
-							break
-						case 'file_state':
-							initialData.fileStates.push(parseResultRow(fileStateKeys, row))
-							break
-						case 'user_mutation_number':
-							assert(typeof row.mutationNumber === 'number', 'mutationNumber should be a number')
-							this.state.mutationNumber = row.mutationNumber
-							break
-					}
+		// we connect to pg via a pooler, so in the case that the pool is exhausted
+		// we need to retry the connection. (also in the case that a neon branch is asleep apparently?)
+		await retryOnConnectionFailure(
+			async () => {
+				// sync initial data
+				initialData.user = null as any
+				initialData.files = []
+				initialData.fileStates = []
+
+				await this.db.begin(async (db) => {
+					return db
+						.unsafe(sql, [], { prepare: false })
+						.simple()
+						.forEach((row: any) => {
+							assert(this.state.type === 'connecting', 'state should be connecting in boot')
+							switch (row.table) {
+								case 'user':
+									initialData.user = parseResultRow(userKeys, row)
+									break
+								case 'file':
+									initialData.files.push(parseResultRow(fileKeys, row))
+									break
+								case 'file_state':
+									initialData.fileStates.push(parseResultRow(fileStateKeys, row))
+									break
+								case 'user_mutation_number':
+									assert(
+										typeof row.mutationNumber === 'number',
+										'mutationNumber should be a number'
+									)
+									this.state.mutationNumber = row.mutationNumber
+									break
+							}
+						})
 				})
-		})
+			},
+			() => {
+				this.logEvent({ type: 'connect_retry', id: this.userId })
+			}
+		)
 
 		this.state.data = initialData
 		// do an unnecessary assign here to tell typescript that the state might have changed
@@ -252,6 +271,7 @@ export class UserDataSyncer {
 
 		await promise
 		const end = Date.now()
+		this.logEvent({ type: 'reboot_duration', id: this.userId, duration: end - start })
 		this.debug('boot time', end - start, 'ms')
 		assert(this.state.type === 'connected', 'state should be connected after boot')
 	}

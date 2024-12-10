@@ -6,6 +6,7 @@
 	overflow: hidden;
 	background-color: var(--tla-color-accent-2);
 	background-size: cover;
+	flex: 0 0 auto;
 	z-index: 2;
 }
 

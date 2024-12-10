@@ -17,13 +17,13 @@ import {
 	useDialogs,
 	useToasts,
 } from 'tldraw'
+import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useIsFileOwner } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
 import { defineMessages, useMsg } from '../../utils/i18n'
-import { getFilePath, getShareableFileUrl } from '../../utils/urls'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 
 const messages = defineMessages({
@@ -92,7 +92,7 @@ function FileItems({
 	const isOwner = useIsFileOwner(fileId)
 
 	const handleCopyLinkClick = useCallback(() => {
-		const url = getShareableFileUrl(fileId)
+		const url = routes.tlaFile(fileId, { asUrl: true })
 		copyTextToClipboard(url)
 		addToast({
 			id: 'copied-link',
@@ -106,7 +106,9 @@ function FileItems({
 		const file = app.getFile(fileId)
 		if (!file) return
 		app.createFile({ id: newFileId, name: getDuplicateName(file, app) })
-		navigate(getFilePath(newFileId), { state: { mode: 'duplicate', duplicateId: fileId } })
+		navigate(routes.tlaFile(newFileId), {
+			state: { mode: 'duplicate', duplicateId: fileId },
+		})
 	}, [app, fileId, navigate])
 
 	const handleDeleteClick = useCallback(() => {
