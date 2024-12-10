@@ -4,11 +4,9 @@ import {
 	MatModel,
 	TLArrowShape,
 	Vec,
-	VecLike,
-	intersectLineSegmentPolygon,
-	intersectLineSegmentPolyline,
+	intersectLineSegmentLineSegment,
 } from '@tldraw/editor'
-import { TLArrowInfo } from './arrow-types'
+import { TLArrowInfo, TLArrowPoint } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
@@ -100,14 +98,14 @@ export function getStraightArrowInfo(
 		!startShapeInfo.isExact &&
 		!endShapeInfo.isExact
 	) {
-		if (endShapeInfo.didIntersect && !startShapeInfo.didIntersect) {
+		if (endShapeInfo.intersection && !startShapeInfo.intersection) {
 			// ...and if only the end shape intersected, then make it
 			// a short arrow ending at the end shape intersection.
 
 			if (startShapeInfo.isClosed) {
 				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH * shape.props.scale)))
 			}
-		} else if (!endShapeInfo.didIntersect) {
+		} else if (!endShapeInfo.intersection) {
 			// ...and if only the end shape intersected, or if neither
 			// shape intersected, then make it a short arrow starting
 			// at the start shape intersection.
@@ -129,6 +127,7 @@ export function getStraightArrowInfo(
 			relationship !== 'start-contains-end' &&
 			startShapeInfo &&
 			arrowheadStart !== 'none' &&
+			arrowheadStart !== 'crow' &&
 			!startShapeInfo.isExact
 		) {
 			strokeOffsetA =
@@ -146,6 +145,7 @@ export function getStraightArrowInfo(
 			relationship !== 'end-contains-start' &&
 			endShapeInfo &&
 			arrowheadEnd !== 'none' &&
+			arrowheadEnd !== 'crow' &&
 			!endShapeInfo.isExact
 		) {
 			strokeOffsetB =
@@ -203,11 +203,13 @@ export function getStraightArrowInfo(
 			handle: terminalsInArrowSpace.start,
 			point: a,
 			arrowhead: shape.props.arrowheadStart,
+			intersection: startShapeInfo?.intersection,
 		},
 		end: {
 			handle: terminalsInArrowSpace.end,
 			point: b,
 			arrowhead: shape.props.arrowheadEnd,
+			intersection: endShapeInfo?.intersection,
 		},
 		middle: c,
 		isValid: length > 0,
@@ -221,7 +223,7 @@ function updateArrowheadPointWithBoundShape(
 	opposite: Vec,
 	arrowPageTransform: MatModel,
 	targetShapeInfo?: BoundShapeInfo
-) {
+): TLArrowPoint | undefined {
 	if (targetShapeInfo === undefined) {
 		// No bound shape? The arrowhead point will be at the arrow terminal.
 		return
@@ -241,27 +243,49 @@ function updateArrowheadPointWithBoundShape(
 	const targetTo = Mat.applyToPoint(Mat.Inverse(targetShapeInfo.transform), pageTo)
 
 	const isClosed = targetShapeInfo.isClosed
-	const fn = isClosed ? intersectLineSegmentPolygon : intersectLineSegmentPolyline
 
-	const intersection = fn(targetFrom, targetTo, targetShapeInfo.outline)
+	const { outline } = targetShapeInfo
+	const len = outline.length
 
-	let targetInt: VecLike | undefined
+	let result: TLArrowPoint['intersection'] = isClosed
+		? undefined
+		: {
+				point: targetTo,
+				segment: [targetTo, targetTo],
+			}
 
-	if (intersection !== null) {
-		targetInt =
-			intersection.sort((p1, p2) => Vec.Dist2(p1, targetFrom) - Vec.Dist2(p2, targetFrom))[0] ??
-			(isClosed ? undefined : targetTo)
+	const distance = Infinity,
+		n = isClosed ? len + 1 : len
+
+	for (let i = 1; i < n; i++) {
+		const a = outline[i - 1]
+		const b = outline[i % len]
+		const segmentIntersection = intersectLineSegmentLineSegment(targetFrom, targetTo, a, b)
+		if (segmentIntersection) {
+			const dist = Vec.Dist2(segmentIntersection, targetFrom)
+			if (dist < distance) {
+				result = { point: segmentIntersection, segment: [a, b] }
+			}
+		}
 	}
 
-	if (targetInt === undefined) {
-		// No intersection? The arrowhead point will be at the arrow terminal.
-		return
+	if (!result) return
+
+	point.setTo(
+		Mat.applyToPoint(
+			Mat.Inverse(arrowPageTransform),
+			Mat.applyToPoint(targetShapeInfo.transform, result.point)
+		)
+	)
+
+	targetShapeInfo.intersection = {
+		point: Mat.applyToPoint(
+			Mat.Inverse(arrowPageTransform),
+			Mat.applyToPoint(targetShapeInfo.transform, result.point)
+		),
+		segment: Mat.applyToPoints(
+			Mat.Inverse(arrowPageTransform),
+			Mat.applyToPoints(targetShapeInfo.transform, result.segment)
+		),
 	}
-
-	const pageInt = Mat.applyToPoint(targetShapeInfo.transform, targetInt)
-	const arrowInt = Mat.applyToPoint(Mat.Inverse(arrowPageTransform), pageInt)
-
-	point.setTo(arrowInt)
-
-	targetShapeInfo.didIntersect = true
 }
