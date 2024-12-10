@@ -8223,6 +8223,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			select?: boolean
 			preservePosition?: boolean
 			preserveIds?: boolean
+			/**
+			 * Assets are resolved asynchronously while shapes are added synchronously.
+			 * To wait for assets to be present before continuing, use this callback.
+			 */
+			onAssetsResolved?: () => void
 		} = {}
 	): this {
 		if (this.getIsReadonly()) return this
@@ -8436,7 +8441,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// Start loading the new assets, order does not matter
-		Promise.allSettled(
+		const assetsPromise = Promise.allSettled(
 			(assetsToUpdate as (TLImageAsset | TLVideoAsset)[]).map(async (asset) => {
 				// Turn the data url into a file
 				const file = await dataUrlToFile(
@@ -8446,6 +8451,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 
 				// Get a new asset for the file
+				debugger
 				const newAsset = await this.getAssetForExternalContent({
 					type: 'file',
 					file,
@@ -8543,6 +8549,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})
 			)
 		})
+
+		if (opts.onAssetsResolved) {
+			assetsPromise.then(() => {
+				opts.onAssetsResolved?.()
+			})
+		}
 
 		return this
 	}
