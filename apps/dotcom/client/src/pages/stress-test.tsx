@@ -32,7 +32,7 @@ export function Component() {
 			})
 				.then((res) => res.json())
 				.then(setState)
-		}, 5000)
+		}, 1000)
 		return () => clearInterval(interval)
 	}, [coordinatorUrl, accessToken])
 
@@ -46,6 +46,9 @@ export function Component() {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
+			body: JSON.stringify({
+				uri: 'http://localhost:8787',
+			}),
 		})
 		if (res.ok) {
 			console.info('test started')
@@ -57,6 +60,9 @@ export function Component() {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
+			body: JSON.stringify({
+				uri: 'http://localhost:8787',
+			}),
 		})
 		if (res.ok) {
 			console.info('test stopped')

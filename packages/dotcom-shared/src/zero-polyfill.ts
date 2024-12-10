@@ -13,7 +13,7 @@ import { ZClientSentMessage, ZErrorCode, ZRowUpdate, ZServerSentMessage } from '
 
 export class Zero {
 	private socket: ClientWebSocketAdapter
-	private store = new OptimisticAppStore()
+	store = new OptimisticAppStore()
 	private pendingUpdates: ZRowUpdate[] = []
 	private timeout: NodeJS.Timeout | undefined = undefined
 	private currentMutationId = uniqueId()

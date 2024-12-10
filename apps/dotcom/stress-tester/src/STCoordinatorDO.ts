@@ -6,6 +6,8 @@ import { Environment } from './types'
 const regions = ['wnam', 'enam', 'sam', 'weur', 'eeur', 'apac', 'oc', 'afr', 'me']
 
 const { preflight, corsify } = cors({ origin: '*' })
+const NUMBER_OF_WORKERS = 10
+const START_WITHIN = 1000
 
 export class STCoordinatorDO extends DurableObject {
 	state: STCoordinatorState = {
@@ -23,10 +25,16 @@ export class STCoordinatorDO extends DurableObject {
 		},
 	})
 		// when we get a connection request, we stash the room id if needed and handle the connection
-		.post('/:testId/start', async (request) => {
+		.post('/:testId/start', async (request, env: Environment) => {
+			const body = await request.json()
 			console.info('Starting test', request.params.testId)
 			this.state.tests[request.params.testId] = {
 				running: true,
+			}
+			for (let i = 0; i < NUMBER_OF_WORKERS; i++) {
+				const id = 'worker' + i
+				const worker = env.ST_WORKER.get(env.ST_WORKER.idFromName(id))
+				await worker.start(START_WITHIN, id, body.uri)
 			}
 		})
 		.post('/:testId/stop', async (request) => {
@@ -42,6 +50,6 @@ export class STCoordinatorDO extends DurableObject {
 	}
 
 	override fetch(request: Request) {
-		return this.router.fetch(request)
+		return this.router.fetch(request, this.env)
 	}
 }
