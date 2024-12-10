@@ -1,0 +1,36 @@
+{
+	"name": "@tldraw/stress-tester",
+	"description": "testing our backend's perf under load",
+	"version": "0.0.0",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"main": "./src/worker.ts",
+	"scripts": {
+		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts",
+		"test-ci": "lazy inherit",
+		"test": "yarn run -T jest",
+		"test-coverage": "lazy inherit",
+		"lint": "yarn run -T tsx ../../../internal/scripts/lint.ts"
+	},
+	"dependencies": {
+		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"@tldraw/worker-shared": "workspace:*",
+		"itty-router": "^5.0.17"
+	},
+	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20241022.0",
+		"lazyrepo": "0.0.0-alpha.27",
+		"typescript": "~5.4.2",
+		"wrangler": "^3.84.1"
+	},
+	"jest": {
+		"preset": "../../../internal/config/jest/node/jest-preset.js",
+		"moduleNameMapper": {
+			"^~(.*)": "<rootDir>/src/$1"
+		}
+	}
+}

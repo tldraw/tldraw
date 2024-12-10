@@ -1,22 +1,19 @@
+import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+import { OptimisticAppStore } from './OptimisticAppStore'
 import {
-	OptimisticAppStore,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaUser,
 	TlaUserPartial,
-	ZClientSentMessage,
-	ZErrorCode,
-	ZRowUpdate,
-	ZServerSentMessage,
-} from '@tldraw/dotcom-shared'
-import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+} from './tlaSchema'
+import { ZClientSentMessage, ZErrorCode, ZRowUpdate, ZServerSentMessage } from './types'
 
 export class Zero {
 	private socket: ClientWebSocketAdapter
-	private store = new OptimisticAppStore()
+	store = new OptimisticAppStore()
 	private pendingUpdates: ZRowUpdate[] = []
 	private timeout: NodeJS.Timeout | undefined = undefined
 	private currentMutationId = uniqueId()
@@ -75,6 +72,33 @@ export class Zero {
 			this.sendPendingUpdates()
 		}
 		this.socket.close()
+	}
+
+	sneakyTransaction(fn: () => void): Promise<void> {
+		try {
+			fn()
+			const mutationId = this.currentMutationId
+
+			return new Promise((resolve, reject) => {
+				const unsubCommit = this.store.events.on('commit', (ids: string[]) => {
+					if (ids.includes(mutationId)) {
+						resolve()
+						unsubCommit()
+						unsubReject()
+					}
+				})
+
+				const unsubReject = this.store.events.on('reject', (id: string) => {
+					if (id === mutationId) {
+						reject()
+						unsubCommit()
+						unsubReject()
+					}
+				})
+			})
+		} catch (e) {
+			return Promise.reject(e)
+		}
 	}
 
 	// eslint-disable-next-line local/prefer-class-methods

@@ -14,6 +14,9 @@
 			"path": "../store"
 		},
 		{
+			"path": "../sync-core"
+		},
+		{
 			"path": "../tldraw"
 		},
 		{

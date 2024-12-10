@@ -105,6 +105,9 @@ export const router = createRoutesFromElements(
 		</Route>
 		{/* end tla */}
 		<Route path="*" lazy={() => import('./pages/not-found')} />
+		{process.env.NODE_ENV === 'development' && typeof jest === 'undefined' ? (
+			<Route path="/stress-test" lazy={() => import('./pages/stress-test')} />
+		) : null}
 	</Route>
 )
 
