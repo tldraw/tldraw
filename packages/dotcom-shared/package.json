@@ -10,6 +10,7 @@
 	"dependencies": {
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
+		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",

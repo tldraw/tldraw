@@ -1,18 +1,15 @@
+import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
+import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+import { OptimisticAppStore } from './OptimisticAppStore'
 import {
-	OptimisticAppStore,
 	TlaFile,
 	TlaFilePartial,
 	TlaFileState,
 	TlaFileStatePartial,
 	TlaUser,
 	TlaUserPartial,
-	ZClientSentMessage,
-	ZErrorCode,
-	ZRowUpdate,
-	ZServerSentMessage,
-} from '@tldraw/dotcom-shared'
-import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+} from './tlaSchema'
+import { ZClientSentMessage, ZErrorCode, ZRowUpdate, ZServerSentMessage } from './types'
 
 export class Zero {
 	private socket: ClientWebSocketAdapter

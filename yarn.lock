@@ -7133,6 +7133,7 @@ __metadata:
   dependencies:
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/sync-core": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -7337,6 +7338,21 @@ __metadata:
     raf: "npm:^3.4.1"
   peerDependencies:
     react: ^18.2.0
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/stress-tester@workspace:apps/dotcom/stress-tester":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/stress-tester@workspace:apps/dotcom/stress-tester"
+  dependencies:
+    "@cloudflare/workers-types": "npm:^4.20241022.0"
+    "@tldraw/dotcom-shared": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@tldraw/worker-shared": "workspace:*"
+    itty-router: "npm:^5.0.17"
+    lazyrepo: "npm:0.0.0-alpha.27"
+    typescript: "npm:~5.4.2"
+    wrangler: "npm:^3.84.1"
   languageName: unknown
   linkType: soft
 
