@@ -1,14 +1,19 @@
 import {
 	Box,
+	DefaultFontFamilies,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 	TLShapeId,
+	useEditor,
 } from '@tldraw/editor'
 import React, { useEffect, useState } from 'react'
-import { TextArea } from '../text/TextArea'
+import { renderHtmlFromRichText } from '../../utils/text/richText'
+import { PlainTextArea } from '../text/PlainTextArea'
+import { RichTextArea } from '../text/RichTextArea'
 import { TextHelpers } from './TextHelpers'
+import { TEXT_PROPS } from './default-shape-constants'
 import { isLegacyAlign } from './legacyProps'
 import { useEditableText } from './useEditableText'
 
@@ -23,12 +28,14 @@ export interface TextLabelProps {
 	align: TLDefaultHorizontalAlignStyle
 	verticalAlign: TLDefaultVerticalAlignStyle
 	wrap?: boolean
+	enableRichText?: boolean
 	text: string
+	richText?: string
 	labelColor: string
 	bounds?: Box
 	isNote?: boolean
 	isSelected: boolean
-	onKeyDown?(e: React.KeyboardEvent<HTMLTextAreaElement>): void
+	onKeyDown?(e: KeyboardEvent): void
 	classNamePrefix?: string
 	style?: React.CSSProperties
 	textWidth?: number
@@ -36,11 +43,19 @@ export interface TextLabelProps {
 	padding?: number
 }
 
-/** @public @react */
+/**
+ * Renders a text label that can be used inside of shapes.
+ * The component has the ability to be edited in place and furthermore
+ * supports rich text editing.
+ *
+ * @public @react
+ */
 export const TextLabel = React.memo(function TextLabel({
-	shapeId: shapeId,
+	shapeId,
 	type,
-	text,
+	enableRichText,
+	text: plaintext,
+	richText,
 	labelColor,
 	font,
 	fontSize,
@@ -56,19 +71,34 @@ export const TextLabel = React.memo(function TextLabel({
 	textWidth,
 	textHeight,
 }: TextLabelProps) {
+	const editor = useEditor()
+	const [htmlFromMarkdown, setHtmlFromMarkdown] = useState<string | null>(null)
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		shapeId,
 		type,
-		text
+		plaintext,
+		richText
 	)
 
-	const [initialText, setInitialText] = useState(text)
+	useEffect(() => {
+		if (enableRichText && richText) {
+			const html = renderHtmlFromRichText(editor, richText)
+			setHtmlFromMarkdown(html)
+		} else {
+			if (htmlFromMarkdown) {
+				setHtmlFromMarkdown(null)
+			}
+		}
+	}, [plaintext, editor, enableRichText, richText, htmlFromMarkdown])
+
+	const currentText = richText || plaintext
+	const [initialText, setInitialText] = useState(currentText)
 
 	useEffect(() => {
-		if (!isEditing) setInitialText(text)
-	}, [isEditing, text])
+		if (!isEditing) setInitialText(currentText)
+	}, [isEditing, currentText])
 
-	const finalText = TextHelpers.normalizeTextForDom(text)
+	const finalText = TextHelpers.normalizeTextForDom(currentText)
 	const hasText = finalText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
@@ -77,8 +107,17 @@ export const TextLabel = React.memo(function TextLabel({
 		return null
 	}
 
+	const handlePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
+		// Allow links to be clicked upon.
+		if (e.target instanceof HTMLElement && e.target.tagName === 'A') {
+			e.preventDefault()
+			e.stopPropagation()
+		}
+	}
+
 	// TODO: probably combine tl-text and tl-arrow eventually
 	const cssPrefix = classNamePrefix || 'tl-text'
+	const TextAreaComponent = enableRichText ? RichTextArea : PlainTextArea
 	return (
 		<div
 			className={`${cssPrefix}-label tl-text-wrapper`}
@@ -109,20 +148,31 @@ export const TextLabel = React.memo(function TextLabel({
 				}}
 			>
 				<div className={`${cssPrefix} tl-text tl-text-content`} dir="auto">
-					{finalText.split('\n').map((lineOfText, index) => (
-						<div key={index} dir="auto">
-							{lineOfText}
-						</div>
-					))}
+					{enableRichText && richText ? (
+						<div
+							className="tl-rich-text-tiptap"
+							dangerouslySetInnerHTML={{ __html: htmlFromMarkdown || '' }}
+							onPointerDownCapture={handlePointerDownCapture}
+						/>
+					) : (
+						finalText.split('\n').map((lineOfText, index) => (
+							<div key={index} dir="auto">
+								{lineOfText}
+							</div>
+						))
+					)}
 				</div>
 				{(isEditingAnything || isSelected) && (
-					<TextArea
-						ref={rInput}
+					<TextAreaComponent
+						// Fudge the ref type because we're using forwardRef and it's not typed correctly.
+						ref={rInput as any}
 						// We need to add the initial value as the key here because we need this component to
 						// 'reset' when this state changes and grab the latest defaultValue.
 						key={initialText}
-						text={text}
+						text={plaintext}
+						richText={richText}
 						isEditing={isEditing}
+						shapeId={shapeId}
 						{...editableTextRest}
 						handleKeyDown={handleKeyDownCustom ?? editableTextRest.handleKeyDown}
 					/>
@@ -131,3 +181,69 @@ export const TextLabel = React.memo(function TextLabel({
 		</div>
 	)
 })
+
+/** @public */
+export interface RichTextSVGProps {
+	bounds: Box
+	richText: string
+	fontSize: number
+	font: TLDefaultFontStyle
+	align: TLDefaultHorizontalAlignStyle
+	verticalAlign: TLDefaultVerticalAlignStyle
+	wrap?: boolean
+	labelColor: string
+	padding: number
+}
+
+/**
+ * Renders a rich text string as SVG given bounds and text properties.
+ *
+ * @public @react
+ */
+export function RichTextSVG({
+	bounds,
+	richText,
+	fontSize,
+	font,
+	align,
+	verticalAlign,
+	wrap,
+	labelColor,
+	padding,
+}: RichTextSVGProps) {
+	const editor = useEditor()
+	const html = renderHtmlFromRichText(editor, richText)
+	const textAlign =
+		align === 'middle'
+			? ('center' as const)
+			: align === 'start'
+				? ('left' as const)
+				: ('right' as const)
+	const justifyContent =
+		verticalAlign === 'middle' ? 'center' : verticalAlign === 'start' ? 'flex-start' : 'flex-end'
+	const style = {
+		display: 'flex',
+		flexDirection: 'column' as const,
+		height: `calc(${bounds.h}px - ${padding * 2}px - 2px)`,
+		fontSize: `${fontSize}px`,
+		fontFamily: DefaultFontFamilies[font],
+		textAlign: textAlign,
+		justifyContent,
+		padding: `${padding}px`,
+		wrap: wrap ? 'wrap' : 'nowrap',
+		color: labelColor,
+		lineHeight: TEXT_PROPS.lineHeight,
+	}
+
+	return (
+		<foreignObject
+			x={bounds.minX}
+			y={bounds.minY}
+			width={bounds.w}
+			height={bounds.h}
+			className="tl-rich-text-svg"
+		>
+			<div dangerouslySetInnerHTML={{ __html: html }} style={style} />
+		</foreignObject>
+	)
+}

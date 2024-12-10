@@ -671,6 +671,27 @@ export function arrayOf<T>(itemValidator: Validatable<T>): ArrayOfValidator<T> {
 	return new ArrayOfValidator(itemValidator)
 }
 
+/**
+ * TipTap document format, one-level deep check, not a deep check.
+ *
+ * @public
+ */
+export const tipTapDoc = new Validator((value): any => {
+	if (value === '') return value
+
+	const json = JSON.parse(value as string)
+	if (typeof json !== 'object' || json === null) {
+		throw new ValidationError('Expected TipTap document format')
+	}
+	if (typeof json.type !== 'string') {
+		throw new ValidationError('Expected TipTap document format')
+	}
+	if (!Array.isArray(json.content)) {
+		throw new ValidationError('Expected TipTap document format')
+	}
+	return value
+})
+
 /** @public */
 export const unknownObject = new Validator<Record<string, unknown>>((value) => {
 	if (typeof value !== 'object' || value === null) {

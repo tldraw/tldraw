@@ -63,12 +63,132 @@ const manCrop: TLImageShapeCrop = {
 	bottomRight: { x: 0.75, y: 0.3 },
 }
 
+const richText = `{
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Headers for things"
+        }
+      ]
+    },
+    {
+      "type": "bulletList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "testing 123"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "lists and "
+                },
+                {
+                  "type": "text",
+                  "marks": [
+                    {
+                      "type": "link",
+                      "attrs": {
+                        "href": "https://tldraw.dev",
+                        "target": "_blank",
+                        "rel": "noopener noreferrer nofollow",
+                        "class": null
+                      }
+                    }
+                  ],
+                  "text": "links"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "bold"
+            }
+          ],
+          "text": "and"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "strike"
+            }
+          ],
+          "text": "obvs"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "highlight"
+            }
+          ],
+          "text": "rich"
+        },
+        {
+          "type": "text",
+          "text": " "
+        },
+        {
+          "type": "text",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ],
+          "text": "text"
+        }
+      ]
+    }
+  ]
+}`
+
 const snapshots: Snapshots = {
 	'Text rendering': {
 		'geo text': {
 			'leading line breaks': <TL.geo text={'\n\n\n\n\n\ntext'} w={100} h={30} />,
 			'trailing line breaks': <TL.geo text={'text\n\n\n\n\n\n'} w={100} h={30} />,
 			'mixed RTL': <TL.geo text={'unicode is cool!\nكتابة باللغة  العرب!'} w={300} h={300} />,
+			'rich text': <TL.geo richText={richText} align="start" w={300} h={300} />,
 		},
 	},
 	Fills: Object.fromEntries(

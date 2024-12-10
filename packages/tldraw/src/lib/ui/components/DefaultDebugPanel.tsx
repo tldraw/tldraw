@@ -14,7 +14,7 @@ export const DefaultDebugPanel = memo(function DefaultDebugPanel() {
 	const { DebugMenu } = useTldrawUiComponents()
 
 	const ref = useRef<HTMLDivElement>(null)
-	usePassThroughWheelEvents(ref)
+	usePassThroughWheelEvents(ref.current)
 
 	return (
 		<div ref={ref} className="tlui-debug-panel">

@@ -170,6 +170,7 @@ declare namespace T {
         boolean,
         bigint,
         array,
+        tipTapDoc,
         unknownObject,
         jsonValue,
         linkUrl,
@@ -179,6 +180,9 @@ declare namespace T {
     }
 }
 export { T }
+
+// @public
+const tipTapDoc: Validator<any>;
 
 // @public (undocumented)
 type TypeOf<V extends Validatable<any>> = V extends Validatable<infer T> ? T : never;

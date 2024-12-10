@@ -965,6 +965,8 @@ export interface TLGeoShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
+    richText?: string;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
@@ -1258,6 +1260,8 @@ export interface TLNoteShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
+    richText?: string;
+    // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
@@ -1402,6 +1406,8 @@ export interface TLTextShapeProps {
     color: TLDefaultColorStyle;
     // (undocumented)
     font: TLDefaultFontStyle;
+    // (undocumented)
+    richText?: string;
     // (undocumented)
     scale: number;
     // (undocumented)

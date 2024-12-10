@@ -256,6 +256,7 @@ export {
 	type TLCameraOptions,
 	type TLImageExportOptions,
 	type TLSvgOptions,
+	type TLTextOptions,
 } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { tlenv } from './lib/globals/environment'
@@ -278,6 +279,7 @@ export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
+export { usePassThroughMouseOverEvents } from './lib/hooks/usePassThroughMouseOverEvents'
 export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'

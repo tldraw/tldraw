@@ -85,6 +85,8 @@ export {
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
 export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
+export { PlainTextArea } from './lib/shapes/text/PlainTextArea'
+export { RichTextArea, type TextAreaProps } from './lib/shapes/text/RichTextArea'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -201,6 +203,14 @@ export {
 	type ThemeStylePickerSetProps,
 } from './lib/ui/components/StylePanel/DefaultStylePanelContent'
 export {
+	DefaultRichTextToolbar,
+	type TLUiRichTextToolbarProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbar'
+export {
+	DefaultRichTextToolbarItems,
+	type DefaultRichTextToolbarItemsProps,
+} from './lib/ui/components/Toolbar/DefaultRichTextToolbarItems'
+export {
 	DefaultToolbar,
 	type DefaultToolbarProps,
 } from './lib/ui/components/Toolbar/DefaultToolbar'
@@ -314,6 +324,10 @@ export {
 	type TLUiButtonPickerProps,
 } from './lib/ui/components/primitives/TldrawUiButtonPicker'
 export {
+	TldrawUiContextualToolbar,
+	type TLUiContextualToolbarProps,
+} from './lib/ui/components/primitives/TldrawUiContextualToolbar'
+export {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogFooter,
@@ -425,7 +439,9 @@ export {
 } from './lib/ui/context/toasts'
 export { useCanRedo, useCanUndo } from './lib/ui/hooks/menu-hooks'
 export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/ui/hooks/useClipboardEvents'
+export { useContextualToolbarPosition } from './lib/ui/hooks/useContextualToolbarPosition'
 export { useCopyAs } from './lib/ui/hooks/useCopyAs'
+export { useDebouncedValue } from './lib/ui/hooks/useDebouncedValue'
 export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useCollaborationStatus, useShowCollaborationUi } from './lib/ui/hooks/useIsMultiplayer'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
