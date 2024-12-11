@@ -3,26 +3,27 @@ import { STCoordinatorState } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
 import { fetch, getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
 
+function useLocalValue(key: string, initialValue: string) {
+	const [value, setValue] = useState(getFromLocalStorage(key) ?? initialValue)
+
+	useEffect(() => {
+		if (!value) {
+			const newValue = window.prompt(`Enter ${key.replace('_', ' ')}`) ?? ''
+			setValue(newValue)
+		} else {
+			setInLocalStorage(key, value)
+		}
+	}, [value, key])
+
+	return [value, setValue] as const
+}
+
 export function Component() {
 	const [state, setState] = useState(null as null | STCoordinatorState)
-	const [coordinatorUrl, setCoordinatorUrl] = useState(
-		getFromLocalStorage('st_coordinator_url') ?? ''
-	)
-	const [accessToken, setAccessToken] = useState(getFromLocalStorage('st_access_token') ?? '')
-	useEffect(() => {
-		if (!coordinatorUrl) {
-			setCoordinatorUrl(window.prompt('Enter coordinator URL') ?? '')
-		} else {
-			setInLocalStorage('st_coordinator_url', coordinatorUrl)
-		}
-	}, [coordinatorUrl])
-	useEffect(() => {
-		if (!accessToken) {
-			setAccessToken(window.prompt('Enter access token') ?? '')
-		} else {
-			setInLocalStorage('st_access_token', accessToken)
-		}
-	}, [accessToken])
+	const [coordinatorUrl] = useLocalValue('st_coordinator_url', '')
+	const [accessToken] = useLocalValue('st_access_token', '')
+	const [uri] = useLocalValue('st_uri', '')
+
 	useEffect(() => {
 		if (!coordinatorUrl || !accessToken) return
 		const interval = setInterval(() => {
@@ -48,9 +49,7 @@ export function Component() {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
-			body: JSON.stringify({
-				uri: 'http://localhost:8787',
-			}),
+			body: JSON.stringify({ uri }),
 		})
 		if (res.ok) {
 			console.info('test started')
@@ -62,9 +61,7 @@ export function Component() {
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
 			},
-			body: JSON.stringify({
-				uri: 'http://localhost:8787',
-			}),
+			body: JSON.stringify({ uri }),
 		})
 		if (res.ok) {
 			console.info('test stopped')
