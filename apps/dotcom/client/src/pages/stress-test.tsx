@@ -1,6 +1,6 @@
 import { STCoordinatorState } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
-import { fetch, getFromLocalStorage, setInLocalStorage } from 'tldraw'
+import { fetch, getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
 
 export function Component() {
 	const [state, setState] = useState(null as null | STCoordinatorState)
@@ -41,7 +41,8 @@ export function Component() {
 	}
 
 	const handleStart = async () => {
-		const res = await fetch(coordinatorUrl + '/first-one/start', {
+		const testId = uniqueId()
+		const res = await fetch(coordinatorUrl + `/${testId}/start`, {
 			method: 'POST',
 			headers: {
 				Authorization: `Bearer ${accessToken}`,
@@ -70,7 +71,7 @@ export function Component() {
 	}
 
 	return (
-		<div>
+		<div style={{ height: '100%', overflow: 'scroll' }}>
 			<pre>{JSON.stringify(state, null, 2)}</pre>
 			<button onClick={handleStart}>Start test</button>
 			<button onClick={handleStop}>Stop test</button>

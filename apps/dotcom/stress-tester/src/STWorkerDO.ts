@@ -1,87 +1,145 @@
 import { Z_PROTOCOL_VERSION, Zero } from '@tldraw/dotcom-shared'
-import { assertExists, time } from '@tldraw/utils'
+import { Result, assertExists, sleep, uniqueId } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
+import { STCoordinatorDO } from './STCoordinatorDO'
 import { Environment } from './types'
 
+const TIMEOUT = 100000
+
 export class STWorkerDO extends DurableObject<Environment> {
+	coordinator: STCoordinatorDO
+	zero: Zero | null = null
 	constructor(
 		private state: DurableObjectState,
 		env: Environment
 	) {
 		super(state, env)
-	}
-	override async fetch(request: Request) {
-		return new Response('Hello, world!', { status: 200 })
+		this.coordinator = env.ST_COORDINATOR.get(
+			env.ST_COORDINATOR.idFromName('coordinator')
+		) as any as STCoordinatorDO
 	}
 
-	private async startWorking(uri: string) {
+	debug(...args: any[]) {
+		// eslint-disable-next-line no-console
+		console.log(...args)
+	}
+
+	async time<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+		const now = Date.now()
+		const res = await Promise.race([
+			fn().then(Result.ok).catch(Result.err),
+			sleep(TIMEOUT).then(() => Result.err(new Error('Operation timed out'))),
+		])
+		const duration = Date.now() - now
+		this.coordinator.reportEvent({
+			type: 'operation',
+			operation,
+			duration,
+			error: !res.ok ? res.error?.stack : null,
+			workerId: await this.getId(),
+			id: uniqueId(),
+		})
+		if (res.ok) {
+			return res.value
+		} else {
+			throw res.error
+		}
+	}
+
+	async mutate(name: string, fn: (z: Zero['____mutators']) => void) {
+		if (!this.zero) return
+		await this.time(name, async () => {
+			return this.zero?.sneakyTransaction(() => {
+				fn(this.zero!.____mutators)
+			})
+		})
+	}
+
+	private async startWorking() {
 		try {
-			const id = await this.getId()
-			const polyfill = new Zero({
+			this.debug('startWorking')
+			const workerId = await this.getId()
+			const origin = (await this.state.storage.get('origin')!) as string
+			this.zero = new Zero({
 				getUri: async () => {
-					const u = new URL(uri)
-					u.pathname = `/app/${id}/connect`
-					u.searchParams.set('accessToken', `${this.env.TEST_AUTH_SECRET}:${id}`)
-					u.searchParams.set('sessionId', id)
+					const u = new URL(origin)
+					u.pathname = `/app/${workerId}/connect`
+					u.searchParams.set('accessToken', `${this.env.TEST_AUTH_SECRET}:${workerId}`)
+					u.searchParams.set('sessionId', workerId)
 					u.searchParams.set('protocolVersion', String(Z_PROTOCOL_VERSION))
 					return u.toString()
 				},
-				onMutationRejected: () => console.log('Mutation rejected'),
-				onClientTooOld: () => console.log('Client too old'),
+				onMutationRejected: () => null,
+				onClientTooOld: () => {
+					this.coordinator.reportEvent({
+						type: 'error',
+						error: 'Client too old',
+						workerId,
+						id: uniqueId(),
+					})
+				},
+			})
+			this.zero.userId = workerId
+
+			await this.time('zero preload', async () => {
+				await this.zero!.query.user.where('id', workerId).preload().complete
 			})
 
-			console.log('got polyfill')
+			const user = this.zero.store.getFullData()?.user
 
-			await polyfill.query.user.where('id', id).preload().complete
-			console.log('preloaded')
-			const user = polyfill.store.getFullData()?.user
-
+			this.debug('user?', user, workerId, this.zero.store.getCommittedData())
 			if (!user) {
-				const defaultUser = {
-					id,
-					name: 'Test User',
-					email: `${id}@example.com`,
-					color: 'salmon',
-					avatar: '',
-					exportFormat: 'png',
-					exportTheme: 'light',
-					exportBackground: false,
-					exportPadding: false,
-					createdAt: 1731610733963,
-					updatedAt: 1731610733963,
-					flags: '',
-					locale: null,
-					animationSpeed: null,
-					edgeScrollSpeed: null,
-					colorScheme: null,
-					isSnapMode: null,
-					isWrapMode: null,
-					isDynamicSizeMode: null,
-					isPasteAtCursorMode: null,
-				}
-				const start = Date.now()
-				const res = await time(() => {
-					return polyfill.sneakyTransaction(() => {
-						polyfill.mutate.user.create(defaultUser)
+				await this.mutate('create user', async (z) => {
+					z.user.create({
+						id: workerId,
+						name: 'Test User',
+						email: `${workerId}@example.com`,
+						color: 'salmon',
+						avatar: '',
+						exportFormat: 'png',
+						exportTheme: 'light',
+						exportBackground: false,
+						exportPadding: false,
+						createdAt: 1731610733963,
+						updatedAt: 1731610733963,
+						flags: '',
+						locale: null,
+						animationSpeed: null,
+						edgeScrollSpeed: null,
+						colorScheme: null,
+						isSnapMode: null,
+						isWrapMode: null,
+						isDynamicSizeMode: null,
+						isPasteAtCursorMode: null,
 					})
 				})
-				if (res.ok) {
-					console.log('created user in', res.value[0], 'ms')
-				} else {
-					// handle failure
-					console.log('created user in', Date.now() - start)
-				}
 			}
 		} catch (e) {
 			console.error(e)
 		}
 	}
 
-	async start(maxDelay: number, id: string, uri: string) {
-		console.log('starting worker', id, maxDelay)
+	async start(maxDelay: number, id: string, origin: string) {
+		this.debug('worker.start()', id, maxDelay)
 		this.state.storage.put('id', id)
+		this.state.storage.put('origin', origin)
 		const delay = Math.floor(Math.random() * maxDelay)
-		setTimeout(() => this.startWorking(uri), delay)
+		const alarm = await this.state.storage.getAlarm()
+		if (alarm) {
+			await this.state.storage.deleteAlarm()
+		}
+		this.state.storage.setAlarm(Date.now() + delay)
+	}
+
+	override alarm() {
+		this.startWorking()
+	}
+
+	async stop() {
+		await this.state.storage.deleteAlarm()
+		await this.state.storage.deleteAll()
+		this.zero?.dispose()
+		this.zero = null
 	}
 
 	async getId(): Promise<string> {

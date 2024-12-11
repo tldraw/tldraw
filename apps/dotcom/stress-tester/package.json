@@ -9,7 +9,7 @@
 	},
 	"main": "./src/worker.ts",
 	"scripts": {
-		"dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts",
+		"_dev": "yarn run -T tsx ../../../internal/scripts/workers/dev.ts",
 		"test-ci": "lazy inherit",
 		"test": "yarn run -T jest",
 		"test-coverage": "lazy inherit",

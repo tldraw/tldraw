@@ -377,6 +377,7 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private handleUserEvent(row: postgres.Row | null, event: postgres.ReplicationEvent) {
 		assert(row?.id, 'user id is required')
+		this.debug('USER EVENT', event.command, row.id)
 		this.messageUser(row.id, {
 			type: 'row_update',
 			row: row as any,
@@ -416,11 +417,15 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private async messageUser(userId: string, event: ZReplicationEvent) {
-		const user = getUserDurableObject(this.env, userId)
-		const res = await user.handleReplicationEvent(event)
-		if (res === 'unregister') {
-			this.debug('unregistering user', userId, event)
-			this.unregisterUser(userId)
+		try {
+			const user = getUserDurableObject(this.env, userId)
+			const res = await user.handleReplicationEvent(event)
+			if (res === 'unregister') {
+				this.debug('unregistering user', userId, event)
+				this.unregisterUser(userId)
+			}
+		} catch (e) {
+			console.error('Error in messageUser', e)
 		}
 	}
 
