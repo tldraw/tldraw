@@ -89,7 +89,6 @@ export const arrowShapeVersions = createShapePropsMigrationIds('arrow', {
 	AddLabelPosition: 3,
 	ExtractBindings: 4,
 	AddScale: 5,
-	AddRichText: 6,
 })
 
 function propsMigration(migration: TLPropsMigration) {
