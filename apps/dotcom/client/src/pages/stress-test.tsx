@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { STCoordinatorState } from '@tldraw/dotcom-shared'
 import { useEffect, useState } from 'react'
 import { fetch, getFromLocalStorage, setInLocalStorage, uniqueId } from 'tldraw'
@@ -69,6 +70,11 @@ export function Component() {
 			console.info('test stopped')
 		}
 	}
+	const events = Object.values(state.tests).flatMap((t) => t.events)
+
+	const createEvents = events.filter((e) => e.type === 'operation' && e.operation === 'create user')
+
+	console.log(createEvents)
 
 	return (
 		<div style={{ height: '100%', overflow: 'scroll' }}>

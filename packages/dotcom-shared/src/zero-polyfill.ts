@@ -1,5 +1,6 @@
+import { Signal, computed, react, transact } from '@tldraw/state'
 import { ClientWebSocketAdapter, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { Signal, computed, react, transact, uniqueId } from 'tldraw'
+import { uniqueId } from '@tldraw/utils'
 import { OptimisticAppStore } from './OptimisticAppStore'
 import {
 	TlaFile,
@@ -44,7 +45,7 @@ export class Zero {
 				// ignore incoming messages if the client is not supported
 				return
 			}
-			// console.log("got msg", this.userId, _msg)
+			// console.log('got msg', this.userId, _msg)
 			const msg = _msg as any as ZServerSentMessage
 			switch (msg.type) {
 				case 'initial_data':

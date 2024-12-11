@@ -145,6 +145,7 @@ export class UserDataSyncer {
 	}
 
 	private commitMutations(upToAndIncludingNumber: number) {
+		this.debug('commit mutations', this.userId, upToAndIncludingNumber, this.mutations)
 		const mutationIds = this.mutations
 			.filter((m) => m.mutationNumber <= upToAndIncludingNumber)
 			.map((m) => m.mutationId)
