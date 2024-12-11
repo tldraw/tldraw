@@ -726,8 +726,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						y={toDomPrecision(labelGeometry.y)}
 						width={labelGeometry.w}
 						height={labelGeometry.h}
-						rx={3.5}
-						ry={3.5}
+						rx={3.5 * shape.props.scale}
+						ry={3.5 * shape.props.scale}
 					/>
 				)}
 			</g>

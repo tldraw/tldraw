@@ -248,6 +248,7 @@ input,
 *[contenteditable],
 *[contenteditable] * {
 	-webkit-user-select: text;
+	user-select: text;
 }
 
 /* -------------------------------------------------- */
@@ -825,22 +826,29 @@ input,
 }
 
 .tl-text-measure {
-	position: absolute;
 	z-index: var(--layer-canvas-hidden);
 	top: 0px;
 	left: 0px;
 	opacity: 0;
+	pointer-events: none;
+
+	position: absolute;
 	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
-	white-space: pre-wrap;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
 	resize: none;
-	border: none;
-	user-select: none;
 	contain: style paint;
+	user-select: none;
 	-webkit-user-select: none;
+}
+
+.tl-text-measure__debug {
+	z-index: 99999999;
+	top: 100px;
+	left: 100px;
+	opacity: 1;
+	pointer-events: all;
+	background: rgba(0, 255, 128, 0.5);
 }
 
 .tl-text-input,
@@ -1128,9 +1136,6 @@ input,
 	top: 0px;
 	left: 0px;
 	padding: inherit;
-	height: fit-content;
-	width: fit-content;
-	border-radius: var(--radius-1);
 	max-width: 100%;
 }
 
