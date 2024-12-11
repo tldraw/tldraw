@@ -116,11 +116,11 @@ export class STWorkerDO extends DurableObject<Environment> {
 				})
 			}
 
-			const file = this.zero.store.getFullData()?.files[0]
+			let file = this.zero.store.getCommittedData()?.files[0]
 
+			const fileId = file?.id ?? uniqueId()
 			if (!file) {
-				const fileId = uniqueId()
-				await this.mutate('create file', async (z) => {
+				await this.mutate('create file ' + fileId, async (z) => {
 					z.file.create({
 						id: fileId,
 						name: 'name',
@@ -141,8 +141,9 @@ export class STWorkerDO extends DurableObject<Environment> {
 				})
 			}
 
-			const fileId = this.zero.store.getFullData()?.files[0].id
-			assert(fileId, 'No file id')
+
+			file = this.zero.store.getCommittedData()?.files[0]
+			assert(file, `No file after mutate ${workerId} ${fileId}`)
 		} catch (e) {
 			this.coordinator.reportEvent({
 				type: 'error',

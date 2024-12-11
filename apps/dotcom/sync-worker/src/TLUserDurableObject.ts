@@ -371,6 +371,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
 			this.debug('mutation success', this.userId)
+			const fileUpdate = msg.updates.find((u) => u.table === 'file')
+			if (fileUpdate) {
+				console.log('hello: mutated', this.userId, fileUpdate.row.id)
+			}
 
 			await this.db
 				.begin(async (sql) => {
@@ -384,9 +388,11 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 						`mutation number did not increment mutationNumber: ${mutationNumber} current: ${currentMutationNumber}`
 					)
 					this.debug('pushing mutation to cache', this.userId, mutationNumber)
+					if (fileUpdate) console.log('hello: mutation number', this.userId, mutationNumber)
 					this.cache.mutations.push({ mutationNumber, mutationId: msg.mutationId })
 				})
 				.catch((e) => {
+					console.log('hello: mutation number failed', this.userId)
 					this.cache.mutations = this.cache.mutations.filter((m) => m.mutationId !== msg.mutationId)
 					throw e
 				})
@@ -401,14 +407,42 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	/* ------- RPCs -------  */
 
+	buffer: ZReplicationEvent[] = []
+	lastSequenceNumber = null as null | number
+
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
-		this.debug('replication event', event, !!this.cache)
+		console.log('replication event', event, !!this.cache)
 		if (!this.cache) {
 			return 'unregister'
 		}
 
-		this.cache.handleReplicationEvent(event)
+		if (this.lastSequenceNumber !== null && event.sequenceNumber != this.lastSequenceNumber + 1) {
+
+			this.cache.reboot()
+			return
+			if (this.buffer.length > 10) {
+				this.cache.reboot()
+				return 'ok'
+			}
+
+			this.buffer.push(event)
+			return 'ok'
+		}
+
+		try {
+			this.cache.handleReplicationEvent(event)
+		} finally {
+			this.lastSequenceNumber = event.sequenceNumber
+		}
+
+		if (this.buffer.length > 0) {
+			const buf = this.buffer
+			this.buffer = []
+			for (const e of buf) {
+				this.cache.handleReplicationEvent(e)
+			}
+		}
 
 		return 'ok'
 	}

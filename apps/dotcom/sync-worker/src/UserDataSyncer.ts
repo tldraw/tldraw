@@ -30,6 +30,7 @@ export interface ZRowUpdateEvent {
 	// If the replicator fails and restarts, this id will change.
 	// And in that case the user DO should reboot.
 	sequenceId: string
+	sequenceNumber: number
 	row: TlaRow
 	table: ZTable
 	event: ZEvent
@@ -39,6 +40,7 @@ export interface ZBootCompleteEvent {
 	type: 'boot_complete'
 	userId: string
 	sequenceId: string
+	sequenceNumber: number
 	bootId: string
 }
 
@@ -48,10 +50,12 @@ export interface ZMutationCommit {
 	mutationNumber: number
 	// if the sequence id changes make sure we still handle the mutation commit
 	sequenceId: string
+	sequenceNumber: number
 }
 export interface ZForceReboot {
 	type: 'force_reboot'
 	sequenceId: string
+	sequenceNumber: number
 }
 
 export type ZReplicationEvent =
@@ -59,6 +63,12 @@ export type ZReplicationEvent =
 	| ZBootCompleteEvent
 	| ZMutationCommit
 	| ZForceReboot
+
+export type ZReplicationEventWithoutSequenceNumber =
+	| Omit<ZRowUpdateEvent, 'sequenceNumber'>
+	| Omit<ZBootCompleteEvent, 'sequenceNumber'>
+	| Omit<ZMutationCommit, 'sequenceNumber'>
+	| Omit<ZForceReboot, 'sequenceNumber'>
 
 type BootState =
 	| {

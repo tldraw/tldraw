@@ -18,7 +18,7 @@ const regions: DurableObjectLocationHint[] = [
 ]
 
 const { preflight, corsify } = cors({ origin: '*' })
-const NUMBER_OF_WORKERS = 100
+const NUMBER_OF_WORKERS = 50
 const START_WITHIN = 1000
 
 export class STCoordinatorDO extends DurableObject<Environment> {

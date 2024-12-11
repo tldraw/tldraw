@@ -12,7 +12,7 @@ import { DurableObject } from 'cloudflare:workers'
 import postgres from 'postgres'
 import type { EventHint } from 'toucan-js/node_modules/@sentry/types'
 import type { TLDrawDurableObject } from './TLDrawDurableObject'
-import { ZReplicationEvent } from './UserDataSyncer'
+import { ZReplicationEventWithoutSequenceNumber } from './UserDataSyncer'
 import { getPostgres } from './getPostgres'
 import { Analytics, Environment, TLPostgresReplicatorEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -21,8 +21,10 @@ import { getUserDurableObject } from './utils/durableObjects'
 const seed = `
 -- we keep the active_user data between reboots to 
 -- make sure users don't miss updates.
+DROP TABLE IF EXISTS active_user;
 CREATE TABLE IF NOT EXISTS active_user (
-	id TEXT PRIMARY KEY
+	id TEXT PRIMARY KEY,
+	sequenceNumber BIGINT DEFAULT 0	
 );
 DROP TABLE IF EXISTS user_file_subscriptions;
 CREATE TABLE user_file_subscriptions (
@@ -416,10 +418,26 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	private async messageUser(userId: string, event: ZReplicationEvent) {
+	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceNumber) {
+		const res = this.sql
+			.exec('SELECT sequenceNumber FROM active_user WHERE id = ?', userId)
+			.toArray()
+		if (res.length === 0) {
+			console.error('user not found', userId)
+			return
+		}
+		const sequenceNumber = res[0].sequenceNumber as number
+		this.sql.exec('UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ?', userId)
+
+		if (event.type === 'row_update' && event.table === 'file' && event.event === 'insert') {
+			console.log('hello: file insert', event.row.ownerId, event.row.id)
+		} else if (event.type === 'mutation_commit') {
+			console.log('hello: mutation commit', event.userId, event.mutationNumber)
+		}
+
 		try {
 			const user = getUserDurableObject(this.env, userId)
-			const res = await user.handleReplicationEvent(event)
+			const res = await user.handleReplicationEvent({...event, sequenceNumber})
 			if (res === 'unregister') {
 				this.debug('unregistering user', userId, event)
 				this.unregisterUser(userId)
