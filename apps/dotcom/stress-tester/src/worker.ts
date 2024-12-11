@@ -14,7 +14,6 @@ const router = createRouter()
 	.all('*', (req) => preflight(req))
 	.all('*', (req, env: Environment) => {
 		const bearer = req.headers.get('Authorization')
-		console.info('💡[5]: worker.ts:16: bearer=', bearer)
 		if (!bearer || bearer !== `Bearer ${env.ACCESS_TOKEN}`) {
 			return new Response('Unauthorized', { status: 401 })
 		}
