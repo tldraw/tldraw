@@ -1,6 +1,6 @@
 import { Section } from '@/components/marketing/section'
 import { SectionHeading } from '@/components/marketing/section-heading'
-import { CheckCircleIcon, UserCircleIcon } from '@heroicons/react/20/solid'
+import { CheckCircleIcon, UsersIcon } from '@heroicons/react/20/solid'
 
 import { PricingButton } from './pricing-button'
 
@@ -16,7 +16,7 @@ export function PricingSection() {
 				<div className="isolate mx-auto px-8 md:px-5 -mt-16 grid max-w-sm grid-cols-1 gap-y-16 divide-y divide-gray-100 sm:mx-auto lg:-mx-8 lg:mt-0 lg:max-w-none lg:grid-cols-3 lg:divide-x lg:divide-y-0 xl:-mx-4">
 					{tiers.map((tier) => (
 						<div key={tier.id} className="pt-16 lg:px-8 lg:pt-0 xl:px-14">
-							<h3 id={tier.id} className="text-base/7 font-semibold text-black dark:text-white">
+							<h3 id={tier.id} className="text-lg/5 font-semibold text-black dark:text-white">
 								{tier.name}
 							</h3>
 							{tier.id === 'business' ? (
@@ -44,16 +44,16 @@ export function PricingSection() {
 								{tier.description}
 							</p>
 							<ul role="list" className="mt-6 space-y-3 text-sm/6">
-								{tier.features.map((feature, i) => (
+								<li className="flex gap-x-3">
+									<UsersIcon className="h-6 w-5 flex-none text-black-500" /> {tier.teamSize}
+								</li>
+								<hr />
+								{tier.features.map((feature) => (
 									<li key={feature} className="flex gap-x-3">
-										{tier.flagFirst && i === 0 ? (
-											<UserCircleIcon aria-hidden="true" className="h-6 w-5 flex-none" />
-										) : (
-											<CheckCircleIcon
-												aria-hidden="true"
-												className="h-6 w-5 flex-none text-black-500"
-											/>
-										)}
+										<CheckCircleIcon
+											aria-hidden="true"
+											className="h-6 w-5 flex-none text-black-500"
+										/>
 										{feature}
 									</li>
 								))}
@@ -73,12 +73,12 @@ const tiers = [
 		type: 'secondary',
 		price: {
 			monthly: '$499',
-			annually: '$449',
+			annually: '$6,000',
 		},
 		href: '/buy/startup-lite',
 		description: 'For small teams getting started.',
-		features: ['Fewer than 10 employees', 'No watermark', 'Community support'],
-		flagFirst: true,
+		teamSize: 'Up to 10 employees',
+		features: ['No watermark'],
 	},
 	{
 		id: 'startup',
@@ -86,20 +86,20 @@ const tiers = [
 		type: 'secondary',
 		price: {
 			monthly: '$999',
-			annually: '$899',
+			annually: '$12,000',
 		},
 		href: '/buy/startup',
+		teamSize: 'Up to 10 employees',
 		description: 'For small teams who need to speak to us.',
-		features: ['Fewer than 10 employees', 'No watermark', 'Two hours of support per month'],
-		flagFirst: true,
+		features: ['No watermark', 'Two hours of support per month'],
 	},
 	{
 		id: 'business',
 		name: 'Business',
 		type: 'primary',
 		href: '/buy/business',
+		teamSize: 'No limit on team size',
 		description: 'For larger teams and enterprises.',
 		features: ['No watermark', 'Premium support', 'Custom agreements', 'Dedicated account manager'],
-		flagFirst: false,
 	},
 ] as const
