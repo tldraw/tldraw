@@ -5,6 +5,7 @@ import { STCoordinatorDO } from './STCoordinatorDO'
 import { Environment } from './types'
 
 const TIMEOUT = 20_000
+const FILES = 10
 
 export class STWorkerDO extends DurableObject<Environment> {
 	coordinator: STCoordinatorDO
@@ -116,33 +117,36 @@ export class STWorkerDO extends DurableObject<Environment> {
 				})
 			}
 
-			let file = this.zero.store.getCommittedData()?.files[0]
-
-			const fileId = file?.id ?? uniqueId()
-			if (!file) {
-				await this.mutate('create file ' + fileId, async (z) => {
-					z.file.create({
-						id: fileId,
-						name: 'name',
-						ownerId: workerId,
-						ownerName: '',
-						ownerAvatar: '',
-						thumbnail: '',
-						shared: true,
-						sharedLinkType: 'edit',
-						published: true,
-						lastPublished: 123,
-						publishedSlug: uniqueId(),
-						createdAt: 123,
-						updatedAt: 123,
-						isEmpty: true,
-						isDeleted: false,
+			for (let i = 0; i < FILES; i++) {
+				// let file = this.zero.store.getCommittedData()?.files[0]
+				// const fileId = file?.id ?? uniqueId()
+				let file = null
+				const fileId = uniqueId()
+				if (!file) {
+					await this.mutate('create file ' + fileId, async (z) => {
+						z.file.create({
+							id: fileId,
+							name: 'name',
+							ownerId: workerId,
+							ownerName: '',
+							ownerAvatar: '',
+							thumbnail: '',
+							shared: true,
+							sharedLinkType: 'edit',
+							published: true,
+							lastPublished: 123,
+							publishedSlug: uniqueId(),
+							createdAt: 123,
+							updatedAt: 123,
+							isEmpty: true,
+							isDeleted: false,
+						})
 					})
-				})
-			}
+				}
 
-			file = this.zero.store.getCommittedData()?.files[0]
-			assert(file, `No file after mutate ${workerId} ${fileId}`)
+				file = this.zero.store.getCommittedData()?.files[0]
+				assert(file, `No file after mutate ${workerId} ${fileId}`)
+			}
 		} catch (e) {
 			this.coordinator.reportEvent({
 				type: 'error',

@@ -20,6 +20,7 @@ services:
       -c wal_level=logical
       -c max_wal_senders=10 
       -c max_replication_slots=5 
+      -c max_connections=500 
       -c hot_standby=on 
       -c hot_standby_feedback=on
 #       Uncomment the following line to enable query logging
@@ -28,6 +29,20 @@ services:
       - zstart_pgdata:/var/lib/postgresql/data
       - ./:/docker-entrypoint-initdb.d
       - ./postgres-logging.conf:/etc/postgresql/postgresql.conf
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    restart: always
+    ports:
+      - "6432:6432"
+    environment:
+      DATABASE_URL: postgres://user:password@zstart_postgres:5432/postgres
+    volumes:
+      - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
+      - ./userlist.txt:/etc/pgbouncer/userlist.txt
+    command: >
+#     Uncomment to show pgbouncer logs
+      sh -c "pgbouncer /etc/pgbouncer/pgbouncer.ini > /dev/null 2>&1"
 
 volumes:
   zstart_pgdata:
