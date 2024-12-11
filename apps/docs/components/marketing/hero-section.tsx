@@ -6,6 +6,16 @@ import Link from 'next/link'
 export function HeroSection() {
 	return (
 		<section className="w-full max-w-screen-xl mx-auto md:px-5 flex flex-col items-center py-8 sm:py-16">
+			<div className="bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-center mb-8 self-stretch -mt-8 sm:-mt-16 sm:mb-16 md:rounded-full md:-mt-12 md:self-center">
+				We made a cool thing with Google DeepMind.{' '}
+				<a
+					href="https://ai.google.dev/showcase/tldraw"
+					className="inline-flex items-center text-blue-500 "
+				>
+					Read the blog post
+					<ArrowRightIcon className="w-4 ml-1" />
+				</a>
+			</div>
 			<div className="relative">
 				<h1 className="hidden sm:block relative font-black text-black dark:text-white text-center text-3xl leading-tight sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight w-full px-[8px]">
 					The <mark className="inline dark:hidden">infinite&nbsp;canvas&nbsp;SDK</mark>
