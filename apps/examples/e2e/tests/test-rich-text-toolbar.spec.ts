@@ -7,9 +7,15 @@ declare const editor: Editor
 
 test.describe('Rich text behaviour', () => {
 	test.beforeEach(setup)
-	test.beforeEach(async ({ page, toolbar }) => {
+	test.beforeEach(async ({ page, toolbar, isMobile }) => {
 		const { rectangle } = toolbar.tools
-		await rectangle.click()
+		const { popoverRectangle } = toolbar.popOverTools
+		if (isMobile) {
+			await toolbar.moreToolsButton.click()
+			await popoverRectangle.click()
+		} else {
+			await rectangle.click()
+		}
 		await page.mouse.dblclick(150, 150)
 
 		const isEditing = await page.evaluate(
@@ -33,7 +39,7 @@ test.describe('Rich text behaviour', () => {
 		await page.waitForTimeout(150)
 	})
 
-	test('selecting a style changes the style of the shapes', async ({ page, richTextToolbar }) => {
+	test('selecting a style changes the style of the text', async ({ page, richTextToolbar }) => {
 		const toolsForHTMLStyle = [
 			{ name: 'bold', tag: 'strong' },
 			{ name: 'strike', tag: 's' },
@@ -74,9 +80,9 @@ test.describe('Rich text behaviour', () => {
 		await page.keyboard.press('Enter')
 
 		// Click away to get out of edit mode.
-		await page.mouse.click(500, 500)
+		await page.mouse.click(150, 400)
 		await rectangle.click()
-		await page.mouse.click(500, 500)
+		await page.mouse.click(150, 400)
 		await page.waitForTimeout(150)
 
 		// Check the link has been rendered.
