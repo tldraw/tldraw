@@ -18,7 +18,7 @@ const regions: DurableObjectLocationHint[] = [
 ]
 
 const { preflight, corsify } = cors({ origin: '*' })
-const NUMBER_OF_WORKERS = 50
+const NUMBER_OF_WORKERS = 1000
 const START_WITHIN = 1000
 
 export class STCoordinatorDO extends DurableObject<Environment> {
@@ -85,6 +85,9 @@ export class STCoordinatorDO extends DurableObject<Environment> {
 	reportEvent(event: STWorkerEvent) {
 		const testId = event.workerId.split(':')[0]
 		this.debug('testId', testId)
+		if (event.error === null) {
+			delete event.error
+		}
 		this.state.tests[testId].events.push(event)
 	}
 }

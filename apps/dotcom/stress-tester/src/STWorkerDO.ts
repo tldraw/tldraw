@@ -4,7 +4,7 @@ import { DurableObject } from 'cloudflare:workers'
 import { STCoordinatorDO } from './STCoordinatorDO'
 import { Environment } from './types'
 
-const TIMEOUT = 5000
+const TIMEOUT = 20_000
 
 export class STWorkerDO extends DurableObject<Environment> {
 	coordinator: STCoordinatorDO
@@ -140,7 +140,6 @@ export class STWorkerDO extends DurableObject<Environment> {
 					})
 				})
 			}
-
 
 			file = this.zero.store.getCommittedData()?.files[0]
 			assert(file, `No file after mutate ${workerId} ${fileId}`)

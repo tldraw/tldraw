@@ -5,7 +5,7 @@ export type STWorkerEvent =
 			type: 'operation'
 			operation: string
 			duration: number
-			error: null | string
+			error?: null | string
 	  }
 	| {
 			id: string

@@ -33,6 +33,10 @@ CREATE TABLE user_file_subscriptions (
 	PRIMARY KEY (userId, fileId),
 	FOREIGN KEY (userId) REFERENCES active_user(id) ON DELETE CASCADE
 );
+DROP TABLE IF EXISTS logs;
+CREATE TABLE IF NOT EXISTS logs (
+	log TEXT
+);
 `
 
 const ONE_MINUTE = 60 * 1000
@@ -68,6 +72,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	measure: Analytics | undefined
 	postgresUpdates = 0
 	lastRpmLogTime = Date.now()
+	userMessages = 0
+
+	queues: Map<string, ExecutionQueue> = new Map()
 
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
@@ -113,14 +120,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 
 	private maybeLogRpm() {
 		const now = Date.now()
-		if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
-			this.logEvent({
-				type: 'rpm',
-				rpm: this.postgresUpdates,
-			})
-			this.postgresUpdates = 0
-			this.lastRpmLogTime = now
-		}
+		this.storeLog('postgresUpdates', this.postgresUpdates, 'user messages', this.userMessages)
+		this.postgresUpdates = 0
+		this.userMessages = 0
+		// TODO: restore this later to make sure we push stuff to metrics
+		// if (this.postgresUpdates > 0 && now - this.lastRpmLogTime > ONE_MINUTE) {
+		// 	this.logEvent({
+		// 		type: 'rpm',
+		// 		rpm: this.postgresUpdates,
+		// 	})
+		// 	this.postgresUpdates = 0
+		// 	this.lastRpmLogTime = now
+		// }
 	}
 
 	private queue = new ExecutionQueue()
@@ -418,7 +429,18 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
+	async storeLog(...args: any[]) {
+		this.sql.exec(`INSERT INTO logs (log) VALUES (?)`, args.join(' '))
+	}
+
+	async getLogs() {
+		const result = this.sql.exec(`SELECT * FROM logs`).toArray()
+		this.sql.exec(`DELETE FROM logs`)
+		return result
+	}
+
 	private async messageUser(userId: string, event: ZReplicationEventWithoutSequenceNumber) {
+		this.userMessages++
 		const res = this.sql
 			.exec('SELECT sequenceNumber FROM active_user WHERE id = ?', userId)
 			.toArray()
@@ -430,18 +452,27 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql.exec('UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ?', userId)
 
 		if (event.type === 'row_update' && event.table === 'file' && event.event === 'insert') {
-			console.log('hello: file insert', event.row.ownerId, event.row.id)
+			this.storeLog('file insert', event.row.ownerId, event.row.id)
+			// console.log('hello: file insert', event.row.ownerId, event.row.id)
 		} else if (event.type === 'mutation_commit') {
-			console.log('hello: mutation commit', event.userId, event.mutationNumber)
+			this.storeLog('mutation commit', event.userId, event.mutationNumber)
+			// console.log('hello: mutation commit', event.userId, event.mutationNumber)
 		}
 
 		try {
-			const user = getUserDurableObject(this.env, userId)
-			const res = await user.handleReplicationEvent({...event, sequenceNumber})
-			if (res === 'unregister') {
-				this.debug('unregistering user', userId, event)
-				this.unregisterUser(userId)
+			let q = this.queues.get(userId)
+			if (!q) {
+				q = new ExecutionQueue()
+				this.queues.set(userId, q)
 			}
+			await q.push(async () => {
+				const user = getUserDurableObject(this.env, userId)
+				const res = await user.handleReplicationEvent({ ...event, sequenceNumber })
+				if (res === 'unregister') {
+					this.debug('unregistering user', userId, event)
+					this.unregisterUser(userId)
+				}
+			})
 		} catch (e) {
 			console.error('Error in messageUser', e)
 		}

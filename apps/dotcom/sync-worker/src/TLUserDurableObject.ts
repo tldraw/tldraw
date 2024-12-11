@@ -11,7 +11,7 @@ import {
 	ZServerSentMessage,
 } from '@tldraw/dotcom-shared'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
-import { assert } from '@tldraw/utils'
+import { assert, ExecutionQueue } from '@tldraw/utils'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router } from 'itty-router'
@@ -32,6 +32,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	private readonly db: ReturnType<typeof postgres>
 	private readonly replicator: TLPostgresReplicator
 	private measure: Analytics | undefined
+	queue = new ExecutionQueue()
 
 	private readonly sentry
 	private captureException(exception: unknown, eventHint?: EventHint) {
@@ -358,6 +359,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 		})
 	}
 
+	private storeLog(...args: any[]) {
+		this.queue.push(() => this.replicator.storeLog(args.join(' ')))
+	}
+
 	private async handleMutate(msg: ZClientSentMessage) {
 		this.assertCache()
 		try {
@@ -373,7 +378,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.debug('mutation success', this.userId)
 			const fileUpdate = msg.updates.find((u) => u.table === 'file')
 			if (fileUpdate) {
-				console.log('hello: mutated', this.userId, fileUpdate.row.id)
+				this.storeLog('file DO mutated', this.userId, fileUpdate.row.id)
 			}
 
 			await this.db
@@ -412,13 +417,12 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 
 	async handleReplicationEvent(event: ZReplicationEvent) {
 		this.logEvent({ type: 'replication_event', id: this.userId ?? 'anon' })
-		console.log('replication event', event, !!this.cache)
+		this.storeLog('user DO replication event', JSON.stringify(event, null, 2))
 		if (!this.cache) {
 			return 'unregister'
 		}
 
 		if (this.lastSequenceNumber !== null && event.sequenceNumber != this.lastSequenceNumber + 1) {
-
 			this.cache.reboot()
 			return
 			if (this.buffer.length > 10) {
