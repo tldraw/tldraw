@@ -1,28 +1,36 @@
 import { HALF_PI, PI, Vec, VecLike, intersectCircleCircle } from '@tldraw/editor'
-import { TLArrowInfo } from './arrow-types'
+import { TLArrowInfo, TLArrowPoint } from './arrow-types'
 
 interface TLArrowPointsInfo {
 	point: VecLike
 	int: VecLike
+	intersection?: TLArrowPoint['intersection']
 }
 
-function getArrowPoints(
+function getArrowPointsInfo(
 	info: TLArrowInfo,
 	side: 'start' | 'end',
 	strokeWidth: number
 ): TLArrowPointsInfo {
+	// Point on the side
 	const PT = side === 'end' ? info.end.point : info.start.point
+	// Point on the other side
 	const PB = side === 'end' ? info.start.point : info.end.point
 
 	const compareLength = info.isStraight ? Vec.Dist(PB, PT) : Math.abs(info.bodyArc.length) // todo: arc length for curved arrows
+	let length = Math.max(Math.min(compareLength / 5, strokeWidth * 3), strokeWidth)
+	if (info[side].arrowhead === 'crow') {
+		length *= 2
+	}
 
-	const length = Math.max(Math.min(compareLength / 5, strokeWidth * 3), strokeWidth)
-
+	// The reference point near to the side point
 	let P0: VecLike
 
 	if (info.isStraight) {
+		// Nudge the side point toward the other point by length
 		P0 = Vec.Nudge(PT, PB, length)
 	} else {
+		// Create a circle with the side point as the center and length as the radius, find the intersection
 		const ints = intersectCircleCircle(PT, length, info.handleArc.center, info.handleArc.radius)
 		P0 =
 			side === 'end'
@@ -41,6 +49,7 @@ function getArrowPoints(
 	return {
 		point: PT,
 		int: P0,
+		intersection: info[side].intersection,
 	}
 }
 
@@ -97,13 +106,44 @@ function getSquareHead({ int, point }: TLArrowPointsInfo) {
 	return `M ${PL1.x} ${PL1.y} L ${PL2.x} ${PL2.y} L ${PR2.x} ${PR2.y} L ${PR1.x} ${PR1.y} Z`
 }
 
-function getBarHead({ int, point }: TLArrowPointsInfo) {
-	const d = Vec.Sub(int, point).div(2)
+function getBarHead({ int, point, intersection }: TLArrowPointsInfo) {
+	if (intersection) {
+		const { segment } = intersection
+		const dist = Vec.Dist(point, int)
+		const normal = Vec.Sub(segment[1], segment[0]).uni()
+		const PL = Vec.Add(point, Vec.Neg(normal).mul(dist))
+		const PR = Vec.Sub(point, Vec.Neg(normal).mul(dist))
 
-	const PL = Vec.Add(point, Vec.Rot(d, HALF_PI))
-	const PR = Vec.Sub(point, Vec.Rot(d, HALF_PI))
+		return `M ${PL.x} ${PL.y} L ${PR.x} ${PR.y}`
+	} else {
+		const d = Vec.Sub(int, point).div(2)
 
-	return `M ${PL.x} ${PL.y} L ${PR.x} ${PR.y}`
+		const PL = Vec.Add(point, Vec.Rot(d, HALF_PI))
+		const PR = Vec.Sub(point, Vec.Rot(d, HALF_PI))
+
+		return `M ${PL.x} ${PL.y} L ${PR.x} ${PR.y}`
+	}
+}
+
+function getCrow({ point, int, intersection }: TLArrowPointsInfo) {
+	const d = Vec.Sub(int, point)
+	const normal = Vec.Uni(d)
+	const dist = d.len() / 2
+	const A = int
+
+	if (intersection) {
+		const { segment, point: PC } = intersection
+		const segNormal = Vec.Sub(segment[1], segment[0]).uni()
+		const PL = Vec.Add(PC, Vec.Mul(segNormal, dist))
+		const PR = Vec.Sub(PC, Vec.Mul(segNormal, dist))
+
+		return `M ${A.x} ${A.y} L ${PC.x} ${PC.y} M ${A.x} ${A.y} L ${PL.x} ${PL.y} M ${A.x} ${A.y} L ${PR.x} ${PR.y}`
+	} else {
+		const PL = Vec.Add(point, Vec.Mul(Vec.Per(normal), dist))
+		const PR = Vec.Sub(point, Vec.Mul(Vec.Per(normal), dist))
+
+		return `M ${A.x} ${A.y} L ${PL.x} ${PL.y} M ${A.x} ${A.y} L ${PR.x} ${PR.y}`
+	}
 }
 
 /** @public */
@@ -115,24 +155,26 @@ export function getArrowheadPathForType(
 	const type = side === 'end' ? info.end.arrowhead : info.start.arrowhead
 	if (type === 'none') return
 
-	const points = getArrowPoints(info, side, strokeWidth)
-	if (!points) return
+	const arrowPointsInfo = getArrowPointsInfo(info, side, strokeWidth)
+	if (!arrowPointsInfo) return
 
 	switch (type) {
+		case 'crow':
+			return getCrow(arrowPointsInfo)
 		case 'bar':
-			return getBarHead(points)
+			return getBarHead(arrowPointsInfo)
 		case 'square':
-			return getSquareHead(points)
+			return getSquareHead(arrowPointsInfo)
 		case 'diamond':
-			return getDiamondHead(points)
+			return getDiamondHead(arrowPointsInfo)
 		case 'dot':
-			return getDotHead(points)
+			return getDotHead(arrowPointsInfo)
 		case 'inverted':
-			return getInvertedTriangleHead(points)
+			return getInvertedTriangleHead(arrowPointsInfo)
 		case 'arrow':
-			return getArrowhead(points)
+			return getArrowhead(arrowPointsInfo)
 		case 'triangle':
-			return getTriangleHead(points)
+			return getTriangleHead(arrowPointsInfo)
 	}
 
 	return ''
