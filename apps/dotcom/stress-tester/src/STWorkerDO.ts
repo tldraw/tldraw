@@ -1,10 +1,10 @@
 import { Z_PROTOCOL_VERSION, Zero } from '@tldraw/dotcom-shared'
-import { Result, assertExists, sleep, uniqueId } from '@tldraw/utils'
+import { Result, assert, assertExists, sleep, uniqueId } from '@tldraw/utils'
 import { DurableObject } from 'cloudflare:workers'
 import { STCoordinatorDO } from './STCoordinatorDO'
 import { Environment } from './types'
 
-const TIMEOUT = 100000
+const TIMEOUT = 5000
 
 export class STWorkerDO extends DurableObject<Environment> {
 	coordinator: STCoordinatorDO
@@ -28,7 +28,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 		const now = Date.now()
 		const res = await Promise.race([
 			fn().then(Result.ok).catch(Result.err),
-			sleep(TIMEOUT).then(() => Result.err(new Error('Operation timed out'))),
+			sleep(TIMEOUT).then(() => Result.err(new Error(`Timeout: ${operation}`))),
 		])
 		const duration = Date.now() - now
 		this.coordinator.reportEvent({
@@ -67,6 +67,7 @@ export class STWorkerDO extends DurableObject<Environment> {
 					u.searchParams.set('accessToken', `${this.env.TEST_AUTH_SECRET}:${workerId}`)
 					u.searchParams.set('sessionId', workerId)
 					u.searchParams.set('protocolVersion', String(Z_PROTOCOL_VERSION))
+					this.debug('getUri', u.toString())
 					return u.toString()
 				},
 				onMutationRejected: () => null,
@@ -114,7 +115,41 @@ export class STWorkerDO extends DurableObject<Environment> {
 					})
 				})
 			}
+
+			const file = this.zero.store.getFullData()?.files[0]
+
+			if (!file) {
+				const fileId = uniqueId()
+				await this.mutate('create file', async (z) => {
+					z.file.create({
+						id: fileId,
+						name: 'name',
+						ownerId: workerId,
+						ownerName: '',
+						ownerAvatar: '',
+						thumbnail: '',
+						shared: true,
+						sharedLinkType: 'edit',
+						published: true,
+						lastPublished: 123,
+						publishedSlug: uniqueId(),
+						createdAt: 123,
+						updatedAt: 123,
+						isEmpty: true,
+						isDeleted: false,
+					})
+				})
+			}
+
+			const fileId = this.zero.store.getFullData()?.files[0].id
+			assert(fileId, 'No file id')
 		} catch (e) {
+			this.coordinator.reportEvent({
+				type: 'error',
+				error: (e as any)?.stack ?? String(e),
+				id: uniqueId(),
+				workerId: await this.getId(),
+			})
 			console.error(e)
 		}
 	}
