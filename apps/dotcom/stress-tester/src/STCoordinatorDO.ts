@@ -5,10 +5,20 @@ import { AutoRouter, cors, error } from 'itty-router'
 import { STWorkerDO } from './STWorkerDO'
 import { Environment } from './types'
 
-const regions: DurableObjectLocationHint[] = ['wnam', 'enam', 'sam', 'weur', 'eeur', 'apac', 'oc', 'afr', 'me']
+const regions: DurableObjectLocationHint[] = [
+	'wnam',
+	'enam',
+	'sam',
+	'weur',
+	'eeur',
+	'apac',
+	'oc',
+	'afr',
+	'me',
+]
 
 const { preflight, corsify } = cors({ origin: '*' })
-const NUMBER_OF_WORKERS = 10
+const NUMBER_OF_WORKERS = 100
 const START_WITHIN = 1000
 
 export class STCoordinatorDO extends DurableObject<Environment> {

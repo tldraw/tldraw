@@ -15,7 +15,7 @@ import {
 import { Discord } from './lib/discord'
 import { exec } from './lib/exec'
 import { REPO_ROOT } from './lib/file'
-import { makeEnv } from './lib/makeEnv'
+import { makeEnv2 } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
 const worker = path.relative(process.cwd(), path.resolve(REPO_ROOT, './apps/dotcom/sync-worker'))
@@ -33,40 +33,41 @@ const { previewId, sha } = getDeployInfo()
 
 // Do not use `process.env` directly in this script. Add your variable to `makeEnv` and use it via
 // `env` instead. This makes sure that all required env vars are present.
-const env = makeEnv([
-	'APP_ORIGIN',
-	'ASSET_UPLOAD_SENTRY_DSN',
-	'ASSET_UPLOAD',
-	'CLERK_SECRET_KEY',
-	'CLOUDFLARE_ACCOUNT_ID',
-	'CLOUDFLARE_API_TOKEN',
-	'DISCORD_DEPLOY_WEBHOOK_URL',
-	'DISCORD_HEALTH_WEBHOOK_URL',
-	'GC_MAPS_API_KEY',
-	'GH_TOKEN',
-	'HEALTH_WORKER_UPDOWN_WEBHOOK_PATH',
-	'IMAGE_WORKER',
-	'MULTIPLAYER_SERVER',
-	'R2_ACCESS_KEY_ID',
-	'R2_ACCESS_KEY_SECRET',
-	'RELEASE_COMMIT_HASH',
-	'SENTRY_AUTH_TOKEN',
-	'SENTRY_CSP_REPORT_URI',
-	'SENTRY_DSN',
-	'SUPABASE_LITE_ANON_KEY',
-	'SUPABASE_LITE_URL',
-	'TLDRAW_ENV',
-	'TLDRAW_LICENSE',
-	'VERCEL_ORG_ID',
-	'VERCEL_PROJECT_ID',
-	'VERCEL_TOKEN',
-	'VITE_CLERK_PUBLISHABLE_KEY',
-	'WORKER_SENTRY_DSN',
-	previewId ? 'NEON_PREVIEW_DB_CONNECTION_STRING' : 'BOTCOM_POSTGRES_CONNECTION_STRING',
-	previewId
-		? 'NEON_PREVIEW_DB_POOLED_CONNECTION_STRING'
-		: 'BOTCOM_POSTGRES_POOLED_CONNECTION_STRING',
-])
+const env = makeEnv2({
+	APP_ORIGIN: true,
+	ASSET_UPLOAD_SENTRY_DSN: true,
+	ASSET_UPLOAD: true,
+	CLERK_SECRET_KEY: true,
+	CLOUDFLARE_ACCOUNT_ID: true,
+	CLOUDFLARE_API_TOKEN: true,
+	DISCORD_DEPLOY_WEBHOOK_URL: true,
+	DISCORD_HEALTH_WEBHOOK_URL: true,
+	GC_MAPS_API_KEY: true,
+	GH_TOKEN: true,
+	HEALTH_WORKER_UPDOWN_WEBHOOK_PATH: true,
+	IMAGE_WORKER: true,
+	MULTIPLAYER_SERVER: true,
+	R2_ACCESS_KEY_ID: true,
+	R2_ACCESS_KEY_SECRET: true,
+	RELEASE_COMMIT_HASH: true,
+	SENTRY_AUTH_TOKEN: true,
+	SENTRY_CSP_REPORT_URI: true,
+	SENTRY_DSN: true,
+	SUPABASE_LITE_ANON_KEY: true,
+	SUPABASE_LITE_URL: true,
+	TLDRAW_ENV: true,
+	TLDRAW_LICENSE: true,
+	VERCEL_ORG_ID: true,
+	VERCEL_PROJECT_ID: true,
+	VERCEL_TOKEN: true,
+	VITE_CLERK_PUBLISHABLE_KEY: true,
+	WORKER_SENTRY_DSN: true,
+	NEON_PREVIEW_DB_CONNECTION_STRING: !!previewId,
+	BOTCOM_POSTGRES_CONNECTION_STRING: !previewId,
+	NEON_PREVIEW_DB_POOLED_CONNECTION_STRING: !!previewId,
+	BOTCOM_POSTGRES_POOLED_CONNECTION_STRING: !previewId,
+	TEST_AUTH_SECRET: !!process.env.TLDRAW_ENV?.match(/(preview|staging|development)/),
+})
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
