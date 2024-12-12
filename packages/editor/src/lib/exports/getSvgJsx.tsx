@@ -182,8 +182,18 @@ function SvgExport({
 			addExportDef,
 			scale,
 			pixelRatio,
+			async resolveAssetUrl(assetId, width) {
+				const asset = editor.getAsset(assetId)
+				if (!asset || asset.type === 'bookmark') return null
+
+				return await editor.resolveAssetUrl(assetId, {
+					screenScale: scale * (width / asset.props.w),
+					shouldResolveToOriginal: pixelRatio === null,
+					dpr: pixelRatio ?? undefined,
+				})
+			},
 		}),
-		[isDarkMode, waitUntil, addExportDef, scale, pixelRatio]
+		[isDarkMode, waitUntil, addExportDef, scale, pixelRatio, editor]
 	)
 
 	const didRenderRef = useRef(false)

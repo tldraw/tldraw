@@ -1,8 +1,8 @@
 import {
 	BaseBoxShapeUtil,
-	Editor,
 	HTMLContainer,
 	MediaHelpers,
+	SvgExportContext,
 	TLVideoShape,
 	toDomPrecision,
 	useEditor,
@@ -50,9 +50,16 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override async toSvg(shape: TLVideoShape) {
-		const image = await serializeVideo(this.editor, shape)
+	override async toSvg(shape: TLVideoShape, ctx: SvgExportContext) {
+		if (!shape.props.assetId) return null
+
+		const assetUrl = await ctx.resolveAssetUrl(shape.props.assetId, shape.props.w)
+		if (!assetUrl) return null
+
+		const video = await MediaHelpers.loadVideo(assetUrl)
+		const image = await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
 		if (!image) return null
+
 		return <image href={image} width={shape.props.w} height={shape.props.h} />
 	}
 }
@@ -166,13 +173,3 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		</>
 	)
 })
-
-async function serializeVideo(editor: Editor, shape: TLVideoShape): Promise<string | null> {
-	const assetUrl = await editor.resolveAssetUrl(shape.props.assetId, {
-		shouldResolveToOriginal: true,
-	})
-	if (!assetUrl) return null
-
-	const video = await MediaHelpers.loadVideo(assetUrl)
-	return MediaHelpers.getVideoFrameAsDataUrl(video, 0)
-}

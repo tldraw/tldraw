@@ -94,7 +94,7 @@ export function useImageOrVideoAsset({ shapeId, assetId, width }: UseImageOrVide
 			// aside ...we could bail here if the only thing that has changed is the shape has changed from culled to not culled
 
 			const screenScale = exportInfo
-				? exportInfo.scale
+				? exportInfo.scale * (width / asset.props.w)
 				: editor.getZoomLevel() * (width / asset.props.w)
 
 			function resolve(asset: TLImageAsset | TLVideoAsset, url: string | null) {

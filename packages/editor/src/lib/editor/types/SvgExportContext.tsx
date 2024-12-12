@@ -1,3 +1,4 @@
+import { TLAssetId } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
 import { ReactElement, ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { ContainerProvider } from '../../hooks/useContainer'
@@ -28,6 +29,13 @@ export interface SvgExportContext {
 	 * method depending on your use-case.
 	 */
 	waitUntil(promise: Promise<void>): void
+
+	/**
+	 * Resolve an asset URL in the context of this export. Supply the asset ID and the width in
+	 * shape-pixels it'll be displayed at, and this will resolve the asset according to the export
+	 * options.
+	 */
+	resolveAssetUrl(assetId: TLAssetId, width: number): Promise<string | null>
 
 	/**
 	 * Whether the export should be in dark mode.

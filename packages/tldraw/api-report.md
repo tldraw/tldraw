@@ -1340,7 +1340,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static props: RecordProps<TLImageShape>;
     // (undocumented)
-    toSvg(shape: TLImageShape): Promise<JSX_2.Element | null>;
+    toSvg(shape: TLImageShape, ctx: SvgExportContext): Promise<JSX_2.Element | null>;
     // (undocumented)
     static type: "image";
 }
@@ -3873,7 +3873,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static props: RecordProps<TLVideoShape>;
     // (undocumented)
-    toSvg(shape: TLVideoShape): Promise<JSX_2.Element | null>;
+    toSvg(shape: TLVideoShape, ctx: SvgExportContext): Promise<JSX_2.Element | null>;
     // (undocumented)
     static type: "video";
 }

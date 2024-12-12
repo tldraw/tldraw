@@ -4155,7 +4155,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// We only look at the zoom level at powers of 2.
 		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
-		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale))
+		const steppedScreenScale = Math.max(1 / 32, zoomStepFunction(screenScale))
 		const networkEffectiveType: string | null =
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
 

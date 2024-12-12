@@ -1,5 +1,4 @@
 import { Editor, sanitizeId, TLFrameShape, TLImageExportOptions, TLShapeId } from '@tldraw/editor'
-import { format } from 'path'
 
 /** @public */
 export type TLExportType = 'svg' | 'png' | 'jpeg' | 'webp'
@@ -69,7 +68,7 @@ export async function exportAs(
 			}
 		}
 	}
-	name += `.${format}`
+	name += `.${opts.format}`
 
 	const { blob } = await editor.toImage(ids, opts)
 	const file = new File([blob], name, { type: blob.type })

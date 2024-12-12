@@ -5,6 +5,7 @@ import {
 	HTMLContainer,
 	Image,
 	MediaHelpers,
+	SvgExportContext,
 	TLImageShape,
 	TLImageShapeProps,
 	TLResizeInfo,
@@ -111,16 +112,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	override async toSvg(shape: TLImageShape) {
+	override async toSvg(shape: TLImageShape, ctx: SvgExportContext) {
 		if (!shape.props.assetId) return null
 
 		const asset = this.editor.getAsset(shape.props.assetId)
 
 		if (!asset) return null
 
-		let src = await this.editor.resolveAssetUrl(shape.props.assetId, {
-			shouldResolveToOriginal: true,
-		})
+		let src = await ctx.resolveAssetUrl(shape.props.assetId, shape.props.w)
 		if (!src) return null
 		if (
 			src.startsWith('blob:') ||

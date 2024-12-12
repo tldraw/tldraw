@@ -2528,6 +2528,7 @@ export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly isDarkMode: boolean;
     readonly pixelRatio: null | number;
+    resolveAssetUrl(assetId: TLAssetId, width: number): Promise<null | string>;
     readonly scale: number;
     waitUntil(promise: Promise<void>): void;
 }
