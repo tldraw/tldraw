@@ -54,7 +54,6 @@
 		"@radix-ui/react-toast": "^1.1.1",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/store": "workspace:*",
-		"canvas-size": "^1.2.6",
 		"classnames": "^2.3.2",
 		"hotkeys-js": "^3.11.2",
 		"idb": "^7.1.1",

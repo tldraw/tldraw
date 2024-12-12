@@ -84,7 +84,11 @@ export {
 } from './lib/shapes/shared/default-shape-constants'
 export { useDefaultColorTheme } from './lib/shapes/shared/useDefaultColorTheme'
 export { useEditableText } from './lib/shapes/shared/useEditableText'
-export { useAsset, useImageOrVideoAsset } from './lib/shapes/shared/useImageOrVideoAsset'
+export {
+	useAsset,
+	useImageOrVideoAsset,
+	type UseImageOrVideoAssetOptions,
+} from './lib/shapes/shared/useImageOrVideoAsset'
 export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
@@ -454,7 +458,7 @@ export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'
 export { getEmbedInfo, type TLEmbedResult } from './lib/utils/embeds/embeds'
 export { copyAs, type TLCopyType } from './lib/utils/export/copyAs'
-export { exportToBlob, getSvgAsImage } from './lib/utils/export/export'
+export { exportToBlob } from './lib/utils/export/export'
 export { exportAs, type TLExportType } from './lib/utils/export/exportAs'
 export { fitFrameToContent, removeFrame } from './lib/utils/frames/frames'
 export {

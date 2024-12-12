@@ -41,7 +41,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 	const {
 		scale = 1,
 		// should we include the background in the export? or is it transparent?
-		background = false,
+		background = editor.getInstanceState().exportBackground,
 		padding = editor.options.defaultSvgPadding,
 		preserveAspectRatio,
 	} = opts
@@ -102,6 +102,7 @@ export function getSvgJsx(editor: Editor, ids: TLShapeId[], opts: TLImageExportO
 			editor={editor}
 			preserveAspectRatio={preserveAspectRatio}
 			scale={scale}
+			pixelRatio={opts.pixelRatio ?? null}
 			bbox={bbox}
 			background={background}
 			singleFrameShapeId={singleFrameShapeId}
@@ -121,6 +122,7 @@ function SvgExport({
 	editor,
 	preserveAspectRatio,
 	scale,
+	pixelRatio,
 	bbox,
 	background,
 	singleFrameShapeId,
@@ -132,6 +134,7 @@ function SvgExport({
 	editor: Editor
 	preserveAspectRatio?: string
 	scale: number
+	pixelRatio: number | null
 	bbox: Box
 	background: boolean
 	singleFrameShapeId: TLShapeId | null
@@ -177,8 +180,10 @@ function SvgExport({
 			isDarkMode,
 			waitUntil,
 			addExportDef,
+			scale,
+			pixelRatio,
 		}),
-		[isDarkMode, waitUntil, addExportDef]
+		[isDarkMode, waitUntil, addExportDef, scale, pixelRatio]
 	)
 
 	const didRenderRef = useRef(false)

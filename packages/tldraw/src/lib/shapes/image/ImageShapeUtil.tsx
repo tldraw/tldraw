@@ -208,6 +208,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	const { asset, url } = useImageOrVideoAsset({
 		shapeId: shape.id,
 		assetId: shape.props.assetId,
+		width: shape.props.w,
 	})
 
 	const prefersReducedMotion = usePrefersReducedMotion()

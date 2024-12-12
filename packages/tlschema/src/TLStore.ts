@@ -48,10 +48,30 @@ export type TLStoreSnapshot = StoreSnapshot<TLRecord>
 
 /** @public */
 export interface TLAssetContext {
+	/**
+	 * The scale at which the asset is being rendered on-screen relative to its native dimensions.
+	 * If the asset is 1000px wide, but it's been resized/zoom so it takes 500px on-screen, this
+	 * will be 0.5.
+	 *
+	 * The scale measured CSS pixels, not device pixels.
+	 */
 	screenScale: number
+	/** The {@link TLAssetContext.screenScale}, stepped to the nearest power-of-2 multiple. */
 	steppedScreenScale: number
+	/** The device pixel ratio - how many CSS pixels are in one device pixel? */
 	dpr: number
+	/**
+	 * An alias for
+	 * {@link https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType | `navigator.connection.effectiveType` }
+	 * if it's available in the current browser. Use this to e.g. serve lower-resolution images to
+	 * users on slow connections.
+	 */
 	networkEffectiveType: string | null
+	/**
+	 * In some circumstances, we need to resolve a URL that points to the original version of a
+	 * particular asset. This is used when the asset will leave the current tldraw instance - e.g.
+	 * for copy/paste, or exports.
+	 */
 	shouldResolveToOriginal: boolean
 }
 

@@ -7189,6 +7189,7 @@ __metadata:
     "@types/wicg-file-system-access": "npm:^2020.9.5"
     "@use-gesture/react": "npm:^10.2.27"
     benchmark: "npm:^2.1.4"
+    canvas-size: "npm:^2.0.0"
     classnames: "npm:^2.3.2"
     core-js: "npm:^3.31.1"
     eventemitter3: "npm:^4.0.7"
@@ -10357,10 +10358,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"canvas-size@npm:^1.2.6":
-  version: 1.2.6
-  resolution: "canvas-size@npm:1.2.6"
-  checksum: bd7d9d29a63b773527b02a1b2840786660e032b9f719fbfd810253941625205ad5c5ca500a78fbc59307421c6ea34f1c994b8e4a00756c28c21f9f1add465c31
+"canvas-size@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "canvas-size@npm:2.0.0"
+  checksum: 9062b02cca85091a4e1e68603e06acfe2076c4a0ec0f9b95faea9f8650586da73fc4d1663a55f442919d18f64a21ceb49712f500d91a0601cd9ed138bc8ee1dd
   languageName: node
   linkType: hard
 
@@ -23116,7 +23117,6 @@ __metadata:
     "@types/canvas-size": "npm:^1.2.0"
     "@types/classnames": "npm:^2.3.1"
     "@types/lz-string": "npm:^1.3.34"
-    canvas-size: "npm:^1.2.6"
     chokidar-cli: "npm:^3.0.0"
     classnames: "npm:^2.3.2"
     hotkeys-js: "npm:^3.11.2"

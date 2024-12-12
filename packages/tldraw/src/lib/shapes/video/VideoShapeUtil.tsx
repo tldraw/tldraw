@@ -67,6 +67,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 	const { asset, url } = useImageOrVideoAsset({
 		shapeId: shape.id,
 		assetId: shape.props.assetId,
+		width: shape.props.w,
 	})
 
 	const rVideo = useRef<HTMLVideoElement>(null!)

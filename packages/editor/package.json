@@ -53,6 +53,7 @@
 		"@tldraw/validate": "workspace:*",
 		"@types/core-js": "^2.5.5",
 		"@use-gesture/react": "^10.2.27",
+		"canvas-size": "^2.0.0",
 		"classnames": "^2.3.2",
 		"core-js": "^3.31.1",
 		"eventemitter3": "^4.0.7",

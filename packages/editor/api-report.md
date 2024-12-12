@@ -415,6 +415,16 @@ export type BoxLike = Box | BoxModel;
 // @public (undocumented)
 export function canonicalizeRotation(a: number): number;
 
+// @internal (undocumented)
+export interface CanvasMaxSize {
+    // (undocumented)
+    maxArea: number;
+    // (undocumented)
+    maxHeight: number;
+    // (undocumented)
+    maxWidth: number;
+}
+
 // @public
 export function centerOfCircleFromThreePoints(a: VecLike, b: VecLike, c: VecLike): null | Vec;
 
@@ -461,6 +471,9 @@ export function clamp(n: number, min: number, max: number): number;
 
 // @public
 export function clampRadians(r: number): number;
+
+// @internal (undocumented)
+export function clampToBrowserMaxCanvasSize(width: number, height: number): Promise<number[]>;
 
 // @public (undocumented)
 export class ClickManager {
@@ -1089,13 +1102,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant<T extends StateNode>(path: string): T | undefined;
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     // @deprecated (undocumented)
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<SVGSVGElement | undefined>;
-    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<SVGSVGElement | undefined>;
+    getSvgElement(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: SVGSVGElement;
         width: number;
     } | undefined>;
-    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+    getSvgString(shapes: TLShape[] | TLShapeId[], opts?: TLSvgExportOptions): Promise<{
         height: number;
         svg: string;
         width: number;
@@ -1209,6 +1222,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     resolveAssetsInContent(content: TLContent | undefined): Promise<TLContent | undefined>;
     // (undocumented)
     resolveAssetUrl(assetId: null | TLAssetId, context: {
+        dpr?: number;
         screenScale?: number;
         shouldResolveToOriginal?: boolean;
     }): Promise<null | string>;
@@ -1283,6 +1297,11 @@ export class Editor extends EventEmitter<TLEventMap> {
         setTimeout: (handler: TimerHandler, timeout?: number | undefined, ...args: any[]) => number;
     };
     toggleLock(shapes: TLShape[] | TLShapeId[]): this;
+    toImage(shapes: TLShape[] | TLShapeId[], opts?: TLImageExportOptions): Promise<{
+        blob: Blob;
+        height: number;
+        width: number;
+    }>;
     undo(): this;
     ungroupShapes(ids: TLShapeId[], opts?: Partial<{
         select: boolean;
@@ -1537,6 +1556,15 @@ export function getRotationSnapshot({ editor, ids, }: {
 
 // @public (undocumented)
 export function getSnapshot(store: TLStore): TLEditorSnapshot;
+
+// @public (undocumented)
+export function getSvgAsImage(svgString: string, options: {
+    height: number;
+    pixelRatio?: number;
+    quality?: number;
+    type: 'jpeg' | 'png' | 'webp';
+    width: number;
+}): Promise<Blob | null>;
 
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
@@ -2499,6 +2527,8 @@ export type SVGContainerProps = React_3.ComponentProps<'svg'>;
 export interface SvgExportContext {
     addExportDef(def: SvgExportDef): void;
     readonly isDarkMode: boolean;
+    readonly pixelRatio: null | number;
+    readonly scale: number;
     waitUntil(promise: Promise<void>): void;
 }
 
@@ -3206,23 +3236,9 @@ export interface TLHistoryMark {
 }
 
 // @public (undocumented)
-export interface TLImageExportOptions {
-    // (undocumented)
-    background?: boolean;
-    // (undocumented)
-    bounds?: Box;
-    // (undocumented)
-    darkMode?: boolean;
-    // (undocumented)
-    padding?: number;
-    // (undocumented)
-    pixelRatio?: number;
-    // (undocumented)
-    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
-    // (undocumented)
+export interface TLImageExportOptions extends TLSvgExportOptions {
+    format?: 'jpeg' | 'png' | 'svg' | 'webp';
     quality?: number;
-    // (undocumented)
-    scale?: number;
 }
 
 // @public (undocumented)
@@ -3616,6 +3632,17 @@ export type TLStoreWithStatus = {
     readonly status: 'synced-local';
     readonly store: TLStore;
 };
+
+// @public (undocumented)
+export interface TLSvgExportOptions {
+    background?: boolean;
+    bounds?: Box;
+    darkMode?: boolean;
+    padding?: number;
+    pixelRatio?: number;
+    preserveAspectRatio?: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+    scale?: number;
+}
 
 // @public @deprecated (undocumented)
 export type TLSvgOptions = TLImageExportOptions;

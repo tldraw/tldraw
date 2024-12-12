@@ -103,6 +103,7 @@ import {
 	ZOOM_TO_FIT_PADDING,
 } from '../constants'
 import { exportToSvg } from '../exports/exportToSvg'
+import { getSvgAsImage } from '../exports/getSvgAsImage'
 import { tlenv } from '../globals/environment'
 import { tlmenus } from '../globals/menus'
 import { tltime } from '../globals/time'
@@ -161,6 +162,7 @@ import {
 	TLCameraMoveOptions,
 	TLCameraOptions,
 	TLImageExportOptions,
+	TLSvgExportOptions,
 } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -4138,20 +4140,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 		context: {
 			screenScale?: number
 			shouldResolveToOriginal?: boolean
+			dpr?: number
 		}
 	): Promise<string | null> {
 		if (!assetId) return null
 		const asset = this.getAsset(assetId)
 		if (!asset) return null
 
-		const { screenScale = 1, shouldResolveToOriginal = false } = context
+		const {
+			screenScale = 1,
+			shouldResolveToOriginal = false,
+			dpr = this.getInstanceState().devicePixelRatio,
+		} = context
 
 		// We only look at the zoom level at powers of 2.
 		const zoomStepFunction = (zoom: number) => Math.pow(2, Math.ceil(Math.log2(zoom)))
 		const steppedScreenScale = Math.max(0.125, zoomStepFunction(screenScale))
 		const networkEffectiveType: string | null =
 			'connection' in navigator ? (navigator as any).connection.effectiveType : null
-		const dpr = this.getInstanceState().devicePixelRatio
 
 		return await this.store.props.assets.resolve(asset, {
 			screenScale: screenScale || 1,
@@ -8557,7 +8563,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
+	async getSvgElement(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
@@ -8578,7 +8584,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvgString(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
+	async getSvgString(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
 		const result = await this.getSvgElement(shapes, opts)
 		if (!result) return undefined
 
@@ -8591,10 +8597,63 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @deprecated Use {@link Editor.getSvgString} or {@link Editor.getSvgElement} instead. */
-	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
+	async getSvg(shapes: TLShapeId[] | TLShape[], opts: TLSvgExportOptions = {}) {
 		const result = await this.getSvgElement(shapes, opts)
 		if (!result) return undefined
 		return result.svg
+	}
+
+	/**
+	 * Get an exported image of the given shapes.
+	 *
+	 * @param shapes - The shapes (or shape ids) to export.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns A blob of the image.
+	 * @public
+	 */
+	async toImage(shapes: TLShapeId[] | TLShape[], opts: TLImageExportOptions = {}) {
+		const withDefaults: TLImageExportOptions = {
+			format: 'png',
+			scale: 1,
+			pixelRatio: opts.format === 'svg' ? undefined : 2,
+			...opts,
+		}
+		const result = await this.getSvgString(shapes, withDefaults)
+		if (!result) throw new Error('Could not create SVG')
+
+		const format = opts.format ?? 'png'
+
+		switch (format) {
+			case 'svg':
+				return {
+					blob: new Blob([result.svg], { type: 'text/plain' }),
+					width: result.width,
+					height: result.height,
+				}
+			case 'jpeg':
+			case 'png':
+			case 'webp': {
+				const blob = await getSvgAsImage(result.svg, {
+					type: format,
+					quality: withDefaults.quality,
+					pixelRatio: withDefaults.pixelRatio,
+					width: result.width,
+					height: result.height,
+				})
+				if (!blob) {
+					throw new Error('Could not construct image.')
+				}
+				return {
+					blob,
+					width: result.width,
+					height: result.height,
+				}
+			}
+			default: {
+				exhaustiveSwitchError(format)
+			}
+		}
 	}
 
 	/* --------------------- Events --------------------- */

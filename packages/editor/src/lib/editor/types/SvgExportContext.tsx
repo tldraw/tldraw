@@ -33,6 +33,18 @@ export interface SvgExportContext {
 	 * Whether the export should be in dark mode.
 	 */
 	readonly isDarkMode: boolean
+
+	/**
+	 * The scale of the export - how much CSS pixels will be scaled up/down by.
+	 */
+	readonly scale: number
+
+	/**
+	 * If the ultimate target for this export is a raster image, this is the number of raster pixels
+	 * in the resulting bitmap per CSS pixel in the resulting SVG. If this value is null, the export
+	 * is to svg, and assets should not be downscaled.
+	 */
+	readonly pixelRatio: number | null
 }
 
 const Context = createContext<SvgExportContext | null>(null)
