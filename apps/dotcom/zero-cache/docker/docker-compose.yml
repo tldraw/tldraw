@@ -20,7 +20,7 @@ services:
       -c wal_level=logical
       -c max_wal_senders=10 
       -c max_replication_slots=5 
-      -c max_connections=500 
+      -c max_connections=20 
       -c hot_standby=on 
       -c hot_standby_feedback=on
 #       Uncomment the following line to enable query logging
@@ -40,9 +40,9 @@ services:
     volumes:
       - ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini
       - ./userlist.txt:/etc/pgbouncer/userlist.txt
+# Don't show pg bouncer logs
     command: >
-#     Uncomment to show pgbouncer logs
-      sh -c "pgbouncer /etc/pgbouncer/pgbouncer.ini > /dev/null 2>&1"
+       sh -c "pgbouncer /etc/pgbouncer/pgbouncer.ini > /dev/null 2>&1"
 
 volumes:
   zstart_pgdata:
