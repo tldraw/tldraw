@@ -373,7 +373,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			)
 			// TODO: We should probably handle a case where the above operation succeeds but the one below fails
 			this.debug('mutation success', this.userId)
-			const fileUpdate = msg.updates.find((u) => u.table === 'file')
+			// const fileUpdate = msg.updates.find((u) => u.table === 'file')
 			// if (fileUpdate) {
 			// 	this.storeLog('file DO mutated', this.userId, fileUpdate.row.id)
 			// }
@@ -423,7 +423,7 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 			this.cache.reboot()
 			return
 			if (this.buffer.length > 10) {
-				this.cache.reboot()
+				this.cache?.reboot()
 				return 'ok'
 			}
 
