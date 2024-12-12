@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS logs (
 );
 `
 
-const ONE_MINUTE = 60 * 1000
+// const ONE_MINUTE = 60 * 1000
 
 type PromiseWithResolve = ReturnType<typeof promiseWithResolve>
 
@@ -79,7 +79,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	sentry
 	// eslint-disable-next-line local/prefer-class-methods
 	private captureException = (exception: unknown, eventHint?: EventHint) => {
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		this.sentry?.captureException(exception, eventHint) as any
 		if (!this.sentry) {
 			console.error(`[TLPostgresReplicator]: `, exception)
@@ -107,7 +106,6 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		// uncomment for dev time debugging
 		// console.log('[TLPostgresReplicator]:', ...args)
 		if (this.sentry) {
-			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry.addBreadcrumb({
 				message: `[TLPostgresReplicator]: ${args.join(' ')}`,
 			})
@@ -119,8 +117,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 	}
 
 	private maybeLogRpm() {
-		const now = Date.now()
-		this.storeLog('postgresUpdates', this.postgresUpdates, 'user messages', this.userMessages)
+		// const now = Date.now()
+		// this.storeLog('postgresUpdates', this.postgresUpdates, 'user messages', this.userMessages)
+		console.error('postgresUpdates=', this.postgresUpdates)
 		this.postgresUpdates = 0
 		this.userMessages = 0
 		// TODO: restore this later to make sure we push stuff to metrics
@@ -429,9 +428,9 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		}
 	}
 
-	async storeLog(...args: any[]) {
-		this.sql.exec(`INSERT INTO logs (log) VALUES (?)`, args.join(' '))
-	}
+	// async storeLog(...args: any[]) {
+	// 	this.sql.exec(`INSERT INTO logs (log) VALUES (?)`, args.join(' '))
+	// }
 
 	async getLogs() {
 		const result = this.sql.exec(`SELECT * FROM logs`).toArray()
@@ -452,10 +451,10 @@ export class TLPostgresReplicator extends DurableObject<Environment> {
 		this.sql.exec('UPDATE active_user SET sequenceNumber = sequenceNumber + 1 WHERE id = ?', userId)
 
 		if (event.type === 'row_update' && event.table === 'file' && event.event === 'insert') {
-			this.storeLog('file insert', event.row.ownerId, event.row.id)
+			// this.storeLog('file insert', event.row.ownerId, event.row.id)
 			// console.log('hello: file insert', event.row.ownerId, event.row.id)
 		} else if (event.type === 'mutation_commit') {
-			this.storeLog('mutation commit', event.userId, event.mutationNumber)
+			// this.storeLog('mutation commit', event.userId, event.mutationNumber)
 			// console.log('hello: mutation commit', event.userId, event.mutationNumber)
 		}
 

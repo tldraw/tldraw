@@ -5,7 +5,7 @@ import { STCoordinatorDO } from './STCoordinatorDO'
 import { Environment } from './types'
 
 const TIMEOUT = 20_000
-const FILES = 10
+const FILES = 5
 
 export class STWorkerDO extends DurableObject<Environment> {
 	coordinator: STCoordinatorDO
