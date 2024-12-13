@@ -27,12 +27,12 @@ import {
 	getDefaultColorTheme,
 	getPolygonVertices,
 	lerp,
+	useEditorComponents,
 	useValue,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgTextLabel } from '../shared/SvgTextLabel'
-import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -451,6 +451,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			[editor]
 		)
 
+		const { TextLabel } = useEditorComponents()
+
 		return (
 			<>
 				<SVGContainer>
@@ -464,21 +466,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							height: shape.props.h + props.growY,
 						}}
 					>
-						<TextLabel
-							shapeId={id}
-							type={type}
-							font={font}
-							fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
-							lineHeight={TEXT_PROPS.lineHeight}
-							padding={LABEL_PADDING * shape.props.scale}
-							fill={fill}
-							align={align}
-							verticalAlign={verticalAlign}
-							text={text}
-							isSelected={isOnlySelected}
-							labelColor={theme[props.labelColor].solid}
-							wrap
-						/>
+						{TextLabel && (
+							<TextLabel
+								shapeId={id}
+								type={type}
+								font={font}
+								fontSize={LABEL_FONT_SIZES[size] * shape.props.scale}
+								lineHeight={TEXT_PROPS.lineHeight}
+								padding={LABEL_PADDING * shape.props.scale}
+								fill={fill}
+								align={align}
+								verticalAlign={verticalAlign}
+								text={text}
+								isSelected={isOnlySelected}
+								labelColor={theme[props.labelColor].solid}
+								wrap
+							/>
+						)}
 					</HTMLContainer>
 				)}
 				{shape.props.url && <HyperlinkButton url={shape.props.url} />}
@@ -870,7 +874,7 @@ function getUnscaledLabelSize(editor: Editor, shape: TLGeoShape) {
 		xl: 10,
 	}
 
-	const textSize = editor.textMeasure.measureText(text, {
+	const textSize = editor.textMeasure.measure(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: LABEL_FONT_SIZES[size],
