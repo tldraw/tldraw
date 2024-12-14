@@ -1,4 +1,4 @@
--- Update the file table to include the owner's name and avatar.
+-- Purpose: update the file table to include the owner's name and avatar.
 
 ALTER TABLE "file"
 ADD COLUMN "ownerName" VARCHAR DEFAULT '' NOT NULL;

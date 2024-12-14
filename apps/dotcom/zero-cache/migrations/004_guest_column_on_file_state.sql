@@ -1,8 +1,9 @@
--- This file adds a column to the file_state table that indicates whether the user is the owner of the file.
--- To make sure it is always up to date, we add two triggers that update the column when the file or file_state table is updated.
+-- Purpose: Add a column to the file_state table that indicates whether the user is the owner of the file.
 
 ALTER TABLE file_state
 ADD COLUMN "isFileOwner" BOOLEAN;
+
+-- To make sure it is always up to date, we add two triggers:
 
 -- When the file_state table is updated, we want to check if the user is the owner of the file
 
