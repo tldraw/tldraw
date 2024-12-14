@@ -91,7 +91,11 @@ export const components: TLComponents = {
 				</div>
 			)
 		}
-		return null
+		return (
+			<div className={styles.offlineIndicatorWrapper}>
+				<OfflineIndicator />{' '}
+			</div>
+		)
 	},
 }
 
