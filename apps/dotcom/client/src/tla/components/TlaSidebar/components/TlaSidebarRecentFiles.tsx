@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { getRelevantDates } from '../../../utils/dates'
@@ -17,6 +18,8 @@ export function TlaSidebarRecentFiles() {
 
 			const { today, yesterday, thisWeek, thisMonth } = getRelevantDates()
 
+			const pinnedFiles: RecentFile[] = []
+
 			// split the files into today, yesterday, this week, this month, and then by month
 			const todayFiles: RecentFile[] = []
 			const yesterdayFiles: RecentFile[] = []
@@ -27,8 +30,10 @@ export function TlaSidebarRecentFiles() {
 			const olderFiles: RecentFile[] = []
 
 			for (const item of recentFiles) {
-				const { date } = item
-				if (date >= today) {
+				const { date, isPinned } = item
+				if (isPinned) {
+					pinnedFiles.push(item)
+				} else if (date >= today) {
 					todayFiles.push(item)
 				} else if (date >= yesterday) {
 					yesterdayFiles.push(item)
@@ -42,6 +47,7 @@ export function TlaSidebarRecentFiles() {
 			}
 
 			return {
+				pinnedFiles,
 				todayFiles,
 				yesterdayFiles,
 				thisWeekFiles,
@@ -55,7 +61,18 @@ export function TlaSidebarRecentFiles() {
 	if (!results) throw Error('Could not get files')
 
 	return (
-		<>
+		<Fragment>
+			{results.pinnedFiles.length ? (
+				<TlaSidebarFileSection title={<F defaultMessage="Pinned" />}>
+					{results.pinnedFiles.map((item, i) => (
+						<TlaSidebarFileLink
+							key={'file_link_pinned_' + item.fileId}
+							item={item}
+							testId={`tla-file-link-pinned-${i}`}
+						/>
+					))}
+				</TlaSidebarFileSection>
+			) : null}
 			{results.todayFiles.length ? (
 				<TlaSidebarFileSection title={<F defaultMessage="Today" />}>
 					{results.todayFiles.map((item, i) => (
@@ -113,6 +130,6 @@ export function TlaSidebarRecentFiles() {
 						))}
 				</TlaSidebarFileSection>
 			) : null}
-		</>
+		</Fragment>
 	)
 }
