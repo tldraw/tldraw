@@ -124,7 +124,7 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 		}
 	}
 
-	getGeometry(shape: ICardShape) {
+	getGeometry(shape: CardShape) {
 		return new Rectangle2d({
 			width: shape.props.w,
 			height: shape.props.h,
