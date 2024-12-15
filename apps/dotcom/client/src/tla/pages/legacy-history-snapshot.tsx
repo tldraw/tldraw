@@ -26,6 +26,8 @@ relationship to the previous room, and the user should be able to edit it just
 like any other file.
 */
 
+// todo: Update editor layout, include top bar for anon users (branding, sign in, etc)
+
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {

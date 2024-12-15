@@ -15,6 +15,8 @@ import { updateLocalSessionState } from '../utils/local-session-state'
 History here should work in an identical way to its previous implementation.
 */
 
+// todo: Add top bar for anon users (branding, sign in, etc)
+
 const { loader, useData } = defineLoader(async (args) => {
 	const boardId = args.params.boardId
 
