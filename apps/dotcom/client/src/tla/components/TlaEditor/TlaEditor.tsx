@@ -50,6 +50,7 @@ import { maybeSlurp } from '../../utils/slurping'
 import { SneakyDarkModeSync } from './SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
 import styles from './editor.module.css'
 
 const messages = defineMessages({
@@ -304,7 +305,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 	}, [app, fileSlug, handleUiEvent, untitledProject])
 
 	return (
-		<div className={styles.editor} data-testid="tla-editor">
+		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
 				store={store}
@@ -323,7 +324,7 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyFileUpdateHandler fileId={fileId} />
 			</Tldraw>
-		</div>
+		</TlaEditorWrapper>
 	)
 }
 

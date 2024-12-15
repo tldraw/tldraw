@@ -189,8 +189,12 @@ a {
 
 /* ------------------ Board history ----------------- */
 
+.board-history {
+	padding: 64px;
+}
+
 .board-history__list {
-	padding: 8px 8px 8px 24px;
+	padding: 16px;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;

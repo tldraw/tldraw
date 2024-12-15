@@ -9,7 +9,7 @@ test.beforeEach(async ({ context }) => {
 
 /* --------------------- Sharing -------------------- */
 
-test.describe('logged in user on own file', () => {
+test.describe('signed in user on own file', () => {
 	test('default share state', async ({ shareMenu }) => {
 		await shareMenu.open()
 		expect(await shareMenu.isToggleChecked()).toBe(true)
@@ -222,11 +222,11 @@ test.describe('logged in user on own file', () => {
 	})
 })
 
-test.describe('logged in user on someone elses file', () => {
+test.describe('signed in user on someone elses file', () => {
 	test.fixme('todo', () => {})
 })
 
-test.describe('logged in user on published file', () => {
+test.describe('signed in user on published file', () => {
 	test('tabs work correctly', async ({ shareMenu, browser }) => {
 		// Publish the user's current file
 		await shareMenu.open()
@@ -288,7 +288,7 @@ test.describe('logged out user on scratch file', () => {
 
 test.describe('logged out user on guest file', () => {
 	test('tabs work correctly', async ({ shareMenu, browser }) => {
-		// Share the logged in user's current file
+		// Share the signed in user's current file
 		await shareMenu.open()
 		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
 		await shareMenu.shareFile()

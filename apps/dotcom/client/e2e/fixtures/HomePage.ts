@@ -19,7 +19,7 @@ export class HomePage {
 	@step
 	async loginAs(email: string) {
 		const isSideBarToggleVisible = await this.editor.sidebarToggle.isVisible()
-		// We are already logged in
+		// We are already signed in
 		if (isSideBarToggleVisible) return
 		if (this.page.url() !== rootUrl) {
 			await this.goto()
