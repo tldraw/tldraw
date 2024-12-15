@@ -1,12 +1,12 @@
 import { captureException } from '@sentry/react'
 import { ROOM_PREFIX } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useRouteError } from 'react-router-dom'
-import { fetch } from 'tldraw'
-import { BoardHistorySnapshot } from '../../components/BoardHistorySnapshot/BoardHistorySnapshot'
+import { TLStoreSnapshot, fetch } from 'tldraw'
 import { defineLoader } from '../../utils/defineLoader'
 import { TlaEditorWrapper } from '../components/TlaEditor/TlaEditorWrapper'
+import { TlaLegacySnapshotEditor } from '../components/TlaEditor/TlaLegacySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
@@ -58,8 +58,21 @@ export function Component({ error: _error }: { error?: unknown }) {
 
 	const result = useData()
 
+	const snapshot = useMemo(() => {
+		if (!result) {
+			return null
+		}
+
+		return {
+			schema: result.data.schema,
+			store: Object.fromEntries(
+				result.data.documents.map((record) => [record.state.id, record.state])
+			),
+		} as TLStoreSnapshot
+	}, [result])
+
 	const ts = result?.timestamp
-	const error = _error || !result || !ts
+	const error = _error || !result || !ts || !snapshot
 
 	useEffect(() => {
 		if (error && userId) {
@@ -78,7 +91,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 					<TlaFileError error={error} />
 				) : (
 					<TlaAnonLayout>
-						<BoardHistorySnapshot data={result.data} roomId={result.roomId} timestamp={ts} />
+						<TlaLegacySnapshotEditor fileSlug={result.roomId} snapshot={snapshot} />
 					</TlaAnonLayout>
 				)}
 			</>
@@ -91,7 +104,7 @@ export function Component({ error: _error }: { error?: unknown }) {
 				<TlaFileError error={error} />
 			) : (
 				<TlaEditorWrapper>
-					<BoardHistorySnapshot data={result.data} roomId={result.roomId} timestamp={ts} />
+					<TlaLegacySnapshotEditor fileSlug={result.roomId} snapshot={snapshot} />
 				</TlaEditorWrapper>
 			)}
 		</TlaSidebarLayout>

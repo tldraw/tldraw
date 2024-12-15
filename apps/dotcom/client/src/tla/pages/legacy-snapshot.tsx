@@ -1,12 +1,14 @@
 import { captureException } from '@sentry/react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
+import { SerializedSchema, TLRecord, TLStoreSnapshot, fetch } from 'tldraw'
+import { defineLoader } from '../../utils/defineLoader'
+import { TlaLegacySnapshotEditor } from '../components/TlaEditor/TlaLegacySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { ReadyWrapper } from '../hooks/useIsReady'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
-import { F } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 
 /*
@@ -22,6 +24,22 @@ relationship to the previous room, and the user should be able to edit it just
 like any other file.
 */
 
+const { loader, useData } = defineLoader(async (args) => {
+	const roomId = args.params.roomId
+	const result = await fetch(`/api/snapshot/${roomId}`)
+	if (!result.ok) throw new Error('Room not found')
+
+	const data = await result.json()
+	if (!data || data.error) throw new Error('Room not found')
+	return data as {
+		roomId: string
+		schema: SerializedSchema
+		records: TLRecord[]
+	}
+})
+
+export { loader }
+
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
@@ -30,11 +48,26 @@ export function ErrorBoundary() {
 	return <Component error={error} />
 }
 
-export function Component({ error }: { error?: unknown }) {
+export function Component({ error: _error }: { error?: unknown }) {
 	const { roomId } = useParams<{ roomId: string }>()
 	if (!roomId) throw Error('Room id not found')
 
 	const userId = useMaybeApp()?.userId
+
+	const result = useData()
+
+	const snapshot = useMemo(() => {
+		if (!result) {
+			return null
+		}
+
+		return {
+			schema: result.schema,
+			store: Object.fromEntries(result.records.map((record) => [record.id, record])),
+		} as TLStoreSnapshot
+	}, [result])
+
+	const error = _error || !snapshot
 
 	useEffect(() => {
 		if (error && userId) {
@@ -52,9 +85,7 @@ export function Component({ error }: { error?: unknown }) {
 					<TlaFileError error={error} />
 				) : (
 					<TlaAnonLayout>
-						<div>
-							<F defaultMessage="todo" />
-						</div>
+						<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
 					</TlaAnonLayout>
 				)}
 			</ReadyWrapper>
@@ -66,9 +97,7 @@ export function Component({ error }: { error?: unknown }) {
 			{error ? (
 				<TlaFileError error={error} />
 			) : (
-				<div>
-					<F defaultMessage="todo" />
-				</div>
+				<TlaLegacySnapshotEditor fileSlug={roomId} snapshot={snapshot} />
 			)}
 		</TlaSidebarLayout>
 	)

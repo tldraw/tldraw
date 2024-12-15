@@ -1,12 +1,13 @@
 import { captureException } from '@sentry/react'
+import { ROOM_OPEN_MODE } from '@tldraw/dotcom-shared'
 import { useEffect } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
+import { TlaLegacyFileEditor } from '../components/TlaEditor/TlaLegacyFileEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
 import { useMaybeApp } from '../hooks/useAppState'
 import { ReadyWrapper } from '../hooks/useIsReady'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
-import { F } from '../utils/i18n'
 import { updateLocalSessionState } from '../utils/local-session-state'
 
 /*
@@ -52,9 +53,7 @@ export function Component({ error }: { error?: unknown }) {
 					<TlaFileError error={error} />
 				) : (
 					<TlaAnonLayout>
-						<div>
-							<F defaultMessage="todo" />
-						</div>
+						<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={ROOM_OPEN_MODE.READ_WRITE} />
 					</TlaAnonLayout>
 				)}
 			</ReadyWrapper>
@@ -66,9 +65,7 @@ export function Component({ error }: { error?: unknown }) {
 			{error ? (
 				<TlaFileError error={error} />
 			) : (
-				<div>
-					<F defaultMessage="todo" />
-				</div>
+				<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={ROOM_OPEN_MODE.READ_WRITE} />
 			)}
 		</TlaSidebarLayout>
 	)
