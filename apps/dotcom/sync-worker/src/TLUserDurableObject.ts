@@ -120,6 +120,10 @@ export class TLUserDurableObject extends DurableObject<Environment> {
 	broadcast(message: ZServerSentMessage) {
 		this.logEvent({ type: 'broadcast_message', id: this.userId! })
 		const msg = JSON.stringify(message)
+		if (this.cache && this.sockets.size === 0) {
+			this.replicator.unregisterUser(this.userId!)
+			return
+		}
 		for (const socket of this.sockets) {
 			if (socket.readyState === WebSocket.OPEN) {
 				socket.send(msg)
