@@ -42,8 +42,8 @@ export default track(function EmojiDialog({
 	const breakpoint = useBreakpoint()
 	const isDarkMode = useValue('isDarkMode', () => editor.user.getIsDarkMode(), [editor])
 	const ref = useRef(null)
-	usePassThroughMouseOverEvents(ref.current)
-	usePassThroughWheelEvents(ref.current)
+	usePassThroughMouseOverEvents(ref)
+	usePassThroughWheelEvents(ref)
 	const theme = isDarkMode ? 'dark' : 'light'
 
 	useEffect(() => {
