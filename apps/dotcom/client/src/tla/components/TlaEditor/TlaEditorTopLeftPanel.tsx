@@ -93,7 +93,6 @@ export function TlaEditorTopLeftPanelAnonymous() {
 					</div>
 				</>
 			)}
-
 			{hasPages && (
 				<>
 					<span className={styles.topPanelSeparator}>{separator}</span>
@@ -108,11 +107,13 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						</button>
 					</TldrawUiDropdownMenuTrigger>
 					<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
-						<EditSubmenu />
-						<ViewSubmenu />
-						<ExportFileContentSubMenu />
-						<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
-						<ExtrasGroup />
+						<TldrawUiMenuGroup id="basic">
+							<EditSubmenu />
+							<ViewSubmenu />
+							<ExportFileContentSubMenu />
+							<ExtrasGroup />
+							<TldrawUiMenuActionItem actionId={SAVE_FILE_COPY_ACTION} />
+						</TldrawUiMenuGroup>
 						<TlaAppMenuGroupLazyFlipped />
 						<TldrawUiMenuGroup id="signin">
 							<SignInMenuItem />
