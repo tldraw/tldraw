@@ -2529,8 +2529,6 @@ export class TextManager {
     constructor(editor: Editor);
     // (undocumented)
     editor: Editor;
-    // (undocumented)
-    getBaseElm(): HTMLDivElement;
     measureElementTextNodeSpans(element: HTMLElement, { shouldTruncateToFirstLine }?: {
         shouldTruncateToFirstLine?: boolean;
     }): {
