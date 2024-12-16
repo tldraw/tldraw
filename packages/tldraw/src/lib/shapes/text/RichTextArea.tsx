@@ -1,4 +1,3 @@
-import { Editor as TextEditor } from '@tiptap/core'
 import { EditorView } from '@tiptap/pm/view'
 import { EditorEvents, EditorProvider } from '@tiptap/react'
 import {
@@ -195,8 +194,8 @@ function handleTab(editor: Editor, view: EditorView, event: KeyboardEvent) {
 	// Don't exit the editor.
 	event.preventDefault()
 
-	const textEditor = editor.getEditingShapeTextEditor() as TextEditor
-	if (textEditor.isActive('bulletList') || textEditor.isActive('orderedList')) return
+	const textEditor = editor.getEditingShapeTipTapTextEditor()
+	if (textEditor?.isActive('bulletList') || textEditor?.isActive('orderedList')) return
 
 	const { state, dispatch } = view
 	const { $from, $to } = state.selection

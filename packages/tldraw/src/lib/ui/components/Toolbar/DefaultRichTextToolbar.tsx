@@ -42,11 +42,9 @@ export const DefaultRichTextToolbar = track(function DefaultRichTextToolbar({
 	})
 	const [isEditingLink, setIsEditingLink] = useState(false)
 	const [wasJustEditingLink, setWasJustEditingLink] = useState(false)
-	const textEditor: TextEditor | null = useValue(
-		'textEditor',
-		() => editor.getEditingShapeTextEditor(),
-		[editor]
-	)
+	const textEditor = useValue('textEditor', () => editor.getEditingShapeTipTapTextEditor(), [
+		editor,
+	])
 	const camera = useValue('camera', () => editor.getCamera(), [editor])
 	const [textEditorState, setTextEditorState] = useState<TextEditorState | null>(
 		textEditor?.state ?? null
