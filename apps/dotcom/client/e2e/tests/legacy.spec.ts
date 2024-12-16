@@ -53,13 +53,13 @@ test.describe('legacy history', () => {
 	})
 })
 
-test.describe('legacy history', () => {
-	test.fixme('signed out: can view legacy room history', async () => {
+test.describe('legacy history snapshot', () => {
+	test.fixme('signed out: can view legacy room history snapshot', async () => {
 		// anon layout should be visible
 		return
 	})
 
-	test.fixme('signed in: can view legacy room history', async () => {
+	test.fixme('signed in: can view legacy room history snapshot', async () => {
 		// sidebar layout should be visible
 		return
 	})
