@@ -2528,8 +2528,6 @@ export type TestEnvironment = 'development' | 'production';
 export class TextManager {
     constructor(editor: Editor);
     // (undocumented)
-    _baseElm: HTMLDivElement | null;
-    // (undocumented)
     editor: Editor;
     // (undocumented)
     getBaseElm(): HTMLDivElement;

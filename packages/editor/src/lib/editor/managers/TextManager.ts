@@ -38,7 +38,7 @@ const spaceCharacterRegex = /\s/
 
 /** @public */
 export class TextManager {
-	_baseElm: HTMLDivElement | null = null
+	private _baseElm: HTMLDivElement | null = null
 
 	// In some hot reloading scenarios the base element can be removed from the dom.
 	// So every time we use it we need to check if it's still connected and create a new one if not.
