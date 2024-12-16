@@ -52,7 +52,7 @@ export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefi
 /** @internal */
 export function maxBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined {
 	let max: T | undefined
-	let maxVal = Infinity
+	let maxVal: number = -Infinity
 	for (const item of arr) {
 		const val = fn(item)
 		if (val > maxVal) {
