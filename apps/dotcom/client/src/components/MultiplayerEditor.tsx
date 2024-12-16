@@ -17,6 +17,7 @@ import {
 	ExtrasGroup,
 	PeopleMenu,
 	PreferencesGroup,
+	tipTapDefaultExtensions,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
@@ -40,6 +41,7 @@ import { trackAnalyticsEvent } from '../utils/trackAnalyticsEvent'
 import { OPEN_FILE_ACTION, SAVE_FILE_COPY_ACTION, useFileSystem } from '../utils/useFileSystem'
 import { useHandleUiEvents } from '../utils/useHandleUiEvent'
 import { DocumentTopZone } from './DocumentName/DocumentName'
+import EmojiExtension from './Emojis/EmojiExtension'
 import { MultiplayerFileMenu } from './FileMenu'
 import { Links } from './Links'
 import { ShareMenu } from './ShareMenu'
@@ -164,6 +166,11 @@ export function MultiplayerEditor({
 				onUiEvent={handleUiEvent}
 				components={components}
 				deepLinks
+				textOptions={{
+					tipTapConfig: {
+						extensions: [...tipTapDefaultExtensions, EmojiExtension],
+					},
+				}}
 			>
 				<SneakyOnDropOverride isMultiplayer />
 				<ThemeUpdater />

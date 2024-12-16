@@ -20,6 +20,7 @@ import { ComponentType } from 'react';
 import { CubicSpline2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { Editor as Editor_2 } from '@tiptap/core';
+import { Extensions } from '@tiptap/core';
 import { Geometry2d } from '@tldraw/editor';
 import { Group2d } from '@tldraw/editor';
 import { HandleSnapGeometry } from '@tldraw/editor';
@@ -1988,6 +1989,9 @@ export interface ThemeStylePickerSetProps {
     // (undocumented)
     theme: TLDefaultColorTheme;
 }
+
+// @public
+export const tipTapDefaultExtensions: Extensions;
 
 // @public (undocumented)
 export interface TLArcInfo {
