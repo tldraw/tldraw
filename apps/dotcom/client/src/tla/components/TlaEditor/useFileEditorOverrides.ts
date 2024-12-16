@@ -16,11 +16,21 @@ export function useFileEditorOverrides({ fileSlug }: { fileSlug?: string }) {
 
 		return {
 			actions(editor, actions) {
-				actions['save-file-copy'] = {
+				// Add a shortcut that does nothing but blocks the command+s shortcut
+				actions['save-null'] = {
 					id: 'save-file-copy',
 					label: 'action.save-copy',
 					readonlyOk: true,
 					kbd: '$s',
+					onSelect() {
+						handleUiEvent('save-project-no-action', { source: 'kbd' })
+					},
+				}
+				actions['save-file-copy'] = {
+					id: 'save-file-copy',
+					label: 'action.save-copy',
+					readonlyOk: true,
+					kbd: '$!s',
 					async onSelect() {
 						handleUiEvent('save-project-to-file', { source: '' })
 						const documentName =
