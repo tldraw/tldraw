@@ -309,6 +309,7 @@ export class TLDrawDurableObject extends DurableObject {
 			const fileRecord =
 				await postgres`SELECT * FROM PUBLIC.FILE WHERE ID = ${this.documentInfo.slug}`
 			this._fileRecordCache = fileRecord[0] as TlaFile
+			postgres.end()
 			return this._fileRecordCache
 		} catch (_e) {
 			return null
