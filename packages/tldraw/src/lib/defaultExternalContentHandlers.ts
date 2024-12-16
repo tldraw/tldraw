@@ -15,6 +15,7 @@ import {
 	Vec,
 	VecLike,
 	assert,
+	convertTextToTipTapDocument,
 	createShapeId,
 	fetch,
 	getHashForBuffer,
@@ -334,13 +335,13 @@ export function registerDefaultExternalContentHandlers(
 
 		// If we're pasting into a text shape, update the text.
 		const onlySelectedShape = editor.getOnlySelectedShape()
-		if (onlySelectedShape && 'text' in onlySelectedShape.props) {
+		if (onlySelectedShape && 'richText' in onlySelectedShape.props) {
 			editor.updateShapes([
 				{
 					id: onlySelectedShape.id,
 					type: onlySelectedShape.type,
 					props: {
-						text: textToPaste,
+						richText: convertTextToTipTapDocument(textToPaste),
 					},
 				},
 			])
@@ -404,7 +405,7 @@ export function registerDefaultExternalContentHandlers(
 				x: p.x - w / 2,
 				y: p.y - h / 2,
 				props: {
-					text: textToPaste,
+					richText: convertTextToTipTapDocument(textToPaste),
 					// if the text has more than one line, align it to the left
 					textAlign: align,
 					autoSize,

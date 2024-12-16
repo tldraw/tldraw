@@ -2547,6 +2547,20 @@ export class TextManager {
         }[];
     };
     // (undocumented)
+    measureHtml(html: string, opts: {
+        maxWidth: null | number;
+        disableOverflowWrapBreaking?: boolean;
+        fontFamily: string;
+        fontSize: number;
+        fontStyle: string;
+        fontWeight: string;
+        lineHeight: number;
+        minWidth?: null | number;
+        padding: string;
+    }): BoxModel & {
+        scrollWidth: number;
+    };
+    // (undocumented)
     measureText(textToMeasure: string, opts: {
         maxWidth: null | number;
         disableOverflowWrapBreaking?: boolean;
@@ -2557,7 +2571,6 @@ export class TextManager {
         lineHeight: number;
         minWidth?: null | number;
         padding: string;
-        renderMethod?(): Node | string;
     }): BoxModel & {
         scrollWidth: number;
     };

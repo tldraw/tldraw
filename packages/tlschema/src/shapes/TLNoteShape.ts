@@ -1,4 +1,5 @@
 import { T } from '@tldraw/validate'
+import { TLRichText, convertTextToTipTapDocument, richTextValidator } from '../misc/TLRichText'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import {
@@ -29,8 +30,7 @@ export interface TLNoteShapeProps {
 	verticalAlign: TLDefaultVerticalAlignStyle
 	growY: number
 	url: string
-	text: string
-	richText?: string
+	richText: TLRichText
 	scale: number
 }
 
@@ -48,8 +48,7 @@ export const noteShapeProps: RecordProps<TLNoteShape> = {
 	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
 	url: T.linkUrl,
-	text: T.string,
-	richText: T.tipTapDoc.optional(),
+	richText: richTextValidator,
 	scale: T.nonZeroNumber,
 }
 
@@ -150,7 +149,10 @@ export const noteShapeMigrations = createShapePropsMigrationSequence({
 		},
 		{
 			id: Versions.AddRichText,
-			up: () => {},
+			up: (props) => {
+				props.richText = convertTextToTipTapDocument(props.text)
+				delete props.text
+			},
 			// N.B. Explicitly no down state so that we force clients to update.
 			// down: (props) => {
 			// 	delete props.richText

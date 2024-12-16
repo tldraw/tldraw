@@ -15,6 +15,11 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
+      <style>
+        
+				.tl-rich-text-svg p { margin: 0 }
+			
+      </style>
       <mask
         id="_export_3_r8_"
       >
@@ -70,49 +75,27 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
       transform="matrix(1, 0, 0, 1, 0, 0)"
     >
       <path
-        d="M0, 0L100, 0,100, 428,0, 428Z"
+        d="M0, 0L100, 0,100, 100,0, 100Z"
         fill="none"
         stroke="#1d1d1d"
         stroke-width="3.5"
       />
-      <text
-        alignment-baseline="mathematical"
-        dominant-baseline="mathematical"
-        fill="rgb(249, 250, 251)"
-        font-family="'tldraw_draw', sans-serif"
-        font-size="22"
-        font-style="normal"
-        font-weight="normal"
-        stroke="rgb(249, 250, 251)"
-        stroke-width="2"
+      <foreignobject
+        class="tl-rich-text-svg"
+        height="100"
+        width="100"
+        x="0"
+        y="0"
       >
-        <tspan
-          alignment-baseline="mathematical"
-          unicode-bidi="plaintext"
-          x="16"
-          y="-17"
+        <div
+          style="display: flex; flex-direction: column; height: calc(100px - 32px - 2px); font-size: 22px; font-family: 'tldraw_draw', sans-serif; text-align: center; justify-content: center; padding: 16px; color: rgb(29, 29, 29); line-height: 1.35;"
+          xmlns="http://www.w3.org/1999/xhtml"
         >
-          Hello world
-        </tspan>
-      </text>
-      <text
-        alignment-baseline="mathematical"
-        dominant-baseline="mathematical"
-        fill="#1d1d1d"
-        font-family="'tldraw_draw', sans-serif"
-        font-size="22"
-        font-style="normal"
-        font-weight="normal"
-      >
-        <tspan
-          alignment-baseline="mathematical"
-          unicode-bidi="plaintext"
-          x="16"
-          y="-17"
-        >
-          Hello world
-        </tspan>
-      </text>
+          <p>
+            Hello world
+          </p>
+        </div>
+      </foreignobject>
     </g>
     <g
       opacity="1"

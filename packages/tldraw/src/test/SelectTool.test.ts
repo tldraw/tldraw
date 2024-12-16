@@ -1,4 +1,12 @@
-import { IndexKey, createShapeId } from '@tldraw/editor'
+import {
+	IndexKey,
+	TLArrowShape,
+	TLGeoShape,
+	TLNoteShape,
+	TLTextShape,
+	convertTextToTipTapDocument,
+	createShapeId,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -52,7 +60,15 @@ describe('TLSelectTool.Idle', () => {
 describe.skip('Edit on type', () => {
 	it('Starts editing shape on key down if shape does auto-edit on key stroke', () => {
 		const id = createShapeId()
-		editor.createShapes([{ id, type: 'note', x: 100, y: 100, props: { text: 'hello' } }])!
+		editor.createShapes<TLNoteShape>([
+			{
+				id,
+				type: 'note',
+				x: 100,
+				y: 100,
+				props: { richText: convertTextToTipTapDocument('hello') },
+			},
+		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
 		editor.keyDown('a') // Press a key that would start editing
@@ -68,7 +84,15 @@ describe.skip('Edit on type', () => {
 
 	it('Does not start editing on excluded keys', () => {
 		const id = createShapeId()
-		editor.createShapes([{ id, type: 'note', x: 100, y: 100, props: { text: 'hello' } }])!
+		editor.createShapes<TLNoteShape>([
+			{
+				id,
+				type: 'note',
+				x: 100,
+				y: 100,
+				props: { richText: convertTextToTipTapDocument('hello') },
+			},
+		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
 		editor.keyDown('Enter') // Press an excluded key
@@ -77,7 +101,15 @@ describe.skip('Edit on type', () => {
 
 	it('Ignores key down if altKey or ctrlKey is pressed', () => {
 		const id = createShapeId()
-		editor.createShapes([{ id, type: 'note', x: 100, y: 100, props: { text: 'hello' } }])!
+		editor.createShapes<TLNoteShape>([
+			{
+				id,
+				type: 'note',
+				x: 100,
+				y: 100,
+				props: { richText: convertTextToTipTapDocument('hello') },
+			},
+		])!
 		const shape = editor.getShape(id)!
 		editor.select(shape.id)
 		// Simulate altKey being pressed
@@ -237,7 +269,7 @@ describe('DraggingHandle', () => {
 
 describe('PointingLabel', () => {
 	it('Enters from pointing_arrow_label and exits to idle', () => {
-		editor.createShapes([
+		editor.createShapes<TLArrowShape>([
 			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
 		])
 		const shape = editor.getShape(ids.arrow1)
@@ -253,7 +285,7 @@ describe('PointingLabel', () => {
 	})
 
 	it('Bails on escape', () => {
-		editor.createShapes([
+		editor.createShapes<TLArrowShape>([
 			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
 		])
 		const shape = editor.getShape(ids.arrow1)
@@ -269,7 +301,7 @@ describe('PointingLabel', () => {
 	})
 
 	it('Doesnt go into pointing_arrow_label mode if not selecting the arrow shape', () => {
-		editor.createShapes([
+		editor.createShapes<TLArrowShape>([
 			{ id: ids.arrow1, type: 'arrow', x: 100, y: 100, props: { text: 'Test Label' } },
 		])
 		const shape = editor.getShape(ids.arrow1)
@@ -335,11 +367,16 @@ describe('When double clicking the selection edge', () => {
 			.selectAll()
 			.deleteShapes(editor.getSelectedShapeIds())
 			.selectNone()
-			.createShapes([
+			.createShapes<TLTextShape>([
 				{
 					id,
 					type: 'text',
-					props: { scale: 2, autoSize: false, w: 200, text: 'hello' },
+					props: {
+						scale: 2,
+						autoSize: false,
+						w: 200,
+						richText: convertTextToTipTapDocument('hello'),
+					},
 				},
 			])
 			.select(id)
@@ -388,11 +425,27 @@ describe('When editing shapes', () => {
 			text2: createShapeId(),
 		}
 
-		editor.createShapes([
-			{ id: ids.geo1, type: 'geo', props: { text: 'hello world ' } },
-			{ id: ids.geo2, type: 'geo', props: { text: 'hello world ' } },
-			{ id: ids.text1, type: 'text', props: { text: 'hello world ' } },
-			{ id: ids.text2, type: 'text', props: { text: 'hello world ' } },
+		editor.createShapes<TLGeoShape | TLTextShape>([
+			{
+				id: ids.geo1,
+				type: 'geo',
+				props: { richText: convertTextToTipTapDocument('hello world ') },
+			},
+			{
+				id: ids.geo2,
+				type: 'geo',
+				props: { richText: convertTextToTipTapDocument('hello world ') },
+			},
+			{
+				id: ids.text1,
+				type: 'text',
+				props: { richText: convertTextToTipTapDocument('hello world ') },
+			},
+			{
+				id: ids.text2,
+				type: 'text',
+				props: { richText: convertTextToTipTapDocument('hello world ') },
+			},
 		])
 	})
 

@@ -11,6 +11,7 @@ import {
 	TLTextShape,
 	Vec,
 	VecLike,
+	convertTextToTipTapDocument,
 	createShapeId,
 	debugFlags,
 	pointInPolygon,
@@ -187,7 +188,7 @@ export class Idle extends StateNode {
 				// double clicking on the middle of a hollow geo shape without a label, or
 				// over the label of a hollwo shape that has a label, should start editing
 				// that shape's label. We can't support "double click anywhere inside"
-				// of the shape yet because that also creates text shapes, and can product
+				// of the shape yet because that also creates text shapes, and can produce
 				// unexpected results when working "inside of" a hollow shape.
 
 				const hitShape =
@@ -573,7 +574,7 @@ export class Idle extends StateNode {
 				x,
 				y,
 				props: {
-					text: '',
+					richText: convertTextToTipTapDocument(''),
 					autoSize: true,
 				},
 			},

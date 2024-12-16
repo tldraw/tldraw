@@ -1,4 +1,4 @@
-import { Editor, Tldraw, createShapeId } from 'tldraw'
+import { Editor, Tldraw, convertTextToTipTapDocument, createShapeId } from 'tldraw'
 import 'tldraw/tldraw.css'
 
 export default function AfterDeleteShapeExample() {
@@ -44,7 +44,7 @@ function createDemoShapes(editor: Editor) {
 			x: 50,
 			y: 40,
 			props: {
-				text: 'Frames will be deleted when their last child is.',
+				richText: convertTextToTipTapDocument('Frames will be deleted when their last child is.'),
 				w: 300,
 				autoSize: false,
 			},

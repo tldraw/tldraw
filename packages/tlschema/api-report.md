@@ -84,6 +84,9 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
+// @public (undocumented)
+export function convertTextToTipTapDocument(text: string): TLRichText;
+
 // @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<Expand<    { [P in "id" | "meta" | "typeName" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: {
 id: TLAssetId;
@@ -511,6 +514,12 @@ export type RecordProps<R extends UnknownRecord & {
 // @public (undocumented)
 export type RecordPropsType<Config extends Record<string, T.Validatable<any>>> = MakeUndefinedOptional<{
     [K in keyof Config]: T.TypeOf<Config[K]>;
+}>;
+
+// @public (undocumented)
+export const richTextValidator: T.ObjectValidator<{
+    content: unknown[];
+    type: string;
 }>;
 
 // @public (undocumented)
@@ -965,13 +974,11 @@ export interface TLGeoShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
-    richText?: string;
+    richText?: TLRichText;
     // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     url: string;
     // (undocumented)
@@ -1260,13 +1267,11 @@ export interface TLNoteShapeProps {
     // (undocumented)
     labelColor: TLDefaultColorStyle;
     // (undocumented)
-    richText?: string;
+    richText: TLRichText;
     // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     url: string;
     // (undocumented)
@@ -1329,6 +1334,9 @@ export interface TLPropsMigrations {
 
 // @public (undocumented)
 export type TLRecord = TLAsset | TLBinding | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
+
+// @public (undocumented)
+export type TLRichText = T.TypeOf<typeof richTextValidator>;
 
 // @public (undocumented)
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
@@ -1407,13 +1415,11 @@ export interface TLTextShapeProps {
     // (undocumented)
     font: TLDefaultFontStyle;
     // (undocumented)
-    richText?: string;
+    richText: TLRichText;
     // (undocumented)
     scale: number;
     // (undocumented)
     size: TLDefaultSizeStyle;
-    // (undocumented)
-    text: string;
     // (undocumented)
     textAlign: TLDefaultTextAlignStyle;
     // (undocumented)

@@ -100,6 +100,7 @@ import { TLParentId } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPropsMigrations } from '@tldraw/editor';
 import { TLResizeInfo } from '@tldraw/editor';
+import { TLRichText } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribbleProps } from '@tldraw/editor';
 import { TLSelectionBackgroundProps } from '@tldraw/editor';
@@ -1097,7 +1098,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getInterpolatedProps(startShape: TLGeoShape, endShape: TLGeoShape, t: number): TLGeoShapeProps;
     // (undocumented)
-    getText(shape: TLGeoShape): string;
+    getText(shape: TLGeoShape): string | undefined;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX_2.Element;
     // (undocumented)
@@ -1120,10 +1121,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: string | undefined;
+            richText?: {
+                content: unknown[];
+                type: string;
+            } | undefined;
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
             w: number;
@@ -1152,10 +1155,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             growY: number;
             h: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: string | undefined;
+            richText?: {
+                content: unknown[];
+                type: string;
+            } | undefined;
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
             w: number;
@@ -1198,8 +1203,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         x: number;
         y: number;
     } | undefined;
-    // (undocumented)
-    onEditEnd(shape: TLGeoShape): void;
     // (undocumented)
     onResize(shape: TLGeoShape, { handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>): {
         props: {
@@ -1542,10 +1545,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             fontSizeAdjustment: number;
             growY: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: string | undefined;
+            richText: {
+                content: unknown[];
+                type: string;
+            };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };
@@ -1570,10 +1575,12 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             fontSizeAdjustment: number;
             growY: number;
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
-            richText?: string | undefined;
+            richText: {
+                content: unknown[];
+                type: string;
+            };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             url: string;
             verticalAlign: "end" | "middle" | "start";
         };
@@ -1583,8 +1590,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         x: number;
         y: number;
     } | undefined;
-    // (undocumented)
-    onEditEnd(shape: TLNoteShape): void;
     // (undocumented)
     static props: RecordProps<TLNoteShape>;
     // (undocumented)
@@ -1816,7 +1821,7 @@ export interface TextAreaProps {
     // (undocumented)
     handleChange(changeInfo: {
         plaintext?: string;
-        richText?: string;
+        richText?: TLRichText;
     }): void;
     // (undocumented)
     handleDoubleClick(e: any): any;
@@ -1829,11 +1834,11 @@ export interface TextAreaProps {
     // (undocumented)
     isEditing: boolean;
     // (undocumented)
-    richText?: string;
+    richText?: TLRichText;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
-    text: string;
+    text?: string;
 }
 
 // @public
@@ -1868,13 +1873,13 @@ export interface TextLabelProps {
     // (undocumented)
     padding?: number;
     // (undocumented)
-    richText?: string;
+    richText?: TLRichText;
     // (undocumented)
     shapeId: TLShapeId;
     // (undocumented)
     style?: React_3.CSSProperties;
     // (undocumented)
-    text: string;
+    text?: string;
     // (undocumented)
     textHeight?: number;
     // (undocumented)
@@ -1934,10 +1939,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             autoSize: boolean;
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "white" | "yellow";
             font: "draw" | "mono" | "sans" | "serif";
-            richText?: string | undefined;
+            richText: {
+                content: unknown[];
+                type: string;
+            };
             scale: number;
             size: "l" | "m" | "s" | "xl";
-            text: string;
             textAlign: "end" | "middle" | "start";
             w: number;
         };
@@ -3881,11 +3888,11 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useEditableText(shapeId: TLShapeId, type: string, text: string, richText?: string): {
+export function useEditableText(shapeId: TLShapeId, enableRichText: boolean, type: string, text?: string, richText?: TLRichText): {
     handleBlur: () => void;
     handleChange: ({ plaintext, richText }: {
         plaintext?: string;
-        richText?: string;
+        richText?: TLRichText;
     }) => void;
     handleDoubleClick: (e: any) => any;
     handleFocus: () => void;

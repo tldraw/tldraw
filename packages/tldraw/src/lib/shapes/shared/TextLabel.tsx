@@ -5,11 +5,12 @@ import {
 	TLDefaultFontStyle,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
+	TLRichText,
 	TLShapeId,
 	useEditor,
 } from '@tldraw/editor'
 import React, { useEffect, useState } from 'react'
-import { renderHtmlFromRichText } from '../../utils/text/richText'
+import { renderHtmlFromRichText, renderPlaintextFromRichText } from '../../utils/text/richText'
 import { PlainTextArea } from '../text/PlainTextArea'
 import { RichTextArea } from '../text/RichTextArea'
 import { TextHelpers } from './TextHelpers'
@@ -29,8 +30,8 @@ export interface TextLabelProps {
 	verticalAlign: TLDefaultVerticalAlignStyle
 	wrap?: boolean
 	enableRichText?: boolean
-	text: string
-	richText?: string
+	text?: string
+	richText?: TLRichText
 	labelColor: string
 	bounds?: Box
 	isNote?: boolean
@@ -75,6 +76,7 @@ export const TextLabel = React.memo(function TextLabel({
 	const [htmlFromMarkdown, setHtmlFromMarkdown] = useState<string | null>(null)
 	const { rInput, isEmpty, isEditing, isEditingAnything, ...editableTextRest } = useEditableText(
 		shapeId,
+		!!enableRichText,
 		type,
 		plaintext,
 		richText
@@ -91,15 +93,21 @@ export const TextLabel = React.memo(function TextLabel({
 		}
 	}, [plaintext, editor, enableRichText, richText, htmlFromMarkdown])
 
-	const currentText = richText || plaintext
+	const currentText = richText || plaintext || ''
 	const [initialText, setInitialText] = useState(currentText)
 
 	useEffect(() => {
 		if (!isEditing) setInitialText(currentText)
 	}, [isEditing, currentText])
 
-	const finalText = TextHelpers.normalizeTextForDom(currentText)
-	const hasText = finalText.length > 0
+	let finalPlainText = ''
+	let hasText = false
+	if (enableRichText) {
+		hasText = richText ? renderPlaintextFromRichText(editor, richText).length > 0 : false
+	} else {
+		finalPlainText = TextHelpers.normalizeTextForDom(plaintext || '')
+		hasText = finalPlainText.length > 0
+	}
 
 	const legacyAlign = isLegacyAlign(align)
 
@@ -155,7 +163,7 @@ export const TextLabel = React.memo(function TextLabel({
 							onPointerDownCapture={handlePointerDownCapture}
 						/>
 					) : (
-						finalText.split('\n').map((lineOfText, index) => (
+						finalPlainText.split('\n').map((lineOfText, index) => (
 							<div key={index} dir="auto">
 								{lineOfText}
 							</div>
@@ -168,7 +176,7 @@ export const TextLabel = React.memo(function TextLabel({
 						ref={rInput as any}
 						// We need to add the initial value as the key here because we need this component to
 						// 'reset' when this state changes and grab the latest defaultValue.
-						key={initialText}
+						key={JSON.stringify(initialText)}
 						text={plaintext}
 						richText={richText}
 						isEditing={isEditing}
@@ -185,7 +193,7 @@ export const TextLabel = React.memo(function TextLabel({
 /** @public */
 export interface RichTextSVGProps {
 	bounds: Box
-	richText: string
+	richText: TLRichText
 	fontSize: number
 	font: TLDefaultFontStyle
 	align: TLDefaultHorizontalAlignStyle
