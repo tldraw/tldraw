@@ -16,6 +16,7 @@ import {
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
+import { globalEditor } from '../../../utils/globalEditor'
 import { useSharing } from '../../../utils/sharing'
 import { SAVE_FILE_COPY_ACTION, useFileSystem } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
@@ -28,8 +29,9 @@ import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { editorMessages as messages } from './editor-messages'
 import styles from './editor.module.css'
-import { SetDocumentTitle } from './sneaky/SetDocumentTitle'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
+import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 
 /** @internal */
 export const components: TLComponents = {
@@ -78,7 +80,7 @@ export function TlaLegacySnapshotEditor({
 }) {
 	return (
 		<>
-			<SetDocumentTitle />
+			<SneakySetDocumentTitle />
 			<ReadyWrapper key={fileSlug}>
 				<TlaEditorInner snapshot={snapshot} />
 			</ReadyWrapper>
@@ -103,6 +105,8 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 		(editor: Editor) => {
 			;(window as any).app = editor
 			;(window as any).editor = editor
+			// Register the editor globally
+			globalEditor.set(editor)
 			editor.updateInstanceState({ isReadonly: true })
 			setIsReady()
 		},
@@ -125,6 +129,7 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
+				<SneakyLegacySetDocumentTitle />
 				{app && <SneakyTldrawFileDropHandler />}
 			</Tldraw>
 		</TlaEditorWrapper>

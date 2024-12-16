@@ -20,6 +20,7 @@ import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { assetUrls } from '../../../utils/assetUrls'
 import { MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
+import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useSharing } from '../../../utils/sharing'
 import { trackAnalyticsEvent } from '../../../utils/trackAnalyticsEvent'
@@ -34,8 +35,9 @@ import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { editorMessages as messages } from './editor-messages'
 import styles from './editor.module.css'
-import { SetDocumentTitle } from './sneaky/SetDocumentTitle'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentTitle'
+import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 
 /** @internal */
 export const components: TLComponents = {
@@ -84,7 +86,7 @@ export function TlaLegacyFileEditor({
 }) {
 	return (
 		<>
-			<SetDocumentTitle />
+			<SneakySetDocumentTitle />
 			<ReadyWrapper key={fileSlug}>
 				<TlaEditorInner roomOpenMode={roomOpenMode} fileSlug={fileSlug} key={fileSlug} />
 			</ReadyWrapper>
@@ -127,6 +129,8 @@ function TlaEditorInner({
 				;(window as any).app = editor
 				;(window as any).editor = editor
 			}
+			// Register the editor globally
+			globalEditor.set(editor)
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)
 			setIsReady()
 		},
@@ -153,6 +157,7 @@ function TlaEditorInner({
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
+				<SneakyLegacySetDocumentTitle />
 				{app && <SneakyTldrawFileDropHandler />}
 			</Tldraw>
 		</TlaEditorWrapper>

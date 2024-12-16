@@ -6,7 +6,7 @@ import { useMaybeApp } from '../../../hooks/useAppState'
 import { useMsg } from '../../../utils/i18n'
 import { editorMessages as messages } from '../editor-messages'
 
-export function SetDocumentTitle() {
+export function SneakySetDocumentTitle() {
 	const { fileSlug } = useParams<{ fileSlug: string }>()
 	const app = useMaybeApp()
 	const editor = useValue('editor', () => globalEditor.get(), [])

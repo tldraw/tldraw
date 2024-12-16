@@ -1,4 +1,3 @@
-import { useAuth } from '@clerk/clerk-react'
 import { TlaFileOpenMode } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect } from 'react'
@@ -36,7 +35,6 @@ import { SAVE_FILE_COPY_ACTION } from '../../../utils/useFileSystem'
 import { useHandleUiEvents } from '../../../utils/useHandleUiEvent'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
-import { getSnapshotsFromDroppedTldrawFiles } from '../../hooks/useTldrFileDrop'
 import { useTldrawUser } from '../../hooks/useUser'
 import { defineMessages, useMsg } from '../../utils/i18n'
 import { maybeSlurp } from '../../utils/slurping'
@@ -45,7 +43,8 @@ import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
 import { TlaEditorTopRightPanel } from './TlaEditorTopRightPanel'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import styles from './editor.module.css'
-import { SetDocumentTitle } from './sneaky/SetDocumentTitle'
+import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
+import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { useFileEditorOverrides } from './useFileActions'
 
 const messages = defineMessages({
@@ -107,7 +106,7 @@ export function TlaEditor(props: TlaEditorProps) {
 	// force re-mount when the file slug changes to prevent state from leaking between files
 	return (
 		<>
-			<SetDocumentTitle />
+			<SneakySetDocumentTitle />
 			<ReadyWrapper key={props.fileSlug}>
 				<TlaEditorInner {...props} key={props.fileSlug} />
 			</ReadyWrapper>
@@ -274,31 +273,6 @@ function TlaEditorInner({ fileSlug, mode, deepLinks, duplicateId }: TlaEditorPro
 			</Tldraw>
 		</TlaEditorWrapper>
 	)
-}
-
-function SneakyTldrawFileDropHandler() {
-	const editor = useEditor()
-	const app = useMaybeApp()
-	const auth = useAuth()
-	useEffect(() => {
-		if (!auth) return
-		if (!app) return
-		const defaultOnDrop = editor.externalContentHandlers['files']
-		editor.registerExternalContentHandler('files', async (content) => {
-			const { files } = content
-			const tldrawFiles = files.filter((file) => file.name.endsWith('.tldr'))
-			if (tldrawFiles.length > 0) {
-				const snapshots = await getSnapshotsFromDroppedTldrawFiles(editor, tldrawFiles)
-				if (!snapshots.length) return
-				const token = await auth.getToken()
-				if (!token) return
-				await app.createFilesFromTldrFiles(snapshots, token)
-			} else {
-				defaultOnDrop?.(content)
-			}
-		})
-	}, [editor, app, auth])
-	return null
 }
 
 function SneakyFileUpdateHandler({ fileId }: { fileId: string }) {
