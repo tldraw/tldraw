@@ -1,3 +1,4 @@
+import { whyAmIRunning } from '@tldraw/state'
 import { BoxModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
@@ -146,6 +147,7 @@ export class TextManager {
 				// the character itself. we're only interested in the character.
 				const rects = range.getClientRects()
 				const rect = rects[rects.length - 1]!
+				if (!rect) whyAmIRunning()
 
 				// calculate the position of the character relative to the element
 				const top = rect.top + offsetY
