@@ -53,7 +53,7 @@ export function Component({ error }: { error?: unknown }) {
 					<TlaFileError error={error} />
 				) : (
 					<TlaAnonLayout>
-						<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={ROOM_OPEN_MODE.READ_ONLY} />
+						<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={ROOM_OPEN_MODE.READ_ONLY_LEGACY} />
 					</TlaAnonLayout>
 				)}
 			</ReadyWrapper>
@@ -65,7 +65,7 @@ export function Component({ error }: { error?: unknown }) {
 			{error ? (
 				<TlaFileError error={error} />
 			) : (
-				<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={ROOM_OPEN_MODE.READ_ONLY} />
+				<TlaLegacyFileEditor fileSlug={roomId} roomOpenMode={ROOM_OPEN_MODE.READ_ONLY_LEGACY} />
 			)}
 		</TlaSidebarLayout>
 	)
