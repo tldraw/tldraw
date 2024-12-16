@@ -156,6 +156,20 @@ export class Sidebar {
 	}
 
 	@step
+	async pinFromFileMenu(index: number) {
+		const fileLink = this.getFileLink('today', index)
+		await this.openFileMenu(fileLink)
+		await this.page.getByRole('menuitem', { name: 'Pin' }).click()
+	}
+
+	@step
+	async unpinFromFileMenu(index: number) {
+		const fileLink = this.getFileLink('pinned', index)
+		await this.openFileMenu(fileLink)
+		await this.page.getByRole('menuitem', { name: 'Unpin' }).click()
+	}
+
+	@step
 	async duplicateFile(index: number) {
 		const fileLink = this.getFileLink('today', index)
 		await this.openFileMenu(fileLink)

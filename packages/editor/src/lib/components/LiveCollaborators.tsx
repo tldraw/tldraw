@@ -75,6 +75,8 @@ const Collaborator = track(function Collaborator({
 	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
 		latestPresence
 
+	if (!cursor) return null
+
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
 	const isCursorInViewport = !(
@@ -171,7 +173,7 @@ function useCollaboratorState(editor: Editor, latestPresence: TLInstancePresence
 	if (latestPresence) {
 		// We can do this on every render, it's free and cheaper than an effect
 		// remember, there can be lots and lots of cursors moving around all the time
-		rLastActivityTimestamp.current = latestPresence.lastActivityTimestamp
+		rLastActivityTimestamp.current = latestPresence.lastActivityTimestamp ?? Infinity
 	}
 
 	return state
