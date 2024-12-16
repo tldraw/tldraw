@@ -38,9 +38,14 @@ const spaceCharacterRegex = /\s/
 
 /** @public */
 export class TextManager {
-	baseElm: HTMLDivElement
+	private _baseElm: HTMLDivElement | null = null
 
-	constructor(public editor: Editor) {
+	// In some hot reloading scenarios the base element can be removed from the dom.
+	// So every time we use it we need to check if it's still connected and create a new one if not.
+	getBaseElm() {
+		if (this._baseElm?.isConnected) {
+			return this._baseElm
+		}
 		const container = this.editor.getContainer()
 
 		const elm = document.createElement('div')
@@ -49,9 +54,12 @@ export class TextManager {
 		elm.tabIndex = -1
 		container.appendChild(elm)
 
-		this.baseElm = elm
+		return (this._baseElm = elm)
+	}
+
+	constructor(public editor: Editor) {
 		editor.disposables.add(() => {
-			elm.remove()
+			this._baseElm?.remove()
 		})
 	}
 
@@ -75,8 +83,9 @@ export class TextManager {
 		}
 	): BoxModel & { scrollWidth: number } {
 		// Duplicate our base element; we don't need to clone deep
-		const elm = this.baseElm?.cloneNode() as HTMLDivElement
-		this.baseElm.insertAdjacentElement('afterend', elm)
+		const baseElem = this.getBaseElm()
+		const elm = baseElem.cloneNode() as HTMLDivElement
+		baseElem.insertAdjacentElement('afterend', elm)
 
 		elm.setAttribute('dir', 'auto')
 		// N.B. This property, while discouraged ("intended for Document Type Definition (DTD) designers")
@@ -223,8 +232,9 @@ export class TextManager {
 	): { text: string; box: BoxModel }[] {
 		if (textToMeasure === '') return []
 
-		const elm = this.baseElm?.cloneNode() as HTMLDivElement
-		this.baseElm.insertAdjacentElement('afterend', elm)
+		const baseElem = this.getBaseElm()
+		const elm = baseElem.cloneNode() as HTMLDivElement
+		baseElem.insertAdjacentElement('afterend', elm)
 
 		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
 		elm.setAttribute('dir', 'auto')
