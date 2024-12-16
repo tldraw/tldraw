@@ -423,6 +423,11 @@
 		display: flex;
 	}
 
+	.user .linkMenu[data-state='open']::after {
+		visibility: visible;
+		background-color: var(--tla-color-hover-2);
+	}
+
 	.linkMenu:hover {
 		color: var(--tla-color-text-1);
 	}
