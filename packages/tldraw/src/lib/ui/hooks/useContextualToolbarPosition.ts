@@ -37,9 +37,11 @@ export function useContextualToolbarPosition({
 }) {
 	const editor = useEditor()
 	const breakpoint = useBreakpoint()
-	const selectionToPageBox = useValue('selectionToPageBox', () => editor.getSelectionToPageBox(), [
-		editor,
-	])
+	const selectionToPageBox = useValue(
+		'selectionToPageBox',
+		() => editor.getSelectionRotatedViewportBounds(),
+		[editor]
+	)
 	const container = editor.getContainer()
 	const isMobile = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const viewportHeight = useViewportHeight()

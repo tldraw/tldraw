@@ -1904,7 +1904,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed getSelectionToPageBox(): Box {
+	@computed getSelectionRotatedViewportBounds(): Box {
 		const selectionBounds = this.getSelectionRotatedPageBounds()
 		const camera = this.getCamera()
 		const pageCoordinates = selectionBounds
